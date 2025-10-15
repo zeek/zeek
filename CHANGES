@@ -1,3 +1,17 @@
+8.1.0-dev.724 | 2025-10-15 16:59:23 -0700
+
+  * Use standard NS_ size constants in DNS_Mgr.cc (Tim Wojtulewicz, Corelight)
+
+  * Add helper method for making TXT DNS requests (Tim Wojtulewicz, Corelight)
+
+  * Convert DNS_Mgr to use ns_t_ constants instead of T_ constants (Tim Wojtulewicz, Corelight)
+
+    This deprecates the two existing constants in favor of the new ones.
+
+  * Update libunistd submodule for nameser.h updates (Tim Wojtulewicz, Corelight)
+
+  * Remove request_type_string helper method from DNS_Mgr (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.718 | 2025-10-15 13:46:49 -0700
 
   * Fixes for cppcoreguidelines-pro-type-cstyle-cast (Benjamin Bannier, Corelight)

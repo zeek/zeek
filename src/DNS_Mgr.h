@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <arpa/nameser.h>
 #include <netdb.h>
 #include <list>
 #include <map>
@@ -18,15 +19,23 @@
 struct ares_channeldata;
 using ares_channel = struct ares_channeldata*;
 
-#ifndef T_PTR
+// Remove in v9.1. These two #ifdef blocks should be removed when the
+// constants are removed below.
+#ifdef T_PTR
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define T_PTR 12
+#undef T_PTR
 #endif
 
-#ifndef T_TXT
+#ifdef T_TXT
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define T_TXT 16
+#undef T_TXT
 #endif
+
+[[deprecated("Remove in v9.1. Use ns_t_ptr from arpa/nameser.h instead.")]]
+constexpr int T_PTR = ns_t_ptr;
+
+[[deprecated("Remove in v9.1. Use ns_t_txt from arpa/nameser.h instead.")]]
+constexpr int T_TXT = ns_t_txt;
 
 namespace zeek {
 class Val;
@@ -174,6 +183,17 @@ public:
      * @param callback A callback object for handling the response.
      */
     void LookupAddr(const IPAddr& addr, LookupCallback* callback);
+
+    /**
+     * Looks up the text entries for a given address. This is a shorthand method for doing
+     * TXT requests. This is an asynchronous request. The response will be handled via the
+     * provided callback object.
+     *
+     * @param name The name or address to make a request for. If this is an
+     * address it should be in arpa format (x.x.x.x.in-addr.arpa or x-*.ip6.arpa).
+     * @param callback A callback object for handling the response.
+     */
+    void LookupText(const std::string& host, LookupCallback* callback) { Lookup(host, ns_t_txt, callback); }
 
     /**
      * Performs a generic request to the DNS server. This is an asynchronous

@@ -26,7 +26,7 @@ DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl) {
     Init(h);
     req_addr = addr;
     req_ttl = ttl;
-    req_type = T_PTR;
+    req_type = ns_t_ptr;
 }
 
 DNS_Mapping::DNS_Mapping(FILE* f) {

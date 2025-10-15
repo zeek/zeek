@@ -30,7 +30,6 @@ using ztd::out_ptr::out_ptr;
 
 #include <ares.h>
 #include <ares_dns.h>
-#include <ares_nameser.h>
 
 #include "zeek/DNS_Mapping.h"
 #include "zeek/Event.h"
@@ -56,70 +55,6 @@ constexpr int MAX_PENDING_REQUESTS = 20;
 // The maximum number of bytes requested via UDP. TCP fallback won't happen on
 // requests until a response is larger than this.
 constexpr int MAX_UDP_BUFFER_SIZE = 4096;
-
-// This unfortunately doesn't exist in c-ares, even though it seems rather useful.
-static const char* request_type_string(int request_type) {
-    switch ( request_type ) {
-        case T_A: return "T_A";
-        case T_NS: return "T_NS";
-        case T_MD: return "T_MD";
-        case T_MF: return "T_MF";
-        case T_CNAME: return "T_CNAME";
-        case T_SOA: return "T_SOA";
-        case T_MB: return "T_MB";
-        case T_MG: return "T_MG";
-        case T_MR: return "T_MR";
-        case T_NULL: return "T_NULL";
-        case T_WKS: return "T_WKS";
-        case T_PTR: return "T_PTR";
-        case T_HINFO: return "T_HINFO";
-        case T_MINFO: return "T_MINFO";
-        case T_MX: return "T_MX";
-        case T_TXT: return "T_TXT";
-        case T_RP: return "T_RP";
-        case T_AFSDB: return "T_AFSDB";
-        case T_X25: return "T_X25";
-        case T_ISDN: return "T_ISDN";
-        case T_RT: return "T_RT";
-        case T_NSAP: return "T_NSAP";
-        case T_NSAP_PTR: return "T_NSAP_PTR";
-        case T_SIG: return "T_SIG";
-        case T_KEY: return "T_KEY";
-        case T_PX: return "T_PX";
-        case T_GPOS: return "T_GPOS";
-        case T_AAAA: return "T_AAAA";
-        case T_LOC: return "T_LOC";
-        case T_NXT: return "T_NXT";
-        case T_EID: return "T_EID";
-        case T_NIMLOC: return "T_NIMLOC";
-        case T_SRV: return "T_SRV";
-        case T_ATMA: return "T_ATMA";
-        case T_NAPTR: return "T_NAPTR";
-        case T_KX: return "T_KX";
-        case T_CERT: return "T_CERT";
-        case T_A6: return "T_A6";
-        case T_DNAME: return "T_DNAME";
-        case T_SINK: return "T_SINK";
-        case T_OPT: return "T_OPT";
-        case T_APL: return "T_APL";
-        case T_DS: return "T_DS";
-        case T_SSHFP: return "T_SSHFP";
-        case T_RRSIG: return "T_RRSIG";
-        case T_NSEC: return "T_NSEC";
-        case T_DNSKEY: return "T_DNSKEY";
-        case T_TKEY: return "T_TKEY";
-        case T_TSIG: return "T_TSIG";
-        case T_IXFR: return "T_IXFR";
-        case T_AXFR: return "T_AXFR";
-        case T_MAILB: return "T_MAILB";
-        case T_MAILA: return "T_MAILA";
-        case T_ANY: return "T_ANY";
-        case T_URI: return "T_URI";
-        case T_CAA: return "T_CAA";
-        case T_MAX: return "T_MAX";
-        default: return "";
-    }
-}
 
 struct ares_deleter {
     void operator()(char* s) const { ares_free_string(s); }
@@ -164,13 +99,13 @@ uint16_t DNS_Request::request_id = 0;
 
 DNS_Request::DNS_Request(std::string host, int request_type, bool async)
     : host(std::move(host)), request_type(request_type), async(async) {
-    // We combine the T_A and T_AAAA requests together in one request, so set the type
-    // to T_A to make things easier in other parts of the code (mostly around lookups).
-    if ( request_type == T_AAAA )
-        request_type = T_A;
+    // We combine the ns_t_a and ns_t_aaaa requests together in one request, so set the type
+    // to ns_t_a to make things easier in other parts of the code (mostly around lookups).
+    if ( request_type == ns_t_aaaa )
+        request_type = ns_t_a;
 }
 
-DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(async) { request_type = T_PTR; }
+DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(async) { request_type = ns_t_ptr; }
 
 void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
     // This needs to get deleted at the end of the callback method.
@@ -183,7 +118,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
     // all of them would be in flight at the same time.
     DNS_Request::request_id++;
 
-    if ( request_type == T_A ) {
+    if ( request_type == ns_t_a ) {
         // For A/AAAA requests, we use a different method than the other requests. Since
         // we're using the AF_UNSPEC family, we get both the ipv4 and ipv6 responses
         // back in the same request if use ares_getaddrinfo() so we can store them both
@@ -193,7 +128,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
     }
     else {
         std::string query_host;
-        if ( request_type == T_PTR )
+        if ( request_type == ns_t_ptr )
             query_host = addr.PtrName();
         else
             query_host = host;
@@ -222,9 +157,9 @@ void DNS_Request::ProcessAsyncResult(bool timed_out, DNS_Mgr* mgr) {
     if ( ! async )
         return;
 
-    if ( request_type == T_A )
+    if ( request_type == ns_t_a )
         mgr->CheckAsyncHostRequest(host, timed_out);
-    else if ( request_type == T_PTR )
+    else if ( request_type == ns_t_ptr )
         mgr->CheckAsyncAddrRequest(addr, timed_out);
     else
         mgr->CheckAsyncOtherRequest(host, timed_out, request_type);
@@ -253,22 +188,22 @@ static int get_ttl(unsigned char* abuf, int alen, int* ttl) {
 
     *ttl = DNS_TIMEOUT;
 
-    unsigned char* aptr = abuf + HFIXEDSZ;
+    unsigned char* aptr = abuf + NS_HFIXEDSZ;
     status = ares_expand_name(aptr, abuf, alen, out_ptr<char*>(hostname), &len);
     if ( status != ARES_SUCCESS )
         return status;
 
-    if ( aptr + len + QFIXEDSZ > abuf + alen )
+    if ( aptr + len + NS_QFIXEDSZ > abuf + alen )
         return ARES_EBADRESP;
 
-    aptr += len + QFIXEDSZ;
+    aptr += len + NS_QFIXEDSZ;
     hostname.reset();
 
     status = ares_expand_name(aptr, abuf, alen, out_ptr<char*>(hostname), &len);
     if ( status != ARES_SUCCESS )
         return status;
 
-    if ( aptr + RRFIXEDSZ > abuf + alen )
+    if ( aptr + NS_RRFIXEDSZ > abuf + alen )
         return ARES_EBADRESP;
 
     aptr += len;
@@ -614,7 +549,7 @@ static TableValPtr fake_name_lookup_result(const std::string& name) {
 }
 
 static std::string fake_lookup_result(const std::string& name, int request_type) {
-    return util::fmt("fake_lookup_result_%s_%s", request_type_string(request_type), name.c_str());
+    return util::fmt("fake_lookup_result_%d_%s", request_type, name.c_str());
 }
 
 static std::string fake_addr_lookup_result(const IPAddr& addr) {
@@ -635,7 +570,7 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type) {
     if ( shutting_down )
         return nullptr;
 
-    if ( request_type == T_A || request_type == T_AAAA )
+    if ( request_type == ns_t_a || request_type == ns_t_aaaa )
         return LookupHost(name);
 
     if ( mode == DNS_FAKE )
@@ -656,8 +591,7 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type) {
         }
 
         case DNS_FORCE:
-            reporter->FatalError("can't find DNS entry for %s (req type %d / %s) in cache", name.c_str(), request_type,
-                                 request_type_string(request_type));
+            reporter->FatalError("can't find DNS entry for %s (req type %d) in cache", name.c_str(), request_type);
             return nullptr;
 
         case DNS_DEFAULT: {
@@ -693,9 +627,9 @@ TableValPtr DNS_Mgr::LookupHost(const std::string& name) {
     // Not found, or priming.
     switch ( mode ) {
         case DNS_PRIME: {
-            // We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
-            // a request that gets both T_A and T_AAAA results at one time.
-            auto req = new DNS_Request(name, T_A);
+            // We pass ns_t_a here, but DNSRequest::MakeRequest() will special-case that in
+            // a request that gets both ns_t_a and ns_t_aaaa results at one time.
+            auto req = new DNS_Request(name, ns_t_a);
             req->MakeRequest(channel, this);
             return empty_addr_set();
         }
@@ -703,9 +637,9 @@ TableValPtr DNS_Mgr::LookupHost(const std::string& name) {
         case DNS_FORCE: reporter->FatalError("can't find DNS entry for %s in cache", name.c_str()); return nullptr;
 
         case DNS_DEFAULT: {
-            // We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
-            // a request that gets both T_A and T_AAAA results at one time.
-            auto req = new DNS_Request(name, T_A);
+            // We pass ns_t_a here, but DNSRequest::MakeRequest() will special-case that in
+            // a request that gets both ns_t_a and ns_t_aaaa results at one time.
+            auto req = new DNS_Request(name, ns_t_a);
             req->MakeRequest(channel, this);
             Resolve();
 
@@ -777,13 +711,13 @@ void DNS_Mgr::LookupHost(const std::string& name, LookupCallback* callback) {
     // If we already have a request waiting for this host, we don't need to make
     // another one. We can just add the callback to it and it'll get handled
     // when the first request comes back.
-    auto key = std::make_pair(T_A, name);
+    auto key = std::make_pair(ns_t_a, name);
     auto i = asyncs.find(key);
     if ( i != asyncs.end() )
         req = i->second;
     else {
         // A new one.
-        req = new AsyncRequest{name, T_A};
+        req = new AsyncRequest{name, ns_t_a};
         asyncs_queued.push_back(req);
         asyncs.emplace_hint(i, std::move(key), req);
     }
@@ -964,7 +898,7 @@ void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool m
     bool keep_prev = true;
 
     MappingMap::iterator it;
-    if ( dr->RequestType() == T_PTR ) {
+    if ( dr->RequestType() == ns_t_ptr ) {
         new_mapping = std::make_shared<DNS_Mapping>(dr->Addr(), h, ttl);
         it = all_mappings.find(dr->Addr());
         if ( it == all_mappings.end() ) {
@@ -1124,7 +1058,7 @@ void DNS_Mgr::Save(FILE* f, const MappingMap& m) {
 }
 
 TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_expired, bool check_failed) {
-    auto it = all_mappings.find(std::make_pair(T_A, name));
+    auto it = all_mappings.find(std::make_pair(ns_t_a, name));
     if ( it == all_mappings.end() )
         return nullptr;
 
@@ -1208,12 +1142,12 @@ void DNS_Mgr::IssueAsyncRequests() {
         num_requests_metric->Inc();
         req->time = util::current_time();
 
-        if ( req->type == T_PTR )
+        if ( req->type == ns_t_ptr )
             dns_req = new DNS_Request(req->addr, true);
-        else if ( req->type == T_A || req->type == T_AAAA )
-            // We pass T_A here, but DNSRequest::MakeRequest() will special-case that in
-            // a request that gets both T_A and T_AAAA results at one time.
-            dns_req = new DNS_Request(req->host.c_str(), T_A, true);
+        else if ( req->type == ns_t_a || req->type == ns_t_aaaa )
+            // We pass ns_t_a here, but DNSRequest::MakeRequest() will special-case that in
+            // a request that gets both ns_t_a and ns_t_aaaa results at one time.
+            dns_req = new DNS_Request(req->host.c_str(), ns_t_a, true);
         else
             dns_req = new DNS_Request(req->host.c_str(), req->type, true);
 
@@ -1226,7 +1160,7 @@ void DNS_Mgr::IssueAsyncRequests() {
 
 void DNS_Mgr::CheckAsyncHostRequest(const std::string& host, bool timeout) {
     // Note that this code is a mirror of that for CheckAsyncAddrRequest.
-    auto i = asyncs.find(std::make_pair(T_A, host));
+    auto i = asyncs.find(std::make_pair(ns_t_a, host));
 
     if ( i != asyncs.end() ) {
         if ( timeout ) {
@@ -1349,9 +1283,9 @@ void DNS_Mgr::UpdateCachedStats(bool force) {
         last_cached_stats.total = all_mappings.size();
 
         for ( const auto& [key, mapping] : all_mappings ) {
-            if ( mapping->ReqType() == T_PTR )
+            if ( mapping->ReqType() == ns_t_ptr )
                 last_cached_stats.addresses++;
-            else if ( mapping->ReqType() == T_A )
+            else if ( mapping->ReqType() == ns_t_a )
                 last_cached_stats.hosts++;
             else
                 last_cached_stats.texts++;
@@ -1414,7 +1348,7 @@ TableValPtr DNS_Mgr::empty_addr_set() {
     return make_intrusive<TableVal>(std::move(s));
 }
 
-DNS_Mgr::AsyncRequest::AsyncRequest(const IPAddr& addr) : addr(addr), type(T_PTR) {}
+DNS_Mgr::AsyncRequest::AsyncRequest(const IPAddr& addr) : addr(addr), type(ns_t_ptr) {}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1649,7 +1583,7 @@ TEST_CASE("dns_mgr async text" * doctest::skip(true)) {
     mgr.InitPostScript();
 
     TestCallback cb{};
-    mgr.Lookup("unittest.zeek.org", T_TXT, &cb);
+    mgr.Lookup("unittest.zeek.org", ns_t_txt, &cb);
 
     // This shouldn't take any longer than DNS_TIMEOUT +1 seconds, so bound it
     // just in case of some failure we're not aware of yet.
@@ -1704,7 +1638,7 @@ TEST_CASE("dns_mgr async timeouts" * doctest::skip(true)) {
     mgr.InitPostScript();
 
     TestCallback cb{};
-    mgr.Lookup("unittest.zeek.org", T_TXT, &cb);
+    mgr.Lookup("unittest.zeek.org", ns_t_txt, &cb);
 
     // This shouldn't take any longer than DNS_TIMEOUT +1 seconds, so bound it
     // just in case of some failure we're not aware of yet.

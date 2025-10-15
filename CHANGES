@@ -1,3 +1,9 @@
+8.0.2-15 | 2025-10-15 15:36:41 +0000
+
+  * Revert "CI: Pin to python 3.13 on macOS" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 07e5ad1f8c62e2c87bde7a4695c4a0ee1ebfed9c.
+
 8.0.2-14 | 2025-10-15 15:36:05 +0000
 
   * GH-4883: btest/broker: Use asyncio.run() in websocket tests (Arne Welzel, Corelight)

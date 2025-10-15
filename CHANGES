@@ -1,3 +1,16 @@
+8.1.0-dev.702 | 2025-10-15 12:24:15 +0200
+
+  * broker: Make MakeHub() filter_type to empty, adapt WebSocketShim (Arne Welzel, Corelight)
+
+    ... also removes handling for topics that are never subscribed to anymore.
+
+  * btest/cluster/broker: WebSocket clients see peering errors (Arne Welzel, Corelight)
+
+  * btest/wstest: Improve hello_v1() and recv_until_timeout() (Arne Welzel, Corelight)
+
+    Mostly, output more and helpful information and fix termination
+    condition in recv_until_timeout().
+
 8.1.0-dev.698 | 2025-10-14 22:27:03 +0200
 
   * ZAM: Fix memory leak in Construct-Known-Record-With-Inits (Arne Welzel, Corelight)

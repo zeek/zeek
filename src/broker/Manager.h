@@ -455,7 +455,7 @@ private:
     friend class WebSocketState;
 
     // Create a hub for WebSocket clients.
-    broker::hub MakeHub(broker::filter_type ft);
+    broker::hub MakeHub();
 
     // This hub is to be destroyed.
     void DestroyHub(broker::hub&& hub);

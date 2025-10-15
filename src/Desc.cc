@@ -24,7 +24,7 @@ ODesc::ODesc(DescType t, File* arg_f) {
     if ( f == nullptr ) {
         size = DEFAULT_SIZE;
         base = util::safe_malloc(size);
-        ((char*)base)[0] = '\0';
+        (reinterpret_cast<char*>(base))[0] = '\0';
         offset = 0;
     }
     else {
@@ -76,7 +76,7 @@ void ODesc::PopIndentNoNL() {
 void ODesc::Add(const char* s, int do_indent) {
     size_t n = strlen(s);
 
-    if ( do_indent && IsReadable() && offset > 0 && ((const char*)base)[offset - 1] == '\n' )
+    if ( do_indent && IsReadable() && offset > 0 && (reinterpret_cast<const char*>(base))[offset - 1] == '\n' )
         Indent();
 
     if ( IsBinary() )
@@ -241,8 +241,8 @@ void ODesc::AddBytes(const void* bytes, size_t n) {
         return;
     }
 
-    const char* s = (const char*)bytes;
-    const char* e = (const char*)bytes + n;
+    const char* s = reinterpret_cast<const char*>(bytes);
+    const char* e = reinterpret_cast<const char*>(bytes) + n;
 
     while ( s < e ) {
         auto [esc_start, esc_len] = FirstEscapeLoc(s, e - s);
@@ -278,7 +278,7 @@ void ODesc::AddBytesRaw(const void* bytes, size_t n) {
     if ( f ) {
         static bool write_failed = false;
 
-        if ( ! f->Write((const char*)bytes, n) ) {
+        if ( ! f->Write(reinterpret_cast<const char*>(bytes), n) ) {
             if ( ! write_failed )
                 // Most likely it's a "disk full" so report
                 // subsequent failures only once.
@@ -297,10 +297,10 @@ void ODesc::AddBytesRaw(const void* bytes, size_t n) {
         // The following casting contortions are necessary because
         // simply using &base[offset] generates complaints about
         // using a void* for pointer arithmetic.
-        memcpy((void*)&((char*)base)[offset], bytes, n);
+        memcpy((void*)&(reinterpret_cast<char*>(base))[offset], bytes, n);
         offset += n;
 
-        ((char*)base)[offset] = '\0'; // ensure that always NUL-term.
+        (reinterpret_cast<char*>(base))[offset] = '\0'; // ensure that always NUL-term.
     }
 }
 
@@ -324,7 +324,7 @@ void ODesc::Clear() {
         free(base);
         size = DEFAULT_SIZE;
         base = util::safe_malloc(size);
-        ((char*)base)[0] = '\0';
+        (reinterpret_cast<char*>(base))[0] = '\0';
     }
 }
 

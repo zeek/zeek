@@ -66,7 +66,7 @@ uint16_t detail::ip6_in_cksum(const IPAddr& src, const IPAddr& dst, uint8_t next
 
 // Returns the ones-complement checksum of a chunk of 'b' bytes.
 int ones_complement_checksum(const void* p, int b, uint32_t sum) {
-    const unsigned char* sp = (unsigned char*)p;
+    const unsigned char* sp = reinterpret_cast<const unsigned char*>(p);
 
     b /= 2; // convert to count of short's
 

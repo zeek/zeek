@@ -17,13 +17,13 @@ using zeek::threading::Value;
 namespace zeek::input::reader::detail {
 
 SQLite::SQLite(ReaderFrontend* frontend) : ReaderBackend(frontend) {
-    set_separator.assign((const char*)BifConst::LogSQLite::set_separator->Bytes(),
+    set_separator.assign(reinterpret_cast<const char*>(BifConst::LogSQLite::set_separator->Bytes()),
                          BifConst::InputSQLite::set_separator->Len());
 
-    unset_field.assign((const char*)BifConst::LogSQLite::unset_field->Bytes(),
+    unset_field.assign(reinterpret_cast<const char*>(BifConst::LogSQLite::unset_field->Bytes()),
                        BifConst::InputSQLite::unset_field->Len());
 
-    empty_field.assign((const char*)BifConst::LogAscii::empty_field->Bytes(),
+    empty_field.assign(reinterpret_cast<const char*>(BifConst::LogAscii::empty_field->Bytes()),
                        BifConst::InputSQLite::empty_field->Len());
 
     io = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo(std::string(), set_separator,
@@ -107,7 +107,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
     switch ( field->type ) {
         case TYPE_ENUM:
         case TYPE_STRING: {
-            const char* text = (const char*)sqlite3_column_text(st, pos);
+            const char* text = reinterpret_cast<const char*>(sqlite3_column_text(st, pos));
             int length = sqlite3_column_bytes(st, pos);
 
             char* out = new char[length];
@@ -149,7 +149,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
             val->val.port_val.port = sqlite3_column_int(st, pos);
             val->val.port_val.proto = TRANSPORT_UNKNOWN;
             if ( subpos != -1 ) {
-                const char* text = (const char*)sqlite3_column_text(st, subpos);
+                const char* text = reinterpret_cast<const char*>(sqlite3_column_text(st, subpos));
 
                 if ( text == nullptr )
                     Error("Port protocol definition did not contain text");
@@ -162,7 +162,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
         }
 
         case TYPE_SUBNET: {
-            const char* text = (const char*)sqlite3_column_text(st, pos);
+            const char* text = reinterpret_cast<const char*>(sqlite3_column_text(st, pos));
             std::string s(text, sqlite3_column_bytes(st, pos));
             size_t slash_pos = s.find('/');
             int width = atoi(s.substr(slash_pos + 1).c_str());
@@ -174,7 +174,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
         }
 
         case TYPE_ADDR: {
-            const char* text = (const char*)sqlite3_column_text(st, pos);
+            const char* text = reinterpret_cast<const char*>(sqlite3_column_text(st, pos));
             std::string s(text, sqlite3_column_bytes(st, pos));
             val->val.addr_val = io->ParseAddr(s);
             break;
@@ -182,7 +182,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
 
         case TYPE_TABLE:
         case TYPE_VECTOR: {
-            const char* text = (const char*)sqlite3_column_text(st, pos);
+            const char* text = reinterpret_cast<const char*>(sqlite3_column_text(st, pos));
             std::string s(text, sqlite3_column_bytes(st, pos));
             delete val;
             val = io->ParseValue(s, "", field->type, field->subtype);

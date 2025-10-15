@@ -41,7 +41,7 @@ Raw::Raw(ReaderFrontend* frontend) : ReaderBackend(frontend), file(nullptr, fclo
     dev = 0;
     forcekill = false;
     offset = 0;
-    separator.assign((const char*)BifConst::InputRaw::record_separator->Bytes(),
+    separator.assign(reinterpret_cast<const char*>(BifConst::InputRaw::record_separator->Bytes()),
                      BifConst::InputRaw::record_separator->Len());
 
     sep_length = BifConst::InputRaw::record_separator->Len();

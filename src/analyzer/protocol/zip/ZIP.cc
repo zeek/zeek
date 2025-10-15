@@ -48,7 +48,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 
     int allow_restart = 1;
 
-    zip->next_in = (Bytef*)data;
+    zip->next_in = reinterpret_cast<Bytef*>(const_cast<u_char*>(data));
     zip->avail_in = len;
 
     auto orig_next_in = zip->next_in;

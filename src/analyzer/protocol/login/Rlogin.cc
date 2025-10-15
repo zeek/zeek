@@ -57,17 +57,17 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data) {
                 buf[offset++] = c;
                 if ( c == '\0' ) {
                     if ( state == RLOGIN_CLIENT_USER_NAME ) {
-                        analyzer->ClientUserName((const char*)buf);
+                        analyzer->ClientUserName(reinterpret_cast<const char*>(buf));
                         state = RLOGIN_SERVER_USER_NAME;
                     }
 
                     else if ( state == RLOGIN_SERVER_USER_NAME ) {
-                        analyzer->ServerUserName((const char*)buf);
+                        analyzer->ServerUserName(reinterpret_cast<const char*>(buf));
                         state = RLOGIN_TERMINAL_TYPE;
                     }
 
                     else if ( state == RLOGIN_TERMINAL_TYPE ) {
-                        analyzer->TerminalType((const char*)buf);
+                        analyzer->TerminalType(reinterpret_cast<const char*>(buf));
                         state = RLOGIN_LINE_MODE;
                     }
 

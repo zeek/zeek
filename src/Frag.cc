@@ -67,7 +67,8 @@ void FragReassembler::AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, c
     const struct ip* ip4 = ip->IP4_Hdr();
 
     if ( ip4 ) {
-        if ( ip4->ip_p != ((const struct ip*)proto_hdr)->ip_p || ip4->ip_hl != ((const struct ip*)proto_hdr)->ip_hl )
+        if ( ip4->ip_p != (reinterpret_cast<const struct ip*>(proto_hdr))->ip_p ||
+             ip4->ip_hl != (reinterpret_cast<const struct ip*>(proto_hdr))->ip_hl )
             // || ip4->ip_tos != proto_hdr->ip_tos
             // don't check TOS, there's at least one stack that actually
             // uses different values, and it's hard to see an associated
@@ -139,15 +140,15 @@ void FragReassembler::AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, c
 }
 
 void FragReassembler::Weird(const char* name) const {
-    unsigned int version = ((const ip*)proto_hdr)->ip_v;
+    unsigned int version = (reinterpret_cast<const ip*>(proto_hdr))->ip_v;
 
     if ( version == 4 ) {
-        IP_Hdr hdr((const ip*)proto_hdr, false);
+        IP_Hdr hdr(reinterpret_cast<const ip*>(proto_hdr), false);
         s->Weird(name, &hdr);
     }
 
     else if ( version == 6 ) {
-        IP_Hdr hdr((const ip6_hdr*)proto_hdr, false, proto_hdr_len);
+        IP_Hdr hdr(reinterpret_cast<const ip6_hdr*>(proto_hdr), false, proto_hdr_len);
         s->Weird(name, &hdr);
     }
 
@@ -256,17 +257,17 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */) {
 
     reassembled_pkt.reset();
 
-    unsigned int version = ((const struct ip*)pkt_start)->ip_v;
+    unsigned int version = (reinterpret_cast<const ip*>(pkt_start))->ip_v;
 
     if ( version == 4 ) {
-        struct ip* reassem4 = (struct ip*)pkt_start;
+        struct ip* reassem4 = reinterpret_cast<ip*>(pkt_start);
         reassem4->ip_len = htons(frag_size + proto_hdr_len);
         reassembled_pkt = std::make_shared<IP_Hdr>(reassem4, true, true);
         DeleteTimer();
     }
 
     else if ( version == 6 ) {
-        struct ip6_hdr* reassem6 = (struct ip6_hdr*)pkt_start;
+        struct ip6_hdr* reassem6 = reinterpret_cast<ip6_hdr*>(pkt_start);
         reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
         const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
         reassembled_pkt = std::make_shared<IP_Hdr>(reassem6, true, n, chain, true);

@@ -19,7 +19,7 @@ void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     int n = std::min(len, BUFFER_SIZE - buffer_len);
 
     if ( n ) {
-        memcpy(buffer + buffer_len, (const char*)data, n);
+        memcpy(buffer + buffer_len, reinterpret_cast<const char*>(data), n);
         buffer_len += n;
 
         if ( buffer_len == BUFFER_SIZE )

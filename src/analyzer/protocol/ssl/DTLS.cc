@@ -54,8 +54,8 @@ void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, ui
         // the parser inspects a uint24_t - since it is big-endian, it should be ok to just skip
         // the first byte of the uint32_t. Since we get the data from an uint24_t from the
         // dtls-parser, this should always yield the correct result.
-        handshake_interp->NewData(orig, (const unsigned char*)&host_length + 1,
-                                  (const unsigned char*)&host_length + sizeof(host_length));
+        handshake_interp->NewData(orig, reinterpret_cast<const unsigned char*>(&host_length) + 1,
+                                  reinterpret_cast<const unsigned char*>(&host_length) + sizeof(host_length));
         handshake_interp->NewData(orig, begin, end);
     } catch ( const binpac::Exception& e ) {
         AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));

@@ -16,8 +16,8 @@ refine connection SMB_Conn += {
 	args->Assign(7, ${val.data_displacement});
 	args->Assign(8, ${val.FID});
 
-	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(), (const char*)${val.parameters}.data());
-	auto payload = zeek::make_intrusive<zeek::StringVal>(${val.data}.length(), (const char*)${val.data}.data());
+	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(), reinterpret_cast<const char*>(${val.parameters}.data()));
+	auto payload = zeek::make_intrusive<zeek::StringVal>(${val.data}.length(), reinterpret_cast<const char*>(${val.data}.data()));
 
 	zeek::BifEvent::enqueue_smb1_transaction2_secondary_request(zeek_analyzer(),
 	                                                      zeek_analyzer()->Conn(),

@@ -33,7 +33,7 @@ bool ICMPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, 
     if ( ! CheckHeaderTrunc(ICMP_MINLEN, len, packet) )
         return false;
 
-    const struct icmp* icmpp = (const struct icmp*)data;
+    const struct icmp* icmpp = reinterpret_cast<const icmp*>(data);
 
     uint32_t icmp_counter_type = 0;
     bool is_one_way = false;
@@ -64,7 +64,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     if ( packet_contents && len > 0 )
         adapter->PacketContents(data + 8, std::min(len, remaining) - 8);
 
-    const struct icmp* icmpp = (const struct icmp*)data;
+    const struct icmp* icmpp = reinterpret_cast<const icmp*>(data);
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
     if ( ! zeek::detail::ignore_checksums && ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
@@ -206,9 +206,9 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
     bool ip4 = ip_hdr->IP4_Hdr();
 
     if ( ip4 )
-        transport_hdr = ((u_char*)ip_hdr->IP4_Hdr() + ip_hdr_len);
+        transport_hdr = (reinterpret_cast<const u_char*>(ip_hdr->IP4_Hdr()) + ip_hdr_len);
     else
-        transport_hdr = ((u_char*)ip_hdr->IP6_Hdr() + ip_hdr_len);
+        transport_hdr = (reinterpret_cast<const u_char*>(ip_hdr->IP6_Hdr()) + ip_hdr_len);
 
     TransportProto proto;
 
@@ -222,7 +222,7 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
 
     switch ( proto ) {
         case TRANSPORT_ICMP: {
-            const struct icmp* icmpp = (const struct icmp*)transport_hdr;
+            const struct icmp* icmpp = reinterpret_cast<const icmp*>(transport_hdr);
             bool is_one_way; // dummy
             *src_port = ntohs(icmpp->icmp_type);
 
@@ -235,14 +235,14 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
         }
 
         case TRANSPORT_TCP: {
-            const struct tcphdr* tp = (const struct tcphdr*)transport_hdr;
+            const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(transport_hdr);
             *src_port = ntohs(tp->th_sport);
             *dst_port = ntohs(tp->th_dport);
             break;
         }
 
         case TRANSPORT_UDP: {
-            const struct udphdr* up = (const struct udphdr*)transport_hdr;
+            const struct udphdr* up = reinterpret_cast<const udphdr*>(transport_hdr);
             *src_port = ntohs(up->uh_sport);
             *dst_port = ntohs(up->uh_dport);
             break;
@@ -277,7 +277,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
     }
 
     else {
-        const IP_Hdr ip_hdr_data((const struct ip*)data, false);
+        const IP_Hdr ip_hdr_data(reinterpret_cast<const ip*>(data), false);
         const IP_Hdr* ip_hdr = &ip_hdr_data;
         uint32_t ip_hdr_len = ip_hdr->HdrLen();
         bad_hdr_len = (ip_hdr_len > static_cast<uint32_t>(len));
@@ -349,7 +349,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP6Context(int len, const u_char*& dat
         src_port = dst_port = 0;
     }
     else {
-        const IP_Hdr ip_hdr_data((const struct ip6_hdr*)data, false, len);
+        const IP_Hdr ip_hdr_data(reinterpret_cast<const ip6_hdr*>(data), false, len);
         const IP_Hdr* ip_hdr = &ip_hdr_data;
 
         ip_len = ip_hdr->TotalLen();
@@ -456,7 +456,7 @@ void ICMPAnalyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len, i
     IPAddr tgtaddr;
 
     if ( caplen >= (int)sizeof(in6_addr) )
-        tgtaddr = IPAddr(*((const in6_addr*)data));
+        tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     int opt_offset = sizeof(in6_addr);
 
@@ -478,7 +478,7 @@ void ICMPAnalyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len, 
     IPAddr tgtaddr;
 
     if ( caplen >= (int)sizeof(in6_addr) )
-        tgtaddr = IPAddr(*((const in6_addr*)data));
+        tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     int opt_offset = sizeof(in6_addr);
 
@@ -498,10 +498,10 @@ void ICMPAnalyzer::Redirect(double t, const struct icmp* icmpp, int len, int cap
     IPAddr dstaddr;
 
     if ( caplen >= (int)sizeof(in6_addr) )
-        tgtaddr = IPAddr(*((const in6_addr*)data));
+        tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     if ( caplen >= 2 * (int)sizeof(in6_addr) )
-        dstaddr = IPAddr(*((const in6_addr*)(data + sizeof(in6_addr))));
+        dstaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data + sizeof(in6_addr)));
 
     int opt_offset = 2 * sizeof(in6_addr);
 
@@ -611,12 +611,12 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
                 {
                     if ( caplen >= 30 ) {
                         auto info = make_intrusive<zeek::RecordVal>(icmp6_nd_prefix_info_type);
-                        uint8_t prefix_len = *((const uint8_t*)(data));
-                        bool L_flag = (*((const uint8_t*)(data + 1)) & 0x80) != 0;
-                        bool A_flag = (*((const uint8_t*)(data + 1)) & 0x40) != 0;
-                        uint32_t valid_life = *((const uint32_t*)(data + 2));
-                        uint32_t prefer_life = *((const uint32_t*)(data + 6));
-                        in6_addr prefix = *((const in6_addr*)(data + 14));
+                        uint8_t prefix_len = *reinterpret_cast<const uint8_t*>(data);
+                        bool L_flag = (*reinterpret_cast<const uint8_t*>(data + 1) & 0x80) != 0;
+                        bool A_flag = (*reinterpret_cast<const uint8_t*>(data + 1) & 0x40) != 0;
+                        uint32_t valid_life = *reinterpret_cast<const uint32_t*>(data + 2);
+                        uint32_t prefer_life = *reinterpret_cast<const uint32_t*>(data + 6);
+                        in6_addr prefix = *reinterpret_cast<const in6_addr*>(data + 14);
                         info->Assign(0, val_mgr->Count(prefix_len));
                         info->Assign(1, val_mgr->Bool(L_flag));
                         info->Assign(2, val_mgr->Bool(A_flag));
@@ -649,7 +649,7 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
                 // MTU option
                 {
                     if ( caplen >= 6 )
-                        rv->Assign(5, val_mgr->Count(ntohl(*((const uint32_t*)(data + 2)))));
+                        rv->Assign(5, val_mgr->Count(ntohl(*reinterpret_cast<const uint32_t*>(data + 2))));
                     else
                         set_payload_field = true;
 

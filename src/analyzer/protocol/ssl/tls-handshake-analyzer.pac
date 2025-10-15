@@ -76,7 +76,7 @@ refine connection Handshake_Conn += {
 			zeek::BifEvent::enqueue_ssl_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
 							version, record_version(), ts,
 							zeek::make_intrusive<zeek::StringVal>(client_random.length(),
-							                                      (const char*) client_random.data()),
+							                                      reinterpret_cast<const char*>(client_random.data())),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
 							std::move(cipher_vec), std::move(comp_vec));
 			}
@@ -109,14 +109,14 @@ refine connection Handshake_Conn += {
 
 			uint32 ts = 0;
 			if ( v2 == 0 && server_random.length() >= 4 )
-				ts = ntohl(*((uint32*)server_random.data()));
+				ts = ntohl(*(reinterpret_cast<uint32*>(server_random.data())));
 
 			set_server_random(server_random);
 			zeek::BifEvent::enqueue_ssl_server_hello(zeek_analyzer(),
 							zeek_analyzer()->Conn(),
 							version, record_version(), ts,
 							zeek::make_intrusive<zeek::StringVal>(server_random.length(),
-							                                      (const char*) server_random.data()),
+							                                      reinterpret_cast<const char*>(server_random.data())),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
 							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
 
@@ -133,7 +133,7 @@ refine connection Handshake_Conn += {
 			zeek::BifEvent::enqueue_ssl_session_ticket_handshake(zeek_analyzer(),
 							zeek_analyzer()->Conn(),
 							${rec.ticket_lifetime_hint},
-							zeek::make_intrusive<zeek::StringVal>(${rec.data}.length(), (const char*) ${rec.data}.data()));
+							zeek::make_intrusive<zeek::StringVal>(${rec.data}.length(), reinterpret_cast<const char*>(${rec.data}.data())));
 			}
 		return true;
 		%}
@@ -279,7 +279,7 @@ refine connection Handshake_Conn += {
 		if ( protocols )
 			{
 			for ( unsigned int i = 0; i < protocols->size(); ++i )
-				plist->Assign(i, zeek::make_intrusive<zeek::StringVal>((*protocols)[i]->name().length(), (const char*) (*protocols)[i]->name().data()));
+				plist->Assign(i, zeek::make_intrusive<zeek::StringVal>((*protocols)[i]->name().length(), reinterpret_cast<const char*>((*protocols)[i]->name().data())));
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_application_layer_protocol_negotiation(zeek_analyzer(), zeek_analyzer()->Conn(),
@@ -304,7 +304,7 @@ refine connection Handshake_Conn += {
 					}
 
 				if ( servername->host_name() )
-					servers->Assign(j++, zeek::make_intrusive<zeek::StringVal>(servername->host_name()->host_name().length(), (const char*) servername->host_name()->host_name().data()));
+					servers->Assign(j++, zeek::make_intrusive<zeek::StringVal>(servername->host_name()->host_name().length(), reinterpret_cast<const char*>(servername->host_name()->host_name().data())));
 				else
 					zeek_analyzer()->Weird("Empty server_name extension in ssl connection");
 				}
@@ -412,7 +412,7 @@ refine connection Handshake_Conn += {
 				zeek::BifEvent::enqueue_ssl_stapled_ocsp(zeek_analyzer(),
 				        zeek_analyzer()->Conn(),
 				        ${rec.is_orig} ^ flipped_,
-				        zeek::make_intrusive<zeek::StringVal>(response.length(), (const char*) response.data()));
+				        zeek::make_intrusive<zeek::StringVal>(response.length(), reinterpret_cast<const char*>(response.data())));
 
 			zeek::file_mgr->EndOfFile(file_id);
 			}
@@ -433,7 +433,7 @@ refine connection Handshake_Conn += {
 			zeek::BifEvent::enqueue_ssl_ecdh_server_params(zeek_analyzer(),
 			                                         zeek_analyzer()->Conn(),
 			                                         ${kex.params.curve},
-			                                         zeek::make_intrusive<zeek::StringVal>(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
+			                                         zeek::make_intrusive<zeek::StringVal>(${kex.params.point}.length(), reinterpret_cast<const char*>(${kex.params.point}.data())));
 
 		if ( ssl_server_signature )
 			{
@@ -454,7 +454,7 @@ refine connection Handshake_Conn += {
 			zeek::BifEvent::enqueue_ssl_server_signature(zeek_analyzer(),
 			                                       zeek_analyzer()->Conn(),
 			                                       std::move(ha),
-			                                       zeek::make_intrusive<zeek::StringVal>(${kex.signed_params.signature}.length(), (const char*)(${kex.signed_params.signature}).data()));
+			                                       zeek::make_intrusive<zeek::StringVal>(${kex.signed_params.signature}.length(), reinterpret_cast<const char*>(${kex.signed_params.signature}.data())));
 			}
 
 		return true;
@@ -469,7 +469,7 @@ refine connection Handshake_Conn += {
 			zeek::BifEvent::enqueue_ssl_ecdh_server_params(zeek_analyzer(),
 			                                         zeek_analyzer()->Conn(),
 			                                         ${kex.params.curve},
-			                                         zeek::make_intrusive<zeek::StringVal>(${kex.params.point}.length(), (const char*)${kex.params.point}.data()));
+			                                         zeek::make_intrusive<zeek::StringVal>(${kex.params.point}.length(), reinterpret_cast<const char*>(${kex.params.point}.data())));
 
 		return true;
 		%}
@@ -479,7 +479,7 @@ refine connection Handshake_Conn += {
 		if ( ssl_rsa_client_pms )
 			zeek::BifEvent::enqueue_ssl_rsa_client_pms(zeek_analyzer(),
 			                                     zeek_analyzer()->Conn(),
-			                                     zeek::make_intrusive<zeek::StringVal>(rsa_pms.length(), (const char*)rsa_pms.data()));
+			                                     zeek::make_intrusive<zeek::StringVal>(rsa_pms.length(), reinterpret_cast<const char*>(rsa_pms.data())));
 
 		return true;
 		%}
@@ -489,7 +489,7 @@ refine connection Handshake_Conn += {
 		if ( ssl_dh_client_params )
 			zeek::BifEvent::enqueue_ssl_dh_client_params(zeek_analyzer(),
 			                                       zeek_analyzer()->Conn(),
-			                                       zeek::make_intrusive<zeek::StringVal>(Yc.length(), (const char*)Yc.data()));
+			                                       zeek::make_intrusive<zeek::StringVal>(Yc.length(), reinterpret_cast<const char*>(Yc.data())));
 
 		return true;
 		%}
@@ -499,7 +499,7 @@ refine connection Handshake_Conn += {
 		if ( ssl_ecdh_client_params )
 			zeek::BifEvent::enqueue_ssl_ecdh_client_params(zeek_analyzer(),
 			                                         zeek_analyzer()->Conn(),
-			                                         zeek::make_intrusive<zeek::StringVal>(point.length(), (const char*)point.data()));
+			                                         zeek::make_intrusive<zeek::StringVal>(point.length(), reinterpret_cast<const char*>(point.data())));
 
 		return true;
 		%}
@@ -530,9 +530,9 @@ refine connection Handshake_Conn += {
 		if ( ssl_ecdh_server_params )
 			zeek::BifEvent::enqueue_ssl_dh_server_params(zeek_analyzer(),
 			  zeek_analyzer()->Conn(),
-			  zeek::make_intrusive<zeek::StringVal>(p.length(), (const char*) p.data()),
-			  zeek::make_intrusive<zeek::StringVal>(g.length(), (const char*) g.data()),
-			  zeek::make_intrusive<zeek::StringVal>(Ys.length(), (const char*) Ys.data())
+			  zeek::make_intrusive<zeek::StringVal>(p.length(), reinterpret_cast<const char*>(p.data())),
+			  zeek::make_intrusive<zeek::StringVal>(g.length(), reinterpret_cast<const char*>(g.data())),
+			  zeek::make_intrusive<zeek::StringVal>(Ys.length(), reinterpret_cast<const char*>(Ys.data()))
 			  );
 
 		if ( ssl_server_signature )
@@ -553,7 +553,7 @@ refine connection Handshake_Conn += {
 
 			zeek::BifEvent::enqueue_ssl_server_signature(zeek_analyzer(),
 			  zeek_analyzer()->Conn(), std::move(ha),
-			  zeek::make_intrusive<zeek::StringVal>(${signed_params.signature}.length(), (const char*)(${signed_params.signature}).data())
+			  zeek::make_intrusive<zeek::StringVal>(${signed_params.signature}.length(), reinterpret_cast<const char*>(${signed_params.signature}.data()))
 			  );
 			}
 
@@ -565,9 +565,9 @@ refine connection Handshake_Conn += {
 		if ( ssl_dh_server_params )
 			zeek::BifEvent::enqueue_ssl_dh_server_params(zeek_analyzer(),
 			  zeek_analyzer()->Conn(),
-			  zeek::make_intrusive<zeek::StringVal>(p.length(), (const char*) p.data()),
-			  zeek::make_intrusive<zeek::StringVal>(g.length(), (const char*) g.data()),
-			  zeek::make_intrusive<zeek::StringVal>(Ys.length(), (const char*) Ys.data())
+			  zeek::make_intrusive<zeek::StringVal>(p.length(), reinterpret_cast<const char*>(p.data())),
+			  zeek::make_intrusive<zeek::StringVal>(g.length(), reinterpret_cast<const char*>(g.data())),
+			  zeek::make_intrusive<zeek::StringVal>(Ys.length(), reinterpret_cast<const char*>(Ys.data()))
 			  );
 
 		return true;
@@ -594,7 +594,7 @@ refine connection Handshake_Conn += {
 			for ( auto&& identity : *(identities->identities()) )
 				{
 				auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::PSKIdentity);
-				el->Assign(0, zeek::make_intrusive<zeek::StringVal>(identity->identity().length(), (const char*) identity->identity().data()));
+				el->Assign(0, zeek::make_intrusive<zeek::StringVal>(identity->identity().length(), reinterpret_cast<const char*>(identity->identity().data())));
 				el->Assign(1, identity->obfuscated_ticket_age());
 				slist->Assign(slist->Size(), std::move(el));
 				}
@@ -605,7 +605,7 @@ refine connection Handshake_Conn += {
 		if ( binders && binders->binders() )
 			{
 			for ( auto&& binder : *(binders->binders()) )
-				blist->Assign(blist->Size(), zeek::make_intrusive<zeek::StringVal>(binder->binder().length(), (const char*) binder->binder().data()));
+				blist->Assign(blist->Size(), zeek::make_intrusive<zeek::StringVal>(binder->binder().length(), reinterpret_cast<const char*>(binder->binder().data())));
 			}
 
 		zeek::BifEvent::enqueue_ssl_extension_pre_shared_key_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
@@ -661,7 +661,7 @@ refine connection Handshake_Conn += {
 			for ( unsigned int i = 0; i < certificate_authorities->size(); ++i )
 				{
 				auto ca = (*certificate_authorities)[i]->certificate_authority();
-				calist->Assign(i, zeek::make_intrusive<zeek::StringVal>(ca.length(), (const char*) ca.data()));
+				calist->Assign(i, zeek::make_intrusive<zeek::StringVal>(ca.length(), reinterpret_cast<const char*>(ca.data())));
 				}
 
 		zeek::BifEvent::enqueue_ssl_certificate_request(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, ctlist, slist, calist);
@@ -674,7 +674,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_extension_connection_id )
 			return true;
 
-		auto cid_string = zeek::make_intrusive<zeek::StringVal>(cid.length(), (const char*) cid.data());
+		auto cid_string = zeek::make_intrusive<zeek::StringVal>(cid.length(), reinterpret_cast<const char*>(cid.data()));
 		zeek::BifEvent::enqueue_ssl_extension_connection_id(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(cid_string));
 
 		return true;

@@ -62,12 +62,12 @@ void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data) {
                 buf[offset++] = c;
                 if ( c == '\0' ) {
                     if ( state == RSH_CLIENT_USER_NAME ) {
-                        analyzer->ClientUserName((const char*)buf);
+                        analyzer->ClientUserName(reinterpret_cast<const char*>(buf));
                         state = RSH_SERVER_USER_NAME;
                     }
 
                     else if ( state == RSH_SERVER_USER_NAME && offset > 1 ) {
-                        analyzer->ServerUserName((const char*)buf);
+                        analyzer->ServerUserName(reinterpret_cast<const char*>(buf));
                         save_state = state;
                         state = RSH_LINE_MODE;
                     }
@@ -142,7 +142,7 @@ void Rsh_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 
     Args vl;
     vl.reserve(4 + orig);
-    const char* line = (const char*)data;
+    const char* line = reinterpret_cast<const char*>(data);
     line = util::skip_whitespace(line);
     vl.emplace_back(ConnVal());
 

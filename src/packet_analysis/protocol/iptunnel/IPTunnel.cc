@@ -98,9 +98,9 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, const st
     const u_char* data = nullptr;
 
     if ( inner->IP4_Hdr() )
-        data = (const u_char*)inner->IP4_Hdr();
+        data = reinterpret_cast<const u_char*>(inner->IP4_Hdr());
     else
-        data = (const u_char*)inner->IP6_Hdr();
+        data = reinterpret_cast<const u_char*>(inner->IP6_Hdr());
 
     auto outer = prev ? std::move(prev) : std::make_shared<EncapsulationStack>();
     outer->Add(ec);

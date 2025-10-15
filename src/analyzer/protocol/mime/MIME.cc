@@ -111,7 +111,7 @@ StringValPtr to_string_val(const data_chunk_t buf) { return to_string_val(buf.le
 static data_chunk_t get_data_chunk(String* s) {
     data_chunk_t b;
     b.length = s->Len();
-    b.data = (const char*)s->Bytes();
+    b.data = reinterpret_cast<const char*>(s->Bytes());
     return b;
 }
 
@@ -343,7 +343,7 @@ int MIME_get_value(int len, const char* data, String*& buf, bool is_boundary) {
         if ( end < 0 )
             return -1;
 
-        buf = new String((const u_char*)str.data, str.length, true);
+        buf = new String(reinterpret_cast<const u_char*>(str.data), str.length, true);
         return offset + end;
     }
 }
@@ -368,7 +368,7 @@ String* MIME_decode_quoted_pairs(data_chunk_t buf) {
             dest[j++] = data[i];
     dest[j] = 0;
 
-    return new String(true, (byte_vec)dest, j);
+    return new String(true, reinterpret_cast<byte_vec>(dest), j);
 }
 
 MIME_Multiline::MIME_Multiline() { line = nullptr; }
@@ -378,7 +378,9 @@ MIME_Multiline::~MIME_Multiline() {
     delete_strings(buffer);
 }
 
-void MIME_Multiline::append(int len, const char* data) { buffer.push_back(new String((const u_char*)data, len, true)); }
+void MIME_Multiline::append(int len, const char* data) {
+    buffer.push_back(new String(reinterpret_cast<const u_char*>(data), len, true));
+}
 
 String* MIME_Multiline::get_concatenated_line() {
     if ( buffer.empty() )
@@ -396,7 +398,7 @@ MIME_Header::MIME_Header(MIME_Multiline* hl) {
 
     String* s = hl->get_concatenated_line();
     int len = s->Len();
-    const char* data = (const char*)s->Bytes();
+    const char* data = reinterpret_cast<const char*>(s->Bytes());
 
     int offset = MIME_get_field_name(len, data, &name);
     if ( offset < 0 )
@@ -724,7 +726,7 @@ bool MIME_Entity::ParseContentEncodingField(MIME_Header* h) {
     }
 
     delete content_encoding_str;
-    content_encoding_str = new String((const u_char*)enc.data, enc.length, true);
+    content_encoding_str = new String(reinterpret_cast<const u_char*>(enc.data), enc.length, true);
     ParseContentEncoding(enc);
 
     if ( need_to_parse_parameters ) {
@@ -782,7 +784,7 @@ bool MIME_Entity::ParseFieldParameters(int len, const char* data) {
 
             data_chunk_t vd = get_data_chunk(val);
             delete multipart_boundary;
-            multipart_boundary = new String((const u_char*)vd.data, vd.length, true);
+            multipart_boundary = new String(reinterpret_cast<const u_char*>(vd.data), vd.length, true);
         }
         else
             // token or quoted-string
@@ -1246,18 +1248,18 @@ void MIME_Mail::SubmitAllHeaders(MIME_HeaderList& hlist) {
 }
 
 void MIME_Mail::SubmitData(int len, const char* buf) {
-    if ( buf != (char*)data_buffer->Bytes() + buffer_start ) {
+    if ( buf != reinterpret_cast<char*>(data_buffer->Bytes()) + buffer_start ) {
         reporter->AnalyzerError(GetAnalyzer(), "MIME buffer misalignment");
         return;
     }
 
     if ( compute_content_hash ) {
         content_hash_length += len;
-        zeek::detail::hash_update(md5_hash, (const u_char*)buf, len);
+        zeek::detail::hash_update(md5_hash, reinterpret_cast<const u_char*>(buf), len);
     }
 
     if ( mime_entity_data || mime_all_data ) {
-        String* s = new String((const u_char*)buf, len, false);
+        String* s = new String(reinterpret_cast<const u_char*>(buf), len, false);
 
         if ( mime_entity_data )
             entity_content.push_back(s);
@@ -1266,7 +1268,7 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
     }
 
     if ( mime_segment_data ) {
-        const char* data = (char*)data_buffer->Bytes() + data_start;
+        const char* data = reinterpret_cast<char*>(data_buffer->Bytes()) + data_start;
         int data_len = (buf + len) - data;
 
         analyzer->EnqueueConnEvent(mime_segment_data, analyzer->ConnVal(), val_mgr->Count(data_len),
@@ -1277,7 +1279,7 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
                                      analyzer->Conn(), is_orig, cur_entity_id);
 
     cur_entity_len += len;
-    buffer_start = (buf + len) - (char*)data_buffer->Bytes();
+    buffer_start = (buf + len) - reinterpret_cast<char*>(data_buffer->Bytes());
 }
 
 bool MIME_Mail::RequestBuffer(int* plen, char** pbuf) {
@@ -1297,7 +1299,7 @@ bool MIME_Mail::RequestBuffer(int* plen, char** pbuf) {
     }
 
     *plen = max_chunk_length - overlap;
-    *pbuf = (char*)data_buffer->Bytes() + buffer_start;
+    *pbuf = reinterpret_cast<char*>(data_buffer->Bytes()) + buffer_start;
 
     return true;
 }

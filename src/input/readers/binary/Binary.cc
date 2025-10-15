@@ -69,7 +69,7 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
     ino = 0;
     firstrun = true;
 
-    path_prefix.assign((const char*)BifConst::InputBinary::path_prefix->Bytes(),
+    path_prefix.assign(reinterpret_cast<const char*>(BifConst::InputBinary::path_prefix->Bytes()),
                        BifConst::InputBinary::path_prefix->Len());
 
     if ( ! info.source || strlen(info.source) == 0 ) {

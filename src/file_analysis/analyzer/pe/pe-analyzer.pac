@@ -48,7 +48,7 @@ refine flow File += {
 		if ( pe_dos_header )
 			{
 			auto dh = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::PE::DOSHeader);
-			dh->Assign(0, zeek::make_intrusive<zeek::StringVal>(${h.signature}.length(), (const char*) ${h.signature}.data()));
+			dh->Assign(0, zeek::make_intrusive<zeek::StringVal>(${h.signature}.length(), reinterpret_cast<const char*>(${h.signature}.data())));
 			dh->Assign(1, ${h.UsedBytesInTheLastPage});
 			dh->Assign(2, ${h.FileSizeInPages});
 			dh->Assign(3, ${h.NumberOfRelocationItems});
@@ -78,7 +78,7 @@ refine flow File += {
 		if ( pe_dos_code )
 			zeek::event_mgr.Enqueue(pe_dos_code,
 			    connection()->zeek_analyzer()->GetFile()->ToVal(),
-			    zeek::make_intrusive<zeek::StringVal>(code.length(), (const char*) code.data())
+			    zeek::make_intrusive<zeek::StringVal>(code.length(), reinterpret_cast<const char*>(code.data()))
 			    );
 		return true;
 		%}
@@ -170,13 +170,13 @@ refine flow File += {
 			auto section_header = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::PE::SectionHeader);
 
 			// Strip null characters from the end of the section name.
-			u_char* first_null = (u_char*) memchr(${h.name}.data(), 0, ${h.name}.length());
+			u_char* first_null = reinterpret_cast<u_char*>(memchr(${h.name}.data(), 0, ${h.name}.length()));
 			uint16 name_len;
 			if ( first_null == nullptr )
 				name_len = ${h.name}.length();
 			else
 				name_len = first_null - ${h.name}.data();
-			section_header->Assign(0, zeek::make_intrusive<zeek::StringVal>(name_len, (const char*) ${h.name}.data()));
+			section_header->Assign(0, zeek::make_intrusive<zeek::StringVal>(name_len, reinterpret_cast<const char*>(${h.name}.data())));
 
 			section_header->Assign(1, ${h.virtual_size});
 			section_header->Assign(2, ${h.virtual_addr});

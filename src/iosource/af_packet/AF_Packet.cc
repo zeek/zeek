@@ -137,7 +137,7 @@ bool AF_PacketSource::BindInterface(const AF_PacketSource::InterfaceInfo& info) 
     saddr_ll.sll_protocol = htons(ETH_P_ALL);
     saddr_ll.sll_ifindex = info.index;
 
-    ret = bind(socket_fd, (struct sockaddr*)&saddr_ll, sizeof(saddr_ll));
+    ret = bind(socket_fd, reinterpret_cast<struct sockaddr*>(&saddr_ll), sizeof(saddr_ll));
     return (ret >= 0);
 }
 
@@ -236,7 +236,7 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
         current_hdr.ts.tv_usec = packet->tp_nsec / 1000;
         current_hdr.caplen = packet->tp_snaplen;
         current_hdr.len = packet->tp_len;
-        data = (u_char*)packet + packet->tp_mac;
+        data = reinterpret_cast<u_char*>(packet) + packet->tp_mac;
 
         if ( ! ApplyBPFFilter(current_filter, &current_hdr, data) ) {
             ++num_discarded;

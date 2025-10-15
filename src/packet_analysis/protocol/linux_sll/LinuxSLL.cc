@@ -15,10 +15,10 @@ bool LinuxSLLAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 
     // Note: We assume to see an Ethertype and don't consider different ARPHRD_types
     // (see https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL.html)
-    auto hdr = (const SLLHeader*)data;
+    auto hdr = reinterpret_cast<const SLLHeader*>(data);
 
     uint32_t protocol = ntohs(hdr->protocol_type);
-    packet->l2_src = (u_char*)&(hdr->addr);
+    packet->l2_src = reinterpret_cast<const u_char*>(&hdr->addr);
 
     // SLL doesn't include a destination address in the header, but not setting l2_dst to something
     // here will cause crashes elsewhere.

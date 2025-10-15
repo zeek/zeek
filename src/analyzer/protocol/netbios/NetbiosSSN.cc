@@ -106,11 +106,11 @@ void NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len, bool is
     // FIND THE NUL-TERMINATED NAME STRINGS HERE!
     // Not sure what's in them, so we don't keep them currently.
 
-    String* srcname = new String((char*)data);
+    String* srcname = new String(reinterpret_cast<const char*>(data));
     data += srcname->Len() + 1;
     len -= srcname->Len();
 
-    String* dstname = new String((char*)data);
+    String* dstname = new String(reinterpret_cast<const char*>(data));
     data += dstname->Len() + 1;
     len -= dstname->Len();
 
@@ -150,7 +150,7 @@ void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool i
 }
 
 void NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len, bool is_query) {
-    if ( len < 4 || strncmp((const char*)data, "\xffSMB", 4) != 0 ) {
+    if ( len < 4 || strncmp(reinterpret_cast<const char*>(data), "\xffSMB", 4) != 0 ) {
         // This should be an event, too.
         analyzer->Weird("netbios_raw_session_msg");
         Event(netbios_session_raw_message, data, len, is_query);

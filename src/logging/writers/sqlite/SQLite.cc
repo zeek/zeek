@@ -18,12 +18,14 @@ using zeek::threading::Value;
 namespace zeek::logging::writer::detail {
 
 SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend, /*send_heartbeats=*/false) {
-    set_separator.assign((const char*)BifConst::LogSQLite::set_separator->Bytes(),
+    set_separator.assign(reinterpret_cast<const char*>(BifConst::LogSQLite::set_separator->Bytes()),
                          BifConst::LogSQLite::set_separator->Len());
 
-    unset_field.assign((const char*)BifConst::LogSQLite::unset_field->Bytes(), BifConst::LogSQLite::unset_field->Len());
+    unset_field.assign(reinterpret_cast<const char*>(BifConst::LogSQLite::unset_field->Bytes()),
+                       BifConst::LogSQLite::unset_field->Len());
 
-    empty_field.assign((const char*)BifConst::LogSQLite::empty_field->Bytes(), BifConst::LogSQLite::empty_field->Len());
+    empty_field.assign(reinterpret_cast<const char*>(BifConst::LogSQLite::empty_field->Bytes()),
+                       BifConst::LogSQLite::empty_field->Len());
 
     synchronous = BifConst::LogSQLite::synchronous->AsInt();
     journal_mode = BifConst::LogSQLite::journal_mode->AsInt();
@@ -272,11 +274,13 @@ int SQLite::AddParams(Value* val, int pos) {
 
         case TYPE_SUBNET: {
             string out = io->Render(val->val.subnet_val);
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
             return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
         }
 
         case TYPE_ADDR: {
             string out = io->Render(val->val.addr_val);
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
             return sqlite3_bind_text(st, pos, out.data(), out.size(), SQLITE_TRANSIENT);
         }
 
@@ -291,6 +295,7 @@ int SQLite::AddParams(Value* val, int pos) {
             if ( ! val->val.string_val.length || val->val.string_val.length == 0 )
                 return sqlite3_bind_null(st, pos);
 
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
             return sqlite3_bind_text(st, pos, val->val.string_val.data, val->val.string_val.length, SQLITE_TRANSIENT);
         }
 
@@ -311,7 +316,9 @@ int SQLite::AddParams(Value* val, int pos) {
                 }
 
             desc.RemoveEscapeSequence(set_separator);
-            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Size(), SQLITE_TRANSIENT);
+            return sqlite3_bind_text(st, pos, reinterpret_cast<const char*>(desc.Bytes()), desc.Size(),
+                                     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+                                     SQLITE_TRANSIENT);
         }
 
         case TYPE_VECTOR: {
@@ -331,7 +338,9 @@ int SQLite::AddParams(Value* val, int pos) {
                 }
 
             desc.RemoveEscapeSequence(set_separator);
-            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Size(), SQLITE_TRANSIENT);
+            return sqlite3_bind_text(st, pos, reinterpret_cast<const char*>(desc.Bytes()), desc.Size(),
+                                     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+                                     SQLITE_TRANSIENT);
         }
 
         default: Error(Fmt("unsupported field format %d", val->type)); return 0;

@@ -69,7 +69,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // The flags section may be different between the different opcodes, but the
     // opcode is always in the same location. Parse out just that part of it here
     // even though it will probably be reparsed later.
-    auto* hdr = (detail::DNS_RawMsgHdr*)data;
+    auto* hdr = reinterpret_cast<const detail::DNS_RawMsgHdr*>(data);
     auto flags = ntohs(hdr->flags);
     auto opcode = static_cast<uint16_t>((flags & 0x7800) >> 11);
 
@@ -80,7 +80,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
         return;
     }
 
-    detail::DNS_MsgInfo msg(hdr, is_query);
+    detail::DNS_MsgInfo msg(const_cast<detail::DNS_RawMsgHdr*>(hdr), is_query);
 
     if ( first_message && msg.QR && is_query == 1 ) {
         is_query = 0;
@@ -2130,12 +2130,12 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         if ( msg_buf ) {
             if ( buf_len < msg_size ) {
                 buf_len = msg_size;
-                msg_buf = (u_char*)util::safe_realloc((void*)msg_buf, buf_len);
+                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc((void*)msg_buf, buf_len));
             }
         }
         else {
             buf_len = msg_size;
-            msg_buf = (u_char*)util::safe_malloc(buf_len);
+            msg_buf = reinterpret_cast<u_char*>(util::safe_malloc(buf_len));
         }
 
         ++data;

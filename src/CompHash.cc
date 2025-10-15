@@ -386,7 +386,8 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                 hk.EnsureReadSpace(n);
             }
 
-            *pval = make_intrusive<StringVal>(new String((const byte_vec)hk.KeyAtRead(), n, true));
+            *pval =
+                make_intrusive<StringVal>(new String(reinterpret_cast<const unsigned char*>(hk.KeyAtRead()), n, true));
             hk.SkipRead("string", n);
         } break;
 

@@ -195,8 +195,8 @@ void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, 
                 DBG_LOG(DBG_ANALYZER, "PIA/TCP FirstPacket(%s)", (is_orig ? "T" : "F"));
 
                 if ( ! ip4_tcp_hdr ) {
-                    ip4_tcp = (struct ip*)dummy_packet;
-                    tcp4 = (struct tcphdr*)(dummy_packet + sizeof(struct ip));
+                    ip4_tcp = reinterpret_cast<struct ip*>(dummy_packet);
+                    tcp4 = reinterpret_cast<tcphdr*>(dummy_packet + sizeof(struct ip));
                     ip4_tcp->ip_len = sizeof(struct ip) + sizeof(struct tcphdr);
                     ip4_tcp->ip_hl = sizeof(struct ip) >> 2;
 
@@ -234,8 +234,8 @@ void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, 
                 DBG_LOG(DBG_ANALYZER, "PIA/UDP FirstPacket(%s)", (is_orig ? "T" : "F"));
 
                 if ( ! ip4_udp_hdr ) {
-                    ip4_udp = (struct ip*)dummy_packet;
-                    udp4 = (struct udphdr*)(dummy_packet + sizeof(struct ip));
+                    ip4_udp = reinterpret_cast<struct ip*>(dummy_packet);
+                    udp4 = reinterpret_cast<struct udphdr*>(dummy_packet + sizeof(struct ip));
                     ip4_udp->ip_len = sizeof(struct ip) + sizeof(struct udphdr);
                     ip4_udp->ip_hl = sizeof(struct ip) >> 2;
 
@@ -278,7 +278,7 @@ void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, 
     assert(ip);
 
     if ( ! MatcherInitialized(is_orig) )
-        DoMatch((const u_char*)"", 0, is_orig, true, false, false, ip);
+        DoMatch(reinterpret_cast<const u_char*>(""), 0, is_orig, true, false, false, ip);
 }
 
 void PIA_TCP::DeliverStream(int len, const u_char* data, bool is_orig) {

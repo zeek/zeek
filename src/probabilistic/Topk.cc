@@ -12,7 +12,7 @@
 namespace zeek::probabilistic::detail {
 
 static void topk_element_hash_delete_func(void* val) {
-    Element* e = (Element*)val;
+    Element* e = reinterpret_cast<Element*>(val);
     delete e;
 }
 

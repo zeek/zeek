@@ -162,11 +162,11 @@ public:
      */
     int GetBytes(const uint32_t** bytes) const {
         if ( GetFamily() == IPv4 ) {
-            *bytes = (uint32_t*)&in6.s6_addr[12];
+            *bytes = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
             return 1;
         }
         else {
-            *bytes = (uint32_t*)in6.s6_addr;
+            *bytes = reinterpret_cast<const uint32_t*>(in6.s6_addr);
             return 4;
         }
     }
@@ -393,7 +393,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order) {
         memcpy(&in6.s6_addr[12], bytes, sizeof(uint32_t));
 
         if ( order == Host ) {
-            uint32_t* p = (uint32_t*)&in6.s6_addr[12];
+            uint32_t* p = reinterpret_cast<uint32_t*>(&in6.s6_addr[12]);
             *p = htonl(*p);
         }
     }
@@ -403,7 +403,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order) {
 
         if ( order == Host ) {
             for ( unsigned int i = 0; i < 4; ++i ) {
-                uint32_t* p = (uint32_t*)&in6.s6_addr[i * static_cast<ptrdiff_t>(4)];
+                uint32_t* p = reinterpret_cast<uint32_t*>(&in6.s6_addr[i * static_cast<ptrdiff_t>(4)]);
                 *p = htonl(*p);
             }
         }

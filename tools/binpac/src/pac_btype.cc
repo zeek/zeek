@@ -99,7 +99,8 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, 
 
         case INT8:
         case UINT8:
-            out_cc->println("%s = *((%s const*)(%s));", lvalue(), DataTypeStr().c_str(), data.ptr_expr());
+            out_cc->println("%s = *(reinterpret_cast<%s const*>(%s));", lvalue(), DataTypeStr().c_str(),
+                            data.ptr_expr());
             break;
         case INT16:
         case UINT16:
@@ -114,8 +115,8 @@ void BuiltInType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, 
 				data.ptr_expr(),
 				EvalByteOrder(out_cc, env).c_str());
 #else
-            out_cc->println("%s = FixByteOrder(%s, *((%s const*)(%s)));", lvalue(), EvalByteOrder(out_cc, env).c_str(),
-                            DataTypeStr().c_str(), data.ptr_expr());
+            out_cc->println("%s = FixByteOrder(%s, *(reinterpret_cast<%s const*>(%s)));", lvalue(),
+                            EvalByteOrder(out_cc, env).c_str(), DataTypeStr().c_str(), data.ptr_expr());
 #endif
             break;
     }

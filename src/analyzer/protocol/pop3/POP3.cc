@@ -70,9 +70,9 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     String terminated_string(data, len, true);
 
     if ( orig )
-        ProcessRequest(len, (char*)terminated_string.Bytes());
+        ProcessRequest(len, reinterpret_cast<char*>(terminated_string.Bytes()));
     else
-        ProcessReply(len, (char*)terminated_string.Bytes());
+        ProcessReply(len, reinterpret_cast<char*>(terminated_string.Bytes()));
 }
 
 static std::string trim_whitespace(const char* in) {
@@ -142,7 +142,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line) {
             case detail::AUTH_PLAIN: {
                 // Format: "authorization identity<NUL>authentication
                 //		identity<NUL>password"
-                char* str = (char*)decoded->Bytes();
+                char* str = reinterpret_cast<char*>(decoded->Bytes());
                 int len = decoded->Len();
                 char* end = str + len;
                 char* s;
@@ -177,7 +177,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line) {
 
             case detail::AUTH_CRAM_MD5: { // Format: "user<space>password-hash"
                 const char* s;
-                const char* str = (char*)decoded->CheckString();
+                const char* str = reinterpret_cast<const char*>(decoded->CheckString());
 
                 for ( s = str; *s && *s != '\t' && *s != ' '; ++s )
                     ;

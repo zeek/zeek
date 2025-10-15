@@ -30,7 +30,6 @@ using ztd::out_ptr::out_ptr;
 
 #include <ares.h>
 #include <ares_dns.h>
-#include <ares_nameser.h>
 
 #include "zeek/DNS_Mapping.h"
 #include "zeek/Event.h"
@@ -189,22 +188,22 @@ static int get_ttl(unsigned char* abuf, int alen, int* ttl) {
 
     *ttl = DNS_TIMEOUT;
 
-    unsigned char* aptr = abuf + HFIXEDSZ;
+    unsigned char* aptr = abuf + NS_HFIXEDSZ;
     status = ares_expand_name(aptr, abuf, alen, out_ptr<char*>(hostname), &len);
     if ( status != ARES_SUCCESS )
         return status;
 
-    if ( aptr + len + QFIXEDSZ > abuf + alen )
+    if ( aptr + len + NS_QFIXEDSZ > abuf + alen )
         return ARES_EBADRESP;
 
-    aptr += len + QFIXEDSZ;
+    aptr += len + NS_QFIXEDSZ;
     hostname.reset();
 
     status = ares_expand_name(aptr, abuf, alen, out_ptr<char*>(hostname), &len);
     if ( status != ARES_SUCCESS )
         return status;
 
-    if ( aptr + RRFIXEDSZ > abuf + alen )
+    if ( aptr + NS_RRFIXEDSZ > abuf + alen )
         return ARES_EBADRESP;
 
     aptr += len;

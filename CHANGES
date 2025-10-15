@@ -1,3 +1,22 @@
+8.0.2-16 | 2025-10-15 15:41:20 +0000
+
+  * broker: Make MakeHub() filter_type to empty, adapt WebSocketShim (Arne Welzel, Corelight)
+
+    ... also removes handling for topics that are never subscribed to anymore.
+
+    (cherry picked from commit faaadb95dda749b6976524343b1e9fe43c9baab3)
+
+  * btest/cluster/broker: WebSocket clients see peering errors (Arne Welzel, Corelight)
+
+    (cherry picked from commit faaadb95dda749b6976524343b1e9fe43c9baab3)
+
+  * btest/wstest: Improve hello_v1() and recv_until_timeout() (Arne Welzel, Corelight)
+
+    Mostly, output more and helpful information and fix termination
+    condition in recv_until_timeout().
+
+    (cherry picked from commit faaadb95dda749b6976524343b1e9fe43c9baab3)
+
 8.0.2-15 | 2025-10-15 15:36:41 +0000
 
   * Revert "CI: Pin to python 3.13 on macOS" (Tim Wojtulewicz, Corelight)

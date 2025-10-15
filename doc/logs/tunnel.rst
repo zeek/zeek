@@ -5,11 +5,7 @@ tunnel.log
 The purpose of Zeek’s :file:`tunnel.log` is to identify encapsulated traffic. A
 common use case in modern networks involves encapsulating IPv6 traffic within
 IPv4. It’s also entirely possible to tunnel IPv4 over IPv6. This document will
-provide a few examples of how Zeek interprets tunneled traffic. The author
-captured the first example on his home network. The remainder appear courtesy
-of the PacketLife Web site operated by Jeremy Stretch:
-
-https://packetlife.net/captures/category/tunneling/
+provide a few examples of how Zeek interprets tunneled traffic.
 
 For full details on each field in the :file:`tunnel.log` file, please refer to
 :zeek:see:`Tunnel::Info`.

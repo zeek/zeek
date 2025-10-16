@@ -12,10 +12,18 @@
 
 module XDP::ShuntConnID;
 
-## Retrieves the current values in the canonical ID map.
+## Retrieves the current values in the canonical ID map. The parameters are
+## extra filtering before converting into script values. If both are provided,
+## they must both match to include the shunted connection.
+##
+## only_fin: True if filtering for packets with a fin/rst
+##
+## time_since_last_packet: Interval that must elapse since the last packet
+## to include
 ##
 ## Returns: A table of the "canonical" connection IDs getting shunted
-function get_map%(xdp_prog: opaque of XDP::Program%) : XDP::shunt_table %{
+function get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+                time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
     auto zeek_table = zeek::make_intrusive<zeek::TableVal>(shunt_table);
@@ -29,6 +37,14 @@ function get_map%(xdp_prog: opaque of XDP::Program%) : XDP::shunt_table %{
 
     auto shunt_map = get_map<canonical_tuple>(get_canonical_id_map(prog));
     for ( const auto&[key, val] : shunt_map ) {
+        // Skip conditions
+        if (only_fin && (val.fin == 0 && val.rst == 0))
+            continue;
+        // Skip if we are still within time_since_last_packet
+        else if ( time_since_last_packet &&
+            (time_since_last_packet + mono_to_wall(val.timestamp) > zeek::util::current_time(true)) )
+            continue;
+
         auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
         if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
             zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(

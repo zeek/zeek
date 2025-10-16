@@ -110,9 +110,13 @@ int xdp_filter(struct xdp_md* ctx) {
     struct canonical_tuple tuple = {0};
     void* transport_header;
 
-    if ( is_ipv4 )
-        transport_header = (void*)((struct iphdr*)l3_header) + sizeof(struct iphdr);
+    if ( is_ipv4 ) {
+        struct iphdr* iph = l3_header;
+        int ip_hdr_len = iph->ihl * 4;
+        transport_header = (void*)((unsigned char*)iph + ip_hdr_len);
+    }
     else
+        // TODO: Walk through IPV6 extension headers?
         transport_header = (void*)((struct ipv6hdr*)l3_header) + sizeof(struct ipv6hdr);
 
     __u16 port_source;
@@ -134,6 +138,7 @@ int xdp_filter(struct xdp_md* ctx) {
     else
         return XDP_PASS;
 
+    tuple.protocol = l4_protocol;
     tuple.ip1 = src_ip;
     tuple.ip2 = dest_ip;
     int from_ip1 = 1;
@@ -141,15 +146,15 @@ int xdp_filter(struct xdp_md* ctx) {
     if ( compare_ips(&src_ip, &dest_ip) < 0 || ((compare_ips(&src_ip, &dest_ip) == 0) && port_source <= port_dest) ) {
         tuple.ip1 = src_ip;
         tuple.ip2 = dest_ip;
-        tuple.port1 = bpf_htons(port_source);
-        tuple.port2 = bpf_htons(port_dest);
+        tuple.port1 = port_source;
+        tuple.port2 = port_dest;
     }
     else {
         from_ip1 = 0;
         tuple.ip1 = dest_ip;
         tuple.ip2 = src_ip;
-        tuple.port1 = bpf_htons(port_dest);
-        tuple.port2 = bpf_htons(port_source);
+        tuple.port1 = port_dest;
+        tuple.port2 = port_source;
     }
 
     struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);

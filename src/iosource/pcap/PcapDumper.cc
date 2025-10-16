@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/iosource/pcap/Dumper.h"
+#include "zeek/iosource/pcap/PcapDumper.h"
 
 #include <sys/stat.h>
 #include <cerrno>

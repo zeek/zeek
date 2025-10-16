@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/iosource/pcap/Source.h"
+#include "zeek/iosource/pcap/PcapSource.h"
 
 #include "zeek/3rdparty/doctest.h"
 

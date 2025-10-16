@@ -3,8 +3,8 @@
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/iosource/Component.h"
-#include "zeek/iosource/pcap/Dumper.h"
-#include "zeek/iosource/pcap/Source.h"
+#include "zeek/iosource/pcap/PcapDumper.h"
+#include "zeek/iosource/pcap/PcapSource.h"
 
 namespace zeek::plugin::detail::Zeek_Pcap {
 

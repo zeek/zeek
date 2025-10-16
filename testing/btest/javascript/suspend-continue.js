@@ -1,7 +1,7 @@
 /*
  * @TEST-DOC: Demo suspend and continue processing from JavaScript
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace base/protocols/http %INPUT > out
+ * @TEST-EXEC: LSAN_OPTIONS=${ZEEKJS_LSAN_OPTIONS} zeek -b -Cr $TRACES/http/get.trace base/protocols/http %INPUT > out
  * @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
  */
 zeek.on('zeek_init', () => {

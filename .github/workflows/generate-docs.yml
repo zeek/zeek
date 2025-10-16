@@ -142,7 +142,7 @@ jobs:
           git status
           # git commit errors when there's nothing to commit, so guard it
           # with a check that detects whether there's anything staged.
-          git diff-index --cached --quiet HEAD || { git commit -m "Generate docs" && git push; }
+          git diff-index --cached --quiet HEAD || { git commit -m "Docs: Regenerated via GitHub workflow" && git push; }
 
       - name: Send email
         # Only send notifications for scheduled runs. Runs from pull requests

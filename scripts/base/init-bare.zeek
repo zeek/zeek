@@ -6011,8 +6011,8 @@ module Cluster;
 export {
 	type Cluster::Pool: record {};
 
-	## Cluster backend to use. Default is the broker backend.
-	const backend = Cluster::CLUSTER_BACKEND_BROKER &redef;
+	## Cluster backend to use. Default is the None backend.
+	const backend = Cluster::CLUSTER_BACKEND_NONE &redef;
 
 	## The event serializer to use by the cluster backend.
 	##

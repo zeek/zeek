@@ -17,3 +17,5 @@ if (ENABLE_CLUSTER_BACKEND_ZEROMQ)
 
     add_subdirectory(zeromq)
 endif ()
+
+add_subdirectory(none)

@@ -13,6 +13,8 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/WeirdState.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
@@ -27,9 +29,90 @@ uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 zeek::RecordValPtr Connection::conn_id_ctx_singleton;
 
+
+namespace detail {
+
+int ConnectionRecordValCallback::duration_offset = -1;
+int ConnectionRecordValCallback::history_offset = -1;
+
+void ConnectionRecordValCallback::AssignCallbacks(const Connection* arg_conn, RecordVal& arg_conn_val) {
+    conn = arg_conn;
+    conn_val = &arg_conn_val;
+    conn_val->AssignCallback(duration_offset, this);
+    conn_val->AssignCallback(history_offset, this);
+    cached_history = ZValElement(TYPE_STRING, true);
+}
+
+void ConnectionRecordValCallback::RemoveCallbacks(RecordVal& arg_conn_val) {
+    if ( ! HasCallbacksAssigned() )
+        return;
+
+    if ( &arg_conn_val != conn_val )
+        reporter->FatalErrorWithCore("RemoveCallbacks: wrong conn_val %p != %p", &arg_conn_val, conn_val);
+
+    ZVal obj(conn_val);
+    ZVal d_offset(static_cast<zeek_uint_t>(duration_offset));
+    ZVal h_offset(static_cast<zeek_uint_t>(history_offset));
+
+    auto final_duration = operator()(obj, d_offset).AsDouble();
+    auto* final_history = operator()(obj, h_offset).AsString();
+
+    conn_val->Assign(duration_offset, final_duration);
+    // The record field takes the ref.
+    conn_val->Assign(history_offset, final_history);
+
+    cached_history.Reset();
+    conn = nullptr;
+    conn_val = nullptr;
+}
+
+ZVal ConnectionRecordValCallback::operator()(const ZVal& val, const ZVal& arg_field) const {
+    auto field = static_cast<int>(arg_field.AsCount());
+
+    if ( val.ManagedVal() != conn_val )
+        reporter->FatalErrorWithCore("connection callback: wrong val %p != %p", val.ManagedVal(), conn_val);
+
+    if ( field == duration_offset ) {
+        auto duration = conn->LastTime() - conn->StartTime();
+        return duration;
+    }
+    else if ( field == history_offset ) {
+        const auto& history_str = conn->GetHistory();
+        if ( ! cached_history->ManagedVal() || cached_history->AsString()->ToStdStringView() != history_str ) {
+            // Adopt the reference into a ZValElement, unrefs the original one in cached_history.
+            cached_history = ZVal(new StringVal(history_str));
+        }
+
+        // Hand out a new reference.
+        zeek::Ref(cached_history->ManagedVal());
+        return *cached_history;
+    }
+
+    // This is bad.
+    reporter->InternalError("connection callback: bad field %d requested (duration_offset=%d, history_offset=%d)",
+                            field, duration_offset, history_offset);
+    return ZVal();
+}
+
+void ConnectionRecordValCallback::InitPostScript() {
+    duration_offset = id::connection->FieldOffset("duration");
+    history_offset = id::connection->FieldOffset("history");
+
+    if ( duration_offset < 0 )
+        reporter->InternalError("no duration field in connection found");
+
+    if ( history_offset < 0 )
+        reporter->InternalError("no history field in connection found");
+}
+
+}; // namespace detail
+
+
 void Connection::InitPostScript() {
     if ( id::conn_id_ctx->NumFields() == 0 )
         conn_id_ctx_singleton = zeek::make_intrusive<zeek::RecordVal>(id::conn_id_ctx);
+
+    detail::ConnectionRecordValCallback::InitPostScript();
 }
 
 Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt)
@@ -80,8 +163,10 @@ Connection::~Connection() {
 
     CancelTimers();
 
-    if ( conn_val )
+    if ( conn_val ) {
         conn_val->SetOrigin(nullptr);
+        conn_val_cb.RemoveCallbacks(*conn_val);
+    }
 
     delete adapter;
 
@@ -134,6 +219,10 @@ void Connection::Done() {
         if ( ! adapter->IsFinished() )
             adapter->Done();
     }
+
+    // Unlink callbacks from record val.
+    if ( conn_val )
+        conn_val_cb.RemoveCallbacks(*conn_val);
 }
 
 void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, int caplen, const u_char*& data,
@@ -172,6 +261,11 @@ bool Connection::IsReuse(double t, const u_char* pkt) { return adapter && adapte
 const RecordValPtr& Connection::GetVal() {
     if ( ! conn_val ) {
         conn_val = make_intrusive<RecordVal>(id::connection);
+        conn_val->SetOrigin(this);
+        conn_val->AssignTime(3, start_time);
+
+        // Assign field callbacks in connection record.
+        conn_val_cb.AssignCallbacks(this, *conn_val);
 
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
 
@@ -197,6 +291,8 @@ const RecordValPtr& Connection::GetVal() {
         const int l2_len = sizeof(orig_l2_addr);
         char null[l2_len]{};
 
+        // TODO: Could make lazy via callback, l2_addr is only used when mac-logging is enabled,
+        // so this wastes cycles.
         if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 ) {
             auto [mac_bytes, mac_len] = fmt_mac_bytes(orig_l2_addr, l2_len);
             orig_endp->Assign(5, new String(true, mac_bytes.release(), mac_len));
@@ -219,7 +315,6 @@ const RecordValPtr& Connection::GetVal() {
         // Do not assign to 5 (service). It is a non-optional set, which will be default-initialized
         // using the script-level settings; this easily applies the &ordered attribute to it.
         // conn_val->Assign(5, make_intrusive<TableVal>(id::ordered_string_set)); // service
-        conn_val->Assign(6, val_mgr->EmptyString()); // history
 
         if ( ! uid )
             uid.Set(zeek::detail::bits_per_uid);
@@ -238,17 +333,6 @@ const RecordValPtr& Connection::GetVal() {
 
     if ( adapter )
         adapter->UpdateConnVal(conn_val.get());
-
-    conn_val->AssignTime(3, start_time); // ###
-    conn_val->AssignInterval(4, last_time - start_time);
-
-    if ( ! history.empty() ) {
-        auto v = conn_val->GetFieldAs<StringVal>(6);
-        if ( *v != history )
-            conn_val->Assign(6, history);
-    }
-
-    conn_val->SetOrigin(this);
 
     return conn_val;
 }

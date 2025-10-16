@@ -1656,6 +1656,9 @@ detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, c
             auto* vr = val->AsRecord();
             const auto& field = vr->RawOptField(index);
 
+            if ( field.HoldsCallback() )
+                reporter->InternalWarning("RecordToLogRecord: &volatile callback based fields unhandled!");
+
             if ( ! field.IsSet() ) {
                 // Value, or any of its parents, is not set.
                 vals.emplace_back(filter->fields[i]->type, false);

@@ -16,6 +16,7 @@
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/ZVal.h"
+#include "zeek/ZValCallback.h"
 #include "zeek/net_util.h"
 
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
@@ -1151,7 +1152,7 @@ public:
      * @param t The value's type.
      */
     ZValElement(ValPtr v, const TypePtr& t)
-        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
+        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), data(ZVal(v, t)) {}
 
     /**
      * Initialize a ZValElement with just the TypePtr.
@@ -1164,17 +1165,36 @@ public:
     ZValElement(const TypePtr& t) : is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
 
     /**
+     * Manually construct a ZValElement with an optional ZVal.
+     *
+     * @param tag The tag for the element.
+     * @param is_managed Does it hold a managed ZVal?
+     * @param zval Optional ZVal - is_set is populated if a value is given.
+     */
+    ZValElement(TypeTag tag, bool is_managed, std::optional<ZVal> zval = {})
+        : is_set(zval.has_value()), is_managed(is_managed), tag(tag), data(zval.value_or(ZVal())) {}
+
+    /**
      * Copy constructor.
      */
-    ZValElement(const ZValElement& o) : is_set(o.is_set), is_managed(o.is_managed), tag(o.tag), zval(o.zval) {
-        if ( is_set && is_managed )
-            Ref(zval.ManagedVal());
+    ZValElement(const ZValElement& o)
+        : is_set(o.is_set), holds_callback(o.holds_callback), is_managed(o.is_managed), tag(o.tag) {
+        if ( holds_callback )
+            data.callback = o.data.callback;
+        else if ( is_set ) {
+            data.zval = o.data.zval;
+            if ( is_managed )
+                Ref(data.zval.ManagedVal());
+        }
     }
 
     /**
      * Destructor.
      */
-    ~ZValElement() { Reset(); }
+    ~ZValElement() {
+        if ( is_set && is_managed )
+            Unref(data.zval.ManagedVal());
+    }
 
     /**
      * Assign one ZValElement instance to another with automatic memory management
@@ -1185,15 +1205,19 @@ public:
             return *this;
 
         if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+            Unref(data.zval.ManagedVal());
 
         is_set = o.is_set;
         is_managed = o.is_managed;
+        holds_callback = o.holds_callback;
         tag = o.tag;
-        zval = o.zval;
+        if ( o.holds_callback )
+            data.callback = o.data.callback;
+        else
+            data.zval = o.data.zval;
 
         if ( is_set && is_managed )
-            Ref(zval.ManagedVal());
+            Ref(data.zval.ManagedVal());
 
         return *this;
     }
@@ -1208,16 +1232,22 @@ public:
             return *this;
 
         if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+            Unref(data.zval.ManagedVal());
 
         is_set = o.is_set;
         is_managed = o.is_managed;
         tag = o.tag;
-        zval = o.zval; // Adopts the reference.
+        holds_callback = o.holds_callback;
+        if ( o.holds_callback )
+            data.callback = o.data.callback;
+        else
+            data.zval = o.data.zval; // Adopts the reference and copies the callback.
 
-        // Keep is_managed and tag members valid.
+        // Keep is_managed and tag members valid but reset anything
+        // else on the incoming ZValElement.
         o.is_set = false;
-        o.zval = ZVal();
+        o.holds_callback = false;
+        o.data.zval = {};
 
         return *this;
     }
@@ -1234,10 +1264,11 @@ public:
      */
     ZValElement& operator=(const ZVal& zv) {
         if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+            Unref(data.zval.ManagedVal());
 
         is_set = true;
-        zval = zv;
+        holds_callback = false; // just in case it was set
+        data.zval = zv;
 
         return *this;
     }
@@ -1250,33 +1281,67 @@ public:
      */
     const ZValElement& operator=(const TypeDecl& td) noexcept {
         assert(! IsSet());
+        assert(! HoldsCallback());
         assert(tag == TYPE_ERROR);
         is_managed = td.is_managed;
         tag = td.tag;
         return *this;
     }
 
+    /**
+     * Switch ZValElement to be callback based.
+     */
+    ZValElement& operator=(detail::ZValCallback* cb) {
+        if ( is_set && is_managed )
+            Unref(data.zval.ManagedVal());
+
+        is_set = false;
+        holds_callback = true;
+        data.callback = cb;
+
+        return *this;
+    }
+
 
     operator bool() const noexcept { return is_set; }
-    const ZVal* operator->() const noexcept { return &zval; }
-    ZVal& operator*() noexcept { return zval; }
-    const ZVal& operator*() const noexcept { return zval; }
+
+    const ZVal* operator->() const noexcept {
+        assert(! HoldsCallback());
+        return &data.zval;
+    }
+
+    ZVal& operator*() noexcept {
+        assert(! HoldsCallback());
+        return data.zval;
+    }
+
+    const ZVal& operator*() const noexcept {
+        assert(! HoldsCallback());
+        return data.zval;
+    }
 
     bool IsSet() const noexcept { return is_set; }
     bool IsManaged() const noexcept { return is_managed; }
+    bool HoldsCallback() const noexcept { return holds_callback; }
+
+
+    const detail::ZValCallback* Callback() const noexcept {
+        assert(! IsSet());
+        assert(HoldsCallback());
+        return data.callback;
+    }
+
     TypeTag Tag() const noexcept { return tag; }
 
     /**
-     * Reset this ZValElement.
-     *
-     * If the contained ZVal instance is managed, its reference
-     * count will be decreased.
+     * Reset value or callback.
      */
     void Reset() {
         if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+            Unref(data.zval.ManagedVal());
 
         is_set = false;
+        holds_callback = false;
     }
 
     /**
@@ -1289,15 +1354,29 @@ public:
      */
     ValPtr ToVal(const TypePtr& t) {
         assert(IsSet());
-        return zval.ToVal(t);
+        assert(! HoldsCallback());
+        return data.zval.ToVal(t);
     }
 
 private:
     bool is_set = false;
+    // If true, below union holds a raw pointer to a ZValCallback instead of a ZVal.
+    // This is mutual exklusive with is_set, which makes everything a bit annoying
+    // to work with, but this is a low-level internal class, so hopefully fine.
+    //
+    // The general rule is that if IsSet() is false, HoldsCallback() might be true.
+    // The current semantics are that a Callback() *has to* produce a value, so a
+    // callback only makes sense for an &optional field when it is guaranteed to be
+    // set. Callbacks can only be registered for record fields that have the &volatile
+    // attribute set. As of no, holds_callback is very RecordVal specific.
+    bool holds_callback = false;
     bool is_managed = false;
     TypeTag tag = TYPE_ERROR;
     // 5 bytes of padding here.
-    ZVal zval;
+    union {
+        ZVal zval;
+        detail::ZValCallback* callback = nullptr;
+    } data;
 };
 
 static_assert(sizeof(ZValElement) <= 16);
@@ -1316,6 +1395,14 @@ public:
      * @param new_val  The value to assign.
      */
     void Assign(int field, ValPtr new_val);
+
+    /**
+     * Assign a callback to a record field.
+     *
+     * @param field The Field index to assign
+     * @param cb The ZValCallback instance to assign.
+     */
+    void AssignCallback(int field, detail::ZValCallback* cb);
 
     /**
      * Assign a value of type @c T to a record field, as constructed from
@@ -1407,7 +1494,9 @@ public:
      * @return  Whether there's a value for the given field index.
      */
     bool HasField(int field) const {
-        if ( record_val[field] )
+        const auto& f = record_val[field];
+
+        if ( f.IsSet() || f.HoldsCallback() )
             return true;
 
         return GetRecordType()->DeferredInits()[field] != nullptr;
@@ -1432,6 +1521,22 @@ public:
     ValPtr GetField(int field) const {
         const auto* rt = GetRecordType();
         auto& fv = record_val[field];
+
+        if ( fv.HoldsCallback() ) {
+            // XXX: Can only construct ZVal with non-const record.
+            //      We pass the result ZVal as const ZVal& into
+            //      the callback, so this should be fine.
+            ZVal obj(const_cast<RecordVal*>(this));
+            ZVal k(static_cast<zeek_int_t>(field));
+            ZVal result = (*fv.Callback())(obj, k);
+            // Adopt reference from callback into ZValElement
+            // so it's automatically released if needed upon
+            // return. The ZValElement for a callback still
+            // has the right type / is_managed information.
+            ZValElement el(fv.Tag(), fv.IsManaged(), result);
+            return el->ToVal(rt->GetFieldType(field));
+        }
+
         if ( ! fv ) {
             const auto& fi = rt->DeferredInits()[field];
             if ( ! fi )

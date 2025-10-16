@@ -1,7 +1,7 @@
 /*
  * @TEST-DOC: Load intel data from a JSON file and populate via Intel::insert().
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace frameworks/intel/seen base/frameworks/intel base/protocols/http %INPUT
+ * @TEST-EXEC: LSAN_OPTIONS=${ZEEKJS_LSAN_OPTIONS} zeek -b -Cr $TRACES/http/get.trace frameworks/intel/seen base/frameworks/intel base/protocols/http %INPUT
  * @TEST-EXEC: zeek-cut < intel.log > intel.log.noheader
  * @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff intel.log.noheader
  *

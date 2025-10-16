@@ -1,7 +1,7 @@
 /*
  * @TEST-DOC: Test delaying a log record from JavaScript
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace main.zeek exit_only_after_terminate=T
+ * @TEST-EXEC: LSAN_OPTIONS=${ZEEKJS_LSAN_OPTIONS} zeek -b -Cr $TRACES/http/get.trace main.zeek exit_only_after_terminate=T
  * @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
  * @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.resp_h new_field < http.log > http.log.cut
  * @TEST-EXEC: btest-diff http.log.cut

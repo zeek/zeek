@@ -1,6 +1,6 @@
 /*
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b %INPUT > out
+ * @TEST-EXEC: LSAN_OPTIONS=${ZEEKJS_LSAN_OPTIONS} zeek -b %INPUT > out
  * @TEST-EXEC: btest-diff out
  */
 

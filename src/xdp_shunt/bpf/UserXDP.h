@@ -42,7 +42,7 @@ template<typename T>
 concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_pair_key>;
 
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter**);
-void detach_and_destroy_filter(struct filter* skel, int ifindex);
+void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options opts);
 
 struct bpf_map* get_canonical_id_map(struct filter* skel);
 struct bpf_map* get_ip_pair_map(struct filter* skel);

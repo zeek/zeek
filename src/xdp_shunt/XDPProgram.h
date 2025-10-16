@@ -10,7 +10,7 @@ extern zeek::OpaqueTypePtr program_opaque;
 class XDPProgramVal : public zeek::OpaqueVal {
 public:
     XDPProgramVal() : zeek::OpaqueVal(program_opaque) {}
-    XDPProgramVal(struct filter* prog) : OpaqueVal(detail::program_opaque), prog(prog) {}
+    XDPProgramVal(struct filter* prog, xdp_options opts) : OpaqueVal(detail::program_opaque), prog(prog), opts(opts) {}
     ~XDPProgramVal() override = default;
 
     static zeek::expected<xdp::shunter::detail::XDPProgramVal*, std::string> CastFromAny(Val* prog) {
@@ -25,6 +25,7 @@ public:
     }
 
     struct filter* prog;
+    xdp_options opts;
 
 protected:
     zeek::IntrusivePtr<Val> DoClone(CloneState* state) override { return {zeek::NewRef{}, this}; }

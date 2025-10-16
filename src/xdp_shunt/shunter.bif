@@ -42,7 +42,7 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
+    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel, opts);
     return xdp_prog;
 %}
 
@@ -71,7 +71,7 @@ function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
         return zeek::val_mgr->Bool(false);
     }
 
-    detach_and_destroy_filter(prog, ifindex);
+    detach_and_destroy_filter(prog, ifindex, (*zeek_prog)->opts);
 
     return zeek::val_mgr->Bool(true);
 %}

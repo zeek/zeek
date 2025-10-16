@@ -39,12 +39,7 @@ bool operator<(const ip_pair_key& lhs, const ip_pair_key& rhs) {
     return ip2_cmp < 0;
 }
 
-std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
-    *skel = filter::open_and_load();
-    auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
-    if ( prog_fd == 0 )
-        return "Could not find BPF program";
-
+uint32_t flags(xdp_options opts) {
     uint32_t flags = 0;
     switch ( opts.mode ) {
         case XDP_MODE_UNSPEC: break;
@@ -53,7 +48,16 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
         case XDP_MODE_HW: flags |= (1U << 3); break;
     }
 
-    int err = bpf_xdp_attach(ifindex, prog_fd, flags, nullptr);
+    return flags;
+}
+
+std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
+    *skel = filter::open_and_load();
+    auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
+    if ( prog_fd == 0 )
+        return "Could not find BPF program";
+
+    int err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
     if ( err ) {
         char err_buf[256];
         libbpf_strerror(err, err_buf, sizeof(err_buf));
@@ -131,13 +135,14 @@ std::optional<shunt_val> get_val(struct bpf_map* map, Key* key) {
 template std::optional<shunt_val> get_val<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
 template std::optional<shunt_val> get_val<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
-void detach_and_destroy_filter(struct filter* skel, int ifindex) {
+void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options attached_opts) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
     unlink(bpf_map__pin_path(skel->maps.ip_pair_map));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };
     opts.sz = sizeof(opts);
-    bpf_xdp_detach(ifindex, 0, &opts);
+
+    bpf_xdp_detach(ifindex, flags(attached_opts), &opts);
     filter::destroy(skel);
 }

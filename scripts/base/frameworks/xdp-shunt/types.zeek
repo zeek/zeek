@@ -17,6 +17,8 @@ export {
         bytes_from_orig: count;
         packets_from_resp: count;
         bytes_from_resp: count;
+        fin: count; # The number of TCP fin packets shunted
+        rst: count; # The number of TCP rst packets shunted
         timestamp: time &optional; # The last shunted timestamp seen, if any
 
         present: bool; # If this means anything :) probably a better way

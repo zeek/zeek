@@ -33,7 +33,7 @@ struct {
 #define lock_xadd(ptr, val) ((void)__sync_fetch_and_add(ptr, val))
 #endif
 
-static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
+static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1, __u16 fin, __u16 rst) {
     __u64 new_ts = bpf_ktime_get_ns(); // Call before getting lock
 
     bpf_spin_lock(&val->lock);
@@ -55,7 +55,11 @@ static __always_inline void update_value(struct shunt_val* val, struct xdp_md* c
     if ( new_ts > val->timestamp )
         val->timestamp = new_ts;
 
+    val->fin += fin;
+    val->rst += rst;
+
     bpf_spin_unlock(&val->lock);
+    bpf_printk("Fins: %u, Resets: %u", fin, rst);
 }
 
 SEC("xdp")
@@ -121,12 +125,16 @@ int xdp_filter(struct xdp_md* ctx) {
 
     __u16 port_source;
     __u16 port_dest;
+    __u16 fin = 0;
+    __u16 rst = 0;
     if ( l4_protocol == IPPROTO_TCP ) {
         struct tcphdr* tcph = transport_header;
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
         port_source = bpf_ntohs(tcph->source);
         port_dest = bpf_ntohs(tcph->dest);
+        fin = tcph->fin != 0;
+        rst = tcph->rst != 0;
     }
     else if ( l4_protocol == IPPROTO_UDP ) {
         struct udphdr* udph = transport_header;
@@ -159,7 +167,7 @@ int xdp_filter(struct xdp_md* ctx) {
 
     struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( val ) {
-        update_value(val, ctx, from_ip1);
+        update_value(val, ctx, from_ip1, fin, rst);
         return XDP_DROP;
     }
 
@@ -171,7 +179,7 @@ int xdp_filter(struct xdp_md* ctx) {
 
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {
-        update_value(val, ctx, from_ip1);
+        update_value(val, ctx, from_ip1, fin, rst);
         return XDP_DROP;
     }
 

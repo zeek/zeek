@@ -35,6 +35,8 @@ struct shunt_val {
     __u64 bytes_from_1;   // bytes from IP 1 as the source
     __u64 bytes_from_2;   // bytes from IP 2 as the source
     __u64 timestamp;      // monotonic NS since boot from last packet
+    __u16 fin;            // number of TCP fin packets seen
+    __u16 rst;            // number of TCP rst packets seen
 };
 
 static __always_inline int compare_ips(const struct in6_addr* ip1, const struct in6_addr* ip2) {

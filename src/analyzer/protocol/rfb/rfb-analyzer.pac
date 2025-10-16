@@ -62,7 +62,7 @@ refine flow RFB_Flow += {
 	function proc_handle_security_result(result : uint32) : bool
 		%{
 		if ( rfb_auth_result )
-			zeek::BifEvent::enqueue_rfb_auth_result(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), result);
+			zeek::BifEvent::enqueue_rfb_auth_result(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), ! result);
 		return true;
 		%}
 };

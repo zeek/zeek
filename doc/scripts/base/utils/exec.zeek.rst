@@ -54,7 +54,7 @@ Types
       output of the command they can be defined here.
 
 
-   .. zeek:field:: uid :zeek:type:`string` :zeek:attr:`&default` = ``Chd8EgFWk2j`` :zeek:attr:`&optional`
+   .. zeek:field:: uid :zeek:type:`string` :zeek:attr:`&default` = ``Wopu93MWdGjd2Lt1b`` :zeek:attr:`&optional`
 
       The unique id for tracking executors.
 

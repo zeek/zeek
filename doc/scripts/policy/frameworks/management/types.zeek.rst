@@ -53,7 +53,7 @@ Types
    :Type: :zeek:type:`record`
 
 
-   .. zeek:field:: id :zeek:type:`string` :zeek:attr:`&default` = ``fD0qxAnfwOe`` :zeek:attr:`&optional`
+   .. zeek:field:: id :zeek:type:`string` :zeek:attr:`&default` = ``Fm22x30CduPMuXAq1`` :zeek:attr:`&optional`
 
       Unique identifier for a particular configuration
 

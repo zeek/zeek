@@ -348,3 +348,8 @@ linkcheck_allowed_redirects = {
     r"^https://docs\.zeek\.org/projects/spicy/.*": r"^https://docs\.zeek\.org/projects/spicy/en/latest/.*",
     r"^https://docs\.zeek\.org/projects/spicy": r"^https://docs\.zeek\.org/projects/spicy/en/latest",
 }
+
+# Reducing this to one worker should help with rate-limiting.
+linkcheck_workers = 1
+
+linkcheck_timeout = 10

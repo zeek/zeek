@@ -4,6 +4,7 @@
 Description=Zeek Setup
 SourcePath=<...>/config1
 PartOf=zeek.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot

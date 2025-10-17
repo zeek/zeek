@@ -6,6 +6,7 @@ SourcePath=<...>/config1
 After=zeek-setup.service
 Requires=zeek-setup.service
 PartOf=zeek.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=exec

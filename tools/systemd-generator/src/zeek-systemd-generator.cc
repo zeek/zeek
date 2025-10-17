@@ -85,6 +85,9 @@ Unit systemd_add_node_unit(const path& file, const std::string& node, const std:
     unit.SetNice(config.NiceFor(node));
     unit.SetMemoryMax(config.MemoryMaxFor(node));
 
+    // Disable any start limit.
+    unit.SetStartLimitIntervalSec("0");
+
     return unit;
 }
 
@@ -112,6 +115,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath(), "zeek.target");
 
     setup_unit.SetServiceType("oneshot");
+    setup_unit.SetStartLimitIntervalSec("0");
     setup_unit.AddExecStart("mkdir -p " + config.GeneratedScripts().string());
     setup_unit.AddExecStart(config.ClusterLayoutGeneratorCommand());
 
@@ -221,6 +225,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     if ( config.IsArchiverEnabled() ) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath(), "zeek.target");
+        archiver_unit.SetStartLimitIntervalSec("0");
         archiver_unit.SetExecStart(config.ArchiverCommand());
         archiver_unit.SetUser(config.User());
         archiver_unit.SetGroup(config.Group());

@@ -83,6 +83,8 @@ public:
 
     void AddReadWritePath(std::filesystem::path rw) { read_write_paths.emplace_back(std::move(rw)); }
 
+    void SetStartLimitIntervalSec(std::string s) { start_limit_interval_sec = std::move(s); }
+    void SetStartLimitBurst(std::string b) { start_limit_burst = std::move(b); }
     void SetRestart(std::string r) { restart = std::move(r); }
     void SetRestartSec(int sec) { restart_sec = sec; }
 
@@ -108,8 +110,6 @@ private:
     std::string source_path;
     std::optional<std::string> part_of;
 
-    int start_limit_interval_sec = 1;
-
     // [Service]
     std::string service_type = "exec";
     std::string user;
@@ -134,6 +134,8 @@ private:
 
     std::optional<std::string> slice;
 
+    std::optional<std::string> start_limit_interval_sec;
+    std::optional<std::string> start_limit_burst;
     std::optional<std::string> restart;
     std::optional<int> restart_sec = 1;
 

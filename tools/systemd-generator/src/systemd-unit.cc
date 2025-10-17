@@ -33,6 +33,12 @@ std::string Unit::ToString() const {
     if ( part_of.has_value() )
         ss << "PartOf=" << *part_of << "\n";
 
+    if ( start_limit_interval_sec.has_value() )
+        ss << "StartLimitIntervalSec=" << start_limit_interval_sec.value() << "\n";
+
+    if ( start_limit_burst.has_value() )
+        ss << "StartLimitBurst=" << start_limit_burst.value() << "\n";
+
     // Make the [Service] section depending on availability of ExecStar or
     // ExecStartPre for now.
     if ( exec_start.size() > 0 || exec_start_pre.size() > 0 ) {

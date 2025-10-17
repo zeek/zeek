@@ -23,7 +23,8 @@ public:
     /**
      * Constructor for drop in units.
      */
-    Unit(std::filesystem::path file, std::string source_path) : Unit(std::move(file), "", std::move(source_path)) {}
+    Unit(std::filesystem::path file, std::filesystem::path source_path)
+        : Unit(std::move(file), "", std::move(source_path)) {}
 
     /**
      * The last part of the Unit.
@@ -31,7 +32,7 @@ public:
      * TODO: If this is a drop-in file, it should be the parent's directory
      *       name with the .d stripped from the name.
      */
-    std::string Name() { return file.filename(); }
+    std::string Name() { return file.filename().string(); }
 
     /**
      * Render the unit as a string that can be written to a unit file.
@@ -107,7 +108,7 @@ private:
     std::string description;
     std::vector<std::string> after;
     std::vector<std::string> requires_;
-    std::string source_path;
+    std::filesystem::path source_path;
     std::optional<std::string> part_of;
 
     // [Service]

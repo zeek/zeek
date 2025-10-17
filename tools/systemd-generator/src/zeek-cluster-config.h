@@ -97,7 +97,7 @@ public:
      */
     std::filesystem::path LogArchiveDir() const { return ZeekBaseDir() / "var" / "logs" / "zeek"; }
 
-    std::filesystem::path GeneratedScripts() const { return SpoolDir() / "generated-scripts"; }
+    std::filesystem::path GeneratedScriptsDir() const { return SpoolDir() / "generated-scripts"; }
 
     std::filesystem::path WorkingDirectory(const std::string& type, std::optional<unsigned int> index = {}) const {
         if ( index == 0 ) {

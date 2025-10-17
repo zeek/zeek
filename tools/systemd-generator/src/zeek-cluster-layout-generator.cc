@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <string>
 #include <vector>
 
 namespace {

@@ -12,6 +12,7 @@
 #include <initializer_list>
 #include <map>
 #include <optional>
+#include <string>
 #include <system_error>
 #include <vector>
 
@@ -76,7 +77,7 @@ Unit systemd_add_node_unit(const path& file, const std::string& node, const std:
     unit.SetWorkingDirectory(config.SpoolDir() / node);
 
     // Replaced for workers with SetExecStart() to add the interface.
-    unit.AddExecStart(config.ZeekExe(),
+    unit.AddExecStart(config.ZeekExe().string(),
                       {systemd_generator_policy_scripts(), config.Args(), config.ClusterBackendArgs()});
 
     unit.SetRestart("always");
@@ -104,7 +105,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     auto zeek_target_wants = dir / "zeek.target.wants";
     if ( std::filesystem::create_directory(zeek_target_wants, ec); ec ) {
-        std::fprintf(stderr, "failed to create directory %s: %s\n", zeek_target_wants.c_str(), ec.message().c_str());
+        std::fprintf(stderr, "failed to create directory %s: %s\n", zeek_target_wants.string().c_str(),
+                     ec.message().c_str());
         std::exit(1);
     }
 
@@ -116,7 +118,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     setup_unit.SetServiceType("oneshot");
     setup_unit.SetStartLimitIntervalSec("0");
-    setup_unit.AddExecStart("mkdir -p " + config.GeneratedScripts().string());
+    setup_unit.AddExecStart("mkdir -p " + config.GeneratedScriptsDir().string());
     setup_unit.AddExecStart(config.ClusterLayoutGeneratorCommand());
 
     setup_unit.AddExecStart("mkdir -p " + (config.LogArchiveDir() / "logs").string());
@@ -204,8 +206,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     auto worker_unit = systemd_add_node_unit(dir / "zeek-worker@.service", "worker-%i", "Zeek Worker %i", config);
 
-    worker_unit.SetExecStart(config.ZeekExe(), {"-i", "${INTERFACE}", systemd_generator_policy_scripts(), config.Args(),
-                                                config.ClusterBackendArgs()});
+    worker_unit.SetExecStart(config.ZeekExe().string(), {"-i", "${INTERFACE}", systemd_generator_policy_scripts(),
+                                                         config.Args(), config.ClusterBackendArgs()});
     worker_unit.AddAfter(manager_unit.Name());
     worker_unit.AddAfter(logger_unit.Name());
     worker_unit.AddAfter(proxy_unit.Name());

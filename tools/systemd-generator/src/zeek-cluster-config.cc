@@ -443,7 +443,7 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
         "-b",
         metrics_address,
         "-o",
-        GeneratedScripts() / "cluster-layout.zeek",
+        (GeneratedScriptsDir() / "cluster-layout.zeek").string(),
     };
 
     return join(cmd_args);
@@ -452,10 +452,10 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
 std::string ZeekClusterConfig::ArchiverCommand() const {
     std::filesystem::path archiver_exe = ZeekBaseDir() / "bin" / "zeek-archiver";
     std::vector<std::string> cmd_args = {
-        archiver_exe,
+        archiver_exe.string(),
         ArchiverArgs(),
-        LogQueueDir(),
-        LogArchiveDir(),
+        LogQueueDir().string(),
+        LogArchiveDir().string(),
     };
 
     return join(cmd_args);
@@ -475,11 +475,11 @@ std::string ZeekClusterConfig::ZeekPath() const {
     if ( ! ext_zeek_path.empty() )
         result += ext_zeek_path + ":";
 
-    result += GeneratedScripts();
+    result += GeneratedScriptsDir().string();
     result += ":";
 
     for ( size_t i = 0; i < suffixes.size(); i++ ) {
-        result += (zeek_base_dir / suffixes[i]);
+        result += (zeek_base_dir / suffixes[i]).string();
         if ( i < suffixes.size() - 1 )
             result += ":";
     }

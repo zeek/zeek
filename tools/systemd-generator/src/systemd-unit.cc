@@ -23,7 +23,7 @@ std::string Unit::ToString() const {
     ss << "\n";
     ss << "[Unit]\n";
     ss << "Description=" << description << "\n";
-    ss << "SourcePath=" << source_path << "\n";
+    ss << "SourcePath=" << source_path.string() << "\n";
 
     for ( const auto& a : after )
         ss << "After=" << a << "\n";
@@ -116,7 +116,7 @@ bool Unit::Write() const {
 bool Unit::WriteDropIn() const {
     if ( std::ofstream ofs(file, std::ios::trunc); ofs ) {
         ofs << "[Unit]" << "\n";
-        ofs << "SourcePath=" << source_path << "\n";
+        ofs << "SourcePath=" << source_path.string() << "\n";
         ofs << "\n";
         ofs << "[Service]" << "\n";
 

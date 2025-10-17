@@ -9,6 +9,7 @@ After=zeek-logger@.service
 After=zeek-proxy@.service
 Requires=zeek-setup.service
 PartOf=zeek.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=exec

@@ -7,7 +7,6 @@
 #include <fstream>
 #include <iterator>
 #include <optional>
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -35,10 +34,23 @@ void tolower(std::string& s) {
 /**
  * Split \a v by \a delim into a vector of string views.
  */
-std::vector<std::string_view> split(std::string_view v, std::string_view delim) {
+std::vector<std::string_view> split(std::string_view v, char delim) {
     std::vector<std::string_view> result;
-    for ( const auto&& p : std::ranges::split_view(v, delim) )
-        result.emplace_back(p.begin(), p.end());
+    size_t pos = 0;
+
+    do {
+        size_t end = v.find(delim, pos);
+        // if npos, npos-pos still means till end of string.
+        result.emplace_back(v.substr(pos, end - pos));
+        if ( end == std::string_view::npos )
+            break;
+
+        pos = end + 1;
+
+        // Trailing delimiter? Add empty entry.
+        if ( pos >= v.size() )
+            result.emplace_back(v.substr(pos, 0));
+    } while ( pos < v.size() );
 
     return result;
 }
@@ -52,14 +64,12 @@ struct Option {
 /**
  * Split the configuration into a vector of options.
  */
-std::vector<Option> split_config(std::string& content) {
+std::vector<Option> split_config(std::string content) {
     std::vector<Option> result;
     using std::operator""sv;
 
-    std::size_t pos = 0;
-
-    for ( const auto& l : std::ranges::views::split(content, "\n"sv) ) {
-        std::string line = {l.begin(), l.end()};
+    for ( const auto line_sv : split(content, '\n') ) {
+        auto line = std::string(line_sv.data(), line_sv.size());
 
         trim(line);
 
@@ -77,7 +87,7 @@ std::vector<Option> split_config(std::string& content) {
         trim(key);
         trim(value);
 
-        result.push_back({.key = key, .value = value, .orig = {l.begin(), l.end()}});
+        result.push_back({.key = key, .value = value, .orig = {line_sv.begin(), line_sv.end()}});
     }
 
     return result;
@@ -226,10 +236,10 @@ std::optional<std::string> ZeekClusterConfig::SubstituteVars(const std::string& 
 CpuList::CpuList(const std::string& list) {
     using std::operator""sv;
 
-    auto parts = std::ranges::views::split(list, ","sv);
+    auto number_or_range_parts = split(list, ',');
 
-    for ( const auto& number_or_range : parts ) {
-        auto parts = split({number_or_range.begin(), number_or_range.end()}, "-"sv);
+    for ( const auto& number_or_range : number_or_range_parts ) {
+        auto parts = split(number_or_range, '-');
 
         if ( parts.size() == 2 ) {
             // Parse the l-r[:stride] format.
@@ -237,7 +247,7 @@ CpuList::CpuList(const std::string& list) {
             std::optional<int> l, r;
 
             // Any stride in the range?
-            auto stride_parts = split(parts[1], ":"sv);
+            auto stride_parts = split(parts[1], ':');
             if ( stride_parts.size() == 2 ) {
                 auto maybe_stride = parse_int(stride_parts[1]);
                 if ( maybe_stride.has_value() && *maybe_stride > 0 ) {
@@ -295,12 +305,11 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
     config.SetExists();
 
     auto content = std::string{std::istreambuf_iterator<char>(ifs), {}};
-    auto entries = split_config(content);
 
     // Before we start building a generic configuration framework, we should consider
     // that the number of options we ever add here should be limited, so maybe that
     // horrid if-else thing isn't all that bad, and it's obvious what's going on.
-    for ( const auto& entry : entries ) {
+    for ( const auto& entry : split_config(content) ) {
         std::string key = entry.key;
         tolower(key);
 
@@ -434,7 +443,7 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
         "-b",
         metrics_address,
         "-o",
-        GeneratedScripts() / "cluster-layout.zeek",
+        (GeneratedScriptsDir() / "cluster-layout.zeek").string(),
     };
 
     return join(cmd_args);
@@ -443,10 +452,10 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
 std::string ZeekClusterConfig::ArchiverCommand() const {
     std::filesystem::path archiver_exe = ZeekBaseDir() / "bin" / "zeek-archiver";
     std::vector<std::string> cmd_args = {
-        archiver_exe,
+        archiver_exe.string(),
         ArchiverArgs(),
-        LogQueueDir(),
-        LogArchiveDir(),
+        LogQueueDir().string(),
+        LogArchiveDir().string(),
     };
 
     return join(cmd_args);
@@ -466,11 +475,11 @@ std::string ZeekClusterConfig::ZeekPath() const {
     if ( ! ext_zeek_path.empty() )
         result += ext_zeek_path + ":";
 
-    result += GeneratedScripts();
+    result += GeneratedScriptsDir().string();
     result += ":";
 
     for ( size_t i = 0; i < suffixes.size(); i++ ) {
-        result += (zeek_base_dir / suffixes[i]);
+        result += (zeek_base_dir / suffixes[i]).string();
         if ( i < suffixes.size() - 1 )
             result += ":";
     }
@@ -520,6 +529,32 @@ const std::string& ZeekClusterConfig::MemoryMaxFor(const std::string& node) cons
  */
 void ZeekClusterConfig::RunUnitTests() {
     int errors = 0;
+
+    auto test_split = [&errors](std::string s, char delim, std::vector<std::string_view> expected) {
+        auto result = split(s, delim);
+
+        if ( result != expected ) {
+            std::fprintf(stderr, "FAIL: %s\n", s.c_str());
+            std::fprintf(stderr, " result  ");
+            for ( const auto& r : result )
+                fprintf(stderr, " %s", std::string(r.data(), r.size()).c_str());
+            fprintf(stderr, "\n");
+
+            std::fprintf(stderr, " expected");
+            for ( const auto& r : expected )
+                fprintf(stderr, " %s", std::string(r.data(), r.size()).c_str());
+            fprintf(stderr, "\n");
+            ++errors;
+        }
+    };
+
+    test_split("", ',', {""});
+    test_split(",", ',', {"", ""});
+    test_split("1,", ',', {"1", ""});
+    test_split("1,2", ',', {"1", "2"});
+    test_split("9,10-12:1,18-24:2", ',', {"9", "10-12:1", "18-24:2"});
+    test_split("9:10", ':', {"9", "10"});
+    test_split("9::10", ':', {"9", "", "10"});
 
     auto test_replace_vars = [&errors](std::string s, std::map<std::string, std::string> vars,
                                        std::optional<std::string> expected) {

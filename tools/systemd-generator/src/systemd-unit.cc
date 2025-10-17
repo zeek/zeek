@@ -23,7 +23,7 @@ std::string Unit::ToString() const {
     ss << "\n";
     ss << "[Unit]\n";
     ss << "Description=" << description << "\n";
-    ss << "SourcePath=" << source_path << "\n";
+    ss << "SourcePath=" << source_path.string() << "\n";
 
     for ( const auto& a : after )
         ss << "After=" << a << "\n";
@@ -32,6 +32,12 @@ std::string Unit::ToString() const {
 
     if ( part_of.has_value() )
         ss << "PartOf=" << *part_of << "\n";
+
+    if ( start_limit_interval_sec.has_value() )
+        ss << "StartLimitIntervalSec=" << start_limit_interval_sec.value() << "\n";
+
+    if ( start_limit_burst.has_value() )
+        ss << "StartLimitBurst=" << start_limit_burst.value() << "\n";
 
     // Make the [Service] section depending on availability of ExecStar or
     // ExecStartPre for now.
@@ -110,7 +116,7 @@ bool Unit::Write() const {
 bool Unit::WriteDropIn() const {
     if ( std::ofstream ofs(file, std::ios::trunc); ofs ) {
         ofs << "[Unit]" << "\n";
-        ofs << "SourcePath=" << source_path << "\n";
+        ofs << "SourcePath=" << source_path.string() << "\n";
         ofs << "\n";
         ofs << "[Service]" << "\n";
 

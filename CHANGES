@@ -1,3 +1,22 @@
+8.1.0-dev.742 | 2025-10-17 15:47:05 -0700
+
+  * CMakeLists: Skip building zeek-systemd-generator on Windows (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Explicit path to string conversion (Arne Welzel, Corelight)
+
+    Attempt to fix the build on MSVC...
+
+  * tools/systemd-generator: Set StartLimitIntervalSec to 0 (Arne Welzel, Corelight)
+
+    If this isn't set, and a service restarts too often in the default
+    interval, systemd will not attempt to restart it. It's generally
+    surprising, so disable this by setting StartLimitIntervalSec to 0.
+
+  * tools/systemd-generator: Replace ranges usage with split() helper (Arne Welzel, Corelight)
+
+    Turns out centosstream and Ubuntu 22.04 don't have proper ranges
+    support yet, so go back to hand splitting.
+
 8.1.0-dev.737 | 2025-10-17 10:44:33 -0700
 
   * Docs: Fix broken icir.org links (Tim Wojtulewicz, Corelight)

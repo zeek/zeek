@@ -10,8 +10,10 @@
 
 #include <cstdio>
 
+#include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/iosource/BPF_Program.h"
+#include "zeek/iosource/Manager.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
 
@@ -154,12 +156,11 @@ void PcapSource::OpenLive() {
 void PcapSource::OpenOffline() {
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    FILE* f = nullptr;
     if ( props.path == "-" ) {
-        f = stdin;
+        pcap_file = stdin;
     }
     else {
-        if ( f = fopen(props.path.c_str(), "rb"); ! f ) {
+        if ( pcap_file = fopen(props.path.c_str(), "rb+"); ! pcap_file ) {
             Error(util::fmt("unable to open %s: %s", props.path.c_str(), strerror(errno)));
             return;
         }
@@ -168,36 +169,31 @@ void PcapSource::OpenOffline() {
         // buffer if set, otherwise use what fopen() took as the default.
         if ( BifConst::Pcap::bufsize_offline_bytes != 0 ) {
             iobuf.resize(BifConst::Pcap::bufsize_offline_bytes);
-            if ( util::detail::setvbuf(f, iobuf.data(), _IOFBF, iobuf.size()) != 0 ) {
+            if ( util::detail::setvbuf(pcap_file, iobuf.data(), _IOFBF, iobuf.size()) != 0 ) {
                 Error(util::fmt("unable to setvbuf %s: %s", props.path.c_str(), strerror(errno)));
-                fclose(f);
+                fclose(pcap_file);
                 return;
             }
         }
     }
 
-    // pcap_fopen_offline() takes ownership of f on success and
-    // pcap_close() elsewhere should close it, too.
-    pd = pcap_fopen_offline(f, errbuf);
+    // Libpcap has a "problem" in that when it opens the file, the first thing it does is
+    // try to read 4 bytes from it to check for the pcap magic number. I put problem in
+    // quotes because it's perfectly valid, except that if you open a fifo pipe, libpcap
+    // will block Zeek's startup forever until there's data on the fifo. This is not ideal
+    // because it keeps Zeek from doing anything else until there's data available. We
+    // trick this process by opening the file separately, then letting kqueue determine
+    // when there's data available. Once there's enough data there, we pass the opened
+    // file over to libpcap.
+    SetImplementsProcessFd(true);
+    props.selectable_fd = fileno(pcap_file);
 
-    if ( ! pd ) {
-        if ( f != stdin )
-            fclose(f);
-
-        Error(errbuf);
-        return;
+    if ( ! iosource_mgr->RegisterFd(fileno(pcap_file), this) ) {
+        Error("Failed to register pcap file descriptor");
+        fclose(pcap_file);
     }
 
-    // We don't register the file descriptor if we're in offline mode,
-    // because libpcap's file descriptor for trace files isn't a reliable
-    // way to know whether we actually have data to read.
-    // See https://github.com/the-tcpdump-group/libpcap/issues/870
-    props.selectable_fd = -1;
-
-    props.link_type = pcap_datalink(pd);
-    props.is_live = false;
-
-    Opened(props);
+    SetClosed(false);
 }
 
 bool PcapSource::ExtractNextPacket(Packet* pkt) {
@@ -208,6 +204,7 @@ bool PcapSource::ExtractNextPacket(Packet* pkt) {
     pcap_pkthdr* header;
 
     int res = pcap_next_ex(pd, &header, &data);
+    DBG_LOG(DBG_MAINLOOP, "ExtractNextPacket: %d", res);
 
     switch ( res ) {
         case PCAP_ERROR_BREAK: // -2
@@ -375,6 +372,46 @@ void PcapSource::PcapError(const char* where) {
 
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live) {
     return new PcapSource(path, is_live);
+}
+
+void PcapSource::ProcessFd(int fd, int flags) {
+    DBG_LOG(DBG_MAINLOOP, "#### PcapSource::ProcessFd");
+    if ( fd != fileno(pcap_file) )
+        // TODO how did this happen?
+        return;
+
+    // Unregister the file descriptor from the Manager now that we know we can
+    // continue.
+    DBG_LOG(DBG_MAINLOOP, "#### PcapSource::ProcessFd unregistering");
+
+    iosource_mgr->UnregisterFd(fd, this);
+    SetImplementsProcessFd(false);
+
+    // pcap_fopen_offline() takes ownership of f on success and
+    // pcap_close() elsewhere should close it, too.
+    DBG_LOG(DBG_MAINLOOP, "#### PcapSource::ProcessFd opening libpcap");
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pd = pcap_fopen_offline(pcap_file, errbuf);
+
+    if ( ! pd ) {
+        if ( pcap_file != stdin )
+            fclose(pcap_file);
+
+        Error(errbuf);
+        return;
+    }
+
+    // We don't register the file descriptor if we're in offline mode,
+    // because libpcap's file descriptor for trace files isn't a reliable
+    // way to know whether we actually have data to read.
+    // See https://github.com/the-tcpdump-group/libpcap/issues/870
+    props.selectable_fd = -1;
+
+    props.link_type = pcap_datalink(pd);
+    props.is_live = false;
+
+    DBG_LOG(DBG_MAINLOOP, "#### PcapSource::ProcessFd calling opened()");
+    Opened(props);
 }
 
 TEST_CASE("pcap source update_pktsrc_stats") {

@@ -32,13 +32,17 @@ protected:
 
     detail::BPF_Program* CompileFilter(const std::string& filter) override;
 
+    void ProcessFd(int fd, int flags) override;
+
 private:
     void OpenLive();
     void OpenOffline();
     void PcapError(const char* where = nullptr);
 
-    Properties props;
     Stats stats;
+
+    FILE* pcap_file = nullptr;
+    int pcap_startup_data_avail = 0;
 
     pcap_t* pd;
     struct pcap_stat prev_pstat = {0};

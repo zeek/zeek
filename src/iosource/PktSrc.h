@@ -362,6 +362,8 @@ protected:
      */
     virtual detail::BPF_Program* CompileFilter(const std::string& filter);
 
+    Properties props;
+
 private:
     // Internal helper for ExtractNextPacket().
     bool ExtractNextPacketInternal();
@@ -371,8 +373,6 @@ private:
     void Done() override;
     void Process() override;
     const char* Tag() override;
-
-    Properties props;
 
     bool have_packet;
     Packet current_packet;

@@ -79,9 +79,10 @@ public:
      */
     virtual void ProcessFd(int fd, int flags) {}
     bool ImplementsProcessFd() const { return implements_process_fd; }
+    void SetImplementsProcessFd(bool process_fd) { implements_process_fd = process_fd; }
 
     /**
-     * Returns a descriptive tag representing the source for debugging.
+     * returns a descriptive tag representing the source for debugging.
      *
      * Must be overridden by derived classes.
      *

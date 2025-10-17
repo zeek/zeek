@@ -18,9 +18,15 @@ else ()
     set(_default_base_dir "${CMAKE_INSTALL_PREFIX}")
 endif ()
 
+set(_default ON)
+if (MSVC)
+    set(_default OFF)
+endif ()
+
 # Build the generator everywhere unless explicitly disabled. Mostly
 # for developer testing.
-option(ENABLE_ZEEK_SYSTEMD_GENERATOR "Enable building and installing zeek-systemd-generator" ON)
+option(ENABLE_ZEEK_SYSTEMD_GENERATOR "Enable building and installing zeek-systemd-generator"
+       ${_default})
 if (ENABLE_ZEEK_SYSTEMD_GENERATOR)
 
     # Separate supporting libraries that aren't systemd specific.

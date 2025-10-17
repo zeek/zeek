@@ -153,3 +153,8 @@ function unshunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::Shunte
 
     return makeShuntedStats(origIsIp1(cid->AsRecordVal()), &*opt_val);
 %}
+
+## Event called when we first saw the fin or rst for this connection.
+## If the user unshunts in the event, then keep in mind that if multiple
+## RST packets are sent, looking up the stats may result in a null value.
+event first_fin%(cid: conn_id%);

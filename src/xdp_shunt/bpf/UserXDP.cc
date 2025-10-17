@@ -144,6 +144,7 @@ template std::optional<shunt_val> get_val<ip_pair_key>(struct bpf_map* map, ip_p
 void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options attached_opts) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
     unlink(bpf_map__pin_path(skel->maps.ip_pair_map));
+    unlink(bpf_map__pin_path(skel->maps.filter_rb));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };
@@ -151,4 +152,16 @@ void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options att
 
     bpf_xdp_detach(ifindex, flags(attached_opts), &opts);
     filter::destroy(skel);
+}
+
+struct ring_buffer* make_shunt_fin_buffer(struct filter* skel, ring_buffer_sample_fn cb) {
+    return ring_buffer__new(bpf_map__fd(skel->maps.filter_rb), cb, nullptr, nullptr);
+}
+
+void free_ring_buffer(ring_buffer* rb) {
+    ring_buffer__free(rb);
+}
+
+void poll_shunt_fin(ring_buffer* rb, int timeout_ms) {
+    ring_buffer__poll(rb, timeout_ms);
 }

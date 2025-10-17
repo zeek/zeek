@@ -1,6 +1,7 @@
 #include <zeek/IntrusivePtr.h>
 #include <zeek/OpaqueVal.h>
 
+#include "ShuntThread.h"
 #include "bpf/UserXDP.h"
 
 namespace xdp::shunter::detail {
@@ -10,7 +11,9 @@ extern zeek::OpaqueTypePtr program_opaque;
 class XDPProgramVal : public zeek::OpaqueVal {
 public:
     XDPProgramVal() : zeek::OpaqueVal(program_opaque) {}
-    XDPProgramVal(struct filter* prog, xdp_options opts) : OpaqueVal(detail::program_opaque), prog(prog), opts(opts) {}
+    XDPProgramVal(struct filter* prog, xdp_options opts)
+        : OpaqueVal(detail::program_opaque), prog(prog), opts(opts), fin_thread(prog) {}
+
     ~XDPProgramVal() override = default;
 
     static zeek::expected<xdp::shunter::detail::XDPProgramVal*, std::string> CastFromAny(Val* prog) {
@@ -26,6 +29,7 @@ public:
 
     struct filter* prog;
     xdp_options opts;
+    ShuntThread fin_thread;
 
 protected:
     zeek::IntrusivePtr<Val> DoClone(CloneState* state) override { return {zeek::NewRef{}, this}; }

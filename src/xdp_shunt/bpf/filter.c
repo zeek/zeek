@@ -25,6 +25,12 @@ struct {
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } filter_map SEC(".maps");
 
+// For both canonical IDs and IP pairs
+struct {
+    __uint(type, BPF_MAP_TYPE_RINGBUF);
+    __uint(max_entries, BPF_MAX_SIZE);
+} filter_rb SEC(".maps");
+
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, BPF_MAX_SIZE);
@@ -33,11 +39,9 @@ struct {
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } ip_pair_map SEC(".maps");
 
-#ifndef lock_xadd
-#define lock_xadd(ptr, val) ((void)__sync_fetch_and_add(ptr, val))
-#endif
-
-static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1, __u16 fin, __u16 rst) {
+// Returns the new combined number of fin/rst
+static __always_inline __u32 update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1, __u16 fin,
+                                          __u16 rst) {
     __u64 new_ts = bpf_ktime_get_ns(); // Call before getting lock
 
     bpf_spin_lock(&val->lock);
@@ -62,8 +66,11 @@ static __always_inline void update_value(struct shunt_val* val, struct xdp_md* c
     val->fin += fin;
     val->rst += rst;
 
+    __u32 result = val->fin + val->rst;
+
     bpf_spin_unlock(&val->lock);
-    bpf_printk("Fins: %u, Resets: %u", fin, rst);
+
+    return result;
 }
 
 SEC("xdp")
@@ -171,7 +178,15 @@ int xdp_filter(struct xdp_md* ctx) {
 
     struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( val ) {
-        update_value(val, ctx, from_ip1, fin, rst);
+        if ( update_value(val, ctx, from_ip1, fin, rst) == 1 ) {
+            struct canonical_tuple* rb_data =
+                (struct canonical_tuple*)(bpf_ringbuf_reserve(&filter_rb, sizeof(struct canonical_tuple), 0));
+            if ( rb_data ) {
+                *rb_data = tuple;
+                bpf_ringbuf_submit(rb_data, 0);
+            }
+        }
+
         return XDP_DROP;
     }
 
@@ -183,7 +198,14 @@ int xdp_filter(struct xdp_md* ctx) {
 
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {
-        update_value(val, ctx, from_ip1, fin, rst);
+        if ( update_value(val, ctx, from_ip1, fin, rst) == 1 ) {
+            struct ip_pair_key* rb_data =
+                (struct ip_pair_key*)(bpf_ringbuf_reserve(&filter_rb, sizeof(struct ip_pair_key), 0));
+            if ( rb_data ) {
+                *rb_data = pair;
+                bpf_ringbuf_submit(rb_data, 0);
+            }
+        }
         return XDP_DROP;
     }
 

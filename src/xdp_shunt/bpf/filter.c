@@ -13,9 +13,13 @@
 
 #include "filter_common.h"
 
+#ifndef BPF_MAX_SIZE
+#define BPF_MAX_SIZE 65535
+#endif
+
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
-    __uint(max_entries, 1024);
+    __uint(max_entries, BPF_MAX_SIZE);
     __type(key, struct canonical_tuple);
     __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
@@ -23,7 +27,7 @@ struct {
 
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
-    __uint(max_entries, 1024);
+    __uint(max_entries, BPF_MAX_SIZE);
     __type(key, struct ip_pair_key);
     __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);

@@ -52,7 +52,13 @@ uint32_t flags(xdp_options opts) {
 }
 
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
-    *skel = filter::open_and_load();
+    *skel = filter::open();
+
+    // This must be 1 or greater.
+    bpf_map__set_max_entries(get_canonical_id_map(*skel), opts.conn_id_map_max_size);
+    bpf_map__set_max_entries(get_ip_pair_map(*skel), opts.ip_pair_map_max_size);
+
+    filter::load(*skel);
     auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
     if ( prog_fd == 0 )
         return "Could not find BPF program";

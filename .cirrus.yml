@@ -501,12 +501,15 @@ alpine_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
 
-# Cirrus only supports the following macos runner currently, selecting
-# anything else automatically upgrades to this one.
-#
-#    ghcr.io/cirruslabs/macos-runner:sequoia
-#
-# See also: https://cirrus-ci.org/guide/macOS/
+macos_tahoe_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-runner:tahoe
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  << : *MACOS_ENVIRONMENT
+
 macos_sequoia_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-runner:sequoia

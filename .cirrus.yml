@@ -330,9 +330,18 @@ debian12_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
 
+opensuse_leap_16_0_task:
+  container:
+    # Opensuse Leap 15.6 EOL: 31 October 2026
+    dockerfile: ci/opensuse-leap-16.0/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
 opensuse_leap_15_6_task:
   container:
-    # Opensuse Leap 15.6 EOL: ~Dec 2025
+    # Opensuse Leap 15.6 EOL: 30 April 2026
     dockerfile: ci/opensuse-leap-15.6/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE

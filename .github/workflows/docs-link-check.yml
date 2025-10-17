@@ -1,0 +1,57 @@
+name: Documentation Link Check
+
+on:
+  schedule:
+    - cron: '3 15 * * 0'
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # No need to do a recursive clone here because the docs are part of the
+      # zeek repo and we're not doing a full build just for the link checker.
+      - uses: actions/checkout@v5
+
+      - name: Fetch Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            make \
+            python3 \
+            python3-pip
+          python3 -m venv ci-docs-venv
+          source ci-docs-venv/bin/activate
+          pip3 install -r doc/requirements.txt
+          pip3 install pre-commit
+
+      - name: Run sphinx linkcheck
+        run: |
+          source ci-docs-venv/bin/activate
+
+          cd doc
+
+          echo "*** Running Sphinx Link Check ***"
+          make linkcheck
+
+      - name: Send email
+        # Only send notifications for scheduled runs. Runs from pull requests
+        # show failures in the GitHub UI.
+        if: failure()
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: ${{secrets.SMTP_HOST}}
+          server_port: ${{secrets.SMTP_PORT}}
+          username: ${{secrets.SMTP_USER}}
+          password: ${{secrets.SMTP_PASS}}
+          subject: generate-docs GitHub Action failed!
+          body:  job of ${{github.repository}} Failed! See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.
+          to: ${{secrets.MAIL_TO}}
+          from: GitHub Actions <${{secrets.MAIL_FROM}}>

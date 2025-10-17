@@ -1,3 +1,15 @@
+8.1.0-dev.737 | 2025-10-17 10:44:33 -0700
+
+  * Docs: Fix broken icir.org links (Tim Wojtulewicz, Corelight)
+
+  * Reduce linkcheck worker count and timeout (Tim Wojtulewicz, Corelight)
+
+  * Move docs link checking to a weekly workflow (Tim Wojtulewicz, Corelight)
+
+  * Move making linkcheck dir to separate make target for consistency (Tim Wojtulewicz, Corelight)
+
+  * Bump github action versions (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.731 | 2025-10-17 10:43:58 -0700
 
   * Make docs-gen workflow use a more informative commit message (Tim Wojtulewicz, Corelight)

@@ -24,12 +24,12 @@ jobs:
       # event, so we only need to authenticate in that case. Use
       # unauthenticated access otherwise so this action can e.g., also run from
       # clones.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: github.event_name == 'schedule'
         with:
           submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: github.event_name != 'schedule'
         with:
           submodules: "recursive"
@@ -93,20 +93,6 @@ jobs:
       - name: Check Spicy docs
         run: cd doc && make check-spicy-docs
 
-      - name: Run sphinx linkcheck
-        run: |
-          source ci-docs-venv/bin/activate
-          cd doc
-          set -o pipefail
-          make linkcheck > make.out 2>&1
-          make_status=$?
-          echo "*** Sphinx Linkcheck Output ***"
-          cat make.out
-          test ${make_status} -ne 0 && exit 1
-          echo "Check for Linkcheck Warnings ***"
-          grep -q WARNING make.out && exit 1
-          rm make.out
-
       # Cache pre-commit environment for reuse.
       - uses: actions/cache@v4
         with:
@@ -148,7 +134,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the GitHub UI.
         if: failure() && github.event_name == 'schedule'
-        uses: dawidd6/action-send-mail@v3.12.0
+        uses: dawidd6/action-send-mail@v6
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

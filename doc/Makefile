@@ -9,6 +9,9 @@ doc: html
 builddir:
 	mkdir -p build/html
 
+linkcheckdir:
+	mkdir -p build/linkcheck
+
 clean:
 	rm -rf build/html
 
@@ -18,8 +21,7 @@ html: builddir
 livehtml: builddir
 	sphinx-autobuild --ignore "*.git/*" --ignore "*.lock" --ignore "*.pyc" --ignore "*.swp" --ignore "*.swpx" --ignore "*.swx" -b html $(SPHINXOPTS) . ./build/html
 
-linkcheck:
-	mkdir -p build/linkcheck
+linkcheck: linkcheckdir
 	sphinx-build -v -b linkcheck . ./build/linkcheck
 
 commit:

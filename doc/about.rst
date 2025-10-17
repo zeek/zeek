@@ -138,23 +138,21 @@ in a low-cost manner.
 History
 =======
 
-Zeek has a rich history stretching back to the 1990s. `Vern Paxson
-<https://www.icir.org/vern/>`_ designed and implemented the initial version in
-1995 as a researcher at the `Lawrence Berkeley National Laboratory (LBNL)
-<https://www.lbl.gov/>`_. The original software was called “Bro,” as an
-“Orwellian reminder that monitoring comes hand in hand with the potential
-for privacy violations”.
+Zeek has a rich history stretching back to the 1990s. Vern Paxson
+designed and implemented the initial version in 1995 as a researcher at the
+`Lawrence Berkeley National Laboratory (LBNL) <https://www.lbl.gov/>`_.
+The original software was called “Bro,” as an “Orwellian reminder that
+monitoring comes hand in hand with the potential for privacy violations”.
 
 LBNL first deployed Zeek in 1996, and the USENIX Security Symposium published
 Vern’s original paper on Zeek in 1998, and awarded it the Best Paper Award that
 year He published a refined version of the paper in 1999 as `Bro: A System for
 Detecting Network Intruders in Real-Time
-<https://www.icir.org/vern/papers/bro-CN99.pdf>`_.
+<https://www.usenix.org/legacy/publications/library/proceedings/sec98/full_papers/paxson/paxson.pdf>`_.
 
 In 2003, the `National Science Foundation (NSF) <https://www.nsf.gov/>`_ began
 supporting research and advanced development on Bro at the `International
-Computer Science Institute (ICSI) <https://www.icsi.berkeley.edu/>`_. (Vern
-still leads the ICSI `Networking and Security group <https://www.icir.org/>`_.)
+Computer Science Institute (ICSI) <https://www.icsi.berkeley.edu/>`_.
 
 Over the years, a growing team of ICSI researchers and students kept adding
 novel functions to Zeek, while LBNL continued its support with funding from the

@@ -231,6 +231,18 @@ export {
 		cuid: string  &optional; ##< Connection UID over which file is sent.
 	};
 
+	## How long to batch suppression information locally before sending
+	## it out within the cluster.
+	##
+	## Previously, workers immediately sent suppression information for every
+	## individual notice. However, at high notice and suppression rates, this
+	## causes a flood of remote events in the cluster. Batching these up for
+	## a short period of time is more efficient.
+	option suppression_batch_period = 10msec;
+
+	## Maximum number of suppression infos to batch up within batch_period.
+	option suppression_batch_max_size = 50;
+
 	## Creates a record containing a subset of a full :zeek:see:`fa_file` record.
 	##
 	## f: record containing metadata about a file.
@@ -354,6 +366,59 @@ function per_notice_suppression_interval(t: table[Notice::Type, string] of time,
 		suppress_time = 0secs;
 
 	return suppress_time;
+	}
+
+# Code for batching suppressions on worker nodes before sending them
+# out for distribution.
+type SuppressionInfo: record {
+	ts: time;
+	suppress_for: interval;
+	note: Type;
+	identifier: string;
+};
+
+# A collection of and when they were published.
+type SuppressionBatch: record {
+	ts: time &default=double_to_time(0.0);
+	timer_pending: bool &default=F;
+	infos: vector of SuppressionInfo;
+};
+
+# Internal event for suppression batches.
+global Notice::suppression_batch_internal: event(batch: SuppressionBatch);
+
+# State about suppressions.
+global gbatch = SuppressionBatch();
+
+function suppression_info(n: Notice::Info): SuppressionInfo &is_used
+	{
+	return SuppressionInfo(
+		$ts=n$ts,
+		$suppress_for=n$suppress_for,
+		$note=n$note,
+		$identifier=n$identifier
+	);
+	}
+
+function gbatch_send_and_reset() &is_used
+	{
+	gbatch$ts = network_time();
+	Broker::publish(
+		Cluster::manager_topic,
+		Notice::suppression_batch_internal,
+		gbatch
+	);
+	gbatch$infos = vector();
+	}
+
+event suppression_batch_timer() &is_used
+	{
+	gbatch$timer_pending = F;
+
+	if ( |gbatch$infos| == 0 )  # might have been flushed due to batch_max_size
+		return;
+
+	gbatch_send_and_reset();
 	}
 
 # This is the internally maintained notice suppression table.  It's
@@ -524,27 +589,61 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 		suppressing[n$note, n$identifier] = n$ts + n$suppress_for;
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		# Notify the manager about the new suppression, it'll broadcast
-		# to the other nodes in the cluster.
-		# Once we have global pub/sub, we could also unconditionally
-		# send to a notice specific topic for communicating
-		# suppressions directly to all nodes.
-		Broker::publish(Cluster::manager_topic, Notice::begin_suppression,
-		                n$ts, n$suppress_for, n$note, n$identifier);
+		# Batch suppressions so we do not call Cluster::publish() for
+		# each and every individual suppression. These can be bursty,
+		# particular when workers restart and they build up state.
+		local now = network_time();
+
+		if ( suppression_batch_period == 0sec || suppression_batch_max_size == 0 ||
+			(|gbatch$infos| == 0 && (now - gbatch$ts) >= suppression_batch_period) )
+			{
+			# No batching requested, or nothing yet pending and the
+			# last publish has been more than batch_period ago. Just
+			# publish this one directly. The motivation is to not
+			# start a batch for low-frequency suppressions.
+			gbatch$infos += suppression_info(n);
+			gbatch_send_and_reset();
+			return;
+			}
+
+		gbatch$infos += suppression_info(n);
+
+		if ( |gbatch$infos| == 1 && suppression_batch_max_size > 1 && ! gbatch$timer_pending )
+			{
+			# First entry in a batch starts the timer. If there isn't
+			# one pending yet and we actually intend to batch more than
+			# a single suppression.
+			schedule suppression_batch_period { suppression_batch_timer() };
+			gbatch$timer_pending = T;
+			}
+
+		# Reached the maximum batch size? Send out the batch. This
+		# keeps the timer running which will flush anything that
+		# is added afterward when it expires.
+		if ( |gbatch$infos| >= suppression_batch_max_size )
+			gbatch_send_and_reset();
 @endif
 		}
 	}
 
-# The manager currently re-publishes Notice::begin_suppression to worker
-# and proxy nodes.
+# The manager re-publishes the suppression batch to workers and proxies.
+#
+# Once we have established global pubsub, we shouldn't send through the
+# manager anymore.
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
+event Notice::suppression_batch_internal(batch: SuppressionBatch)
 	{
-	local e = Broker::make_event(Notice::begin_suppression, ts, suppress_for, note, identifier);
-	Broker::publish(Cluster::worker_topic, e);
-	Broker::publish(Cluster::proxy_topic, e);
+	Broker::publish(Cluster::worker_topic, Notice::suppression_batch_internal, batch);
+	Broker::publish(Cluster::proxy_topic, Notice::suppression_batch_internal, batch);
 	}
 @endif
+
+# All nodes re-raise Notice::begin_suppression() locally from an incoming batch.
+event Notice::suppression_batch_internal(batch: SuppressionBatch)
+	{
+	for ( _, si in batch$infos )
+		event Notice::begin_suppression(si$ts, si$suppress_for, si$note, si$identifier);
+	}
 
 event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
 	{

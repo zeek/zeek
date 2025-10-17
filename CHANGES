@@ -1,3 +1,19 @@
+8.1.0-dev.728 | 2025-10-17 09:54:41 +0200
+
+  * tools/systemd-generator: Introduce zeek-systemd-generator (Arne Welzel, Corelight)
+
+    This commit adds a systemd generator for running a Zeek cluster on a
+    single system supervised by systemd. The generator reads a zeek.conf
+    file located in <PREFIX>/etc/zeek/ and falls back to
+    /etc/zeek/zeek.conf.
+
+    See <PREFIX>/etc/zeek/zeek.conf for available options.
+
+  * ID: Render redef values using DescribeReST() (Arne Welzel, Corelight)
+
+    If the redef'ed to value is a const, we can use DescribeReST() of the
+    value to avoid producing invalid .rst for empty strings.
+
 8.1.0-dev.724 | 2025-10-15 16:59:23 -0700
 
   * Use standard NS_ size constants in DNS_Mgr.cc (Tim Wojtulewicz, Corelight)

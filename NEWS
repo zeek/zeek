@@ -73,6 +73,18 @@ New Functionality
   ``zeek_log_writer_truncated_containers_total``. The metrics are reported for each log
   stream.
 
+- There exists a new configuration file ``<PREFIX>/etc/zeek/zeek.conf`` and a
+  small executable called ``zeek-systemd-generator`` that acts as a systemd
+  unit file generator. These two pieces allow for quickly running an opinionated
+  single node cluster deployment using systemd. See the ``tools/systemd-generator/README.md``
+  and ``tools/systemd-generator/etc/zeek/zeek.conf`` files for more information.
+
+  If you've previously built Zeek process management by hand or with tools like
+  supervisord, runit, s6, etc on Linux, this might be a viable option to explore.
+
+  This is all Linux specific right now. However, the ``zeek.conf`` file is OS
+  agnostic as to keep options open to re-use it elsewhere.
+
 - The DNS analyzer now returns the set of parameters for SVCB data. It previously handled
   SVCB packets, but omitted the parameters while parsing.
 

@@ -102,6 +102,7 @@
 @load misc/weird-stats.zeek
 @load misc/trim-trace-file.zeek
 @load misc/unknown-protocols.zeek
+# @load misc/systemd-generator.zeek
 @load protocols/conn/community-id-logging.zeek
 @load protocols/conn/disable-unknown-ip-proto-support.zeek
 @load protocols/conn/failed-service-logging.zeek

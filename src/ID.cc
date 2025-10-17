@@ -535,7 +535,14 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
 
             std::string redef_str;
             ODesc expr_desc;
-            ir->init_expr->Describe(&expr_desc);
+            if ( ir->init_expr->IsConst() ) {
+                const auto* val = ir->init_expr->ExprVal();
+                val->DescribeReST(&expr_desc);
+            }
+            else {
+                ir->init_expr->Describe(&expr_desc);
+            }
+
             redef_str = expr_desc.Description();
             redef_str = util::strreplace(redef_str, "\n", " ");
 

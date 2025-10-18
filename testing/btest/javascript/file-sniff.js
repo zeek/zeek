@@ -1,6 +1,6 @@
 /*
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace base/protocols/http ./ext.zeek %INPUT > out
+ * @TEST-EXEC: LSAN_OPTIONS=${ZEEKJS_LSAN_OPTIONS} zeek -b -Cr $TRACES/http/get.trace base/protocols/http ./ext.zeek %INPUT > out
  * @TEST-EXEC: zeek-cut -m fuid uid from_js < files.log > files.log.cut
  * @TEST-EXEC: btest-diff out
  * @TEST-EXEC: btest-diff files.log.cut

@@ -99,7 +99,7 @@ State Variables
 
       ``=``::
 
-         T
+         ``T``
 
 
    Store the valid chain in c$ssl$valid_chain if validation succeeds.

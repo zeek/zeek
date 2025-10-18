@@ -245,7 +245,7 @@ Redefinable Options
 
       ``=``::
 
-         zeek.cluster.logger
+         ``zeek.cluster.logger``
 
 
    The topic name used for exchanging messages that are relevant to
@@ -273,7 +273,7 @@ Redefinable Options
 
       ``=``::
 
-         zeek.cluster.manager
+         ``zeek.cluster.manager``
 
 
    The topic name used for exchanging messages that are relevant to
@@ -333,7 +333,7 @@ Redefinable Options
 
       ``=``::
 
-         zeek.cluster.proxy
+         ``zeek.cluster.proxy``
 
 
    The topic name used for exchanging messages that are relevant to
@@ -360,7 +360,7 @@ Redefinable Options
 
       ``=``::
 
-         zeek.cluster.worker
+         ``zeek.cluster.worker``
 
 
    The topic name used for exchanging messages that are relevant to

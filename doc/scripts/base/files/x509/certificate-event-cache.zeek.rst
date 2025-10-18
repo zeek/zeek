@@ -71,7 +71,7 @@ Runtime Options
 
       ``=``::
 
-         100000
+         ``100000``
 
 
    Maximum size of the certificate event cache

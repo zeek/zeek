@@ -36,3 +36,14 @@ of Zeek instances.
 :doc:`/scripts/base/frameworks/cluster/telemetry.zeek`
 
 
+:doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+   This is the core Zeek script to support the notion of a cluster logger.
+   
+   The logger is passive (other Zeek instances connect to us), and once
+   connected the logger receives logs from other Zeek instances.
+   This script will be automatically loaded if necessary based on the
+   type of node being started.
+   This is where the cluster logger sets it's specific settings for other
+   frameworks and in the core.
+

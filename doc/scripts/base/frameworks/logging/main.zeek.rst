@@ -169,6 +169,12 @@ Runtime Options
 
          build_path(Management::get_spool_dir(), log-queue)
 
+   :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
+
+      ``=``::
+
+         ``../log-queue``
+
 
    Default rotation directory to use for the *dir* field of
    :zeek:see:`Log::RotationPath` during calls to
@@ -233,6 +239,12 @@ Redefinable Options
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``0 secs``
+   :Redefinition: from :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+      ``=``::
+
+         ``1.0 day``
+
 
    Default alarm summary mail interval. Zero disables alarm summary
    mails.
@@ -279,6 +291,12 @@ Redefinable Options
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``0 secs``
+   :Redefinition: from :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+      ``=``::
+
+         ``1.0 hr``
+
 
    Default rotation interval to use for filters that do not specify
    an interval. Zero disables rotation.
@@ -292,6 +310,18 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
+   :Redefinition: from :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+      ``=``::
+
+         ``archive-log``
+
+   :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
+
+      ``=``::
+
+         ````
+
 
    Default shell command to run on rotated files. Empty for none.
 
@@ -355,6 +385,12 @@ Redefinable Options
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
+   :Redefinition: from :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+      ``=``::
+
+         ``T``
+
 
    If true, local logging is by default enabled for all filters.
 
@@ -364,6 +400,12 @@ Redefinable Options
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``T``
+   :Redefinition: from :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
+
+      ``=``::
+
+         ``F``
+
 
    If true, remote logging is by default enabled for all filters.
 
@@ -1697,7 +1739,7 @@ Functions
    .. zeek:see:: Log::create_stream
 
 .. zeek:id:: Log::rotation_format_func
-   :source-code: base/frameworks/logging/main.zeek 856 881
+   :source-code: base/frameworks/cluster/nodes/logger.zeek 62 73
 
    :Type: :zeek:type:`function` (ri: :zeek:type:`Log::RotationFmtInfo`) : :zeek:type:`Log::RotationPath`
    :Attributes: :zeek:attr:`&redef`

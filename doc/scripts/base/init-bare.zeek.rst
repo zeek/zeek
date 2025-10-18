@@ -1142,7 +1142,7 @@ Redefinable Options
 
       ``=``::
 
-         Cluster::CLUSTER_BACKEND_ZEROMQ
+         ``Cluster::CLUSTER_BACKEND_ZEROMQ``
 
 
    Cluster backend to use. Default is the broker backend.
@@ -1179,7 +1179,7 @@ Redefinable Options
 
       ``=``::
 
-         ConnKey::CONNKEY_VLAN_FIVETUPLE
+         ``ConnKey::CONNKEY_VLAN_FIVETUPLE``
 
 
    The connection key factory to use for Zeek's internal connection
@@ -2135,7 +2135,7 @@ Redefinable Options
 
       ``=``::
 
-         T
+         ``T``
 
 
    If true, stops signature matching after a late match. A late match may occur
@@ -2159,7 +2159,7 @@ Redefinable Options
 
       ``=``::
 
-         F
+         ``F``
 
 
    If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
@@ -2231,7 +2231,7 @@ Redefinable Options
 
       ``=``::
 
-         20
+         ``20``
 
 
    Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
@@ -2768,7 +2768,7 @@ Redefinable Options
 
       ``=``::
 
-         15.0 secs
+         ``15.0 secs``
 
 
    Update interval for profiling (0 disables).  The easiest way to activate
@@ -2866,13 +2866,13 @@ Redefinable Options
 
       ``=``::
 
-         2.0 secs
+         ``2.0 secs``
 
    :Redefinition: from :doc:`/scripts/policy/frameworks/management/controller/main.zeek`
 
       ``=``::
 
-         2.0 secs
+         ``2.0 secs``
 
 
    Check for expired table entries after this amount of time.
@@ -3928,7 +3928,7 @@ State Variables
 
       ``=``::
 
-         F
+         ``F``
 
 
    If true, all DNS ADDL records are skipped.
@@ -3945,7 +3945,7 @@ State Variables
 
       ``=``::
 
-         F
+         ``F``
 
 
    If true, all DNS AUTH records are skipped.

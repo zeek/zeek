@@ -80,7 +80,7 @@ Redefinable Options
 
       ``=``::
 
-         5.0 secs
+         ``5.0 secs``
 
 
    The timeout interval for request state. Such state (see the

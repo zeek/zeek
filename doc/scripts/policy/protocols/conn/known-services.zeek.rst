@@ -115,7 +115,7 @@ Runtime Options
 
       ``=``::
 
-         ALL_HOSTS
+         ``ALL_HOSTS``
 
 
    The hosts whose services should be tracked and logged.

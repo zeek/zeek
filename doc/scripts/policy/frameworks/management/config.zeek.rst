@@ -74,19 +74,19 @@ Redefinable Options
 
       ``=``::
 
-         Management::AGENT
+         ``Management::AGENT``
 
    :Redefinition: from :doc:`/scripts/policy/frameworks/management/controller/main.zeek`
 
       ``=``::
 
-         Management::CONTROLLER
+         ``Management::CONTROLLER``
 
    :Redefinition: from :doc:`/scripts/policy/frameworks/management/node/main.zeek`
 
       ``=``::
 
-         Management::NODE
+         ``Management::NODE``
 
 
    The role of this process in cluster management. Use this to

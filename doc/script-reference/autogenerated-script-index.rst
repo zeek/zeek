@@ -653,6 +653,8 @@
    policy/frameworks/files/extract-all-files.zeek </scripts/policy/frameworks/files/extract-all-files.zeek>
    policy/frameworks/signatures/iso-9660.zeek </scripts/policy/frameworks/signatures/iso-9660.zeek>
    policy/misc/dump-events.zeek </scripts/policy/misc/dump-events.zeek>
+   policy/misc/systemd-generator.zeek </scripts/policy/misc/systemd-generator.zeek>
+   base/frameworks/cluster/nodes/logger.zeek </scripts/base/frameworks/cluster/nodes/logger.zeek>
    policy/protocols/conn/speculative-service.zeek </scripts/policy/protocols/conn/speculative-service.zeek>
    policy/frameworks/spicy/resource-usage.zeek </scripts/policy/frameworks/spicy/resource-usage.zeek>
    zeekygen/example.zeek </scripts/zeekygen/example.zeek>

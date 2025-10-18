@@ -142,7 +142,7 @@ Redefinable Options
 
       ``=``::
 
-         0
+         ``0``
 
 
    The maximum number of bytes that a single string field can contain when

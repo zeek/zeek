@@ -61,7 +61,7 @@ Redefinable Options
 
       ``=``::
 
-         T
+         ``T``
 
 
    When enabled, the Supervisor will listen on the configured Broker

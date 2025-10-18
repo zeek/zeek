@@ -70,6 +70,12 @@ Redefinable Options
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
+   :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
+
+      ``=``::
+
+         ``T``
+
 
    If true, detect log files that did not get properly rotated
    by a previous Zeek process (e.g. due to crash) and rotate them.
@@ -219,7 +225,7 @@ Redefinable Options
 
       ``=``::
 
-         T
+         ``T``
 
 
    If true, the default will be to write logs in a JSON format.

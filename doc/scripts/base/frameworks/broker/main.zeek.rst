@@ -187,7 +187,7 @@ Redefinable Options
 
       ``=``::
 
-         127.0.0.1
+         ``127.0.0.1``
 
 
    Default address on which to listen.

@@ -89,7 +89,7 @@ Redefinable Options
 
       ``=``::
 
-         10.0 mins
+         ``10.0 mins``
 
 
    The expiration timeout for intelligence items. Once an item expires, the

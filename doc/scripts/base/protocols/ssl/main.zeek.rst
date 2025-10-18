@@ -109,13 +109,13 @@ Runtime Options
 
       ``=``::
 
-         F
+         ``F``
 
    :Redefinition: from :doc:`/scripts/policy/protocols/ssl/heartbleed.zeek`
 
       ``=``::
 
-         F
+         ``F``
 
 
    If true, detach the SSL analyzer from the connection to prevent

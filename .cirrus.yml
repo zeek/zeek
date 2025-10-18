@@ -330,9 +330,18 @@ debian12_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
 
+opensuse_leap_16_0_task:
+  container:
+    # Opensuse Leap 15.6 EOL: 31 October 2026
+    dockerfile: ci/opensuse-leap-16.0/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
 opensuse_leap_15_6_task:
   container:
-    # Opensuse Leap 15.6 EOL: ~Dec 2025
+    # Opensuse Leap 15.6 EOL: 30 April 2026
     dockerfile: ci/opensuse-leap-15.6/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
@@ -492,12 +501,15 @@ alpine_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
 
-# Cirrus only supports the following macos runner currently, selecting
-# anything else automatically upgrades to this one.
-#
-#    ghcr.io/cirruslabs/macos-runner:sequoia
-#
-# See also: https://cirrus-ci.org/guide/macOS/
+macos_tahoe_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-runner:tahoe
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  << : *MACOS_ENVIRONMENT
+
 macos_sequoia_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-runner:sequoia
@@ -511,7 +523,7 @@ macos_sequoia_task:
 freebsd14_task:
   freebsd_instance:
     # FreeBSD 14 EOL: Nov 30 2028
-    image_family: freebsd-14-2
+    image_family: freebsd-14-3
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	client_initial_dcid	client_scid	server_scid	server_name	client_protocol	history
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	string
-1.000000	C4J4Th3PJpwUYZZ6gc	193.167.0.100	40084	193.167.100.100	443	1	a771f6161a4072c0bf10	(empty)	5911deff	server4:443	hq-interop	ISishhIH
+1.000000	C4J4Th3PJpwUYZZ6gc	193.167.0.100	40084	193.167.100.100	443	1	a771f6161a4072c0bf10	(empty)	5911deff	server4:443	hq-interop	ISishhoIHOOo
 #close XXXX-XX-XX-XX-XX-XX

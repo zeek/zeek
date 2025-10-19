@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	client_initial_dcid	client_scid	server_scid	server_name	client_protocol	history
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49320	127.0.0.1	443	quicv2	fa603212c8688817af3d3238735bc7	(empty)	b168b5cc	localhost	quic-echo-example	ISIIishIHH
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49320	127.0.0.1	443	quicv2	fa603212c8688817af3d3238735bc7	(empty)	b168b5cc	localhost	quic-echo-example	ISIIishoIHOHOoO
 #close XXXX-XX-XX-XX-XX-XX

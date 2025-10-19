@@ -1,7 +1,8 @@
 # @TEST-DOC: Supported events so far.
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -r $TRACES/quic/interop/quic-go_quic-go/retry.pcap base/protocols/quic %INPUT >out
+# @TEST-EXEC: echo "retry.pcap" >>out
+# @TEST-EXEC: zeek -r $TRACES/quic/interop/quic-go_quic-go/retry.pcap base/protocols/quic %INPUT >>out
 # @TEST-EXEC: echo "zerortt.pcap" >>out
 # @TEST-EXEC: zeek -r $TRACES/quic/interop/quic-go_quic-go/zerortt.pcap base/protocols/quic %INPUT >>out
 # @TEST-EXEC: btest-diff out
@@ -24,7 +25,18 @@ event QUIC::handshake_packet(c: connection, is_orig: bool, version: count, dcid:
 	{
 	print network_time(), "handshake_packet", is_orig, c$uid, version, b2hex(dcid), b2hex(scid);
 	}
+
 event QUIC::zero_rtt_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	print network_time(), "zero_rtt_packet", is_orig, c$uid, version, b2hex(dcid), b2hex(scid);
+	}
+
+event QUIC::discarded_packet(c: connection, is_orig: bool, total_decrypted: count)
+	{
+	print network_time(), "discarded_packet", is_orig, total_decrypted;
+	}
+
+event QUIC::short_packet_threshold_crossed(c: connection, is_orig: bool, threshold: count)
+	{
+	print network_time(), "short_packet_threshold_crossed", is_orig, threshold;
 	}

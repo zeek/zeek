@@ -1,4 +1,4 @@
-##! BIFs for shunting with XDP. This is the main interface for XDP shunting.
+##! BIFs for shunting with IP pairs using XDP.
 
 %%{
 #include "zeek/IPAddr.h"
@@ -6,7 +6,7 @@
 
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
-#include "shunt-util.h"
+#include "ShuntUtil.h"
 #include "XDPProgram.h"
 %%}
 

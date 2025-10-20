@@ -1,3 +1,5 @@
+#include "ShuntUtil.h"
+
 #include "zeek/IPAddr.h"
 #include "zeek/Val.h"
 

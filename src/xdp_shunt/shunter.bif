@@ -5,8 +5,7 @@
 #include "zeek/iosource/PktSrc.h"
 
 #include "bpf/UserXDP.h"
-#include "bpf/filter_common.h"
-#include "shunt-util.h"
+#include "ShuntUtil.h"
 #include "XDPProgram.h"
 %%}
 
@@ -19,8 +18,8 @@ module XDP;
 ## .. zeek:see:: end_shunt
 function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-    auto conn_id_map_max_size =  static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
-    auto ip_pair_map_max_size =  static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
+    auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
+    auto ip_pair_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
     if ( conn_id_map_max_size == 0 || ip_pair_map_max_size == 0 ) {
         zeek::reporter->Error("Map max sizes must be >0");
         // TODO: This is returning false, but should probably be another expected type

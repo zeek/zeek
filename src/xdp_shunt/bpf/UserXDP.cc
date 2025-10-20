@@ -158,10 +158,6 @@ struct ring_buffer* make_shunt_fin_buffer(struct filter* skel, ring_buffer_sampl
     return ring_buffer__new(bpf_map__fd(skel->maps.filter_rb), cb, nullptr, nullptr);
 }
 
-void free_ring_buffer(ring_buffer* rb) {
-    ring_buffer__free(rb);
-}
+void free_ring_buffer(ring_buffer* rb) { ring_buffer__free(rb); }
 
-void poll_shunt_fin(ring_buffer* rb, int timeout_ms) {
-    ring_buffer__poll(rb, timeout_ms);
-}
+void poll_shunt_fin(ring_buffer* rb, int timeout_ms) { ring_buffer__poll(rb, timeout_ms); }

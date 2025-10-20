@@ -15,10 +15,10 @@ export {
     };
 
     type ShuntedStats: record {
-        packets_from_orig: count;
-        bytes_from_orig: count;
-        packets_from_resp: count;
-        bytes_from_resp: count;
+        packets_from_1: count; # From IP1, or orig in conn_id
+        bytes_from_1: count; # From IP1, or orig in conn_id
+        packets_from_2: count; # From IP2, or resp in conn_id
+        bytes_from_2: count; # From IP2, or resp in conn_id
         fin: count; # The number of TCP fin packets shunted
         rst: count; # The number of TCP rst packets shunted
         timestamp: time &optional; # The last shunted timestamp seen, if any
@@ -32,5 +32,6 @@ export {
         ip1: addr;
         ip2: addr;
     };
+
     type ip_pair_shunt_table: table[ip_pair] of ShuntedStats;
 }

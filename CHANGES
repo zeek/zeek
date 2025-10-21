@@ -1,3 +1,9 @@
+8.1.0-dev.746 | 2025-10-21 09:17:09 +0200
+
+  * BTest for ZAM optimization of function that recurses while iterating over a table (Vern Paxson, Corelight)
+
+  * ZAM fix for recursive functions that iterate over tables (Vern Paxson, Corelight)
+
 8.1.0-dev.742 | 2025-10-17 15:47:05 -0700
 
   * CMakeLists: Skip building zeek-systemd-generator on Windows (Arne Welzel, Corelight)

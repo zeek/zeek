@@ -1,3 +1,11 @@
+8.1.0-dev.750 | 2025-10-21 08:07:51 -0700
+
+  * CI: Update FreeBSD 14 to 14.3 (Tim Wojtulewicz, Corelight)
+
+  * CI: Add macOS Tahoe/26.x (Tim Wojtulewicz, Corelight)
+
+  * CI: Add opensuse-leap-16.0, fix the EOL date for 15.6 (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.746 | 2025-10-21 09:17:09 +0200
 
   * BTest for ZAM optimization of function that recurses while iterating over a table (Vern Paxson, Corelight)

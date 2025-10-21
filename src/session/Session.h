@@ -77,7 +77,10 @@ public:
     bool IsInSessionTable() const { return in_session_table; }
 
     double StartTime() const { return start_time; }
-    void SetStartTime(double t) { start_time = t; }
+    [[deprecated("Remove in v9.1: Unused and immutable")]]
+    void SetStartTime(double t) {
+        start_time = t;
+    }
     double LastTime() const { return last_time; }
     void SetLastTime(double t) { last_time = t; }
 

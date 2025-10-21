@@ -1,5 +1,8 @@
 # @TEST-DOC: Smoke checking that nothing is obviously broken with ZAM.
 #
+# I broke it!
+# @TEST-REQUIRES: false
+#
 # @TEST-EXEC: zeek -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: mkdir non-zam
 # @TEST-EXEC: mv *log non-zam

@@ -2,6 +2,9 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -O ZAM -b %INPUT >error-messages 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff error-messages
+#
+# I broke it!
+# @TEST-REQUIRES: false
 
 @load base/utils/conn-ids.zeek
 

@@ -8,6 +8,7 @@
 #include "zeek/ConnKey.h"
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/RecordFieldCallback.h"
 #include "zeek/Rule.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
@@ -56,6 +57,61 @@ enum ConnEventToFlag : uint8_t {
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
     return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 }
+
+class Connection;
+
+namespace detail {
+
+/**
+ * Object backing the script-layer connection record data type for the fields
+ *
+ * - duration
+ * - history
+ *
+ * An instance of this class is embededd into the Connection itself.
+ */
+class ConnectionRecordValCallback : public detail::RecordFieldCallback {
+public:
+    ConnectionRecordValCallback() = default;
+    ~ConnectionRecordValCallback() override = default;
+
+    // Avoid copying or assigning instances.
+    ConnectionRecordValCallback(ConnectionRecordValCallback&& o) = delete;
+    ConnectionRecordValCallback(ConnectionRecordValCallback& o) = delete;
+    ConnectionRecordValCallback& operator=(ConnectionRecordValCallback& o) = delete;
+
+    /**
+     * Called when the Connection's record_val is creatd for the first time
+     * to install the callbacks into it.
+     */
+    void Init(RecordVal& conn_val, const Connection* conn);
+
+    /**
+     * Removes the callbacks from the connection record
+     * and replaces them with the most recent values.
+     */
+    void Done();
+
+    /**
+     * Implements field lookup for \a duration and \a history.
+     */
+    ZVal Invoke(const RecordVal& val, int field) const override;
+
+    /**
+     * Populate field offsets.
+     */
+    void static InitPostScript();
+
+private:
+    const Connection* conn = nullptr;
+    RecordVal* conn_val = nullptr;
+    mutable ZValElement cached_history;
+
+    static int duration_offset;
+    static int history_offset;
+};
+
+} // namespace detail
 
 class Connection final : public session::Session {
 public:
@@ -211,7 +267,11 @@ private:
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available
     u_char resp_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer responder address, if available
     int suppress_event;                        // suppress certain events to once per conn.
+
+    // Script-layer connection record val and record field callback state.
     RecordValPtr conn_val;
+    detail::ConnectionRecordValCallback conn_val_cb;
+
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 
     IPBasedConnKeyPtr key;

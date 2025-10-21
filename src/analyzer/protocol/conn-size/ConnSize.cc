@@ -11,6 +11,82 @@
 
 namespace zeek::analyzer::conn_size {
 
+namespace detail {
+
+int EndpointRecordValCallback::orig_endp_offset = -1;
+int EndpointRecordValCallback::resp_endp_offset = -1;
+int EndpointRecordValCallback::num_pkts_offset = -1;
+int EndpointRecordValCallback::num_bytes_ip_offset = -1;
+
+void EndpointRecordValCallback::Init(RecordVal& arg_conn_val, ConnSize_Analyzer* arg_analyzer) {
+    static const int orig_offset = id::connection->FieldOffset("orig");
+    static const int resp_offset = id::connection->FieldOffset("resp");
+    assert(orig_offset >= 0);
+    assert(resp_offset >= 0);
+
+    analyzer = arg_analyzer;
+
+    orig_endp = arg_conn_val.GetField<zeek::RecordVal>(orig_offset).get();
+    orig_endp->AssignCallback(num_pkts_offset, this);
+    orig_endp->AssignCallback(num_bytes_ip_offset, this);
+
+    resp_endp = arg_conn_val.GetField<zeek::RecordVal>(resp_offset).get();
+    resp_endp->AssignCallback(num_pkts_offset, this);
+    resp_endp->AssignCallback(num_bytes_ip_offset, this);
+}
+
+void EndpointRecordValCallback::Done() {
+    // Might have never been initialized.
+    if ( ! analyzer ) {
+        assert(orig_endp == nullptr);
+        assert(resp_endp == nullptr);
+        return;
+    }
+
+    // During Done() replace the fields on the endpoint values with the most recent value.
+    orig_endp->Assign(num_pkts_offset, analyzer->GetPackets(true));
+    orig_endp->Assign(num_bytes_ip_offset, analyzer->GetBytes(true));
+    resp_endp->Assign(num_pkts_offset, analyzer->GetPackets(false));
+    resp_endp->Assign(num_bytes_ip_offset, analyzer->GetBytes(false));
+
+    orig_endp = nullptr;
+    resp_endp = nullptr;
+    analyzer = nullptr;
+}
+
+ZVal EndpointRecordValCallback::Invoke(const RecordVal& val, int field) const {
+    if ( &val != orig_endp && &val != resp_endp )
+        reporter->InternalError("invalid endpoint in EndpointCallback %p (orig_endp=%p resp_endp=%p)", &val, orig_endp,
+                                resp_endp);
+
+    if ( field != num_pkts_offset && field != num_bytes_ip_offset )
+        reporter->InternalError("invalid field in EndpointCallback %d (num_pkts_offset=%d num_bytes_ip_offset=%d)",
+                                field, num_pkts_offset, num_bytes_ip_offset);
+
+    bool is_orig = &val == orig_endp;
+    bool is_num_pkts = field == num_pkts_offset;
+
+    if ( field == num_pkts_offset )
+        return analyzer->GetPackets(is_orig);
+    else
+        return analyzer->GetBytes(is_orig);
+};
+
+void EndpointRecordValCallback::InitPostScript() {
+    orig_endp_offset = id::connection->FieldOffset("orig");
+    resp_endp_offset = id::connection->FieldOffset("resp");
+    num_pkts_offset = id::endpoint->FieldOffset("num_pkts");
+    num_bytes_ip_offset = id::endpoint->FieldOffset("num_bytes_ip");
+
+    if ( num_pkts_offset < 0 )
+        reporter->InternalError("no num_pkts field in endpoint found");
+
+    if ( num_bytes_ip_offset < 0 )
+        reporter->InternalError("no num_bytes_ip field in endpoint found");
+}
+
+} // namespace detail
+
 std::vector<uint64_t> ConnSize_Analyzer::generic_pkt_thresholds;
 
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c) : Analyzer("CONNSIZE", c) { start_time = c->StartTime(); }
@@ -34,7 +110,10 @@ void ConnSize_Analyzer::Init() {
         NextGenericPacketThreshold();
 }
 
-void ConnSize_Analyzer::Done() { Analyzer::Done(); }
+void ConnSize_Analyzer::Done() {
+    Analyzer::Done();
+    endp_cb.Done();
+}
 
 void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig) {
     if ( ! f )
@@ -146,26 +225,18 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration) {
     CheckThresholds(true);
 }
 
-void ConnSize_Analyzer::UpdateConnVal(RecordVal* conn_val) {
-    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
-    static const int origidx = conn_type->FieldOffset("orig");
-    static const int respidx = conn_type->FieldOffset("resp");
-    static const auto& endpoint_type = zeek::id::find_type<zeek::RecordType>("endpoint");
-    static const int pktidx = endpoint_type->FieldOffset("num_pkts");
-    static const int bytesidx = endpoint_type->FieldOffset("num_bytes_ip");
+void ConnSize_Analyzer::InitConnVal(RecordVal& conn_val) {
+    assert(conn_val.GetOrigin() == Conn());
+    assert(&conn_val == Conn()->RawVal());
 
-    auto* orig_endp = conn_val->GetFieldAs<RecordVal>(origidx);
-    auto* resp_endp = conn_val->GetFieldAs<RecordVal>(respidx);
-    orig_endp->Assign(pktidx, orig_pkts);
-    orig_endp->Assign(bytesidx, orig_bytes);
-    resp_endp->Assign(pktidx, resp_pkts);
-    resp_endp->Assign(bytesidx, resp_bytes);
-
-    Analyzer::UpdateConnVal(conn_val);
+    // Install callbacks for num_pkts and num_bytes_ip
+    endp_cb.Init(conn_val, this);
 }
 
 void ConnSize_Analyzer::FlipRoles() {
     Analyzer::FlipRoles();
+    endp_cb.FlipRoles();
+
     uint64_t tmp;
 
     tmp = orig_bytes;

@@ -70,6 +70,10 @@ New Functionality
 - A new TapAnalyzer class was added allowing to tap into all packets delivered
   to child analyzers attached to session adapters.
 
+- Added a new ``&volatile`` attribute to annotate record fields on the ``connection``
+  and ``endpoint`` record types to document that these are changed by Zeek's
+  internal connection tracking and analyzers without being explicitly assigned to.
+
 - Two new hooks, ``Cluster::on_subscribe()`` and ``Cluster::on_unsubscribe()`` have
   been added to allow observing ``Subscribe()`` and ``Unsubscribe()`` calls on
   backends by Zeek scripts.

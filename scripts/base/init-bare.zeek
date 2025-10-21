@@ -850,19 +850,20 @@ type event_metadata_vec: vector of EventMetadata::Entry;
 ##
 ## .. zeek:see:: connection
 type endpoint: record {
-	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
+	## Logical size of data sent (for TCP: derived from sequence numbers).
+	size: count &volatile;
 	## Endpoint state. For a TCP connection, one of the constants:
 	## :zeek:see:`TCP_INACTIVE` :zeek:see:`TCP_SYN_SENT`
 	## :zeek:see:`TCP_SYN_ACK_SENT` :zeek:see:`TCP_PARTIAL`
 	## :zeek:see:`TCP_ESTABLISHED` :zeek:see:`TCP_CLOSED` :zeek:see:`TCP_RESET`.
 	## For UDP, one of :zeek:see:`UDP_ACTIVE` and :zeek:see:`UDP_INACTIVE`.
-	state: count;
+	state: count &volatile;
 	## Number of packets sent. Only set if :zeek:id:`use_conn_size_analyzer`
 	## is true.
-	num_pkts: count &optional;
+	num_pkts: count &optional &volatile;
 	## Number of IP-level bytes sent. Only set if
 	## :zeek:id:`use_conn_size_analyzer` is true.
-	num_bytes_ip: count &optional;
+	num_bytes_ip: count &optional &volatile;
 	## The current IPv6 flow label that the connection endpoint is using.
 	## Always 0 if the connection is over IPv4.
 	flow_label: count;
@@ -882,7 +883,7 @@ type connection: record {
 	## The duration of the conversation. Roughly speaking, this is the
 	## interval between first and last data packet (low-level TCP details
 	## may adjust it somewhat in ambiguous cases).
-	duration: interval;
+	duration: interval &volatile;
 	## The set of services the connection is using as determined by Zeek's
 	## dynamic protocol detection. Each entry is the label of an analyzer
 	## that confirmed that it could parse the connection payload.  While
@@ -891,7 +892,8 @@ type connection: record {
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
 	service: set[string] &ordered;
-	history: string;	##< State history of connections. See *history* in :zeek:see:`Conn::Info`.
+	## State history of connections. See *history* in :zeek:see:`Conn::Info`.
+	history: string &volatile;
 	## A globally unique connection identifier. For each connection, Zeek
 	## creates an ID that is very likely unique across independent Zeek runs.
 	## These IDs can thus be used to tag and locate information associated

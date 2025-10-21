@@ -1,3 +1,11 @@
+8.0.3-3 | 2025-10-28 10:02:36 -0700
+
+  * docker: add `websockets` dependency (Edoardo Mich)
+
+    add the full `python3-websockets` in addition to the client only `python3-websocket` to avoid errors in `zeecktl` using ZeroMQ Cluster backend
+
+    (cherry picked from commit fdc8132a93ca796d78ee09575780532e37b296bd)
+
 8.0.3-2 | 2025-10-28 10:01:39 -0700
 
   * BTest for ZAM optimization of function that recurses while iterating over a table (Vern Paxson, Corelight)

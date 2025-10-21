@@ -1410,6 +1410,14 @@ public:
     void Assign(int field, ValPtr new_val);
 
     /**
+     * Assign a callback to a record field.
+     *
+     * @param field The Field index to assign
+     * @param cb The ZValCallback instance to assign.
+     */
+    void AssignCallback(int field, detail::RecordFieldCallback* cb);
+
+    /**
      * Assign a value of type @c T to a record field, as constructed from
      * the provided arguments.
      * @param field  The field index to assign.
@@ -1499,7 +1507,9 @@ public:
      * @return  Whether there's a value for the given field index.
      */
     bool HasField(int field) const {
-        if ( record_val[field] )
+        const auto& fv = record_val[field];
+
+        if ( fv.HoldsZVal() || fv.HoldsFieldCallback() )
             return true;
 
         return GetRecordType()->DeferredInits()[field] != nullptr;
@@ -1524,15 +1534,11 @@ public:
     ValPtr GetField(int field) const {
         const auto* rt = GetRecordType();
         auto& fv = record_val[field];
-        if ( ! fv ) {
-            const auto& fi = rt->DeferredInits()[field];
-            if ( ! fi )
-                return nullptr;
 
-            fv = fi->Generate();
-        }
+        if ( fv.HoldsZVal() )
+            return fv.ToVal(rt->GetFieldType(field));
 
-        return fv.ToVal(rt->GetFieldType(field));
+        return GetFieldSlow(*rt, fv, field);
     }
 
     /**
@@ -1599,7 +1605,7 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const { return record_val[field].IsSet(); }
+    bool HasRawField(int field) const { return record_val[field].HoldsZVal(); }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1755,9 +1761,16 @@ protected:
         if ( ! f )
             f = ZVal();
 
-        assert(f.IsSet());
+        assert(f.HoldsZVal());
         return *f;
     }
+
+    /**
+     * Called by GetField() when the ZValElement at position
+     * \a field cannot be readily returned and instead needs
+     * initialization or holds a callback that requires invocation.
+     */
+    ValPtr GetFieldSlow(const RecordType& rt, ZValElement& fv, int field) const;
 
     ValPtr DoClone(CloneState* state) override;
 

@@ -670,6 +670,21 @@ public function bytes_sid_to_hex_repr(bts: bytes): string {
     return ret;
 }
 
+public function escape_filter_string(bts: bytes): string {
+    local ret = "";
+    local chars_to_escape: set<uint8> = [0, 27, 40, 41, 42];
+
+    for (bt in bts) {
+        if (bt in chars_to_escape) {
+            ret += "\\%02x" % bt;
+        } else {
+            ret += "%c" % bt;
+        }
+    }
+
+    return ret;
+}
+
 public function bytes_sid_to_SID_repr(bts: bytes): string {
     # Example: SID -> S-1-5-21-1153942841-488947194-1912431946
 
@@ -851,7 +866,7 @@ type DecodedAttributeValue = unit(fType: FilterType) {
 
             # By default, decode with UTF-8
             default: {
-                self.assertionValueDecoded = self.assertionValue.decode();
+                self.assertionValueDecoded = escape_filter_string(self.assertionValue);
             }
         }
     }
@@ -871,7 +886,7 @@ type SubstringFilter = unit {
     # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
     header: ASN1::ASN1Header;
     : ASN1::ASN1Message(False)[] &size=self.header.len.len foreach {
-        local data = $$.application_data.decode();
+        local data = escape_filter_string($$.application_data);
         if ($$.application_id == 0) {
             self.initial = data;
         } else if ($$.application_id == 1) {

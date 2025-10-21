@@ -114,11 +114,6 @@ private:
     // functions they can be used directly.
     TableIterVec table_iters;
 
-    // Points to the TableIterVec used to manage iteration over tables.
-    // For non-recursive functions, we just use the static one, but
-    // for recursive ones this points to the local stack variable.
-    TableIterVec* tiv_ptr = &table_iters;
-
     // Number of StepIterInfo's required by the function.  These we
     // always create using a local stack variable, since they don't
     // require any overhead or cleanup.

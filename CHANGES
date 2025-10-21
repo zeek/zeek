@@ -1,3 +1,15 @@
+8.0.3-2 | 2025-10-28 10:01:39 -0700
+
+  * BTest for ZAM optimization of function that recurses while iterating over a table (Vern Paxson, Corelight)
+
+    (cherry picked from commit 2328ee582c87b3a79c5dbe3b5aff98ac5691e0af)
+
+  * ZAM fix for recursive functions that iterate over tables (Vern Paxson, Corelight)
+
+    (cherry picked from commit 2328ee582c87b3a79c5dbe3b5aff98ac5691e0af)
+
+  * Revert zeekctl bump, move back to release version with more targeted fixes (Tim Wojtulewicz, Corelight)
+
 8.0.3 | 2025-10-15 17:35:02 +0000
 
   * Update CHANGES, VERSION, and NEWS (Tim Wojtulewicz, Corelight)

@@ -404,6 +404,11 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     std::unique_ptr<TableIterVec> local_table_iters;
     std::vector<StepIterInfo> step_iters(num_step_iters);
 
+    // Points to the TableIterVec used to manage iteration over tables.
+    // For non-recursive functions, we just use the static one, but
+    // for recursive ones this points to the local stack variable.
+    TableIterVec* tiv_ptr = &table_iters;
+
     ZVal* frame;
 
     if ( fixed_frame )

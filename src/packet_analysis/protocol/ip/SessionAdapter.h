@@ -89,6 +89,55 @@ using TapAnalyzerPtr = std::unique_ptr<TapAnalyzer>;
 namespace IP {
 
 class IPBasedAnalyzer;
+class SessionAdapter;
+
+/**
+ * Helper class embedded in the SessionAdapter to assign callbacks for
+ * for size and state fields within the endpoint records of connection.
+ *
+ * SessonAdapter implementations are required to implement
+ * GetEndpointSize(bool is_orig) and GetEndpointState(bool is_orig) to
+ * query the most recent values.
+ */
+class EndpointRecordValCallback : zeek::detail::RecordFieldCallback {
+public:
+    EndpointRecordValCallback() = default;
+
+    // Avoid copying or assigning instances.
+    EndpointRecordValCallback(EndpointRecordValCallback&& o) = delete;
+    EndpointRecordValCallback(EndpointRecordValCallback& o) = delete;
+    EndpointRecordValCallback& operator=(EndpointRecordValCallback& o) = delete;
+
+    void Init(RecordVal* conn_val, const SessionAdapter* arg_adapter);
+
+    void Done();
+
+    ZVal Invoke(const RecordVal& val, int field) const override;
+
+    /**
+     * Flip originator and responder endpoint if we have them.
+     */
+    void FlipRoles() {
+        if ( adapter ) {
+            assert(orig_endp && resp_endp);
+            std::swap(orig_endp, resp_endp);
+        }
+    }
+
+    static void InitPostScript();
+
+private:
+    const SessionAdapter* adapter = nullptr;
+    // Pointers to the endpoint records within connection.
+    RecordVal* orig_endp = nullptr;
+    RecordVal* resp_endp = nullptr;
+
+    // Cached offsets.
+    static int orig_endp_offset;
+    static int resp_endp_offset;
+    static int size_offset;
+    static int state_offset;
+};
 
 /**
  * This class represents the interface between the packet analysis framework and
@@ -206,10 +255,33 @@ public:
      */
     void UpdateConnVal(RecordVal* conn_val) override;
 
+    /**
+     * Override to install endpoint callbacks.
+     */
+    virtual void InitConnVal(RecordVal& conn_val) override;
+
+    /**
+     * @return The most recent value for endpoint$size.
+     */
+    virtual zeek_uint_t GetEndpointSize(bool is_orig) const = 0;
+
+    /**
+     * @return The most recent value value for endpoint$state.
+     */
+    virtual zeek_uint_t GetEndpointState(bool is_orig) const = 0;
+
+    /**
+     * Overridden from parent class to flip endpoint callback.
+     */
+    void FlipRoles() override;
+
+    static void InitPostScript();
+
 protected:
     IPBasedAnalyzer* parent = nullptr;
     analyzer::pia::PIA* pia = nullptr;
     std::vector<TapAnalyzerPtr> tap_analyzers;
+    EndpointRecordValCallback endp_cb;
 };
 
 } // namespace IP

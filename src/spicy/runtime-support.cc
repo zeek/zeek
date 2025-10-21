@@ -120,10 +120,9 @@ std::string hilti::rt::detail::adl::to_string(const zeek::spicy::rt::AnalyzerTyp
     hilti::rt::cannot_be_reached();
 }
 
-TypePtr rt::create_enum_type(
+extern TypePtr rt::create_enum_type(
     const std::string& ns, const std::string& id,
-    const hilti::rt::Set<std::tuple<std::optional<std::string>, std::optional<hilti::rt::integer::safe<int64_t>>>>&
-        labels) {
+    const hilti::rt::Set<hilti::rt::Tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels) {
     auto _ = hilti::rt::profiler::start("zeek/rt/create_enum_type");
 
     if ( auto t = findType(TYPE_ENUM, ns, id) )
@@ -132,14 +131,13 @@ TypePtr rt::create_enum_type(
     auto etype = make_intrusive<EnumType>(ns + "::" + id);
 
     for ( auto [lid, lval] : labels ) {
-        assert(lid && lval);
-        auto name = ::hilti::rt::fmt("%s_%s", id, *lid);
+        auto name = ::hilti::rt::fmt("%s_%s", id, lid);
 
-        if ( *lval == -1 )
+        if ( lval == -1 )
             // Zeek's enum can't be negative, so swap in max_int for our Undef.
             lval = std::numeric_limits<::zeek_int_t>::max();
 
-        etype->AddName(ns, name.c_str(), *lval, true);
+        etype->AddName(ns, name.c_str(), lval, true);
     }
 
     return std::move(etype);
@@ -178,7 +176,7 @@ rt::RecordField rt::create_record_field(const std::string& id, const TypePtr& ty
     return rt::RecordField{id, type, is_optional, is_log};
 }
 
-TypePtr rt::create_table_type(TypePtr key, std::optional<TypePtr> value) {
+TypePtr rt::create_table_type(TypePtr key, hilti::rt::Optional<TypePtr> value) {
     auto _ = hilti::rt::profiler::start("zeek/rt/create_table_type");
     auto idx = make_intrusive<TypeList>();
     idx->Append(std::move(key));
@@ -335,7 +333,7 @@ inline rt::cookie::FileStateStack* _file_state_stack(rt::Cookie* cookie) {
     throw rt::ValueUnavailable("no current connection or file available");
 }
 
-inline const rt::cookie::FileState* _file_state(rt::Cookie* cookie, std::optional<std::string> fid) {
+inline const rt::cookie::FileState* _file_state(rt::Cookie* cookie, hilti::rt::Optional<std::string> fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_state");
 
     auto* stack = _file_state_stack(cookie);
@@ -546,7 +544,7 @@ rt::AnalyzerType rt::analyzer_type(const std::string& analyzer, const hilti::rt:
     return AnalyzerType::Undef;
 }
 
-void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto) {
+void rt::protocol_begin(const hilti::rt::Optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_begin");
 
     if ( analyzer ) {
@@ -604,7 +602,7 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
     }
 }
 
-void rt::protocol_begin(const ::hilti::rt::Protocol& proto) { return protocol_begin(std::nullopt, proto); }
+void rt::protocol_begin(const ::hilti::rt::Protocol& proto) { protocol_begin(hilti::rt::Null(), proto); }
 
 rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer, const ::hilti::rt::Protocol& proto) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_handle_get_or_create");
@@ -680,8 +678,8 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
 
 namespace zeek::spicy::rt {
 static void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
-                             const std::optional<::hilti::rt::Protocol>& proto,
-                             const std::optional<rt::ProtocolHandle>& h) {
+                             const hilti::rt::Optional<::hilti::rt::Protocol>& proto,
+                             const hilti::rt::Optional<rt::ProtocolHandle>& h) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_data_in");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
 
@@ -777,7 +775,7 @@ void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes
 }
 
 void rt::protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::safe<uint64_t>& offset,
-                      const hilti::rt::integer::safe<uint64_t>& len, const std::optional<rt::ProtocolHandle>& h) {
+                      const hilti::rt::integer::safe<uint64_t>& len, const hilti::rt::Optional<rt::ProtocolHandle>& h) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_gap");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
 
@@ -885,7 +883,7 @@ void rt::protocol_handle_close(const ProtocolHandle& handle) {
     }
 }
 
-rt::cookie::FileState* rt::cookie::FileStateStack::push(std::optional<std::string> fid_provided) {
+rt::cookie::FileState* rt::cookie::FileStateStack::push(hilti::rt::Optional<std::string> fid_provided) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file-stack-push");
     if ( fid_provided && find(*fid_provided) )
         throw InvalidValue(hilti::rt::fmt("Duplicate file id %s provided", *fid_provided));
@@ -938,8 +936,8 @@ void rt::cookie::FileStateStack::remove(const std::string& fid) {
     }
 }
 
-static void _data_in(const char* data, uint64_t len, std::optional<uint64_t> offset,
-                     const std::optional<std::string>& fid) {
+static void _data_in(const char* data, uint64_t len, const hilti::rt::Optional<uint64_t>& offset,
+                     const hilti::rt::Optional<std::string>& fid) {
     auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie());
     auto* fstate = _file_state(cookie, fid);
     auto mime_type = (fstate->mime_type ? *fstate->mime_type : std::string());
@@ -1005,7 +1003,8 @@ std::string rt::fuid() {
     throw ValueUnavailable("fuid() not available in current context");
 }
 
-std::string rt::file_begin(const std::optional<std::string>& mime_type, const std::optional<std::string>& fuid) {
+std::string rt::file_begin(const hilti::rt::Optional<std::string>& mime_type,
+                           const hilti::rt::Optional<std::string>& fuid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_begin");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto* fstate = _file_state_stack(cookie)->push(fuid);
@@ -1044,7 +1043,7 @@ std::string rt::file_begin(const std::optional<std::string>& mime_type, const st
     return fstate->fid;
 }
 
-void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const std::optional<std::string>& fid) {
+void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const hilti::rt::Optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_set_size");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto* fstate = _file_state(cookie, fid);
@@ -1057,19 +1056,19 @@ void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const std
         file_mgr->SetSize(size, Tag(), nullptr, false, fstate->fid);
 }
 
-void rt::file_data_in(const hilti::rt::Bytes& data, const std::optional<std::string>& fid) {
+void rt::file_data_in(const hilti::rt::Bytes& data, const hilti::rt::Optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_data_in");
     _data_in(data.data(), data.size(), {}, fid);
 }
 
 void rt::file_data_in_at_offset(const hilti::rt::Bytes& data, const hilti::rt::integer::safe<uint64_t>& offset,
-                                const std::optional<std::string>& fid) {
+                                const hilti::rt::Optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_data_in_at_offset");
     _data_in(data.data(), data.size(), offset, fid);
 }
 
 void rt::file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti::rt::integer::safe<uint64_t>& len,
-                  const std::optional<std::string>& fid) {
+                  const hilti::rt::Optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_gap");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     if ( ! cookie )
@@ -1085,7 +1084,7 @@ void rt::file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti:
         file_mgr->Gap(offset, len, Tag(), nullptr, false, fstate->fid);
 }
 
-void rt::file_end(const std::optional<std::string>& fid) {
+void rt::file_end(const hilti::rt::Optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_end");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto* fstate = _file_state(cookie, fid);
@@ -1245,8 +1244,12 @@ ValPtr rt::detail::to_val(const hilti::rt::type_info::Value& value, const TypePt
             auto rval = make_intrusive<RecordVal>(rtype);
 
             int idx = 0;
-            for ( const auto& [bits, bvalue] : type.bitfield->iterate(value) )
-                setRecordField(rval.get(), rtype, idx++, bvalue);
+            for ( const auto& [bits, bvalue] : type.bitfield->iterate(value) ) {
+                if ( bvalue )
+                    setRecordField(rval.get(), rtype, idx, bvalue);
+
+                idx++;
+            }
 
             return std::move(rval);
         }
@@ -1478,11 +1481,9 @@ ValPtr rt::detail::to_val(const hilti::rt::type_info::Value& value, const TypePt
             auto rval = make_intrusive<RecordVal>(rtype);
 
             int idx = 0;
-            for ( const auto& x : type.tuple->iterate(value) ) {
-                if ( auto fval = x.second.type().optional->value(x.second) ) {
-                    if ( fval )
-                        setRecordField(rval.get(), rtype, idx, fval);
-                }
+            for ( const auto& [ti, v] : type.tuple->iterate(value) ) {
+                if ( v )
+                    setRecordField(rval.get(), rtype, idx, v);
 
                 idx++;
             }

@@ -36,6 +36,7 @@
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
 #include "zeek/RE.h"
+#include "zeek/RecordFieldCallback.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
@@ -4133,10 +4134,12 @@ const PortValPtr& ValManager::Port(uint32_t port_num) {
 TEST_SUITE_BEGIN("ZValElement");
 
 TEST_CASE("default constructor") {
-    // default constructor doesn't do anything.
+    // default constructor doesn't do anything and calling
+    // accessors on it triggers an abort() by default in
+    // debug mode due to the State::NoInit asserts.
+    //
+    // Verify basic construction/destruction works.
     zeek::ZValElement element;
-    CHECK(! element.IsSet());
-    CHECK(! element.IsManaged());
 }
 
 TEST_CASE("holds CountVal") {
@@ -4144,7 +4147,7 @@ TEST_CASE("holds CountVal") {
     auto v = zeek::make_intrusive<zeek::CountVal>(104242);
     zeek::ZValElement element = zeek::ZValElement(v, t);
 
-    CHECK(element.IsSet());
+    CHECK(element.HoldsZVal());
     CHECK(element.Tag() == zeek::TYPE_COUNT);
     CHECK(! element.IsManaged());
     CHECK(v->RefCnt() == 1); // Not managed, so the element does not hold a ref to the original value.
@@ -4161,7 +4164,7 @@ TEST_CASE("holds RecordVal") {
     CHECK(v->RefCnt() == 1);
     zeek::ZValElement element = zeek::ZValElement(v, t);
 
-    CHECK(element.IsSet());
+    CHECK(element.HoldsZVal());
     CHECK(element.Tag() == zeek::TYPE_RECORD);
     CHECK(element.IsManaged());
     CHECK(v->RefCnt() == 2); // Managed, element takes a ref.

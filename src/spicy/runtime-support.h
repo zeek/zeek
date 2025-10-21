@@ -7,11 +7,9 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <tuple>
 #include <utility>
 
 #include <hilti/rt/exception.h>
@@ -176,8 +174,7 @@ extern TypePtr create_base_type(ZeekTypeTag tag);
 
 extern TypePtr create_enum_type(
     const std::string& ns, const std::string& id,
-    const hilti::rt::Set<std::tuple<std::optional<std::string>, std::optional<hilti::rt::integer::safe<int64_t>>>>&
-        labels);
+    const hilti::rt::Set<hilti::rt::Tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels);
 
 struct RecordField {
     std::string id;   /**< name of record field */
@@ -191,7 +188,7 @@ extern TypePtr create_record_type(const std::string& ns, const std::string& id,
 extern RecordField create_record_field(const std::string& id, const TypePtr& type, hilti::rt::Bool is_optional,
                                        hilti::rt::Bool is_log);
 
-extern TypePtr create_table_type(TypePtr key, std::optional<TypePtr> value);
+extern TypePtr create_table_type(TypePtr key, hilti::rt::Optional<TypePtr> value);
 extern TypePtr create_vector_type(const TypePtr& elem);
 
 /** Returns true if an event has at least one handler defined. */
@@ -371,7 +368,7 @@ inline hilti::rt::Bool has_analyzer(const std::string& analyzer, const hilti::rt
  *
  * @param analyzer the Zeek-side name of the analyzer to instantiate; can be left unset to add a DPD analyzer
  */
-void protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto);
+void protocol_begin(const hilti::rt::Optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto);
 
 /**
  * Adds a Zeek-side DPD child analyzer to the current connection.
@@ -424,7 +421,7 @@ void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& da
  * @param h optional handle to the child analyzer to signal a gap to
  */
 void protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::safe<uint64_t>& offset,
-                  const hilti::rt::integer::safe<uint64_t>& len, const std::optional<ProtocolHandle>& h = {});
+                  const hilti::rt::integer::safe<uint64_t>& len, const hilti::rt::Optional<ProtocolHandle>& h = {});
 
 /**
  * Signals EOD to all previously instantiated Zeek-side child protocol
@@ -447,7 +444,7 @@ void protocol_handle_close(const ProtocolHandle& handle);
  * @param fid optional file ID passed to Zeek
  * @returns Zeek-side file ID of the new file
  */
-std::string file_begin(const std::optional<std::string>& mime_type, const std::optional<std::string>& fid);
+std::string file_begin(const hilti::rt::Optional<std::string>& mime_type, const hilti::rt::Optional<std::string>& fid);
 
 /**
  * Returns the current file's FUID.
@@ -472,7 +469,7 @@ void skip_input();
  * @param size expected final size of the file
  * @param fid ID of the file to operate on; if unset, the most recently begun file is used
  */
-void file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const std::optional<std::string>& fid = {});
+void file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const hilti::rt::Optional<std::string>& fid = {});
 
 /**
  * Passes file content on to Zeek's file analysis.
@@ -480,7 +477,7 @@ void file_set_size(const hilti::rt::integer::safe<uint64_t>& size, const std::op
  * @param data next chunk of data
  * @param fid ID of the file to operate on; if unset, the most recently begun file is used
  */
-void file_data_in(const hilti::rt::Bytes& data, const std::optional<std::string>& fid = {});
+void file_data_in(const hilti::rt::Bytes& data, const hilti::rt::Optional<std::string>& fid = {});
 
 /**
  * Passes file content at a specific offset on to Zeek's file analysis.
@@ -490,7 +487,7 @@ void file_data_in(const hilti::rt::Bytes& data, const std::optional<std::string>
  * @param fid ID of the file to operate on; if unset, the most recently begun file is used
  */
 void file_data_in_at_offset(const hilti::rt::Bytes& data, const hilti::rt::integer::safe<uint64_t>& offset,
-                            const std::optional<std::string>& fid = {});
+                            const hilti::rt::Optional<std::string>& fid = {});
 
 /**
  * Signals a gap in a file to Zeek's file analysis.
@@ -500,14 +497,14 @@ void file_data_in_at_offset(const hilti::rt::Bytes& data, const hilti::rt::integ
  * @param fid ID of the file to operate on; if unset, the most recently begun file is used
  */
 void file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti::rt::integer::safe<uint64_t>& len,
-              const std::optional<std::string>& fid = {});
+              const hilti::rt::Optional<std::string>& fid = {});
 
 /**
  * Signals the end of a file to Zeek's file analysis.
  *
  * @param fid ID of the file to operate on; if unset, the most recently begun file is used
  */
-void file_end(const std::optional<std::string>& fid = {});
+void file_end(const hilti::rt::Optional<std::string>& fid = {});
 
 /** Specifies the next-layer packet analyzer. */
 void forward_packet(const hilti::rt::integer::safe<uint32_t>& identifier);
@@ -793,8 +790,8 @@ template<typename T>
  * not exist. Throws on other errors.
  */
 template<typename T>
-std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v, const T& key,
-                                           const hilti::rt::TypeInfo* ktype) {
+hilti::rt::Optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v, const T& key,
+                                                 const hilti::rt::TypeInfo* ktype) {
     auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
     if ( auto x = v->FindOrDefault(to_val(key, ktype, index)) )
         return x;
@@ -807,7 +804,8 @@ std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v
  * not exist. Throws on other errors.
  */
 template<typename T>
-std::optional<::zeek::ValPtr> table_lookup(const std::string& name, const T& key, const hilti::rt::TypeInfo* ktype) {
+hilti::rt::Optional<::zeek::ValPtr> table_lookup(const std::string& name, const T& key,
+                                                 const hilti::rt::TypeInfo* ktype) {
     return table_lookup(get_table(name), key, ktype);
 }
 

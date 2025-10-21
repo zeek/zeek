@@ -789,3 +789,10 @@ groups are enabled.
 
 See also the documentation for the functions :zeek:see:`enable_event_group`
 and :zeek:see:`disable_event_group`.
+
+.. zeek:attr:: &volatile
+
+&volatile
+---------
+
+Modified by the core.

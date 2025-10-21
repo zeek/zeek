@@ -789,3 +789,22 @@ groups are enabled.
 
 See also the documentation for the functions :zeek:see:`enable_event_group`
 and :zeek:see:`disable_event_group`.
+
+.. zeek:attr:: &volatile
+
+&volatile
+---------
+
+.. versionadded:: 8.1
+
+Record fields with this attribute reflect state that is held within the core.
+These fields may change their value without a user assigning a value.
+
+The current use is to annotate fields of :zeek:see:`connection` or
+:zeek:see:`endpoint` that have always behaved this way.
+
+Assigning a value to a volatile field stores the provided value and decouples
+the field from being updated by the core. This can be useful when instantiating
+records that aren't backed by real connections. It also avoids surprises where
+after assigning a field, Zeek's core would re-assign to its internal notion as
+has happened in Zeek 8.0 and before.

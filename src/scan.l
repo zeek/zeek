@@ -396,6 +396,7 @@ when	return TOK_WHEN;
 &ordered	return TOK_ATTR_ORDERED;
 &no_ZAM_opt	return TOK_ATTR_NO_ZAM_OPT;
 &no_CPP_opt	return TOK_ATTR_NO_CPP_OPT;
+&volatile	return TOK_ATTR_VOLATILE;
 
 @deprecated.* {
 	auto num_files = file_stack.length();

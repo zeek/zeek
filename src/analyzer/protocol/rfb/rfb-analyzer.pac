@@ -61,8 +61,12 @@ refine flow RFB_Flow += {
 
 	function proc_handle_security_result(result : uint32) : bool
 		%{
+		// Remove in v9.1: rfb_auth_result should have been removed.
 		if ( rfb_auth_result )
 			zeek::BifEvent::enqueue_rfb_auth_result(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), result);
+
+		if ( rfb_authentication_result )
+			zeek::BifEvent::enqueue_rfb_authentication_result(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(), result == 0);
 		return true;
 		%}
 };

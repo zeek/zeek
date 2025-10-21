@@ -2984,23 +2984,6 @@ void RecordVal::Assign(int field, ValPtr new_val) {
         Remove(field);
 }
 
-void RecordVal::AssignCallback(int field, detail::RecordFieldCallback* cb) {
-    const auto* rt = GetRecordType();
-    const auto* fd = rt->FieldDecl(field);
-
-    // Only allow callbacks on &volatile fields and otherwise
-    // crash hard. This always involves a plugin something in
-    // the core, so a FatalErrorWithCore() seems fine.
-    if ( fd->GetAttr(detail::ATTR_VOLATILE) == detail::Attr::nil )
-        reporter->FatalErrorWithCore("cannot assign callback - %s$%s is not &volatile", rt->GetName().c_str(),
-                                     rt->FieldName(field));
-
-    // Assigning a callback to a ZValElement does the right
-    // thing even when there is a managed value stored in
-    // the element.
-    record_val[field] = cb;
-}
-
 void RecordVal::Remove(int field) {
     auto& fv = record_val[field];
     bool was_set = fv.HoldsZVal() || fv.HoldsFieldCallback();

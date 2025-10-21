@@ -12,6 +12,7 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
+#include "zeek/RecordFieldCallback.h"
 #include "zeek/Reporter.h"
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
@@ -1136,6 +1137,15 @@ inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 class ZValElement {
 public:
     /**
+     * The state of a ZValElement.
+     */
+    enum class State : uint8_t {
+        Unset,         // Holds nothing but tag and is_managed are valid.
+        ZVal,          // Holds a ZVal in data.
+        FieldCallback, // Holds a pointer to a RecordFieldCallback in data.
+    };
+
+    /**
      * Default constructor.
      */
     ZValElement() = default;
@@ -1150,7 +1160,7 @@ public:
      * @param t The value's type.
      */
     ZValElement(ValPtr v, const TypePtr& t)
-        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
+        : state(State::ZVal), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), data(ZVal(v, t)) {}
 
     /**
      * Initialize a ZValElement with just the TypePtr.
@@ -1163,17 +1173,41 @@ public:
     ZValElement(const TypePtr& t) : is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
 
     /**
+     * Manually construct a ZValElement with an optional ZVal.
+     *
+     * @param tag The tag for the element.
+     * @param is_managed Does it hold a managed ZVal?
+     * @param zval Optional ZVal - state is populated if a value is given.
+     */
+    ZValElement(TypeTag tag, bool is_managed, std::optional<ZVal> zval = {})
+        : state(zval.has_value() ? State::ZVal : State::Unset),
+          is_managed(is_managed),
+          tag(tag),
+          data(zval.value_or(ZVal())) {}
+
+    /**
      * Copy constructor.
      */
-    ZValElement(const ZValElement& o) : is_set(o.is_set), is_managed(o.is_managed), tag(o.tag), zval(o.zval) {
-        if ( is_set && is_managed )
-            Ref(zval.ManagedVal());
+    ZValElement(const ZValElement& o) : state(o.state), is_managed(o.is_managed), tag(o.tag) {
+        if ( state == State::FieldCallback )
+            data.field_callback = o.data.field_callback;
+        else if ( state == State::ZVal ) {
+            data.zval = o.data.zval;
+            if ( is_managed )
+                Ref(data.zval.ManagedVal());
+        }
+        else {
+            assert(false);
+        }
     }
 
     /**
      * Destructor.
      */
-    ~ZValElement() { Reset(); }
+    ~ZValElement() {
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
+    }
 
     /**
      * Assign one ZValElement instance to another with automatic memory management
@@ -1183,16 +1217,19 @@ public:
         if ( this == &o )
             return *this;
 
-        if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
 
-        is_set = o.is_set;
+        state = o.state;
         is_managed = o.is_managed;
         tag = o.tag;
-        zval = o.zval;
+        if ( o.HoldsFieldCallback() )
+            data.field_callback = o.data.field_callback;
+        else
+            data.zval = o.data.zval;
 
-        if ( is_set && is_managed )
-            Ref(zval.ManagedVal());
+        if ( HoldsZVal() && IsManaged() )
+            Ref(data.zval.ManagedVal());
 
         return *this;
     }
@@ -1206,17 +1243,21 @@ public:
         if ( this == &o )
             return *this;
 
-        if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
 
-        is_set = o.is_set;
+        state = o.state;
         is_managed = o.is_managed;
         tag = o.tag;
-        zval = o.zval; // Adopts the reference.
+        if ( o.HoldsFieldCallback() )
+            data.field_callback = o.data.field_callback;
+        else
+            data.zval = o.data.zval; // Adopts the reference and copies the callback.
 
-        // Keep is_managed and tag members valid.
-        o.is_set = false;
-        o.zval = ZVal();
+        // Keep is_managed and tag members valid but reset anything
+        // else on the incoming ZValElement.
+        o.state = State::Unset;
+        o.data.zval = {};
 
         return *this;
     }
@@ -1232,11 +1273,11 @@ public:
      * ZVal constructors also do, so that seems consistent.
      */
     ZValElement& operator=(const ZVal& zv) {
-        if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
 
-        is_set = true;
-        zval = zv;
+        state = State::ZVal;
+        data.zval = zv;
 
         return *this;
     }
@@ -1248,34 +1289,71 @@ public:
      * and tag fields properly.
      */
     const ZValElement& operator=(const TypeDecl& td) noexcept {
-        assert(! IsSet());
+        assert(! HoldsZVal());
+        assert(! HoldsFieldCallback());
         assert(tag == TYPE_ERROR);
         is_managed = td.is_managed;
         tag = td.tag;
         return *this;
     }
 
+    /**
+     * Switch ZValElement to be callback based.
+     */
+    ZValElement& operator=(detail::RecordFieldCallback* cb) {
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
 
-    operator bool() const noexcept { return is_set; }
-    const ZVal* operator->() const noexcept { return &zval; }
-    ZVal& operator*() noexcept { return zval; }
-    const ZVal& operator*() const noexcept { return zval; }
+        state = State::FieldCallback;
+        data.field_callback = cb;
 
-    bool IsSet() const noexcept { return is_set; }
+        return *this;
+    }
+
+
+    /**
+     * Operator bool only checks for HoldsZVal(). It should
+     * be used to protect -> or * operators. These don't
+     * work with callbacks!
+     */
+    operator bool() const noexcept { return HoldsZVal(); }
+
+    const ZVal* operator->() const noexcept {
+        assert(! HoldsFieldCallback());
+        return &data.zval;
+    }
+
+    ZVal& operator*() noexcept {
+        assert(! HoldsFieldCallback());
+        return data.zval;
+    }
+
+    const ZVal& operator*() const noexcept {
+        assert(! HoldsFieldCallback());
+        return data.zval;
+    }
+
+    bool HoldsZVal() const noexcept { return state == State::ZVal; }
+    bool HoldsFieldCallback() const noexcept { return state == State::FieldCallback; }
     bool IsManaged() const noexcept { return is_managed; }
+
+
+    const detail::RecordFieldCallback* FieldCallback() const noexcept {
+        assert(! HoldsZVal());
+        assert(HoldsFieldCallback());
+        return data.field_callback;
+    }
+
     TypeTag Tag() const noexcept { return tag; }
 
     /**
-     * Reset this ZValElement.
-     *
-     * If the contained ZVal instance is managed, its reference
-     * count will be decreased.
+     * Reset value or callback.
      */
     void Reset() {
-        if ( is_set && is_managed )
-            Unref(zval.ManagedVal());
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
 
-        is_set = false;
+        state = State::Unset;
     }
 
     /**
@@ -1286,17 +1364,31 @@ public:
      *
      * @return A ValPtr instance for the slot.
      */
-    ValPtr ToVal(const TypePtr& t) {
-        assert(IsSet());
-        return zval.ToVal(t);
+    ValPtr ToVal(const TypePtr& t) const {
+        assert(HoldsZVal());
+        assert(! HoldsFieldCallback());
+
+        // Fast-path for managed values. Can just return the ref'ed Val.
+        //
+        // Func and File are pointing at the backing classes, not their
+        // Val versions, so cannot do it for these. Calling ZVal::ToVal()
+        // is minimally a function call and a pretty big switch, so this
+        // helps a bit to avoid this when there's no need.
+        if ( is_managed && tag != TYPE_FUNC && tag != TYPE_FILE )
+            return {zeek::NewRef{}, data.zval.AsAny()};
+
+        return data.zval.ToVal(t);
     }
 
 private:
-    bool is_set = false;
+    State state = State::Unset;
     bool is_managed = false;
     TypeTag tag = TYPE_ERROR;
     // 5 bytes of padding here.
-    ZVal zval;
+    union {
+        ZVal zval;
+        detail::RecordFieldCallback* field_callback = nullptr;
+    } data;
 };
 
 static_assert(sizeof(ZValElement) <= 16);

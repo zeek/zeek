@@ -1,3 +1,9 @@
+8.1.0-dev.754 | 2025-10-21 19:00:04 +0200
+
+  * docker: add `websockets` dependency (Edoardo Mich)
+
+    add the full `python3-websockets` in addition to the client only `python3-websocket` to avoid errors in `zeecktl` using ZeroMQ Cluster backend
+
 8.1.0-dev.752 | 2025-10-21 08:08:16 -0700
 
   * Update list of HTTP methods from IANA (Tim Wojtulewicz, Corelight)

@@ -25,6 +25,7 @@ SessionAdapter* ICMPAnalyzer::MakeSessionAdapter(Connection* conn) {
     auto* root = new ICMPSessionAdapter(conn);
     root->SetParent(this);
     conn->SetInactivityTimeout(zeek::detail::icmp_inactivity_timeout);
+    conn->EnableStatusUpdateTimer();
 
     return root;
 }

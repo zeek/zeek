@@ -68,7 +68,10 @@ public:
     FilePtr GetContentsFile(unsigned int direction) const override;
 
     // From Analyzer.h
+    [[deprecated("Remove in v9.1: Use InitConnVal() instead")]]
     void UpdateConnVal(RecordVal* conn_val) override;
+
+    void InitConnVal(RecordVal& conn_val) override;
 
     void AddExtraAnalyzers(Connection* conn) override;
 
@@ -153,6 +156,9 @@ private:
     int ParseTCPOptions(const struct tcphdr* tcp, bool is_orig);
 
     void CheckRecording(bool need_contents, analyzer::tcp::TCP_Flags flags);
+
+    zeek_uint_t GetEndpointSize(bool is_orig) const override;
+    zeek_uint_t GetEndpointState(bool is_orig) const override;
 
     analyzer::tcp::TCP_Endpoint* orig;
     analyzer::tcp::TCP_Endpoint* resp;

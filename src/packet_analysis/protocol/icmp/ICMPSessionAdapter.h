@@ -12,7 +12,6 @@ public:
     ICMPSessionAdapter(Connection* conn) : IP::SessionAdapter("ICMP", conn) {}
 
     void AddExtraAnalyzers(Connection* conn) override;
-    void UpdateConnVal(RecordVal* conn_val) override;
 
     void UpdateLength(bool is_orig, int len);
     void Done() override;
@@ -21,7 +20,8 @@ public:
     void MatchEndpoint(const u_char* data, int len, bool is_orig);
 
 private:
-    void UpdateEndpointVal(RecordVal* endp, bool is_orig);
+    zeek_uint_t GetEndpointSize(bool is_orig) const override;
+    zeek_uint_t GetEndpointState(bool is_orig) const override;
 
     zeek::detail::RuleMatcherState matcher_state;
     int request_len = -1;

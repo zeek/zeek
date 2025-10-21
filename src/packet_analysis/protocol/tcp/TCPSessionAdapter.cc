@@ -1035,17 +1035,6 @@ void TCPSessionAdapter::FlipRoles() {
 }
 
 void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
-    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
-    static const int origidx = conn_type->FieldOffset("orig");
-    static const int respidx = conn_type->FieldOffset("resp");
-    auto* orig_endp_val = conn_val->GetFieldAs<RecordVal>(origidx);
-    auto* resp_endp_val = conn_val->GetFieldAs<RecordVal>(respidx);
-
-    orig_endp_val->Assign(0, orig->Size());
-    orig_endp_val->Assign(1, orig->state);
-    resp_endp_val->Assign(0, resp->Size());
-    resp_endp_val->Assign(1, resp->state);
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     // Call children's UpdateConnVal
@@ -1055,6 +1044,17 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
     for ( Analyzer* a : packet_children )
         a->UpdateConnVal(conn_val);
 #pragma GCC diagnostic pop
+}
+
+// TCPSessionAdapter has its own set of packet children that aren't
+// visited in an analyzer::for_each() call, to it by hand.
+//
+// This is primarily for the ConnSize analyzer, or any other packet
+// analyzers attached for TCP.
+void TCPSessionAdapter::InitConnVal(RecordVal& conn_val) {
+    IP::SessionAdapter::InitConnVal(conn_val);
+    for ( Analyzer* a : packet_children )
+        a->InitConnVal(conn_val);
 }
 
 void TCPSessionAdapter::AttemptTimer(double /* t */) {
@@ -1658,3 +1658,6 @@ void TCPSessionAdapter::CheckRecording(bool need_contents, analyzer::tcp::TCP_Fl
     Conn()->SetRecordCurrentContent(record_current_content);
     Conn()->SetRecordCurrentPacket(record_current_packet);
 }
+
+zeek_uint_t TCPSessionAdapter::GetEndpointSize(bool is_orig) const { return is_orig ? orig->Size() : resp->Size(); }
+zeek_uint_t TCPSessionAdapter::GetEndpointState(bool is_orig) const { return is_orig ? orig->state : resp->state; }

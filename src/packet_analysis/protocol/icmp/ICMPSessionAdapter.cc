@@ -22,34 +22,6 @@ void ICMPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
         AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
 }
 
-void ICMPSessionAdapter::UpdateConnVal(zeek::RecordVal* conn_val) {
-    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
-    static const int origidx = conn_type->FieldOffset("orig");
-    static const int respidx = conn_type->FieldOffset("resp");
-    auto* orig_endp_val = conn_val->GetFieldAs<RecordVal>(origidx);
-    auto* resp_endp_val = conn_val->GetFieldAs<RecordVal>(respidx);
-
-    UpdateEndpointVal(orig_endp_val, true);
-    UpdateEndpointVal(resp_endp_val, false);
-
-    SessionAdapter::UpdateConnVal(conn_val);
-}
-
-void ICMPSessionAdapter::UpdateEndpointVal(RecordVal* endp, bool is_orig) {
-    Conn()->EnableStatusUpdateTimer();
-
-    int size = is_orig ? request_len : reply_len;
-
-    if ( size < 0 ) {
-        endp->Assign(0, val_mgr->Count(0));
-        endp->Assign(1, val_mgr->Count(int(ICMP_INACTIVE)));
-    }
-    else {
-        endp->Assign(0, val_mgr->Count(size));
-        endp->Assign(1, val_mgr->Count(int(ICMP_ACTIVE)));
-    }
-}
-
 void ICMPSessionAdapter::UpdateLength(bool is_orig, int len) {
     int& len_stat = is_orig ? request_len : reply_len;
     if ( len_stat < 0 )
@@ -73,4 +45,14 @@ void ICMPSessionAdapter::MatchEndpoint(const u_char* data, int len, bool is_orig
 void ICMPSessionAdapter::Done() {
     SessionAdapter::Done();
     matcher_state.FinishEndpointMatcher();
+}
+
+zeek_uint_t ICMPSessionAdapter::GetEndpointSize(bool is_orig) const {
+    zeek_int_t size = is_orig ? request_len : reply_len;
+    return size < 0 ? 0 : size;
+}
+
+zeek_uint_t ICMPSessionAdapter::GetEndpointState(bool is_orig) const {
+    zeek_int_t size = is_orig ? request_len : reply_len;
+    return size < 0 ? ICMP_INACTIVE : ICMP_ACTIVE;
 }

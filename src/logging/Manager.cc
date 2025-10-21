@@ -1655,12 +1655,17 @@ detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, c
             auto* vr = val->AsRecord();
             const auto& field = vr->RawOptField(index);
 
-            if ( ! field.IsSet() ) {
+
+            if ( ! field.HoldsZVal() ) {
                 // Value, or any of its parents, is not set.
                 vals.emplace_back(filter->fields[i]->type, false);
                 val = std::nullopt;
                 break;
             }
+            else if ( field.HoldsFieldCallback() )
+                // Not sure it's worth handling this. Maybe? We could
+                // also forbid &volatile and &log on the same field.
+                reporter->InternalWarning("RecordToLogRecord: &volatile callback based fields unhandled!");
 
             val = *field;
             vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();

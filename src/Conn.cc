@@ -153,11 +153,10 @@ Connection::~Connection() {
 
     CancelTimers();
 
-    if ( conn_val )
+    if ( conn_val ) {
         conn_val->SetOrigin(nullptr);
-
-    if ( conn_val_cb.HasCallbacksAssigned() )
         conn_val_cb.RemoveCallbacks();
+    }
 
     delete adapter;
 
@@ -210,9 +209,6 @@ void Connection::Done() {
         if ( ! adapter->IsFinished() )
             adapter->Done();
     }
-
-    if ( conn_val_cb.HasCallbacksAssigned() )
-        conn_val_cb.RemoveCallbacks();
 }
 
 void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, int caplen, const u_char*& data,

@@ -1019,7 +1019,7 @@ void TCPSessionAdapter::DeliverStream(int len, const u_char* data, bool orig) {
 void TCPSessionAdapter::Undelivered(uint64_t seq, int len, bool is_orig) { Analyzer::Undelivered(seq, len, orig); }
 
 void TCPSessionAdapter::FlipRoles() {
-    Analyzer::FlipRoles();
+    IP::SessionAdapter::FlipRoles();
 
     for ( auto* pc : packet_children )
         pc->FlipRoles();

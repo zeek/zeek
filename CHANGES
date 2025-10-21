@@ -1,3 +1,7 @@
+8.1.0-dev.752 | 2025-10-21 08:08:16 -0700
+
+  * Update list of HTTP methods from IANA (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.750 | 2025-10-21 08:07:51 -0700
 
   * CI: Update FreeBSD 14 to 14.3 (Tim Wojtulewicz, Corelight)

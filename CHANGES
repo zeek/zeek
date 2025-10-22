@@ -1,3 +1,7 @@
+8.1.0-dev.760 | 2025-10-22 19:51:07 +0000
+
+  * af_packet: Warn for usage of loopback interface (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.758 | 2025-10-22 13:26:01 +0100
 
   * Add TCP::raw_option_list BiF (Johanna Amann, Corelight)

@@ -20,6 +20,7 @@ export {
 		orig_ip_bytes: count &log &optional;
 		resp_pkts: count &log &optional;
 		resp_ip_bytes: count &log &optional;
-		tunnel_parents: set[string] &log;
+		tunnel_parents: set[string] &log &optional;
+		ip_proto: count &log &optional;
 	};
 }

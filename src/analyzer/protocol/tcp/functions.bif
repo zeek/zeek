@@ -4,6 +4,7 @@
 #include "zeek/session/Manager.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/packet_analysis/Manager.h"
 %%}
 
 ## Get the originator sequence number of a TCP connection. Sequence numbers
@@ -138,3 +139,76 @@ function get_contents_file%(cid: conn_id, direction: count%): file
 
 	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(stderr, "-", "w"));
 	%}
+
+module TCP;
+
+## Returns the unparsed TCP headers present in the current packet, if any.
+##
+## stop_at_eol: If true, parsing will stop when an End of Option List extension is encountered.
+##
+## Returns: A list of present TCP options.
+##
+## .. zeek:see:: tcp_option tcp_options
+function raw_options%(stop_at_eol: bool &default=T%): TCP::RawOptionList
+	%{
+	static auto tcp_option_list = zeek::id::find_type<zeek::VectorType>("TCP::RawOptionList");
+	auto result = zeek::make_intrusive<zeek::VectorVal>(tcp_option_list);
+
+	static const auto& analyzer = zeek::packet_mgr->GetAnalyzer("TCP");
+	auto spans = zeek::packet_mgr->GetAnalyzerData(analyzer);
+
+	if ( spans.empty() || spans[0].size() < sizeof(struct tcphdr) )
+		return result;
+
+	const auto* tcp_hdr = reinterpret_cast<const struct tcphdr*>(spans[0].data());
+	size_t tcp_header_size = static_cast<size_t>(tcp_hdr->th_off) * 4;
+
+	if ( ( tcp_header_size < sizeof(struct tcphdr) ) || ( tcp_header_size > spans[0].size() ) )
+		return result;
+
+	const auto* options_start = reinterpret_cast<const std::byte*>(tcp_hdr) + sizeof(struct tcphdr);
+	const auto* options_end = reinterpret_cast<const std::byte*>(tcp_hdr) + tcp_header_size;
+
+	assert(options_start <= options_end);
+
+	std::span<const std::byte> remaining_options(options_start, options_end);
+
+	static auto tcp_option = zeek::id::find_type<zeek::RecordType>("TCP::RawOption");
+
+	while ( !remaining_options.empty() ) {
+		const auto opt = static_cast<uint8_t>(remaining_options[0]);
+		std::span<const std::byte> current_option_data = {};
+
+		size_t opt_len;
+
+		if ( opt < 2 )
+			opt_len = 1;
+		else if ( remaining_options.size() < 2 )
+			// We've run off the end, no room for the length.
+			break;
+		else
+			opt_len = static_cast<size_t>(remaining_options[1]);
+
+		if ( opt_len == 0 )
+			break; // trashed length field
+
+		if ( opt_len > remaining_options.size()  )
+			// No room for rest of option.
+			break;
+
+		if ( opt_len > 2 )
+			current_option_data = remaining_options.subspan(2, opt_len-2);
+		remaining_options = remaining_options.subspan(opt_len);
+
+		auto r = make_intrusive<RecordVal>(tcp_option);
+		r->Assign(0, opt);
+		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(current_option_data.size(), reinterpret_cast<const char*>(current_option_data.data())));
+		result->Append(r);
+
+		if ( stop_at_eol && opt == TCPOPT_EOL )
+			break;
+    }
+
+	return result;
+	%}
+

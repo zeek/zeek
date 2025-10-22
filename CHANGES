@@ -1,3 +1,10 @@
+8.1.0-dev.758 | 2025-10-22 13:26:01 +0100
+
+  * Add TCP::raw_option_list BiF (Johanna Amann, Corelight)
+
+    This BiF extracts the full list of options with their raw, unparsed data
+    from the current TCP packet.
+
 8.1.0-dev.756 | 2025-10-22 10:17:59 +0200
 
   * frameworks/notice: Implement suppression batching (Arne Welzel, Corelight)

@@ -1,3 +1,7 @@
+8.1.0-dev.762 | 2025-10-22 13:13:13 -0700
+
+  * Escape specific characters in LDAP filter strings (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.760 | 2025-10-22 19:51:07 +0000
 
   * af_packet: Warn for usage of loopback interface (Tim Wojtulewicz, Corelight)

@@ -11,5 +11,6 @@ Zeek Tutorial
    invoking-zeekctl
    logs
    intro-scripting
+   javascript
    zeek-frameworks
    cluster-backends

@@ -30,7 +30,6 @@ to connect with the community.
    monitoring
    log-formats
    logs/index
-   scripting/index
    frameworks/index
    customizations
    troubleshooting

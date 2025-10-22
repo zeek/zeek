@@ -38,6 +38,7 @@ to connect with the community.
    devel/index
    components/index
    acknowledgements
+   grab-bag/index
 
 * :ref:`Index <genindex>`
 

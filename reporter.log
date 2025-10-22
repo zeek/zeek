@@ -1,0 +1,12 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	reporter
+#open	2025-10-22-11-09-57
+#fields	ts	level	message	location
+#types	time	enum	string	string
+1363624631.382875	Reporter::ERROR	value used but not set (<internal>::#29)	/Users/etyp/.local/zeek/share/zeek/base/protocols/conn/main.zeek, line 250
+1363624631.464202	Reporter::ERROR	field value missing (Conn::c$conn)	/Users/etyp/.local/zeek/share/zeek/base/protocols/conn/main.zeek, line 274
+1363624631.464202	Reporter::ERROR	field value missing (Conn::c$conn)	/Users/etyp/.local/zeek/share/zeek/base/protocols/conn/main.zeek, line 336
+#close	2025-10-22-11-09-57

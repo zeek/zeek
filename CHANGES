@@ -1,3 +1,16 @@
+8.1.0-dev.756 | 2025-10-22 10:17:59 +0200
+
+  * frameworks/notice: Implement suppression batching (Arne Welzel, Corelight)
+
+    It has been observed that during a cluster restart in a live
+    environment, workers will have lost all their suppression state and in
+    the first few seconds may send up to 1000s of events per second out
+    (depending on traffic and configured notices). Add functionality to batch
+    suppression propagation before publishing it to other nodes in the
+    cluster.
+
+    Two new options allow tweaking this behavior.
+
 8.1.0-dev.754 | 2025-10-21 19:00:04 +0200
 
   * docker: add `websockets` dependency (Edoardo Mich)

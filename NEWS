@@ -108,6 +108,12 @@ Changed Functionality
 - The QUIC parser discards packets with the fixed_bit field set to 0, rather than
   continuing to parse potentially running into analyzer violations.
 
+- The Notice framework's suppression implementation was changed to batch suppression
+  information for up up to 10msec before distributing it to other nodes in a Zeek cluster.
+  This reduces cluster communication overhead when there's a storm of notices
+  generated. Two new options, ``Notice::suppression_batch_period`` and ``Notice::suppression_batch_max_size``
+  can be used to tune this behavior. See their documentation for details.
+
 Removed Functionality
 ---------------------
 

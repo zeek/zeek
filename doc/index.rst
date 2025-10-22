@@ -33,7 +33,6 @@ to connect with the community.
    monitoring
    log-formats
    logs/index
-   scripting/index
    frameworks/index
    customizations
    troubleshooting
@@ -41,6 +40,7 @@ to connect with the community.
    devel/index
    components/index
    acknowledgements
+   grab-bag/index
 
 * :ref:`Index <genindex>`
 

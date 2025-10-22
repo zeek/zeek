@@ -10,6 +10,6 @@ Zeek Tutorial
    using-packages
    invoking-zeekctl
    logs
-   intro-scripting
+   scripting/index
    zeek-frameworks
    cluster-backends

@@ -10,6 +10,7 @@ Script Reference
    attributes
    statements
    directives
+   event-semantics
    log-files
    notices
    packet-analyzers
@@ -18,3 +19,4 @@ Script Reference
    packages
    scripts
    Zeekygen Example Script </scripts/zeekygen/example.zeek>
+   conn-id-ctx

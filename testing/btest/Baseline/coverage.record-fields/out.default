@@ -100,6 +100,8 @@ connection {
         * answers: vector of string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
+        * opcode: count, log=T, optional=T
+        * opcode_name: string, log=T, optional=T
         * proto: enum transport_proto, log=T, optional=F
         * qclass: count, log=T, optional=T
         * qclass_name: string, log=T, optional=T

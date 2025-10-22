@@ -5,8 +5,8 @@
 #unset_field	-
 #path	dns
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	auth	addl
-#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	set[string]	set[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	35.184.172.191	57073	128.175.13.16	53	udp	130	-	dla.library.upenn.edu	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	F	F	1	-	-	F	RRSIG 47 upenn.edu,RRSIG 6 upenn.edu,NSEC dla.library.upenn.edu dlxssvr.library.upenn.edu,assailants.net.isc.upenn.edu	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	35.184.172.191	50693	128.175.13.16	53	udp	51063	0.001515	www.upenn.edu	1	C_INTERNET	1	A	0	NOERROR	T	F	F	F	1	www.upenn.edgekey.net,RRSIG 5 upenn.edu	300.000000,300.000000	F	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name	auth	addl
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string	set[string]	set[string]
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	35.184.172.191	57073	128.175.13.16	53	udp	130	-	dla.library.upenn.edu	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	F	F	1	-	-	F	0	query	RRSIG 47 upenn.edu,RRSIG 6 upenn.edu,NSEC dla.library.upenn.edu dlxssvr.library.upenn.edu,assailants.net.isc.upenn.edu	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	35.184.172.191	50693	128.175.13.16	53	udp	51063	0.001515	www.upenn.edu	1	C_INTERNET	1	A	0	NOERROR	T	F	F	F	1	www.upenn.edgekey.net,RRSIG 5 upenn.edu	300.000000,300.000000	F	0	query	-	-
 #close XXXX-XX-XX-XX-XX-XX

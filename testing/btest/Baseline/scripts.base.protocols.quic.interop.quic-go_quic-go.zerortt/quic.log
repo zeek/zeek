@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	client_initial_dcid	client_scid	server_scid	server_name	client_protocol	history
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	string
-1.000000	CtPZjS20MLrsMUOJi2	193.167.0.100	49394	193.167.100.100	443	1	15ae5e5e4962163f410b5529fc125bbc	(empty)	e483a751	server4:443	hq-interop	ISZishZZZZZZZZZZZZZZZZZZZZZZZZZZZIHH
-1.000000	C4J4Th3PJpwUYZZ6gc	193.167.0.100	60492	193.167.100.100	443	1	b7c7841c64883e3261d840	(empty)	8d2041ac	server4:443	hq-interop	ISishhIH
+1.000000	CtPZjS20MLrsMUOJi2	193.167.0.100	49394	193.167.100.100	443	1	15ae5e5e4962163f410b5529fc125bbc	(empty)	e483a751	server4:443	hq-interop	ISZishoZZZZoZoZoZZZZZoZZZZZZZZZZZZZZZZoIHOHOOO
+1.000000	C4J4Th3PJpwUYZZ6gc	193.167.0.100	60492	193.167.100.100	443	1	b7c7841c64883e3261d840	(empty)	8d2041ac	server4:443	hq-interop	ISishhoIHOOoO
 #close XXXX-XX-XX-XX-XX-XX

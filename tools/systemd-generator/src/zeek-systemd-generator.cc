@@ -256,17 +256,13 @@ int main(int argc, const char* argv[]) {
     const char* program = argv[0]; // We fiddle with argv later on, keep the program name around.
     bool explicit_config = false;  // Did the user provide --config ?
 
-    // Default configuration files to attempt to load.
-    std::vector<std::filesystem::path> config_files = {
-        DEFAULT_CONFIG_FILE,   // Injected via -D during compilation, usually <PREFIX>/etc/zeek/zeek.conf
-        "/etc/zeek/zeek.conf", // Fallback
-    };
+    // Injected via -D during compilation, usually <PREFIX>/etc/zeek/zeek.conf
+    std::string config_file = DEFAULT_CONFIG_FILE;
 
     // Allow overriding the configuration file lookup with --config for testing.
     if ( argc >= 3 && std::string_view(argv[1]) == "--config" ) {
-        auto config = std::filesystem::weakly_canonical(argv[2]);
-
-        config_files = {config};
+        config_file = std::filesystem::weakly_canonical(argv[2]);
+        explicit_config = true;
 
         argc -= 2;
         argv = &argv[2];
@@ -282,23 +278,23 @@ int main(int argc, const char* argv[]) {
     }
 
 
-    // Find the first existing configuration file.
-    for ( const auto& config_file : config_files ) {
-        // The xZEEK_BASE_DIR comes from cmake via -D but can be overridden
-        // in the configuration file.
-        auto config = zeek::detail::parse_config(DEFAULT_BASE_DIR, config_file);
-        if ( ! config.Exists() )
-            continue;
-
-        if ( ! config.IsValid() )
+    auto config = zeek::detail::parse_config(DEFAULT_BASE_DIR, config_file);
+    if ( ! config.Exists() ) {
+        if ( explicit_config ) {
+            std::fprintf(stderr, "config %s does not exist\n", config_file.c_str());
             return 1;
-
-        if ( config.IsEnabled() )
-            systemd_write_units(normal_dir, config);
+        }
 
         return 0;
     }
 
-    // If an explicit config was given and we get here, treat it as an error, otherwise probably a disabled config.
-    return explicit_config ? 1 : 0;
+    if ( ! config.IsValid() ) {
+        std::fprintf(stderr, "config %s is invalid\n", config_file.c_str());
+        return 1;
+    }
+
+    if ( config.IsEnabled() )
+        systemd_write_units(normal_dir, config);
+
+    return 0;
 }

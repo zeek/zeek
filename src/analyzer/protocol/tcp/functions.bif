@@ -202,7 +202,10 @@ function raw_options%(stop_at_eol: bool &default=T%): TCP::RawOptionList
 
 		auto r = make_intrusive<RecordVal>(tcp_option);
 		r->Assign(0, opt);
-		r->Assign(1, zeek::make_intrusive<zeek::StringVal>(current_option_data.size(), reinterpret_cast<const char*>(current_option_data.data())));
+		if ( current_option_data.size() > 0 )
+			r->Assign(1, zeek::make_intrusive<zeek::StringVal>(current_option_data.size(), reinterpret_cast<const char*>(current_option_data.data())));
+		else
+			r->Assign(1, zeek::val_mgr->EmptyString());
 		result->Append(r);
 
 		if ( stop_at_eol && opt == TCPOPT_EOL )

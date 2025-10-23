@@ -40,18 +40,18 @@ static double mem_prof_overhead = 0.0;
 // minimum has proven robust in practice.
 //
 // Note that the measurement itself has some overhead from calling
-// util::curr_THREAD_time(), though this becomes quite minor as long as "navg"
+// this_thread::get_cpu_time(), though this becomes quite minor as long as "navg"
 // isn't too small / "f" is sufficiently heavyweight.
 
 static double est_min_overhead(void (*f)(), int n, int navg) {
-    double last_t = util::curr_THREAD_time();
+    double last_t = zeek::util::this_thread::get_cpu_time();
     double min_dt = -1.0;
     int ncall = 0;
 
     for ( int i = 0; i < n; ++i ) {
         (*f)();
         if ( ++ncall % navg == 0 ) {
-            double new_t = util::curr_THREAD_time();
+            double new_t = zeek::util::this_thread::get_cpu_time();
             double dt = new_t - last_t;
             if ( min_dt >= 0.0 )
                 min_dt = std::min(min_dt, dt);
@@ -64,7 +64,7 @@ static double est_min_overhead(void (*f)(), int n, int navg) {
     return min_dt / navg;
 }
 
-static void get_THREAD_time() { (void)util::curr_THREAD_time(); }
+static void get_THREAD_time() { (void)zeek::util::this_thread::get_cpu_time(); }
 
 static void get_mem_time() {
     uint64_t m2;
@@ -83,7 +83,7 @@ static bool profile_all = getenv("ZAM_PROFILE_ALL") != nullptr;
 
 #define DO_ZAM_PROFILE                                                                                                 \
     if ( do_profile ) {                                                                                                \
-        double dt = util::curr_THREAD_time() - profile_CPU;                                                            \
+        double dt = zeek::util::this_thread::get_cpu_time() - profile_CPU;                                             \
         auto& prof_info = (*curr_prof_vec)[profile_pc];                                                                \
         ++prof_info.num_samples;                                                                                       \
         prof_info.CPU_time += dt;                                                                                      \
@@ -386,7 +386,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 
     if ( profiling_active ) {
         ++ncall;
-        start_CPU_time = util::curr_THREAD_time();
+        start_CPU_time = zeek::util::this_thread::get_cpu_time();
         util::get_memory_usage(&start_mem, nullptr);
 
         if ( caller_locs.empty() )
@@ -447,7 +447,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
                 ++ninst;
 
                 profile_pc = pc;
-                profile_CPU = util::curr_THREAD_time();
+                profile_CPU = zeek::util::this_thread::get_cpu_time();
             }
         }
 #endif
@@ -472,7 +472,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 
 #ifdef ENABLE_ZAM_PROFILE
     if ( profiling_active ) {
-        tot_CPU_time += util::curr_THREAD_time() - start_CPU_time;
+        tot_CPU_time += zeek::util::this_thread::get_cpu_time() - start_CPU_time;
         uint64_t final_mem;
         util::get_memory_usage(&final_mem, nullptr);
         if ( final_mem > start_mem )

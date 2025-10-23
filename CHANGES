@@ -1,3 +1,9 @@
+8.1.0-dev.765 | 2025-10-23 09:18:02 -0700
+
+  * Skip CI builds of automated docs updates (Tim Wojtulewicz, Corelight)
+
+  * Docs: Regenerated via GitHub workflow (zeek-bot)
+
 8.1.0-dev.762 | 2025-10-22 13:13:13 -0700
 
   * Escape specific characters in LDAP filter strings (Tim Wojtulewicz, Corelight)

@@ -3,27 +3,44 @@
 base/bif/plugins/Zeek_TCP.functions.bif.zeek
 ============================================
 .. zeek:namespace:: GLOBAL
+.. zeek:namespace:: TCP
 
 
-:Namespace: GLOBAL
+:Namespaces: GLOBAL, TCP
 
 Summary
 ~~~~~~~
 Functions
 #########
-=================================================== ======================================================================
+=================================================== =======================================================================
+:zeek:id:`TCP::raw_options`: :zeek:type:`function`  Returns the unparsed TCP headers present in the current packet, if any.
 :zeek:id:`get_contents_file`: :zeek:type:`function` Returns the file handle of the contents file of a connection.
 :zeek:id:`get_orig_seq`: :zeek:type:`function`      Get the originator sequence number of a TCP connection.
 :zeek:id:`get_resp_seq`: :zeek:type:`function`      Get the responder sequence number of a TCP connection.
 :zeek:id:`set_contents_file`: :zeek:type:`function` Associates a file handle with a connection for writing TCP byte stream
                                                     contents.
-=================================================== ======================================================================
+=================================================== =======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Functions
 #########
+.. zeek:id:: TCP::raw_options
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 93 93
+
+   :Type: :zeek:type:`function` (stop_at_eol: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`TCP::RawOptionList`
+
+   Returns the unparsed TCP headers present in the current packet, if any.
+   
+
+   :param stop_at_eol: If true, parsing will stop when an End of Option List extension is encountered.
+   
+
+   :returns: A list of present TCP options.
+   
+   .. zeek:see:: tcp_option tcp_options
+
 .. zeek:id:: get_contents_file
    :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 80 80
 

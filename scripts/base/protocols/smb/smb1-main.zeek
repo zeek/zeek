@@ -21,7 +21,6 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 
 	local smb_state = c$smb_state;
 	local tid = hdr$tid;
-	local uid = hdr$uid;
 	local mid = hdr$mid;
 
 	if ( tid !in smb_state$tid_map )

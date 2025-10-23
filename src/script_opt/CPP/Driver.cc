@@ -317,6 +317,13 @@ void CPPCompile::GenProlog() {
     // The following might-or-might-not wind up being populated/used.
     Emit("std::vector<zeek_int_t> field_mapping;");
     Emit("std::vector<zeek_int_t> enum_mapping;");
+
+    // These are "extern" so we can define them *after* generating the
+    // initialization logic, since that logic might result in additions
+    // to the mappings. They aren't used outside of this compilation.
+    Emit("extern std::vector<CPP_FieldMapping> CPP__field_mappings__;");
+    Emit("extern std::vector<CPP_EnumMapping> CPP__enum_mappings__;");
+
     NL();
 
     const_info[TYPE_BOOL] = CreateConstInitInfo("Bool", "ValPtr", "bool");
@@ -427,12 +434,6 @@ void CPPCompile::GenEpilog() {
         gi->GenerateInitializers(this);
 
     NL();
-    InitializeEnumMappings();
-
-    NL();
-    InitializeFieldMappings();
-
-    NL();
     InitializeBiFs();
 
     NL();
@@ -452,6 +453,13 @@ void CPPCompile::GenEpilog() {
 
     NL();
     GenFinishInit();
+
+    // We had to defer these because the initializations can wind up adding
+    // elements to them.
+    NL();
+    InitializeEnumMappings();
+    NL();
+    InitializeFieldMappings();
 
     NL();
     GenRegisterBodies();
@@ -547,7 +555,8 @@ void CPPCompile::GenFinishInit() {
 
     Emit(
         "InitsManager im(CPP__ConstVals, InitConsts, InitIndices, CPP__Strings, CPP__Hashes, "
-        "CPP__Type__, CPP__Attributes__, CPP__Attr__, CPP__CallExpr__);");
+        "CPP__Type__, CPP__Attributes__, CPP__Attr__, CPP__CallExpr__, field_mapping, CPP__field_mappings__, "
+        "enum_mapping, CPP__enum_mappings__);");
 
     NL();
     int max_cohort = 0;
@@ -566,14 +575,6 @@ void CPPCompile::GenFinishInit() {
             for ( auto& ii : init_ids )
                 InitializeGlobal(ii);
         }
-
-    // Populate mappings for dynamic offsets.
-    NL();
-    Emit("for ( auto& em : CPP__enum_mappings__ )");
-    Emit("\tenum_mapping.push_back(em.ComputeOffset(&im));");
-    NL();
-    Emit("for ( auto& fm : CPP__field_mappings__ )");
-    Emit("\tfield_mapping.push_back(fm.ComputeOffset(&im));");
 
     NL();
 

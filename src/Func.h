@@ -281,6 +281,9 @@ public:
      */
     void SetFrameSize(int new_size) { frame_size = new_size; }
 
+    /** Gets this function's outer_id list. */
+    const IDPList& GetOuterIDs() const { return outer_ids; }
+
     /** Sets this function's outer_id list. */
     void SetOuterIDs(IDPList ids) { outer_ids = std::move(ids); }
 

@@ -343,6 +343,7 @@ StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init, std::unique_pt
 
 extern ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val) {
     make_var(id, nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
+    id->AddAttr(make_intrusive<Attr>(ATTR_IS_ASSIGNED));
     auto name_expr = make_intrusive<NameExpr>(std::move(id));
     return make_intrusive<AssignExpr>(std::move(name_expr), std::move(init), false, std::move(val));
 }

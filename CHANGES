@@ -1,3 +1,23 @@
+8.1.0-dev.791 | 2025-10-24 22:02:25 +0200
+
+  * tools/systemd-generator: Use <PREFIX>/var/spool/zeek as spooldir (Arne Welzel, Corelight)
+
+    The <PREFIX>/spool directory is pretty strange if <PREFIX> is / and I
+    had already switched to <PREFIX>/var/logs/zeek here. So, use a proper
+    <PREFIX>/var/spool/zeek directory for consistency.
+
+    The working directories of the individual nodes and the log-queue directory
+    will be placed there.
+
+  * tools/systemd-generator: Do not fallback to /etc/zeek/zeek.conf (Arne Welzel, Corelight)
+
+    The implicit /etc/zeek/zeek.conf confused me when testing the generator
+    in a container and I'm now also thinking it's not a good idea. Drop it.
+
+  * tools/systemd-generator: Add background info into zeek.conf (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Superflous "logs" appended (Arne Welzel, Corelight)
+
 8.1.0-dev.786 | 2025-10-24 12:48:23 -0700
 
   * TCP::raw_options fix ubsan error (Johanna Amann, Corelight)

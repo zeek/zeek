@@ -90,7 +90,7 @@ public:
 
     std::filesystem::path BinDir() const { return ZeekBaseDir() / "bin"; };
 
-    std::filesystem::path SpoolDir() const { return ZeekBaseDir() / "var" / "spool"; }
+    std::filesystem::path SpoolDir() const { return ZeekBaseDir() / "var" / "spool" / "zeek"; }
 
     /**
      * @return Where the zeek-archiver process archives logs into.

@@ -118,7 +118,7 @@ protected:
 private:
     EndpointState _originator; /**< Originator-side state. */
     EndpointState _responder;  /**< Responder-side state. */
-    std::optional<::spicy::rt::UnitContext> _context;
+    hilti::rt::Optional<::spicy::rt::UnitContext> _context;
 };
 
 /**

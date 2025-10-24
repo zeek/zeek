@@ -1,3 +1,7 @@
+8.1.0-dev.778 | 2025-10-24 10:39:56 -0700
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.776 | 2025-10-24 12:22:43 -0400
 
   * update usage analyzer BTest to be more comprehensive (Vern Paxson, Corelight)

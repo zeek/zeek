@@ -641,13 +641,15 @@ public function utf16_guid_to_hex_repr(bts: bytes): string {
         return "GUID_FORMAT_FAILED";
     }
 
+    local guid_breaks: set<uint64> = [0, 4, 6, 9];
+
     local ret = "";
     for (i in [[3, 2, 1, 0], [5, 4], [7, 6], [8, 9], [10, 11, 12, 13, 14, 15]]) {
         for (j in i) {
             local bt: uint8 = *bts.at(j);
-            ret = ret + "%02x" % bt;
-            if (j in [0, 4, 6, 9]) {
-                ret = ret + "-";
+            ret += "%02x" % bt;
+            if (j in guid_breaks) {
+                ret += "-";
             }
         }
     }
@@ -658,12 +660,11 @@ public function bytes_sid_to_hex_repr(bts: bytes): string {
     local ret = "";
     local cnt = 0;
 
-    while (cnt < |bts|) {
-        local bt: uint8 = *bts.at(cnt);
-        ret = ret + "%02x" % bt;
+    for (bt in bts) {
+        ret += "%02x" % bt;
 
         if (cnt < |bts| - 1) {
-            ret = ret + ":";
+            ret += ":";
         }
         cnt += 1;
     }
@@ -708,11 +709,11 @@ public function bytes_sid_to_SID_repr(bts: bytes): string {
         }
 
         # ... so we can represent this integer value in big endian
-        ret = ret + "%u" % dec_val_rep.to_uint(spicy::ByteOrder::Big);
+        ret += "%u" % dec_val_rep.to_uint(spicy::ByteOrder::Big);
 
         # Only print the dash when we're not at the end
         if (cnt < 23) {
-            ret = ret + "-";
+            ret += "-";
         }
     }
     return ret;
@@ -729,7 +730,7 @@ public function uint32_to_hex_repr(bts: bytes): string {
     local ret = "0x";
     for (i in [3, 2, 1, 0]) {
         local bt: uint8 = *bts.at(i);
-        ret = ret + "%02x" % bt;
+        ret += "%02x" % bt;
     }
     return ret;
 }

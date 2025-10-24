@@ -1,3 +1,7 @@
+8.1.0-dev.793 | 2025-10-24 13:19:00 -0700
+
+  * Clean up LDAP spicy functions (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.791 | 2025-10-24 22:02:25 +0200
 
   * tools/systemd-generator: Use <PREFIX>/var/spool/zeek as spooldir (Arne Welzel, Corelight)

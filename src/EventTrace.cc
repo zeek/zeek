@@ -226,7 +226,7 @@ void ValTrace::TraceRecord(const RecordValPtr& rv) {
     auto rt = rv->GetType<RecordType>();
 
     for ( auto i = 0U; i < n; ++i ) {
-        auto f = rv->RawOptField(i);
+        const auto& f = rv->RawOptField(i);
         if ( f ) {
             auto val = f->ToVal(rt->GetFieldType(i));
             elems.emplace_back(std::make_shared<ValTrace>(val));

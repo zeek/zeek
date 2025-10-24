@@ -2,9 +2,78 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "zeek/ZValCallback.h"
 #include "zeek/analyzer/Analyzer.h"
 
+namespace zeek {
+class RecordVal;
+}
+
 namespace zeek::analyzer::conn_size {
+
+class ConnSize_Analyzer;
+
+namespace detail {
+
+/**
+ * RecordFieldCallback class for num_pkts and num_bytes_ip in the endpoint
+ * record as previously populated by the ConnSize analyzer.
+ *
+ * One instance per endpoint is held. This is a bit different from the
+ * SessionAdapter approach.
+ *
+ * XXX: There's a really dark corner here: The ConnSize analyzer has FlipRoles()
+ *      implemented, but for TCP it's installed as a packet analyzer child. However,
+ *      we never call FlipRoles() on these. This doesn't really seem to matter
+ *      it seems, unless a connection is flipped on the second packet after
+ *      a SYN-ACK.
+ */
+class EndpointRecordValCallback : public zeek::detail::RecordFieldCallback {
+public:
+    EndpointRecordValCallback() = default;
+
+    /**
+     * Destructor removes the field callbacks.
+     */
+    ~EndpointRecordValCallback() override {
+        if ( HasCallbacksAssigned() )
+            RemoveCallbacks(endp_val, is_orig);
+    }
+
+    /**
+     * Assign callbacks.
+     *
+     * When should we best call this?
+     */
+    void AssignCallbacks(ConnSize_Analyzer* conn_size, RecordVal* endp_val, bool is_orig);
+
+    /**
+     * Removes the callbacks from the endpoint record
+     * and replaces them with the most recent values.
+     */
+    void RemoveCallbacks(RecordVal* endp_val, bool is_orig);
+
+    bool HasCallbacksAssigned() const noexcept { return conn_size != nullptr && endp_val != nullptr; }
+
+    /**
+     * Field lookup callback.
+     */
+    ZVal Invoke(const RecordVal& val, int field) const override;
+
+    static void InitPostScript();
+
+private:
+    ConnSize_Analyzer* conn_size = nullptr;
+    RecordVal* endp_val = nullptr;
+    bool is_orig = false;
+
+    static int num_pkts_offset;
+    static int num_bytes_ip_offset;
+};
+
+} // namespace detail
 
 class ConnSize_Analyzer : public analyzer::Analyzer {
 public:
@@ -36,6 +105,8 @@ public:
     };
 
 protected:
+    friend class detail::EndpointRecordValCallback;
+
     void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
     void CheckThresholds(bool is_orig);
     void NextGenericPacketThreshold();
@@ -57,6 +128,10 @@ protected:
 
     double start_time = 0.0;
     double duration_thresh = 0.0;
+
+    // Callbacks objects for the endpoint record vals;
+    detail::EndpointRecordValCallback orig_cb;
+    detail::EndpointRecordValCallback resp_cb;
 
     static std::vector<uint64_t> generic_pkt_thresholds;
 };

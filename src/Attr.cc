@@ -43,6 +43,7 @@ const char* attr_name(AttrTag t) {
 		"&ordered",
 		"&no_ZAM_opt",
 		"&no_CPP_opt",
+		"&volatile",
 	};
     // clang-format on
 
@@ -206,6 +207,7 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef) {
             ATTR_OPTIONAL,
             ATTR_RAW_OUTPUT,
             ATTR_REDEF,
+            ATTR_VOLATILE,
         };
 
         return acceptable.contains(new_tag);
@@ -561,6 +563,11 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
                 return false;
             }
         } break;
+
+        case ATTR_VOLATILE:
+            if ( ! in_record )
+                return AttrError("&volatile is only valid for record fields");
+            break;
 
         default: BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
     }

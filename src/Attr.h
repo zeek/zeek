@@ -52,6 +52,7 @@ enum AttrTag : uint8_t {
     ATTR_ORDERED,     // used to store tables in ordered mode
     ATTR_NO_ZAM_OPT,  // avoid ZAM optimization
     ATTR_NO_CPP_OPT,  // avoid -O gen-C++ optimization
+    ATTR_VOLATILE,    // denotes a record field changed by the core
     NUM_ATTRS         // this item should always be last
 };
 

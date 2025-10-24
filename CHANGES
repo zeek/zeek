@@ -1,3 +1,13 @@
+8.1.0-dev.781 | 2025-10-24 10:55:32 -0700
+
+  * Add skip conditions for container builder tasks (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove only_if from docker_build_template (Tim Wojtulewicz, Corelight)
+
+    The two tasks that use this template have their own only_if definitions
+    which override this one. There's no reason to define a different one
+    here too.
+
 8.1.0-dev.778 | 2025-10-24 10:39:56 -0700
 
   * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)

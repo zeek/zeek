@@ -405,6 +405,16 @@ extern int time_compare(struct timeval* tv_a, struct timeval* tv_b);
 // Returns the CPU time consumed to date.
 extern double curr_CPU_time();
 
+namespace this_thread {
+// Returns the thread CPU time consumed to date.
+inline double get_cpu_time() {
+    struct timespec ts;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+    return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+}
+} // namespace this_thread
+
+
 // Returns an integer that's very likely to be unique, even across Zeek
 // instances. The integer can be drawn from different pools, which is helpful
 // when the random number generator is seeded to be deterministic. In that

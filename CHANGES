@@ -1,3 +1,18 @@
+8.1.0-dev.772 | 2025-10-24 12:45:47 +0200
+
+  * Added new namespace `zeek::util::this_thread` with `get_cput_time` function. Resolving https://github.com/zeek/zeek/pull/4950#discussion_r2452479298 (kshitiz-bartariya)
+
+  * Use `curr_THREAD_time` in ZAM, instead of `curr_CPU_time`. (kshitiz-bartariya)
+
+  * Adding a new function is `util`, `curr_THREAD_time`, to get the CPU time consumed by the current thread. (kshitiz-bartariya)
+
+  * Create new event rfb_authentication_result (Yacin Nadji, Corelight)
+
+    rfb_auth_result's value for result is inverted (F when authentication
+    succeeds and T when it fails). This deprecates rfb_auth_result in favor
+    of rfb_authentication_result, which sends the correct value for result.
+    rfb_auth_result will be deprecated in v9.1.
+
 8.1.0-dev.765 | 2025-10-23 09:18:02 -0700
 
   * Skip CI builds of automated docs updates (Tim Wojtulewicz, Corelight)

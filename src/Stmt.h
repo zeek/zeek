@@ -601,6 +601,7 @@ public:
     double TimeoutVal(Frame* f);
 
     FuncType::CaptureList* Captures() { return cl; }
+    const FuncType::CaptureList* Captures() const { return cl; }
 
     bool IsReturn() const { return is_return; }
 
@@ -677,6 +678,8 @@ public:
     ExprPtr TimeoutExpr() const { return wi->TimeoutExpr(); }
     StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
     bool IsReturn() const { return wi->IsReturn(); }
+
+    const FuncType::CaptureList* Captures() const { return wi->Captures(); }
 
     auto Info() const { return wi; }
 

@@ -2288,8 +2288,11 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! func->IsSingleton(c) )
         func = func->ReduceToSingleton(c, red_stmt);
 
-    if ( IsEmptyHook() ) {
+    if ( IsEmptyHook() && analysis_options.usage_issues == 0 ) {
         // Reduce the arguments to pick up any side effects they include.
+        // However we skip doing this if we're doing usage analysis, because
+        // we might remove a conceptual usage of a variable even if in
+        // practice it's not used.
         (void)args->Reduce(c, red_stmt);
         return with_location_of(make_intrusive<ConstExpr>(val_mgr->True()), this);
     }

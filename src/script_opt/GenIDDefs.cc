@@ -44,6 +44,11 @@ void GenIDDefs::TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body)
         TrackID(a);
     }
 
+    for ( const auto& o_id : cast_intrusive<ScriptFunc>(f)->GetOuterIDs() ) {
+        o_id->GetOptInfo()->Clear();
+        TrackID(o_id);
+    }
+
     stmt_num = 0; // 0 = "before the first statement"
 
     body->Traverse(this);
@@ -165,6 +170,19 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
                 BranchBackTo(last_stmt_traversed, s, true);
 
             EndConfluenceBlock();
+
+            return TC_ABORTSTMT;
+        }
+
+        case STMT_WHEN: {
+            auto w = s->AsWhenStmt();
+
+            for ( const auto& c : *w->Captures() )
+                CheckVarUsage(with_location_of(make_intrusive<NameExpr>(c.Id()), w).get(), c.Id());
+
+            auto te = w->TimeoutExpr();
+            if ( te )
+                te->Traverse(this);
 
             return TC_ABORTSTMT;
         }

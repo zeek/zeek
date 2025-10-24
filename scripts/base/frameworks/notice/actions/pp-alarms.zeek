@@ -170,9 +170,6 @@ function pretty_print_alarm(out: file, n: Info)
 	local h1 = 0.0.0.0;
 	local h2 = 0.0.0.0;
 
-	local orig_p = "";
-	local resp_p = "";
-
 	if ( n?$id )
 		{
 		h1 = n$id$orig_h;

@@ -1,3 +1,12 @@
+8.1.0-dev.776 | 2025-10-24 12:22:43 -0400
+
+  * update usage analyzer BTest to be more comprehensive (Vern Paxson, Corelight)
+
+  * removed some unused variables in base scripts (Vern Paxson, Corelight)
+
+  * fix usage analysis to deal with changes to "when" implementations (Vern Paxson, Corelight)
+    avoid false usage issue when potentially optimizing hooks
+
 8.1.0-dev.772 | 2025-10-24 12:45:47 +0200
 
   * Added new namespace `zeek::util::this_thread` with `get_cput_time` function. Resolving https://github.com/zeek/zeek/pull/4950#discussion_r2452479298 (kshitiz-bartariya)

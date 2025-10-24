@@ -1,3 +1,9 @@
+8.1.0-dev.786 | 2025-10-24 12:48:23 -0700
+
+  * TCP::raw_options fix ubsan error (Johanna Amann, Corelight)
+
+    Now we special-case the empty-data case
+
 8.1.0-dev.784 | 2025-10-24 15:28:39 -0400
 
   * Fix ZAM tests with `-u` fix (Evan Typanski, Corelight)

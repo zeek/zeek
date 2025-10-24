@@ -149,9 +149,9 @@ event rfb_server_parameters(c: connection, name: string, width: count, height: c
 	write_log(c);
 	}
 
-event rfb_auth_result(c: connection, result: bool) &priority=5
+event rfb_authentication_result(c: connection, result: bool) &priority=5
 	{
-	c$rfb$auth = !result;
+	c$rfb$auth = result;
 	}
 
 event rfb_share_flag(c: connection, flag: bool) &priority=5

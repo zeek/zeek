@@ -16,6 +16,9 @@
 
 # @TEST-START-FILE common.zeek
 
+# Relies on Cluster::backend being properly set for logging.
+@load frameworks/cluster/backend/broker
+
 redef exit_only_after_terminate = T;
 
 global quit_receiver: event();

@@ -1,7 +1,5 @@
 # @TEST-GROUP: broker
 #
-# @TEST-REQUIRES: $SCRIPTS/have-spicy  # The logging of Broker's `num_logs_outgoing` depends on whether the Spicy plugin is loaded or not.
-#
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
@@ -235,10 +233,4 @@ event ping(msg: string, n: count)
         local e = Broker::make_event(pong, msg, n);
         Broker::publish("zeek/event/my_topic", e);
         }
-
-event zeek_done()
-	{
-	print get_broker_stats();
-	}
-
 # @TEST-END-FILE

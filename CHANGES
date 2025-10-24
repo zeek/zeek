@@ -1,3 +1,9 @@
+8.1.0-dev.784 | 2025-10-24 15:28:39 -0400
+
+  * Fix ZAM tests with `-u` fix (Evan Typanski, Corelight)
+
+  * Make unused assignment warning more consistent (Evan Typanski, Corelight)
+
 8.1.0-dev.781 | 2025-10-24 10:55:32 -0700
 
   * Add skip conditions for container builder tasks (Tim Wojtulewicz, Corelight)

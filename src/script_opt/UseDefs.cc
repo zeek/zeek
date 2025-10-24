@@ -160,7 +160,7 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const IDPtr& id, bool report) {
     if ( ! uds || ! uds->HasID(id) ) {
         if ( report && analysis_options.usage_issues > 0 && ! rc->IsTemporary(id) && ! rc->IsConstantVar(id) &&
              ! rc->IsNewLocal(id) && ! id->GetAttr(ATTR_IS_USED) )
-            reporter->Warning("%s assignment unused: %s", id->Name(), obj_desc(s).c_str());
+            s->Warn("assignment unused");
 
         return true;
     }

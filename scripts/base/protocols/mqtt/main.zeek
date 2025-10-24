@@ -278,7 +278,7 @@ event mqtt_pubrel(c: connection, is_orig: bool, msg_id: count) &priority=5
 
 event mqtt_pubcomp(c: connection, is_orig: bool, msg_id: count) &priority=5
 	{
-	local info = set_session(c);
+	set_session(c);
 	if ( msg_id !in c$mqtt_state$publish )
 		return;
 
@@ -305,7 +305,7 @@ event mqtt_pubcomp(c: connection, is_orig: bool, msg_id: count) &priority=-5
 
 event mqtt_subscribe(c: connection, msg_id: count, topics: string_vec, requested_qos: index_vec) &priority=5
 	{
-	local info = set_session(c);
+	set_session(c);
 
 	local si = SubscribeInfo($ts  = network_time(),
 	                         $uid = c$uid,

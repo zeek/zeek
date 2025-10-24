@@ -114,7 +114,7 @@ void CPPCompile::InitializeFieldMappings() {
         if ( standalone ) {
             // We can assess whether this field is one we need to generate
             // because if it is, it will have an &optional attribute that
-            // is local to one of the cmopiled source files.
+            // is local to one of the compiled source files.
             if ( td->attrs && obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD ) {
                 type_arg = Fmt(TypeOffset(td->type));
                 attrs_arg = Fmt(AttributesOffset(td->attrs));

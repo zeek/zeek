@@ -14,6 +14,59 @@ using namespace std;
 
 namespace zeek::detail {
 
+InitsManager::InitsManager(std::vector<CPP_ValElem>& _const_vals,
+                           std::map<TypeTag, std::shared_ptr<CPP_AbstractInitAccessor>>& _consts,
+                           std::vector<std::vector<int>>& _indices, std::vector<const char*>& _strings,
+                           std::vector<p_hash_type>& _hashes, std::vector<TypePtr>& _types,
+                           std::vector<AttributesPtr>& _attributes, std::vector<AttrPtr>& _attrs,
+                           std::vector<CallExprPtr>& _call_exprs, std::vector<zeek_int_t>& _field_mappings,
+                           std::vector<CPP_FieldMapping>& _field_mappings_init, std::vector<zeek_int_t>& _enum_mappings,
+                           std::vector<CPP_EnumMapping>& _enum_mappings_init)
+    : const_vals(_const_vals),
+      consts(_consts),
+      indices(_indices),
+      strings(_strings),
+      hashes(_hashes),
+      types(_types),
+      attributes(_attributes),
+      attrs(_attrs),
+      call_exprs(_call_exprs),
+      field_mappings(_field_mappings),
+      field_mappings_init(_field_mappings_init),
+      enum_mappings(_enum_mappings),
+      enum_mappings_init(_enum_mappings_init) {
+    field_mappings.resize(field_mappings_init.size());
+    for ( auto& fm : field_mappings_init )
+        field_types.insert(fm.RecTypeIndex());
+
+    enum_mappings.resize(enum_mappings_init.size());
+    for ( auto& em : enum_mappings_init )
+        enum_types.insert(em.EnumTypeIndex());
+}
+
+void InitsManager::RecordTypeBuilt(int rt_index) {
+    if ( ! field_types.contains(rt_index) )
+        return;
+
+    auto fm = field_mappings.begin();
+    auto fmi = field_mappings_init.begin();
+    for ( ; fm != field_mappings.end(); ++fm, ++fmi )
+        if ( fmi->RecTypeIndex() == rt_index )
+            *fm = fmi->ComputeOffset(this);
+}
+
+void InitsManager::EnumTypeBuilt(int e_index) {
+    if ( ! enum_types.contains(e_index) )
+        return;
+
+    auto em = enum_mappings.begin();
+    auto emi = enum_mappings_init.begin();
+    for ( ; em != enum_mappings.end(); ++em, ++emi )
+        if ( emi->EnumTypeIndex() == e_index )
+            *em = emi->ComputeOffset(this);
+}
+
+
 template<class T>
 void CPP_IndexedInits<T>::InitializeCohortWithOffsets(InitsManager* im, int cohort,
                                                       const std::vector<int>& cohort_offsets) {
@@ -265,6 +318,7 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
     if ( init_vals.size() > 1 && init_vals[1] == NAMED_TYPE_MARKER ) {
         auto name = im->Strings(init_vals[2]);
         ivec[offset] = find_global__CPP(name)->GetType();
+        CheckBuiltType(im, tag, offset);
         return;
     }
 
@@ -306,6 +360,15 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
     }
 
     ivec[offset] = t;
+
+    CheckBuiltType(im, tag, offset);
+}
+
+void CPP_TypeInits::CheckBuiltType(InitsManager* im, TypeTag t, int offset) const {
+    if ( t == TYPE_RECORD )
+        im->RecordTypeBuilt(offset);
+    else if ( t == TYPE_ENUM )
+        im->EnumTypeBuilt(offset);
 }
 
 TypePtr CPP_TypeInits::BuildEnumType(InitsManager* im, ValElemVec& init_vals) const {

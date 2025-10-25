@@ -68,8 +68,9 @@ macro GlobalVal(g) frame[globals[g].slot]
 macro StepIter(slot) step_iters[slot]
 macro TableIter(slot) (*tiv_ptr)[slot]
 
-macro DirectField(r, f) r->RawField(f)
-macro DirectOptField(r, f) r->RawOptField(f)
+macro RecordField(r, f) (ASSERT(z.aux && ! z.aux->types.empty() && (r->GetType() == z.aux->types[0] || (z.aux->types.size() == 2 && r->GetType() == z.aux->types[1]))), f)
+macro DirectField(r, f) r->RawField(RecordField(r, f))
+macro DirectOptField(r, f) r->RawOptField(RecordField(r, f))
 
 macro FieldValWithCheck(r, f) ZBody::CheckAndLookupField(r, f, Z_LOC)
 

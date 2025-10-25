@@ -55,7 +55,6 @@ void IDOptInfo::Clear() {
         did_init = true;
     }
 
-    init_exprs.clear();
     usage_regions.clear();
     pending_confluences.clear();
     confluence_stmts.clear();

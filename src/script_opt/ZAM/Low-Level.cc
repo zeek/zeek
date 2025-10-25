@@ -127,6 +127,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         i = new ZInstI();
 
     *i = inst;
+    last_added_inst = i;
 
     insts1.push_back(i);
 

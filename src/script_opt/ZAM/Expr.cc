@@ -122,8 +122,10 @@ const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     auto aggr = op->GetOp1()->AsNameExpr();
 
     if ( op->Tag() == EXPR_FIELD ) {
-        int field = op->AsFieldExpr()->Field();
-        return DelFieldVi(aggr, field);
+        int f = op->AsFieldExpr()->Field();
+        auto stmt = DelFieldVi(aggr, f);
+        last_added_inst->TrackRecordTypeForField(cast_intrusive<RecordType>(aggr->GetType()), f);
+        return stmt;
     }
 
     auto index_list = op->GetOp2();
@@ -160,6 +162,7 @@ const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
         }
 
         z.SetType(n2 ? n2->GetType() : cc->GetType());
+        z.TrackRecordTypeForField(cast_intrusive<RecordType>(n1->GetType()), f);
 
         return AddInst(z);
     }

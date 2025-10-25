@@ -674,7 +674,7 @@ void ZAM_OpTemplate::InstantiateMethodCore(const OCVec& oc, const string& suffix
         if ( nparam == 3 )
             track += args.NthParam(2) + " /* type 3 */";
         else {
-		assert(nparam == 4 || nparam == 5);
+            assert(nparam == 4 || nparam == 5);
             // See the comment in ZAMCompiler::CompileFieldLHSAssignExpr()
             // for why the parameters here are out-of-order.
             track += args.NthParam(nparam - 1) + ", ";

@@ -11044,6 +11044,22 @@ Events
    :param authtype: the value of the chosen authentication mechanism
 
 .. zeek:id:: rfb_auth_result
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 19 19
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
+   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use rfb_authentication_result which has the correct value for result."*
+
+   Generated for RFB event authentication result message
+   
+
+   :param c: The connection record for the underlying transport-layer session/flow.
+   
+
+   :param result: whether or not authentication was successful (false means success, true means failure)
+   
+   .. zeek:see:: rfb_authentication_result
+
+.. zeek:id:: rfb_authentication_result
    :source-code: base/protocols/rfb/main.zeek 152 155
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
@@ -11096,7 +11112,7 @@ Events
    :param version: of the server's rfb library
 
 .. zeek:id:: rfb_server_parameters
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 53 53
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 63 63
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
@@ -14289,7 +14305,7 @@ Events
    .. zeek:see:: smb1_message
 
 .. zeek:id:: smb1_negotiate_request
-   :source-code: base/protocols/smb/smb1-main.zeek 77 80
+   :source-code: base/protocols/smb/smb1-main.zeek 76 79
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, dialects: :zeek:type:`string_vec`)
 
@@ -14334,7 +14350,7 @@ Events
    .. zeek:see:: smb1_message smb1_negotiate_request
 
 .. zeek:id:: smb1_nt_create_andx_request
-   :source-code: base/protocols/smb/smb1-main.zeek 137 146
+   :source-code: base/protocols/smb/smb1-main.zeek 136 145
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
@@ -14357,7 +14373,7 @@ Events
    .. zeek:see:: smb1_message smb1_nt_create_andx_response
 
 .. zeek:id:: smb1_nt_create_andx_response
-   :source-code: base/protocols/smb/smb1-main.zeek 148 165
+   :source-code: base/protocols/smb/smb1-main.zeek 147 164
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_id: :zeek:type:`count`, file_size: :zeek:type:`count`, times: :zeek:type:`SMB::MACTimes`)
 
@@ -14477,7 +14493,7 @@ Events
    .. zeek:see:: smb1_message smb1_read_andx_request
 
 .. zeek:id:: smb1_session_setup_andx_request
-   :source-code: base/protocols/smb/smb1-main.zeek 252 253
+   :source-code: base/protocols/smb/smb1-main.zeek 251 252
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, request: :zeek:type:`SMB1::SessionSetupAndXRequest`)
 
@@ -14498,7 +14514,7 @@ Events
    .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
 .. zeek:id:: smb1_session_setup_andx_response
-   :source-code: base/protocols/smb/smb1-main.zeek 257 258
+   :source-code: base/protocols/smb/smb1-main.zeek 256 257
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::SessionSetupAndXResponse`)
 
@@ -14519,7 +14535,7 @@ Events
    .. zeek:see:: smb1_message smb1_session_setup_andx_request
 
 .. zeek:id:: smb1_transaction_request
-   :source-code: base/protocols/smb/smb1-main.zeek 262 265
+   :source-code: base/protocols/smb/smb1-main.zeek 261 264
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, name: :zeek:type:`string`, sub_cmd: :zeek:type:`count`, parameters: :zeek:type:`string`, data: :zeek:type:`string`)
 
@@ -14601,7 +14617,7 @@ Events
    
 
 .. zeek:id:: smb1_transaction2_request
-   :source-code: base/protocols/smb/smb1-main.zeek 71 74
+   :source-code: base/protocols/smb/smb1-main.zeek 70 73
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Trans2_Args`, sub_cmd: :zeek:type:`count`)
 
@@ -14628,7 +14644,7 @@ Events
       smb1_trans2_get_dfs_referral_request smb1_transaction_request
 
 .. zeek:id:: smb1_trans2_find_first2_request
-   :source-code: base/protocols/smb/smb1-main.zeek 247 250
+   :source-code: base/protocols/smb/smb1-main.zeek 246 249
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, args: :zeek:type:`SMB1::Find_First2_Request_Args`)
 
@@ -14651,7 +14667,7 @@ Events
       smb1_trans2_get_dfs_referral_request
 
 .. zeek:id:: smb1_trans2_query_path_info_request
-   :source-code: base/protocols/smb/smb1-main.zeek 242 245
+   :source-code: base/protocols/smb/smb1-main.zeek 241 244
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
@@ -14674,7 +14690,7 @@ Events
       smb1_trans2_get_dfs_referral_request
 
 .. zeek:id:: smb1_trans2_get_dfs_referral_request
-   :source-code: base/protocols/smb/smb1-main.zeek 237 240
+   :source-code: base/protocols/smb/smb1-main.zeek 236 239
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, file_name: :zeek:type:`string`)
 
@@ -14723,7 +14739,7 @@ Events
    :param data: content of the SMB_Data.Trans_Data field
 
 .. zeek:id:: smb1_tree_connect_andx_request
-   :source-code: base/protocols/smb/smb1-main.zeek 100 106
+   :source-code: base/protocols/smb/smb1-main.zeek 99 105
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, path: :zeek:type:`string`, service: :zeek:type:`string`)
 

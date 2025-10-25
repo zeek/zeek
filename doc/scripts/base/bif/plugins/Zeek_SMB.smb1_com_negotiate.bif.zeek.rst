@@ -24,7 +24,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: smb1_negotiate_request
-   :source-code: base/protocols/smb/smb1-main.zeek 77 80
+   :source-code: base/protocols/smb/smb1-main.zeek 76 79
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, dialects: :zeek:type:`string_vec`)
 

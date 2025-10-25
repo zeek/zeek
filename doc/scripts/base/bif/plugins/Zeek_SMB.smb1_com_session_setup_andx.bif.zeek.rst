@@ -24,7 +24,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: smb1_session_setup_andx_request
-   :source-code: base/protocols/smb/smb1-main.zeek 252 253
+   :source-code: base/protocols/smb/smb1-main.zeek 251 252
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, request: :zeek:type:`SMB1::SessionSetupAndXRequest`)
 
@@ -45,7 +45,7 @@ Events
    .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
 .. zeek:id:: smb1_session_setup_andx_response
-   :source-code: base/protocols/smb/smb1-main.zeek 257 258
+   :source-code: base/protocols/smb/smb1-main.zeek 256 257
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB1::Header`, response: :zeek:type:`SMB1::SessionSetupAndXResponse`)
 

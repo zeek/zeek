@@ -87,7 +87,7 @@ State Variables
 Functions
 #########
 .. zeek:id:: Notice::pretty_print_alarm
-   :source-code: base/frameworks/notice/actions/pp-alarms.zeek 152 254
+   :source-code: base/frameworks/notice/actions/pp-alarms.zeek 152 251
 
    :Type: :zeek:type:`function` (out: :zeek:type:`file`, n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
    :Attributes: :zeek:attr:`&redef`

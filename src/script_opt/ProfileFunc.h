@@ -552,6 +552,10 @@ protected:
     // unnecessary work.
     std::unordered_set<const LambdaExpr*> processed_lambdas;
 
+    // Same, for lambdas that have been profiled. Separate because we profile
+    // lambdas explicitly rather than as part of regular processing.
+    std::unordered_set<const LambdaExpr*> profiled_lambdas;
+
     // Names of generated events.
     std::unordered_set<std::string> events;
 

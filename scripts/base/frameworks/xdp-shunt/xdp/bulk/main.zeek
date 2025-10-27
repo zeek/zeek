@@ -30,22 +30,7 @@ export {
 	## How long without a packet that the connection should unshunt.
 	const inactive_unshunt = 1min &redef;
 
-	# FROM conn-bulk.bro
-	## The initial criteria used to determine whether to start polling
-	## the connection for the :bro:see:`Bulk::size_threshold` to have
-	## been exceeded.
-	## c: The connection which may possibly be a Bulk data channel.
-	##
-	## Returns: true if the connection should be further polled for an
-	##          exceeded :bro:see:`Bulk::size_threshold`, else false.
-	const bulk_initial_criteria: function(c: connection): bool &redef;
-
-	type PortRange: record {
-		ports: set[port] &optional;
-		port_min: port &default=1/tcp;
-		port_max: port &default=65535/tcp;
-	};
-	const hosts: table[subnet] of PortRange = {[0.0.0.0/0] = PortRange()} &redef;
+	global shunt_policy: hook(cid: conn_id) &redef;
 }
 
 global xdp_prog: opaque of XDP::Program;
@@ -81,29 +66,9 @@ function conn_callback(c: connection, cnt: count): interval
 	return poll_interval;
 	}
 
-# From conn-bulk.bro
-function bulk_initial_criteria(c: connection): bool
-	{
-	local pr: PortRange;
-
-	if ( c$id$orig_h in hosts )
-		pr = hosts[c$id$orig_h];
-	else if ( c$id$resp_h in hosts )
-		pr = hosts[c$id$resp_h];
-	else
-		return F;
-
-	if ( pr?$ports )
-		{
-		return ( c$id$resp_p in pr$ports );
-		}
-
-	return ( pr$port_min <= c$id$resp_p && c$id$resp_p <= pr$port_max );
-	}
-
 event new_connection(c: connection) &priority=-5
 	{
-	if ( bulk_initial_criteria(c) )
+	if ( hook shunt_policy(c$id) )
 		ConnPolling::watch(c, conn_callback, 0, 0secs);
 	}
 

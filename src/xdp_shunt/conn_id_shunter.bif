@@ -1,4 +1,5 @@
-##! BIFs for shunting with conn_ids using XDP.
+##! BIFs for shunting with conn_ids using XDP. This interface is private, use
+##! script functions instead.
 
 %%{
 #include "zeek/IPAddr.h"
@@ -12,17 +13,7 @@
 
 module XDP::ShuntConnID;
 
-## Retrieves the current values in the canonical ID map. The parameters are
-## extra filtering before converting into script values. If both are provided,
-## they must both match to include the shunted connection.
-##
-## only_fin: True if filtering for packets with a fin/rst
-##
-## time_since_last_packet: Interval that must elapse since the last packet
-## to include
-##
-## Returns: A table of the "canonical" connection IDs getting shunted
-function get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
@@ -71,12 +62,7 @@ function get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
     return zeek_table;
 %}
 
-## Starts shunting anything with the conn_id. This is bidirectional.
-##
-## Returns: Whether the operation succeeded
-##
-## .. zeek:see:: unshunt shunt_stats
-function shunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
+function _shunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return zeek::val_mgr->Bool(false);
@@ -98,12 +84,7 @@ function shunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     return zeek::val_mgr->Bool(true);
 %}
 
-## Provides the shunting statistics for this connection ID.
-##
-## Returns: The shunting statistics
-##
-## .. zeek:see:: shunt unshunt
-function shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
+function _shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return makeEmptyShuntedStats();
@@ -122,12 +103,7 @@ function shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::Sh
     return makeShuntedStats(origIsIp1(cid->AsRecordVal()), &*opt_val);
 %}
 
-## Stops shunting anything with the conn_id.
-##
-## Returns: The shunted statistics right before removing
-##
-## .. zeek:see:: shunt shunt_stats
-function unshunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
+function _unshunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return makeEmptyShuntedStats();

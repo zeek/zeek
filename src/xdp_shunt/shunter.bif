@@ -1,4 +1,4 @@
-##! BIFs for shunting with XDP. This is the main interface for XDP shunting.
+##! BIFs for shunting with XDP. This is the main private interface for XDP shunting.
 
 %%{
 #include "zeek/iosource/Manager.h"
@@ -11,12 +11,7 @@
 
 module XDP;
 
-## Begins shunting with XDP by loading the XDP program and necessary BPF maps.
-##
-## Returns: An opaque value representing the now-attached BPF program
-##
-## .. zeek:see:: end_shunt
-function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
+function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
     auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
     auto ip_pair_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
@@ -54,12 +49,7 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     return xdp_prog;
 %}
 
-## Stops the XDP shunting program.
-##
-## Returns: Whether the operation succeeded
-##
-## .. zeek:see:: start_shunt
-function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
+function _end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());

@@ -2,6 +2,8 @@
 ##! https://github.com/JustinAzoff/bro-react/blob/master/conn-bulk.bro
 
 @load base/protocols/conn
+@load xdp
+@load xdp/conn_id
 
 module XDP::Bulk;
 

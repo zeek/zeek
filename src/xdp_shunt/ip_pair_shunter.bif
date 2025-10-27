@@ -1,4 +1,5 @@
-##! BIFs for shunting with IP pairs using XDP.
+##! BIFs for shunting with IP pairs using XDP. This interface is private, use
+##! script functions instead.
 
 %%{
 #include "zeek/IPAddr.h"
@@ -12,17 +13,7 @@
 
 module XDP::ShuntIPPair;
 
-## Retrieves the current values in the IP pair map. The parameters are
-## extra filtering before converting into script values. If both are provided,
-## they must both match to include the shunted pair.
-##
-## only_fin: True if filtering for packets with a fin/rst
-##
-## time_since_last_packet: Interval that must elapse since the last packet
-## to include
-##
-## Returns: A table of the IP pairs getting shunted
-function get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto ip_shunt_table = zeek::id::find_type<zeek::TableType>("XDP::ip_pair_shunt_table");
@@ -67,12 +58,7 @@ function get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
     return zeek_table;
 %}
 
-## Starts shunting anything between two IPs.
-##
-## Returns: Whether the operation succeeded
-##
-## .. zeek:see:: unshunt shunt_stats
-function shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
+function _shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -100,12 +86,7 @@ function shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%)
     return zeek::val_mgr->Bool(true);
 %}
 
-## Provides the shunting statistics for this IP pair.
-##
-## Returns: The shunting statistics
-##
-## .. zeek:see:: shunt unshunt
-function shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: addr%) : XDP::ShuntedStats %{
+function _shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: addr%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -134,7 +115,7 @@ function shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: ad
 ## Returns: The shunted statistics right before removing
 ##
 ## .. zeek:see:: shunt shunt_stats
-function unshunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : XDP::ShuntedStats %{
+function _unshunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());

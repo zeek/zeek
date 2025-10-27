@@ -68,6 +68,50 @@ struct CPP_ValElem {
     int offset;
 };
 
+// Constructs at run-time a mapping between abstract record field offsets used
+// when compiling a set of scripts to their concrete offsets (which might differ
+// from those during compilation due to loading of other scripts that extend
+// various records).
+class CPP_FieldMapping {
+public:
+    CPP_FieldMapping(int _rec, std::string _field_name, int _field_type, int _field_attrs)
+        : rec(_rec), field_name(std::move(_field_name)), field_type(_field_type), field_attrs(_field_attrs) {}
+
+    int ComputeOffset(InitsManager* im) const;
+
+    int RecTypeIndex() const { return rec; }
+    int FieldTypeIndex() const { return field_type; }
+
+private:
+    int rec;                // index to retrieve the record's type
+    std::string field_name; // which field this offset pertains to
+
+    // The field's type, in case we have to construct it. If
+    // DO_NOT_CONSTRUCT_VALUE_MARKER then it's instead an error
+    // if missing.
+    int field_type;
+    int field_attrs; // the same for the field's attributes
+};
+
+// Constructs at run-time a mapping between abstract enum values used when
+// compiling a set of scripts to their concrete values (which might differ
+// from those during compilation due to loading of other scripts that extend
+// the enum).
+class CPP_EnumMapping {
+public:
+    CPP_EnumMapping(int _e_type, std::string _e_name, bool _construct_if_missing)
+        : e_type(_e_type), e_name(std::move(_e_name)), construct_if_missing(_construct_if_missing) {}
+
+    int ComputeOffset(InitsManager* im) const;
+
+    int EnumTypeIndex() const { return e_type; }
+
+private:
+    int e_type;                // index to EnumType
+    std::string e_name;        // which enum constant for that type
+    bool construct_if_missing; // if true, construct constant if not present
+};
+
 // This class groups together all of the vectors needed for run-time
 // initialization.  We gather them together into a single object so as
 // to avoid wiring in a set of globals that the various initialization
@@ -79,16 +123,17 @@ public:
                  std::vector<std::vector<int>>& _indices, std::vector<const char*>& _strings,
                  std::vector<p_hash_type>& _hashes, std::vector<TypePtr>& _types,
                  std::vector<AttributesPtr>& _attributes, std::vector<AttrPtr>& _attrs,
-                 std::vector<CallExprPtr>& _call_exprs)
-        : const_vals(_const_vals),
-          consts(_consts),
-          indices(_indices),
-          strings(_strings),
-          hashes(_hashes),
-          types(_types),
-          attributes(_attributes),
-          attrs(_attrs),
-          call_exprs(_call_exprs) {}
+                 std::vector<CallExprPtr>& _call_exprs, std::vector<zeek_int_t>& _field_mappings,
+                 std::vector<CPP_FieldMapping>& _field_mappings_init, std::vector<zeek_int_t>& _enum_mappings,
+                 std::vector<CPP_EnumMapping>& _enum_mappings_init);
+
+    // Called by a record type initializer when it's fully done, so the
+    // manager can build its field mappings (if any).
+    void RecordTypeBuilt(int rt_index);
+
+    // Called by an enum type initializer when it's done, so the manager can
+    // build its mappings (if any).
+    void EnumTypeBuilt(int e_index);
 
     // Provides generic access to Zeek constant values based on a single
     // index.
@@ -143,6 +188,14 @@ private:
     std::vector<AttributesPtr>& attributes;
     std::vector<AttrPtr>& attrs;
     std::vector<CallExprPtr>& call_exprs;
+
+    std::set<int> field_types; // types seen in the following; just an optimization
+    std::vector<zeek_int_t>& field_mappings;
+    std::vector<CPP_FieldMapping>& field_mappings_init;
+
+    std::set<int> enum_types; // types seen in the following; just an optimization
+    std::vector<zeek_int_t>& enum_mappings;
+    std::vector<CPP_EnumMapping>& enum_mappings_init;
 };
 
 // Manages an initialization vector of the given type.
@@ -299,6 +352,8 @@ protected:
     void PreInit(InitsManager* im, int offset, ValElemVec& init_vals);
 
     void Generate(InitsManager* im, std::vector<TypePtr>& ivec, int offset, ValElemVec& init_vals) const override;
+
+    void CheckBuiltType(InitsManager* im, TypeTag t, int offset) const;
 
     TypePtr BuildEnumType(InitsManager* im, ValElemVec& init_vals) const;
     TypePtr BuildOpaqueType(InitsManager* im, ValElemVec& init_vals) const;
@@ -480,45 +535,6 @@ protected:
     int func_type;
     p_hash_type h;
     bool has_captures;
-};
-
-// Constructs at run-time a mapping between abstract record field offsets used
-// when compiling a set of scripts to their concrete offsets (which might differ
-// from those during compilation due to loading of other scripts that extend
-// various records).
-class CPP_FieldMapping {
-public:
-    CPP_FieldMapping(int _rec, std::string _field_name, int _field_type, int _field_attrs)
-        : rec(_rec), field_name(std::move(_field_name)), field_type(_field_type), field_attrs(_field_attrs) {}
-
-    int ComputeOffset(InitsManager* im) const;
-
-private:
-    int rec;                // index to retrieve the record's type
-    std::string field_name; // which field this offset pertains to
-
-    // The field's type, in case we have to construct it. If
-    // DO_NOT_CONSTRUCT_VALUE_MARKER then it's instead an error
-    // if missing.
-    int field_type;
-    int field_attrs; // the same for the field's attributes
-};
-
-// Constructs at run-time a mapping between abstract enum values used when
-// compiling a set of scripts to their concrete values (which might differ
-// from those during compilation due to loading of other scripts that extend
-// the enum).
-class CPP_EnumMapping {
-public:
-    CPP_EnumMapping(int _e_type, std::string _e_name, bool _construct_if_missing)
-        : e_type(_e_type), e_name(std::move(_e_name)), construct_if_missing(_construct_if_missing) {}
-
-    int ComputeOffset(InitsManager* im) const;
-
-private:
-    int e_type;                // index to EnumType
-    std::string e_name;        // which enum constant for that type
-    bool construct_if_missing; // if true, construct constant if not present
 };
 
 // Looks up a BiF of the given name, making it available to compiled

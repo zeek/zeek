@@ -1,3 +1,7 @@
+8.1.0-dev.796 | 2025-10-27 10:06:07 -0700
+
+  * Fixes for computing dynamic record/enum mappings for standalone C++ compilation (Vern Paxson, Corelight)
+
 8.1.0-dev.793 | 2025-10-24 13:19:00 -0700
 
   * Clean up LDAP spicy functions (Tim Wojtulewicz, Corelight)

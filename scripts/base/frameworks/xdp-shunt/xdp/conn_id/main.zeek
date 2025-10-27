@@ -1,6 +1,12 @@
 module XDP::ShuntConnID;
 
 export {
+	## Event raised whenever a connection is shunted.
+	global shunted_conn: event(cid: conn_id);
+
+	## Event raised whenever a connection is unshunted.
+	global unshunted_conn: event(cid: conn_id, stats: XDP::ShuntedStats);
+
 	## Retrieves the current values in the canonical ID map. The parameters are
 	## extra filtering before converting into script values. If both are provided,
 	## they must both match to include the shunted connection.
@@ -47,7 +53,11 @@ function get_map(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
 
 function shunt(xdp_prog: opaque of XDP::Program, cid: conn_id): bool
 	{
-	return _shunt(xdp_prog, cid);
+	local result = _shunt(xdp_prog, cid);
+	if ( result )
+		event shunted_conn(cid);
+
+	return result;
 	}
 
 function shunt_stats(xdp_prog: opaque of XDP::Program, cid: conn_id)
@@ -59,5 +69,9 @@ function shunt_stats(xdp_prog: opaque of XDP::Program, cid: conn_id)
 function unshunt(xdp_prog: opaque of XDP::Program, cid: conn_id)
     : XDP::ShuntedStats
 	{
-	return _unshunt(xdp_prog, cid);
+	local stats = _unshunt(xdp_prog, cid);
+	if ( stats$present )
+		event unshunted_conn(cid, stats);
+
+	return stats;
 	}

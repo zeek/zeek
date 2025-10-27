@@ -1,6 +1,12 @@
 module XDP::ShuntIPPair;
 
 export {
+	## Event raised whenever a connection is shunted.
+	global shunted_pair: event(ip1: addr, ip2: addr);
+
+	## Event raised whenever a connection is unshunted.
+	global unshunted_pair: event(ip1: addr, ip2: addr, stats: XDP::ShuntedStats);
+
 	## Retrieves the current values in the IP pair map. The parameters are
 	## extra filtering before converting into script values. If both are provided,
 	## they must both match to include the shunted pair.
@@ -49,7 +55,11 @@ function get_map(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
 function shunt(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr)
     : bool
 	{
-	return _shunt(xdp_prog, ip1_val, ip2_val);
+	local result = _shunt(xdp_prog, ip1_val, ip2_val);
+	if ( result )
+		event shunted_pair(ip1_val, ip2_val);
+
+	return result;
 	}
 
 function shunt_stats(xdp_prog: opaque of XDP::Program, orig_h: addr,
@@ -61,5 +71,9 @@ function shunt_stats(xdp_prog: opaque of XDP::Program, orig_h: addr,
 function unshunt(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr)
     : XDP::ShuntedStats
 	{
-	return _unshunt(xdp_prog, ip1_val, ip2_val);
+	local stats = _unshunt(xdp_prog, ip1_val, ip2_val);
+	if ( stats$present )
+		event unshunted_pair(ip1_val, ip2_val, stats);
+
+	return stats;
 	}

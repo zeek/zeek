@@ -1,3 +1,9 @@
+8.1.0-dev.799 | 2025-10-27 10:08:29 -0700
+
+  * script optimization fix for lambdas that themselves include lambdas (Vern Paxson, Corelight)
+
+  * script optimization fix for re-analyzing identifiers (Vern Paxson, Corelight)
+
 8.1.0-dev.796 | 2025-10-27 10:06:07 -0700
 
   * Fixes for computing dynamic record/enum mappings for standalone C++ compilation (Vern Paxson, Corelight)

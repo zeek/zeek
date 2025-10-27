@@ -626,10 +626,11 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 }
 
 void ProfileFuncs::ProfileLambda(const LambdaExpr* l) {
-    if ( lambdas.contains(l) )
+    if ( profiled_lambdas.contains(l) )
         return;
 
     lambdas.insert(l);
+    profiled_lambdas.insert(l);
     pending_exprs.push_back(l);
 
     do
@@ -637,6 +638,13 @@ void ProfileFuncs::ProfileLambda(const LambdaExpr* l) {
     while ( ! pending_exprs.empty() );
 
     AnalyzeLambdaProfile(l);
+
+    auto pf = ExprProf(l);
+    if ( ! pf->HasHashVal() )
+        ComputeProfileHash(pf);
+
+    for ( auto sub_l : pf->Lambdas() )
+        ProfileLambda(sub_l);
 }
 
 bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
@@ -862,7 +870,7 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
             continue;
         auto pf = f.ProfilePtr();
         if ( compute_func_hashes || ! pf->HasHashVal() )
-            ComputeProfileHash(f.ProfilePtr());
+            ComputeProfileHash(std::move(pf));
     }
 
     for ( auto& l : lambdas )

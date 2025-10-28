@@ -1,3 +1,9 @@
+8.0.10-23 | 2026-09-25 13:17:04 -0700
+
+  * Add section to ldap filter escaping test to ensure it doesn't affect UTF-8 characters (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 2af4368c7b40474a8cf1a27229e9333f074b43b3)
+
 8.0.10-22 | 2026-09-25 13:16:22 -0700
 
   * Escape specific characters in LDAP filter strings (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,7 @@
+8.1.0-dev.803 | 2025-10-28 15:23:03 -0700
+
+  * Add section to ldap filter escaping test to ensure it doesn't affect UTF-8 characters (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.801 | 2025-10-28 16:53:56 +0100
 
   * Update Spicy code for HILTI's new tuple and optional types. (Robin Sommer, Corelight)

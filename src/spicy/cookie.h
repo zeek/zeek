@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <hilti/rt/backtrace.h>
+#include <hilti/rt/types/optional.h>
 
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
@@ -30,8 +31,8 @@ namespace cookie {
 /** State representing analysis of one file. */
 struct FileState {
     FileState(std::string fid) : fid(std::move(fid)) {}
-    std::string fid;                      /**< unique Zeek-side file ID */
-    std::optional<std::string> mime_type; /**< MIME type, if explicitly set */
+    std::string fid;                            /**< unique Zeek-side file ID */
+    hilti::rt::Optional<std::string> mime_type; /**< MIME type, if explicitly set */
 };
 
 /**
@@ -55,7 +56,7 @@ public:
      * stack.
      * @param fid Optional precomputed file ID to use for the new file.
      */
-    FileState* push(std::optional<std::string> fid = {});
+    FileState* push(hilti::rt::Optional<std::string> fid = {});
 
     /** Returns true if the stack is currently empty. */
     bool isEmpty() const { return _stack.empty(); }

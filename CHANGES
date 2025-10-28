@@ -1,3 +1,9 @@
+8.1.0-dev.801 | 2025-10-28 16:53:56 +0100
+
+  * Update Spicy code for HILTI's new tuple and optional types. (Robin Sommer, Corelight)
+
+    Includes Spicy bump to current `main`.
+
 8.1.0-dev.799 | 2025-10-27 10:08:29 -0700
 
   * script optimization fix for lambdas that themselves include lambdas (Vern Paxson, Corelight)

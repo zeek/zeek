@@ -38,6 +38,11 @@ Breaking Changes
   consistent with other UIDs created by Zeek such as connection IDs. They were previously
   returning shorter 64-bit UIDs.
 
+- The metrics ``zeek_msgthread_pending_messages_in_buckets`` and
+  ``zeek_msgthread_pending_messages_out_buckets`` had labels that did not conform with
+  Prometheus' checks via ``promtool``. The labels have been renamed from ``le`` to
+  ``leq``, given that they technically are less-than-or-equal values.
+
 New Functionality
 -----------------
 

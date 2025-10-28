@@ -3,6 +3,21 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.4
+==========
+
+We would like to thank Edardo Mich (@edoardomich) for their contributions to this release.
+
+This release fixes the following bugs:
+
+- Reverts an inadvertent change to Zeekctl's pysubnettree submodule that was causing
+  Zeekctl to require Python 3.10. A new version of Zeekctl is now included with more
+  targeted fixes that don't include that requirement.
+
+- The Docker container image now contains the ``websockets`` python package as well as the
+  existing `websocket` package. This fixes a warning from Zeekctl when using the
+  ``UseWebSocket`` option.
+
 Zeek 8.0.3
 ==========
 

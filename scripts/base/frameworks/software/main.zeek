@@ -239,7 +239,10 @@ function parse(unparsed_version: string): Description
 	return Description($version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]);
 	}
 
+# A cache for the proxies that stores the result of parsing unparsed_version.
 global parse_cache: table[string] of Description &read_expire=65secs;
+# A suppression cache for the workers to prevent sending the same information to the proxies multiple times.
+global found_cache: set[Info] &create_expire=10mins;
 
 # Call parse, but cache results in the parse_cache table
 function parse_with_cache(unparsed_version: string): Description
@@ -522,6 +525,11 @@ function found(id: conn_id, info: Info): bool
 	{
 	if ( ! info$force_log && ! addr_matches_host(info$host, asset_tracking) )
 		return F;
+
+	# This assumes that callers do not fill in info$ts, none of the current callers do.
+	if ( info in found_cache )
+		return T;
+	add found_cache[info];
 
 	if ( ! info?$ts )
 		info$ts = network_time();

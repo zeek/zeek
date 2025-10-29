@@ -1,4 +1,4 @@
-##! This script is meant to be functionally equivalent to:
+##! This script is meant to be roughly equivalent to:
 ##! https://github.com/JustinAzoff/bro-react/blob/master/conn-bulk.bro
 
 @load base/protocols/conn
@@ -31,7 +31,20 @@ export {
 	const inactive_unshunt = 1min &redef;
 
 	global shunt_policy: hook(cid: conn_id) &redef;
+
+	redef enum Log::ID += { LOG };
+
+	type Info: record {
+		id: conn_id &log;
+		bytes_shunted: count &log;
+		packets_shunted: count &log;
+		last_packet: time &log &optional;
+	};
 }
+
+redef record connection += {
+	xdp_bulk: Info &optional;
+};
 
 global xdp_prog: opaque of XDP::Program;
 
@@ -45,7 +58,14 @@ function conn_callback(c: connection, cnt: count): interval
 		    && stats$timestamp + inactive_unshunt <= current_time();
 		if ( timed_out || stats$fin > 0 || stats$rst > 0 )
 			{
-			XDP::ShuntConnID::unshunt(xdp_prog, c$id);
+			# Use the final stats in case something was shunted between first check and now.
+			local final_stats = XDP::ShuntConnID::unshunt(xdp_prog, c$id);
+			local info: Info = [$id=c$id, $bytes_shunted=final_stats$bytes_from_1 + final_stats$bytes_from_2, $packets_shunted=final_stats$packets_from_1 + final_stats$packets_from_2
+			    ];
+			if ( final_stats?$timestamp )
+				info$last_packet = final_stats$timestamp;
+
+			Log::write(LOG, info);
 			return -1sec;
 			}
 
@@ -53,9 +73,6 @@ function conn_callback(c: connection, cnt: count): interval
 		}
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
-		if ( XDP::ShuntConnID::shunt_stats(xdp_prog, c$id)$present )
-			return -1sec;
-
 		XDP::ShuntConnID::shunt(xdp_prog, c$id);
 		return unshunt_poll_interval;
 		}
@@ -80,6 +97,8 @@ event zeek_init()
 		$ip_pair_map_max_size=1, # Effectively 0
 	];
 	xdp_prog = XDP::start_shunt(opts);
+
+	Log::create_stream(XDP::Bulk::LOG, [$columns=Info, $path="xdp_bulk"]);
 	}
 
 event zeek_done()

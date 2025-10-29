@@ -30,7 +30,11 @@ export {
 	## How long without a packet that the connection should unshunt.
 	const inactive_unshunt = 1min &redef;
 
+	## If we should even look at shunting this connection. Break if we should
+	## not start polling to shunt it.
 	global shunt_policy: hook(cid: conn_id) &redef;
+
+	global finalize_shunt: Conn::RemovalHook;
 
 	redef enum Log::ID += { LOG };
 
@@ -48,6 +52,17 @@ redef record connection += {
 
 global xdp_prog: opaque of XDP::Program;
 
+function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
+	{
+	local info: Info = [$id=cid,
+	    $bytes_shunted=stats$bytes_from_1 + stats$bytes_from_2,
+	    $packets_shunted=stats$packets_from_1 + stats$packets_from_2];
+	if ( stats?$timestamp )
+		info$last_packet = stats$timestamp;
+
+	return info;
+	}
+
 function conn_callback(c: connection, cnt: count): interval
 	{
 	local stats = XDP::ShuntConnID::shunt_stats(xdp_prog, c$id);
@@ -59,13 +74,9 @@ function conn_callback(c: connection, cnt: count): interval
 		if ( timed_out || stats$fin > 0 || stats$rst > 0 )
 			{
 			# Use the final stats in case something was shunted between first check and now.
-			local final_stats = XDP::ShuntConnID::unshunt(xdp_prog, c$id);
-			local info: Info = [$id=c$id, $bytes_shunted=final_stats$bytes_from_1 + final_stats$bytes_from_2, $packets_shunted=final_stats$packets_from_1 + final_stats$packets_from_2
-			    ];
-			if ( final_stats?$timestamp )
-				info$last_packet = final_stats$timestamp;
+			# Technically this could break if shunt->unshunt->shunt->unshunt a connection
+			c$xdp_bulk = make_info(c$id, XDP::ShuntConnID::unshunt(xdp_prog, c$id));
 
-			Log::write(LOG, info);
 			return -1sec;
 			}
 
@@ -73,6 +84,7 @@ function conn_callback(c: connection, cnt: count): interval
 		}
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
+		Conn::register_removal_hook(c, finalize_shunt);
 		XDP::ShuntConnID::shunt(xdp_prog, c$id);
 		return unshunt_poll_interval;
 		}
@@ -104,4 +116,19 @@ event zeek_init()
 event zeek_done()
 	{
 	XDP::end_shunt(xdp_prog);
+	}
+
+hook finalize_shunt(c: connection)
+	{
+	# If already unshunted here
+	if ( c?$xdp_bulk )
+		{
+		Log::write(LOG, c$xdp_bulk);
+		return;
+		}
+
+	# Else try to unshunt it
+	local final_stats = XDP::ShuntConnID::unshunt(xdp_prog, c$id);
+	if ( final_stats$present )
+		Log::write(LOG, make_info(c$id, final_stats));
 	}

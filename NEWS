@@ -98,6 +98,13 @@ New Functionality
   This functionality can be controlled with ``QUIC::max_discarded_packet_events``,
   setting this variable to -1 disabled the ``QUIC::discarded_packet`` event.
 
+- The QUIC analyzer now raises ``QUIC::short_packets_threshold()`` for every
+  binary logarithmic threshold for short packets. Each threshold is added to
+  the history as ``O``. E.g., a history containing ``oOoO`` indicates that originator
+  and responder each send at least 3 short packets, while ``oOOoooooo`` would indicate
+  the originator sent 3 short packets early in the connection, while the responder
+  sent at least 127 packets.
+
 - Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
   and ``sha512_hash_finish``.
 

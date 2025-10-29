@@ -822,11 +822,11 @@ will not be visible to remaining ``hook`` handlers, but it's still possible
 to modify values of composite/aggregate types like :zeek:type:`vector`,
 :zeek:type:`record`, :zeek:type:`set`, or :zeek:type:`table`.
 
-The return value of a hook call is an implicit :zeek:type:`bool`
-value with ``T`` meaning that all handlers for the hook were
-executed and ``F`` meaning that only some of the handlers may have
-executed due to one handler body exiting as a result of a ``break``
-statement.
+Hooks cannot return values, but the return value of a hook call is an
+implicit :zeek:type:`bool` value. True (``T``) means that all handlers
+for the hook were executed and none executed a ``break`` statement.
+False (``F``) means that one handler halted further execution as a
+result of a ``break`` statement.
 
 Hooks are also allowed to have multiple/alternate prototype declarations,
 just like an :zeek:see:`event`.

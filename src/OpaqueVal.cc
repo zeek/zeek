@@ -219,7 +219,11 @@ constexpr size_t MD5VAL_STATE_SIZE = sizeof(MD5_CTX);
 
 constexpr size_t SHA1VAL_STATE_SIZE = sizeof(SHA_CTX);
 
+constexpr size_t SHA224VAL_STATE_SIZE = sizeof(SHA256_CTX);
+
 constexpr size_t SHA256VAL_STATE_SIZE = sizeof(SHA256_CTX);
+
+constexpr size_t SHA384VAL_STATE_SIZE = sizeof(SHA512_CTX);
 
 constexpr size_t SHA512VAL_STATE_SIZE = sizeof(SHA512_CTX);
 
@@ -283,6 +287,38 @@ void do_unserialize(SHA1Val::StatePtr ptr, const char* bytes, size_t len) {
 
 void do_destroy(SHA1Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
 
+// -- SHA224
+
+auto* to_native_ptr(SHA224Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
+
+auto* to_digest_ptr(SHA224Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
+
+void do_init(SHA224Val::StatePtr& ptr) {
+    ptr = reinterpret_cast<SHA224Val::StatePtr>(detail::hash_init(detail::Hash_SHA224));
+}
+
+void do_clone(SHA224Val::StatePtr out, SHA224Val::StatePtr in) {
+    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
+}
+
+void do_feed(SHA224Val::StatePtr ptr, const void* data, size_t size) {
+    detail::hash_update(to_digest_ptr(ptr), data, size);
+}
+
+void do_get(SHA224Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
+
+std::string do_serialize(SHA224Val::StatePtr ptr) {
+    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    return {reinterpret_cast<const char*>(md), sizeof(SHA256_CTX)};
+}
+
+void do_unserialize(SHA224Val::StatePtr ptr, const char* bytes, size_t len) {
+    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    memcpy(md, bytes, len);
+}
+
+void do_destroy(SHA224Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
+
 // -- SHA256
 
 auto* to_native_ptr(SHA256Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
@@ -314,6 +350,38 @@ void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) {
 }
 
 void do_destroy(SHA256Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
+
+// -- SHA384
+
+auto* to_native_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
+
+auto* to_digest_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
+
+void do_init(SHA384Val::StatePtr& ptr) {
+    ptr = reinterpret_cast<SHA384Val::StatePtr>(detail::hash_init(detail::Hash_SHA512));
+}
+
+void do_clone(SHA384Val::StatePtr out, SHA384Val::StatePtr in) {
+    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
+}
+
+void do_feed(SHA384Val::StatePtr ptr, const void* data, size_t size) {
+    detail::hash_update(to_digest_ptr(ptr), data, size);
+}
+
+void do_get(SHA384Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
+
+std::string do_serialize(SHA384Val::StatePtr ptr) {
+    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    return {reinterpret_cast<const char*>(md), sizeof(SHA512_CTX)};
+}
+
+void do_unserialize(SHA384Val::StatePtr ptr, const char* bytes, size_t len) {
+    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    memcpy(md, bytes, len);
+}
+
+void do_destroy(SHA384Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
 
 // -- SHA512
 
@@ -393,6 +461,28 @@ void do_unserialize(SHA1Val::StatePtr ptr, const char* bytes, size_t len) { memc
 
 void do_destroy(SHA1Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
+// -- SHA224
+
+auto* to_native_ptr(SHA224Val::StatePtr ptr) { return reinterpret_cast<SHA256_CTX*>(ptr); }
+
+void do_init(SHA224Val::StatePtr& ptr) {
+    auto ctx = new SHA256_CTX;
+    SHA224_Init(ctx);
+    ptr = reinterpret_cast<SHA224Val::StatePtr>(ctx);
+}
+
+void do_clone(SHA224Val::StatePtr out, SHA224Val::StatePtr in) { *to_native_ptr(out) = *to_native_ptr(in); }
+
+void do_feed(SHA224Val::StatePtr ptr, const void* data, size_t size) { SHA224_Update(to_native_ptr(ptr), data, size); }
+
+void do_get(SHA224Val::StatePtr ptr, u_char* digest) { SHA224_Final(digest, to_native_ptr(ptr)); }
+
+std::string do_serialize(SHA224Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(SHA256_CTX)}; }
+
+void do_unserialize(SHA224Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+
+void do_destroy(SHA224Val::StatePtr ptr) { delete to_native_ptr(ptr); }
+
 // -- SHA256
 
 auto* to_native_ptr(SHA256Val::StatePtr ptr) { return reinterpret_cast<SHA256_CTX*>(ptr); }
@@ -414,6 +504,28 @@ std::string do_serialize(SHA256Val::StatePtr ptr) { return {reinterpret_cast<con
 void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(SHA256Val::StatePtr ptr) { delete to_native_ptr(ptr); }
+
+// -- SHA384
+
+auto* to_native_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<SHA512_CTX*>(ptr); }
+
+void do_init(SHA384Val::StatePtr& ptr) {
+    auto ctx = new SHA512_CTX;
+    SHA384_Init(ctx);
+    ptr = reinterpret_cast<SHA384Val::StatePtr>(ctx);
+}
+
+void do_clone(SHA384Val::StatePtr out, SHA384Val::StatePtr in) { *to_native_ptr(out) = *to_native_ptr(in); }
+
+void do_feed(SHA384Val::StatePtr ptr, const void* data, size_t size) { SHA384_Update(to_native_ptr(ptr), data, size); }
+
+void do_get(SHA384Val::StatePtr ptr, u_char* digest) { SHA384_Final(digest, to_native_ptr(ptr)); }
+
+std::string do_serialize(SHA384Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(SHA512_CTX)}; }
+
+void do_unserialize(SHA384Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+
+void do_destroy(SHA384Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
 // -- SHA512
 
@@ -618,6 +730,91 @@ bool SHA1Val::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+SHA224Val::SHA224Val() : HashVal(sha224_type) {}
+
+SHA224Val::~SHA224Val() {
+    if ( ctx != nullptr )
+        do_destroy(ctx);
+}
+
+ValPtr SHA224Val::DoClone(CloneState* state) {
+    auto out = make_intrusive<SHA224Val>();
+
+    if ( IsValid() ) {
+        if ( ! out->Init() )
+            return nullptr;
+
+        do_clone(out->ctx, ctx);
+    }
+
+    return state->NewClone(this, std::move(out));
+}
+
+bool SHA224Val::DoInit() {
+    assert(! IsValid());
+    do_init(ctx);
+    return true;
+}
+
+bool SHA224Val::DoFeed(const void* data, size_t size) {
+    if ( ! IsValid() )
+        return false;
+
+    do_feed(ctx, data, size);
+    return true;
+}
+
+StringValPtr SHA224Val::DoGet() {
+    if ( ! IsValid() )
+        return val_mgr->EmptyString();
+
+    u_char digest[SHA224_DIGEST_LENGTH];
+    do_get(ctx, digest);
+    return make_intrusive<StringVal>(detail::sha224_digest_print(digest));
+}
+
+IMPLEMENT_OPAQUE_VALUE(SHA224Val)
+
+std::optional<BrokerData> SHA224Val::DoSerializeData() const {
+    BrokerListBuilder builder;
+
+    if ( ! IsValid() ) {
+        builder.Add(false);
+        return std::move(builder).Build();
+    }
+
+    builder.Add(true);
+    builder.Add(do_serialize(ctx));
+    return std::move(builder).Build();
+}
+
+bool SHA224Val::DoUnserializeData(BrokerDataView data) {
+    if ( ! data.IsList() )
+        return false;
+
+    auto d = data.ToList();
+
+    if ( d.IsEmpty() || ! d[0].IsBool() )
+        return false;
+
+    if ( ! d[0].ToBool() ) {
+        assert(! IsValid()); // default set by ctor
+        return true;
+    }
+
+    if ( d.Size() != 2 || ! d[1].IsString() )
+        return false;
+
+    auto s = d[1].ToString();
+
+    if ( s.size() != SHA224VAL_STATE_SIZE )
+        return false;
+
+    Init();
+    do_unserialize(ctx, s.data(), s.size());
+    return true;
+}
+
 SHA256Val::SHA256Val() : HashVal(sha256_type) {}
 
 SHA256Val::~SHA256Val() {
@@ -696,6 +893,91 @@ bool SHA256Val::DoUnserializeData(BrokerDataView data) {
     auto s = d[1].ToString();
 
     if ( s.size() != SHA256VAL_STATE_SIZE )
+        return false;
+
+    Init();
+    do_unserialize(ctx, s.data(), s.size());
+    return true;
+}
+
+SHA384Val::SHA384Val() : HashVal(sha384_type) {}
+
+SHA384Val::~SHA384Val() {
+    if ( ctx != nullptr )
+        do_destroy(ctx);
+}
+
+ValPtr SHA384Val::DoClone(CloneState* state) {
+    auto out = make_intrusive<SHA384Val>();
+
+    if ( IsValid() ) {
+        if ( ! out->Init() )
+            return nullptr;
+
+        do_clone(out->ctx, ctx);
+    }
+
+    return state->NewClone(this, std::move(out));
+}
+
+bool SHA384Val::DoInit() {
+    assert(! IsValid());
+    do_init(ctx);
+    return true;
+}
+
+bool SHA384Val::DoFeed(const void* data, size_t size) {
+    if ( ! IsValid() )
+        return false;
+
+    do_feed(ctx, data, size);
+    return true;
+}
+
+StringValPtr SHA384Val::DoGet() {
+    if ( ! IsValid() )
+        return val_mgr->EmptyString();
+
+    u_char digest[SHA384_DIGEST_LENGTH];
+    do_get(ctx, digest);
+    return make_intrusive<StringVal>(detail::sha384_digest_print(digest));
+}
+
+IMPLEMENT_OPAQUE_VALUE(SHA384Val)
+
+std::optional<BrokerData> SHA384Val::DoSerializeData() const {
+    BrokerListBuilder builder;
+
+    if ( ! IsValid() ) {
+        builder.Add(false);
+        return std::move(builder).Build();
+    }
+
+    builder.Add(true);
+    builder.Add(do_serialize(ctx));
+    return std::move(builder).Build();
+}
+
+bool SHA384Val::DoUnserializeData(BrokerDataView data) {
+    if ( ! data.IsList() )
+        return false;
+
+    auto d = data.ToList();
+
+    if ( d.IsEmpty() || ! d[0].IsBool() )
+        return false;
+
+    if ( ! d[0].ToBool() ) {
+        assert(! IsValid()); // default set by ctor
+        return true;
+    }
+
+    if ( d.Size() != 2 || ! d[1].IsString() )
+        return false;
+
+    auto s = d[1].ToString();
+
+    if ( s.size() != SHA384VAL_STATE_SIZE )
         return false;
 
     Init();

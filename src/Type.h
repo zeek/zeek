@@ -1054,7 +1054,9 @@ inline const TypePtr& error_type() { return base_type(TYPE_ERROR); }
 
 extern zeek::OpaqueTypePtr md5_type;
 extern zeek::OpaqueTypePtr sha1_type;
+extern zeek::OpaqueTypePtr sha224_type;
 extern zeek::OpaqueTypePtr sha256_type;
+extern zeek::OpaqueTypePtr sha384_type;
 extern zeek::OpaqueTypePtr sha512_type;
 extern zeek::OpaqueTypePtr entropy_type;
 extern zeek::OpaqueTypePtr cardinality_type;

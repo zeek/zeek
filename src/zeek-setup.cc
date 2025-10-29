@@ -155,7 +155,9 @@ const char* proc_status_file = nullptr;
 
 zeek::OpaqueTypePtr md5_type;
 zeek::OpaqueTypePtr sha1_type;
+zeek::OpaqueTypePtr sha224_type;
 zeek::OpaqueTypePtr sha256_type;
+zeek::OpaqueTypePtr sha384_type;
 zeek::OpaqueTypePtr sha512_type;
 zeek::OpaqueTypePtr entropy_type;
 zeek::OpaqueTypePtr cardinality_type;
@@ -683,7 +685,9 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     md5_type = make_intrusive<OpaqueType>("md5");
     sha1_type = make_intrusive<OpaqueType>("sha1");
+    sha224_type = make_intrusive<OpaqueType>("sha224");
     sha256_type = make_intrusive<OpaqueType>("sha256");
+    sha384_type = make_intrusive<OpaqueType>("sha384");
     sha512_type = make_intrusive<OpaqueType>("sha512");
     entropy_type = make_intrusive<OpaqueType>("entropy");
     cardinality_type = make_intrusive<OpaqueType>("cardinality");

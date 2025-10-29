@@ -100,10 +100,10 @@ void Manager::InitPostScript() {
                                                                });
 
     pending_message_in_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"le"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"leq"},
                                    "Number of threads with pending inbound messages split into buckets");
     pending_message_out_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"le"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"leq"},
                                    "Number of threads with pending outbound messages split into buckets");
 
     for ( auto upper_limit : pending_bucket_brackets ) {
@@ -117,12 +117,12 @@ void Manager::InitPostScript() {
         current_bucketed_messages.pending_out[upper_limit] = 0;
 
         pending_message_in_buckets[upper_limit] =
-            pending_message_in_buckets_fam->GetOrAdd({{"le", upper_limit_str}}, [upper_limit]() {
+            pending_message_in_buckets_fam->GetOrAdd({{"leq", upper_limit_str}}, [upper_limit]() {
                 auto* s = get_message_thread_stats();
                 return static_cast<double>(s->pending_in.at(upper_limit));
             });
         pending_message_out_buckets[upper_limit] =
-            pending_message_out_buckets_fam->GetOrAdd({{"le", upper_limit_str}}, [upper_limit]() {
+            pending_message_out_buckets_fam->GetOrAdd({{"leq", upper_limit_str}}, [upper_limit]() {
                 auto* s = get_message_thread_stats();
                 return static_cast<double>(s->pending_out.at(upper_limit));
             });

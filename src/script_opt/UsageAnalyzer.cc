@@ -46,6 +46,12 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
         if ( t->Tag() != TYPE_FUNC )
             continue;
 
+        if ( auto gv = id->GetVal() )
+            for ( const auto& body : gv->AsFunc()->GetBodies() )
+                if ( body.stmts->Tag() == STMT_CPP )
+                    // Compiled scripts can mask usages, just give up.
+                    return;
+
         if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
             continue;
 

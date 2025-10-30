@@ -161,7 +161,7 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 
         if ( capture_names.contains(cn) )
             // No need to declare these, they're passed in as parameters.
-            ln = cn;
+            ln = std::move(cn);
 
         else if ( ! params.contains(l) && l->Offset() >= num_params ) { // Not a parameter, so must be a local.
             Emit("%s %s;", FullTypeName(l->GetType()), ln);

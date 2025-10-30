@@ -355,6 +355,9 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* 
     auto z = GenInst(op, lhs, rhs);
     z.aux = aux;
 
+    z.SetType(lhs->GetType());
+    z.SetType2(rhs->GetType());
+
     return AddInst(z);
 }
 
@@ -1417,6 +1420,8 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
     ZInstI z;
 
+    TypePtr rhs_t; // in case we're constructing from a record
+
     if ( is_from_rec ) {
         // Map non-from-rec operand to the from-rec equivalent.
         switch ( op ) {
@@ -1439,6 +1444,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
         auto cfr = static_cast<const ConstructFromRecordExpr*>(e);
         auto from_n = cfr->GetOp2()->AsNameExpr();
+
+        rhs_t = from_n->GetType();
+
         if ( network_time_index >= 0 )
             z = GenInst(op, n, from_n, network_time_index);
         else
@@ -1458,6 +1466,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
     z.aux = aux;
     z.SetType(rec_e->GetType());
+
+    if ( rhs_t )
+        z.SetType2(rhs_t);
 
     auto inst = AddInst(z);
 

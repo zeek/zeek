@@ -1221,37 +1221,10 @@ string CPPCompile::GenField(const ExprPtr& rec, int field) {
     auto t = TypeRep(rec->GetType());
     auto rt = t->AsRecordType();
 
-    if ( field < rt->NumOrigFields() )
-        // Can use direct access.
+    int mapping_slot = GetFieldMapping(rt, field);
+
+    if ( mapping_slot < 0 )
         return Fmt(field);
-
-    // Need to dynamically map the field.
-    int mapping_slot;
-
-    auto rfm = record_field_mappings.find(rt);
-    if ( rfm != record_field_mappings.end() && rfm->second.contains(field) )
-        // We're already tracking this field.
-        mapping_slot = rfm->second[field];
-
-    else {
-        // New mapping.
-        mapping_slot = num_rf_mappings++;
-
-        auto pt = processed_types.find(rt);
-        ASSERT(pt != processed_types.end());
-        auto rt_offset = pt->second->Offset();
-        field_decls.emplace_back(rt_offset, rt->FieldDecl(field));
-
-        if ( rfm != record_field_mappings.end() )
-            // We're already tracking this record.
-            rfm->second[field] = mapping_slot;
-        else {
-            // Need to start tracking this record.
-            unordered_map<int, int> rt_mapping;
-            rt_mapping[field] = mapping_slot;
-            record_field_mappings[rt] = rt_mapping;
-        }
-    }
 
     return string("field_mapping[") + Fmt(mapping_slot) + "]";
 }
@@ -1354,6 +1327,39 @@ int CPPCompile::ReadyProfile(shared_ptr<ProfileFunc> pf) {
     }
 
     return max_cohort;
+}
+
+int CPPCompile::GetFieldMapping(const RecordType* rt, int field) {
+    if ( field < rt->NumOrigFields() )
+        // Can use direct access.
+        return -1;
+
+    auto rfm = record_field_mappings.find(rt);
+    if ( rfm != record_field_mappings.end() && rfm->second.contains(field) )
+        // We're already tracking this field.
+        return rfm->second[field];
+
+    // Need to dynamically map the field.
+    int mapping_slot = num_rf_mappings++;
+
+    auto pt = processed_types.find(rt);
+    ASSERT(pt != processed_types.end());
+    auto rt_offset = pt->second->Offset();
+    auto decl = rt->FieldDecl(field);
+    ASSERT(decl);
+    field_decls.emplace_back(rt_offset, decl);
+
+    if ( rfm != record_field_mappings.end() )
+        // We're already tracking this record.
+        rfm->second[field] = mapping_slot;
+    else {
+        // Need to start tracking this record.
+        unordered_map<int, int> rt_mapping;
+        rt_mapping[field] = mapping_slot;
+        record_field_mappings[rt] = rt_mapping;
+    }
+
+    return mapping_slot;
 }
 
 } // namespace zeek::detail

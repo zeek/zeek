@@ -72,11 +72,11 @@ public:
     void SetCapabilityBoundingSet(std::string caps) { capability_bounding_set = std::move(caps); }
 
     void SetAmbientCapabilities(std::string caps) { ambient_capabilities = std::move(caps); }
-    void SetCpuAffinity(std::string cpu) { cpu_affinity = cpu; }
-    void SetNumaPolicy(std::string np) { numa_policy = np; }
+    void SetCpuAffinity(std::string cpu) { cpu_affinity = std::move(cpu); }
+    void SetNumaPolicy(std::string np) { numa_policy = std::move(np); }
 
     void SetNice(int n) { nice = n; }
-    void SetMemoryMax(std::string max) { memory_max = max; }
+    void SetMemoryMax(std::string max) { memory_max = std::move(max); }
 
     void AddEnvironment(std::string name, std::string value) { env.emplace_back(std::move(name), std::move(value)); }
 

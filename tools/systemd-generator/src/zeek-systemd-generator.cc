@@ -111,7 +111,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     }
 
     std::string target_desc = "The Zeek Network Security Monitor";
-    auto target_unit = Unit(dir / "zeek.target", target_desc, config.SourcePath());
+    auto target_unit = Unit(dir / "zeek.target", std::move(target_desc), config.SourcePath());
 
     // The setup unit creates all working directories and sets permissions
     auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath(), "zeek.target");
@@ -182,7 +182,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         unit.AddEnvironment("INTERFACE", *interface);
         if ( ! cpu.empty() )
-            unit.SetCpuAffinity(cpu);
+            unit.SetCpuAffinity(std::move(cpu));
 
         unit.WriteDropIn();
     }
@@ -216,7 +216,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     worker_unit.SetSlice("zeek-workers.slice");
 
     if ( auto numa_policy = config.WorkersNumaPolicy(); ! numa_policy.empty() )
-        worker_unit.SetNumaPolicy(numa_policy);
+        worker_unit.SetNumaPolicy(std::move(numa_policy));
 
     target_unit.Write();
     setup_unit.Write();

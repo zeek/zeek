@@ -24,6 +24,13 @@ enum ASN1TypeTag {
 	ASN1_INDEX_TAG_OFFSET	   = 0xa0,
 };
 
+enum ASN1TagClass {
+    ASN1_TAG_UNIVERSAL = 0x00,
+    ASN1_TAG_APPLICATION = 0x01,
+    ASN1_TAG_CONTEXT = 0x02,
+    ASN1_TAG_PRIVATE = 0x03,
+};
+
 type ASN1Encoding = record {
 	meta:    ASN1EncodingMeta;
 	content: bytestring &length = meta.length;
@@ -34,9 +41,12 @@ type ASN1EncodingMeta = record {
 	len:      uint8;
 	more_len: bytestring &length = long_len ? len & 0x7f : 0;
 } &let {
-	long_len        : bool = (len & 0x80) > 0;
-	length:   uint64 = long_len ? binary_to_int64(more_len) : len;
-	index           : uint8 = tag - ASN1_INDEX_TAG_OFFSET;
+	long_len:    bool = (len & 0x80) > 0;
+	length:      uint64 = long_len ? binary_to_int64(more_len) : len;
+	index:       uint8 = tag - ASN1_INDEX_TAG_OFFSET;
+	tag_class:   uint8 = (tag & 0xC0) >> 6;
+	simple_type: bool = (tag & 20) >> 5;
+	tag_num:     uint8 = tag & 0x1F;
 };
 
 type ASN1OptionalEncodingMeta(is_present: bool, previous_metadata: ASN1EncodingMeta) = case is_present of {

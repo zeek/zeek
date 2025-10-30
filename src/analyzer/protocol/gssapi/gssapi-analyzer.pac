@@ -41,15 +41,28 @@ refine connection GSSAPI_Conn += {
 				                    ${val.ntlm}.begin(), is_orig);
 			}
 
-		else if ( ${val.has_krb} )
+		else if ( ${val.has_krb_with_oid} )
 			{
 			if ( ! krb5 )
 				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
 
 			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
 				{
-				krb5->DeliverPacket(${val.krb.blob}.length(),
-				                    ${val.krb.blob}.begin(),
+				krb5->DeliverPacket(${val.krb_with_oid.blob}.length(),
+				                    ${val.krb_with_oid.blob}.begin(),
+				                    is_orig, 0, nullptr, 0);
+				}
+			}
+
+		else if ( ${val.has_krb_blob} )
+			{
+			if ( ! krb5 )
+				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
+
+			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
+				{
+				krb5->DeliverPacket(${val.krb_blob}.length(),
+				                    ${val.krb_blob}.begin(),
 				                    is_orig, 0, nullptr, 0);
 				}
 			}

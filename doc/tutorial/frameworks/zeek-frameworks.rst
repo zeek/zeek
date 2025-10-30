@@ -27,14 +27,14 @@ framework.
 
 The signature framework works on signatures like this:
 
-   .. code::
+.. code::
 
-      signature my-first-sig {
-          ip-proto == tcp
-          dst-port == 80
-          payload /.*root/
-          event "Found root!"
-      }
+   signature my-first-sig {
+       ip-proto == tcp
+       dst-port == 80
+       payload /.*root/
+       event "Found root!"
+   }
 
 Then you save that in a file like ``mysigs.sig``. You load this from a
 Zeek script, then you get events whenever that signature matches. Let’s
@@ -44,12 +44,12 @@ First, we need to make a signature. That signature will just match on
 HTTP replies (that way it’s equivalent for the quickstart pcap). It’s
 quite simple:
 
-   .. code::
-
-      signature http-reply-body-matcher {
-              http-reply-body /.*<body>/
-              event "Found reply!"
-      }
+.. literalinclude:: framework-scripts/match.sig
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+   :end-before: http-reply-body-matcher2
 
 The pattern in ``http-reply-body`` will simply match on the HTTP
 replies. It’s the same sort of pattern as before, but it starts with a
@@ -58,66 +58,58 @@ replies. It’s the same sort of pattern as before, but it starts with a
 
 Scripting is very straightforward:
 
-   .. code:: zeek
+.. code:: zeek
 
-      @load-sigs ./match.sig
+   # match.zeek
+   @load-sigs ./match.sig
 
-      event signature_match(state: signature_state, msg: string, data: string, end_of_match: count) {
-          print msg;
-      }
+   event signature_match(state: signature_state, msg: string, data: string, end_of_match: count) {
+       print msg;
+   }
 
 Run that on the quickstart pcap:
 
-   .. code:: console
+.. code:: console
 
-      root@zeek-tutorial:/opt $ zeek -r quickstart.pcap
-      Found reply!
-      Found reply!
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap match.zeek
+   Found reply!
+   Found reply!
 
 You can access the HTTP state in the same way as in the scripting
 tutorial in order to increment the patterns. Here’s that script:
 
-   .. code:: console
-
-      @load-sigs ./match.sig
-
-      redef record HTTP::Info += {
-              num_entity_matches: count &default=0 &log;
-      };
-
-      event signature_match(state: signature_state, msg: string, data: string,
-          end_of_match: count)
-              {
-              if ( state$conn?$http )
-                      state$conn$http$num_entity_matches += 1;
-              }
+.. literalinclude:: framework-scripts/match.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
 
 As-is, if you run it, just the <body> signature will match:
 
-   .. code:: console
+.. code:: console
 
-      root@zeek-tutorial:/opt $ zeek -r quickstart.pcap
-      root@zeek-tutorial:/opt $ cat http.log | zeek-cut num_entity_matches
-      1
-      1
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap match.zeek
+   root@zeek-tutorial:/opt/zeek-training $ cat http.log | zeek-cut num_entity_matches
+   1
+   1
 
 But you can add another signature:
 
-   .. code::
-
-      signature http-reply-body-matcher2 {
-              http-reply-body /.*301 Moved Permanently/
-              event "Found reply!"
-      }
+.. literalinclude:: framework-scripts/match.sig
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+   :start-at: http-reply-body-matcher2
 
 Then see both match:
 
-   .. code:: console
+.. code:: console
 
-      root@zeek-tutorial:/opt $ zeek -r quickstart.pcap
-      root@zeek-tutorial:/opt $ cat http.log | zeek-cut num_entity_matches
-      2
-      2
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap match.zeek
+   root@zeek-tutorial:/opt/zeek-training $ cat http.log | zeek-cut num_entity_matches
+   2
+   2
 
 This is quite different from the scripting tutorial, but you can see
 that Zeek’s frameworks make otherwise substantial tasks into easy ones.

@@ -109,7 +109,7 @@ remove this event from memory, effectively forgetting about it. Let's
 take a look at a simple example script, that will output the connection
 record for a single connection.
 
-.. literalinclude:: scripts/connection_record_01.zeek
+.. literalinclude:: basics/connection_record_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -131,7 +131,7 @@ overly populated.
 
 .. code-block:: console
 
-   $ zeek -b -r http/get.trace scripts/connection_record_01.zeek
+   $ zeek -b -r http/get.trace basics/connection_record_01.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
 
    }, history=ShADadFf, uid=CKPxZY13NVefbTPlUl, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks=<uninitialized>, failed_analyzers={
@@ -160,7 +160,7 @@ proper format of a dereferenced variable in scripts. In the output of
 the script above, groups of information are collected between brackets,
 which would correspond to the ``$``-delimiter in a Zeek script.
 
-.. literalinclude:: scripts/connection_record_02.zeek
+.. literalinclude:: basics/connection_record_02.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -168,7 +168,7 @@ which would correspond to the ``$``-delimiter in a Zeek script.
 
 .. code:: console
 
-   $ zeek -b -r http/get.trace scripts/connection_record_02.zeek
+   $ zeek -b -r http/get.trace basics/connection_record_02.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
    HTTP
    }, history=ShADadFf, uid=C4dmol2biklqP8fdfc, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks={
@@ -224,7 +224,7 @@ variable. If ``EXPRESSION`` is the same type as ``TYPE``, the two forms
 should be equivalent. The decision as to which type of declaration to
 use is dictated by personal preference and readability.
 
-.. literalinclude:: scripts/data_type_declaration.zeek
+.. literalinclude:: basics/data_type_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -274,7 +274,7 @@ stored in :zeek:see:`HTTP::default_capture_password` as shown in the
 stripped down excerpt from :doc:`/scripts/base/protocols/http/main.zeek`
 below.
 
-.. literalinclude:: scripts/http_main.zeek
+.. literalinclude:: basics/http_main.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -284,7 +284,7 @@ Because the constant was declared with the ``&redef`` attribute, if we
 needed to turn this option on globally, we could do so by adding the
 following line to our ``site/local.zeek`` file before firing up Zeek.
 
-.. literalinclude:: scripts/data_type_const_simple.zeek
+.. literalinclude:: basics/data_type_const_simple.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -299,7 +299,7 @@ a :zeek:id:`zeek_init` event. Were we to try to alter the table in an
 event handler, Zeek would notify the user of an error and the script
 would fail.
 
-.. literalinclude:: scripts/data_type_const.zeek
+.. literalinclude:: basics/data_type_const.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -307,7 +307,7 @@ would fail.
 
 .. code-block:: console
 
-   $ zeek -b scripts/data_type_const.zeek
+   $ zeek -b basics/data_type_const.zeek
    {
    [80/tcp] = WWW,
    [6666/tcp] = IRC
@@ -323,7 +323,7 @@ it was declared. Local variables tend to be used for values that are
 only needed within a specific scope and once the processing of a script
 passes beyond that scope and no longer used, the variable is deleted.
 
-.. literalinclude:: scripts/data_type_local.zeek
+.. literalinclude:: basics/data_type_local.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -397,7 +397,7 @@ already naturally unique such as ports or IP addresses. The code snippet
 below shows both an explicit and implicit declaration of a locally
 scoped set.
 
-.. literalinclude:: scripts/data_struct_set_declaration.zeek
+.. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -413,7 +413,7 @@ test for membership within the set, both of which are covered by the
 ``for`` statement and the ``in`` operator will allow you to sequentially
 process each element of the set as seen below.
 
-.. literalinclude:: scripts/data_struct_set_declaration.zeek
+.. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -441,7 +441,7 @@ rewrite the corresponding line below as ``if ( !( 587/tcp in ssl_ports
 ))`` try to avoid using this construct; instead, negate the in operator
 itself:
 
-.. literalinclude:: scripts/data_struct_set_declaration.zeek
+.. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -451,7 +451,7 @@ itself:
 
 You can see the full script and its output below.
 
-.. literalinclude:: scripts/data_struct_set_declaration.zeek
+.. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -459,7 +459,7 @@ You can see the full script and its output below.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_set_declaration.zeek
+   $ zeek basics/data_struct_set_declaration.zeek
    SSL Port: 22/tcp
    SSL Port: 443/tcp
    SSL Port: 587/tcp
@@ -476,7 +476,7 @@ A table in Zeek is a mapping of a key to a value or field. While the
 values don't have to be unique, each key in the table must be unique to
 preserve a one-to-one mapping of keys to values.
 
-.. literalinclude:: scripts/data_struct_table_declaration.zeek
+.. literalinclude:: basics/data_struct_table_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -484,7 +484,7 @@ preserve a one-to-one mapping of keys to values.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_table_declaration.zeek
+   $ zeek basics/data_struct_table_declaration.zeek
    Service Name:  SSH - Common Port: 22/tcp
    Service Name:  HTTPS - Common Port: 443/tcp
    Service Name:  SMTPS - Common Port: 587/tcp
@@ -512,7 +512,7 @@ implies a cost in complexity for the person writing the scripts, but
 pays off in effectiveness given the power of Zeek as a network security
 platform.
 
-.. literalinclude:: scripts/data_struct_table_complex.zeek
+.. literalinclude:: basics/data_struct_table_complex.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -520,7 +520,7 @@ platform.
 
 .. code-block:: console
 
-   $ zeek -b scripts/data_struct_table_complex.zeek
+   $ zeek -b basics/data_struct_table_complex.zeek
    Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
    Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
    Tasogare Seibei was released in 2002 by Eisei Gekijo studios, directed by Yoji Yamada and starring Hiroyuki Sanada
@@ -550,7 +550,7 @@ First, iteration is done by capturing the directors and movie names and
 ignoring all other elements of the key. Second, the whole key is ignored
 and only movie names used.
 
-.. literalinclude:: scripts/data_struct_table_complex_blank_value.zeek
+.. literalinclude:: basics/data_struct_table_complex_blank_value.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -558,7 +558,7 @@ and only movie names used.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_table_complex_blank_value.zeek
+   $ zeek basics/data_struct_table_complex_blank_value.zeek
    Kiru was directed by Kihachi Okamoto
    Harakiri was directed by Masaki Kobayashi
    Tasogare Seibei was directed by Yoji Yamada
@@ -585,7 +585,7 @@ the end; it does that by placing the vector name between two vertical
 pipes to get the vector's current length before printing the contents of
 both Vectors and their current lengths.
 
-.. literalinclude:: scripts/data_struct_vector_declaration.zeek
+.. literalinclude:: basics/data_struct_vector_declaration.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -593,7 +593,7 @@ both Vectors and their current lengths.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_vector_declaration.zeek
+   $ zeek basics/data_struct_vector_declaration.zeek
    contents of v1: [1, 2, 3, 4]
    length of v1: 4
    contents of v2: [1, 2, 3, 4]
@@ -608,7 +608,7 @@ will hold the index of the current element in the vector. Using ``i`` as
 an index to addr_vector we can access the current item in the vector
 with ``addr_vector[i]``.
 
-.. literalinclude:: scripts/data_struct_vector_iter.zeek
+.. literalinclude:: basics/data_struct_vector_iter.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -616,7 +616,7 @@ with ``addr_vector[i]``.
 
 .. code-block:: console
 
-   $ zeek -b scripts/data_struct_vector_iter.zeek
+   $ zeek -b basics/data_struct_vector_iter.zeek
    1.2.0.0/18
    2.3.0.0/18
    3.4.0.0/18
@@ -628,7 +628,7 @@ semantically equivalent to the previous one, but does direct value
 iteration and therefore potentially more performant for very large
 vectors.
 
-.. literalinclude:: scripts/data_struct_vector_iter_value.zeek
+.. literalinclude:: basics/data_struct_vector_iter_value.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -647,7 +647,7 @@ addresses use the default dotted quad formatting, IPv6 addresses use the
 RFC 2373 defined notation with the addition of squared brackets wrapping
 the entire address.
 
-.. literalinclude:: scripts/data_type_addr.zeek
+.. literalinclude:: basics/data_type_addr.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -677,7 +677,7 @@ your scripts. The following example below uses a Zeek script to
 determine if a series of IP addresses are within a set of subnets using
 a 20 bit subnet mask.
 
-.. literalinclude:: scripts/data_type_subnets.zeek
+.. literalinclude:: basics/data_type_subnets.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -699,7 +699,7 @@ it belongs.
 
 .. code-block:: console
 
-   $ zeek scripts/data_type_subnets.zeek
+   $ zeek basics/data_type_subnets.zeek
    172.16.4.56 belongs to subnet 172.16.0.0/20
    172.16.47.254 belongs to subnet 172.16.32.0/20
    172.16.22.45 belongs to subnet 172.16.16.0/20
@@ -726,7 +726,7 @@ timestamp and an indication of who the originator and responder were. We
 use the ``strftime`` format string of ``%Y-%m-%d %H:%M:%S`` to produce a
 common date time formatted time stamp.
 
-.. literalinclude:: scripts/data_type_time.zeek
+.. literalinclude:: basics/data_type_time.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -737,7 +737,7 @@ established connections.
 
 .. code-block:: console
 
-   $ zeek -r wikipedia.trace scripts/data_type_time.zeek
+   $ zeek -r wikipedia.trace basics/data_type_time.zeek
 
    2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
    2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
@@ -775,7 +775,7 @@ operator. The script below amends the script started in the section
 above to include a time delta value printed along with the connection
 establishment report.
 
-.. literalinclude:: scripts/data_type_interval.zeek
+.. literalinclude:: basics/data_type_interval.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -786,7 +786,7 @@ displaying the time delta since the last fully established connection.
 
 .. code-block:: console
 
-   $ zeek -r wikipedia.trace scripts/data_type_interval.zeek
+   $ zeek -r wikipedia.trace basics/data_type_interval.zeek
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118
    2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
         Time since last connection: 132.0 msecs 97.0 usecs
@@ -819,7 +819,7 @@ strict format, requiring the regular expression or pattern constant to
 be on the left side of the ``in`` operator and the string against which
 it will be tested to be on the right.
 
-.. literalinclude:: scripts/data_type_pattern_01.zeek
+.. literalinclude:: basics/data_type_pattern_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -840,7 +840,7 @@ resulting in a vector with three elements.
 
 .. code-block:: console
 
-   $ zeek scripts/data_type_pattern_01.zeek
+   $ zeek basics/data_type_pattern_01.zeek
    The
     brown fox jumps over the
     dog.
@@ -853,7 +853,7 @@ ternary conditional statements to illustrate the use of the ``==``
 operator with patterns. The output is altered based on the result of the
 comparison between the pattern and the string.
 
-.. literalinclude:: scripts/data_type_pattern_02.zeek
+.. literalinclude:: basics/data_type_pattern_02.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -861,7 +861,7 @@ comparison between the pattern and the string.
 
 .. code-block:: console
 
-   $ zeek scripts/data_type_pattern_02.zeek
+   $ zeek basics/data_type_pattern_02.zeek
    equality and /^?(equal)$?/ are not equal
    equality and /^?(equality)$?/ are equal
 
@@ -883,7 +883,7 @@ of the ``record`` data type in the earlier sections, the
 :zeek:type:`Conn::Info`, which corresponds to the fields logged into
 :file:`conn.log`, is shown by the excerpt below.
 
-.. literalinclude:: scripts/data_type_record.zeek
+.. literalinclude:: basics/data_type_record.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -900,7 +900,7 @@ make up the record. The individual fields that make up the new record
 are not limited in type or number as long as the name for each field is
 unique.
 
-.. literalinclude:: scripts/data_struct_record_01.zeek
+.. literalinclude:: basics/data_struct_record_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -908,7 +908,7 @@ unique.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_record_01.zeek
+   $ zeek basics/data_struct_record_01.zeek
    Service: dns(RFC1035)
      port: 53/udp
      port: 53/tcp
@@ -931,7 +931,7 @@ records are even valid as fields within another record. We can extend
 the example above to include another record that contains a Service
 record.
 
-.. literalinclude:: scripts/data_struct_record_02.zeek
+.. literalinclude:: basics/data_struct_record_02.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -939,7 +939,7 @@ record.
 
 .. code-block:: console
 
-   $ zeek scripts/data_struct_record_02.zeek
+   $ zeek basics/data_struct_record_02.zeek
    System: morlock
      Service: http(RFC2616)
        port: 8080/tcp
@@ -1015,7 +1015,7 @@ best to work through the problem once, simulating the desired output
 with ``print`` and ``fmt`` before attempting to dive into the Logging
 Framework.
 
-.. literalinclude:: scripts/framework_logging_factorial_01.zeek
+.. literalinclude:: basics/framework_logging_factorial_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1023,7 +1023,7 @@ Framework.
 
 .. code-block:: console
 
-   $ zeek scripts/framework_logging_factorial_01.zeek
+   $ zeek basics/framework_logging_factorial_01.zeek
    1
    2
    6
@@ -1044,7 +1044,7 @@ ourselves.
 The output of the script aligns with what we expect so now it's time to
 integrate the Logging Framework.
 
-.. literalinclude:: scripts/framework_logging_factorial_02.zeek
+.. literalinclude:: basics/framework_logging_factorial_02.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1079,7 +1079,7 @@ stdout, no output is created. Instead the output is all in
 
 .. code-block:: console
 
-   $ zeek scripts/framework_logging_factorial_02.zeek
+   $ zeek basics/framework_logging_factorial_02.zeek
    $ cat factor.log
    #separator \x09
    #set_separator    ,
@@ -1126,7 +1126,7 @@ single file. For the example we've been using, let's extend it so as to
 write any factorial which is a factor of 5 to an alternate file, while
 writing the remaining logs to :file:`factor.log`.
 
-.. literalinclude:: scripts/framework_logging_factorial_03.zeek
+.. literalinclude:: basics/framework_logging_factorial_03.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1153,7 +1153,7 @@ would have included all factorials.
 
 .. code-block:: console
 
-   $ zeek scripts/framework_logging_factorial_03.zeek
+   $ zeek basics/framework_logging_factorial_03.zeek
    $ cat factor-mod5.log
    #separator \x09
    #set_separator    ,
@@ -1195,7 +1195,7 @@ and define the value to be passed to it, in this case the
 ``Factor::Info`` record. We then list the ``log_factor`` function as the
 ``$ev`` field in the call to ``Log::create_stream``
 
-.. literalinclude:: scripts/framework_logging_factorial_04.zeek
+.. literalinclude:: basics/framework_logging_factorial_04.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1337,7 +1337,7 @@ hook below adds the :zeek:enum:`Notice::ACTION_EMAIL` action for the
 ``SSH::Interesting_Hostname_Login`` notice raised in the
 :doc:`/scripts/policy/protocols/ssh/interesting-hostnames.zeek` script.
 
-.. literalinclude:: scripts/framework_notice_hook_01.zeek
+.. literalinclude:: basics/framework_notice_hook_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1416,7 +1416,7 @@ environment in which it is be run. Using the example of
 ``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for``
 variable to a shorter time.
 
-.. literalinclude:: scripts/framework_notice_hook_suppression_01.zeek
+.. literalinclude:: basics/framework_notice_hook_suppression_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1463,7 +1463,7 @@ remove the configured suppression from a notice while
 ``Notice::type_suppression_intervals`` can be used to alter the
 suppression interval defined by $suppress_for in the call to ``NOTICE``.
 
-.. literalinclude:: scripts/framework_notice_shortcuts_01.zeek
+.. literalinclude:: basics/framework_notice_shortcuts_01.zeek
    :caption:
    :language: zeek
    :linenos:
@@ -1474,7 +1474,7 @@ The Notice Policy shortcut above adds the ``Notice::Type`` of
 while the shortcut below alters the length of time for which those
 notices will be suppressed.
 
-.. literalinclude:: scripts/framework_notice_shortcuts_02.zeek
+.. literalinclude:: basics/framework_notice_shortcuts_02.zeek
    :caption:
    :language: zeek
    :linenos:

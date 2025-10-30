@@ -4,55 +4,43 @@
  Setup
 #######
 
-This tutorial will use a custom Zeek docker container with some
-developer tooling. This ensures that the tutorial can be the same no
-matter the user’s environment. Where applicable, the tutorial may
-mention how this would be used on a local Zeek install in order to
-generalize the approach.
+This tutorial will use Zeek's latest docker image: ``zeek/zeek``. You
+can see :doc:`installing Zeek </install>` for how to retrieve that
+image. Then, execute bash inside of it:
 
-Right now the dockerfile is in a gist on my github :) I'm not opposed to
-making this just a script you clone from the base Zeek image, but I also
-think there's value in a simple setup for this tutorial where users just
-get pcaps and nice tools. Don't care enough to argue for it if there's
-pushback, though.
-https://gist.github.com/evantypanski/67dfc9e6afd422996a5cfed9356d3987
+.. code:: console
 
-TODO: Install Docker and link to the container in a real way.
+   $ docker run --name "zeek-tutorial" -it zeek/zeek
 
-Now, you can enter the Zeek tutorial container with the following
-command:
+Next, change into the ``/opt`` directory and clone the tutorial
+repository from Git:
 
-   .. code:: console
+.. code:: console
 
-      $ docker run -it zeek-tutorial:latest
+   root@xxxxxxxxxxxx:/# git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
 
-This should open a Bash prompt in the ``/opt`` directory. Within the
-``/opt`` directory, there are two more directories:
+Now, run the provided setup script after giving it executable
+permissions:
 
-``/opt/zeek`` ``/opt/traces``
+.. code:: console
 
-The ``zeek`` directory contains the Zeek source code, but not the
-installed Zeek. This is simply for reference - you can find Zeek
-installed in ``/usr/local/zeek``.
+   root@xxxxxxxxxxxx:/opt/zeek-training# ./setup.sh tutorial
 
-TODO: Should we give a tour of the installed directory here? I think
-that was in the quickstart before
-
-The ``traces`` directory contains a few useful traces to test Zeek with.
-We will use these traces extensively throughout the tutorial, so you
-don’t need to make your own traffic.
+Once that completes, you should be in ``/opt/zeek-training`` with
+the setup script ran. You can look in ``zeek/`` to find the Zeek source
+code, ``traces/`` to find a collection of sample traces, and
+``scripts/`` to find some scripts used throughout the tutorial. Feel
+free to use those as a playground during some of the upcoming exercises.
 
 Now, ensure that you can properly run Zeek on the pcap file from the
-quickstart: TODO: Probably use Log::default_logdir=scratch and update
-all following code blocks in the tutorial
+quickstart:
 
-   .. code:: console
+.. code:: console
 
-      root@zeek-tutorial:/opt $ mkdir scratch
-      root@zeek-tutorial:/opt $ cd scratch/
-      root@zeek-tutorial:/opt/scratch $ zeek -r ../traces/quickstart.pcap
-      root@zeek-tutorial:/opt/scratch $ ls conn.log
-      files.log http.log packet_filter.log weird.log
+   root@zeek-tutorial:/opt/zeek-training $ mkdir scratch
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap Log::default_logdir=scratch
+   root@zeek-tutorial:/opt/zeek-training $ ls scratch
+   conn.log  files.log  http.log  packet_filter.log  weird.log
 
 If you get a few log files, then it properly read the quickstart pcap.
 You’re now set up to do the tutorial!

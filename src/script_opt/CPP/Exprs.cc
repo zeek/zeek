@@ -1295,12 +1295,11 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
     return string("enum_mapping[") + Fmt(mapping_slot) + "]";
 }
 
-int CPPCompile::ReadyExpr(const ExprPtr& e) {
-    auto pf = make_unique<ProfileFunc>(e.get());
+int CPPCompile::ReadyExpr(const ExprPtr& e) { return ReadyProfile(make_shared<ProfileFunc>(e.get())); }
+
+int CPPCompile::ReadyProfile(shared_ptr<ProfileFunc> pf) {
     int max_cohort = 0;
 
-    for ( const auto& g : pf->AllGlobals() )
-        max_cohort = max(max_cohort, GenerateGlobalInit(g)->FinalInitCohort() + 1);
     for ( const auto& c : pf->Constants() )
         max_cohort = max(max_cohort, RegisterConstant(c->ValuePtr())->FinalInitCohort() + 1);
 
@@ -1313,6 +1312,45 @@ int CPPCompile::ReadyExpr(const ExprPtr& e) {
         AttributesPtr ap{NewRef{}, const_cast<Attributes*>(attrs)};
         max_cohort = max(max_cohort, RegisterAttributes(ap)->FinalInitCohort() + 1);
         max_cohort = max(max_cohort, RegisterType(t)->FinalInitCohort() + 1);
+    }
+
+    std::unordered_set<IDPtr> compiled_funcs_called;
+
+    for ( const auto& g : pf->AllGlobals() ) {
+        auto rg = readied_globals.find(g);
+        if ( rg != readied_globals.end() ) {
+            max_cohort = max(max_cohort, rg->second + 1);
+            continue;
+        }
+
+        max_cohort = max(max_cohort, GenerateGlobalInit(g)->FinalInitCohort() + 1);
+
+        if ( standalone && g->GetType()->Tag() == TYPE_FUNC && obj_matches_opt_files(g) == AnalyzeDecision::SHOULD ) {
+            const auto& gv = g->GetVal();
+            if ( ! gv )
+                continue;
+
+            auto f = gv->AsFunc();
+            if ( ! f || f->GetBodies().empty() )
+                continue;
+
+            compiled_funcs_called.insert(g);
+        }
+    }
+
+    for ( auto g : compiled_funcs_called ) {
+        readied_globals[g] = 0; // prevent infinite loops on recursion
+        auto f = g->GetVal()->AsFunc();
+        int f_cohort = 0;
+
+        for ( auto& body : f->GetBodies() ) {
+            auto body_pf = body_profiles.find(body.stmts);
+            ASSERT(body_pf != body_profiles.end());
+            f_cohort = max(f_cohort, ReadyProfile(body_pf->second) + 1);
+        }
+
+        readied_globals[g] = f_cohort;
+        max_cohort = max(max_cohort, f_cohort + 1);
     }
 
     return max_cohort;

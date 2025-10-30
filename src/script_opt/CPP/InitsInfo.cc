@@ -564,12 +564,12 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
 
     auto gi = c->RegisterType(params);
     if ( gi )
-        init_cohort = gi->InitCohort();
+        init_cohort = gi->FinalInitCohort();
 
     if ( yield ) {
         auto gi = c->RegisterType(f->Yield());
         if ( gi )
-            init_cohort = max(init_cohort, gi->InitCohort());
+            init_cohort = max(init_cohort, gi->FinalInitCohort());
     }
 }
 

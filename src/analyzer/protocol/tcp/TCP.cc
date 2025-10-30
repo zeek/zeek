@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
+#include <cinttypes>
+
 #include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"

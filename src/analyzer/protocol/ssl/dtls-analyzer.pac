@@ -1,3 +1,6 @@
+%extern{
+#include <cinttypes>
+%}
 
 refine connection SSL_Conn += {
 

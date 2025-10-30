@@ -12,6 +12,7 @@
 #include <broker/variant.hh>
 #include <broker/zeek.hh>
 #include <unistd.h>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <string>

@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 #include <algorithm>
+#include <cinttypes>
 
 #include "zeek/RE.h"
 #include "zeek/analyzer/protocol/bittorrent/events.bif.h"

@@ -7,6 +7,7 @@
 #include <string>
 
 #if defined(__OpenBSD__)
+
 #include <net/bpf.h>
 using pkt_timeval = bpf_timeval;
 #else
@@ -15,12 +16,20 @@ using pkt_timeval = struct timeval;
 #include <sys/time.h>
 #endif
 
-#include <pcap.h> // For DLT_ constants
-
 #include "zeek/IP.h"
-#include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/session/Session.h"
+#include "zeek/types.bif.netvar_h"
+
+// Originally from <pcap/dlt.h>, duplicated here to avoid a dependency
+// on libpcap in plugin builds.
+#ifdef __OpenBSD__
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define DLT_RAW 14 /* raw IP */
+#else
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define DLT_RAW 12 /* raw IP */
+#endif
 
 namespace zeek {
 

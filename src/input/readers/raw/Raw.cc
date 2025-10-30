@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <cerrno>
+#include <cinttypes>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>

@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <cctype>
+#include <cinttypes>
 
 #include "zeek/Base64.h"
 #include "zeek/Event.h"

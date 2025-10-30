@@ -68,6 +68,15 @@ event zeek_init()
 	print sha1_hash_finish(sha1a);
 	print sha1_hash_finish(sha1b);
 
+	local sha224a = sha224_hash_init();
+	sha224_hash_update(sha224a, "one");
+	local sha224b = Broker::__opaque_clone_through_serialization(sha224a);
+	print type_name(sha224b);
+	sha224_hash_update(sha224a, "two");
+	sha224_hash_update(sha224b, "two");
+	print sha224_hash_finish(sha224a);
+	print sha224_hash_finish(sha224b);
+
 	local sha256a = sha256_hash_init();
 	sha256_hash_update(sha256a, "one");
 	local sha256b = Broker::__opaque_clone_through_serialization(sha256a);
@@ -76,6 +85,15 @@ event zeek_init()
 	sha256_hash_update(sha256b, "two");
 	print sha256_hash_finish(sha256a);
 	print sha256_hash_finish(sha256b);
+
+	local sha384a = sha384_hash_init();
+	sha384_hash_update(sha384a, "one");
+	local sha384b = Broker::__opaque_clone_through_serialization(sha384a);
+	print type_name(sha384b);
+	sha384_hash_update(sha384a, "two");
+	sha384_hash_update(sha384b, "two");
+	print sha384_hash_finish(sha384a);
+	print sha384_hash_finish(sha384b);
 
 	local sha512a = sha512_hash_init();
 	sha512_hash_update(sha512a, "one");

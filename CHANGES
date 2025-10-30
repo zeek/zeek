@@ -1,3 +1,7 @@
+8.1.0-dev.807 | 2025-10-30 12:06:59 +0000
+
+  * Add SHA224 and SHA384 BiFs (Johanna Amann, Corelight)
+
 8.1.0-dev.805 | 2025-10-29 09:11:15 -0700
 
   * Rename msgthread pending messages metric labels to conform with promtool (Tim Wojtulewicz, Corelight)

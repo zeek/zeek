@@ -98,8 +98,11 @@ New Functionality
   This functionality can be controlled with ``QUIC::max_discarded_packet_events``,
   setting this variable to -1 disabled the ``QUIC::discarded_packet`` event.
 
-- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
-  and ``sha512_hash_finish``.
+- Added SHA224, SHA384, and SHA512 calculation BiFs: ``sha224_hash``,
+  ``sha224_hash_init`, ``sha224_hash_update``, ``sha224_hash_finish``.
+  ``sha384_hash``, ``sha384_hash_init`, ``sha384_hash_update``,
+  ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init`,
+  ``sha512_hash_update``, and ``sha512_hash_finish``.
 
 - Added the ``TCP::raw_options`` BiF, which returns the list of TCP options in the current
   packet, including their raw data.

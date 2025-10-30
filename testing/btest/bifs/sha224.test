@@ -1,0 +1,16 @@
+# @TEST-EXEC: zeek -b %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+print sha224_hash("one");
+print sha224_hash("one", "two", "three");
+
+local a = sha224_hash_init();
+local b = sha224_hash_init();
+
+sha224_hash_update(a, "one");
+sha224_hash_update(b, "one");
+sha224_hash_update(b, "two");
+sha224_hash_update(b, "three");
+
+print sha224_hash_finish(a);
+print sha224_hash_finish(b);

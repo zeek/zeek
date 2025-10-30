@@ -56,8 +56,16 @@ inline const char* sha1_digest_print(const u_char digest[ZEEK_SHA_DIGEST_LENGTH]
     return digest_print(digest, ZEEK_SHA_DIGEST_LENGTH);
 }
 
+inline const char* sha224_digest_print(const u_char digest[ZEEK_SHA224_DIGEST_LENGTH]) {
+    return digest_print(digest, ZEEK_SHA224_DIGEST_LENGTH);
+}
+
 inline const char* sha256_digest_print(const u_char digest[ZEEK_SHA256_DIGEST_LENGTH]) {
     return digest_print(digest, ZEEK_SHA256_DIGEST_LENGTH);
+}
+
+inline const char* sha384_digest_print(const u_char digest[ZEEK_SHA384_DIGEST_LENGTH]) {
+    return digest_print(digest, ZEEK_SHA384_DIGEST_LENGTH);
 }
 
 inline const char* sha512_digest_print(const u_char digest[ZEEK_SHA512_DIGEST_LENGTH]) {

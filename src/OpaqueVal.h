@@ -285,6 +285,34 @@ private:
     StatePtr ctx = nullptr;
 };
 
+class SHA224Val : public HashVal {
+public:
+    struct State;
+
+    using StatePtr = State*;
+
+    template<class T>
+    static void digest(const T& vlist, u_char result[ZEEK_SHA224_DIGEST_LENGTH]) {
+        digest_all(detail::Hash_SHA224, vlist, result);
+    }
+
+    SHA224Val();
+    ~SHA224Val() override;
+
+    ValPtr DoClone(CloneState* state) override;
+
+protected:
+    friend class Val;
+
+    bool DoInit() override;
+    bool DoFeed(const void* data, size_t size) override;
+    StringValPtr DoGet() override;
+
+    DECLARE_OPAQUE_VALUE_DATA(SHA224Val)
+private:
+    StatePtr ctx = nullptr;
+};
+
 class SHA256Val : public HashVal {
 public:
     struct State;
@@ -309,6 +337,34 @@ protected:
     StringValPtr DoGet() override;
 
     DECLARE_OPAQUE_VALUE_DATA(SHA256Val)
+private:
+    StatePtr ctx = nullptr;
+};
+
+class SHA384Val : public HashVal {
+public:
+    struct State;
+
+    using StatePtr = State*;
+
+    template<class T>
+    static void digest(const T& vlist, u_char result[ZEEK_SHA384_DIGEST_LENGTH]) {
+        digest_all(detail::Hash_SHA384, vlist, result);
+    }
+
+    SHA384Val();
+    ~SHA384Val() override;
+
+    ValPtr DoClone(CloneState* state) override;
+
+protected:
+    friend class Val;
+
+    bool DoInit() override;
+    bool DoFeed(const void* data, size_t size) override;
+    StringValPtr DoGet() override;
+
+    DECLARE_OPAQUE_VALUE_DATA(SHA384Val)
 private:
     StatePtr ctx = nullptr;
 };

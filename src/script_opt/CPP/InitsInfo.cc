@@ -26,6 +26,11 @@ void CPP_InitsInfo::GetCohortIDs(int c, std::vector<IDPtr>& ids) const {
 }
 
 void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g) {
+    if ( processed_instances.contains(g) )
+        return;
+
+    processed_instances.insert(g);
+
     auto final_init_cohort = g->FinalInitCohort();
 
     if ( static_cast<int>(instances.size()) <= final_init_cohort )

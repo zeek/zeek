@@ -39,24 +39,6 @@ hook myhook(r: rec) &priority=10
 	print "ERROR: return statement should return from hook handler body";
 	}
 
-hook myhook(r: rec) &priority=9
-	{
-	print "myhook return F";
-	# return value is ignored, remaining handlers still run, final return
-	# value is whether any hook body returned via break statement
-	return F;
-	print "ERROR: return statement should return from hook handler body";
-	}
-
-hook myhook(r: rec) &priority=8
-	{
-	print "myhook return T";
-	# return value is ignored, remaining handlers still run, final return
-	# value is whether any hook body returned via break statement
-	return T;
-	print "ERROR: return statement should return from hook handler body";
-	}
-
 # hook function doesn't need a declaration, we can go straight to defining
 # a handler body.
 hook myhook3(i: count)

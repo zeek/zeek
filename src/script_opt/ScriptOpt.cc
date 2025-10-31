@@ -486,13 +486,12 @@ static void use_CPP() {
 
             auto b = s->second.body;
 
-            // We may have already updated the body if
-            // we're using code compiled for standalone.
+            // We may have already updated the body if we're using code
+            // compiled for standalone.
             if ( f.Body()->Tag() != STMT_CPP ) {
                 auto func = f.Func();
                 if ( added_bodies[func->GetName()].contains(hash) )
-                    // We've already added the
-                    // replacement.  Delete orig.
+                    // We've already added the replacement.  Delete orig.
                     func->ReplaceBody(f.Body(), nullptr);
                 else
                     func->ReplaceBody(f.Body(), b);

@@ -571,8 +571,11 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
     if ( attrs >= 0 )
         global->SetAttrs(im->Attributes(attrs));
 
-    if ( t->Tag() == TYPE_FUNC )
+    if ( t->Tag() == TYPE_FUNC ) {
         global->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
+        if ( ! func_with_no_val )
+            add_standalone_bodies(global->GetVal()->AsFunc());
+    }
 }
 
 size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set) {

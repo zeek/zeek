@@ -74,6 +74,10 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(IDPtr g) {
 }
 
 std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(IDPtr g) {
+    auto gi = global_gis.find(g);
+    if ( gi != global_gis.end() )
+        return gi->second;
+
     auto gn = string(g->Name());
     if ( ! standalone )
         return make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);

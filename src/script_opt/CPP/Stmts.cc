@@ -91,9 +91,17 @@ void CPPCompile::GenInitStmt(const InitStmt* init) {
 
         Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", aggr_name, type_name, type_type, type_ind);
 
-        const auto& attrs = aggr->GetAttrs();
+        auto attrs = aggr->GetAttrs();
         if ( ! attrs )
             continue;
+
+        // Remove attributes that aren't relevant given we don't actually
+        // create local (Zeek) variables.
+        attrs->RemoveAttr(ATTR_IS_USED);
+        attrs->RemoveAttr(ATTR_IS_ASSIGNED);
+
+        if ( attrs->GetAttrs().empty() )
+            return;
 
         auto attrs_offset = AttributesOffset(attrs);
         auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";

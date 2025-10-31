@@ -43,13 +43,17 @@ extern void register_type__CPP(TypePtr t, const std::string& name);
 // given priority and hash.  "events" is a list of event handlers
 // relevant for the function body, which should be registered if the
 // function body is going to be used.
-extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, std::vector<std::string> events,
-                               void (*finish_init)());
+extern void register_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                               std::vector<std::string> events, void (*finish_init)());
 
 // Same but for standalone function bodies.
-extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
+extern void register_standalone_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
                                           std::vector<std::string> events, std::string module_group,
                                           std::vector<std::string> attr_groups, void (*finish_init)());
+
+// If the given function has bodies registered for them, adds them in.
+// Only germane for standalone execution.
+extern void add_standalone_bodies(Func* f);
 
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-DOC: ZAM memory leak regression test after ZValElement introduction.
 #
 # @TEST-EXEC: zeek -b -OZAM %INPUT >out

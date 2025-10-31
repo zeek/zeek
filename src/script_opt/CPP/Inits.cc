@@ -271,7 +271,7 @@ void CPPCompile::GenStandaloneActivation() {
         auto fname = BodyName(func);
         auto bname = Canonicalize(fname) + "_zf";
 
-        if ( ! compiled_funcs.contains(bname) )
+        if ( ! compiled_func_to_zeek_func.contains(bname) )
             // We didn't wind up compiling it.
             continue;
 

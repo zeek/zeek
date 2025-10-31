@@ -43,7 +43,9 @@ void CPPCompile::Compile(bool report_uncompilable) {
     bool had_to_skip = false;
 
     for ( auto& func : funcs )
-        if ( ! AnalyzeFuncBody(func, filenames_reported_as_skipped, rep_types, report_uncompilable) )
+        if ( AnalyzeFuncBody(func, filenames_reported_as_skipped, rep_types, report_uncompilable) )
+            body_profiles[func.Body()] = func.ProfilePtr();
+        else
             had_to_skip = true;
 
     if ( standalone ) {
@@ -195,8 +197,8 @@ void CPPCompile::Compile(bool report_uncompilable) {
     NL();
     Emit("std::vector<CPP_RegisterBody> CPP__bodies_to_register = {");
 
-    for ( const auto& f : compiled_funcs )
-        RegisterCompiledBody(f);
+    for ( const auto& f : compiled_func_to_zeek_func )
+        RegisterCompiledBody(f.first);
 
     Emit("};");
 
@@ -417,8 +419,9 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
         attr_groups += " \"" + g + "\",";
     attr_groups += " }";
 
-    Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s), %s, %s),", f, f,
-         Fmt(type_signature), body_info, events, module_group, attr_groups);
+    string params = "std::vector<std::string>(" + events + "), " + module_group + ", " + attr_groups;
+    Emit("\tCPP_RegisterBody(\"%s\", \"%s\", (void*) %s, %s, %s, %s),", compiled_func_to_zeek_func[f], f, f,
+         Fmt(type_signature), body_info, params);
 }
 
 void CPPCompile::GenEpilog() {
@@ -595,10 +598,10 @@ void CPPCompile::GenRegisterBodies() {
 
     if ( standalone )
         Emit(
-            "register_standalone_body__CPP(f, b.priority, b.h, b.events, b.module_group, b.attr_groups, "
+            "register_standalone_body__CPP(b.zeek_name, f, b.priority, b.h, b.events, b.module_group, b.attr_groups, "
             "finish_init__CPP);");
     else
-        Emit("register_body__CPP(f, b.priority, b.h, b.events, finish_init__CPP);");
+        Emit("register_body__CPP(b.zeek_name, f, b.priority, b.h, b.events, finish_init__CPP);");
     EndBlock();
 
     EndBlock();

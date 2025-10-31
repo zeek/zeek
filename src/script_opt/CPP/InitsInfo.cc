@@ -26,6 +26,11 @@ void CPP_InitsInfo::GetCohortIDs(int c, std::vector<IDPtr>& ids) const {
 }
 
 void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g) {
+    if ( processed_instances.contains(g) )
+        return;
+
+    processed_instances.insert(g);
+
     auto final_init_cohort = g->FinalInitCohort();
 
     if ( static_cast<int>(instances.size()) <= final_init_cohort )
@@ -564,12 +569,12 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
 
     auto gi = c->RegisterType(params);
     if ( gi )
-        init_cohort = gi->InitCohort();
+        init_cohort = gi->FinalInitCohort();
 
     if ( yield ) {
         auto gi = c->RegisterType(f->Yield());
         if ( gi )
-            init_cohort = max(init_cohort, gi->InitCohort());
+            init_cohort = max(init_cohort, gi->FinalInitCohort());
     }
 }
 

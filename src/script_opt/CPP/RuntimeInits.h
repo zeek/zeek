@@ -562,10 +562,11 @@ protected:
 // available to substitute for the body's AST).  The compiler generates
 // code that loops over a vector of these to perform the registrations.
 struct CPP_RegisterBody {
-    CPP_RegisterBody(std::string _func_name, void* _func, int _type_signature, int _priority, p_hash_type _h,
-                     const char* _filename, int _line_num, std::vector<std::string> _events, std::string _module_group,
-                     std::vector<std::string> _attr_groups)
-        : func_name(std::move(_func_name)),
+    CPP_RegisterBody(std::string _zeek_name, std::string _func_name, void* _func, int _type_signature, int _priority,
+                     p_hash_type _h, const char* _filename, int _line_num, std::vector<std::string> _events,
+                     std::string _module_group, std::vector<std::string> _attr_groups)
+        : zeek_name(std::move(_zeek_name)),
+          func_name(std::move(_func_name)),
           func(_func),
           type_signature(_type_signature),
           priority(_priority),
@@ -576,7 +577,8 @@ struct CPP_RegisterBody {
           module_group(std::move(_module_group)),
           attr_groups(std::move(_attr_groups)) {}
 
-    std::string func_name; // name of the function
+    std::string zeek_name; // name of the function as known to Zeek
+    std::string func_name; // name of the function in C++
     void* func;            // pointer to C++
     int type_signature;
     int priority;

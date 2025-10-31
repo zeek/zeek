@@ -179,6 +179,10 @@ protected:
     // (Note, some cohorts may be empty.)
     std::vector<std::vector<std::shared_ptr<CPP_InitInfo>>> instances;
 
+    // Which initializations we've already processed, as otherwise sometimes
+    // it's hard to avoid adding the same one more than once.
+    std::unordered_set<std::shared_ptr<CPP_InitInfo>> processed_instances;
+
     // Each cohort has associated with it a vector of offsets, specifying
     // positions in the run-time vector of the items in the cohort.
     //

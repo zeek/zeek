@@ -40,9 +40,6 @@ std::string BodyName(const FuncInfo& func);
 // Generate the arguments to be used when calling a C++-generated function.
 std::string GenArgs(const RecordTypePtr& params, const Expr* e);
 
-// Functions that we've declared/compiled.  Indexed by full C++ name.
-std::unordered_set<std::string> compiled_funcs;
-
 // "Simple" functions that we've compiled, i.e., those that have a single
 // body and thus can be called directly.  Indexed by function name, and
 // maps to the C++ name.

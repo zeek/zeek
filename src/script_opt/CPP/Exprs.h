@@ -122,6 +122,16 @@ std::string GenEnum(const TypePtr& et, const ValPtr& ev);
 friend class GlobalInitInfo;
 int ReadyExpr(const ExprPtr& e);
 
+// Creates all the initializations needed for the given profile.
+int ReadyProfile(std::shared_ptr<ProfileFunc> pf);
+
+// Tracks which globals we've readied and their associated init cohort.
+std::unordered_map<IDPtr, int> readied_globals;
+
+// Returns the mapping index to use for accessing the given field in
+// the given record, or -1 if no mapping is needed.
+int GetFieldMapping(const RecordType* rt, int field);
+
 // For record that are extended via redef's, maps fields beyond the original
 // definition to locations in the global (in the compiled code) "field_mapping"
 // array.

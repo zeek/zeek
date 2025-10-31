@@ -87,6 +87,7 @@ protected:
 // Stmt subclass, priority, and any events that should be registered
 // upon instantiating the body.
 struct CompiledScript {
+    std::string zeek_name;
     CPPStmtPtr body;
     int priority;
     std::vector<std::string> events;

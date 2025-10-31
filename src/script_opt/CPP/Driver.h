@@ -85,6 +85,9 @@ std::vector<FuncInfo>& funcs;
 // The global profile of all of the functions.
 std::shared_ptr<ProfileFuncs> pfs;
 
+// Maps function bodies to their profiles.
+std::unordered_map<StmtPtr, std::shared_ptr<ProfileFunc>> body_profiles;
+
 // Script functions that we are able to compile.  We compute these ahead
 // of time so that when compiling script function A which makes a call to
 // script function B, we know whether B will indeed be compiled, or if it'll

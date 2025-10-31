@@ -112,14 +112,15 @@ classes VVi VCi
 op1-read
 op-types R P I
 eval	auto r = $$;
-	auto fpat = r->GetField($2)->AsPatternVal();
+	auto field = RecordField($$, $2);
+	auto fpat = r->GetField(field)->AsPatternVal();
 	if ( fpat )
 		{
 		$1->AddTo(fpat, false);
 		r->Modified();
 		}
 	else
-		ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
+		ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(field)));
 
 unary-op ExtendPattern
 op1-read

@@ -941,7 +941,6 @@ if (MSVC)
 endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
-# Note: Broker gets some special attention in ZeekConfig.cmake.in.
 if (Broker_ROOT)
     find_package(Broker REQUIRED CONFIG)
     list(APPEND zeekdeps ${BROKER_LIBRARY})
@@ -1409,11 +1408,11 @@ set(ZEEK_DIST_PREFIX $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
                      $<INSTALL_INTERFACE:${CMAKE_INSTALL_DATAROOTDIR}/foo/bar>)
 
 # Generate extra config file for the dynamic plugins.
-configure_file(src/ZeekPluginConfig.cmake.in ZeekPluginConfig.cmake @ONLY)
+configure_file(cmake_templates/ZeekPluginConfig.cmake.in ZeekPluginConfig.cmake @ONLY)
 
 # Write the CMake package and version files.
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/ZeekConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/ZeekConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake" INSTALL_DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
                                  VERSION ${ZEEK_VERSION_NUMBER} COMPATIBILITY ExactVersion)
@@ -1422,7 +1421,7 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.
 export(EXPORT ZeekTargets FILE ZeekTargets.cmake NAMESPACE Zeek::)
 
 # Write the bootstrap file for dynamic plugins. Needed by ZeekPlugin.cmake.
-configure_file(src/ZeekPluginBootstrap.cmake.in ZeekPluginBootstrap.cmake @ONLY)
+configure_file(cmake_templates/ZeekPluginBootstrap.cmake.in ZeekPluginBootstrap.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZeekPluginBootstrap.cmake"
         DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 

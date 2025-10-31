@@ -32,14 +32,19 @@ event zeek_done()
 
 # The worker populates the broker backed table and deletes a single entry,
 # then waits on the manager before terminating itself.
-@if ( Cluster::local_node_type() == Cluster::WORKER )
 event do_delete()
 	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
 	delete t["b", 2];
 	}
 
 event Cluster::Experimental::cluster_started()
 	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
 	print "Got cluster_started event";
 	t["a", 1] = 12;
 	t["b", 2] = 23;
@@ -50,7 +55,9 @@ event Cluster::Experimental::cluster_started()
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{
+	if ( Cluster::local_node_type() != Cluster::WORKER )
+		return;
+
 	print Cluster::node, "peer_lost";
 	terminate();
 	}
-@endif

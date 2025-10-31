@@ -134,6 +134,12 @@ private:
     // beyond the end of what we've compiled so far.
     ZInstI* pending_inst = nullptr;
 
+    // Tracks the last instruction added via a call to AddInst(). This is
+    // necessary because after a call to AddInst(), insts1.back() won't
+    // necessarily provide that instruction since AddInst() can add additional
+    // instructions too.
+    ZInstI* last_added_inst = nullptr;
+
     // Indices of break/next/fallthrough/catch-return goto's, so they
     // can be patched up post-facto.  These are vectors-of-vectors
     // so that nesting works properly.

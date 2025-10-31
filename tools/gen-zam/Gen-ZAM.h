@@ -208,6 +208,9 @@ public:
     // Returns the name of the given parameter, indexed starting with 0.
     const string& NthParam(int n) const { return params[n]; }
 
+    // Returns how many parameters the manager has.
+    int NumParams() const { return static_cast<int>(args.size()); }
+
 private:
     // Makes sure that each parameter has a unique name.  For any
     // parameter 'x' that occurs more than once, renames the instances

@@ -35,9 +35,11 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 
         // Need at least two bytes to check the packet types below.
         if ( len < 2 ) {
-            Weird("truncated_vlan_frame", packet);
+            Weird("truncated_VLAN_header", packet);
             return false;
         }
+        if ( len > protocol )
+            len = protocol; // use 802.3/802.2 length field and remove trailing bytes
 
         if ( data[0] == 0xAA && data[1] == 0xAA )
             // IEEE 802.2 SNAP

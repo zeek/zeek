@@ -49,10 +49,13 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
         len -= 14;
         data += 14;
 
-        if ( len < protocol ) {
+        // Need at least two bytes to check the packet types below.
+        if ( len < 2 ) {
             Weird("truncated_ethernet_frame", packet);
             return false;
         }
+        if ( len > protocol )
+            len = protocol; // use 802.3/802.2 length field and remove trailing bytes
 
         // Let specialized analyzers take over for non Ethernet II frames.
         if ( data[0] == 0xAA && data[1] == 0xAA )

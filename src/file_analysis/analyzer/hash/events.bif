@@ -8,5 +8,7 @@
 ## hash: The result of the hashing.
 ##
 ## .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
-##    Files::ANALYZER_SHA1 Files::ANALYZER_SHA256
+##    Files::ANALYZER_SHA1 Files::ANALYZER_SHA224
+##    Files::ANALYZER_SHA256 Files::ANALYZER_SHA384
+##    Files::ANALYZER_SHA512
 event file_hash%(f: fa_file, kind: string, hash: string%);

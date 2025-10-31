@@ -28,5 +28,7 @@ event file_hash(f: fa_file, kind: string, hash: string) &priority=5
 	case "sha256":
 		f$info$sha256 = hash;
 		break;
+	default: # hash for type that we do not log
+		break;
 	}
 	}

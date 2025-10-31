@@ -101,7 +101,7 @@ public:
      * Create a new instance of the SHA1 hashing file analyzer.
      * @param args the \c AnalyzerArgs value which represents the analyzer.
      * @param file the file to which the analyzer will be attached.
-     * @return the new MD5 analyzer instance or a null pointer if there's no
+     * @return the new SHA1 analyzer instance or a null pointer if there's no
      *         handler for the "file_hash" event.
      */
     static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
@@ -120,6 +120,34 @@ private:
 };
 
 /**
+ * An analyzer to produce a SHA224 hash of file contents.
+ */
+class SHA224 final : public Hash {
+public:
+    /**
+     * Create a new instance of the SHA224 hashing file analyzer.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     * @return the new SHA224 analyzer instance or a null pointer if there's no
+     *         handler for the "file_hash" event.
+     */
+    static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
+        return file_hash ? new SHA224(std::move(args), file) : nullptr;
+    }
+
+private:
+    /**
+     * Constructor.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     */
+    SHA224(RecordValPtr args, file_analysis::File* file)
+        : Hash(std::move(args), file, new SHA224Val(), SHA224::kind_val) {}
+
+    static StringValPtr kind_val;
+};
+
+/**
  * An analyzer to produce a SHA256 hash of file contents.
  */
 class SHA256 final : public Hash {
@@ -128,7 +156,7 @@ public:
      * Create a new instance of the SHA256 hashing file analyzer.
      * @param args the \c AnalyzerArgs value which represents the analyzer.
      * @param file the file to which the analyzer will be attached.
-     * @return the new MD5 analyzer instance or a null pointer if there's no
+     * @return the new SHA256 analyzer instance or a null pointer if there's no
      *         handler for the "file_hash" event.
      */
     static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
@@ -143,6 +171,62 @@ private:
      */
     SHA256(RecordValPtr args, file_analysis::File* file)
         : Hash(std::move(args), file, new SHA256Val(), SHA256::kind_val) {}
+
+    static StringValPtr kind_val;
+};
+
+/**
+ * An analyzer to produce a SHA384 hash of file contents.
+ */
+class SHA384 final : public Hash {
+public:
+    /**
+     * Create a new instance of the SHA384 hashing file analyzer.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     * @return the new SHA384 analyzer instance or a null pointer if there's no
+     *         handler for the "file_hash" event.
+     */
+    static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
+        return file_hash ? new SHA384(std::move(args), file) : nullptr;
+    }
+
+private:
+    /**
+     * Constructor.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     */
+    SHA384(RecordValPtr args, file_analysis::File* file)
+        : Hash(std::move(args), file, new SHA384Val(), SHA384::kind_val) {}
+
+    static StringValPtr kind_val;
+};
+
+/**
+ * An analyzer to produce a SHA512 hash of file contents.
+ */
+class SHA512 final : public Hash {
+public:
+    /**
+     * Create a new instance of the SHA512 hashing file analyzer.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     * @return the new SHA512 analyzer instance or a null pointer if there's no
+     *         handler for the "file_hash" event.
+     */
+    static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
+        return file_hash ? new SHA512(std::move(args), file) : nullptr;
+    }
+
+private:
+    /**
+     * Constructor.
+     * @param args the \c AnalyzerArgs value which represents the analyzer.
+     * @param file the file to which the analyzer will be attached.
+     */
+    SHA512(RecordValPtr args, file_analysis::File* file)
+        : Hash(std::move(args), file, new SHA512Val(), SHA512::kind_val) {}
 
     static StringValPtr kind_val;
 };

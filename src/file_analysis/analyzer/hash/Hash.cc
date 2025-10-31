@@ -10,7 +10,10 @@ namespace zeek::file_analysis::detail {
 
 StringValPtr MD5::kind_val = make_intrusive<StringVal>("md5");
 StringValPtr SHA1::kind_val = make_intrusive<StringVal>("sha1");
+StringValPtr SHA224::kind_val = make_intrusive<StringVal>("sha224");
 StringValPtr SHA256::kind_val = make_intrusive<StringVal>("sha256");
+StringValPtr SHA384::kind_val = make_intrusive<StringVal>("sha384");
+StringValPtr SHA512::kind_val = make_intrusive<StringVal>("sha512");
 
 Hash::Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, StringValPtr arg_kind)
     : file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind->ToStdString())), std::move(args),

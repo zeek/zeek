@@ -17,6 +17,7 @@ set -eux
 
 REGISTRY_PREFIX=${REGISTRY_PREFIX:-}
 ZEEK_IMAGE_REPO=${ZEEK_IMAGE_REPO:-zeek}
+CIRRUS_SHA=${CIRRUS_CHANGE_IN_REPO:-}
 
 ADDITIONAL_MANIFEST_TAGS=${ADDITIONAL_MANIFEST_TAGS:-}
 
@@ -46,16 +47,22 @@ function create_and_push_manifest {
     do_docker manifest push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/$IMAGE_NAME:${1}
 }
 
-do_docker tag zeek/zeek-multiarch:arm64 ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64
-do_docker tag zeek/zeek-multiarch:amd64 ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-amd64
-do_docker push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64
-do_docker push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-amd64
+ARM64_IMAGE_GIT_SHA=$(docker inspect -f "{{ .Config.Labels.org.opencontainers.image.revision }}" zeek/zeek-multiarch:arm64)
+AMD64_IMAGE_GIT_SHA=$(docker inspect -f "{{ .Config.Labels.org.opencontainers.image.revision }}" zeek/zeek-multiarch:amd64)
+if [ "${ARM64_IMAGE_GIT_SHA}" != "${CIRRUS_SHA}" -o "${AMD64_IMAGE_GIT_SHA}" != "${CIRRUS_SHA}" ]; then
+    do_docker tag zeek/zeek-multiarch:arm64 ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64
+    do_docker tag zeek/zeek-multiarch:amd64 ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-amd64
+    do_docker push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64
+    do_docker push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-amd64
 
-create_and_push_manifest ${IMAGE_TAG}
+    create_and_push_manifest ${IMAGE_TAG}
 
-if [ -n "${ADDITIONAL_MANIFEST_TAGS}" ]; then
-    # Rely on default IFS splitting on space
-    for tag in ${ADDITIONAL_MANIFEST_TAGS}; do
-        create_and_push_manifest ${tag}
-    done
+    if [ -n "${ADDITIONAL_MANIFEST_TAGS}" ]; then
+        # Rely on default IFS splitting on space
+        for tag in ${ADDITIONAL_MANIFEST_TAGS}; do
+            create_and_push_manifest ${tag}
+        done
+    fi
+else
+    echo "Git SHA of local images matches current build Git SHA, skipping push"
 fi

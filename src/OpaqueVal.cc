@@ -358,7 +358,7 @@ auto* to_native_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CT
 auto* to_digest_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
 
 void do_init(SHA384Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA384Val::StatePtr>(detail::hash_init(detail::Hash_SHA512));
+    ptr = reinterpret_cast<SHA384Val::StatePtr>(detail::hash_init(detail::Hash_SHA384));
 }
 
 void do_clone(SHA384Val::StatePtr out, SHA384Val::StatePtr in) {

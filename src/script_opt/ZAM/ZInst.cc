@@ -288,6 +288,23 @@ bool ZInst::AssignsToSlot(int slot) const {
     }
 }
 
+void ZInst::TrackRecordTypeForField(const RecordTypePtr& rt, int f) {
+    if ( ! aux )
+        aux = new ZInstAux(0);
+
+    ASSERT(aux->types.empty());
+    aux->types.push_back(rt);
+}
+
+void ZInst::TrackRecordTypesForFields(const RecordTypePtr& rt1, int f1, const RecordTypePtr& rt2, int f2) {
+    if ( ! aux )
+        aux = new ZInstAux(0);
+
+    ASSERT(aux->types.empty());
+    aux->types.push_back(rt1);
+    aux->types.push_back(rt2);
+}
+
 string ZInst::ConstDump() const {
     auto v = ConstVal();
 

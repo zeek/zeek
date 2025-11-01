@@ -9,11 +9,12 @@ eval	auto r = $1.AsRecord();
 	ZVal v;
 	if ( ! rv )
 		{
-		auto def = r->GetType<RecordType>()->FieldDefault($2);
+		auto field = RecordField(r, $2);
+		auto def = r->GetType<RecordType>()->FieldDefault(field);
 		if ( def )
 			v = ZVal(def, Z_TYPE);
 		else
-			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
+			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(field)));
 		}
 	else
 		v = *rv;
@@ -26,12 +27,12 @@ no-eval
 internal-op Has-Field
 class VRi
 op-types I R I
-eval	$$ = $1->HasField($2);
+eval	$$ = $1->HasField(RecordField($1, $2));
 
 internal-op Has-Field
 class VRii
 op-types R R I I
-eval	DirectOptField($$, $2) = ZVal(zeek_int_t($1->HasField($3)));
+eval	DirectOptField($$, $2) = ZVal(zeek_int_t($1->HasField(RecordField($1, $3))));
 
 # The following generates an assignment version of Has-Field that we
 # don't use (because we need the one above that uses "includes-field-op")
@@ -39,7 +40,7 @@ eval	DirectOptField($$, $2) = ZVal(zeek_int_t($1->HasField($3)));
 predicate-op Has-Field
 class Vi
 op-types R I
-eval	$1->HasField($2)
+eval	$1->HasField(RecordField($1, $2))
 
 predicate-op Table-Has-Elements
 class V

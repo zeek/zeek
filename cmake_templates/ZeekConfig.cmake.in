@@ -18,19 +18,12 @@ if (ZeekOpenSSLHint AND NOT OPENSSL_ROOT_DIR)
     set(OPENSSL_ROOT_DIR "${ZeekOpenSSLHint}" CACHE
         PATH "Directory hint for finding OpenSSL" FORCE)
 endif ()
-find_dependency(OpenSSL REQUIRED)
 
 # In our MSVC build, we have these extra dependencies from Conan.
 if ( MSVC )
     find_dependency(libpcap)
     find_dependency(ZLIB)
     find_dependency(c-ares)
-endif ()
-
-if ( NOT "@ZEEK_HAS_STATIC_BROKER@" )
-    # Always force using the package config file since users might still have
-    # a legacy FindBroker.cmake in their system.
-    find_dependency(Broker REQUIRED CONFIG)
 endif ()
 
 foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )

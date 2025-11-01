@@ -7,6 +7,12 @@ FROM debian:13-slim
 # failures more easily.
 SHELL ["/bin/sh", "-x", "-c"]
 
+# Used to store the SHA for the git commit that generated this image into
+# the image itself. This allows using `docker inspect` to determine what SHA
+# is related to the image.
+ARG GIT_COMMIT
+LABEL git_commit=$GIT_COMMIT
+
 # Allow apt to retry 3 times before failing.
 RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
 

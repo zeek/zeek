@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/smtp/SMTP.h"
 
+#include <cinttypes>
 #include <cstdlib>
 #include <limits>
 

@@ -4,6 +4,7 @@
 
 #include <binpac.h>
 #include <algorithm>
+#include <cinttypes>
 
 #include "zeek/Conn.h"
 #include "zeek/Event.h"

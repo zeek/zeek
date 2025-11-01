@@ -2,6 +2,7 @@
 type ftp_port: record;
 
 %%{
+#include <cinttypes>
 #include "zeek/Reporter.h"
 
 static zeek::RecordValPtr parse_port(const std::string& line)

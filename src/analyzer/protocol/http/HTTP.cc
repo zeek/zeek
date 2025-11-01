@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cinttypes>
 #include <cstdlib>
 #include <string>
 

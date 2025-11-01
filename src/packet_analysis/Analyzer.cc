@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/Analyzer.h"
 
+#include <cinttypes>
+
 #include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"

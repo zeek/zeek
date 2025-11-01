@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/smtp/BDAT.h"
 
+#include <cinttypes>
+
 #include "zeek/Conn.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"

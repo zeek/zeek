@@ -87,7 +87,7 @@ std::vector<Option> split_config(std::string content) {
         trim(key);
         trim(value);
 
-        result.push_back({.key = key, .value = value, .orig = {line_sv.begin(), line_sv.end()}});
+        result.push_back({.key = std::move(key), .value = std::move(value), .orig = {line_sv.begin(), line_sv.end()}});
     }
 
     return result;
@@ -305,11 +305,12 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
     config.SetExists();
 
     auto content = std::string{std::istreambuf_iterator<char>(ifs), {}};
+    auto entries = split_config(std::move(content));
 
     // Before we start building a generic configuration framework, we should consider
     // that the number of options we ever add here should be limited, so maybe that
     // horrid if-else thing isn't all that bad, and it's obvious what's going on.
-    for ( const auto& entry : split_config(content) ) {
+    for ( const auto& entry : entries ) {
         std::string key = entry.key;
         tolower(key);
 

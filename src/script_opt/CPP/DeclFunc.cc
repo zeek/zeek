@@ -79,14 +79,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 
     if ( ! l && ! casting_index.contains(cast) ) {
         casting_index[cast] = func_casting_glue.size();
-
-        DispatchInfo di;
-        di.cast = cast;
-        di.args = args;
-        di.is_hook = in_hook;
-        di.yield = yt;
-
-        func_casting_glue.emplace_back(di);
+        func_casting_glue.emplace_back(std::move(cast), args, in_hook, yt);
     }
 
     if ( lambda_ids ) {

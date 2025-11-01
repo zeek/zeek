@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ClusterLayout layout(opts);
+    ClusterLayout layout(std::move(opts));
 
     // stdout print?
     if ( out == "-" ) {

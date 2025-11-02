@@ -11,7 +11,7 @@ class RegExDecl;
 class RegEx : public Object {
 public:
     RegEx(const string& str);
-    ~RegEx();
+    ~RegEx() override = default;
 
     const string& str() const { return str_; }
     ID* matcher_id() const { return matcher_id_; }

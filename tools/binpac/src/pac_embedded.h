@@ -23,7 +23,7 @@ using EmbeddedCodeSegmentList = vector<EmbeddedCodeSegment*>;
 class EmbeddedCode : public Object {
 public:
     EmbeddedCode();
-    ~EmbeddedCode();
+    ~EmbeddedCode() override;
 
     // Append a character
     void Append(int atom);

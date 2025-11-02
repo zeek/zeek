@@ -13,8 +13,6 @@ ParameterizedType::ParameterizedType(ID* type_id, ExprList* args)
     checking_requires_analyzer_context_ = false;
 }
 
-ParameterizedType::~ParameterizedType() {}
-
 string ParameterizedType::EvalMember(const ID* member_id) const {
     Type* ty = ReferredDataType(true);
     return strfmt("->%s", ty->env()->RValue(member_id));

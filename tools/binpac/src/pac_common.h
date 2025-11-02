@@ -30,7 +30,7 @@ public:
         location = strfmt("%s:%d", filename.c_str(), line_number);
     }
 
-    ~Object() {}
+    virtual ~Object() = default;
 
     const char* Location() const { return location.c_str(); }
 

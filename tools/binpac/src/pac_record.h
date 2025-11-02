@@ -112,7 +112,7 @@ protected:
 class RecordDataField : public RecordField, public Evaluatable {
 public:
     RecordDataField(ID* arg_id, Type* arg_type);
-    ~RecordDataField() override;
+    ~RecordDataField() override = default;
 
     // Instantiates abstract class Field
     void Prepare(Env* env) override;
@@ -139,7 +139,7 @@ enum PaddingType : uint8_t { PAD_BY_LENGTH, PAD_TO_OFFSET, PAD_TO_NEXT_WORD };
 class RecordPaddingField : public RecordField {
 public:
     RecordPaddingField(ID* id, PaddingType ptype, Expr* expr);
-    ~RecordPaddingField() override;
+    ~RecordPaddingField() override = default;
 
     void Prepare(Env* env) override;
 

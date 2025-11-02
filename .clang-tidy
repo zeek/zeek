@@ -17,7 +17,6 @@ Checks: [-*,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
          -performance-unnecessary-value-param,
-         -modernize-use-equals-default,
          -modernize-use-integer-sign-comparison,
 
          # The following cause either lots of pointless or advisory warnings

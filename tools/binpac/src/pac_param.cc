@@ -18,8 +18,6 @@ Param::Param(ID* id, Type* type) : id_(id), type_(type) {
     param_field_ = new ParamField(this);
 }
 
-Param::~Param() {}
-
 const string& Param::decl_str() const {
     ASSERT(! decl_str_.empty());
     return decl_str_;

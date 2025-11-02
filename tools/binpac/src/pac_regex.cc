@@ -48,8 +48,6 @@ RegEx::RegEx(const string& s) {
     decl_ = new RegExDecl(this);
 }
 
-RegEx::~RegEx() {}
-
 RegExDecl::RegExDecl(RegEx* regex) : Decl(regex->matcher_id(), REGEX) { regex_ = regex; }
 
 void RegExDecl::Prepare() { global_env()->AddID(id(), GLOBAL_VAR, extern_type_re_matcher); }

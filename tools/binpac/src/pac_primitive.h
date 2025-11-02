@@ -12,7 +12,7 @@ public:
     enum PrimitiveType : uint8_t { VAL, SET, TYPE, CONST_DEF };
 
     explicit PacPrimitive(PrimitiveType type) : type_(type) {}
-    virtual ~PacPrimitive() {}
+    virtual ~PacPrimitive() = default;
 
     PrimitiveType type() const { return type_; }
 

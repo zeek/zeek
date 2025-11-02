@@ -133,41 +133,10 @@ public:
 #endif
     }
 
-    Configuration(Configuration&& c) noexcept {
-        zeek_version = std::move(c.zeek_version);
-
-        name = std::move(c.name);
-        description = std::move(c.description);
-        version = c.version;
-    }
-
-    Configuration(const Configuration& c) {
-        zeek_version = c.zeek_version;
-
-        name = c.name;
-        description = c.description;
-        version = c.version;
-    }
-
-    Configuration& operator=(Configuration&& c) noexcept {
-        zeek_version = std::move(c.zeek_version);
-
-        name = std::move(c.name);
-        description = std::move(c.description);
-        version = c.version;
-
-        return *this;
-    }
-
-    Configuration& operator=(const Configuration& c) {
-        zeek_version = c.zeek_version;
-
-        name = c.name;
-        description = c.description;
-        version = c.version;
-
-        return *this;
-    }
+    Configuration(Configuration&& c) noexcept = default;
+    Configuration(const Configuration& c) = default;
+    Configuration& operator=(Configuration&& c) noexcept = default;
+    Configuration& operator=(const Configuration& c) = default;
 
     ~Configuration() {}
 

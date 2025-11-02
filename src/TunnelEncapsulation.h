@@ -62,37 +62,14 @@ public:
     /**
      * Copy constructor.
      */
-    EncapsulatingConn(const EncapsulatingConn& other)
-        : ip_hdr(other.ip_hdr),
-          src_addr(other.src_addr),
-          dst_addr(other.dst_addr),
-          src_port(other.src_port),
-          dst_port(other.dst_port),
-          proto(other.proto),
-          ip_proto(other.ip_proto),
-          type(other.type),
-          uid(other.uid) {}
+    EncapsulatingConn(const EncapsulatingConn& other) = default;
 
     /**
      * Destructor.
      */
     ~EncapsulatingConn() {}
 
-    EncapsulatingConn& operator=(const EncapsulatingConn& other) {
-        if ( this != &other ) {
-            src_addr = other.src_addr;
-            dst_addr = other.dst_addr;
-            src_port = other.src_port;
-            dst_port = other.dst_port;
-            proto = other.proto;
-            ip_proto = other.ip_proto;
-            type = other.type;
-            uid = other.uid;
-            ip_hdr = other.ip_hdr;
-        }
-
-        return *this;
-    }
+    EncapsulatingConn& operator=(const EncapsulatingConn& other) = default;
 
     BifEnum::Tunnel::Type Type() const { return type; }
 

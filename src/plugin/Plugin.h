@@ -138,7 +138,7 @@ public:
     Configuration& operator=(Configuration&& c) noexcept = default;
     Configuration& operator=(const Configuration& c) = default;
 
-    ~Configuration() {}
+    ~Configuration() = default;
 
     /**
      * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch

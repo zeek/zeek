@@ -17,7 +17,7 @@ class ValTraceMgr;
 class ValDelta {
 public:
     ValDelta(const ValTrace* _vt) : vt(_vt) {}
-    virtual ~ValDelta() {}
+    virtual ~ValDelta() = default;
 
     // Return a string that performs the update operation, expressed
     // as Zeek scripting.  Does not include a terminating semicolon.

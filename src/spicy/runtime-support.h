@@ -315,7 +315,7 @@ void reject_protocol(const std::string& reason = "protocol rejected");
  */
 class ProtocolHandle {
 public:
-    ProtocolHandle() {}
+    ProtocolHandle() = default;
     explicit ProtocolHandle(uint64_t id, ::hilti::rt::Protocol proto) : _id(id), _proto(proto) {}
 
     uint64_t id() const {

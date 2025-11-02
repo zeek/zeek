@@ -13,8 +13,6 @@ XMPP_Analyzer::XMPP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationA
     tls_active = false;
 }
 
-XMPP_Analyzer::~XMPP_Analyzer() {}
-
 void XMPP_Analyzer::Done() {
     analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 

@@ -1378,7 +1378,7 @@ static std::vector<IPAddr> get_result_addresses(TableValPtr addrs) {
 
 class TestCallback : public DNS_Mgr::LookupCallback {
 public:
-    TestCallback() {}
+    TestCallback() = default;
     void Resolved(const std::string& name) override {
         host_result = name;
         done = true;

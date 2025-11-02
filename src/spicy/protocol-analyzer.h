@@ -62,7 +62,7 @@ private:
 class ProtocolAnalyzer {
 public:
     ProtocolAnalyzer(analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type);
-    virtual ~ProtocolAnalyzer();
+    virtual ~ProtocolAnalyzer() = default;
 
     /** Returns the originator-side parsing state. */
     auto& originator() { return _originator; }
@@ -128,7 +128,7 @@ private:
 class TCP_Analyzer : public ProtocolAnalyzer, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     TCP_Analyzer(Connection* conn);
-    ~TCP_Analyzer() override;
+    ~TCP_Analyzer() override = default;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;
@@ -156,7 +156,7 @@ public:
 class UDP_Analyzer : public ProtocolAnalyzer, public analyzer::Analyzer {
 public:
     UDP_Analyzer(Connection* conn);
-    ~UDP_Analyzer() override;
+    ~UDP_Analyzer() override = default;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;

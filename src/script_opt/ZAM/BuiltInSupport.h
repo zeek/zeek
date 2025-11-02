@@ -17,7 +17,7 @@ class CatArg {
 public:
     CatArg(std::string _s) : s(std::move(_s)) { max_size = s->size(); }
 
-    virtual ~CatArg() {}
+    virtual ~CatArg() = default;
 
     size_t MaxSize(const ZVal& zv) { return max_size ? *max_size : ComputeMaxSize(zv); }
 
@@ -28,7 +28,7 @@ public:
     }
 
 protected:
-    CatArg() {}
+    CatArg() = default;
     CatArg(size_t _max_size) : max_size(_max_size) {}
 
     virtual size_t ComputeMaxSize(const ZVal& zv) { return 0; }

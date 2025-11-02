@@ -96,7 +96,7 @@ using DataBlockMap = std::map<uint64_t, DataBlock>;
  */
 class DataBlockList {
 public:
-    DataBlockList() {}
+    DataBlockList() = default;
 
     DataBlockList(Reassembler* r) : reassembler(r) {}
 
@@ -237,7 +237,7 @@ private:
 class Reassembler : public Obj {
 public:
     Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
-    ~Reassembler() override {}
+    ~Reassembler() override = default;
 
     void NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data);
 

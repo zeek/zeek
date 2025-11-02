@@ -67,7 +67,7 @@ public:
     /**
      * Destructor.
      */
-    ~EncapsulatingConn() {}
+    ~EncapsulatingConn() = default;
 
     EncapsulatingConn& operator=(const EncapsulatingConn& other) = default;
 

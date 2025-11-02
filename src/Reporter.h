@@ -50,14 +50,14 @@ class File;
 class ReporterException {
 protected:
     friend class Reporter;
-    ReporterException() {}
+    ReporterException() = default;
 };
 
 class InterpreterException : public ReporterException {
 protected:
     friend class Reporter;
     friend class detail::AssertStmt;
-    InterpreterException() {}
+    InterpreterException() = default;
 };
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.

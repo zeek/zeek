@@ -169,7 +169,7 @@ public:
     }
 
     // Constructor used when we're going to just copy in another ZInstI.
-    ZInstI() {}
+    ZInstI() = default;
 
     // If "remappings" is non-nil, then it is used instead of frame_ids.
     void Dump(FILE* f, const FrameMap* frame_ids, const FrameReMap* remappings) const;

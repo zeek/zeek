@@ -43,7 +43,7 @@ using ListExprPtr = IntrusivePtr<ListExpr>;
 // The following tracks how to initialize a given record field.
 class FieldInit {
 public:
-    virtual ~FieldInit() {}
+    virtual ~FieldInit() = default;
 
     // Return the initialization value of the field.
     virtual ZVal Generate() const = 0;
@@ -812,14 +812,14 @@ class OpaqueType final : public Type {
 public:
     explicit OpaqueType(const std::string& name);
     TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
-    ~OpaqueType() override {};
+    ~OpaqueType() override = default;
 
     const std::string& Name() const { return name; }
 
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
 protected:
-    OpaqueType() {}
+    OpaqueType() = default;
 
     void DoDescribe(ODesc* d) const override;
 

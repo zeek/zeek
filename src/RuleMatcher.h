@@ -231,7 +231,7 @@ public:
 private:
     // Ctor is private; use RuleMatcher::InitFileMagic() for
     // instantiation.
-    RuleFileMagicState() {}
+    RuleFileMagicState() = default;
 
     struct Matcher {
         RE_Match_State* state;

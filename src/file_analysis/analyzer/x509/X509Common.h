@@ -27,7 +27,7 @@ namespace detail {
 
 class X509Common : public file_analysis::Analyzer {
 public:
-    ~X509Common() override {};
+    ~X509Common() override = default;
 
     /**
      * Retrieve an X509 extension value from an OpenSSL BIO to which it was

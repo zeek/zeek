@@ -21,7 +21,7 @@ class Attr;
 class TraversalCallback {
 public:
     TraversalCallback() { current_scope = nullptr; }
-    virtual ~TraversalCallback() {}
+    virtual ~TraversalCallback() = default;
 
     virtual TraversalCode PreFunction(const Func*) { return TC_CONTINUE; }
     virtual TraversalCode PostFunction(const Func*) { return TC_CONTINUE; }

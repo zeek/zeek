@@ -61,7 +61,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~OutputHandler() {}
+    virtual ~OutputHandler() = default;
 
     /**
      * Hook for receiving packet data. Parameters are the same as for
@@ -833,7 +833,7 @@ public:
     /**
      * Destructor.
      */
-    ~SupportAnalyzer() override {}
+    ~SupportAnalyzer() override = default;
 
     /**
      * Returns true if this is a support analyzer for the connection's

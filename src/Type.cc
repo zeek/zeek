@@ -499,7 +499,7 @@ TableType::TableType(TypeListPtr ind, TypePtr yield) : IndexType(TYPE_TABLE, std
         RegenerateHash();
 }
 
-TableType::~TableType() {}
+TableType::~TableType() = default;
 
 bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
     if ( reported_error )

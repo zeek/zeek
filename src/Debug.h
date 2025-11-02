@@ -119,7 +119,7 @@ private:
 // (obj -> source line mapping available in object itself)
 class StmtLocMapping {
 public:
-    StmtLocMapping() {}
+    StmtLocMapping() = default;
     StmtLocMapping(const Location* l, Stmt* s) {
         loc = *l;
         stmt = s;

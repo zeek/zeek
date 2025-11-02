@@ -141,7 +141,7 @@ private:
      */
     class Modification {
     public:
-        virtual ~Modification() {}
+        virtual ~Modification() = default;
 
         /**
          * Perform the modification on an analyzer set.
@@ -168,7 +168,7 @@ private:
          */
         AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<zeek::detail::HashKey> arg_key)
             : Modification(), a(arg_a), key(std::move(arg_key)) {}
-        ~AddMod() override {}
+        ~AddMod() override = default;
         bool Perform(AnalyzerSet* set) override;
         void Abort() override;
 
@@ -189,7 +189,7 @@ private:
          */
         RemoveMod(zeek::Tag arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
             : Modification(), tag(std::move(arg_tag)), key(std::move(arg_key)) {}
-        ~RemoveMod() override {}
+        ~RemoveMod() override = default;
         bool Perform(AnalyzerSet* set) override;
         void Abort() override {}
 

@@ -52,7 +52,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Hasher() {}
+    virtual ~Hasher() = default;
 
     /**
      * Computes hash values for an element.
@@ -111,7 +111,7 @@ public:
     static std::unique_ptr<Hasher> Unserialize(BrokerDataView data);
 
 protected:
-    Hasher() {}
+    Hasher() = default;
 
     /**
      * Constructor.
@@ -210,7 +210,7 @@ public:
     bool Equals(const Hasher* other) const final;
 
 private:
-    DefaultHasher() {}
+    DefaultHasher() = default;
 
     HasherType Type() const override { return HasherType::Default; }
 
@@ -238,7 +238,7 @@ public:
     bool Equals(const Hasher* other) const final;
 
 private:
-    DoubleHasher() {}
+    DoubleHasher() = default;
 
     HasherType Type() const override { return HasherType::Double; }
 

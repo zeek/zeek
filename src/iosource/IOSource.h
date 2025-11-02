@@ -26,7 +26,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IOSource() {}
+    virtual ~IOSource() = default;
 
     /**
      * Returns true if more data is to be expected in the future.

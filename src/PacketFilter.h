@@ -19,7 +19,7 @@ namespace detail {
 class PacketFilter {
 public:
     explicit PacketFilter(bool arg_default);
-    ~PacketFilter() {}
+    ~PacketFilter() = default;
 
     // Drops all packets from a particular source (which may be given
     // as an AddrVal or a SubnetVal) which hasn't any of TCP flags set

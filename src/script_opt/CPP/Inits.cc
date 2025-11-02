@@ -25,7 +25,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterInitExpr(const ExprPtr& ep) {
     return gi;
 }
 
-void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init) {
+void CPPCompile::GenInitExpr(const std::shared_ptr<CallExprInitInfo>& ce_init) {
     NL();
 
     const auto& e = ce_init->GetExpr();

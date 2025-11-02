@@ -28,7 +28,7 @@ public:
      * protocols during packet forwarding. This should generally always be
      * set to true.
      */
-    explicit Analyzer(std::string name, bool report_unknown_protocols = true);
+    explicit Analyzer(const std::string& name, bool report_unknown_protocols = true);
 
     /**
      * Constructor.

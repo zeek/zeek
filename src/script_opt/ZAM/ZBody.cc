@@ -192,7 +192,7 @@ auto false_func = [](double x) { return false; };
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                                                \
-    VectorVal* vec_coerce_##tag(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc) {                                   \
+    VectorVal* vec_coerce_##tag(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc) {                            \
         auto& v = vec->RawVec();                                                                                       \
         auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                                     \
         auto res_zv = new VectorVal(yt);                                                                               \
@@ -520,12 +520,12 @@ void ZBody::ReportExecutionProfile(ProfMap& pm) {
             modules.insert(m.begin(), m.end());
         }
 
-        ReportProfile(pm, *pv.second, prefix, std::move(modules));
+        ReportProfile(pm, *pv.second, prefix, modules);
     }
 }
 
 void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
-                          std::set<std::string> caller_modules) const {
+                          const std::set<std::string>& caller_modules) const {
     for ( auto i = 0U; i < pv.size(); ++i ) {
         auto ninst = pv[i].num_samples;
         auto CPU = pv[i].CPU_time;

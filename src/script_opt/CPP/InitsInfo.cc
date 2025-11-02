@@ -118,7 +118,7 @@ void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_I
     }
 }
 
-void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     string full_init;
     bool did_one = false;
     for ( auto& iv : ivs ) {
@@ -171,7 +171,7 @@ void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
 
 void CPP_CompoundInitsInfo::GenerateCohorts(CPPCompile* c) { c->Emit("%s_init", tag); }
 
-void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     string init_line;
     for ( auto& iv : ivs )
         init_line += iv + ",";
@@ -179,7 +179,7 @@ void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, 
     c->Emit("%s", init_line);
 }
 
-void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     ASSERT(ivs.size() == 1);
     c->Emit(ivs[0] + ",");
 }

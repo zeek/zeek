@@ -46,7 +46,7 @@ protected:
     string GenStringSize(Output* out_cc, Env* env, const DataPtr& data);
 
     // Generate a string mismatch exception
-    void GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, string pattern);
+    void GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, const string& pattern);
 
     void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
 

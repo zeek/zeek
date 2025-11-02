@@ -65,7 +65,7 @@ extern void register_scripts__CPP(p_hash_type h, void (*callback)());
 // given hashes.  Creates the identifier using the given module and
 // export setting if it doesn't already exist.
 extern void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
-                                 std::vector<p_hash_type> hashes);
+                                 const std::vector<p_hash_type>& hashes);
 
 // Looks for a global with the given name.  If not present, creates it with
 // the given type and characteristics.
@@ -78,7 +78,8 @@ extern Func* lookup_bif__CPP(const char* bif);
 // returns an associated FuncVal.  It's a fatal error for the hash
 // not to exist, because this function should only be called by compiled
 // code that has ensured its existence.
-extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, std::vector<p_hash_type> h, const TypePtr& t);
+extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, const std::vector<p_hash_type>& h,
+                                   const TypePtr& t);
 
 // Looks for a global with the given name, generating a run-time error
 // if not present.

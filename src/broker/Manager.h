@@ -188,15 +188,17 @@ public:
      * @param ts the timestamp the event is intended to be executed
      * @return true if the message is sent successfully.
      */
-    bool PublishEvent(std::string topic, std::string name, broker::vector args, double ts = run_state::network_time);
+    bool PublishEvent(std::string topic, const std::string& name, const broker::vector& args,
+                      double ts = run_state::network_time);
 
     /**
      * @copydoc PublishEvent(std::string, std::string, broker::vector, double)
      */
-    bool PublishEvent(std::string topic, std::string name, BrokerData args, double ts = run_state::network_time) {
+    bool PublishEvent(std::string topic, const std::string& name, BrokerData args,
+                      double ts = run_state::network_time) {
         if ( ! args.AsView().IsList() )
             return false;
-        return PublishEvent(std::move(topic), std::move(name), std::move(broker::get<broker::vector>(args.value_)), ts);
+        return PublishEvent(std::move(topic), name, broker::get<broker::vector>(args.value_), ts);
     }
 
     using cluster::Backend::PublishEvent;
@@ -403,7 +405,7 @@ private:
     }
 
     // Process events used for Broker store backed zeek tables
-    void ProcessStoreEvent(broker::data msg);
+    void ProcessStoreEvent(const broker::data& msg);
     // Common functionality for processing insert and update events.
     void ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id, const broker::data& key,
                                        const broker::data& data, const broker::data& old_value, bool insert);

@@ -466,6 +466,8 @@ Analyzer* Analyzer::FindChild(ID arg_id) {
     return nullptr;
 }
 
+// NOLINT here because changing the function signature breaks the API.
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 Analyzer* Analyzer::FindChild(zeek::Tag arg_tag) {
     if ( tag == arg_tag && ! (removing || finished) )
         return this;
@@ -634,6 +636,8 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 }
 
+// NOLINT here because changing the function signature breaks the API.
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     if ( analyzer_confirmed )
         return;
@@ -663,6 +667,8 @@ void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data
     event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
 }
 
+// NOLINT here because changing the function signature breaks the API.
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag) {
     const auto& effective_tag = arg_tag ? arg_tag : tag;
 

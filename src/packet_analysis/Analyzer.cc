@@ -12,7 +12,7 @@
 
 namespace zeek::packet_analysis {
 
-Analyzer::Analyzer(std::string name, bool report_unknown_protocols)
+Analyzer::Analyzer(const std::string& name, bool report_unknown_protocols)
     : report_unknown_protocols(report_unknown_protocols) {
     Tag t = packet_mgr->GetComponentTag(name);
 
@@ -164,6 +164,7 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(session::Session* session, const 
     event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag) {
     const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
 
@@ -200,7 +201,7 @@ void Analyzer::EnqueueAnalyzerViolationInfo(session::Session* session, const cha
 }
 
 void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, const char* data, int len,
-                                 zeek::Tag arg_tag) {
+                                 zeek::Tag arg_tag) { // NOLINT(performance-unnecessary-value-param)
     const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
 
     if ( ! session )

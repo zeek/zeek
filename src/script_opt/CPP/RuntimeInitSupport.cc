@@ -105,7 +105,8 @@ static void update_event_groups(const CompiledScript& cs, unordered_set<EventGro
     }
 }
 
-void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t, vector<p_hash_type> hashes) {
+void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
+                          const vector<p_hash_type>& hashes) {
     auto ft = cast_intrusive<FuncType>(t);
     auto fg = lookup_ID(fn, module, false, false, false);
 
@@ -196,7 +197,7 @@ Func* lookup_bif__CPP(const char* bif) {
     return (b && b->GetVal()) ? b->GetVal()->AsFunc() : nullptr;
 }
 
-FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> hashes, const TypePtr& t) {
+FuncValPtr lookup_func__CPP(string name, int num_bodies, const vector<p_hash_type>& hashes, const TypePtr& t) {
     auto ft = cast_intrusive<FuncType>(t);
 
     if ( static_cast<int>(hashes.size()) < num_bodies ) {

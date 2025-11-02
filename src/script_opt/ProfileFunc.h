@@ -458,7 +458,7 @@ protected:
     void AnalyzeLambdaProfile(const LambdaExpr* l);
 
     // Compute the hash associated with a single function profile.
-    void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
+    void ComputeProfileHash(const std::shared_ptr<ProfileFunc>& pf);
 
     // Analyze the expressions and lambdas appearing in a set of
     // attributes, in the context of a given type.

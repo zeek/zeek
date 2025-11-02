@@ -845,7 +845,7 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     return true;
 }
 
-bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
+bool Manager::PublishEvent(string topic, const std::string& name, const broker::vector& args, double ts) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
@@ -895,7 +895,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     // explicitly triggered. Hence, the timestamp is set to the current event's time. This
     // also means that timestamping cannot be manipulated from script-land for now.
     auto ts = event_mgr.CurrentEventTime();
-    return PublishEvent(std::move(topic), event_name, std::move(xs), ts);
+    return PublishEvent(std::move(topic), event_name, xs, ts);
 }
 
 bool Manager::PublishIdentifier(std::string topic, std::string id) {
@@ -1413,7 +1413,7 @@ void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std:
     table->Assign(zeek_key, zeek_value, false);
 }
 
-void Manager::ProcessStoreEvent(broker::data msg) {
+void Manager::ProcessStoreEvent(const broker::data& msg) {
     if ( auto insert = broker::store_event::insert::make(msg) ) {
         auto storehandle = broker_mgr->LookupStore(insert.store_id());
         if ( ! storehandle )

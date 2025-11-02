@@ -18,7 +18,6 @@ Checks: [-*,
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
-         -performance-unnecessary-value-param,
          -modernize-use-integer-sign-comparison,
 
          # The following cause either lots of pointless or advisory warnings
@@ -78,4 +77,6 @@ SystemHeaders: false
 CheckOptions:
     - key: modernize-use-default-member-init.UseAssignment
       value: 'true'
+    - key: performance-unnecessary-value-param.AllowedTypes
+      value: zeek::.*Ptr;zeek::plugin::HookArgument
 WarningsAsErrors: '*'

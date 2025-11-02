@@ -620,7 +620,7 @@ EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num) : ev
     name = ev_name + "_" + std::to_string(event_num) + "__et";
 }
 
-void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, std::string successor,
+void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, const std::string& successor,
                           int num_pre) const {
     int offset = 0;
     for ( auto& d : dvec ) {
@@ -695,7 +695,8 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, st
     fprintf(f, "\t}\n");
 }
 
-void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor, std::string successor) const {
+void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor,
+                          const std::string& successor) const {
     if ( predecessor ) {
         auto& pre_deltas = predecessor->post_deltas;
         int num_pre = pre_deltas.size();
@@ -708,7 +709,7 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecess
         }
     }
 
-    Generate(f, vtm, deltas, std::move(successor));
+    Generate(f, vtm, deltas, successor);
 }
 
 void ValTraceMgr::TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::Args* args) {

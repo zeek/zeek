@@ -220,7 +220,7 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
     }
 }
 
-void StringType::GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, string pattern) {
+void StringType::GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, const string& pattern) {
     string tmp = strfmt("string(reinterpret_cast<const char*>(%s), reinterpret_cast<const char*>(%s)).c_str()",
                         data.ptr_expr(), env->RValue(end_of_data));
     out_cc->println("throw binpac::ExceptionStringMismatch(\"%s\", %s, %s);", Location(), pattern.c_str(), tmp.c_str());

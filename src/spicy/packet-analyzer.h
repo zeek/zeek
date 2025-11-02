@@ -55,7 +55,7 @@ private:
 /** A Spicy file analyzer. */
 class PacketAnalyzer : public packet_analysis::Analyzer {
 public:
-    PacketAnalyzer(std::string name);
+    PacketAnalyzer(const std::string& name);
     ~PacketAnalyzer() override;
 
     /** Records a debug message. */

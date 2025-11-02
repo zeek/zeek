@@ -10,10 +10,10 @@ using namespace std;
 
 class Exception {
 public:
-    Exception(const Object* o, string msg = "");
+    Exception(const Object* o, const string& msg = "");
 
     const char* msg() const { return msg_.c_str(); }
-    void append(string s) { msg_ += s; }
+    void append(const string& s) { msg_ += s; }
 
 private:
     string msg_;
@@ -57,7 +57,7 @@ private:
 
 class ExceptionPaddingError : public Exception {
 public:
-    ExceptionPaddingError(const Object* o, string msg);
+    ExceptionPaddingError(const Object* o, const string& msg);
 };
 
 class ExceptionIDNotField : public Exception {

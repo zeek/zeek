@@ -216,7 +216,7 @@ public:
     bool OnFinish(double network_time) override { return true; }
 };
 
-WebSocketEventDispatcher::WebSocketEventDispatcher(std::string ident, size_t queue_size) {
+WebSocketEventDispatcher::WebSocketEventDispatcher(const std::string& ident, size_t queue_size) {
     onloop =
         new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this,
                                                                                   "WebSocketEventDispatcher:" + ident,

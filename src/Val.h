@@ -1596,7 +1596,7 @@ public:
     // The *allow_orphaning* parameter allows for a record to be demoted
     // down to a record type that contains less fields.
     RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false) const {
-        return DoCoerceTo(other, allow_orphaning);
+        return DoCoerceTo(std::move(other), allow_orphaning);
     }
     RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 

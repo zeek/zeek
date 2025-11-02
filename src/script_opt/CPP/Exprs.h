@@ -95,8 +95,8 @@ std::string GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs, const std::st
 std::string GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs);
 
 // Support for element-by-element vector operations.
-std::string GenVectorOp(const Expr* e, std::string op, const char* vec_op);
-std::string GenVectorOp(const Expr* e, std::string op1, std::string op2, const char* vec_op);
+std::string GenVectorOp(const Expr* e, const std::string& op, const char* vec_op);
+std::string GenVectorOp(const Expr* e, const std::string& op1, const std::string& op2, const char* vec_op);
 
 // If "all_deep" is true, it means make all of the captures deep copies,
 // not just the ones that were explicitly marked as deep copies.  That

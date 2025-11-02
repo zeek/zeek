@@ -91,8 +91,8 @@ protected:
     double time;
 };
 
-Trigger::Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs, double timeout,
-                 Frame* f, const Location* loc) {
+Trigger::Trigger(const std::shared_ptr<WhenInfo>& wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs,
+                 double timeout, Frame* f, const Location* loc) {
     timeout_value = timeout;
     globals = _globals;
     local_aggrs = std::move(_local_aggrs);
@@ -173,7 +173,7 @@ Trigger::~Trigger() {
     // point.
 }
 
-void Trigger::ReInit(std::vector<ValPtr> index_expr_results) {
+void Trigger::ReInit(const std::vector<ValPtr>& index_expr_results) {
     assert(! disabled);
     UnregisterAll();
 
@@ -259,7 +259,7 @@ bool Trigger::Eval() {
         // Not true. Perhaps next time...
         DBG_LOG(DBG_NOTIFIERS, "%s: trigger condition is false", Name());
         Unref(f);
-        ReInit(std::move(index_expr_results));
+        ReInit(index_expr_results);
         return false;
     }
 

@@ -109,14 +109,14 @@ inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
 extern bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type, const std::shared_ptr<ZAMLocInfo>& loc);
 
 extern void ZAM_run_time_error(const char* msg);
-extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg);
-extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o);
+extern void ZAM_run_time_error(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg);
+extern void ZAM_run_time_error(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg, const Obj* o);
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
 extern void ZAM_run_time_error(const char* msg, const Obj* o);
 
 extern bool ZAM_error;
 
-extern void ZAM_run_time_warning(std::shared_ptr<ZAMLocInfo> loc, const char* msg);
+extern void ZAM_run_time_warning(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg);
 
 extern StringVal* ZAM_to_lower(const StringVal* sv);
 extern StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n);

@@ -1,3 +1,36 @@
+8.1.0-dev.817 | 2025-11-03 11:52:21 +0000
+
+  * Enforce length for 802.3 frames. Accept truncated 802.3 frames. (Johanna Amann, Corelight)
+
+    Non-ethernet-2 frames provide the length in one of their fields.
+
+    This switches to using the provided length during parsing. This
+    means that trailing bytes will now be ignored, whereas previously they
+    would have been passed on to downstream protocol analyzers.
+
+    This change aligns our parsing of 802.3 packets to the parsing of other
+    packet-types, where do enforce length fields (e.g. tcp/udp).
+
+    Furthermore, we now accept trucated 802.3 frames; before they
+    were discarded. This similarly aligns us with other protocol parsers,
+    where this already was done; this also already was done with 802.3
+    frames wrapped in VLANs.
+
+    Thirdly, this changes the weird value `truncated_vlan_frame` to
+    `truncated_VLAN_header`. The weird was not updated when the check was
+    changed from a truncated frame check to a truncated header check. This
+    aligns the weird with another weird earlier in the file, and also makes
+    the handling the same as for normal ethernet packets in Ethernet.cc.
+
+    Addresses GH-4838
+
+  * Add SHA224, 384, 512 to file hash analyzer (Johanna Amann, Corelight)
+
+    The analyzers are currently not added to base/files/hash/main.zeek so
+    that the log baselines are not changed.
+
+  * Fix SHA384 initialization bug (Johanna Amann, Corelight)
+
 8.1.0-dev.811 | 2025-11-01 08:00:15 -0700
 
   * Fix a couple of minor move issues in script_opt (Tim Wojtulewicz, Corelight)

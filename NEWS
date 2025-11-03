@@ -496,6 +496,19 @@ Changed Functionality
   or ``set`` instances are now deferred until they are accessed, potentially
   improving memory usage when such fields are never accessed.
 
+- The handling of truncated 802.3 Ethernet frames changed. Before, truncated 802.3 frames
+  were always discarded. Now, truncated 802.3 Ethernet frame data is forwarded to downstream
+  analyzers. This aligns the handling of 802.3 Ethernet frames with the (much more common)
+  Ethernet 2 frames which are forwarded when truncated.
+
+  Due to this change, the ``truncated_vlan_frame`` was removed. 802.3 frames with a truncated
+  header now raise the ``truncated_VLAN_header`` weird, which is similarly raised by Ethernet 2
+  frames with a truncated VLAN header.
+
+- Data beyond the length indicated in the header of an 802.3 Ethernet frame is no longer
+  forwarded to downstream analyzers. This aligns our handling of 802.3 Ethernet frames with
+  other protocols that have length headers.
+
 Removed Functionality
 ---------------------
 

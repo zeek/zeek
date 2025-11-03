@@ -1905,11 +1905,11 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) 
     return true;
 }
 
-string json_escape_utf8(const string& val, bool escape_printable_controls) {
-    return json_escape_utf8(val.c_str(), val.size(), escape_printable_controls);
+string escape_utf8(const string& val, bool escape_printable_controls) {
+    return escape_utf8(val.c_str(), val.size(), escape_printable_controls);
 }
 
-string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls) {
+string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls) {
     auto val_data = reinterpret_cast<const unsigned char*>(val);
 
     // Reserve at least the size of the existing string to avoid resizing the string in the
@@ -1931,7 +1931,7 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
         // Normal ASCII characters plus a few of the control characters can be inserted directly.
         // The rest of the control characters should be escaped as regular bytes.
         if ( (ch >= 32 && ch < 127) ||
-             (escape_printable_controls && (ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t')) ) {
+             ((! escape_printable_controls) && (ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t')) ) {
             if ( ! found_bad )
                 utf_result.push_back(ch);
 
@@ -2350,70 +2350,80 @@ TEST_SUITE("util") {
     TEST_CASE("canonify_name") { CHECK(canonify_name("file name") == "FILE_NAME"); }
 
     TEST_CASE("json_escape_utf8") {
-        CHECK(json_escape_utf8("string") == "string");
+        CHECK(escape_utf8("string") == "string");
+        CHECK(escape_utf8(std::string{"string\n"}, false) == "string\n");
+        CHECK(escape_utf8(std::string{"string\n"}, true) == "string\\x0a");
+        CHECK(escape_utf8("string\x82") == "string\\x82");
+        CHECK(escape_utf8("\x07\xd4\xb7o") == "\\x07\\xd4\\xb7o");
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
         CHECK(json_escape_utf8("string\n") == "string\n");
-        CHECK(json_escape_utf8("string\x82") == "string\\x82");
-        CHECK(json_escape_utf8("\x07\xd4\xb7o") == "\\x07\\xd4\\xb7o");
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
         // These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
 
         // Valid ASCII and valid ASCII control characters
-        CHECK(json_escape_utf8("a") == "a");
+        CHECK(escape_utf8("a") == "a");
         // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
-        CHECK(json_escape_utf8("\b\f\n\r\t\x00\x15") == "\b\f\n\r\t\x00\x15");
+        CHECK(escape_utf8("\b\f\n\r\t\x00\x15", 7, false) == "\b\f\n\r\t\\x00\\x15");
 
         // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
         // valid and invalid for the tests below
 
         // Valid 2 Octet Sequence
-        CHECK(json_escape_utf8("\xc3\xb1") == "\xc3\xb1");
+        CHECK(escape_utf8("\xc3\xb1") == "\xc3\xb1");
 
         // Invalid 2 Octet Sequence
-        CHECK(json_escape_utf8("\xc3\x28") == "\\xc3(");
-        CHECK(json_escape_utf8("\xc0\x81") == "\\xc0\\x81");
-        CHECK(json_escape_utf8("\xc1\x81") == "\\xc1\\x81");
-        CHECK(json_escape_utf8("\xc2\xcf") == "\\xc2\\xcf");
+        CHECK(escape_utf8("\xc3\x28") == "\\xc3(");
+        CHECK(escape_utf8("\xc0\x81") == "\\xc0\\x81");
+        CHECK(escape_utf8("\xc1\x81") == "\\xc1\\x81");
+        CHECK(escape_utf8("\xc2\xcf") == "\\xc2\\xcf");
 
         // Invalid Sequence Identifier
-        CHECK(json_escape_utf8("\xa0\xa1") == "\\xa0\\xa1");
+        CHECK(escape_utf8("\xa0\xa1") == "\\xa0\\xa1");
 
         // Valid 3 Octet Sequence
-        CHECK(json_escape_utf8("\xe2\x82\xa1") == "\xe2\x82\xa1");
-        CHECK(json_escape_utf8("\xe0\xa3\xa1") == "\xe0\xa3\xa1");
+        CHECK(escape_utf8("\xe2\x82\xa1") == "\xe2\x82\xa1");
+        CHECK(escape_utf8("\xe0\xa3\xa1") == "\xe0\xa3\xa1");
 
         // Invalid 3 Octet Sequence (in 2nd Octet)
-        CHECK(json_escape_utf8("\xe0\x80\xa1") == "\\xe0\\x80\\xa1");
-        CHECK(json_escape_utf8("\xe2\x28\xa1") == "\\xe2(\\xa1");
-        CHECK(json_escape_utf8("\xed\xa0\xa1") == "\\xed\\xa0\\xa1");
+        CHECK(escape_utf8("\xe0\x80\xa1") == "\\xe0\\x80\\xa1");
+        CHECK(escape_utf8("\xe2\x28\xa1") == "\\xe2(\\xa1");
+        CHECK(escape_utf8("\xed\xa0\xa1") == "\\xed\\xa0\\xa1");
 
         // Invalid 3 Octet Sequence (in 3rd Octet)
-        CHECK(json_escape_utf8("\xe2\x82\x28") == "\\xe2\\x82(");
+        CHECK(escape_utf8("\xe2\x82\x28") == "\\xe2\\x82(");
 
         // Valid 4 Octet Sequence
-        CHECK(json_escape_utf8("\xf0\x90\x8c\xbc") == "\xf0\x90\x8c\xbc");
-        CHECK(json_escape_utf8("\xf1\x80\x8c\xbc") == "\xf1\x80\x8c\xbc");
-        CHECK(json_escape_utf8("\xf4\x80\x8c\xbc") == "\xf4\x80\x8c\xbc");
+        CHECK(escape_utf8("\xf0\x90\x8c\xbc") == "\xf0\x90\x8c\xbc");
+        CHECK(escape_utf8("\xf1\x80\x8c\xbc") == "\xf1\x80\x8c\xbc");
+        CHECK(escape_utf8("\xf4\x80\x8c\xbc") == "\xf4\x80\x8c\xbc");
 
         // Invalid 4 Octet Sequence (in 2nd Octet)
-        CHECK(json_escape_utf8("\xf0\x80\x8c\xbc") == "\\xf0\\x80\\x8c\\xbc");
-        CHECK(json_escape_utf8("\xf2\x28\x8c\xbc") == "\\xf2(\\x8c\\xbc");
-        CHECK(json_escape_utf8("\xf4\x90\x8c\xbc") == "\\xf4\\x90\\x8c\\xbc");
+        CHECK(escape_utf8("\xf0\x80\x8c\xbc") == "\\xf0\\x80\\x8c\\xbc");
+        CHECK(escape_utf8("\xf2\x28\x8c\xbc") == "\\xf2(\\x8c\\xbc");
+        CHECK(escape_utf8("\xf4\x90\x8c\xbc") == "\\xf4\\x90\\x8c\\xbc");
 
         // Invalid 4 Octet Sequence (in 3rd Octet)
-        CHECK(json_escape_utf8("\xf0\x90\x28\xbc") == "\\xf0\\x90(\\xbc");
+        CHECK(escape_utf8("\xf0\x90\x28\xbc") == "\\xf0\\x90(\\xbc");
 
         // Invalid 4 Octet Sequence (in 4th Octet)
-        CHECK(json_escape_utf8("\xf0\x28\x8c\x28") == "\\xf0(\\x8c(");
+        CHECK(escape_utf8("\xf0\x28\x8c\x28") == "\\xf0(\\x8c(");
 
         // Invalid 4 Octet Sequence (too short)
-        CHECK(json_escape_utf8("\xf4\x80\x8c") == "\\xf4\\x80\\x8c");
-        CHECK(json_escape_utf8("\xf0") == "\\xf0");
+        CHECK(escape_utf8("\xf4\x80\x8c") == "\\xf4\\x80\\x8c");
+        CHECK(escape_utf8("\xf0") == "\\xf0");
 
         // Private Use Area (E000-F8FF) are always invalid
-        CHECK(json_escape_utf8("\xee\x8b\xa0") == "\\xee\\x8b\\xa0");
+        CHECK(escape_utf8("\xee\x8b\xa0") == "\\xee\\x8b\\xa0");
 
         // Valid UTF-8 character followed by an invalid one
-        CHECK(json_escape_utf8("\xc3\xb1\xc0\x81") == "\\xc3\\xb1\\xc0\\x81");
+        CHECK(escape_utf8("\xc3\xb1\xc0\x81") == "\\xc3\\xb1\\xc0\\x81");
     }
 
     TEST_CASE("filesystem") {

@@ -532,18 +532,32 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
  * @param val the input string to be escaped
+ * @param escape_printable_controls flag for whether printable control characters
+ * (e.g. newlines, tabs, etc) should be escaped in the output. Defaults to false.
  * @return the escaped string
  */
-std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true);
+std::string escape_utf8(const std::string& val, bool escape_printable_controls = false);
 
 /**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
  * @param val the character data to be escaped
  * @param val_size the length of the character data
+ * @param escape_printable_controls flag for whether printable control characters
+ * (e.g. newlines, tabs, etc) should be escaped in the output. Defaults to false.
  * @return the escaped string
  */
-std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true);
+std::string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = false);
+
+[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
+inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
+    return escape_utf8(val, val_size, ! escape_printable_controls);
+}
+
+[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
+inline std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true) {
+    return escape_utf8(val, ! escape_printable_controls);
+}
 
 /**
  * Checks for values that are approximately equal.

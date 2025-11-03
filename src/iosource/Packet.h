@@ -17,9 +17,9 @@ using pkt_timeval = struct timeval;
 #endif
 
 #include "zeek/IP.h"
+#include "zeek/NetVar.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/session/Session.h"
-#include "zeek/types.bif.netvar_h"
 
 // Originally from <pcap/dlt.h>, duplicated here to avoid a dependency
 // on libpcap in plugin builds.

@@ -1,5 +1,6 @@
 %extern{
 #include <cstdlib>
+#include <cinttypes>
 %}
 
 %header{

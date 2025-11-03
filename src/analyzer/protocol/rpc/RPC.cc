@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/rpc/RPC.h"
 
+#include <cinttypes>
 #include <cstdlib>
 #include <string>
 

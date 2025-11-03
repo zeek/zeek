@@ -3,6 +3,7 @@
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
 #include <openssl/evp.h>
+#include <cinttypes>
 
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"

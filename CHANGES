@@ -1,3 +1,7 @@
+8.1.0-dev.821 | 2025-11-03 10:21:11 -0700
+
+  * Remove pcap.h dependency from iosource/Packet.h (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.819 | 2025-11-03 09:45:37 -0500
 
   * Deprecate return values in hooks (Evan Typanski, Corelight)

@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
+#include <cinttypes>
+
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"

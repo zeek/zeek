@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
+#include <cinttypes>
+
 #include "zeek/File.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"

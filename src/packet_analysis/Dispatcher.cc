@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/Dispatcher.h"
 
 #include <algorithm>
+#include <cinttypes>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Reporter.h"

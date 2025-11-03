@@ -154,6 +154,9 @@ private:
 
     void CheckRecording(bool need_contents, analyzer::tcp::TCP_Flags flags);
 
+    zeek_uint_t GetEndpointSize(bool is_orig) const override;
+    zeek_uint_t GetEndpointState(bool is_orig) const override;
+
     analyzer::tcp::TCP_Endpoint* orig;
     analyzer::tcp::TCP_Endpoint* resp;
 

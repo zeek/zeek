@@ -104,6 +104,9 @@ New Functionality
   ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init`,
   ``sha512_hash_update``, and ``sha512_hash_finish``.
 
+- Added SHA224, SHA384 and SHA512 file hash analyzers. The analyzers are not enabled by
+  default.
+
 - Added the ``TCP::raw_options`` BiF, which returns the list of TCP options in the current
   packet, including their raw data.
 

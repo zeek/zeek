@@ -4286,3 +4286,33 @@ TEST_CASE("assign string") {
 }
 
 TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("TableVal");
+
+TEST_CASE("clone ordered delete") {
+    auto tt = zeek::id::find_type<zeek::TableType>("string_set");
+    auto init_attrs = zeek::make_intrusive<zeek::detail::Attributes>(tt, false, false);
+    auto ordered_attr = zeek::make_intrusive<zeek::detail::Attr>(zeek::detail::ATTR_ORDERED);
+    init_attrs->AddAttr(ordered_attr);
+    auto tv = zeek::make_intrusive<zeek::TableVal>(tt, init_attrs);
+
+    auto http = zeek::make_intrusive<zeek::StringVal>("HTTP");
+
+    tv->Assign(http, zeek::Val::nil);
+    auto tv2 = zeek::cast_intrusive<zeek::TableVal>(tv->Clone());
+
+    tv->Remove(*http);
+    tv2->Remove(*http);
+
+    CHECK(tv->Size() == 0);
+    CHECK(tv2->Size() == 0);
+
+    const auto* t = tv2->AsTable();
+    for ( const auto& tev : *t ) {
+        auto hk = tev.GetHashKey();
+        auto vl = tv->RecreateIndex(*hk);
+        CHECK(false);
+    }
+}
+
+TEST_SUITE_END();

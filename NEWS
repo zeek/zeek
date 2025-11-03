@@ -43,7 +43,6 @@ Breaking Changes
   Prometheus' checks via ``promtool``. The labels have been renamed from ``le`` to
   ``leq``, given that they technically are less-than-or-equal values.
 
-
 - The ``iosource/Packet.h`` header no longer depends on libpcap being installed and no
   longer directly includes the ``pcap.h`` header. This may cause some knock-on effects
   in building plugins that were depending on this header and others that it included
@@ -172,8 +171,21 @@ Changed Functionality
 - The Notice framework's suppression implementation was changed to batch suppression
   information for up up to 10msec before distributing it to other nodes in a Zeek cluster.
   This reduces cluster communication overhead when there's a storm of notices
-  generated. Two new options, ``Notice::suppression_batch_period`` and ``Notice::suppression_batch_max_size``
-  can be used to tune this behavior. See their documentation for details.
+  generated. Two new options, ``Notice::suppression_batch_period`` and
+  ``Notice::suppression_batch_max_size`` can be used to tune this behavior. See their
+  documentation for details.
+
+- Non-printable ASCII control characters are now always passed as ``\uXXXX`` characters
+  when logging them as JSON. This follows the JSON standard more closely. Previously,
+  they would have been logged in the ``\xXX`` format that Zeek typically uses. For example,
+  an HTTP request with a non-printable character in the URI would have a ``uri`` field that
+  changes from:
+
+    "uri":"/non_printable_\\x07"
+
+  to
+
+    "uri":"/non_printable_\u0007"
 
 - For SNMPv3, the ``community`` field of the snmp log now contains the SNMPv3 username
   (if present). Before, the field was empty for all SNMPv3 connections.
@@ -190,6 +202,13 @@ Deprecated Functionality
 - In Zeek 9.1, returning a value from a hook will become an error. Return values
   from a hooks were previously silently discarded. This behavior was found
   surprising in relation with the ``break`` statement available in hooks.
+
+- The ``zeek::util::json_escape_utf8`` methods are being replaced by a new ``escape_utf8``
+  method in order to fix a bug with how the ``escape_printable_controls`` argument was
+  implemented. Previously, it was implemented in the reverse of what was intuitive given
+  the name. It would escape the control characters when false, and not escape them when
+  true. The new method has the correct semantics, as well as a new argument for
+  controlling whether non-printable control characters are escaped.
 
 Zeek 8.0.0
 ==========

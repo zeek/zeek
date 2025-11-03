@@ -26,7 +26,7 @@ repos:
       - "c"
       - "c++"
       - "json"
-    exclude: '^src/3rdparty/.*'
+    exclude: '^src/3rdparty/.*|^testing/btest/Baseline'
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.12.0.1

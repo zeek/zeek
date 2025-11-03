@@ -249,7 +249,8 @@ void ODesc::AddBytes(const void* bytes, size_t n) {
 
         if ( esc_start != nullptr ) {
             if ( utf8 ) {
-                std::string result = util::json_escape_utf8(s, esc_start - s, false);
+                assert(esc_start >= s);
+                std::string result = util::escape_utf8({s, static_cast<size_t>(esc_start - s)}, true);
                 AddBytesRaw(result.c_str(), result.size());
             }
             else
@@ -260,7 +261,8 @@ void ODesc::AddBytes(const void* bytes, size_t n) {
         }
         else {
             if ( utf8 ) {
-                std::string result = util::json_escape_utf8(s, e - s, false);
+                assert(e >= s);
+                std::string result = util::escape_utf8({s, static_cast<size_t>(e - s)}, true);
                 AddBytesRaw(result.c_str(), result.size());
             }
             else

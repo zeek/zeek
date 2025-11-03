@@ -64,8 +64,7 @@ inline void log(const std::string& msg) {
 /* Top-level entry point for Spicy functionality. */
 class Manager : public zeek::plugin::Plugin {
 public:
-    Manager() {}
-    ~Manager() override;
+    Manager() = default;
 
     /**
      * Runtime method to begin registration of a Spicy EVT module. All

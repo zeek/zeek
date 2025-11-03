@@ -38,8 +38,6 @@ static auto create_endpoint(bool is_orig, analyzer::Analyzer* analyzer, ::spicy:
 ProtocolAnalyzer::ProtocolAnalyzer(analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type)
     : _originator(create_endpoint(true, analyzer, type)), _responder(create_endpoint(false, analyzer, type)) {}
 
-ProtocolAnalyzer::~ProtocolAnalyzer() {}
-
 void ProtocolAnalyzer::Init() {}
 
 void ProtocolAnalyzer::Done() {}
@@ -122,8 +120,6 @@ analyzer::Analyzer* TCP_Analyzer::InstantiateAnalyzer(Connection* conn) { return
 TCP_Analyzer::TCP_Analyzer(Connection* conn)
     : ProtocolAnalyzer(this, ::spicy::rt::driver::ParsingType::Stream), analyzer::tcp::TCP_ApplicationAnalyzer(conn) {}
 
-TCP_Analyzer::~TCP_Analyzer() {}
-
 void TCP_Analyzer::Init() {
     analyzer::tcp::TCP_ApplicationAnalyzer::Init();
     ProtocolAnalyzer::Init();
@@ -190,8 +186,6 @@ analyzer::Analyzer* UDP_Analyzer::InstantiateAnalyzer(Connection* conn) { return
 
 UDP_Analyzer::UDP_Analyzer(Connection* conn)
     : ProtocolAnalyzer(this, ::spicy::rt::driver::ParsingType::Block), analyzer::Analyzer(conn) {}
-
-UDP_Analyzer::~UDP_Analyzer() {}
 
 void UDP_Analyzer::Init() {
     analyzer::Analyzer::Init();

@@ -22,7 +22,7 @@ using UDs = std::shared_ptr<UseDefSet>;
 
 class UseDefSet {
 public:
-    UseDefSet() {}
+    UseDefSet() = default;
     UseDefSet(const UDs& uds) { Replicate(uds); }
 
     void Replicate(const UDs& from) { use_defs = from->use_defs; }

@@ -34,7 +34,6 @@ void parse_options(std::span<const uint8_t> data, Callback cb);
 class GeneveAnalyzer : public zeek::packet_analysis::Analyzer {
 public:
     GeneveAnalyzer();
-    ~GeneveAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

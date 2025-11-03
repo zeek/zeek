@@ -77,7 +77,7 @@ public:
         }
     }
 
-    ~IPv6_Hdr() {}
+    ~IPv6_Hdr() = default;
 
     /**
      * Returns the assigned IPv6 extension header type number of the header

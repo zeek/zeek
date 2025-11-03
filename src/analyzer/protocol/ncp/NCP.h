@@ -84,7 +84,6 @@ protected:
 class Contents_NCP_Analyzer : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
     Contents_NCP_Analyzer(Connection* conn, bool orig, detail::NCP_Session* session);
-    ~Contents_NCP_Analyzer() override = default;
 
 protected:
     void DeliverStream(int len, const u_char* data, bool orig) override;

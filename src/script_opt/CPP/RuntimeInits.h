@@ -56,7 +56,7 @@ constexpr int DO_NOT_CONSTRUCT_VALUE_MARKER = -400;
 // to any of a range of templated classes.
 class CPP_AbstractInitAccessor {
 public:
-    virtual ~CPP_AbstractInitAccessor() {}
+    virtual ~CPP_AbstractInitAccessor() = default;
     virtual ValPtr Get(int index) const { return nullptr; }
 };
 
@@ -202,7 +202,7 @@ private:
 template<class T>
 class CPP_Init {
 public:
-    virtual ~CPP_Init() {}
+    virtual ~CPP_Init() = default;
 
     // Pre-initializes the given element of the vector, if necessary.
     virtual void PreInit(InitsManager* im, std::vector<T>& inits_vec, int offset) const {}

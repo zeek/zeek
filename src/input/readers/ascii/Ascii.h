@@ -40,7 +40,6 @@ struct FieldMapping {
 class Ascii : public ReaderBackend {
 public:
     explicit Ascii(ReaderFrontend* frontend);
-    ~Ascii() override = default;
 
     // prohibit copying and moving
     Ascii(const Ascii&) = delete;

@@ -124,7 +124,6 @@ private:
 class PIA_UDP : public PIA, public analyzer::Analyzer {
 public:
     explicit PIA_UDP(Connection* conn) : PIA(this), Analyzer("PIA_UDP", conn) { SetConn(conn); }
-    ~PIA_UDP() override {}
 
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new PIA_UDP(conn); }
 

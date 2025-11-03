@@ -663,8 +663,6 @@ public:
     // pre-computed.
     ListVal(TypeListPtr tl, std::vector<ValPtr> vals);
 
-    ~ListVal() override = default;
-
     TypeTag BaseTag() const { return tag; }
 
     ValPtr SizeVal() const override;

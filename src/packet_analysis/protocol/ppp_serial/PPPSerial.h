@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::PPPSerial {
 class PPPSerialAnalyzer : public Analyzer {
 public:
     PPPSerialAnalyzer();
-    ~PPPSerialAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

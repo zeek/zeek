@@ -28,11 +28,6 @@ public:
     BackendComponent(const std::string& name, factory_callback factory);
 
     /**
-     * Destructor.
-     */
-    ~BackendComponent() override = default;
-
-    /**
      * Initialization function. This function has to be called before any
      * plugin component functionality is used; it is used to add the
      * plugin component to the list of components and to initialize tags
@@ -68,11 +63,6 @@ public:
     EventSerializerComponent(const std::string& name, factory_callback factory);
 
     /**
-     * Destructor.
-     */
-    ~EventSerializerComponent() override = default;
-
-    /**
      * Initialization function. This function has to be called before any
      * plugin component functionality is used; it is used to add the
      * plugin component to the list of components and to initialize tags
@@ -105,11 +95,6 @@ public:
      * log serializer.
      */
     LogSerializerComponent(const std::string& name, factory_callback factory);
-
-    /**
-     * Destructor.
-     */
-    ~LogSerializerComponent() override = default;
 
     /**
      * Initialization function. This function has to be called before any

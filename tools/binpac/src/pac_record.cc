@@ -319,8 +319,6 @@ bool RecordField::AttemptBoundaryCheck(Output* out_cc, Env* env) {
 
 RecordDataField::RecordDataField(ID* id, Type* type) : RecordField(RECORD_FIELD, id, type) { ASSERT(type_); }
 
-RecordDataField::~RecordDataField() {}
-
 void RecordDataField::Prepare(Env* env) {
     Field::Prepare(env);
     env->SetEvalMethod(id_, this);
@@ -424,8 +422,6 @@ RecordPaddingField::RecordPaddingField(ID* id, PaddingType ptype, Expr* expr)
     : RecordField(PADDING_FIELD, id, nullptr), ptype_(ptype), expr_(expr) {
     wordsize_ = -1;
 }
-
-RecordPaddingField::~RecordPaddingField() {}
 
 void RecordPaddingField::Prepare(Env* env) {
     Field::Prepare(env);

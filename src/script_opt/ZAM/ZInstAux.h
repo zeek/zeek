@@ -24,7 +24,7 @@ using AttributesPtr = IntrusivePtr<Attributes>;
 // The class also tracks any associated type and caches whether it's "managed".
 class AuxElem {
 public:
-    AuxElem() {}
+    AuxElem() = default;
 
     // Different ways of setting the specifics of the element.
     void SetInt(int _i) { i = _i; }

@@ -50,8 +50,6 @@ public:
     Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status_update_event = nullptr,
             double status_update_interval = 0);
 
-    ~Session() override = default;
-
     /**
      * Invoked when the session is about to be removed. Use Ref(this)
      * inside Done to keep the session object around, though it'll

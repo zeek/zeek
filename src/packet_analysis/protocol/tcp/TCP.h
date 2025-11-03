@@ -18,7 +18,6 @@ class TCPSessionAdapter;
 class TCPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
     TCPAnalyzer();
-    ~TCPAnalyzer() override = default;
 
     static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<TCPAnalyzer>(); }
 

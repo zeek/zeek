@@ -29,7 +29,6 @@ protected:
 class Portmapper_Analyzer : public RPC_Analyzer {
 public:
     explicit Portmapper_Analyzer(Connection* conn);
-    ~Portmapper_Analyzer() override = default;
     void Init() override;
 
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new Portmapper_Analyzer(conn); }

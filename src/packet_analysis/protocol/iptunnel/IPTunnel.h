@@ -16,7 +16,6 @@ class IPTunnelTimer;
 class IPTunnelAnalyzer : public Analyzer {
 public:
     IPTunnelAnalyzer();
-    ~IPTunnelAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
@@ -104,7 +103,6 @@ namespace detail {
 class IPTunnelTimer final : public zeek::detail::Timer {
 public:
     IPTunnelTimer(double t, IPTunnelAnalyzer::IPPair p, IPTunnelAnalyzer* analyzer);
-    ~IPTunnelTimer() override = default;
 
     void Dispatch(double t, bool is_expire) override;
 

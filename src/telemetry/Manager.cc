@@ -45,7 +45,7 @@ public:
 
 Manager::Manager() : IOSource(true) { prometheus_registry = std::make_shared<prometheus::Registry>(); }
 
-Manager::~Manager() {}
+Manager::~Manager() = default;
 
 void Manager::InitPostScript() {
     // Metrics port setting is used to calculate a URL for prometheus scraping

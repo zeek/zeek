@@ -18,7 +18,7 @@ class NVT_Analyzer;
 class TelnetOption {
 public:
     TelnetOption(NVT_Analyzer* endp, unsigned int code);
-    virtual ~TelnetOption() {}
+    virtual ~TelnetOption() = default;
 
     // Whether we told the other side WILL/WONT/DO/DONT.
     enum SaidOptions : uint8_t { OPT_SAID_WILL = 0x1, OPT_SAID_WONT = 0x2, OPT_SAID_DO = 0x4, OPT_SAID_DONT = 0x8 };

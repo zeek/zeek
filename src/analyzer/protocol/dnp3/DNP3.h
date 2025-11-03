@@ -68,7 +68,6 @@ protected:
 class DNP3_TCP_Analyzer : public detail::DNP3_Base, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     explicit DNP3_TCP_Analyzer(Connection* conn);
-    ~DNP3_TCP_Analyzer() override = default;
 
     void Done() override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
@@ -81,7 +80,6 @@ public:
 class DNP3_UDP_Analyzer : public detail::DNP3_Base, public analyzer::Analyzer {
 public:
     explicit DNP3_UDP_Analyzer(Connection* conn);
-    ~DNP3_UDP_Analyzer() override = default;
 
     void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 

@@ -12,7 +12,6 @@ namespace zeek::packet_analysis::LinuxSLL2 {
 class LinuxSLL2Analyzer : public Analyzer {
 public:
     LinuxSLL2Analyzer();
-    ~LinuxSLL2Analyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

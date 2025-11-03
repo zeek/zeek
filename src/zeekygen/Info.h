@@ -15,12 +15,12 @@ public:
     /**
      * Ctor.
      */
-    Info() {}
+    Info() = default;
 
     /**
      * Dtor.
      */
-    virtual ~Info() {}
+    virtual ~Info() = default;
 
     /**
      * @return The time any information related to the object was last modified.

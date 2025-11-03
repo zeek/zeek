@@ -96,7 +96,7 @@ public:
         CPP_type = tag + type;
     }
 
-    virtual ~CPP_InitsInfo() {}
+    virtual ~CPP_InitsInfo() = default;
 
     // Returns the name of the C++ global that will hold the items' values
     // at run-time, once initialized.  These are all vectors, for which
@@ -276,7 +276,7 @@ public:
     CPP_InitInfo(const IntrusivePtr<Obj>& _o) : o(_o.get()) {}
     CPP_InitInfo(const Obj* _o) : o(_o) {}
 
-    virtual ~CPP_InitInfo() {}
+    virtual ~CPP_InitInfo() = default;
 
     // Associates this item with an initialization collection and run-time
     // vector offset.
@@ -704,7 +704,7 @@ public:
 
 class IndicesManager {
 public:
-    IndicesManager() {}
+    IndicesManager() = default;
 
     // Adds a new vector-of-indices to the collection we're tracking,
     // returning the offset that will be associated with it at run-time.

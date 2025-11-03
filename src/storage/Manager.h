@@ -33,7 +33,6 @@ namespace detail {
 class ExpirationTimer final : public zeek::detail::Timer {
 public:
     ExpirationTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_STORAGE_EXPIRE) {}
-    ~ExpirationTimer() override {}
     void Dispatch(double t, bool is_expire) override;
 };
 

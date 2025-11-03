@@ -9,7 +9,6 @@
 class ParameterizedType : public Type {
 public:
     ParameterizedType(ID* type_id, ExprList* args);
-    ~ParameterizedType() override;
 
     Type* clone() const;
 

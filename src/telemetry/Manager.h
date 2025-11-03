@@ -47,7 +47,7 @@ public:
     Manager(const Manager&) = delete;
     Manager& operator=(const Manager&) = delete;
 
-    ~Manager() override;
+    ~Manager() override; // = default;
 
     /**
      * Initialization of the manager. This is called late during Zeek's

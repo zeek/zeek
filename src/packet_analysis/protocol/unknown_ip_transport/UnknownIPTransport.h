@@ -14,7 +14,6 @@ class UnknownIPSessionAdapter;
 class UnknownIPTransportAnalyzer final : public IP::IPBasedAnalyzer {
 public:
     UnknownIPTransportAnalyzer();
-    ~UnknownIPTransportAnalyzer() override = default;
 
     static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<UnknownIPTransportAnalyzer>(); }
 

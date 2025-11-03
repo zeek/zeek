@@ -39,8 +39,6 @@ static auto create_file_state(FileAnalyzer* analyzer) {
 FileAnalyzer::FileAnalyzer(RecordValPtr args, file_analysis::File* file)
     : file_analysis::Analyzer(std::move(args), file), _state(create_file_state(this)) {}
 
-FileAnalyzer::~FileAnalyzer() {}
-
 void FileAnalyzer::Init() {}
 
 void FileAnalyzer::Done() { Finish(); }

@@ -58,7 +58,7 @@ public:
     /**
      * Dtor.
      */
-    virtual ~Target() {}
+    virtual ~Target() = default;
 
     /**
      * Filter out any dependency information from a set of all known info.

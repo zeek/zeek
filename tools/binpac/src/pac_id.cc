@@ -97,8 +97,6 @@ IDRecord::IDRecord(Env* arg_env, const ID* arg_id, IDType arg_id_type)
     macro = nullptr;
 }
 
-IDRecord::~IDRecord() {}
-
 void IDRecord::SetConstant(int c) {
     ASSERT(id_type == CONST);
     constant_set = true;

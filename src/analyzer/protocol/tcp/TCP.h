@@ -27,8 +27,6 @@ public:
 
     explicit TCP_ApplicationAnalyzer(Connection* conn) : Analyzer(conn), tcp(nullptr) {}
 
-    ~TCP_ApplicationAnalyzer() override {}
-
     // This may be nil if we are not directly associated with a TCP
     // analyzer (e.g., we're part of a tunnel decapsulation pipeline).
     packet_analysis::TCP::TCPSessionAdapter* TCP();
@@ -71,8 +69,6 @@ class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer {
 public:
     TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
         : analyzer::SupportAnalyzer(name, conn, arg_orig) {}
-
-    ~TCP_SupportAnalyzer() override {}
 
     // These are passed on from TCPSessionAdapter.
     virtual void EndpointEOF(bool is_orig) {}

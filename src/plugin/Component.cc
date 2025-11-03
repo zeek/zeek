@@ -17,7 +17,7 @@ Component::Component(component::Type arg_type, std::string arg_name, Tag::subtyp
     canon_name_val = make_intrusive<StringVal>(canon_name);
 }
 
-Component::~Component() {}
+Component::~Component() = default;
 
 void Component::Describe(ODesc* d) const {
     d->Add("    ");

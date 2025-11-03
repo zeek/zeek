@@ -418,7 +418,6 @@ class BackendHandleVal : public OpaqueVal {
 public:
     BackendHandleVal() : OpaqueVal(detail::backend_opaque) {}
     BackendHandleVal(BackendPtr backend) : OpaqueVal(detail::backend_opaque), backend(std::move(backend)) {}
-    ~BackendHandleVal() override = default;
 
     /**
      * Attempts to cast a handle passed from script-land into a BackendHandleVal. Used by

@@ -131,7 +131,7 @@ inline string strfmt(const char* format, ...) {
 class RefCount {
 public:
     RefCount() { count = 1; }
-    virtual ~RefCount() {}
+    virtual ~RefCount() = default;
     void Ref() { ++count; }
     int Unref() {
         BINPAC_ASSERT(count > 0);

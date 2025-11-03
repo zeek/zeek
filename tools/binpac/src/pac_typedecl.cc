@@ -166,6 +166,7 @@ void TypeDecl::GenConstructorFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("%s;", proto.c_str());
 
+    out_cc->println("// NOLINTNEXTLINE(modernize-use-equals-default)");
     out_cc->println("%s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
 
@@ -189,6 +190,7 @@ void TypeDecl::GenDestructorFunc(Output* out_h, Output* out_cc) {
     else
         out_h->println("%s override;", proto.c_str());
 
+    out_cc->println("// NOLINTNEXTLINE(modernize-use-equals-default)");
     out_cc->println("%s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
 

@@ -1342,7 +1342,6 @@ extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector
 class TableCoerceExpr final : public UnaryExpr {
 public:
     TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
-    ~TableCoerceExpr() override = default;
 
     // Optimization-related:
     ExprPtr Duplicate() override;
@@ -1354,7 +1353,6 @@ protected:
 class VectorCoerceExpr final : public UnaryExpr {
 public:
     VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
-    ~VectorCoerceExpr() override = default;
 
     // Optimization-related:
     ExprPtr Duplicate() override;
@@ -1370,7 +1368,6 @@ protected:
 class ScheduleTimer final : public Timer {
 public:
     ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
-    ~ScheduleTimer() override = default;
 
     void Dispatch(double t, bool is_expire) override;
 

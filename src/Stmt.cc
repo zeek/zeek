@@ -1674,10 +1674,7 @@ TraversalCode AssertStmt::Traverse(TraversalCallback* cb) const {
     HANDLE_TC_STMT_POST(tc);
 }
 
-class AssertException : public InterpreterException {
-public:
-    AssertException() {}
-};
+class AssertException : public InterpreterException {};
 
 void report_assert(bool cond, std::string_view cond_desc, StringValPtr msg_val, const Location* loc) {
     static auto assertion_failure_hook = id::find_func("assertion_failure");

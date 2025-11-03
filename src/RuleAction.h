@@ -25,8 +25,8 @@ bool is_event(const char* id);
 // Base class of all rule actions.
 class RuleAction {
 public:
-    RuleAction() {}
-    virtual ~RuleAction() {}
+    RuleAction() = default;
+    virtual ~RuleAction() = default;
 
     virtual void DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) = 0;
     virtual void PrintDebug() = 0;

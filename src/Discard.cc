@@ -22,7 +22,7 @@ Discarder::Discarder() {
     discarder_maxlen = static_cast<int>(id::find_val("discarder_maxlen")->AsCount());
 }
 
-Discarder::~Discarder() {}
+Discarder::~Discarder() = default;
 
 bool Discarder::IsActive() { return check_ip || check_tcp || check_udp || check_icmp; }
 

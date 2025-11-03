@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::VNTag {
 class VNTagAnalyzer : public Analyzer {
 public:
     VNTagAnalyzer();
-    ~VNTagAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

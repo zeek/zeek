@@ -14,8 +14,8 @@ class ID;
 // Base class for all rule conditions except patterns and "header".
 class RuleCondition {
 public:
-    RuleCondition() {}
-    virtual ~RuleCondition() {}
+    RuleCondition() = default;
+    virtual ~RuleCondition() = default;
 
     virtual bool DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len) = 0;
 
@@ -78,7 +78,7 @@ private:
 // Implements "same-ip".
 class RuleConditionSameIP : public RuleCondition {
 public:
-    RuleConditionSameIP() {}
+    RuleConditionSameIP() = default;
 
     bool DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len) override;
 

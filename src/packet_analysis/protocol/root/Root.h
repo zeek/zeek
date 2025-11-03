@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::Root {
 class RootAnalyzer : public Analyzer {
 public:
     RootAnalyzer();
-    ~RootAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

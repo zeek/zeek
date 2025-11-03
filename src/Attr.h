@@ -67,8 +67,6 @@ public:
     Attr(AttrTag t, ExprPtr e);
     explicit Attr(AttrTag t);
 
-    ~Attr() override = default;
-
     AttrTag Tag() const { return tag; }
 
     const ExprPtr& GetExpr() const { return expr; }
@@ -118,8 +116,6 @@ public:
     Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global)
         : Attributes(std::move(a), std::move(t), in_record, is_global, false) {}
 
-
-    ~Attributes() override = default;
 
     void AddAttr(AttrPtr a, bool is_redef = false);
 

@@ -16,7 +16,6 @@ namespace zeek::packet_analysis::gtpv1 {
 class GTPv1_Analyzer final : public packet_analysis::Analyzer {
 public:
     explicit GTPv1_Analyzer();
-    ~GTPv1_Analyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

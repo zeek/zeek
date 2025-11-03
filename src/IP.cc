@@ -500,7 +500,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, uint64_t total_len, bool se
             next_type = next;
         }
 
-        chain.emplace_back(std::move(p));
+        chain.emplace_back(p);
 
         // Check for routing headers and remember final destination address.
         if ( current_type == IPPROTO_ROUTING )

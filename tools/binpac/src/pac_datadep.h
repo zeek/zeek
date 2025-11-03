@@ -25,7 +25,7 @@ public:
     };
 
     DataDepElement(DDE_Type type);
-    virtual ~DataDepElement() {}
+    virtual ~DataDepElement() = default;
 
     // Returns whether to continue traversal
     bool Traverse(DataDepVisitor* visitor);
@@ -44,7 +44,7 @@ protected:
 
 class DataDepVisitor {
 public:
-    virtual ~DataDepVisitor() {}
+    virtual ~DataDepVisitor() = default;
     // Returns whether to continue traversal
     virtual bool PreProcess(DataDepElement* element) = 0;
     virtual bool PostProcess(DataDepElement* element) = 0;

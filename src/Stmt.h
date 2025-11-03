@@ -138,7 +138,6 @@ protected:
 class DebugIfStmt final : public IfStmt {
 public:
     DebugIfStmt(ExprPtr test, StmtPtr s1, StmtPtr s2) : IfStmt(test, s1, s2) {}
-    ~DebugIfStmt() override = default;
 
 protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -425,7 +424,6 @@ public:
 class StmtList : public Stmt {
 public:
     StmtList();
-    ~StmtList() override = default;
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
@@ -464,7 +462,6 @@ protected:
 class DebugStmtList : public StmtList {
 public:
     DebugStmtList() = default;
-    ~DebugStmtList() override = default;
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 };

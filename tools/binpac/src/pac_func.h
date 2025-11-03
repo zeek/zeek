@@ -9,7 +9,7 @@
 class Function : public Object {
 public:
     Function(ID* id, Type* type, ParamList* params);
-    ~Function();
+    ~Function() override;
 
     ID* id() const { return id_; }
 

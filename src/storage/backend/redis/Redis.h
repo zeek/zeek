@@ -17,7 +17,6 @@ namespace zeek::storage::backend::redis {
 class Redis final : public Backend, public iosource::IOSource {
 public:
     Redis() : Backend(SupportedModes::ASYNC, "REDIS"), IOSource(true) {}
-    ~Redis() override = default;
 
     static BackendPtr Instantiate();
 

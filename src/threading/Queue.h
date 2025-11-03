@@ -138,7 +138,7 @@ inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer) {
 }
 
 template<typename T>
-inline Queue<T>::~Queue() {}
+inline Queue<T>::~Queue() = default;
 
 template<typename T>
 inline T Queue<T>::Get() {

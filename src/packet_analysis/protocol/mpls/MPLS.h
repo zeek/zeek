@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::MPLS {
 class MPLSAnalyzer : public zeek::packet_analysis::Analyzer {
 public:
     MPLSAnalyzer();
-    ~MPLSAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

@@ -20,7 +20,6 @@ namespace zeek::packet_analysis::ARP {
 class ARPAnalyzer : public Analyzer {
 public:
     ARPAnalyzer();
-    ~ARPAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

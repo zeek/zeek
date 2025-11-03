@@ -105,7 +105,7 @@ public:
     /**
      * Copy constructor.
      */
-    IPAddr(const IPAddr& other) : in6(other.in6) {};
+    IPAddr(const IPAddr& other) = default;
 
     /**
      * Destructor.
@@ -238,12 +238,7 @@ public:
     /**
      * Assignment operator.
      */
-    IPAddr& operator=(const IPAddr& other) {
-        // No self-assignment check here because it's correct without it and
-        // makes the common case faster.
-        in6 = other.in6;
-        return *this;
-    }
+    IPAddr& operator=(const IPAddr& other) = default;
 
     /**
      * Bitwise OR operator returns the IP address resulting from the bitwise
@@ -480,7 +475,7 @@ public:
     /**
      * Copy constructor.
      */
-    IPPrefix(const IPPrefix& other) : prefix(other.prefix), length(other.length) {}
+    IPPrefix(const IPPrefix& other) = default;
 
     /**
      * Destructor.
@@ -518,13 +513,7 @@ public:
     /**
      * Assignment operator.
      */
-    IPPrefix& operator=(const IPPrefix& other) {
-        // No self-assignment check here because it's correct without it and
-        // makes the common case faster.
-        prefix = other.prefix;
-        length = other.length;
-        return *this;
-    }
+    IPPrefix& operator=(const IPPrefix& other) = default;
 
     /**
      * Returns a string representation of the prefix. IPv4 addresses

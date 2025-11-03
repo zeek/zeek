@@ -46,7 +46,7 @@ class Evaluatable;
 class ID : public Object {
 public:
     ID(string arg_name) : name(std::move(arg_name)) { locname = nfmt("%s:%s", Location(), Name()); }
-    ~ID() { delete[] locname; }
+    ~ID() override { delete[] locname; }
 
     bool operator==(ID const& x) const { return name == x.Name(); }
 
@@ -82,7 +82,7 @@ public:
 class IDRecord {
 public:
     IDRecord(Env* env, const ID* id, IDType id_type);
-    ~IDRecord();
+    ~IDRecord() = default;
 
     IDType GetType() const { return id_type; }
 
@@ -131,7 +131,7 @@ protected:
 
 class Evaluatable {
 public:
-    virtual ~Evaluatable() {}
+    virtual ~Evaluatable() = default;
     virtual void GenEval(Output* out, Env* env) = 0;
 };
 

@@ -333,7 +333,6 @@ using built_in_func = ValPtr (*)(Frame* frame, const Args* args);
 class BuiltinFunc final : public Func {
 public:
     BuiltinFunc(built_in_func func, const char* name, bool is_pure);
-    ~BuiltinFunc() override = default;
 
     bool IsPure() const override;
     ValPtr Invoke(zeek::Args* args, Frame* parent) const override;

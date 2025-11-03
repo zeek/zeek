@@ -19,7 +19,7 @@ public:
     // Empty constructor for a simple version that initializes all the
     // member variables via BeginLoop(). Helpful for supporting recursive
     // functions that include table iterations.
-    TableIterInfo() {}
+    TableIterInfo() = default;
 
     // Version that populates the fixed fields up front, with the
     // dynamic ones being done with SetLoopVars().

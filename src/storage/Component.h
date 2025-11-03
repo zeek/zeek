@@ -34,11 +34,6 @@ public:
     BackendComponent(const std::string& name, factory_callback factory);
 
     /**
-     * Destructor.
-     */
-    ~BackendComponent() override = default;
-
-    /**
      * Initialization function. This function has to be called before any
      * plugin component functionality is used; it is used to add the
      * plugin component to the list of components and to initialize tags
@@ -80,11 +75,6 @@ public:
      * instance.
      */
     SerializerComponent(const std::string& name, factory_callback factory);
-
-    /**
-     * Destructor.
-     */
-    ~SerializerComponent() override = default;
 
     /**
      * Initialization function. This function has to be called before any

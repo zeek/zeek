@@ -15,7 +15,7 @@ public:
     enum DeclType : uint8_t { ENUM, LET, TYPE, FUNC, CONN, FLOW, ANALYZER, HELPER, REGEX };
 
     Decl(ID* id, DeclType decl_type);
-    virtual ~Decl();
+    ~Decl() override;
 
     const ID* id() const { return id_; }
     DeclType decl_type() const { return decl_type_; }

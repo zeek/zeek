@@ -103,11 +103,6 @@ public:
     Manager(bool use_real_time);
 
     /**
-     * Destructor.
-     */
-    ~Manager() override = default;
-
-    /**
      * Returns true if any Broker communication is currently active.
      */
     bool Active();

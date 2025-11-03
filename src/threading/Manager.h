@@ -26,7 +26,6 @@ namespace detail {
 class HeartbeatTimer final : public zeek::detail::Timer {
 public:
     HeartbeatTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_THREAD_HEARTBEAT) {}
-    ~HeartbeatTimer() override = default;
 
     void Dispatch(double t, bool is_expire) override;
 

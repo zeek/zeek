@@ -88,7 +88,6 @@ class AnalyzerElement : public Object {
 public:
     enum ElementType : uint8_t { STATE, ACTION, FUNCTION, HELPER, FLOW, DATAUNIT };
     AnalyzerElement(ElementType type) : type_(type) {}
-    ~AnalyzerElement() override = default;
 
     ElementType type() const { return type_; }
 

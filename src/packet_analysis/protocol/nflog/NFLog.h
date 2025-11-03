@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::NFLog {
 class NFLogAnalyzer : public Analyzer {
 public:
     NFLogAnalyzer();
-    ~NFLogAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

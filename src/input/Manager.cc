@@ -115,7 +115,6 @@ public:
     string file_id;
 
     AnalysisStream();
-    ~AnalysisStream() override = default;
 };
 
 Manager::TableStream::TableStream() : Manager::Stream::Stream(TABLE_STREAM) {}

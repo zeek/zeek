@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::IEEE802_11 {
 class IEEE802_11Analyzer : public Analyzer {
 public:
     IEEE802_11Analyzer();
-    ~IEEE802_11Analyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

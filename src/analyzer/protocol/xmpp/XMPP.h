@@ -11,7 +11,6 @@ namespace zeek::analyzer::xmpp {
 class XMPP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     explicit XMPP_Analyzer(Connection* conn);
-    ~XMPP_Analyzer() override = default;
 
     void Done() override;
     void DeliverStream(int len, const u_char* data, bool orig) override;

@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::PBB {
 class PBBAnalyzer : public Analyzer {
 public:
     PBBAnalyzer();
-    ~PBBAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

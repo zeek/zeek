@@ -11,7 +11,6 @@ namespace zeek::logging::writer::detail {
 class None : public WriterBackend {
 public:
     explicit None(WriterFrontend* frontend) : WriterBackend(frontend, /*send_heartbeats=*/false) {}
-    ~None() override = default;
 
     static WriterBackend* Instantiate(WriterFrontend* frontend) { return new None(frontend); }
 

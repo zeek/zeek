@@ -18,7 +18,6 @@ public:
     using factory_callback = std::function<FactoryPtr()>;
 
     Component(const std::string& name, factory_callback factory, zeek::Tag::subtype_t subtype = 0);
-    ~Component() override = default;
 
     /**
      * Initialization function. This function has to be called before any

@@ -128,7 +128,6 @@ private:
 class TCP_Analyzer : public ProtocolAnalyzer, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     TCP_Analyzer(Connection* conn);
-    ~TCP_Analyzer() override = default;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;
@@ -156,7 +155,6 @@ public:
 class UDP_Analyzer : public ProtocolAnalyzer, public analyzer::Analyzer {
 public:
     UDP_Analyzer(Connection* conn);
-    ~UDP_Analyzer() override = default;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;

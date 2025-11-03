@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::AYIYA {
 class AYIYAAnalyzer : public zeek::packet_analysis::Analyzer {
 public:
     AYIYAAnalyzer();
-    ~AYIYAAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

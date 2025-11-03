@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::Skip {
 class SkipAnalyzer : public Analyzer {
 public:
     SkipAnalyzer();
-    ~SkipAnalyzer() override = default;
 
     void Initialize() override;
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;

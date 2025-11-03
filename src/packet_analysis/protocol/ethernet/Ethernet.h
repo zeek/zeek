@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::Ethernet {
 class EthernetAnalyzer : public Analyzer {
 public:
     EthernetAnalyzer();
-    ~EthernetAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

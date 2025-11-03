@@ -28,11 +28,6 @@ public:
      */
     explicit Component(const std::string& name);
 
-    /**
-     * Destructor.
-     */
-    ~Component() override = default;
-
 protected:
     /**
      * Constructor to use by derived classes.
@@ -75,11 +70,6 @@ public:
      * @param factor Factory function to instantiate component.
      */
     PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
-
-    /**
-     * Destructor.
-     */
-    ~PktSrcComponent() override = default;
 
     /**
      * Returns the prefix(es) passed to the constructor.
@@ -134,11 +124,6 @@ public:
      * XXX
      */
     PktDumperComponent(const std::string& name, const std::string& prefixes, factory_callback factory);
-
-    /**
-     * Destructor.
-     */
-    ~PktDumperComponent() override = default;
 
     /**
      * Returns the prefix(es) passed to the constructor.

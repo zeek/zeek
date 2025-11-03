@@ -15,7 +15,6 @@ namespace zeek::storage::backend::sqlite {
 class SQLite final : public Backend {
 public:
     SQLite() : Backend(SupportedModes::SYNC, "SQLITE") {}
-    ~SQLite() override = default;
 
     static BackendPtr Instantiate();
 

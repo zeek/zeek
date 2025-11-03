@@ -15,7 +15,6 @@ namespace zeek::analyzer::websocket {
 class WebSocket_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     WebSocket_Analyzer(zeek::Connection* conn);
-    ~WebSocket_Analyzer() override = default;
 
     /**
      * Allows script land to configure the WebSocket analyzer before analysis.

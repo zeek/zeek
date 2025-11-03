@@ -15,7 +15,6 @@ class File;
 class FileReassembler final : public Reassembler {
 public:
     FileReassembler(File* f, uint64_t starting_offset);
-    ~FileReassembler() override = default;
 
     void Done();
 

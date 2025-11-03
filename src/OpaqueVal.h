@@ -119,7 +119,6 @@ private:
 class OpaqueVal : public Val {
 public:
     explicit OpaqueVal(OpaqueTypePtr t);
-    ~OpaqueVal() override = default;
 
     /**
      * @copydoc Serialize

@@ -831,11 +831,6 @@ public:
     }
 
     /**
-     * Destructor.
-     */
-    ~SupportAnalyzer() override = default;
-
-    /**
      * Returns true if this is a support analyzer for the connection's
      * originator side.
      */

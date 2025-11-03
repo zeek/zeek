@@ -103,7 +103,6 @@ protected:
 class BinarySerializationFormat final : public SerializationFormat {
 public:
     BinarySerializationFormat() = default;
-    ~BinarySerializationFormat() override = default;
 
     bool Read(int* v, const char* tag) override;
     bool Read(uint16_t* v, const char* tag) override;

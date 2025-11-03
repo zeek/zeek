@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::SNAP {
 class SNAPAnalyzer : public Analyzer {
 public:
     SNAPAnalyzer();
-    ~SNAPAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

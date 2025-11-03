@@ -10,7 +10,6 @@ namespace zeek::packet_analysis::Null {
 class NullAnalyzer : public Analyzer {
 public:
     NullAnalyzer();
-    ~NullAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

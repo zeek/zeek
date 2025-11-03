@@ -15,7 +15,6 @@ namespace zeek::packet_analysis::teredo {
 class TeredoAnalyzer final : public packet_analysis::Analyzer {
 public:
     TeredoAnalyzer();
-    ~TeredoAnalyzer() override = default;
 
     bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 

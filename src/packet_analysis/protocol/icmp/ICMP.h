@@ -22,7 +22,6 @@ class ICMPSessionAdapter;
 class ICMPAnalyzer final : public IP::IPBasedAnalyzer {
 public:
     ICMPAnalyzer();
-    ~ICMPAnalyzer() override = default;
 
     static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<ICMPAnalyzer>(); }
 

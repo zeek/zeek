@@ -15,7 +15,6 @@ namespace zeek::iosource::pcap {
 class PcapDumper : public PktDumper {
 public:
     PcapDumper(const std::string& path, bool append);
-    ~PcapDumper() override = default;
 
     static PktDumper* Instantiate(const std::string& path, bool append);
 

@@ -9,7 +9,6 @@
 class Param : public Object {
 public:
     Param(ID* id, Type* type);
-    ~Param() override = default;
 
     ID* id() const { return id_; }
     Type* type() const { return type_; }

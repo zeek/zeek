@@ -11,7 +11,6 @@ public:
     static std::unique_ptr<Serializer> Instantiate();
 
     JSON();
-    ~JSON() override = default;
 
     std::optional<byte_buffer> Serialize(ValPtr val) override;
     zeek::expected<ValPtr, std::string> Unserialize(byte_buffer_span buf, TypePtr type) override;

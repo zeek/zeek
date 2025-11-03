@@ -64,7 +64,6 @@ using DelayInfoPtr = std::shared_ptr<DelayInfo>;
 class LogDelayTokenVal : public OpaqueVal {
 public:
     explicit LogDelayTokenVal(DelayTokenType token) : OpaqueVal(zeek::detail::log_delay_token_type), token(token) {}
-    ~LogDelayTokenVal() override = default;
 
     ValPtr DoClone(CloneState* state) override;
 

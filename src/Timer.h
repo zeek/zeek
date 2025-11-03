@@ -67,7 +67,6 @@ extern const char* timer_type_to_string(TimerType type);
 class Timer : public PQ_Element {
 public:
     Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) {}
-    ~Timer() override = default;
 
     TimerType Type() const { return type; }
 

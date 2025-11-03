@@ -1,3 +1,12 @@
+8.1.0-dev.819 | 2025-11-03 09:45:37 -0500
+
+  * Deprecate return values in hooks (Evan Typanski, Corelight)
+
+    This would do nothing. There is no reason to allow hooks to return
+    values. The only reason is that it's easier to appease type checking,
+    but we can simply add an edge case. This should help be less confusing
+    for users.
+
 8.1.0-dev.817 | 2025-11-03 11:52:21 +0000
 
   * Enforce length for 802.3 frames. Accept truncated 802.3 frames. (Johanna Amann, Corelight)

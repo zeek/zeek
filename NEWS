@@ -134,6 +134,9 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- In Zeek 9.1, returning a value from a hook will become an error. Return values
+  from a hooks were previously silently discarded. This behavior was found
+  surprising in relation with the ``break`` statement available in hooks.
 
 Zeek 8.0.0
 ==========

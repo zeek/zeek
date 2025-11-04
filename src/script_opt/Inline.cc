@@ -135,7 +135,7 @@ void Inliner::Analyze() {
                 }
             }
 
-            if ( addls.size() > 0 ) {
+            if ( ! addls.empty() ) {
                 did_addition = true;
 
                 for ( auto& a : addls )

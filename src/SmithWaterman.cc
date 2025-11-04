@@ -262,7 +262,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNo
     // Anything left over now is the first string of an alignment and is
     // manually added and marked as the beginning of a new alignment.
     //
-    if ( substring.size() > 0 ) {
+    if ( ! substring.empty() ) {
         std::ranges::reverse(substring);
         auto* bst = new Substring(substring);
         bst->AddAlignment(matrix.GetRowsString(), row - 1);
@@ -270,7 +270,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNo
         result->push_back(bst);
     }
 
-    if ( result->size() > 0 )
+    if ( ! result->empty() )
         result->back()->MarkNewAlignment(true);
 }
 

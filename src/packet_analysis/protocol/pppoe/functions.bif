@@ -15,7 +15,7 @@ function session_id%(%): count
 	static const auto& analyzer = zeek::packet_mgr->GetAnalyzer("PPPoE");
 	auto spans = zeek::packet_mgr->GetAnalyzerData(analyzer);
 
-	if ( spans.size() == 0 || spans[0].size() <=8 )
+	if ( spans.empty() || spans[0].size() <=8 )
 		return zeek::val_mgr->Count(0xFFFFFFFF);
 
 	return zeek::val_mgr->Count((spans[0][2] << 8u) + spans[0][3]);

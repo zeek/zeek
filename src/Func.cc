@@ -760,7 +760,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call) {
         return true;
 
     const ExprPList& args = call->Args()->Exprs();
-    if ( args.length() == 0 ) {
+    if ( args.empty() ) {
         // Empty calls are allowed, since you can't just
         // use "print;" to get a blank line.
         return true;

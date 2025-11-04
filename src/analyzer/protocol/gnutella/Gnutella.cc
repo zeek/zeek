@@ -132,8 +132,8 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
         return;
 
     while ( NextLine(data, len) ) {
-        if ( ms->buffer.length() ) {
-            if ( ms->headers.length() == 0 ) {
+        if ( ! ms->buffer.empty() ) {
+            if ( ms->headers.empty() ) {
                 if ( IsHTTP(ms->buffer) )
                     return;
                 if ( GnutellaOK(ms->buffer) )

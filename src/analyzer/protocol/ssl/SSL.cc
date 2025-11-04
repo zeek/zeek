@@ -218,7 +218,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
     }
 
     // Neither secret or key present: abort
-    if ( secret.size() == 0 && keys.size() == 0 ) {
+    if ( secret.empty() && keys.empty() ) {
         DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing keys/secret. Client_random: %s\n",
                 util::fmt_bytes(reinterpret_cast<const char*>(handshake_interp->client_random().data()),
                                 handshake_interp->client_random().length()));
@@ -229,7 +229,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
     }
 
     // Secret present, but no keys derived yet: derive keys
-    if ( secret.size() != 0 && keys.size() == 0 ) {
+    if ( ! secret.empty() && keys.empty() ) {
 #ifdef OPENSSL_HAVE_KDF_H
         DBG_LOG(DBG_ANALYZER, "Deriving TLS keys for connection");
         uint32_t ts = htonl((uint32_t)handshake_interp->gmt_unix_time());

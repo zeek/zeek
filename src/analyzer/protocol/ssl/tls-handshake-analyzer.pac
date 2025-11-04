@@ -118,7 +118,7 @@ refine connection Handshake_Conn += {
 							zeek::make_intrusive<zeek::StringVal>(server_random.length(),
 							                                      reinterpret_cast<const char*>(server_random.data())),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
-							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
+							ciphers->empty() ? 0 : ciphers->at(0), comp_method);
 
 			delete ciphers;
 			}

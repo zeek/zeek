@@ -351,7 +351,7 @@ void RuleMatcher::BuildRulesTree() {
         const auto& pats = rule->patterns;
 
         if ( ! has_non_file_magic_rule ) {
-            if ( pats.length() > 0 ) {
+            if ( ! pats.empty() ) {
                 for ( const auto& p : pats ) {
                     if ( p->type != Rule::FILE_MAGIC ) {
                         has_non_file_magic_rule = true;
@@ -383,7 +383,7 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int
 
     // All tests in tree already?
     if ( testnr >= r->hdr_tests.length() ) { // then insert it into the right list of the test
-        if ( r->patterns.length() ) {
+        if ( ! r->patterns.empty() ) {
             r->next = dest->pattern_rules;
             dest->pattern_rules = r;
         }
@@ -424,7 +424,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // If we're above the RE_level, these patterns will form the regexprs.
     if ( hdr_test->level < RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 
@@ -447,7 +447,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // form the regexprs.
     if ( hdr_test->level == RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 

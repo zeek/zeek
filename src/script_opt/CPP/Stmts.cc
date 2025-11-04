@@ -162,7 +162,7 @@ void CPPCompile::GenEventStmt(const EventStmt* ev) {
 
     RegisterEvent(ev_n);
 
-    if ( ev_e->Args()->Exprs().length() > 0 )
+    if ( ! ev_e->Args()->Exprs().empty() )
         Emit("event_mgr.Enqueue(%s_ev, %s);", globals[string(ev_n)], GenExpr(ev_e->Args(), GEN_VAL_PTR));
     else
         Emit("event_mgr.Enqueue(%s_ev, Args{});", globals[string(ev_n)]);

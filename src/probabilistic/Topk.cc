@@ -97,9 +97,8 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
                 olde->epsilon = 0;
                 olde->value = e->value;
                 // insert at bucket position 0
-                if ( buckets.size() > 0 ) {
+                if ( ! buckets.empty() )
                     assert(buckets.front()->count > 0);
-                }
 
                 Bucket* newbucket = new Bucket();
                 newbucket->count = 0;
@@ -135,9 +134,9 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
 
     while ( numElements > size ) {
         pruned = true;
-        assert(buckets.size() > 0);
+        assert(! buckets.empty());
         Bucket* b = buckets.front();
-        assert(b->elements.size() > 0);
+        assert(! b->elements.empty());
 
         Element* e = b->elements.front();
         zeek::detail::HashKey* key = GetHash(e->value);
@@ -147,7 +146,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
 
         b->elements.pop_front();
 
-        if ( b->elements.size() == 0 ) {
+        if ( b->elements.empty() ) {
             delete b;
             buckets.pop_front();
         }
@@ -263,7 +262,7 @@ void TopkVal::Encountered(ValPtr encountered) {
         // well, we do not know this one yet...
         if ( numElements < size ) {
             // brilliant. just add it at position 1
-            if ( buckets.size() == 0 || (*buckets.begin())->count > 1 ) {
+            if ( buckets.empty() || (*buckets.begin())->count > 1 ) {
                 Bucket* b = new Bucket();
                 b->count = 1;
                 std::list<Bucket*>::iterator pos = buckets.insert(buckets.begin(), b);
@@ -290,7 +289,7 @@ void TopkVal::Encountered(ValPtr encountered) {
             Bucket* b = *buckets.begin(); // bucket with smallest elements
 
             // evict oldest element with least hits.
-            assert(b->elements.size() > 0);
+            assert(! b->elements.empty());
             zeek::detail::HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
             b->elements.erase(b->elements.begin());
             Element* deleteElement = (Element*)elementDict->RemoveEntry(deleteKey);
@@ -351,7 +350,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count) {
     e->parent = nextBucket;
 
     // if currBucket is empty, we have to delete it now
-    if ( currBucket->elements.size() == 0 ) {
+    if ( currBucket->elements.empty() ) {
         buckets.remove(currBucket);
         delete currBucket;
         currBucket = nullptr;

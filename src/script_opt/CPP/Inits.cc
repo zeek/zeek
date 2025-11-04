@@ -90,7 +90,7 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) {
             auto rc = static_cast<const RecordConstructorExpr*>(op.get());
             const auto& exprs = rc->Op()->AsListExpr()->Exprs();
 
-            return exprs.length() == 0;
+            return exprs.empty();
         }
 
         default: return false;
@@ -283,7 +283,7 @@ void CPPCompile::GenStandaloneActivation() {
     for ( auto& fb : func_bodies ) {
         string hashes;
         for ( auto h : fb.second ) {
-            if ( hashes.size() > 0 )
+            if ( ! hashes.empty() )
                 hashes += ", ";
 
             hashes += Fmt(h);

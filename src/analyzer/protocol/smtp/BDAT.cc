@@ -111,7 +111,7 @@ void SMTP_BDAT_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig
     }
 
     // Start searching for crlf at the end of the old buffer, if any.
-    std::string::size_type i = buf.size() > 0 ? buf.size() - 1 : 0;
+    std::string::size_type i = ! buf.empty() ? buf.size() - 1 : 0;
 
     buf.append(reinterpret_cast<const char*>(data), len);
 
@@ -145,7 +145,7 @@ void SMTP_BDAT_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig
 
     // If this is the last chunk and all data was received, Flush any
     // remaining data out now. Done() is called by the owner of mail.
-    if ( IsLastChunk() && RemainingChunkSize() == 0 && buf.size() > 0 ) {
+    if ( IsLastChunk() && RemainingChunkSize() == 0 && ! buf.empty() ) {
         mail->Deliver(buf.size(), buf.data(), false /*trailing_crlf*/); // Maybe this should be true?
         buf.erase();
     }

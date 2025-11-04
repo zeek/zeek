@@ -198,7 +198,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
         create += fieldname;
 
         string type = GetTableType(field->type, field->subtype);
-        if ( type == "" ) {
+        if ( type.empty() ) {
             InternalError(Fmt("Could not determine type for field %u:%s", i, fieldname));
             sqlite3_free(fieldname);
             return false;

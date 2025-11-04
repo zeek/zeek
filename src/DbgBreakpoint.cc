@@ -212,7 +212,7 @@ BreakCode DbgBreakpoint::HasHit() {
         return BC_HIT_AND_DELETE;
     }
 
-    if ( condition.size() ) {
+    if ( ! condition.empty() ) {
         // TODO: ### evaluate using debugger frame too
         auto yes = dbg_eval_expr(condition.c_str());
 

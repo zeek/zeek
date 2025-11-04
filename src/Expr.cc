@@ -1117,7 +1117,7 @@ bool BinaryExpr::CheckForRHSList() {
     auto& rhs_exprs = rhs->Exprs();
 
     if ( lhs_t->Tag() == TYPE_TABLE ) {
-        if ( lhs_t->IsSet() && rhs_exprs.size() >= 1 && same_type(lhs_t, rhs_exprs[0]->GetType()) ) {
+        if ( lhs_t->IsSet() && ! rhs_exprs.empty() && same_type(lhs_t, rhs_exprs[0]->GetType()) ) {
             // This is potentially the idiom of "set1 += { set2 }"
             // or "set1 += { set2, set3, set4 }".
             op2 = {NewRef{}, rhs_exprs[0]};
@@ -3046,7 +3046,7 @@ bool RecordConstructorExpr::IsPure() const { return op->IsPure(); }
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const {
     auto& tn = type->GetName();
 
-    if ( tn.size() > 0 ) {
+    if ( ! tn.empty() ) {
         d->Add(tn);
         d->Add("(");
         op->Describe(d);
@@ -4286,7 +4286,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
     auto desc = when_parent ? "\"when\" statement" : "lambda";
 
     if ( ! captures ) {
-        if ( outer_ids.size() > 0 ) {
+        if ( ! outer_ids.empty() ) {
             reporter->Error("%s uses outer identifiers without [] captures: %s%s", desc,
                             outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
             return false;

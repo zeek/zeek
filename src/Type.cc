@@ -581,7 +581,7 @@ SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
             TypeList* tl_type = elements->GetType()->AsTypeList();
             const auto& tl = tl_type->GetTypes();
 
-            if ( tl.size() < 1 ) {
+            if ( tl.empty() ) {
                 Error("no type given for set");
                 SetError();
             }
@@ -1206,7 +1206,7 @@ void RecordType::DoDescribe(ODesc* d) const {
     d->PushType(this);
 
     if ( d->IsReadable() ) {
-        if ( d->IsShort() && GetName().size() )
+        if ( d->IsShort() && ! GetName().empty() )
             d->Add(GetName());
 
         else {
@@ -2205,7 +2205,7 @@ const Type* flatten_type(const Type* t) {
 
     const auto& types = tl->GetTypes();
 
-    if ( types.size() == 0 )
+    if ( types.empty() )
         reporter->InternalError("empty type list in flatten_type");
 
     const auto& ft = types[0];
@@ -2434,8 +2434,8 @@ TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const auto& l1 = tl1->GetTypes();
     const auto& l2 = tl2->GetTypes();
 
-    if ( l1.size() == 0 || l2.size() == 0 ) {
-        if ( l1.size() == 0 )
+    if ( l1.empty() || l2.empty() ) {
+        if ( l1.empty() )
             tl1->Error("empty list");
         else
             tl2->Error("empty list");
@@ -2521,7 +2521,7 @@ TypePtr maximal_type(detail::ListExpr* elements) {
     TypeList* tl_type = elements->GetType()->AsTypeList();
     const auto& tl = tl_type->GetTypes();
 
-    if ( tl.size() < 1 ) {
+    if ( tl.empty() ) {
         reporter->Error("no type can be inferred for empty list");
         return nullptr;
     }
@@ -2656,7 +2656,7 @@ TypePtr init_type(const detail::ExprPtr& init) {
     auto init_list = init->AsListExpr();
     const auto& el = init_list->Exprs();
 
-    if ( el.length() == 0 ) {
+    if ( el.empty() ) {
         init->Error("empty list in untyped initialization");
         return nullptr;
     }

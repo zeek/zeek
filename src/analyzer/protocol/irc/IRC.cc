@@ -175,7 +175,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         // authentication fails.
         //
         // (### This seems not quite prudent to me - VP)
-        if ( command == "SERVER" && prefix == "" ) {
+        if ( command == "SERVER" && prefix.empty() ) {
             orig_status = REGISTERED;
         }
     }
@@ -191,7 +191,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
         // Again, don't bother checking whether SERVER command
         // is successful.
-        if ( command == "SERVER" && prefix == "" )
+        if ( command == "SERVER" && prefix.empty() )
             resp_status = REGISTERED;
     }
 
@@ -265,7 +265,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                 parts.erase(parts.begin());
                 parts.erase(parts.begin());
 
-                if ( parts.size() > 0 && parts[0][0] == ':' )
+                if ( ! parts.empty() && parts[0][0] == ':' )
                     parts[0] = parts[0].substr(1);
 
                 auto set = make_intrusive<TableVal>(id::string_set);
@@ -541,9 +541,9 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         string message = params.substr(pos + 1);
         SkipLeadingWhitespace(message);
 
-        if ( message.size() > 0 && message[0] == ':' )
+        if ( ! message.empty() && message[0] == ':' )
             message = message.substr(1);
-        if ( message.size() > 0 && message[0] == 1 )
+        if ( ! message.empty() && message[0] == 1 )
             message = message.substr(1); // DCC
 
         // Check for DCC messages.
@@ -626,7 +626,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         vl.emplace_back(ConnVal());
         vl.emplace_back(val_mgr->Bool(orig));
 
-        if ( parts.size() > 0 )
+        if ( ! parts.empty() )
             vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
         else
             vl.emplace_back(val_mgr->EmptyString());
@@ -703,13 +703,13 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
         vector<string> parts = SplitWords(params, ' ');
 
-        if ( parts.size() < 1 ) {
+        if ( parts.empty() ) {
             Weird("irc_invalid_join_line");
             return;
         }
 
         string nickname = "";
-        if ( prefix.size() > 0 ) {
+        if ( ! prefix.empty() ) {
             unsigned int pos = prefix.find('!');
             if ( pos < prefix.size() )
                 nickname = prefix.substr(0, pos);
@@ -826,7 +826,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             message = message.substr(1);
 
         string nickname = "";
-        if ( prefix.size() > 0 ) {
+        if ( ! prefix.empty() ) {
             unsigned int pos = prefix.find('!');
             if ( pos < prefix.size() )
                 nickname = prefix.substr(0, pos);
@@ -857,17 +857,17 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             oper = true;
 
         // Remove ":" from mask.
-        if ( parts.size() > 0 && parts[0].size() > 0 && parts[0][0] == ':' )
+        if ( ! parts.empty() && ! parts[0].empty() && parts[0][0] == ':' )
             parts[0] = parts[0].substr(1);
 
         EnqueueConnEvent(irc_who_message, ConnVal(), val_mgr->Bool(orig),
-                         parts.size() > 0 ? make_intrusive<StringVal>(parts[0].c_str()) : val_mgr->EmptyString(),
+                         ! parts.empty() ? make_intrusive<StringVal>(parts[0].c_str()) : val_mgr->EmptyString(),
                          val_mgr->Bool(oper));
     }
 
     else if ( irc_whois_message && command == "WHOIS" ) {
         vector<string> parts = SplitWords(params, ' ');
-        if ( parts.size() < 1 || parts.size() > 2 ) {
+        if ( parts.empty() || parts.size() > 2 ) {
             Weird("irc_invalid_whois_message_format");
             return;
         }
@@ -897,7 +897,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     else if ( irc_invite_message && command == "INVITE" ) {
         vector<string> parts = SplitWords(params, ' ');
         if ( parts.size() == 2 ) { // remove ":" from channel
-            if ( parts[1].size() > 0 && parts[1][0] == ':' )
+            if ( ! parts[1].empty() && parts[1][0] == ':' )
                 parts[1] = parts[1].substr(1);
 
             EnqueueConnEvent(irc_invite_message, ConnVal(), val_mgr->Bool(orig),
@@ -909,7 +909,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_mode_message && command == "MODE" ) {
-        if ( params.size() > 0 )
+        if ( ! params.empty() )
             EnqueueConnEvent(irc_mode_message, ConnVal(), val_mgr->Bool(orig),
                              make_intrusive<StringVal>(prefix.c_str()), make_intrusive<StringVal>(params.c_str()));
 
@@ -996,7 +996,7 @@ vector<string> IRC_Analyzer::SplitWords(const string& input, char split) {
     string word = "";
     while ( (split_pos = input.find(split, start)) < input.size() ) {
         word = input.substr(start, split_pos - start);
-        if ( word.size() > 0 && word[0] != split )
+        if ( ! word.empty() && word[0] != split )
             words.push_back(word);
 
         start = split_pos + 1;

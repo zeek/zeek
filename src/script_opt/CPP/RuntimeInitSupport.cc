@@ -34,7 +34,7 @@ static int flag_init_CPP() {
 static int dummy = flag_init_CPP();
 
 void register_type__CPP(TypePtr t, const string& name) {
-    if ( t->GetName().size() > 0 )
+    if ( ! t->GetName().empty() )
         // Already registered.
         return;
 

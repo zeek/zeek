@@ -310,7 +310,7 @@ void do_print_stmt(const std::vector<ValPtr>& vals) {
     File* f = print_stdout;
     int offset = 0;
 
-    if ( vals.size() > 0 && vals[0] && vals[0]->GetType()->Tag() == TYPE_FILE ) {
+    if ( ! vals.empty() && vals[0] && vals[0]->GetType()->Tag() == TYPE_FILE ) {
         f = (vals)[0]->AsFile();
         if ( ! f->IsOpen() )
             return;

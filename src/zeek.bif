@@ -2133,7 +2133,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ## .. zeek:see:: cat cat_sep string_cat
 function fmt%(...%): string
 	%{
-	if ( @ARGC@ == 0 )
+	if ( @ARGS@->empty() )
 		return zeek::val_mgr->EmptyString();
 
 	Val* fmt_v = @ARG@[0].get();

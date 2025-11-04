@@ -1887,7 +1887,7 @@ ExprPtr TableConstructorExpr::Duplicate() {
     auto op_l = op->Duplicate()->AsListExprPtr();
 
     TypePtr t;
-    if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
+    if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
         t = type;
     else
         // Use a null type rather than the one inferred, to instruct
@@ -1971,7 +1971,7 @@ ExprPtr SetConstructorExpr::Duplicate() {
     auto op_l = op->Duplicate()->AsListExprPtr();
 
     TypePtr t;
-    if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
+    if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
         t = type;
     else
         // Use a null type rather than the one inferred, to instruct
@@ -3251,7 +3251,7 @@ ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, CallExprPtr _call)
     const auto& args = call->Args()->Exprs();
     ASSERT(args.size() <= 2);
 
-    if ( args.size() > 0 ) {
+    if ( ! args.empty() ) {
         arg1 = args[0]->Duplicate();
         if ( args.size() > 1 ) {
             arg2 = args[1]->Duplicate();

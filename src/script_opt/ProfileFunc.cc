@@ -834,7 +834,7 @@ void ProfileFuncs::TraverseValue(const ValPtr& v) {
 }
 
 void ProfileFuncs::DrainPendingExprs() {
-    while ( pending_exprs.size() > 0 ) {
+    while ( ! pending_exprs.empty() ) {
         // Copy the pending expressions so we can loop over them
         // while accruing additions.
         auto pe = pending_exprs;

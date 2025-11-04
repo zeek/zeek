@@ -37,7 +37,7 @@ Manager::Manager() {
 }
 
 Manager::~Manager() {
-    if ( all_threads.size() )
+    if ( ! all_threads.empty() )
         Terminate();
 }
 

@@ -17,7 +17,7 @@ zeek::VectorValPtr name_list_to_vector(const bytestring& nl)
 	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	string name_list = std_str(nl);
-	if ( name_list.size() < 1 )
+	if ( name_list.empty() )
 		return vv;
 
 	unsigned int start = 0;
@@ -33,7 +33,7 @@ zeek::VectorValPtr name_list_to_vector(const bytestring& nl)
 	while ( (split_pos = name_list.find(',', start)) < name_list.size() )
 		{
 		word = name_list.substr(start, split_pos - start);
-		if ( word.size() > 0 && word[0] != ',' )
+		if ( ! word.empty() && word[0] != ',' )
 			vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
 
 		start = split_pos + 1;

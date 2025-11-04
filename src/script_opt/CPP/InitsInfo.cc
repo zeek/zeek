@@ -656,7 +656,7 @@ void IndicesManager::Generate(CPPCompile* c) {
             }
         }
 
-        if ( line.size() > 0 )
+        if ( ! line.empty() )
             c->Emit(line);
     }
 

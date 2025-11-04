@@ -311,7 +311,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
                 unsigned int pos = 0;
                 bool error = false;
 
-                if ( separators.empty_field.size() > 0 && s.compare(separators.empty_field) == 0 )
+                if ( ! separators.empty_field.empty() && s.compare(separators.empty_field) == 0 )
                     length = 0;
 
                 if ( separators.empty_field.empty() && s.empty() )

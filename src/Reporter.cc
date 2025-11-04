@@ -487,7 +487,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     if ( location ) {
         int loc_line = 0;
 
-        if ( locations.size() ) {
+        if ( ! locations.empty() ) {
             ODesc d;
 
             std::pair<const detail::Location*, const detail::Location*> locs = locations.back();
@@ -564,7 +564,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     bool raise_event = true;
 
     if ( via_events && ! in_error_handler ) {
-        if ( locations.size() ) {
+        if ( ! locations.empty() ) {
             auto locs = locations.back();
             raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
                                                   HookReporter(prefix, event, conn, addl, location, locs.first,
@@ -622,14 +622,14 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
         }
 
         if ( prefix && *prefix ) {
-            if ( loc_str != "" )
+            if ( ! loc_str.empty() )
                 s += std::string(prefix) + " in " + loc_str + ": ";
             else
                 s += std::string(prefix) + ": ";
         }
 
         else {
-            if ( loc_str != "" )
+            if ( ! loc_str.empty() )
                 s += loc_str + ": ";
         }
 

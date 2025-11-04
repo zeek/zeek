@@ -1371,7 +1371,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
         reply_reason_phrase = nullptr;
 
     // unanswered requests = 1 because there is no pop after 101.
-    if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection && upgrade_protocol.size() )
+    if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection && ! upgrade_protocol.empty() )
         HTTP_Upgrade();
 
     reply_code = 0;

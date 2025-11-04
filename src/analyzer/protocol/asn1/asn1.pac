@@ -158,7 +158,7 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 			}
 		}
 
-	if ( ! subidentifier.empty() || subidentifiers.size() < 1 )
+	if ( ! subidentifier.empty() || subidentifiers.empty() )
 		// Underflow.
 		return zeek::val_mgr->EmptyString();
 

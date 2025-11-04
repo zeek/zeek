@@ -1,6 +1,6 @@
 function proc_certificate(is_orig: bool, is_flipped: bool, certificates : bytestring[]) : bool
 	%{
-	if ( certificates->size() == 0 )
+	if ( certificates->empty() )
 		return true;
 
 	zeek::ODesc common;

@@ -43,7 +43,7 @@ void PktSrcComponent::DoDescribe(ODesc* d) const {
     std::string prefs;
 
     for ( const auto& pfx : prefixes ) {
-        if ( prefs.size() )
+        if ( ! prefs.empty() )
             prefs += ", ";
 
         prefs += '"' + pfx + '"';
@@ -94,7 +94,7 @@ void PktDumperComponent::DoDescribe(ODesc* d) const {
     std::string prefs;
 
     for ( const auto& pfx : prefixes ) {
-        if ( prefs.size() )
+        if ( ! prefs.empty() )
             prefs += ", ";
 
         prefs += '"' + pfx + '"';

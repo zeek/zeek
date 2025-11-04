@@ -74,7 +74,7 @@ DFA_State* DFA_State::ComputeXtion(int sym, DFA_Machine* machine) {
     DFA_State* next_d;
 
     NFA_state_list* ns = SymFollowSet(equiv_sym, ec);
-    if ( ns->length() > 0 ) {
+    if ( ! ns->empty() ) {
         NFA_state_list* state_set = epsilon_closure(ns);
         if ( ! machine->StateSetToDFA_State(state_set, next_d, ec) )
             delete state_set;
@@ -335,7 +335,7 @@ DFA_Machine::DFA_Machine(NFA_Machine* n, EquivClass* arg_ec) {
     NFA_state_list* ns = new NFA_state_list;
     ns->push_back(n->FirstState());
 
-    if ( ns->length() > 0 ) {
+    if ( ! ns->empty() ) {
         NFA_state_list* state_set = epsilon_closure(ns);
         StateSetToDFA_State(state_set, start_state, ec);
     }

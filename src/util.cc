@@ -89,7 +89,7 @@ TEST_CASE("util extract_ip") {
 std::string extract_ip(const std::string& i) {
     std::string s(strstrip(i));
 
-    if ( s.size() > 0 && s[0] == '[' )
+    if ( ! s.empty() && s[0] == '[' )
         s.erase(0, 1);
 
     if ( s.starts_with("0x") )
@@ -624,7 +624,7 @@ string normalize_path(std::string_view path) {
     final_components.reserve(components.size());
 
     for ( auto it = components.begin(); it != components.end(); ++it ) {
-        if ( *it == "" )
+        if ( it->empty() )
             continue;
         if ( *it == "." && it != components.begin() )
             continue;

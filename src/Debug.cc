@@ -216,7 +216,7 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
     const Func* func = id->GetVal()->AsFunc();
     const vector<Func::Body>& bodies = func->GetBodies();
 
-    if ( bodies.size() == 0 ) {
+    if ( bodies.empty() ) {
         debug_msg("Function %s is a built-in function\n", id->Name());
         plr.type = PLR_UNKNOWN;
         return;

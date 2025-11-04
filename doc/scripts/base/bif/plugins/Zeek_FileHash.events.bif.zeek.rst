@@ -22,7 +22,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: file_hash
-   :source-code: base/bif/plugins/Zeek_FileHash.events.bif.zeek 15 15
+   :source-code: base/bif/plugins/Zeek_FileHash.events.bif.zeek 17 17
 
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, kind: :zeek:type:`string`, hash: :zeek:type:`string`)
 
@@ -39,6 +39,8 @@ Events
    :param hash: The result of the hashing.
    
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
-      Files::ANALYZER_SHA1 Files::ANALYZER_SHA256
+      Files::ANALYZER_SHA1 Files::ANALYZER_SHA224
+      Files::ANALYZER_SHA256 Files::ANALYZER_SHA384
+      Files::ANALYZER_SHA512
 
 

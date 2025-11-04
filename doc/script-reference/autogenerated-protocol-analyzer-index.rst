@@ -203,7 +203,13 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SHA1 AllAnalyzers::Tag
 
+      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SHA224 AllAnalyzers::Tag
+
       .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SHA256 AllAnalyzers::Tag
+
+      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SHA384 AllAnalyzers::Tag
+
+      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SHA512 AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_FTP AllAnalyzers::Tag
 

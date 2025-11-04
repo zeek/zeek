@@ -89,6 +89,19 @@ type v3Header(header: Header) = record {
 		default               -> unknown_pdu:   UnknownScopedPDU(next.tag,
 		                                                         header);
 	};
+} &let {
+	usm_security_parameters: v3UsmSecurityParameters withinput security_parameters.encoding.content &if(binary_to_int64(global_data.security_model.encoding.content) == 3);
+};
+
+# rfc3414 - user-based security model for SNMPv3
+type v3UsmSecurityParameters = record {
+	asn1_sequence_meta:          ASN1SequenceMeta;
+	msgAuthoritativeEngineID:    ASN1OctetString;
+	msgAuthoritativeEngineBoots: ASN1Integer;
+	msgAuthoritativeEngineTime:  ASN1Integer;
+	msgUserName:                 ASN1OctetString;
+	msgAuthenticationParameters: ASN1OctetString;
+	msgPrivacyParameters:        ASN1OctetString;
 };
 
 type v3HeaderData = record {

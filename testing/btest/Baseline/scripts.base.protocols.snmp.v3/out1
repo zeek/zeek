@@ -2,14 +2,14 @@
 snmp_get_request
   [orig_h=127.0.0.1, orig_p=54211/udp, resp_h=127.0.0.1, resp_p=161/udp, proto=17, ctx=[]]
   is_orig: T
-  [id=544943986, max_size=16384, flags=4, auth_flag=F, priv_flag=F, reportable_flag=T, security_model=3, security_params=0\x0e\x04\x00\x02\x01*\x02\x01*\x04\x00\x04\x00\x04\x00, pdu_context=[engine_id=, name=]]
+  [id=544943986, max_size=16384, flags=4, auth_flag=F, priv_flag=F, reportable_flag=T, security_model=3, security_params=0\x0e\x04\x00\x02\x01*\x02\x01*\x04\x00\x04\x00\x04\x00, pdu_context=[engine_id=, name=], user_security_parameters=[AuthoritativeEngineID=, AuthoritativeEngineBoots=42, AuthoritativeEngineTime=42, UserName=, AuthenticationParameters=, PrivacyParameters=]]
     request_id: 544943986
     error_stat: 0
     error_idx:  0
 snmp_report
   [orig_h=127.0.0.1, orig_p=54211/udp, resp_h=127.0.0.1, resp_p=161/udp, proto=17, ctx=[]]
   is_orig: F
-  [id=544943986, max_size=16384, flags=0, auth_flag=F, priv_flag=F, reportable_flag=F, security_model=3, security_params=0\x1b\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x00\x04\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=]]
+  [id=544943986, max_size=16384, flags=0, auth_flag=F, priv_flag=F, reportable_flag=F, security_model=3, security_params=0\x1b\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x00\x04\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=], user_security_parameters=[AuthoritativeEngineID=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, AuthoritativeEngineBoots=221, AuthoritativeEngineTime=221, UserName=, AuthenticationParameters=, PrivacyParameters=]]
     request_id: 544943986
     error_stat: 0
     error_idx:  0
@@ -18,7 +18,7 @@ snmp_report
 snmp_get_request
   [orig_h=127.0.0.1, orig_p=54211/udp, resp_h=127.0.0.1, resp_p=161/udp, proto=17, ctx=[]]
   is_orig: T
-  [id=544943986, max_size=16384, flags=4, auth_flag=F, priv_flag=F, reportable_flag=T, security_model=3, security_params=0/\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x08username\x04\x0c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=]]
+  [id=544943986, max_size=16384, flags=4, auth_flag=F, priv_flag=F, reportable_flag=T, security_model=3, security_params=0/\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x08username\x04\x0c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=], user_security_parameters=[AuthoritativeEngineID=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, AuthoritativeEngineBoots=221, AuthoritativeEngineTime=221, UserName=username, AuthenticationParameters=\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00, PrivacyParameters=]]
     request_id: 544943986
     error_stat: 0
     error_idx:  0
@@ -27,7 +27,7 @@ snmp_get_request
 snmp_response
   [orig_h=127.0.0.1, orig_p=54211/udp, resp_h=127.0.0.1, resp_p=161/udp, proto=17, ctx=[]]
   is_orig: F
-  [id=544943986, max_size=16384, flags=0, auth_flag=F, priv_flag=F, reportable_flag=F, security_model=3, security_params=0#\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x08username\x04\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=]]
+  [id=544943986, max_size=16384, flags=0, auth_flag=F, priv_flag=F, reportable_flag=F, security_model=3, security_params=0#\x04\x0d\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C\x02\x01\xdd\x02\x01\xdd\x04\x08username\x04\x00\x04\x00, pdu_context=[engine_id=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, name=], user_security_parameters=[AuthoritativeEngineID=\x80\x00\x1f\x88\x80\xa9I\x8e^:,0C, AuthoritativeEngineBoots=221, AuthoritativeEngineTime=221, UserName=username, AuthenticationParameters=, PrivacyParameters=]]
     request_id: 544943986
     error_stat: 0
     error_idx:  0

@@ -5311,6 +5311,24 @@ export {
 		name:      string;
 	};
 
+	## The UserSecurityParaneters for SNMPv3 messages using the
+	## User-based Security Model. See :rfc:`3414`.
+	## Experimental: the format of this record can change till Zeek 9.
+	type SNMP::UserSecurityParameters: record {
+		## snmpEngineID of the authoritative SNMP engine.
+		AuthoritativeEngineID: string;
+		## snmpEngineBoots value of the authoritative SNMP engine.
+		AuthoritativeEngineBoots: int;
+		## snmpEngineTime value of the authoritative SNMP engine
+		AuthoritativeEngineTime: int;
+		## User on the behalf of which the message is exchanged.
+		UserName: string;
+		## raw msgAuthenticationParameters.
+		AuthenticationParameters: string;
+		## raw msgPrivacyParameters.
+		PrivacyParameters: string;
+	};
+
 	## The top-level message data structure of an SNMPv3 datagram, not
 	## including the PDU data.  See :rfc:`3412`.
 	type SNMP::HeaderV3: record {
@@ -5323,6 +5341,7 @@ export {
 		security_model:  count;
 		security_params: string;
 		pdu_context:     SNMP::ScopedPDU_Context &optional;
+		user_security_parameters: SNMP::UserSecurityParameters &optional;
 	};
 
 	## A generic SNMP header data structure that may include data from

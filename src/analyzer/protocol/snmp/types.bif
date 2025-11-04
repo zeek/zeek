@@ -5,6 +5,7 @@ type HeaderV1: record;
 type HeaderV2: record;
 type HeaderV3: record;
 
+type UserSecurityParameters: record;
 type PDU: record;
 type TrapPDU: record;
 type BulkPDU: record;

@@ -129,6 +129,7 @@ zeek::RecordValPtr build_hdrV3(const Header* header)
 	const v3HeaderData* global_data = v3hdr->global_data();
 	bytestring const& flags = global_data->flags()->encoding()->content();
 	uint8 flags_byte = flags.length() > 0 ? flags[0] : 0;
+	auto security_model = binary_to_int64(global_data->security_model()->encoding()->content());
 
 	v3->Assign(0, asn1_integer_to_val(global_data->id(), zeek::TYPE_COUNT));
 	v3->Assign(1, asn1_integer_to_val(global_data->max_size(), zeek::TYPE_COUNT));
@@ -146,6 +147,19 @@ zeek::RecordValPtr build_hdrV3(const Header* header)
 		rv->Assign(0, asn1_octet_string_to_val(spdu->context_engine_id()));
 		rv->Assign(1, asn1_octet_string_to_val(spdu->context_name()));
 		v3->Assign(8, std::move(rv));
+		}
+
+	if ( security_model == 3 ) // user security model
+		{
+		auto usm = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::UserSecurityParameters);
+		const v3UsmSecurityParameters* usp = v3hdr->usm_security_parameters();
+		usm->Assign(0, asn1_octet_string_to_val(usp->msgAuthoritativeEngineID()));
+		usm->Assign(1, asn1_integer_to_val(usp->msgAuthoritativeEngineBoots(), zeek::TYPE_INT));
+		usm->Assign(2, asn1_integer_to_val(usp->msgAuthoritativeEngineTime(), zeek::TYPE_INT));
+		usm->Assign(3, asn1_octet_string_to_val(usp->msgUserName()));
+		usm->Assign(4, asn1_octet_string_to_val(usp->msgAuthenticationParameters()));
+		usm->Assign(5, asn1_octet_string_to_val(usp->msgPrivacyParameters()));
+		v3->Assign(9, std::move(usm));
 		}
 
 	return v3;

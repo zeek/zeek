@@ -131,6 +131,10 @@ New Functionality
 - Added the ``TCP::raw_options`` BiF, which returns the list of TCP options in the current
   packet, including their raw data.
 
+- For SNMPv3, Zeek now parses the Security Parameters for the User-Based Security model. If
+  present, the data is added to the new ``user_security_parameters`` field of the ``SNMP::HeaderV3``
+  record.
+
 Changed Functionality
 ---------------------
 
@@ -148,6 +152,9 @@ Changed Functionality
   This reduces cluster communication overhead when there's a storm of notices
   generated. Two new options, ``Notice::suppression_batch_period`` and ``Notice::suppression_batch_max_size``
   can be used to tune this behavior. See their documentation for details.
+
+- For SNMPv3, the ``community`` field of the snmp log now contains the SNMPv3 username
+  (if present). Before, the field was empty for all SNMPv3 connections.
 
 Removed Functionality
 ---------------------

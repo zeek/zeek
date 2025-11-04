@@ -1,3 +1,13 @@
+8.1.0-dev.829 | 2025-11-04 09:16:36 +0100
+
+  * Dict: Store 32bit hash HashKey in order vector (Arne Welzel, Corelight)
+
+    The included reproducers all crashed because the order array stores HashKey
+    instances that can accommodate for the full 64bit hash, but the Dict
+    code seems to assume 32 bit hashes (DictEntry hash is uint32_t) and the
+    existing code failed to remove entries from the order array upon
+    deleting from a copied ordered set.
+
 8.1.0-dev.826 | 2025-11-03 11:41:39 -0700
 
   * Remove unnecessary defaulted overridden destructors (Tim Wojtulewicz, Corelight)

@@ -4,14 +4,14 @@
 //
 // This file is included by Compile.h to insert into the ZAMCompiler class.
 
-const ZAMStmt StartingBlock();
-const ZAMStmt FinishBlock(const ZAMStmt start);
+ZAMStmt StartingBlock();
+ZAMStmt FinishBlock(ZAMStmt start);
 
 bool NullStmtOK() const;
 
-const ZAMStmt EmptyStmt();
-const ZAMStmt ErrorStmt();
-const ZAMStmt LastInst();
+ZAMStmt EmptyStmt();
+ZAMStmt ErrorStmt();
+ZAMStmt LastInst();
 
 // Adds control flow information to an instruction.
 void AddCFT(ZInstI* inst, ControlFlowType cft);
@@ -29,7 +29,7 @@ int InternalAddVal(ZInstAux* zi, int i, Expr* e);
 // Adds the given instruction to the ZAM program.  The second
 // argument, if true, suppresses generation of any pending
 // global/capture store for this instruction.
-const ZAMStmt AddInst(const ZInstI& inst, bool suppress_non_local = false);
+ZAMStmt AddInst(const ZInstI& inst, bool suppress_non_local = false);
 
 // Returns the last (interpreter) statement in the body.
 const Stmt* LastStmt(const Stmt* s) const;

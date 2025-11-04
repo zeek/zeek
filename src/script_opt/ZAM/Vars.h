@@ -10,8 +10,8 @@ bool IsCapture(const IDPtr& id) const;
 int CaptureOffset(const IDPtr& id) const;
 
 void LoadParam(const IDPtr& id);
-const ZAMStmt LoadGlobal(const IDPtr& id);
-const ZAMStmt LoadCapture(const IDPtr& id);
+ZAMStmt LoadGlobal(const IDPtr& id);
+ZAMStmt LoadCapture(const IDPtr& id);
 
 int AddToFrame(const IDPtr&);
 

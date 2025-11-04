@@ -34,7 +34,7 @@ using HashkeyMapPtr = std::unique_ptr<HashkeyMap>;
 
 // Helper that produces a table from HashKeys to the ListVal indexes into the
 // table, that we can iterate over in sorted-Hashkey order.
-const HashkeyMapPtr ordered_hashkeys(const TableVal* tv) {
+static HashkeyMapPtr ordered_hashkeys(const TableVal* tv) {
     auto res = std::make_unique<HashkeyMap>();
     auto tbl = tv->AsTable();
     auto idx = 0;

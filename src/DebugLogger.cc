@@ -196,7 +196,7 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
     fflush(file);
 }
 
-const std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
+std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
     std::string res{util::strreplace(plugin_name, "::", "-")};
     res = util::strreplace(res, "_", "-");
     return "plugin-" + util::strtolower(res);

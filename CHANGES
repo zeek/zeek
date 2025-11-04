@@ -1,3 +1,7 @@
+8.1.0-dev.833 | 2025-11-04 22:07:15 +0100
+
+  * CI: Add Fedora 43, drop Fedora 41 (Arne Welzel, Corelight)
+
 8.1.0-dev.831 | 2025-11-04 09:18:22 +0100
 
   * Revert include change for bif types that was breaking Windows (Tim Wojtulewicz, Corelight)

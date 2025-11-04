@@ -1,3 +1,10 @@
+8.1.0-dev.831 | 2025-11-04 09:18:22 +0100
+
+  * Revert include change for bif types that was breaking Windows (Tim Wojtulewicz, Corelight)
+
+    This reverts part of e1e5f0c706388e67343453d2180e3bdee4d97314 that broke
+    the build on Windows
+
 8.1.0-dev.829 | 2025-11-04 09:16:36 +0100
 
   * Dict: Store 32bit hash HashKey in order vector (Arne Welzel, Corelight)

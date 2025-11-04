@@ -1,8 +1,8 @@
-FROM fedora:41
+FROM fedora:43
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20250905
+ENV DOCKERFILE_VERSION=20251104
 
 RUN dnf -y install \
     bison \
@@ -12,6 +12,7 @@ RUN dnf -y install \
     diffutils \
     findutils \
     flex \
+    gawk \
     gcc \
     gcc-c++ \
     git \

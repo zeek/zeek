@@ -64,6 +64,7 @@ void ensure_symlink(const path& to, const path& new_link) {
 Unit systemd_add_node_unit(const path& file, const std::string& node, const std::string& description,
                            const ZeekClusterConfig& config) {
     auto unit = Unit(file, description, config.SourcePath(), "zeek.target");
+    unit.SetSyslogIdentifier("zeek-" + node);
     unit.SetUser(config.User());
     unit.SetGroup(config.Group());
     unit.AddRequires("zeek-setup.service");

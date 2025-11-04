@@ -44,6 +44,8 @@ std::string Unit::ToString() const {
     if ( exec_start.size() > 0 || exec_start_pre.size() > 0 ) {
         ss << "\n";
         ss << "[Service]" << "\n";
+        if ( syslog_identifier.has_value() )
+            ss << "SyslogIdentifier=" << syslog_identifier.value() << "\n";
         ss << "Type=" << service_type << "\n";
         ss << "Nice=" << nice << "\n";
         ss << "MemoryMax=" << memory_max << "\n";

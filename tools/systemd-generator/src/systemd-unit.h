@@ -66,6 +66,7 @@ public:
     void SetSlice(std::string s) { slice = std::move(s); }
     void SetRemainAfterExit(bool v) { remain_after_exit = v; }
 
+    void SetSyslogIdentifier(std::string si) { syslog_identifier = std::move(si); }
     void SetServiceType(std::string st) { service_type = std::move(st); }
     void AddWantedBy(std::string wb) { wanted_by.emplace_back(std::move(wb)); }
 
@@ -112,6 +113,7 @@ private:
     std::optional<std::string> part_of;
 
     // [Service]
+    std::optional<std::string> syslog_identifier;
     std::string service_type = "exec";
     std::string user;
     std::string group;

@@ -617,7 +617,7 @@ public:
             // Do this before the actual insertion since creating the DictEntry is going to delete
             // the key data. We need a copy of it first.
             if ( order )
-                order->emplace_back(detail::HashKey{key, static_cast<size_t>(key_size), hash});
+                order->emplace_back(detail::HashKey{key, static_cast<size_t>(key_size), hash & detail::HASH_MASK});
 
             // Allocate memory for key if necessary. Key is updated to reflect internal key if
             // necessary.
@@ -687,11 +687,13 @@ public:
         // e is about to be invalid. remove it from all references.
         if ( order ) {
             for ( auto it = order->begin(); it != order->end(); ++it ) {
-                if ( it->Equal(key, key_size, hash) ) {
+                if ( it->Equal(key, key_size, hash & detail::HASH_MASK) ) {
                     it = order->erase(it);
                     break;
                 }
             }
+
+            ASSERT(num_entries == order->size());
         }
 
         T* v = entry.value;

@@ -1,3 +1,19 @@
+8.0.3-6 | 2025-11-04 08:27:43 -0700
+
+  * Dict: Store 32bit hash HashKey in order vector (Arne Welzel, Corelight)
+
+    The included reproducers all crashed because the order array stores HashKey
+    instances that can accommodate for the full 64bit hash, but the Dict
+    code seems to assume 32 bit hashes (DictEntry hash is uint32_t) and the
+    existing code failed to remove entries from the order array upon
+    deleting from a copied ordered set.
+
+    (cherry picked from commit 06b18f05359ad58a9a1bc7181ccb859acc5c1554)
+
+  * Update cmake submodule for prometheus linkage fix (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS file (Tim Wojtulewicz, Corelight)
+
 8.0.3-3 | 2025-10-28 10:02:36 -0700
 
   * docker: add `websockets` dependency (Edoardo Mich)

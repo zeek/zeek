@@ -6,7 +6,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.4
 ==========
 
-We would like to thank Edardo Mich (@edoardomich) for their contributions to this release.
+We would like to thank Edardo Mich (@edoardomich) and Peter Cullen (@pbcullen) for their
+contributions to this release.
 
 This release fixes the following bugs:
 
@@ -17,6 +18,9 @@ This release fixes the following bugs:
 - The Docker container image now contains the ``websockets`` python package as well as the
   existing `websocket` package. This fixes a warning from Zeekctl when using the
   ``UseWebSocket`` option.
+
+- A potential crash involving deleting items from ``table``s with the ``&ordered``
+  attribute was fixed.
 
 Zeek 8.0.3
 ==========

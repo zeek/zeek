@@ -22,6 +22,8 @@ This release fixes the following bugs:
 - A potential crash involving deleting items from ``table``s with the ``&ordered``
   attribute was fixed.
 
+- zeek-client was updated to the newly-released v1.5.0.
+
 Zeek 8.0.3
 ==========
 

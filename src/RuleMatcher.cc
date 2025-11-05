@@ -351,7 +351,10 @@ void RuleMatcher::BuildRulesTree() {
         const auto& pats = rule->patterns;
 
         if ( ! has_non_file_magic_rule ) {
-            if ( ! pats.empty() ) {
+            if ( pats.empty() ) {
+                has_non_file_magic_rule = true;
+            }
+            else {
                 for ( const auto& p : pats ) {
                     if ( p->type != Rule::FILE_MAGIC ) {
                         has_non_file_magic_rule = true;
@@ -359,8 +362,6 @@ void RuleMatcher::BuildRulesTree() {
                     }
                 }
             }
-            else
-                has_non_file_magic_rule = true;
         }
 
         rule->SortHdrTests();
@@ -383,13 +384,13 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int
 
     // All tests in tree already?
     if ( testnr >= r->hdr_tests.length() ) { // then insert it into the right list of the test
-        if ( ! r->patterns.empty() ) {
-            r->next = dest->pattern_rules;
-            dest->pattern_rules = r;
-        }
-        else {
+        if ( r->patterns.empty() ) {
             r->next = dest->pure_rules;
             dest->pure_rules = r;
+        }
+        else {
+            r->next = dest->pattern_rules;
+            dest->pattern_rules = r;
         }
 
         dest->ruleset->Insert(r->Index());

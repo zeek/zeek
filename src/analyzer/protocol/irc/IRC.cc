@@ -626,10 +626,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         vl.emplace_back(ConnVal());
         vl.emplace_back(val_mgr->Bool(orig));
 
-        if ( ! parts.empty() )
-            vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
-        else
+        if ( parts.empty() )
             vl.emplace_back(val_mgr->EmptyString());
+        else
+            vl.emplace_back(make_intrusive<StringVal>(parts[0].c_str()));
 
         if ( parts.size() > 1 )
             vl.emplace_back(make_intrusive<StringVal>(parts[1].c_str()));

@@ -551,12 +551,13 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc() {
                         benc_stack.pop_back();
                         benc_count.pop_back();
 
-                        if ( ! benc_stack.empty() )
-                            INC_COUNT();
-                        else { // benc parsing successful
+                        if ( benc_stack.empty() ) {
+                            // benc parsing successful
                             ++res_buf_pos;
                             return 0;
                         }
+                        else
+                            INC_COUNT();
                         break;
 
                     case '0':

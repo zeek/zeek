@@ -1,5 +1,4 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-
 #include "zeek/Expr.h"
 
 #include "zeek/DebugLogger.h"
@@ -3046,16 +3045,16 @@ bool RecordConstructorExpr::IsPure() const { return op->IsPure(); }
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const {
     auto& tn = type->GetName();
 
-    if ( ! tn.empty() ) {
+    if ( tn.empty() ) {
+        d->Add("[");
+        op->Describe(d);
+        d->Add("]");
+    }
+    else {
         d->Add(tn);
         d->Add("(");
         op->Describe(d);
         d->Add(")");
-    }
-    else {
-        d->Add("[");
-        op->Describe(d);
-        d->Add("]");
     }
 }
 

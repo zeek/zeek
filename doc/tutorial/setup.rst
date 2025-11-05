@@ -12,15 +12,13 @@ image. Then, execute bash inside of it:
 
    $ docker run --name "zeek-tutorial" -it zeek/zeek
 
-Next, change into the ``/opt`` directory and clone the tutorial
-repository from Git:
+Next, clone the ``zeek-training`` git repository into ``/opt``:
 
 .. code:: console
 
    root@xxxxxxxxxxxx:/# git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
 
-Now, run the provided setup script after giving it executable
-permissions:
+Now, run the provided setup script:
 
 .. code:: console
 

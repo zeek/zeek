@@ -41,6 +41,6 @@ event http_entity_data(c: connection, is_orig: bool, length: count,
 
 event http_end_entity(c: connection, is_orig: bool)
 	{
-	if ( c?$http_state )
-		print num_entity_pattern_matches(c$http_state);
+	if ( c?$http_state && |c$http_state$entity| > 0 )
+		print fmt("Found %d matches in the HTTP entity", num_entity_pattern_matches(c$http_state));
 	}

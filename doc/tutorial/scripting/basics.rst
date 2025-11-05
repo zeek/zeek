@@ -131,12 +131,12 @@ overly populated.
 
 .. code-block:: console
 
-   $ zeek -b -r http/get.trace basics/connection_record_01.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b -r traces/zeek-testing/http/get.trace  scripts/basics/connection_record_01.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
 
-   }, history=ShADadFf, uid=CKPxZY13NVefbTPlUl, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks=<uninitialized>, failed_analyzers={
+   }, history=ShADadFf, uid=CR0buA20QD1WJ53zO8, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks=<uninitialized>, failed_analyzers={
 
-   }, conn=[ts=1362692526.869344, uid=CKPxZY13NVefbTPlUl, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=<uninitialized>, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
+   }, conn=[ts=1362692526.869344, uid=CR0buA20QD1WJ53zO8, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=<uninitialized>, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
 
 As you can see from the output, the connection record is something of a
 jumble when printed on its own. When examining the connection record, try
@@ -168,10 +168,10 @@ which would correspond to the ``$``-delimiter in a Zeek script.
 
 .. code:: console
 
-   $ zeek -b -r http/get.trace basics/connection_record_02.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b -r traces/zeek-testing/http/get.trace  scripts/basics/connection_record_02.zeek
    [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
    HTTP
-   }, history=ShADadFf, uid=C4dmol2biklqP8fdfc, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks={
+   }, history=ShADadFf, uid=Cw7YDi2VsAcn3nMMB7, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks={
    HTTP::finalize_http: Conn::RemovalHook
    {
    if (HTTP::c?$http_state)
@@ -189,7 +189,7 @@ which would correspond to the ``$``-delimiter in a Zeek script.
    }
    }, failed_analyzers={
 
-   }, conn=[ts=1362692526.869344, uid=C4dmol2biklqP8fdfc, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>, http=[ts=1362692526.939527, uid=C4dmol2biklqP8fdfc, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={
+   }, conn=[ts=1362692526.869344, uid=Cw7YDi2VsAcn3nMMB7, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>, http=[ts=1362692526.939527, uid=Cw7YDi2VsAcn3nMMB7, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={
 
    }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FMnxxt3xjVcWNS2141], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
 
@@ -307,10 +307,10 @@ would fail.
 
 .. code-block:: console
 
-   $ zeek -b basics/data_type_const.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_const.zeek
    {
-   [80/tcp] = WWW,
-   [6666/tcp] = IRC
+   [6666/tcp] = IRC,
+   [80/tcp] = WWW
    }
 
 Local Variables
@@ -416,9 +416,8 @@ process each element of the set as seen below.
 .. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :lines: 17-21
-   :lineno-start: 17
    :tab-width: 4
 
 Here, the ``for`` statement loops over the contents of the set storing
@@ -444,9 +443,8 @@ itself:
 .. literalinclude:: basics/data_struct_set_declaration.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :lines: 13-15
-   :lineno-start: 13
    :tab-width: 4
 
 You can see the full script and its output below.
@@ -459,15 +457,15 @@ You can see the full script and its output below.
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_set_declaration.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_set_declaration.zeek
    SSL Port: 22/tcp
    SSL Port: 443/tcp
-   SSL Port: 587/tcp
    SSL Port: 993/tcp
-   Non-SSL Port: 80/tcp
-   Non-SSL Port: 25/tcp
+   SSL Port: 587/tcp
    Non-SSL Port: 143/tcp
+   Non-SSL Port: 80/tcp
    Non-SSL Port: 23/tcp
+   Non-SSL Port: 25/tcp
 
 Tables
 ^^^^^^
@@ -484,11 +482,11 @@ preserve a one-to-one mapping of keys to values.
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_table_declaration.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_table_declaration.zeek
    Service Name:  SSH - Common Port: 22/tcp
-   Service Name:  HTTPS - Common Port: 443/tcp
-   Service Name:  SMTPS - Common Port: 587/tcp
    Service Name:  IMAPS - Common Port: 993/tcp
+   Service Name:  SMTPS - Common Port: 587/tcp
+   Service Name:  HTTPS - Common Port: 443/tcp
 
 In this example, we've compiled a table of SSL-enabled services and
 their common ports. The explicit declaration and constructor for the
@@ -520,11 +518,11 @@ platform.
 
 .. code-block:: console
 
-   $ zeek -b basics/data_struct_table_complex.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek scripts/basics/data_struct_table_complex.zeek
    Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
-   Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
    Tasogare Seibei was released in 2002 by Eisei Gekijo studios, directed by Yoji Yamada and starring Hiroyuki Sanada
    Kiru was released in 1968 by Toho studios, directed by Kihachi Okamoto and starring Tatsuya Nakadai
+   Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
 
 This script shows a sample table of strings indexed by two strings, a
 count, and a final string. With a tuple acting as an aggregate key, the
@@ -553,19 +551,20 @@ and only movie names used.
 .. literalinclude:: basics/data_struct_table_complex_blank_value.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :start-at: [d, _, _, _]
+   :end-before: }
    :tab-width: 4
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_table_complex_blank_value.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek scripts/basics/data_struct_table_complex_blank_value.zeek
    Kiru was directed by Kihachi Okamoto
-   Harakiri was directed by Masaki Kobayashi
    Tasogare Seibei was directed by Yoji Yamada
+   Harakiri was directed by Masaki Kobayashi
    Goyokin was directed by Hideo Gosha
    Kiru is a movie
-   Harakiri is a movie
    Tasogare Seibei is a movie
+   Harakiri is a movie
    Goyokin is a movie
 
 Vectors
@@ -593,7 +592,7 @@ both Vectors and their current lengths.
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_vector_declaration.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_vector_declaration.zeek
    contents of v1: [1, 2, 3, 4]
    length of v1: 4
    contents of v2: [1, 2, 3, 4]
@@ -616,7 +615,7 @@ with ``addr_vector[i]``.
 
 .. code-block:: console
 
-   $ zeek -b basics/data_struct_vector_iter.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_vector_iter.zeek
    1.2.0.0/18
    2.3.0.0/18
    3.4.0.0/18
@@ -699,11 +698,11 @@ it belongs.
 
 .. code-block:: console
 
-   $ zeek basics/data_type_subnets.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_subnets.zeek
    172.16.4.56 belongs to subnet 172.16.0.0/20
    172.16.47.254 belongs to subnet 172.16.32.0/20
-   172.16.22.45 belongs to subnet 172.16.16.0/20
    172.16.1.1 belongs to subnet 172.16.0.0/20
+   2001:db8:b120::1 belongs to subnet 2001:db8:b120::/64
 
 time
 ^^^^
@@ -737,17 +736,16 @@ established connections.
 
 .. code-block:: console
 
-   $ zeek -r wikipedia.trace basics/data_type_time.zeek
-
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 15:06:08:  New connection established from 141.142.220.118 to 208.80.152.2
-   2011/03/18 15:06:09:  New connection established from 141.142.220.235 to 173.192.163.128
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-testing/wikipedia.trace scripts/basics/data_type_time.zeek
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.2
+   2011/03/18 19:06:09:  New connection established from 141.142.220.235 to 173.192.163.128
 
 interval
 ^^^^^^^^
@@ -786,24 +784,24 @@ displaying the time delta since the last fully established connection.
 
 .. code-block:: console
 
-   $ zeek -r wikipedia.trace basics/data_type_interval.zeek
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.118
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 132.0 msecs 97.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 177.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 2.0 msecs 177.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 33.0 msecs 898.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 35.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 2.0 msecs 532.0 usecs
-   2011/06/18 19:03:08:  New connection established from 141.142.220.118 to 208.80.152.2
-        Time since last connection: 7.0 msecs 866.0 usecs
-   2011/06/18 19:03:09:  New connection established from 141.142.220.235 to 173.192.163.128
-        Time since last connection: 817.0 msecs 703.0 usecs
+   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-testing/wikipedia.trace scripts/basics/data_type_interval.zeek
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 132.0 msecs 97.959518 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 177.86026 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 2.0 msecs 177.000046 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 33.0 msecs 898.115158 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 35.047531 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
+        Time since last connection: 2.0 msecs 532.958984 usecs
+   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.2
+        Time since last connection: 7.0 msecs 866.859436 usecs
+   2011/03/18 19:06:09:  New connection established from 141.142.220.235 to 173.192.163.128
+        Time since last connection: 817.0 msecs 703.008652 usecs
 
 Pattern
 ^^^^^^^
@@ -840,7 +838,7 @@ resulting in a vector with three elements.
 
 .. code-block:: console
 
-   $ zeek basics/data_type_pattern_01.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_pattern_01.zeek
    The
     brown fox jumps over the
     dog.
@@ -861,7 +859,7 @@ comparison between the pattern and the string.
 
 .. code-block:: console
 
-   $ zeek basics/data_type_pattern_02.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_pattern_02.zeek
    equality and /^?(equal)$?/ are not equal
    equality and /^?(equality)$?/ are equal
 
@@ -908,7 +906,7 @@ unique.
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_record_01.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_record_01.zeek
    Service: dns(RFC1035)
      port: 53/udp
      port: 53/tcp
@@ -939,14 +937,14 @@ record.
 
 .. code-block:: console
 
-   $ zeek basics/data_struct_record_02.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_record_02.zeek
    System: morlock
-     Service: http(RFC2616)
-       port: 8080/tcp
-       port: 80/tcp
      Service: dns(RFC1035)
        port: 53/udp
        port: 53/tcp
+     Service: http(RFC2616)
+       port: 80/tcp
+       port: 8080/tcp
 
 The example above includes a second record type in which a field is used
 as the data type for a set. Records can be repeatedly nested within
@@ -1023,7 +1021,7 @@ Framework.
 
 .. code-block:: console
 
-   $ zeek basics/framework_logging_factorial_01.zeek
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_01.zeek
    1
    2
    6
@@ -1079,27 +1077,19 @@ stdout, no output is created. Instead the output is all in
 
 .. code-block:: console
 
-   $ zeek basics/framework_logging_factorial_02.zeek
-   $ cat factor.log
-   #separator \x09
-   #set_separator    ,
-   #empty_field      (empty)
-   #unset_field      -
-   #path     factor
-   #open     2018-12-14-21-47-18
-   #fields   num     factorial_num
-   #types    count   count
-   1 1
-   2 2
-   3 6
-   4 24
-   5 120
-   6 720
-   7 5040
-   8 40320
-   9 362880
-   10        3628800
-   #close    2018-12-14-21-47-18
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_02.zeek
+   root@zeek-tutorial:/opt/zeek-training $ cat factor.log | zeek-cut -m
+   num     factorial_num
+   1       1
+   2       2
+   3       6
+   4       24
+   5       120
+   6       720
+   7       5040
+   8       40320
+   9       362880
+   10      3628800
 
 While the previous example is a simplistic one, it serves to demonstrate
 the small pieces of script code that need to be in place in order to
@@ -1153,23 +1143,15 @@ would have included all factorials.
 
 .. code-block:: console
 
-   $ zeek basics/framework_logging_factorial_03.zeek
-   $ cat factor-mod5.log
-   #separator \x09
-   #set_separator    ,
-   #empty_field      (empty)
-   #unset_field      -
-   #path     factor-mod5
-   #open     2018-12-14-21-47-18
-   #fields   num     factorial_num
-   #types    count   count
-   5 120
-   6 720
-   7 5040
-   8 40320
-   9 362880
-   10        3628800
-   #close    2018-12-14-21-47-1
+   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_03.zeek
+   root@zeek-tutorial:/opt/zeek-training $ cat factor-mod5.log | zeek-cut -m
+   num     factorial_num
+   5       120
+   6       720
+   7       5040
+   8       40320
+   9       362880
+   10      3628800
 
 The ability of Zeek to generate easily customizable and extensible logs
 which remain easily parsable is a big part of the reason Zeek has gained

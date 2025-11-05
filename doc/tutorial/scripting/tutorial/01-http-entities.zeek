@@ -23,8 +23,9 @@ event http_entity_data(c: connection, is_orig: bool, length: count,
 
 event http_end_entity(c: connection, is_orig: bool)
 	{
-	if ( c?$http_state )
+	if ( c?$http_state && |c$http_state$entity| > 0 )
 		{
 		print c$http_state$entity;
+		delete c$http_state$entity;
 		}
 	}

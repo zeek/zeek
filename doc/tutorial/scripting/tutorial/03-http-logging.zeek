@@ -50,7 +50,7 @@ event http_entity_data(c: connection, is_orig: bool, length: count,
 
 event http_end_entity(c: connection, is_orig: bool)
 	{
-	if ( c?$http_state && c?$http )
+	if ( c?$http_state && c?$http && |c$http_state$entity| > 0 )
 		{
 		local num_entity_matches = num_entity_pattern_matches(c$http_state);
 		c$http$num_entity_matches += num_entity_matches;
@@ -59,5 +59,7 @@ event http_end_entity(c: connection, is_orig: bool)
 			    "Found %d pattern matches in HTTP entity.",
 			    num_entity_matches), $id=c$id, $identifier=cat(
 			    num_entity_matches, c$id$orig_h, c$id$resp_h)]);
+
+    	delete c$http_state$entity;
 		}
 	}

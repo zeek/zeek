@@ -6,6 +6,8 @@ Checks: [-*,
          readability-container-contains,
          readability-container-size-empty,
 
+         -modernize-type-traits,
+
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.
          cppcoreguidelines-macro-usage,

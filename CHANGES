@@ -1,3 +1,11 @@
+8.0.4 | 2025-11-05 08:53:21 -0700
+
+  * Release 8.0.4.
+
+  * Update zeek-client submodule to v1.5.0 release (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 8.0.4 release (Tim Wojtulewicz, Corelight)
+
 8.0.3-6 | 2025-11-04 08:27:43 -0700
 
   * Dict: Store 32bit hash HashKey in order vector (Arne Welzel, Corelight)

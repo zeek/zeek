@@ -26,7 +26,7 @@ using namespace zeek::cluster;
 
 zeek::detail::EventMetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::zeek::Event& ev) {
     const auto& broker_meta = ev.metadata();
-    if ( broker_meta.size() == 0 )
+    if ( broker_meta.empty() )
         return nullptr;
 
     auto meta = std::make_unique<zeek::detail::EventMetadataVector>();

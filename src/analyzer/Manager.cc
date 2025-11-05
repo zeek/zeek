@@ -50,7 +50,7 @@ Manager::Manager() : plugin::ComponentManager<analyzer::Component>("Analyzer", "
 
 Manager::~Manager() {
     // Clean up expected-connection table.
-    while ( conns_by_timeout.size() ) {
+    while ( ! conns_by_timeout.empty() ) {
         ScheduledAnalyzer* a = conns_by_timeout.top();
         conns_by_timeout.pop();
         delete a;
@@ -290,7 +290,7 @@ void Manager::ExpireScheduledAnalyzers() {
     if ( ! run_state::network_time )
         return;
 
-    while ( conns_by_timeout.size() ) {
+    while ( ! conns_by_timeout.empty() ) {
         ScheduledAnalyzer* a = conns_by_timeout.top();
 
         if ( a->timeout > run_state::network_time )
@@ -402,7 +402,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, packet_analys
         DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled", analyzer_mgr->GetComponentName(tag).c_str());
     }
 
-    return expected.size();
+    return ! expected.empty();
 }
 
 } // namespace zeek::analyzer

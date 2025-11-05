@@ -267,7 +267,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 			d->Add(" ");
 		}
 
-	d->AddN((const char*)(s.Bytes()), s.Size());
+	d->AddN(reinterpret_cast<const char*>(s.Bytes()), s.Size());
 
 	// Right-padding with whitespace, if any.
 	if ( field_width > 0 && left_just )
@@ -1349,8 +1349,9 @@ IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 
 	if (input->GetType()->Tag() == zeek::TYPE_STRING)
 		{
-		length = ((zeek::StringVal*) input)->Len();
-		bytes = ((zeek::StringVal*) input)->Bytes();
+        auto sv = static_cast<zeek::StringVal*>(input);
+		length = sv->Len();
+		bytes = sv->Bytes();
 		}
 	else
 		{
@@ -2133,7 +2134,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ## .. zeek:see:: cat cat_sep string_cat
 function fmt%(...%): string
 	%{
-	if ( @ARGC@ == 0 )
+	if ( @ARGS@->empty() )
 		return zeek::val_mgr->EmptyString();
 
 	Val* fmt_v = @ARG@[0].get();
@@ -2767,7 +2768,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.emplace_back(IPv4, (uint32_t*)ent->h_addr_list[len],
+			addrs.emplace_back(IPv4, reinterpret_cast<uint32_t*>(ent->h_addr_list[len]),
 			                   zeek::IPAddr::Network);
 		}
 
@@ -2776,7 +2777,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.emplace_back(IPv6, (uint32_t*)ent->h_addr_list[len],
+			addrs.emplace_back(IPv6, reinterpret_cast<uint32_t*>(ent->h_addr_list[len]),
 			                   zeek::IPAddr::Network);
 		}
 
@@ -2922,7 +2923,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		zeek::IPAddr a(IPv6, (const uint32_t*) bytes, zeek::IPAddr::Network);
+		zeek::IPAddr a(IPv6, reinterpret_cast<const uint32_t*>(bytes), zeek::IPAddr::Network);
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::AddrVal>(a));
 		bytes += 16;
 		len -= 16;
@@ -3340,7 +3341,7 @@ function count_to_v4_addr%(ip: count%): addr
 		return zeek::make_intrusive<zeek::AddrVal>(uint32_t(0));
 		}
 
-	return zeek::make_intrusive<zeek::AddrVal>(htonl(uint32_t(ip)));
+	return zeek::make_intrusive<zeek::AddrVal>(htonl(static_cast<uint32_t>(ip)));
 	%}
 
 ## Converts a :zeek:type:`string` of bytes into an IPv4 address. In particular,
@@ -3841,9 +3842,9 @@ function uuid_to_string%(uuid: string%): string
 	if ( uuid->Len() != 16 )
 		return zeek::make_intrusive<zeek::StringVal>("<Invalid UUID>");
 
-	zeek_uuid_t* id = (zeek_uuid_t*) uuid->Bytes();
+	auto* id = reinterpret_cast<const zeek_uuid_t*>(uuid->Bytes());
 
-	static char s[1024];
+	static char s[64];
 	char* sp = s;
 
 	sp += snprintf(sp, s + sizeof(s) - sp,
@@ -3896,7 +3897,7 @@ char* to_pat_str(int sn, const char* ss)
 ##
 function convert_for_pattern%(s: string%): string
 	%{
-	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
+	char* t = to_pat_str(s->Len(), reinterpret_cast<const char*>(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
 	return std::move(ret);
@@ -3915,7 +3916,7 @@ function convert_for_pattern%(s: string%): string
 ## .. zeek:see:: convert_for_pattern
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	const char* ss = (const char*) (s->Bytes());
+	const char* ss = reinterpret_cast<const char*>(s->Bytes());
 	int sn = s->Len();
 	char* pat;
 
@@ -4883,7 +4884,7 @@ function write_file%(f: file, data: string%): bool
 	if ( ! f )
 		return zeek::val_mgr->False();
 
-	return zeek::val_mgr->Bool(f->Write((const char*) data->Bytes(), data->Len()));
+	return zeek::val_mgr->Bool(f->Write(reinterpret_cast<const char*>(data->Bytes()), data->Len()));
 	%}
 
 ## Alters the buffering behavior of a file.

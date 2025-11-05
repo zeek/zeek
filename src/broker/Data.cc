@@ -325,7 +325,7 @@ struct val_converter {
             return rval;
         }
         else if ( type->Tag() == TYPE_FUNC ) {
-            if ( a.size() < 1 || a.size() > 2 )
+            if ( a.empty() || a.size() > 2 )
                 return nullptr;
 
             auto name = broker::get_if<std::string>(a[0]);
@@ -626,7 +626,7 @@ struct type_checker {
             return true;
         }
         else if ( type->Tag() == TYPE_FUNC ) {
-            if ( a.size() < 1 || a.size() > 2 )
+            if ( a.empty() || a.size() > 2 )
                 return false;
 
             auto name = broker::get_if<std::string>(a[0]);

@@ -235,7 +235,7 @@ void POP3_Analyzer::NotAllowed(const char* cmd, const char* state) {
 }
 
 void POP3_Analyzer::ProcessClientCmd() {
-    if ( ! cmds.size() )
+    if ( cmds.empty() )
         return;
 
     std::string str = trim_whitespace(cmds.front().c_str());
@@ -244,12 +244,12 @@ void POP3_Analyzer::ProcessClientCmd() {
     int cmd_code = -1;
     const char* cmd = "";
 
-    if ( tokens.size() > 0 )
+    if ( ! tokens.empty() )
         cmd_code = ParseCmd(tokens[0]);
 
     if ( cmd_code == -1 ) {
         if ( ! waitingForAuthentication ) {
-            Weird("pop3_client_command_unknown", (tokens.size() > 0 ? tokens[0].c_str() : "???"));
+            Weird("pop3_client_command_unknown", (! tokens.empty() ? tokens[0].c_str() : "???"));
             if ( subState == detail::POP3_WOK )
                 subState = detail::POP3_OK;
 
@@ -529,7 +529,7 @@ void POP3_Analyzer::ProcessClientCmd() {
 }
 
 void POP3_Analyzer::FinishClientCmd() {
-    if ( ! cmds.size() )
+    if ( cmds.empty() )
         return;
 
     cmds.pop_front();
@@ -570,15 +570,15 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
     const char* cmd = "";
 
     std::vector<std::string> tokens = TokenizeLine(str, ' ');
-    if ( tokens.size() > 0 )
+    if ( ! tokens.empty() )
         cmd_code = ParseCmd(tokens[0]);
 
     if ( cmd_code == -1 ) {
         if ( ! waitingForAuthentication ) {
-            AnalyzerViolation(util::fmt("unknown server command (%s)", (tokens.size() > 0 ? tokens[0].c_str() : "???")),
+            AnalyzerViolation(util::fmt("unknown server command (%s)", (! tokens.empty() ? tokens[0].c_str() : "???")),
                               line, length);
 
-            Weird("pop3_server_command_unknown", (tokens.size() > 0 ? tokens[0].c_str() : "???"));
+            Weird("pop3_server_command_unknown", (! tokens.empty() ? tokens[0].c_str() : "???"));
             if ( subState == detail::POP3_WOK )
                 subState = detail::POP3_OK;
         }
@@ -704,7 +704,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
                     state = detail::START;
                     waitingForAuthentication = false;
 
-                    if ( user.size() )
+                    if ( ! user.empty() )
                         POP3Event(pop3_login_failure, false, user.c_str(), password.c_str());
                     break;
 
@@ -754,7 +754,7 @@ void POP3_Analyzer::StartTLS() {
 }
 
 void POP3_Analyzer::AuthSuccessful() {
-    if ( user.size() )
+    if ( ! user.empty() )
         POP3Event(pop3_login_success, false, user.c_str(), password.c_str());
 }
 
@@ -776,7 +776,7 @@ void POP3_Analyzer::EndData() {
 void POP3_Analyzer::ProcessData(int length, const char* line) { mail->Deliver(length, line, true); }
 
 int POP3_Analyzer::ParseCmd(std::string cmd) {
-    if ( cmd.size() == 0 )
+    if ( cmd.empty() )
         return -1;
 
     for ( int code = detail::POP3_CMD_OK; code < detail::POP3_CMD_END; ++code ) {
@@ -796,7 +796,7 @@ int POP3_Analyzer::ParseCmd(std::string cmd) {
 std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, char split) {
     std::vector<std::string> tokens;
 
-    if ( input.size() < 1 )
+    if ( input.empty() )
         return tokens;
 
     int start = 0;
@@ -810,7 +810,7 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
 
     if ( splitPos = input.find(split, 0); splitPos < input.size() ) {
         token = input.substr(start, splitPos);
-        if ( token.size() > 0 && token[0] != split )
+        if ( ! token.empty() && token[0] != split )
             tokens.push_back(token);
 
         token = input.substr(splitPos + 1, input.size() - splitPos);

@@ -24,7 +24,7 @@ double PktDumper::OpenTime() const { return is_open ? props.open_time : 0; }
 
 bool PktDumper::IsError() const { return ! errmsg.empty(); }
 
-const char* PktDumper::ErrorMsg() const { return errmsg.size() ? errmsg.c_str() : nullptr; }
+const char* PktDumper::ErrorMsg() const { return errmsg.empty() ? nullptr : errmsg.c_str(); }
 
 void PktDumper::Opened(const Properties& arg_props) {
     is_open = true;

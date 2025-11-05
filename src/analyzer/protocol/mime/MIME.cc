@@ -1211,7 +1211,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */) {
         analyzer->EnqueueConnEvent(mime_begin_entity, analyzer->ConnVal());
 
     buffer_start = data_start = 0;
-    ASSERT(entity_content.size() == 0);
+    ASSERT(entity_content.empty());
 }
 
 void MIME_Mail::EndEntity(MIME_Entity* /* entity */) {

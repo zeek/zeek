@@ -770,7 +770,7 @@ IDPtr Reducer::GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id) {
     if ( Optimizing() )
         reporter->InternalError("Generating a new temporary while optimizing");
 
-    if ( omitted_stmts.size() > 0 )
+    if ( ! omitted_stmts.empty() )
         reporter->InternalError("Generating a new temporary while pruning statements");
 
     auto temp = std::make_shared<TempVar>(temps.size(), rhs);
@@ -810,7 +810,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
     if ( Optimizing() )
         reporter->InternalError("Generating a new local while optimizing");
 
-    if ( omitted_stmts.size() > 0 )
+    if ( ! omitted_stmts.empty() )
         reporter->InternalError("Generating a new local while pruning statements");
 
     // Make sure the identifier is not being re-re-mapped.

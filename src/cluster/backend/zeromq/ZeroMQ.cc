@@ -726,7 +726,7 @@ void ZeroMQBackend::Run() {
                     } while ( more );
                 } while ( consumed_one );
 
-                assert(rcv_messages[i].back().size() == 0);
+                assert(rcv_messages[i].back().empty());
                 rcv_messages[i].pop_back();
             }
         } catch ( const zmq::error_t& err ) {

@@ -757,7 +757,7 @@ bool Manager::DisableStream(EnumVal* id) {
 bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                              const string& path, const list<int>& indices) {
     // Only include extensions for the outer record.
-    int num_ext_fields = (indices.size() == 0) ? filter->num_ext_fields : 0;
+    int num_ext_fields = indices.empty() ? filter->num_ext_fields : 0;
 
     int i = 0;
     for ( int j = 0; j < num_ext_fields + rt->NumFields(); ++j ) {
@@ -784,7 +784,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         // Build path name.
         string new_path;
 
-        if ( ! path.size() )
+        if ( path.empty() )
             new_path = rtype->FieldName(i);
         else
             new_path = path + filter->scope_sep + rtype->FieldName(i);
@@ -1212,7 +1212,7 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 }
 
 ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr post_delay_cb) {
-    if ( active_writes.size() == 0 ) {
+    if ( active_writes.empty() ) {
         reporter->Error("invalid Log::delay() call: outside of Log::log_stream_policy() hook");
         return make_intrusive<detail::LogDelayTokenVal>();
     }

@@ -434,7 +434,7 @@ void SMTP_Analyzer::NewReply(int reply_code, bool orig) {
     last_replied_cmd = first_cmd;
     first_cmd = -1;
 
-    if ( pipelining && pending_cmd_q.size() > 0 ) {
+    if ( pipelining && ! pending_cmd_q.empty() ) {
         first_cmd = pending_cmd_q.front();
         pending_cmd_q.pop_front();
     }

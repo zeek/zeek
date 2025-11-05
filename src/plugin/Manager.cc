@@ -547,7 +547,7 @@ Plugin* Manager::LookupPluginByPath(std::string_view _path) {
     if ( util::is_file(path) )
         path = util::SafeDirname(path).result;
 
-    while ( path.size() ) {
+    while ( ! path.empty() ) {
         auto i = plugins_by_path.find(path);
 
         if ( i != plugins_by_path.end() )

@@ -201,7 +201,7 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args) {
     unsigned int start_iter;
     int end_iter;
 
-    if ( args.size() > 0 ) {
+    if ( ! args.empty() ) {
         int how_many; // determines how we traverse the frames
         int valid_arg = sscanf(args[0].c_str(), "%i", &how_many);
         if ( ! valid_arg ) {
@@ -237,7 +237,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
     if ( cmd == dcFrame ) {
         int idx = 0;
 
-        if ( args.size() > 0 ) {
+        if ( ! args.empty() ) {
             if ( args.size() > 1 ) {
                 debug_msg("Too many arguments: expecting frame number 'n'\n");
                 return 0;
@@ -325,7 +325,7 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args) {
             return 0;
         }
 
-        if ( args.size() > 0 && args[0] == "if" )
+        if ( ! args.empty() && args[0] == "if" )
             cond_index = 1;
 
         bps.push_back(bp);

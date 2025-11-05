@@ -155,7 +155,7 @@ void HookArgument::Describe(ODesc* d) const {
             d->Add(",");
             d->Add(arg.winfo->rotation_base);
 
-            if ( arg.winfo->config.size() > 0 ) {
+            if ( ! arg.winfo->config.empty() ) {
                 bool first = true;
                 d->Add("config: {");
 
@@ -366,7 +366,7 @@ void Plugin::InitializeComponents() {
 void Plugin::Describe(ODesc* d) const {
     d->Add(config.name);
 
-    if ( config.description.size() ) {
+    if ( ! config.description.empty() ) {
         d->Add(" - ");
         d->Add(config.description);
     }

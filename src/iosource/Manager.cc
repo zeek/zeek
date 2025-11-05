@@ -220,7 +220,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src) {
 
             // If we added a source that is the same as the passed timeout_src, take
             // note as to avoid adding it twice.
-            timeout_src_added |= ready->size() > 0 ? ready->back().src == timeout_src : false;
+            timeout_src_added |= ready->empty() ? false : ready->back().src == timeout_src;
         }
 
         // A timeout_src with a zero timeout can be considered ready.

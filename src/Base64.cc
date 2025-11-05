@@ -84,7 +84,7 @@ int* Base64Converter::InitBase64Table(const std::string& alphabet) {
 }
 
 Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet) {
-    if ( arg_alphabet.size() > 0 ) {
+    if ( ! arg_alphabet.empty() ) {
         assert(arg_alphabet.size() == 64);
         alphabet = arg_alphabet;
     }

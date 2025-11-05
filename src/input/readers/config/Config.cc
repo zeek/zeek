@@ -83,7 +83,7 @@ bool Config::OpenFile() {
 
 bool Config::GetLine(std::string& str) {
     while ( getline(file, str) ) {
-        if ( ! str.size() )
+        if ( str.empty() )
             continue;
 
         if ( str.back() == '\r' ) // deal with \r\n by removing \r

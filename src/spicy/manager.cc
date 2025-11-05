@@ -502,7 +502,7 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
         return loc;
     };
 
-    if ( location.size() )
+    if ( ! location.empty() )
         return parse_location(location);
     else if ( auto hilti_location = hilti::rt::debug::location() )
         return parse_location(hilti_location);
@@ -871,7 +871,7 @@ void Manager::autoDiscoverModules() {
     // them.
     searchModules(util::zeek_plugin_path());
 
-    if ( auto search_paths = hilti::rt::getenv("ZEEK_SPICY_MODULE_PATH"); search_paths && search_paths->size() )
+    if ( auto search_paths = hilti::rt::getenv("ZEEK_SPICY_MODULE_PATH"); search_paths && ! search_paths->empty() )
         // This overrides all other paths.
         searchModules(*search_paths);
     else

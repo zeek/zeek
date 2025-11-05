@@ -64,7 +64,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr) {
 void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags, string& attr_vals) {
     if ( attrs ) {
         for ( const auto& a : attrs->GetAttrs() ) {
-            if ( attr_tags.size() > 0 ) {
+            if ( ! attr_tags.empty() ) {
                 attr_tags += ", ";
                 attr_vals += ", ";
             }

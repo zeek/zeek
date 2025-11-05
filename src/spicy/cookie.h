@@ -73,7 +73,7 @@ public:
      * be called on an empty stack.
      **/
     const FileState* current() const {
-        assert(_stack.size());
+        assert(! _stack.empty());
         return &_stack.back();
     }
 

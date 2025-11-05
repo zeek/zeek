@@ -1,3 +1,11 @@
+8.1.0-dev.839 | 2025-11-05 18:30:13 +0000
+
+  * Reverse a few if/else conditions for readability (Tim Wojtulewicz, Corelight)
+
+  * Fix some missing instances of cppcoreguidelines-pro-type-cstyle-cast (Tim Wojtulewicz, Corelight)
+
+  * Enable clang-tidy readability-container-size-empty checker, fix findings (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.835 | 2025-11-05 14:11:09 +0100
 
   * tools/systemd-generator: Add SyslogIdentifier (Arne Welzel, Corelight)

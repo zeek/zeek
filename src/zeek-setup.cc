@@ -213,7 +213,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args) {
 static bool show_plugins(int level) {
     plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
-    if ( ! plugins.size() ) {
+    if ( plugins.empty() ) {
         printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
         return false;
     }
@@ -241,7 +241,7 @@ static bool show_plugins(int level) {
 
     plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
 
-    if ( inactives.size() && ! requested_plugins.size() ) {
+    if ( ! inactives.empty() && requested_plugins.empty() ) {
         printf("\nInactive dynamic plugins:\n");
 
         for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ ) {

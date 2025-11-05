@@ -132,18 +132,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
         return;
 
     while ( NextLine(data, len) ) {
-        if ( ms->buffer.length() ) {
-            if ( ms->headers.length() == 0 ) {
-                if ( IsHTTP(ms->buffer) )
-                    return;
-                if ( GnutellaOK(ms->buffer) )
-                    new_state |= orig ? ORIG_OK : RESP_OK;
-            }
-
-            ms->headers = ms->headers + "\r\n" + ms->buffer;
-            ms->buffer = "";
-        }
-        else {
+        if ( ms->buffer.empty() ) {
             if ( gnutella_text_msg )
                 EnqueueConnEvent(gnutella_text_msg, ConnVal(), val_mgr->Bool(orig),
                                  make_intrusive<StringVal>(ms->headers.data()));
@@ -156,6 +145,17 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
 
                 EnqueueConnEvent(gnutella_establish, ConnVal());
             }
+        }
+        else {
+            if ( ms->headers.empty() ) {
+                if ( IsHTTP(ms->buffer) )
+                    return;
+                if ( GnutellaOK(ms->buffer) )
+                    new_state |= orig ? ORIG_OK : RESP_OK;
+            }
+
+            ms->headers = ms->headers + "\r\n" + ms->buffer;
+            ms->buffer = "";
         }
     }
 }

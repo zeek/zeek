@@ -379,7 +379,7 @@ void ValTrace::ComputeTableDelta(const ValTrace* prev, DeltaVector& deltas) cons
     auto& prev_elems2 = prev->elems2;
 
     auto n = elems.size();
-    auto is_set = elems2.size() == 0;
+    auto is_set = elems2.empty();
     auto prev_n = prev_elems.size();
 
     // We can't compare pointers for the indices because they're
@@ -601,7 +601,7 @@ std::string DeltaVectorCreate::Generate(ValTraceMgr* vtm) const {
     std::string vec;
 
     for ( auto& e : elems ) {
-        if ( vec.size() > 0 )
+        if ( ! vec.empty() )
             vec += ", ";
 
         vec += vtm->ValName(e->GetVal());

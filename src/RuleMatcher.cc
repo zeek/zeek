@@ -351,7 +351,10 @@ void RuleMatcher::BuildRulesTree() {
         const auto& pats = rule->patterns;
 
         if ( ! has_non_file_magic_rule ) {
-            if ( pats.length() > 0 ) {
+            if ( pats.empty() ) {
+                has_non_file_magic_rule = true;
+            }
+            else {
                 for ( const auto& p : pats ) {
                     if ( p->type != Rule::FILE_MAGIC ) {
                         has_non_file_magic_rule = true;
@@ -359,8 +362,6 @@ void RuleMatcher::BuildRulesTree() {
                     }
                 }
             }
-            else
-                has_non_file_magic_rule = true;
         }
 
         rule->SortHdrTests();
@@ -383,13 +384,13 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int
 
     // All tests in tree already?
     if ( testnr >= r->hdr_tests.length() ) { // then insert it into the right list of the test
-        if ( r->patterns.length() ) {
-            r->next = dest->pattern_rules;
-            dest->pattern_rules = r;
-        }
-        else {
+        if ( r->patterns.empty() ) {
             r->next = dest->pure_rules;
             dest->pure_rules = r;
+        }
+        else {
+            r->next = dest->pattern_rules;
+            dest->pattern_rules = r;
         }
 
         dest->ruleset->Insert(r->Index());
@@ -424,7 +425,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // If we're above the RE_level, these patterns will form the regexprs.
     if ( hdr_test->level < RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 
@@ -447,7 +448,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // form the regexprs.
     if ( hdr_test->level == RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 

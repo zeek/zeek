@@ -686,7 +686,9 @@ body_start:	TOK_LPB c_code_begin
 
 			if ( ! var_arg )
 				{
+				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
 				fprintf(fp_func_def, "\tif ( %s->size() != %d )\n", arg_list_name, argc);
+
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes exactly %d argument(s), got %%lu\", %s->size()));\n",
@@ -696,6 +698,7 @@ body_start:	TOK_LPB c_code_begin
 				}
 			else if ( argc > 0 )
 				{
+				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
 				fprintf(fp_func_def, "\tif ( %s->size() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,

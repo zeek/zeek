@@ -104,7 +104,7 @@ bool String::operator==(std::string_view s) const {
         return false;
 
     if ( b == nullptr ) {
-        return s.size() == 0;
+        return s.empty();
     }
 
     return (memcmp(b, s.data(), n) == 0);

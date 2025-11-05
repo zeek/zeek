@@ -117,7 +117,7 @@ public:
      * Must not be called when the list is empty.
      */
     const DataBlock& FirstBlock() const {
-        assert(block_map.size());
+        assert(! block_map.empty());
         return block_map.begin()->second;
     }
 
@@ -126,7 +126,7 @@ public:
      * Must not be called when the list is empty.
      */
     const DataBlock& LastBlock() const {
-        assert(block_map.size());
+        assert(! block_map.empty());
         return block_map.rbegin()->second;
     }
 

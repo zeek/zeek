@@ -12,6 +12,7 @@ PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
+SyslogIdentifier=zeek-worker-%i
 Type=exec
 Nice=-19
 MemoryMax=1G

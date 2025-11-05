@@ -10,6 +10,7 @@ PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
+SyslogIdentifier=zeek-proxy-%i
 Type=exec
 Nice=-2
 MemoryMax=2000000000

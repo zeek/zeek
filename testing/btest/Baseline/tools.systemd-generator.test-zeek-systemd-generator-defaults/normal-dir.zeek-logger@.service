@@ -9,6 +9,7 @@ PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
+SyslogIdentifier=zeek-logger-%i
 Type=exec
 Nice=0
 MemoryMax=

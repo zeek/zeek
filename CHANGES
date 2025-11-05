@@ -1,3 +1,12 @@
+8.1.0-dev.835 | 2025-11-05 14:11:09 +0100
+
+  * tools/systemd-generator: Add SyslogIdentifier (Arne Welzel, Corelight)
+
+    This prefixes the log output as visible with journalctl by zeek-worker-1,
+    zeek-logger-1, etc. etc. This allows to more easily distinguish the
+    individual Zeek processes in the log output. By default, systemd would
+    just show zeek[pid].
+
 8.1.0-dev.833 | 2025-11-04 22:07:15 +0100
 
   * CI: Add Fedora 43, drop Fedora 41 (Arne Welzel, Corelight)

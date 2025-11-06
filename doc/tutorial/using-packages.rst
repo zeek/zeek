@@ -38,8 +38,11 @@ You may also use the git URL of the package:
 
    root@zeek-tutorial:/opt/zeek-training $ zkg install https://github.com/corelight/cve-2022-26809
 
-This will ask you to run the tests. TODO: This case the tests fail :( :(
-:(
+The direct URL is necessary if the package is not in Zeek's `packages
+<https://github.com/zeek/packages>`_ repository.
+
+This will ask you to run the tests. The tests may fail, but you can
+still accept the prompt to install.
 
 Part of the setup script also cloned this repository. Try running Zeek
 on the pcap from the package:

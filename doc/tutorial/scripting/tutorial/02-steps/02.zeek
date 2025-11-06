@@ -26,7 +26,8 @@ event http_end_entity(c: connection, is_orig: bool)
 	{
 	if ( c?$http_state && |c$http_state$entity| > 0 )
 		{
-		print c$http_state$entity;
+		local pat = /Will not match!/;
+		print fmt("Did the pattern '%s' match? %s", pat, pat in c$http_state$entity);
 		delete c$http_state$entity;
 		}
 	}

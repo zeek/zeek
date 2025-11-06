@@ -5,7 +5,6 @@ export {
 		/<body>/,
 		/301 Moved Permanently/,
 	} &redef;
-	option pattern_threshold = 5 &redef;
 }
 
 redef record HTTP::State += {
@@ -14,10 +13,6 @@ redef record HTTP::State += {
 
 redef record HTTP::Info += {
 	num_entity_matches: count &default=0 &log;
-};
-
-redef enum Notice::Type += {
-	Entity_Pattern_Threshold,
 };
 
 function num_entity_pattern_matches(state: HTTP::State): count
@@ -50,17 +45,10 @@ event http_entity_data(c: connection, is_orig: bool, length: count,
 
 event http_end_entity(c: connection, is_orig: bool)
 	{
-	if ( c?$http_state && c?$http && |c$http_state$entity| > 0 )
+	if ( c?$http_state && |c$http_state$entity| > 0 )
 		{
-		local num_entity_matches = num_entity_pattern_matches(c$http_state);
-		c$http$num_entity_matches += num_entity_matches;
-
-		if ( num_entity_matches >= pattern_threshold )
-			NOTICE([$note=Entity_Pattern_Threshold, $msg=fmt(
-			    "Found %d pattern matches in HTTP entity.",
-			    num_entity_matches), $id=c$id, $identifier=cat(
-			    num_entity_matches, c$id$orig_h, c$id$resp_h)]);
-
+		print fmt("Found %d matches in the HTTP entity", num_entity_pattern_matches(
+		    c$http_state));
 		delete c$http_state$entity;
 		}
 	}

@@ -1,5 +1,10 @@
 export {
 	option max_reassembled_entity_size = 10000 &redef;
+	const http_entity_patterns: vector of pattern = {
+		/Will not match!/,
+		/<body>/,
+		/301 Moved Permanently/,
+	} &redef;
 }
 
 redef record HTTP::State += {
@@ -26,7 +31,8 @@ event http_end_entity(c: connection, is_orig: bool)
 	{
 	if ( c?$http_state && |c$http_state$entity| > 0 )
 		{
-		print c$http_state$entity;
+		local pat = /Will not match!/;
+		print fmt("Did the pattern '%s' match? %s", pat, pat in c$http_state$entity);
 		delete c$http_state$entity;
 		}
 	}

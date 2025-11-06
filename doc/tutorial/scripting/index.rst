@@ -28,8 +28,7 @@ Third, a basic walkthrough of Javascript as an alternative.
 
 This tutorial will assume some knowledge of programming languages like
 Python before getting started. Specifics of Zeek script will be
-discussed, but any general programming concepts will not. TODO: Change
-this disclaimer?
+discussed, but any general programming concepts will not.
 
 .. toctree::
    :maxdepth: 1

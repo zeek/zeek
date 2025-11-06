@@ -54,13 +54,6 @@ event http_end_entity(c: connection, is_orig: bool)
 		{
 		local num_entity_matches = num_entity_pattern_matches(c$http_state);
 		c$http$num_entity_matches += num_entity_matches;
-
-		if ( num_entity_matches >= pattern_threshold )
-			NOTICE([$note=Entity_Pattern_Threshold, $msg=fmt(
-			    "Found %d pattern matches in HTTP entity.",
-			    num_entity_matches), $id=c$id, $identifier=cat(
-			    num_entity_matches, c$id$orig_h, c$id$resp_h)]);
-
 		delete c$http_state$entity;
 		}
 	}

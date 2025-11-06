@@ -15,10 +15,7 @@ event http_entity_data(c: connection, is_orig: bool, length: count,
 		if ( remaining_available <= 0 )
 			return;
 
-		if ( length <= remaining_available )
-			c$http_state$entity += data;
-		else
-			c$http_state$entity += data[:remaining_available];
+		c$http_state$entity += data;
 		}
 	}
 

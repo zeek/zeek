@@ -1,0 +1,17 @@
+--- 04.zeek	2025-11-06 10:14:11
++++ 05.zeek	2025-11-06 10:13:52
+@@ -8,6 +8,14 @@
+ 	if ( c?$http_state )
+ 		{
+ 		c$http_state$entity += data;
++		}
++	}
++
++event http_end_entity(c: connection, is_orig: bool)
++	{
++	if ( c?$http_state && |c$http_state$entity| > 0 )
++		{
+ 		print c$http_state$entity;
++		delete c$http_state$entity;
+ 		}
+ 	}

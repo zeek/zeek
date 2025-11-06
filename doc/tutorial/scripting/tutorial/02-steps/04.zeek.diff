@@ -1,0 +1,21 @@
+--- 03.zeek	2025-11-06 10:27:59
++++ 04.zeek	2025-11-06 10:37:17
+@@ -11,6 +11,18 @@
+ 	entity: string &default="";
+ };
+ 
++function num_entity_pattern_matches(state: HTTP::State): count
++	{
++	local num_matches = 0;
++	for ( _, pat in http_entity_patterns )
++		{
++		if ( pat in state$entity )
++			num_matches += 1;
++		}
++
++	return num_matches;
++	}
++
+ event http_entity_data(c: connection, is_orig: bool, length: count,
+     data: string)
+ 	{

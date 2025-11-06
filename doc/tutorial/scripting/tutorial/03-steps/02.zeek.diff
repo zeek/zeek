@@ -1,0 +1,13 @@
+--- 01.zeek	2025-11-06 10:40:45
++++ 02.zeek	2025-11-06 10:55:58
+@@ -11,6 +11,10 @@
+ 	entity: string &default="";
+ };
+ 
++redef record HTTP::Info += {
++	num_entity_matches: count &default=0 &log;
++};
++
+ function num_entity_pattern_matches(state: HTTP::State): count
+ 	{
+ 	local num_matches = 0;

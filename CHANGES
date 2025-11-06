@@ -1,3 +1,9 @@
+8.1.0-dev.844 | 2025-11-06 12:37:49 -0700
+
+  * Revert "Add skip conditions for container builder tasks" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 016a9986a4396d4d5d2749f4bbc880542f285aeb.
+
 8.1.0-dev.842 | 2025-11-06 09:07:36 -0700
 
   * gssapi: Handle case where kerberos data isn't prepended by OID (Tim Wojtulewicz, Corelight)

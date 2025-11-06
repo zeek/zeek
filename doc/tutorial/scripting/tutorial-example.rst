@@ -34,13 +34,10 @@ Given this, we can see how a package might look. Users can use the
 ``print`` statement in order to print a given object. In this case,
 let’s print the data directly:
 
-.. code:: zeek
-
-   # test.zeek
-
-   event http_entity_data(c: connection, is_orig: bool, length: count, data: string) {
-     print data;
-   }
+.. literalinclude:: tutorial/01-steps/01.zeek
+   :caption: :file:`test.zeek`
+   :language: zeek
+   :tab-width: 4
 
 .. note::
 
@@ -116,11 +113,11 @@ various purposes. We will use the ``redef`` keyword for this.
 Above the ``http_entity_data`` event, let’s add a string to keep track
 of the entity data we’ve seen so far:
 
-.. code:: zeek
-
-   redef record HTTP::State += {
-       entity: string &default="";
-   };
+.. literalinclude:: tutorial/01-steps/02.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 This statement will take the ``HTTP::State`` record mentioned before and
 add a field to it. When fields get added, they must have either
@@ -135,14 +132,11 @@ field to its record.
 Then, we can modify the event handler to add the data to this for each
 event:
 
-.. code:: zeek
-
-   # test.zeek
-
-   event http_entity_data(c: connection, is_orig: bool, length: count, data: string) {
-       c$http_state$entity += data;
-       print c$http_state$entity;
-   }
+.. literalinclude:: tutorial/01-steps/03.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Inside the event, we have two new statements. The first is where most of
 the magic happens. For Zeek scripting, the ``$`` separates field values.
@@ -173,14 +167,11 @@ would be a runtime error which will fail during execution:
 Therefore, we should wrap anything that uses ``http_state`` with a field
 value existence check with ``?$``:
 
-.. code:: zeek
-
-   event http_entity_data(c: connection, is_orig: bool, length: count, data: string) {
-       if ( c?$http_state ) {
-           c$http_state$entity += data;
-           print c$http$entity;
-       }
-   }
+.. literalinclude:: tutorial/01-steps/04.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 This will print everything it has accumulated as the entity to that
 point. If the entity data is split over multiple event invocations, this
@@ -195,14 +186,11 @@ should only print once at the end. For this, we can use the
 :zeek:see:`http_end_entity` event. Remove the ``print`` that is in
 ``http_entity_data`` and move it to the ``http_end_entity`` event:
 
-.. code:: zeek
-
-   event http_end_entity(c: connection, is_orig: bool) {
-       if ( c?$http_state && |c$http_state$entity| > 0 ) {
-           print c$http_state$entity;
-           delete c$http_state$entity;
-       }
-   }
+.. literalinclude:: tutorial/01-steps/05.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Now, it will only print once - at the end of an entity. We also delete
 the entity here, since it's assumed entities can't be nested, so we're
@@ -216,11 +204,11 @@ bound that users can configure. This is easy with redefineable options!
 First, we declare the option at the top of the file in an ``export``
 block:
 
-.. code:: zeek
-
-   export {
-     option max_reassembled_entity_size: int = 10000 &redef;
-   }
+.. literalinclude:: tutorial/01-steps/06.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 .. note::
 
@@ -247,13 +235,11 @@ field. You can do the same to get the size of most containers, like a
 vector. If we subtract it from ``max_reassembled_entity_size``, that
 should be the remaining length:
 
-.. code:: zeek
-
-   local remaining_available = max_reassembled_entity_size - |c$http_state$entity|;
-   if (remaining_available <= 0) return;
-
-This will go inside the ``if`` block from before, but shown here for
-demonstration purposes.
+.. literalinclude:: tutorial/01-steps/07.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 The ``local`` keyword just means that ``remaining_available`` will not
 be usable outside of the current scope - which will be the ``if`` block.
@@ -261,12 +247,11 @@ be usable outside of the current scope - which will be the ``if`` block.
 Next, we will just decide how much of ``data`` to add depending on
 ``length``:
 
-.. code:: zeek
-
-   if (length <= remaining_available)
-     c$http_state$entity += data;
-   else
-     c$http_state$entity += data[:remaining_available];
+.. literalinclude:: tutorial/01-steps/08.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Where the subscript operator (in ``data[:remaining_available]``) allows
 extracting only the remaining available data if we can only hold part of
@@ -275,7 +260,7 @@ it.
 The full script at this point is here for your convenience:
 
 .. literalinclude:: tutorial/01-http-entities.zeek
-   :caption:
+   :caption: :file:`scripts/tutorial/01-http-entities.zeek`
    :language: zeek
    :linenos:
    :tab-width: 4
@@ -299,15 +284,11 @@ perfect. First, let’s see how you would search for a pattern in HTTP
 traffic. In ``http_end_entity`` we print the entity, let’s change that
 to print if some pattern matched:
 
-.. code:: zeek
-
-   event http_end_entity(c: connection, is_orig: bool) {
-       if (c?$http_state && |c$http_state$entity| > 0) {
-           local pat = /Will not match!/;
-           print fmt("Did the pattern '%s' match? %s", pat, pat in c$http_state$entity);
-           delete c$http_state$entity;
-       }
-   }
+.. literalinclude:: tutorial/02-steps/02.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 This uses :zeek:see:`fmt` in order to print readable results. See that
 BIF's documentation for more information, but it allows similar format
@@ -340,12 +321,11 @@ At this point, we need:
 The first is easy, it’s similar to the ``max_reassembled_entity_size``
 from before. Just put a vector in the export block with ``&redef``:
 
-.. code:: zeek
-
-   export {
-      # max_reassembled_entity_size should remain
-      const http_entity_patterns: vector of pattern = {/Will not match!/, /<body>/, /301 Moved Permanently/} &redef;
-   }
+.. literalinclude:: tutorial/02-steps/03.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Then part 2 can be done in a function that takes the content and returns
 the number of patterns that matched. Functions are defined similar to
@@ -368,17 +348,11 @@ we pass in the HTTP state. Types like records or tables are passed by
 Now, its implementation simply loops through the patterns in
 ``http_entity_patterns`` and counts the matches:
 
-.. code:: zeek
-
-   function num_entity_pattern_matches(state: HTTP::State): count {
-       local num_matches = 0;
-       for (_, pat in http_entity_patterns) {
-           if (pat in state$entity)
-               num_matches += 1;
-       }
-
-       return num_matches;
-   }
+.. literalinclude:: tutorial/02-steps/04.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 There is one common trip-up in this function: ``for`` loops. In Zeek
 scripts, using a for loop often loops over the *indexes* rather than
@@ -395,15 +369,16 @@ contains the actual elements.
 
    .. code:: zeek
 
-      function num_entity_pattern_matches(state: HTTP::State): count {
-         local entity_patterns: table[pattern] of count = {
-            [/.*Will not match!.*/s] = 1,
-            [/.*<body>.*/s] = 2,
-            [/.*301 Moved Permanently.*/s] = 3,
-         };
+      function num_entity_pattern_matches(state: HTTP::State): count
+      	{
+      	local entity_patterns: table[pattern] of count = {
+      		[/.*Will not match!.*/s] = 1,
+      		[/.*<body>.*/s] = 2,
+      		[/.*301 Moved Permanently.*/s] = 3,
+      	};
 
-         return |entity_patterns[state$entity]|;
-      }
+      	return |entity_patterns[state$entity]|;
+      	}
 
    This is a more efficient way to match a large number of known
    patterns. However, there are a few extra considerations that are
@@ -417,12 +392,11 @@ contains the actual elements.
 
 Finally, call this new function when we finish collecting entity data:
 
-.. code:: zeek
-
-   event http_end_entity(c: connection, is_orig: bool) {
-       if ( c?$http_state && |c$http_state$entity| > 0 )
-           print fmt("Found %d matches in the HTTP entity", num_entity_pattern_matches(c$http_state));
-   }
+.. literalinclude:: tutorial/02-steps/05.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Now, because ``http_entity_patterns`` is marked with ``&redef``, you can
 change its contents from other scripts or the command line.
@@ -447,7 +421,7 @@ Finally, we have the core functionality for this script. The full script
 at this point is here for your convenience.
 
 .. literalinclude:: tutorial/02-http-patterns.zeek
-   :caption:
+   :caption: :file:`scripts/tutorial/02-http-patterns.zeek`
    :language: zeek
    :linenos:
    :tab-width: 4
@@ -474,26 +448,19 @@ the number of pattern matches. So, we add that to the
 :zeek:see:`HTTP::Info` record with ``redef``, and mark the field with
 ``&log`` to make sure it gets logged:
 
-.. code:: zeek
-
-   redef record HTTP::Info += {
-       num_entity_matches: count &default=0 &log;
-   };
+.. literalinclude:: tutorial/03-steps/02.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Next, in ``http_end_entity``, set the field:
 
-.. code:: zeek
-
-   event http_end_entity(c: connection, is_orig: bool) {
-
-        if ( c?$http_state && c?$http && |c$http_state$entity| > 0 )
-                {
-                local num_entity_matches = num_entity_pattern_matches(c$http_state);
-                c$http$num_entity_matches += num_entity_matches;
-         delete c$http_state$entity;
-         }
-
-   }
+.. literalinclude:: tutorial/03-steps/03.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 We’re done! Log enrichment itself is simple - add the field to the
 correct record. However, there are more considerations when making a
@@ -525,40 +492,29 @@ a notice when a certain threshold of matches are met.
 
 To do this, first ``redef`` the ``Notice::Type`` with an extra value:
 
-.. code:: zeek
+.. literalinclude:: tutorial/03-steps/04.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
-   redef enum Notice::Type += {
-       Entity_Pattern_Threshold,
-   };
-
-Then, add another ``redef`` option for this threshold, still in the
+Then, add another ``&redef`` option for this threshold, still in the
 export block:
 
-.. code:: zeek
-
-   export {
-      # ...
-      option pattern_threshold = 5 &redef;
-   }
+.. literalinclude:: tutorial/03-steps/05.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 Finally, we can test if this threshold was exceeded in
 ``http_end_entity``:
 
-.. code:: zeek
-
-   event http_end_entity(c: connection, is_orig: bool) {
-       if (c?$http_state && c?$http) {
-           local num_entity_matches = num_entity_pattern_matches(c$http_state);
-           c$http$num_entity_matches += num_entity_matches;
-           if (num_entity_matches >= pattern_threshold)
-               NOTICE([$note=Entity_Pattern_Threshold,
-                   $msg=fmt("Found %d pattern matches in HTTP entity.", num_entity_matches),
-                   $id=c$id,
-                   $identifier=cat(num_entity_matches, c$id$orig_h, c$id$resp_h)]);
-
-            delete c$http_state$entity;
-       }
-   }
+.. literalinclude:: tutorial/03-steps/06.zeek.diff
+   :caption: :file:`test.zeek`
+   :language: diff
+   :start-after: @@
+   :tab-width: 4
 
 This threshold only applies to a single entity, so if there are multiple
 entities, each may exceed it.
@@ -594,7 +550,7 @@ framework </frameworks/notice>` section.
 With that, the script is done. Here it is in its entirety:
 
 .. literalinclude:: tutorial/03-http-logging.zeek
-   :caption:
+   :caption: :file:`scripts/tutorial/03-http-logging.zeek`
    :language: zeek
    :linenos:
    :tab-width: 4

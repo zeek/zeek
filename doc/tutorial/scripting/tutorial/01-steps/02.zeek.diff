@@ -1,0 +1,10 @@
+--- 01.zeek	2025-11-06 09:55:15
++++ 02.zeek	2025-11-06 09:55:13
+@@ -1,3 +1,7 @@
++redef record HTTP::State += {
++	entity: string &default="";
++};
++
+ event http_entity_data(c: connection, is_orig: bool, length: count,
+     data: string)
+ 	{

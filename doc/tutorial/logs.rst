@@ -24,8 +24,7 @@ to include a timestamp, so ``conn.log`` might become
 
 The process of moving logs from being “current” to “archived” is called
 rotation. You may change how frequently logs get rotated with
-``zeekctl``\ ’s ``LogRotationInterval`` option (TODO: Link and explain
-how to add the option?).
+``zeekctl``\ ’s ``LogRotationInterval`` option.
 
 In this section, we will go over:
 
@@ -80,8 +79,7 @@ the cluster, like so:
 Now, there should be logs in the ``$PREFIX/logs/DATE`` directory, where
 ``DATE`` is the current date. These are all gzip-compressed logs, as
 they end with the ``.gz`` extension. You can use a tool such as ``zcat``
-to examine these. For example, let’s look at ``conn.log`` (TODO:
-Normalize how we talk about dates and timestamps and stuff):
+to examine these. For example, let’s look at ``conn.log``:
 
 .. code:: console
 

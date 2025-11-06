@@ -1,3 +1,9 @@
+8.1.0-dev.842 | 2025-11-06 09:07:36 -0700
+
+  * gssapi: Handle case where kerberos data isn't prepended by OID (Tim Wojtulewicz, Corelight)
+
+  * Split ASN.1 token into components in ASN1EncodingMeta (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.839 | 2025-11-05 18:30:13 +0000
 
   * Reverse a few if/else conditions for readability (Tim Wojtulewicz, Corelight)

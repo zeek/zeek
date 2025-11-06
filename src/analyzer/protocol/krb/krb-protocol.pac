@@ -18,7 +18,7 @@ type KRB_PDU_TCP(is_orig: bool) = record {
 
 type KRB_PDU(is_orig: bool) = record {
 	app_meta  : ASN1EncodingMeta;
-	msg_type  : case (app_meta.tag - ASN1_APP_TAG_OFFSET) of {
+	msg_type  : case (app_meta.tag_num) of {
 		AS_REQ    -> as_req   : KRB_AS_REQ(is_orig);
 		AS_REP    -> as_rep   : KRB_AS_REP(is_orig);
 		TGS_REQ   -> tgs_req  : KRB_TGS_REQ(is_orig);

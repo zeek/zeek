@@ -62,10 +62,11 @@ type GSSAPI_NEG_TOKEN_MECH_TOKEN(is_orig: bool) = record {
 	token : bytestring &length=meta.length;
 } &let {
 	ntlm : bytestring withinput token &if($context.connection.is_first_byte(token, 0x4E)) &restofdata;
-	krb : KRB_BLOB withinput token &if($context.connection.is_first_byte(token, 0x60)) &restofdata;
+	krb_with_oid : KRB_OID_BLOB withinput token &if($context.connection.is_first_byte(token, 0x60)) &restofdata;
+	krb_blob : bytestring withinput token &if(context.connection.is_first_byte(token, 0x6E) || context.connection.is_first_byte(token, 0x6F)) &restofdata;
 };
 
-type KRB_BLOB = record {
+type KRB_OID_BLOB = record {
 	meta     : ASN1EncodingMeta;
 	oid      : ASN1OctetString;
 	token_id : uint16 &byteorder=littleendian;

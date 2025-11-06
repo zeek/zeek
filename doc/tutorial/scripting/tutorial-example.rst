@@ -17,11 +17,7 @@ decide what to react to. For this case, we care about HTTP “entities” -
 the body of the request or response.
 
 We can find the corresponding event by looking through the HTTP protocol
-documentation. TODO: I really have troubles explaining how to find the
-correct event. I would imagine people have troubles finding the right
-event so… yeah.
-
-In this case, we care about HTTP entities, so the
+documentation. In this case, we care about HTTP entities, so the
 :zeek:see:`http_entity_data` event is promising. This event can
 provide a ``string`` containing the data from the entity. Its signature
 is:
@@ -434,9 +430,6 @@ This script still prints information. It should, however, convey this
 information in Zeek’s “native” form - logs. For this, we will take two
 approaches: enriching the existing HTTP log, and using the notice
 framework to deliver notices.
-
-TODO: It may be nice to discuss when to use notices or when to add to
-logs?
 
 Adding a Log Field
 ==================

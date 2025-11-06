@@ -96,9 +96,6 @@ This will first compile Zeek’s script into a lower-level form, then
 execute that form. For more information, you can read more about it
 :doc:`here </script-reference/optimization>`.
 
-TODO: Talk about environment variables, like ZEEKPATH and
-ZEEK_PLUGIN_PATH maybe
-
 This was just an overview of Zeek’s possible options. Feel free to
 browse Zeek’s ``--help`` output for more information:
 

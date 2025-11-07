@@ -6,6 +6,7 @@ module DNS;
 export {
 	const PTR = 12;  ##< RR TYPE value for a domain name pointer.
 	const EDNS = 41; ##< An OPT RR TYPE value described by EDNS.
+	const NONE = 254; ##< A class representing no classes, used by dynamic update.
 	const ANY = 255; ##< A QTYPE value describing a request for all records.
 
 	## Mapping of DNS query type codes to human readable string

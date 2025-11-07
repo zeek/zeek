@@ -849,3 +849,25 @@ event dns_end%(c: connection, msg: dns_msg%);
 ##
 ## zclass: The class from the Zone section of the message.
 event dns_dynamic_update%(c: connection, msg: dns_msg, zname: string, zclass: count%);
+
+## Generated for RRs found in the pre-requisites section of DNS Dynamic update messages.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The RR parsed from the dynamic update.
+##
+event dns_dynamic_update_pre%(c: connection, msg: dns_msg, ans: dns_answer%);
+
+## Generated for deletions found in the update section of DNS Dynamic update messages.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The RR parsed from the dynamic update.
+##
+event dns_dynamic_update_del%(c: connection, msg: dns_msg, ans: dns_answer%);

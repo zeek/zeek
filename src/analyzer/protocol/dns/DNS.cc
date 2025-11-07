@@ -321,12 +321,17 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
         if ( msg->answer_type == DNS_UPDATES ) {
             // For Updates:
             // 1. The class of a normal RR must be the same as the zone's class.
-            // 1. RRsets being deleted can have TTL and rdlength of zero and the class must be ANY.
-            // 2. A name being cleansed of all RRsets must have a type of ANY, TTL of zero, rdlength
-            //    of zero, and a class of ANY.
-            // 3. An RR being deleted from an RRset must have a class of NONE and TTL of zero. They're
-            //    otherwise normal RRs.
+            // 1. RRsets being deleted can have TTL and rdlength of zero and the class
+            //    must be ANY.
+            // 2. A name being cleansed of all RRsets must have a type of ANY, TTL of
+            //    zero, rdlength of zero, and a class of ANY.
+            // 3. An RR being deleted from an RRset must have a class of NONE and TTL of
+            //    zero. They're otherwise normal RRs.
             if ( msg->aclass == DNS_CLASS_ANY && msg->ttl == 0 && rdlength == 0 ) {
+                if ( dns_dynamic_update_del && ! msg->skip_event )
+                    analyzer->EnqueueConnEvent(dns_dynamic_update_del, analyzer->ConnVal(), msg->BuildHdrVal(),
+                                               msg->BuildAnswerVal());
+
                 // emit a reply event with the limited info we have
                 return true;
             }
@@ -336,7 +341,33 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
             }
         }
         else if ( msg->answer_type == DNS_PREREQUISITES ) {
-            // TODO: Do we need to do anything with this info? We're not logging it anywhere.
+            // For prerequisites:
+            // 1. For an RRset that must exist (independent), the class is ANY, read
+            //    length is zero, ttl is zero.
+            // 2. For an RRSet that must exist (dependent), the class is that of the zone,
+            //    ttl is zero.
+            // 3. For an RRSet that must not exist, class is NONE, read length is zero,
+            //    ttl is zero.
+            // 4. For an RR that must exist with a specific name, class is ANY, read
+            //    length is zero, type is ANY, and ttl is zero.
+            // 5. For an RR that must not exist with a specific name, class is NONE, read
+            //    length is zero, type is ANY, and ttl is zero.
+            if ( msg->ttl != 0 ) {
+                // The ttl should always be zero for all prerequisites.
+                analyzer->Weird("DNS_dynamic_update_prereq_nonzero_ttl", util::fmt("%d", msg->ttl));
+                return true;
+            }
+            else if ( ((msg->aclass == DNS_CLASS_ANY || msg->aclass == DNS_CLASS_NONE) && rdlength == 0) ||
+                      (msg->aclass == msg->zclass) ) {
+                if ( dns_dynamic_update_pre && ! msg->skip_event )
+                    analyzer->EnqueueConnEvent(dns_dynamic_update_pre, analyzer->ConnVal(), msg->BuildHdrVal(),
+                                               msg->BuildAnswerVal());
+            }
+            else
+                analyzer->Weird("DNS_dynamic_update_invalid_prereq");
+
+            // We don't parse actual RRs out of prereq sections.
+            return true;
         }
     }
 

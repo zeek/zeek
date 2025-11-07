@@ -30,7 +30,7 @@ void handle_canonical(void* data) {
     zeek_key->Assign(3, zeek::val_mgr->Port(key->port2));
     zeek_key->Assign(4, zeek::val_mgr->Count(key->protocol));
 
-    zeek::event_mgr.Enqueue(XDP::ShuntConnID::first_fin, zeek_key);
+    zeek::event_mgr.Enqueue(XDP::Shunt::ConnID::first_fin, zeek_key);
 }
 
 void handle_ip_pair(void* data) {
@@ -50,7 +50,7 @@ void handle_ip_pair(void* data) {
     else
         zeek_key->Assign(1, zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key->ip2.s6_addr)));
 
-    zeek::event_mgr.Enqueue(XDP::ShuntIPPair::first_fin, zeek_key);
+    zeek::event_mgr.Enqueue(XDP::Shunt::IPPair::first_fin, zeek_key);
 }
 
 int ShuntThread::handle_event(void* ctx, void* data, size_t data_sz) {

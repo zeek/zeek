@@ -11,7 +11,7 @@
 #include "XDPProgram.h"
 %%}
 
-module XDP::ShuntIPPair;
+module XDP::Shunt::IPPair;
 
 function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{

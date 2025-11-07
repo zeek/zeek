@@ -1,4 +1,4 @@
-module XDP::ShuntIPPair;
+module XDP::Shunt::IPPair;
 
 export {
 	## Event raised whenever a connection is shunted.

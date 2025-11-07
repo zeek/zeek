@@ -1,4 +1,4 @@
-module XDP::ShuntConnID;
+module XDP::Shunt::ConnID;
 
 export {
 	## Event raised whenever a connection is shunted.

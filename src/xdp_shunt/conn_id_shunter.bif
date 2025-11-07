@@ -11,7 +11,7 @@
 #include "bpf/filter_common.h"
 %%}
 
-module XDP::ShuntConnID;
+module XDP::Shunt::ConnID;
 
 function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{

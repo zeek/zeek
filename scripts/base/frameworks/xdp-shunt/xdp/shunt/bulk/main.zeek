@@ -3,9 +3,9 @@
 
 @load base/protocols/conn
 @load xdp
-@load xdp/conn_id
+@load xdp/shunt/conn_id
 
-module XDP::Bulk;
+module XDP::Shunt::Bulk;
 
 export {
 	## Number of bytes transferred before marking a connection as bulk.
@@ -65,7 +65,7 @@ function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
 
 function conn_callback(c: connection, cnt: count): interval
 	{
-	local stats = XDP::ShuntConnID::shunt_stats(xdp_prog, c$id);
+	local stats = XDP::Shunt::ConnID::shunt_stats(xdp_prog, c$id);
 	if ( stats$present )
 		{
 		# This connection is shunted
@@ -75,7 +75,7 @@ function conn_callback(c: connection, cnt: count): interval
 			{
 			# Use the final stats in case something was shunted between first check and now.
 			# Technically this could break if shunt->unshunt->shunt->unshunt a connection
-			c$xdp_bulk = make_info(c$id, XDP::ShuntConnID::unshunt(xdp_prog, c$id));
+			c$xdp_bulk = make_info(c$id, XDP::Shunt::ConnID::unshunt(xdp_prog, c$id));
 
 			return -1sec;
 			}
@@ -85,7 +85,7 @@ function conn_callback(c: connection, cnt: count): interval
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
 		Conn::register_removal_hook(c, finalize_shunt);
-		XDP::ShuntConnID::shunt(xdp_prog, c$id);
+		XDP::Shunt::ConnID::shunt(xdp_prog, c$id);
 		return unshunt_poll_interval;
 		}
 
@@ -110,7 +110,7 @@ event zeek_init()
 	];
 	xdp_prog = XDP::start_shunt(opts);
 
-	Log::create_stream(XDP::Bulk::LOG, [$columns=Info, $path="xdp_bulk"]);
+	Log::create_stream(XDP::Shunt::Bulk::LOG, [$columns=Info, $path="xdp_bulk"]);
 	}
 
 event zeek_done()
@@ -128,7 +128,7 @@ hook finalize_shunt(c: connection)
 		}
 
 	# Else try to unshunt it
-	local final_stats = XDP::ShuntConnID::unshunt(xdp_prog, c$id);
+	local final_stats = XDP::Shunt::ConnID::unshunt(xdp_prog, c$id);
 	if ( final_stats$present )
 		Log::write(LOG, make_info(c$id, final_stats));
 	}

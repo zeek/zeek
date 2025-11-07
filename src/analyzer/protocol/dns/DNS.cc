@@ -327,6 +327,10 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
             // 3. An RR being deleted from an RRset must have a class of NONE and TTL of zero. They're
             //    otherwise normal RRs.
             if ( msg->aclass == DNS_CLASS_ANY && msg->ttl == 0 && rdlength == 0 ) {
+                if ( dns_dynamic_update_deletion && ! msg->skip_event )
+                    analyzer->EnqueueConnEvent(dns_dynamic_update_deletion, analyzer->ConnVal(), msg->BuildHdrVal(),
+                                               msg->BuildAnswerVal());
+
                 // emit a reply event with the limited info we have
                 return true;
             }

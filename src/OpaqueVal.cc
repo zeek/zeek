@@ -15,6 +15,7 @@
 #include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <paraglob/exceptions.h>
 #include <memory>
 
 #include "zeek/CompHash.h"

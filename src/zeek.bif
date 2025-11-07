@@ -18,6 +18,7 @@
 #include <numbers>
 #include <string>
 #include <vector>
+#include <paraglob/exceptions.h>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"

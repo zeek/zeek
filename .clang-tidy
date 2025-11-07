@@ -31,17 +31,15 @@ Checks: [-*,
          # double-underscores in the name.
          -bugprone-reserved-identifier,
 
-         # bifcl generates almost every switch statement without a default case
-         # and so this one generates a lot of warnings.
+         # binpac generates switch statements without default cases if case
+         # blocks in the pac files don't have default statements. This one
+         # generates a lot of warnings.
          -bugprone-switch-missing-default-case,
 
          # These report warnings that are rather difficult to fix or are things
          # we simply don't want to fix.
-         -bugprone-undefined-memory-manipulation,
          -bugprone-pointer-arithmetic-on-polymorphic-object,
-         -bugprone-empty-catch,
          -bugprone-exception-escape,
-         -bugprone-suspicious-include,
          -modernize-avoid-c-arrays,
          -modernize-concat-nested-namespaces,
          -modernize-raw-string-literal,
@@ -49,6 +47,12 @@ Checks: [-*,
          -modernize-use-nodiscard,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
+
+         # There are a lot of unhandled exceptions across the code base because
+         # one of the reporter handlers throws an exception. Reporter already
+         # reported the error, so the exception is just to exit the processing.
+         # We don't need to do anything more with those exceptions.
+         -bugprone-empty-catch,
 
          # This one returns a bunch of findings in DFA and the sqlite library.
          # We're unlikely to fix either of them.

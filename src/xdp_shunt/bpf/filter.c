@@ -6,7 +6,6 @@
 #include <linux/tcp.h>
 #include <linux/types.h>
 #include <linux/udp.h>
-#include <netinet/in.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
 // clang-format on
@@ -40,8 +39,7 @@ struct {
 } ip_pair_map SEC(".maps");
 
 // Returns the new combined number of fin/rst
-static __always_inline __u32 update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1, __u16 fin,
-                                          __u16 rst) {
+static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
     __u64 new_ts = bpf_ktime_get_ns(); // Call before getting lock
 
     bpf_spin_lock(&val->lock);
@@ -63,14 +61,7 @@ static __always_inline __u32 update_value(struct shunt_val* val, struct xdp_md* 
     if ( new_ts > val->timestamp )
         val->timestamp = new_ts;
 
-    val->fin += fin;
-    val->rst += rst;
-
-    __u32 result = val->fin + val->rst;
-
     bpf_spin_unlock(&val->lock);
-
-    return result;
 }
 
 SEC("xdp")
@@ -136,16 +127,17 @@ int xdp_filter(struct xdp_md* ctx) {
 
     __u16 port_source;
     __u16 port_dest;
-    __u16 fin = 0;
-    __u16 rst = 0;
+    char is_control_packet = 0;
     if ( l4_protocol == IPPROTO_TCP ) {
         struct tcphdr* tcph = transport_header;
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
+
+        // Forward all TCP control packets
+        is_control_packet = tcph->fin || tcph->rst || tcph->syn || tcph->ack;
+
         port_source = bpf_ntohs(tcph->source);
         port_dest = bpf_ntohs(tcph->dest);
-        fin = tcph->fin != 0;
-        rst = tcph->rst != 0;
     }
     else if ( l4_protocol == IPPROTO_UDP ) {
         struct udphdr* udph = transport_header;
@@ -178,15 +170,9 @@ int xdp_filter(struct xdp_md* ctx) {
 
     struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( val ) {
-        if ( update_value(val, ctx, from_ip1, fin, rst) == 1 ) {
-            struct canonical_tuple* rb_data =
-                (struct canonical_tuple*)(bpf_ringbuf_reserve(&filter_rb, sizeof(struct canonical_tuple), 0));
-            if ( rb_data ) {
-                *rb_data = tuple;
-                bpf_ringbuf_submit(rb_data, 0);
-            }
-        }
-
+        update_value(val, ctx, from_ip1);
+        if ( is_control_packet )
+            return XDP_PASS;
         return XDP_DROP;
     }
 
@@ -198,14 +184,9 @@ int xdp_filter(struct xdp_md* ctx) {
 
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {
-        if ( update_value(val, ctx, from_ip1, fin, rst) == 1 ) {
-            struct ip_pair_key* rb_data =
-                (struct ip_pair_key*)(bpf_ringbuf_reserve(&filter_rb, sizeof(struct ip_pair_key), 0));
-            if ( rb_data ) {
-                *rb_data = pair;
-                bpf_ringbuf_submit(rb_data, 0);
-            }
-        }
+        update_value(val, ctx, from_ip1);
+        if ( is_control_packet )
+            return XDP_PASS;
         return XDP_DROP;
     }
 

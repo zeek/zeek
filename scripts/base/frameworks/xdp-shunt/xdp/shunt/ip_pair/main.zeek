@@ -7,19 +7,14 @@ export {
 	## Event raised whenever a connection is unshunted.
 	global unshunted_pair: event(ip1: addr, ip2: addr, stats: XDP::ShuntedStats);
 
-	## Retrieves the current values in the IP pair map. The parameters are
-	## extra filtering before converting into script values. If both are provided,
-	## they must both match to include the shunted pair.
-	##
-	## only_fin: True if filtering for packets with a fin/rst
+	## Retrieves the current values in the IP pair map.
 	##
 	## time_since_last_packet: Interval that must elapse since the last packet
 	## to include
 	##
 	## Returns: A table of the IP pairs getting shunted
-	global get_map: function(xdp_prog: opaque of XDP::Program, only_fin: bool
-	    &default=T, time_since_last_packet: interval &default=0sec)
-	    : XDP::shunt_table;
+	global get_map: function(xdp_prog: opaque of XDP::Program,
+	    time_since_last_packet: interval &default=0sec): XDP::shunt_table;
 
 	## Starts shunting anything between two IPs.
 	##
@@ -46,10 +41,10 @@ export {
 	    ip2_val: addr): XDP::ShuntedStats;
 }
 
-function get_map(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+function get_map(xdp_prog: opaque of XDP::Program,
     time_since_last_packet: interval &default=0sec): XDP::shunt_table
 	{
-	return _get_map(xdp_prog, only_fin, time_since_last_packet);
+	return _get_map(xdp_prog, time_since_last_packet);
 	}
 
 function shunt(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr)

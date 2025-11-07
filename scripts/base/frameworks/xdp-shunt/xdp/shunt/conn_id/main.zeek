@@ -7,19 +7,14 @@ export {
 	## Event raised whenever a connection is unshunted.
 	global unshunted_conn: event(cid: conn_id, stats: XDP::ShuntedStats);
 
-	## Retrieves the current values in the canonical ID map. The parameters are
-	## extra filtering before converting into script values. If both are provided,
-	## they must both match to include the shunted connection.
-	##
-	## only_fin: True if filtering for packets with a fin/rst
+	## Retrieves the current values in the canonical ID map.
 	##
 	## time_since_last_packet: Interval that must elapse since the last packet
 	## to include
 	##
 	## Returns: A table of the "canonical" connection IDs getting shunted
-	global get_map: function(xdp_prog: opaque of XDP::Program, only_fin: bool
-	    &default=T, time_since_last_packet: interval &default=0sec)
-	    : XDP::shunt_table;
+	global get_map: function(xdp_prog: opaque of XDP::Program,
+	    time_since_last_packet: interval &default=0sec): XDP::shunt_table;
 
 	## Starts shunting anything with the conn_id. This is bidirectional.
 	##
@@ -45,10 +40,10 @@ export {
 	    : XDP::ShuntedStats;
 }
 
-function get_map(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+function get_map(xdp_prog: opaque of XDP::Program,
     time_since_last_packet: interval &default=0sec): XDP::shunt_table
 	{
-	return _get_map(xdp_prog, only_fin, time_since_last_packet);
+	return _get_map(xdp_prog, time_since_last_packet);
 	}
 
 function shunt(xdp_prog: opaque of XDP::Program, cid: conn_id): bool

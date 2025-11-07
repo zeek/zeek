@@ -66,12 +66,10 @@ function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
 function conn_callback(c: connection, cnt: count): interval
 	{
 	local stats = XDP::Shunt::ConnID::shunt_stats(xdp_prog, c$id);
-	if ( stats$present )
+	if ( stats$present && stats?$timestamp )
 		{
-		# This connection is shunted
-		local timed_out = stats?$timestamp
-		    && stats$timestamp + inactive_unshunt <= current_time();
-		if ( timed_out || stats$fin > 0 || stats$rst > 0 )
+		# This connection is shunted, check if it timed out
+		if ( stats$timestamp + inactive_unshunt <= current_time() )
 			{
 			# Use the final stats in case something was shunted between first check and now.
 			# Technically this could break if shunt->unshunt->shunt->unshunt a connection

@@ -19,8 +19,6 @@ export {
         bytes_from_1: count; # From IP1, or orig in conn_id
         packets_from_2: count; # From IP2, or resp in conn_id
         bytes_from_2: count; # From IP2, or resp in conn_id
-        fin: count; # The number of TCP fin packets shunted
-        rst: count; # The number of TCP rst packets shunted
         timestamp: time &optional; # The last shunted timestamp seen, if any
 
         present: bool; # If this means anything :) probably a better way

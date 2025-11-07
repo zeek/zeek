@@ -54,14 +54,12 @@ zeek::RecordValPtr makeEmptyShuntedStats() {
     static auto shunt_stats_type = zeek::id::find_type<zeek::RecordType>("XDP::ShuntedStats");
 
     auto stats = zeek::make_intrusive<zeek::RecordVal>(shunt_stats_type);
-    stats->Assign(0, zeek::val_mgr->Count(0));
-    stats->Assign(1, zeek::val_mgr->Count(0));
-    stats->Assign(2, zeek::val_mgr->Count(0));
-    stats->Assign(3, zeek::val_mgr->Count(0));
-    stats->Assign(4, zeek::val_mgr->Count(0));
-    stats->Assign(5, zeek::val_mgr->Count(0));
+    stats->Assign(0, zeek::val_mgr->Count(0)); // packets_from_1
+    stats->Assign(1, zeek::val_mgr->Count(0)); // bytes_from_1
+    stats->Assign(2, zeek::val_mgr->Count(0)); // packets_from_2
+    stats->Assign(3, zeek::val_mgr->Count(0)); // bytes_from_2
     // Timestamp is optional
-    stats->Assign(7, zeek::val_mgr->Bool(false));
+    stats->Assign(5, zeek::val_mgr->Bool(false)); // present
 
     return stats;
 }
@@ -102,15 +100,12 @@ zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, const shunt_val* val) {
         stats->Assign(3, zeek::val_mgr->Count(val->bytes_from_1));
     }
 
-    stats->Assign(4, zeek::val_mgr->Count(val->fin));
-    stats->Assign(5, zeek::val_mgr->Count(val->rst));
-
     if ( val->timestamp != 0 ) {
         double packet_wall_time = mono_to_wall(val->timestamp);
-        stats->Assign(6, zeek::make_intrusive<zeek::TimeVal>(packet_wall_time));
+        stats->Assign(4, zeek::make_intrusive<zeek::TimeVal>(packet_wall_time));
     }
 
-    stats->Assign(7, zeek::val_mgr->Bool(true));
+    stats->Assign(5, zeek::val_mgr->Bool(true));
 
     return stats;
 }

@@ -13,7 +13,7 @@
 
 module XDP::Shunt::ConnID;
 
-function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
+function _get_map%(xdp_prog: opaque of XDP::Program, 
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
@@ -28,11 +28,8 @@ function _get_map%(xdp_prog: opaque of XDP::Program, only_fin: bool &default=T,
 
     auto shunt_map = get_map<canonical_tuple>(get_canonical_id_map(prog));
     for ( const auto&[key, val] : shunt_map ) {
-        // Skip conditions
-        if (only_fin && (val.fin == 0 && val.rst == 0))
-            continue;
         // Skip if we are still within time_since_last_packet
-        else if ( time_since_last_packet &&
+        if ( time_since_last_packet &&
             (time_since_last_packet + mono_to_wall(val.timestamp) > zeek::util::current_time(true)) )
             continue;
 
@@ -129,8 +126,3 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::Shunt
 
     return makeShuntedStats(origIsIp1(cid->AsRecordVal()), &*opt_val);
 %}
-
-## Event called when we first saw the fin or rst for this connection.
-## If the user unshunts in the event, then keep in mind that if multiple
-## RST packets are sent, looking up the stats may result in a null value.
-event first_fin%(cid: conn_id%);

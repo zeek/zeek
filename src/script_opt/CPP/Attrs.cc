@@ -44,7 +44,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr) {
         return pa->second;
 
     const auto& e = a->GetExpr();
-    if ( e && ! IsSimpleInitExpr(e) ) {
+    if ( e && ! IsSimpleInitExpr(e) && obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT ) {
         auto h = p_hash(e);
 
         // Include the type in the hash, otherwise expressions

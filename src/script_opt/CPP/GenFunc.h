@@ -16,11 +16,10 @@ void GenInvokeBody(const std::string& fname, const TypePtr& t, const std::string
 }
 void GenInvokeBody(const std::string& call, const TypePtr& t);
 
-// Generates the code for the body of a script function with the given
-// type, profile, C++ name, AST, lambda captures (if non-nil), and
-// hook/event/function "flavor".
+// Generates the code for the body of a script function or lambda with the given
+// type, profile, C++ name, AST and hook/event/function "flavor".
 void DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const StmtPtr& body,
-                const IDPList* lambda_ids, FunctionFlavor flavor);
+                FunctionFlavor flavor);
 
 // Declare parameters that originate from a type signature of "any" but were
 // concretized in this declaration.
@@ -32,7 +31,7 @@ void InitializeEvents(const ProfileFunc* pf);
 
 // Declare local variables (which are non-globals that aren't parameters or
 // lambda captures).
-void DeclareLocals(const ProfileFunc* func, const IDPList* lambda_ids);
+void DeclareLocals(const ProfileFunc* func);
 
 // Returns the C++ name to use for a given function body.
 std::string BodyName(const FuncInfo& func);

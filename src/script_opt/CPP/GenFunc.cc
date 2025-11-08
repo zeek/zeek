@@ -15,16 +15,17 @@ void CPPCompile::CompileFunc(const FuncInfo& func) {
     auto f = func.Func();
     const auto& body = func.Body();
 
-    DefineBody(f->GetType(), pf, fname, body, nullptr, f->Flavor());
+    DefineBody(f->GetType(), pf, fname, body, f->Flavor());
 }
 
 void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf) {
     auto lname = Canonicalize(l->Name()) + "_lb";
     auto body = l->Ingredients()->Body();
     auto l_id = l->Ingredients()->GetID();
-    auto& ids = l->OuterIDs();
 
-    DefineBody(l_id->GetType<FuncType>(), pf, lname, body, &ids, FUNC_FLAVOR_FUNCTION);
+    lambda_ids = &l->OuterIDs();
+    DefineBody(l_id->GetType<FuncType>(), pf, lname, body, FUNC_FLAVOR_FUNCTION);
+    lambda_ids = nullptr;
 }
 
 void CPPCompile::GenInvokeBody(const string& call, const TypePtr& t) {
@@ -37,11 +38,7 @@ void CPPCompile::GenInvokeBody(const string& call, const TypePtr& t) {
 }
 
 void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname, const StmtPtr& body,
-                            const IDPList* lambda_ids, FunctionFlavor flavor) {
-    IDPList l_ids;
-    if ( lambda_ids )
-        l_ids = *lambda_ids;
-
+                            FunctionFlavor flavor) {
     locals.clear();
     params.clear();
 
@@ -58,7 +55,7 @@ void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const 
 
     NL();
 
-    Emit("%s %s(%s)", ret_type_str, fname, ParamDecl(ft, &l_ids, pf));
+    Emit("%s %s(%s)", ret_type_str, fname, ParamDecl(ft, pf));
 
     StartBlock();
 
@@ -70,7 +67,7 @@ void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const 
     InitializeEvents(pf);
 
     // Create the local variables.
-    DeclareLocals(pf, &l_ids);
+    DeclareLocals(pf);
 
     GenStmt(body);
 
@@ -140,7 +137,7 @@ void CPPCompile::InitializeEvents(const ProfileFunc* pf) {
     }
 }
 
-void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids) {
+void CPPCompile::DeclareLocals(const ProfileFunc* pf) {
     // We track captures by their names rather than their ID*'s because the
     // latter can be inconsistent when inlining.
     set<string> capture_names;

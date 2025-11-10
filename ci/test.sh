@@ -30,6 +30,13 @@ if [ -n "${ZEEK_TSAN_OPTIONS}" ]; then
     export TSAN_OPTIONS=${ZEEK_TSAN_OPTIONS}
 fi
 
+if [ -n "${ZEEK_TEST_ULIMIT_OPEN_FILES}" ]; then
+    if ! ulimit -n "${ZEEK_TEST_ULIMIT_OPEN_FILES}"; then
+        echo "failed to run ulimit -n ${ZEEK_TEST_ULIMIT_OPEN_FILES}" >&2
+        exit 1
+    fi
+fi
+
 function pushd {
     command pushd "$@" >/dev/null || exit 1
 }

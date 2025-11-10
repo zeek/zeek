@@ -16,6 +16,10 @@
 #define BPF_MAX_SIZE 65535
 #endif
 
+#ifndef VLAN_MAX_DEPTH
+#define VLAN_MAX_DEPTH 8
+#endif
+
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, BPF_MAX_SIZE);
@@ -37,6 +41,53 @@ struct {
     __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } ip_pair_map SEC(".maps");
+
+struct vlan_hdr {
+    __be16 h_vlan_TCI;
+    __be16 h_vlan_encapsulated_proto;
+};
+
+struct hdr_cursor {
+    void* pos;
+};
+
+static __always_inline int proto_is_vlan(__u16 h_proto) {
+    return h_proto == bpf_htons(ETH_P_8021Q) || h_proto == bpf_htons(ETH_P_8021AD);
+}
+
+// Mostly copied from xdp-tutorial:
+// https://github.com/xdp-project/xdp-tutorial/blob/main/packet-solutions/xdp_vlan01_kern.c
+static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, struct ethhdr** ethhdr) {
+    struct ethhdr* eth = nh->pos;
+    int hdrsize = sizeof(*eth);
+    __u16 h_proto;
+
+    if ( nh->pos + hdrsize > data_end )
+        return -1;
+
+    nh->pos += hdrsize;
+    *ethhdr = eth;
+    struct vlan_hdr* vlh = nh->pos;
+    h_proto = eth->h_proto;
+
+/* Use loop unrolling to avoid the verifier restriction on loops;
+ * support up to VLAN_MAX_DEPTH layers of VLAN encapsulation.
+ */
+#pragma unroll
+    for ( int i = 0; i < VLAN_MAX_DEPTH; i++ ) {
+        if ( ! proto_is_vlan(h_proto) )
+            break;
+
+        if ( (void*)vlh + sizeof(struct vlan_hdr) > data_end )
+            break;
+
+        h_proto = vlh->h_vlan_encapsulated_proto;
+        vlh++;
+    }
+
+    nh->pos = vlh;
+    return h_proto; /* network-byte-order */
+}
 
 // Returns the new combined number of fin/rst
 static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
@@ -68,9 +119,13 @@ SEC("xdp")
 int xdp_filter(struct xdp_md* ctx) {
     void* data_end = (void*)(long)ctx->data_end;
     void* data = (void*)(long)ctx->data;
-    struct ethhdr* eth = data;
 
-    if ( data + sizeof(*eth) > data_end )
+    struct hdr_cursor nh;
+    nh.pos = data;
+
+    struct ethhdr* eth;
+    int nh_type = parse_ethhdr(&nh, data_end, &eth);
+    if ( nh_type < 0 )
         return XDP_PASS;
 
     void* l3_header;
@@ -79,7 +134,7 @@ int xdp_filter(struct xdp_md* ctx) {
     struct in6_addr dest_ip = {0};
     int is_ipv4 = 0;
 
-    switch ( eth->h_proto ) {
+    switch ( nh_type ) {
         case __constant_htons(ETH_P_IP): {
             is_ipv4 = 1;
             struct iphdr* iph = data + sizeof(*eth);

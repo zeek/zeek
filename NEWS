@@ -43,10 +43,26 @@ Breaking Changes
   Prometheus' checks via ``promtool``. The labels have been renamed from ``le`` to
   ``leq``, given that they technically are less-than-or-equal values.
 
+
 - The ``iosource/Packet.h`` header no longer depends on libpcap being installed and no
   longer directly includes the ``pcap.h`` header. This may cause some knock-on effects
   in building plugins that were depending on this header and others that it included
   indirectly.
+
+- External plugins do not implicitly require OpenSSL and Broker anymore. Starting with
+  Zeek 8.1, plugins that depend on these libraries are now required to explicitly call
+  `find_package(OpenSSL REQUIRED)` and pass `OPENSSL_LIBRARIES` as dependencies to the
+  `zeek_add_plugin()` call:
+
+    find_package(OpenSSL REQUIRED)
+
+    zeek_add_plugin(
+      ...
+      INCLUDE_DIRS
+      ${OPENSSL_INCLUDE_DIR}
+      DEPENDENCIES
+      ${OPENSSL_LIBRARIES}
+    )
 
 New Functionality
 -----------------

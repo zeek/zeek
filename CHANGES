@@ -1,3 +1,9 @@
+8.1.0-dev.850 | 2025-11-10 10:21:30 -0700
+
+  * Remove hard dependency on OpenSSL/Broker from ZeekConfig.cmake (Tim Wojtulewicz, Corelight)
+
+  * Move cmake templates from src dir to live with others (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.847 | 2025-11-10 09:54:41 -0700
 
   * Restore clang-tidy modernize-type-traits checker (Tim Wojtulewicz, Corelight)

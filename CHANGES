@@ -1,3 +1,12 @@
+8.1.0-dev.847 | 2025-11-10 09:54:41 -0700
+
+  * Restore clang-tidy modernize-type-traits checker (Tim Wojtulewicz, Corelight)
+
+  * Enable bugprone-undefined-memory-manipulation and bugprone-suspicious-include (Tim Wojtulewicz, Corelight)
+
+    Neither of these checkers result in any warnings. There's no reason for them
+    to be explicitly disabled.
+
 8.1.0-dev.844 | 2025-11-06 12:37:49 -0700
 
   * Revert "Add skip conditions for container builder tasks" (Tim Wojtulewicz, Corelight)

@@ -842,10 +842,6 @@ public_ecr_cleanup_docker_builder:
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
-  only_if: >
-    ( $CIRRUS_CRON == '' ) &&
-    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
   install_deps_script:
@@ -869,7 +865,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *ONLY_IF_PR_RELEASE_AND_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 

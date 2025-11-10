@@ -1,3 +1,7 @@
+8.1.0-dev.854 | 2025-11-10 15:15:49 -0700
+
+  * Update zeek-aux submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.852 | 2025-11-10 18:44:48 +0100
 
   * GH-4961: ci: Force open files limit to 256 (Arne Welzel, Corelight)

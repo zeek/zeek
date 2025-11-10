@@ -235,6 +235,13 @@ env:
   # a solution for the mtime pruning above.
   ZEEK_CCACHE_EPOCH: 2
 
+  # Set ulimit open files limit when running ./ci/test.sh to this value.
+  # In November 2025, the default open files limit on Cirrus is 1 mio and
+  # the assumption here is that libkqueue's calloc optimization for large
+  # open file limits doesn't apply to ASAN runtimes, resulting in regular
+  # but sporadic OOM failures.
+  ZEEK_TEST_ULIMIT_OPEN_FILES: 256
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 

@@ -1,0 +1,9 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+%doc-id= Zeek::SNMP;
+%doc-description = "SNMP analyzer";
+
+protocol analyzer spicy::SNMP over UDP:
+    parse with SNMP::Message;
+
+import SNMP;

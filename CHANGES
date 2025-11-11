@@ -1,3 +1,7 @@
+8.1.0-dev.864 | 2025-11-11 12:08:41 -0700
+
+  * CI: Make cluster_test and amd64_container_image have the same conditions (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.862 | 2025-11-11 11:59:33 -0700
 
   * BTest updates for -O gen-C++ (Vern Paxson, Corelight)

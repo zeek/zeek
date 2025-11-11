@@ -869,7 +869,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *ONLY_IF_PR_RELEASE_AND_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 

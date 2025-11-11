@@ -1,10 +1,8 @@
 # @TEST-GROUP: broker
 #
-# @TEST-EXEC: zeek -b send.zeek >send.out
+# @TEST-EXEC: zeek -b %INPUT >send.out
 # @TEST-EXEC: btest-diff send.out
 #
-
-# @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -36,7 +34,3 @@ event zeek_init()
     schedule 2secs { do_something() };
     schedule 4secs { do_terminate() };
     }
-
-
-# @TEST-END-FILE
-

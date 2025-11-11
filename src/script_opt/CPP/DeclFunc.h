@@ -90,6 +90,10 @@ std::unordered_map<std::string, int> casting_index;
 // Maps functions (using their C++ name) to their casting strings.
 std::unordered_map<std::string, std::string> func_index;
 
+// Functions that we've declared/compiled.  Indexed by full C++ name,
+// yielding Zeek names.
+std::unordered_map<std::string, std::string> compiled_func_to_zeek_func;
+
 // Names for lambda capture ID's.  These require a separate space that
 // incorporates the lambda's name, to deal with nested lambda's that refer
 // to the identifiers with the same name.

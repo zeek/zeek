@@ -11,7 +11,7 @@ using namespace std;
 
 class OutputException {
 public:
-    OutputException(const char* arg_msg);
+    OutputException(string arg_msg);
     ~OutputException() = default;
     const char* errmsg() const { return msg.c_str(); }
 
@@ -21,7 +21,7 @@ protected:
 
 class Output {
 public:
-    Output(string filename);
+    Output(const string& filename);
     ~Output();
 
     int println(const char* fmt, ...);

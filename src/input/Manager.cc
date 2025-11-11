@@ -1430,7 +1430,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
             Unref(val);
     }
     else
-        SendEvent(stream->event, std::move(out_vals));
+        SendEvent(stream->event, out_vals);
 
     return stream->num_fields;
 }
@@ -1691,7 +1691,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const {
         event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
 }
 
-void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const {
+void Manager::SendEvent(EventHandlerPtr ev, const list<Val*>& events) const {
     zeek::Args vl;
     vl.reserve(events.size());
 

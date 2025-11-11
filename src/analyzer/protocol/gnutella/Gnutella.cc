@@ -93,7 +93,7 @@ bool Gnutella_Analyzer::NextLine(const u_char* data, int len) {
     return false;
 }
 
-bool Gnutella_Analyzer::IsHTTP(std::string header) {
+bool Gnutella_Analyzer::IsHTTP(std::string_view header) {
     if ( header.find(" HTTP/1.") == std::string::npos )
         return false;
 
@@ -116,8 +116,8 @@ bool Gnutella_Analyzer::IsHTTP(std::string header) {
     return true;
 }
 
-bool Gnutella_Analyzer::GnutellaOK(std::string header) {
-    if ( strncmp("GNUTELLA", header.data(), 8) != 0 )
+bool Gnutella_Analyzer::GnutellaOK(std::string_view header) {
+    if ( ! header.starts_with("GNUTELLA") )
         return false;
 
     int codepos = header.find(' ') + 1;

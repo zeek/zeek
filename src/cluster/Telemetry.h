@@ -126,7 +126,7 @@ public:
      * @param static_labels Labels to add on all metrics.
      * @param prefix The metric prefix.
      */
-    InfoTelemetry(std::string_view name, LabelList static_labels, std::string_view prefix = "zeek");
+    InfoTelemetry(std::string_view name, const LabelList& static_labels, std::string_view prefix = "zeek");
 
     void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const SerializationInfo& info) override;
     void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const SerializationInfo& info) override;
@@ -189,7 +189,7 @@ private:
  * @param name The name used in the metric names. Either core or websocket at this point.
  * @param static_labels Static labels to attach to metrics.
  */
-void configure_backend_telemetry(Backend& backend, std::string_view name, LabelList static_labels = {});
+void configure_backend_telemetry(Backend& backend, std::string_view name, const LabelList& static_labels = {});
 
 } // namespace detail
 } // namespace cluster

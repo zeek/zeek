@@ -9,7 +9,7 @@ namespace zeek::detail {
 
 ZAMLocInfo::ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc, std::shared_ptr<ZAMLocInfo> _parent)
     : loc(std::move(_loc)), parent(std::move(_parent)) {
-    func_name = func_name_at_loc(_func_name, loc.get());
+    func_name = func_name_at_loc(std::move(_func_name), loc.get());
 
     auto main_module = func_name.find("::");
     if ( main_module != std::string::npos )

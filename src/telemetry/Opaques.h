@@ -26,12 +26,12 @@ class HistogramFamily;
  */
 class TelemetryVal : public OpaqueVal {
 protected:
-    explicit TelemetryVal(std::shared_ptr<telemetry::Counter>);
-    explicit TelemetryVal(std::shared_ptr<telemetry::CounterFamily>);
-    explicit TelemetryVal(std::shared_ptr<telemetry::Gauge>);
-    explicit TelemetryVal(std::shared_ptr<telemetry::GaugeFamily>);
-    explicit TelemetryVal(std::shared_ptr<telemetry::Histogram>);
-    explicit TelemetryVal(std::shared_ptr<telemetry::HistogramFamily>);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::Counter>&);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::CounterFamily>&);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::Gauge>&);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::GaugeFamily>&);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::Histogram>&);
+    explicit TelemetryVal(const std::shared_ptr<telemetry::HistogramFamily>&);
 
     std::optional<BrokerData> DoSerializeData() const override { return std::nullopt; }
     bool DoUnserializeData(BrokerDataView data) override { return false; }

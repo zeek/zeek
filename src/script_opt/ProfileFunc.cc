@@ -870,7 +870,7 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
             continue;
         auto pf = f.ProfilePtr();
         if ( compute_func_hashes || ! pf->HasHashVal() )
-            ComputeProfileHash(std::move(pf));
+            ComputeProfileHash(pf);
     }
 
     for ( auto& l : lambdas )
@@ -888,10 +888,10 @@ void ProfileFuncs::AnalyzeLambdaProfile(const LambdaExpr* l) {
     lambda_primaries[l->Name()] = l->PrimaryFunc().get();
 
     if ( compute_func_hashes || ! pf->HasHashVal() )
-        ComputeProfileHash(std::move(pf));
+        ComputeProfileHash(pf);
 }
 
-void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
+void ProfileFuncs::ComputeProfileHash(const std::shared_ptr<ProfileFunc>& pf) {
     p_hash_type h = 0;
 
     // We add markers between each class of hash component, to

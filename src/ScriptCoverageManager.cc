@@ -164,8 +164,9 @@ void ScriptCoverageManager::TrackUsage(const Location* loc, std::string desc, ui
         usage_map[location_desc] = cnt;
 }
 
-void ScriptCoverageManager::Report(FILE* f, uint64_t cnt, std::string loc, std::string desc) {
-    fprintf(f, "%" PRIu64 "%c%s%c%s\n", cnt, delim, loc.c_str(), delim, desc.c_str());
+void ScriptCoverageManager::Report(FILE* f, uint64_t cnt, std::string_view loc, std::string_view desc) {
+    fprintf(f, "%" PRIu64 "%c%.*s%c%.*s\n", cnt, delim, static_cast<int>(loc.size()), loc.data(), delim,
+            static_cast<int>(desc.size()), desc.data());
 }
 
 } // namespace zeek::detail

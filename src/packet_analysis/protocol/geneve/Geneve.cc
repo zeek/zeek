@@ -9,7 +9,7 @@
 
 using namespace zeek::packet_analysis::Geneve;
 
-void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_t> data, detail::Callback cb) {
+void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_t> data, const detail::Callback& cb) {
     size_t remaining = data.size();
 
     if ( remaining < 8 )

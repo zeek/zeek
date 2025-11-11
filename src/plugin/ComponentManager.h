@@ -62,7 +62,7 @@ public:
      * @param tag A component's tag.
      * @return The canonical component name.
      */
-    const std::string& GetComponentName(zeek::Tag tag) const;
+    const std::string& GetComponentName(const zeek::Tag& tag) const;
 
     /**
      * Get a component name from it's enum value.
@@ -244,7 +244,7 @@ const EnumTypePtr& ComponentManager<C>::GetTagType() const {
 }
 
 template<class C>
-const std::string& ComponentManager<C>::GetComponentName(zeek::Tag tag) const {
+const std::string& ComponentManager<C>::GetComponentName(const zeek::Tag& tag) const {
     static const std::string error = "<error>";
 
     if ( ! tag )

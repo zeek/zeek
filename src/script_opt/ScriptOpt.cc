@@ -203,7 +203,7 @@ static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std:
     return true;
 }
 
-static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs,
+static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, const std::shared_ptr<ProfileFuncs>& pfs,
                           ScopePtr scope, StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
@@ -522,7 +522,7 @@ static void generate_CPP(std::shared_ptr<ProfileFuncs> pfs) {
     CPPCompile cpp(funcs, std::move(pfs), gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
+static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
@@ -708,7 +708,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
-    analyze_scripts_for_ZAM(std::move(pfs));
+    analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

@@ -219,7 +219,7 @@ void ZAM_run_time_error(const char* msg) {
     ZAM_error = true;
 }
 
-void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg) {
+void ZAM_run_time_error(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg) {
     if ( loc )
         reporter->RuntimeError(loc->Loc(), "%s", msg);
     else
@@ -232,7 +232,7 @@ void ZAM_run_time_error(const char* msg, const Obj* o) {
     ZAM_error = true;
 }
 
-void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o) {
+void ZAM_run_time_error(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg, const Obj* o) {
     if ( loc )
         reporter->RuntimeError(loc->Loc(), "%s (%s)", msg, obj_desc(o).c_str());
     else
@@ -240,7 +240,7 @@ void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const 
     ZAM_error = true;
 }
 
-void ZAM_run_time_warning(std::shared_ptr<ZAMLocInfo> loc, const char* msg) {
+void ZAM_run_time_warning(const std::shared_ptr<ZAMLocInfo>& loc, const char* msg) {
     ODesc d;
     loc->Loc()->Describe(&d);
 

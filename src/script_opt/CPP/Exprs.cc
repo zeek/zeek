@@ -1142,7 +1142,7 @@ string CPPCompile::GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs) {
     return "(" + gen + ")";
 }
 
-string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op) {
+string CPPCompile::GenVectorOp(const Expr* e, const string& op, const char* vec_op) {
     const auto& t = e->GetType();
     auto gen_t = GenTypeName(t);
     auto gen = string("vec_op_") + vec_op + "__CPP(" + op + ", " + gen_t + ")";
@@ -1153,7 +1153,7 @@ string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op) {
     return gen;
 }
 
-string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2, const char* vec_op) {
+string CPPCompile::GenVectorOp(const Expr* e, const string& op1, const string& op2, const char* vec_op) {
     auto& op1_t = e->GetOp1()->GetType();
     auto& op2_t = e->GetOp2()->GetType();
 

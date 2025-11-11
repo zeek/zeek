@@ -292,7 +292,7 @@ public:
     // Adds to the trace an update for the given value.
     void AddDelta(ValPtr val, std::string rhs, bool needs_lhs, bool is_first_def) {
         auto& d = is_post ? post_deltas : deltas;
-        d.emplace_back(val, rhs, needs_lhs, is_first_def);
+        d.emplace_back(val, std::move(rhs), needs_lhs, is_first_def);
     }
 
     // Initially we analyze events pre-execution.  When this flag
@@ -312,12 +312,13 @@ public:
     // "predecessor", if non-nil, gives the event that came just before
     // this one (used for "# from script" annotations").  "successor",
     // if not empty, gives the name of the successor internal event.
-    void Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor, std::string successor) const;
+    void Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor, const std::string& successor) const;
 
 private:
     // "dvec" is either just our deltas, or the "post_deltas" of our
     // predecessor plus our deltas.
-    void Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, std::string successor, int num_pre = 0) const;
+    void Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, const std::string& successor,
+                  int num_pre = 0) const;
 
     const ScriptFunc* ev;
     double nt;

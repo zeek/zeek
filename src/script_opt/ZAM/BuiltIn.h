@@ -19,7 +19,7 @@ public:
     // Constructed using the name of the BiF and a flag that if true means
     // that the point of calling the BiF is to do something with its return
     // value (in particular, the BiF does not have side-effects).
-    ZAMBuiltIn(std::string name, bool _ret_val_matters);
+    ZAMBuiltIn(const std::string& name, bool _ret_val_matters);
     virtual ~ZAMBuiltIn() = default;
 
     bool ReturnValMatters() const { return ret_val_matters; }
@@ -57,11 +57,11 @@ class SimpleZBI : public ZAMBuiltIn {
 public:
     // This constructor is for ZBIs that either take no arguments, or always
     // take a single variable as their argument.
-    SimpleZBI(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true);
+    SimpleZBI(const std::string& name, ZOp _op, int _nargs, bool _ret_val_matters = true);
 
     // A version for supporting a single argument that can be either a
     // constant (first operand) or a variable (second operand).
-    SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_matters = true);
+    SimpleZBI(const std::string& name, ZOp _const_op, ZOp _op, bool _ret_val_matters = true);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
@@ -78,7 +78,7 @@ protected:
 // A form of simple ZBIs that also support calling the BiF in a conditional.
 class CondZBI : public SimpleZBI {
 public:
-    CondZBI(std::string name, ZOp _op, ZOp _cond_op, int _nargs);
+    CondZBI(const std::string& name, ZOp _op, ZOp _cond_op, int _nargs);
 
     bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
 
@@ -90,7 +90,7 @@ protected:
 class OptAssignZBI : public SimpleZBI {
 public:
     // Second argument is assignment flavor, third is assignment-less flavor.
-    OptAssignZBI(std::string name, ZOp _op, ZOp _op2, int _nargs);
+    OptAssignZBI(const std::string& name, ZOp _op, ZOp _op2, int _nargs);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
@@ -166,12 +166,12 @@ public:
     // If "_type_arg" is non-negative, then it specifies which argument
     // (numbered left-to-right, starting at 0) should be used to set the
     // Zeek type associated with the generated ZAM instruction.
-    MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg = -1);
+    MultiZBI(const std::string& name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg = -1);
 
     // Alternative constructor for ZBIs that have optional return values.
     // The first map is for the non-assignment case, the second for the
     // assignment case.
-    MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg = -1);
+    MultiZBI(const std::string& name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg = -1);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 

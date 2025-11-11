@@ -25,8 +25,8 @@ static auto create_packet_state(PacketAnalyzer* analyzer) {
     return PacketState(std::move(cookie));
 }
 
-PacketAnalyzer::PacketAnalyzer(std::string name)
-    : packet_analysis::Analyzer(std::move(name)), _state(create_packet_state(this)) {}
+PacketAnalyzer::PacketAnalyzer(const std::string& name)
+    : packet_analysis::Analyzer(name), _state(create_packet_state(this)) {}
 
 PacketAnalyzer::~PacketAnalyzer() = default;
 

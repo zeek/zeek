@@ -164,9 +164,9 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, uint32_t
 }
 
 std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
-                                           std::shared_ptr<EncapsulationStack> encap_stack, uint32_t inner_cap_len,
-                                           const u_char* data, int link_type, BifEnum::Tunnel::Type tunnel_type,
-                                           const Tag& analyzer_tag) {
+                                           const std::shared_ptr<EncapsulationStack>& encap_stack,
+                                           uint32_t inner_cap_len, const u_char* data, int link_type,
+                                           BifEnum::Tunnel::Type tunnel_type, const Tag& analyzer_tag) {
     assert(outer_pkt->cap_len >= inner_cap_len);
     assert(outer_pkt->len >= outer_pkt->cap_len - inner_cap_len);
 

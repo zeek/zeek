@@ -169,6 +169,7 @@ bool Backend::Unsubscribe(const std::string& topic_prefix) {
     return DoUnsubscribe(topic_prefix);
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
     Backend::ReadyCallbackInfo info{Backend::CallbackStatus::Success};
     cb(info);

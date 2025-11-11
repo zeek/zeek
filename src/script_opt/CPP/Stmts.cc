@@ -323,11 +323,11 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
             local_aggrs.push_back(IDNameStr(l));
 
     auto when_lambda = GenExpr(wi->Lambda(), GEN_NATIVE);
-    GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), std::move(local_aggrs));
+    GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), local_aggrs);
 }
 
 void CPPCompile::GenWhenStmt(const WhenInfo* wi, const string& when_lambda, const Location* loc,
-                             vector<string> local_aggrs) {
+                             const vector<string>& local_aggrs) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
     const auto& timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";

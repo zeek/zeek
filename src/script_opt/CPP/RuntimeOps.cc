@@ -26,7 +26,7 @@ bool str_in__CPP(const String* s1, const String* s2) {
     return util::strstr_n(s2->Len(), s2->Bytes(), s1->Len(), s) != -1;
 }
 
-ListValPtr index_val__CPP(vector<ValPtr> indices) {
+ListValPtr index_val__CPP(const vector<ValPtr>& indices) {
     auto ind_v = make_intrusive<ListVal>(TYPE_ANY);
 
     // In the future, we could provide N versions of this that
@@ -37,14 +37,14 @@ ListValPtr index_val__CPP(vector<ValPtr> indices) {
     return ind_v;
 }
 
-ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices) {
-    auto v = t->FindOrDefault(index_val__CPP(std::move(indices)));
+ValPtr index_table__CPP(const TableValPtr& t, const vector<ValPtr>& indices) {
+    auto v = t->FindOrDefault(index_val__CPP(indices));
     if ( ! v )
         reporter->CPPRuntimeError("no such index");
     return v;
 }
 
-ValPtr index_patstr_table__CPP(const TableValPtr& t, vector<ValPtr> indices) {
+ValPtr index_patstr_table__CPP(const TableValPtr& t, const vector<ValPtr>& indices) {
     return t->LookupPattern(cast_intrusive<StringVal>(indices[0]));
 }
 
@@ -59,19 +59,19 @@ ValPtr index_vec__CPP(const VectorValPtr& vec, int index) {
     return v;
 }
 
-ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices) {
-    return index_string(svp->AsString(), index_val__CPP(std::move(indices)).get());
+ValPtr index_string__CPP(const StringValPtr& svp, const vector<ValPtr>& indices) {
+    return index_string(svp->AsString(), index_val__CPP(indices).get());
 }
 
-ValPtr when_index_table__CPP(const TableValPtr& t, vector<ValPtr> indices) {
-    auto v = index_table__CPP(t, std::move(indices));
+ValPtr when_index_table__CPP(const TableValPtr& t, const vector<ValPtr>& indices) {
+    auto v = index_table__CPP(t, indices);
     if ( v && IndexExprWhen::evaluating > 0 )
         IndexExprWhen::results.emplace_back(v);
     return v;
 }
 
-ValPtr when_index_patstr__CPP(const TableValPtr& t, vector<ValPtr> indices) {
-    auto v = index_patstr_table__CPP(t, std::move(indices));
+ValPtr when_index_patstr__CPP(const TableValPtr& t, const vector<ValPtr>& indices) {
+    auto v = index_patstr_table__CPP(t, indices);
     if ( v && IndexExprWhen::evaluating > 0 )
         IndexExprWhen::results.emplace_back(v);
     return v;
@@ -211,7 +211,7 @@ AttributesPtr build_attrs__CPP(IntVec attr_tags, vector<ValPtr> attr_vals) {
     return make_intrusive<Attributes>(std::move(attrs), nullptr, false, false);
 }
 
-TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t, vector<int> attr_tags,
+TableValPtr set_constructor__CPP(const vector<ValPtr>& elements, TableTypePtr t, vector<int> attr_tags,
                                  vector<ValPtr> attr_vals) {
     auto attrs = build_attrs__CPP(std::move(attr_tags), std::move(attr_vals));
     auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));

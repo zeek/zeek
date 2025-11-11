@@ -21,7 +21,7 @@ void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
 void GenWhenStmt(const WhenStmt* w);
 void GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda, const Location* loc,
-                 std::vector<std::string> local_aggrs);
+                 const std::vector<std::string>& local_aggrs);
 void GenForStmt(const ForStmt* f);
 void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
 void GenForOverVector(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);

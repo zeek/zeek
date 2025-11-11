@@ -123,7 +123,7 @@ friend class GlobalInitInfo;
 int ReadyExpr(const ExprPtr& e);
 
 // Creates all the initializations needed for the given profile.
-int ReadyProfile(std::shared_ptr<ProfileFunc> pf);
+int ReadyProfile(const std::shared_ptr<ProfileFunc>& pf);
 
 // Tracks which globals we've readied and their associated init cohort.
 std::unordered_map<IDPtr, int> readied_globals;

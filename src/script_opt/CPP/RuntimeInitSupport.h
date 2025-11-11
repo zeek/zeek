@@ -47,8 +47,8 @@ extern void register_body__CPP(std::string zeek_name, CPPStmtPtr body, int prior
                                std::vector<std::string> events, void (*finish_init)());
 
 // Same but for standalone function bodies.
-extern void register_standalone_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
-                                          std::vector<std::string> events, std::string module_group,
+extern void register_standalone_body__CPP(const std::string& zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                                          std::vector<std::string> events, const std::string& module_group,
                                           std::vector<std::string> attr_groups, void (*finish_init)());
 
 // If the given function has bodies registered for them, adds them in.

@@ -143,7 +143,7 @@ function Telemetry::__counter_metric_get_or_add%(family: opaque of counter_metri
 function Telemetry::__counter_inc%(val: opaque of counter_metric,
                                    amount: double &default = 1.0%): bool
 	%{
-	return with<CounterMetricVal>(val, "Telemetry::counter_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
+	return with<CounterMetricVal>(val, "Telemetry::counter_inc: invalid handle.", [amount](const auto& hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__counter_value%(val: opaque of counter_metric%): double
@@ -202,13 +202,13 @@ function Telemetry::__gauge_metric_get_or_add%(family: opaque of gauge_metric_fa
 function Telemetry::__gauge_inc%(val: opaque of gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<GaugeMetricVal>(val, "Telemetry::gauge_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
+	return with<GaugeMetricVal>(val, "Telemetry::gauge_inc: invalid handle.", [amount](const auto& hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__gauge_dec%(val: opaque of gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<GaugeMetricVal>(val, "Telemetry::gauge_dec: invalid handle.", [amount](auto hdl) { hdl->Dec(amount); });
+	return with<GaugeMetricVal>(val, "Telemetry::gauge_dec: invalid handle.", [amount](const auto& hdl) { hdl->Dec(amount); });
 	%}
 
 function Telemetry::__gauge_value%(val: opaque of gauge_metric%): double
@@ -271,7 +271,7 @@ function Telemetry::__histogram_observe%(val: opaque of histogram_metric,
                                          measurement: double%): bool
 	%{
 	return with<HistogramMetricVal>(val, "Telemetry::histogram_inc: invalid handle.",
-                                    [measurement](auto hdl) { hdl->Observe(measurement); });
+                                    [measurement](const auto& hdl) { hdl->Observe(measurement); });
 	%}
 
 function Telemetry::__histogram_sum%(val: opaque of histogram_metric%): double

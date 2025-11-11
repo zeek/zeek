@@ -1448,12 +1448,6 @@ ValPtr rt::detail::to_val(const hilti::rt::type_info::Value& value, const TypePt
                     reporter->InternalError("%s", msg.c_str());
                 }
                 else {
-                    auto* field_name = rtype->FieldName(idx);
-
-                    if ( field_name != field.name )
-                        throw ParameterMismatch(hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'",
-                                                               field.name, field_name));
-
                     if ( fvalue )
                         setRecordField(rval.get(), rtype, idx, fvalue);
 

@@ -8,20 +8,20 @@
 
 namespace zeek::detail {
 
-const ZAMStmt ZAMCompiler::StartingBlock() { return ZAMStmt(insts1.size()); }
+ZAMStmt ZAMCompiler::StartingBlock() { return {static_cast<int>(insts1.size())}; }
 
-const ZAMStmt ZAMCompiler::FinishBlock(const ZAMStmt /* start */) { return ZAMStmt(insts1.size() - 1); }
+ZAMStmt ZAMCompiler::FinishBlock(ZAMStmt /* start */) { return {static_cast<int>(insts1.size() - 1)}; }
 
 bool ZAMCompiler::NullStmtOK() const {
     // They're okay iff they're the entire statement body.
     return insts1.empty();
 }
 
-const ZAMStmt ZAMCompiler::EmptyStmt() { return ZAMStmt(insts1.size() - 1); }
+ZAMStmt ZAMCompiler::EmptyStmt() { return {static_cast<int>(insts1.size() - 1)}; }
 
-const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+ZAMStmt ZAMCompiler::ErrorStmt() { return {0}; }
 
-const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
+ZAMStmt ZAMCompiler::LastInst() { return {static_cast<int>(insts1.size() - 1)}; }
 
 void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
     if ( cft == CFT_NONE )
@@ -116,7 +116,7 @@ int ZAMCompiler::InternalAddVal(ZInstAux* zi, int i, Expr* e) {
     return 1;
 }
 
-const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) {
+ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) {
     ZInstI* i;
 
     if ( pending_inst ) {
@@ -133,7 +133,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
     top_main_inst = insts1.size() - 1;
 
     if ( suppress_non_local )
-        return ZAMStmt(top_main_inst);
+        return {top_main_inst};
 
     // Ensure we haven't confused ourselves about any pending stores.
     ASSERT(pending_global_store == -1 || pending_capture_store == -1);
@@ -169,7 +169,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         return AddInst(store_inst);
     }
 
-    return ZAMStmt(top_main_inst);
+    return {top_main_inst};
 }
 
 const Stmt* ZAMCompiler::LastStmt(const Stmt* s) const {

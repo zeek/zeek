@@ -5,6 +5,7 @@ Checks: [-*,
          readability-isolate-declaration,
          readability-container-contains,
          readability-container-size-empty,
+         readability-const-return-type,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.

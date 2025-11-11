@@ -117,7 +117,7 @@ private:
 
     // Canonical rendering of a plugin's name. This is lower-cased,
     // with "::" and "_" both becoming "-".
-    const std::string PluginStreamName(const std::string& plugin_name) const;
+    std::string PluginStreamName(const std::string& plugin_name) const;
 };
 
 extern DebugLogger debug_logger;

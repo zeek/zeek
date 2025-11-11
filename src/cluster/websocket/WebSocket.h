@@ -103,7 +103,7 @@ public:
     /**
      * @return The client's subscriptions.
      */
-    const std::vector<std::string> GetSubscriptions() const;
+    std::vector<std::string> GetSubscriptions() const;
 
     /**
      * Store the client's subscriptions as "not active".

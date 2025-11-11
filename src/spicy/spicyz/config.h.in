@@ -35,15 +35,15 @@ static path get_env_path_or(const char* name, const char* default_) {
         return default_;
 }
 
-inline const auto InstallBinDir() { return path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_BINDIR}"; }
+inline auto InstallBinDir() { return path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_BINDIR}"; }
 
-inline const auto LibraryPath() { return get_env_path_or("ZEEK_SPICY_LIBRARY_PATH", "@ZEEK_SPICY_LIBRARY_PATH@"); }
+inline auto LibraryPath() { return get_env_path_or("ZEEK_SPICY_LIBRARY_PATH", "@ZEEK_SPICY_LIBRARY_PATH@"); }
 
-inline const auto ModulePath() { return get_env_path_or("ZEEK_SPICY_MODULE_PATH", "@ZEEK_SPICY_MODULE_PATH@"); }
+inline auto ModulePath() { return get_env_path_or("ZEEK_SPICY_MODULE_PATH", "@ZEEK_SPICY_MODULE_PATH@"); }
 
-inline const auto DataPath() { return get_env_path_or("ZEEK_SPICY_DATA_PATH", "@ZEEK_SPICY_DATA_PATH@"); }
+inline auto DataPath() { return get_env_path_or("ZEEK_SPICY_DATA_PATH", "@ZEEK_SPICY_DATA_PATH@"); }
 
-inline const auto CxxZeekIncludesDirectories() {
+inline auto CxxZeekIncludesDirectories() {
     std::string includes;
     add_path(includes, path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_INCLUDEDIR}");
 

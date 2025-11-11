@@ -192,7 +192,7 @@ bool WebSocketClient::AllSubscriptionsActive() const {
     return true;
 }
 
-const std::vector<std::string> WebSocketClient::GetSubscriptions() const {
+std::vector<std::string> WebSocketClient::GetSubscriptions() const {
     std::vector<std::string> subs;
     subs.reserve(subscriptions_state.size());
 

@@ -1,3 +1,7 @@
+8.1.0-dev.856 | 2025-11-11 09:03:03 -0700
+
+  * Enable clang-tidy readability-const-return-type checker, fix findings (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.854 | 2025-11-10 15:15:49 -0700
 
   * Update zeek-aux submodule [nomail] (Tim Wojtulewicz, Corelight)

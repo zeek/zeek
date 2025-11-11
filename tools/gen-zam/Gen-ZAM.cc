@@ -591,10 +591,10 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix, co
     auto decls = MethodDeclare(oc, zc);
 
     EmitTo(MethodDecl);
-    Emit("const ZAMStmt " + m + suffix + "(" + decls + ");");
+    Emit("ZAMStmt " + m + suffix + "(" + decls + ");");
 
     EmitTo(MethodDef);
-    Emit("const ZAMStmt ZAMCompiler::" + m + suffix + "(" + decls + ")");
+    Emit("ZAMStmt ZAMCompiler::" + m + suffix + "(" + decls + ")");
     BeginBlock();
 
     InstantiateMethodCore(oc, suffix, zc);

@@ -153,7 +153,7 @@ public:
         ASSERT(strings[offset]);
         return strings[offset];
     }
-    const p_hash_type Hashes(int offset) const {
+    p_hash_type Hashes(int offset) const {
         ASSERT(offset >= 0 && offset < static_cast<int>(hashes.size()));
         return hashes[offset];
     }

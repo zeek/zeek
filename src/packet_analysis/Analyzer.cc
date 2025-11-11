@@ -40,7 +40,7 @@ zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string& nam
     return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 }
 
-const Tag Analyzer::GetAnalyzerTag() const {
+Tag Analyzer::GetAnalyzerTag() const {
     assert(tag);
     return tag;
 }

@@ -842,10 +842,6 @@ public_ecr_cleanup_docker_builder:
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
-  only_if: >
-    ( $CIRRUS_CRON == '' ) &&
-    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
   install_deps_script:

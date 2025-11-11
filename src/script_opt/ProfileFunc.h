@@ -113,6 +113,7 @@ public:
     const auto& TypeAliases() const { return type_aliases; }
     const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
     const IDSet& BiFGlobals() const { return BiF_globals; }
+    const IDSet& CalledBiFGlobals() const { return called_BiF_globals; }
     const std::unordered_set<std::string>& Events() const { return events; }
     const std::unordered_map<const Attributes*, TypePtr>& ConstructorAttrs() const { return constructor_attrs; }
     const std::unordered_map<const Type*, std::set<const Attributes*>>& RecordConstructorAttrs() const {
@@ -256,9 +257,11 @@ protected:
     std::unordered_set<ScriptFunc*> script_calls;
 
     // Same for BiF's, though for them we record the corresponding global
-    // rather than the BuiltinFunc*. In addition, we only track BiFs germane
-    // to code we're compiling.
+    // rather than the BuiltinFunc*.
     IDSet BiF_globals;
+
+    // Just the BiFs directly germane to code we're compiling.
+    IDSet called_BiF_globals;
 
     // Script functions appearing in "when" clauses.
     std::unordered_set<ScriptFunc*> when_calls;
@@ -381,6 +384,7 @@ public:
     const std::vector<const Type*>& RepTypes() const { return rep_types; }
     const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
     const IDSet& BiFGlobals() const { return BiF_globals; }
+    const IDSet& CalledBiFGlobals() const { return called_BiF_globals; }
     const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::unordered_set<std::string>& Events() const { return events; }
     const auto& ExprAttrs() const { return expr_attrs; }
@@ -542,8 +546,12 @@ protected:
     // Script functions that get called.
     std::unordered_set<ScriptFunc*> script_calls;
 
-    // Same for BiF's.
+    // All of the BiFs called, and the same but limited to those that
+    // are called by script functions that we're compiling. We need the
+    // former for some forms of ZAM optimization, and the latter to limit
+    // how many functions -O gen-standalone-C++ has to initialize.
     IDSet BiF_globals;
+    IDSet called_BiF_globals;
 
     // And for lambda's.
     std::unordered_set<const LambdaExpr*> lambdas;

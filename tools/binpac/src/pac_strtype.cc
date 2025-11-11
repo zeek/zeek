@@ -19,17 +19,17 @@ const char* StringType::kConstStringTypeName = "const_bytestring";
 
 StringType::StringType(StringTypeEnum anystr) : Type(STRING), type_(ANYSTR), str_(nullptr), regex_(nullptr) {
     ASSERT(anystr == ANYSTR);
-    init();
+    init_type();
 }
 
-StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(nullptr) { init(); }
+StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(nullptr) { init_type(); }
 
 StringType::StringType(RegEx* regex) : Type(STRING), type_(REGEX), str_(nullptr), regex_(regex) {
     ASSERT(regex_);
-    init();
+    init_type();
 }
 
-void StringType::init() {
+void StringType::init_type() {
     string_length_var_field_ = nullptr;
     elem_datatype_ = new BuiltInType(BuiltInType::UINT8);
 }

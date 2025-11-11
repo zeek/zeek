@@ -300,6 +300,7 @@ auto operator!=(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y) 
 
 namespace std {
 template<class T>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification)
 struct hash<zeek::IntrusivePtr<T>> {
     // Hash of intrusive pointer is the same as hash of the raw pointer it holds.
     size_t operator()(const zeek::IntrusivePtr<T>& v) const noexcept { return std::hash<T*>{}(v.get()); }

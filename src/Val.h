@@ -420,6 +420,7 @@ class BoolVal final : public detail::IntValImplementation {
 public:
     BoolVal(zeek_int_t v) : detail::IntValImplementation(base_type(TYPE_BOOL), v) {}
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool Get() const { return static_cast<bool>(int_val); }
 };
 

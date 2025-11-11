@@ -39,7 +39,7 @@ public:
     void ProcessAttr(Attr* a) override;
 
 protected:
-    void init();
+    void init_type();
 
     // Generate computation of size of the string and returns the string
     // representing a constant integer or name of the length variable.

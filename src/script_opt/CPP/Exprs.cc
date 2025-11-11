@@ -1270,7 +1270,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
 
 int CPPCompile::ReadyExpr(const ExprPtr& e) { return ReadyProfile(make_shared<ProfileFunc>(e.get())); }
 
-int CPPCompile::ReadyProfile(shared_ptr<ProfileFunc> pf) {
+int CPPCompile::ReadyProfile(const shared_ptr<ProfileFunc>& pf) {
     int max_cohort = 0;
 
     for ( const auto& c : pf->Constants() )
@@ -1311,7 +1311,7 @@ int CPPCompile::ReadyProfile(shared_ptr<ProfileFunc> pf) {
         }
     }
 
-    for ( auto g : compiled_funcs_called ) {
+    for ( const auto& g : compiled_funcs_called ) {
         readied_globals[g] = 0; // prevent infinite loops on recursion
         auto f = g->GetVal()->AsFunc();
         int f_cohort = 0;

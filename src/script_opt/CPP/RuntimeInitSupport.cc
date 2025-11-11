@@ -59,8 +59,8 @@ void register_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_
 static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
 static unordered_map<std::string, std::vector<p_hash_type>> zeek_script_hashes;
 
-void register_standalone_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
-                                   vector<string> events, std::string module_group,
+void register_standalone_body__CPP(const std::string& zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                                   vector<string> events, const std::string& module_group,
                                    std::vector<std::string> attr_groups, void (*finish_init)()) {
     // For standalone scripts we don't actually need finish_init, but
     // we keep it for symmetry with compiled_scripts.

@@ -23,6 +23,8 @@ public:
     // Initializes analyzer_context_id
     void GenNewContext(Output* out_cc, Env* env);
 
+    // pac_analyzer.h defines this with a different return type
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     DataUnitType type() const { return type_; }
     const ID* id() const { return id_; }
     ExprList* type_params() const { return type_params_; }

@@ -390,7 +390,7 @@ private:
 class RuleMatcherState {
 public:
     RuleMatcherState() { orig_match_state = resp_match_state = nullptr; }
-    ~RuleMatcherState() {
+    virtual ~RuleMatcherState() {
         delete orig_match_state;
         delete resp_match_state;
     }
@@ -401,8 +401,8 @@ public:
 
     // bol/eol should be set to false for type Rule::PAYLOAD; they're
     // deduced automatically.
-    void Match(Rule::PatternType type, const u_char* data, int data_len, bool from_orig, bool bol, bool eol,
-               bool clear_state);
+    virtual void Match(Rule::PatternType type, const u_char* data, int data_len, bool from_orig, bool bol, bool eol,
+                       bool clear_state);
 
     void FinishEndpointMatcher();
     void ClearMatchState(bool orig);

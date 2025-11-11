@@ -1,3 +1,19 @@
+8.1.0-dev.872 | 2025-11-11 16:27:05 -0700
+
+  * Fix a few other random one-off clang-tidy findings (Tim Wojtulewicz, Corelight)
+
+  * Fix a few instances of performance-unnecessary-value-param (Tim Wojtulewicz, Corelight)
+
+  * Fix a couple instances of readability-container-contains (Tim Wojtulewicz, Corelight)
+
+  * Fix or silence findings of bugprone-derived-method-shadowing-base-method (Tim Wojtulewicz, Corelight)
+
+  * Wrap includes of cc files in generated BIF files to check bugprone-suspicious-include (Tim Wojtulewicz, Corelight)
+
+  * Disable a few new checkers from later versions of clang-tidy (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove unnecessary extra only_if condition (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.864 | 2025-11-11 12:08:41 -0700
 
   * CI: Make cluster_test and amd64_container_image have the same conditions (Tim Wojtulewicz, Corelight)

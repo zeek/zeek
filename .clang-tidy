@@ -18,6 +18,7 @@ Checks: [-*,
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
+         -bugprone-unchecked-string-to-number-conversion,
          -modernize-use-integer-sign-comparison,
 
          # The following cause either lots of pointless or advisory warnings
@@ -38,6 +39,8 @@ Checks: [-*,
          # we simply don't want to fix.
          -bugprone-pointer-arithmetic-on-polymorphic-object,
          -bugprone-exception-escape,
+         -bugprone-command-processor,
+         -bugprone-throwing-static-initialization,
          -modernize-avoid-c-arrays,
          -modernize-concat-nested-namespaces,
          -modernize-raw-string-literal,
@@ -45,6 +48,10 @@ Checks: [-*,
          -modernize-use-nodiscard,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
+
+         # I'd like to enable this at some point, but it's going to warn on all
+         # of our fmt() and Reporter methods.
+         -modernize-avoid-variadic-functions,
 
          # There are a lot of unhandled exceptions across the code base because
          # one of the reporter handlers throws an exception. Reporter already

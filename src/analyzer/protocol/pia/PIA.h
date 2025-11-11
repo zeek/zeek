@@ -24,7 +24,7 @@ namespace zeek::analyzer::pia {
 class PIA : public zeek::detail::RuleMatcherState {
 public:
     explicit PIA(analyzer::Analyzer* as_analyzer);
-    virtual ~PIA();
+    ~PIA() override;
 
     // Called when PIA wants to put an Analyzer in charge.  rule is the
     // signature that triggered the activation, if any.
@@ -34,7 +34,7 @@ public:
     virtual void DeactivateAnalyzer(zeek::Tag tag) = 0;
 
     void Match(zeek::detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
-               bool clear_state);
+               bool clear_state) override;
 
     void ReplayPacketBuffer(analyzer::Analyzer* analyzer);
 

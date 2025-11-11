@@ -15,7 +15,7 @@ public:
 
     Env* env() const override { return env_; }
     Type* type() const { return type_; }
-    string class_name() const;
+    virtual string class_name() const;
     static Type* LookUpType(const ID* id);
 
 protected:

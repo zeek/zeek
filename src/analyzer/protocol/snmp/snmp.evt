@@ -3,7 +3,10 @@
 %doc-id= Zeek::SNMP;
 %doc-description = "SNMP analyzer";
 
-protocol analyzer spicy::SNMP over UDP:
+protocol analyzer SNMP over UDP:
     parse with SNMP::Message;
 
 import SNMP;
+import SNMP_Zeek;
+
+on SNMP::GetRequest -> event snmp_get_request($conn, $is_orig, SNMP_Zeek::make_header(message), SNMP_Zeek::make_pdu(self.common_pdu));

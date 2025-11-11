@@ -12,5 +12,46 @@ type VersionTag = enum {
 };
 
 public type Message = unit {
-    seqHeader: ASN1::ASN1Header;
+    seqHeader: ASN1::ASN1SequenceHeader;
+    version: ASN1::ParsedASN1Integer;
+    switch (VersionTag(self.version)) {
+        VersionTag::SNMPV1_TAG,
+        VersionTag::SNMPV2_TAG -> community: ASN1::ParsedASN1OctetString;
+    };
+    pdu: PDU(self);
+};
+
+type PDU = unit(message: Message) {
+    # implicit choice
+    choice_type: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific); # &convert=$$.tag.raw_type;
+    switch (self.choice_type.tag.raw_type) {
+        0 -> : GetRequest(message);
+        1 -> : GetNextRequest(message);
+    };
+};
+
+type CommonPDU = unit {
+    request_id: ASN1::ParsedASN1Integer;
+    error_status: ASN1::ParsedASN1Integer;
+    error_index: ASN1::ParsedASN1Integer;
+    var_binds: VarBindList;
+};
+
+type GetRequest = unit(message: Message) {
+    common_pdu: CommonPDU;
+};
+
+type GetNextRequest = unit(message: Message) {
+    common_pdu: CommonPDU;
+};
+
+type VarBindList = unit {
+    : ASN1::ASN1SequenceHeader;
+    bindings: VarBind[];
+};
+
+type VarBind = unit {
+    : ASN1::ASN1SequenceHeader;
+    name: ASN1::ParsedASN1ObjectOidentifier;
+    value: ASN1::ASN1Message(False);
 };

@@ -86,11 +86,18 @@ type LengthType = unit {
 };
 
 type ASN1Tag = unit {
+    var type_: ASN1Type;
+    tag_data: bytes &size=1;
+
     : bitfield(8) {
-        type_: 0..4 &convert=ASN1Type($$);
+        raw_type: 0..4;
         constructed: 5 &convert=cast<bool>($$);
         class: 6..7 &convert=ASN1Class($$);
-    };
+    } &parse-from=self.tag_data;
+
+     on %done {
+        self.type_ = ASN1Type(self.raw_type);
+    }
 };
 
 #- ASN.1 bit string -----------------------------------------------------------
@@ -194,6 +201,28 @@ public type ASN1Header = unit {
     tag: ASN1Tag;
     len: LengthType;
 };
+
+# convenience unit - Sequences are common, have a specific header that checks them.
+# Discards tag, returns length
+public type ASN1SequenceHeader = unit {
+    tag: ASN1Tag &requires=($$.class == ASN1::ASN1Class::Universal && $$.type_ == ASN1::ASN1Type::Sequence);
+    len: LengthType;
+} &convert=self.len;
+
+public type ParsedASN1Integer = unit {
+    head: ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
+    value: bytes &size=self.head.len.len;
+} &convert=self.value.to_int(spicy::ByteOrder::Big);
+
+public type ParsedASN1OctetString = unit {
+    head: ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::OctetString);
+    value: bytes &size=self.head.len.len;
+} &convert=self.value;
+
+public type ParsedASN1ObjectOidentifier = unit {
+    head: ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::ObjectIdentifier);
+    oid: ASN1ObjectIdentifier(self.head.len.len);
+} &convert=self.oid.oidstring;
 
 #- ASN.1 message body ---------------------------------------------------------
 

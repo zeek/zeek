@@ -1,0 +1,98 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module SNMP_Zeek;
+
+import SNMP;
+import ASN1;
+import zeek;
+import spicy;
+
+type Headerv1v2 = struct {
+    community: bytes;
+};
+
+type ScopedPDU_Context = struct {
+    engine_id: bytes;
+    name: bytes;
+};
+
+type UserSecurityParameters = struct {
+    AuthoritativeEngineID: bytes;
+    AuthoritativeEngineBoots: int64;
+    AuthoritativeEngineTime: int64;
+    UserName: bytes;
+    AuthenticationParameters: bytes;
+    PrivacyParameters: bytes;
+};
+
+type Headerv3 = struct {
+    id: uint64;
+    max_size: uint64;
+    flags: uint64;
+    auth_flag: bool;
+    priv_flag: bool;
+    reportable_flag: bool;
+    security_model: uint64;
+    security_params: bytes;
+    pdu_context: optional<ScopedPDU_Context> &default=Null;
+    user_security_parameters: optional<UserSecurityParameters> &default=Null;
+};
+
+type Header = struct {
+    version: uint64;
+    v1: optional<Headerv1v2> &default=Null;
+    v2: optional<Headerv1v2> &default=Null;
+    v3: optional<Headerv3> &default=Null;
+};
+
+public function make_header(message: SNMP::Message): Header {
+    local my_header: Header = [$version = cast<uint64>(message.version)];
+    if (message.version == 0)
+        my_header.v1 = [$community = message.community];
+    else if (message.version == 1)
+        my_header.v2 = [$community = message.community];
+    return my_header;
+}
+
+type ObjectValue = struct {
+    tag: uint64;
+    oid: optional<bytes> &default=Null;
+    signed: optional<int64> &default=Null;
+    unsigned: optional<uint64> &default=Null;
+    address: optional<addr> &default=Null;
+    octets: optional<bytes> &default=Null;
+};
+
+type Binding = struct {
+    oid: bytes;
+    value: ObjectValue;
+};
+
+type PDU = struct {
+    request_id: int64;
+    error_status: int64;
+    error_index: int64;
+    bindings: vector<Binding>;
+};
+
+public function make_pdu(pdu: SNMP::CommonPDU): PDU {
+    local bindings: vector<Binding>;
+    #for (ele in pdu.var_binds.bindings) {
+    #	bindings.push_back(make_binding(ele));
+    #}
+    return [$request_id = pdu.request_id, $error_status = pdu.error_status, $error_index = pdu.error_index, $bindings = bindings];
+}
+
+function make_binding(vb: SNMP::VarBind): Binding {
+    return [$oid = vb.name.encode(), $value = make_object_value(vb.value)];
+}
+
+function make_object_value(msg: ASN1::ASN1Message): ObjectValue {
+    local val: ObjectValue = [$tag = msg.head.tag.tag_data.to_uint(spicy::ByteOrder::Big)];
+    if (msg?.body)
+        if (msg.head.tag.type_ == ASN1::ASN1Type::ObjectIdentifier)
+            val.oid = msg.body.str_value.encode();
+
+    # FIXME: implement all the other missing cases.
+    return val;
+}

@@ -100,7 +100,10 @@ export {
 	## Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
 	## to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
 	##
-	## This setting is ignored if Zeek is run in standalone mode.
+	## This setting is ignored if Zeek is run in standalone mode, or if the
+	## newer known_log_certs_enable_publish is set to T.
+	##
+	## See also :zeek:see:`X509::known_log_certs_enable_publish`.
 	global known_log_certs_use_broker: bool = T &deprecated="Remove in v9.1: Replaced with known_log_certs_enable_publish";
 
 	## Whether to publish the hash of any logged certificate to other cluster
@@ -111,6 +114,8 @@ export {
 
 	## Whether the manager sends all logged certs in response to a
 	## Cluster::node_up() for workers.
+	##
+	## See also :zeek:see:`X509::known_log_certs_enable_publish`.
 	const known_log_certs_enable_node_up_publish: bool = T &redef;
 
 	## Event for accessing logged records.
@@ -248,8 +253,6 @@ event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, log
 	}
 
 
-# global X509::Internal::x509_log_cert_hash: event(lch: X509::LogCertHash);
-
 # Internal event arriving at manager or worker nodes.
 event X509::log_cert_hashes_internal(lchs: set[LogCertHash])
 	{
@@ -257,7 +260,7 @@ event X509::log_cert_hashes_internal(lchs: set[LogCertHash])
 		if ( |known_log_certs| < known_log_certs_maximum_size )
 			add X509::known_log_certs[lch];
 
-	# The manager re-distribute to all other workers (including the one
+	# The manager re-distributes to all workers (including the one
 	# that sent the original event).
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		Cluster::publish(Cluster::worker_topic, X509::log_cert_hashes_internal, lchs);
@@ -275,10 +278,13 @@ event X509::log_cert_hashes_internal(lchs: set[LogCertHash])
 # it now is explicit :-)
 event Cluster::node_up(name: string, id: string)
 	{
-	if ( ! known_log_certs_enable_node_up_publish )
+	if ( ! known_log_certs_enable_publish || ! known_log_certs_enable_node_up_publish )
 		return;
 
-	if ( name !in Cluster::nodes || Cluster::nodes[name]$node_type != Cluster::WORKER || |known_log_certs| == 0)
+	if ( name !in Cluster::nodes || Cluster::nodes[name]$node_type != Cluster::WORKER )
+		return;
+
+	if ( |known_log_certs| == 0 )
 		return;
 
 	Cluster::publish(Cluster::node_topic(name), X509::log_cert_hashes_internal, known_log_certs);

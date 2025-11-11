@@ -1,4 +1,4 @@
-# Test that certificate log deduplication works in clustered mode for ZeroMQ.
+# @TEST-DOC: Test that certificate log deduplication works in clustered mode for ZeroMQ.
 #
 # @TEST-PORT: XPUB_PORT
 # @TEST-PORT: XSUB_PORT
@@ -6,8 +6,6 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-#
-# @TEST-EXEC: zeek --parse-only %INPUT
 #
 # @TEST-EXEC: btest-bg-run manager   "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek -b %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"

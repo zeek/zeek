@@ -35,7 +35,7 @@ public:
     void GenInitCode(Output* out_cc) override;
     void GenCleanUpCode(Output* out_cc) override;
 
-    string class_name() const;
+    string class_name() const override;
     // string cookie_name() const;
 
 protected:

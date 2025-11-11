@@ -294,7 +294,7 @@ public:
 
     // Returns the name that should be used for referring to this
     // value in the generated code.
-    std::string Name() const { return inits_collection->Name(offset); }
+    virtual std::string Name() const { return inits_collection->Name(offset); }
 
     // Returns this item's initialization cohort.
     int InitCohort() const { return init_cohort; }
@@ -551,7 +551,7 @@ public:
     // Accessors, since code to initialize these is generated separately
     // from that of most initialization collections.
     const ExprPtr& GetExpr() const { return e; }
-    const std::string& Name() const { return e_name; }
+    std::string Name() const override { return e_name; }
     const std::string& WrapperClass() const { return wrapper_class; }
 
 protected:

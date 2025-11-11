@@ -12,6 +12,10 @@ namespace zeek::json::detail {
 class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
 public:
     explicit NullDoubleWriter(rapidjson::StringBuffer& stream) : rapidjson::Writer<rapidjson::StringBuffer>(stream) {}
+
+    // This isn't defined as virtual in rapidjson's writer.h header, so we can't
+    // define it as override.
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool Double(double d) {
         if ( rapidjson::internal::Double(d).IsNanOrInf() )
             return rapidjson::Writer<rapidjson::StringBuffer>::Null();

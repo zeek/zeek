@@ -281,7 +281,7 @@ public:
 
     // True if (a) the expression has at least one operand, and (b) all
     // of its operands are constant.
-    bool HasConstantOps() const {
+    virtual bool HasConstantOps() const {
         return GetOp1() && GetOp1()->IsConst() &&
                (! GetOp2() || (GetOp2()->IsConst() && (! GetOp3() || GetOp3()->IsConst())));
     }
@@ -1551,7 +1551,7 @@ public:
     bool IsPure() const override;
 
     // True if the entire list represents constant values.
-    bool HasConstantOps() const;
+    bool HasConstantOps() const override;
 
     ValPtr Eval(Frame* f) const override;
 

@@ -81,6 +81,9 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) {
         case EXPR_CONST:
         case EXPR_NAME: return true;
 
+        case EXPR_ARITH_COERCE:
+            return e->GetType()->Tag() == TYPE_INT && (e->GetOp1()->IsZero() || e->GetOp1()->IsOne());
+
         case EXPR_RECORD_COERCE: { // look for coercion of empty record
             auto op = e->GetOp1();
 

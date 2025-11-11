@@ -6,11 +6,11 @@ import ASN1;
 import spicy;
 
 type VersionTag = enum {
-	SNMPV1_TAG = 0,
-	SNMPV2_TAG = 1,
-	SNMPV3_TAG = 3,
+    SNMPV1_TAG = 0,
+    SNMPV2_TAG = 1,
+    SNMPV3_TAG = 3,
 };
 
 public type Message = unit {
-	seqHeader: ASN1::ASN1Header;
+    seqHeader: ASN1::ASN1Header;
 };

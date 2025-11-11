@@ -273,9 +273,7 @@ public:
     /**
      * Returns true if the given type name has any declared aliases
      */
-    static bool HasAliases(std::string_view type_name) {
-        return Type::type_aliases.find(type_name) != Type::type_aliases.end();
-    }
+    static bool HasAliases(std::string_view type_name) { return Type::type_aliases.contains(type_name); }
 
     /**
      * Returns the set of all type names declared as an aliases to the given

@@ -1574,7 +1574,7 @@ bool Supervisor::Restart(std::string_view node_name) {
         return true;
     }
 
-    if ( nodes.find(node_name) == nodes.end() )
+    if ( ! nodes.contains(node_name) )
         return false;
 
     send_restart_msg(node_name);

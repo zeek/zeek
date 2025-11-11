@@ -1298,7 +1298,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 
 	try
 		{
-		std::unique_ptr<paraglob::Paraglob> p (new paraglob::Paraglob(patterns));
+		auto p = std::make_unique<paraglob::Paraglob>(patterns);
 		return zeek::make_intrusive<zeek::ParaglobVal>(std::move(p));
 		}
 	// Thrown if paraglob fails to add a pattern.

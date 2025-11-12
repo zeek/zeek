@@ -27,6 +27,8 @@ type PDU = unit(message: Message) {
     switch (self.choice_type.tag.raw_type) {
         0 -> : GetRequest(message);
         1 -> : GetNextRequest(message);
+        2 -> : GetResponse(message);
+				3 -> : SetRequest(message);
     };
 };
 
@@ -42,6 +44,14 @@ type GetRequest = unit(message: Message) {
 };
 
 type GetNextRequest = unit(message: Message) {
+    common_pdu: CommonPDU;
+};
+
+type GetResponse = unit(message: Message) {
+    common_pdu: CommonPDU;
+};
+
+type SetRequest = unit(message: Message) {
     common_pdu: CommonPDU;
 };
 

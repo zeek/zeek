@@ -77,9 +77,9 @@ type PDU = struct {
 
 public function make_pdu(pdu: SNMP::CommonPDU): PDU {
     local bindings: vector<Binding>;
-    #for (ele in pdu.var_binds.bindings) {
-    #	bindings.push_back(make_binding(ele));
-    #}
+    for (ele in pdu.var_binds.bindings) {
+    	bindings.push_back(make_binding(ele));
+    }
     return [$request_id = pdu.request_id, $error_status = pdu.error_status, $error_index = pdu.error_index, $bindings = bindings];
 }
 

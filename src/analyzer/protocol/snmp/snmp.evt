@@ -10,3 +10,6 @@ import SNMP;
 import SNMP_Zeek;
 
 on SNMP::GetRequest -> event snmp_get_request($conn, $is_orig, SNMP_Zeek::make_header(message), SNMP_Zeek::make_pdu(self.common_pdu));
+on SNMP::GetNextRequest -> event snmp_get_next_request($conn, $is_orig, SNMP_Zeek::make_header(message), SNMP_Zeek::make_pdu(self.common_pdu));
+on SNMP::GetResponse -> event snmp_response($conn, $is_orig, SNMP_Zeek::make_header(message), SNMP_Zeek::make_pdu(self.common_pdu));
+on SNMP::SetRequest -> event snmp_set_request($conn, $is_orig, SNMP_Zeek::make_header(message), SNMP_Zeek::make_pdu(self.common_pdu));

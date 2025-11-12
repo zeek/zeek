@@ -17,6 +17,7 @@
 # @TEST-EXEC: rm -rf ./zeek
 
 @load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
 
 option use_custom_postproc = F;
 

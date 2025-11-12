@@ -709,31 +709,69 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
 
   sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
 
-  prepare_builder_script:
-    - set -x
-    - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
-    - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
-    - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+  prepare_builder_script: |
+    set -x
+    mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
+    ls ${BUILDER_IMAGE_CACHE_DIR}
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then
+      zstd -d <${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load
+
+      # Store off the image ID so we can check whether the image changes after we rebuild.
+      LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null)
+    fi
+
+    # Rebuild the image. If the commit hasn't changed, this should result in the same image.
+    (cd docker && docker build --cache-from zeek-builder:latest --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} -t zeek-builder:latest -f builder.Dockerfile .)
+
+    # Check whether the image has changed, set a flag for the remainder of the process to
+    # know whether those steps should do anything.
+    NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
+    if [ "${LAST_BUILDER_IMAGE_ID}" != "${NEW_BUILDER_IMAGE_ID}" ]; then
+      echo "BUILDER_IMAGE_REBUILT=1" >>$CIRRUS_ENV
+      docker save zeek-builder:latest | zstd >${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+    else
+      echo "Builder image not rebuilt, skipped re-caching old image"
+    fi
   build_zeek_script: |
     set -x
-    docker run --name zeek-builder-container \
-        -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
-        -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
-        -e CCACHE_DIR=/tmp/ccache \
-        -e CCACHE_NOSTATS=1 \
-        -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
-        bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+    if [ ${BUILDER_IMAGE_REBUILT:-0} -eq 1 ]; then
+      docker run --name zeek-builder-container \
+          -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+          -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+          -e CCACHE_DIR=/tmp/ccache \
+          -e CCACHE_NOSTATS=1 \
+          -v $(pwd):/src/zeek -v /tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
+          bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
 
-    # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
-    docker commit zeek-builder-container zeek-build
-  build_final_script:
-    - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
-    - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
-  test_script:
-    - docker tag ${IMAGE_TAG} zeek:latest
-    - make -C docker/btest
+      # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+      docker commit zeek-builder-container zeek-build
+    else
+      echo "Builder image didn't change, skipping step"
+    fi
+  build_final_script: |
+    set -x
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then
+      zstd -d <${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load
+      LAST_FINAL_SHA=$(docker inspect -f "{{ .Config.Labels.org.opencontainers.image.revision }}" ${IMAGE_TAG} 2>/dev/null)
+    fi
+
+    if [ ${BUILDER_IMAGE_REBUILT:-0} -eq 1 -o "${CIRRUS_CHANGE_IN_REPO}" != "${LAST_FINAL_SHA}" ]; then
+      echo "FINAL_IMAGE_REBUILT=1" >>$CIRRUS_ENV
+      (cd docker && docker build --cache-from ${IMAGE_TAG} \
+        --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+        -t ${IMAGE_TAG} -f final.Dockerfile .)
+      docker save ${IMAGE_TAG} | zstd >${ZEEK_IMAGE_CACHE_DIR}/final.zst
+    else
+      echo "Builder image didn't change or Git SHA is same in cached final image, skipping step"
+    fi
+  test_script: |
+    set -x
+    if [ ${FINAL_IMAGE_REBUILT} -eq 1 ]; then
+      docker tag ${IMAGE_TAG} zeek:latest
+      make -C docker/btest
+    else
+      echo "Final image not rebuilt, skipping step"
+    fi
 
 arm64_container_image_docker_builder:
   env:

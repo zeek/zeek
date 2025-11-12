@@ -42,3 +42,11 @@ RUN apt-get -q update \
 COPY --from=zeek-build /usr/local/zeek /usr/local/zeek
 ENV PATH="/usr/local/zeek/bin:${PATH}"
 ENV PYTHONPATH="/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"
+
+# Used to store the SHA for the git commit that generated this image into
+# the image itself. This allows using `docker inspect` to determine what SHA
+# is related to the image. This happens at the end because it potentially
+# changes with each CI build, and doing at the end means the prior layers
+# can be reused. This uses the OCI-suggested naming for the label.
+ARG GIT_COMMIT
+LABEL org.opencontainers.image.revision=$GIT_COMMIT

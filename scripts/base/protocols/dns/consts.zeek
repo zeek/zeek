@@ -182,8 +182,7 @@ export {
 		[4] = "SHA384",
 	} &default = function(n: count): string { return fmt("digest-%d", n); };
 
-	## SVCB/HTTPS SvcParam keys as defined in
-	## https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+	## SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
 	## Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
 	const svcparam_keys = {
 		[0] = "mandatory",

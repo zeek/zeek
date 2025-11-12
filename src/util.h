@@ -534,9 +534,12 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
  * @param val the input string to be escaped
  * @param escape_printable_controls flag for whether printable control characters
  * (e.g. newlines, tabs, etc) should be escaped in the output. Defaults to false.
+ * @param escape_other_controls flag for whether non-printable control characters
+ * (e.g. nulls, bells, etc) should be escaped in the output.
  * @return the escaped string
  */
-std::string escape_utf8(const std::string& val, bool escape_printable_controls = false);
+std::string escape_utf8(const std::string& val, bool escape_printable_controls = false,
+                        bool escape_other_controls = true);
 
 /**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
@@ -545,9 +548,12 @@ std::string escape_utf8(const std::string& val, bool escape_printable_controls =
  * @param val_size the length of the character data
  * @param escape_printable_controls flag for whether printable control characters
  * (e.g. newlines, tabs, etc) should be escaped in the output. Defaults to false.
+ * @param escape_other_controls flag for whether non-printable control characters
+ * (e.g. nulls, bells, etc) should be escaped in the output.
  * @return the escaped string
  */
-std::string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = false);
+std::string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = false,
+                        bool escape_other_controls = true);
 
 [[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
 inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {

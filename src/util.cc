@@ -1905,11 +1905,11 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) 
     return true;
 }
 
-string escape_utf8(const string& val, bool escape_printable_controls) {
-    return escape_utf8(val.c_str(), val.size(), escape_printable_controls);
+string escape_utf8(const string& val, bool escape_printable_controls, bool escape_other_controls) {
+    return escape_utf8(val.c_str(), val.size(), escape_printable_controls, escape_other_controls);
 }
 
-string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls) {
+string escape_utf8(const char* val, size_t val_size, bool escape_printable_controls, bool escape_other_controls) {
     auto val_data = reinterpret_cast<const unsigned char*>(val);
 
     // Reserve at least the size of the existing string to avoid resizing the string in the
@@ -1930,8 +1930,8 @@ string escape_utf8(const char* val, size_t val_size, bool escape_printable_contr
 
         // Normal ASCII characters plus a few of the control characters can be inserted directly.
         // The rest of the control characters should be escaped as regular bytes.
-        if ( (ch >= 32 && ch < 127) ||
-             ((! escape_printable_controls) && (ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t')) ) {
+        if ( (ch >= 32 && ch < 127) || ((! escape_printable_controls) && (ch < 32) && std::isspace(ch)) ||
+             (! escape_other_controls && (ch < 32 || ch == 127) && ! std::isspace(ch)) ) {
             if ( ! found_bad )
                 utf_result.push_back(ch);
 
@@ -2350,11 +2350,20 @@ TEST_SUITE("util") {
     TEST_CASE("canonify_name") { CHECK(canonify_name("file name") == "FILE_NAME"); }
 
     TEST_CASE("json_escape_utf8") {
+        CHECK(escape_utf8(std::string{"\x07o"}, false, false) == "\x07o");
         CHECK(escape_utf8("string") == "string");
         CHECK(escape_utf8(std::string{"string\n"}, false) == "string\n");
         CHECK(escape_utf8(std::string{"string\n"}, true) == "string\\x0a");
         CHECK(escape_utf8("string\x82") == "string\\x82");
+
+        // \udab7 is a valid UTF-8 character, but \u0007 is a control character
+        // that isn't according to check_ok_utf8(). If we insert it, the rest of
+        // the string gets inserted as escaped data.
         CHECK(escape_utf8("\x07\xd4\xb7o") == "\\x07\\xd4\\xb7o");
+
+        // In this case, we insert the UTF-8 character as the actual character
+        // because the control character isn't getting escaped.
+        CHECK(escape_utf8(std::string{"\x07\xd4\xb7o"}, false, false) == "\x07\xd4\xb7o");
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -2367,10 +2376,12 @@ TEST_SUITE("util") {
 
         // These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
 
-        // Valid ASCII and valid ASCII control characters
+        // Valid ASCII characters.
         CHECK(escape_utf8("a") == "a");
+
+        // Valid ASCII control characters, both printable and non-printable.
         // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
-        CHECK(escape_utf8("\b\f\n\r\t\x00\x15", 7, false) == "\b\f\n\r\t\\x00\\x15");
+        CHECK(escape_utf8("\f\n\r\t\x00\x15", 6) == "\f\n\r\t\\x00\\x15");
 
         // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
         // valid and invalid for the tests below

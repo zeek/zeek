@@ -20,7 +20,7 @@
 @load frameworks/cluster/backend/broker/telemetry.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
 @load frameworks/cluster/backend/zeromq/__load__.zeek
-# @load frameworks/cluster/backend/zeromq/connect.zeek
+@load frameworks/cluster/backend/zeromq/connect.zeek
 @load frameworks/cluster/backend/zeromq/main.zeek
 @endif
 @load frameworks/cluster/experimental.zeek

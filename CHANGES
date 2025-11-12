@@ -1,3 +1,7 @@
+8.1.0-dev.874 | 2025-11-12 10:39:28 -0700
+
+  * Docs: Switch RFC urls to the :rfc: tag for sphinx (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.872 | 2025-11-11 16:27:05 -0700
 
   * Fix a few other random one-off clang-tidy findings (Tim Wojtulewicz, Corelight)

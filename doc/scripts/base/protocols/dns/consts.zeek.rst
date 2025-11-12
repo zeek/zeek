@@ -13,7 +13,7 @@ Summary
 ~~~~~~~
 Constants
 #########
-=============================================================================================== ======================================================================
+=============================================================================================== =========================================================================
 :zeek:id:`DNS::ANY`: :zeek:type:`count`                                                         A QTYPE value describing a request for all records.
 :zeek:id:`DNS::EDNS`: :zeek:type:`count`                                                        An OPT RR TYPE value described by EDNS.
 :zeek:id:`DNS::PTR`: :zeek:type:`count`                                                         RR TYPE value for a domain name pointer.
@@ -25,10 +25,8 @@ Constants
 :zeek:id:`DNS::edns_zfield`: :zeek:type:`table` :zeek:attr:`&default` = ``"?"``                 This deciphers EDNS Z field values.
 :zeek:id:`DNS::query_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   Mapping of DNS query type codes to human readable string
                                                                                                 representation.
-:zeek:id:`DNS::svcparam_keys`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` SVCB/HTTPS SvcParam keys as defined in
-                                                                                                https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
-                                                                                                Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
-=============================================================================================== ======================================================================
+:zeek:id:`DNS::svcparam_keys`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
+=============================================================================================== =========================================================================
 
 
 Detailed Interface
@@ -299,7 +297,7 @@ Constants
    representation.
 
 .. zeek:id:: DNS::svcparam_keys
-   :source-code: base/protocols/dns/consts.zeek 188 188
+   :source-code: base/protocols/dns/consts.zeek 187 187
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
@@ -318,8 +316,7 @@ Constants
          }
 
 
-   SVCB/HTTPS SvcParam keys as defined in
-   https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+   SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
    Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
 
 

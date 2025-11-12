@@ -144,8 +144,8 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
         case TYPE_STRING:
         case TYPE_FILE:
         case TYPE_FUNC: {
-            writer.String(
-                util::escape_utf8({val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)}, false));
+            writer.String(util::escape_utf8({val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)},
+                                            false, false));
             break;
         }
 

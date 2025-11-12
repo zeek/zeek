@@ -421,6 +421,9 @@ event zeek_init() &priority=5
 		terminate();
 		}
 
+	if ( node != "" && Cluster::backend == Cluster::CLUSTER_BACKEND_NONE )
+		Reporter::fatal(fmt("Cluster::node set to '%s', but Cluster::backend is %s - please select a cluster backend to use.", Cluster::node, Cluster::backend));
+
 	Log::create_stream(Cluster::LOG, Log::Stream($columns=Info, $path="cluster", $policy=log_policy));
 	}
 

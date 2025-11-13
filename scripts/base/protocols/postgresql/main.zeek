@@ -72,23 +72,27 @@ redef record connection += {
 
 redef likely_server_ports += { ports };
 
-event zeek_init() {
+event zeek_init() &priority=5
+	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_POSTGRESQL, ports);
 
 	Log::create_stream(PostgreSQL::LOG, Log::Stream($columns=Info, $ev=log_postgresql, $path="postgresql"));
-}
+	}
 
-hook set_session(c: connection) {
+hook set_session(c: connection)
+	{
 	if ( ! c?$postgresql )
 		c$postgresql = Info($ts=network_time(), $uid=c$uid, $id=c$id);
 
-	if ( ! c?$postgresql_state ) {
+	if ( ! c?$postgresql_state )
+		{
 		c$postgresql_state = State();
 		Conn::register_removal_hook(c, finalize_postgresql);
+		}
 	}
-}
 
-function emit_log(c: connection) {
+function emit_log(c: connection)
+	{
 	if ( ! c?$postgresql )
 		return;
 
@@ -103,15 +107,17 @@ function emit_log(c: connection) {
 
 	Log::write(PostgreSQL::LOG, c$postgresql);
 	delete c$postgresql;
-}
+	}
 
-event PostgreSQL::ssl_request(c: connection) {
+event PostgreSQL::ssl_request(c: connection)
+	{
 	hook set_session(c);
 
 	c$postgresql$frontend = "ssl_request";
-}
+	}
 
-event PostgreSQL::ssl_reply(c: connection, b: string) {
+event PostgreSQL::ssl_reply(c: connection, b: string)
+	{
 	hook set_session(c);
 
 	c$postgresql$backend = "ssl_reply";
@@ -119,35 +125,38 @@ event PostgreSQL::ssl_reply(c: connection, b: string) {
 	c$postgresql$success = b == "S";
 
 	emit_log(c);
-}
+	}
 
-event PostgreSQL::startup_parameter(c: connection, name: string, value: string) {
+event PostgreSQL::startup_parameter(c: connection, name: string, value: string)
+	{
 	hook set_session(c);
 
-	if ( name == "user" ) {
+	if ( name == "user" )
 		c$postgresql_state$user = value;
-	} else if ( name == "database" ) {
+	else if ( name == "database" )
 		c$postgresql_state$database = value;
-	} else if ( name== "application_name" ) {
+	else if ( name== "application_name" )
 		c$postgresql_state$application_name = value;
 	}
-}
 
-event PostgreSQL::startup_message(c: connection, major: count, minor: count) {
+event PostgreSQL::startup_message(c: connection, major: count, minor: count)
+	{
 	hook set_session(c);
 
 	c$postgresql_state$version = Version($major=major, $minor=minor);
 	c$postgresql$frontend = "startup";
-}
+	}
 
-event PostgreSQL::error_response_identified_field(c: connection, code: string, value: string) {
+event PostgreSQL::error_response_identified_field(c: connection, code: string, value: string)
+	{
 	hook set_session(c);
 
 	local errors = c$postgresql_state$errors;
 	errors += fmt("%s=%s", error_ids[code], value);
-}
+	}
 
-event PostgreSQL::notice_response_identified_field(c: connection, code: string, value: string) {
+event PostgreSQL::notice_response_identified_field(c: connection, code: string, value: string)
+	{
 	hook set_session(c);
 
 	local notice = fmt("%s=%s", error_ids[code], value);
@@ -155,9 +164,10 @@ event PostgreSQL::notice_response_identified_field(c: connection, code: string, 
 		c$postgresql$backend_arg += "," + notice;
 	else
 		c$postgresql$backend_arg = notice;
-}
+	}
 
-event PostgreSQL::error_response(c: connection) {
+event PostgreSQL::error_response(c: connection)
+	{
 	hook set_session(c);
 
 	if ( c$postgresql?$backend )
@@ -176,9 +186,10 @@ event PostgreSQL::error_response(c: connection) {
 	c$postgresql$success = F;
 
 	emit_log(c);
-}
+	}
 
-event PostgreSQL::authentication_request(c: connection, identifier: count, data: string) {
+event PostgreSQL::authentication_request(c: connection, identifier: count, data: string)
+	{
 	hook set_session(c);
 
 	if ( c$postgresql?$backend && ! ends_with(c$postgresql$backend, "auth") )
@@ -190,25 +201,28 @@ event PostgreSQL::authentication_request(c: connection, identifier: count, data:
 		c$postgresql$backend_arg += "," + auth_ids[identifier];
 	else
 		c$postgresql$backend_arg = auth_ids[identifier];
-}
+	}
 
-event PostgreSQL::authentication_ok(c: connection) {
+event PostgreSQL::authentication_ok(c: connection)
+	{
 	hook set_session(c);
 
 	c$postgresql$backend = "auth_ok";
 	c$postgresql$success = T;
-}
+	}
 
-event PostgreSQL::terminate(c: connection) {
+event PostgreSQL::terminate(c: connection)
+	{
 	if ( c?$postgresql )
 		emit_log(c);
 
 	hook set_session(c);
 	c$postgresql$frontend = "terminate";
 	emit_log(c);
-}
+	}
 
-event PostgreSQL::simple_query(c: connection, query: string) {
+event PostgreSQL::simple_query(c: connection, query: string)
+	{
 	if ( c?$postgresql )
 		emit_log(c);
 
@@ -217,18 +231,20 @@ event PostgreSQL::simple_query(c: connection, query: string) {
 	c$postgresql$frontend = "simple_query";
 	c$postgresql$frontend_arg = query;
 	c$postgresql_state$rows = 0;
-}
+	}
 
-event PostgreSQL::data_row(c: connection, column_values: count) {
+event PostgreSQL::data_row(c: connection, column_values: count)
+	{
 	hook set_session(c);
 
 	if ( ! c$postgresql_state?$rows )
 		c$postgresql_state$rows = 0;
 
 	++c$postgresql_state$rows;
-}
+	}
 
-event PostgreSQL::ready_for_query(c: connection, transaction_status: string) {
+event PostgreSQL::ready_for_query(c: connection, transaction_status: string)
+	{
 	# Log a query (if there was one).
 	if ( ! c?$postgresql )
 		return;
@@ -237,14 +253,16 @@ event PostgreSQL::ready_for_query(c: connection, transaction_status: string) {
 	if ( ! c$postgresql?$success )
 		c$postgresql$success = transaction_status == "I" || transaction_status == "T";
 
-	if ( c$postgresql_state?$rows ) {
+	if ( c$postgresql_state?$rows )
+		{
 		c$postgresql$rows = c$postgresql_state$rows;
 		delete c$postgresql_state$rows;
+		}
+
+	emit_log(c);
 	}
 
+hook finalize_postgresql(c: connection) &priority=-5
+	{
 	emit_log(c);
-}
-
-hook finalize_postgresql(c: connection) &priority=-5 {
-	emit_log(c);
-}
+	}

@@ -95,15 +95,15 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
 
     // TODO: Get rid of hardcoded l3 protocols.
     // l2_hdr layout:
-    //      encap: link_encap;      ##< L2 link encapsulation
-    //      len: count;		##< Total frame length on wire
-    //      cap_len: count;		##< Captured length
-    //      src: string &optional;  ##< L2 source (if ethernet)
-    //      dst: string &optional;  ##< L2 destination (if ethernet)
-    //      vlan: count &optional;  ##< VLAN tag if any (and ethernet)
-    //      inner_vlan: count &optional;  ##< Inner VLAN tag if any (and ethernet)
-    //      ethertype: count &optional; ##< If ethernet
-    //      proto: layer3_proto;    ##< L3 proto
+    //      encap: link_encap;      ##< L2 link encapsulation.
+    //      len: count;		##< Total frame length on wire.
+    //      cap_len: count;		##< Captured length.
+    //      src: string &optional;	##< L2 source (if Ethernet).
+    //      dst: string &optional;	##< L2 destination (if Ethernet).
+    //      vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+    //      inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
+    //      eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
+    //      proto: layer3_proto;	##< L3 protocol.
 
     if ( is_ethernet ) {
         // Ethernet header layout is:

@@ -145,6 +145,9 @@ New Functionality
 - Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
   and ``sha512_hash_finish``.
 
+- Added VLAN PCP and DEI bits when parsing packets. This is exposed alongside ``vlan`` and
+  ``inner_vlan`` in a packet's ``l2_hdr`` when scripting, if a VLAN header was present.
+
 Changed Functionality
 ---------------------
 

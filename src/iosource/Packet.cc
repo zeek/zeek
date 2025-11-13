@@ -101,7 +101,11 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
     //      src: string &optional;	##< L2 source (if Ethernet).
     //      dst: string &optional;	##< L2 destination (if Ethernet).
     //      vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+    //      vlan_pcp: count &optional;	##< Outermost VLAN PCP if vlan header is present.
+    //      vlan_dei: bool &optional;	##< Outermost VLAN DEI if vlan header is present.
     //      inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
+    //      inner_vlan_pcp: count &optional;	##< Innermost VLAN PCP if inner vlan header is present.
+    //      inner_vlan_dei: bool &optional;	##< Innermost VLAN DEI if inner vlan header is present.
     //      eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
     //      proto: layer3_proto;	##< L3 protocol.
 
@@ -122,13 +126,19 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
         else
             l2_hdr->Assign(4, "00:00:00:00:00:00");
 
-        if ( vlan )
+        if ( vlan ) {
             l2_hdr->Assign(5, vlan);
+            l2_hdr->Assign(6, vlan_pcp);
+            l2_hdr->Assign(7, vlan_dei);
+        }
 
-        if ( inner_vlan )
-            l2_hdr->Assign(6, inner_vlan);
+        if ( inner_vlan ) {
+            l2_hdr->Assign(8, inner_vlan);
+            l2_hdr->Assign(9, inner_vlan_pcp);
+            l2_hdr->Assign(10, inner_vlan_dei);
+        }
 
-        l2_hdr->Assign(7, eth_type);
+        l2_hdr->Assign(11, eth_type);
 
         if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
             // We also identify ARP for L3 over ethernet
@@ -140,7 +150,7 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
     l2_hdr->Assign(1, len);
     l2_hdr->Assign(2, cap_len);
 
-    l2_hdr->Assign(8, BifType::Enum::layer3_proto->GetEnumVal(l3));
+    l2_hdr->Assign(12, BifType::Enum::layer3_proto->GetEnumVal(l3));
 
     pkt_hdr->Assign(0, std::move(l2_hdr));
 

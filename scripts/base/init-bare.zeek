@@ -2295,7 +2295,11 @@ type l2_hdr: record {
 	src: string &optional;	##< L2 source (if Ethernet).
 	dst: string &optional;	##< L2 destination (if Ethernet).
 	vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+	vlan_pcp: count &optional;	##< Outermost VLAN PCP if vlan header is present.
+	vlan_dei: bool &optional;	##< Outermost VLAN DEI if vlan header is present.
 	inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
+	inner_vlan_pcp: count &optional;	##< Innermost VLAN PCP if inner vlan header is present.
+	inner_vlan_dei: bool &optional;	##< Innermost VLAN DEI if inner vlan header is present.
 	eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
 	proto: layer3_proto;	##< L3 protocol.
 };

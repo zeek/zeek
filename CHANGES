@@ -1,3 +1,10 @@
+8.1.0-dev.880 | 2025-11-13 16:24:58 +0100
+
+  * postgresql: Switch to Allman indent style (Arne Welzel, Corelight)
+
+    This includes a priority=5 fix for zeek_init(), too, currently in-flight
+    in #5013, too.
+
 8.1.0-dev.878 | 2025-11-13 16:24:05 +0100
 
   * websocket: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)

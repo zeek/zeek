@@ -1,3 +1,22 @@
+8.0.4-2 | 2026-01-05 10:23:56 -0700
+
+  * websocket: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 304433adcbe42c81258c7a2679779c55ce8bf0cd)
+
+  * postgresql: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 304433adcbe42c81258c7a2679779c55ce8bf0cd)
+
+  * quic: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+    Reported by Zach Robinette on Slack. Oversight by me following
+    the common priority rules for Log::create_stream()
+
+    (cherry picked from commit 304433adcbe42c81258c7a2679779c55ce8bf0cd)
+
+  * Fix a typo in the 8.0.4 NEWS [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.4 | 2025-11-05 08:53:21 -0700
 
   * Release 8.0.4.

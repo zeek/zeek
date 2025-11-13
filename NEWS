@@ -12,6 +12,29 @@ We would like to thank @chrisjlly, Klemens Nanni (@klemensn), and Klemens Nanni
 Breaking Changes
 ----------------
 
+- A standalone ``zeek`` invocation on the command line will now default to running
+  a No-op Cluster backend (``Cluster::CLUSTER_BACKEND_NONE``). Previously this
+  defaulted to Broker without having any real effect. For a multi-process / cluster
+  deployment of Zeek, a cluster backend policy script needs to be loaded explicitly.
+
+  Zeekctl has been updated to use the ZeroMQ cluster backend by default and should
+  require no action. If you encounter issues with ZeroMQ, it is possible to re-enable
+  the Broker cluster backend by adding the following entry into ``zeekctl.cfg`` and
+  running `zeekctl deploy``:
+
+	ClusterBackend = Broker
+
+  If you manage a non-Zeekctl Zeek setup, load ``policy/frameworks/cluster/backend/zeromq``
+  or ``policy/frameworks/cluster/backend/broker``. If you forget to do so, Zeek
+  will recognize that ``Cluster::node`` is set (e.g. the ``CLUSTER_NODE`` environment
+  variable or ``Cluster::node=...`` is set) but no cluster backend was chosen
+  and will terminate with a fatal error:
+
+	fatal error in <...>/main.zeek, line 425: Cluster::node set to 'worker-1', but Cluster::backend is Cluster::CLUSTER_BACKEND_NONE - please select a cluster backend to use.
+
+  If you used Zeekctl on a single physical system or virtual machine previously,
+  this should all be transparent to you.
+
 - Python 3.10 is now required for Zeek and all of its associated subprojects.
 
 - The ``&optional`` script attribute will now error when applied to anything that's
@@ -182,6 +205,13 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- A Zeekctl-managed Zeek cluster now uses the ZeroMQ cluster backend by default.
+
+- The manager node of a Zeekctl-managed Zeek cluster now listens on 127.0.0.1:27759
+  for WebSocket connections by default. This can be disabled with the ``UseWebSocket``
+  setting in ``zeekctl.cfg``, or adapted using the ``WebSocketHost`` and
+  ``WebSocketPort`` settings.
 
 - The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
   field anymore.

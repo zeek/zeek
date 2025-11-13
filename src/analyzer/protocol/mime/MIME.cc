@@ -1163,11 +1163,11 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
     data_buffer = new String(true, new u_char[length + 1], length);
 
     if ( mime_content_hash ) {
-        compute_content_hash = 1;
-        md5_hash = zeek::detail::hash_init(detail::Hash_MD5);
+        compute_content_hash = true;
+        sha1_hash = zeek::detail::hash_init(detail::Hash_SHA1);
     }
     else
-        compute_content_hash = 0;
+        compute_content_hash = false;
 
     content_hash_length = 0;
 
@@ -1182,8 +1182,8 @@ void MIME_Mail::Done() {
 
     if ( compute_content_hash && mime_content_hash ) {
         u_char* digest = new u_char[16];
-        zeek::detail::hash_final(md5_hash, digest);
-        md5_hash = nullptr;
+        zeek::detail::hash_final(sha1_hash, digest);
+        sha1_hash = nullptr;
 
         analyzer->EnqueueConnEvent(mime_content_hash, analyzer->ConnVal(), val_mgr->Count(content_hash_length),
                                    make_intrusive<StringVal>(new String(true, digest, 16)));
@@ -1195,8 +1195,8 @@ void MIME_Mail::Done() {
 }
 
 MIME_Mail::~MIME_Mail() {
-    if ( md5_hash )
-        zeek::detail::hash_state_free(md5_hash);
+    if ( sha1_hash )
+        zeek::detail::hash_state_free(sha1_hash);
 
     delete_strings(all_content);
     delete data_buffer;
@@ -1256,7 +1256,7 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
 
     if ( compute_content_hash ) {
         content_hash_length += len;
-        zeek::detail::hash_update(md5_hash, reinterpret_cast<const u_char*>(buf), len);
+        zeek::detail::hash_update(sha1_hash, reinterpret_cast<const u_char*>(buf), len);
     }
 
     if ( mime_entity_data || mime_all_data ) {

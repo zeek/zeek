@@ -40,7 +40,6 @@ T
 [zero, one, two]
 hello
 one
-opaque of md5, T
 opaque of sha1, T
 opaque of sha256, T
 three,

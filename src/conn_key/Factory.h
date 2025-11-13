@@ -2,6 +2,7 @@
 #pragma once
 
 #include "zeek/ConnKey.h"
+#include "zeek/Val.h"
 #include "zeek/util-types.h"
 
 namespace zeek {

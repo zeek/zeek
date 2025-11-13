@@ -218,44 +218,6 @@ private:
     bool valid;
 };
 
-class MD5Val : public HashVal {
-public:
-    struct State;
-
-    using StatePtr = State*;
-
-    template<class T>
-    static void digest(const T& vlist, u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
-        digest_all(detail::Hash_MD5, vlist, result);
-    }
-
-    template<class T>
-    static void hmac(const T& vlist, u_char key[ZEEK_MD5_DIGEST_LENGTH], u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
-        digest(vlist, result);
-
-        for ( size_t i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
-            result[i] ^= key[i];
-
-        detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);
-    }
-
-    MD5Val();
-    ~MD5Val() override;
-
-    ValPtr DoClone(CloneState* state) override;
-
-protected:
-    friend class Val;
-
-    bool DoInit() override;
-    bool DoFeed(const void* data, size_t size) override;
-    StringValPtr DoGet() override;
-
-    DECLARE_OPAQUE_VALUE_DATA(MD5Val)
-private:
-    StatePtr ctx = nullptr;
-};
-
 class SHA1Val : public HashVal {
 public:
     struct State;

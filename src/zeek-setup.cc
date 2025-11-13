@@ -153,7 +153,6 @@ std::vector<std::string> zeek::detail::params;
 std::set<std::string> requested_plugins;
 const char* proc_status_file = nullptr;
 
-zeek::OpaqueTypePtr md5_type;
 zeek::OpaqueTypePtr sha1_type;
 zeek::OpaqueTypePtr sha224_type;
 zeek::OpaqueTypePtr sha256_type;
@@ -576,7 +575,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     util::detail::init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : nullptr),
                                    options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
                                    options.deterministic_mode, seed_string);
-    // DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
     init_hash_function();
 
     do_ssl_init();
@@ -683,7 +681,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     init_event_handlers();
 
-    md5_type = make_intrusive<OpaqueType>("md5");
     sha1_type = make_intrusive<OpaqueType>("sha1");
     sha224_type = make_intrusive<OpaqueType>("sha224");
     sha256_type = make_intrusive<OpaqueType>("sha256");

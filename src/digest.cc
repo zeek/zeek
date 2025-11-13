@@ -1,18 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 /**
- * Wrapper and helper functions for MD5/SHA digest algorithms.
+ * Wrapper and helper functions for SHA digest algorithms.
  */
 
 #include "zeek/digest.h"
 
 #include <openssl/evp.h>
-#include <openssl/md5.h>
 #include <openssl/sha.h>
 
 #include "zeek/Reporter.h"
-
-static_assert(ZEEK_MD5_DIGEST_LENGTH == MD5_DIGEST_LENGTH);
 
 static_assert(ZEEK_SHA_DIGEST_LENGTH == SHA_DIGEST_LENGTH);
 
@@ -37,13 +34,6 @@ HashDigestState* hash_init(HashAlgorithm alg) {
     const EVP_MD* md;
 
     switch ( alg ) {
-        case Hash_MD5:
-#ifdef EVP_MD_CTX_FLAG_NON_FIPS_ALLOW
-            /* Allow this to work even if FIPS disables it */
-            EVP_MD_CTX_set_flags(c, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
-#endif
-            md = EVP_md5();
-            break;
         case Hash_SHA1: md = EVP_sha1(); break;
         case Hash_SHA224: md = EVP_sha224(); break;
         case Hash_SHA256: md = EVP_sha256(); break;
@@ -80,10 +70,6 @@ void hash_state_free(HashDigestState* c) {
 
 void hash_copy(HashDigestState* out, const HashDigestState* in) {
     EVP_MD_CTX_copy_ex(to_native_ptr(out), to_native_ptr(in));
-}
-
-unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out) {
-    return calculate_digest(Hash_MD5, data, len, out);
 }
 
 unsigned char* calculate_digest(HashAlgorithm alg, const unsigned char* data, uint64_t len, unsigned char* out) {

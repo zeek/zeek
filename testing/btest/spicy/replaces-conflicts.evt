@@ -24,11 +24,11 @@ protocol analyzer spicy::SSH_2 over UDP:
 
 file analyzer spicy::SSH_1:
     parse with SSH::Banner,
-    replaces MD5;
+    replaces SHA1;
 
 file analyzer spicy::SSH_2:
     parse with SSH::Banner,
-    replaces MD5;
+    replaces SHA1;
 
 # @TEST-START-NEXT
 
@@ -39,4 +39,3 @@ packet analyzer spicy::SSH_1:
 packet analyzer spicy::SSH_2:
     parse with SSH::Banner,
     replaces Ethernet;
-

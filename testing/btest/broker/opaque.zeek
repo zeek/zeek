@@ -50,15 +50,6 @@ event zeek_init()
 	bloomfilter_add(bf_copy, 0.5); # causes stderr output "error: incompatible Bloom filter types"
 
 	print "============ Hashes";
-	local md5a = md5_hash_init();
-	md5_hash_update(md5a, "one");
-	local md5b = Broker::__opaque_clone_through_serialization(md5a);
-	print type_name(md5b);
-	md5_hash_update(md5a, "two");
-	md5_hash_update(md5b, "two");
-	print md5_hash_finish(md5a);
-	print md5_hash_finish(md5b);
-
 	local sha1a = sha1_hash_init();
 	sha1_hash_update(sha1a, "one");
 	local sha1b = Broker::__opaque_clone_through_serialization(sha1a);

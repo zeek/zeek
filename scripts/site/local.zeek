@@ -78,7 +78,7 @@ redef digest_salt = "Please change this value.";
 
 #### Network File Handling ####
 
-# Enable MD5 and SHA1 hashing for all files.
+# Enable SHA1 hashing for all files.
 @load frameworks/files/hash-all-files
 
 # Detect SHA1 sums in Team Cymru's Malware Hash Registry.

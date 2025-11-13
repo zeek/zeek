@@ -164,9 +164,9 @@ export {
 		## multiple certificates on the same port.
 		##
 		## Another example might be a host downloading a file which
-		## triggered a notice because the MD5 sum of the file it
+		## triggered a notice because the SHA1 sum of the file it
 		## downloaded was known by some set of intelligence.  In that
-		## case, the orig_h (client) and MD5 sum would be used in this
+		## case, the orig_h (client) and SHA1 sum would be used in this
 		## field to dedup because if the same file is downloaded over
 		## and over again you really only want to know about it a
 		## single time.  This makes it possible to send those notices

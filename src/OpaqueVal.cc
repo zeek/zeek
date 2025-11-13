@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// When using OpenSSL 3, we use deprecated APIs for MD5, SHA1 and SHA256. The reason is that, as of
+// When using OpenSSL 3, we use deprecated APIs for SHA1 and SHA256. The reason is that, as of
 // OpenSSL 3.0, there is no API anymore that lets you store the internal state of hashing functions.
 // For more information, see https://github.com/zeek/zeek/issues/1379 and
 // https://github.com/openssl/openssl/issues/14222 Since I don't feel like getting warnings every
@@ -13,7 +13,6 @@
 #include <broker/data.hh>
 #include <broker/error.hh>
 #include <openssl/evp.h>
-#include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <memory>
 
@@ -26,10 +25,6 @@
 #include "zeek/digest.h"
 #include "zeek/probabilistic/BloomFilter.h"
 #include "zeek/probabilistic/CardinalityCounter.h"
-
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
-#include <openssl/md5.h>
-#endif
 
 namespace zeek {
 
@@ -215,8 +210,6 @@ HashVal::HashVal(OpaqueTypePtr t) : OpaqueVal(std::move(t)) { valid = false; }
 
 namespace {
 
-constexpr size_t MD5VAL_STATE_SIZE = sizeof(MD5_CTX);
-
 constexpr size_t SHA1VAL_STATE_SIZE = sizeof(SHA_CTX);
 
 constexpr size_t SHA224VAL_STATE_SIZE = sizeof(SHA256_CTX);
@@ -228,34 +221,6 @@ constexpr size_t SHA384VAL_STATE_SIZE = sizeof(SHA512_CTX);
 constexpr size_t SHA512VAL_STATE_SIZE = sizeof(SHA512_CTX);
 
 #if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
-
-// -- MD5
-
-auto* to_native_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(MD5Val::StatePtr& ptr) { ptr = reinterpret_cast<MD5Val::StatePtr>(detail::hash_init(detail::Hash_MD5)); }
-
-void do_clone(MD5Val::StatePtr out, MD5Val::StatePtr in) { hash_copy(to_digest_ptr(out), to_digest_ptr(in)); }
-
-void do_feed(MD5Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(MD5Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(MD5Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(MD5_CTX)};
-}
-
-void do_unserialize(MD5Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(MD5Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
 
 // -- SHA1
 
@@ -417,28 +382,6 @@ void do_destroy(SHA512Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); 
 
 #else
 
-// -- MD5
-
-auto* to_native_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<MD5_CTX*>(ptr); }
-
-void do_init(MD5Val::StatePtr& ptr) {
-    auto ctx = new MD5_CTX;
-    MD5_Init(ctx);
-    ptr = reinterpret_cast<MD5Val::StatePtr>(ctx);
-}
-
-void do_clone(MD5Val::StatePtr out, MD5Val::StatePtr in) { *to_native_ptr(out) = *to_native_ptr(in); }
-
-void do_feed(MD5Val::StatePtr ptr, const void* data, size_t size) { MD5_Update(to_native_ptr(ptr), data, size); }
-
-void do_get(MD5Val::StatePtr ptr, u_char* digest) { MD5_Final(digest, to_native_ptr(ptr)); }
-
-std::string do_serialize(MD5Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(MD5_CTX)}; }
-
-void do_unserialize(MD5Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
-
-void do_destroy(MD5Val::StatePtr ptr) { delete to_native_ptr(ptr); }
-
 // -- SHA1
 
 auto* to_native_ptr(SHA1Val::StatePtr ptr) { return reinterpret_cast<SHA_CTX*>(ptr); }
@@ -553,10 +496,6 @@ void do_destroy(SHA512Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
 } // namespace
 
-MD5Val::MD5Val() : HashVal(md5_type) {}
-
-MD5Val::~MD5Val() { do_destroy(ctx); }
-
 void HashVal::digest_one(detail::HashDigestState* h, const Val* v) {
     if ( v->GetType()->Tag() == TYPE_STRING ) {
         const String* str = v->AsString();
@@ -570,82 +509,6 @@ void HashVal::digest_one(detail::HashDigestState* h, const Val* v) {
 }
 
 void HashVal::digest_one(detail::HashDigestState* h, const ValPtr& v) { digest_one(h, v.get()); }
-
-ValPtr MD5Val::DoClone(CloneState* state) {
-    auto out = make_intrusive<MD5Val>();
-
-    if ( IsValid() ) {
-        if ( ! out->Init() )
-            return nullptr;
-        do_clone(out->ctx, ctx);
-    }
-
-    return state->NewClone(this, std::move(out));
-}
-
-bool MD5Val::DoInit() {
-    assert(! IsValid());
-    do_init(ctx);
-    return true;
-}
-
-bool MD5Val::DoFeed(const void* data, size_t size) {
-    if ( ! IsValid() )
-        return false;
-    do_feed(ctx, data, size);
-    return true;
-}
-
-StringValPtr MD5Val::DoGet() {
-    if ( ! IsValid() )
-        return val_mgr->EmptyString();
-
-    u_char digest[ZEEK_MD5_DIGEST_LENGTH];
-    do_get(ctx, digest);
-    return make_intrusive<StringVal>(detail::md5_digest_print(digest));
-}
-
-IMPLEMENT_OPAQUE_VALUE(MD5Val)
-
-std::optional<BrokerData> MD5Val::DoSerializeData() const {
-    BrokerListBuilder builder;
-
-    if ( ! IsValid() ) {
-        builder.Add(false);
-        return std::move(builder).Build();
-    }
-
-    builder.Reserve(2);
-    builder.Add(true);
-    builder.Add(do_serialize(ctx));
-    return std::move(builder).Build();
-}
-
-bool MD5Val::DoUnserializeData(BrokerDataView data) {
-    if ( ! data.IsList() )
-        return false;
-    auto d = data.ToList();
-
-    if ( d.IsEmpty() || ! d[0].IsBool() )
-        return false;
-
-    if ( ! d[0].ToBool() ) {
-        assert(! IsValid()); // default set by ctor
-        return true;
-    }
-
-    if ( d.Size() != 2 || ! d[1].IsString() )
-        return false;
-
-    auto s = d[1].ToString();
-
-    if ( s.size() != MD5VAL_STATE_SIZE )
-        return false;
-
-    Init();
-    do_unserialize(ctx, s.data(), s.size());
-    return true;
-}
 
 SHA1Val::SHA1Val() : HashVal(sha1_type) {}
 

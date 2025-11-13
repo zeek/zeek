@@ -8,7 +8,6 @@
 
 namespace zeek::file_analysis::detail {
 
-StringValPtr MD5::kind_val = make_intrusive<StringVal>("md5");
 StringValPtr SHA1::kind_val = make_intrusive<StringVal>("sha1");
 StringValPtr SHA224::kind_val = make_intrusive<StringVal>("sha224");
 StringValPtr SHA256::kind_val = make_intrusive<StringVal>("sha256");

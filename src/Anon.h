@@ -66,22 +66,6 @@ protected:
     ipaddr32_t seq;
 };
 
-class AnonymizeIPAddr_RandomMD5 : public AnonymizeIPAddr {
-public:
-    ipaddr32_t anonymize(ipaddr32_t addr) override;
-};
-
-class AnonymizeIPAddr_PrefixMD5 : public AnonymizeIPAddr {
-public:
-    ipaddr32_t anonymize(ipaddr32_t addr) override;
-
-protected:
-    struct anon_prefix {
-        int len;
-        ipaddr32_t prefix;
-    } prefix;
-};
-
 class AnonymizeIPAddr_A50 : public AnonymizeIPAddr {
 public:
     AnonymizeIPAddr_A50() { init(); }

@@ -15,9 +15,6 @@ opaque of bloomfilter
 0
 1
 ============ Hashes
-opaque of md5
-5b9164ad6f496d9dee12ec7634ce253f
-5b9164ad6f496d9dee12ec7634ce253f
 opaque of sha1
 30ae97492ce1da88d0e7117ace0a60a6f9e1e0bc
 30ae97492ce1da88d0e7117ace0a60a6f9e1e0bc

@@ -88,47 +88,6 @@ ipaddr32_t AnonymizeIPAddr_Seq::anonymize(ipaddr32_t /* input */) {
     return htonl(seq);
 }
 
-ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input) {
-    uint8_t digest[16];
-    ipaddr32_t output = 0;
-
-    util::detail::hmac_md5(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
-
-    for ( int i = 0; i < 4; ++i )
-        output = (output << 8) | digest[i];
-
-    return output;
-}
-
-// This code is from "On the Design and Performance of Prefix-Preserving
-// IP Traffic Trace Anonymization", by Xu et al (IMW 2001)
-//
-// http://www.imconf.net/imw-2001/proceedings.html
-
-ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
-    uint8_t digest[16];
-    ipaddr32_t prefix_mask = 0xffffffff;
-    input = ntohl(input);
-    ipaddr32_t output = input;
-
-    for ( int i = 0; i < 32; ++i ) {
-        // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
-        prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
-
-        // HK(PAD(x_0 ... x_{i-1})).
-        util::detail::hmac_md5(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
-
-        // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
-
-        // x_i' = x_i ^ f_{i-1}.
-        output ^= bit_mask;
-    }
-
-    return htonl(output);
-}
-
 AnonymizeIPAddr_A50::~AnonymizeIPAddr_A50() {
     for ( auto& b : blocks )
         delete[] b;
@@ -336,9 +295,9 @@ static TableValPtr anon_preserve_other_addr;
 void init_ip_addr_anonymizers() {
     ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
     ip_anonymizer[SEQUENTIALLY_NUMBERED] = new AnonymizeIPAddr_Seq();
-    ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
+    ip_anonymizer[RANDOM_MD5] = nullptr;
     ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
-    ip_anonymizer[PREFIX_PRESERVING_MD5] = new AnonymizeIPAddr_PrefixMD5();
+    ip_anonymizer[PREFIX_PRESERVING_MD5] = nullptr;
 
     auto id = global_scope()->Find("preserve_orig_addr");
 
@@ -387,6 +346,9 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl) {
     else if ( method >= 0 && method < NUM_ADDR_ANONYMIZATION_METHODS ) {
         if ( method == KEEP_ORIG_ADDR )
             new_ip = ip;
+
+        else if ( method == RANDOM_MD5 || method == PREFIX_PRESERVING_MD5 )
+            reporter->InternalError("MD5-based IP anonymizers are no longer supported");
 
         else if ( ! ip_anonymizer[method] )
             reporter->InternalError("IP anonymizer not initialized");

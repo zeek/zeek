@@ -100,8 +100,6 @@ event file_state_remove(f: fa_file)
 
 	if ( ! f?$info ) return;
 
-	if ( f$info?$md5 )
-		print fmt("MD5: %s", f$info$md5);
 	if ( f$info?$sha1 )
 		print fmt("SHA1: %s", f$info$sha1);
 	if ( f$info?$sha256 )
@@ -110,7 +108,6 @@ event file_state_remove(f: fa_file)
 
 event zeek_init()
 	{
-	add test_file_analyzers[Files::ANALYZER_MD5];
 	add test_file_analyzers[Files::ANALYZER_SHA1];
 	add test_file_analyzers[Files::ANALYZER_SHA256];
 	}

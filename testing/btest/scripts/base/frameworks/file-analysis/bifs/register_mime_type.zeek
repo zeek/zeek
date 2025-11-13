@@ -7,7 +7,5 @@
 
 event zeek_init()
 	{
-	Files::register_for_mime_type(Files::ANALYZER_MD5, "text/plain");
+	Files::register_for_mime_type(Files::ANALYZER_SHA1, "text/plain");
 	};
-
-

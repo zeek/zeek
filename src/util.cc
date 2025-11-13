@@ -13,7 +13,6 @@
 
 #include <fcntl.h>
 #include <libgen.h>
-#include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -285,18 +284,6 @@ bool ensure_dir(const char* dirname) {
     return false;
 }
 
-void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]) {
-    if ( ! zeek::detail::KeyedHash::seeds_initialized )
-        reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
-
-    zeek::detail::internal_md5(bytes, size, digest);
-
-    for ( int i = 0; i < 16; ++i )
-        digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
-
-    zeek::detail::internal_md5(digest, 16, digest);
-}
-
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
     FILE* f = fopen(read_file, "r");
@@ -312,7 +299,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
         return false;
     }
 
-    // Read seeds for hmac-md5/siphash/highwayhash.
+    // Read seeds for siphash/highwayhash.
     for ( auto& v : buf ) {
         uint32_t tmp;
         if ( fscanf(f, "%u", &tmp) != 1 ) {

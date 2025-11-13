@@ -158,9 +158,6 @@ event zeek_init() &priority=5
 
 	# Always calculate hashes. They are not necessary for base scripts
 	# but very useful for identification, and required for policy scripts
-	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-user-cert");
-	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/x-x509-ca-cert");
-	Files::register_for_mime_type(Files::ANALYZER_MD5, "application/pkix-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA1, "application/pkix-cert");

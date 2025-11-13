@@ -36,7 +36,6 @@ hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 
 function f()
 	{
-	assert md5_hash("") == "d41d8cd98f00b204e9800998ecf8427e";
 	assert to_count("5") == 4, fmt("5 is not 4");
 	assert sha1_hash("") == "da39a3ee5e6b4b0d3255bfef95601890afd80709";
 	}
@@ -118,22 +117,12 @@ hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
 
 event zeek_test()
 	{
-	assert md5_hash("") == "d41d8cd98f00b204e9800998ecf8427e";
-	}
-
-event zeek_test()
-	{
 	assert sha1_hash("") == "da39a3ee5e6b4b0d3255bfef95601890afd80709";
 	}
 
 event zeek_test()
 	{
 	assert sha1_hash("") == "wrong";
-	}
-
-event zeek_test()
-	{
-	assert md5_hash("") == "wrong";
 	}
 
 event zeek_init()

@@ -2,8 +2,6 @@
 
 #include "zeek/file_analysis/Manager.h"
 
-#include <openssl/md5.h>
-
 #include "zeek/CompHash.h"
 #include "zeek/Event.h"
 #include "zeek/UID.h"

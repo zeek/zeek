@@ -57,13 +57,6 @@ event zeek_init()
 	print (Broker::data(R1($s="abc")) as R1);
 	print (Broker::data(R2($c=123, $r1=R1($s="xyz"))) as R2);
 
-	local md5h1 = md5_hash_init();
-	md5_hash_update(md5h1, "abc");
-	local md5h2 = (Broker::data(md5h1) as opaque of md5);
-	local md5s1 = md5_hash_finish(md5h1);
-	local md5s2 = md5_hash_finish(md5h2);
-	print "opaque of md5", md5s1 == md5s2;
-
 	local sha1h1 = sha1_hash_init();
 	sha1_hash_update(sha1h1, "abc");
 	local sha1h2 = (Broker::data(sha1h1) as opaque of sha1);

@@ -1631,7 +1631,7 @@ void AssertStmt::StmtDescribe(ODesc* d) const {
     // Quoting strings looks better when describing assert
     // statements. So turn it on explicitly.
     //
-    // E.g., md5_hash("") ends up as md5_hash() without quoting.
+    // E.g., sha1_hash("") ends up as sha1_hash() without quoting.
     auto orig_quotes = d->WantQuotes();
     d->SetQuotes(true);
 

@@ -100,9 +100,6 @@ const EVP_MD* hash_to_evp(int hash)
 	{
 	switch ( hash )
 		{
-		case 1:
-			return EVP_md5();
-			break;
 		case 2:
 			return EVP_sha1();
 			break;

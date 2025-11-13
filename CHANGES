@@ -1,3 +1,14 @@
+8.1.0-dev.883 | 2025-11-13 17:20:46 -0500
+
+  * Move AF_Packet closing logic to all use `Close()` (Evan Typanski)
+
+  * GH-4953: Add context to AF_Packet errors (Evan Typanski)
+
+    Fixes #4953
+
+    This simply modernizes the error numbers and includes what the plugin
+    was trying to do when it encounters the error.
+
 8.1.0-dev.880 | 2025-11-13 16:24:58 +0100
 
   * postgresql: Switch to Allman indent style (Arne Welzel, Corelight)

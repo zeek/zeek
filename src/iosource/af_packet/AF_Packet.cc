@@ -2,6 +2,8 @@
 
 #include "zeek/iosource/af_packet/AF_Packet.h"
 
+#include <system_error>
+
 #include "zeek/Reporter.h"
 #include "zeek/iosource/af_packet/RX_Ring.h"
 #include "zeek/iosource/af_packet/af_packet.bif.h"
@@ -41,23 +43,23 @@ void AF_PacketSource::Open() {
     socket_fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
     if ( socket_fd < 0 ) {
-        Error(errno ? strerror(errno) : "unable to create socket");
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to create socket: %s", ec.message().c_str()));
         return;
     }
 
     auto info = GetInterfaceInfo(props.path);
 
     if ( ! info.Valid() ) {
-        Error(errno ? strerror(errno) : "unable to get interface information");
-        close(socket_fd);
-        socket_fd = -1;
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to get interface information: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
     if ( ! info.IsUp() ) {
         Error("interface is down");
-        close(socket_fd);
-        socket_fd = -1;
+        Close();
         return;
     }
 
@@ -77,33 +79,38 @@ void AF_PacketSource::Open() {
     try {
         rx_ring = new RX_Ring(socket_fd, buffer_size, block_size, block_timeout_msec);
     } catch ( RX_RingException& e ) {
-        Error(errno ? strerror(errno) : "unable to create RX-ring");
-        close(socket_fd);
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to create RX-ring: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
     // Setup interface
     if ( ! BindInterface(info) ) {
-        Error(errno ? strerror(errno) : "unable to bind to interface");
-        close(socket_fd);
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to bind to interface: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
     if ( ! EnablePromiscMode(info) ) {
-        Error(errno ? strerror(errno) : "unable enter promiscuous mode");
-        close(socket_fd);
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to enter promiscuous mode: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
     if ( ! ConfigureFanoutGroup(enable_fanout, enable_defrag) ) {
-        Error(errno ? strerror(errno) : "failed to join fanout group");
-        close(socket_fd);
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("failed to join fanout group: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
     if ( ! ConfigureHWTimestamping(enable_hw_timestamping) ) {
-        Error(errno ? strerror(errno) : "failed to configure hardware timestamping");
-        close(socket_fd);
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("failed to configure hardware timestamping: %s", ec.message().c_str()));
+        Close();
         return;
     }
 
@@ -232,7 +239,8 @@ void AF_PacketSource::Close() {
     close(socket_fd);
     socket_fd = -1;
 
-    Closed();
+    if ( IsOpen() )
+        Closed();
 }
 
 bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
@@ -323,7 +331,8 @@ void AF_PacketSource::Statistics(Stats* s) {
 
     ret = getsockopt(socket_fd, SOL_PACKET, PACKET_STATISTICS, &tp_stats, &tp_stats_len);
     if ( ret < 0 ) {
-        Error(errno ? strerror(errno) : "unable to retrieve statistics");
+        std::error_code ec(errno, std::generic_category());
+        Error(util::fmt("unable to retrieve statistics: %s", ec.message().c_str()));
         s->received = s->bytes_received = s->link = s->dropped = 0;
         return;
     }

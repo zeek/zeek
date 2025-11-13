@@ -53,15 +53,13 @@ void AF_PacketSource::Open() {
     if ( ! info.Valid() ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("unable to get interface information: %s", ec.message().c_str()));
-        close(socket_fd);
-        socket_fd = -1;
+        Close();
         return;
     }
 
     if ( ! info.IsUp() ) {
         Error("interface is down");
-        close(socket_fd);
-        socket_fd = -1;
+        Close();
         return;
     }
 
@@ -83,7 +81,7 @@ void AF_PacketSource::Open() {
     } catch ( RX_RingException& e ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("unable to create RX-ring: %s", ec.message().c_str()));
-        close(socket_fd);
+        Close();
         return;
     }
 
@@ -91,28 +89,28 @@ void AF_PacketSource::Open() {
     if ( ! BindInterface(info) ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("unable to bind to interface: %s", ec.message().c_str()));
-        close(socket_fd);
+        Close();
         return;
     }
 
     if ( ! EnablePromiscMode(info) ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("unable to enter promiscuous mode: %s", ec.message().c_str()));
-        close(socket_fd);
+        Close();
         return;
     }
 
     if ( ! ConfigureFanoutGroup(enable_fanout, enable_defrag) ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("failed to join fanout group: %s", ec.message().c_str()));
-        close(socket_fd);
+        Close();
         return;
     }
 
     if ( ! ConfigureHWTimestamping(enable_hw_timestamping) ) {
         std::error_code ec(errno, std::generic_category());
         Error(util::fmt("failed to configure hardware timestamping: %s", ec.message().c_str()));
-        close(socket_fd);
+        Close();
         return;
     }
 
@@ -241,7 +239,8 @@ void AF_PacketSource::Close() {
     close(socket_fd);
     socket_fd = -1;
 
-    Closed();
+    if ( IsOpen() )
+        Closed();
 }
 
 bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {

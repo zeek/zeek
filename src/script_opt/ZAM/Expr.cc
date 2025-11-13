@@ -122,8 +122,10 @@ ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     auto aggr = op->GetOp1()->AsNameExpr();
 
     if ( op->Tag() == EXPR_FIELD ) {
-        int field = op->AsFieldExpr()->Field();
-        return DelFieldVi(aggr, field);
+        int f = op->AsFieldExpr()->Field();
+        auto stmt = DelFieldVi(aggr, f);
+        last_added_inst->TrackRecordTypeForField(cast_intrusive<RecordType>(aggr->GetType()), f);
+        return stmt;
     }
 
     auto index_list = op->GetOp2();
@@ -160,6 +162,7 @@ ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
         }
 
         z.SetType(n2 ? n2->GetType() : cc->GetType());
+        z.TrackRecordTypeForField(cast_intrusive<RecordType>(n1->GetType()), f);
 
         return AddInst(z);
     }
@@ -351,6 +354,9 @@ ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* e) {
     auto lhs = e->GetOp1()->AsNameExpr();
     auto z = GenInst(op, lhs, rhs);
     z.aux = aux;
+
+    z.SetType(lhs->GetType());
+    z.SetType2(rhs->GetType());
 
     return AddInst(z);
 }
@@ -1413,6 +1419,8 @@ ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_f
 
     ZInstI z;
 
+    TypePtr rhs_t; // in case we're constructing from a record
+
     if ( is_from_rec ) {
         // Map non-from-rec operand to the from-rec equivalent.
         switch ( op ) {
@@ -1435,6 +1443,9 @@ ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_f
 
         auto cfr = static_cast<const ConstructFromRecordExpr*>(e);
         auto from_n = cfr->GetOp2()->AsNameExpr();
+
+        rhs_t = from_n->GetType();
+
         if ( network_time_index >= 0 )
             z = GenInst(op, n, from_n, network_time_index);
         else
@@ -1454,6 +1465,9 @@ ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_f
 
     z.aux = aux;
     z.SetType(rec_e->GetType());
+
+    if ( rhs_t )
+        z.SetType2(rhs_t);
 
     auto inst = AddInst(z);
 

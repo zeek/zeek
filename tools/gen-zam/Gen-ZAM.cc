@@ -642,6 +642,55 @@ void ZAM_OpTemplate::InstantiateMethodCore(const OCVec& oc, const string& suffix
     ArgsManager args(oc, zc);
     BuildInstruction(oc, args.Params(), full_suffix, zc);
 
+    const static string cast = "cast_intrusive<RecordType>(";
+    const static vector<string> track_method = {"TrackRecordTypeForField", "TrackRecordTypesForFields"};
+
+    int nparam = args.NumParams();
+    string track; // if it remains empty, that means "no tracking needed"
+
+    if ( zc == ZIC_FIELD ) {
+        assert(nparam >= static_cast<int>(oc.size()));
+
+        bool is_multi = oc.size() >= 4 && oc[1] == ZAM_OC_RECORD_FIELD;
+        track = "z." + track_method[is_multi ? 1 : 0] + "(" + cast;
+        track += args.NthParam(0) + "->GetType()), ";
+
+        if ( is_multi ) {
+            track += args.NthParam(2) + ", " + cast;
+            track += args.NthParam(1) + "->GetType()), " + args.NthParam(3) + " /* type 1 */";
+        }
+        else
+            track += args.NthParam(nparam - 1) + " /* type 2 */";
+    }
+
+    else if ( oc[0] == ZAM_OC_ASSIGN_FIELD ) {
+        track = "z." + track_method[nparam == 3 ? 0 : 1] + "(" + cast;
+        track += args.NthParam(0) + "->GetType()), ";
+
+        if ( nparam == 3 )
+            track += args.NthParam(2) + " /* type 3 */";
+        else {
+            assert(nparam == 4 || nparam == 5);
+            // See the comment in ZAMCompiler::CompileFieldLHSAssignExpr()
+            // for why the parameters here are out-of-order.
+            track += args.NthParam(nparam - 1) + ", ";
+            track += cast + args.NthParam(1) + "->GetType()), ";
+            track += args.NthParam(nparam - 2) + " /* type " + to_string(nparam) + " */";
+        }
+    }
+
+    else if ( oc[0] == ZAM_OC_RECORD_FIELD || oc[0] == ZAM_OC_ASSIGN_FIELD ||
+              (oc.size() > 1 && oc[1] == ZAM_OC_RECORD_FIELD) ) {
+        assert(nparam == 3);
+        track = "z." + track_method[0] + "(" + cast;
+        track += args.NthParam(1) + "->GetType()), " + args.NthParam(2) + "/* type 5 */";
+    }
+
+    if ( ! track.empty() ) {
+        track += ");";
+        Emit(track);
+    }
+
     auto& tp = GetTypeParam();
     if ( tp )
         Emit("z.SetType(" + args.NthParam(*tp) + "->GetType());");
@@ -1269,11 +1318,7 @@ void ZAM_ExprOpTemplate::InstantiateC1(const OCVec& ocs, size_t arity) {
 
     else if ( arity > 1 ) {
         args += ", ";
-
-        if ( ocs[2] == ZAM_OC_RECORD_FIELD )
-            args += "rhs->AsFieldExpr()->Field()";
-        else
-            args += "r2->AsNameExpr()";
+        args += "r2->AsNameExpr()";
     }
 
     auto m = MethodName(ocs);

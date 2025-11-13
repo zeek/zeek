@@ -1,3 +1,9 @@
+8.1.0-dev.886 | 2025-11-13 16:48:16 -0700
+
+  * abstract ZAM record field accesses to support remapping on reuse in later uses (Vern Paxson, Corelight)
+
+  * Updates for BTests tracking BiFs (Vern Paxson, Corelight)
+
 8.1.0-dev.883 | 2025-11-13 17:20:46 -0500
 
   * Move AF_Packet closing logic to all use `Close()` (Evan Typanski)

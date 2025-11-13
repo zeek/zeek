@@ -33,16 +33,15 @@ eval	$$ = std::max($1, $2);
 internal-op Func-Id-String
 class VV
 op-types S R
-eval	auto id_rec = $1;
-	auto orig_h =
-		FieldValWithCheck(id_rec, 0).AsAddr()->AsAddr().AsString();
+eval	auto orig_h =
+		FieldValWithCheck($1, 0).AsAddr()->AsAddr().AsString();
 	auto resp_h =
-		FieldValWithCheck(id_rec, 2).AsAddr()->AsAddr().AsString();
+		FieldValWithCheck($1, 2).AsAddr()->AsAddr().AsString();
 	auto orig_p =
-		static_cast<uint32_t>(FieldValWithCheck(id_rec, 1).AsCount()) &
+		static_cast<uint32_t>(FieldValWithCheck($1, 1).AsCount()) &
 			~PORT_SPACE_MASK;
 	auto resp_p =
-		static_cast<uint32_t>(FieldValWithCheck(id_rec, 3).AsCount()) &
+		static_cast<uint32_t>(FieldValWithCheck($1, 3).AsCount()) &
 			~PORT_SPACE_MASK;
 	/* Maximum address size is for IPv6 with no compression. Each
 	 * 8 16-bit hex elements plus 7 colons between them plus the two []'s

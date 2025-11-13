@@ -66,6 +66,14 @@ public:
     // corresponding to the given slot.
     bool AssignsToSlot(int slot) const;
 
+    // The following is to support robust operation in the face of potential
+    // record "redef ... +=" extensions that add fields to records and
+    // make hardwired record field offsets incorrect. This method tracks -
+    // if necessary - a given record type and offset associated with a
+    // record-field operation.
+    void TrackRecordTypeForField(const RecordTypePtr& rt, int f);
+    void TrackRecordTypesForFields(const RecordTypePtr& rt1, int f1, const RecordTypePtr& rt2, int f2);
+
     // Returns a string describing the constant.
     std::string ConstDump() const;
 

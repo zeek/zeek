@@ -1,3 +1,14 @@
+8.1.0-dev.878 | 2025-11-13 16:24:05 +0100
+
+  * websocket: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+  * postgresql: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+  * quic: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+    Reported by Zach Robinette on Slack. Oversight by me following
+    the common priority rules for Log::create_stream()
+
 8.1.0-dev.874 | 2025-11-12 10:39:28 -0700
 
   * Docs: Switch RFC urls to the :rfc: tag for sphinx (Tim Wojtulewicz, Corelight)

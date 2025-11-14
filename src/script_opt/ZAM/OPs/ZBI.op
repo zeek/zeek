@@ -490,6 +490,39 @@ op-types I S U
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
 eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
 
+macro TelemetryCounterInc(result, family, increment)
+	{
+	if ( auto ptr = dynamic_cast<CounterMetricVal*>(family) )
+		{
+		ptr->GetHandle()->Inc(increment);
+		result = 1;
+		}
+	else
+		{
+		zeek::reporter->Error("Telemetry::counter_inc: invalid handle.");
+		result = 0;
+		}
+	}
+
+internal-op Telemetry-Counter-Inc
+op1-read
+classes VV VC
+op-types O D
+eval	bool result;
+	TelemetryCounterInc(result, $1, $2)
+
+internal-op Telemetry-Counter-Inc
+class VVV
+op-types I O D
+side-effects OP_TELEMETRY_COUNTER_INC_VV OP_VV
+eval	TelemetryCounterInc($$, $1, $2)
+
+internal-op Telemetry-Counter-Inc
+class VVC
+op-types I O D
+side-effects OP_TELEMETRY_COUNTER_INC_VC OP_VC
+eval	TelemetryCounterInc($$, $1, $2)
+
 internal-op Get-Bytes-Thresh
 classes VVV VVC
 op-types U R I

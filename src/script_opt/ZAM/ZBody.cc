@@ -16,6 +16,8 @@
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/script_opt/ZAM/Support.h"
+#include "zeek/telemetry/Manager.h"
+#include "zeek/telemetry/Opaques.h"
 
 // Forward declarations from RunState.cc
 namespace zeek::run_state {

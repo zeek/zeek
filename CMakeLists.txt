@@ -175,12 +175,10 @@ if (MSVC)
     set(zeekdeps ${zeekdeps} unofficial::pcre::pcreposix)
 
     add_subdirectory(auxil/libunistd)
-    set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
-                        ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
-    include_directories(BEFORE ${UNISTD_INCLUDES})
+    include_directories(BEFORE ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd)
 
     # Required for `check_include_files` to operate correctly
-    list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
+    list(APPEND CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd)
     list(APPEND zeekdeps libunistd)
 
     # Set CMAKE flags for supported windows build.

@@ -1,3 +1,12 @@
+8.1.0-dev.889 | 2025-11-14 15:48:48 +0100
+
+  * SNMPv3: add parsing UserSecurityModel Security Parameters (Johanna Amann, Corelight)
+
+    This adds the security parameters to the header record.
+
+    Additionally, the username is added to snmp.log, taking the part of the
+    community string for SNMPv3.
+
 8.1.0-dev.886 | 2025-11-13 16:48:16 -0700
 
   * abstract ZAM record field accesses to support remapping on reuse in later uses (Vern Paxson, Corelight)

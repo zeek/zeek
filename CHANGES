@@ -1,3 +1,7 @@
+8.1.0-dev.891 | 2025-11-14 11:43:31 -0700
+
+  * added a ZAM built-in for Telemetry::__counter_inc (Vern Paxson, Corelight)
+
 8.1.0-dev.889 | 2025-11-14 15:48:48 +0100
 
   * SNMPv3: add parsing UserSecurityModel Security Parameters (Johanna Amann, Corelight)

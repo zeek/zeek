@@ -9,6 +9,9 @@
 # @TEST-EXEC: zeek-cut ts uid id.orig_h id.resp_h history service < zeek/worker/conn.log.orig > zeek/worker/conn.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff zeek/worker/conn.log
 
+@load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
+
 redef Log::default_rotation_interval = 0sec;
 
 @if ( Supervisor::is_supervisor() )

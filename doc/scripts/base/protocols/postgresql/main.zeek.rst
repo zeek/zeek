@@ -181,7 +181,7 @@ Events
 Hooks
 #####
 .. zeek:id:: PostgreSQL::finalize_postgresql
-   :source-code: base/protocols/postgresql/main.zeek 248 250
+   :source-code: base/protocols/postgresql/main.zeek 265 268
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

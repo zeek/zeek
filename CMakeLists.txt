@@ -160,11 +160,11 @@ if (MSVC)
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
     # Find zlib installed by vcpkg.
-    find_package(ZLIB)
+    find_package(ZLIB REQUIRED)
     set(ZLIB_LIBRARY ZLIB::ZLIB)
 
     # Find c-ares installed by vcpkg.
-    find_package(c-ares)
+    find_package(c-ares REQUIRED)
     set(HAVE_CARES true) # Disable FindCAres cmake file
     include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
     set(zeekdeps ${zeekdeps} c-ares::cares)

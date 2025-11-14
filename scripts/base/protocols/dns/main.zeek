@@ -71,6 +71,10 @@ export {
 		TTLs:          vector of interval &log &optional;
 		## The DNS query was rejected by the server.
 		rejected:      bool               &log &default=F;
+		## The opcode value of the DNS request/response.
+		opcode:        count              &log &optional;
+		## A descriptive string for the opcode.
+		opcode_name:   string             &log &optional;
 
 		## The total number of resource records in a reply message's
 		## answer section.
@@ -343,11 +347,17 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		if ( msg$rcode != 0 && msg$num_queries == 0 )
 			c$dns$rejected = T;
 		}
+
+	c$dns$opcode = msg$opcode;
+	if ( msg$is_netbios )
+		c$dns$opcode_name = netbios_opcodes[msg$opcode];
+	else
+		c$dns$opcode_name = opcodes[msg$opcode];
 	}
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	if ( msg$opcode != 0 )
+	if ( msg$opcode != 0 && msg$opcode != 5 )
 		# Currently only standard queries are tracked.
 		return;
 
@@ -356,7 +366,7 @@ event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &prior
 
 hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
-	if ( msg$opcode != 0 )
+	if ( msg$opcode != 0 && msg$opcode != 5 )
 		# Currently only standard queries are tracked.
 		return;
 
@@ -365,7 +375,7 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 		# the request, which is not what we want to track.
 		return;
 
-	if ( ans$answer_type == DNS_ANS )
+	if ( ans$answer_type == DNS_ANS || ans$answer_type == DNS_UPDATE )
 		{
 		if ( ! c$dns?$query )
 			c$dns$query = ans$query;
@@ -458,7 +468,10 @@ event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
+	if ( msg$opcode == DNS_UPDATE && ! msg$is_netbios )
+		hook DNS::do_reply(c, msg, ans, fmt("A %s %s", ans$query, a));
+	else
+		hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
 event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
@@ -638,6 +651,12 @@ event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 	{
 	if ( c?$dns )
 		c$dns$rejected = T;
+	}
+
+event dns_dynamic_update_deletion(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+	{
+	local s: string = fmt("DELETION: %s %s", query_types[ans$qtype], ans$query);
+	hook DNS::do_reply(c, msg, ans, s);
 	}
 
 hook finalize_dns(c: connection)

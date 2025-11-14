@@ -209,11 +209,6 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
                     if ( addl_fields == 0 )
                         addl_fields = i;
                 }
-                else if ( addl_fields > 0 )
-                    reporter->FatalError(
-                        "can't compile standalone-C++ with field \"%s\" in record \"%s\" added after those introduced "
-                        "by compiled script",
-                        fd->id, t->GetName().c_str());
             }
 
             if ( addl_fields > 0 )

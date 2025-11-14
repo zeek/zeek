@@ -119,17 +119,17 @@ addresses. You can ask for just those fields:
    CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80
    Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80
 
-Now, we can find the weird.log in that directory:
+Now, we can find the ``weird.log`` in that directory:
 
 .. code:: console
 
    root@zeek-tutorial:/opt/zeek-training $ zcat < $PREFIX/logs/2025-10-30/weird.21\:05\:04-21\:05\:10.log.gz | zeek-cut uid name
    Cq6HJ1lEBlYcXcZB        unknown_HTTP_method
 
-Since the UID is the same on the second conn.log entry and the single
-weird.log entry, they are the same connection. You can “pivot” between
-these two logs, or any other logs! Any entries with the same UID are
-from that same connection.
+Notice how the ``uid`` field in ``weird.log`` is the same as one of the
+entries in ``conn.log``. This indicates that those entries are from the
+same connection. You can "pivot" between these two logs, or any other
+logs, using ``uid`` fields!
 
 How do we know which fields to look for? As seen before, the TSV logs
 have field names as headers near the top of the log. But, these can
@@ -210,7 +210,7 @@ log, we can do the following:
            "script": "base/protocols/dns/main.zeek"
          }
        },
-       …
+       ...
    }
 
 Most fields are omitted with ``...`` for brevity, but two fields were
@@ -375,10 +375,10 @@ offers, let’s use the logschema package again:
      ]
    }
 
-You can find all fields within the schema’s ``”properties”`` – since we
+You can find all fields within the schema’s ``"properties"`` – since we
 are interested in the generated HTTP traffic from before, we mainly care
 about two fields: ``uid`` and ``service``. UID will help “pivot” from
-conn.log into http.log later, while ``service`` will help determine
+``conn.log`` into ``http.log`` later, while ``service`` will help determine
 which protocols were confirmed for that connection. We can find those
 fields with the following:
 

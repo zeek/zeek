@@ -10,9 +10,9 @@
 
 Zeek contains a decent amount of functionality “out of the box” - but
 its strength comes from the package ecosystem. These packages are
-managed by the Zeek Package Manager, or ``zkg``. Then, you can find
-packages on the `Zeek Package Browser`_. This section will explain how
-to use ``zkg`` in order to get the packages you need.
+managed by the Zeek Package Manager, or ``zkg``. You can find packages
+on the `Zeek Package Browser`_. This section will explain how to use
+``zkg`` in order to get the packages you need.
 
 *********************************
  Finding and Installing Packages
@@ -41,22 +41,24 @@ You may also use the git URL of the package:
 The direct URL is necessary if the package is not in Zeek's `packages
 <https://github.com/zeek/packages>`_ repository.
 
-This will ask you to run the tests. The tests may fail, but you can
-still accept the prompt to install.
+Most packages include a set of tests to ensure the package executes correctly
+in your environment. During installation, ``zkg`` will ask you to run the tests.
+The tests may fail, but you can still accept the prompt to install anyways.
 
-Part of the setup script also cloned this repository. Try running Zeek
-on the pcap from the package:
+The script you ran back in the Setup section also cloned this repository into
+the tutorial installation. Try running Zeek on the pcap from the package:
 
 .. code:: console
 
    root@zeek-tutorial:/opt/zeek-training $ zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap
 
-This particular package creates notices when it’s detected, but there
-isn’t a ``notice.log`` ! That's because packages have to be enabled in
-order to run. This is done differently when executing Zeek on the
-command line versus in the cluster. We’ll get to the cluster version
-later. For now, you can load the package by just including its name in
-the command line, or by prefixing that name with ``packages``:
+This particular package should create notices when traffic for the CVE
+is detected, but we seem to be missing a ``notice.log`` after running that
+command. That's because packages have to be enabled in order to run. This
+is done differently when executing Zeek on the command line versus in the
+cluster. We’ll get to the cluster version later. For now, you can load the
+package by just including its name in the command line, or by prefixing that
+name with ``packages``:
 
 .. code:: console
 

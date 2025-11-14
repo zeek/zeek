@@ -18,7 +18,7 @@ Both users and Zeek's core itself use events in order to perform core
 functions, such as logging.
 
 Events are generally well-documented within Zeek's built-in-function (or
-``.bif``) files. For example:
+``.bif``) files. For example, this is the :zeek:id:`dns_request` event:
 
 .. code-block:: zeek
 
@@ -103,7 +103,7 @@ such as the following:
 
 Of the events listed, the event that will give us the best insight into
 the connection record data type will be
-:zeek:id:`connection_state_remove` . As detailed in the in-line
+:zeek:id:`connection_state_remove` . As detailed in the event's
 documentation, Zeek generates this event just before it decides to
 remove this event from memory, effectively forgetting about it. Let's
 take a look at a simple example script, that will output the connection
@@ -126,8 +126,9 @@ loading required scripts to the script being run. While bare mode is a
 low level functionality incorporated into Zeek, in this case, we're
 going to use it to demonstrate how different features of Zeek add more
 and more layers of information about a connection. This will give us a
-chance to see the contents of the connection record without it being
-overly populated.
+chance to see the raw contents of the connection record without it being
+overly populated. This will, however, be jumbled compared to the logs,
+since Zeek specially formats the connection record's fields when logging.
 
 .. code-block:: console
 
@@ -138,9 +139,8 @@ overly populated.
 
    }, conn=[ts=1362692526.869344, uid=CR0buA20QD1WJ53zO8, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=<uninitialized>, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
 
-As you can see from the output, the connection record is something of a
-jumble when printed on its own. When examining the connection record, try
-to isolate the specific parts you care about.
+When examining the raw connection record, try to isolate the specific parts
+you care about. As fields get added, the record will get even more jumbled.
 
 Zeek makes extensive use of nested data structures to store state and
 information gleaned from the analysis of a connection as a complete

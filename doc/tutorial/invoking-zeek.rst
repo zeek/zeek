@@ -4,24 +4,24 @@
  Invoking Zeek
 ###############
 
-When invoked standalone, Zeek is primarily used from the
-command line. You can read a trace file using the `-r` flag, like from
-the setup:
+When invoked standalone, Zeek is primarily used from the command line.
+You can read a trace file using the `-r` flag, like you did during the
+setup:
 
 .. code:: console
 
    root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap
 
-You can also use Zeek to analyze live traffic. You have to interrupt the
-command to get Zeek to stop with Ctrl+C:
+You can also use Zeek to analyze live traffic.When reading from an
+interface, you can exit Zeek by pressing Ctrl+C.
 
 .. code:: console
 
    root@zeek-tutorial:/opt/zeek-training $ zeek -C -i eth0
    listening on eth0
 
-In another command prompt, connect to the container and use a ping command
-to test:
+In another command prompt, connect to the container and use a ping
+command to test:
 
 .. code:: console
 
@@ -34,22 +34,23 @@ to test:
    --- example.com ping statistics ---
    1 packets transmitted, 1 received, 0% packet loss, time 0ms
    rtt min/avg/max/mdev = 89.961/89.961/89.961/0.000 ms
-   root@zeek-tutorial:/ $ exit 
+   root@zeek-tutorial:/ $ exit
 
 Back in the original container, use Ctrl+C to exit, then run ``ls`` to
 see a few log files. We'll dive deeper into these logs later.
 
-On local environments, it may be useful to tell Zeek to ignore checksums
-with the ``-C`` flag. Otherwise, Zeek discards any packets with checksum
-errors - due to checksum offloading, this may be all packets in a particular
-direction!
+On local environments and with capture files, it may be useful to tell
+Zeek to ignore checksums with the ``-C`` flag. Otherwise, Zeek discards
+any packets with checksum errors - due to checksum offloading, this may
+be all packets in a particular direction!
 
 *************************
  Providing Script Values
 *************************
 
 You may also modify Zeek script values directly from the command line.
-We saw this in the quickstart when analyzing the quickstart trace:
+We saw this in the quickstart when analyzing the quickstart trace, to
+cause Zeek to log in JSON instead of TSV:
 
 .. code:: console
 
@@ -80,21 +81,9 @@ segments:
    hello
    there
 
-******
- Misc
-******
-
-Zeek also has a built-in optimization engine called ZAM. This has been
-stable since Zeek 7.0. To enable it, just add the ``-O ZAM`` flag to the
-Zeek invocation, like so:
-
-.. code:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -O ZAM -r traces/zeek-doc/quickstart.pcap
-
-This will first compile Zeek’s script into a lower-level form, then
-execute that form. For more information, you can read more about it
-:doc:`here </script-reference/optimization>`.
+**************
+ Finding More
+**************
 
 This was just an overview of Zeek’s possible options. Feel free to
 browse Zeek’s ``--help`` output for more information:
@@ -104,3 +93,7 @@ browse Zeek’s ``--help`` output for more information:
    root@zeek-tutorial:/opt/zeek-training $ zeek --help
    zeek version 8.0.3
    ...
+
+There are other options for power-users which have their own
+documentation which you can find in the :doc:`grab bag
+</grab-bag/scripting/index>` section.

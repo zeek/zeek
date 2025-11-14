@@ -94,7 +94,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
             }
         }
 
-        for ( auto& g : pfs->BiFGlobals() )
+        for ( auto& g : pfs->CalledBiFGlobals() )
             all_accessed_globals.insert(g);
 
         for ( auto& t : pfs->MainTypes() )

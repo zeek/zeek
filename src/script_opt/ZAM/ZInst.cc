@@ -293,7 +293,7 @@ void ZInst::TrackRecordTypeForField(const RecordTypePtr& rt, int f) {
         aux = new ZInstAux(0);
 
     ASSERT(aux->types.empty());
-    aux->types.push_back(rt);
+    aux->types.emplace_back(rt);
 }
 
 void ZInst::TrackRecordTypesForFields(const RecordTypePtr& rt1, int f1, const RecordTypePtr& rt2, int f2) {
@@ -301,8 +301,8 @@ void ZInst::TrackRecordTypesForFields(const RecordTypePtr& rt1, int f1, const Re
         aux = new ZInstAux(0);
 
     ASSERT(aux->types.empty());
-    aux->types.push_back(rt1);
-    aux->types.push_back(rt2);
+    aux->types.emplace_back(rt1);
+    aux->types.emplace_back(rt2);
 }
 
 string ZInst::ConstDump() const {

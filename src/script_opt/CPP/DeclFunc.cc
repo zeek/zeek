@@ -49,18 +49,15 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     const auto& yt = ft->Yield();
     in_hook = flavor == FUNC_FLAVOR_HOOK;
 
-    IDPList effective_lambda_ids;
     if ( l )
-        effective_lambda_ids = l->OuterIDs();
+        lambda_ids = &l->OuterIDs();
 
-    const IDPList* lambda_ids = l ? &effective_lambda_ids : nullptr;
-
-    string args = BindArgs(ft, lambda_ids);
+    string args = BindArgs(ft);
 
     auto yt_decl = in_hook ? "bool" : FullTypeName(yt);
 
     vector<string> p_types;
-    GatherParamTypes(p_types, ft, lambda_ids, pf);
+    GatherParamTypes(p_types, ft, pf);
 
     string cast = string(yt_decl) + "(*)(";
     for ( auto& pt : p_types )
@@ -83,12 +80,13 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     }
 
     if ( lambda_ids ) {
-        DeclareSubclass(ft, pf, fname, args, lambda_ids);
-        BuildLambda(ft, pf, fname, body, l, lambda_ids);
+        DeclareSubclass(ft, pf, fname, args);
+        BuildLambda(ft, pf, fname, body, l);
         EndBlock(true);
+        lambda_ids = nullptr;
     }
     else {
-        Emit("static %s %s(%s);", yt_decl, fname, ParamDecl(ft, lambda_ids, pf));
+        Emit("static %s %s(%s);", yt_decl, fname, ParamDecl(ft, pf));
 
         // Track this function as known to have been compiled.  We don't
         // track lambda bodies as compiled because they can't be instantiated
@@ -124,14 +122,14 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     body_names.emplace(body.get(), fname);
 }
 
-void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname, const string& args,
-                                 const IDPList* lambda_ids) {
+void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname,
+                                 const string& args) {
     const auto& yt = ft->Yield();
 
     auto yt_decl = in_hook ? "bool" : FullTypeName(yt);
 
     NL();
-    Emit("static %s %s(%s);", yt_decl, fname, ParamDecl(ft, lambda_ids, pf));
+    Emit("static %s %s(%s);", yt_decl, fname, ParamDecl(ft, pf));
 
     Emit("class %s_cl final : public CPPStmt", fname);
     StartBlock();
@@ -221,7 +219,7 @@ void CPPCompile::DeclareDynCPPStmt() {
 }
 
 void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname, const StmtPtr& body,
-                             const LambdaExpr* l, const IDPList* lambda_ids) {
+                             const LambdaExpr* l) {
     // Declare the member variables for holding the captures.
     for ( auto& id : *lambda_ids ) {
         const auto& name = lambda_names[id];
@@ -269,7 +267,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
     EndBlock();
 }
 
-string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids) {
+string CPPCompile::BindArgs(const FuncTypePtr& ft) {
     const auto& params = ft->Params();
     auto t = params->Types();
 
@@ -297,12 +295,12 @@ string CPPCompile::BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids) {
     return res + "f";
 }
 
-string CPPCompile::ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids, const ProfileFunc* pf) {
+string CPPCompile::ParamDecl(const FuncTypePtr& ft, const ProfileFunc* pf) {
     vector<string> p_types;
     vector<string> p_names;
 
-    GatherParamTypes(p_types, ft, lambda_ids, pf);
-    GatherParamNames(p_names, ft, lambda_ids, pf);
+    GatherParamTypes(p_types, ft, pf);
+    GatherParamNames(p_names, ft, pf);
 
     ASSERT(p_types.size() == p_names.size());
 
@@ -315,8 +313,7 @@ string CPPCompile::ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids, c
     return decl + "Frame* f__CPP";
 }
 
-void CPPCompile::GatherParamTypes(vector<string>& p_types, const FuncTypePtr& ft, const IDPList* lambda_ids,
-                                  const ProfileFunc* pf) {
+void CPPCompile::GatherParamTypes(vector<string>& p_types, const FuncTypePtr& ft, const ProfileFunc* pf) {
     const auto& params = ft->Params();
     int n = params->NumFields();
 
@@ -349,8 +346,7 @@ void CPPCompile::GatherParamTypes(vector<string>& p_types, const FuncTypePtr& ft
         }
 }
 
-void CPPCompile::GatherParamNames(vector<string>& p_names, const FuncTypePtr& ft, const IDPList* lambda_ids,
-                                  const ProfileFunc* pf) {
+void CPPCompile::GatherParamNames(vector<string>& p_names, const FuncTypePtr& ft, const ProfileFunc* pf) {
     const auto& params = ft->Params();
     int n = params->NumFields();
 

@@ -36,8 +36,7 @@ void CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, const std::str
                     const std::forward_list<EventGroupPtr>* e_g = nullptr);
 
 // Used for the case of creating a custom subclass of CPPStmt.
-void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const std::string& args,
-                     const IDPList* lambda_ids);
+void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const std::string& args);
 
 // Used for the case of employing an instance of a CPPDynStmt object.
 void DeclareDynCPPStmt();
@@ -45,26 +44,23 @@ void DeclareDynCPPStmt();
 // Generates the declarations (and in-line definitions) associated with
 // compiling a lambda.
 void BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const StmtPtr& body,
-                 const LambdaExpr* l, const IDPList* lambda_ids);
+                 const LambdaExpr* l);
 
-// For a call to the C++ version of a function of type "ft" and with lambda
-// captures lambda_ids (nil if not applicable), generates code that binds the
-// Interpreter arguments (i.e., Frame offsets) to C++ function arguments, as
-// well as passing in the captures.
-std::string BindArgs(const FuncTypePtr& ft, const IDPList* lambda_ids);
+// For a call to the C++ version of a function (or lambda) of type "ft",
+// generates code that binds the Interpreter arguments (i.e., Frame offsets)
+// to C++ function arguments, as well as passing in the captures.
+std::string BindArgs(const FuncTypePtr& ft);
 
-// Generates the declaration for the parameters for a function with the given
-// type, lambda captures (if non-nil), and profile.
-std::string ParamDecl(const FuncTypePtr& ft, const IDPList* lambda_ids, const ProfileFunc* pf);
+// Generates the declaration for the parameters for a function (or lambda)
+// with the given type and profile.
+std::string ParamDecl(const FuncTypePtr& ft, const ProfileFunc* pf);
 
 // Returns in p_types the types associated with the parameters for a function
-// of the given type, set of lambda captures (if any), and profile.
-void GatherParamTypes(std::vector<std::string>& p_types, const FuncTypePtr& ft, const IDPList* lambda_ids,
-                      const ProfileFunc* pf);
+// or lambda of the given type and profile.
+void GatherParamTypes(std::vector<std::string>& p_types, const FuncTypePtr& ft, const ProfileFunc* pf);
 
 // Same, but instead returns the parameter's names.
-void GatherParamNames(std::vector<std::string>& p_names, const FuncTypePtr& ft, const IDPList* lambda_ids,
-                      const ProfileFunc* pf);
+void GatherParamNames(std::vector<std::string>& p_names, const FuncTypePtr& ft, const ProfileFunc* pf);
 
 // Inspects the given profile to find the i'th parameter (starting at 0).
 // Returns nil if the profile indicates that the parameter is not used by the
@@ -93,6 +89,9 @@ std::unordered_map<std::string, std::string> func_index;
 // Functions that we've declared/compiled.  Indexed by full C++ name,
 // yielding Zeek names.
 std::unordered_map<std::string, std::string> compiled_func_to_zeek_func;
+
+// Capture ID's when compiling a lambda, or else nil.
+const IDPList* lambda_ids = nullptr;
 
 // Names for lambda capture ID's.  These require a separate space that
 // incorporates the lambda's name, to deal with nested lambda's that refer

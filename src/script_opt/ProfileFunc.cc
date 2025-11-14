@@ -389,10 +389,12 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     script_calls.insert(sf);
                 }
 
-                // Track the BiF, though not if we know we're not going to
-                // compile the call to it.
-                else if ( obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT )
+                else { // Track the BiF.
                     BiF_globals.insert(func);
+                    if ( obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT )
+                        // We're going to call it.
+                        called_BiF_globals.insert(func);
+                }
             }
             else {
                 // We could complain, but for now we don't, because
@@ -751,6 +753,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
     main_types.insert(main_types.end(), pf->OrderedTypes().begin(), pf->OrderedTypes().end());
     script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
     BiF_globals.insert(pf->BiFGlobals().begin(), pf->BiFGlobals().end());
+    called_BiF_globals.insert(pf->CalledBiFGlobals().begin(), pf->CalledBiFGlobals().end());
     events.insert(pf->Events().begin(), pf->Events().end());
 
     for ( auto& i : pf->Lambdas() ) {

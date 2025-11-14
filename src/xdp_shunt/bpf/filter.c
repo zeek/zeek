@@ -1,11 +1,6 @@
 // clang-format off
-#include <linux/bpf.h>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/ipv6.h>
-#include <linux/tcp.h>
-#include <linux/types.h>
-#include <linux/udp.h>
+#include "vmlinux.h"
+
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
 // clang-format on
@@ -19,6 +14,11 @@
 #ifndef VLAN_MAX_DEPTH
 #define VLAN_MAX_DEPTH 8
 #endif
+
+#define ETH_P_8021Q     0x8100
+#define ETH_P_8021AD    0x88A8
+#define ETH_P_IP        0x0800
+#define ETH_P_IPV6      0x86DD
 
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
@@ -41,11 +41,6 @@ struct {
     __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } ip_pair_map SEC(".maps");
-
-struct vlan_hdr {
-    __be16 h_vlan_TCI;
-    __be16 h_vlan_encapsulated_proto;
-};
 
 struct hdr_cursor {
     void* pos;
@@ -135,7 +130,7 @@ int xdp_filter(struct xdp_md* ctx) {
     int is_ipv4 = 0;
 
     switch ( nh_type ) {
-        case __constant_htons(ETH_P_IP): {
+        case bpf_htons(ETH_P_IP): {
             is_ipv4 = 1;
             struct iphdr* iph = data + sizeof(*eth);
             if ( (void*)iph + sizeof(*iph) > data_end )
@@ -144,17 +139,19 @@ int xdp_filter(struct xdp_md* ctx) {
             l3_header = (void*)iph;
             l4_protocol = iph->protocol;
 
-            src_ip.s6_addr[10] = 0xff;
-            src_ip.s6_addr[11] = 0xff;
-            *((__u32*)&src_ip.s6_addr[12]) = iph->saddr;
+            src_ip.in6_u.u6_addr32[0] = 0;
+            src_ip.in6_u.u6_addr32[1] = 0;
+            src_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
+            src_ip.in6_u.u6_addr32[3] = iph->saddr;
 
-            dest_ip.s6_addr[10] = 0xff;
-            dest_ip.s6_addr[11] = 0xff;
-            *((__u32*)&dest_ip.s6_addr[12]) = iph->daddr;
+            dest_ip.in6_u.u6_addr32[0] = 0;
+            dest_ip.in6_u.u6_addr32[1] = 0;
+            dest_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
+            dest_ip.in6_u.u6_addr32[3] = iph->daddr;
 
             break;
         }
-        case __constant_htons(ETH_P_IPV6): {
+        case bpf_htons(ETH_P_IPV6): {
             struct ipv6hdr* ip6h = data + sizeof(*eth);
             if ( (void*)ip6h + sizeof(*ip6h) > data_end )
                 return XDP_PASS;

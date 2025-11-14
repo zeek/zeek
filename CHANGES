@@ -1,3 +1,15 @@
+8.1.0-dev.897 | 2025-11-14 11:53:14 -0700
+
+  * ZAM optimizer fix for tracking the BiFs called by functions (Vern Paxson, Corelight)
+
+  * for -O gen-standalone-C++, optimize &default's that are simple coercions (Vern Paxson, Corelight)
+
+  * simplify -O gen-C++ compilation by tracking lambda IDs via a member variable (Vern Paxson, Corelight)
+
+  * remove -O gen-standalone-C++ constraint that no longer applies (Vern Paxson, Corelight)
+
+  * for -O gen-standalone-C++, only compile attributes needed for standalone initialization (Vern Paxson, Corelight)
+
 8.1.0-dev.891 | 2025-11-14 11:43:31 -0700
 
   * added a ZAM built-in for Telemetry::__counter_inc (Vern Paxson, Corelight)

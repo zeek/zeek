@@ -468,7 +468,7 @@ event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	if ( msg$opcode == 5 && ! msg$is_netbios )
+	if ( msg$opcode == DNS_UPDATE && ! msg$is_netbios )
 		hook DNS::do_reply(c, msg, ans, fmt("A %s %s", ans$query, a));
 	else
 		hook DNS::do_reply(c, msg, ans, fmt("%s", a));

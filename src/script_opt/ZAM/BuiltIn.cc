@@ -470,6 +470,13 @@ MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVi, OP_VVV_I3}}}
 };
 
+MultiZBI tic_ZBI{ "Telemetry::__counter_inc",
+    {{{VV}, {OP_TELEMETRY_COUNTER_INC_VV, OP_VV}},
+     {{VC}, {OP_TELEMETRY_COUNTER_INC_VC, OP_VC}}},
+    {{{VV}, {OP_TELEMETRY_COUNTER_INC_VVV, OP_VVV}},
+     {{VC}, {OP_TELEMETRY_COUNTER_INC_VVC, OP_VVC}}}
+};
+
 MultiZBI lw_ZBI{ "Log::__write",
     {{{VV}, {OP_LOG_WRITE_VV, OP_VV}},
      {{CV}, {OP_LOG_WRITE_CV, OP_V}}},

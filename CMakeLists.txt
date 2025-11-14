@@ -170,6 +170,10 @@ if (MSVC)
     set(zeekdeps ${zeekdeps} c-ares::cares)
     add_definitions(-DCARES_STATICLIB)
 
+    # Find pcre installed by vcpkg.
+    find_package(unofficial-pcre REQUIRED)
+    set(zeekdeps ${zeekdeps} unofficial::pcre::pcreposix)
+
     add_subdirectory(auxil/libunistd)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
                         ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
@@ -177,7 +181,7 @@ if (MSVC)
 
     # Required for `check_include_files` to operate correctly
     list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
-    list(APPEND zeekdeps libunistd libregex)
+    list(APPEND zeekdeps libunistd)
 
     # Set CMAKE flags for supported windows build.
     set(DISABLE_PYTHON_BINDINGS true)

@@ -5,6 +5,7 @@
     "c-ares",
     "cppzmq",
     "libpcap",
+    "pcre",
     "zeromq",
     "zlib"
   ]

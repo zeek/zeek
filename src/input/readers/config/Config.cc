@@ -2,7 +2,11 @@
 
 #include "zeek/input/readers/config/Config.h"
 
+#ifdef _MSC_VER
+#include <pcreposix.h>
+#else
 #include <regex.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

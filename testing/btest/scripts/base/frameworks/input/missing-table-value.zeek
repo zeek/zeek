@@ -12,6 +12,9 @@
 # @TEST-END-FILE
 
 # test.zeek
+
+redef exit_only_after_terminate=T;
+
 type Idx: record {
     ip: addr;
 };
@@ -32,4 +35,5 @@ event zeek_init() {
 
 event Input::end_of_data(name: string, source: string) {
     print denylist;
+    terminate();
 }

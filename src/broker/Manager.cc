@@ -438,9 +438,9 @@ struct scoped_reporter_location {
 #ifdef DEBUG
 namespace {
 
-std::string RenderMessage(const broker::variant& d) { return util::json_escape_utf8(broker::to_string(d)); }
+std::string RenderMessage(const broker::variant& d) { return util::escape_utf8(broker::to_string(d)); }
 
-std::string RenderMessage(const broker::variant_list& d) { return util::json_escape_utf8(broker::to_string(d)); }
+std::string RenderMessage(const broker::variant_list& d) { return util::escape_utf8(broker::to_string(d)); }
 
 std::string RenderMessage(const broker::store::response& x) {
     return util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);

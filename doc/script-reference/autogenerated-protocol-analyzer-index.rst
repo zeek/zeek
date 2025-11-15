@@ -996,7 +996,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: DCE_RPC::max_cmd_reassembly
-   :source-code: base/init-bare.zeek 5754 5754
+   :source-code: base/init-bare.zeek 5773 5773
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1007,7 +1007,7 @@ Options/Constants
    a weird and skip further input.
 
 .. zeek:id:: DCE_RPC::max_frag_data
-   :source-code: base/init-bare.zeek 5759 5759
+   :source-code: base/init-bare.zeek 5778 5778
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -5612,7 +5612,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: KRB::keytab
-   :source-code: base/init-bare.zeek 5418 5418
+   :source-code: base/init-bare.zeek 5437 5437
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -5624,7 +5624,7 @@ Types
 +++++
 
 .. zeek:type:: KRB::Error_Msg
-   :source-code: base/init-bare.zeek 5513 5536
+   :source-code: base/init-bare.zeek 5532 5555
 
    :Type: :zeek:type:`record`
 
@@ -5687,7 +5687,7 @@ Types
    The data from the ERROR_MSG message. See :rfc:`4120`.
 
 .. zeek:type:: KRB::SAFE_Msg
-   :source-code: base/init-bare.zeek 5494 5510
+   :source-code: base/init-bare.zeek 5513 5529
 
    :Type: :zeek:type:`record`
 
@@ -5731,7 +5731,7 @@ Types
    The data from the SAFE message. See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Options
-   :source-code: base/init-bare.zeek 5420 5451
+   :source-code: base/init-bare.zeek 5439 5470
 
    :Type: :zeek:type:`record`
 
@@ -5808,7 +5808,7 @@ Types
    KDC Options. See :rfc:`4120`
 
 .. zeek:type:: KRB::AP_Options
-   :source-code: base/init-bare.zeek 5454 5459
+   :source-code: base/init-bare.zeek 5473 5478
 
    :Type: :zeek:type:`record`
 
@@ -5826,7 +5826,7 @@ Types
    AP Options. See :rfc:`4120`
 
 .. zeek:type:: KRB::Type_Value
-   :source-code: base/init-bare.zeek 5463 5468
+   :source-code: base/init-bare.zeek 5482 5487
 
    :Type: :zeek:type:`record`
 
@@ -5845,7 +5845,7 @@ Types
    that have a type and a string value.
 
 .. zeek:type:: KRB::Encrypted_Data
-   :source-code: base/init-bare.zeek 5472 5479
+   :source-code: base/init-bare.zeek 5491 5498
 
    :Type: :zeek:type:`record`
 
@@ -5867,7 +5867,7 @@ Types
 
 
 .. zeek:type:: KRB::Ticket
-   :source-code: base/init-bare.zeek 5539 5552
+   :source-code: base/init-bare.zeek 5558 5571
 
    :Type: :zeek:type:`record`
 
@@ -5905,13 +5905,13 @@ Types
    A Kerberos ticket. See :rfc:`4120`.
 
 .. zeek:type:: KRB::Ticket_Vector
-   :source-code: base/init-bare.zeek 5554 5554
+   :source-code: base/init-bare.zeek 5573 5573
 
    :Type: :zeek:type:`vector` of :zeek:type:`KRB::Ticket`
 
 
 .. zeek:type:: KRB::Host_Address
-   :source-code: base/init-bare.zeek 5482 5489
+   :source-code: base/init-bare.zeek 5501 5508
 
    :Type: :zeek:type:`record`
 
@@ -5934,7 +5934,7 @@ Types
    A Kerberos host address See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Request
-   :source-code: base/init-bare.zeek 5557 5588
+   :source-code: base/init-bare.zeek 5576 5607
 
    :Type: :zeek:type:`record`
 
@@ -6012,7 +6012,7 @@ Types
    The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Response
-   :source-code: base/init-bare.zeek 5591 5607
+   :source-code: base/init-bare.zeek 5610 5626
 
    :Type: :zeek:type:`record`
 
@@ -8295,7 +8295,7 @@ Types
 +++++
 
 .. zeek:type:: MQTT::ConnectMsg
-   :source-code: base/init-bare.zeek 5947 5977
+   :source-code: base/init-bare.zeek 5966 5996
 
    :Type: :zeek:type:`record`
 
@@ -8360,7 +8360,7 @@ Types
 
 
 .. zeek:type:: MQTT::ConnectAckMsg
-   :source-code: base/init-bare.zeek 5979 5988
+   :source-code: base/init-bare.zeek 5998 6007
 
    :Type: :zeek:type:`record`
 
@@ -8380,7 +8380,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishMsg
-   :source-code: base/init-bare.zeek 5990 6012
+   :source-code: base/init-bare.zeek 6009 6031
 
    :Type: :zeek:type:`record`
 
@@ -8888,7 +8888,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: NCP::max_frame_size
-   :source-code: base/init-bare.zeek 5766 5766
+   :source-code: base/init-bare.zeek 5785 5785
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -9658,7 +9658,7 @@ Types
 +++++
 
 .. zeek:type:: NTP::StandardMessage
-   :source-code: base/init-bare.zeek 5775 5828
+   :source-code: base/init-bare.zeek 5794 5847
 
    :Type: :zeek:type:`record`
 
@@ -9764,7 +9764,7 @@ Types
    for standard synchronization operations.
 
 .. zeek:type:: NTP::ControlMessage
-   :source-code: base/init-bare.zeek 5833 5867
+   :source-code: base/init-bare.zeek 5852 5886
 
    :Type: :zeek:type:`record`
 
@@ -9836,7 +9836,7 @@ Types
    for control operations.
 
 .. zeek:type:: NTP::Mode7Message
-   :source-code: base/init-bare.zeek 5876 5909
+   :source-code: base/init-bare.zeek 5895 5928
 
    :Type: :zeek:type:`record`
 
@@ -9900,7 +9900,7 @@ Types
    project <https://www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
 
 .. zeek:type:: NTP::Message
-   :source-code: base/init-bare.zeek 5914 5941
+   :source-code: base/init-bare.zeek 5933 5960
 
    :Type: :zeek:type:`record`
 
@@ -15925,7 +15925,7 @@ Types
 +++++
 
 .. zeek:type:: SNMP::Header
-   :source-code: base/init-bare.zeek 5331 5336
+   :source-code: base/init-bare.zeek 5350 5355
 
    :Type: :zeek:type:`record`
 
@@ -15977,7 +15977,7 @@ Types
    including the PDU data.  See :rfc:`1901`.
 
 .. zeek:type:: SNMP::HeaderV3
-   :source-code: base/init-bare.zeek 5316 5326
+   :source-code: base/init-bare.zeek 5334 5345
 
    :Type: :zeek:type:`record`
 
@@ -16009,11 +16009,54 @@ Types
    .. zeek:field:: pdu_context :zeek:type:`SNMP::ScopedPDU_Context` :zeek:attr:`&optional`
 
 
+   .. zeek:field:: user_security_parameters :zeek:type:`SNMP::UserSecurityParameters` :zeek:attr:`&optional`
+
+
    The top-level message data structure of an SNMPv3 datagram, not
    including the PDU data.  See :rfc:`3412`.
 
+.. zeek:type:: SNMP::UserSecurityParameters
+   :source-code: base/init-bare.zeek 5317 5330
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: AuthoritativeEngineID :zeek:type:`string`
+
+      snmpEngineID of the authoritative SNMP engine.
+
+
+   .. zeek:field:: AuthoritativeEngineBoots :zeek:type:`int`
+
+      snmpEngineBoots value of the authoritative SNMP engine.
+
+
+   .. zeek:field:: AuthoritativeEngineTime :zeek:type:`int`
+
+      snmpEngineTime value of the authoritative SNMP engine
+
+
+   .. zeek:field:: UserName :zeek:type:`string`
+
+      User on the behalf of which the message is exchanged.
+
+
+   .. zeek:field:: AuthenticationParameters :zeek:type:`string`
+
+      raw msgAuthenticationParameters.
+
+
+   .. zeek:field:: PrivacyParameters :zeek:type:`string`
+
+      raw msgPrivacyParameters.
+
+
+   The UserSecurityParaneters for SNMPv3 messages using the
+   User-based Security Model. See :rfc:`3414`.
+   Experimental: the format of this record can change till Zeek 9.
+
 .. zeek:type:: SNMP::PDU
-   :source-code: base/init-bare.zeek 5386 5391
+   :source-code: base/init-bare.zeek 5405 5410
 
    :Type: :zeek:type:`record`
 
@@ -16033,7 +16076,7 @@ Types
    A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
 
 .. zeek:type:: SNMP::TrapPDU
-   :source-code: base/init-bare.zeek 5394 5401
+   :source-code: base/init-bare.zeek 5413 5420
 
    :Type: :zeek:type:`record`
 
@@ -16059,7 +16102,7 @@ Types
    A ``Trap-PDU`` data structure from :rfc:`1157`.
 
 .. zeek:type:: SNMP::BulkPDU
-   :source-code: base/init-bare.zeek 5404 5409
+   :source-code: base/init-bare.zeek 5423 5428
 
    :Type: :zeek:type:`record`
 
@@ -16095,7 +16138,7 @@ Types
    See :rfc:`3412`.
 
 .. zeek:type:: SNMP::ObjectValue
-   :source-code: base/init-bare.zeek 5347 5354
+   :source-code: base/init-bare.zeek 5366 5373
 
    :Type: :zeek:type:`record`
 
@@ -16129,7 +16172,7 @@ Types
    values will only have their corresponding tag value set.
 
 .. zeek:type:: SNMP::Binding
-   :source-code: base/init-bare.zeek 5376 5379
+   :source-code: base/init-bare.zeek 5395 5398
 
    :Type: :zeek:type:`record`
 
@@ -16144,7 +16187,7 @@ Types
    :rfc:`3416`, which maps an Object Identifier to a value.
 
 .. zeek:type:: SNMP::Bindings
-   :source-code: base/init-bare.zeek 5383 5383
+   :source-code: base/init-bare.zeek 5402 5402
 
    :Type: :zeek:type:`vector` of :zeek:type:`SNMP::Binding`
 
@@ -16155,7 +16198,7 @@ Events
 ++++++
 
 .. zeek:id:: snmp_get_request
-   :source-code: base/protocols/snmp/main.zeek 109 113
+   :source-code: base/protocols/snmp/main.zeek 113 117
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16175,7 +16218,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_get_next_request
-   :source-code: base/protocols/snmp/main.zeek 121 125
+   :source-code: base/protocols/snmp/main.zeek 125 129
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16196,7 +16239,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_response
-   :source-code: base/protocols/snmp/main.zeek 127 144
+   :source-code: base/protocols/snmp/main.zeek 131 148
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16217,7 +16260,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_set_request
-   :source-code: base/protocols/snmp/main.zeek 146 150
+   :source-code: base/protocols/snmp/main.zeek 150 154
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16237,7 +16280,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_trap
-   :source-code: base/protocols/snmp/main.zeek 152 155
+   :source-code: base/protocols/snmp/main.zeek 156 159
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::TrapPDU`)
 
@@ -16257,7 +16300,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_get_bulk_request
-   :source-code: base/protocols/snmp/main.zeek 115 119
+   :source-code: base/protocols/snmp/main.zeek 119 123
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::BulkPDU`)
 
@@ -16277,7 +16320,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_inform_request
-   :source-code: base/protocols/snmp/main.zeek 157 160
+   :source-code: base/protocols/snmp/main.zeek 161 164
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16297,7 +16340,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_trapV2
-   :source-code: base/protocols/snmp/main.zeek 162 165
+   :source-code: base/protocols/snmp/main.zeek 166 169
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16317,7 +16360,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_report
-   :source-code: base/protocols/snmp/main.zeek 167 170
+   :source-code: base/protocols/snmp/main.zeek 171 174
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
@@ -16337,7 +16380,7 @@ Events
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_unknown_pdu
-   :source-code: base/protocols/snmp/main.zeek 172 175
+   :source-code: base/protocols/snmp/main.zeek 176 179
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
@@ -16357,7 +16400,7 @@ Events
    :param tag: The tag of the unknown SNMP PDU.
 
 .. zeek:id:: snmp_unknown_scoped_pdu
-   :source-code: base/protocols/snmp/main.zeek 177 180
+   :source-code: base/protocols/snmp/main.zeek 181 184
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
@@ -16378,7 +16421,7 @@ Events
    :param tag: The tag of the unknown SNMP PDU scope.
 
 .. zeek:id:: snmp_encrypted_pdu
-   :source-code: base/protocols/snmp/main.zeek 182 185
+   :source-code: base/protocols/snmp/main.zeek 186 189
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`)
 

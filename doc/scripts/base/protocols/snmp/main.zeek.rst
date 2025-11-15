@@ -57,7 +57,7 @@ Detailed Interface
 Redefinable Options
 ###################
 .. zeek:id:: SNMP::version_map
-   :source-code: base/protocols/snmp/main.zeek 52 52
+   :source-code: base/protocols/snmp/main.zeek 54 54
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"``
@@ -77,7 +77,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: SNMP::Info
-   :source-code: base/protocols/snmp/main.zeek 13 49
+   :source-code: base/protocols/snmp/main.zeek 13 51
 
    :Type: :zeek:type:`record`
 
@@ -111,9 +111,11 @@ Types
 
    .. zeek:field:: community :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      The community string of the first SNMP packet associated with
-      the session.  This is used as part of SNMP's (v1 and v2c)
-      administrative/security framework.  See :rfc:`1157` or :rfc:`1901`.
+      v1/v2c: The community string (v1/v2c) of the first SNMP
+      packet associated with the session. This is used as part of SNMP's (v1 and v2c)
+      administrative/security framework.
+      v3: The username of the first SNMP packet containing a non-zero username.
+      See :rfc:`1157` (SNMP v1), :rfc:`1901` (SNMP v2), or :rfc:`2570` (SNMP v3).
 
 
    .. zeek:field:: get_requests :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
@@ -156,7 +158,7 @@ Types
 Events
 ######
 .. zeek:id:: SNMP::log_snmp
-   :source-code: base/protocols/snmp/main.zeek 60 60
+   :source-code: base/protocols/snmp/main.zeek 62 62
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SNMP::Info`)
 
@@ -166,7 +168,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SNMP::finalize_snmp
-   :source-code: base/protocols/snmp/main.zeek 103 107
+   :source-code: base/protocols/snmp/main.zeek 107 111
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

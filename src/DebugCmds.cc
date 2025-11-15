@@ -5,7 +5,11 @@
 
 #include "zeek/DebugCmds.h"
 
+#ifdef _MSC_VER
+#include <pcreposix.h>
+#else
 #include <regex.h>
+#endif
 #include <sys/types.h>
 #include <cassert>
 #include <cstring>

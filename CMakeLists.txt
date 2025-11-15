@@ -160,24 +160,26 @@ if (MSVC)
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
     # Find zlib installed by vcpkg.
-    find_package(ZLIB)
+    find_package(ZLIB REQUIRED)
     set(ZLIB_LIBRARY ZLIB::ZLIB)
 
     # Find c-ares installed by vcpkg.
-    find_package(c-ares)
+    find_package(c-ares REQUIRED)
     set(HAVE_CARES true) # Disable FindCAres cmake file
     include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
     set(zeekdeps ${zeekdeps} c-ares::cares)
     add_definitions(-DCARES_STATICLIB)
 
+    # Find pcre installed by vcpkg.
+    find_package(unofficial-pcre REQUIRED)
+    set(zeekdeps ${zeekdeps} unofficial::pcre::pcreposix)
+
     add_subdirectory(auxil/libunistd)
-    set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
-                        ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
-    include_directories(BEFORE ${UNISTD_INCLUDES})
+    include_directories(BEFORE ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd)
 
     # Required for `check_include_files` to operate correctly
-    list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
-    list(APPEND zeekdeps libunistd libregex)
+    list(APPEND CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd)
+    list(APPEND zeekdeps libunistd)
 
     # Set CMAKE flags for supported windows build.
     set(DISABLE_PYTHON_BINDINGS true)

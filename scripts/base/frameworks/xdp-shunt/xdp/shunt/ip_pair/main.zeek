@@ -2,10 +2,10 @@ module XDP::Shunt::IPPair;
 
 export {
 	## Event raised whenever a connection is shunted.
-	global shunted_pair: event(ip1: addr, ip2: addr);
+	global shunted_pair: event(pair: XDP::ip_pair);
 
 	## Event raised whenever a connection is unshunted.
-	global unshunted_pair: event(ip1: addr, ip2: addr, stats: XDP::ShuntedStats);
+	global unshunted_pair: event(pair: XDP::ip_pair, stats: XDP::ShuntedStats);
 
 	## Retrieves the current values in the IP pair map.
 	##
@@ -21,24 +21,23 @@ export {
 	## Returns: Whether the operation succeeded
 	##
 	## .. zeek:see:: unshunt shunt_stats
-	global shunt: function(xdp_prog: opaque of XDP::Program, ip1_val: addr,
-	    ip2_val: addr): bool;
+	global shunt: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): bool;
 
 	## Provides the shunting statistics for this IP pair.
 	##
 	## Returns: The shunting statistics
 	##
 	## .. zeek:see:: shunt unshunt
-	global shunt_stats: function(xdp_prog: opaque of XDP::Program, orig_h: addr,
-	    resp_h: addr): XDP::ShuntedStats;
+	global shunt_stats: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair)
+	    : XDP::ShuntedStats;
 
 	## Stops shunting anything between two IPs.
 	##
 	## Returns: The shunted statistics right before removing
 	##
 	## .. zeek:see:: shunt shunt_stats
-	global unshunt: function(xdp_prog: opaque of XDP::Program, ip1_val: addr,
-	    ip2_val: addr): XDP::ShuntedStats;
+	global unshunt: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair)
+	    : XDP::ShuntedStats;
 }
 
 function get_map(xdp_prog: opaque of XDP::Program,
@@ -47,28 +46,25 @@ function get_map(xdp_prog: opaque of XDP::Program,
 	return _get_map(xdp_prog, time_since_last_packet);
 	}
 
-function shunt(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr)
-    : bool
+function shunt(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): bool
 	{
-	local result = _shunt(xdp_prog, ip1_val, ip2_val);
+	local result = _shunt(xdp_prog, pair);
 	if ( result )
-		event shunted_pair(ip1_val, ip2_val);
+		event shunted_pair(pair);
 
 	return result;
 	}
 
-function shunt_stats(xdp_prog: opaque of XDP::Program, orig_h: addr,
-    resp_h: addr): XDP::ShuntedStats
+function shunt_stats(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	return _shunt_stats(xdp_prog, orig_h, resp_h);
+	return _shunt_stats(xdp_prog, pair);
 	}
 
-function unshunt(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr)
-    : XDP::ShuntedStats
+function unshunt(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	local stats = _unshunt(xdp_prog, ip1_val, ip2_val);
+	local stats = _unshunt(xdp_prog, pair);
 	if ( stats$present )
-		event unshunted_pair(ip1_val, ip2_val, stats);
+		event unshunted_pair(pair, stats);
 
 	return stats;
 	}

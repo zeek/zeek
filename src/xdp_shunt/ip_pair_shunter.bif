@@ -55,7 +55,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
     return zeek_table;
 %}
 
-function _shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
+function _shunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -63,8 +63,8 @@ function _shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
-    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
+    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
 
     auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
 
@@ -83,7 +83,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%
     return zeek::val_mgr->Bool(true);
 %}
 
-function _shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: addr%) : XDP::ShuntedStats %{
+function _shunt_stats%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -91,8 +91,8 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: a
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(orig_h->AsAddrVal()->Get());
-    auto ip2 = addrToIpVal(resp_h->AsAddrVal()->Get());
+    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
+    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
 
     auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
 
@@ -112,7 +112,7 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: a
 ## Returns: The shunted statistics right before removing
 ##
 ## .. zeek:see:: shunt shunt_stats
-function _unshunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : XDP::ShuntedStats %{
+function _unshunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -120,8 +120,8 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: add
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
-    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
+    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
 
     auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
 

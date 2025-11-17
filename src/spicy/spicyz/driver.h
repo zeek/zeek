@@ -24,6 +24,7 @@
 static const ::hilti::logging::DebugStream ZeekPlugin("zeek");
 
 // Macro helper to report debug messages.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SPICY_DEBUG(msg) HILTI_DEBUG(ZeekPlugin, std::string(msg));
 
 namespace zeek::spicy {
@@ -54,7 +55,7 @@ public:
            int zeek_version);
 
     /** Destructor. */
-    ~Driver();
+    ~Driver() override;
 
     /**
      * Schedules an *.spicy, *.evt, or *.hlt file for loading. Note that it

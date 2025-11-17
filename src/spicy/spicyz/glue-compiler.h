@@ -155,7 +155,7 @@ struct Export {
 class GlueCompiler {
 public:
     /** Constructor. */
-    GlueCompiler() {}
+    GlueCompiler() = default;
 
     /** Destructor. */
     virtual ~GlueCompiler();

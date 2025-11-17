@@ -1,3 +1,7 @@
+8.1.0-dev.905 | 2025-11-17 09:23:01 -0700
+
+  * Consolidate zeek::util unit tests into one section, add TEST_SUITE('util') (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.903 | 2025-11-17 09:22:30 -0700
 
   * Drop libunistd regex include path from CMakeLists.txt (Tim Wojtulewicz, Corelight)

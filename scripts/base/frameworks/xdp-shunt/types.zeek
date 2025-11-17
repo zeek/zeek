@@ -29,6 +29,9 @@ export {
     type ip_pair: record {
         ip1: addr;
         ip2: addr;
+
+        outer_vlan_id: count &optional; # The outer vlan, if any. Bidirectional
+        inner_vlan_id: count &optional; # The inner vlan, if any. Bidirectional
     };
 
     type ip_pair_shunt_table: table[ip_pair] of ShuntedStats;

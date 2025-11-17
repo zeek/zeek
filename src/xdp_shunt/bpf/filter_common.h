@@ -20,6 +20,8 @@ struct canonical_tuple {
 struct ip_pair_key {
     struct in6_addr ip1;
     struct in6_addr ip2;
+    __u16 outer_vlan_id; // The outer vlan, or 0 if none
+    __u16 inner_vlan_id; // The inner vlan, or 0 if none
 };
 
 // Statistics for shunted flows

@@ -15,10 +15,10 @@
 #define VLAN_MAX_DEPTH 8
 #endif
 
-#define ETH_P_8021Q     0x8100
-#define ETH_P_8021AD    0x88A8
-#define ETH_P_IP        0x0800
-#define ETH_P_IPV6      0x86DD
+#define ETH_P_8021Q 0x8100
+#define ETH_P_8021AD 0x88A8
+#define ETH_P_IP 0x0800
+#define ETH_P_IPV6 0x86DD
 
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
@@ -52,7 +52,8 @@ static __always_inline int proto_is_vlan(__u16 h_proto) {
 
 // Mostly copied from xdp-tutorial:
 // https://github.com/xdp-project/xdp-tutorial/blob/main/packet-solutions/xdp_vlan01_kern.c
-static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, struct ethhdr** ethhdr) {
+static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, struct ethhdr** ethhdr,
+                                        __u16* outer_vlan, __u16* inner_vlan) {
     struct ethhdr* eth = nh->pos;
     int hdrsize = sizeof(*eth);
     __u16 h_proto;
@@ -75,6 +76,14 @@ static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, s
 
         if ( (void*)vlh + sizeof(struct vlan_hdr) > data_end )
             break;
+
+
+        __u16 tci_host = bpf_ntohs(vlh->h_vlan_TCI);
+        // Only set inner vlan if outer is 0. This mimics Zeek's behavior.
+        if ( *outer_vlan == 0 )
+            *outer_vlan = tci_host & 0x0FFF;
+        else
+            *inner_vlan = tci_host & 0x0FFF;
 
         h_proto = vlh->h_vlan_encapsulated_proto;
         vlh++;
@@ -119,7 +128,9 @@ int xdp_filter(struct xdp_md* ctx) {
     nh.pos = data;
 
     struct ethhdr* eth;
-    int nh_type = parse_ethhdr(&nh, data_end, &eth);
+    __u16 outer_vlan = 0;
+    __u16 inner_vlan = 0;
+    int nh_type = parse_ethhdr(&nh, data_end, &eth, &outer_vlan, &inner_vlan);
     if ( nh_type < 0 )
         return XDP_PASS;
 
@@ -132,7 +143,7 @@ int xdp_filter(struct xdp_md* ctx) {
     switch ( nh_type ) {
         case bpf_htons(ETH_P_IP): {
             is_ipv4 = 1;
-            struct iphdr* iph = data + sizeof(*eth);
+            struct iphdr* iph = nh.pos;
             if ( (void*)iph + sizeof(*iph) > data_end )
                 return XDP_PASS;
 
@@ -152,7 +163,7 @@ int xdp_filter(struct xdp_md* ctx) {
             break;
         }
         case bpf_htons(ETH_P_IPV6): {
-            struct ipv6hdr* ip6h = data + sizeof(*eth);
+            struct ipv6hdr* ip6h = nh.pos;
             if ( (void*)ip6h + sizeof(*ip6h) > data_end )
                 return XDP_PASS;
 
@@ -229,10 +240,13 @@ int xdp_filter(struct xdp_md* ctx) {
     }
 
     // Check IP pairs
-    struct ip_pair_key pair = {
-        .ip1 = tuple.ip1,
-        .ip2 = tuple.ip2,
-    };
+    struct ip_pair_key pair;
+    __builtin_memset(&pair, 0, sizeof(pair)); // Zero out padding and members
+
+    pair.ip1 = tuple.ip1;
+    pair.ip2 = tuple.ip2;
+    pair.outer_vlan_id = outer_vlan;
+    pair.inner_vlan_id = inner_vlan;
 
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {

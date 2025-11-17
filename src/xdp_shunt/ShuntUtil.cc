@@ -49,6 +49,25 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     return tup;
 }
 
+ip_pair_key makeIPPairKey(zeek::RecordVal* pair_r) {
+    auto ip1 = addrToIpVal(pair_r->GetFieldAs<zeek::AddrVal>(0));
+    auto ip2 = addrToIpVal(pair_r->GetFieldAs<zeek::AddrVal>(1));
+    uint16_t outer_vlan_id = pair_r->HasField(2) ? pair_r->GetFieldAs<zeek::CountVal>(2) : 0;
+    uint16_t inner_vlan_id = pair_r->HasField(3) ? pair_r->GetFieldAs<zeek::CountVal>(3) : 0;
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    struct ip_pair_key pair;
+    memset(&pair, 0, sizeof(pair)); // Zero out padding too
+
+    pair.ip1 = ip2_higher ? ip1 : ip2;
+    pair.ip2 = ip2_higher ? ip2 : ip1;
+    pair.outer_vlan_id = outer_vlan_id;
+    pair.inner_vlan_id = inner_vlan_id;
+
+    return pair;
+}
+
 // Probably a better way to do this.
 zeek::RecordValPtr makeEmptyShuntedStats() {
     static auto shunt_stats_type = zeek::id::find_type<zeek::RecordType>("XDP::ShuntedStats");

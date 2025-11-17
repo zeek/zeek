@@ -63,15 +63,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : bool %
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
-    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
-
-    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
-
-    auto key = ip_pair_key{
-        .ip1 = ip2_higher ? ip1 : ip2,
-        .ip2 = ip2_higher ? ip2 : ip1,
-    };
+    auto key = makeIPPairKey(pair->AsRecordVal());
 
     auto err = update_map(get_ip_pair_map(prog), &key);
 
@@ -91,20 +83,13 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : 
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
-    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
+    auto key = makeIPPairKey(pair->AsRecordVal());
 
-    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
-
-    auto key = ip_pair_key{
-        .ip1 = ip2_higher ? ip1 : ip2,
-        .ip2 = ip2_higher ? ip2 : ip1,
-    };
     auto opt_val = get_val(get_ip_pair_map(prog), &key);
     if ( ! opt_val )
         return makeEmptyShuntedStats();
 
-    return makeShuntedStats(ip2_higher, &*opt_val);
+    return makeShuntedStats(compare_ips(&key.ip1, &key.ip2), &*opt_val);
 %}
 
 ## Stops shunting anything between two IPs.
@@ -120,15 +105,7 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP:
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0));
-    auto ip2 = addrToIpVal(pair->AsRecordVal()->GetFieldAs<zeek::AddrVal>(1));
-
-    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
-
-    auto key = ip_pair_key{
-        .ip1 = ip2_higher ? ip1 : ip2,
-        .ip2 = ip2_higher ? ip2 : ip1,
-    };
+    auto key = makeIPPairKey(pair->AsRecordVal());
 
     auto opt_val = get_val(get_ip_pair_map(prog), &key);
     if ( ! opt_val )
@@ -141,5 +118,5 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP:
         return makeEmptyShuntedStats();
     }
 
-    return makeShuntedStats(ip2_higher, &*opt_val);
+    return makeShuntedStats(compare_ips(&key.ip1, &key.ip2), &*opt_val);
 %}

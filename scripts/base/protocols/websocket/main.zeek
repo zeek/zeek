@@ -155,9 +155,13 @@ event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string)
 	{
 	# If we see a http_request and have websocket state, wipe it as
-	# we should've seen a websocket_established even on success and
-	# likely no more http events.
-	if ( ! c?$websocket )
+	# there might be a nested WebSocket upgrade coming, but it's the
+	# same connection record.
+	#
+	# We may not be handling/logging WebSocket-in-Websocket all that
+	# nicely as the inner WebSocket connection re-uses the original
+	# connection record.
+	if ( c?$websocket )
 		delete c$websocket;
 	}
 

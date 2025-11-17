@@ -59,7 +59,8 @@ export {
 		## C       CONNECTION_CLOSE packet
 		## S       SSL Client/Server Hello
 		## U       Unfamiliar QUIC version
-		## X       Discarded packet after successful decryption of INITIAL packets.
+		## X       Discarded packet after successful decryption of INITIAL packets
+		## O       Short packets in binary logarithmic fashion
 		## ======  ====================================================
 		history: string &log &default="";
 
@@ -167,6 +168,20 @@ event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: str
 	log_record(c$quic);
 
 	delete c$quic;
+	}
+
+event QUIC::short_packet_threshold_crossed(c: connection, is_orig: bool, threshold: count)
+	{
+	if ( ! c?$quic )
+		{
+		# This happens sometimes when we didn't see INITIAL packets
+		# but manage to parse the beginning somehow.
+		Reporter::conn_weird("QUIC_spurious_short_packet_threshold_crossed",
+		                     c, cat(threshold));
+		return;
+		}
+
+	add_to_history(c, is_orig, "Oshort");
 	}
 
 event QUIC::discarded_packet(c: connection, is_orig: bool, total_decrypted: count)

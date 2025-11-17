@@ -1,3 +1,13 @@
+8.1.0-dev.907 | 2025-11-17 20:15:00 +0100
+
+  * QUIC: Add short packets as oO in binary logarithmic fashion to history (Arne Welzel, Corelight)
+
+    This should allow to visually distinguish QUIC connections based on
+    upload/download or ping-pong characteristics. It also help to
+    understand if short packets happen early in the handshake phase.
+
+    Also, it ends up looking rather intriguing :-)
+
 8.1.0-dev.905 | 2025-11-17 09:23:01 -0700
 
   * Consolidate zeek::util unit tests into one section, add TEST_SUITE('util') (Tim Wojtulewicz, Corelight)

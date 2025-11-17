@@ -24,3 +24,5 @@ on QUIC::ConnectionClosePayload -> event QUIC::connection_close_frame($conn, $is
 on QUIC::UnhandledVersion -> event QUIC::unhandled_version($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);
 
 on QUIC::Packet if ( self.raise_discarded_packet ) -> event QUIC::discarded_packet($conn, $is_orig, self.total_decrypted);
+
+on QUIC::ShortHeader if ( self.raise_short_packet_threshold > 0 ) -> event QUIC::short_packet_threshold_crossed($conn, $is_orig, self.raise_short_packet_threshold);

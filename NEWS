@@ -135,6 +135,16 @@ New Functionality
   present, the data is added to the new ``user_security_parameters`` field of the ``SNMP::HeaderV3``
   record.
 
+- The QUIC analyzer now raises ``QUIC::short_packet_threshold_crossed()`` for every
+  binary logarithmic threshold for short packets. Each threshold is added to
+  the history as ``O``. E.g., a history containing ``oOoO`` indicates that originator
+  and responder each send at least 3 short packets, while ``oOOoooooo`` would indicate
+  the originator sent 3 short packets early in the connection, while the responder
+  sent at least 127 packets.
+
+- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
+  and ``sha512_hash_finish``.
+
 Changed Functionality
 ---------------------
 

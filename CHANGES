@@ -1,3 +1,11 @@
+8.1.0-dev.903 | 2025-11-17 09:22:30 -0700
+
+  * Drop libunistd regex include path from CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * Mark Windows vcpkg dependencies as required in CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * Switch to using PCRE from vcpkg on Windows for regex.h (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.897 | 2025-11-14 11:53:14 -0700
 
   * ZAM optimizer fix for tracking the BiFs called by functions (Vern Paxson, Corelight)

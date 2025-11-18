@@ -200,7 +200,7 @@ void Inliner::CoalesceEventHandlers() {
 
         const auto& body = f.Body();
 
-        if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 ) {
+        if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 && body->Tag() != STMT_CPP ) {
             ++event_handlers[func];
             ASSERT(! body_to_info.contains(body.get()));
             body_to_info[body.get()] = i;
@@ -379,6 +379,10 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
 
     // We're going to inline the body, unless it's too large.
     auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
+
+    if ( body->Tag() == STMT_CPP )
+        return c;
+
     auto scope = func_vf->GetScope();
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
 

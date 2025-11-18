@@ -488,7 +488,7 @@ TypePtr CPP_TypeInits::BuildRecordType(InitsManager* im, ValElemVec& init_vals, 
     return r;
 }
 
-int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
+zeek_int_t CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     auto r = im->Types(rec)->AsRecordType();
     auto fm_offset = r->FieldOffset(field_name.c_str());
 
@@ -516,7 +516,7 @@ int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     return fm_offset;
 }
 
-int CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
+zeek_int_t CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
     auto e = im->Types(e_type)->AsEnumType();
 
     auto em_offset = e->Lookup(e_name);

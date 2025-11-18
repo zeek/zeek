@@ -1,3 +1,11 @@
+8.1.0-dev.920 | 2025-11-18 11:34:28 -0700
+
+  * fixes for allowing combining -O use-C++ with -O ZAM (Vern Paxson, Corelight)
+
+  * treat enums introduced by plugins / Spicy analyzers as redef'ing (extending) the enum type (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for enum values that exceed 2^31 (Vern Paxson, Corelight)
+
 8.1.0-dev.916 | 2025-11-18 11:16:42 -0700
 
   * Avoid unnecessary `dynamic_cast` when getting metric counter values (Benjamin Bannier, Corelight)

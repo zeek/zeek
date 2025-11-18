@@ -195,6 +195,13 @@ export {
 		[6] = "ipv6hint",
 	} &default = function(n: count): string { return fmt("key-%d", n); };
 
+	const DNS_OP_QUERY = 0;
+	const DNS_OP_IQUERY = 1;
+	const DNS_OP_SERVER_STATUS = 2;
+	const DNS_OP_NOTIFY = 4;
+	const DNS_OP_DYNAMIC_UPDATE = 5;
+	const DNS_OP_DSO = 6;
+
 	## Mapping of DNS operation type codes to human readable string representation.
 	const opcodes = {
 		[0] = "query",

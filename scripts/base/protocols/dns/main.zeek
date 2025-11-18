@@ -357,8 +357,8 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	if ( msg$opcode != 0 && msg$opcode != 5 )
-		# Currently only standard queries are tracked.
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
+		# Currently only standard queries and dynamic updates are tracked.
 		return;
 
 	hook set_session(c, msg, ! msg$QR);
@@ -366,8 +366,8 @@ event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &prior
 
 hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
-	if ( msg$opcode != 0 && msg$opcode != 5 )
-		# Currently only standard queries are tracked.
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
+		# Currently only standard queries and dynamic updates are tracked.
 		return;
 
 	if ( ! msg$QR )
@@ -398,7 +398,7 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 
 	if ( reply != "" )
 		{
-		if ( msg$opcode == 5 && ans$answer_type == DNS_UPDATE && ! starts_with(reply, "del:") )
+		if ( msg$opcode == DNS_OP_DYNAMIC_UPDATE && ans$answer_type == DNS_UPDATE && ! starts_with(reply, "del:") )
 			reply = fmt("add: %s", reply);
 
 		if ( ! c$dns?$answers )
@@ -433,8 +433,8 @@ event dns_end(c: connection, msg: dns_msg) &priority=-5
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	if ( msg$opcode != 0 )
-		# Currently only standard queries are tracked.
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
+		# Currently only standard queries and dynamic updates are tracked.
 		return;
 
 	c$dns$RD          = msg$RD;
@@ -473,7 +473,7 @@ event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	if ( msg$opcode == DNS_UPDATE && ! msg$is_netbios )
+	if ( msg$opcode == DNS_OP_DYNAMIC_UPDATE && ! msg$is_netbios )
 		hook DNS::do_reply(c, msg, ans, fmt("A %s %s", ans$query, a));
 	else
 		hook DNS::do_reply(c, msg, ans, fmt("%s", a));
@@ -511,7 +511,7 @@ event dns_SPF_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_v
 
 event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	if ( msg$opcode == DNS_UPDATE && ! msg$is_netbios )
+	if ( msg$opcode == DNS_OP_DYNAMIC_UPDATE && ! msg$is_netbios )
 		hook DNS::do_reply(c, msg, ans, fmt("AAAA %s %s", ans$query, a));
 	else
 		hook DNS::do_reply(c, msg, ans, fmt("%s", a));
@@ -519,7 +519,7 @@ event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &pri
 
 event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
 	{
-	if ( msg$opcode == DNS_UPDATE && ! msg$is_netbios )
+	if ( msg$opcode == DNS_OP_DYNAMIC_UPDATE && ! msg$is_netbios )
 		hook DNS::do_reply(c, msg, ans, fmt("A6 %s %s", ans$query, a));
 	else
 		hook DNS::do_reply(c, msg, ans, fmt("%s", a));

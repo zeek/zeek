@@ -61,7 +61,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: QUIC::max_history_length
-   :source-code: base/protocols/quic/main.zeek 80 80
+   :source-code: base/protocols/quic/main.zeek 81 81
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -72,7 +72,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: QUIC::max_discarded_packet_events
-   :source-code: base/protocols/quic/main.zeek 84 84
+   :source-code: base/protocols/quic/main.zeek 85 85
 
    :Type: :zeek:type:`int`
    :Attributes: :zeek:attr:`&redef`
@@ -84,7 +84,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: QUIC::Info
-   :source-code: base/protocols/quic/main.zeek 13 71
+   :source-code: base/protocols/quic/main.zeek 13 72
 
    :Type: :zeek:type:`record`
 
@@ -159,7 +159,8 @@ Types
       C       CONNECTION_CLOSE packet
       S       SSL Client/Server Hello
       U       Unfamiliar QUIC version
-      X       Discarded packet after successful decryption of INITIAL packets.
+      X       Discarded packet after successful decryption of INITIAL packets
+      O       Short packets in binary logarithmic fashion
       ======  ====================================================
 
 
@@ -173,7 +174,7 @@ Types
 Events
 ######
 .. zeek:id:: QUIC::log_quic
-   :source-code: base/protocols/quic/main.zeek 73 73
+   :source-code: base/protocols/quic/main.zeek 74 74
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`QUIC::Info`)
 
@@ -181,13 +182,13 @@ Events
 Hooks
 #####
 .. zeek:id:: QUIC::finalize_quic
-   :source-code: base/protocols/quic/main.zeek 246 252
+   :source-code: base/protocols/quic/main.zeek 261 267
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
 
 .. zeek:id:: QUIC::log_policy
-   :source-code: base/protocols/quic/main.zeek 75 75
+   :source-code: base/protocols/quic/main.zeek 76 76
 
    :Type: :zeek:type:`Log::PolicyHook`
 

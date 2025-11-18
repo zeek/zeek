@@ -149,7 +149,7 @@ zeek::RecordValPtr build_hdrV3(const Header* header)
 		v3->Assign(8, std::move(rv));
 		}
 
-	if ( security_model == 3 ) // user security model
+	if ( security_model == 3 && v3hdr->has_usm_security_parameters() ) // user security model
 		{
 		auto usm = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::UserSecurityParameters);
 		const v3UsmSecurityParameters* usp = v3hdr->usm_security_parameters();

@@ -137,7 +137,7 @@ extern TypePtr rt::create_enum_type(
             // Zeek's enum can't be negative, so swap in max_int for our Undef.
             lval = std::numeric_limits<::zeek_int_t>::max();
 
-        etype->AddName(ns, name.c_str(), lval, true);
+        etype->AddName(ns, name.c_str(), lval, true, nullptr, true);
     }
 
     return std::move(etype);

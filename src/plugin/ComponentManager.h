@@ -379,12 +379,12 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 
     // Install an identifier for enum value
     std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
-    tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true, nullptr);
+    tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true, nullptr, true);
 
     if ( parent_tag_enum_type ) {
         std::string parent_id = util::fmt("%s_%s", util::strtoupper(module).c_str(), id.c_str());
         parent_tag_enum_type->AddName(parent_module, parent_id.c_str(), component->Tag().AsVal()->InternalInt(), true,
-                                      nullptr);
+                                      nullptr, true);
     }
 }
 

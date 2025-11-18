@@ -5,15 +5,20 @@
 
 event ssh2_server_host_key(c: connection, key: string)
 	{
-	print "ssh2 server host key fingerprint",  md5_hash(key);
+	print "ssh2 server host key",  md5_hash(key);
 	}
 
 event ssh1_server_host_key(c: connection, modulus: string, exponent: string)
 	{
-	print "ssh1 server host key fingerprint", md5_hash(modulus + exponent);
+	print "ssh1 server host key", md5_hash(modulus + exponent);
 	}
 
 event ssh_server_host_key(c: connection, hash: string)
+	{
+	print "ssh server host key", hash;
+	}
+
+event ssh_server_host_key_fingerprint(c: connection, hash: string)
 	{
 	print "ssh server host key fingerprint", hash;
 	}

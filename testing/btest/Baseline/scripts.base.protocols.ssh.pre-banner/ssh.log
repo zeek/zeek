@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssh
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key
-#types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.2.1	55343	10.0.2.10	22	2	-	0	-	SSH-2.0-OpenSSH_9.7	SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5	aes192-ctr	hmac-sha2-256	zlib@openssh.com	sntrup761x25519-sha512@openssh.com	ssh-ed25519	27:27:33:7a:1a:4f:46:b2:58:1c:04:c2:ad:6d:8a:86
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key	host_key_fingerprint
+#types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.2.1	55343	10.0.2.10	22	2	-	0	-	SSH-2.0-OpenSSH_9.7	SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5	aes192-ctr	hmac-sha2-256	zlib@openssh.com	sntrup761x25519-sha512@openssh.com	ssh-ed25519	27:27:33:7a:1a:4f:46:b2:58:1c:04:c2:ad:6d:8a:86	SHA256:r320Lqxo0ynw5yApL29KprGBbs+TkC9q
 #close XXXX-XX-XX-XX-XX-XX

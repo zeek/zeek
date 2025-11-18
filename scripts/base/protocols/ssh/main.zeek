@@ -53,7 +53,10 @@ export {
 		## The server host key's algorithm
 		host_key_alg:    string       &log &optional;
 		## The server's key fingerprint
-		host_key:        string       &log &optional;
+		host_key:        string       &log &optional &deprecated="Remove in 9.1. Use host_key_fingerprint.";
+		## The server's key fingerprint, in the format that `ssh-keygen -l` would output.
+		## For example, a sha256 fingerprint will look like `SHA256:<fingerprint>`.
+		host_key_fingerprint: string       &log &optional;
 	};
 
 	## The set of compression algorithms. We can't accurately determine
@@ -352,7 +355,17 @@ event ssh_server_host_key(c: connection, hash: string) &priority=5
 	if ( ! c?$ssh )
 		return;
 
+@pragma push ignore-deprecations
 	c$ssh$host_key = hash;
+@pragma pop ignore-deprecations
+	}
+
+event ssh_server_host_key_fingerprint(c: connection, fingerprint: string) &priority=5
+	{
+	if ( ! c?$ssh )
+		return;
+
+	c$ssh$host_key_fingerprint = fingerprint;
 	}
 
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=20

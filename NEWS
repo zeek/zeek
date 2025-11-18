@@ -166,6 +166,9 @@ Changed Functionality
 - For SNMPv3, the ``community`` field of the snmp log now contains the SNMPv3 username
   (if present). Before, the field was empty for all SNMPv3 connections.
 
+- The ``x509.log`` deduplication logic has been reimplemented with explicit
+  ``Cluster::publish()``, rather than relying ``&backend`` tables using Broker.
+
 Removed Functionality
 ---------------------
 

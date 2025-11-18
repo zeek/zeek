@@ -1,3 +1,11 @@
+8.1.0-dev.912 | 2025-11-18 17:09:55 +0100
+
+  * x509: Implement deduplication without Broker stores (Arne Welzel, Corelight)
+
+    This uses explicit Cluster::publish() through the manager and a
+    Cluster::node_up() handler to pre-seed a worker with anything that
+    the manager knows should be de-duplicated.
+
 8.1.0-dev.910 | 2025-11-18 16:52:27 +0100
 
   * snmp: Fix crash with PCAP extracted from benchmarker (Arne Welzel, Corelight)

@@ -1,10 +1,11 @@
-# @TEST-DOC: Test that certificate log deduplication works in clustered mode.
+# @TEST-DOC: Test that certificate log deduplication works in clustered mode for ZeroMQ.
 #
-# @TEST-PORT: BROKER_MANAGER_PORT
-# @TEST-PORT: BROKER_WORKER1_PORT
-# @TEST-PORT: BROKER_WORKER2_PORT
+# @TEST-PORT: XPUB_PORT
+# @TEST-PORT: XSUB_PORT
+# @TEST-PORT: LOG_PULL_PORT
 #
-# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+# @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
+# @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
 #
 # @TEST-EXEC: btest-bg-run manager   "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek -b %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
@@ -12,7 +13,7 @@
 # @TEST-EXEC: $SCRIPTS/wait-for-file manager/lost 15 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager/x509.log
 
 @load base/protocols/ssl
@@ -22,6 +23,8 @@
 redef Log::default_rotation_interval = 0secs;
 redef Log::default_rotation_postprocessor_cmd = "echo";
 redef exit_only_after_terminate = T;
+
+@load ./zeromq-test-bootstrap
 
 event terminate_me() {
 	terminate();
@@ -33,11 +36,12 @@ event zeek_init()
 	suspend_processing();
 	}
 
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::node_up(name: string, id: string)
 	{
 	if ( /worker-2/ in Cluster::node )
-	       {
-	       when ( |X509::known_log_certs| >= 3 )
+		{
+		# Await LogCertHash from the manager.
+		when ( |X509::known_log_certs| >= 3 )
 			{
 			continue_processing();
 			}
@@ -60,7 +64,7 @@ event SSL::log_ssl(i: SSL::Info)
 
 global peers_lost = 0;
 
-event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::node_down(name: string, id: string)
 	{
 	++peers_lost;
 	system("touch lost");

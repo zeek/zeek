@@ -333,7 +333,7 @@ void GlueCompiler::init(Driver* driver, int zeek_version) {
     _zeek_version = zeek_version;
 }
 
-GlueCompiler::~GlueCompiler() {}
+GlueCompiler::~GlueCompiler() = default;
 
 hilti::Result<std::string> GlueCompiler::getNextEvtBlock(std::istream& in, int* lineno) const {
     std::string chunk;
@@ -517,7 +517,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
             else if ( looking_at(*chunk, 0, "export") ) {
                 auto export_ = parseExport(*chunk);
-                if ( _exports.find(export_.zeek_id) != _exports.end() )
+                if ( _exports.contains(export_.zeek_id) )
                     throw ParseError(hilti::util::fmt("export of '%s' already defined", export_.zeek_id));
 
                 _exports[export_.zeek_id] = export_;
@@ -580,19 +580,19 @@ GlueCompiler::ExportedField GlueCompiler::exportForField(const hilti::ID& zeek_i
 
     if ( export_->with.empty() ) {
         // Include unless explicitly excluded.
-        if ( export_->without.find(field_id) != export_->without.end() )
+        if ( export_->without.contains(field_id) )
             field.skip = true;
     }
     else {
         // Exclude unless explicitly included.
-        if ( export_->with.find(field_id) == export_->with.end() )
+        if ( ! export_->with.contains(field_id) )
             field.skip = true;
     }
 
     if ( export_->log_all )
         field.log = true;
 
-    if ( export_->logs.find(field_id) != export_->logs.end() )
+    if ( export_->logs.contains(field_id) )
         field.log = true;
 
     return field;
@@ -834,7 +834,7 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
         if ( ! looking_at(chunk, i, ")") ) {
             while ( true ) {
                 auto param = extract_parameter(builder(), chunk, &i);
-                ev.parameters.push_back(param);
+                ev.parameters.emplace_back(param);
 
                 if ( looking_at(chunk, i, ")") )
                     break;
@@ -1430,7 +1430,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                 return x->second;
 
             // Avoid infinite recursion.
-            if ( zeek_types.count(id) )
+            if ( zeek_types.contains(id) )
                 return hilti::result::Error("type is self-recursive");
 
             zeek_types.insert(id);
@@ -1677,7 +1677,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
     // NOTE: Align this logic with struct generation in Spicy's unit builder.
     std::vector<GlueCompiler::RecordField> fields;
 
-    void operator()(::spicy::type::unit::item::Field* n) {
+    void operator()(::spicy::type::unit::item::Field* n) override {
         if ( (n->isTransient() && ! n->isAnonymous()) || n->parseType()->type()->isA<hilti::type::Void>() )
             return;
 
@@ -1688,7 +1688,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Variable* b) {
+    void operator()(::spicy::type::unit::item::Variable* b) override {
         auto field = GlueCompiler::RecordField{.id = b->id(),
                                                .type = b->itemType(),
                                                .is_optional = b->isOptional(),
@@ -1696,7 +1696,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Switch* n) {
+    void operator()(::spicy::type::unit::item::Switch* n) override {
         for ( const auto& c : n->cases() ) {
             for ( const auto& i : c->block()->items() )
                 dispatch(i);

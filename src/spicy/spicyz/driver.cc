@@ -123,7 +123,7 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
     ::spicy::init();
 }
 
-Driver::~Driver() {}
+Driver::~Driver() = default;
 
 hilti::Result<hilti::Nothing> Driver::loadFile(hilti::rt::filesystem::path file,
                                                const hilti::rt::filesystem::path& relative_to) {

@@ -77,7 +77,7 @@ public:
     CPP_FieldMapping(int _rec, std::string _field_name, int _field_type, int _field_attrs)
         : rec(_rec), field_name(std::move(_field_name)), field_type(_field_type), field_attrs(_field_attrs) {}
 
-    int ComputeOffset(InitsManager* im) const;
+    zeek_int_t ComputeOffset(InitsManager* im) const;
 
     int RecTypeIndex() const { return rec; }
     int FieldTypeIndex() const { return field_type; }
@@ -102,7 +102,7 @@ public:
     CPP_EnumMapping(int _e_type, std::string _e_name, bool _construct_if_missing)
         : e_type(_e_type), e_name(std::move(_e_name)), construct_if_missing(_construct_if_missing) {}
 
-    int ComputeOffset(InitsManager* im) const;
+    zeek_int_t ComputeOffset(InitsManager* im) const;
 
     int EnumTypeIndex() const { return e_type; }
 

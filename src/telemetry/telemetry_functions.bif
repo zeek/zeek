@@ -16,7 +16,7 @@ namespace {
 template <class ScriptHandle, class Fun>
 auto with(zeek::Val* val, const char* error_msg, Fun fun)
 	{
-	if ( auto ptr = dynamic_cast<ScriptHandle*>(val) )
+	if ( auto ptr = static_cast<ScriptHandle*>(val) )
 		{
 		fun(ptr->GetHandle());
 		return zeek::val_mgr->True();

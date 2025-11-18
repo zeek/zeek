@@ -1,3 +1,7 @@
+8.1.0-dev.916 | 2025-11-18 11:16:42 -0700
+
+  * Avoid unnecessary `dynamic_cast` when getting metric counter values (Benjamin Bannier, Corelight)
+
 8.1.0-dev.914 | 2025-11-18 11:16:21 -0700
 
   * Fix clang-tidy findings in Spicy plugin (Benjamin Bannier, Corelight)

@@ -492,7 +492,7 @@ eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
 
 macro TelemetryCounterInc(result, family, increment)
 	{
-	if ( auto ptr = dynamic_cast<CounterMetricVal*>(family) )
+	if ( auto ptr = static_cast<CounterMetricVal*>(family) )
 		{
 		ptr->GetHandle()->Inc(increment);
 		result = 1;

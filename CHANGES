@@ -1,3 +1,9 @@
+8.1.0-dev.926 | 2025-11-19 13:10:19 -0700
+
+  * Fix ZAM test from VLAN merge (Evan Typanski, Corelight)
+
+    Didn't catch merging #5017 broke ZAM tests.
+
 8.1.0-dev.924 | 2025-11-19 09:43:54 -0500
 
   * GH-2971: Add PCP/DEI to vlans in raw packet headers (Evan Typanski)

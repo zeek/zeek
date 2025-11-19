@@ -996,6 +996,8 @@ else ()
 endif ()
 
 if (NOT DISABLE_SPICY)
+    set(HILTI_SKIP_EXPENSIVE_DEBUG_CHECKS ON CACHE INTERNAL "" FORCE)
+
     if (SPICY_ROOT_DIR)
         find_package(Spicy REQUIRED) # will set HAVE_SPICY
         spicy_require_version("1.8.0")

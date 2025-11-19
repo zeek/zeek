@@ -22,31 +22,22 @@ struct in6_addr addrToIpVal(const zeek::IPAddr& addr) {
 }
 
 std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
-    const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
-    uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
-    const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
-    uint16_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
+    const zeek::IPAddr& ip1_val = cid_r->GetFieldAs<zeek::AddrVal>(0);
+    uint16_t ip1_port = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
+    const zeek::IPAddr& ip2_val = cid_r->GetFieldAs<zeek::AddrVal>(2);
+    uint16_t ip2_port = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
     uint8_t proto = cid_r->GetFieldAs<zeek::CountVal>(4);
 
-    auto ip1 = addrToIpVal(orig_h);
-    auto ip2 = addrToIpVal(resp_h);
+    auto ip1 = addrToIpVal(ip1_val);
+    auto ip2 = addrToIpVal(ip2_val);
 
-    auto tup = canonical_tuple{
+    return canonical_tuple{
         .ip1 = ip1,
         .ip2 = ip2,
-        .port1 = orig_p,
-        .port2 = resp_p,
+        .port1 = ip1_port,
+        .port2 = ip2_port,
         .protocol = proto,
     };
-
-    // We order first by ip, or if they're equal, by port.
-    if ( compare_ips(&tup.ip1, &tup.ip2) > 0 || ((compare_ips(&tup.ip1, &tup.ip2) == 0) && tup.port1 > tup.port2) ) {
-        // Flip them, they're out of order
-        std::swap(tup.ip1, tup.ip2);
-        std::swap(tup.port1, tup.port2);
-    }
-
-    return tup;
 }
 
 ip_pair_key makeIPPairKey(zeek::RecordVal* pair_r) {

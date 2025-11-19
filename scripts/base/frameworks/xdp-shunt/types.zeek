@@ -24,7 +24,16 @@ export {
         present: bool; # If this means anything :) probably a better way
     };
 
-    type shunt_table: table[conn_id] of ShuntedStats;
+    # Essentially a sorted conn_id
+    type canonical_id: record {
+        ip1: addr;
+        ip1_port: port;
+        ip2: addr;
+        ip2_port: port;
+        proto: count;
+    };
+
+    type shunt_table: table[canonical_id] of ShuntedStats;
 
     type ip_pair: record {
         ip1: addr;

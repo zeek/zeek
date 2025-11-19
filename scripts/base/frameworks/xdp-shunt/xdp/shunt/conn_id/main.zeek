@@ -2,10 +2,10 @@ module XDP::Shunt::ConnID;
 
 export {
 	## Event raised whenever a connection is shunted.
-	global shunted_conn: event(cid: conn_id);
+	global shunted_conn: event(cid: XDP::canonical_id);
 
 	## Event raised whenever a connection is unshunted.
-	global unshunted_conn: event(cid: conn_id, stats: XDP::ShuntedStats);
+	global unshunted_conn: event(cid: XDP::canonical_id, stats: XDP::ShuntedStats);
 
 	## Retrieves the current values in the canonical ID map.
 	##
@@ -21,23 +21,24 @@ export {
 	## Returns: Whether the operation succeeded
 	##
 	## .. zeek:see:: unshunt shunt_stats
-	global shunt: function(xdp_prog: opaque of XDP::Program, cid: conn_id): bool;
+	global shunt: function(xdp_prog: opaque of XDP::Program,
+	    cid: XDP::canonical_id): bool;
 
 	## Provides the shunting statistics for this connection ID.
 	##
 	## Returns: The shunting statistics
 	##
 	## .. zeek:see:: shunt unshunt
-	global shunt_stats: function(xdp_prog: opaque of XDP::Program, cid: conn_id)
-	    : XDP::ShuntedStats;
+	global shunt_stats: function(xdp_prog: opaque of XDP::Program,
+	    cid: XDP::canonical_id): XDP::ShuntedStats;
 
 	## Stops shunting anything with the conn_id.
 	##
 	## Returns: The shunted statistics right before removing
 	##
 	## .. zeek:see:: shunt shunt_stats
-	global unshunt: function(xdp_prog: opaque of XDP::Program, cid: conn_id)
-	    : XDP::ShuntedStats;
+	global unshunt: function(xdp_prog: opaque of XDP::Program,
+	    cid: XDP::canonical_id): XDP::ShuntedStats;
 }
 
 function get_map(xdp_prog: opaque of XDP::Program,
@@ -46,7 +47,7 @@ function get_map(xdp_prog: opaque of XDP::Program,
 	return _get_map(xdp_prog, time_since_last_packet);
 	}
 
-function shunt(xdp_prog: opaque of XDP::Program, cid: conn_id): bool
+function shunt(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id): bool
 	{
 	local result = _shunt(xdp_prog, cid);
 	if ( result )
@@ -55,13 +56,13 @@ function shunt(xdp_prog: opaque of XDP::Program, cid: conn_id): bool
 	return result;
 	}
 
-function shunt_stats(xdp_prog: opaque of XDP::Program, cid: conn_id)
+function shunt_stats(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id)
     : XDP::ShuntedStats
 	{
 	return _shunt_stats(xdp_prog, cid);
 	}
 
-function unshunt(xdp_prog: opaque of XDP::Program, cid: conn_id)
+function unshunt(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id)
     : XDP::ShuntedStats
 	{
 	local stats = _unshunt(xdp_prog, cid);

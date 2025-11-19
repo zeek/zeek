@@ -17,6 +17,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
+    static auto canonical_id= zeek::id::find_type<zeek::RecordType>("XDP::canonical_id");
     auto zeek_table = zeek::make_intrusive<zeek::TableVal>(shunt_table);
 
     if ( ! zeek_prog ) {
@@ -33,7 +34,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
             (time_since_last_packet + mono_to_wall(val.timestamp) > zeek::util::current_time(true)) )
             continue;
 
-        auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+        auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(canonical_id);
         if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
             zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
                                     *reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr[12])));
@@ -59,7 +60,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
     return zeek_table;
 %}
 
-function _shunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
+function _shunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return zeek::val_mgr->Bool(false);
@@ -81,7 +82,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     return zeek::val_mgr->Bool(true);
 %}
 
-function _shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
+function _shunt_stats%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : XDP::ShuntedStats %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return makeEmptyShuntedStats();
@@ -100,7 +101,7 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::S
     return makeShuntedStats(origIsIp1(cid->AsRecordVal()), &*opt_val);
 %}
 
-function _unshunt%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
+function _unshunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : XDP::ShuntedStats %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return makeEmptyShuntedStats();

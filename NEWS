@@ -148,6 +148,15 @@ New Functionality
 - Added VLAN PCP and DEI bits when parsing packets. This is exposed alongside ``vlan`` and
   ``inner_vlan`` in a packet's ``l2_hdr`` when scripting, if a VLAN header was present.
 
+- The DNS analyzer now supports parsing Dynamic Update messages (RFC 2136) and reporting
+  information about them into ``dns.log``. The ``answer`` field in the log will contain
+  the prerequisites and updates for the dynamic update requests, whereas the ``query``
+  field logs the zone name for the update request.
+
+  This also adds new ``opcode`` and ``opcode_name`` fields to the DNS log. Previously Zeek
+  was only handling opcode 0 (normal requests) so that information wasn't pertinent, but
+  with the addition of dynamic updates we're now handling a second opcode.
+
 Changed Functionality
 ---------------------
 

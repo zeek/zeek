@@ -36,7 +36,7 @@ event QUIC::discarded_packet(c: connection, is_orig: bool, total_decrypted: coun
 	print network_time(), "discarded_packet", is_orig, total_decrypted;
 	}
 
-event QUIC::short_packet_threshold_crossed(c: connection, is_orig: bool, threshold: count)
+event QUIC::short_header_packet_threshold_crossed(c: connection, is_orig: bool, threshold: count)
 	{
-	print network_time(), "short_packet_threshold_crossed", is_orig, threshold;
+	print network_time(), "short_header_packet_threshold_crossed", is_orig, threshold;
 	}

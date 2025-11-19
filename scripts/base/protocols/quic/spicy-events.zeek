@@ -107,14 +107,12 @@ global QUIC::unhandled_version: event(c: connection, is_orig: bool, version: cou
 ## total_decrypted: The number of QUIC packets successfully decrypted previously.
 global QUIC::discarded_packet: event(c: connection, is_orig: bool, total_decrypted: count);
 
-## Generated when a binary logarithmic number of QUIC short packets has been observed.
-##
-## This event is only generated if some INITIAL QUIC packets were successfully
-## decrypted previously.
+## Generated when a binary logarithmic number of QUIC packets with a short
+## header has been observed.
 ##
 ## c: The connection.
 ##
 ## is_orig: True if the threshold is for connection's originator, otherwise false.
 ##
 ## threshold: The threshold that has been reached.
-global QUIC::short_packet_threshold_crossed: event(c: connection, is_orig: bool, threshold: count);
+global QUIC::short_header_packet_threshold_crossed: event(c: connection, is_orig: bool, threshold: count);

@@ -7,7 +7,7 @@ import spicy;
 import zeek;
 
 global max_discarded_packet_events: optional<int64>;
-global short_packet_threshold_base = 2;
+global short_header_packet_threshold_base = 2;
 
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(version: uint32, data: bytes, connection_id: bytes, encrypted_offset: uint64, payload_offset: uint64, from_client: bool): bytes &cxxname="QUIC_decrypt_crypto_payload";
@@ -468,9 +468,9 @@ type RetryPacket = unit(header: LongHeaderPacket) {
 
 # TODO: implement
 public type ShortHeader = unit(context: Context&) {
-    # If set to non-zero, will raise QUIC::short_packet_threshold_crossed()
-    #  with the count of this variable.
-    var raise_short_packet_threshold: uint64;
+    # If set to non-zero, will raise QUIC::short_header_packet_threshold_crossed()
+    # with the count of this variable.
+    var raise_short_header_packet_threshold: uint64;
 
     first_byte: bitfield(8) {
         header_form: 7 &convert=cast<HeaderForm>(cast<uint8>($$));
@@ -484,14 +484,14 @@ public type ShortHeader = unit(context: Context&) {
         if (zeek::is_orig()) {
             ++context.orig_short_total;
             if (context.orig_short_total == context.orig_short_next_threshold) {
-                self.raise_short_packet_threshold = context.orig_short_total;
-                context.orig_short_next_threshold *= short_packet_threshold_base;
+                self.raise_short_header_packet_threshold = context.orig_short_total;
+                context.orig_short_next_threshold *= short_header_packet_threshold_base;
             }
         } else {
             ++context.resp_short_total;
             if (context.resp_short_total == context.resp_short_next_threshold) {
-                self.raise_short_packet_threshold = context.resp_short_total;
-                context.resp_short_next_threshold *= short_packet_threshold_base;
+                self.raise_short_header_packet_threshold = context.resp_short_total;
+                context.resp_short_next_threshold *= short_header_packet_threshold_base;
             }
         }
     }

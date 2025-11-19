@@ -168,9 +168,29 @@ public:
     uint32_t vlan = 0;
 
     /**
+     * (Outermost) VLAN PCP if vlan is set, otherwise invalid
+     */
+    uint32_t vlan_pcp = 0;
+
+    /**
+     * (Outermost) VLAN DEI if vlan is set, otherwise invalid
+     */
+    bool vlan_dei = false;
+
+    /**
      * (Innermost) VLAN tag if any, else 0.
      */
     uint32_t inner_vlan = 0;
+
+    /**
+     * (Innermost) VLAN PCP if inner_vlan is set, otherwise invalid
+     */
+    uint32_t inner_vlan_pcp = 0;
+
+    /**
+     * (Innermost) VLAN DEI if inner_vlan is set, otherwise invalid
+     */
+    bool inner_vlan_dei = false;
 
     /**
      * Layer 3 protocol identified (if any).

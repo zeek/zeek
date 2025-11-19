@@ -1,3 +1,11 @@
+8.1.0-dev.924 | 2025-11-19 09:43:54 -0500
+
+  * GH-2971: Add PCP/DEI to vlans in raw packet headers (Evan Typanski)
+
+    Fixes #2971
+
+  * Update `Packet.cc` comment for l2_hdr (Evan Typanski)
+
 8.1.0-dev.920 | 2025-11-18 11:34:28 -0700
 
   * fixes for allowing combining -O use-C++ with -O ZAM (Vern Paxson, Corelight)

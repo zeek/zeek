@@ -5,8 +5,8 @@
 #unset_field	-
 #path	dns
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
-#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	63844	0.054238	zeek.org	1	C_INTERNET	1	A	0	NOERROR	F	F	T	T	0	192.0.78.150,192.0.78.212	52.000000,52.000000	F
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	12391	-	zeek.org	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	T	F	0	-	-	F
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	63844	0.054238	zeek.org	1	C_INTERNET	1	A	0	NOERROR	F	F	T	T	0	192.0.78.150,192.0.78.212	52.000000,52.000000	F	0	query
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	12391	-	zeek.org	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	T	F	0	-	-	F	0	query
 #close XXXX-XX-XX-XX-XX-XX

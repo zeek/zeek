@@ -5,8 +5,8 @@
 #unset_field	-
 #path	dns
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
-#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	66.59.111.190	37675	172.28.2.3	53	udp	48554	-	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	66.59.111.190	37675	172.28.2.3	53	udp	48554	-	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	66.59.111.190	37675	172.28.2.3	53	udp	48554	-	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F	0	query
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	66.59.111.190	37675	172.28.2.3	53	udp	48554	-	www.gleeble.org	1	C_INTERNET	255	*	-	-	F	F	T	F	0	-	-	F	0	query
 #close XXXX-XX-XX-XX-XX-XX

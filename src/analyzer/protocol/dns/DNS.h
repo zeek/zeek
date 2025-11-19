@@ -15,6 +15,10 @@ enum DNS_Opcode : uint8_t {
     // DNS_OP_SERVER_STATUS = 3,	///< server status request
     DNS_OP_SERVER_STATUS = 2, ///< server status request
 
+    DNS_OP_NOTIFY = 4,         ///< RFC 1996
+    DNS_OP_DYNAMIC_UPDATE = 5, ///< RFC 2136
+    DNS_OP_DSO = 6,            ///< RFC 8490
+
     // Netbios operations (query = 0).
     NETBIOS_REGISTRATION = 5,
     NETBIOS_RELEASE = 6,
@@ -29,6 +33,11 @@ enum DNS_Code : uint16_t {
     DNS_CODE_NAME_ERR = 3,     ///< no such domain
     DNS_CODE_NOT_IMPL = 4,     ///< not implemented
     DNS_CODE_REFUSED = 5,      ///< refused
+    DNS_CODE_YXDOMAIN = 6,     ///< name exists when it should not (RFC 2136)
+    DNS_CODE_YXRRSET = 7,      ///< rr set exists when it should not (RFC 2136)
+    DNS_CODE_NXRRSET = 8,      ///< rr set that should exist does not (RFC 2136)
+    DNS_CODE_NOTAUTH = 9,      ///< server not authoritative for zone (RFC 2136), or not authorized (RFC 8945)
+    DNS_CODE_NOT_ZONE = 10,    ///< name not contained in zone (RFC 2136)
     DNS_CODE_RESERVED = 65535, ///< Force clang-tidy to accept this enum being 16 bits
 };
 
@@ -83,6 +92,7 @@ enum RR_Type : uint16_t {
 
 enum DNS_Class : uint16_t {
     DNS_CLASS_IN = 1,
+    DNS_CLASS_NONE = 254, ///< RFC2136
     DNS_CLASS_ANY = 255,
     DNS_CLASS_RESERVED = 65535, ///< Force clang-tidy to accept this enum being 16 bits
 };
@@ -92,6 +102,8 @@ enum DNS_AnswerType : uint8_t {
     DNS_ANSWER,
     DNS_AUTHORITY,
     DNS_ADDITIONAL,
+    DNS_PREREQUISITES,
+    DNS_UPDATES,
 };
 
 // https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
@@ -162,9 +174,9 @@ enum SVCPARAM_Key : uint8_t {
 struct DNS_RawMsgHdr {
     uint16_t id;
     uint16_t flags;
-    uint16_t qdcount;
-    uint16_t ancount;
-    uint16_t nscount;
+    uint16_t qd_zo_count;
+    uint16_t an_pr_count;
+    uint16_t ns_up_count;
     uint16_t arcount;
 };
 
@@ -282,9 +294,9 @@ struct SVCB_DATA {
     VectorValPtr svc_params;
 };
 
-class DNS_MsgInfo {
+class DNS_MsgInfo final {
 public:
-    DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool is_query);
+    DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool is_query, bool is_netbios);
 
     RecordValPtr BuildHdrVal();
     RecordValPtr BuildAnswerVal();
@@ -304,27 +316,30 @@ public:
     RecordValPtr BuildSVCB_Val(const struct SVCB_DATA&);
 
     uint16_t id;
-    uint8_t opcode;          ///< query type, see DNS_Opcode
-    uint16_t rcode;          ///< return code, see DNS_Code
-    bool QR;                 ///< query record flag
-    bool AA;                 ///< authoritative answer flag
-    bool TC;                 ///< truncated - size > 512 bytes for udp
-    bool RD;                 ///< recursion desired
-    bool RA;                 ///< recursion available
-    uint8_t Z;               ///< 3 bit field (includes AD and CD)
-    bool AD;                 ///< authentic data
-    bool CD;                 ///< checking disabled
-    uint16_t qdcount;        ///< number of questions
-    uint16_t ancount;        ///< number of answers
-    uint16_t nscount;        ///< number of authority RRs
-    uint16_t arcount;        ///< number of additional RRs
-    bool is_query = false;   ///< whether it came from the session initiator
-    bool skip_event = false; ///< if true, don't generate corresponding events
+    uint8_t opcode;                 ///< query type, see DNS_Opcode
+    uint16_t rcode;                 ///< return code, see DNS_Code
+    bool QR;                        ///< query record flag
+    bool AA;                        ///< authoritative answer flag
+    bool TC;                        ///< truncated - size > 512 bytes for udp
+    bool RD;                        ///< recursion desired
+    bool RA;                        ///< recursion available
+    uint8_t Z;                      ///< 3 bit field (includes AD and CD)
+    bool AD;                        ///< authentic data
+    bool CD;                        ///< checking disabled
+    uint16_t qd_zo_count;           ///< number of questions (or zones for dynamic update)
+    uint16_t an_pr_count;           ///< number of answers (or prerequisites for dynamic update)
+    uint16_t ns_up_count;           ///< number of authority RRs (or updates for dynamic update)
+    uint16_t arcount;               ///< number of additional RRs
+    bool is_query = false;          ///< whether it came from the session initiator
+    bool skip_event = false;        ///< if true, don't generate corresponding events
+    bool is_dynamic_update = false; ///< whether this message is a dynamic update
+    bool is_netbios = false;        ///< whether this request is from netbios
 
     StringValPtr query_name;
     RR_Type atype = TYPE_ALL;
-    int aclass = 0; ///< normally = 1, inet
+    uint16_t aclass = 0; ///< normally = 1, inet
     uint32_t ttl = 0;
+    uint16_t zclass = 0; ///< class of the zone for dynamic updates
 
     DNS_AnswerType answer_type = DNS_QUESTION;
 };
@@ -337,7 +352,7 @@ public:
 
     void Timeout() {}
 
-protected:
+private:
     void EndMessage(detail::DNS_MsgInfo* msg);
 
     bool ParseQuestions(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* start);
@@ -345,6 +360,7 @@ protected:
                       int& len, const u_char* start);
 
     bool ParseQuestion(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* start);
+    bool ParseAnswerHeader(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* msg_start);
     bool ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* start);
 
     u_char* ExtractName(const u_char*& data, int& len, u_char* label, int label_len, const u_char* msg_start,

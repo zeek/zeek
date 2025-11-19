@@ -1,3 +1,18 @@
+8.1.0-dev.932 | 2025-11-19 13:47:12 -0700
+
+  * Add script-level constants for DNS opcodes (Tim Wojtulewicz, Corelight)
+
+  * Add information from dynamic updates to regular DNS logs (Tim Wojtulewicz, Corelight)
+
+  * Add basic event for emitting DNS dynamic update data (Tim Wojtulewicz, Corelight)
+
+    This also changes the existing DU btest from checking to ensure a weird was
+    emitted to checking the output from the event.
+
+  * Support DNS Dynamic Update messages in DNS analyzer (Tim Wojtulewicz, Corelight)
+
+  * Add opcode/opcode_name to DNS log record (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.926 | 2025-11-19 13:10:19 -0700
 
   * Fix ZAM test from VLAN merge (Evan Typanski, Corelight)

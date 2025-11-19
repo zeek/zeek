@@ -6,6 +6,7 @@ module DNS;
 export {
 	const PTR = 12;  ##< RR TYPE value for a domain name pointer.
 	const EDNS = 41; ##< An OPT RR TYPE value described by EDNS.
+	const NONE = 254; ##< A class representing no classes, used by dynamic update.
 	const ANY = 255; ##< A QTYPE value describing a request for all records.
 
 	## Mapping of DNS query type codes to human readable string
@@ -193,4 +194,32 @@ export {
 		[5] = "ech",
 		[6] = "ipv6hint",
 	} &default = function(n: count): string { return fmt("key-%d", n); };
+
+	const DNS_OP_QUERY = 0;
+	const DNS_OP_IQUERY = 1;
+	const DNS_OP_SERVER_STATUS = 2;
+	const DNS_OP_NOTIFY = 4;
+	const DNS_OP_DYNAMIC_UPDATE = 5;
+	const DNS_OP_DSO = 6;
+
+	## Mapping of DNS operation type codes to human readable string representation.
+	const opcodes = {
+		[0] = "query",
+		[1] = "iquery",
+		[2] = "server-status",
+		[4] = "notify",
+		[5] = "dynamic-update",
+		[6] = "dso",
+	} &default = function(n: count): string { return fmt("opcode-%d", n); };
+
+	## Mapping of DNS operation type codes to human readable string representation for
+	## NetBIOS Name Service (NBNS) queries. These codes are defined in
+	## https://datatracker.ietf.org/doc/html/rfc1002#section-4.2.1.1
+	const netbios_opcodes = {
+		[0] = "netbios-query",
+		[5] = "netbios-registration",
+		[6] = "netbios-release",
+		[7] = "netbios-wack",
+		[8] = "netbios-refresh",
+	} &default = function(n: count): string { return fmt("netbios-opcode-%d", n); };
 }

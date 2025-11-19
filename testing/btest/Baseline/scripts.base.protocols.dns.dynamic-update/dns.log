@@ -7,5 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name
 #types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.153.129	50729	192.168.153.2	53	udp	22666	0.018166	upenn.edu	1	C_INTERNET	48	DNSKEY	0	NOERROR	F	F	T	T	2	DNSKEY 5,DNSKEY 5,DNSKEY 5,RRSIG 48 upenn.edu,RRSIG 48 upenn.edu	5.000000,5.000000,5.000000,3444.000000,3444.000000	F	0	query
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.106	62763	192.168.1.108	53	udp	47952	0.104400	nwin2.stratolab.org	-	-	-	-	5	REFUSED	F	F	F	F	0	pre: NoRRSet CNAME nwin2.stratolab.org,del: RRSet AAAA,del: RRSet A,add: A nwin2.stratolab.org 192.168.1.106	0.000000,0.000000,0.000000,1200.000000	F	5	dynamic-update
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.1.105	62763	192.168.1.108	53	udp	61191	0.001146	nwin1.stratolab.org	-	-	-	-	0	NOERROR	F	F	F	F	0	pre: NoRRSet CNAME nwin1.stratolab.org,del: RRSet AAAA,del: RRSet A,add: A nwin1.stratolab.org 192.168.1.105	0.000000,0.000000,0.000000,1200.000000	F	5	dynamic-update
 #close XXXX-XX-XX-XX-XX-XX

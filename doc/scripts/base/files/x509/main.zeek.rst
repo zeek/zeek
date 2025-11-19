@@ -20,20 +20,24 @@ Runtime Options
 
 Redefinable Options
 ###################
-============================================================================================= ========================================================================
-:zeek:id:`X509::default_max_field_container_elements`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of elements a single container field can contain when
-                                                                                              logging.
-:zeek:id:`X509::default_max_field_string_bytes`: :zeek:type:`count` :zeek:attr:`&redef`       The maximum number of bytes that a single string field can contain when
-                                                                                              logging.
-:zeek:id:`X509::default_max_total_container_elements`: :zeek:type:`count` :zeek:attr:`&redef` The maximum total number of container elements a record may log.
-============================================================================================= ========================================================================
+============================================================================================== ========================================================================
+:zeek:id:`X509::default_max_field_container_elements`: :zeek:type:`count` :zeek:attr:`&redef`  The maximum number of elements a single container field can contain when
+                                                                                               logging.
+:zeek:id:`X509::default_max_field_string_bytes`: :zeek:type:`count` :zeek:attr:`&redef`        The maximum number of bytes that a single string field can contain when
+                                                                                               logging.
+:zeek:id:`X509::default_max_total_container_elements`: :zeek:type:`count` :zeek:attr:`&redef`  The maximum total number of container elements a record may log.
+:zeek:id:`X509::known_log_certs_enable_node_up_publish`: :zeek:type:`bool` :zeek:attr:`&redef` Whether the manager sends all logged certs in response to a
+                                                                                               Cluster::node_up() for workers.
+:zeek:id:`X509::known_log_certs_enable_publish`: :zeek:type:`bool` :zeek:attr:`&redef`         Whether to publish the hash of any logged certificate to other cluster
+                                                                                               nodes to deduplicate certificates across the whole cluster.
+============================================================================================== ========================================================================
 
 State Variables
 ###############
 ================================================================================================================================= ===========================================================================================
 :zeek:id:`X509::known_log_certs`: :zeek:type:`set` :zeek:attr:`&create_expire` = :zeek:see:`X509::relog_known_certificates_after` The set that stores information about certificates that already have been logged and should
                                                                                                                                   not be logged again.
-:zeek:id:`X509::known_log_certs_use_broker`: :zeek:type:`bool`                                                                    Use broker stores to deduplicate certificates across the whole cluster.
+:zeek:id:`X509::known_log_certs_use_broker`: :zeek:type:`bool` :zeek:attr:`&deprecated` = *...*                                   Use broker stores to deduplicate certificates across the whole cluster.
 ================================================================================================================================= ===========================================================================================
 
 Types
@@ -113,14 +117,14 @@ Runtime Options
    By default, x509 certificates are deduplicated. This configuration option configures
    the maximum time after which certificates are re-logged. Note - depending on other configuration
    options, this setting might only apply on a per-worker basis and you still might see certificates
-   logged several times.
+   logged several times. Further note that a full Zeek restart will reset the deduplication state.
    
    To disable deduplication completely, set this to 0secs.
 
 Redefinable Options
 ###################
 .. zeek:id:: X509::default_max_field_container_elements
-   :source-code: base/files/x509/main.zeek 121 121
+   :source-code: base/files/x509/main.zeek 136 136
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -133,7 +137,7 @@ Redefinable Options
    .. zeek:see:: Log::default_max_field_container_elements
 
 .. zeek:id:: X509::default_max_field_string_bytes
-   :source-code: base/files/x509/main.zeek 114 114
+   :source-code: base/files/x509/main.zeek 129 129
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -152,7 +156,7 @@ Redefinable Options
    .. zeek:see:: Log::default_max_field_string_bytes
 
 .. zeek:id:: X509::default_max_total_container_elements
-   :source-code: base/files/x509/main.zeek 130 130
+   :source-code: base/files/x509/main.zeek 145 145
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -165,6 +169,30 @@ Redefinable Options
    output. Setting this to zero disables the limiting.
    
    .. zeek:see:: Log::default_max_total_container_elements
+
+.. zeek:id:: X509::known_log_certs_enable_node_up_publish
+   :source-code: base/files/x509/main.zeek 119 119
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``T``
+
+   Whether the manager sends all logged certs in response to a
+   Cluster::node_up() for workers.
+   
+   See also :zeek:see:`X509::known_log_certs_enable_publish`.
+
+.. zeek:id:: X509::known_log_certs_enable_publish
+   :source-code: base/files/x509/main.zeek 113 113
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``T``
+
+   Whether to publish the hash of any logged certificate to other cluster
+   nodes to deduplicate certificates across the whole cluster.
+   
+   This overrides the deprecated known_log_certs_use_broker.
 
 State Variables
 ###############
@@ -179,15 +207,19 @@ State Variables
    not be logged again.
 
 .. zeek:id:: X509::known_log_certs_use_broker
-   :source-code: base/files/x509/main.zeek 104 104
+   :source-code: base/files/x509/main.zeek 107 107
 
    :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1: Replaced with known_log_certs_enable_publish"*
    :Default: ``T``
 
    Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
    to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
    
-   This setting is ignored if Zeek is run in standalone mode.
+   This setting is ignored if Zeek is run in standalone mode, or if the
+   newer known_log_certs_enable_publish is set to T.
+   
+   See also :zeek:see:`X509::known_log_certs_enable_publish`.
 
 Types
 #####
@@ -340,7 +372,7 @@ Types
 Events
 ######
 .. zeek:id:: X509::log_x509
-   :source-code: base/files/x509/main.zeek 107 107
+   :source-code: base/files/x509/main.zeek 122 122
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`X509::Info`)
 
@@ -349,7 +381,7 @@ Events
 Hooks
 #####
 .. zeek:id:: X509::create_deduplication_index
-   :source-code: base/files/x509/main.zeek 186 192
+   :source-code: base/files/x509/main.zeek 203 209
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`X509::Info`) : :zeek:type:`bool`
 

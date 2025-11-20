@@ -1,3 +1,7 @@
+8.1.0-dev.940 | 2025-11-20 11:12:20 -0700
+
+  * Update paraglob submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.938 | 2025-11-20 11:17:40 +0100
 
   * websocket: Fix spurious if not (Arne Welzel, Corelight)

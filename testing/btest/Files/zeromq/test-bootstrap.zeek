@@ -4,7 +4,6 @@
 @load base/utils/addrs
 
 @load frameworks/cluster/backend/zeromq
-@load frameworks/cluster/backend/zeromq/connect
 
 # Use 127.0.0.1 by default for testing, unless there's a cluster-layout with
 # a manager. In that case, use its IP address.

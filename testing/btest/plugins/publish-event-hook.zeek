@@ -4,8 +4,9 @@
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -b Demo::PublishEvent %INPUT > output
 # @TEST-EXEC: btest-diff output
 
-redef allow_network_time_forward = F;
+@load frameworks/cluster/backend/broker
 
+redef allow_network_time_forward = F;
 
 module App;
 

@@ -10,8 +10,8 @@
 # @TEST-EXEC: btest-diff zeek/bare-1/node.out
 # @TEST-EXEC: btest-diff zeek/bare-32/node.out
 
-# So the supervised node doesn't terminate right away.
-redef exit_only_after_terminate=T;
+@load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
 
 global node_output_file: file;
 global topic = "test-topic";

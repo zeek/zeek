@@ -1,7 +1,7 @@
 # @TEST-DOC: Enable zeekygen and load test-all-policy, baseline stdout and stderr output for warnings or errors.
 #
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek %INPUT
-# @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath' btest-diff .stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath' btest-diff .stderr
 
 @load test-all-policy

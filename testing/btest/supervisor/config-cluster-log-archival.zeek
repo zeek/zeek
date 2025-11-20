@@ -32,6 +32,7 @@
 # @TEST-EXEC: rm -rf ./zeek
 
 @load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
 
 # JSON for log file brevity.
 redef LogAscii::use_json=T;

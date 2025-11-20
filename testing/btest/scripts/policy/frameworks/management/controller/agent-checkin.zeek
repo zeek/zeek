@@ -11,6 +11,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff zeek/nodes/controller/stdout
 
+@load policy/frameworks/cluster/backend/broker
 @load policy/frameworks/management/agent
 @load policy/frameworks/management/controller
 

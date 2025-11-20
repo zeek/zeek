@@ -31,13 +31,21 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     auto ip1 = addrToIpVal(ip1_val);
     auto ip2 = addrToIpVal(ip2_val);
 
-    return canonical_tuple{
-        .ip1 = ip1,
-        .ip2 = ip2,
-        .port1 = ip1_port,
-        .port2 = ip2_port,
-        .protocol = proto,
-    };
+    uint16_t outer_vlan_id = cid_r->HasField(5) ? cid_r->GetFieldAs<zeek::CountVal>(5) : 0;
+    uint16_t inner_vlan_id = cid_r->HasField(6) ? cid_r->GetFieldAs<zeek::CountVal>(6) : 0;
+
+    canonical_tuple tup;
+    memset(&tup, 0, sizeof(tup)); // Zero out padding too
+
+    tup.ip1 = ip1;
+    tup.ip2 = ip2;
+    tup.port1 = ip1_port;
+    tup.port2 = ip2_port;
+    tup.protocol = proto;
+    tup.outer_vlan_id = outer_vlan_id;
+    tup.inner_vlan_id = inner_vlan_id;
+
+    return tup;
 }
 
 ip_pair_key makeIPPairKey(zeek::RecordVal* pair_r) {

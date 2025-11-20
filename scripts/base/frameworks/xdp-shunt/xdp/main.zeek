@@ -33,6 +33,7 @@ function end_shunt(xdp_prog: opaque of XDP::Program): bool
 
 function conn_id_to_canonical(cid: conn_id): XDP::canonical_id
 	{
+	# Users can add vlans if they wish.
 	local can_id = XDP::canonical_id($ip1=cid$orig_h, $ip1_port=cid$orig_p,
 	    $ip2=cid$resp_h, $ip2_port=cid$resp_p, $proto=cid$proto, );
 

@@ -26,11 +26,14 @@ export {
 
     # Essentially a sorted conn_id
     type canonical_id: record {
-        ip1: addr;
-        ip1_port: port;
-        ip2: addr;
-        ip2_port: port;
-        proto: count;
+        ip1: addr &log;
+        ip1_port: port &log;
+        ip2: addr &log;
+        ip2_port: port &log;
+        proto: count &log;
+
+        outer_vlan_id: count &optional &log; # The outer vlan, if any. Bidirectional
+        inner_vlan_id: count &optional &log; # The inner vlan, if any. Bidirectional
     };
 
     type shunt_table: table[canonical_id] of ShuntedStats;

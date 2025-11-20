@@ -176,7 +176,10 @@ int xdp_filter(struct xdp_md* ctx) {
         default: return XDP_PASS;
     }
 
-    struct canonical_tuple tuple = {0};
+    struct canonical_tuple tuple;
+    __builtin_memset(&tuple, 0, sizeof(tuple));
+    tuple.outer_vlan_id = outer_vlan;
+    tuple.inner_vlan_id = inner_vlan;
     void* transport_header;
 
     if ( is_ipv4 ) {
@@ -241,7 +244,7 @@ int xdp_filter(struct xdp_md* ctx) {
 
     // Check IP pairs
     struct ip_pair_key pair;
-    __builtin_memset(&pair, 0, sizeof(pair)); // Zero out padding and members
+    __builtin_memset(&pair, 0, sizeof(pair));
 
     pair.ip1 = tuple.ip1;
     pair.ip2 = tuple.ip2;

@@ -11,10 +11,9 @@ struct canonical_tuple {
     struct in6_addr ip2; // The higher IP
     __u16 port1;         // The port corresponding with ip1
     __u16 port2;         // The port corresponding with ip2
-    __u32 protocol;      // The protocol for this connection.
-                         // Due to padding, this should be 32 bytes.
-                         // If it's not, keys may say they're missing,
-                         // when indeed they are present. :(
+    __u16 protocol;      // The protocol for this connection.
+    __u16 outer_vlan_id; // The outer vlan, or 0 if none
+    __u16 inner_vlan_id; // The inner vlan, or 0 if none
 };
 
 struct ip_pair_key {

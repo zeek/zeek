@@ -32,14 +32,14 @@ export {
 
 	## If we should even look at shunting this connection. Break if we should
 	## not start polling to shunt it.
-	global shunt_policy: hook(cid: conn_id) &redef;
+	global shunt_policy: hook(cid: XDP::canonical_id) &redef;
 
 	global finalize_shunt: Conn::RemovalHook;
 
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		id: conn_id &log;
+		id: XDP::canonical_id &log;
 		bytes_shunted: count &log;
 		packets_shunted: count &log;
 		last_packet: time &log &optional;
@@ -52,7 +52,7 @@ redef record connection += {
 
 global xdp_prog: opaque of XDP::Program;
 
-function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
+function make_info(cid: XDP::canonical_id, stats: XDP::ShuntedStats): Info
 	{
 	local info: Info = [$id=cid,
 	    $bytes_shunted=stats$bytes_from_1 + stats$bytes_from_2,
@@ -65,7 +65,8 @@ function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
 
 function conn_callback(c: connection, cnt: count): interval
 	{
-	local stats = XDP::Shunt::ConnID::shunt_stats(xdp_prog, c$id);
+	local can_id = XDP::conn_id_to_canonical(c$id);
+	local stats = XDP::Shunt::ConnID::shunt_stats(xdp_prog, can_id);
 	if ( stats$present && stats?$timestamp )
 		{
 		# This connection is shunted, check if it timed out
@@ -73,7 +74,7 @@ function conn_callback(c: connection, cnt: count): interval
 			{
 			# Use the final stats in case something was shunted between first check and now.
 			# Technically this could break if shunt->unshunt->shunt->unshunt a connection
-			c$xdp_bulk = make_info(c$id, XDP::Shunt::ConnID::unshunt(xdp_prog, c$id));
+			c$xdp_bulk = make_info(can_id, XDP::Shunt::ConnID::unshunt(xdp_prog, can_id));
 
 			return -1sec;
 			}
@@ -83,7 +84,7 @@ function conn_callback(c: connection, cnt: count): interval
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
 		Conn::register_removal_hook(c, finalize_shunt);
-		XDP::Shunt::ConnID::shunt(xdp_prog, c$id);
+		XDP::Shunt::ConnID::shunt(xdp_prog, can_id);
 		return unshunt_poll_interval;
 		}
 
@@ -95,7 +96,7 @@ function conn_callback(c: connection, cnt: count): interval
 
 event new_connection(c: connection) &priority=-5
 	{
-	if ( hook shunt_policy(c$id) )
+	if ( hook shunt_policy(XDP::conn_id_to_canonical(c$id)) )
 		ConnPolling::watch(c, conn_callback, 0, 0secs);
 	}
 
@@ -126,7 +127,8 @@ hook finalize_shunt(c: connection)
 		}
 
 	# Else try to unshunt it
-	local final_stats = XDP::Shunt::ConnID::unshunt(xdp_prog, c$id);
+	local can_id = XDP::conn_id_to_canonical(c$id);
+	local final_stats = XDP::Shunt::ConnID::unshunt(xdp_prog, can_id);
 	if ( final_stats$present )
-		Log::write(LOG, make_info(c$id, final_stats));
+		Log::write(LOG, make_info(can_id, final_stats));
 	}

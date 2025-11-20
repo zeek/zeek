@@ -15,6 +15,7 @@ function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
     auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
     auto ip_pair_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
+    auto include_vlan = options_val->GetFieldAs<zeek::BoolVal>("include_vlan");
     if ( conn_id_map_max_size == 0 || ip_pair_map_max_size == 0 ) {
         zeek::reporter->Error("Map max sizes must be >0");
         // TODO: This is returning false, but should probably be another expected type
@@ -24,6 +25,7 @@ function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
         .mode = static_cast<xdp_attach_mode>(options_val->GetFieldAs<zeek::EnumVal>("attach_mode")),
         .conn_id_map_max_size = conn_id_map_max_size,
         .ip_pair_map_max_size = ip_pair_map_max_size,
+        .include_vlan = include_vlan,
     };
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {

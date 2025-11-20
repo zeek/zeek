@@ -42,6 +42,10 @@ struct {
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } ip_pair_map SEC(".maps");
 
+// Whether we should include the VLANs in the keys or 0 them out.
+// VLANs will still get parsed regardless.
+volatile const uint8_t include_vlan = 0;
+
 struct hdr_cursor {
     void* pos;
 };
@@ -178,8 +182,12 @@ int xdp_filter(struct xdp_md* ctx) {
 
     struct canonical_tuple tuple;
     __builtin_memset(&tuple, 0, sizeof(tuple));
-    tuple.outer_vlan_id = outer_vlan;
-    tuple.inner_vlan_id = inner_vlan;
+
+    if ( include_vlan ) {
+        tuple.outer_vlan_id = outer_vlan;
+        tuple.inner_vlan_id = inner_vlan;
+    }
+
     void* transport_header;
 
     if ( is_ipv4 ) {
@@ -248,8 +256,11 @@ int xdp_filter(struct xdp_md* ctx) {
 
     pair.ip1 = tuple.ip1;
     pair.ip2 = tuple.ip2;
-    pair.outer_vlan_id = outer_vlan;
-    pair.inner_vlan_id = inner_vlan;
+
+    if ( include_vlan ) {
+        pair.outer_vlan_id = outer_vlan;
+        pair.inner_vlan_id = inner_vlan;
+    }
 
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {

@@ -35,6 +35,7 @@ struct xdp_options {
     xdp_attach_mode mode;
     __u32 conn_id_map_max_size;
     __u32 ip_pair_map_max_size;
+    bool include_vlan;
 };
 
 // Helper

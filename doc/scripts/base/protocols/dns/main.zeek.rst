@@ -76,7 +76,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DNS::max_pending_msgs
-   :source-code: base/protocols/dns/main.zeek 126 126
+   :source-code: base/protocols/dns/main.zeek 130 130
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -89,7 +89,7 @@ Runtime Options
    response is ongoing).
 
 .. zeek:id:: DNS::max_pending_query_ids
-   :source-code: base/protocols/dns/main.zeek 131 131
+   :source-code: base/protocols/dns/main.zeek 135 135
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -102,7 +102,7 @@ Runtime Options
 Types
 #####
 .. zeek:type:: DNS::Info
-   :source-code: base/protocols/dns/main.zeek 18 86
+   :source-code: base/protocols/dns/main.zeek 18 90
 
    :Type: :zeek:type:`record`
 
@@ -225,6 +225,16 @@ Types
       The DNS query was rejected by the server.
 
 
+   .. zeek:field:: opcode :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      The opcode value of the DNS request/response.
+
+
+   .. zeek:field:: opcode_name :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      A descriptive string for the opcode.
+
+
    .. zeek:field:: total_answers :zeek:type:`count` :zeek:attr:`&optional`
 
       The total number of resource records in a reply message's
@@ -271,7 +281,7 @@ Types
    The record type which contains the column fields of the DNS log.
 
 .. zeek:type:: DNS::PendingMessages
-   :source-code: base/protocols/dns/main.zeek 119 119
+   :source-code: base/protocols/dns/main.zeek 123 123
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`Queue::Queue`
 
@@ -279,7 +289,7 @@ Types
    DNS message query/transaction ID.
 
 .. zeek:type:: DNS::State
-   :source-code: base/protocols/dns/main.zeek 135 150
+   :source-code: base/protocols/dns/main.zeek 139 154
 
    :Type: :zeek:type:`record`
 
@@ -311,7 +321,7 @@ Types
 Events
 ######
 .. zeek:id:: DNS::log_dns
-   :source-code: base/protocols/dns/main.zeek 90 90
+   :source-code: base/protocols/dns/main.zeek 94 94
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`DNS::Info`)
 
@@ -321,7 +331,7 @@ Events
 Hooks
 #####
 .. zeek:id:: DNS::do_reply
-   :source-code: base/protocols/dns/main.zeek 104 104
+   :source-code: base/protocols/dns/main.zeek 108 108
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, reply: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -343,7 +353,7 @@ Hooks
    :param reply: The specific response information according to RR type/class.
 
 .. zeek:id:: DNS::finalize_dns
-   :source-code: base/protocols/dns/main.zeek 643 658
+   :source-code: base/protocols/dns/main.zeek 705 720
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -357,7 +367,7 @@ Hooks
    A default logging policy hook for the stream.
 
 .. zeek:id:: DNS::set_session
-   :source-code: base/protocols/dns/main.zeek 238 346
+   :source-code: base/protocols/dns/main.zeek 242 356
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, is_query: :zeek:type:`bool`) : :zeek:type:`bool`
 

@@ -1,3 +1,12 @@
+8.1.0-dev.936 | 2025-11-20 11:00:17 +0100
+
+  * QUIC: Rename short_packet_threshold to short_header_packet_threshold (Arne Welzel, Corelight)
+
+    It isn't actually short QUIC packets. It's QUIC packets with a short
+    header. Rename the event and NEWS to avoid confusion.
+
+  * Update NEWS with entry for DNS dynamic update [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.932 | 2025-11-19 13:47:12 -0700
 
   * Add script-level constants for DNS opcodes (Tim Wojtulewicz, Corelight)

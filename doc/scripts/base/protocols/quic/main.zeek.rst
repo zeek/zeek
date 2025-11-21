@@ -160,7 +160,7 @@ Types
       S       SSL Client/Server Hello
       U       Unfamiliar QUIC version
       X       Discarded packet after successful decryption of INITIAL packets
-      O       Short packets in binary logarithmic fashion
+      O       Short header packets in binary logarithmic fashion
       ======  ====================================================
 
 

@@ -12,16 +12,17 @@ Summary
 ~~~~~~~
 Events
 ######
-=================================================================== ===================================================================================
-:zeek:id:`QUIC::connection_close_frame`: :zeek:type:`event`         Generated for a QUIC CONNECTION_CLOSE frame.
-:zeek:id:`QUIC::discarded_packet`: :zeek:type:`event`               Generated when a QUIC packet with fixed_bit 0 is encountered.
-:zeek:id:`QUIC::handshake_packet`: :zeek:type:`event`               Generated for a QUIC Handshake packet.
-:zeek:id:`QUIC::initial_packet`: :zeek:type:`event`                 Generated for a QUIC Initial packet.
-:zeek:id:`QUIC::retry_packet`: :zeek:type:`event`                   Generated for a QUIC Retry packet.
-:zeek:id:`QUIC::short_packet_threshold_crossed`: :zeek:type:`event` Generated when a binary logarithmic number of QUIC short packets has been observed.
-:zeek:id:`QUIC::unhandled_version`: :zeek:type:`event`              Generated for an unrecognized QUIC version.
-:zeek:id:`QUIC::zero_rtt_packet`: :zeek:type:`event`                Generated for a QUIC 0-RTT packet.
-=================================================================== ===================================================================================
+========================================================================== =======================================================================
+:zeek:id:`QUIC::connection_close_frame`: :zeek:type:`event`                Generated for a QUIC CONNECTION_CLOSE frame.
+:zeek:id:`QUIC::discarded_packet`: :zeek:type:`event`                      Generated when a QUIC packet with fixed_bit 0 is encountered.
+:zeek:id:`QUIC::handshake_packet`: :zeek:type:`event`                      Generated for a QUIC Handshake packet.
+:zeek:id:`QUIC::initial_packet`: :zeek:type:`event`                        Generated for a QUIC Initial packet.
+:zeek:id:`QUIC::retry_packet`: :zeek:type:`event`                          Generated for a QUIC Retry packet.
+:zeek:id:`QUIC::short_header_packet_threshold_crossed`: :zeek:type:`event` Generated when a binary logarithmic number of QUIC packets with a short
+                                                                           header has been observed.
+:zeek:id:`QUIC::unhandled_version`: :zeek:type:`event`                     Generated for an unrecognized QUIC version.
+:zeek:id:`QUIC::zero_rtt_packet`: :zeek:type:`event`                       Generated for a QUIC 0-RTT packet.
+========================================================================== =======================================================================
 
 
 Detailed Interface
@@ -150,15 +151,13 @@ Events
 
    :param integrity_tag: The Retry Integrity Tag field.
 
-.. zeek:id:: QUIC::short_packet_threshold_crossed
+.. zeek:id:: QUIC::short_header_packet_threshold_crossed
    :source-code: base/protocols/quic/main.zeek 173 185
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
-   Generated when a binary logarithmic number of QUIC short packets has been observed.
-   
-   This event is only generated if some INITIAL QUIC packets were successfully
-   decrypted previously.
+   Generated when a binary logarithmic number of QUIC packets with a short
+   header has been observed.
    
 
    :param c: The connection.

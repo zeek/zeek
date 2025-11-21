@@ -10479,15 +10479,13 @@ Events
 
    :param total_decrypted: The number of QUIC packets successfully decrypted previously.
 
-.. zeek:id:: QUIC::short_packet_threshold_crossed
+.. zeek:id:: QUIC::short_header_packet_threshold_crossed
    :source-code: base/protocols/quic/main.zeek 173 185
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
-   Generated when a binary logarithmic number of QUIC short packets has been observed.
-   
-   This event is only generated if some INITIAL QUIC packets were successfully
-   decrypted previously.
+   Generated when a binary logarithmic number of QUIC packets with a short
+   header has been observed.
    
 
    :param c: The connection.

@@ -71,8 +71,8 @@ event new_event(name: string, args: call_argument_vector)
 
 		if ( a?$value )
 			print fmt("                  [%d] %-18s = %s", i, proto, a$value);
-		else
-			print fmt("                  | %-18s = %s [default]", proto, a$value);
+		else if ( a?$default_val )
+			print fmt("                  | %-18s = %s [default]", proto, a$default_val);
 		}
 
 	print "";

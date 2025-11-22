@@ -184,6 +184,12 @@ public:
     static void InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data);
 
     /**
+     * Initialize the (typically process-specific) seed for hmac_md5(). This is lazily called
+     * the first time hmac_md5() is called.
+     */
+    static void InitializeHmacMd5Seed();
+
+    /**
      * Returns true if the process-specific seeds have been initialized
      *
      * @return True if the seeds are initialized
@@ -207,7 +213,9 @@ private:
     alignas(16) static unsigned long long shared_siphash_key[2];
     // This key changes each start (unless a seed is specified)
     inline static uint8_t shared_hmac_md5_key[16];
+    inline static std::array<uint32_t, SEED_INIT_SIZE> seed_data;
     inline static bool seeds_initialized = false;
+    inline static bool hmac_md5_seed_initialized = false;
 
     friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
     friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);

@@ -253,11 +253,14 @@ protected:
     int min_overlap_length;
     int max_chunk_length;
     bool is_orig;
+    bool compute_content_hash = false;
+    bool compute_content_hash_sha256 = false;
     int buffer_start;
     int data_start;
-    int compute_content_hash;
     int content_hash_length;
+    int content_hash_length_sha256;
     detail::HashDigestState* md5_hash = nullptr;
+    detail::HashDigestState* sha256_hash = nullptr;
     std::vector<const String*> entity_content;
     std::vector<const String*> all_content;
 

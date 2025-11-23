@@ -380,8 +380,8 @@ opt_func_attrs:	attr_list opt_ws
 		{ $$ = ""; }
 	;
 
-event_def:	event_prefix opt_ws plain_head opt_func_attrs
-			{ fprintf(fp_zeek_init, "%s", $4); } end_of_head ';'
+event_def:	event_prefix opt_ws plain_head opt_ws opt_func_attrs
+			{ fprintf(fp_zeek_init, "%s", $5); } end_of_head ';'
 			{
 			if ( events.find(decl.zeek_fullname) == events.end() )
 				{
@@ -518,12 +518,15 @@ end_of_head:	/* nothing */
 			}
 	;
 
-typed_head:	plain_head return_type
+typed_head:	plain_head opt_ws return_type
+			{
+			}
+	|	plain_head opt_ws
 			{
 			}
 	;
 
-plain_head:	head_1 args arg_end opt_ws
+plain_head:	head_1 args arg_end
 			{
 			if ( var_arg )
 				fprintf(fp_zeek_init, "va_args: any");
@@ -538,9 +541,6 @@ plain_head:	head_1 args arg_end opt_ws
 				}
 
 			fprintf(fp_zeek_init, ")");
-
-			fprintf(fp_zeek_init, "%s", $4);
-			fprintf(fp_func_def, "%s", $4);
 			}
 	;
 

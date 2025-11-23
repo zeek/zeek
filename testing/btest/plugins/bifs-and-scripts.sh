@@ -38,6 +38,7 @@ event zeek_init() &priority=-10
         {
         print "plugin: manually loaded";
         print "calling bif", hello_plugin_world();
+        print_hello();
         }
 EOF
 
@@ -49,9 +50,21 @@ event zeek_init() &priority=10
 EOF
 
 cat >src/foo.bif <<EOF
+%%{
+#include <cstdio>
+%%}
+
 function hello_plugin_world%(%): string
         %{
         return make_intrusive<StringVal>("Hello from the plugin!");
+        %}
+
+function print_hello%(%)
+        %{
+        std::fprintf(stdout, "Hello from a void BiF\n");
+
+        // The BiF signature has a ValPtr return type. Satisfy that.
+        return Val::nil;
         %}
 
 event plugin_event%(foo: count%);

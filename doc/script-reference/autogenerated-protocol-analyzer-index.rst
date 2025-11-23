@@ -3364,8 +3364,8 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, zname: :zeek:type:`string`, zclass: :zeek:type:`count`)
 
-   Generated for DNS Dynamic Update messages. See `RFC for Dynamic Updates in the Domain Name System (DNS UPDATE) <https://datatracker.ietf.org/doc/html/rfc2136`__
-   for more information about Dynamic Updates.
+   Generated for DNS Dynamic Update messages. See :rfc:`2136` for more information
+   about Dynamic Updates.
    
 
    :param c: The connection, which may be UDP or TCP depending on the type of the

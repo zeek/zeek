@@ -4,7 +4,6 @@
 
 #include <binpac.h>
 #include <algorithm>
-#include <cinttypes>
 
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
@@ -15,6 +14,36 @@
 #include "zeek/3rdparty/doctest.h"
 
 namespace zeek::analyzer {
+
+void for_each(Analyzer& root, const AnalyzerCallback& cb) {
+    // Naive recursive pre-order traversal.
+    cb(root);
+
+    for ( auto* nc : root.new_children )
+        for_each(*nc, cb);
+
+    for ( auto* c : root.children )
+        for_each(*c, cb);
+
+    /*
+    // iterative
+    std::deque<Analyzer*> to_process;
+    to_process.push_back(&root);
+
+    while ( ! to_process.empty() ) {
+        auto* cur = to_process.front();
+        to_process.pop_front();
+
+        for ( auto* c : cur->new_children )
+            to_process.push_back(c);
+
+        for ( auto* c : cur->children )
+            to_process.push_back(c);
+
+        cb(*cur);
+    }
+    */
+}
 
 class AnalyzerTimer final : public zeek::detail::Timer {
 public:

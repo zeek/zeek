@@ -53,6 +53,19 @@ using analyzer_list = std::list<Analyzer*>;
 using ID = uint32_t;
 using analyzer_timer_func = void (Analyzer::*)(double t);
 
+
+// Callback for for_each
+using AnalyzerCallback = std::function<void(Analyzer&)>;
+
+/**
+ * Run a callback receiving each analyzer in the analyzer
+ * tree starting at \a root. Note that \a cb also runs for
+ * Analyzer.new_children, specifically *before* children.
+ *
+ * \param cb The callback to invoke for each analyzer.
+ */
+void for_each(Analyzer& root, const AnalyzerCallback& cb);
+
 /**
  * Class to receive processed output from an analyzer.
  */
@@ -729,6 +742,9 @@ protected:
     bool RemoveChild(const analyzer_list& children, ID id);
 
 private:
+    // Make for_each() a private friend to get access to new_children.
+    friend void for_each(Analyzer& root, const AnalyzerCallback& cb);
+
     // Internal method to eventually delete a child analyzer that's
     // already Done(). Returns an iterator pointing to the next element after
     // the just-removed element.

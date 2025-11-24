@@ -381,7 +381,7 @@ opt_func_attrs:	attr_list opt_ws
 	;
 
 event_def:	event_prefix opt_ws plain_head opt_ws opt_func_attrs
-			{ fprintf(fp_zeek_init, "%s", $4); } end_of_head ';'
+			{ fprintf(fp_zeek_init, "%s", $5); } end_of_head ';'
 			{
 			if ( events.find(decl.zeek_fullname) == events.end() )
 				{

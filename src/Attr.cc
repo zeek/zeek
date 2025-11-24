@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
+#include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
@@ -430,24 +431,34 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
 
             const auto& args = c_ft->ParamList()->GetTypes();
             const auto& t_indexes = the_table->GetIndexTypes();
-            if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() )
-                return AttrError("&on_change function has incorrect number of arguments");
 
-            if ( ! same_type(args[0], the_table->AsTableType()) )
-                return AttrError("&on_change: first argument must be of same type as table");
-
-            // can't check exact type here yet - the data structures don't exist yet.
-            if ( args[1]->Tag() != TYPE_ENUM )
-                return AttrError("&on_change: second argument must be a TableChange enum");
-
-            for ( size_t i = 0; i < t_indexes.size(); i++ ) {
-                if ( ! same_type(args[2 + i], t_indexes[i]) )
-                    return AttrError("&on_change: index types do not match table");
+            // va_args functions get a free pass as &on_change. This is to
+            // support generic va_arg builtin functions  like
+            // Cluster::Table::publish_new_element() that is meant
+            // to work with any table or set.
+            if ( args.size() == 1 && args[0]->Tag() == TYPE_ANY &&
+                 c_ft->Params()->FieldName(0) == std::string_view("va_args") ) {
             }
+            else {
+                if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() )
+                    return AttrError("&on_change function has incorrect number of arguments");
 
-            if ( ! type->IsSet() )
-                if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
-                    return AttrError("&on_change: value type does not match table");
+                if ( ! same_type(args[0], the_table->AsTableType()) )
+                    return AttrError("&on_change: first argument must be of same type as table");
+
+                // can't check exact type here yet - the data structures don't exist yet.
+                if ( args[1]->Tag() != TYPE_ENUM )
+                    return AttrError("&on_change: second argument must be a TableChange enum");
+
+                for ( size_t i = 0; i < t_indexes.size(); i++ ) {
+                    if ( ! same_type(args[2 + i], t_indexes[i]) )
+                        return AttrError("&on_change: index types do not match table");
+                }
+
+                if ( ! type->IsSet() )
+                    if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
+                        return AttrError("&on_change: value type does not match table");
+            }
         } break;
 
         case ATTR_BACKEND: {

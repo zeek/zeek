@@ -1,80 +1,178 @@
 .. _basics:
 
-************
+############
  The Basics
-************
+############
 
-Events
-======
+.. _why_script:
 
-Zeek's scripting language is *event* driven. Zeek will generate various
-events as it processes network traffic. Then, *event handlers* alter
-data structures provided to the event and make decisions on the provided
-information.
+*************
+ Why Script?
+*************
 
-When an event is triggered, it is placed into an ordered *event queue*.
-Event handlers can then process them on a first-come-first-served basis.
-Both users and Zeek's core itself use events in order to perform core
-functions, such as logging.
+We have already seen the main *output* from Zeek: logs. But, Zeek has a
+whole layer designed to define the logic that creates those logs (and
+more!). That is Zeek's scripting language.
 
-Events are generally well-documented within Zeek's built-in-function (or
-``.bif``) files. For example, this is the :zeek:id:`dns_request` event:
+We have already seen parts of Zeek script. The :ref:`Providing Script
+Values <providing_script_values>` section covered how to pass values
+from the command line. We can use this in order to change Zeek's core
+functionality from the command line, or from the ``local.zeek`` file in
+a cluster.
 
-.. code-block:: zeek
+Zeek scripting is also the core of *detection* logic. You can use Zeek's
+scripting language to react to network events, store state about those
+events, and then inform incident responders.
 
-   ## Generated for DNS requests. For requests with multiple queries, this event
-   ## is raised once for each.
-   ##
-   ## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
-   ## sessions.
-   ##
-   ## c: The connection, which may be UDP or TCP depending on the type of the
-   ##    transport-layer session being analyzed.
-   ##
-   ## msg: The parsed DNS message header.
-   ##
-   ## query: The queried name.
-   ##
-   ## qtype: The queried resource record type.
-   ##
-   ## qclass: The queried resource record class.
-   ##
-   ## original_query: The queried name, with the original case kept intact
-   ##
-   ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-   ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-   ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
-   ##    dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
-   ##    dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
-   ##    dns_rejected dns_max_queries dns_session_timeout dns_skip_addl
-   ##    dns_skip_all_addl dns_skip_all_auth dns_skip_auth
-   event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count, original_query: string%);
+We will demonstrate this with a high level example. For this, we will
+check if the network traffic contains any malware from the `Team Cymru
+Malware hash registry <https://www.team-cymru.com>`_. Should you load
+the full script, Zeek will produce a ``notice.log`` entry whenever
+it encounters malware hashes, like this:
 
-This is a segment of the documentation for the event
-:zeek:id:`dns_request` (click the link to see how it looks in the
-documentation). As Zeek detects DNS requests being issued by an
-originator, it issues this event. Then, any number of scripts then have
-access to the data Zeek passes along with the event. Zeek passes
-important information about the request, like the message and query.
-Most importantly, Zeek passes the record for the connection itself.
+.. code:: console
 
-.. _writing-scripts-connection-record:
+   $ cat notice.log | zeek-cut -m
+   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type    file_desc       proto   note    msg     sub     src     dst     p       npeer_descr       actions email_dest      suppress_for    remote_location.country_code    remote_location.region    remote_location.city    remote_location.latitude        remote_location.longitude
+   1362692527.080972       CLDH8f3Huq3yGIqjZ6      141.142.228.5   59856   192.150.187.43  <omitted>      text/plain      <omitted>     tcp       TeamCymruMalwareHashRegistry::Match     Malware Hash Registry Detection rate: 95%  Last seen: 2017-01-18 20:34:43 https://www.virustotal.com/gui/search/<omitted>    141.142.228.5   192.150.187.43  80      -       -       Notice::ACTION_LOG        (empty) 3600.000000     -       -       -       -       -
 
-The Connection Record Data Type
-===============================
+Zeek determined it was malware by looking up the hash in a known
+registry---via scripting!
 
-An overwhelmingly large number of events are passed the
-:zeek:type:`connection` record data type. This makes it the backbone
-of many scripting solutions. The connection record itself, as we will
-see in a moment, is a mass of nested data types used to track state on a
-connection through its lifetime. Let's walk through the process of
-selecting an appropriate event, generating some output to standard out
-and dissecting the connection record so as to get an overview of it. We
-will cover data types in more detail later.
+.. literalinclude:: basics/mhr-excerpt.zeek
+   :caption:
+   :language: zeek
+   :tab-width: 4
 
-While Zeek is capable of packet level processing, its strengths lay in
-the context of a connection between an *originator* and a *responder*.
+When Zeek sees a file, it calculates its hash. Whenever that hash is
+calculated, it triggers the :zeek:see:`file_hash` event.
+
+The body of our event handler does two things:
+
+#. It checks if we care about this specific file
+#. It calls a function (``do_mhr_lookup``) to check the registry.
+
+This leaves out the core of the script, but we introduced one of Zeek's
+core concepts already: events. We'll see more of those later. First, we
+have to understand the types you can use when scripting.
+
+.. _basics_types:
+
+*******
+ Types
+*******
+
+Network Types
+=============
+
+Zeek monitors network traffic, so its scripting language makes that easy
+with custom types. Network types are primitive types within Zeek, so you
+can treat addresses, ports, and subnets as native data:
+
+.. literalinclude:: basics/types_network.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+These are some of Zeek's most powerful types. They allow script writers
+to easily use common networking language in order to write network
+detections.
+
+For more information on each, see documentation for :zeek:see:`addr`,
+:zeek:see:`subnet`, and :zeek:see:`port`.
+
+Time Types
+==========
+
+When writing Zeek scripts, it's also important to know *when* something
+occurred. Zeek provides time values as native types:
+
+.. literalinclude:: basics/types_time.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+The :zeek:see:`current_time` call gets the "wall clock" time when it is
+called. The time types are useful for more, though. You can cause some
+data to *expire* after a certain interval with :zeek:see:`&create_expire`,
+or schedule events to execute some time in the future with
+:zeek:see:`schedule`.
+
+For more information, see :zeek:see:`time` and :zeek:see:`interval`.
+
+Container Types
+===============
+
+If you have many elements, you can pick one of Zeek's container types to
+work with it:
+
+-  :zeek:see:`vector`: Store many ordered elements
+-  :zeek:see:`set`: Store many unique elements with fast lookup, unordered
+   by default
+-  :zeek:see:`table`: Store key-value pairs, unordered by default
+
+Vectors are useful for maintaining ordered lists. Use them to store
+sequences of items, like storing mail servers for a domain in order of
+preference:
+
+.. literalinclude:: basics/types_vector.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+Sets are useful for checking membership. They represent a unique
+collection of items (like an allow list or deny list). Here, we create a
+set of "safe" ports that are allowed:
+
+.. literalinclude:: basics/types_set.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+Tables are useful for mapping keys to values. You may associate a
+specific IP address with the number of active connections, a timestamp,
+or a username.
+
+Here we use a table to assign human-readable names to IP addresses:
+
+.. literalinclude:: basics/types_table.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+For more information, see :zeek:see:`vector`, :zeek:see:`set`, and
+:zeek:see:`table`.
+
+Record Types
+============
+
+Records are just collections of named values---like a ``struct`` in C.
+Zeek uses records liberally in order to provide structured data and pass
+it amongst events. The most used record is the ``connection`` record,
+which represents everything Zeek determined for a given connection.
+
+You can get data from the record with the ``$`` operator. The following
+script will use the :zeek:see:`new_connection` event and print who the
+connection is between:
+
+.. literalinclude:: basics/types_connection.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+For example, here is the output for the capture file from the
+:ref:`Quickstart <quickstart>`:
+
+.. code:: console
+
+   Found connection between 192.168.1.8 and 192.0.78.212
+   Found connection between 192.168.1.8 and 192.0.78.150
 
 .. note::
 
@@ -94,1370 +192,449 @@ the context of a connection between an *originator* and a *responder*.
    will flip the endpoint roles, making the sender of this packet the
    connection's responder.
 
-Zeek defines events for the primary parts of the connection life-cycle,
-such as the following:
+The ``connection`` record carries around the state from the connection.
+Scripts can add state to this record in order to piece together what
+they need, like how Zeek's HTTP scripts correlate requests and responses
+with the connection record. The added state is often declared as
+:zeek:see:`&optional`, so you should use ``?$`` to make sure the record
+contains that field before accessing it. Here, we use ``?$`` to ensure
+the connection has HTTP state in the :zeek:see:`http_request` event:
 
--  :zeek:see:`new_connection`
--  :zeek:see:`connection_timeout`
--  :zeek:see:`connection_state_remove`
-
-Of the events listed, the event that will give us the best insight into
-the connection record data type will be
-:zeek:id:`connection_state_remove` . As detailed in the event's
-documentation, Zeek generates this event just before it decides to
-remove this event from memory, effectively forgetting about it. Let's
-take a look at a simple example script, that will output the connection
-record for a single connection.
-
-.. literalinclude:: basics/connection_record_01.zeek
+.. literalinclude:: basics/types_connection_http.zeek
    :caption:
    :language: zeek
    :linenos:
    :tab-width: 4
 
-Again, we start with ``@load``, this time importing the
-:doc:`base/protocols/conn </scripts/base/protocols/conn/index>` scripts
-which supply the tracking and logging of general information and state
-of connections. We handle the :zeek:id:`connection_state_remove`
-event and simply print the contents of the argument passed to it. For
-this example we're going to run Zeek in "bare mode" which loads only the
-minimum number of scripts to retain operability and leaves the burden of
-loading required scripts to the script being run. While bare mode is a
-low level functionality incorporated into Zeek, in this case, we're
-going to use it to demonstrate how different features of Zeek add more
-and more layers of information about a connection. This will give us a
-chance to see the raw contents of the connection record without it being
-overly populated. This will, however, be jumbled compared to the logs,
-since Zeek specially formats the connection record's fields when logging.
+Make sure you don't access an optional field without checking if it
+exists with ``?$`` first, otherwise your script will encounter an
+expression error.
 
-.. code-block:: console
+Sometimes you need to bundle your own data. This example defines an
+``Asset`` record that groups IP addresses with some useful data:
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b -r traces/zeek-testing/http/get.trace  scripts/basics/connection_record_01.zeek
-   [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
-
-   }, history=ShADadFf, uid=CR0buA20QD1WJ53zO8, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks=<uninitialized>, failed_analyzers={
-
-   }, conn=[ts=1362692526.869344, uid=CR0buA20QD1WJ53zO8, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=<uninitialized>, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>]
-
-When examining the raw connection record, try to isolate the specific parts
-you care about. As fields get added, the record will get even more jumbled.
-
-Zeek makes extensive use of nested data structures to store state and
-information gleaned from the analysis of a connection as a complete
-unit. To break down this collection of information, you will have to
-make use of Zeek's field delimiter ``$``. For example, the connection
-record has a ``conn_id`` member ``c$id``. You may get the originating
-host via ``c$id$orig_h``.
-
-Given that the responder port ``c$id$resp_p`` is ``80/tcp``, it's likely
-that Zeek's base HTTP scripts can further populate the connection
-record. Let's load the ``base/protocols/http`` scripts and check the
-output of our script.
-
-Zeek uses the dollar sign as its field delimiter and a direct
-correlation exists between the output of the connection record and the
-proper format of a dereferenced variable in scripts. In the output of
-the script above, groups of information are collected between brackets,
-which would correspond to the ``$``-delimiter in a Zeek script.
-
-.. literalinclude:: basics/connection_record_02.zeek
+.. literalinclude:: basics/types_record.zeek
    :caption:
    :language: zeek
    :linenos:
    :tab-width: 4
+
+For more information, see the :zeek:see:`connection` record, or
+:zeek:see:`record` for records generally.
+
+Standard Types
+==============
+
+Zeek provides many of the standard types expected in a programming
+language:
+
+.. literalinclude:: basics/types_standard.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+You can use these for many of the same tasks you would use a general
+purpose language for.
+
+For more information, see :zeek:see:`int`, :zeek:see:`count`,
+:zeek:see:`bool`, :zeek:see:`string`, and :zeek:see:`pattern`.
+
+You can read more about how these types can be used to change the
+program's control flow with :zeek:see:`for` and :zeek:see:`if`.
+
+.. _basics_visibility_scope:
+
+**********************
+ Visibility and Scope
+**********************
+
+Local and Global
+================
+
+So far, we have kept state *within* events with the ``local`` keyword.
+When a variable is declared as ``local``, it cannot be used outside of
+its scope. But, you can store state *between* events with globals. The
+following example stores how many times the :zeek:see:`new_connection`
+event gets triggered and prints its result at the end in the
+:zeek:see:`zeek_done` event:
+
+.. literalinclude:: basics/scope_global.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+You may have also noticed that the loop from the vector type section
+use creates a ``server_ip`` variable without using ``local``:
+
+.. literalinclude:: basics/types_vector.zeek
+   :caption:
+   :language: zeek
+   :start-at: Loop with a 'for'
+   :end-at: }
+   :lineno-match:
+   :emphasize-lines: 3
+   :tab-width: 4
+
+The ``server_ip`` variable is actually a ``local`` variable *outside*
+the ``for`` loop---just without the keyword. You cannot have two
+``local`` variables with the same name in the function scope---therefore,
+you can't later use the ``server_ip`` variable name in a new ``local``
+variable.
+
+For more information, see :zeek:see:`local` and :zeek:see:`global`.
+
+Exporting
+=========
+
+You may expose constants, types, options, and more to other scripts by
+putting them in ``export`` blocks. The following example defines a list
+of IP addresses in an allow list. If an IP address outside of those is
+in a new connection, then we print a warning:
+
+.. literalinclude:: basics/scope_export.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+As-is, running this on the quickstart pcap says one of the addresses is
+not allowed:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b -r traces/zeek-testing/http/get.trace  scripts/basics/connection_record_02.zeek
-   [id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], orig=[size=136, state=5, num_pkts=7, num_bytes_ip=512, flow_label=0, l2_addr=c8:bc:c8:96:d2:a0], resp=[size=5007, state=5, num_pkts=7, num_bytes_ip=5379, flow_label=0, l2_addr=00:10:db:88:d2:ef], start_time=1362692526.869344, duration=211.0 msecs 483.955383 usecs, service={
-   HTTP
-   }, history=ShADadFf, uid=Cw7YDi2VsAcn3nMMB7, tunnel=<uninitialized>, vlan=<uninitialized>, inner_vlan=<uninitialized>, removal_hooks={
-   HTTP::finalize_http: Conn::RemovalHook
-   {
-   if (HTTP::c?$http_state)
-   {
-   for ([HTTP::r], HTTP::info in HTTP::c$http_state$pending)
-   {
-   if (0 == HTTP::r)
-   next ;
+   Address 192.0.78.212 is not allowed!
+   Address 192.0.78.150 is not allowed!
 
-   Log::write(HTTP::LOG, to_any_coerce HTTP::info);
-   }
+If we can't change the original script, we can create a new script and
+use that!
 
-   }
-
-   }
-   }, failed_analyzers={
-
-   }, conn=[ts=1362692526.869344, uid=Cw7YDi2VsAcn3nMMB7, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], proto=tcp, service=http, duration=211.0 msecs 483.955383 usecs, orig_bytes=136, resp_bytes=5007, conn_state=SF, local_orig=F, local_resp=F, missed_bytes=0, history=ShADadFf, orig_pkts=7, orig_ip_bytes=512, resp_pkts=7, resp_ip_bytes=5379, tunnel_parents=<uninitialized>, ip_proto=6], extract_orig=F, extract_resp=F, thresholds=<uninitialized>, http=[ts=1362692526.939527, uid=Cw7YDi2VsAcn3nMMB7, id=[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, proto=6, ctx=[]], trans_depth=1, method=GET, host=bro.org, uri=/download/CHANGES.bro-aux.txt, referrer=<uninitialized>, version=1.1, user_agent=Wget/1.14 (darwin12.2.0), origin=<uninitialized>, request_body_len=0, response_body_len=4705, status_code=200, status_msg=OK, info_code=<uninitialized>, info_msg=<uninitialized>, tags={
-
-   }, username=<uninitialized>, password=<uninitialized>, capture_password=F, proxied=<uninitialized>, range_request=F, orig_fuids=<uninitialized>, orig_filenames=<uninitialized>, orig_mime_types=<uninitialized>, resp_fuids=[FMnxxt3xjVcWNS2141], resp_filenames=<uninitialized>, resp_mime_types=[text/plain], current_entity=<uninitialized>, orig_mime_depth=1, resp_mime_depth=1], http_state=[pending={
-
-   }, current_request=1, current_response=1, trans_depth=1]]
-
-The addition of the ``base/protocols/http`` scripts populates the
-``http=[]`` member of the connection record. Zeek's core does a massive
-amount of work, but "scriptland" refines the details and makes
-decisions. Simply loading a new script adds a whole host of new
-information. Were we to continue running in "bare mode" we could slowly
-keep adding infrastructure through ``@load`` statements. For example,
-were we to ``@load base/frameworks/logging``, Zeek would generate a
-:file:`conn.log` and :file:`http.log` for us in the current
-working directory. As mentioned above, including the appropriate
-``@load`` statements is not only good practice, but can also help to
-indicate which functionalities are being used in a script. Take a second
-to run the script without the ``-b`` flag and check the output when all
-of Zeek's functionality is applied to the trace file.
-
-Data Types and Data Structures
-==============================
-
-Scope
------
-
-The declarations of variables in Zeek come in two forms. Variables can
-be declared with or without an initial value in the form ``SCOPE name:
-TYPE`` or ``SCOPE name = EXPRESSION`` respectively.
-
-The following example shows the two methods for initializing a local
-variable. If ``EXPRESSION`` is the same type as ``TYPE``, the two forms
-should be equivalent. The decision as to which type of declaration to
-use is dictated by personal preference and readability.
-
-.. literalinclude:: basics/data_type_declaration.zeek
+.. literalinclude:: basics/scope_use_export.zeek
    :caption:
    :language: zeek
    :linenos:
    :tab-width: 4
 
-Global Variables
-^^^^^^^^^^^^^^^^
+With this change, nothing will print---all addresses were allowed.
 
-A global variable is used when the state of variable needs to be
-tracked, not surprisingly, globally. While there are some caveats, when
-a script declares a variable using the global scope, that script is
-granting access to that variable from other scripts. However, when a
-script uses the ``module`` keyword to give the script a namespace, more
-care must be given to the declaration of globals to ensure the intended
-result.
+Redef
+=====
 
-When a global is declared in a script with a namespace there are two
-possible outcomes.
+We can change more than just native variables. In fact, you can use
+:zeek:see:`redef` to do far more. When you redefine something with
+``redef``, that change is set in stone after Zeek initializes. First,
+we will use ``redef`` to demonstrate one of the most powerful features
+in Zeek: redefining the ``connection`` record. Later, we will see how
+constructs can declare that they may be redefined.
 
-1) The variable is available only within the context of the namespace.
-In this scenario, other scripts within the same namespace will have
-access to the variable declared while scripts using a different
-namespace or no namespace altogether will not have access to the
-variable.
+In this example, we want to flag specific connections in the logs so
+that we can find them easily later. So, we will add a ``denied`` field:
 
-2) If a global variable is declared within an ``export { ... }`` block,
-that variable is available to any other script through via ``<module
-name>::<variable name>``. The variable needs to be "scoped" by the name
-of the module in which it was declared.
-
-When the ``module`` keyword is used in a script, the variables declared
-are said to be in that module's "namespace". Where as a global variable
-can be accessed by its name alone when it is not declared within a
-module, a global variable declared within a module must be exported and
-then accessed via ``<module name>::<variable name>``.
-
-Constants
-^^^^^^^^^
-
-Zeek also makes use of constants, which are denoted by the ``const``
-keyword. Unlike globals, constants can only be set or altered at parse
-time if the ``&redef`` attribute has been used. Afterwards (in runtime)
-the constants are unalterable. In most cases, re-definable constants are
-used in Zeek scripts as configuration options. For example, the
-configuration option to log passwords decrypted from HTTP streams is
-stored in :zeek:see:`HTTP::default_capture_password` as shown in the
-stripped down excerpt from :doc:`/scripts/base/protocols/http/main.zeek`
-below.
-
-.. literalinclude:: basics/http_main.zeek
+.. literalinclude:: basics/scope_redef_connection.zeek
    :caption:
    :language: zeek
    :linenos:
    :tab-width: 4
 
-Because the constant was declared with the ``&redef`` attribute, if we
-needed to turn this option on globally, we could do so by adding the
-following line to our ``site/local.zeek`` file before firing up Zeek.
+As-is, this script will just print the flag. But, since the
+``new_connection`` event is called at the beginning of the connection,
+future analyzers can check this ``denied`` flag and use it in their
+analysis! The state sticks around.
 
-.. literalinclude:: basics/data_type_const_simple.zeek
+We can also modify the script slightly to log the flag in ``conn.log``:
+
+.. literalinclude:: basics/scope_redef_connection_log.zeek
    :caption:
    :language: zeek
    :linenos:
    :tab-width: 4
+   :emphasize-lines: 8,15,20
 
-While the idea of a re-definable constant might be odd, the constraint
-that constants can only be altered at parse-time remains even with the
-``&redef`` attribute. In the code snippet below, a table of strings
-indexed by ports is declared as a constant before two values are added
-to the table through ``redef`` statements. The table is then printed in
-a :zeek:id:`zeek_init` event. Were we to try to alter the table in an
-event handler, Zeek would notify the user of an error and the script
-would fail.
+There are three changes here, which are highlighted in order:
 
-.. literalinclude:: basics/data_type_const.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
+#. The ``redef`` redefines :zeek:see:`Conn::Info` instead of
+   ``connection``.
 
-.. code-block:: console
+#. The ``denied`` field is marked with the :zeek:see:`&log` attribute.
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_const.zeek
-   {
-   [6666/tcp] = IRC,
-   [80/tcp] = WWW
-   }
+#. We modify ``c$conn`` (which is a ``Conn::Info`` instance) instead of
+   ``c``. ``c`` is the container for the whole connection state. Inside
+   it, ``c$conn`` is the specific record that gets written to
+   ``conn.log``.
 
-Local Variables
-^^^^^^^^^^^^^^^
-
-Whereas globals and constants are widely available in scriptland through
-various means, when a variable is defined with a local scope, its
-availability is restricted to the body of the event or function in which
-it was declared. Local variables tend to be used for values that are
-only needed within a specific scope and once the processing of a script
-passes beyond that scope and no longer used, the variable is deleted.
-
-.. literalinclude:: basics/data_type_local.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-The script executes the event handler :zeek:id:`zeek_init` which in
-turn calls the function ``add_two(i: count)`` with an argument of
-``10``. Once Zeek enters the ``add_two`` function, it provisions a
-locally scoped variable called ``added_two`` to hold the value of
-``i+2``, in this case, ``12``. The ``add_two`` function then prints the
-value of the ``added_two`` variable and returns its value to the
-``zeek_init`` event handler. At this point, the variable ``added_two``
-has fallen out of scope and no longer exists while the value ``12``
-still in use and stored in the locally scoped variable ``test``. When
-Zeek finishes processing the ``zeek_init`` function, the variable called
-``test`` is no longer in scope and, since there exist no other
-references to the value ``12``, the value is also deleted.
-
-Data Structures
----------------
-
-Data structures simply hold other data types, such as a vector holding
-many ``count`` s. Some of the more interesting characteristics of data
-types are revealed when used inside of a data structure, but given that
-data structures are made up of data types, it devolves rather quickly
-into a "chicken-and-egg" problem. As such, we'll introduce data types
-from a bird's eye view before diving into data structures and from there
-a more complete exploration of data types.
-
-The table below shows the atomic types used in Zeek, of which the first
-four should seem familiar if you have some scripting experience, while
-the remaining six are less common in other languages. It should come as
-no surprise that a scripting language for a Network Security Monitoring
-platform has a fairly robust set of network-centric data types.
-
-.. list-table::
-   :header-rows: 1
-
-   -  -  Data Type
-      -  Description
-   -  -  :zeek:see:`int`
-      -  64 bit signed integer
-   -  -  :zeek:see:`count`
-      -  64 bit unsigned integer
-   -  -  :zeek:see:`double`
-      -  double precision floating precision
-   -  -  :zeek:see:`bool`
-      -  boolean (T/F)
-   -  -  :zeek:see:`addr`
-      -  IP address, IPv4 and IPv6
-   -  -  :zeek:see:`port`
-      -  transport layer port
-   -  -  :zeek:see:`subnet`
-      -  CIDR subnet mask
-   -  -  :zeek:see:`time`
-      -  absolute epoch time
-   -  -  :zeek:see:`interval`
-      -  a time interval
-   -  -  :zeek:see:`pattern`
-      -  regular expression
-
-Sets
-^^^^
-
-Sets in Zeek are used to store unique elements of the same data type. In
-essence, you can think of them as "a unique set of integers" or "a
-unique set of IP addresses". The set will always contain unique elements
-and the elements in the set will always be of the same data type. Such
-requirements make the set data type perfect for information that is
-already naturally unique such as ports or IP addresses. The code snippet
-below shows both an explicit and implicit declaration of a locally
-scoped set.
-
-.. literalinclude:: basics/data_struct_set_declaration.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :lines: 1-4,22
-   :tab-width: 4
-
-As you can see, sets are declared using the format ``SCOPE var_name:
-set[TYPE]``. Adding and removing elements in a set is achieved using the
-``add`` and ``delete`` statements. Once you have elements inserted into
-the set, it's likely that you'll need to either iterate over that set or
-test for membership within the set, both of which are covered by the
-``in`` operator. In the case of iterating over a set, combining the
-``for`` statement and the ``in`` operator will allow you to sequentially
-process each element of the set as seen below.
-
-.. literalinclude:: basics/data_struct_set_declaration.zeek
-   :caption:
-   :language: zeek
-   :lineno-match:
-   :lines: 17-21
-   :tab-width: 4
-
-Here, the ``for`` statement loops over the contents of the set storing
-each element in the temporary variable ``i``. With each iteration of the
-``for`` loop, the next element is chosen. Since (by default) sets are
-not an ordered data type, you cannot guarantee the order of the elements
-as the ``for`` loop processes.
+By convention, analyzers which log use ``Info`` records to store the
+state that they wish to log. ``conn.log`` is no different. So, if you
+want to change what goes in ``conn.log``, you add fields to
+``Conn::Info``.
 
 .. note::
 
-   You may choose to declare some sets with the ``&ordered`` attribute
-   in order to keep the elements ordered.
+   The :zeek:see:`&log` attribute tells Zeek that when this record gets
+   logged, write this field to that log. Fields must state that they want
+   to get logged by opting-in. Attributes in Zeek are a common way to
+   add functionality to various language elements. You may control
+   whether a field is optional, add an expiration timeout, and much more.
+   For more information, see the :ref:`attributes section <attributes>`.
 
-You can test for membership in a set the ``in`` statement, such as ``if
-( my_port in non_ssl_ports )``. If the exact element in the condition is
-already in the set, the condition rwturns ``T`` (true) and the body
-executes. The ``in`` statement can also be negated by the ``!`` operator
-to create the inverse of the condition (via ``!in``). While we could
-rewrite the corresponding line below as ``if ( !( 587/tcp in ssl_ports
-))`` try to avoid using this construct; instead, negate the in operator
-itself:
+When we run this on the quickstart pcap, we can see that ``conn.log``
+now has a ``denied`` field:
 
-.. literalinclude:: basics/data_struct_set_declaration.zeek
+.. code:: console
+
+   $ zeek basics/scope_redef_connection_log.zeek -Cr traces/quickstart.pcap
+   $ cat conn.log | zeek-cut -m denied
+   denied
+   T
+   T
+
+Using ``&redef``
+----------------
+
+This is possible with the ``&redef`` attribute. If you're writing a
+library and want to allow users to customize parts, you may include
+``&redef`` to allow extra fields in the record, to log more fields, or
+just to configure a constant.
+
+.. literalinclude:: basics/scope_redef_attr.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+This example is a bit contrived, but any users who load the script with
+:zeek:see:`@load` can then customize these variables.
+
+For more information, see :zeek:see:`redef` and :zeek:see:`&redef`. Also look
+at :zeek:see:`option` and :zeek:see:`const` for some more ways to customize
+libraries via ``redef``.
+
+.. _basics_events_functions:
+
+**********************
+ Events and Functions
+**********************
+
+Events
+======
+
+Throughout this section, we have used events such as :zeek:see:`zeek_init`
+and :zeek:see:`new_connection`. Zeek itself executes through a series of
+events in a queue. For example, when Zeek sees an HTTP request in some
+network traffic, it triggers the :zeek:see:`http_request` event. HTTP
+scripts may then use that event in order to gather data, correlate a
+request with a response, and more. This is core to Zeek's execution.
+
+Zeek does this by placing events into an ordered event queue. Then,
+*handlers* get triggered in a first-come-first-served basis. In our
+examples above, we only ever used one event at a time, but really there
+can be many handlers for a single event:
+
+.. literalinclude:: basics/event_multiple_handlers.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+These events just happen to be in the same file. You can guarantee
+ordering events with the :zeek:see:`&priority` attribute:
+
+.. literalinclude:: basics/event_multiple_handlers_priority.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+Imagine Zeek analyzing network traffic, and as it does so, it raises
+events so that you can react to what was just seen. The DNS analyzer
+raises :zeek:see:`dns_request` events when DNS requests are seen, the file
+analyzer raises ``file_hash`` when a file hash is computed, and many
+more.
+
+You may even choose to trigger an event from a script with the ``event``
+statement:
+
+.. literalinclude:: basics/event_statement.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+This is the only way to trigger an event in a script. They do not get
+immediately executed, and they cannot return values. Don't think of
+events as functions that runs *now*, think of them as interesting things
+that will be handled later.
+
+For more information, see :zeek:see:`event`.
+
+Functions
+=========
+
+From other programming languages, functions are exactly what you expect:
+you can call them to immediately execute some statements in-order. In
+this example, imagine you need to check if a certain connection is
+internal. The function helps contain the necessary logic in its own
+section:
+
+.. literalinclude:: basics/functions.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+You may also use a function to modify container values. In this example,
+we modify ``host`` within a separate function:
+
+.. literalinclude:: basics/functions_pass_by_reference.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+The most important part here is that only certain types in Zeek are
+"pass by reference." You may pass types like a ``table`` or ``record``
+into a function by reference, so that function may modify its values.
+But, if you pass a ``count``, then the function will modify a *copy*,
+not the original. Try modifying the above script to pass
+``host$scanned_count`` in by value and see that it doesn't get updated.
+
+For more information, see :zeek:see:`function`.
+
+Async Functions
+===============
+
+.. note::
+
+   Asynchronous functions are a relatively advanced concept, but
+   important to understand the detection script from the beginning.
+
+Some functions may take some time to complete, so Zeek should not wait
+for it to complete before continuing with its execution. Zeek provides a
+``when`` keyword in order to wait for that result, then make it
+available when it's ready. In this example, we use ``when`` in order to
+lookup the DNS TXT record from ``www.zeek.org``:
+
+.. literalinclude:: basics/functions_async.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+You don't have to understand the specifics here. If a function is
+"asynchronous" then you must use ``when`` in order to wait for its
+result without blocking Zeek's execution. If you removed the ``when`` in
+the previous example, Zeek will error:
+
+.. code:: console
+
+   error in ./functions_async.zeek, line 8: lookup_hostname_txt() can only be called inside a when-condition (lookup_hostname_txt(www.zeek.org))
+
+For more information, see :zeek:see:`when`.
+
+.. _basics_real_script:
+
+*****************************
+ Understanding a Real Script
+*****************************
+
+Now, we have the tools to understand the detect-mhr script from before.
+At the beginning, we only showed the ``file_hash`` event contents. The
+logic for the event was mostly within ``do_mhr_lookup``, which is a
+function call. Here is that function in its entirety, then we will go
+through the entire script and explain each part:
+
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
    :lineno-match:
-   :lines: 13-15
    :tab-width: 4
+   :start-at: do_mhr_lookup
+   :end-before: file_hash
 
-You can see the full script and its output below.
+First, the function itself takes the hash (provided from ``file_hash``)
+and a :zeek:see:`Notice::FileInfo`:
 
-.. literalinclude:: basics/data_struct_set_declaration.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :tab-width: 4
+   :lines: 38
 
-.. code-block:: console
+Then, we declare a ``local`` variable that holds the URL we look up:
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_set_declaration.zeek
-   SSL Port: 22/tcp
-   SSL Port: 443/tcp
-   SSL Port: 993/tcp
-   SSL Port: 587/tcp
-   Non-SSL Port: 143/tcp
-   Non-SSL Port: 80/tcp
-   Non-SSL Port: 23/tcp
-   Non-SSL Port: 25/tcp
-
-Tables
-^^^^^^
-
-A table in Zeek is a mapping of a key to a value or field. While the
-values don't have to be unique, each key in the table must be unique to
-preserve a one-to-one mapping of keys to values.
-
-.. literalinclude:: basics/data_struct_table_declaration.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :tab-width: 4
+   :lines: 40
 
-.. code-block:: console
+This variable is used in the ``when`` statement to look it up
+asynchronously:
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_table_declaration.zeek
-   Service Name:  SSH - Common Port: 22/tcp
-   Service Name:  IMAPS - Common Port: 993/tcp
-   Service Name:  SMTPS - Common Port: 587/tcp
-   Service Name:  HTTPS - Common Port: 443/tcp
-
-In this example, we've compiled a table of SSL-enabled services and
-their common ports. The explicit declaration and constructor for the
-table are on two different lines and lay out the data types of the keys
-(strings) and the data types of the values (ports) and then fill in some
-sample key and value pairs. The script also uses a table accessor to
-insert one key-value pair into the table. The ''in'' operator works with
-the *keys* of the table. In the case of an ``if`` statement, the ``in``
-operator will check for membership among the set of keys and return a
-true or false value. The example shows how to check if ``SMTPS`` is not
-in the set of keys for the ``ssl_services`` table and if the condition
-holds true, we add the key-value pair to the table. Finally, the example
-shows how to use a ``for`` statement to iterate over each key currently
-in the table.
-
-Simple examples aside, tables can become extremely complex as the keys
-and values for the table become more intricate. Tables can have keys
-comprised of multiple data types and even a series of elements called a
-"tuple". The flexibility gained with the use of complex tables in Zeek
-implies a cost in complexity for the person writing the scripts, but
-pays off in effectiveness given the power of Zeek as a network security
-platform.
-
-.. literalinclude:: basics/data_struct_table_complex.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :tab-width: 4
+   :lines: 42
 
-.. code-block:: console
+The ``when`` statement has an extra section here, within square brackets
+``[]``. That specifies that the block can use ``hash``, ``fi``, and
+``hash_domain`` from the outer ``do_mhr_lookup`` function. Without it,
+we could not later use ``hash`` in the ``when`` block. Because the code
+inside ``{}`` runs later (potentially after the function has finished),
+Zeek needs to copy these variables so that they are alive within the
+``when`` block.
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek scripts/basics/data_struct_table_complex.zeek
-   Harakiri was released in 1962 by Shochiku Eiga studios, directed by Masaki Kobayashi and starring Tatsuya Nakadai
-   Tasogare Seibei was released in 2002 by Eisei Gekijo studios, directed by Yoji Yamada and starring Hiroyuki Sanada
-   Kiru was released in 1968 by Toho studios, directed by Kihachi Okamoto and starring Tatsuya Nakadai
-   Goyokin was released in 1969 by Fuji studios, directed by Hideo Gosha and starring Tatsuya Nakadai
+Next, we use the result within the ``when`` block in order to check the
+data:
 
-This script shows a sample table of strings indexed by two strings, a
-count, and a final string. With a tuple acting as an aggregate key, the
-order is important as a change in order would result in a new key. Here,
-we're using the table to track the director, studio, year of release,
-and lead actor in a series of samurai flicks.
-
-In the previous example, we need squared brackets surrounding four
-temporary variables to act as a collection for our iteration. While this
-is a contrived example, we could easily have had keys containing IP
-addresses (``addr``), ports (``port``) and even a ``string`` calculated
-as the result of a reverse hostname lookup.
-
-You may also use ``_`` to omit certain values within the key during
-iteration. You may also entirely omit the key from iteration by omitting
-the square brackets (``[]``) as well. The following example continues
-with the ``samurai_flicks`` table and shows usage of the blank
-identifier in combination with key-value iteration. Using key-value
-iteration short-cuts the table access to lookup the value as it provides
-the respective entry's value directly in addition to the key.
-
-First, iteration is done by capturing the directors and movie names and
-ignoring all other elements of the key. Second, the whole key is ignored
-and only movie names used.
-
-.. literalinclude:: basics/data_struct_table_complex_blank_value.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :start-at: [d, _, _, _]
-   :end-before: }
+   :lineno-match:
    :tab-width: 4
+   :lines: 44-49
 
-.. code-block:: console
+The data in ``MHR_answer`` is just the result from the DNS lookup, split
+at a space. It is a vector, from :zeek:see:`split_string1`. If the answer
+has two elements, that means the split was successful, so we can move on
+with the logic.
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek scripts/basics/data_struct_table_complex_blank_value.zeek
-   Kiru was directed by Kihachi Okamoto
-   Tasogare Seibei was directed by Yoji Yamada
-   Harakiri was directed by Masaki Kobayashi
-   Goyokin was directed by Hideo Gosha
-   Kiru is a movie
-   Tasogare Seibei is a movie
-   Harakiri is a movie
-   Goyokin is a movie
+We then convert the string in ``MHR_answer[1]`` (the second element of
+the ``vector of string``) into a ``count`` and put it into
+``mhr_detect_rate``.
 
-Vectors
-^^^^^^^
+Now, we check if that detection rate is high enough to trigger a notice:
 
-Vectors are Zeek's way of storing sequential data of the same type that
-may grow. Since Vectors use contiguous storage for their elements, the
-contents of a vector can be accessed through a zero-indexed numerical
-offset.
-
-Vector declarations follow the pattern of other declarations, namely,
-``SCOPE v: vector of T`` where ``v`` is the name of your vector, and
-``T`` is the data type of its members. For example, the following
-snippet shows an explicit and implicit declaration of two locally scoped
-vectors. The script populates the first vector by inserting values at
-the end; it does that by placing the vector name between two vertical
-pipes to get the vector's current length before printing the contents of
-both Vectors and their current lengths.
-
-.. literalinclude:: basics/data_struct_vector_declaration.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :tab-width: 4
+   :lines: 51
 
-.. code-block:: console
+This is using some ``notice_threshold`` declared as an ``option`` in the
+``export`` block above, so users may configure its value.
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_vector_declaration.zeek
-   contents of v1: [1, 2, 3, 4]
-   length of v1: 4
-   contents of v2: [1, 2, 3, 4]
-   length of v2: 4
+If it's above the threshold, we have decided to trigger a notice. This
+uses Zeek's notice framework, but most of the concepts should be pretty
+familiar. In this instance, we are mostly just manipulating the
+``string`` to make the notice human-readable:
 
-In a lot of cases, storing elements in a vector is simply a precursor to
-then iterating over them. Iterating over a vector is easy with the
-``for`` keyword. The sample below iterates over a vector of IP addresses
-and for each IP address, masks that address with 18 bits. The ``for``
-keyword is used to generate a locally scoped variable called ``i`` which
-will hold the index of the current element in the vector. Using ``i`` as
-an index to addr_vector we can access the current item in the vector
-with ``addr_vector[i]``.
-
-.. literalinclude:: basics/data_struct_vector_iter.zeek
+.. literalinclude:: basics/detect-MHR.zeek
    :caption:
    :language: zeek
-   :linenos:
+   :lineno-match:
    :tab-width: 4
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_vector_iter.zeek
-   1.2.0.0/18
-   2.3.0.0/18
-   3.4.0.0/18
-
-Providing a value variable to the ``for`` loop allows skipping the extra
-index operation. As the index variable is now is unused, the script
-below uses ``_``, the blank identifier, to ignore it. This script is
-semantically equivalent to the previous one, but does direct value
-iteration and therefore potentially more performant for very large
-vectors.
-
-.. literalinclude:: basics/data_struct_vector_iter_value.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Data Types Revisited
---------------------
-
-addr
-^^^^
-
-The ``addr``, or address, data type manages to cover a surprisingly
-large amount of ground while remaining succinct. IPv4, IPv6 and even
-hostname constants are included in the ``addr`` data type. While IPv4
-addresses use the default dotted quad formatting, IPv6 addresses use the
-RFC 2373 defined notation with the addition of squared brackets wrapping
-the entire address.
-
-.. literalinclude:: basics/data_type_addr.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-port
-^^^^
-
-Transport layer port numbers in Zeek are represented in the format of
-``<unsigned integer>/<protocol name>``, e.g., ``22/tcp`` or ``53/udp``.
-Zeek supports TCP(``/tcp``), UDP(``/udp``), ICMP(``/icmp``) and
-UNKNOWN(``/unknown``) as protocol designations. While ICMP doesn't have
-an actual port, Zeek supports the concept of ICMP "ports" by using the
-ICMP message type and ICMP message code as the source and destination
-port respectively. Ports can be compared for equality using the ``==``
-or ``!=`` operators and can even be compared for ordering. Zeek gives
-the protocol designations the following "order": ``unknown`` < ``tcp`` <
-``udp`` < ``icmp``. For example ``65535/tcp`` is smaller than ``0/udp``.
-
-subnet
-^^^^^^
-
-Zeek has full support for CIDR notation subnets as a base data type.
-There is no need to manage the IP and the subnet mask as two separate
-entities when you can provide the same information in CIDR notation in
-your scripts. The following example below uses a Zeek script to
-determine if a series of IP addresses are within a set of subnets using
-a 20 bit subnet mask.
-
-.. literalinclude:: basics/data_type_subnets.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Because this is a script that doesn't use any kind of network analysis,
-we can handle the event :zeek:id:`zeek_init` which is always
-generated by Zeek's core upon startup. In the example script, two
-locally scoped vectors are created to hold our lists of subnets and IP
-addresses respectively. Then, using a set of nested ``for`` loops, we
-iterate over every subnet and every IP address and use an ``if``
-statement to compare an IP address against a subnet using the ``in``
-operator. The ``in`` operator returns true if the IP address falls
-within a given subnet based on the longest prefix match calculation. For
-example, ``10.0.0.1 in 10.0.0.0/8`` would return true while
-``192.168.2.1 in 192.168.1.0/24`` would return false. When we run the
-script, we get the output listing the IP address and the subnet in which
-it belongs.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_subnets.zeek
-   172.16.4.56 belongs to subnet 172.16.0.0/20
-   172.16.47.254 belongs to subnet 172.16.32.0/20
-   172.16.1.1 belongs to subnet 172.16.0.0/20
-   2001:db8:b120::1 belongs to subnet 2001:db8:b120::/64
-
-time
-^^^^
-
-A ``time`` is the absolute time stored in Unix epoch seconds. While
-there is currently no supported way to add a time constant in Zeek, two
-built-in functions exist to make use of the ``time`` data type. Both
-:zeek:id:`network_time` and :zeek:id:`current_time` return a
-``time`` data type but they each return a time based on different
-criteria. The ``current_time`` function returns what is called the
-wall-clock time as defined by the operating system. However,
-``network_time`` returns the timestamp of the last packet processed be
-it from a live data stream or saved packet capture. Both functions
-return the time in epoch seconds, meaning ``strftime`` must be used to
-turn the output into human readable output. The script below makes use
-of the :zeek:id:`connection_established` event handler to generate
-text every time a SYN/ACK packet is seen responding to a SYN packet as
-part of a TCP handshake. The text generated, is in the format of a
-timestamp and an indication of who the originator and responder were. We
-use the ``strftime`` format string of ``%Y-%m-%d %H:%M:%S`` to produce a
-common date time formatted time stamp.
-
-.. literalinclude:: basics/data_type_time.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-When the script is executed we get an output showing the details of
-established connections.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-testing/wikipedia.trace scripts/basics/data_type_time.zeek
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.2
-   2011/03/18 19:06:09:  New connection established from 141.142.220.235 to 173.192.163.128
-
-interval
-^^^^^^^^
-
-The ``interval`` represents a relative time as denoted by a numeric
-constant followed by a unit of time. For example, 2.2 seconds would be
-``2.2sec`` and thirty-one days would be represented by ``31days``. Zeek
-supports ``usec``, ``msec``, ``sec``, ``min``, ``hr``, or ``day`` which
-represent microseconds, milliseconds, seconds, minutes, hours, and days
-respectively. In fact, the ``interval`` data type allows for a
-surprising amount of variation in its definitions. There can be a space
-between the numeric constant or they can be crammed together like a
-temporal portmanteau. The time unit can be either singular or plural.
-All of this adds up to to the fact that both ``42hrs`` and ``42 hr`` are
-perfectly valid and logically equivalent in Zeek. The point, however, is
-to increase the readability and thus maintainability of a script.
-Intervals can even be negated, allowing for ``- 10mins`` to represent
-"ten minutes ago".
-
-Intervals in Zeek can have mathematical operations performed against
-them allowing the user to perform addition, subtraction, multiplication,
-division, and comparison operations. As well, Zeek returns an
-``interval`` when differencing two ``time`` values using the ``-``
-operator. The script below amends the script started in the section
-above to include a time delta value printed along with the connection
-establishment report.
-
-.. literalinclude:: basics/data_type_interval.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-When we re-execute the script we see an additional line in the output,
-displaying the time delta since the last fully established connection.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-testing/wikipedia.trace scripts/basics/data_type_interval.zeek
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.118
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 132.0 msecs 97.959518 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 177.86026 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 2.0 msecs 177.000046 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 33.0 msecs 898.115158 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 35.047531 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.3
-        Time since last connection: 2.0 msecs 532.958984 usecs
-   2011/03/18 19:06:08:  New connection established from 141.142.220.118 to 208.80.152.2
-        Time since last connection: 7.0 msecs 866.859436 usecs
-   2011/03/18 19:06:09:  New connection established from 141.142.220.235 to 173.192.163.128
-        Time since last connection: 817.0 msecs 703.008652 usecs
-
-Pattern
-^^^^^^^
-
-Zeek has support for fast text searching operations using regular
-expressions and even goes so far as to declare a native data type for
-the patterns used in regular expressions. A pattern constant is created
-by enclosing text within the forward slash characters. Zeek supports
-syntax very similar to the Flex lexical analyzer syntax. The most common
-use of patterns in Zeek you are likely to come across is embedded
-matching using the ``in`` operator. Embedded matching adheres to a
-strict format, requiring the regular expression or pattern constant to
-be on the left side of the ``in`` operator and the string against which
-it will be tested to be on the right.
-
-.. literalinclude:: basics/data_type_pattern_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-In the sample above, two local variables are declared to hold our sample
-sentence and regular expression. Our regular expression in this case
-will return true if the string contains either the word ``quick`` or the
-word ``lazy``. The ``if`` statement in the script uses embedded matching
-and the ``in`` operator to check for the existence of the pattern within
-the string. If the statement resolves to true,
-:zeek:id:`split_string` is called to break the string into separate
-pieces. :zeek:id:`split_string` takes a string and a pattern as its
-arguments and returns a vector of strings. Each element of the vector
-represents segments before and after any matches against the pattern but
-excluding the actual matches. In this case, our pattern matches twice
-resulting in a vector with three elements.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_pattern_01.zeek
-   The
-    brown fox jumps over the
-    dog.
-
-Patterns can also be used to compare strings using equality and
-inequality operators through the ``==`` and ``!=`` operators
-respectively. When used in this manner however, the string must match
-entirely to resolve to true. For example, the script below uses two
-ternary conditional statements to illustrate the use of the ``==``
-operator with patterns. The output is altered based on the result of the
-comparison between the pattern and the string.
-
-.. literalinclude:: basics/data_type_pattern_02.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_type_pattern_02.zeek
-   equality and /^?(equal)$?/ are not equal
-   equality and /^?(equality)$?/ are equal
-
-Record Data Type
-----------------
-
-With Zeek's support for a wide array of data types and data structures,
-an obvious extension is to include the ability to create custom data
-types composed of atomic types and further data structures. To
-accomplish this, Zeek introduces the ``record`` type and the ``type``
-keyword. Similar to how you would define a new data structure in C with
-the ``typedef`` and ``struct`` keywords, Zeek allows you to cobble
-together new data types to suit the needs of your situation.
-
-When combined with the ``type`` keyword, ``record`` can generate a
-composite type. We have, in fact, already encountered a complex example
-of the ``record`` data type in the earlier sections, the
-:zeek:type:`connection` record passed to many events. Another one,
-:zeek:type:`Conn::Info`, which corresponds to the fields logged into
-:file:`conn.log`, is shown by the excerpt below.
-
-.. literalinclude:: basics/data_type_record.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Looking at the structure of the definition, a new collection of data
-types is being defined as a type called ``Info``. Since this type
-definition is within the confines of an export block, what is defined
-is, in fact, ``Conn::Info``.
-
-The formatting for a declaration of a record type in Zeek includes the
-descriptive name of the type being defined and the separate fields that
-make up the record. The individual fields that make up the new record
-are not limited in type or number as long as the name for each field is
-unique.
-
-.. literalinclude:: basics/data_struct_record_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_record_01.zeek
-   Service: dns(RFC1035)
-     port: 53/udp
-     port: 53/tcp
-   Service: http(RFC2616)
-     port: 8080/tcp
-     port: 80/tcp
-
-The sample above shows a simple type definition that includes a string,
-a set of ports, and a count to define a service type. Also included is a
-function to print each field of a record in a formatted fashion and a
-:zeek:id:`zeek_init` event handler to show some functionality of
-working with records. The definitions of the DNS and HTTP services are
-both done in-line using squared brackets before being passed to the
-``print_service`` function. The ``print_service`` function makes use of
-the ``$`` operator to access the fields within the newly defined
-``Service`` record type.
-
-As you saw in the definition for the ``Conn::Info`` record, other
-records are even valid as fields within another record. We can extend
-the example above to include another record that contains a Service
-record.
-
-.. literalinclude:: basics/data_struct_record_02.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/data_struct_record_02.zeek
-   System: morlock
-     Service: dns(RFC1035)
-       port: 53/udp
-       port: 53/tcp
-     Service: http(RFC2616)
-       port: 80/tcp
-       port: 8080/tcp
-
-The example above includes a second record type in which a field is used
-as the data type for a set. Records can be repeatedly nested within
-other records, their fields reachable through repeated chains of the
-``$`` operator.
-
-It's also common to see a ``type`` used to simply alias a data structure
-to a more descriptive name. The example below shows an example of this
-from Zeek's own type definitions file.
-
-.. code-block:: zeek
-   :caption: init-bare.zeek
-
-   type string_array: table[count] of string;
-   type string_set: set[string];
-   type addr_set: set[addr];
-
-The three lines above alias a type of data structure to a descriptive
-name. Functionally, the operations are the same, however, each of the
-types above are named such that their function is instantly
-identifiable. This is another place in Zeek scripting where
-consideration can lead to better readability of your code and thus
-easier maintainability in the future.
-
-Custom Logging
-==============
-
-Armed with a decent understanding of the data types and data structures
-in Zeek, exploring the various frameworks available is a much more
-rewarding effort. The framework with which most users are likely to have
-the most interaction is the Logging Framework. Designed in such a way to
-so as to abstract much of the process of creating a file and appending
-ordered and organized data into it, the Logging Framework makes use of
-some potentially unfamiliar nomenclature. Specifically, Log Streams,
-Filters and Writers are simply abstractions of the processes required to
-manage a high rate of incoming logs while maintaining full operability.
-If you've seen Zeek employed in an environment with a large number of
-connections, you know that logs are produced incredibly quickly; the
-ability to process a large set of data and write it to disk is due to
-the design of the Logging Framework.
-
-Data is written to a Log Stream based on decision making processes in
-Zeek's scriptland. Log Streams correspond to a single log as defined by
-the set of name/value pairs that make up its fields. That data can then
-be filtered, modified, or redirected with Logging Filters which, by
-default, are set to log everything. Filters can be used to break log
-files into subsets or duplicate that information to another output. The
-final output of the data is defined by the writer. Zeek's default writer
-is simple tab separated ASCII files but Zeek also includes support for
-`DataSeries <https://github.com/dataseries>`_ and `Elasticsearch
-<https://www.elastic.co>`_ outputs. While these new terms and
-ideas may give the impression that the Logging Framework is difficult to
-work with, the actual learning curve is, in actuality, not very steep at
-all. The abstraction built into the Logging Framework makes it such that
-a vast majority of scripts needs not go past the basics. In effect,
-writing to a log file is as simple as defining the format of your data,
-letting Zeek know that you wish to create a new log, and then calling
-the :zeek:id:`Log::write` method to output log records.
-
-The Logging Framework is an area in Zeek where, the more you see it used
-and the more you use it yourself, the more second nature the boilerplate
-parts of the code will become. As such, let's work through a contrived
-example of simply logging the digits 1 through 10 and their
-corresponding factorial to the default ASCII log writer. It's always
-best to work through the problem once, simulating the desired output
-with ``print`` and ``fmt`` before attempting to dive into the Logging
-Framework.
-
-.. literalinclude:: basics/framework_logging_factorial_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_01.zeek
-   1
-   2
-   6
-   24
-   120
-   720
-   5040
-   40320
-   362880
-   3628800
-
-This script defines a factorial function to recursively calculate the
-factorial of a unsigned integer passed as an argument to the function.
-Using ``print`` and :zeek:id:`fmt` we can ensure that Zeek can
-perform these calculations correctly as well get an idea of the answers
-ourselves.
-
-The output of the script aligns with what we expect so now it's time to
-integrate the Logging Framework.
-
-.. literalinclude:: basics/framework_logging_factorial_02.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-As mentioned above we have to perform a few steps before we can issue
-the :zeek:id:`Log::write` method and produce a logfile. As we are
-working within a namespace and informing an outside entity of workings
-and data internal to the namespace, we use an ``export`` block. First we
-need to inform Zeek that we are going to be adding another Log Stream by
-adding a value to the :zeek:type:`Log::ID` enumerable. In this
-script, we append the value ``LOG`` to the ``Log::ID`` enumerable,
-however due to this being in an export block the value appended to
-``Log::ID`` is actually ``Factor::LOG``. Next, we define the fields that
-make up the data of our logs and dictate its format. This script defines
-a new record datatype called ``Info`` (actually, ``Factor::Info``) with
-two fields, both unsigned integers. Each of the fields in the
-``Factor::Info`` record type include the ``&log`` attribute, indicating
-that these fields should be passed to the Logging Framework when
-``Log::write`` is called. Any record fields without the ``&log``
-attribute are ignored by the Logging Framework. The next step is to
-create the logging stream with :zeek:id:`Log::create_stream` which
-takes a ``Log::ID`` and a record as its arguments. In this example, we
-call the ``Log::create_stream`` method and pass ``Factor::LOG`` and the
-``Factor::Info`` record as arguments. From here on out, if we issue the
-``Log::write`` command with the correct ``Log::ID`` and a properly
-formatted ``Factor::Info`` record, a log entry will be generated.
-
-Now, if we run this script, instead of generating logging information to
-stdout, no output is created. Instead the output is all in
-:file:`factor.log`, properly formatted and organized.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_02.zeek
-   root@zeek-tutorial:/opt/zeek-training $ cat factor.log | zeek-cut -m
-   num     factorial_num
-   1       1
-   2       2
-   3       6
-   4       24
-   5       120
-   6       720
-   7       5040
-   8       40320
-   9       362880
-   10      3628800
-
-While the previous example is a simplistic one, it serves to demonstrate
-the small pieces of script code that need to be in place in order to
-generate logs. For example, it's common to call ``Log::create_stream``
-in :zeek:id:`zeek_init` and while in a live example, determining when
-to call ``Log::write`` would likely be done in an event handler, in this
-case we use :zeek:id:`zeek_done` .
-
-If you've already spent time with a deployment of Zeek, you've likely
-had the opportunity to view, search through, or manipulate the logs
-produced by the Logging Framework. The log output from a default
-installation of Zeek is substantial to say the least, however, there are
-times in which the way the Logging Framework by default isn't ideal for
-the situation. This can range from needing to log more or less data with
-each call to ``Log::write`` or even the need to split log files based on
-arbitrary logic. In the latter case, Filters come into play along with
-the Logging Framework. Filters grant a level of customization to Zeek's
-scriptland, allowing the script writer to include or exclude fields in
-the log and even make alterations to the path of the file in which the
-logs are being placed. Each stream, when created, is given a default
-filter called, not surprisingly, ``default``. When using the ``default``
-filter, every key value pair with the ``&log`` attribute is written to a
-single file. For the example we've been using, let's extend it so as to
-write any factorial which is a factor of 5 to an alternate file, while
-writing the remaining logs to :file:`factor.log`.
-
-.. literalinclude:: basics/framework_logging_factorial_03.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-To dynamically alter the file in which a stream writes its logs, a
-filter can specify a function that returns a string to be used as the
-filename for the current call to ``Log::write``. The definition for this
-function has to take as its parameters a ``Log::ID`` called id, a string
-called ``path`` and the appropriate record type for the logs called
-``rec``. You can see the definition of ``mod5`` used in this example
-conforms to that requirement. The function simply returns
-``factor-mod5`` if the factorial is divisible evenly by 5, otherwise, it
-returns ``factor-non5``. In the additional ``zeek_init`` event handler,
-we define a locally scoped ``Log::Filter`` and assign it a record that
-defines the ``name`` and ``path_func`` fields. We then call
-``Log::add_filter`` to add the filter to the ``Factor::LOG`` ``Log::ID``
-and call ``Log::remove_filter`` to remove the ``default`` filter for
-``Factor::LOG``. Had we not removed the ``default`` filter, we'd have
-ended up with three log files: :file:`factor-mod5.log` with all the
-factorials that are a factors of 5, :file:`factor-non5.log` with the
-factorials that are not factors of 5, and :file:`factor.log` which
-would have included all factorials.
-
-.. code-block:: console
-
-   root@zeek-tutorial:/opt/zeek-training $ zeek -b scripts/basics/framework_logging_factorial_03.zeek
-   root@zeek-tutorial:/opt/zeek-training $ cat factor-mod5.log | zeek-cut -m
-   num     factorial_num
-   5       120
-   6       720
-   7       5040
-   8       40320
-   9       362880
-   10      3628800
-
-The ability of Zeek to generate easily customizable and extensible logs
-which remain easily parsable is a big part of the reason Zeek has gained
-a large measure of respect. In fact, it's difficult at times to think of
-something that Zeek doesn't log and as such, it is often advantageous
-for analysts and systems architects to instead hook into the logging
-framework to be able to perform custom actions based upon the data being
-sent to the Logging Frame. To that end, every default log stream in Zeek
-generates a custom event that can be handled by anyone wishing to act
-upon the data being sent to the stream. By convention these events are
-usually in the format ``log_x`` where x is the name of the logging
-stream; as such the event raised for every log sent to the Logging
-Framework by the HTTP parser would be ``log_http``. Instead of using an
-external script to parse the :file:`http.log` file and do
-post-processing for each entry, this can be done in real time inside
-Zeek by defining an event handler for the ``log_http`` event.
-
-Telling Zeek to raise an event in your own Logging stream is as simple
-as exporting that event name and then adding that event in the call to
-``Log::create_stream``. Going back to our simple example of logging the
-factorial of an integer, we add ``log_factor`` to the ``export`` block
-and define the value to be passed to it, in this case the
-``Factor::Info`` record. We then list the ``log_factor`` function as the
-``$ev`` field in the call to ``Log::create_stream``
-
-.. literalinclude:: basics/framework_logging_factorial_04.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Raising Notices
-===============
-
-While Zeek's Logging Framework provides an easy and systematic way to
-generate logs, there still exists a need to indicate when a specific
-behavior has been detected and a method to allow that detection to come
-to someone's attention. To that end, the Notice Framework is in place to
-allow script writers a codified means through which they can raise a
-notice, as well as a system through which an operator can opt-in to
-receive the notice. Zeek holds to the philosophy that it is up to the
-individual operator to indicate the behaviors in which they are
-interested and as such Zeek ships with a large number of policy scripts
-which detect behavior that may be of interest but it does not presume to
-guess as to which behaviors are "action-able". In effect, Zeek works to
-separate the act of detection and the responsibility of reporting. With
-the Notice Framework it's simple to raise a notice for any behavior that
-is detected.
-
-To raise a notice in Zeek, you only need to indicate to Zeek that you
-are provide a specific :zeek:type:`Notice::Type` by exporting it and
-then make a call to :zeek:id:`NOTICE` supplying it with an
-appropriate :zeek:type:`Notice::Info` record. Often times the call to
-``NOTICE`` includes just the ``Notice::Type``, and a concise message.
-There are however, significantly more options available when raising
-notices as seen in the definition of :zeek:type:`Notice::Info`. The
-only field in ``Notice::Info`` whose attributes make it a required field
-is the ``note`` field. Still, good manners are always important and
-including a concise message in ``$msg`` and, where necessary, the
-contents of the connection record in ``$conn`` along with the
-``Notice::Type`` tend to comprise the minimum of information required
-for an notice to be considered useful. If the ``$conn`` variable is
-supplied the Notice Framework will auto-populate the ``$id`` and
-``$src`` fields as well. Other fields that are commonly included,
-``$identifier`` and ``$suppress_for`` are built around the automated
-suppression feature of the Notice Framework which we will cover shortly.
-
-One of the default policy scripts raises a notice when an SSH login has
-been heuristically detected and the originating hostname is one that
-would raise suspicion. Effectively, the script attempts to define a list
-of hosts from which you would never want to see SSH traffic originating,
-like DNS servers, mail servers, etc. To accomplish this, the script
-adheres to the separation of detection and reporting by detecting a
-behavior and raising a notice. Whether or not that notice is acted upon
-is decided by the local Notice Policy, but the script attempts to supply
-as much information as possible while staying concise.
-
-.. code-block:: zeek
-   :caption: scripts/policy/protocols/ssh/interesting-hostnames.zeek
-
-   ##! This script will generate a notice if an apparent SSH login originates
-   ##! or heads to a host with a reverse hostname that looks suspicious.  By
-   ##! default, the regular expression to match "interesting" hostnames includes
-   ##! names that are typically used for infrastructure hosts like nameservers,
-   ##! mail servers, web servers and ftp servers.
-
-   @load base/frameworks/notice
-
-   module SSH;
-
-   export {
-       redef enum Notice::Type += {
-           ## Generated if a login originates or responds with a host where
-           ## the reverse hostname lookup resolves to a name matched by the
-           ## :zeek:id:`SSH::interesting_hostnames` regular expression.
-           Interesting_Hostname_Login,
-       };
-
-       ## Strange/bad host names to see successful SSH logins from or to.
-       option interesting_hostnames =
-               /^d?ns[0-9]*\./ |
-               /^smtp[0-9]*\./ |
-               /^mail[0-9]*\./ |
-               /^pop[0-9]*\./  |
-               /^imap[0-9]*\./ |
-               /^www[0-9]*\./  |
-               /^ftp[0-9]*\./;
-   }
-
-   function check_ssh_hostname(id: conn_id, uid: string, host: addr)
-       {
-       when ( local hostname = lookup_addr(host) )
-           {
-           if ( interesting_hostnames in hostname )
-               {
-               NOTICE([$note=Interesting_Hostname_Login,
-                       $msg=fmt("Possible SSH login involving a %s %s with an interesting hostname.",
-                                Site::is_local_addr(host) ? "local" : "remote",
-                                host == id$orig_h ? "client" : "server"),
-                       $sub=hostname, $id=id, $uid=uid]);
-               }
-           }
-       }
-
-   event ssh_auth_successful(c: connection, auth_method_none: bool)
-       {
-       for ( host in set(c$id$orig_h, c$id$resp_h) )
-           {
-           check_ssh_hostname(c$id, c$uid, host);
-           }
-       }
-
-While much of the script relates to the actual detection, the parts
-specific to the Notice Framework are actually quite interesting in
-themselves. The script's ``export`` block adds the value
-``SSH::Interesting_Hostname_Login`` to the enumerable constant
-``Notice::Type`` to indicate to the Zeek core that a new type of notice
-is being defined. The script then calls ``NOTICE`` and defines the
-``$note``, ``$msg``, ``$sub``, ``id``, and ``$uid`` fields of the
-:zeek:type:`Notice::Info` record. (More commonly, one would set
-``$conn`` instead, however this script avoids using the connection
-record inside the when-statement for performance reasons.) There are two
-ternary expressions (with ``?``) that modify the ``$msg`` text depending
-on whether the host is a local address and whether it is the client or
-the server. This use of :zeek:id:`fmt` and ternary operators is a
-concise way to lend readability to the notices that are generated
-without the need for branching ``if`` statements that each raise a
-specific notice.
-
-The opt-in system for notices is managed through writing
-:zeek:id:`Notice::policy` hooks. A ``Notice::policy`` hook takes as
-its argument a ``Notice::Info`` record which will hold the same
-information your script provided in its call to ``NOTICE``. With access
-to the ``Notice::Info`` record for a specific notice you can include
-logic such as in statements in the body of your hook to alter the policy
-for handling notices on your system. In Zeek, hooks are akin to a mix of
-functions and event handlers: like functions, calls to them are
-synchronous (i.e., run to completion and return); but like events, they
-can have multiple bodies which will all execute. For defining a notice
-policy, you define a hook and Zeek will take care of passing in the
-``Notice::Info`` record. The simplest kind of ``Notice::policy`` hooks
-simply check the value of ``$note`` in the ``Notice::Info`` record being
-passed into the hook and performing an action based on the answer. The
-hook below adds the :zeek:enum:`Notice::ACTION_EMAIL` action for the
-``SSH::Interesting_Hostname_Login`` notice raised in the
-:doc:`/scripts/policy/protocols/ssh/interesting-hostnames.zeek` script.
-
-.. literalinclude:: basics/framework_notice_hook_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-In the example above we've added ``Notice::ACTION_EMAIL`` to the
-``n$actions`` set. This set, defined in the Notice Framework scripts,
-can only have entries from the :zeek:type:`Notice::Action` type,
-which is itself an enumerable that defines the values shown in the table
-below along with their corresponding meanings. The
-:zeek:enum:`Notice::ACTION_LOG` action writes the notice to the
-``Notice::LOG`` logging stream which, in the default configuration, will
-write each notice to the :file:`notice.log` file and take no further
-action. The :zeek:enum:`Notice::ACTION_EMAIL` action will send an
-email to the address or addresses defined in the
-:zeek:id:`Notice::mail_dest` variable with the particulars of the
-notice as the body of the email. The last action,
-:zeek:enum:`Notice::ACTION_ALARM` sends the notice to the
-:zeek:enum:`Notice::ALARM_LOG` logging stream which is then rotated
-hourly and its contents emailed in readable ASCII to the addresses in
-``Notice::mail_dest``.
-
-.. list-table::
-
-   -  -  :zeek:see:`Notice::ACTION_NONE`
-      -  Take no action
-   -  -  :zeek:see:`Notice::ACTION_LOG`
-      -  Send the notice to the Notice::LOG logging stream.
-   -  -  :zeek:see:`Notice::ACTION_EMAIL`
-      -  Send an email with the notice in the body.
-   -  -  :zeek:see:`Notice::ACTION_ALARM`
-      -  Send the notice to the Notice::Alarm_LOG stream.
-
-While actions like the ``Notice::ACTION_EMAIL`` action have appeal for
-quick alerts and response, a caveat of its use is to make sure the
-notices configured with this action also have a suppression. A
-suppression is a means through which notices can be ignored after they
-are initially raised if the author of the script has set an identifier.
-An identifier is a unique string of information collected from the
-connection relative to the behavior that has been observed by Zeek.
-
-.. code-block:: zeek
-   :caption: scripts/policy/protocols/ssl/expiring-certs.zeek
-
-   NOTICE([$note=Certificate_Expires_Soon,
-           $msg=fmt("Certificate %s is going to expire at %T", cert$subject, cert$not_valid_after),
-           $conn=c, $suppress_for=1day,
-           $identifier=cat(c$id$resp_h, c$id$resp_p, hash),
-           $fuid=fuid]);
-
-In the :doc:`/scripts/policy/protocols/ssl/expiring-certs.zeek` script
-which identifies when SSL certificates are set to expire and raises
-notices when it crosses a predefined threshold, the call to ``NOTICE``
-above also sets the ``$identifier`` entry by concatenating the responder
-IP, port, and the hash of the certificate. The selection of responder
-IP, port and certificate hash fits perfectly into an appropriate
-identifier as it creates a unique identifier with which the suppression
-can be matched. Were we to take out any of the entities used for the
-identifier, for example the certificate hash, we could be setting our
-suppression too broadly, causing an analyst to miss a notice that should
-have been raised. Depending on the available data for the identifier, it
-can be useful to set the ``$suppress_for`` variable as well. The
-``expiring-certs.zeek`` script sets ``$suppress_for`` to ``1day``,
-telling the Notice Framework to suppress the notice for 24 hours after
-the first notice is raised. Once that time limit has passed, another
-notice can be raised which will again set the ``1day`` suppression time.
-Suppressing for a specific amount of time has benefits beyond simply not
-filling up an analyst's email inbox; keeping the notice alerts timely
-and succinct helps avoid a case where an analyst might see the notice
-and, due to over exposure, ignore it.
-
-The ``$suppress_for`` variable can also be altered in a
-``Notice::policy`` hook, allowing a deployment to better suit the
-environment in which it is be run. Using the example of
-``expiring-certs.zeek``, we can write a ``Notice::policy`` hook for
-``SSL::Certificate_Expires_Soon`` to configure the ``$suppress_for``
-variable to a shorter time.
-
-.. literalinclude:: basics/framework_notice_hook_suppression_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-While ``Notice::policy`` hooks allow you to build custom predicate-based
-policies for a deployment, there are bound to be times where you don't
-require the full expressiveness that a hook allows. In short, there will
-be notice policy considerations where a broad decision can be made based
-on the ``Notice::Type`` alone. To facilitate these types of decisions,
-the Notice Framework supports Notice Policy shortcuts. These shortcuts
-are implemented through the means of a group of data structures that map
-specific, predefined details and actions to the effective name of a
-notice. Primarily implemented as a set or table of enumerables of
-:zeek:type:`Notice::Type`, Notice Policy shortcuts can be placed as a
-single directive in your ``local.zeek`` file as a concise readable
-configuration. As these variables are all constants, it bears mentioning
-that these variables are all set at parse-time before Zeek is fully up
-and running and not set dynamically.
-
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-| Name                               | Description                                         | Data Type                           |
-+====================================+=====================================================+=====================================+
-| Notice::ignored_types              | Ignore the Notice::Type entirely                    | set[Notice::Type]                   |
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-| Notice::emailed_types              | Set Notice::ACTION_EMAIL to this Notice::Type       | set[Notice::Type]                   |
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-| Notice::alarmed_types              | Set Notice::ACTION_ALARM to this Notice::Type       | set[Notice::Type]                   |
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-| Notice::not_suppressed_types       | Remove suppression from this Notice::Type           | set[Notice::Type]                   |
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-| Notice::type_suppression_intervals | Alter the $suppress_for value for this Notice::Type | table[Notice::Type] of interval     |
-+------------------------------------+-----------------------------------------------------+-------------------------------------+
-
-The table above details the five Notice Policy shortcuts, their meaning
-and the data type used to implement them. With the exception of
-``Notice::type_suppression_intervals`` a ``set`` data type is employed
-to hold the ``Notice::Type`` of the notice upon which a shortcut should
-applied. The first three shortcuts are fairly self explanatory, applying
-an action to the ``Notice::Type`` elements in the set, while the latter
-two shortcuts alter details of the suppression being applied to the
-Notice. The shortcut ``Notice::not_suppressed_types`` can be used to
-remove the configured suppression from a notice while
-``Notice::type_suppression_intervals`` can be used to alter the
-suppression interval defined by $suppress_for in the call to ``NOTICE``.
-
-.. literalinclude:: basics/framework_notice_shortcuts_01.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-The Notice Policy shortcut above adds the ``Notice::Type`` of
-``SSH::Interesting_Hostname_Login`` to the ``Notice::emailed_types`` set
-while the shortcut below alters the length of time for which those
-notices will be suppressed.
-
-.. literalinclude:: basics/framework_notice_shortcuts_02.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
+   :lines: 53-61
+
+You can read more about Zeek's notice framework in the :ref:`Notice
+Framework <notice-framework>` section. Note that :zeek:see:`NOTICE` is just
+a function.
+
+With that, we went from zero to understanding a full Zeek script. In the
+next section, we will build up a script from scratch, using what we
+learned here.

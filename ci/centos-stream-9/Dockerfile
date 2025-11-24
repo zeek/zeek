@@ -25,8 +25,8 @@ RUN dnf -y --nobest install \
     cppzmq-devel \
     diffutils \
     flex \
-    gcc \
-    gcc-c++ \
+    gcc-toolset-12-gcc \
+    gcc-toolset-12-gcc-c++ \
     git \
     jq \
     libpcap-devel \
@@ -50,5 +50,9 @@ RUN dnf -y --nobest install crypto-policies-scripts && update-crypto-policies --
 # Override the default python3.9 installation paths with 3.13
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.13 10
 RUN alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.13 10
+
+# Override the default gcc 11 installation paths with gcc 12
+RUN alternatives --install /usr/bin/cc cc /usr/bin/gcc-12 100
+RUN alternatives --install /usr/bin/c++ c++ /usr/bin/g++-12 100
 
 RUN pip3 install websockets junit2html

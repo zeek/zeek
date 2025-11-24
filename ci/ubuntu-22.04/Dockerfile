@@ -14,8 +14,8 @@ RUN apt-get update && apt-get -y install \
     cmake \
     curl \
     flex \
-    g++ \
-    gcc \
+    g++-12 \
+    gcc-12 \
     git \
     jq \
     lcov \
@@ -41,3 +41,6 @@ RUN apt-get update && apt-get -y install \
 
 RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov
+
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-12 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-12 100

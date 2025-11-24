@@ -44,6 +44,8 @@ Zeek to ignore checksums with the ``-C`` flag. Otherwise, Zeek discards
 any packets with checksum errors - due to checksum offloading, this may
 be all packets in a particular direction!
 
+.. _providing_script_values:
+ 
 *************************
  Providing Script Values
 *************************

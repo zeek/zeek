@@ -191,6 +191,32 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``Analyzer::UpdateConnVal()`` virtual method has been deprecated. Starting
+  with Zeek 9.1, this method will not be invoked regularly anymore. Instead, switch
+  to ``Analyzer::InitConnVal()`` if you have a need to populate script-level fields
+  directly from an analyzer on the connection or endpoint records.
+
+  This is a pretty advanced use-case. Usually, any data from analyzers should
+  either be queried via custom bif functions, or as parameters of analyzer
+  specific events.
+
+  The motivating reason for this is that ``Analyzer::UpdateConnVal()`` was push-based:
+  For any event that requires a ``connection`` value, analyzers conventionally call
+  ``GetVal()`` on a ``Connection`` instance to receive the scrip-level connection value.
+  Every ``GetVal()`` call recursively invokes ``UpdateConnVal()`` on every analyzer
+  attached to the connection. This allows analyzers to "push" their up-to-date values
+  to the connection or endpoint records. However, there may never have been any
+  script-level consumer actually needing these values. This is now deprecated in
+  favor of a pull-based model where analyzers can install callbacks into the connection
+  or endpoint record at ``Analyzer::InitConnVal()`` time. ``InitConnVal()`` is called
+  exactly once on an analyzer, avoiding the unnecessary recursion for every ``GetVal()``
+  invocation.
+
+  Within the Zeek tree, ``Analyzer::UpdateConnVal()`` was solely used by the
+  ConnSize analyzer and the assumption is that there aren't many out-of-tree
+  users that have used this API. The newer API should also be more efficient
+  for record fields that are seldom read.
+
 - In Zeek 9.1, returning a value from a hook will become an error. Return values
   from a hooks were previously silently discarded. This behavior was found
   surprising in relation with the ``break`` statement available in hooks.

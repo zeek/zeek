@@ -138,6 +138,12 @@ public:
      */
     const RecordValPtr& GetVal() override;
 
+    /**
+     * Returns a raw pointer to this connection's record, or a nullptr if
+     * the \a conn_val member hasn't been initialized yet.
+     */
+    RecordVal* RawVal() { return conn_val.get(); }
+
     void Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
                bool clear_state);
 

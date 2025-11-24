@@ -234,10 +234,30 @@ const RecordValPtr& Connection::GetVal() {
 
         if ( inner_vlan != 0 )
             conn_val->Assign(10, inner_vlan);
+
+        // This is the first time the conn_val is created.
+        // Let all the analyzers in the tree starting at
+        // the session adapter know about it, once.
+        //
+        // AddChildAnalyzer() will do it for new child
+        // analyzers added when conn_val exists.
+        //
+        // If the adapter isn't set yet, SetSessionAdapter()
+        // will do the job, too.
+        if ( adapter ) {
+            analyzer::for_each(*adapter, [this](analyzer::Analyzer& a) {
+                // Call InitConnVal() on all analyzer in this connection's analyzer tree.
+                a.InitConnVal(*conn_val);
+            });
+        }
     }
 
+    // Remove in v9.1: UpdateConnVal() should've been removed.
     if ( adapter )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         adapter->UpdateConnVal(conn_val.get());
+#pragma GCC diagnostic pop
 
     conn_val->AssignTime(3, start_time); // ###
     conn_val->AssignInterval(4, last_time - start_time);
@@ -373,8 +393,16 @@ void Connection::IDString(ODesc* d) const {
 }
 
 void Connection::SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia) {
+    assert(adapter == nullptr); // otherwise leak
+
     adapter = aa;
     primary_PIA = pia;
+
+    // If the conn_val was already initialized before SetSessionAdapter()
+    // was called (is that weird?), run InitConnVal() now.
+    if ( conn_val ) {
+        analyzer::for_each(*adapter, [conn_val = conn_val](analyzer::Analyzer& a) { a.InitConnVal(*conn_val); });
+    }
 }
 
 void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label) {

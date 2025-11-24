@@ -613,7 +613,26 @@ public:
      *
      * @param conn_val The connection value being updated.
      */
+    [[deprecated("Remove in v9.1: Replaced with InitConnVal()")]]
     virtual void UpdateConnVal(RecordVal* conn_val);
+
+    /**
+     * Called once on an analyzer when either a connection's conn_val is
+     * instantiated for the first time, or right after the analyzer is
+     * initialized if the Connection's conn_val is available at that time.
+     *
+     * This is only interesting for analyzers that expose data on the
+     * connection or any nested records.
+     *
+     * The \a conn_val will live at least until the analyzer's Done()
+     * method is called. If an analyzer installs record field callbacks,
+     * these need to be cleared during Done(). Usually by keeping a pointer
+     * to the passed RecordVal instance and updating the fields with the
+     * last valid value.
+     *
+     * @param conn_val
+     */
+    virtual void InitConnVal(RecordVal& conn_val) {}
 
     /**
      * Convenience function that forwards directly to

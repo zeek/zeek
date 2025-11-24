@@ -1046,12 +1046,15 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
     resp_endp_val->Assign(0, resp->Size());
     resp_endp_val->Assign(1, resp->state);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     // Call children's UpdateConnVal
     SessionAdapter::UpdateConnVal(conn_val);
 
     // Have to do packet_children ourselves.
     for ( Analyzer* a : packet_children )
         a->UpdateConnVal(conn_val);
+#pragma GCC diagnostic pop
 }
 
 void TCPSessionAdapter::AttemptTimer(double /* t */) {

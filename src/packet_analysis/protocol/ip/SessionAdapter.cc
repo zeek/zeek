@@ -60,9 +60,13 @@ void SessionAdapter::TapPacket(const Packet* pkt, PacketAction action, SkipReaso
         ta->TapPacket(*pkt, action, skip_reason);
 }
 
+// Remove in v9.1: UpdateConnVal() has been removed.
 void SessionAdapter::UpdateConnVal(RecordVal* conn_val) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     Analyzer::UpdateConnVal(conn_val);
 
     for ( const auto& ta : tap_analyzers )
         ta->UpdateConnVal(conn_val);
+#pragma GCC diagnostic pop
 }

@@ -17,7 +17,6 @@ zkg --version
 
 ANALYZERS="
 https://github.com/zeek/spicy-dhcp
-https://github.com/zeek/spicy-dns
 https://github.com/zeek/spicy-http
 "
 

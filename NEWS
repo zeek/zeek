@@ -44,6 +44,8 @@ New Functionality
   to have a ``ValPtr`` return type and the implementation should return a ``Val::nil``,
   but the Zeek script function signature will have a void return type.
 
+- The ``&on_change`` attribute for tables or sets now accepts variable argument functions.
+
 Changed Functionality
 ---------------------
 

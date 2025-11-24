@@ -1,6 +1,7 @@
 # Load the core cluster support.
 @load ./main
 @load ./pools
+@load ./table
 @load ./telemetry
 
 @if ( Cluster::is_enabled() )

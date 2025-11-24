@@ -1,0 +1,29 @@
+%%{
+#include "zeek/cluster/table/Table.h"
+
+#include "zeek/Func.h"
+#include "zeek/Reporter.h"
+
+using namespace zeek::cluster::table::detail::bif;
+
+%%}
+
+module Cluster::Table;
+
+function publish_element_new%(...%)
+	%{
+	// When used as &on_change function, frame is nil because this is
+	// invoked within TableVal and we're not propagating the call stack.
+	// ScriptLocationScope scope{frame};
+
+	publish_elements_new(zeek::ArgsSpan{*@ARGS@});
+	return zeek::val_mgr->True();
+	%}
+
+function insert_elements_new%(id: string, new_elements: any_vec%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	auto r = insert_elements_new(id->ToStdStringView(), *new_elements->AsVectorVal());
+	return zeek::val_mgr->Bool(r);
+	%}

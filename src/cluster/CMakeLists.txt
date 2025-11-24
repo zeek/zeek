@@ -15,4 +15,5 @@ zeek_add_subdir_library(
 
 add_subdirectory(backend)
 add_subdirectory(serializer)
+add_subdirectory(table)
 add_subdirectory(websocket)

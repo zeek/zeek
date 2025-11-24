@@ -1,0 +1,10 @@
+zeek_add_subdir_library(
+    cluster_table
+    INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    SOURCES
+    Table.cc
+    Plugin.cc
+    BIFS
+    cluster_table.bif)

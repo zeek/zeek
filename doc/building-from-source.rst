@@ -56,14 +56,21 @@ To install these, you can use:
 
      sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel swig zlib-devel
 
-  On pre-``dnf`` systems, use ``yum`` instead.  Additionally, on RHEL/CentOS 7,
-  you can install and activate a devtoolset_ to get access to recent GCC
-  versions. You will also have to install and activate CMake 3.  For example:
+  Additionally, on RHEL/CentOS 9, you can install and activate a devtoolset_ to get access
+  to recent GCC versions. For example:
 
   .. code-block:: console
 
-     sudo yum install cmake3 devtoolset-7
-     scl enable devtoolset-7 bash
+     sudo dnf install gcc-toolset-12-gcc-c++
+     scl enable gcc-toolset-12 bash
+
+  You can also use the ``alternatives`` command to make GCC 12 the default on your system
+  instead of starting a new shell with ``scl enable``:
+
+  .. code-block:: console
+
+     sudo alternatives --install  /usr/bin/gcc gcc /opt/rh/gcc-toolset-12/root/bin/gcc 10
+     sudo alternatives --install  /usr/bin/g++ g++ /opt/rh/gcc-toolset-12/root/bin/g++ 10
 
 * DEB/Debian-based Linux:
 

@@ -37,7 +37,7 @@ development headers for libraries:
     * Bash (for ZeekControl and BTest)
     * BIND8 library or greater (if not covered by system's libresolv)
     * Bison 3.3 or greater (https://www.gnu.org/software/bison/)
-    * C/C++ compiler with C++17 support (GCC 8+ or Clang 9+)
+    * C/C++ compiler with C++20 support (GCC 12+ or Clang 10+)
     * CMake 3.15 or greater (https://cmake.org)
     * Flex (lexical analyzer generator) 2.6 or greater (https://github.com/westes/flex)
     * Libpcap (https://www.tcpdump.org)

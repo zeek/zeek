@@ -59,7 +59,7 @@ namespace detail::bif {
 // Signature: tbl, tpe, key..., val
 //
 //
-void publish_elements_new(zeek::ArgsSpan args) {
+void publish_element_new(zeek::ArgsSpan args) {
     // The event used to send new elements around.
     static auto* elements_new_internal = zeek::event_registry->Lookup("Cluster::Table::elements_new_internal");
     static const auto table_element_new_val = zeek::id::find("TABLE_ELEMENT_NEW")->GetVal();

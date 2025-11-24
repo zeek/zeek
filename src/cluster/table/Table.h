@@ -18,7 +18,13 @@ using ArgsSpan = std::span<const ValPtr>;
 
 namespace cluster::table::detail::bif {
 
-void publish_elements_new(zeek::ArgsSpan args);
+/**
+ * Implements the publish_element_new() bif which only forwards
+ * the arguments as a std::span.
+ *
+ * @param args The original args as span.
+ */
+void publish_element_new(zeek::ArgsSpan args);
 
 /**
  * Insert all elements from \a new_elements into the table identified by \a id.

@@ -16,7 +16,7 @@ function publish_element_new%(...%)
 	// invoked within TableVal and we're not propagating the call stack.
 	// ScriptLocationScope scope{frame};
 
-	publish_elements_new(zeek::ArgsSpan{*@ARGS@});
+	publish_element_new(zeek::ArgsSpan{*@ARGS@});
 	return zeek::val_mgr->True();
 	%}
 

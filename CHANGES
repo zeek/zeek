@@ -1,3 +1,9 @@
+8.1.0-dev.951 | 2025-11-25 08:41:02 -0700
+
+  * Add argument to escape other control characters to escape_utf8 (Tim Wojtulewicz, Corelight)
+
+  * Deprecate json_escape_utf8, replace with escape_utf8 with proper argument meaning (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.948 | 2025-11-25 07:04:08 -0700
 
   * Fix RHEL/CentOS 9 docs to mention GCC 12 (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,7 @@
+8.1.0-dev.945 | 2025-11-25 07:03:35 -0700
+
+  * Fix reference error in the DNS analyzer docs (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.943 | 2025-11-24 09:36:51 -0500
 
   * Remove Spicy DNS from CI (Evan Typanski)

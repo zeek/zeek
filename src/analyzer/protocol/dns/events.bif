@@ -837,8 +837,8 @@ event dns_HTTPS%(c: connection, msg: dns_msg, ans: dns_answer, https: dns_svcb_r
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_end%(c: connection, msg: dns_msg%);
 
-## Generated for DNS Dynamic Update messages. See `RFC for Dynamic Updates in the Domain Name System (DNS UPDATE) <https://datatracker.ietf.org/doc/html/rfc2136`__
-## for more information about Dynamic Updates.
+## Generated for DNS Dynamic Update messages. See :rfc:`2136` for more information
+## about Dynamic Updates.
 ##
 ## c: The connection, which may be UDP or TCP depending on the type of the
 ##    transport-layer session being analyzed.

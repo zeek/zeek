@@ -25,8 +25,7 @@ RUN dnf -y --nobest install \
     cppzmq-devel \
     diffutils \
     flex \
-    gcc \
-    gcc-c++ \
+    gcc-toolset-12-gcc-c++ \
     git \
     jq \
     libpcap-devel \
@@ -50,5 +49,13 @@ RUN dnf -y --nobest install crypto-policies-scripts && update-crypto-policies --
 # Override the default python3.9 installation paths with 3.13
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.13 10
 RUN alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.13 10
+
+# Place required tools from gcc-toolset-12 in a location in `PATH`.
+# Users would typically use `scl enable`, but this is tedious in CI.
+RUN alternatives --install /usr/bin/cc cc /opt/rh/gcc-toolset-12/root/bin/gcc 100
+RUN alternatives --install /usr/bin/c++ c++ /opt/rh/gcc-toolset-12/root/bin/g++ 100
+RUN alternatives --install /usr/bin/ld ld /opt/rh/gcc-toolset-12/root/bin/ld 100
+RUN alternatives --install /usr/bin/ar ar /opt/rh/gcc-toolset-12/root/bin/ar 100
+RUN alternatives --install /usr/bin/nm nm /opt/rh/gcc-toolset-12/root/bin/nm 100
 
 RUN pip3 install websockets junit2html

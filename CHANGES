@@ -1,3 +1,7 @@
+8.1.0-dev.961 | 2025-11-25 11:46:29 -0700
+
+  * Remove unncessary shift operation in asn.1 analyzer (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.959 | 2025-11-25 19:28:31 +0100
 
   * doc/javascript: Add a section about number conversions (Arne Welzel, Corelight)

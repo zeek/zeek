@@ -45,7 +45,8 @@ type ASN1EncodingMeta = record {
 	length:      uint64 = long_len ? binary_to_int64(more_len) : len;
 	index:       uint8 = tag - ASN1_INDEX_TAG_OFFSET;
 	tag_class:   uint8 = (tag & 0xC0) >> 6;
-	simple_type: bool = (tag & 20) >> 5;
+	# The type flag can be zero (simple) or one (constructed).
+	simple_type: bool = (tag & 0x20) == 0x20;
 	tag_num:     uint8 = tag & 0x1F;
 };
 

@@ -1,3 +1,19 @@
+8.1.0-dev.959 | 2025-11-25 19:28:31 +0100
+
+  * doc/javascript: Add a section about number conversions (Arne Welzel, Corelight)
+
+  * Bump zeekjs to v0.20.0 (Arne Welzel, Corelight)
+
+  * ci: Add libnode-dev to Ubuntu 24.04 for ASAN (Arne Welzel, Corelight)
+
+  * Use range views instead of Spicy range helpers (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Require at least gcc-12 on ubuntu-22.04 and centosstream-9 (Benjamin Bannier, Corelight)
+
+    This is a companion PR for https://github.com/zeek/spicy/pull/2206.
+
 8.1.0-dev.951 | 2025-11-25 08:41:02 -0700
 
   * Add argument to escape other control characters to escape_utf8 (Tim Wojtulewicz, Corelight)

@@ -15,7 +15,7 @@ JavaScript
 
    The JavaScript integration does not provide Zeek's typical backwards
    compatibility guarantees at this point. The plugin itself is at semantic
-   version 0.9.1 at the time of writing meaning the API is not stable.
+   version 0.20.0 at the time of writing meaning the API is not stable.
    That said, we'll avoid unnecessary breakage.
 
 
@@ -226,6 +226,34 @@ such example.
 
    These type conversions may change in the future or become configurable via
    callbacks.
+
+Number values
+-------------
+
+The default JavaScript number type is implemented as a double precision floating
+point values. This means that some numbers within Zeek, specifically ``int`` values
+greater than ``2**53 -1`` or less than ``-(2**53-1)`` loose precision when converted
+to JavaScript. Additionally, converting from a JavaScript number to a Zeek native
+type may throw ``TypeError`` exceptions at runtime when the JavaScript number is not
+representable as a ``zeek_int_t`` or ``zeek_uint_t``. Concretely, this happens when
+converting numeric values greater than ``2**64-1`` or less than ``0`` to ``count``,
+or for ``int`` conversions involving numbers greater than ``2**63-1`` and less than
+``-(2**63-1)``. Attempting to convert JavaScript numbers with fractional parts to
+``int`` or ``count`` also results in ``TypeError`` exceptions.
+
+Zeek ``count`` values are always converted to ``BigInt`` in JavaScript.
+For interacting with Zeek, the recommendation is to use ``BigInt`` on the JavaScript
+side if the expected numeric range exceeds JavaScript's ``Number.MAX_SAFE_INTEGER``
+and ``Number.MIN_SAFE_INTEGER`` constants.
+
+If you're using JavaScript to implement a basic configuration system for Zeek,
+these restrictions may not be problematic. However, packet counters or number of
+bytes transferred can exceed ``2**53-1`` in fairly short amounts of time.
+
+Finally, Zeek script cannot represent numeric values larger than ``2**64-1``
+other than converting them to ``string`` or ``double`` values, which is either
+cumbersome or involves precision loss.
+
 
 Record values
 -------------

@@ -1,3 +1,9 @@
+8.1.0-dev.948 | 2025-11-25 07:04:08 -0700
+
+  * Fix RHEL/CentOS 9 docs to mention GCC 12 (Tim Wojtulewicz, Corelight)
+
+  * Switch note about C++ 17 to C++ 20 (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.945 | 2025-11-25 07:03:35 -0700
 
   * Fix reference error in the DNS analyzer docs (Tim Wojtulewicz, Corelight)

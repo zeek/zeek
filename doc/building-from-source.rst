@@ -37,7 +37,7 @@ development headers for libraries:
     * Bash (for ZeekControl and BTest)
     * BIND8 library or greater (if not covered by system's libresolv)
     * Bison 3.3 or greater (https://www.gnu.org/software/bison/)
-    * C/C++ compiler with C++17 support (GCC 8+ or Clang 9+)
+    * C/C++ compiler with C++20 support (GCC 12+ or Clang 10+)
     * CMake 3.15 or greater (https://cmake.org)
     * Flex (lexical analyzer generator) 2.6 or greater (https://github.com/westes/flex)
     * Libpcap (https://www.tcpdump.org)
@@ -56,14 +56,21 @@ To install these, you can use:
 
      sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel swig zlib-devel
 
-  On pre-``dnf`` systems, use ``yum`` instead.  Additionally, on RHEL/CentOS 7,
-  you can install and activate a devtoolset_ to get access to recent GCC
-  versions. You will also have to install and activate CMake 3.  For example:
+  Additionally, on RHEL/CentOS 9, you can install and activate a devtoolset_ to get access
+  to recent GCC versions. For example:
 
   .. code-block:: console
 
-     sudo yum install cmake3 devtoolset-7
-     scl enable devtoolset-7 bash
+     sudo dnf install gcc-toolset-12-gcc-c++
+     scl enable gcc-toolset-12 bash
+
+  You can also use the ``alternatives`` command to make GCC 12 the default on your system
+  instead of starting a new shell with ``scl enable``:
+
+  .. code-block:: console
+
+     sudo alternatives --install  /usr/bin/gcc gcc /opt/rh/gcc-toolset-12/root/bin/gcc 10
+     sudo alternatives --install  /usr/bin/g++ g++ /opt/rh/gcc-toolset-12/root/bin/g++ 10
 
 * DEB/Debian-based Linux:
 

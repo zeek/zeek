@@ -339,6 +339,9 @@ static void terminate_zeek() {
     log_mgr->Terminate();
     input_mgr->Terminate();
     cluster::manager->Terminate();
+
+    event_mgr.Drain();
+
     thread_mgr->Terminate();
 
     broker_mgr->Terminate();
@@ -346,8 +349,6 @@ static void terminate_zeek() {
         cluster::backend->Terminate();
 
     telemetry_mgr->Terminate();
-
-    event_mgr.Drain();
 
     plugin_mgr->FinishPlugins();
 

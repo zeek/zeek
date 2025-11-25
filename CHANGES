@@ -1,3 +1,7 @@
+8.1.0-dev.963 | 2025-11-25 11:47:44 -0700
+
+  * Move event drain during termination before threading/broker_mgr shutdowns (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.961 | 2025-11-25 11:46:29 -0700
 
   * Remove unncessary shift operation in asn.1 analyzer (Tim Wojtulewicz, Corelight)

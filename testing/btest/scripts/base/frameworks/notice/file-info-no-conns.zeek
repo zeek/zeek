@@ -9,6 +9,7 @@
 @load base/frameworks/files
 
 redef enum Notice::Type += { NoticeTestType };
+redef exit_only_after_terminate=T;
 
 event file_new(f: fa_file)
 	{
@@ -23,6 +24,7 @@ event file_hash(f: fa_file, kind: string, hash: string)
 	local n: Notice::Info = Notice::Info($note=NoticeTestType, $msg="test");
 	Notice::populate_file_info2(fi, n);
 	NOTICE(n);
+	terminate();
 	}
 
 event zeek_init()

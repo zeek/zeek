@@ -4,10 +4,17 @@
 
 @load base/frameworks/files
 
+redef exit_only_after_terminate=T;
+
 event zeek_init()
 	{
 	local source: string = "./myfile";
 	Input::add_analysis([$source=source, $name=source]);
+	}
+
+event file_new(f: fa_file)
+	{
+	terminate();
 	}
 
 # @TEST-START-FILE ./myfile

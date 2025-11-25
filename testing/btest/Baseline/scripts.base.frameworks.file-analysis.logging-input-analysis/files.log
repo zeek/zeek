@@ -8,3 +8,4 @@
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
 XXXXXXXXXX.XXXXXX	F6EpcI3V7f021PQMmh	-	-	-	-	-	./myfile	0	SHA256,SHA1,DATA_EVENT,MD5	application/pdf	-	0.000000	-	-	73	-	0	0	F	-	af1d49af9deccf191fc934a7403990f7	5e6561772f2179cfbf603fc19eb1dae7fec5b4cf	63ea625f89799e9e25244467bc2b9c6c05d0f3b23796629586545b4ccad02868	-	-	-
+#close XXXX-XX-XX-XX-XX-XX

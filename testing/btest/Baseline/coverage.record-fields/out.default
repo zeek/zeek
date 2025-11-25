@@ -815,6 +815,31 @@ connection {
         * get_responses: count, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
+        * ifTable: table[int] of record SNMP::IfTable::IfEntry, log=F, optional=T
+            SNMP::IfTable::IfEntry {
+              * id: record conn_id, log=T, optional=F
+                  conn_id { ... }
+              * ifDescr: string, log=T, optional=T
+              * ifInDiscards: count, log=T, optional=T
+              * ifInErrors: count, log=T, optional=T
+              * ifInNUcastPkts: count, log=T, optional=T
+              * ifInOctets: count, log=T, optional=T
+              * ifInUcastPkts: count, log=T, optional=T
+              * ifInUnknownProtos: count, log=T, optional=T
+              * ifIndex: int, log=T, optional=T
+              * ifMtu: int, log=T, optional=T
+              * ifOutDiscards: count, log=T, optional=T
+              * ifOutErrors: count, log=T, optional=T
+              * ifOutNUcastPkts: count, log=T, optional=T
+              * ifOutOctets: count, log=T, optional=T
+              * ifOutUcastPkts: count, log=T, optional=T
+              * ifPhysAddress: string, log=T, optional=T
+              * ifSpeed: count, log=T, optional=T
+              * ifType: int, log=T, optional=T
+              * oidindex: int, log=F, optional=F
+              * ts: time, log=T, optional=T
+              * uid: string, log=T, optional=F
+             }
         * set_requests: count, log=T, optional=T
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F

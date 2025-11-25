@@ -477,6 +477,7 @@ scripts/base/init-default.zeek
     scripts/base/protocols/sip/main.zeek
   scripts/base/protocols/snmp/__load__.zeek
     scripts/base/protocols/snmp/main.zeek
+    scripts/base/protocols/snmp/snmp-iftable.zeek
   scripts/base/protocols/smb/__load__.zeek
     scripts/base/protocols/smb/consts.zeek
     scripts/base/protocols/smb/const-dos-error.zeek

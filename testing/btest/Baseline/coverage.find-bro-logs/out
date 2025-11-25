@@ -56,6 +56,7 @@ smb_files
 smb_mapping
 smtp
 snmp
+snmp_iftable
 socks
 software
 ssh

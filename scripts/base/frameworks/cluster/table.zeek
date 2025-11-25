@@ -3,11 +3,11 @@
 ##! This module explores the idea of using the ``&on_change`` attribute
 ##! on tables for state propagation in a Zeek cluster.
 ##!
-##! The :zeek:see:`Cluster::Table::publish_new_element()` builtin function
+##! The :zeek:see:`Cluster::Table::publish_new_element` builtin function
 ##! can be used as the ``&on_change`` function and will internally publish
 ##! any new elements of a table to a table specific topic. For example,
 ##! ``zeek/table/<module>::<table_identifier>``.
-##! :zeek:see:`Cluster::Table::publish_new_element()` is meant for
+##! :zeek:see:`Cluster::Table::publish_new_element` is meant for
 ##! state dissemination, but not guaranteed synchronization. Existence
 ##! checks or cluster-wide rate-limiting are examples for which this should
 ##! work well.

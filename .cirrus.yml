@@ -198,6 +198,7 @@ env:
   ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
   ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
   ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
+  ZEEK_CI_CONFIGURE_FLAGS_EXTRA:
   # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
   # the zeek-testing-private repository.
   ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[!dbdba93df9c166f926480cebff52dab303589257b3b3ee53aa392021aff2881ed9aafefef26aa9a1b71a49d663d1361c!]

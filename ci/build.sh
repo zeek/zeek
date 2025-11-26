@@ -14,11 +14,11 @@ if [[ "${CIRRUS_OS}" == "darwin" ]]; then
 fi
 
 if [[ "${ZEEK_CI_CREATE_ARTIFACT}" != "1" ]]; then
-    ./configure ${ZEEK_CI_CONFIGURE_FLAGS}
+    ./configure ${ZEEK_CI_CONFIGURE_FLAGS} ${ZEEK_CI_CONFIGURE_FLAGS_EXTRA}
     cd build
     make -j ${ZEEK_CI_CPUS}
 else
-    ./configure ${ZEEK_CI_CONFIGURE_FLAGS} --prefix=${CIRRUS_WORKING_DIR}/install
+    ./configure ${ZEEK_CI_CONFIGURE_FLAGS} ${ZEEK_CI_CONFIGURE_FLAGS_EXTRA} --prefix=${CIRRUS_WORKING_DIR}/install
     cd build
     make -j ${ZEEK_CI_CPUS} install
     cd ..

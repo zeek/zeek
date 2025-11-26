@@ -73,6 +73,91 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
+ZeekProxyTelemetry::ZeekProxyTelemetry(zmq::socket_t&& arg_req) : req(std::move(arg_req)) {
+    // Registry telemetry metric callbacks with the manager. The callbacks run when someone
+    // scrapes the Prometheus endpoint.
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_received", {},
+                                         "Number of messages received by the frontend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[0];
+                                         });
+
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_received", {},
+                                         "Number of bytes received by the frontend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[1];
+                                         });
+
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_sent", {},
+                                         "Number of messages sent by the frontend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[2];
+                                         });
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_sent", {},
+                                         "Number of bytes sent by the frontend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[3];
+                                         });
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_received", {},
+                                         "Number of messages received by the backend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[4];
+                                         });
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_received", {},
+                                         "Number of bytes received by the backend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[5];
+                                         });
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_sent", {},
+                                         "Number of messages sent by the backend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[6];
+                                         });
+    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_sent", {},
+                                         "Number of bytes sent by the backend socket", "1", [this]() -> double {
+                                             RefreshStatisticsIfNeeded();
+                                             return proxy_stats[7];
+                                         });
+}
+
+void ZeekProxyTelemetry::RefreshStatisticsIfNeeded() {
+    // Closed? A bit weird, but lets cover this.
+    if ( ! req )
+        return;
+
+    double now = util::current_time();
+    if ( last_updated < now - 0.01 ) {
+        RefreshStatistics();
+        last_updated = util::current_time();
+    }
+}
+
+void ZeekProxyTelemetry::RefreshStatistics() {
+    static std::string cmd = "STATISTICS";
+    static zmq::const_buffer buf{cmd.data(), cmd.size()};
+    zmq::message_t msg;
+    bool more = true;
+
+    // I guess we'll see if this might hang if we query at the wrong time, but
+    // that would lockup the whole node because this code runs on the main thread
+    // and it should be easily recognizable on the stack when attaching via gdb
+    // or sending SIGABRT to dump a core.
+    //
+    // The REQ/REP socket and zmq::proxy_steerable() shouldn't just go away. They
+    // are released by the main thread and this code runs also on the main thread
+    // via the telemetry callbacks, so it should be fine.
+    try {
+        req.send(buf);
+        for ( int i = 0; more; i++ ) {
+            zmq::recv_result_t recv_result = req.recv(msg, zmq::recv_flags::none);
+            proxy_stats[i] = static_cast<double>(*msg.data<uint64_t>());
+            more = msg.more();
+        }
+    } catch ( zmq::error_t& err ) {
+        reporter->Warning("Unexpected exception refreshing ZeroMQ statistics: %s (%d)", err.what(), err.num());
+    }
+}
+
 std::unique_ptr<Backend> ZeroMQBackend::Instantiate(std::unique_ptr<EventSerializer> es,
                                                     std::unique_ptr<LogSerializer> ls,
                                                     std::unique_ptr<detail::EventHandlingStrategy> ehs) {
@@ -182,15 +267,24 @@ void ZeroMQBackend::DoTerminate() {
     main_inproc.close();
     child_inproc.close();
 
-    ZEROMQ_DEBUG("Closing ctx");
-    ctx.close();
-
     // If running the proxy thread, terminate it, too.
     if ( proxy_thread ) {
         ZEROMQ_DEBUG("Shutting down proxy thread");
         proxy_thread->Shutdown();
         proxy_thread.reset();
     }
+
+    // Shutdown REQ socket for proxy telemetry, this
+    // needs to be done after shutting down the proxy
+    // thread, but before closing the main context,
+    // otherwise ctx.close() below blocks.
+    if ( proxy_telemetry ) {
+        ZEROMQ_DEBUG("Shutting proxy telemetry");
+        proxy_telemetry->Shutdown();
+    }
+
+    ZEROMQ_DEBUG("Closing ctx");
+    ctx.close();
 
     // ThreadedBackend::DoTerminate() cleans up the onloop instance.
     ThreadedBackend::DoTerminate();
@@ -302,8 +396,32 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, ipv6, listen_xpub_nodrop,
-                                                 proxy_io_threads);
+    // Create a inproc REQ/REP connection for use by ProxyTelmeetry so that
+    // we can request statistics telemetry callbacks from the zmq::proxy_steerable()
+    // invocation running in a separate thread.
+    std::string control_endpoint = "inproc://proxy-control-rep";
+    zmq::socket_t req(zmq::socket_t(ctx, zmq::socket_type::req));
+    zmq::socket_t rep(zmq::socket_t(ctx, zmq::socket_type::rep));
+
+    try {
+        rep.bind(control_endpoint);
+    } catch ( zmq::error_t& err ) {
+        zeek::reporter->Error("ZeroMQ: Failed to bind proxy control socket %s: %s (%d)", control_endpoint.c_str(),
+                              err.what(), err.num());
+        return false;
+    }
+
+    try {
+        req.connect(control_endpoint);
+    } catch ( zmq::error_t& err ) {
+        zeek::reporter->Error("ZeroMQ: Failed to connect proxy control socket %s: %s (%d)", control_endpoint.c_str(),
+                              err.what(), err.num());
+        return false;
+    }
+
+    proxy_telemetry = std::make_unique<ZeekProxyTelemetry>(std::move(req));
+    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, std::move(rep), ipv6,
+                                                 listen_xpub_nodrop, proxy_io_threads);
     return proxy_thread->Start();
 }
 

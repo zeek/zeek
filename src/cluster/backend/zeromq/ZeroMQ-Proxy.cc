@@ -24,7 +24,7 @@ void thread_fun(ProxyThread::Args* args) {
 
     while ( ! done ) {
         try {
-            zmq::proxy(args->xsub, args->xpub, zmq::socket_ref{} /*capture*/);
+            zmq::proxy_steerable(args->xsub, args->xpub, /*capture=*/zmq::socket_ref{}, /*control=*/args->control);
         } catch ( zmq::error_t& err ) {
             if ( err.num() == EINTR )
                 continue;
@@ -51,6 +51,7 @@ bool ProxyThread::Start() {
 
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
+    zmq::socket_t rep(ctx, zmq::socket_type::rep);
 
     // Enable XPUB_VERBOSER unconditional to enforce nodes receiving
     // notifications about any new and removed subscriptions, even if
@@ -77,7 +78,7 @@ bool ProxyThread::Start() {
         return false;
     }
 
-    args = {.xpub = std::move(xpub), .xsub = std::move(xsub)};
+    args = {.xpub = std::move(xpub), .xsub = std::move(xsub), .control = std::move(control)};
 
     thread = std::thread(thread_fun, &args);
 

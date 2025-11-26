@@ -20,6 +20,49 @@ using CounterPtr = std::shared_ptr<Counter>;
 
 namespace cluster::zeromq {
 
+/**
+ * Class providing metrics for the XPUB/XSUB proxy using Zeek's telemetry manager.
+ *
+ * If ProxyThread should ever run outside of Zeek, you'll likely implement a separate
+ * class that doesn't depend on Zeek's Telemetry Manager.
+ *
+ * The lifetime here is a bit hairy. This class installs callbacks capturing [this] with the
+ * telemetry manager. This should be okay, but if not, it's probably better to promote the
+ * ZeroMQ XPUB/XSUB proxy out of the ZeroMQBackend and manage it separately down the road.
+ */
+class ZeekProxyTelemetry {
+public:
+    ZeekProxyTelemetry(zmq::socket_t&& arg_req);
+    ~ZeekProxyTelemetry() { Shutdown(); }
+
+    // No copy or assignment.
+    ZeekProxyTelemetry(const ZeekProxyTelemetry&) = delete;
+    ZeekProxyTelemetry(ZeekProxyTelemetry&&) = delete;
+    ZeekProxyTelemetry operator=(ZeekProxyTelemetry&) = delete;
+
+    /**
+     * Close the socket.
+     *
+     * The constructor installs callbacks with the telemetry manager
+     * referencing this, so we avoid freeing ZeekProxyTelemetry to
+     * avoid accessing released memory and return the most recent
+     * values from proxy_stats.
+     */
+    void Shutdown() { req.close(); }
+
+private:
+    /**
+     * Send STATISTICS request and receive all values into proxy_stats.
+     */
+    void RefreshStatistics();
+    void RefreshStatisticsIfNeeded();
+
+    zmq::socket_t req;
+    double last_updated = 0.0;
+    double proxy_stats[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+};
+
+
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
     /**
@@ -133,6 +176,7 @@ private:
 
     int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;
+    std::unique_ptr<ZeekProxyTelemetry> proxy_telemetry;
 
     // Tracking the subscriptions on the local XPUB socket.
     std::map<std::string, SubscribeCallback> subscription_callbacks;

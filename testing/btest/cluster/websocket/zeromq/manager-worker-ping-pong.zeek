@@ -29,6 +29,7 @@
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >out"
 #
 # @TEST-EXEC: btest-bg-wait 30
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./manager/.stderr
 # @TEST-EXEC: btest-diff ./worker-1/out
@@ -44,6 +45,7 @@ redef Log::default_rotation_interval = 0sec;
 
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
+global finish: event(name: string) &is_used;
 
 global ping_count = 0;
 
@@ -84,6 +86,12 @@ event Cluster::node_up(name: string, id: string)
 		]);
 	}
 
+event Cluster::node_down(name: string, id: string)
+	{
+	print fmt("%s: Cluster::node_down %s", current_time(), name);
+	terminate();
+	}
+
 global added = 0;
 global lost = 0;
 
@@ -100,8 +108,9 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, r
 
 	if ( lost == 3 )
 		{
-		print fmt("%s: terminate()", current_time());
-		terminate();
+		# When all WebSocket clients are gone, publish finish to the worker topic.
+		print fmt("%s: Cluster::publish of finish", current_time());
+		Cluster::publish(Cluster::worker_topic, finish, Cluster::node);
 		}
 	}
 # @TEST-END-FILE
@@ -114,9 +123,9 @@ event Cluster::node_up(name: string, id: string)
 	print fmt("%s: Cluster::node_up %s", current_time(), name);
 	}
 
-event Cluster::node_down(name: string, id: string)
+event finish(name: string)
 	{
-	print fmt("%s: Cluster::node_down %s", current_time(), name);
+	print fmt("%s: got finish from %s, terminate()", current_time(), name);
 	terminate();
 	}
 # @TEST-END-FILE

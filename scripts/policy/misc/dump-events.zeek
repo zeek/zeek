@@ -16,6 +16,9 @@ export {
 	## Only include events matching the given pattern into output. By default, the
 	## pattern matches all events.
 	option include = /.*/;
+
+	## Report in JSON format, with one event per line.
+	option use_json = F;
 }
 
 event zeek_init() &priority=999
@@ -28,6 +31,32 @@ event new_event(name: string, args: call_argument_vector)
 	{
 	if ( include !in name )
 		return;
+
+	if ( use_json )
+		{
+		local j: table[string] of any = {
+			["ts"] = network_time(),
+			["event"] = name,
+		} &ordered;
+
+		if ( include_args && |args| > 0 )
+			{
+			local j2: table[string] of any = {} &ordered;
+
+			for ( _, arg in args )
+				{
+				if ( arg?$value )
+					j2[arg$name] = arg$value;
+				else if ( arg?$default_val )
+					j2[arg$name] = arg$default_val;
+				}
+
+			j["args"] = j2;
+			}
+
+		print to_json(j);
+		return;
+		}
 
 	print fmt("%17.6f %s", network_time(), name);
 
@@ -42,8 +71,8 @@ event new_event(name: string, args: call_argument_vector)
 
 		if ( a?$value )
 			print fmt("                  [%d] %-18s = %s", i, proto, a$value);
-		else
-			print fmt("                  | %-18s = %s [default]", proto, a$value);
+		else if ( a?$default_val )
+			print fmt("                  | %-18s = %s [default]", proto, a$default_val);
 		}
 
 	print "";

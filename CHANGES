@@ -1,3 +1,11 @@
+8.1.0-dev.967 | 2025-11-25 19:42:56 -0800
+
+  * Bugfix: don't use call_argument$value after determining it doesn't exist (Christian Kreibich, Corelight)
+
+  * Remove canonifiers from the scripts.policy.misc.dump-events test (Christian Kreibich, Corelight)
+
+  * Support JSON output in the dump-events policy script (Christian Kreibich, Corelight)
+
 8.1.0-dev.963 | 2025-11-25 11:47:44 -0700
 
   * Move event drain during termination before threading/broker_mgr shutdowns (Tim Wojtulewicz, Corelight)

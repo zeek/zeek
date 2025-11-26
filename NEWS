@@ -156,6 +156,9 @@ New Functionality
   was only handling opcode 0 (normal requests) so that information wasn't pertinent, but
   with the addition of dynamic updates we're now handling a second opcode.
 
+- The `policy/misc/dump-events.zeek` script now features a ``DumpEvents::use_json``
+  Boolean toggle, off by default, to report Zeek's events in JSON format.
+
 Changed Functionality
 ---------------------
 

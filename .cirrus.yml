@@ -606,6 +606,7 @@ ubsan_sanitizer_task:
     CXX: clang++-19
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
 
@@ -621,6 +622,7 @@ ubsan_sanitizer_zam_task:
     CC: clang-19
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
     ZEEK_CI_SKIP_UNIT_TESTS: 1
@@ -642,6 +644,7 @@ tsan_sanitizer_task:
     CC: clang-19
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     # If this is defined directly in the environment, configure fails to find
     # OpenSSL. Instead we define it with a different name and then give it

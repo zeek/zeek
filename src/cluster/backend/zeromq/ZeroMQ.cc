@@ -306,8 +306,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_rep_endpoint, ipv6, listen_xpub_nodrop,
-                                                 proxy_io_threads);
+    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_rep_endpoint, ipv6,
+                                                 listen_xpub_nodrop, proxy_io_threads);
     return proxy_thread->Start();
 }
 

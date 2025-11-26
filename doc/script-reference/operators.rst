@@ -272,7 +272,7 @@ field name must be in the declaration of the record type.
   * - Field value existence test
     - ``a?$b``
     - Evaluates to type :zeek:type:`bool`.  True if the specified field has
-      been assigned a value, or if not.
+      been assigned a value, or false if not.
 
 .. _pattern-operators:
 

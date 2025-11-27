@@ -6,6 +6,7 @@
 #
 # @TEST-PORT: XPUB_PORT
 # @TEST-PORT: XSUB_PORT
+# @TEST-PORT: REP_PORT
 # @TEST-PORT: LOG_PULL_PORT
 #
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek

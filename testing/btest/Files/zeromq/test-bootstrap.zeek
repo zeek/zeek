@@ -15,5 +15,7 @@ redef local_addr_str = addr_to_uri(Cluster::nodes["manager"]$ip);
 
 redef Cluster::Backend::ZeroMQ::listen_xpub_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("XPUB_PORT"))));
 redef Cluster::Backend::ZeroMQ::listen_xsub_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("XSUB_PORT"))));
+redef Cluster::Backend::ZeroMQ::listen_rep_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("REP_PORT"))));
 redef Cluster::Backend::ZeroMQ::connect_xpub_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("XSUB_PORT"))));
 redef Cluster::Backend::ZeroMQ::connect_xsub_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("XPUB_PORT"))));
+redef Cluster::Backend::ZeroMQ::connect_req_endpoint = fmt("tcp://%s:%s", local_addr_str, port_to_count(to_port(getenv("REP_PORT"))));

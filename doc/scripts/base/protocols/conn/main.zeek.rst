@@ -82,7 +82,7 @@ Types
    .. zeek:field:: service :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       A comma-separated list of confirmed protocol(s).
-      With :zeek:see:DPD::track_removed_services_in_connection, the list
+      With :zeek:see:`DPD::track_removed_services_in_connection`, the list
       includes the same protocols prefixed with "-" to record that Zeek
       dropped them due to parsing violations."
 

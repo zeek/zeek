@@ -920,7 +920,7 @@ Events
       :zeek:id:`conn_generic_packet_threshold_crossed` instead.
 
 .. zeek:id:: new_event
-   :source-code: policy/misc/dump-events.zeek 27 50
+   :source-code: policy/misc/dump-events.zeek 30 79
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, params: :zeek:type:`call_argument_vector`)
 

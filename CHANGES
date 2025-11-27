@@ -1,3 +1,16 @@
+8.1.0-dev.971 | 2025-11-26 18:39:27 +0100
+
+  * ci: Disable JavaScript for UBSAN/TSAN (Arne Welzel, Corelight)
+
+    The smoke tests within the repo do not run cleanly with UBSAN/TSAN. For
+    now disable these.
+
+    ZeekJS issue created here: https://github.com/corelight/zeekjs/issues/119
+
+  * ci: Disable JavaScript for clang_libcpp task (Arne Welzel, Corelight)
+
+  * ci: Add ZEEK_CI_CONFIGURE_FLAGS_EXTRA (Arne Welzel, Corelight)
+
 8.1.0-dev.967 | 2025-11-25 19:42:56 -0800
 
   * Bugfix: don't use call_argument$value after determining it doesn't exist (Christian Kreibich, Corelight)

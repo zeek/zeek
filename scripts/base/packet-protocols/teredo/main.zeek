@@ -17,8 +17,7 @@ export {
         const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
 }
 
-const teredo_ports = { 3544/udp };
-redef likely_server_ports += { teredo_ports };
+const teredo_ports = { 3544/udp } &redef;
 
 event zeek_init() &priority=20
 	{

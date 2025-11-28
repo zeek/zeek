@@ -73,8 +73,7 @@ redef record connection += {
 	dce_rpc_backing: table[count] of BackingState &optional;
 };
 
-const ports = { 135/tcp };
-redef likely_server_ports += { ports };
+const ports = { 135/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

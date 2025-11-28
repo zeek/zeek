@@ -125,13 +125,13 @@ redef record Info += {
 
 # 67/udp is the server's port, 68/udp the client.
 # 4011/udp seems to be some proxyDHCP thing.
-const ports = { 67/udp, 68/udp, 4011/udp };
-redef likely_server_ports += { 67/udp };
+const server_ports = { 67/udp, 4011/udp } &redef;
+const client_ports = { 68/udp } &redef;
 
 event zeek_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, Log::Stream($columns=Info, $ev=log_dhcp, $path="dhcp", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, server_ports, client_ports);
 	}
 
 function join_data_expiration(t: table[count] of Info, idx: count): interval

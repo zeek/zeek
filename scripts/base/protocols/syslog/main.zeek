@@ -33,8 +33,7 @@ redef record connection += {
 	syslog: Info &optional;
 };
 
-const ports = { 514/udp };
-redef likely_server_ports += { ports };
+const ports = { 514/udp } &redef;
 
 event zeek_init() &priority=5
 	{

@@ -185,13 +185,11 @@ redef record Info += {
 const ssl_ports = {
 	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
+} &redef;
 
 # There are no well known DTLS ports at the moment. Let's
 # just add 443 for now for good measure - who knows :)
-const dtls_ports = { 443/udp };
-
-redef likely_server_ports += { ssl_ports, dtls_ports };
+const dtls_ports = { 443/udp } &redef;
 
 # Priority needs to be higher than priority of zeek_init in ssl/files.zeek
 event zeek_init() &priority=6

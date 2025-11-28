@@ -158,8 +158,7 @@ redef record connection += {
 const ports = {
 	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
 	8000/tcp, 8080/tcp, 8888/tcp,
-};
-redef likely_server_ports += { ports };
+} &redef;
 
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5

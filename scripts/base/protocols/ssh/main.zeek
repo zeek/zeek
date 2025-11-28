@@ -133,8 +133,7 @@ redef record connection += {
 	ssh: Info &optional;
 };
 
-const ports = { 22/tcp };
-redef likely_server_ports += { ports };
+const ports = { 22/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

@@ -69,8 +69,7 @@ redef record connection += {
 	snmp: SNMP::Info &optional;
 };
 
-const ports = { 161/udp, 162/udp };
-redef likely_server_ports += { ports };
+const ports = { 161/udp, 162/udp } &redef;
 
 event zeek_init() &priority=5
 	{

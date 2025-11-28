@@ -37,8 +37,7 @@ redef record connection += {
 	modbus: Info &optional;
 };
 
-const ports = { 502/tcp };
-redef likely_server_ports += { ports };
+const ports = { 502/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

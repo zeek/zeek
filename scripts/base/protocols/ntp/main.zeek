@@ -55,8 +55,7 @@ redef record connection += {
 	ntp: Info &optional;
 };
 
-const ports = { 123/udp };
-redef likely_server_ports += { ports };
+const ports = { 123/udp } &redef;
 
 event zeek_init() &priority=5
 	{

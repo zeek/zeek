@@ -60,8 +60,7 @@ redef record connection += {
 	radius: Info &optional;
 };
 
-const ports = { 1812/udp };
-redef likely_server_ports += { ports };
+const ports = { 1812/udp } &redef;
 
 event zeek_init() &priority=5
 	{

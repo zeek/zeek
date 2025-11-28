@@ -70,8 +70,6 @@ redef record connection += {
 	postgresql_state: State &optional;
 };
 
-redef likely_server_ports += { ports };
-
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_POSTGRESQL, ports);

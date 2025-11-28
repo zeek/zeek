@@ -145,8 +145,7 @@ redef record connection += {
 	mqtt_state: State &optional;
 };
 
-const ports = { 1883/tcp };
-redef likely_server_ports += { ports };
+const ports = { 1883/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

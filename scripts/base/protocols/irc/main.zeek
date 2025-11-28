@@ -40,8 +40,7 @@ redef record connection += {
 	irc:  Info &optional;
 };
 
-const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
-redef likely_server_ports += { ports };
+const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

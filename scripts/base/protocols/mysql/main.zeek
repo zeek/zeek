@@ -41,7 +41,7 @@ redef record connection += {
 	mysql: Info &optional;
 };
 
-const ports = { 1434/tcp, 3306/tcp };
+const ports = { 1434/tcp, 3306/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

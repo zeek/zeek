@@ -115,8 +115,7 @@ redef record connection += {
 	smtp_state: State &optional;
 };
 
-const ports = { 25/tcp, 587/tcp };
-redef likely_server_ports += { ports };
+const ports = { 25/tcp, 587/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

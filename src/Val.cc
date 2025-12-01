@@ -4160,10 +4160,12 @@ const PortValPtr& ValManager::Port(uint32_t port_num) {
 TEST_SUITE_BEGIN("ZValElement");
 
 TEST_CASE("default constructor") {
-    // default constructor doesn't do anything.
+    // default constructor doesn't do anything and calling
+    // accessors on it triggers an abort() by default in
+    // debug mode due to the State::NoInit asserts.
+    //
+    // Verify basic construction/destruction works.
     zeek::ZValElement element;
-    CHECK(! element.HoldsZVal());
-    CHECK(! element.IsManaged());
 }
 
 TEST_CASE("holds CountVal") {

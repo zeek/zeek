@@ -1140,6 +1140,7 @@ public:
      * The state of a ZValElement.
      */
     enum class State : uint8_t {
+        NoInit,        // Not yet initialized. Used to catch usage errors.
         Unset,         // Holds nothing but tag and is_managed are valid.
         ZVal,          // Holds a ZVal in data.
         FieldCallback, // Holds a pointer to a RecordFieldCallback in data.
@@ -1170,7 +1171,7 @@ public:
      *
      * @param t The type to initialize the element with.
      */
-    ZValElement(const TypePtr& t) : is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
+    ZValElement(const TypePtr& t) : state(State::Unset), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
 
     /**
      * Manually construct a ZValElement with an optional ZVal.
@@ -1189,44 +1190,32 @@ public:
      * Copy constructor.
      */
     ZValElement(const ZValElement& o) : state(o.state), is_managed(o.is_managed), tag(o.tag) {
-        if ( state == State::FieldCallback )
-            data.field_callback = o.data.field_callback;
-        else if ( state == State::ZVal ) {
-            data.zval = o.data.zval;
-            if ( is_managed )
-                Ref(data.zval.ManagedVal());
-        }
-        else {
-            assert(false);
-        }
-    }
+        assert(o.state != State::NoInit);
 
-    /**
-     * Destructor.
-     */
-    ~ZValElement() {
+        data.zval = o.data.zval;
+
         if ( HoldsZVal() && IsManaged() )
-            Unref(data.zval.ManagedVal());
+            Ref(data.zval.ManagedVal());
     }
 
     /**
-     * Assign one ZValElement instance to another with automatic memory management
-     * based on is_managed.
+     * Assign one ZValElement instance to another with automatic memory management.
      */
     ZValElement& operator=(const ZValElement& o) {
+        assert(o.state != State::NoInit);
+
         if ( this == &o )
             return *this;
 
+        // Holds a managed ZVal?
         if ( HoldsZVal() && IsManaged() )
             Unref(data.zval.ManagedVal());
 
         state = o.state;
         is_managed = o.is_managed;
         tag = o.tag;
-        if ( o.HoldsFieldCallback() )
-            data.field_callback = o.data.field_callback;
-        else
-            data.zval = o.data.zval;
+
+        data.zval = o.data.zval;
 
         if ( HoldsZVal() && IsManaged() )
             Ref(data.zval.ManagedVal());
@@ -1235,11 +1224,27 @@ public:
     }
 
     /**
+     * Move constructor.
+     */
+    ZValElement(ZValElement&& o) noexcept : state(o.state), is_managed(o.is_managed), tag(o.tag) {
+        assert(o.state != State::NoInit);
+
+        data.zval = o.data.zval; // Adopts the reference / copies the callback.
+
+        // Keep is_managed and tag members valid but reset anything
+        // else on the incoming ZValElement.
+        o.state = State::Unset;
+        o.data.zval = {};
+    }
+
+    /**
      * Move assignment operator.
      *
      * Adopts the reference if \a o holds a managed ZVal.
      */
     ZValElement& operator=(ZValElement&& o) noexcept {
+        assert(o.state != State::NoInit);
+
         if ( this == &o )
             return *this;
 
@@ -1249,10 +1254,8 @@ public:
         state = o.state;
         is_managed = o.is_managed;
         tag = o.tag;
-        if ( o.HoldsFieldCallback() )
-            data.field_callback = o.data.field_callback;
-        else
-            data.zval = o.data.zval; // Adopts the reference and copies the callback.
+
+        data.zval = o.data.zval; // Adopts the reference / copies the callback.
 
         // Keep is_managed and tag members valid but reset anything
         // else on the incoming ZValElement.
@@ -1260,6 +1263,14 @@ public:
         o.data.zval = {};
 
         return *this;
+    }
+
+    /**
+     * Destructor.
+     */
+    ~ZValElement() {
+        if ( HoldsZVal() && IsManaged() )
+            Unref(data.zval.ManagedVal());
     }
 
     /**
@@ -1273,6 +1284,8 @@ public:
      * ZVal constructors also do, so that seems consistent.
      */
     ZValElement& operator=(const ZVal& zv) {
+        assert(state != State::NoInit);
+
         if ( HoldsZVal() && IsManaged() )
             Unref(data.zval.ManagedVal());
 
@@ -1286,14 +1299,19 @@ public:
      * Initialize a ZValElement using a TypeDecl assignment.
      *
      * This is used at record construction time to set the is_managed
-     * and tag fields properly.
+     * and tag fields properly and get the ZValElement into the unset
+     * state.
      */
     const ZValElement& operator=(const TypeDecl& td) noexcept {
         assert(! HoldsZVal());
         assert(! HoldsFieldCallback());
         assert(tag == TYPE_ERROR);
+        assert(state == State::NoInit);
+
+        state = State::Unset;
         is_managed = td.is_managed;
         tag = td.tag;
+
         return *this;
     }
 
@@ -1301,6 +1319,8 @@ public:
      * Switch ZValElement to be callback based.
      */
     ZValElement& operator=(detail::RecordFieldCallback* cb) {
+        assert(state != State::NoInit);
+
         if ( HoldsZVal() && IsManaged() )
             Unref(data.zval.ManagedVal());
 
@@ -1319,24 +1339,29 @@ public:
     operator bool() const noexcept { return HoldsZVal(); }
 
     const ZVal* operator->() const noexcept {
+        assert(state != State::NoInit);
         assert(! HoldsFieldCallback());
         return &data.zval;
     }
 
     ZVal& operator*() noexcept {
+        assert(state != State::NoInit);
         assert(! HoldsFieldCallback());
         return data.zval;
     }
 
     const ZVal& operator*() const noexcept {
+        assert(state != State::NoInit);
         assert(! HoldsFieldCallback());
         return data.zval;
     }
 
     bool HoldsZVal() const noexcept { return state == State::ZVal; }
     bool HoldsFieldCallback() const noexcept { return state == State::FieldCallback; }
-    bool IsManaged() const noexcept { return is_managed; }
-
+    bool IsManaged() const noexcept {
+        assert(state != State::NoInit);
+        return is_managed;
+    }
 
     const detail::RecordFieldCallback* FieldCallback() const noexcept {
         assert(! HoldsZVal());
@@ -1344,12 +1369,17 @@ public:
         return data.field_callback;
     }
 
-    TypeTag Tag() const noexcept { return tag; }
+    TypeTag Tag() const noexcept {
+        assert(state != State::NoInit);
+        return tag;
+    }
 
     /**
      * Reset value or callback.
      */
     void Reset() {
+        assert(state != State::NoInit);
+
         if ( HoldsZVal() && IsManaged() )
             Unref(data.zval.ManagedVal());
 
@@ -1381,7 +1411,7 @@ public:
     }
 
 private:
-    State state = State::Unset;
+    State state = State::NoInit;
     bool is_managed = false;
     TypeTag tag = TYPE_ERROR;
     // 5 bytes of padding here.

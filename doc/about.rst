@@ -170,7 +170,7 @@ As a result, deploying Zeek required overcoming a steep learning curve.
 
 In 2010, NSF sought to address this challenge by awarding ICSI a grant from its
 Software Development for Cyberinfrastructure fund. The `National Center for
-Supercomputing Applications (NCSA) <https://www.ncsa.illinois.edu/>`_ joined the
+Supercomputing Applications (NCSA) <https://ncsa.illinois.edu/>`_ joined the
 team as a core partner, and the Zeek project began to overhaul many of the
 user-visible parts of the system for the 2.0 release in 2012.
 

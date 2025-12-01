@@ -1,3 +1,12 @@
+8.1.0-dev.979 | 2025-12-01 11:19:09 -0500
+
+  * Fix `:zeek:see:` in backtick in docs (Evan Typanski, Corelight)
+
+    The original change got reverted from auto-docs generation, so this
+    fixes it in the script file itself. Co-authoring for attribution.
+
+    Co-authored-by: RyugaXhypeR <ryugashyper@gmail.com>
+
 8.1.0-dev.977 | 2025-11-30 19:43:02 -0700
 
   * Add flags for controlling utf8 escaping instead of bools (Tim Wojtulewicz, Corelight)

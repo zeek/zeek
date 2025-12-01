@@ -1,8 +1,10 @@
+8.1.0-dev.977 | 2025-11-30 19:43:02 -0700
+
+  * Add flags for controlling utf8 escaping instead of bools (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.974 | 2025-11-29 08:43:35 -0700
 
   * Docs: Fixed content linkage with `:zeek:see:` directive (RyugaXhypeR)
-
-  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
 
 8.1.0-dev.971 | 2025-11-26 18:39:27 +0100
 

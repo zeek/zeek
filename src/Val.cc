@@ -432,7 +432,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             if ( tag == TYPE_FUNC )
                 desc = util::strstrip(desc);
 
-            writer.String(util::escape_utf8(desc));
+            writer.String(util::escape_utf8(desc, util::ESCAPE_UNPRINTABLE_CONTROLS));
             break;
         }
 

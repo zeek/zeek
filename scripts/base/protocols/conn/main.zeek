@@ -28,7 +28,7 @@ export {
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
 		## A comma-separated list of confirmed protocol(s).
-		## With :zeek:see:DPD::track_removed_services_in_connection, the list
+		## With :zeek:see:DPD::`track_removed_services_in_connection`, the list
 		## includes the same protocols prefixed with "-" to record that Zeek
 		## dropped them due to parsing violations."
 		service:      string          &log &optional;

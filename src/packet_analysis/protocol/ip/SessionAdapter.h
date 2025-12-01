@@ -58,17 +58,6 @@ public:
     virtual void TapPacket(const Packet& pkt, PacketAction action, SkipReason skip_reason) = 0;
 
     /**
-     * Hook for when the script-level connection record is updated.
-     *
-     * This is invoked when the session's UpdateConnVal() method has invoked UpdateConnVal()
-     * on all protocol analyzers attached to the session.
-     *
-     * @param conn_val The script-level connection record associated with the
-     *                 Connection this TapAnalyzer is attached to.
-     */
-    virtual void UpdateConnVal(RecordVal* conn_val) {}
-
-    /**
      * Hook for initialization before tapping begins.
      *
      * This method is invoked after a tap analyzer has been added to a SessionAdapter.
@@ -244,11 +233,6 @@ public:
      */
     void TapPacket(const Packet* pkt, PacketAction action = PacketAction::Deliver,
                    SkipReason skip_reason = SkipReason::None) const;
-
-    /**
-     * Overridden from parent class, calling UpdateConnVal() on TapAnalyzer instances, too.
-     */
-    void UpdateConnVal(RecordVal* conn_val) override;
 
     /**
      * Override to install endpoint callbacks.

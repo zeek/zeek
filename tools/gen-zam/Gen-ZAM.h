@@ -945,6 +945,7 @@ public:
 
     void IndentUp() { ++indent_level; }
     void IndentDown() { --indent_level; }
+    std::string IndentString() { return std::string(indent_level, '\t'); }
     void StartString() { string_lit = true; }
     void EndString() { string_lit = false; }
     void SetNoNL(bool _no_NL) { no_NL = _no_NL; }

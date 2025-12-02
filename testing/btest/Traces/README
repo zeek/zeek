@@ -59,3 +59,9 @@ Trace Index/Sources:
 - smb/cifs_negotiate_lanman.pcap
   Generated with scapy/chatgpt by @Mohan-Dhawan
   https://github.com/zeek/zeek/issues/4545
+- tcp/one-sided-2745.pcap
+  Extracted from short.trace.gz (port 2745 and port 281) or (port 2745 and port 1433)
+  and used tcprewrite to remove mac/ip. No actual payload in the packets.
+- tcp/ctu-64702-888.pcap
+  Extracted from CTU-SME-11 after observing ConnSize differences when
+  fixing is_orig behavior (port 64702 and port 888).

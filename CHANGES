@@ -1,3 +1,18 @@
+8.1.0-dev.985 | 2025-12-02 11:29:48 +0100
+
+  * testing/external: Update baselines for is_orig fixes (Arne Welzel, Corelight)
+
+  * packet_analysis/tcp: Avoid forwarding the wrong is_orig (Arne Welzel, Corelight)
+
+    ...and add some documentation into doc/devel/conn about this
+
+  * packet_analysis/tcp: Also flip packet analyzers (Arne Welzel, Corelight)
+
+    The ConnSize_Analyzer has FlipRoles() implemented, but for TCP
+    connections certainly was never invoked.
+
+  * Docs: fix permanent redirect warning from link checker (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.979 | 2025-12-01 11:19:09 -0500
 
   * Fix `:zeek:see:` in backtick in docs (Evan Typanski, Corelight)

@@ -1043,31 +1043,17 @@ void ZAM_OpTemplate::GenAssignOpCore(const OCVec& oc, const string& eval, const 
         auto lhs_offset = constant_op ? 3 : 4;
         auto rhs_offset = lhs_offset - 1;
 
-        Emit("auto v = DirectOptField(" + rhs + ".AsRecord(), z.v" + to_string(rhs_offset) +
+        Emit("ZVal zval;");
+        Emit("LoadField(zval, " + rhs + ".AsRecord(), z.v" + to_string(rhs_offset) +
              "); // note, RHS field before LHS field\n");
 
-        Emit("if ( ! v )");
-        BeginBlock();
-        Emit("ZAM_run_time_error(Z_LOC, \"field value missing\");");
-        EndBlock();
-
-        Emit("else");
-        BeginBlock();
         auto slot = "z.v" + to_string(lhs_offset);
         Emit("auto r = frame[z.v1].AsRecord();");
-        Emit("auto& f = DirectField(r, " + slot + "); // note, LHS field after RHS field\n");
-
-        if ( is_managed ) {
-            Emit("zeek::Ref((*v)" + acc + ");");
-            Emit("zeek::Unref(f.ManagedVal());");
-        }
-
-        Emit("f = *v;");
+        Emit("auto& f = DirectOptField(r, " + slot + "); // note, LHS field after RHS field\n");
+        Emit("f = zval; // assigning ZValElement f does automatic memory management\n");
 
         if ( lhs_field )
             Emit("r->Modified();");
-
-        EndBlock();
     }
 
     else {

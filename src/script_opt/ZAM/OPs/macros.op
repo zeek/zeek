@@ -70,8 +70,74 @@ macro TableIter(slot) (*tiv_ptr)[slot]
 
 macro RecordTypeField(rt, f) f
 macro RecordField(r, f) RecordTypeField(r->GetType(), f)
+
+# Yields a ZVal& of the field of the given record to assign to.
+# Note that RawField() may unset callbacks if any are set, but
+# that's okay if the field is to be assigned.
 macro DirectField(r, f) r->RawField(RecordField(r, f))
+
+# Yields a ZValElement&. Deferred initialization happens if
+# it does not already hold a ZVal or callback. See
+# RecordVal::RawOptField().
 macro DirectOptField(r, f) r->RawOptField(RecordField(r, f))
+
+# Load a field as ZVal from a record, taking into account field callbacks
+# and falling back to fetch the default value, if any.
+#
+# target: ZVal object to be populated
+# r: source record as RecordVal*
+# f: field index as int
+#
+# zvel stands for ZValElement.
+#
+# Memory management: If target is a managed ZVal, the caller
+#                    owns the returned reference. That is, there
+#                    is no need to invoke zeek::Ref() on target.
+macro LoadFieldWithDefault(target, r, f) {
+	const auto& zvel = DirectOptField(r, f);
+	if ( zvel.HoldsZVal() )
+		{
+		target = *zvel;
+		if ( zvel.IsManaged() )
+			zeek::Ref(target.ManagedVal());
+		}
+	else if ( zvel.HoldsFieldCallback() )
+		{
+		target = zvel.FieldCallback()->Invoke(*r, f);
+		}
+	else
+		{
+		auto field = RecordField(r, f);
+		auto def = r->GetType<RecordType>()->FieldDefault(field);
+		if ( def )
+			target = ZVal(def, Z_TYPE);
+		else
+			{
+			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(field)));
+			break;
+			}
+		}
+	}
+
+# Same as LoadFieldWithDefault(), but no default lookup.
+macro LoadField(target, r, f) {
+	const auto& zvel = DirectOptField(r, f);
+	if ( zvel.HoldsZVal() )
+		{
+		target = *zvel;
+		if ( zvel.IsManaged() )
+			zeek::Ref(target.ManagedVal());
+		}
+	else if ( zvel.HoldsFieldCallback() )
+		{
+		target = zvel.FieldCallback()->Invoke(*r, f);
+		}
+	else
+		{
+		ZAM_run_time_error(Z_LOC, "field value missing");
+		break;
+		}
+	}
 
 macro FieldValWithCheck(r, f) ZBody::CheckAndLookupField(r, f, Z_LOC)
 

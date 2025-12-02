@@ -1109,13 +1109,13 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
     auto eval = orig_eval;
 
     if ( is_managed ) {
-        eval += string("auto rhs = ") + rhs + ";\n";
-        eval += "zeek::Ref(rhs);\n";
-        eval += "Unref($$.ManagedVal());\n";
-        eval += "$$ = ZVal(rhs);\n";
+        eval += g->IndentString() + "auto rhs = " + rhs + ";\n";
+        eval += g->IndentString() + "zeek::Ref(rhs);\n";
+        eval += g->IndentString() + "Unref($$.ManagedVal());\n";
+        eval += g->IndentString() + "$$ = ZVal(rhs);\n";
     }
     else
-        eval += "$$ = ZVal(" + rhs + ");\n";
+        eval += g->IndentString() + "$$ = ZVal(" + rhs + ");\n";
 
     Emit(ExpandParams(oc, eval));
 }

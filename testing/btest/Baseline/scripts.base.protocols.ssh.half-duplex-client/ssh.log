@@ -5,26 +5,26 @@
 #unset_field	-
 #path	ssh
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key	host_key_fingerprint
-#types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.79	51880	131.159.21.1	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_5.9	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.2.1	57189	192.168.2.158	22	-	-	0	-	SSH-2.0-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	192.168.2.1	57191	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	192.168.2.1	56594	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_5.3	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C37jN32gN3y3AZzyf6	192.168.2.1	56821	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C3eiCBGOLw3VtHfOj	192.168.2.1	56837	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CwjjYJ2WqgTbAqiHl6	192.168.2.1	56845	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C0LAHyvtKSQHyJxIl	192.168.2.1	56875	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C9rXSW3KSpTYvPrlI1	192.168.2.1	56878	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	Ck51lg1bScffFj34Ri	192.168.2.1	56940	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C9mvWx3ezztgzcexV7	192.168.2.1	57831	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CNnMIj2QSd84NKf7U3	192.168.2.1	59246	192.168.2.158	22	-	-	0	-	SSH-2.0-OpenSSH_6.2	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C7fIlMZDuRiqjpYbb	192.168.1.32	41164	128.2.10.238	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6p1-hpn14v4	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CtxTCR2Yer0FR1tIBg	192.168.1.32	33910	128.2.13.133	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6p1-hpn14v4	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CpmdRlaUoJLN3uIRa	192.168.1.32	41268	128.2.10.238	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	C1Xkzz2MaGtLrc1Tla	192.168.1.31	52294	192.168.1.32	22	-	-	0	-	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CqlVyW1YwZ15RhTBc4	192.168.1.31	51489	192.168.1.32	22	-	-	0	-	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CLNN1k2QMum1aexUK7	192.168.1.32	58641	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CBA8792iHmnhPLksKa	192.168.1.32	58646	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	CGLPPc35OzDQij1XX8	192.168.1.32	58649	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key_fingerprint
+#types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.79	51880	131.159.21.1	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_5.9	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.2.1	57189	192.168.2.158	22	-	-	0	-	SSH-2.0-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	192.168.2.1	57191	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	192.168.2.1	56594	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_5.3	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C37jN32gN3y3AZzyf6	192.168.2.1	56821	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C3eiCBGOLw3VtHfOj	192.168.2.1	56837	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CwjjYJ2WqgTbAqiHl6	192.168.2.1	56845	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C0LAHyvtKSQHyJxIl	192.168.2.1	56875	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C9rXSW3KSpTYvPrlI1	192.168.2.1	56878	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	Ck51lg1bScffFj34Ri	192.168.2.1	56940	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C9mvWx3ezztgzcexV7	192.168.2.1	57831	192.168.2.158	22	-	-	0	-	SSH-1.5-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CNnMIj2QSd84NKf7U3	192.168.2.1	59246	192.168.2.158	22	-	-	0	-	SSH-2.0-OpenSSH_6.2	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C7fIlMZDuRiqjpYbb	192.168.1.32	41164	128.2.10.238	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6p1-hpn14v4	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CtxTCR2Yer0FR1tIBg	192.168.1.32	33910	128.2.13.133	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6p1-hpn14v4	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CpmdRlaUoJLN3uIRa	192.168.1.32	41268	128.2.10.238	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.6	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	C1Xkzz2MaGtLrc1Tla	192.168.1.31	52294	192.168.1.32	22	-	-	0	-	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CqlVyW1YwZ15RhTBc4	192.168.1.31	51489	192.168.1.32	22	-	-	0	-	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CLNN1k2QMum1aexUK7	192.168.1.32	58641	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CBA8792iHmnhPLksKa	192.168.1.32	58646	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	CGLPPc35OzDQij1XX8	192.168.1.32	58649	131.103.20.168	22	-	-	0	OUTBOUND	SSH-2.0-OpenSSH_6.7	-	-	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

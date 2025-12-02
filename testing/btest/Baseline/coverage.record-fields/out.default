@@ -868,7 +868,6 @@ connection {
         * client: string, log=T, optional=T
         * compression_alg: string, log=T, optional=T
         * direction: enum Direction, log=T, optional=T
-        * host_key: string, log=T, optional=T
         * host_key_alg: string, log=T, optional=T
         * host_key_fingerprint: string, log=T, optional=T
         * id: record conn_id, log=T, optional=F

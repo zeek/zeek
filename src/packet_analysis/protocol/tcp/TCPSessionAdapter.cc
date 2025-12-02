@@ -1021,6 +1021,9 @@ void TCPSessionAdapter::Undelivered(uint64_t seq, int len, bool is_orig) { Analy
 void TCPSessionAdapter::FlipRoles() {
     Analyzer::FlipRoles();
 
+    for ( auto* pc : packet_children )
+        pc->FlipRoles();
+
     TCPAnalyzer::GetStats().FlipState(orig->state, resp->state);
     analyzer::tcp::TCP_Endpoint* tmp_ep = resp;
     resp = orig;

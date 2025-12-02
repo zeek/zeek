@@ -18,3 +18,4 @@ transient, etc. compared to other documentation).
    contributors
    maintainers
    cluster-backend-zeromq
+   conn

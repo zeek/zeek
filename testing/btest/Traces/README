@@ -56,3 +56,9 @@ Trace Index/Sources:
 - smb_v2_only_non_zero_reserved1.pcap
   Provided by @predator89090 on #4730
   https://github.com/zeek/zeek/issues/4730
+- tcp/one-sided-2745.pcap
+  Extracted from short.trace.gz (port 2745 and port 281) or (port 2745 and port 1433)
+  and used tcprewrite to remove mac/ip. No actual payload in the packets.
+- tcp/ctu-64702-888.pcap
+  Extracted from CTU-SME-11 after observing ConnSize differences when
+  fixing is_orig behavior (port 64702 and port 888).

@@ -1,3 +1,22 @@
+8.0.4-11 | 2026-01-05 14:20:01 -0700
+
+  * testing/external: Update baselines for is_orig fixes (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4445ffe737b0294fbb12990163e786ae5190e48b)
+
+  * packet_analysis/tcp: Avoid forwarding the wrong is_orig (Arne Welzel, Corelight)
+
+    ...and add some documentation into doc/devel/conn about this
+
+    (cherry picked from commit 4445ffe737b0294fbb12990163e786ae5190e48b)
+
+  * packet_analysis/tcp: Also flip packet analyzers (Arne Welzel, Corelight)
+
+    The ConnSize_Analyzer has FlipRoles() implemented, but for TCP
+    connections certainly was never invoked.
+
+    (cherry picked from commit 4445ffe737b0294fbb12990163e786ae5190e48b)
+
 8.0.4-10 | 2026-01-05 12:56:20 -0700
 
   * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)

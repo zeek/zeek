@@ -273,6 +273,18 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
     zeek::detail::calculate_digest(zeek::detail::Hash_MD5, digest, 16, digest);
 }
 
+void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]) {
+    if ( ! zeek::detail::KeyedHash::seeds_initialized )
+        reporter->InternalError("hmac_sha256 invoked before the HMAC key is set");
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, bytes, size, digest);
+
+    for ( size_t i = 0; i < ZEEK_SHA256_DIGEST_LENGTH; ++i )
+        digest[i] ^= zeek::detail::KeyedHash::shared_hmac_sha256_key[i];
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, digest, ZEEK_SHA256_DIGEST_LENGTH, digest);
+}
+
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
     FILE* f = fopen(read_file, "r");

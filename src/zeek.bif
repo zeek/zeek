@@ -879,11 +879,28 @@ function sha512_hash%(...%): string
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##    sha512_hash_init sha512_hash_update sha512_hash_finish
-function md5_hmac%(...%): string
+function md5_hmac%(...%): string &deprecated="Remove in v9.1. Use sha256_hmac()."
 	%{
 	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
+	%}
+
+## Computes an HMAC-SHA256 hash value of the provided list of arguments. The HMAC
+## secret key is generated from available entropy when Zeek starts up, or it can
+## be specified for repeatability using the ``-K`` command line flag.
+##
+## Returns: The HMAC-SHA256 hash value of the concatenated arguments.
+##
+## .. zeek:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
+function sha256_hmac%(...%): string
+	%{
+	unsigned char hmac[ZEEK_SHA256_DIGEST_LENGTH];
+	SHA256Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_sha256_key, hmac);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(hmac));
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can

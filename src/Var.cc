@@ -275,7 +275,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init, std:
                 id->GetOptInfo()->AddInitExpr(init_expr);
 
                 try {
-                    (void)init_expr->Eval(nullptr);
+                    (void)eval_in_isolation(init_expr);
                 } catch ( InterpreterException& ) {
                     id->Error("initialization failed");
                 }

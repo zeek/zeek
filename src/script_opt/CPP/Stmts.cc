@@ -292,7 +292,7 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases) {
             const auto& c_e_s = c->ExprCases()->AsListExpr()->Exprs();
 
             for ( const auto& c_e : c_e_s ) {
-                auto c_v = c_e->Eval(nullptr);
+                auto c_v = eval_in_isolation(c_e);
                 ASSERT(c_v);
 
                 string c_v_rep;

@@ -520,7 +520,7 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     if ( ! op1_fold_val && op1->Tag() == EXPR_LIST && op1->AsListExpr()->HasConstantOps() )
         // We can turn the list into a ListVal.
-        op1_fold_val = op1->Eval(nullptr);
+        op1_fold_val = eval_in_isolation(op1);
 
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
@@ -2224,7 +2224,7 @@ bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && o
 
 ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
-        op2 = with_location_of(make_intrusive<ConstExpr>(op2->Eval(nullptr)), this);
+        op2 = with_location_of(make_intrusive<ConstExpr>(eval_in_isolation(op2)), this);
 
     return BinaryExpr::Reduce(c, red_stmt);
 }
@@ -2309,7 +2309,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     if ( IsFoldableBiF() ) {
-        auto res = Eval(nullptr);
+        auto res = eval_in_isolation(this);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
     }
@@ -3143,7 +3143,7 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
     auto rhs_const = make_intrusive<ConstExpr>(rhs_val);
 
     auto add_expr = make_intrusive<AddExpr>(lhs_const, rhs_const);
-    auto sum = add_expr->Eval(nullptr);
+    auto sum = eval_in_isolation(add_expr);
     ASSERT(sum);
 
     rv1->Assign(lhs_map[i], std::move(sum));
@@ -3342,7 +3342,7 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         BuildEvalExpr();
 
     if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) ) {
-        auto res = eval_expr->Eval(nullptr);
+        auto res = eval_in_isolation(eval_expr);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
     }

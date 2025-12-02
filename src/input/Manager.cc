@@ -909,7 +909,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             else if ( ty == TYPE_PORT && rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN) ) {
                 // we have an annotation for the second column
 
-                c = rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
+                c = eval_in_isolation(rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr());
 
                 assert(c);
                 assert(c->GetType()->Tag() == TYPE_STRING);

@@ -98,7 +98,7 @@ int ZAMCompiler::InternalAddVal(ZInstAux* zi, int i, Expr* e) {
 
         if ( e->GetType()->Tag() == TYPE_TYPE ) {
             // Ugh - we actually need a "type" constant.
-            auto v = e->Eval(nullptr);
+            auto v = eval_in_isolation(e);
             ASSERT(v);
             zi->Add(i, v);
             return 1;

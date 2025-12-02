@@ -27,6 +27,11 @@
 
 namespace zeek::detail {
 
+class IsolationException {
+public:
+    IsolationException() = default;
+};
+
 const char* expr_name(ExprTag t) {
     // Note that some of the names in the following have trailing spaces.
     // These are for unary operations that (1) are identified by names
@@ -450,9 +455,10 @@ ValPtr NameExpr::Eval(Frame* f) const {
         v = f->GetElementByID(id);
 
     else
-        // No frame - evaluating for purposes of resolving a
-        // compile-time constant.
-        return nullptr;
+        // No frame - evaluating for purposes of resolving a compile-time
+        // constant. Prevent upstream errors due to dereferencing a null
+        // pointer.
+        throw IsolationException();
 
     if ( v )
         return v;
@@ -2855,7 +2861,7 @@ ValPtr FieldExpr::Fold(Val* v) const {
     const Attr* def_attr = td ? td->GetAttr(ATTR_DEFAULT).get() : nullptr;
 
     if ( def_attr )
-        return def_attr->GetExpr()->Eval(nullptr);
+        return eval_in_isolation(def_attr->GetExpr());
     else {
         RuntimeError("field value missing");
         assert(false);
@@ -3150,7 +3156,7 @@ static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t) {
 
     if ( set_offset >= 0 ) { // expand the set
         auto s_e = index_exprs[set_offset];
-        auto v = s_e->Eval(nullptr);
+        auto v = eval_in_isolation(s_e);
         if ( ! v ) {
             s_e->Error("cannot expand constructor elements using a value that depends on local variables");
             elems->SetError();
@@ -3730,7 +3736,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
                 const auto& def = rv_rt->FieldDecl(map[i])->GetAttr(ATTR_DEFAULT);
 
                 if ( def )
-                    rhs = def->GetExpr()->Eval(nullptr);
+                    rhs = eval_in_isolation(def->GetExpr());
             }
 
             assert(rhs || rt->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
@@ -3764,7 +3770,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
         }
         else {
             if ( const auto& def = rt->FieldDecl(i)->GetAttr(ATTR_DEFAULT) ) {
-                auto def_val = def->GetExpr()->Eval(nullptr);
+                auto def_val = eval_in_isolation(def->GetExpr());
                 const auto& def_type = def_val->GetType();
                 const auto& field_type = rt->GetFieldType(i);
 
@@ -4102,7 +4108,7 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
              // The following is needed because fmt might not yet
              // be bound as a name.
              did_builtin_init ) {
-            func_val = func->Eval(nullptr);
+            func_val = eval_in_isolation(func);
             if ( func_val ) {
                 zeek::Func* f = func_val->AsFunc();
                 if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call(static_cast<BuiltinFunc*>(f), this) )
@@ -5013,6 +5019,14 @@ std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l) {
     }
 
     return rval;
+}
+
+ValPtr eval_in_isolation(const Expr* e) {
+    try {
+        return e->Eval(nullptr);
+    } catch ( IsolationException& ) {
+        return nullptr;
+    }
 }
 
 bool expr_greater(const Expr* e1, const Expr* e2) { return e1->Tag() > e2->Tag(); }

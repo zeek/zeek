@@ -236,7 +236,7 @@ public:
         for ( size_t i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
             result[i] ^= key[i];
 
-        detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);
+        detail::calculate_digest(detail::Hash_MD5, result, ZEEK_MD5_DIGEST_LENGTH, result);
     }
 
     MD5Val();

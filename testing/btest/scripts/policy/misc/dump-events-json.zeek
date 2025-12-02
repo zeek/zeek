@@ -1,6 +1,11 @@
 # Same as dump-events.zeek, but for JSON output.
 # @TEST-REQUIRES: which jq
 #
+# jq pre version 1.7 rendered 0.0 as 0. Skip this test on systems with
+# such old jq version. jq 1.7 is fixed, released September 2023.
+# https://github.com/jqlang/jq/issues/1301#issuecomment-2035877468
+# @TEST-REQUIRES: test "$(echo 0.0 | jq)" = "0.0"
+#
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.trace policy/misc/dump-events %INPUT | jq >all-events.json
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include_args=F | jq >all-events-no-args.json
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.trace policy/misc/dump-events %INPUT DumpEvents::include=/smtp_/ | jq >smtp-events.json

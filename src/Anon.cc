@@ -92,7 +92,14 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input) {
     uint8_t digest[16];
     ipaddr32_t output = 0;
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
     util::detail::hmac_md5(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
     for ( int i = 0; i < 4; ++i )
         output = (output << 8) | digest[i];
@@ -116,8 +123,15 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
         prefix.len = htonl(i + 1);
         prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_md5(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
         ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);

@@ -180,8 +180,8 @@ static void do_pragma(const std::string& pragma) {
         zeek::reporter->Warning("Ignoring unknown pragma: '%s'", pragma.c_str());
 
     // Cheap: Just walk the pragma_stack now to see if we should ignore deprecations.
-    bool ignore_deprecations = std::any_of(pragma_stack.cbegin(), pragma_stack.cend(),
-                                           [](const auto& s) { return s == "ignore-deprecations"; });
+    bool ignore_deprecations = std::ranges::any_of(pragma_stack,
+                                                   [](const auto& s) { return s == "ignore-deprecations"; });
     zeek::reporter->SetIgnoreDeprecations(ignore_deprecations);
 }
 

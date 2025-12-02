@@ -416,9 +416,23 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
     }
 
     else if ( attr == "assign-val" ) {
+        if ( HasAssignVal() )
+            g->Gripe("multiple assign-val or assign-zval in template", attr);
+
         num_args = 1;
         if ( words.size() > 1 )
             SetAssignVal(words[1]);
+    }
+
+    else if ( attr == "assign-zval" ) {
+        if ( HasAssignVal() )
+            g->Gripe("multiple assign-val or assign-zval in template", attr);
+
+        num_args = 1;
+        if ( words.size() > 1 )
+            SetAssignVal(words[1]);
+
+        SetAssignValIsZVal();
     }
 
     else if ( attr == "eval" ) {
@@ -1108,14 +1122,34 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
 
     auto eval = orig_eval;
 
-    if ( is_managed ) {
-        eval += g->IndentString() + "auto rhs = " + rhs + ";\n";
-        eval += g->IndentString() + "zeek::Ref(rhs);\n";
-        eval += g->IndentString() + "Unref($$.ManagedVal());\n";
-        eval += g->IndentString() + "$$ = ZVal(rhs);\n";
+    if ( AssignValIsZVal() ) {
+        // If assign-zval was used, v owns the reference and we
+        // can just assign it directly, but need to ensure any
+        // already set managed value is properly unref'ed.
+        //
+        // Add some C++ code to statically assert it's actually a ZVal at
+        // compile time.
+        eval += g->IndentString() + "static_assert(std::is_same_v<decltype(" + v + "), zeek::ZVal>);\n";
+        if ( is_managed )
+            eval += g->IndentString() + "Unref($$.ManagedVal());\n";
+
+        eval += g->IndentString() + "$$ = " + v + ";";
     }
-    else
-        eval += g->IndentString() + "$$ = ZVal(" + rhs + ");\n";
+    else {
+        // Ensure statically that the assign value is a zeek::Val or its base
+        // is a zeek::Val. This should be obvious in the generated code, but
+        // this code happened to work for both, Val and ZVal, but is now forbidden.
+        eval += g->IndentString() + "static_assert(std::is_base_of_v<zeek::Val, std::remove_reference_t<decltype(*" +
+                v + ")>>);\n";
+        if ( is_managed ) {
+            eval += g->IndentString() + "auto rhs = " + rhs + ";\n";
+            eval += g->IndentString() + "zeek::Ref(rhs);\n";
+            eval += g->IndentString() + "Unref($$.ManagedVal());\n";
+            eval += g->IndentString() + "$$ = ZVal(rhs);\n";
+        }
+        else
+            eval += g->IndentString() + "$$ = ZVal(" + rhs + ");\n";
+    }
 
     Emit(ExpandParams(oc, eval));
 }

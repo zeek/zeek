@@ -317,6 +317,10 @@ protected:
     bool HasAssignVal() const { return ! av.empty(); }
     const string& GetAssignVal() const { return av; }
 
+    // If this is using assign-zval, set the flag.
+    void SetAssignValIsZVal(bool v = true) { av_is_zval = v; }
+    bool AssignValIsZVal() const { return av_is_zval; };
+
     // Management of C++ evaluation blocks.  These are built up
     // line-by-line.
     void AddEval(string line) { eval += line; }
@@ -572,6 +576,12 @@ protected:
     // If non-empty, the value to assign to the target in an assignment
     // operation.
     string av;
+
+    // If true, assign-zval was used rather than assign-val. In that
+    // case the av can just be used without further memory management.
+    // It's either a primitive value, or managed and the reference is
+    // already adopted.
+    bool av_is_zval = false;
 
     // The C++ evaluation; may span multiple lines.
     string eval;

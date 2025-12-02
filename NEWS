@@ -166,6 +166,27 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Fields representing state information about connections on ``connection`` and
+  ``endpoint`` record values now always yield the most up-to-date value.
+
+  In previously versions of Zeek, fields like ``connection$history``, ``endpoint$num_pkts``
+  or ``endpoint$num_bytes_ip`` could potentially hold stale values. The most prominent case
+  is that in a ``new_connection(c: connection)`` event handler, zero packets were reported
+  for either endpoint, while clearly there had to have been a packet for the connection to
+  be created in the first place. Previous workarounds for this issue included explicitly
+  calling ``lookup_connection()`` which would refresh the record's fields.
+
+  In a similar vain, stashing ``connection`` objects into a vector or container and
+  regularly reading ``c$duration`` or ``c$history`` of these connections within a
+  scheduled event would likely yield stale values, even if Zeek had observed further
+  packets the tracked connections.
+
+  The fix here was to switch to a model where upon accessing such record fields,
+  up-to-date values are now fetched from Zeek's core, rather than relying on the
+  core to set the fields at the appropriate time. The affected fields have been
+  annotated with ``&volatile``. Their semantics haven't actually changed, the
+  attribute is for explicit documentation and potential optimizations in the future.
+
 - The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
   field anymore.
 

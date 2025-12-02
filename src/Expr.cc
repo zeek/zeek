@@ -3224,7 +3224,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
             SetType(init_type(op));
 
             if ( ! type ) {
-                SetError();
+                SetError("cannot determine type for table; ensure square brackets are around each key");
                 return;
             }
 

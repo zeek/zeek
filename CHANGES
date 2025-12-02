@@ -1,3 +1,9 @@
+8.0.4-4 | 2026-01-05 10:55:02 -0700
+
+  * GH-5048: Fix error when table type cannot be determined (Evan Typanski, Corelight)
+
+    (cherry picked from commit 26b297dc010eef6eaef05ee9dc14f32753389cf1)
+
 8.0.4-3 | 2026-01-05 10:26:26 -0700
 
   * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)

@@ -377,6 +377,8 @@ redef Cluster::worker_pool_spec = Cluster::PoolSpec(
 	$topic = "zeek.cluster.pool.worker",
 	$node_type = Cluster::WORKER);
 
+redef Cluster::Table::topic_separator = ".";
+
 
 # Configure listen_log_endpoint based on port in cluster-layout, if any.
 @if ( Cluster::local_node_type() == Cluster::LOGGER || (Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER) )

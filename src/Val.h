@@ -1303,10 +1303,8 @@ public:
      * state.
      */
     const ZValElement& operator=(const TypeDecl& td) noexcept {
-        assert(! HoldsZVal());
-        assert(! HoldsFieldCallback());
-        assert(tag == TYPE_ERROR);
         assert(state == State::NoInit);
+        assert(tag == TYPE_ERROR);
 
         state = State::Unset;
         is_managed = td.is_managed;
@@ -1330,38 +1328,26 @@ public:
         return *this;
     }
 
-
-    /**
-     * Operator bool only checks for HoldsZVal(). It should
-     * be used to protect -> or * operators. These don't
-     * work with callbacks!
-     */
-    operator bool() const noexcept { return HoldsZVal(); }
-
     const ZVal* operator->() const noexcept {
-        assert(state != State::NoInit);
-        assert(! HoldsFieldCallback());
+        assert(state == State::ZVal);
         return &data.zval;
     }
 
     ZVal& operator*() noexcept {
-        assert(state != State::NoInit);
-        assert(! HoldsFieldCallback());
+        assert(state == State::ZVal);
         return data.zval;
     }
 
     const ZVal& operator*() const noexcept {
-        assert(state != State::NoInit);
-        assert(! HoldsFieldCallback());
+        assert(state == State::ZVal);
         return data.zval;
     }
 
     bool HoldsZVal() const noexcept { return state == State::ZVal; }
+
     bool HoldsFieldCallback() const noexcept { return state == State::FieldCallback; }
-    bool IsManaged() const noexcept {
-        assert(state != State::NoInit);
-        return is_managed;
-    }
+
+    bool IsManaged() const noexcept { return is_managed; }
 
     const detail::RecordFieldCallback* FieldCallback() const noexcept {
         assert(! HoldsZVal());
@@ -1442,15 +1428,15 @@ public:
      * Assign a callback to a record field.
      *
      * @param field The Field index to assign
-     * @param cb The ZValCallback instance to assign.
+     * @param cb The RecordFieldCallback instance to assign.
      */
     void AssignCallback(int field, detail::RecordFieldCallback* cb) {
         const auto* rt = GetRecordType();
         const auto* fd = rt->FieldDecl(field);
 
         // Only allow callbacks on &volatile fields and otherwise
-        // crash hard. This always involves a plugin something in
-        // the core, so a FatalErrorWithCore() seems fine.
+        // crash hard. This always involves a plugin or something
+        // internal, so a FatalErrorWithCore() seems fine.
         if ( ! fd->is_volatile )
             reporter->FatalErrorWithCore("cannot assign callback - %s$%s is not &volatile", rt->GetName().c_str(),
                                          rt->FieldName(field));
@@ -1791,7 +1777,7 @@ protected:
     // The second version ensures that the optional value is present.
     ZValElement& RawOptField(int field) {
         auto& f = record_val[field];
-        if ( ! f ) {
+        if ( ! f.HoldsZVal() && ! f.HoldsFieldCallback() ) {
             const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( fi )
                 f = fi->Generate();
@@ -1802,7 +1788,7 @@ protected:
 
     ZVal& RawField(int field) {
         auto& f = RawOptField(field);
-        if ( ! f )
+        if ( ! f.HoldsZVal() )
             f = ZVal();
 
         assert(f.HoldsZVal());

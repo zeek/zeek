@@ -1,3 +1,17 @@
+8.0.4-5 | 2026-01-05 12:15:27 -0700
+
+  * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 8e4f701d803a09665cd8d016de2b3d5e1c9e0443)
+
+  * Add missing Packet member initializations to Packet::Init() (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 8e4f701d803a09665cd8d016de2b3d5e1c9e0443)
+
+  * Add unit test for Packet::Init() (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 8e4f701d803a09665cd8d016de2b3d5e1c9e0443)
+
 8.0.4-4 | 2026-01-05 10:55:02 -0700
 
   * GH-5048: Fix error when table type cannot be determined (Evan Typanski, Corelight)

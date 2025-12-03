@@ -237,15 +237,8 @@ void ConnSize_Analyzer::FlipRoles() {
     Analyzer::FlipRoles();
     endp_cb.FlipRoles();
 
-    uint64_t tmp;
-
-    tmp = orig_bytes;
-    orig_bytes = resp_bytes;
-    resp_bytes = tmp;
-
-    tmp = orig_pkts;
-    orig_pkts = resp_pkts;
-    resp_pkts = tmp;
+    std::swap(orig_bytes, resp_bytes);
+    std::swap(orig_pkts, resp_pkts);
 }
 
 } // namespace zeek::analyzer::conn_size

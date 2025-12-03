@@ -106,7 +106,7 @@ protected:
 
     // Helpers for callbacks.
     uint64_t GetPackets(bool is_orig) const noexcept { return is_orig ? orig_pkts : resp_pkts; }
-    uint64_t GetBytes(bool is_orig) const noexcept { return is_orig ? orig_pkts : resp_pkts; }
+    uint64_t GetBytes(bool is_orig) const noexcept { return is_orig ? orig_bytes : resp_bytes; }
 
     uint64_t orig_bytes = 0;
     uint64_t resp_bytes = 0;

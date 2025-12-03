@@ -63,6 +63,27 @@ Breaking Changes
       ${OPENSSL_LIBRARIES}
     )
 
+- We are revisiting removing support for MD5 hashing across the Zeek code base. In support
+  of this, the following changes were made:
+
+  - The ``host_key`` field in ssh.log was removed and replaced with a new
+    ``host_key_fingerprint`` field. The old field held an MD5 hash of the host key. The
+    new field holds a base64-encoded version of the hash of the host key, in the same
+    format that the ``ssh-keygen -l`` command would return. It currently uses SHA256 for
+    the hashing, so the output is of the format ``SHA256:<fingerprint>``. A new
+    ``policy/protocols/ssh/md5-host-key-logging.zeek`` script was added to restore the old
+    field if desired.
+
+  - The ``auth_ticket`` and ``new_ticket`` fields in krb.log were removed and replaced
+    with new ``auth_ticket_sha256`` and ``new_ticket_sha256`` fields. The old fields held
+    MD5 hashes of the tickets and the new fields hold SHA256 hashes of the same. A new
+    ``policy/protocols/krb/md5-ticket-logging.zeek`` script was added to restore the old
+    fields if desired.
+
+  - A new ``mime_content_hash_sha256`` event was added to send a SHA256 version of the
+    content in MIME messages. This is similar to the existing ``mime_content_hash`` event
+    that sends MD5 versions.
+
 New Functionality
 -----------------
 

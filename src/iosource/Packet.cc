@@ -43,28 +43,32 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     else
         data = arg_data;
 
-    dump_packet = false;
-    dump_size = 0;
-
     time = ts.tv_sec + double(ts.tv_usec) / 1e6;
     eth_type = 0;
+
     vlan = 0;
     vlan_pcp = 0;
     vlan_dei = false;
+
     inner_vlan = 0;
     inner_vlan_pcp = 0;
     inner_vlan_dei = false;
 
+    l3_proto = L3_UNKNOWN;
+
     is_orig = false;
+
+    l2_checksummed = false;
+    l3_checksummed = false;
+    l4_checksummed = false;
 
     l2_src = nullptr;
     l2_dst = nullptr;
-    l2_checksummed = false;
 
-    l3_proto = L3_UNKNOWN;
-    l3_checksummed = false;
+    processed = false;
 
-    l4_checksummed = false;
+    dump_packet = false;
+    dump_size = 0;
 
     encap.reset();
     ip_hdr.reset();
@@ -73,8 +77,6 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     tunnel_type = BifEnum::Tunnel::NONE;
     gre_version = -1;
     gre_link_type = DLT_RAW;
-
-    processed = false;
     session = nullptr;
 }
 

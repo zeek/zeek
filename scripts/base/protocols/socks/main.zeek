@@ -50,8 +50,7 @@ export {
 	global finalize_socks: Conn::RemovalHook;
 }
 
-const ports = { 1080/tcp };
-redef likely_server_ports += { ports };
+const ports = { 1080/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

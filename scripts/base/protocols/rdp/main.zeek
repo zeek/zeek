@@ -92,9 +92,8 @@ redef record connection += {
 	rdp: Info &optional;
 };
 
-const rdp_ports = { 3389/tcp };
-const rdpeudp_ports = { 3389/udp };
-redef likely_server_ports += { rdp_ports, rdpeudp_ports };
+const rdp_ports = { 3389/tcp } &redef;
+const rdpeudp_ports = { 3389/udp } &redef;
 
 event zeek_init() &priority=5
 	{

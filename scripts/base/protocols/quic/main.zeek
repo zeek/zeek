@@ -96,7 +96,7 @@ const quic_ports = {
 	443/udp, # HTTP3-over-QUIC
 	853/udp, # DNS-over-QUIC
 	784/udp, # DNS-over-QUIC early
-};
+} &redef;
 
 function add_to_history(c: connection, is_orig: bool, what: string)
 	{

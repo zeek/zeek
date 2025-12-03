@@ -92,8 +92,6 @@ redef record connection += {
 	redis_state: State &optional;
 };
 
-redef likely_server_ports += {ports};
-
 event zeek_init() &priority=5
 	{
 	Log::create_stream(Redis::LOG, Log::Stream($columns=Info, $path="redis",

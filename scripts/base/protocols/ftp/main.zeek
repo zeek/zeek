@@ -83,8 +83,7 @@ redef record connection += {
 	ftp_data_reuse: bool &default=F;
 };
 
-const ports = { 21/tcp, 2811/tcp };
-redef likely_server_ports += { ports };
+const ports = { 21/tcp, 2811/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

@@ -17,8 +17,7 @@ export {
         const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
 }
 
-const gtpv1_ports = { 2152/udp, 2123/udp };
-redef likely_server_ports += { gtpv1_ports };
+const gtpv1_ports = { 2152/udp, 2123/udp } &redef;
 
 event zeek_init() &priority=20
 	{

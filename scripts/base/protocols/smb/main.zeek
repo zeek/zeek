@@ -181,8 +181,7 @@ redef record FileInfo += {
 	uuid : string &optional;
 };
 
-const ports = { 139/tcp, 445/tcp };
-redef likely_server_ports += { ports };
+const ports = { 139/tcp, 445/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

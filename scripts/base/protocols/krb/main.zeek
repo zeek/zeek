@@ -75,9 +75,8 @@ redef record connection += {
 	krb: Info &optional;
 };
 
-const tcp_ports = { 88/tcp };
-const udp_ports = { 88/udp };
-redef likely_server_ports += { tcp_ports, udp_ports };
+const tcp_ports = { 88/tcp } &redef;
+const udp_ports = { 88/udp } &redef;
 
 event zeek_init() &priority=5
 	{

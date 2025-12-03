@@ -101,8 +101,7 @@ redef record connection += {
 	sip_state:  State &optional;
 };
 
-const ports = { 5060/udp };
-redef likely_server_ports += { ports };
+const ports = { 5060/udp } &redef;
 
 event zeek_init() &priority=5
 	{

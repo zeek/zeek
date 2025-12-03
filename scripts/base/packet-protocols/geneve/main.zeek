@@ -20,8 +20,6 @@ export {
 	};
 }
 
-redef likely_server_ports += { geneve_ports };
-
 event zeek_init() &priority=20
 	{
 	PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, geneve_ports);

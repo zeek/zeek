@@ -12,8 +12,6 @@ export {
 	const vxlan_ports: set[port] = { 4789/udp } &redef;
 }
 
-redef likely_server_ports += { vxlan_ports };
-
 event zeek_init() &priority=20
 	{
 	PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, vxlan_ports);

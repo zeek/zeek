@@ -37,8 +37,7 @@ redef record connection += {
 	dnp3: Info &optional;
 };
 
-const ports = { 20000/tcp , 20000/udp };
-redef likely_server_ports += { ports };
+const ports = { 20000/tcp , 20000/udp } &redef;
 
 event zeek_init() &priority=5
 	{

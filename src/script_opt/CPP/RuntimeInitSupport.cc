@@ -4,6 +4,7 @@
 
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/zeekygen/Manager.h"
 
 namespace zeek::detail {
 
@@ -214,6 +215,7 @@ IDPtr lookup_global__CPP(const char* g, const TypePtr& t, const GlobalCharacteri
     if ( ! gl ) {
         gl = install_ID(g, GLOBAL_MODULE_NAME, true, gc.is_exported);
         gl->SetType(t);
+        zeekygen_mgr->Identifier(gl);
 
         if ( gc.is_const )
             gl->SetConst();

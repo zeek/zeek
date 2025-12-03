@@ -1,3 +1,11 @@
+8.1.0-dev.1007 | 2025-12-03 15:03:08 -0800
+
+  * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)
+
+  * Add missing Packet member initializations to Packet::Init() (Christian Kreibich, Corelight)
+
+  * Add unit test for Packet::Init() (Christian Kreibich, Corelight)
+
 8.1.0-dev.1003 | 2025-12-03 14:50:16 -0700
 
   * Use ranges versions of all_of, any_of, etc. (Dominik Charousset, Corelight)

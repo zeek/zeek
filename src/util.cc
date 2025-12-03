@@ -262,8 +262,7 @@ bool ensure_dir(const char* dirname) {
 }
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]) {
-    if ( ! zeek::detail::KeyedHash::seeds_initialized )
-        reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
+    zeek::detail::KeyedHash::InitializeHmacMd5Seed();
 
     zeek::detail::calculate_digest(zeek::detail::Hash_MD5, bytes, size, digest);
 

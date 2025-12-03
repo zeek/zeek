@@ -161,8 +161,8 @@ void DNS_Mapping::Save(FILE* f) const {
 }
 
 void DNS_Mapping::Merge(const DNS_MappingPtr& other) {
-    std::copy(other->names.begin(), other->names.end(), std::back_inserter(names));
-    std::copy(other->addrs.begin(), other->addrs.end(), std::back_inserter(addrs));
+    std::ranges::copy(other->names, std::back_inserter(names));
+    std::ranges::copy(other->addrs, std::back_inserter(addrs));
 }
 
 // This value needs to be incremented if something changes in the data stored by Save(). This

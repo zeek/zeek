@@ -58,7 +58,7 @@ const AnalyzerPtr& Dispatcher::Lookup(uint64_t identifier) const {
 }
 
 size_t Dispatcher::Count() const {
-    return std::count_if(table.begin(), table.end(), [](AnalyzerPtr a) { return a != nullptr; });
+    return std::ranges::count_if(table, [](AnalyzerPtr a) { return a != nullptr; });
 }
 
 void Dispatcher::Clear() {

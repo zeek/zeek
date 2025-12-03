@@ -415,10 +415,10 @@ public:
             visited = new std::vector<detail::DictEntry<T>>();
 
             if ( other.inserted )
-                std::copy(other.inserted->begin(), other.inserted->end(), std::back_inserter(*inserted));
+                std::ranges::copy(*other.inserted, std::back_inserter(*inserted));
 
             if ( other.visited )
-                std::copy(other.visited->begin(), other.visited->end(), std::back_inserter(*visited));
+                std::ranges::copy(*other.visited, std::back_inserter(*visited));
 
             dict = other.dict;
             dict->IncrIters();
@@ -601,7 +601,7 @@ public:
 
                     // Check if any of the inserted elements in this iterator point at the entry
                     // being replaced. Update those too.
-                    auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
+                    auto it = std::ranges::find(*c->inserted, table[position]);
                     if ( it != c->inserted->end() )
                         it->value = val;
                 }
@@ -1518,7 +1518,7 @@ private:
             // Filter out visited entries.
             while ( iter->next < capacity ) {
                 ASSERT(! table[iter->next].Empty());
-                auto it = std::find(iter->visited->begin(), iter->visited->end(), table[iter->next]);
+                auto it = std::ranges::find(*iter->visited, table[iter->next]);
                 if ( it == iter->visited->end() )
                     break;
                 iter->visited->erase(it);

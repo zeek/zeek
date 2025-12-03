@@ -704,6 +704,12 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
         return true;
     }
 
+    const auto& bodies = func->GetBodies();
+    if ( bodies.size() == 1 && bodies[0].stmts->Tag() == STMT_CPP ) {
+        is_unknown = true;
+        return true;
+    }
+
     auto sf = static_cast<ScriptFunc*>(func);
     auto seo = GetCallSideEffects(sf);
     if ( ! seo )

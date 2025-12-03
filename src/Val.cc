@@ -1776,7 +1776,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
 
     auto bs = attrs->Find(detail::ATTR_BROKER_STORE);
     if ( bs && broker_store.empty() ) {
-        auto c = bs->GetExpr()->Eval(nullptr);
+        auto c = eval_in_isolation(bs->GetExpr());
         assert(c);
         assert(c->GetType()->Tag() == TYPE_STRING);
         broker_store = c->AsStringVal()->AsString()->CheckString();
@@ -2014,11 +2014,11 @@ ValPtr TableVal::Default(const ValPtr& index) {
             auto rt = cast_intrusive<RecordType>(ytype);
             auto coerce = make_intrusive<detail::RecordCoerceExpr>(def_attr->GetExpr(), std::move(rt));
 
-            def_val = coerce->Eval(nullptr);
+            def_val = eval_in_isolation(coerce);
         }
 
         else
-            def_val = def_attr->GetExpr()->Eval(nullptr);
+            def_val = eval_in_isolation(def_attr->GetExpr());
     }
 
     if ( ! def_val ) {
@@ -2239,7 +2239,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
         return;
 
     try {
-        auto thefunc = change_func->Eval(nullptr);
+        auto thefunc = eval_in_isolation(change_func);
 
         if ( ! thefunc )
             return;
@@ -2723,7 +2723,7 @@ double TableVal::GetExpireTime() {
     double interval;
 
     try {
-        auto timeout = expire_time->Eval(nullptr);
+        auto timeout = eval_in_isolation(expire_time);
         interval = (timeout ? timeout->AsInterval() : -1);
     } catch ( InterpreterException& e ) {
         interval = -1;
@@ -2747,7 +2747,7 @@ double TableVal::CallExpireFunc(ListValPtr idx) {
     double secs = 0;
 
     try {
-        auto vf = expire_func->Eval(nullptr);
+        auto vf = eval_in_isolation(expire_func);
 
         if ( ! vf )
             // Will have been reported already.
@@ -3071,7 +3071,7 @@ RecordValPtr RecordVal::DoCoerceTo(RecordTypePtr t, bool allow_orphaning) const 
         if ( ft->Tag() == TYPE_RECORD && ! same_type(ft, v->GetType()) ) {
             auto rhs = make_intrusive<detail::ConstExpr>(v);
             auto e = make_intrusive<detail::RecordCoerceExpr>(std::move(rhs), cast_intrusive<RecordType>(ft));
-            aggr->Assign(t_i, e->Eval(nullptr));
+            aggr->Assign(t_i, eval_in_isolation(e));
             continue;
         }
 

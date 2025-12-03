@@ -782,7 +782,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call) {
         return false;
     }
 
-    auto fmt_str_val = fmt_str_arg->Eval(nullptr);
+    auto fmt_str_val = eval_in_isolation(fmt_str_arg);
 
     if ( fmt_str_val ) {
         const char* fmt_str = fmt_str_val->AsStringVal()->CheckString();
@@ -828,7 +828,7 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs) {
             continue;
         }
 
-        auto v = a->GetExpr()->Eval(nullptr);
+        auto v = eval_in_isolation(a->GetExpr());
 
         if ( ! v ) {
             a->Error("cannot evaluate attribute expression");
@@ -856,7 +856,7 @@ static std::set<EventGroupPtr> get_func_groups(const std::vector<AttrPtr>& attrs
         if ( a->Tag() != ATTR_GROUP )
             continue;
 
-        auto v = a->GetExpr()->Eval(nullptr);
+        auto v = eval_in_isolation(a->GetExpr());
 
         if ( ! v ) {
             a->Error("cannot evaluate attribute expression");

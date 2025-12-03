@@ -1,3 +1,13 @@
+8.0.4-13 | 2026-01-05 15:10:25 -0700
+
+  * Prevent crashes when evaluating expressions that access locals in isolation (Vern Paxson, Corelight)
+
+    (cherry picked from commit c42a5e665741428e67d1803f81bea9bc9b655455)
+
+  * for -O gen-standalone-C++, optimize &default's that are simple coercions (Vern Paxson, Corelight)
+
+    (cherry picked from commit a52c000e5fcccf2e918e9cce02ae5b8f54f7e547)
+
 8.0.4-11 | 2026-01-05 14:20:01 -0700
 
   * testing/external: Update baselines for is_orig fixes (Arne Welzel, Corelight)

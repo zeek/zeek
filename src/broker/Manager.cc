@@ -643,8 +643,12 @@ void Manager::InitializeBrokerStoreForwarding() {
     for ( const auto& global : globals ) {
         auto& id = global.second;
         if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) ) {
-            const auto& attr = id->GetAttr(zeek::detail::ATTR_BACKEND);
-            auto e = static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
+            const auto& attr_e = id->GetAttr(zeek::detail::ATTR_BACKEND)->GetExpr();
+            auto be_type = eval_in_isolation(attr_e);
+            if ( ! be_type )
+                reporter->ExprRuntimeError(attr_e.get(), "bad &backend attribute");
+
+            auto e = static_cast<BifEnum::Broker::BackendType>(be_type->AsEnum());
             auto storename = std::string("___sync_store_") + global.first;
             id->GetVal()->AsTableVal()->SetBrokerStore(storename);
             AddForwardedStore(storename, cast_intrusive<TableVal>(id->GetVal()));

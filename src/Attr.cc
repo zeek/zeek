@@ -135,9 +135,15 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const {
         }
 
         else {
-            ODesc dd;
-            expr->Eval(nullptr)->Describe(&dd);
-            std::string s = dd.Description();
+            std::string s;
+            auto v = eval_in_isolation(expr);
+            if ( v ) {
+                ODesc dd;
+                v->Describe(&dd);
+                s = dd.Description();
+            }
+            else
+                s = "<error-evaluating>";
 
             for ( auto& c : s )
                 if ( c == '\n' )

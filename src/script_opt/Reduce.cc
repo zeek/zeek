@@ -629,7 +629,7 @@ const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const {
 }
 
 ConstExprPtr Reducer::Fold(ExprPtr e) {
-    auto c = make_intrusive<ConstExpr>(e->Eval(nullptr));
+    auto c = make_intrusive<ConstExpr>(eval_in_isolation(e));
     FoldedTo(e, c);
     return c;
 }

@@ -928,7 +928,7 @@ void do_atif(zeek::detail::Expr* expr) {
     zeek::ValPtr val;
 
     if ( cb.local_names.empty() )
-        val = expr->Eval(nullptr);
+        val = eval_in_isolation(expr);
     else {
         for ( size_t i = 0; i < cb.local_names.size(); ++i )
             cb.local_names[i]->Error("referencing a local name in @if");

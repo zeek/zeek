@@ -672,21 +672,21 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
                             NegExpr* ne = (NegExpr*)(expr);
 
                             if ( ne->Op()->IsConst() )
-                                Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
+                                Unref(exprs.replace(j, new ConstExpr(eval_in_isolation(ne))));
                         } break;
 
                         case EXPR_POSITIVE: {
                             PosExpr* pe = (PosExpr*)(expr);
 
                             if ( pe->Op()->IsConst() )
-                                Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
+                                Unref(exprs.replace(j, new ConstExpr(eval_in_isolation(pe))));
                         } break;
 
                         case EXPR_NAME: {
                             NameExpr* ne = (NameExpr*)(expr);
 
                             if ( ne->Id()->IsConst() ) {
-                                auto v = ne->Eval(nullptr);
+                                auto v = eval_in_isolation(ne);
 
                                 if ( v )
                                     Unref(exprs.replace(j, new ConstExpr(std::move(v))));

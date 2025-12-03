@@ -900,7 +900,7 @@ public:
     }
 
     ZVal Generate() const override {
-        auto v = init_expr->Eval(nullptr);
+        auto v = eval_in_isolation(init_expr);
         if ( ! v ) {
             reporter->Error("failed &default in record creation");
             return {};
@@ -1120,7 +1120,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
     if ( def_expr && ! IsErrorType(type->Tag()) ) {
         if ( def_expr->Tag() == detail::EXPR_CONST ) {
-            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            auto zv = ZVal(eval_in_isolation(def_expr), type);
 
             if ( ZVal::IsManagedType(type) )
                 init = std::make_shared<detail::DirectManagedFieldInit>(zv);
@@ -1130,7 +1130,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
         else if ( def_expr->Tag() == detail::EXPR_ARITH_COERCE &&
                   (def_expr->GetOp1()->IsZero() || def_expr->GetOp1()->IsOne()) ) {
-            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            auto zv = ZVal(eval_in_isolation(def_expr), type);
             init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
@@ -1177,7 +1177,7 @@ ValPtr RecordType::FieldDefault(int field) const {
         return nullptr;
 
     const auto& def_attr = td->attrs->Find(detail::ATTR_DEFAULT);
-    return def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
+    return def_attr ? eval_in_isolation(def_attr->GetExpr()) : nullptr;
 }
 
 int RecordType::FieldOffset(const char* field) const {

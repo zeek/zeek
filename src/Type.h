@@ -623,6 +623,7 @@ public:
     detail::AttributesPtr attrs;
     const char* id = nullptr;
     bool is_managed = false;
+    bool is_volatile = false;
     TypeTag tag = TYPE_ERROR;
 
 private:

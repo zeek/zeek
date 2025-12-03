@@ -11,7 +11,6 @@ public:
     UDPSessionAdapter(Connection* conn) : IP::SessionAdapter("UDP", conn) {}
 
     void AddExtraAnalyzers(Connection* conn) override;
-    void UpdateConnVal(RecordVal* conn_val) override;
 
     void UpdateLength(bool is_orig, int len);
     void HandleBadChecksum(bool is_orig);
@@ -24,8 +23,10 @@ public:
     uint32_t rep_chk_thresh = 1;
 
 private:
-    void UpdateEndpointVal(RecordVal* endp_arg, bool is_orig);
     void ChecksumEvent(bool is_orig, uint32_t threshold);
+
+    zeek_uint_t GetEndpointSize(bool is_orig) const override;
+    zeek_uint_t GetEndpointState(bool is_orig) const override;
 
     zeek_int_t request_len = -1;
     zeek_int_t reply_len = -1;

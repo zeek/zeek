@@ -199,6 +199,11 @@
 # 	assign-val	for an assignment operation, the name of the
 # 			C++ variable that holds the value to assign
 #
+# 	assign-zval	for an assignment operation, the name of the
+# 			C++ variable that holds the ZVal to assign.
+#			The reference of a managed ZVal is adopted,
+#			while assign-val will increase the ref count.
+#
 # 	custom-method	a ZAMCompiler method that Gen-ZAM should use for
 # 			this operation, rather than generating one
 #

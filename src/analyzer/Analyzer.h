@@ -53,6 +53,19 @@ using analyzer_list = std::list<Analyzer*>;
 using ID = uint32_t;
 using analyzer_timer_func = void (Analyzer::*)(double t);
 
+
+// Callback for for_each
+using AnalyzerCallback = std::function<void(Analyzer&)>;
+
+/**
+ * Run a callback receiving each analyzer in the analyzer
+ * tree starting at \a root. Note that \a cb also runs for
+ * Analyzer.new_children, specifically *before* children.
+ *
+ * \param cb The callback to invoke for each analyzer.
+ */
+void for_each(Analyzer& root, const AnalyzerCallback& cb);
+
 /**
  * Class to receive processed output from an analyzer.
  */
@@ -600,7 +613,26 @@ public:
      *
      * @param conn_val The connection value being updated.
      */
+    [[deprecated("Remove in v9.1: Replaced with InitConnVal()")]]
     virtual void UpdateConnVal(RecordVal* conn_val);
+
+    /**
+     * Called once on an analyzer when either a connection's conn_val is
+     * instantiated for the first time, or right after the analyzer is
+     * initialized if the Connection's conn_val is available at that time.
+     *
+     * This is only interesting for analyzers that expose data on the
+     * connection or any nested records.
+     *
+     * The \a conn_val will live at least until the analyzer's Done()
+     * method is called. If an analyzer installs record field callbacks,
+     * these need to be cleared during Done(). Usually by keeping a pointer
+     * to the passed RecordVal instance and updating the fields with the
+     * last valid value.
+     *
+     * @param conn_val
+     */
+    virtual void InitConnVal(RecordVal& conn_val) {}
 
     /**
      * Convenience function that forwards directly to
@@ -729,6 +761,9 @@ protected:
     bool RemoveChild(const analyzer_list& children, ID id);
 
 private:
+    // Make for_each() a private friend to get access to new_children.
+    friend void for_each(Analyzer& root, const AnalyzerCallback& cb);
+
     // Internal method to eventually delete a child analyzer that's
     // already Done(). Returns an iterator pointing to the next element after
     // the just-removed element.

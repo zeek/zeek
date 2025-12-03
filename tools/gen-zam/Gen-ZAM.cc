@@ -416,9 +416,23 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
     }
 
     else if ( attr == "assign-val" ) {
+        if ( HasAssignVal() )
+            g->Gripe("multiple assign-val or assign-zval in template", attr);
+
         num_args = 1;
         if ( words.size() > 1 )
             SetAssignVal(words[1]);
+    }
+
+    else if ( attr == "assign-zval" ) {
+        if ( HasAssignVal() )
+            g->Gripe("multiple assign-val or assign-zval in template", attr);
+
+        num_args = 1;
+        if ( words.size() > 1 )
+            SetAssignVal(words[1]);
+
+        SetAssignValIsZVal();
     }
 
     else if ( attr == "eval" ) {
@@ -1029,31 +1043,17 @@ void ZAM_OpTemplate::GenAssignOpCore(const OCVec& oc, const string& eval, const 
         auto lhs_offset = constant_op ? 3 : 4;
         auto rhs_offset = lhs_offset - 1;
 
-        Emit("auto v = DirectOptField(" + rhs + ".AsRecord(), z.v" + to_string(rhs_offset) +
+        Emit("ZVal zval;");
+        Emit("LoadField(zval, " + rhs + ".AsRecord(), z.v" + to_string(rhs_offset) +
              "); // note, RHS field before LHS field\n");
 
-        Emit("if ( ! v )");
-        BeginBlock();
-        Emit("ZAM_run_time_error(Z_LOC, \"field value missing\");");
-        EndBlock();
-
-        Emit("else");
-        BeginBlock();
         auto slot = "z.v" + to_string(lhs_offset);
         Emit("auto r = frame[z.v1].AsRecord();");
-        Emit("auto& f = DirectField(r, " + slot + "); // note, LHS field after RHS field\n");
-
-        if ( is_managed ) {
-            Emit("zeek::Ref((*v)" + acc + ");");
-            Emit("zeek::Unref(f.ManagedVal());");
-        }
-
-        Emit("f = *v;");
+        Emit("auto& f = DirectOptField(r, " + slot + "); // note, LHS field after RHS field\n");
+        Emit("f = zval; // assigning ZValElement f does automatic memory management\n");
 
         if ( lhs_field )
             Emit("r->Modified();");
-
-        EndBlock();
     }
 
     else {
@@ -1108,14 +1108,34 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
 
     auto eval = orig_eval;
 
-    if ( is_managed ) {
-        eval += string("auto rhs = ") + rhs + ";\n";
-        eval += "zeek::Ref(rhs);\n";
-        eval += "Unref($$.ManagedVal());\n";
-        eval += "$$ = ZVal(rhs);\n";
+    if ( AssignValIsZVal() ) {
+        // If assign-zval was used, v owns the reference and we
+        // can just assign it directly, but need to ensure any
+        // already set managed value is properly unref'ed.
+        //
+        // Add some C++ code to statically assert it's actually a ZVal at
+        // compile time.
+        eval += g->IndentString() + "static_assert(std::is_same_v<decltype(" + v + "), zeek::ZVal>);\n";
+        if ( is_managed )
+            eval += g->IndentString() + "Unref($$.ManagedVal());\n";
+
+        eval += g->IndentString() + "$$ = " + v + ";";
     }
-    else
-        eval += "$$ = ZVal(" + rhs + ");\n";
+    else {
+        // Ensure statically that the assign value is a zeek::Val or its base
+        // is a zeek::Val. This should be obvious in the generated code, but
+        // this code happened to work for both, Val and ZVal, but is now forbidden.
+        eval += g->IndentString() + "static_assert(std::is_base_of_v<zeek::Val, std::remove_reference_t<decltype(*" +
+                v + ")>>);\n";
+        if ( is_managed ) {
+            eval += g->IndentString() + "auto rhs = " + rhs + ";\n";
+            eval += g->IndentString() + "zeek::Ref(rhs);\n";
+            eval += g->IndentString() + "Unref($$.ManagedVal());\n";
+            eval += g->IndentString() + "$$ = ZVal(rhs);\n";
+        }
+        else
+            eval += g->IndentString() + "$$ = ZVal(" + rhs + ");\n";
+    }
 
     Emit(ExpandParams(oc, eval));
 }

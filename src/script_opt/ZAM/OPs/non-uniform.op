@@ -3,21 +3,9 @@
 assign-op Field
 class R
 field-op
-assign-val v
-eval	auto r = $1.AsRecord();
-	auto& rv = DirectOptField(r, $2);
-	ZVal v;
-	if ( ! rv )
-		{
-		auto field = RecordField(r, $2);
-		auto def = r->GetType<RecordType>()->FieldDefault(field);
-		if ( def )
-			v = ZVal(def, Z_TYPE);
-		else
-			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(field)));
-		}
-	else
-		v = *rv;
+assign-zval zval
+eval	ZVal zval;
+	LoadFieldWithDefault(zval, $1.AsRecord(), $2);
 
 expr-op Has-Field
 class VRi

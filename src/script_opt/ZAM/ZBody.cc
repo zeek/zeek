@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/ZAM/ZBody.h"
 
+#include <type_traits>
+
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"

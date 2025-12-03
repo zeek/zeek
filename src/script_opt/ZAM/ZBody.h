@@ -68,12 +68,14 @@ public:
     // and can use its low-level record field accessors.
     static ZVal CheckAndLookupField(RecordVal* r, int f, const std::shared_ptr<ZAMLocInfo>& loc) {
         auto opt_zv = r->RawOptField(f);
-        if ( ! opt_zv ) {
-            auto fn = r->GetType<RecordType>()->FieldName(f);
-            ZAM_run_time_error(loc, util::fmt("field value missing ($%s)", fn));
-        }
+        if ( opt_zv.HoldsZVal() )
+            return *opt_zv;
+        else if ( opt_zv.HoldsFieldCallback() )
+            return opt_zv.FieldCallback()->Invoke(*r, f);
 
-        return *opt_zv;
+        auto fn = r->GetType<RecordType>()->FieldName(f);
+        ZAM_run_time_error(loc, util::fmt("field value missing ($%s)", fn));
+        return {};
     }
 
 private:

@@ -4,7 +4,6 @@
 
 #include <binpac.h>
 #include <algorithm>
-#include <cinttypes>
 
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
@@ -15,6 +14,17 @@
 #include "zeek/3rdparty/doctest.h"
 
 namespace zeek::analyzer {
+
+// Naive recursive pre-order traversal.
+void for_each(Analyzer& root, const AnalyzerCallback& cb) {
+    cb(root);
+
+    for ( auto* nc : root.new_children )
+        for_each(*nc, cb);
+
+    for ( auto* c : root.children )
+        for_each(*c, cb);
+}
 
 class AnalyzerTimer final : public zeek::detail::Timer {
 public:
@@ -360,8 +370,18 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
     analyzer->parent = this;
     new_children.push_back(analyzer);
 
-    if ( init )
+    if ( init ) {
         analyzer->Init();
+
+        // If the connection already has an adapter and a conn_val instance,
+        // also call InitConnVal() directly on the new analyzer. If either
+        // of these isn't yet the case, this will happen during GetVal()
+        // or SetSessionAdapter()
+        if ( Conn()->GetSessionAdapter() != nullptr ) {
+            if ( auto* conn_val = Conn()->RawVal(); conn_val != nullptr )
+                analyzer->InitConnVal(*conn_val);
+        }
+    }
 
     DBG_LOG(DBG_ANALYZER, "%s added child %s", fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
     return true;
@@ -718,7 +738,10 @@ void Analyzer::AppendNewChildren() {
 
 void Analyzer::UpdateConnVal(RecordVal* conn_val) {
     for ( Analyzer* a : children )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         a->UpdateConnVal(conn_val);
+#pragma GCC diagnostic pop
 }
 
 const RecordValPtr& Analyzer::ConnVal() { return conn->GetVal(); }

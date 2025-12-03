@@ -27,10 +27,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 34,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 62,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -45,7 +45,7 @@
       "start_time": 1254722767.49206,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "D",
       "uid": "CHhAvVGS1DHFjwGM9",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -74,9 +74,9 @@
       },
       "orig": {
         "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 48,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -91,7 +91,7 @@
       "start_time": 1254722767.529046,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "S",
       "uid": "ClEkJM2Vm5giqnMf4h",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -129,8 +129,8 @@
       "resp": {
         "size": 0,
         "state": 4,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "num_pkts": 1,
+        "num_bytes_ip": 48,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -198,8 +198,8 @@
       "resp": {
         "size": 181,
         "state": 4,
-        "num_pkts": 1,
-        "num_bytes_ip": 48,
+        "num_pkts": 2,
+        "num_bytes_ip": 269,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -272,8 +272,8 @@
       "resp": {
         "size": 181,
         "state": 4,
-        "num_pkts": 1,
-        "num_bytes_ip": 48,
+        "num_pkts": 2,
+        "num_bytes_ip": 269,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -387,8 +387,8 @@
       "resp": {
         "size": 181,
         "state": 4,
-        "num_pkts": 1,
-        "num_bytes_ip": 48,
+        "num_pkts": 2,
+        "num_bytes_ip": 269,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -496,8 +496,8 @@
         "orig": {
           "size": 9,
           "state": 4,
-          "num_pkts": 2,
-          "num_bytes_ip": 88,
+          "num_pkts": 3,
+          "num_bytes_ip": 137,
           "flow_label": 0,
           "l2_addr": "00:e0:1c:3c:17:c2"
         },
@@ -608,8 +608,8 @@
       "orig": {
         "size": 9,
         "state": 4,
-        "num_pkts": 2,
-        "num_bytes_ip": 88,
+        "num_pkts": 3,
+        "num_bytes_ip": 137,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -736,8 +736,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -856,8 +856,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -976,8 +976,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1096,8 +1096,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1216,8 +1216,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1336,8 +1336,8 @@
       "resp": {
         "size": 318,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 309,
+        "num_pkts": 4,
+        "num_bytes_ip": 486,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1448,8 +1448,8 @@
       "orig": {
         "size": 21,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 137,
+        "num_pkts": 4,
+        "num_bytes_ip": 189,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -1574,8 +1574,8 @@
       "resp": {
         "size": 336,
         "state": 4,
-        "num_pkts": 4,
-        "num_bytes_ip": 486,
+        "num_pkts": 5,
+        "num_bytes_ip": 544,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1686,8 +1686,8 @@
       "orig": {
         "size": 51,
         "state": 4,
-        "num_pkts": 4,
-        "num_bytes_ip": 189,
+        "num_pkts": 5,
+        "num_bytes_ip": 259,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -1812,8 +1812,8 @@
       "resp": {
         "size": 354,
         "state": 4,
-        "num_pkts": 5,
-        "num_bytes_ip": 544,
+        "num_pkts": 6,
+        "num_bytes_ip": 602,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -1924,8 +1924,8 @@
       "orig": {
         "size": 69,
         "state": 4,
-        "num_pkts": 5,
-        "num_bytes_ip": 259,
+        "num_pkts": 6,
+        "num_bytes_ip": 317,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -2054,8 +2054,8 @@
       "resp": {
         "size": 384,
         "state": 4,
-        "num_pkts": 6,
-        "num_bytes_ip": 602,
+        "num_pkts": 7,
+        "num_bytes_ip": 672,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -2166,8 +2166,8 @@
       "orig": {
         "size": 105,
         "state": 4,
-        "num_pkts": 6,
-        "num_bytes_ip": 317,
+        "num_pkts": 7,
+        "num_bytes_ip": 393,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -2292,8 +2292,8 @@
       "resp": {
         "size": 392,
         "state": 4,
-        "num_pkts": 7,
-        "num_bytes_ip": 672,
+        "num_pkts": 8,
+        "num_bytes_ip": 720,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -2405,8 +2405,8 @@
       "orig": {
         "size": 144,
         "state": 4,
-        "num_pkts": 7,
-        "num_bytes_ip": 393,
+        "num_pkts": 8,
+        "num_bytes_ip": 472,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -2532,8 +2532,8 @@
       "resp": {
         "size": 406,
         "state": 4,
-        "num_pkts": 8,
-        "num_bytes_ip": 720,
+        "num_pkts": 9,
+        "num_bytes_ip": 774,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -2648,8 +2648,8 @@
       "orig": {
         "size": 150,
         "state": 4,
-        "num_pkts": 8,
-        "num_bytes_ip": 472,
+        "num_pkts": 9,
+        "num_bytes_ip": 518,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -2770,8 +2770,8 @@
       "orig": {
         "size": 150,
         "state": 4,
-        "num_pkts": 8,
-        "num_bytes_ip": 472,
+        "num_pkts": 9,
+        "num_bytes_ip": 518,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -2901,8 +2901,8 @@
       "resp": {
         "size": 462,
         "state": 4,
-        "num_pkts": 9,
-        "num_bytes_ip": 774,
+        "num_pkts": 10,
+        "num_bytes_ip": 870,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -9168,10 +9168,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 548,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 576,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -9219,27 +9219,27 @@
             "ctx": {}
           },
           "orig": {
-            "size": 4530,
+            "size": 8862,
             "state": 4,
-            "num_pkts": 11,
-            "num_bytes_ip": 3518,
+            "num_pkts": 18,
+            "num_bytes_ip": 13978,
             "flow_label": 0,
             "l2_addr": "00:e0:1c:3c:17:c2"
           },
           "resp": {
             "size": 462,
             "state": 4,
-            "num_pkts": 10,
-            "num_bytes_ip": 870,
+            "num_pkts": 13,
+            "num_bytes_ip": 990,
             "flow_label": 0,
             "l2_addr": "00:1f:33:d9:81:60"
           },
           "start_time": 1254722767.529046,
-          "duration": "3.0 secs 163.0 msecs 758.039474 usecs",
+          "duration": "3.0 secs 965.0 msecs 134.859085 usecs",
           "service": [
             "SMTP"
           ],
-          "history": "ShAdDa",
+          "history": "ShAdDaT",
           "uid": "ClEkJM2Vm5giqnMf4h",
           "removal_hooks": [
             "SMTP::finalize_smtp: Conn::RemovalHook\n{ \nif (SMTP::c?$smtp) \n\tSMTP::smtp_message(SMTP::c);\n\n}"
@@ -10351,8 +10351,8 @@
       "orig": {
         "size": 14699,
         "state": 4,
-        "num_pkts": 23,
-        "num_bytes_ip": 21438,
+        "num_pkts": 24,
+        "num_bytes_ip": 21507,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -10493,8 +10493,8 @@
       "resp": {
         "size": 490,
         "state": 4,
-        "num_pkts": 21,
-        "num_bytes_ip": 1310,
+        "num_pkts": 22,
+        "num_bytes_ip": 1378,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -10625,8 +10625,8 @@
       "orig": {
         "size": 14705,
         "state": 4,
-        "num_pkts": 25,
-        "num_bytes_ip": 21547,
+        "num_pkts": 26,
+        "num_bytes_ip": 21593,
         "flow_label": 0,
         "l2_addr": "00:e0:1c:3c:17:c2"
       },
@@ -10750,8 +10750,8 @@
       "resp": {
         "size": 538,
         "state": 4,
-        "num_pkts": 22,
-        "num_bytes_ip": 1378,
+        "num_pkts": 23,
+        "num_bytes_ip": 1466,
         "flow_label": 0,
         "l2_addr": "00:1f:33:d9:81:60"
       },
@@ -10863,10 +10863,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 201,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 229,
         "flow_label": 0,
         "l2_addr": "00:02:3f:ec:61:11"
       },
@@ -10881,7 +10881,7 @@
       "start_time": 1254722776.690444,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "D",
       "uid": "CtPZjS20MLrsMUOJi2",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -11235,10 +11235,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 41,
+        "state": 3,
+        "num_pkts": 1,
+        "num_bytes_ip": 93,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -11253,7 +11253,7 @@
       "start_time": 1437831776.764391,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "D",
       "uid": "CUM0KZ3MLUfNB0cl11",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -11286,9 +11286,9 @@
       },
       "orig": {
         "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 64,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -11303,7 +11303,7 @@
       "start_time": 1437831787.856895,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "S",
       "uid": "CmES5u32sYpV7JYN",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -11341,8 +11341,8 @@
       "resp": {
         "size": 0,
         "state": 4,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "num_pkts": 1,
+        "num_bytes_ip": 60,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -11410,8 +11410,8 @@
       "resp": {
         "size": 35,
         "state": 4,
-        "num_pkts": 1,
-        "num_bytes_ip": 60,
+        "num_pkts": 2,
+        "num_bytes_ip": 147,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -11478,8 +11478,8 @@
         "orig": {
           "size": 24,
           "state": 4,
-          "num_pkts": 3,
-          "num_bytes_ip": 168,
+          "num_pkts": 4,
+          "num_bytes_ip": 244,
           "flow_label": 0,
           "l2_addr": "58:b0:35:86:54:8d"
         },
@@ -11590,8 +11590,8 @@
       "orig": {
         "size": 24,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 168,
+        "num_pkts": 4,
+        "num_bytes_ip": 244,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -11714,8 +11714,8 @@
       "resp": {
         "size": 85,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 199,
+        "num_pkts": 4,
+        "num_bytes_ip": 301,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -11834,8 +11834,8 @@
       "resp": {
         "size": 85,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 199,
+        "num_pkts": 4,
+        "num_bytes_ip": 301,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -11954,8 +11954,8 @@
       "resp": {
         "size": 85,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 199,
+        "num_pkts": 4,
+        "num_bytes_ip": 301,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -12074,8 +12074,8 @@
       "resp": {
         "size": 85,
         "state": 4,
-        "num_pkts": 3,
-        "num_bytes_ip": 199,
+        "num_pkts": 4,
+        "num_bytes_ip": 301,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -12186,8 +12186,8 @@
       "orig": {
         "size": 56,
         "state": 4,
-        "num_pkts": 5,
-        "num_bytes_ip": 296,
+        "num_pkts": 6,
+        "num_bytes_ip": 380,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -12312,8 +12312,8 @@
       "resp": {
         "size": 93,
         "state": 4,
-        "num_pkts": 4,
-        "num_bytes_ip": 301,
+        "num_pkts": 5,
+        "num_bytes_ip": 361,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -12425,8 +12425,8 @@
       "orig": {
         "size": 88,
         "state": 4,
-        "num_pkts": 7,
-        "num_bytes_ip": 432,
+        "num_pkts": 8,
+        "num_bytes_ip": 516,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -12552,8 +12552,8 @@
       "resp": {
         "size": 101,
         "state": 4,
-        "num_pkts": 5,
-        "num_bytes_ip": 361,
+        "num_pkts": 6,
+        "num_bytes_ip": 421,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -12668,8 +12668,8 @@
       "orig": {
         "size": 121,
         "state": 4,
-        "num_pkts": 9,
-        "num_bytes_ip": 568,
+        "num_pkts": 10,
+        "num_bytes_ip": 653,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -12798,8 +12798,8 @@
       "resp": {
         "size": 109,
         "state": 4,
-        "num_pkts": 6,
-        "num_bytes_ip": 421,
+        "num_pkts": 7,
+        "num_bytes_ip": 481,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -12915,8 +12915,8 @@
       "orig": {
         "size": 156,
         "state": 4,
-        "num_pkts": 11,
-        "num_bytes_ip": 705,
+        "num_pkts": 12,
+        "num_bytes_ip": 792,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -13046,8 +13046,8 @@
       "resp": {
         "size": 117,
         "state": 4,
-        "num_pkts": 7,
-        "num_bytes_ip": 481,
+        "num_pkts": 8,
+        "num_bytes_ip": 541,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -13164,8 +13164,8 @@
       "orig": {
         "size": 162,
         "state": 4,
-        "num_pkts": 13,
-        "num_bytes_ip": 844,
+        "num_pkts": 14,
+        "num_bytes_ip": 902,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -13288,8 +13288,8 @@
       "orig": {
         "size": 162,
         "state": 4,
-        "num_pkts": 13,
-        "num_bytes_ip": 844,
+        "num_pkts": 14,
+        "num_bytes_ip": 902,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -13417,8 +13417,8 @@
       "resp": {
         "size": 154,
         "state": 4,
-        "num_pkts": 8,
-        "num_bytes_ip": 541,
+        "num_pkts": 9,
+        "num_bytes_ip": 630,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -16444,8 +16444,8 @@
       "orig": {
         "size": 969,
         "state": 4,
-        "num_pkts": 15,
-        "num_bytes_ip": 954,
+        "num_pkts": 16,
+        "num_bytes_ip": 1813,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -16591,8 +16591,8 @@
       "resp": {
         "size": 162,
         "state": 4,
-        "num_pkts": 9,
-        "num_bytes_ip": 630,
+        "num_pkts": 10,
+        "num_bytes_ip": 690,
         "flow_label": 0,
         "l2_addr": "00:08:ca:cc:ad:4c"
       },
@@ -16726,10 +16726,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 85,
+        "state": 3,
+        "num_pkts": 1,
+        "num_bytes_ip": 137,
         "flow_label": 0,
         "l2_addr": "cc:b2:55:f4:62:92"
       },
@@ -16744,7 +16744,7 @@
       "start_time": 1437831798.533593,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "D",
       "uid": "CP5puj4I8PtEU4qzYg",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -16772,10 +16772,10 @@
         "ctx": {}
       },
       "orig": {
-        "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "size": 714,
+        "state": 3,
+        "num_pkts": 1,
+        "num_bytes_ip": 766,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -16790,7 +16790,7 @@
       "start_time": 1437831799.262632,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "D",
       "uid": "C37jN32gN3y3AZzyf6",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -16819,9 +16819,9 @@
       },
       "orig": {
         "size": 0,
-        "state": 0,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "state": 1,
+        "num_pkts": 1,
+        "num_bytes_ip": 64,
         "flow_label": 0,
         "l2_addr": "58:b0:35:86:54:8d"
       },
@@ -16836,7 +16836,7 @@
       "start_time": 1437831799.461152,
       "duration": "0 secs",
       "service": [],
-      "history": "",
+      "history": "S",
       "uid": "C3eiCBGOLw3VtHfOj",
       "failed_analyzers": [],
       "extract_orig": false,
@@ -16878,8 +16878,8 @@
       "resp": {
         "size": 0,
         "state": 4,
-        "num_pkts": 0,
-        "num_bytes_ip": 0,
+        "num_pkts": 1,
+        "num_bytes_ip": 52,
         "flow_label": 0,
         "l2_addr": "cc:b2:55:f4:62:92"
       },

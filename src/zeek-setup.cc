@@ -64,6 +64,7 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/module_util.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/session/Manager.h"
@@ -798,6 +799,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
         RecordType::InitPostScript();
         Connection::InitPostScript();
+        packet_analysis::IP::SessionAdapter::InitPostScript();
 
         conn_key_mgr->InitPostScript();
         telemetry_mgr->InitPostScript();

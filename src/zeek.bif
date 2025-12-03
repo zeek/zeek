@@ -881,6 +881,8 @@ function sha512_hash%(...%): string
 ##    sha512_hash_init sha512_hash_update sha512_hash_finish
 function md5_hmac%(...%): string &deprecated="Remove in v9.1. Use sha256_hmac()."
 	%{
+	detail::KeyedHash::InitializeHmacMd5Seed();
+
 	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));

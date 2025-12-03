@@ -541,7 +541,7 @@ expr:
 					}
 				}
 				else {
-					auto ce = new ConstExpr($$->Eval(nullptr));
+					auto ce = new ConstExpr(eval_in_isolation($$));
 					Unref($$);
 					$$ = ce;
 				}

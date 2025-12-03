@@ -1,3 +1,7 @@
+8.1.0-dev.1001 | 2025-12-03 14:49:52 -0700
+
+  * Prevent crashes when evaluating expressions that access locals in isolation (Vern Paxson, Corelight)
+
 8.1.0-dev.999 | 2025-12-03 18:23:45 +0000
 
   * Add blurb to NEWS about MD5 changes (Tim Wojtulewicz, Corelight)

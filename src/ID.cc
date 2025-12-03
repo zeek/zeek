@@ -305,7 +305,7 @@ void ID::EvalFunc(ExprPtr ef, ExprPtr ev) {
     args->Append(std::move(arg1));
     args->Append(std::move(ev));
     auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
-    SetVal(ce->Eval(nullptr));
+    SetVal(eval_in_isolation(ce));
 }
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const {

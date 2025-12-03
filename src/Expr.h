@@ -1712,6 +1712,11 @@ extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 // if they couldn't all be reduced.
 extern std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l);
 
+// Evaluates an expression in isolation (without a frame context).
+// Used for compile-time constant evaluation and attribute processing.
+extern ValPtr eval_in_isolation(const Expr* e);
+inline ValPtr eval_in_isolation(const ExprPtr& e) { return eval_in_isolation(e.get()); }
+
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into
 // a canonical form.

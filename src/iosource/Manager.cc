@@ -380,6 +380,8 @@ static std::pair<std::string, std::string> split_prefix(std::string path) {
         prefix = path.substr(0, i);
         path = path.substr(i + 2, std::string::npos);
     }
+    else if ( path.ends_with(".pcapng") )
+        prefix = "pcapng";
     else
         prefix = "pcap";
 

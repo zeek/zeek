@@ -64,3 +64,6 @@
 [submodule "auxil/expected-lite"]
 	path = auxil/expected-lite
 	url = https://github.com/martinmoene/expected-lite.git
+[submodule "src/iosource/pcapng/auxil/LightPcapNg"]
+	path = src/iosource/pcapng/auxil/LightPcapNg
+	url = https://github.com/Technica-Engineering/LightPcapNg

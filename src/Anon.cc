@@ -161,8 +161,6 @@ void AnonymizeIPAddr_A50::init() {
 }
 
 bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
-    DEBUG_MSG("%s/%d\n", IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(), num_bits);
-
     if ( ! before_anonymization ) {
         reporter->Error("prefix preservation specified after anonymization begun");
         return false;

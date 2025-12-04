@@ -84,4 +84,11 @@ extern ZAMOp1Flavor op1_flavor[];
 // Maps an operand to whether it has side effects.
 extern bool op_side_effects[];
 
+// Returns the inverse of a given ZAM opcode (e.g., OP_LE -> OP_GT).
+// Returns OP_NOP if the opcode has no inverse.
+extern ZOp inverse_ZOP(ZOp op);
+
+// Returns true if the given ZAM opcode has an inverse.
+extern bool ZOP_has_inverse(ZOp op);
+
 } // namespace zeek::detail

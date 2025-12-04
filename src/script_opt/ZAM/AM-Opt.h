@@ -15,6 +15,9 @@ void TallySwitchTargets(const CaseMapsI<T>& switches);
 // Remove code that can't be reached.  True if some removal happened.
 bool RemoveDeadCode();
 
+// Invert conditionals that branch around unconditional branches.
+bool InvertConditionalsAroundGotos();
+
 // Collapse chains of gotos.  True if some something changed.
 bool CollapseGoTos();
 

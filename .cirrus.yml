@@ -730,7 +730,10 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
     mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
     if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
     if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
-    cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
+    cd docker && docker build \
+                     --cache-from zeek-builder:latest \
+                     --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                     -t zeek-builder:latest -f builder.Dockerfile .
     docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
   build_zeek_script: |
     set -x
@@ -746,7 +749,14 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
     docker commit zeek-builder-container zeek-build
   build_final_script: |
     set -x
-    cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
+    ZEEK_VERSION=$(cat VERSION)
+    CREATED_DATE=$(date -Iseconds)
+    cd docker && docker build \
+                     --cache-from ${IMAGE_TAG} \
+                     --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                     --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                     --build-arg CREATED_DATE=${CREATED_DATE} \
+                     -t ${IMAGE_TAG} -f final.Dockerfile .
     docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
   test_script: |
     set -x

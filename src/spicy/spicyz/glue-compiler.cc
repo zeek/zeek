@@ -1689,10 +1689,13 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
     }
 
     void operator()(::spicy::type::unit::item::Switch* n) override {
-        for ( const auto& c : n->cases() ) {
-            for ( const auto& i : c->block()->items() )
-                dispatch(i);
-        }
+        for ( const auto& c : n->cases() )
+            dispatch(c->block());
+    }
+
+    void operator()(::spicy::type::unit::item::Block* n) override {
+        for ( const auto& i : n->items() )
+            dispatch(i);
     }
 };
 } // namespace

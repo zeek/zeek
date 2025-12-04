@@ -5534,7 +5534,8 @@ function __init_secondary_bifs%(%): bool
 #include "zeek/Anon.h"
 %%}
 
-## Preserves the prefix of an IP address in anonymization.
+## Preserves the prefix of an IP address in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method.
 ##
 ## a: The address to preserve.
 ##
@@ -5542,7 +5543,6 @@ function __init_secondary_bifs%(%): bool
 ##
 ## .. zeek:see:: preserve_subnet anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
 	%{
 	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
@@ -5561,13 +5561,13 @@ function preserve_prefix%(a: addr, width: count%): any
 	return nullptr;
 	%}
 
-## Preserves the prefix of a subnet in anonymization.
+## Preserves the prefix of a subnet in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method.
 ##
 ## a: The subnet to preserve.
 ##
 ## .. zeek:see:: preserve_prefix anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
 	%{
 	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
@@ -5593,17 +5593,22 @@ function preserve_subnet%(a: subnet%): any
 ##
 ## cl: The anonymization class, which can take on three different values:
 ##
-##     - ``ORIG_ADDR``: Tag *a* as an originator address.
+##     - ``ORIG_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``orig_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``RESP_ADDR``: Tag *a* as an responder address.
+##     - ``RESP_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``resp_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``OTHER_ADDR``: Tag *a* as an arbitrary address.
+##     - ``OTHER_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``other_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
 ## Returns: An anonymized version of *a*.
 ##
 ## .. zeek:see:: preserve_prefix preserve_subnet
 ##
-## .. todo:: Currently dysfunctional.
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();

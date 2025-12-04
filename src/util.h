@@ -528,28 +528,34 @@ std::string canonify_name(const std::string& name);
  */
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
 
+enum UTF8EscapingFlags : uint8_t {
+    ESCAPE_NONE = 0x00,
+    // Escape printable ASCII control characters (e.g. `\n` is converted to `\x0a`)
+    ESCAPE_PRINTABLE_CONTROLS = 0x01,
+    // Escape unprintable ASCII control characters
+    ESCAPE_UNPRINTABLE_CONTROLS = 0x02,
+};
+
 /**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
  * @param val the character data to be escaped. this is a string_view, but it can hold
  * null characters in the middle of the data.
- * @param escape_printable_controls flag for whether printable control characters
- * (e.g. newlines, tabs, etc) should be escaped in the output. Defaults to false.
- * @param escape_other_controls flag for whether non-printable control characters
- * (e.g. nulls, bells, etc) should be escaped in the output.
+ * @param flags a combination of the values from UTF8EscapingFlags to control special
+ * casing. Set to ESCAPE_NONE to disable all special cases.
  * @return the escaped string
  */
-std::string escape_utf8(std::string_view val, bool escape_printable_controls = false,
-                        bool escape_other_controls = true);
+std::string escape_utf8(std::string_view val, int flags);
 
 [[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
 inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
-    return escape_utf8(std::string_view{val, val_size}, ! escape_printable_controls);
+    return escape_utf8(std::string_view{val, val_size},
+                       escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
 }
 
 [[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
 inline std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true) {
-    return escape_utf8(val, ! escape_printable_controls);
+    return escape_utf8(val, escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
 }
 
 /**

@@ -614,6 +614,7 @@
    policy/protocols/http/var-extraction-cookies.zeek </scripts/policy/protocols/http/var-extraction-cookies.zeek>
    policy/protocols/http/var-extraction-uri.zeek </scripts/policy/protocols/http/var-extraction-uri.zeek>
    policy/protocols/krb/ticket-logging.zeek </scripts/policy/protocols/krb/ticket-logging.zeek>
+   policy/protocols/krb/md5-ticket-logging.zeek </scripts/policy/protocols/krb/md5-ticket-logging.zeek>
    policy/protocols/modbus/known-masters-slaves.zeek </scripts/policy/protocols/modbus/known-masters-slaves.zeek>
    policy/protocols/modbus/track-memmap.zeek </scripts/policy/protocols/modbus/track-memmap.zeek>
    policy/protocols/mysql/software.zeek </scripts/policy/protocols/mysql/software.zeek>
@@ -626,6 +627,7 @@
    policy/protocols/ssh/detect-bruteforcing.zeek </scripts/policy/protocols/ssh/detect-bruteforcing.zeek>
    policy/protocols/ssh/geo-data.zeek </scripts/policy/protocols/ssh/geo-data.zeek>
    policy/protocols/ssh/interesting-hostnames.zeek </scripts/policy/protocols/ssh/interesting-hostnames.zeek>
+   policy/protocols/ssh/md5-host-key-logging.zeek </scripts/policy/protocols/ssh/md5-host-key-logging.zeek>
    policy/protocols/ssh/software.zeek </scripts/policy/protocols/ssh/software.zeek>
    policy/protocols/ssl/certificate-request-info.zeek </scripts/policy/protocols/ssl/certificate-request-info.zeek>
    policy/protocols/ssl/decryption.zeek </scripts/policy/protocols/ssl/decryption.zeek>

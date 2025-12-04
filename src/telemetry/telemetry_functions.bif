@@ -70,7 +70,7 @@ bool labels_valid(std::span<const zeek::telemetry::LabelView> labels,
 	{
 	auto key_in_label_names = [keys{label_names}](auto x)
 		{
-		return std::find(keys.begin(), keys.end(), x.first) != keys.end();
+		return std::ranges::find(keys, x.first) != keys.end();
 		};
 	return labels.size() == label_names.size()
 	       && std::ranges::all_of(labels, key_in_label_names);

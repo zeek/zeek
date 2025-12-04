@@ -11,21 +11,23 @@ Summary
 ~~~~~~~
 Events
 ######
-================================================ =============================================================================
-:zeek:id:`mime_all_data`: :zeek:type:`event`     Generated for passing on all data decoded from a single email MIME
-                                                 message.
-:zeek:id:`mime_all_headers`: :zeek:type:`event`  Generated for MIME headers extracted from email MIME entities, passing all
-                                                 headers at once.
-:zeek:id:`mime_begin_entity`: :zeek:type:`event` Generated when starting to parse an email MIME entity.
-:zeek:id:`mime_content_hash`: :zeek:type:`event` Generated for decoded MIME entities extracted from email messages, passing on
-                                                 their MD5 checksums.
-:zeek:id:`mime_end_entity`: :zeek:type:`event`   Generated when finishing parsing an email MIME entity.
-:zeek:id:`mime_entity_data`: :zeek:type:`event`  Generated for data decoded from an email MIME entity.
-:zeek:id:`mime_event`: :zeek:type:`event`        Generated for errors found when decoding email MIME entities.
-:zeek:id:`mime_one_header`: :zeek:type:`event`   Generated for individual MIME headers extracted from email MIME
-                                                 entities.
-:zeek:id:`mime_segment_data`: :zeek:type:`event` Generated for chunks of decoded MIME data from email MIME entities.
-================================================ =============================================================================
+======================================================= =============================================================================
+:zeek:id:`mime_all_data`: :zeek:type:`event`            Generated for passing on all data decoded from a single email MIME
+                                                        message.
+:zeek:id:`mime_all_headers`: :zeek:type:`event`         Generated for MIME headers extracted from email MIME entities, passing all
+                                                        headers at once.
+:zeek:id:`mime_begin_entity`: :zeek:type:`event`        Generated when starting to parse an email MIME entity.
+:zeek:id:`mime_content_hash`: :zeek:type:`event`        Generated for decoded MIME entities extracted from email messages, passing on
+                                                        their MD5 checksums.
+:zeek:id:`mime_content_hash_sha256`: :zeek:type:`event` Generated for decoded MIME entities extracted from email messages, passing on
+                                                        their SHA256 checksums.
+:zeek:id:`mime_end_entity`: :zeek:type:`event`          Generated when finishing parsing an email MIME entity.
+:zeek:id:`mime_entity_data`: :zeek:type:`event`         Generated for data decoded from an email MIME entity.
+:zeek:id:`mime_event`: :zeek:type:`event`               Generated for errors found when decoding email MIME entities.
+:zeek:id:`mime_one_header`: :zeek:type:`event`          Generated for individual MIME headers extracted from email MIME
+                                                        entities.
+:zeek:id:`mime_segment_data`: :zeek:type:`event`        Generated for chunks of decoded MIME data from email MIME entities.
+======================================================= =============================================================================
 
 
 Detailed Interface
@@ -115,7 +117,7 @@ Events
       however, it raises :zeek:id:`http_begin_entity` instead.
 
 .. zeek:id:: mime_content_hash
-   :source-code: base/bif/plugins/Zeek_MIME.events.bif.zeek 207 207
+   :source-code: base/bif/plugins/Zeek_MIME.events.bif.zeek 208 208
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, content_len: :zeek:type:`count`, hash_value: :zeek:type:`string`)
 
@@ -138,6 +140,36 @@ Events
    
    .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
       mime_entity_data mime_event mime_one_header mime_segment_data
+      mime_content_hash_sha256
+   
+   .. note:: While Zeek also decodes MIME entities extracted from HTTP
+      sessions, there's no corresponding event for that currently.
+
+.. zeek:id:: mime_content_hash_sha256
+   :source-code: base/bif/plugins/Zeek_MIME.events.bif.zeek 231 231
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, content_len: :zeek:type:`count`, hash_value: :zeek:type:`string`)
+
+   Generated for decoded MIME entities extracted from email messages, passing on
+   their SHA256 checksums. Zeek computes the SHA256 over the complete decoded data of
+   each MIME entity.
+   
+   Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
+   about MIME.
+   
+
+   :param c: The connection.
+   
+
+   :param content_len: The length of the entity being hashed.
+   
+
+   :param hash_value: The SHA256 hash.
+   
+   .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
+      mime_entity_data mime_event mime_one_header mime_segment_data
+      mime_content_hash
    
    .. note:: While Zeek also decodes MIME entities extracted from HTTP
       sessions, there's no corresponding event for that currently.

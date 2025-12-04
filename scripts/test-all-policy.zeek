@@ -132,6 +132,7 @@
 @load protocols/http/var-extraction-cookies.zeek
 @load protocols/http/var-extraction-uri.zeek
 @load protocols/krb/ticket-logging.zeek
+@load protocols/krb/md5-ticket-logging.zeek
 @load protocols/modbus/known-masters-slaves.zeek
 @load protocols/modbus/track-memmap.zeek
 @load protocols/mysql/software.zeek
@@ -144,6 +145,7 @@
 @load protocols/ssh/detect-bruteforcing.zeek
 @load protocols/ssh/geo-data.zeek
 @load protocols/ssh/interesting-hostnames.zeek
+@load protocols/ssh/md5-host-key-logging.zeek
 @load protocols/ssh/software.zeek
 @load protocols/ssl/certificate-request-info.zeek
 @load protocols/ssl/decryption.zeek

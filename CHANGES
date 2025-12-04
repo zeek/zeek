@@ -1,3 +1,83 @@
+8.1.0-dev.1007 | 2025-12-03 15:03:08 -0800
+
+  * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)
+
+  * Add missing Packet member initializations to Packet::Init() (Christian Kreibich, Corelight)
+
+  * Add unit test for Packet::Init() (Christian Kreibich, Corelight)
+
+8.1.0-dev.1003 | 2025-12-03 14:50:16 -0700
+
+  * Use ranges versions of all_of, any_of, etc. (Dominik Charousset, Corelight)
+
+    Modernizing low-hanging fruits to use less-noisy C++20 versions. Not
+    pulling in `<ranges>` yet, only sticking to new overloads in the
+    `<algorithm>` header.
+
+8.1.0-dev.1001 | 2025-12-03 14:49:52 -0700
+
+  * Prevent crashes when evaluating expressions that access locals in isolation (Vern Paxson, Corelight)
+
+8.1.0-dev.999 | 2025-12-03 18:23:45 +0000
+
+  * Add blurb to NEWS about MD5 changes (Tim Wojtulewicz, Corelight)
+
+  * Update external baselines for MD5 changes (Tim Wojtulewicz, Corelight)
+
+  * Remove ssh/krb md5 fields by default, add policy scripts to restore them (Tim Wojtulewicz, Corelight)
+
+  * Add new event for SHA256 MIME content hashes (Tim Wojtulewicz, Corelight)
+
+  * Add column to ssh.log with sha256 host key fingerprint (Tim Wojtulewicz, Corelight)
+
+  * Add columns to kerberos.log with sha256 hashes (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.992 | 2025-12-02 19:19:41 -0700
+
+  * btest: Skip misc/dump-events-json with older jq versions (Arne Welzel, Corelight)
+
+8.1.0-dev.989 | 2025-12-02 21:55:31 +0100
+
+  * btest: Skip misc/dump-events-json with older jq versions (Arne Welzel, Corelight)
+
+8.1.0-dev.987 | 2025-12-02 09:00:12 -0500
+
+  * GH-5048: Fix error when table type cannot be determined (Evan Typanski, Corelight)
+
+    Fixes #5048
+
+8.1.0-dev.985 | 2025-12-02 11:29:48 +0100
+
+  * testing/external: Update baselines for is_orig fixes (Arne Welzel, Corelight)
+
+  * packet_analysis/tcp: Avoid forwarding the wrong is_orig (Arne Welzel, Corelight)
+
+    ...and add some documentation into doc/devel/conn about this
+
+  * packet_analysis/tcp: Also flip packet analyzers (Arne Welzel, Corelight)
+
+    The ConnSize_Analyzer has FlipRoles() implemented, but for TCP
+    connections certainly was never invoked.
+
+  * Docs: fix permanent redirect warning from link checker (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.979 | 2025-12-01 11:19:09 -0500
+
+  * Fix `:zeek:see:` in backtick in docs (Evan Typanski, Corelight)
+
+    The original change got reverted from auto-docs generation, so this
+    fixes it in the script file itself. Co-authoring for attribution.
+
+    Co-authored-by: RyugaXhypeR <ryugashyper@gmail.com>
+
+8.1.0-dev.977 | 2025-11-30 19:43:02 -0700
+
+  * Add flags for controlling utf8 escaping instead of bools (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.974 | 2025-11-29 08:43:35 -0700
+
+  * Docs: Fixed content linkage with `:zeek:see:` directive (RyugaXhypeR)
+
 8.1.0-dev.971 | 2025-11-26 18:39:27 +0100
 
   * ci: Disable JavaScript for UBSAN/TSAN (Arne Welzel, Corelight)

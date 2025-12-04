@@ -200,18 +200,32 @@ Types
       File unique ID of server cert, if any
 
 
-   .. zeek:field:: auth_ticket :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+   .. zeek:field:: auth_ticket_sha256 :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/protocols/krb/ticket-logging.zeek` is loaded)
 
-      Hash of ticket used to authorize request/transaction
+      SHA256 hash of ticket used to authorize request/transaction
+
+
+   .. zeek:field:: new_ticket_sha256 :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/krb/ticket-logging.zeek` is loaded)
+
+      SHA256 hash of ticket returned by the KDC
+
+
+   .. zeek:field:: auth_ticket :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/krb/md5-ticket-logging.zeek` is loaded)
+
+      MD5 hash of ticket used to authorize request/transaction
 
 
    .. zeek:field:: new_ticket :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      (present if :doc:`/scripts/policy/protocols/krb/ticket-logging.zeek` is loaded)
+      (present if :doc:`/scripts/policy/protocols/krb/md5-ticket-logging.zeek` is loaded)
 
-      Hash of ticket returned by the KDC
+      MD5 hash of ticket returned by the KDC
 
 
 

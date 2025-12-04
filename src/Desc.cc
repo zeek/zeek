@@ -250,7 +250,9 @@ void ODesc::AddBytes(const void* bytes, size_t n) {
         if ( esc_start != nullptr ) {
             if ( utf8 ) {
                 assert(esc_start >= s);
-                std::string result = util::escape_utf8({s, static_cast<size_t>(esc_start - s)}, true);
+                std::string result =
+                    util::escape_utf8({s, static_cast<size_t>(esc_start - s)},
+                                      util::ESCAPE_PRINTABLE_CONTROLS | util::ESCAPE_UNPRINTABLE_CONTROLS);
                 AddBytesRaw(result.c_str(), result.size());
             }
             else
@@ -262,7 +264,9 @@ void ODesc::AddBytes(const void* bytes, size_t n) {
         else {
             if ( utf8 ) {
                 assert(e >= s);
-                std::string result = util::escape_utf8({s, static_cast<size_t>(e - s)}, true);
+                std::string result =
+                    util::escape_utf8({s, static_cast<size_t>(e - s)},
+                                      util::ESCAPE_PRINTABLE_CONTROLS | util::ESCAPE_UNPRINTABLE_CONTROLS);
                 AddBytesRaw(result.c_str(), result.size());
             }
             else

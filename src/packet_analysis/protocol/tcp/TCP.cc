@@ -110,7 +110,26 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     // Tap the packet before processing/forwarding.
     adapter->TapPacket(pkt);
 
+    // Adapter Process() updates the state of TCP connections.
+    //
+    // Watch out: The connection can flip from under us on the second packet
+    // (see TCP_Endpoint::CheckHistory()) and this causes the local is_orig
+    // parameter to be stale. I.e., child analyzers that receive packet
+    // and stream data further down via adapter->DeliverPacket(...) will
+    // have been flipped, so we need to ensure they receive the correct
+    // is_orig value. We flip the local is_orig by checking if the originator
+    // endpoint has changed after adapter->Process() ran.
+    //
+    // See the docs/devel/conn.rst for more details and ideas how to
+    // improve here. This pretty tricky and fragile.
+    const auto* originator = adapter->Orig();
+
     adapter->Process(is_orig, tp, len, ip, data, remaining);
+
+    // If the connection flipped during adapter->Process(), update the local is_orig
+    // to reflect that so that child analyzers observe the right value.
+    if ( originator != adapter->Orig() )
+        is_orig = ! is_orig;
 
     // Send the packet back into the packet analysis framework.
     ForwardPacket(std::min(len, remaining), data, pkt);

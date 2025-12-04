@@ -334,7 +334,7 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c) {
         bool is_simple_init = CPPCompile::IsSimpleInitExpr(a_e);
 
         if ( a_e->Tag() == EXPR_ARITH_COERCE && is_simple_init )
-            a_e = make_intrusive<ConstExpr>(a_e->Eval(nullptr));
+            a_e = make_intrusive<ConstExpr>(eval_in_isolation(a_e));
 
         if ( ! is_simple_init ) {
             if ( obj_matches_opt_files(a_e) != AnalyzeDecision::SHOULD_NOT ) {

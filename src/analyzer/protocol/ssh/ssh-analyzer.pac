@@ -3,11 +3,13 @@
 #include <vector>
 #include <string>
 #include "zeek/digest.h"
+#include "zeek/Base64.h"
 %}
 
 %header{
 zeek::VectorValPtr name_list_to_vector(const bytestring& nl);
 const char* fingerprint_md5(const unsigned char* d);
+std::string fingerprint_sha256(const unsigned char* d);
 %}
 
 %code{
@@ -55,6 +57,23 @@ const char* fingerprint_md5(const unsigned char* d)
 	                       d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
 	                       d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 	}
+
+std::string fingerprint_sha256(const uint8_t* d)
+	{
+	std::string ret = "SHA256:";
+	ret.resize(ZEEK_SHA256_DIGEST_LENGTH + 7);
+
+	int outlen = ZEEK_SHA256_DIGEST_LENGTH;
+	char* start = ret.data() + 7;
+	zeek::detail::Base64Converter enc(nullptr, "");
+	enc.Encode(ZEEK_SHA256_DIGEST_LENGTH, d, &outlen, &start);
+
+	if ( outlen == 0 )
+		return {};
+
+	return ret;
+	}
+
 %}
 
 refine flow SSH_Flow += {
@@ -212,7 +231,9 @@ refine flow SSH_Flow += {
 		if ( ssh_server_host_key )
 			{
 			unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
-			zeek::detail::internal_md5(${key}.data(), ${key}.length(), digest);
+			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
+			zeek::detail::hash_update(ctx, ${key}.data(), ${key}.length());
+			zeek::detail::hash_final(ctx, digest);
 
 			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),
@@ -226,6 +247,18 @@ refine flow SSH_Flow += {
 				to_stringval(${key}));
 			}
 
+		if ( ssh_server_host_key_fingerprint )
+			{
+			unsigned char digest[ZEEK_SHA256_DIGEST_LENGTH];
+			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
+			zeek::detail::hash_update(ctx, ${key}.data(), ${key}.length());
+			zeek::detail::hash_final(ctx, digest);
+
+			zeek::BifEvent::enqueue_ssh_server_host_key_fingerprint(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				zeek::make_intrusive<zeek::StringVal>(fingerprint_sha256(digest)));
+			}
+
 		return true;
 		%}
 
@@ -233,8 +266,8 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_server_host_key )
 			{
-			unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
-			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
+			unsigned char digest[ZEEK_SHA256_DIGEST_LENGTH];
+			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 			// Fingerprint is calculated over concatenation of modulus + exponent.
 			zeek::detail::hash_update(ctx, ${mod}.data(), ${mod}.length());
 			zeek::detail::hash_update(ctx, ${exp}.data(), ${exp}.length());
@@ -243,6 +276,9 @@ refine flow SSH_Flow += {
 			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),
 				zeek::make_intrusive<zeek::StringVal>(fingerprint_md5(digest)));
+			zeek::BifEvent::enqueue_ssh_server_host_key_fingerprint(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				zeek::make_intrusive<zeek::StringVal>(fingerprint_sha256(digest)));
 			}
 
 		if ( ssh1_server_host_key )

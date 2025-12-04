@@ -19,6 +19,8 @@ extern "C" {
 #include "zeek/IP.h"
 #include "zeek/Var.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 namespace zeek {
 
 void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, uint32_t arg_len, const u_char* arg_data,
@@ -41,22 +43,32 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     else
         data = arg_data;
 
-    dump_packet = false;
-    dump_size = 0;
-
     time = ts.tv_sec + double(ts.tv_usec) / 1e6;
     eth_type = 0;
+
     vlan = 0;
+    vlan_pcp = 0;
+    vlan_dei = false;
+
     inner_vlan = 0;
+    inner_vlan_pcp = 0;
+    inner_vlan_dei = false;
+
+    l3_proto = L3_UNKNOWN;
+
+    is_orig = false;
+
+    l2_checksummed = false;
+    l3_checksummed = false;
+    l4_checksummed = false;
 
     l2_src = nullptr;
     l2_dst = nullptr;
-    l2_checksummed = false;
 
-    l3_proto = L3_UNKNOWN;
-    l3_checksummed = false;
+    processed = false;
 
-    l4_checksummed = false;
+    dump_packet = false;
+    dump_size = 0;
 
     encap.reset();
     ip_hdr.reset();
@@ -65,8 +77,7 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     tunnel_type = BifEnum::Tunnel::NONE;
     gre_version = -1;
     gre_link_type = DLT_RAW;
-
-    processed = false;
+    session = nullptr;
 }
 
 Packet::~Packet() {
@@ -197,3 +208,75 @@ ValPtr Packet::FmtEUI48(const u_char* mac) const {
 }
 
 } // namespace zeek
+
+TEST_SUITE("Packet") {
+    TEST_CASE("Packet::Init fields") {
+        // This test verifies that Packet::Init() resets unaffected fields back
+        // to constructor defaults.
+
+        zeek::Packet p;
+
+        // Adjust the fields to non-default values:
+
+        u_char tmp = 1;
+
+        p.eth_type = 1;
+        p.vlan = 1;
+        p.vlan_pcp = 1;
+        p.vlan_dei = true;
+        p.inner_vlan = 1;
+        p.inner_vlan_pcp = 1;
+        p.inner_vlan_dei = true;
+        p.l3_proto = zeek::L3_ARP;
+        p.is_orig = true;
+        p.l2_checksummed = true;
+        p.l3_checksummed = true;
+        p.l4_checksummed = true;
+        p.l2_src = &tmp;
+        p.l2_dst = &tmp;
+        p.processed = true;
+        p.dump_packet = true;
+        p.dump_size = 1;
+        p.encap = std::make_shared<zeek::EncapsulationStack>();
+        p.ip_hdr = std::make_shared<zeek::IP_Hdr>(nullptr, false);
+        p.proto = 1;
+        p.tunnel_type = BifEnum::Tunnel::IP;
+        p.gre_version = 1;
+        p.gre_link_type = DLT_EN10MB;
+        p.session = reinterpret_cast<zeek::session::Session*>(1);
+
+        // Re-initialize the packet and verify that these fields now match
+        // constructor defaults.
+
+        pkt_timeval ts = {2, 2};
+        const u_char tmp2[2] = {2, 2};
+        p.Init(DLT_RAW, &ts, 2, 2, tmp2, false, "bar");
+
+        zeek::Packet p_clean;
+
+        CHECK(p.eth_type == p_clean.eth_type);
+        CHECK(p.vlan == p_clean.vlan);
+        CHECK(p.vlan_pcp == p_clean.vlan_pcp);
+        CHECK(p.vlan_dei == p_clean.vlan_dei);
+        CHECK(p.inner_vlan == p_clean.inner_vlan);
+        CHECK(p.inner_vlan_pcp == p_clean.inner_vlan_pcp);
+        CHECK(p.inner_vlan_dei == p_clean.inner_vlan_dei);
+        CHECK(p.l3_proto == p_clean.l3_proto);
+        CHECK(p.is_orig == p_clean.is_orig);
+        CHECK(p.l2_checksummed == p_clean.l2_checksummed);
+        CHECK(p.l3_checksummed == p_clean.l3_checksummed);
+        CHECK(p.l4_checksummed == p_clean.l4_checksummed);
+        CHECK(p.l2_src == p_clean.l2_src);
+        CHECK(p.l2_dst == p_clean.l2_dst);
+        CHECK(p.processed == p_clean.processed);
+        CHECK(p.dump_packet == p_clean.dump_packet);
+        CHECK(p.dump_size == p_clean.dump_size);
+        CHECK(p.encap.get() == p_clean.encap.get());
+        CHECK(p.ip_hdr.get() == p_clean.ip_hdr.get());
+        CHECK(p.proto == p_clean.proto);
+        CHECK(p.tunnel_type == p_clean.tunnel_type);
+        CHECK(p.gre_version == p_clean.gre_version);
+        CHECK(p.gre_link_type == p_clean.gre_link_type);
+        CHECK(p.session == p_clean.session);
+    }
+}

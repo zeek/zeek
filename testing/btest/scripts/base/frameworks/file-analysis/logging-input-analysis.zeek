@@ -12,7 +12,7 @@ event zeek_init()
 	Input::add_analysis([$source=source, $name=source]);
 	}
 
-event file_new(f: fa_file)
+event file_state_remove(f: fa_file)
 	{
 	terminate();
 	}

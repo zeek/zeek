@@ -34,7 +34,7 @@ void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
     if ( cft_entry == inst->aux->cft.end() )
         inst->aux->cft[cft] = 1;
     else {
-        ASSERT(cft == CFT_BLOCK_END || cft == CFT_LOOP_END || cft == CFT_BREAK);
+        ASSERT(cft == CFT_BLOCK_END || cft == CFT_LOOP_END || cft == CFT_BREAK || cft == CFT_INLINED_RETURN);
         ++cft_entry->second;
     }
 }

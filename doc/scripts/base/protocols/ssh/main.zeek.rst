@@ -75,7 +75,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SSH::compression_algorithms
-   :source-code: base/protocols/ssh/main.zeek 61 61
+   :source-code: base/protocols/ssh/main.zeek 62 62
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -93,7 +93,7 @@ Runtime Options
    authentication success or failure when compression is enabled.
 
 .. zeek:id:: SSH::disable_analyzer_after_detection
-   :source-code: base/protocols/ssh/main.zeek 66 66
+   :source-code: base/protocols/ssh/main.zeek 67 67
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -106,7 +106,7 @@ Runtime Options
 Types
 #####
 .. zeek:type:: SSH::Info
-   :source-code: base/protocols/ssh/main.zeek 16 57
+   :source-code: base/protocols/ssh/main.zeek 16 58
 
    :Type: :zeek:type:`record`
 
@@ -190,9 +190,10 @@ Types
       The server host key's algorithm
 
 
-   .. zeek:field:: host_key :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+   .. zeek:field:: host_key_fingerprint :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      The server's key fingerprint
+      The server's key fingerprint, in the format that `ssh-keygen -l` would output.
+      For example, a sha256 fingerprint will look like `SHA256:<fingerprint>`.
 
 
    .. zeek:field:: logged :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
@@ -214,12 +215,19 @@ Types
       connection.
 
 
+   .. zeek:field:: host_key :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/ssh/md5-host-key-logging.zeek` is loaded)
+
+      The server's key fingerprint
+
+
    The record type which contains the fields of the SSH log.
 
 Events
 ######
 .. zeek:id:: SSH::log_ssh
-   :source-code: base/protocols/ssh/main.zeek 70 70
+   :source-code: base/protocols/ssh/main.zeek 71 71
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SSH::Info`)
 
@@ -227,7 +235,7 @@ Events
    to the logging framework.
 
 .. zeek:id:: ssh_auth_failed
-   :source-code: base/protocols/ssh/main.zeek 94 94
+   :source-code: base/protocols/ssh/main.zeek 95 95
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -250,7 +258,7 @@ Events
       ssh2_gss_error ssh2_ecc_key
 
 .. zeek:id:: ssh_auth_result
-   :source-code: base/protocols/ssh/main.zeek 117 117
+   :source-code: base/protocols/ssh/main.zeek 118 118
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`, auth_attempts: :zeek:type:`count`)
 
@@ -282,7 +290,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SSH::finalize_ssh
-   :source-code: base/protocols/ssh/main.zeek 312 336
+   :source-code: base/protocols/ssh/main.zeek 313 337
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

@@ -111,42 +111,51 @@ only_if_weekly: &ONLY_IF_WEEKLY
 
 skip_if_pr_skip_all: &SKIP_IF_PR_SKIP_ALL
   skip: >
-    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
+    )
+
 
 skip_if_pr_not_full_ci: &SKIP_IF_PR_NOT_FULL_CI
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: Full.*") ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 skip_if_pr_not_full_or_benchmark: &SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Benchmark).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 skip_if_pr_not_full_or_cluster_test: &SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Cluster Test).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 skip_if_pr_not_full_or_zam: &SKIP_IF_PR_NOT_FULL_OR_ZAM
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|ZAM).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 skip_if_pr_not_full_or_zeekctl: &SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Zeekctl).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 skip_if_pr_not_full_or_windows: &SKIP_IF_PR_NOT_FULL_OR_WINDOWS
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Windows).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/*') )
     )
 
 ci_template: &CI_TEMPLATE

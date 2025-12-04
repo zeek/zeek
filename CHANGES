@@ -1,3 +1,14 @@
+8.1.0-dev.1032 | 2025-12-04 14:13:22 +0100
+
+  * cirrus: Try skipping tasks if only ./doc is modified (Arne Welzel, Corelight)
+
+    Won't work in this PR because we modify .cirrus.yml, but might
+    work in the future.
+
+  * doc/connkey-plugin: People will know it is cool (Arne Welzel, Corelight)
+
+  * doc/zeromq: Remove experimental marker (Arne Welzel, Corelight)
+
 8.1.0-dev.1028 | 2025-12-04 11:56:13 +0100
 
   * btest/zam: Fix baselines (Arne Welzel, Corelight)

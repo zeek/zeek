@@ -6,8 +6,6 @@ ZeroMQ Cluster Backend
 
 .. versionadded:: 7.1
 
-*Experimental*
-
 Quickstart
 ==========
 

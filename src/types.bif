@@ -239,6 +239,10 @@ enum TableChange %{
 	TABLE_ELEMENT_EXPIRED,
 %}
 
+type Pcapng::Interface: record;
+type Pcapng::PacketOptions: record;
+type Pcapng::FileInfo: record;
+
 module Reporter;
 
 enum Level %{

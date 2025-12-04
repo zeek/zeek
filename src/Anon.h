@@ -117,15 +117,14 @@ protected:
         Node* child[2];
     };
 
-    int method;
-    int before_anonymization;
-    int new_mapping;
+    bool before_anonymization = true;
+    bool new_mapping = false;
 
     // The root of prefix preserving mapping tree.
-    Node* root;
+    Node* root = nullptr;
 
     // A node pool for new_node.
-    Node* next_free_node;
+    Node* next_free_node = nullptr;
     std::vector<Node*> blocks;
 
     // for 0.0.0.0 and 255.255.255.255.

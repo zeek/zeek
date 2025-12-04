@@ -368,7 +368,7 @@ void Manager::Register(PktSrc* src) {
 
 /**
  * Checks if the path comes with a prefix telling us which type of PktSrc to use. If no
- * prefix exists, return "pcap" as a default.
+ * prefix exists, return an empty string.
  */
 static std::pair<std::string, std::string> split_prefix(std::string path) {
     // See if the path comes with a prefix telling us which type of
@@ -380,26 +380,51 @@ static std::pair<std::string, std::string> split_prefix(std::string path) {
         prefix = path.substr(0, i);
         path = path.substr(i + 2, std::string::npos);
     }
-    else
-        prefix = "pcap";
 
     return std::make_pair(prefix, path);
 }
 
 PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live) {
-    std::pair<std::string, std::string> t = split_prefix(path);
-    const auto& prefix = t.first;
-    const auto& npath = t.second;
+    auto [prefix, npath] = split_prefix(path);
 
-    // Find the component providing packet sources of the requested prefix.
+    // Find the component providing packet sources of the requested prefix. Yes, looping over
+    // this twice is dumb, but check magic numbers first and then check for prefixes.
 
     PktSrcComponent* component = nullptr;
-
     std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
-    for ( const auto& c : all_components ) {
-        if ( c->HandlesPrefix(prefix) && ((is_live && c->DoesLive()) || (! is_live && c->DoesTrace())) ) {
-            component = c;
-            break;
+
+    // If we got a prefix from the path, the user wanted a specific packet source. IF we
+    // didn't get one, try ooking at the magic number at the header of the file first.
+    if ( ! is_live && prefix.empty() ) {
+        uint32_t magic_num = 0;
+        if ( auto f = fopen(path.c_str(), "rb") ) {
+            size_t read = fread(&magic_num, 1, sizeof(magic_num), f);
+            fclose(f);
+
+            if ( read == sizeof(magic_num) )
+                for ( const auto& c : all_components ) {
+                    if ( c->DoesTrace() && c->HandlesMagicNumber(magic_num) ) {
+                        component = c;
+                        break;
+                    }
+                }
+        }
+    }
+
+    if ( ! component ) {
+        // If we didn't get a prefix from the path, default to using the pcap component.
+        if ( prefix.empty() )
+            prefix = "pcap";
+
+        for ( const auto& c : all_components ) {
+            if ( (is_live && ! c->DoesLive()) || (! is_live && ! c->DoesTrace()) )
+                continue;
+
+            // Prefer magic number over prefixes.
+            if ( c->HandlesPrefix(prefix) ) {
+                component = c;
+                break;
+            }
         }
     }
 
@@ -418,9 +443,9 @@ PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live) {
 }
 
 PktDumper* Manager::OpenPktDumper(const std::string& path, bool append) {
-    std::pair<std::string, std::string> t = split_prefix(path);
-    std::string prefix = t.first;
-    std::string npath = t.second;
+    auto [prefix, npath] = split_prefix(path);
+    if ( prefix.empty() )
+        prefix = "pcap";
 
     // Find the component providing packet dumpers of the requested prefix.
 

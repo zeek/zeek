@@ -12,7 +12,8 @@ class Plugin : public plugin::Plugin {
 public:
     plugin::Configuration Configure() override {
         AddComponent(new iosource::PktSrcComponent("PcapReader", "pcap", iosource::PktSrcComponent::BOTH,
-                                                   iosource::pcap::PcapSource::Instantiate));
+                                                   iosource::pcap::PcapSource::Instantiate,
+                                                   {0xA1B2C3D4, 0xD4C3B2A1, 0xA1B23C4D, 0x4D3CB2A1}));
         AddComponent(new iosource::PktDumperComponent("PcapWriter", "pcap", iosource::pcap::PcapDumper::Instantiate));
 
         plugin::Configuration config;

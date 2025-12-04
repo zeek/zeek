@@ -85,7 +85,7 @@ ZInstI* NextLiveInst(ZInstI* i, bool follow_gotos = false) {
         return nullptr;
     return FirstLiveInst(insts1[i->inst_num + 1], follow_gotos);
 }
-int NextLiveInst(int i, bool follow_gotos = false) { return FirstLiveInst(i + 1, follow_gotos); }
+zeek_uint_t NextLiveInst(int i, bool follow_gotos = false) { return FirstLiveInst(i + 1, follow_gotos); }
 
 // Mark an instruction as unnecessary and remove its influence on
 // other statements.  The instruction is indicated as an offset

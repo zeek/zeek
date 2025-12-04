@@ -7,8 +7,7 @@
 # @TEST-REQUIRES: TOPIC=/zeek/my_topic python3 client.py check
 #
 # @TEST-EXEC: TOPIC=/zeek/my_topic btest-bg-run server "zeek %INPUT >output"
-# Leave room for Zeek to start up, which can be slow when using -O ZAM
-# @TEST-EXEC: sleep 15
+# @TEST-EXEC: wait-for-file server/ready 20
 # @TEST-EXEC: TOPIC=/zeek/my_topic btest-bg-run client "python3 ../client.py >output"
 #
 # @TEST-EXEC: btest-bg-wait 45
@@ -29,6 +28,8 @@ event zeek_init()
 	Broker::subscribe(getenv("TOPIC"));
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	set_network_time(double_to_time(42.0));
+
+	system("touch ready");
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

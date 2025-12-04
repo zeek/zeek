@@ -346,7 +346,7 @@ function pool_sorter(a: Pool, b: Pool): int
 	return strcmp(a$spec$topic, b$spec$topic);
 	}
 
-# Needs to execute before the zeek_init in setup-connections
+# Needs to execute before the zeek_init in setup-subscriptions
 event zeek_init() &priority=-5
 	{
 	if ( ! Cluster::is_enabled() )

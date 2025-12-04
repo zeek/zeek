@@ -1,7 +1,9 @@
 # Load the core cluster support.
 @load ./main
 @load ./pools
+@load ./pubsub
 @load ./telemetry
+@load ./types
 
 @if ( Cluster::is_enabled() )
 
@@ -14,12 +16,6 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 
 # Add a cluster prefix.
 @prefixes += cluster
-
-# Broker-specific additions:
-@if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER )
-@load ./broker-backpressure
-@load ./broker-telemetry
-@endif
 
 @if ( Supervisor::is_supervised() )
 # When running a supervised cluster, populate Cluster::nodes from the node table
@@ -41,7 +37,7 @@ redef Cluster::manager_is_logger = F;
 
 @if ( Cluster::node in Cluster::nodes )
 
-@load ./setup-connections
+@load ./setup-subscriptions
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager

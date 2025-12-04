@@ -8,6 +8,7 @@
 @load frameworks/cluster/backend/zeromq/connect.zeek
 @endif
 @load frameworks/cluster/nodes-experimental/manager.zeek
+@load frameworks/cluster/websocket/server.zeek
 @load frameworks/control/controllee.zeek
 @load frameworks/control/controller.zeek
 

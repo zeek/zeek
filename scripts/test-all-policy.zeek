@@ -14,9 +14,13 @@
 @load frameworks/analyzer/packet-segment-logging.zeek
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+@load frameworks/cluster/backend/broker/__load__.zeek
+@load frameworks/cluster/backend/broker/backpressure.zeek
+@load frameworks/cluster/backend/broker/main.zeek
+@load frameworks/cluster/backend/broker/telemetry.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
 @load frameworks/cluster/backend/zeromq/__load__.zeek
-# @load frameworks/cluster/backend/zeromq/connect.zeek
+@load frameworks/cluster/backend/zeromq/connect.zeek
 @load frameworks/cluster/backend/zeromq/main.zeek
 @endif
 @load frameworks/cluster/experimental.zeek
@@ -24,6 +28,7 @@
 # when running as a manager, creates cluster.log entries
 # even in non-cluster mode if loaded like the below.
 # @load frameworks/cluster/nodes-experimental/manager.zeek
+# @load frameworks/cluster/websocket/server.zeek
 @load frameworks/management/agent/__load__.zeek
 @load frameworks/management/agent/api.zeek
 @load frameworks/management/agent/boot.zeek
@@ -161,3 +166,11 @@
 @load protocols/ssl/weak-keys.zeek
 @load tuning/json-logs.zeek
 @load tuning/track-all-assets.zeek
+
+
+# Disable cluster backend by switching to the none backend after loading
+# all the scripts in order to skip initialization of cluster backend that
+# ended up being selected. Cluster backends may keep the IO loop alive once
+# registered due to registering IO sources and loading test-all-policy should
+# not result in such behavior.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;

@@ -148,6 +148,8 @@ Here we use a table to assign human-readable names to IP addresses:
 For more information, see :zeek:see:`vector`, :zeek:see:`set`, and
 :zeek:see:`table`.
 
+.. _writing-scripts-connection-record:
+
 Record Types
 ============
 

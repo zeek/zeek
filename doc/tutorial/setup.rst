@@ -8,6 +8,15 @@ This tutorial will use Zeek's latest docker image: ``zeek/zeek``. You
 can see :doc:`installing Zeek </install>` for how to retrieve that
 image. Then, execute bash inside of it:
 
+.. note::
+
+   Throughout this tutorial, we will use console prompts to show
+   what you execute. This first command is called from the host to
+   get into the docker container. Almost all of the remaining console
+   prompts are meant to be executed within the docker container as root.
+   The root prompt (within the container) is ``#``, whereas the user
+   prompt (outside of the container) is ``$``.
+
 .. code:: console
 
    $ docker run --name "zeek-tutorial" -it zeek/zeek
@@ -16,13 +25,13 @@ Next, clone the ``zeek-training`` git repository into ``/opt``:
 
 .. code:: console
 
-   root@xxxxxxxxxxxx:/# git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
+   # git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
 
 Now, run the provided setup script:
 
 .. code:: console
 
-   root@xxxxxxxxxxxx:/opt/zeek-training# ./setup.sh tutorial
+   # ./setup.sh tutorial
 
 Once that completes, you should be in ``/opt/zeek-training`` with
 the setup script ran. You can look in ``zeek/`` to find the Zeek source
@@ -35,10 +44,11 @@ quickstart:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ mkdir scratch
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap Log::default_logdir=scratch
-   root@zeek-tutorial:/opt/zeek-training $ ls scratch
+   # mkdir scratch && cd scratch
+   # zeek -r traces/zeek-doc/quickstart.pcap Log::default_logdir=scratch
+   # ls
    conn.log  files.log  http.log  packet_filter.log  weird.log
+   # cd ..
 
 If you get a few log files, then it properly read the quickstart pcap.
 You’re now set up to do the tutorial!

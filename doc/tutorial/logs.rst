@@ -50,7 +50,7 @@ the cluster, like so:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl deploy
+   # zeekctl deploy
    checking configurations ...
    installing ...
    creating policy directories ...
@@ -63,7 +63,7 @@ the cluster, like so:
    stopping zeek ...
    starting ...
    starting zeek ...
-   root@zeek-tutorial:/opt/zeek-training $ tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
+   # tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
    Actual: 20 packets (2050 bytes) sent in 6.70 seconds
    Rated: 305.6 Bps, 0.002 Mbps, 2.98 pps
    Flows: 4 flows, 0.59 fps, 20 unique flow packets, 0 unique non-flow packets
@@ -73,7 +73,7 @@ the cluster, like so:
            Truncated packets:         0
            Retried packets (ENOBUFS): 0
            Retried packets (EAGAIN):  0
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl stop
+   # zeekctl stop
    stopping zeek ...
 
 Now, there should be logs in the ``$PREFIX/logs/DATE`` directory, where
@@ -83,7 +83,7 @@ to examine these. For example, let’s look at ``conn.log``:
 
 .. code:: console
 
-   $ zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz
+   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz
    #separator \x09
    #set_separator  ,
    #empty_field    (empty)
@@ -101,7 +101,7 @@ order to get more condensed information:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m
+   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m
    ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto   service     duration        orig_bytes      resp_bytes      conn_state      local_orig      local_resp  missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes       tunnel_parents  ip_proto
    1761858297.903499       CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80 tcp      http    0.098687        71      377     SF      T       F       0       ShADTadtFf 12       670     8       1098    -       6
    1761858304.511300       Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80 tcp      http    0.100184        73      377     SF      T       F       0       ShADTadtFf 12       674     8       1098    -       6
@@ -114,7 +114,7 @@ addresses. You can ask for just those fields:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p
+   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p
    uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p
    CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80
    Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80
@@ -123,7 +123,7 @@ Now, we can find the ``weird.log`` in that directory:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat < $PREFIX/logs/2025-10-30/weird.21\:05\:04-21\:05\:10.log.gz | zeek-cut uid name
+   # zcat < $PREFIX/logs/2025-10-30/weird.21\:05\:04-21\:05\:10.log.gz | zeek-cut uid name
    Cq6HJ1lEBlYcXcZB        unknown_HTTP_method
 
 Notice how the ``uid`` field in ``weird.log`` is the same as one of the
@@ -162,7 +162,7 @@ following:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zkg install logschema
+   # zkg install logschema
    The following packages will be INSTALLED:
      zeek/zeek/logschema (v2.0.0)
 
@@ -171,7 +171,7 @@ following:
    Installing "zeek/zeek/logschema"
    Installed "zeek/zeek/logschema" (v2.0.0)
    Loaded "zeek/zeek/logschema"
-   root@zeek-tutorial:/opt/zeek-training $ zeek logschema/export/jsonschema packages
+   # zeek logschema/export/jsonschema packages
 
 Your local directory will now contain a JSON Schema description for each
 of your installation’s logs. If we want to find more about Zeek’s DNS
@@ -179,7 +179,7 @@ log, we can do the following:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ cat zeek-dns-log.schema.json | jq
+   # cat zeek-dns-log.schema.json | jq
 
    {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -219,11 +219,11 @@ make some DNS logs:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl deploy
+   # zeekctl deploy
    <removed for brevity>
-   root@zeek-tutorial:/opt/zeek-training $ tcpreplay -i eth0 traces/zeek-testing/dns/naptr.pcap
+   # tcpreplay -i eth0 traces/zeek-testing/dns/naptr.pcap
    <removed for brevity>
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl stop
+   # zeekctl stop
    stopping zeek ...
 
 Then, we can find these in our DNS logs and examine the logs via
@@ -231,7 +231,7 @@ Then, we can find these in our DNS logs and examine the logs via
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat < $PREFIX/logs/2025-10-31/dns.14\:00\:13-14\:00\:18.log.gz | zeek-cut uid answers
+   # zcat < $PREFIX/logs/2025-10-31/dns.14\:00\:13-14\:00\:18.log.gz | zeek-cut uid answers
    C5Vg0OAHusZgPpN1a       NAPTR 100 100 s SIPS+D2T _sips._tcp.fp-de-carrier-vodafone.rcs.telephony.goog
 
 ***********
@@ -245,8 +245,8 @@ you can replicate:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
-   root@zeek-tutorial:/opt/zeek-training $ cat conn.log | jq
+   # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
+   # cat conn.log | jq
    {
      "ts": 1747147647.668533,
      "uid": "Cj7hJy2lPYsAI0BxEg",
@@ -258,7 +258,7 @@ You can do the same in a cluster by simply modifying your site's
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ vim $PREFIX/share/zeek/site/local.zeek
+   # vim $PREFIX/share/zeek/site/local.zeek
 
 Then simply add a line (anywhere!) that loads the
 ``policy/tuning/json-logs`` script:
@@ -271,11 +271,11 @@ Then redeploy the cluster and replay the quickstart pcap:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl deploy
+   # zeekctl deploy
    <removed for brevity>
-   root@zeek-tutorial:/opt/zeek-training $ tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
+   # tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
    <removed for brevity>
-   root@zeek-tutorial:/opt/zeek-training $ zeekctl stop
+   # zeekctl stop
    stopping zeek ...
 
 And finally, see the produced log. Pick the ``conn.log`` with the most
@@ -283,7 +283,7 @@ recent timestamp for this:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat $PREFIX/logs/2025-10-31/conn.14\:14\:42-14\:14\:52.log.gz  | jq
+   # zcat $PREFIX/logs/2025-10-31/conn.14\:14\:42-14\:14\:52.log.gz  | jq
    {
      "ts": 1761920077.568221,
      "uid": "CyIGBd1t1afUDc5c01",
@@ -296,14 +296,15 @@ with other tools is often far easier. Second, JSON logs contain the log
 column as a key, making it far easier to understand the logs at a
 glance.
 
-However, they also have drawbacks. JSON logs are not streamable: an
-incomplete JSON log is no longer valid JSON, as the braces will not be
-closed. Furthermore, including the keys for every value is redundant and
-wastes space. Since Zeek's ``conn.log`` can get very large, this can
-make the logs take up far more space than they otherwise would.
+However, JSON logs may take up more space. Including the keys for
+every value is redundant and wastes space. Since Zeek's ``conn.log``
+can get very large, this can make the logs take up far more space than
+they otherwise would.
 
 It's up to the user whether TSV logs or JSON logs should be used.
-Luckily, it's a simple change either way.
+If neither work, you may also create a custom writer. You may find
+more log writers in the :ref:`Log Writers <log-writers>` section in
+:ref:`Popular Customizations <popular-customizations>`.
 
 ******************
  Zeek's Core Logs
@@ -322,9 +323,9 @@ offers, let’s use the logschema package again:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek logschema/export/jsonschema packages
+   # zeek logschema/export/jsonschema packages
 
-   root@zeek-tutorial:/opt/zeek-training $ cat zeek-conn-log.schema.json | jq
+   # cat zeek-conn-log.schema.json | jq
    {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
      "title": "Schema for Zeek conn.log",
@@ -384,7 +385,7 @@ fields with the following:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zcat $PREFIX/logs/2025-10-31/conn.13\:48\:27-13\:48\:48.log.gz | zeek-cut uid service
+   # zcat $PREFIX/logs/2025-10-31/conn.13\:48\:27-13\:48\:48.log.gz | zeek-cut uid service
    CYu35U3lzHj4keTQs4      http
    CeOHyV3P5Vs7Yyl6Qd      http
 

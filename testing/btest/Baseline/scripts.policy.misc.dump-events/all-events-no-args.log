@@ -7,6 +7,7 @@
 1254722768.219663 smtp_reply
 1254722768.219663 smtp_reply
 1254722768.219663 smtp_reply
+1254722768.224809 smtp_analyzer_confirmation
 1254722768.224809 analyzer_confirmation_info
 1254722768.224809 smtp_request
 1254722768.565386 Broker::log_flush
@@ -100,6 +101,7 @@
 1437831787.856895 new_connection
 1437831787.861602 connection_established
 1437831787.867142 smtp_reply
+1437831787.883306 smtp_analyzer_confirmation
 1437831787.883306 analyzer_confirmation_info
 1437831787.883306 smtp_request
 1437831787.886281 smtp_reply

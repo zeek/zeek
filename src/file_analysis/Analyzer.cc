@@ -55,7 +55,7 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     info->Assign(info_f_idx, GetFile()->ToVal());
 
     const auto& effective_tag = arg_tag ? arg_tag : tag;
-    analyzer::Analyzer::InvokeConfirmationCallbacks(effective_tag, info);
+    analyzer::Analyzer::RaiseConfirmationHandlers(effective_tag, info);
 
     if ( analyzer_confirmation_info )
         event_mgr.Enqueue(analyzer_confirmation_info, effective_tag.AsVal(), info);

@@ -162,7 +162,7 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(session::Session* session, const 
     auto info = make_intrusive<RecordVal>(info_type);
     info->Assign(info_c_idx, session->GetVal());
 
-    analyzer::Analyzer::InvokeConfirmationCallbacks(arg_tag, info);
+    analyzer::Analyzer::RaiseConfirmationHandlers(arg_tag, info);
 
     if ( analyzer_confirmation_info )
         event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);

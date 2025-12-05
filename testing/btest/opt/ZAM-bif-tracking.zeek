@@ -20,7 +20,7 @@ global known_BiFs = set(
 	"Analyzer::__register_for_port",
 	"Analyzer::__schedule_analyzer",
 	"Analyzer::__tag",
-	"Analyzer::register_confirmation_callback",
+	"Analyzer::register_confirmation_handler",
 	"Broker::__append",
 	"Broker::__clear",
 	"Broker::__close",

@@ -591,22 +591,22 @@ public:
     bool AnalyzerConfirmed() const { return analyzer_confirmed; }
 
     /**
-     * Registers a script function callback for analyzer confirmation events
-     * for a specific analyzer tag. Multiple callbacks can be registered for
+     * Registers an event handler for analyzer confirmation events
+     * for a specific analyzer tag. Multiple handlers can be registered for
      * the same tag.
      *
-     * @param tag The analyzer tag to register the callback for.
-     * @param callback The script function to call when this analyzer confirms.
+     * @param tag The analyzer tag to register the handler for.
+     * @param handler The event handler to raise when this analyzer confirms.
      */
-    static void RegisterConfirmationCallback(const Tag& tag, FuncPtr callback);
+    static void RegisterConfirmationHandler(const Tag& tag, EventHandlerPtr handler);
 
     /**
-     * Invokes all registered callbacks for a given analyzer tag.
+     * Raises all registered event handlers for a given analyzer tag.
      *
      * @param tag The analyzer tag that confirmed.
-     * @param info The AnalyzerConfirmationInfo record to pass to callbacks.
+     * @param info The AnalyzerConfirmationInfo record to pass to handlers.
      */
-    static void InvokeConfirmationCallbacks(const Tag& tag, const RecordValPtr& info);
+    static void RaiseConfirmationHandlers(const Tag& tag, const RecordValPtr& info);
 
     /**
      * Called whenever the connection value is updated. Per default, this

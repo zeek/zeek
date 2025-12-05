@@ -270,7 +270,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-function rdp_confirmation_callback(tag: Analyzer::Tag,
+event rdp_analyzer_confirmation(tag: Analyzer::Tag,
 					info: AnalyzerConfirmationInfo)
 	{
 	set_session(info$c);
@@ -282,8 +282,8 @@ event zeek_init() &priority=5
 	Log::create_stream(RDP::LOG, Log::Stream($columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
-	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_RDP,
-						rdp_confirmation_callback);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_RDP,
+						rdp_analyzer_confirmation);
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5

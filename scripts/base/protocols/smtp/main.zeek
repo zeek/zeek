@@ -162,7 +162,7 @@ function set_smtp_session(c: connection)
 		c$smtp = new_smtp_log(c);
 	}
 
-function smtp_confirmation_callback(tag: Analyzer::Tag,
+event smtp_analyzer_confirmation(tag: Analyzer::Tag,
 					info: AnalyzerConfirmationInfo)
 	{
 	set_smtp_session(info$c);
@@ -173,8 +173,8 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(SMTP::LOG, Log::Stream($columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
-	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_SMTP,
-						smtp_confirmation_callback);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_SMTP,
+						smtp_analyzer_confirmation);
 	}
 
 function mail_transaction_invalid(c: connection, addl: string)

@@ -202,7 +202,7 @@ function set_session(c: connection)
 		}
 	}
 
-function ssl_confirmation_callback(tag: Analyzer::Tag,
+event ssl_analyzer_confirmation(tag: Analyzer::Tag,
 					info: AnalyzerConfirmationInfo)
 	{
 	set_session(info$c);
@@ -215,10 +215,10 @@ event zeek_init() &priority=6
 	Log::create_stream(SSL::LOG, Log::Stream($columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
-	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_SSL,
-						ssl_confirmation_callback);
-	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_DTLS,
-						ssl_confirmation_callback);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_SSL,
+						ssl_analyzer_confirmation);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_DTLS,
+						ssl_analyzer_confirmation);
 	}
 
 function add_to_history(c: connection, is_client: bool, char: string)

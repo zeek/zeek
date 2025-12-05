@@ -624,28 +624,28 @@ void Analyzer::FlipRoles() {
     resp_supporters = tmp;
 }
 
-// Callbacks registered for analyzer confirmation events, indexed by the
-// internal value of analyzer tags. Each tag can have multiple callbacks
+// Event handlers registered for analyzer confirmation events, indexed by the
+// internal value of analyzer tags. Each tag can have multiple handlers
 // registered.
-static std::vector<std::vector<zeek::FuncPtr>> confirmation_callbacks;
+static std::vector<std::vector<zeek::EventHandlerPtr>> confirmation_handlers;
 
-void Analyzer::RegisterConfirmationCallback(const zeek::Tag& tag, zeek::FuncPtr callback) {
-    auto idx = tag.AsVal()->InternalUnsigned();
-    if ( idx >= confirmation_callbacks.size() )
-        confirmation_callbacks.resize(idx + 1);
-    confirmation_callbacks[idx].push_back(std::move(callback));
+void Analyzer::RegisterConfirmationHandler(const zeek::Tag& tag, zeek::EventHandlerPtr handler) {
+    auto idx = static_cast<zeek_uint_t>(tag.AsVal()->InternalInt());
+    if ( idx >= confirmation_handlers.size() )
+        confirmation_handlers.resize(idx + 1);
+    confirmation_handlers[idx].push_back(std::move(handler));
 }
 
-void Analyzer::InvokeConfirmationCallbacks(const zeek::Tag& tag, const RecordValPtr& info) {
-    auto idx = tag.AsVal()->InternalUnsigned();
-    if ( idx >= confirmation_callbacks.size() )
+void Analyzer::RaiseConfirmationHandlers(const zeek::Tag& tag, const RecordValPtr& info) {
+    auto idx = static_cast<zeek_uint_t>(tag.AsVal()->InternalInt());
+    if ( idx >= confirmation_handlers.size() )
         return;
 
-    if ( confirmation_callbacks[idx].empty() )
+    if ( confirmation_handlers[idx].empty() )
         return;
 
-    for ( const auto& callback : confirmation_callbacks[idx] )
-        callback->Invoke(tag.AsVal(), info);
+    for ( const auto& handler : confirmation_handlers[idx] )
+        event_mgr.Enqueue(handler, tag.AsVal(), info);
 }
 
 void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
@@ -657,7 +657,7 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     info->Assign(info_c_idx, ConnVal());
     info->Assign(info_aid_idx, val_mgr->Count(id));
 
-    InvokeConfirmationCallbacks(arg_tag, info);
+    RaiseConfirmationHandlers(arg_tag, info);
 
     if ( analyzer_confirmation_info )
         event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);

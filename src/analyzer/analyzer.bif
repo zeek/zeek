@@ -83,20 +83,28 @@ function __has_tag%(name: string%) : bool
 	return zeek::val_mgr->Bool(component != nullptr);
 	%}
 
-## Registers a script function callback to be invoked when an analyzer of the
-## specified type confirms the protocol. The callback will be invoked before
+## Registers an event handler to be raised when an analyzer of the
+## specified type confirms the protocol. The event will be raised before
 ## the analyzer_confirmation_info event is raised.
 ##
-## analyzer_tag: The analyzer tag to register the callback for.
-## callback: The function to call. It should have the signature:
-##           function(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo)
+## analyzer_tag: The analyzer tag to register the handler for.
+## handler: The event handler to raise. It should have the signature:
+##          event(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo)
 ##
 ## Returns: Always returns true.
-function Analyzer::register_confirmation_callback%(analyzer_tag: Analyzer::Tag,
-				callback: AnalyzerConfirmationCallback%) : bool
+function Analyzer::register_confirmation_handler%(analyzer_tag: Analyzer::Tag,
+				handler: AnalyzerConfirmationHandler%) : bool
 	%{
 	auto tag = Tag({NewRef{}, analyzer_tag->AsEnumVal()});
-	auto func = callback->AsFuncVal()->AsFuncPtr();
-	analyzer::Analyzer::RegisterConfirmationCallback(tag, func);
+	auto func_val = handler->AsFuncVal();
+	// We use asserts rather than error-checking because type-checking
+	// should ensure it's a valid event handler.
+	ASSERT(func_val);
+
+	auto func = func_val->Get();
+	auto event_handler = event_registry->Lookup(func->GetName());
+	ASSERT(event_handler);
+
+	analyzer::Analyzer::RegisterConfirmationHandler(tag, event_handler);
 	return val_mgr->True();
 	%}

@@ -1017,10 +1017,10 @@ type AnalyzerConfirmationInfo: record {
 	aid: count &optional;
 };
 
-## Type signature for analyzer confirmation callbacks registered via
-## :zeek:id:`Analyzer::register_confirmation_callback`.
-type AnalyzerConfirmationCallback:
-	function(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo);
+## Type signature for analyzer confirmation event handlers registered via
+## :zeek:id:`Analyzer::register_confirmation_handler`.
+type AnalyzerConfirmationHandler:
+	event(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo);
 
 ## Generic analyzer violation info record.
 ##

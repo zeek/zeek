@@ -217,7 +217,7 @@ function set_version(c: connection)
 	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
 	}
 
-function ssh_confirmation_callback(tag: Analyzer::Tag,
+event ssh_analyzer_confirmation(tag: Analyzer::Tag,
 					info: AnalyzerConfirmationInfo)
 	{
 	set_session(info$c);
@@ -227,8 +227,8 @@ function ssh_confirmation_callback(tag: Analyzer::Tag,
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
-	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_SSH,
-						ssh_confirmation_callback);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_SSH,
+						ssh_analyzer_confirmation);
 	Log::create_stream(SSH::LOG, Log::Stream($columns=Info, $ev=log_ssh, $path="ssh", $policy=log_policy));
 	}
 

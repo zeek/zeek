@@ -1,4 +1,4 @@
-# @TEST-DOC: Test analyzer confirmation callbacks
+# @TEST-DOC: Test analyzer confirmation event handlers
 # @TEST-EXEC: zeek -b -r $TRACES/tunnels/Teredo.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
@@ -10,20 +10,20 @@ global second_confirmation_count = 0;
 
 module Analyzer;
 
-function my_confirmation_callback(tag: Tag, info: AnalyzerConfirmationInfo)
+event my_confirmation_handler(tag: Tag, info: AnalyzerConfirmationInfo)
 	{
 	++confirmation_count;
-	print "callback #1 invoked", tag, confirmation_count;
+	print "handler #1 invoked", tag, confirmation_count;
 	if ( info?$c )
 		print "  connection:", info$c$id;
 	if ( info?$aid )
 		print "  analyzer id:", info$aid;
 	}
 
-function second_confirmation_callback(tag: Tag, info: AnalyzerConfirmationInfo)
+event second_confirmation_handler(tag: Tag, info: AnalyzerConfirmationInfo)
 	{
 	++second_confirmation_count;
-	print "callback #2 invoked", tag, second_confirmation_count;
+	print "handler #2 invoked", tag, second_confirmation_count;
 	if ( info?$c )
 		print "  connection:", info$c$id;
 	if ( info?$aid )
@@ -32,11 +32,11 @@ function second_confirmation_callback(tag: Tag, info: AnalyzerConfirmationInfo)
 
 event zeek_init()
 	{
-	register_confirmation_callback(ANALYZER_HTTP, my_confirmation_callback);
-	register_confirmation_callback(ANALYZER_HTTP,
-					second_confirmation_callback);
-	register_confirmation_callback(PacketAnalyzer::ANALYZER_TEREDO,
-					second_confirmation_callback);
+	register_confirmation_handler(ANALYZER_HTTP, my_confirmation_handler);
+	register_confirmation_handler(ANALYZER_HTTP,
+					second_confirmation_handler);
+	register_confirmation_handler(PacketAnalyzer::ANALYZER_TEREDO,
+					second_confirmation_handler);
 	}
 
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
@@ -46,6 +46,6 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 
 event zeek_done()
 	{
-	print fmt("total confirmations via callback: %d/%d",
+	print fmt("total confirmations via handler: %d/%d",
 			confirmation_count, second_confirmation_count);
 	}

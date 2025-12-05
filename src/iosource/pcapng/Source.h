@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "zeek/iosource/PktSrc.h"
 
 struct light_pcapng_t;
@@ -24,10 +22,10 @@ protected:
     void Close() override;
     bool ExtractNextPacket(Packet* pkt) override;
     void DoneWithPacket() override;
-    bool SetFilter(int index) override { return true; }
     void Statistics(Stats* stats) override;
 
-    detail::BPF_Program* CompileFilter(const std::string& filter) override;
+    bool PrecompileFilter(int index, const std::string& filter) override;
+    bool SetFilter(int index) override;
 
 private:
     void PcapngError(const char* where = nullptr);
@@ -37,8 +35,9 @@ private:
 
     light_pcapng pd;
 
-    // Buffer provided to setvbuf() when reading from a PCAPNG file.
-    std::vector<char> iobuf;
+    struct pcap_pkthdr current_hdr = {};
+    int current_filter = 0;
+    unsigned int num_discarded = 0;
 };
 
 } // namespace zeek::iosource::pcapng

@@ -82,6 +82,16 @@ bool Source::ExtractNextPacket(Packet* pkt) {
 
     struct timeval tv{header.timestamp.tv_sec, static_cast<int>(header.timestamp.tv_nsec / 1000)};
 
+    current_hdr.ts = tv;
+    current_hdr.caplen = header.captured_length;
+    current_hdr.len = header.original_length;
+
+    if ( ! ApplyBPFFilter(current_filter, &current_hdr, data) ) {
+        ++num_discarded;
+        DoneWithPacket();
+        return true;
+    }
+
     pkt->Init(intf.link_type, &tv, header.captured_length, header.original_length, data);
 
     if ( header.original_length == 0 || header.captured_length == 0 ) {
@@ -143,11 +153,14 @@ void Source::Statistics(Stats* s) {
     //     s->dropped = 0;
 }
 
-detail::BPF_Program* Source::CompileFilter(const std::string& filter) {
-    auto code = std::make_unique<detail::BPF_Program>();
-    return code.release();
+bool Source::PrecompileFilter(int index, const std::string& filter) {
+    return PktSrc::PrecompileBPFFilter(index, filter);
 }
 
+bool Source::SetFilter(int index) {
+    current_filter = index;
+    return true;
+}
 
 PktSrc* Source::Instantiate(const std::string& path, bool is_live) { return new Source(path); }
 

@@ -630,14 +630,14 @@ void Analyzer::FlipRoles() {
 static std::vector<std::vector<zeek::FuncPtr>> confirmation_callbacks;
 
 void Analyzer::RegisterConfirmationCallback(const zeek::Tag& tag, zeek::FuncPtr callback) {
-    auto idx = tag.AsVal()->InternalInt();
+    auto idx = tag.AsVal()->InternalUnsigned();
     if ( idx >= confirmation_callbacks.size() )
         confirmation_callbacks.resize(idx + 1);
     confirmation_callbacks[idx].push_back(std::move(callback));
 }
 
 void Analyzer::InvokeConfirmationCallbacks(const zeek::Tag& tag, const RecordValPtr& info) {
-    auto idx = tag.AsVal()->InternalInt();
+    auto idx = tag.AsVal()->InternalUnsigned();
     if ( idx >= confirmation_callbacks.size() )
         return;
 

@@ -228,6 +228,8 @@ If neither work, you may also create a custom writer. You may find
 more log writers in the :ref:`Log Writers <log-writers>` section in
 :ref:`Popular Customizations <popular-customizations>`.
 
+.. _zeekcontrol_logs:
+
 *****************************
  Analyzing Logs from Zeekctl
 *****************************

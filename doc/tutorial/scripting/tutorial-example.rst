@@ -47,7 +47,7 @@ Save that in a file ``test.zeek`` and tell Zeek to listen for traffic:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -C -i eth0 test.zeek
+   # zeek -C -i eth0 test.zeek
    listening on eth0
 
 Then, open another terminal in the docker container from the host:
@@ -55,7 +55,6 @@ Then, open another terminal in the docker container from the host:
 .. code:: console
 
    $ docker exec -it zeek-tutorial /bin/bash
-   root@zeek-tutorial:/ $
 
 This prompt will be used to generate traffic for Zeek. For the remainder
 of this tutorial, if a second terminal session is mentioned, either keep
@@ -65,7 +64,7 @@ Now, ``curl`` in the new terminal session:
 
 .. code:: console
 
-   root@zeek-tutorial:/ $ curl example.com
+   # curl example.com
    <!doctype html>...
 
 *Both* windows should print HTML content. Now, try the same thing
@@ -75,17 +74,17 @@ change the Zeek invocation to include a redefinition for
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -C -i eth0 test.zeek http_entity_data_delivery_size=10
+   # zeek -C -i eth0 test.zeek http_entity_data_delivery_size=10
    <params>, line 1: listening on eth0
 
 and in the other terminal:
 
 .. code:: console
 
-   root@zeek-tutorial:/ $ curl example.com
+   # curl example.com
    <!doctype html>...
 
-Zeek’s output will look different - namely, every 10 bytes, there should
+Zeek’s output will look different---namely, every 10 bytes, there should
 be a newline. The :zeek:see:`http_entity_data` event gets called in
 batches for large files. Therefore, we must reassemble the complete data
 before matching patterns on the entity, just in case the pattern spans
@@ -143,13 +142,13 @@ what’s in that field.
 The other key here is that ``connection`` object. The connection record
 (that is, the first argument to the event) carries around state for the
 connection. Many protocols will use ``redef`` to add extra fields
-associated with that protocol - in this case, the HTTP analyzer adds
+associated with that protocol---in this case, the HTTP analyzer adds
 both an ``HTTP::Info`` and `HTTP::State`` field. You can see which
 fields an analyzer adds to the ``connection`` object in the
-“redefinitions” section in the script’s documentation - :doc:`here
+“redefinitions” section in the script’s documentation---:doc:`here
 </scripts/base/protocols/http/main.zeek>` for HTTP. You can see from
 that section that the HTTP analyzer adds a variable ``http_state`` with
-type ``HTTP::State`` to the ``connection`` record - thus, we can use it!
+type ``HTTP::State`` to the ``connection`` record---thus, we can use it!
 
 Before we use it, since ``c$http_state`` is an optional field, it could
 be necessary to ensure that the ``c$http_state`` field exists before
@@ -188,7 +187,7 @@ should only print once at the end. For this, we can use the
    :start-after: @@
    :tab-width: 4
 
-Now, it will only print once - at the end of an entity. We also delete
+Now, it will only print once---at the end of an entity. We also delete
 the entity here, since it's assumed entities can't be nested, so we're
 done with it. If you care for nested entities, this would not be
 sufficient.
@@ -210,12 +209,12 @@ block:
 
    Zeek has two main types for numbers: ``int`` (if it can be negative)
    and ``count`` (if it cannot be negative). The
-   ``max_reassembled_entity_size`` is an ``int`` - but it should not be
+   ``max_reassembled_entity_size`` is an ``int``---but it should not be
    negative! This makes Zeek understand that the *result* of any
    calculations using this number may also be negative. Thus, later,
    when we subtract another ``count``, this number may be negative. If
    it were a ``count``, there is potential for that result to
-   "underflow" and become a very large number instead - which would be a
+   "underflow" and become a very large number instead---which would be a
    bug.
 
    For more information, see the :zeek:type:`count` documentation.
@@ -238,7 +237,7 @@ should be the remaining length:
    :tab-width: 4
 
 The ``local`` keyword just means that ``remaining_available`` will not
-be usable outside of the current scope - which will be the ``if`` block.
+be usable outside of the current scope---which will be the ``if`` block.
 
 Next, we will just decide how much of ``data`` to add depending on
 ``length``:
@@ -270,7 +269,7 @@ Now, we have all of the data in a given entity stored in
 for certain patterns. Then, just for completeness, we can log how many
 of those patterns matched entities in the HTTP connection.
 
-Patterns in Zeek are built on regular expressions - they can be used to
+Patterns in Zeek are built on regular expressions---they can be used to
 find matches within a larger string. They are enclosed by forward
 slashes (``/``). You can read more about them from the
 :zeek:type:`pattern` documentation.
@@ -294,7 +293,7 @@ Running this on the quickstart pcap will yield no matches:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap test.zeek
+   # zeek -r traces/zeek-doc/quickstart.pcap test.zeek
    Did the pattern '/^?(Will not match!)$?/' match? F
    Did the pattern '/^?(Will not match!)$?/' match? F
 
@@ -305,7 +304,7 @@ We can change this script to actually match, say with a ``<body>`` tag:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap test.zeek
+   # zeek -r traces/zeek-doc/quickstart.pcap test.zeek
    Did the pattern '/^?(<body>)$?/' match? T
    Did the pattern '/^?(<body>)$?/' match? T
 
@@ -333,7 +332,7 @@ called in your Zeek scripts. Here is the function signature:
    function num_entity_pattern_matches(state: HTTP::State): count {
 
 This function takes in a single :zeek:see:`HTTP::State` as a parameter
-and returns a count - simple enough. One important point is that this
+and returns a count---simple enough. One important point is that this
 function's parameter is not the entity itself, but the HTTP state. This
 is because atomic values (like counts, addresses, and strings) are
 passed by *value* in Zeek. That means if the ``entity`` was passed in
@@ -399,7 +398,7 @@ change its contents from other scripts or the command line.
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -Cr traces/zeek-doc/quickstart.pcap test.zeek
+   # zeek -Cr traces/zeek-doc/quickstart.pcap test.zeek
    Found 2 matches in the HTTP entity
    Found 2 matches in the HTTP entity
 
@@ -409,7 +408,7 @@ this is invoked from a Bash shell:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -Cr traces/zeek-doc/quickstart.pcap test.zeek "http_entity_patterns+={/\<html\>/, /Also does not match/, /\<title\>/}"
+   # zeek -Cr traces/zeek-doc/quickstart.pcap test.zeek "http_entity_patterns+={/\<html\>/, /Also does not match/, /\<title\>/}"
    Found 4 matches in the HTTP entity
    Found 4 matches in the HTTP entity
 
@@ -427,7 +426,7 @@ at this point is here for your convenience.
 ********************
 
 This script still prints information. It should, however, convey this
-information in Zeek’s “native” form - logs. For this, we will take two
+information in Zeek’s “native” form---logs. For this, we will take two
 approaches: enriching the existing HTTP log, and using the notice
 framework to deliver notices.
 
@@ -435,8 +434,8 @@ Adding a Log Field
 ==================
 
 Adding a log field to Zeek is actually very simple. Since we want to add
-to the HTTP log, we will use the record that HTTP logs to - its ``Info``
-record. First, we decide what we are logging - in this case, it’s just
+to the HTTP log, we will use the record that HTTP logs to---its ``Info``
+record. First, we decide what we are logging---in this case, it’s just
 the number of pattern matches. So, we add that to the
 :zeek:see:`HTTP::Info` record with ``redef``, and mark the field with
 ``&log`` to make sure it gets logged:
@@ -455,7 +454,7 @@ Next, in ``http_end_entity``, set the field:
    :start-after: @@
    :tab-width: 4
 
-We’re done! Log enrichment itself is simple - add the field to the
+We’re done! Log enrichment itself is simple---add the field to the
 correct record. However, there are more considerations when making a
 robust script. For example, there can be multiple entities for a given
 HTTP request, so this script simply appends the matches to the previous
@@ -465,8 +464,8 @@ Now we can just run the script on the quickstart pcap and check the log:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek -r traces/zeek-doc/quickstart.pcap test.zeek
-   root@zeek-tutorial:/opt/zeek-training $ cat http.log | zeek-cut -m num_entity_matches
+   # zeek -r traces/zeek-doc/quickstart.pcap test.zeek
+   # cat http.log | zeek-cut -m num_entity_matches
    num_entity_matches
    2
    2
@@ -517,8 +516,8 @@ that no notice log exists when executed as-is:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek test.zeek -r traces/zeek-doc/quickstart.pcap
-   root@zeek-tutorial:/opt/zeek-training $ cat notice.log
+   # zeek test.zeek -r traces/zeek-doc/quickstart.pcap
+   # cat notice.log
    cat: notice.log: No such file or directory
 
 .. note::
@@ -530,8 +529,8 @@ But, we can lower the threshold:
 
 .. code:: console
 
-   root@zeek-tutorial:/opt/zeek-training $ zeek test.zeek -r traces/zeek-doc/quickstart.pcap pattern_threshold=1
-   root@zeek-tutorial:/opt/zeek-training $ cat notice.log | zeek-cut -m
+   # zeek test.zeek -r traces/zeek-doc/quickstart.pcap pattern_threshold=1
+   # cat notice.log | zeek-cut -m
    ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type      file_desc       proto   note    msg     sub     src     dst     p       n  peer_descr       actions email_dest      suppress_for    remote_location.country_code    remote_location.region      remote_location.city    remote_location.latitude        remote_location.longitude
    1747147647.735035       -       192.168.1.8     52917   192.0.78.212    80      -       -  -tcp     Entity_Pattern_Threshold        Found 2 pattern matches in HTTP entity. -       192.168.1.8 192.0.78.212    80      -       -       Notice::ACTION_LOG      (empty) 3600.000000--       -       -       -
    1747147654.341780       -       192.168.1.8     52918   192.0.78.150    80      -       -  -tcp     Entity_Pattern_Threshold        Found 2 pattern matches in HTTP entity. -       192.168.1.8 192.0.78.150    80      -       -       Notice::ACTION_LOG      (empty) 3600.000000--       -       -       -
@@ -555,7 +554,7 @@ We went over how to use many of Zeek’s language features as well as ways
 to expose the new analysis to users. There are ways to learn more about
 Zeek scripting as well:
 
-You can go through `try.zeek.org <https://try.zeek.org>`_ - this is an
+You can go through `try.zeek.org <https://try.zeek.org>`_---this is an
 interactive tutorial all in the web browser. It explains Zeek’s
 functionality with increasingly advanced scripts. That is a logical next
 step after this tutorial if some language features seem under-explained.
@@ -569,6 +568,6 @@ is the reference to use.
 While this script is not necessarily production-capable, it uses Zeek in
 many of the same ways you would for a real detection. Part of the reason
 it’s not production-capable is that Zeek actually has better ways of
-matching patterns on traffic and files - the :doc:`Signature framework
+matching patterns on traffic and files---the :doc:`Signature framework
 </frameworks/signatures>`. In the next section, we will discuss Zeek’s
 many frameworks and how to use some of them

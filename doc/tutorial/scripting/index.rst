@@ -12,7 +12,7 @@ reference </script-reference/index>` to further explain the concepts.
 
 Second, we will build up a small Zeek script from scratch. This should
 get many of the necessary parts for any given detection. This is meant
-to supplement other references - namely, `try.zeek.org
+to supplement other references---namely, `try.zeek.org
 <https://try.zeek.org>`_ and the :doc:`script reference
 </script-reference/index>`. try.zeek.org provides a more interactive
 tutorial. The scripting reference goes through each language construct.

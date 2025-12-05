@@ -32,7 +32,7 @@ it encounters malware hashes, like this:
 
 .. code:: console
 
-   $ cat notice.log | zeek-cut -m
+   # cat notice.log | zeek-cut -m
    ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type    file_desc       proto   note    msg     sub     src     dst     p       npeer_descr       actions email_dest      suppress_for    remote_location.country_code    remote_location.region    remote_location.city    remote_location.latitude        remote_location.longitude
    1362692527.080972       CLDH8f3Huq3yGIqjZ6      141.142.228.5   59856   192.150.187.43  <omitted>      text/plain      <omitted>     tcp       TeamCymruMalwareHashRegistry::Match     Malware Hash Registry Detection rate: 95%  Last seen: 2017-01-18 20:34:43 https://www.virustotal.com/gui/search/<omitted>    141.142.228.5   192.150.187.43  80      -       -       Notice::ACTION_LOG        (empty) 3600.000000     -       -       -       -       -
 
@@ -382,8 +382,8 @@ now has a ``denied`` field:
 
 .. code:: console
 
-   $ zeek basics/scope_redef_connection_log.zeek -Cr traces/quickstart.pcap
-   $ cat conn.log | zeek-cut -m denied
+   # zeek basics/scope_redef_connection_log.zeek -Cr traces/quickstart.pcap
+   # cat conn.log | zeek-cut -m denied
    denied
    T
    T

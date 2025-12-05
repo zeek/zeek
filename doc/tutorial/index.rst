@@ -10,7 +10,8 @@
 This is the Zeek tutorial. In it, we will walkthrough a basic Zeek setup
 and what you need to know in order to deploy Zeek. This will also cover
 how to customize Zeek, both via scripting and learning about various
-frameworks that you may use.
+frameworks that you may use. This tutorial is interactive---follow along
+on your own machine.
 
 .. note::
 

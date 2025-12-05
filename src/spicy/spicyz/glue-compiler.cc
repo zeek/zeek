@@ -21,6 +21,17 @@
 using namespace zeek::spicy;
 using Builder = spicy::Builder;
 
+// Helper to convert a range to a vector.
+template<std::ranges::range R>
+auto to_vector(R&& r) {
+    std::vector<std::ranges::range_value_t<R>> v;
+
+    for ( auto&& e : r )
+        v.push_back(std::move(e));
+
+    return v;
+}
+
 namespace zeek::spicy::logging::debug {
 inline const hilti::logging::DebugStream GlueCompiler("zeek-glue");
 } // namespace zeek::spicy::logging::debug
@@ -1015,13 +1026,11 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall("zeek_rt::register_protocol_analyzer",
                              {builder()->stringMutable(a.name.str()), builder()->id(protocol),
-                              builder()->vector(
-                                  hilti::util::transform(a.ports,
-                                                         [this](const auto& p) -> hilti::Expression* {
-                                                             return builder()->call("zeek_rt::make_port_range",
-                                                                                    {builder()->port(p.begin),
-                                                                                     builder()->port(p.end)});
-                                                         })),
+                              builder()->vector(to_vector(
+                                  a.ports | std::views::transform([this](const auto& p) -> hilti::Expression* {
+                                      return builder()->call("zeek_rt::make_port_range",
+                                                             {builder()->port(p.begin), builder()->port(p.end)});
+                                  }))),
                               builder()->stringMutable(a.unit_name_orig.str()),
                               builder()->stringMutable(a.unit_name_resp.str()), builder()->stringMutable(a.replaces),
                               builder()->scope()});
@@ -1041,12 +1050,10 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall("zeek_rt::register_file_analyzer",
                              {builder()->stringMutable(a.name.str()),
-                              builder()->vector(hilti::util::transform(a.mime_types,
-                                                                       [&](const auto& m) {
-                                                                           return builder()
-                                                                               ->stringMutable(m)
-                                                                               ->template as<hilti::Expression>();
-                                                                       })),
+                              builder()->vector(
+                                  to_vector(a.mime_types | std::views::transform([&](const auto& m) {
+                                                return builder()->stringMutable(m)->template as<hilti::Expression>();
+                                            }))),
                               builder()->stringMutable(a.unit_name.str()), builder()->stringMutable(a.replaces),
                               builder()->scope()});
     }
@@ -1096,7 +1103,7 @@ bool GlueCompiler::compile() {
         m->spicy_module->add(context(), import_);
 
         // Create a vector of unique parent paths from all EVTs files going into this module.
-        auto search_dirs = hilti::util::transform(m->evts, [](const auto& p) { return p.parent_path(); });
+        auto search_dirs = to_vector(m->evts | std::views::transform([](const auto& p) { return p.parent_path(); }));
         auto search_dirs_vec = std::vector<hilti::rt::filesystem::path>(search_dirs.begin(), search_dirs.end());
 
         // Import any dependencies.
@@ -1346,7 +1353,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 #else
     auto attrs = builder()->attributeSet({builder()->attribute("&priority", builder()->integer(ev->priority))});
 #endif
-    auto parameters = hilti::util::transform(ev->parameters, [](const auto& p) { return p.get(); });
+    auto parameters = to_vector(ev->parameters | std::views::transform([](const auto& p) { return p.get(); }));
     auto unit_hook = builder()->declarationHook(parameters, body.block(), attrs, meta);
     auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, std::move(meta));
     ev->spicy_module->spicy_module->add(context(), hook_decl);
@@ -1512,9 +1519,10 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
     void operator()(hilti::type::Enum* t) final {
         assert(id());
 
-        auto labels = hilti::rt::transform(t->labels(), [this](const auto& l) {
-            return builder->tuple({builder->stringLiteral(l->id().str()), builder->integer(l->value())});
-        });
+        auto labels =
+            to_vector(t->labels() | std::views::transform([this](const auto& l) {
+                          return builder->tuple({builder->stringLiteral(l->id().str()), builder->integer(l->value())});
+                      }));
 
         auto tmp = builder->addTmp(tmpName("labels", id()),
                                    builder->typeSet(

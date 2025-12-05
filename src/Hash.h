@@ -42,7 +42,8 @@ class Frame;
 
 namespace zeek::BifFunc {
 zeek::ValPtr md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-}
+zeek::ValPtr sha256_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+} // namespace zeek::BifFunc
 
 namespace zeek::detail {
 
@@ -184,6 +185,13 @@ public:
     static void InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data);
 
     /**
+     * Initialize the seed used for HMAC-MD5 operations. This happens lazily instead
+     * of at startup time. It uses the data that was passed into InitializeSeeds() at
+     * startup.
+     */
+    static void InitializeHmacMd5Seed();
+
+    /**
      * Returns true if the process-specific seeds have been initialized
      *
      * @return True if the seeds are initialized
@@ -207,10 +215,17 @@ private:
     alignas(16) static unsigned long long shared_siphash_key[2];
     // This key changes each start (unless a seed is specified)
     inline static uint8_t shared_hmac_md5_key[16];
+    // Key used for hmac_md5 operations.
+    inline static uint8_t shared_hmac_sha256_key[32];
+    // Copy of the seed data passed into InitializeSeeds().
+    inline static uint32_t seed_data[SEED_INIT_SIZE];
     inline static bool seeds_initialized = false;
+    inline static bool hmac_md5_seeds_initialized = false;
 
     friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
     friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
+    friend void util::detail::hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
+    friend ValPtr BifFunc::sha256_hmac_bif(zeek::detail::Frame* frame, const Args*);
 };
 
 enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };

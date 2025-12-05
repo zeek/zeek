@@ -123,7 +123,12 @@ extern const char* fmt_access_time(double time);
 extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char* dirname);
 
+// The digest length here is equivalent to ZEEK_MD5_DIGEST_LENGTH.
+[[deprecated("Remove in v9.1. Use hmac_sha256.")]]
 extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+
+// The digest length here is equivalent to ZEEK_SHA256_DIGEST_LENGTH.
+extern void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
 
 // Initializes RNGs for zeek::random_number() and hmac-md5/siphash/highwayhash usage.
 // If load_file is given, the seeds (both random & hashes) are loaded from that file.  This

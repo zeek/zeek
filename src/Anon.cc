@@ -9,11 +9,11 @@
 
 #include "zeek/Event.h"
 #include "zeek/ID.h"
-#include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
+#include "zeek/digest.h"
 #include "zeek/net_util.h"
 #include "zeek/util.h"
 
@@ -92,7 +92,14 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input) {
     uint8_t digest[16];
     ipaddr32_t output = 0;
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
     util::detail::hmac_md5(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
     for ( int i = 0; i < 4; ++i )
         output = (output << 8) | digest[i];
@@ -116,8 +123,15 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
         prefix.len = htonl(i + 1);
         prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_md5(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
         ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
@@ -142,14 +156,11 @@ void AnonymizeIPAddr_A50::init() {
     special_nodes[0].input = special_nodes[0].output = 0;
     special_nodes[1].input = special_nodes[1].output = 0xFFFFFFFF;
 
-    method = 0;
-    before_anonymization = 1;
-    new_mapping = 0;
+    before_anonymization = true;
+    new_mapping = false;
 }
 
 bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
-    DEBUG_MSG("%s/%d\n", IPAddr(IPv4, &input, IPAddr::Network).AsString().c_str(), num_bits);
-
     if ( ! before_anonymization ) {
         reporter->Error("prefix preservation specified after anonymization begun");
         return false;
@@ -177,8 +188,8 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
 }
 
 ipaddr32_t AnonymizeIPAddr_A50::anonymize(ipaddr32_t a) {
-    before_anonymization = 0;
-    new_mapping = 0;
+    before_anonymization = false;
+    new_mapping = false;
 
     if ( Node* n = find_node(ntohl(a)) ) {
         ipaddr32_t output = htonl(n->output);
@@ -208,7 +219,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node_block() {
 }
 
 inline AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::new_node() {
-    new_mapping = 1;
+    new_mapping = true;
 
     if ( next_free_node ) {
         Node* n = next_free_node;
@@ -329,6 +340,48 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
     return nullptr;
 }
 
+ipaddr32_t AnonymizeIPAddr_RandomSHA256::anonymize(ipaddr32_t input) {
+    uint8_t digest[ZEEK_SHA256_DIGEST_LENGTH];
+    ipaddr32_t output = 0;
+
+    util::detail::hmac_sha256(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
+
+    for ( int i = 0; i < 4; ++i )
+        output = (output << 8) | digest[i];
+
+    return output;
+}
+
+// This code is from "On the Design and Performance of Prefix-Preserving
+// IP Traffic Trace Anonymization", by Xu et al (IMW 2001)
+//
+// http://www.imconf.net/imw-2001/proceedings.html
+
+ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
+    uint8_t digest[ZEEK_SHA256_DIGEST_LENGTH];
+    ipaddr32_t prefix_mask = 0xffffffff;
+    input = ntohl(input);
+    ipaddr32_t output = input;
+
+    for ( int i = 0; i < 32; ++i ) {
+        // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
+        prefix.len = htonl(i + 1);
+        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
+
+        // HK(PAD(x_0 ... x_{i-1})).
+        util::detail::hmac_sha256(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
+
+        // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
+        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
+
+        // x_i' = x_i ^ f_{i-1}.
+        output ^= bit_mask;
+    }
+
+    return htonl(output);
+}
+
+
 static TableValPtr anon_preserve_orig_addr;
 static TableValPtr anon_preserve_resp_addr;
 static TableValPtr anon_preserve_other_addr;
@@ -336,9 +389,18 @@ static TableValPtr anon_preserve_other_addr;
 void init_ip_addr_anonymizers() {
     ip_anonymizer[KEEP_ORIG_ADDR] = nullptr;
     ip_anonymizer[SEQUENTIALLY_NUMBERED] = new AnonymizeIPAddr_Seq();
-    ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
     ip_anonymizer[PREFIX_PRESERVING_A50] = new AnonymizeIPAddr_A50();
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    ip_anonymizer[RANDOM_MD5] = new AnonymizeIPAddr_RandomMD5();
     ip_anonymizer[PREFIX_PRESERVING_MD5] = new AnonymizeIPAddr_PrefixMD5();
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+    ip_anonymizer[RANDOM_SHA256] = new AnonymizeIPAddr_RandomSHA256();
+    ip_anonymizer[PREFIX_PRESERVING_SHA256] = new AnonymizeIPAddr_PrefixSHA256();
 
     auto id = global_scope()->Find("preserve_orig_addr");
 

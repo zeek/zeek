@@ -494,6 +494,7 @@ global known_BiFs = set(
 	"sha256_hash_finish",
 	"sha256_hash_init",
 	"sha256_hash_update",
+	"sha256_hmac",
 	"sha384_hash",
 	"sha384_hash_finish",
 	"sha384_hash_init",

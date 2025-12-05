@@ -457,6 +457,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"sha256_hash_finish", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"sha256_hash_init", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"sha256_hash_update", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"sha256_hmac", ATTR_FOLDABLE},
     {"sha384_hash", ATTR_FOLDABLE},
     {"sha384_hash_finish", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"sha384_hash_init", ATTR_NO_SCRIPT_SIDE_EFFECTS},

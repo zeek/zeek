@@ -262,15 +262,26 @@ bool ensure_dir(const char* dirname) {
 }
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]) {
-    if ( ! zeek::detail::KeyedHash::seeds_initialized )
-        reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
+    zeek::detail::KeyedHash::InitializeHmacMd5Seed();
 
-    zeek::detail::internal_md5(bytes, size, digest);
+    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, bytes, size, digest);
 
     for ( int i = 0; i < 16; ++i )
         digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
 
-    zeek::detail::internal_md5(digest, 16, digest);
+    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, digest, 16, digest);
+}
+
+void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]) {
+    if ( ! zeek::detail::KeyedHash::seeds_initialized )
+        reporter->InternalError("hmac_sha256 invoked before the HMAC key is set");
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, bytes, size, digest);
+
+    for ( size_t i = 0; i < ZEEK_SHA256_DIGEST_LENGTH; ++i )
+        digest[i] ^= zeek::detail::KeyedHash::shared_hmac_sha256_key[i];
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, digest, ZEEK_SHA256_DIGEST_LENGTH, digest);
 }
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,

@@ -81,9 +81,11 @@ private:
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
+    std::string connect_req_endpoint;
     int connect_xpub_nodrop = 1;
     std::string listen_xsub_endpoint;
     std::string listen_xpub_endpoint;
+    std::string listen_rep_endpoint;
     std::string listen_log_endpoint;
     int ipv6 = 1;
     int listen_xpub_nodrop = 1;

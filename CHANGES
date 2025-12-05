@@ -1,3 +1,9 @@
+8.1.0-dev.1037 | 2025-12-05 09:22:47 -0500
+
+  * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)
+
+    Fixes #5026
+
 8.1.0-dev.1035 | 2025-12-05 06:48:54 -0700
 
   * Wait for file_state_remove to exit scripts/base/frameworks/file-analysis/logging-input-analysis btest (Tim Wojtulewicz, Corelight)

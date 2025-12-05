@@ -241,10 +241,10 @@ Deprecated Functionality
   call ``GetVal()`` on a ``Connection`` instance to receive its script-level connection value.
   Every ``GetVal()`` call recursively invoked ``UpdateConnVal()`` on every analyzer
   in the connection's analyzer tree. This allowed analyzers to "push" their latest values
-  to the connection or endpoint records. However, there may have never been a need
-  when script-level consumer aren't reading the values. This approach is now deprecated in
-  favor of a pull-based model where analyzers install callbacks into the connection
-  or endpoint record values at ``Analyzer::InitConnVal()`` time. ``InitConnVal()`` is called
+  to the connection or endpoint records. Analyzers did so unconditionally, regardless
+  of whether any event handlers read these values before the next update. This approach
+  is now deprecated in favor of a pull-based model where analyzers install callbacks into the
+  respective record values at ``Analyzer::InitConnVal()`` time. ``InitConnVal()`` is called
   exactly once on an analyzer, avoiding the unnecessary recursion for every ``GetVal()``
   invocation in the future.
 

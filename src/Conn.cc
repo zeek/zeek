@@ -329,12 +329,8 @@ const RecordValPtr& Connection::GetVal() {
         //
         // If the adapter isn't set yet, SetSessionAdapter()
         // will do the job, too.
-        if ( adapter ) {
-            analyzer::for_each(*adapter, [this](analyzer::Analyzer& a) {
-                // Call InitConnVal() on all analyzer in this connection's analyzer tree.
-                a.InitConnVal(*conn_val);
-            });
-        }
+        if ( adapter )
+            analyzer::for_each(*adapter, [this](analyzer::Analyzer& a) { a.InitConnVal(*conn_val); });
     }
 
     // Remove in v9.1: UpdateConnVal() should've been removed.

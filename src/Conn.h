@@ -197,6 +197,12 @@ public:
     /**
      * Returns a raw pointer to this connection's record, or a nullptr if
      * the \a conn_val member hasn't been initialized yet.
+     *
+     * Calling GetVal() unconditionally initializes the \a conn_val, using
+     * this method allows to probe its existence. This is helpful when
+     * attaching additional analyzers and determining whether to call
+     * InitConnVal() on them without causing actually initializing the
+     * \a conn_val member.
      */
     RecordVal* RawVal() { return conn_val.get(); }
 

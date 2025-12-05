@@ -1,6 +1,8 @@
 
 .. _ZeekControl documentation: https://github.com/zeek/zeekctl
 
+.. _cluster-setup:
+ 
 ==================
 Zeek Cluster Setup
 ==================

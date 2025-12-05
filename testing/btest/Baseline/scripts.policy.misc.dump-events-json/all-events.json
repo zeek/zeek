@@ -579,6 +579,7 @@
           "trans_rcpt_to_seen": false,
           "invalid_transactions": 0,
           "bdat_last_observed": false,
+          "analyzer_id": 6,
           "mime_depth": 0
         }
       },
@@ -11561,6 +11562,7 @@
           "trans_rcpt_to_seen": false,
           "invalid_transactions": 0,
           "bdat_last_observed": false,
+          "analyzer_id": 20,
           "mime_depth": 0
         }
       },

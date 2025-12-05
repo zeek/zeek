@@ -166,17 +166,17 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- Fields representing state information about connections on ``connection`` and
+- Fields representing state information about connections in ``connection`` and
   ``endpoint`` record values now always yield the most up-to-date value.
 
-  In previously versions of Zeek, fields like ``connection$history``, ``endpoint$num_pkts``
+  In previous versions of Zeek, fields like ``connection$history``, ``endpoint$num_pkts``
   or ``endpoint$num_bytes_ip`` could potentially hold stale values. The most prominent case
-  is that in a ``new_connection(c: connection)`` event handler, zero packets were reported
+  was that in a ``new_connection(c: connection)`` event handler, zero packets were reported
   for either endpoint, while clearly there had to have been a packet for the connection to
   be created in the first place. Previous workarounds for this issue included explicitly
   calling ``lookup_connection()`` which would refresh the record's fields.
 
-  In a similar vain, stashing ``connection`` objects into a vector or container and
+  In a similar vein, stashing ``connection`` objects into a vector or container and
   regularly reading ``c$duration`` or ``c$history`` of these connections within a
   scheduled event would likely yield stale values, even if Zeek had observed further
   packets the tracked connections.

@@ -29,5 +29,4 @@ on your own machine.
    invoking-zeekctl
    logs
    scripting/index
-   frameworks/zeek-frameworks
    cluster-backends

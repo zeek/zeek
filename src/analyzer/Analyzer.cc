@@ -624,6 +624,30 @@ void Analyzer::FlipRoles() {
     resp_supporters = tmp;
 }
 
+// Callbacks registered for analyzer confirmation events, indexed by the
+// internal value of analyzer tags. Each tag can have multiple callbacks
+// registered.
+static std::vector<std::vector<zeek::FuncPtr>> confirmation_callbacks;
+
+void Analyzer::RegisterConfirmationCallback(const zeek::Tag& tag, zeek::FuncPtr callback) {
+    auto idx = tag.AsVal()->InternalInt();
+    if ( idx >= confirmation_callbacks.size() )
+        confirmation_callbacks.resize(idx + 1);
+    confirmation_callbacks[idx].push_back(std::move(callback));
+}
+
+void Analyzer::InvokeConfirmationCallbacks(const zeek::Tag& tag, const RecordValPtr& info) {
+    auto idx = tag.AsVal()->InternalInt();
+    if ( idx >= confirmation_callbacks.size() )
+        return;
+
+    if ( confirmation_callbacks[idx].empty() )
+        return;
+
+    for ( const auto& callback : confirmation_callbacks[idx] )
+        callback->Invoke(tag.AsVal(), info);
+}
+
 void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     static auto info_type = zeek::id::find_type<RecordType>("AnalyzerConfirmationInfo");
     static auto info_c_idx = info_type->FieldOffset("c");
@@ -633,7 +657,10 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     info->Assign(info_c_idx, ConnVal());
     info->Assign(info_aid_idx, val_mgr->Count(id));
 
-    event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
+    InvokeConfirmationCallbacks(arg_tag, info);
+
+    if ( analyzer_confirmation_info )
+        event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 }
 
 // NOLINT here because changing the function signature breaks the API.
@@ -645,9 +672,7 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     analyzer_confirmed = true;
 
     const auto& effective_tag = arg_tag ? arg_tag : tag;
-
-    if ( analyzer_confirmation_info )
-        EnqueueAnalyzerConfirmationInfo(effective_tag);
+    EnqueueAnalyzerConfirmationInfo(effective_tag);
 }
 
 void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len, const zeek::Tag& arg_tag) {

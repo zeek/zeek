@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "zeek/EventHandler.h"
+#include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
@@ -588,6 +589,24 @@ public:
      * once.
      */
     bool AnalyzerConfirmed() const { return analyzer_confirmed; }
+
+    /**
+     * Registers a script function callback for analyzer confirmation events
+     * for a specific analyzer tag. Multiple callbacks can be registered for
+     * the same tag.
+     *
+     * @param tag The analyzer tag to register the callback for.
+     * @param callback The script function to call when this analyzer confirms.
+     */
+    static void RegisterConfirmationCallback(const Tag& tag, FuncPtr callback);
+
+    /**
+     * Invokes all registered callbacks for a given analyzer tag.
+     *
+     * @param tag The analyzer tag that confirmed.
+     * @param info The AnalyzerConfirmationInfo record to pass to callbacks.
+     */
+    static void InvokeConfirmationCallbacks(const Tag& tag, const RecordValPtr& info);
 
     /**
      * Called whenever the connection value is updated. Per default, this

@@ -82,3 +82,21 @@ function __has_tag%(name: string%) : bool
 	plugin::Component* component = component_for_name(name->CheckString());
 	return zeek::val_mgr->Bool(component != nullptr);
 	%}
+
+## Registers a script function callback to be invoked when an analyzer of the
+## specified type confirms the protocol. The callback will be invoked before
+## the analyzer_confirmation_info event is raised.
+##
+## analyzer_tag: The analyzer tag to register the callback for.
+## callback: The function to call. It should have the signature:
+##           function(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo)
+##
+## Returns: Always returns true.
+function Analyzer::register_confirmation_callback%(analyzer_tag: Analyzer::Tag,
+				callback: AnalyzerConfirmationCallback%) : bool
+	%{
+	auto tag = Tag({NewRef{}, analyzer_tag->AsEnumVal()});
+	auto func = callback->AsFuncVal()->AsFuncPtr();
+	analyzer::Analyzer::RegisterConfirmationCallback(tag, func);
+	return val_mgr->True();
+	%}

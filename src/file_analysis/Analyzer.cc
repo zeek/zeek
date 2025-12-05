@@ -4,6 +4,7 @@
 
 #include "zeek/Event.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
 
@@ -47,17 +48,17 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
 
     analyzer_confirmed = true;
 
-    if ( ! analyzer_confirmation_info )
-        return;
-
     static auto info_type = zeek::id::find_type<RecordType>("AnalyzerConfirmationInfo");
     static auto info_f_idx = info_type->FieldOffset("f");
 
     auto info = zeek::make_intrusive<RecordVal>(info_type);
     info->Assign(info_f_idx, GetFile()->ToVal());
 
-    const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-    event_mgr.Enqueue(analyzer_confirmation_info, tval, info);
+    const auto& effective_tag = arg_tag ? arg_tag : tag;
+    analyzer::Analyzer::InvokeConfirmationCallbacks(effective_tag, info);
+
+    if ( analyzer_confirmation_info )
+        event_mgr.Enqueue(analyzer_confirmation_info, effective_tag.AsVal(), info);
 }
 
 // NOLINTNEXTLINE(performance-unnecessary-value-param)

@@ -7,6 +7,7 @@
 #include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
 
@@ -161,7 +162,10 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(session::Session* session, const 
     auto info = make_intrusive<RecordVal>(info_type);
     info->Assign(info_c_idx, session->GetVal());
 
-    event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
+    analyzer::Analyzer::InvokeConfirmationCallbacks(arg_tag, info);
+
+    if ( analyzer_confirmation_info )
+        event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 }
 
 // NOLINTNEXTLINE(performance-unnecessary-value-param)
@@ -180,8 +184,7 @@ void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag
 
     session->SetAnalyzerState(effective_tag, session::AnalyzerConfirmationState::CONFIRMED);
 
-    if ( analyzer_confirmation_info )
-        EnqueueAnalyzerConfirmationInfo(session, effective_tag);
+    EnqueueAnalyzerConfirmationInfo(session, effective_tag);
 }
 
 void Analyzer::EnqueueAnalyzerViolationInfo(session::Session* session, const char* reason, const char* data, int len,

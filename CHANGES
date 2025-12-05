@@ -1,3 +1,25 @@
+8.0.4-10 | 2026-01-05 12:56:20 -0700
+
+  * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)
+
+    (cherry picked from commit 5945c6836180348b86f9453d3658cb47aca614f1)
+
+  * CI: Bump to FreeBSD 14.3 (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * fix state growth in building NFAs (Vern Paxson, Corelight)
+
+    NFA construction uses a static data structure (the `closuremap` IntSet) for
+    performance reasons. Ironically, when constructing large numbers of patterns,
+    this structure continues to grow in size due to monotonically increasing NFA
+    state identifiers, and becomes increasingly slow.
+
+    This resets the identifiers to start afresh for each new NFA (which works fine,
+    as they only need to be distinct inside their own matcher).
+
+    (cherry picked from commit 54b687a83adb5c97437d02c1cdb2e523f1fdfbdb)
+
 8.0.4-6 | 2026-01-05 12:16:21 -0700
 
   * Fix ssl certificate logging when encountering protocol errors (Johanna Amann, Corelight)

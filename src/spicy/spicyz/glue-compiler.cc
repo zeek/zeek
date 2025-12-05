@@ -1677,7 +1677,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
     // NOTE: Align this logic with struct generation in Spicy's unit builder.
     std::vector<GlueCompiler::RecordField> fields;
 
-    void operator()(::spicy::type::unit::item::Field* n) {
+    void operator()(::spicy::type::unit::item::Field* n) override {
         if ( (n->isTransient() && ! n->isAnonymous()) || n->parseType()->type()->isA<hilti::type::Void>() )
             return;
 
@@ -1688,7 +1688,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Variable* b) {
+    void operator()(::spicy::type::unit::item::Variable* b) override {
         auto field = GlueCompiler::RecordField{.id = b->id(),
                                                .type = b->itemType(),
                                                .is_optional = b->isOptional(),
@@ -1696,11 +1696,14 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Switch* n) {
-        for ( const auto& c : n->cases() ) {
-            for ( const auto& i : c->block()->items() )
-                dispatch(i);
-        }
+    void operator()(::spicy::type::unit::item::Switch* n) override {
+        for ( const auto& c : n->cases() )
+            dispatch(c->block());
+    }
+
+    void operator()(::spicy::type::unit::item::Block* n) override {
+        for ( const auto& i : n->items() )
+            dispatch(i);
     }
 };
 } // namespace

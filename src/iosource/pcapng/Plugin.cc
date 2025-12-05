@@ -11,7 +11,7 @@ class Plugin : public plugin::Plugin {
 public:
     plugin::Configuration Configure() override {
         AddComponent(new iosource::PktSrcComponent("PcapngReader", "pcapng", iosource::PktSrcComponent::BOTH,
-                                                   iosource::pcapng::Source::Instantiate));
+                                                   iosource::pcapng::Source::Instantiate, {0x0A0D0D0A}));
 
         plugin::Configuration config;
         config.name = "Zeek::Pcap";

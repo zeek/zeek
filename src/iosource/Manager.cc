@@ -12,6 +12,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "zeek/Desc.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Component.h"
 #include "zeek/iosource/IOSource.h"
@@ -368,7 +369,7 @@ void Manager::Register(PktSrc* src) {
 
 /**
  * Checks if the path comes with a prefix telling us which type of PktSrc to use. If no
- * prefix exists, return "pcap" as a default.
+ * prefix exists, return an empty string.
  */
 static std::pair<std::string, std::string> split_prefix(std::string path) {
     // See if the path comes with a prefix telling us which type of
@@ -380,28 +381,52 @@ static std::pair<std::string, std::string> split_prefix(std::string path) {
         prefix = path.substr(0, i);
         path = path.substr(i + 2, std::string::npos);
     }
-    else if ( path.ends_with(".pcapng") )
-        prefix = "pcapng";
-    else
-        prefix = "pcap";
 
     return std::make_pair(prefix, path);
 }
 
 PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live) {
-    std::pair<std::string, std::string> t = split_prefix(path);
-    const auto& prefix = t.first;
-    const auto& npath = t.second;
+    auto [prefix, npath] = split_prefix(path);
 
-    // Find the component providing packet sources of the requested prefix.
+    // Find the component providing packet sources of the requested prefix. Yes, looping over
+    // this twice is dumb, but check magic numbers first and then check for prefixes.
 
     PktSrcComponent* component = nullptr;
-
     std::list<PktSrcComponent*> all_components = plugin_mgr->Components<PktSrcComponent>();
-    for ( const auto& c : all_components ) {
-        if ( c->HandlesPrefix(prefix) && ((is_live && c->DoesLive()) || (! is_live && c->DoesTrace())) ) {
-            component = c;
-            break;
+
+    if ( ! is_live && prefix.empty() ) {
+        uint32_t magic_num = 0;
+        if ( auto f = fopen(path.c_str(), "rb") ) {
+            fread(&magic_num, 4, 1, f);
+            fclose(f);
+
+            for ( const auto& c : all_components ) {
+                if ( c->DoesTrace() && c->HandlesMagicNumber(magic_num) ) {
+                    component = c;
+                    break;
+                }
+            }
+
+            if ( ! component )
+                reporter->Error("Failed to find packet source supporting magic number %x, retrying by prefix",
+                                magic_num);
+        }
+    }
+
+    if ( ! component ) {
+        // If we didn't get a prefix from the path, default to using the pcap component.
+        if ( prefix.empty() )
+            prefix = "pcap";
+
+        for ( const auto& c : all_components ) {
+            if ( (is_live && ! c->DoesLive()) || (! is_live && ! c->DoesTrace()) )
+                continue;
+
+            // Prefer magic number over prefixes.
+            if ( c->HandlesPrefix(prefix) ) {
+                component = c;
+                break;
+            }
         }
     }
 

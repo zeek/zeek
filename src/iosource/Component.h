@@ -68,8 +68,12 @@ public:
      * @param type Type of input the component supports.
      *
      * @param factor Factory function to instantiate component.
+     *
+     * @param magic_nums File magic numbers supported by this packet source. Only needed
+     * for sources that support reading from files.
      */
-    PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory);
+    PktSrcComponent(const std::string& name, const std::string& prefixes, InputType type, factory_callback factory,
+                    std::vector<uint32_t> magic_nums = {});
 
     /**
      * Returns the prefix(es) passed to the constructor.
@@ -80,6 +84,11 @@ public:
      * Returns true if the given prefix is among the one specified for the component.
      */
     bool HandlesPrefix(const std::string& prefix) const;
+
+    /**
+     * Returns true if the given magic number is among the one specified for the component.
+     */
+    bool HandlesMagicNumber(uint32_t magic_num) const;
 
     /**
      * Returns true if packet source instantiated by the component handle
@@ -108,6 +117,7 @@ private:
     std::vector<std::string> prefixes;
     InputType type;
     factory_callback factory;
+    std::vector<uint32_t> magic_nums;
 };
 
 /**

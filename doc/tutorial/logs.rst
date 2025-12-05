@@ -7,25 +7,6 @@
 At this point, Zeek should be fully working on the docker image.
 Now, we will see the power of Zeek: creating logs.
 
-When running a Zeek cluster with ``zeekctl``, logs are stored within the
-``logs`` directory relative to Zeek’s installation directory. Thus, when
-running in the tutorial’s Docker container, the logs will get stored in
-``/usr/local/zeek/logs``. The current set of aggregated logs are in
-``logs/current``. Archived logs are stored in a directory corresponding
-with the date, such as ``logs/2025-08-20``. Log files also get renamed
-to include a timestamp, so ``conn.log`` might become
-``conn.2025-08-20-15-23-42.log``.
-
-.. note::
-
-   For this tutorial, you may also use the ``PREFIX`` environment
-   variable. This has been setup to point to ``/usr/local/zeek`` by the
-   setup script.
-
-The process of moving logs from being “current” to “archived” is called
-rotation. You may change how frequently logs get rotated with
-``zeekctl``\ ’s ``LogRotationInterval`` option.
-
 In this section, we will go over:
 
 1. How to interact with Zeek’s logs and access the fields you want
@@ -42,69 +23,33 @@ lightweight, efficient, and easy to parse. But, they’re not as suitable
 for human consumption. Thankfully, Zeek comes with a tool called
 ``zeek-cut`` in order to examine these logs.
 
-For this section, we will use ``tcpreplay`` in order to generate traffic
-from a pcap. This way, we can run a Zeek cluster and see how you may
-interact with archived logs using Zeek’s tooling. In the docker
-container, replay the quickstart’s pcap in between starting and stopping
-the cluster, like so:
+First, run Zeek on the pcap from the quickstart for demonstration:
 
 .. code:: console
 
-   # zeekctl deploy
-   checking configurations ...
-   installing ...
-   creating policy directories ...
-   installing site policies ...
-   generating standalone-layout.zeek ...
-   generating local-networks.zeek ...
-   generating zeekctl-config.zeek ...
-   generating zeekctl-config.sh ...
-   stopping ...
-   stopping zeek ...
-   starting ...
-   starting zeek ...
-   # tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
-   Actual: 20 packets (2050 bytes) sent in 6.70 seconds
-   Rated: 305.6 Bps, 0.002 Mbps, 2.98 pps
-   Flows: 4 flows, 0.59 fps, 20 unique flow packets, 0 unique non-flow packets
-   Statistics for network device: eth0
-           Successful packets:        20
-           Failed packets:            0
-           Truncated packets:         0
-           Retried packets (ENOBUFS): 0
-           Retried packets (EAGAIN):  0
-   # zeekctl stop
-   stopping zeek ...
-
-Now, there should be logs in the ``$PREFIX/logs/DATE`` directory, where
-``DATE`` is the current date. These are all gzip-compressed logs, as
-they end with the ``.gz`` extension. You can use a tool such as ``zcat``
-to examine these. For example, let’s look at ``conn.log``:
-
-.. code:: console
-
-   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz
+   # zeek -r traces/zeek-doc/quickstart.pcap
+   # cat conn.log
    #separator \x09
    #set_separator  ,
    #empty_field    (empty)
    #unset_field    -
    #path   conn
-   #open   2025-10-30-21-05-03
-   #fields ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto       service duration        orig_bytes      resp_bytes      conn_state      local_orig local_resp       missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes       tunnel_parents  ip_proto
-   #types  time    string  addr    port    addr    port    enum    string  interval        count       count   string  bool    bool    count   string  count   count   count   count   set[string] count
-   1761858297.903499       CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80 tcp      http    0.098687        71      377     SF      T       F       0       ShADTadtFf 12       670     8       1098    -       6
-   1761858304.511300       Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80 tcp      http    0.100184        73      377     SF      T       F       0       ShADTadtFf 12       674     8       1098    -       6
-   #close  2025-10-30-21-05-10
+   #open   2025-12-05-16-38-23
+   #fields ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto    service duration        orig_bytes      resp_bytes      conn_state      local_orig       local_resp      missed_bytes    history orig_pkts       orig_ip_bytes   resp_pktsresp_ip_bytes   tunnel_parents  ip_proto
+   #types  time    string  addr    port    addr    port    enum    string  interval        count    count   string  bool    bool    count   string  count   count   count   count   set[string]      count
+   1747147647.668533       CgnovV3tXhiyU385S       192.168.1.8     52917   192.0.78.212    80       tcp     http    0.098478        71      377     SF      T       F       0       ShADadFf 6       335     4       549     -       6
+   1747147654.275660       Cr9BdR12amVJ5y2dE9      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100107        73      377     SF      T       F       0       ShADadFf 6       337     4       549     -       6
+   #close  2025-12-05-16-38-23
 
 This has a lot of information. We can pipe this through ``zeek-cut`` in
 order to get more condensed information:
 
 .. code:: console
 
-   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m
-   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto   service     duration        orig_bytes      resp_bytes      conn_state      local_orig      local_resp  missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes       tunnel_parents  ip_proto
-   1761858297.903499       CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80 tcp      http    0.098687        71      377     SF      T       F       0       ShADTadtFf 12       670     8       1098    -       6
-   1761858304.511300       Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80 tcp      http    0.100184        73      377     SF      T       F       0       ShADTadtFf 12       674     8       1098    -       6
+   # cat conn.log | zeek-cut -m
+   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto   service  duration        orig_bytes      resp_bytes      conn_state      local_orig      local_resp       missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes    tunnel_parents  ip_proto
+   1747147647.668533       CgnovV3tXhiyU385S       192.168.1.8     52917   192.0.78.212    80       tcp     http    0.098478        71      377     SF      T       F       0       ShADadFf 6       335     4       549     -       6
+   1747147654.275660       Cr9BdR12amVJ5y2dE9      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100107        73      377     SF      T       F       0       ShADadFf 6       337     4       549     -       6
 
 This removes much of the random TSV declarations (like
 ``#set_separator``). The header name for each log column is provided due
@@ -114,17 +59,18 @@ addresses. You can ask for just those fields:
 
 .. code:: console
 
-   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz | zeek-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p
+   # cat conn.log | zeek-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p
    uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p
-   CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80
-   Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80
+   CgnovV3tXhiyU385S       192.168.1.8     52917   192.0.78.212    80
+   Cr9BdR12amVJ5y2dE9      192.168.1.8     52918   192.0.78.150    8
 
-Now, we can find the ``weird.log`` in that directory:
+Now, we can find the ``weird.log``:
 
 .. code:: console
 
-   # zcat < $PREFIX/logs/2025-10-30/weird.21\:05\:04-21\:05\:10.log.gz | zeek-cut uid name
-   Cq6HJ1lEBlYcXcZB        unknown_HTTP_method
+   # cat weird.log | zeek-cut -m uid name
+   uid     name
+   Cr9BdR12amVJ5y2dE9      unknown_HTTP_method
 
 Notice how the ``uid`` field in ``weird.log`` is the same as one of the
 entries in ``conn.log``. This indicates that those entries are from the
@@ -219,20 +165,16 @@ make some DNS logs:
 
 .. code:: console
 
-   # zeekctl deploy
-   <removed for brevity>
-   # tcpreplay -i eth0 traces/zeek-testing/dns/naptr.pcap
-   <removed for brevity>
-   # zeekctl stop
-   stopping zeek ...
+   # zeek -r traces/zeek-testing/dns/naptr.pcap
 
 Then, we can find these in our DNS logs and examine the logs via
 ``zeek-cut``:
 
 .. code:: console
 
-   # zcat < $PREFIX/logs/2025-10-31/dns.14\:00\:13-14\:00\:18.log.gz | zeek-cut uid answers
-   C5Vg0OAHusZgPpN1a       NAPTR 100 100 s SIPS+D2T _sips._tcp.fp-de-carrier-vodafone.rcs.telephony.goog
+   # cat dns.log | zeek-cut -m uid answers
+   uid     answers
+   Cr3Q4KSOgWL8IEAu2       NAPTR 100 100 s SIPS+D2T _sips._tcp.fp-de-carrier-vodafone.rcs.telephony.goog
 
 ***********
  JSON logs
@@ -253,42 +195,22 @@ you can replicate:
      ...
    }
 
-You can do the same in a cluster by simply modifying your site's
-``local.zeek``:
+.. note::
+   You can do the same in a cluster by simply modifying your site's
+   ``local.zeek``:
 
-.. code:: console
+   .. code:: console
 
-   # vim $PREFIX/share/zeek/site/local.zeek
+      # vim $PREFIX/share/zeek/site/local.zeek
 
-Then simply add a line (anywhere!) that loads the
-``policy/tuning/json-logs`` script:
+   Then simply add a line (anywhere!) that loads the
+   ``policy/tuning/json-logs`` script:
 
-.. code:: zeek
+   .. code:: zeek
 
-   @load policy/tuning/json-logs
+      @load policy/tuning/json-logs
 
-Then redeploy the cluster and replay the quickstart pcap:
-
-.. code:: console
-
-   # zeekctl deploy
-   <removed for brevity>
-   # tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
-   <removed for brevity>
-   # zeekctl stop
-   stopping zeek ...
-
-And finally, see the produced log. Pick the ``conn.log`` with the most
-recent timestamp for this:
-
-.. code:: console
-
-   # zcat $PREFIX/logs/2025-10-31/conn.14\:14\:42-14\:14\:52.log.gz  | jq
-   {
-     "ts": 1761920077.568221,
-     "uid": "CyIGBd1t1afUDc5c01",
-     ...
-   }
+   Now, any logs that the cluster creates will be in JSON.
 
 JSON logs are used for a few purposes. First, they may be a better start
 in a data-pipeline: JSON is a far more ubiquitous format, so integrating
@@ -305,6 +227,81 @@ It's up to the user whether TSV logs or JSON logs should be used.
 If neither work, you may also create a custom writer. You may find
 more log writers in the :ref:`Log Writers <log-writers>` section in
 :ref:`Popular Customizations <popular-customizations>`.
+
+*****************************
+ Analyzing Logs from Zeekctl
+*****************************
+
+This section analyzed logs created from Zeek invoked on capture files.
+However, in a production environment, you will most likely use a cluster
+and analyze the compressed logs from the cluster. To mimic this, you may
+also use ``tcpreplay`` in order to replay traffic onto your cluster, then
+analyze the logs in a similar way. In the docker container, replay the
+quickstart’s pcap in between starting and stopping the cluster, like so:
+
+.. code:: console
+
+   # zeekctl deploy
+   checking configurations ...
+   installing ...
+   creating policy directories ...
+   installing site policies ...
+   generating standalone-layout.zeek ...
+   generating local-networks.zeek ...
+   generating zeekctl-config.zeek ...
+   generating zeekctl-config.sh ...
+   stopping ...
+   stopping zeek ...
+   starting ...
+   starting zeek ...
+   # tcpreplay -i eth0 traces/zeek-doc/quickstart.pcap
+   Actual: 20 packets (2050 bytes) sent in 6.70 seconds
+   Rated: 305.6 Bps, 0.002 Mbps, 2.98 pps
+   Flows: 4 flows, 0.59 fps, 20 unique flow packets, 0 unique non-flow packets
+   Statistics for network device: eth0
+           Successful packets:        20
+           Failed packets:            0
+           Truncated packets:         0
+           Retried packets (ENOBUFS): 0
+           Retried packets (EAGAIN):  0
+   # zeekctl stop
+   stopping zeek ...
+
+When running a Zeek cluster with ``zeekctl``, logs are stored within the
+``logs`` directory relative to Zeek’s installation directory. Thus, when
+running in the tutorial’s Docker container, the logs will get stored in
+``/usr/local/zeek/logs``. The current set of aggregated logs are in
+``logs/current``. Archived logs are stored in a directory corresponding
+with the date, such as ``logs/2025-08-20``. Log files also get renamed
+to include a timestamp, so ``conn.log`` might become
+``conn.2025-08-20-15-23-42.log``.
+
+.. note::
+
+   For this tutorial, you may also use the ``PREFIX`` environment
+   variable. This has been setup to point to ``/usr/local/zeek`` by the
+   setup script.
+
+These are all gzip-compressed logs, as they end with the ``.gz`` extension.
+You can use a tool such as ``zcat`` to examine these. We can look at
+``conn.log``'s contents from the command line like so:
+
+.. code:: console
+
+   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz
+   #separator \x09
+   #set_separator  ,
+   #empty_field    (empty)
+   #unset_field    -
+   #path   conn
+   #open   2025-10-30-21-05-03
+   #fields ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto       service duration        orig_bytes      resp_bytes      conn_state      local_orig local_resp       missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes       tunnel_parents  ip_proto
+   #types  time    string  addr    port    addr    port    enum    string  interval        count       count   string  bool    bool    count   string  count   count   count   count   set[string] count
+   1761858297.903499       CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80 tcp      http    0.098687        71      377     SF      T       F       0       ShADTadtFf 12       670     8       1098    -       6
+   1761858304.511300       Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80 tcp      http    0.100184        73      377     SF      T       F       0       ShADTadtFf 12       674     8       1098    -       6
+   #close  2025-10-30-21-05-10
+
+Then, you may pipe these into ``zeek-cut`` just as before.
 
 ******************
  Zeek's Core Logs

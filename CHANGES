@@ -1,3 +1,7 @@
+8.1.0-dev.1035 | 2025-12-05 06:48:54 -0700
+
+  * Wait for file_state_remove to exit scripts/base/frameworks/file-analysis/logging-input-analysis btest (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1032 | 2025-12-04 14:13:22 +0100
 
   * cirrus: Try skipping tasks if only ./doc is modified (Arne Welzel, Corelight)

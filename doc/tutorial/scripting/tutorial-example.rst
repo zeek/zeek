@@ -43,46 +43,49 @@ let’s print the data directly:
    should use other tools such as logging or the notice framework in
    order to convey information.
 
-Save that in a file ``test.zeek`` and tell Zeek to listen for traffic:
+Save that in a file ``test.zeek`` and evoke Zeek on the quickstart pcap:
 
 .. code:: console
 
-   # zeek -C -i eth0 test.zeek
-   listening on eth0
+   # zeek -r traces/zeek-doc/quickstart.pcap test.zeek
 
-Then, open another terminal in the docker container from the host:
+This should print the result from trying to access ``zeek.org`` via
+HTTP.
+
+.. note::
+
+   In order to keep the tutorial consistent, the examples use a capture file.
+   But, in this case, you can test it with live traffic. To do so, first start
+   running Zeek on a network interface:
+
+   .. code:: console
+   
+      # zeek -C -i eth0 test.zeek
+      listening on eth0
+
+   Then, open another terminal in the docker container from the host:
+
+   .. code:: console
+
+      $ docker exec -it zeek-tutorial /bin/bash
+
+   This prompt will be used to generate traffic for Zeek. Now, ``curl`` in
+   the new terminal session:
+
+   .. code:: console
+
+      # curl example.com
+      <!doctype html>...
+
+   *Both* windows should print HTML content. You can exit the previous Zeek
+   invocation with Ctrl+C.
+
+Now, try the same thing, except change the Zeek invocation to include a
+redefinition for ``http_entity_data_delivery_size``:
 
 .. code:: console
 
-   $ docker exec -it zeek-tutorial /bin/bash
-
-This prompt will be used to generate traffic for Zeek. For the remainder
-of this tutorial, if a second terminal session is mentioned, either keep
-this terminal open or create a new one like above.
-
-Now, ``curl`` in the new terminal session:
-
-.. code:: console
-
-   # curl example.com
-   <!doctype html>...
-
-*Both* windows should print HTML content. Now, try the same thing
-(exiting the previous Zeek invocation with Ctrl+C or equivalent), except
-change the Zeek invocation to include a redefinition for
-``http_entity_data_delivery_size``:
-
-.. code:: console
-
-   # zeek -C -i eth0 test.zeek http_entity_data_delivery_size=10
-   <params>, line 1: listening on eth0
-
-and in the other terminal:
-
-.. code:: console
-
-   # curl example.com
-   <!doctype html>...
+   # zeek -r traces/zeek-doc/quickstart.pcap test.zeek http_entity_data_delivery_size=10
 
 Zeek’s output will look different---namely, every 10 bytes, there should
 be a newline. The :zeek:see:`http_entity_data` event gets called in

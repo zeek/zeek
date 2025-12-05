@@ -46,3 +46,11 @@ RUN apt-get -q update \
 
 # Tell git all the repositories are safe.
 RUN git config --global --add safe.directory '*'
+
+# OpenContainers annotation labels. We only care about the revision label for
+# the builder image since it gets cached on Cirrus. The full set of labels is
+# set in the final image.
+# See https://github.com/opencontainers/image-spec/blob/main/annotations.md
+# for more details.
+ARG GIT_COMMIT
+LABEL org.opencontainers.image.revision=$GIT_COMMIT

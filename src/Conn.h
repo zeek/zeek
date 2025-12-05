@@ -81,7 +81,7 @@ public:
     ConnectionRecordValCallback& operator=(ConnectionRecordValCallback& o) = delete;
 
     /**
-     * Called when the Connection's record_val is creatd for the first time
+     * Called when the Connection's record_val is created for the first time
      * to install the callbacks into it.
      */
     void Init(RecordVal& conn_val, const Connection* conn);

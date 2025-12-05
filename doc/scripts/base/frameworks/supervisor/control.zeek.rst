@@ -82,7 +82,7 @@ Redefinable Options
 Events
 ######
 .. zeek:id:: SupervisorControl::create_request
-   :source-code: base/frameworks/supervisor/main.zeek 73 81
+   :source-code: base/frameworks/supervisor/main.zeek 75 83
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`Supervisor::NodeConfig`)
 
@@ -110,7 +110,7 @@ Events
            :zeek:see:`Supervisor::create`.
 
 .. zeek:id:: SupervisorControl::destroy_request
-   :source-code: base/frameworks/supervisor/main.zeek 83 91
+   :source-code: base/frameworks/supervisor/main.zeek 85 93
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
@@ -157,7 +157,7 @@ Events
    :param pid: the process ID the stem reported for this node.
 
 .. zeek:id:: SupervisorControl::restart_request
-   :source-code: base/frameworks/supervisor/main.zeek 93 101
+   :source-code: base/frameworks/supervisor/main.zeek 95 103
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
@@ -186,7 +186,7 @@ Events
            :zeek:see:`Supervisor::restart`.
 
 .. zeek:id:: SupervisorControl::status_request
-   :source-code: base/frameworks/supervisor/main.zeek 63 71
+   :source-code: base/frameworks/supervisor/main.zeek 65 73
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
@@ -215,7 +215,7 @@ Events
            :zeek:see:`Supervisor::status`.
 
 .. zeek:id:: SupervisorControl::stop_request
-   :source-code: base/frameworks/supervisor/main.zeek 55 61
+   :source-code: base/frameworks/supervisor/main.zeek 57 63
 
    :Type: :zeek:type:`event` ()
 

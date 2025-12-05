@@ -6,6 +6,12 @@ Package: base/frameworks/cluster
 The cluster framework provides for establishing and controlling a cluster
 of Zeek instances.
 
+:doc:`/scripts/base/frameworks/cluster/pubsub.zeek`
+
+
+:doc:`/scripts/base/frameworks/cluster/types.zeek`
+
+
 :doc:`/scripts/base/frameworks/cluster/__load__.zeek`
 
 

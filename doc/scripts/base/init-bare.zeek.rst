@@ -1143,15 +1143,27 @@ Redefinable Options
 
    :Type: :zeek:type:`Cluster::BackendTag`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``Cluster::CLUSTER_BACKEND_BROKER``
+   :Default: ``Cluster::CLUSTER_BACKEND_NONE``
+   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/broker/main.zeek`
+
+      ``=``::
+
+         ``Cluster::CLUSTER_BACKEND_BROKER``
+
    :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
 
       ``=``::
 
          ``Cluster::CLUSTER_BACKEND_ZEROMQ``
 
+   :Redefinition: from :doc:`/scripts/test-all-policy.zeek`
 
-   Cluster backend to use. Default is the broker backend.
+      ``=``::
+
+         ``Cluster::CLUSTER_BACKEND_NONE``
+
+
+   Cluster backend to use. Default is the None backend.
 
 .. zeek:id:: Cluster::event_serializer
    :source-code: base/init-bare.zeek 6058 6058
@@ -15448,7 +15460,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Telemetry::sync
-   :source-code: policy/misc/stats.zeek 145 163
+   :source-code: base/init-bare.zeek 6264 6264
 
    :Type: :zeek:type:`hook` () : :zeek:type:`bool`
 

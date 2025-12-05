@@ -193,14 +193,6 @@ const dtls_ports = { 443/udp };
 
 redef likely_server_ports += { ssl_ports, dtls_ports };
 
-# Priority needs to be higher than priority of zeek_init in ssl/files.zeek
-event zeek_init() &priority=6
-	{
-	Log::create_stream(SSL::LOG, Log::Stream($columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
-	}
-
 function set_session(c: connection)
 	{
 	if ( ! c?$ssl )
@@ -208,6 +200,25 @@ function set_session(c: connection)
 		c$ssl = Info($ts=network_time(), $uid=c$uid, $id=c$id);
 		Conn::register_removal_hook(c, finalize_ssl);
 		}
+	}
+
+function ssl_confirmation_callback(tag: Analyzer::Tag,
+					info: AnalyzerConfirmationInfo)
+	{
+	set_session(info$c);
+	info$c$ssl$analyzer_id = info$aid;
+	}
+
+# Priority needs to be higher than priority of zeek_init in ssl/files.zeek
+event zeek_init() &priority=6
+	{
+	Log::create_stream(SSL::LOG, Log::Stream($columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy));
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
+	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_SSL,
+						ssl_confirmation_callback);
+	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_DTLS,
+						ssl_confirmation_callback);
 	}
 
 function add_to_history(c: connection, is_client: bool, char: string)
@@ -524,15 +535,6 @@ hook finalize_ssl(c: connection)
 
 	# called in case a SSL connection that has not been established terminates
 	finish(c, F);
-	}
-
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
-	{
-	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
-		{
-		set_session(info$c);
-		info$c$ssl$analyzer_id = info$aid;
-		}
 	}
 
 event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5

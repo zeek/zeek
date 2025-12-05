@@ -118,12 +118,6 @@ redef record connection += {
 const ports = { 25/tcp, 587/tcp };
 redef likely_server_ports += { ports };
 
-event zeek_init() &priority=5
-	{
-	Log::create_stream(SMTP::LOG, Log::Stream($columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
-	}
-
 function find_address_in_smtp_header(header: string): string
 	{
 	local ips = extract_ip_addresses(header, T);
@@ -168,6 +162,21 @@ function set_smtp_session(c: connection)
 		c$smtp = new_smtp_log(c);
 	}
 
+function smtp_confirmation_callback(tag: Analyzer::Tag,
+					info: AnalyzerConfirmationInfo)
+	{
+	set_smtp_session(info$c);
+	info$c$smtp_state$analyzer_id = info$aid;
+	}
+
+event zeek_init() &priority=5
+	{
+	Log::create_stream(SMTP::LOG, Log::Stream($columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy));
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
+	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_SMTP,
+						smtp_confirmation_callback);
+	}
+
 function mail_transaction_invalid(c: connection, addl: string)
 	{
 	Reporter::conn_weird("smtp_mail_transaction_invalid", c, addl, "SMTP");
@@ -191,15 +200,6 @@ function smtp_message(c: connection)
 		Log::write(SMTP::LOG, c$smtp);
 		c$smtp = new_smtp_log(c);
 		}
-	}
-
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
-	{
-	if ( atype != Analyzer::ANALYZER_SMTP )
-		return;
-
-	set_smtp_session(info$c);
-	info$c$smtp_state$analyzer_id = info$aid;
 	}
 
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &priority=5

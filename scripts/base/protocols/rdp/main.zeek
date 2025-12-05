@@ -96,13 +96,6 @@ const rdp_ports = { 3389/tcp };
 const rdpeudp_ports = { 3389/udp };
 redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 
-event zeek_init() &priority=5
-	{
-	Log::create_stream(RDP::LOG, Log::Stream($columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
-	}
-
 function write_log(c: connection)
 	{
 	local info = c$rdp;
@@ -277,13 +270,20 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
+function rdp_confirmation_callback(tag: Analyzer::Tag,
+					info: AnalyzerConfirmationInfo)
 	{
-	if ( atype == Analyzer::ANALYZER_RDP )
-		{
-		set_session(info$c);
-		info$c$rdp$analyzer_id = info$aid;
-		}
+	set_session(info$c);
+	info$c$rdp$analyzer_id = info$aid;
+	}
+
+event zeek_init() &priority=5
+	{
+	Log::create_stream(RDP::LOG, Log::Stream($columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy));
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
+	Analyzer::register_confirmation_callback(Analyzer::ANALYZER_RDP,
+						rdp_confirmation_callback);
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5

@@ -15,6 +15,15 @@ const char* ZOP_name(ZOp op) {
     return "<error>";
 }
 
+ZOp inverse_ZOP(ZOp op) {
+    switch ( op ) {
+#include "zeek/ZAM-OpInverses.h"
+        default: return OP_NOP;
+    }
+}
+
+bool ZOP_has_inverse(ZOp op) { return inverse_ZOP(op) != OP_NOP; }
+
 static const char* op_type_name(ZAMOpType ot) {
     switch ( ot ) {
         case OP_X: return "X";

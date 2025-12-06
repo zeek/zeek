@@ -143,6 +143,7 @@ eval	EvalVal2InTablePre($1,$2,$3)
 internal-op Val2-Is-In-Table-Cond
 op1-read
 class VVVb
+inverse Val2-Is-Not-In-Table-Cond
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, INDEX_LIST, $4, !)
 
@@ -153,6 +154,7 @@ macro EvalVal2InTableCond(tbl, op, BRANCH, negate)
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 class VVVb
+inverse Val2-Is-In-Table-Cond
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, INDEX_LIST, $4,)
 
@@ -169,24 +171,28 @@ eval	EvalVal2InTableCore($2.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 internal-op Val2-Is-In-Table-Cond
 op1-read
 class VVbC
+inverse Val2-Is-Not-In-Table-Cond
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, INDEX_LIST, $3, !)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
 class VVCb
+inverse Val2-Is-Not-In-Table-Cond
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, INDEX_LIST, $4, !)
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 class VVbC
+inverse Val2-Is-In-Table-Cond
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, INDEX_LIST, $3, )
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
 class VVCb
+inverse Val2-Is-In-Table-Cond
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, INDEX_LIST, $4, )
 

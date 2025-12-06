@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "zeek/EventHandler.h"
+#include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
@@ -588,6 +589,24 @@ public:
      * once.
      */
     bool AnalyzerConfirmed() const { return analyzer_confirmed; }
+
+    /**
+     * Registers an event handler for analyzer confirmation events
+     * for a specific analyzer tag. Multiple handlers can be registered for
+     * the same tag.
+     *
+     * @param tag The analyzer tag to register the handler for.
+     * @param handler The event handler to raise when this analyzer confirms.
+     */
+    static void RegisterConfirmationHandler(const Tag& tag, EventHandlerPtr handler);
+
+    /**
+     * Raises all registered event handlers for a given analyzer tag.
+     *
+     * @param tag The analyzer tag that confirmed.
+     * @param info The AnalyzerConfirmationInfo record to pass to handlers.
+     */
+    static void RaiseConfirmationHandlers(const Tag& tag, const RecordValPtr& info);
 
     /**
      * Called whenever the connection value is updated. Per default, this

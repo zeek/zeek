@@ -624,6 +624,30 @@ void Analyzer::FlipRoles() {
     resp_supporters = tmp;
 }
 
+// Event handlers registered for analyzer confirmation events, indexed by the
+// internal value of analyzer tags. Each tag can have multiple handlers
+// registered.
+static std::vector<std::vector<zeek::EventHandlerPtr>> confirmation_handlers;
+
+void Analyzer::RegisterConfirmationHandler(const zeek::Tag& tag, zeek::EventHandlerPtr handler) {
+    auto idx = static_cast<zeek_uint_t>(tag.AsVal()->InternalInt());
+    if ( idx >= confirmation_handlers.size() )
+        confirmation_handlers.resize(idx + 1);
+    confirmation_handlers[idx].push_back(std::move(handler));
+}
+
+void Analyzer::RaiseConfirmationHandlers(const zeek::Tag& tag, const RecordValPtr& info) {
+    auto idx = static_cast<zeek_uint_t>(tag.AsVal()->InternalInt());
+    if ( idx >= confirmation_handlers.size() )
+        return;
+
+    if ( confirmation_handlers[idx].empty() )
+        return;
+
+    for ( const auto& handler : confirmation_handlers[idx] )
+        event_mgr.Enqueue(handler, tag.AsVal(), info);
+}
+
 void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     static auto info_type = zeek::id::find_type<RecordType>("AnalyzerConfirmationInfo");
     static auto info_c_idx = info_type->FieldOffset("c");
@@ -633,7 +657,10 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag) {
     info->Assign(info_c_idx, ConnVal());
     info->Assign(info_aid_idx, val_mgr->Count(id));
 
-    event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
+    RaiseConfirmationHandlers(arg_tag, info);
+
+    if ( analyzer_confirmation_info )
+        event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 }
 
 // NOLINT here because changing the function signature breaks the API.
@@ -645,9 +672,7 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     analyzer_confirmed = true;
 
     const auto& effective_tag = arg_tag ? arg_tag : tag;
-
-    if ( analyzer_confirmation_info )
-        EnqueueAnalyzerConfirmationInfo(effective_tag);
+    EnqueueAnalyzerConfirmationInfo(effective_tag);
 }
 
 void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len, const zeek::Tag& arg_tag) {

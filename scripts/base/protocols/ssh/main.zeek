@@ -137,12 +137,6 @@ redef record connection += {
 const ports = { 22/tcp };
 redef likely_server_ports += { ports };
 
-event zeek_init() &priority=5
-	{
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
-	Log::create_stream(SSH::LOG, Log::Stream($columns=Info, $ev=log_ssh, $path="ssh", $policy=log_policy));
-	}
-
 function set_session(c: connection)
 	{
 	if ( ! c?$ssh )
@@ -222,6 +216,21 @@ function set_version(c: connection)
 		}
 
 	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+	}
+
+event ssh_analyzer_confirmation(tag: Analyzer::Tag,
+					info: AnalyzerConfirmationInfo)
+	{
+	set_session(info$c);
+	info$c$ssh$analyzer_id = info$aid;
+	}
+
+event zeek_init() &priority=5
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
+	Analyzer::register_confirmation_handler(Analyzer::ANALYZER_SSH,
+						ssh_analyzer_confirmation);
+	Log::create_stream(SSH::LOG, Log::Stream($columns=Info, $ev=log_ssh, $path="ssh", $policy=log_policy));
 	}
 
 event ssh_server_version(c: connection, version: string)
@@ -354,13 +363,4 @@ event ssh_server_host_key_fingerprint(c: connection, fingerprint: string) &prior
 		return;
 
 	c$ssh$host_key_fingerprint = fingerprint;
-	}
-
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=20
-	{
-	if ( atype == Analyzer::ANALYZER_SSH )
-		{
-		set_session(info$c);
-		info$c$ssh$analyzer_id = info$aid;
-		}
 	}

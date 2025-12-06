@@ -1,3 +1,7 @@
+8.1.0-dev.1038 | 2025-12-06 13:04:41 +0100
+
+  * testing/Baseline.zam: Fixup coverage baselines (Arne Welzel, Corelight)
+
 8.1.0-dev.1037 | 2025-12-05 09:22:47 -0500
 
   * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)

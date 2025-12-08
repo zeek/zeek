@@ -1,5 +1,7 @@
 # @TEST-DOC: Running a standalone Zeek process with a WebSocket server and ZeroMQ, using the ipc:// transport for the latter.
 #
+# @TEST-REQUIRES: python3 -c 'import websockets.sync'
+#
 # @TEST-PORT: ZEEK_WEBSOCKET_LISTEN_PORT
 #
 # @TEST-EXEC: cp $FILES/ws/wstest.py .

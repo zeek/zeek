@@ -18,5 +18,6 @@ transient, etc. compared to other documentation).
    Documentation Guide </README.rst>
    contributors
    maintainers
+   cluster/architectures
    cluster/backend/zeromq
    conn

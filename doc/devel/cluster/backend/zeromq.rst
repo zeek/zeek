@@ -36,7 +36,7 @@ XPUB/XSUB broker for publish-subscribe functionality. Zeek events published
 via :zeek:see:`Cluster::publish` are distributed by this central broker to
 interested nodes.
 
-.. figure:: /images/cluster/zeromq-pubsub.png
+.. figure:: /images/cluster/backend/zeromq/zeromq-pubsub.png
 
 
 As depicted in the figure above, each cluster node connects to the central
@@ -90,7 +90,7 @@ When sending log-writes over a PUSH socket, load balancing is done by ZeroMQ.
 Individual cluster nodes do not have control over the decision which logger
 node receives log writes at any given time.
 
-.. figure:: /images/cluster/zeromq-logging.png
+.. figure:: /images/cluster/backend/zeromq/zeromq-logging.png
 
 While the previous paragraph used "log writes", a single message to a logger
 node actually contains a batch of log writes. The options :zeek:see:`Log::flush_interval`
@@ -114,5 +114,5 @@ Summary
 Combining the diagrams above, the connections between the different socket
 types in a Zeek cluster looks something like the following.
 
-.. figure:: /images/cluster/zeromq-cluster.png
+.. figure:: /images/cluster/backend/zeromq/zeromq-cluster.png
 

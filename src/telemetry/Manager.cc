@@ -141,22 +141,27 @@ void Manager::InitPostScript() {
                               []() { return static_cast<double>(get_stats()->fds); });
 #endif
 
-    // Initialize REQ socket for querying statistics from zmq_proxy.
-    // This uses a separate context so it can be safely accessed from the main thread.
-    std::string connect_req_endpoint =
-        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_req_endpoint")->ToStdString();
-    int ipv6 = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::ipv6")->AsBool() ? 1 : 0;
+    std::string connect_req_endpoint;
+    int ipv6 = 0;
 
+    auto connect_req_endpoint_id = zeek::id::find("Cluster::Backend::ZeroMQ::connect_req_endpoint");
+    auto ipv6_id = zeek::id::find("Cluster::Backend::ZeroMQ::ipv6");
+
+    if ( connect_req_endpoint_id && ipv6_id ) {
+        connect_req_endpoint = connect_req_endpoint_id->GetVal()->AsStringVal()->ToStdString();
+        ipv6 = ipv6_id->GetVal()->AsBool() ? 1 : 0;
+    }
+
+    // Only initialize if ZeroMQ backend is configured.
     if ( ! connect_req_endpoint.empty() ) {
         // Enable IPv6 support if configured.
         main_ctx.set(zmq::ctxopt::ipv6, ipv6);
+        // Initialize REQ socket for querying statistics from zmq_proxy.
         req_socket = zmq::socket_t(main_ctx, zmq::socket_type::req);
 
         try {
             req_socket.connect(connect_req_endpoint);
             req_socket_connected = true;
-            reporter->Info("Connected REQ socket to zeromq proxy REP socket at %s for statistics queries",
-                           connect_req_endpoint.c_str());
 
             // Create a counter with a callback that queries proxy statistics.
             proxy_query_stats_success_counter =

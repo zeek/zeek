@@ -20,4 +20,11 @@ set(ZEEK_PLUGIN_SCRIPTS_PATH "${ZEEK_CMAKE_CONFIG_DIR}"
 
 # The CMAKE_BUILD_TYPE type to use for external plugins if not overridden.
 set(ZEEK_CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
-    CACHE PATH "Internal Zeek variable: CMAKE_BUILD_TYPE of Zeek." FORCE)
+    CACHE STRING "Internal Zeek variable: CMAKE_BUILD_TYPE of Zeek." FORCE)
+
+# Set CFLAGS/CXXFLAGS if the Zeek build was built with sanitizers.
+set(_sanitizer_flags "@ZEEK_SANITIZER_CXX_FLAGS@")
+if ( _sanitizer_flags )
+    set(CMAKE_C_FLAGS "${_sanitizer_flags} ${CMAKE_C_FLAGS}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${_sanitizer_flags} ${CMAKE_CXX_FLAGS}" CACHE STRING "" FORCE)
+endif ()

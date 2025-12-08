@@ -247,6 +247,9 @@ Changed Functionality
 - The ``x509.log`` deduplication logic has been reimplemented with explicit
   ``Cluster::publish()``, rather than relying ``&backend`` tables using Broker.
 
+- Sanitizer flags passed to a Zeek build with ``configure``'s ``--santiizers`` argument are
+  now automatically passed to plugins built against that Zeek source tree.
+
 Removed Functionality
 ---------------------
 

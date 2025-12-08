@@ -1,3 +1,9 @@
+8.1.0-dev.1046 | 2025-12-08 11:03:16 -0700
+
+  * Pass sanitizer flags to external plugin builds (Tim Wojtulewicz, Corelight)
+
+  * Fix broken link in documentation (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1043 | 2025-12-08 12:51:29 +0100
 
   * Bump zeekjs to v0.21.0 (Arne Welzel, Corelight)

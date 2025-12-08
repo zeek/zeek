@@ -1,3 +1,7 @@
+8.1.0-dev.1040 | 2025-12-08 12:25:40 +0100
+
+  * testing/btest: Skip websocket/server tests when Python lib is missing (Arne Welzel, Corelight)
+
 8.1.0-dev.1038 | 2025-12-06 13:04:41 +0100
 
   * testing/Baseline.zam: Fixup coverage baselines (Arne Welzel, Corelight)

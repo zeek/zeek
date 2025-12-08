@@ -5,6 +5,8 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff controllee/.stdout
 
+@load frameworks/cluster/backend/broker
+
 @load base/frameworks/control
 
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;

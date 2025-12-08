@@ -18,13 +18,13 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::subscribe, <frame>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Config::config_option_changed, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -480,6 +480,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./polling, <...>/polling.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./pools, <...>/pools.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./postprocessors, <...>/postprocessors) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./pubsub, <...>/pubsub.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./scp, <...>/scp.zeek) -> -1
@@ -585,6 +586,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/ppp, <...>/ppp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pppoe, <...>/pppoe) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/pubsub, <...>/pubsub.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/removal-hooks, <...>/removal-hooks.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/reporter.bif, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/root, <...>/root) -> -1
@@ -796,6 +798,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./polling, <...>/polling.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./pools, <...>/pools.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./postprocessors, <...>/postprocessors) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
@@ -901,6 +904,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp, <...>/ppp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pppoe, <...>/pppoe) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pubsub, <...>/pubsub.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/root, <...>/root) -> (-1, <no content>)
@@ -963,13 +967,13 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
-0.000000   MetaHookPre   CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor))
-0.000000   MetaHookPre   CallFunction(Broker::subscribe, <frame>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(Cluster::__subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F]))
+0.000000   MetaHookPre   CallFunction(Cluster::subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Config::config_option_changed, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1425,6 +1429,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFile(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./scp, <...>/scp.zeek)
@@ -1530,6 +1535,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/ppp, <...>/ppp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pppoe, <...>/pppoe)
+0.000000   MetaHookPre   LoadFile(0, base<...>/pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/reporter.bif, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/root, <...>/root)
@@ -1741,6 +1747,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
@@ -1846,6 +1853,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp, <...>/ppp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pppoe, <...>/pppoe)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/root, <...>/root)
@@ -1908,12 +1916,12 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 81/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 8888/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
-0.000000 | HookCallFunction Broker::__subscribe(zeek/supervisor)
-0.000000 | HookCallFunction Broker::subscribe(zeek/supervisor)
+0.000000 | HookCallFunction Cluster::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])
+0.000000 | HookCallFunction Cluster::subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Config::config_option_changed(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}])
 0.000000 | HookCallFunction Log::__add_filter(Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -2380,6 +2388,7 @@
 0.000000 | HookLoadFile  ./pools <...>/pools.zeek
 0.000000 | HookLoadFile  ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFile  ./programming <...>/programming.sig
+0.000000 | HookLoadFile  ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFile  ./python <...>/python.sig
 0.000000 | HookLoadFile  ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFile  ./reporter.bif.zeek <...>/reporter.bif.zeek
@@ -2487,6 +2496,7 @@
 0.000000 | HookLoadFile  base<...>/ppp <...>/ppp
 0.000000 | HookLoadFile  base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFile  base<...>/pppoe <...>/pppoe
+0.000000 | HookLoadFile  base<...>/pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFile  base<...>/removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFile  base<...>/reporter.bif <...>/reporter.bif.zeek
 0.000000 | HookLoadFile  base<...>/root <...>/root
@@ -2696,6 +2706,7 @@
 0.000000 | HookLoadFileExtended ./pools <...>/pools.zeek
 0.000000 | HookLoadFileExtended ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFileExtended ./programming <...>/programming.sig
+0.000000 | HookLoadFileExtended ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFileExtended ./python <...>/python.sig
 0.000000 | HookLoadFileExtended ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek
@@ -2803,6 +2814,7 @@
 0.000000 | HookLoadFileExtended base<...>/ppp <...>/ppp
 0.000000 | HookLoadFileExtended base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFileExtended base<...>/pppoe <...>/pppoe
+0.000000 | HookLoadFileExtended base<...>/pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFileExtended base<...>/removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFileExtended base<...>/reporter.bif <...>/reporter.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/root <...>/root

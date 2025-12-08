@@ -403,6 +403,9 @@
    purpose is to provide an easy way to load all known Zeek scripts plus any
    extra scripts needed or used by the documentation process.
 
+:doc:`policy/frameworks/cluster/backend/broker </scripts/policy/frameworks/cluster/backend/broker/index>`
+
+
 :doc:`policy/frameworks/cluster/backend/zeromq </scripts/policy/frameworks/cluster/backend/zeromq/index>`
 
 

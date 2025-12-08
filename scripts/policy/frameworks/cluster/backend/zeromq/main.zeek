@@ -403,6 +403,9 @@ redef listen_log_endpoint = fmt("tcp://%s:%s", addr_to_uri(my_node$ip), port_to_
 # connect_log_endpoints yourself via redef.
 event zeek_init() &priority=100
 	{
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_ZEROMQ )
+		return;
+
 	if ( Cluster::local_node_type() == Cluster::LOGGER )
 		return;
 
@@ -430,6 +433,28 @@ event zeek_init() &priority=100
 	# an intended configuration.
 	if ( |connect_log_endpoints| == 0 && |Cluster::nodes| > 1 )
 		Reporter::error("No ZeroMQ connect_log_endpoints configured");
+	}
+
+event zeek_init() &priority=10
+	{
+	if ( getenv("ZEEKCTL_CHECK_CONFIG") != "" )
+		return;
+
+	# Use ZEEKCTL_DISABLE_LISTEN to skip initialization of anything ZeroMQ related.
+	if ( getenv("ZEEKCTL_DISABLE_LISTEN") != "" )
+		return;
+
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_ZEROMQ )
+		return;
+
+	if ( run_proxy_thread )
+		{
+		if ( ! Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread() )
+			Reporter::fatal("Failed to spawn ZeroMQ proxy thread");
+		}
+
+	if ( ! Cluster::init() )
+		Reporter::fatal("Failed initialize ZeroMQ backend");
 	}
 
 function nodeid_subscription_expired(nodeids: set[string], nodeid: string): interval

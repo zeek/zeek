@@ -17,8 +17,8 @@
 # @TEST-EXEC: btest-bg-run logger   "BTEST_CLUSTER_IP=::1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger zeek -b ../common.zeek"
 # @TEST-EXEC-FAIL: btest-bg-wait -k 10
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -E 's,^error: ZeroMQ: Failed to bind ([^ ]+) socket tcp://\[::1\]:[0-9]+:.*$,error: ZeroMQ: Failed to bind \1 socket...,g' | $SCRIPTS/diff-remove-abspath" btest-diff manager/.stderr
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -E 's,^error: ZeroMQ: Failed to bind ([^ ]+) socket tcp://\[::1\]:[0-9]+:.*$,error: ZeroMQ: Failed to bind \1 socket...,g' | $SCRIPTS/diff-remove-abspath" btest-diff logger/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -E 's/line [0-9]+/line xxx/g' | sed -E 's,^error: ZeroMQ: Failed to bind ([^ ]+) socket tcp://\[::1\]:[0-9]+:.*$,error: ZeroMQ: Failed to bind \1 socket...,g' | $SCRIPTS/diff-remove-abspath" btest-diff manager/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -E 's/line [0-9]+/line xxx/g' | sed -E 's,^error: ZeroMQ: Failed to bind ([^ ]+) socket tcp://\[::1\]:[0-9]+:.*$,error: ZeroMQ: Failed to bind \1 socket...,g' | $SCRIPTS/diff-remove-abspath" btest-diff logger/.stderr
 
 # @TEST-START-FILE common.zeek
 @load frameworks/cluster/backend/zeromq

@@ -1,3 +1,125 @@
+8.1.0-dev.1043 | 2025-12-08 12:51:29 +0100
+
+  * Bump zeekjs to v0.21.0 (Arne Welzel, Corelight)
+
+  * Build Javascript bindings in CI on macos (Benjamin Bannier, Corelight)
+
+8.1.0-dev.1040 | 2025-12-08 12:25:40 +0100
+
+  * testing/btest: Skip websocket/server tests when Python lib is missing (Arne Welzel, Corelight)
+
+8.1.0-dev.1038 | 2025-12-06 13:04:41 +0100
+
+  * testing/Baseline.zam: Fixup coverage baselines (Arne Welzel, Corelight)
+
+8.1.0-dev.1037 | 2025-12-05 09:22:47 -0500
+
+  * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)
+
+    Fixes #5026
+
+8.1.0-dev.1035 | 2025-12-05 06:48:54 -0700
+
+  * Wait for file_state_remove to exit scripts/base/frameworks/file-analysis/logging-input-analysis btest (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1032 | 2025-12-04 14:13:22 +0100
+
+  * cirrus: Try skipping tasks if only ./doc is modified (Arne Welzel, Corelight)
+
+    Won't work in this PR because we modify .cirrus.yml, but might
+    work in the future.
+
+  * doc/connkey-plugin: People will know it is cool (Arne Welzel, Corelight)
+
+  * doc/zeromq: Remove experimental marker (Arne Welzel, Corelight)
+
+8.1.0-dev.1028 | 2025-12-04 11:56:13 +0100
+
+  * btest/zam: Fix baselines (Arne Welzel, Corelight)
+
+  * testing/external: Force CLUSTER_BACKEND_NONE (Arne Welzel, Corelight)
+
+  * Bump zeekctl to ZeroMQ default revision and update NEWS (Arne Welzel, Corelight)
+
+  * btest/cluster: Canonify some line numbers (Arne Welzel, Corelight)
+
+  * frameworks/cluster: Add websocket/server.zeek (Arne Welzel, Corelight)
+
+    This adds a small script that can be loaded to easily start a WebSocket server for
+    testing in standalone or cluster mode. It respects the environment variables
+    ZEEK_WEBSOCKET_LISTEN_ ADDRESS and ZEEK_WEBSOCKET_LISTEN_PORT.
+
+  * cluster/main: Fatal error on missing backend (Arne Welzel, Corelight)
+
+  * cluster/backend/zeromq: Deprecate connect script (Arne Welzel, Corelight)
+
+    Oh well. It made it into a bunch of slides and presentations, but it
+    probably was never a good idea.
+
+  * supervisor: Switch from Broker:: to Cluster:: (Arne Welzel, Corelight)
+
+  * btest/broker: Fix logging tests (Arne Welzel, Corelight)
+
+    This is a bit annoying: The logging framework looks at Cluster::backend
+    to decide what should happen with log writes and only do the right thing
+    if it was switched to broker.
+
+  * btest: Use Broker for Broker specific tests (Arne Welzel, Corelight)
+
+    Now that Cluster::backend defaults to NONE by default, some tests won't
+    just work anymore for various reasons (mostly due to the logging
+    framework not sending log writes to broker anymore).
+
+    Load the new frameworks/cluster/backend/broker package for these to keep them
+    functional. Also add the @load to the common broker/cluster-layout.zeek file
+    to avoid changing all of the files that use that layout.
+
+  * init-bare: Default to CLUSTER_BACKEND_NONE (Arne Welzel, Corelight)
+
+  * cluster: Move more Broker specific scripts to policy/ (Arne Welzel, Corelight)
+
+  * cluster: Rename setup-connections to setup-subscriptions (Arne Welzel, Corelight)
+
+    Now that all the logic about establishing connections among nodes has
+    moved to the broker policy script, the setup-connections name seems
+    unfortunate, transition away from it.
+
+  * cluster: Move Broker connect logic into policy package (Arne Welzel, Corelight)
+
+    Place a package into policy/frameworks/cluster/backend/broker and move
+    Broker's connection specific logic there.
+
+  * cluster: Introduce pubsub.zeek and types.zeek (Arne Welzel, Corelight)
+
+    Allow access to the Cluster's subscribe(), unsubscribe(), publish(),
+    publish_hrw() and publish_rr() methods by loading only the
+    base/frameworks/cluster/pubsub, rather than everything that
+    __load__.zeek or also main.zeek pulls in.
+
+    This can be used by other scripts to use these functions without
+    relying or expecting the rest of the cluster framework to be loaded
+    already. Concretely, this is needed to move the Supervisor framework
+    from Broker to Cluster.
+
+  * cluster: Add None backend (Arne Welzel, Corelight)
+
+    Mostly so we have the CLUSTER_BACKEND_NONE enum value available, but
+    potentially useful for testing, too. The rough idea is that Zeek by
+    default has Cluster::backend set to CLUSTER_BACKEND_NONE, and script
+    packages in frameworks/cluster/backend redef it accordingly.
+
+  * btest/broker/remote_event_ts_compat: Replace 15 second sleep with wait-for-file (Arne Welzel, Corelight)
+
+    Just so the test runs faster when it can.
+
+  * btest/broker: Remove get_broker_stats() print (Arne Welzel, Corelight)
+
+    They seem mostly irrelevant for the tests and depending on what is
+    logged, the num_logs_outgoing changes, so just stop including them
+    in the baseline for now.
+
+  * btest/Files/zeromq/metrics: Add missing load for telemetry framework (Arne Welzel, Corelight)
+
 8.1.0-dev.1007 | 2025-12-03 15:03:08 -0800
 
   * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)

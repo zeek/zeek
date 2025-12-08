@@ -201,5 +201,3 @@ two of which have a ``vxlan_vni`` value set in their logs.
     CEllEz13txeSrbGqBe      http    ShADadFf        7       7       4242
     CBifsS2vqGEg8Fa5ac      http    ShADadFf        7       7       4711
     CC6Ald2LejCS1qcDy4      vxlan   D       28      0       -
-
-Pretty cool, isn't it?

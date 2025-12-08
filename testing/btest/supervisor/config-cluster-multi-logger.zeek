@@ -13,6 +13,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='sed "s/[0-9][0-9]/XX/g"' btest-diff logs.out
 
 @load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
 
 # Make both loggers log into the same log-queue directory.
 redef Log::default_rotation_dir = "../log-queue";

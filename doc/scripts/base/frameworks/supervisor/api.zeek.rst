@@ -289,7 +289,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: Supervisor::create
-   :source-code: base/frameworks/supervisor/main.zeek 12 15
+   :source-code: base/frameworks/supervisor/main.zeek 14 17
 
    :Type: :zeek:type:`function` (node: :zeek:type:`Supervisor::NodeConfig`) : :zeek:type:`string`
 
@@ -303,7 +303,7 @@ Functions
    :returns: an empty string on success or description of the error/failure.
 
 .. zeek:id:: Supervisor::destroy
-   :source-code: base/frameworks/supervisor/main.zeek 17 20
+   :source-code: base/frameworks/supervisor/main.zeek 19 22
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
@@ -318,7 +318,7 @@ Functions
    :returns: true on success.
 
 .. zeek:id:: Supervisor::is_supervised
-   :source-code: base/frameworks/supervisor/main.zeek 32 35
+   :source-code: base/frameworks/supervisor/main.zeek 34 37
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -326,7 +326,7 @@ Functions
    :returns: true if this is a supervised node process.
 
 .. zeek:id:: Supervisor::is_supervisor
-   :source-code: base/frameworks/supervisor/main.zeek 27 30
+   :source-code: base/frameworks/supervisor/main.zeek 29 32
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -334,7 +334,7 @@ Functions
    :returns: true if this is the Supervisor process.
 
 .. zeek:id:: Supervisor::node
-   :source-code: base/frameworks/supervisor/main.zeek 37 40
+   :source-code: base/frameworks/supervisor/main.zeek 39 42
 
    :Type: :zeek:type:`function` () : :zeek:type:`Supervisor::NodeConfig`
 
@@ -344,7 +344,7 @@ Functions
             a supervised one.
 
 .. zeek:id:: Supervisor::restart
-   :source-code: base/frameworks/supervisor/main.zeek 22 25
+   :source-code: base/frameworks/supervisor/main.zeek 24 27
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
@@ -360,7 +360,7 @@ Functions
    :returns: true on success.
 
 .. zeek:id:: Supervisor::status
-   :source-code: base/frameworks/supervisor/main.zeek 7 10
+   :source-code: base/frameworks/supervisor/main.zeek 9 12
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`Supervisor::Status`
 

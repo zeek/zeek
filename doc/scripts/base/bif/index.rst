@@ -129,12 +129,12 @@ Package: base/bif
 
    Functions to interface with broker's distributed data store.
 
+:doc:`/scripts/base/bif/cluster.bif.zeek`
+
+
 :doc:`/scripts/base/bif/input.bif.zeek`
 
    Internal functions and types used by the input framework.
-
-:doc:`/scripts/base/bif/cluster.bif.zeek`
-
 
 :doc:`/scripts/base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek`
 

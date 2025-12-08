@@ -14,7 +14,7 @@ as cluster backend, add the following snippet to ``local.zeek``:
 
 .. code-block:: zeek
 
-   @load frameworks/cluster/backend/zeromq/connect
+   @load frameworks/cluster/backend/zeromq
 
 
 Note that the function :zeek:see:`Broker::publish` will be non-functional

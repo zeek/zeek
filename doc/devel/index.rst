@@ -22,5 +22,6 @@ within the Zeek source tree `here <doc_repo_>`_.
    websocket-api
    contributors
    maintainers
+   cluster/architectures
    cluster/backend/zeromq
    conn

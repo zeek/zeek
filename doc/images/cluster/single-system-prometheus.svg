@@ -1,0 +1,291 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1144" height="544" class="svgbob">
+  <style>.svgbob line, .svgbob path, .svgbob circle, .svgbob rect, .svgbob polygon {
+  stroke: black;
+  stroke-width: 2;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+}
+
+.svgbob text {
+  white-space: pre;
+  fill: black;
+  font-family: Iosevka Fixed, monospace;
+  font-size: 14px;
+}
+
+.svgbob rect.backdrop {
+  stroke: none;
+  fill: white;
+}
+
+.svgbob .broken {
+  stroke-dasharray: 8;
+}
+
+.svgbob .filled {
+  fill: black;
+}
+
+.svgbob .bg_filled {
+  fill: white;
+  stroke-width: 1;
+}
+
+.svgbob .nofill {
+  fill: white;
+}
+
+.svgbob .end_marked_arrow {
+  marker-end: url(#arrow);
+}
+
+.svgbob .start_marked_arrow {
+  marker-start: url(#arrow);
+}
+
+.svgbob .end_marked_diamond {
+  marker-end: url(#diamond);
+}
+
+.svgbob .start_marked_diamond {
+  marker-start: url(#diamond);
+}
+
+.svgbob .end_marked_circle {
+  marker-end: url(#circle);
+}
+
+.svgbob .start_marked_circle {
+  marker-start: url(#circle);
+}
+
+.svgbob .end_marked_open_circle {
+  marker-end: url(#open_circle);
+}
+
+.svgbob .start_marked_open_circle {
+  marker-start: url(#open_circle);
+}
+
+.svgbob .end_marked_big_open_circle {
+  marker-end: url(#big_open_circle);
+}
+
+.svgbob .start_marked_big_open_circle {
+  marker-start: url(#big_open_circle);
+}
+
+</style>
+  <defs>
+    <marker id="arrow" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,0 0,4 4,2 0,0"></polygon>
+    </marker>
+    <marker id="diamond" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,2 2,0 4,2 2,4 0,2"></polygon>
+    </marker>
+    <marker id="circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="filled"></circle>
+    </marker>
+    <marker id="open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="bg_filled"></circle>
+    </marker>
+    <marker id="big_open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="3" class="bg_filled"></circle>
+    </marker>
+  </defs>
+  <rect class="backdrop" x="0" y="0" width="1144" height="544"></rect>
+  <rect x="4" y="200" width="1128" height="32" class="solid nofill" rx="0"></rect>
+  <text x="426" y="220" >topic</text>
+  <line x1="464" y1="216" x2="472" y2="216" class="solid"></line>
+  <text x="474" y="220" >based</text>
+  <text x="522" y="220" >publish</text>
+  <line x1="584" y1="208" x2="576" y2="224" class="solid"></line>
+  <text x="586" y="220" >subscribe</text>
+  <text x="666" y="220" >layer</text>
+  <rect x="4" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="18" y="316" >worker</text>
+  <line x1="64" y1="312" x2="72" y2="312" class="solid"></line>
+  <text x="74" y="316" >1</text>
+  <rect x="108" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="122" y="316" >worker</text>
+  <line x1="168" y1="312" x2="176" y2="312" class="solid"></line>
+  <text x="178" y="316" >2</text>
+  <rect x="212" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="226" y="316" >worker</text>
+  <line x1="272" y1="312" x2="280" y2="312" class="solid"></line>
+  <text x="282" y="316" >3</text>
+  <rect x="316" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="330" y="316" >worker</text>
+  <line x1="376" y1="312" x2="384" y2="312" class="solid"></line>
+  <text x="386" y="316" >4</text>
+  <rect x="420" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="434" y="316" >worker</text>
+  <line x1="480" y1="312" x2="488" y2="312" class="solid"></line>
+  <text x="490" y="316" >5</text>
+  <rect x="524" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="538" y="316" >worker</text>
+  <line x1="584" y1="312" x2="592" y2="312" class="solid"></line>
+  <text x="594" y="316" >6</text>
+  <rect x="628" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="642" y="316" >worker</text>
+  <line x1="688" y1="312" x2="696" y2="312" class="solid"></line>
+  <text x="698" y="316" >7</text>
+  <rect x="732" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="746" y="316" >worker</text>
+  <line x1="792" y1="312" x2="800" y2="312" class="solid"></line>
+  <text x="802" y="316" >8</text>
+  <rect x="836" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="850" y="316" >proxy</text>
+  <line x1="888" y1="312" x2="896" y2="312" class="solid"></line>
+  <text x="898" y="316" >1</text>
+  <rect x="940" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="954" y="316" >logger</text>
+  <line x1="1000" y1="312" x2="1008" y2="312" class="solid"></line>
+  <text x="1010" y="316" >1</text>
+  <rect x="1044" y="296" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="1066" y="316" >manager</text>
+  <text x="306" y="28" >http</text>
+  <text x="346" y="28" >service</text>
+  <text x="410" y="28" >discovery</text>
+  <text x="490" y="28" >via</text>
+  <line x1="528" y1="16" x2="520" y2="32" class="solid"></line>
+  <text x="530" y="28" >services.json</text>
+  <text x="66" y="108" >prometheus</text>
+  <text x="154" y="108" >metrics</text>
+  <text x="218" y="108" >scraping</text>
+  <text x="290" y="108" >via</text>
+  <line x1="328" y1="96" x2="320" y2="112" class="solid"></line>
+  <text x="330" y="108" >metrics</text>
+  <line x1="28" y1="240" x2="28" y2="276" class="solid"></line>
+  <polygon points="24,276 32,276 28,288" class="filled"></polygon>
+  <polygon points="48,252 52,240 56,252" class="filled"></polygon>
+  <line x1="52" y1="252" x2="52" y2="276" class="solid"></line>
+  <polygon points="48,276 56,276 52,288" class="filled"></polygon>
+  <line x1="124" y1="240" x2="124" y2="276" class="solid"></line>
+  <polygon points="120,276 128,276 124,288" class="filled"></polygon>
+  <polygon points="152,252 156,240 160,252" class="filled"></polygon>
+  <line x1="156" y1="252" x2="156" y2="276" class="solid"></line>
+  <polygon points="152,276 160,276 156,288" class="filled"></polygon>
+  <line x1="228" y1="240" x2="228" y2="276" class="solid"></line>
+  <polygon points="224,276 232,276 228,288" class="filled"></polygon>
+  <polygon points="256,252 260,240 264,252" class="filled"></polygon>
+  <line x1="260" y1="252" x2="260" y2="276" class="solid"></line>
+  <polygon points="256,276 264,276 260,288" class="filled"></polygon>
+  <line x1="332" y1="240" x2="332" y2="276" class="solid"></line>
+  <polygon points="328,276 336,276 332,288" class="filled"></polygon>
+  <polygon points="360,252 364,240 368,252" class="filled"></polygon>
+  <line x1="364" y1="252" x2="364" y2="276" class="solid"></line>
+  <polygon points="360,276 368,276 364,288" class="filled"></polygon>
+  <line x1="436" y1="240" x2="436" y2="276" class="solid"></line>
+  <polygon points="432,276 440,276 436,288" class="filled"></polygon>
+  <polygon points="464,252 468,240 472,252" class="filled"></polygon>
+  <line x1="468" y1="252" x2="468" y2="276" class="solid"></line>
+  <polygon points="464,276 472,276 468,288" class="filled"></polygon>
+  <line x1="540" y1="240" x2="540" y2="276" class="solid"></line>
+  <polygon points="536,276 544,276 540,288" class="filled"></polygon>
+  <polygon points="568,252 572,240 576,252" class="filled"></polygon>
+  <line x1="572" y1="252" x2="572" y2="276" class="solid"></line>
+  <polygon points="568,276 576,276 572,288" class="filled"></polygon>
+  <line x1="644" y1="240" x2="644" y2="276" class="solid"></line>
+  <polygon points="640,276 648,276 644,288" class="filled"></polygon>
+  <polygon points="672,252 676,240 680,252" class="filled"></polygon>
+  <line x1="676" y1="252" x2="676" y2="276" class="solid"></line>
+  <polygon points="672,276 680,276 676,288" class="filled"></polygon>
+  <line x1="748" y1="240" x2="748" y2="276" class="solid"></line>
+  <polygon points="744,276 752,276 748,288" class="filled"></polygon>
+  <polygon points="776,252 780,240 784,252" class="filled"></polygon>
+  <line x1="780" y1="252" x2="780" y2="276" class="solid"></line>
+  <polygon points="776,276 784,276 780,288" class="filled"></polygon>
+  <line x1="852" y1="240" x2="852" y2="276" class="solid"></line>
+  <polygon points="848,276 856,276 852,288" class="filled"></polygon>
+  <polygon points="880,252 884,240 888,252" class="filled"></polygon>
+  <line x1="884" y1="252" x2="884" y2="276" class="solid"></line>
+  <polygon points="880,276 888,276 884,288" class="filled"></polygon>
+  <line x1="956" y1="240" x2="956" y2="276" class="solid"></line>
+  <polygon points="952,276 960,276 956,288" class="filled"></polygon>
+  <polygon points="984,252 988,240 992,252" class="filled"></polygon>
+  <line x1="988" y1="252" x2="988" y2="276" class="solid"></line>
+  <polygon points="984,276 992,276 988,288" class="filled"></polygon>
+  <line x1="1060" y1="240" x2="1060" y2="276" class="solid"></line>
+  <polygon points="1056,276 1064,276 1060,288" class="filled"></polygon>
+  <polygon points="1088,252 1092,240 1096,252" class="filled"></polygon>
+  <line x1="1092" y1="252" x2="1092" y2="276" class="solid"></line>
+  <polygon points="1088,276 1096,276 1092,288" class="filled"></polygon>
+  <line x1="1108" y1="240" x2="1108" y2="276" class="solid"></line>
+  <polygon points="1104,276 1112,276 1108,288" class="filled"></polygon>
+  <polygon points="48,348 52,336 56,348" class="filled"></polygon>
+  <polygon points="152,348 156,336 160,348" class="filled"></polygon>
+  <polygon points="256,348 260,336 264,348" class="filled"></polygon>
+  <polygon points="360,348 364,336 368,348" class="filled"></polygon>
+  <polygon points="464,348 468,336 472,348" class="filled"></polygon>
+  <polygon points="568,348 572,336 576,348" class="filled"></polygon>
+  <polygon points="672,348 676,336 680,348" class="filled"></polygon>
+  <polygon points="776,348 780,336 784,348" class="filled"></polygon>
+  <text x="402" y="508" >NIC</text>
+  <text x="826" y="508" >packet</text>
+  <text x="882" y="508" >acquisition</text>
+  <text x="978" y="508" >and</text>
+  <text x="1010" y="508" >flow</text>
+  <text x="1050" y="508" >balancing</text>
+  <text x="18" y="44" >prometheus</text>
+  <text x="970" y="444" >process</text>
+  <text x="1034" y="444" >supervision</text>
+  <g>
+    <line x1="4" y1="8" x2="108" y2="8" class="solid"></line>
+    <line x1="4" y1="8" x2="4" y2="72" class="solid"></line>
+    <line x1="108" y1="8" x2="108" y2="72" class="solid"></line>
+    <line x1="108" y1="40" x2="1108" y2="40" class="solid"></line>
+    <line x1="1108" y1="40" x2="1108" y2="192" class="solid"></line>
+    <line x1="4" y1="72" x2="108" y2="72" class="solid"></line>
+  </g>
+  <g>
+    <line x1="52" y1="80" x2="52" y2="120" class="solid"></line>
+    <line x1="52" y1="120" x2="540" y2="120" class="solid"></line>
+    <line x1="540" y1="120" x2="540" y2="192" class="solid"></line>
+  </g>
+  <g>
+    <line x1="28" y1="168" x2="1060" y2="168" class="solid"></line>
+    <line x1="28" y1="168" x2="28" y2="192" class="solid"></line>
+    <line x1="124" y1="168" x2="124" y2="192" class="solid"></line>
+    <line x1="228" y1="168" x2="228" y2="192" class="solid"></line>
+    <line x1="332" y1="168" x2="332" y2="192" class="solid"></line>
+    <line x1="436" y1="168" x2="436" y2="192" class="solid"></line>
+    <line x1="644" y1="168" x2="644" y2="192" class="solid"></line>
+    <line x1="748" y1="168" x2="748" y2="192" class="solid"></line>
+    <line x1="852" y1="168" x2="852" y2="192" class="solid"></line>
+    <line x1="956" y1="168" x2="956" y2="192" class="solid"></line>
+    <line x1="1060" y1="168" x2="1060" y2="192" class="solid"></line>
+  </g>
+  <g>
+    <line x1="52" y1="348" x2="52" y2="376" class="solid"></line>
+    <line x1="156" y1="348" x2="156" y2="376" class="solid"></line>
+    <line x1="260" y1="348" x2="260" y2="376" class="solid"></line>
+    <line x1="364" y1="348" x2="364" y2="376" class="solid"></line>
+    <line x1="468" y1="348" x2="468" y2="376" class="solid"></line>
+    <line x1="572" y1="348" x2="572" y2="376" class="solid"></line>
+    <line x1="676" y1="348" x2="676" y2="376" class="solid"></line>
+    <line x1="780" y1="348" x2="780" y2="376" class="solid"></line>
+    <line x1="52" y1="376" x2="780" y2="376" class="solid"></line>
+    <line x1="412" y1="376" x2="412" y2="480" class="solid"></line>
+  </g>
+  <g>
+    <line x1="4" y1="488" x2="1132" y2="488" class="solid"></line>
+    <line x1="4" y1="488" x2="4" y2="520" class="solid"></line>
+    <line x1="356" y1="488" x2="356" y2="520" class="solid"></line>
+    <line x1="468" y1="488" x2="468" y2="520" class="solid"></line>
+    <line x1="1132" y1="488" x2="1132" y2="520" class="solid"></line>
+    <line x1="4" y1="520" x2="1132" y2="520" class="solid"></line>
+  </g>
+  <g>
+    <line x1="4" y1="424" x2="400" y2="424" class="solid"></line>
+    <line x1="4" y1="424" x2="4" y2="456" class="solid"></line>
+    <line x1="4" y1="456" x2="400" y2="456" class="solid"></line>
+  </g>
+  <g>
+    <line x1="424" y1="424" x2="1132" y2="424" class="solid"></line>
+    <line x1="1132" y1="424" x2="1132" y2="456" class="solid"></line>
+    <line x1="424" y1="456" x2="1132" y2="456" class="solid"></line>
+  </g>
+</svg>

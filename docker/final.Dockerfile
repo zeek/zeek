@@ -42,3 +42,24 @@ RUN apt-get -q update \
 COPY --from=zeek-build /usr/local/zeek /usr/local/zeek
 ENV PATH="/usr/local/zeek/bin:${PATH}"
 ENV PYTHONPATH="/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"
+
+# OpenContainers annotation labels.
+# See https://github.com/opencontainers/image-spec/blob/main/annotations.md
+# for more details.
+ARG ZEEK_VERSION
+ARG GIT_COMMIT
+ARG CREATED_DATE
+LABEL org.opencontainers.image.created=$CREATED_DATE
+LABEL org.opencontainers.image.authors="info@zeek.org"
+LABEL org.opencontainers.image.url="https://zeek.org"
+LABEL org.opencontainers.image.documentation="https://docs.zeek.org"
+LABEL org.opencontainers.image.source="https://github.com/zeek/zeek"
+LABEL org.opencontainers.image.version=$ZEEK_VERSION
+LABEL org.opencontainers.image.revision=$GIT_COMMIT
+LABEL org.opencontainers.image.vendor="The Zeek Project"
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"
+#LABEL org.opencontainers.image.ref.name=
+LABEL org.opencontainers.image.title="Zeek"
+LABEL org.opencontainers.image.description="Zeek is a powerful network analysis framework that is much different from the typical IDS you may know."
+#LABEL org.opencontainers.image.base.digest=
+#LABEL org.opencontainers.image.base.name=

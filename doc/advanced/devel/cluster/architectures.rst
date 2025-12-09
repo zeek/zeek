@@ -5,7 +5,7 @@ Cluster Architectures
 Introduction
 ============
 
-Within Zeek, packet processing and :ref:`script execution <writing-scripts>` happen
+Within Zeek, packet processing and :ref:`script execution <basics>` happen
 serially within a single thread of execution.
 Concretely, after passing a single packet through session tracking and analyzers,
 Zeek drains its event queue, executing all queued events, before continuing with

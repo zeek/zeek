@@ -35,9 +35,9 @@ check-spicy-docs: spicy-tftp
 	@for REPO in $^; do (cd $$REPO && git pull && git reset HEAD --hard)>/dev/null; done
 	@
 	@echo Checking whether docs for Spicy integration are up-to-date
-	@./devel/spicy/autogen-spicy-docs spicy-tftp
+	@./advanced/devel/spicy/autogen-spicy-docs spicy-tftp
 	@
-	@git diff --quiet devel/spicy/autogen/ \
-		|| (echo "Spicy docs are not up-to-date, rerun './devel/spicy/autogen-spicy-docs'." && exit 1)
+	@git diff --quiet advanced/devel/spicy/autogen/ \
+		|| (echo "Spicy docs are not up-to-date, rerun './advanced/devel/spicy/autogen-spicy-docs'." && exit 1)
 
 .PHONY : all doc builddir clean html livehtml

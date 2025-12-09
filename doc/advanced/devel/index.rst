@@ -1,4 +1,3 @@
-
 .. _doc_repo:  https://github.com/zeek/zeek/tree/master/doc
 
 ================

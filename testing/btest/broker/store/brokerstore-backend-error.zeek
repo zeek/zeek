@@ -6,7 +6,7 @@
 # FreeBSD it's directed to the invoking shell's stderr. (The two messages
 # also differ in text.) Canonicalize by removing from "output" if present.
 # @TEST-EXEC: grep -v Aborted output >tmp && mv tmp output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "Remove in v9.1:" | $SCRIPTS/diff-remove-abspath' btest-diff output
 
 function foo(): Broker::BackendType
 	{

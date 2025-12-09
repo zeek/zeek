@@ -107,7 +107,9 @@ export {
 	global log_x509: event(rec: Info);
 }
 
+@pragma push ignore-deprecations
 global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
+@pragma pop
 
 redef record Files::Info += {
 	## Information about X509 certificates. This is used to keep

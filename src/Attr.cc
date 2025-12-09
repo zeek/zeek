@@ -465,6 +465,10 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
         } break;
 
         case ATTR_BACKEND: {
+            zeek::reporter->Deprecation(
+                "Remove in v9.1: Use explicit Cluster::publish() or the storage framework to distribute or persist "
+                "state.");
+
             if ( ! global_var || type->Tag() != TYPE_TABLE )
                 return AttrError("&backend only applicable to global sets/tables");
 
@@ -494,6 +498,10 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
         }
 
         case ATTR_BROKER_STORE: {
+            zeek::reporter->Deprecation(
+                "Remove in v9.1: Use explicit Cluster::publish() or the storage framework to distribute or persist "
+                "state.");
+
             if ( type->Tag() != TYPE_TABLE )
                 return AttrError("&broker_store only applicable to sets/tables");
 

@@ -2,7 +2,7 @@
 
 .. _jq_manual: https://jqlang.org/manual/
 
-.. _logs:
+.. _log-inspection:
 
 ######
  Logs

@@ -101,4 +101,4 @@ browse Zeek’s ``--help`` output for more information:
 
 There are other options for power-users which have their own
 documentation which you can find in the :doc:`grab bag
-</grab-bag/scripting/index>` section.
+</advanced/grab-bag/scripting/index>` section.

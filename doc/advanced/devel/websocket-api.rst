@@ -235,7 +235,7 @@ for this purpose is `websocat`_.
 Example Architecture
 --------------------
 
-.. figure:: ../images/websocket-api/one-api-many-zeek.svg
+.. figure:: /images/websocket-api/one-api-many-zeek.svg
    :width: 300
 
    Multiple Zeek instances and a single remote API
@@ -245,7 +245,7 @@ bridge for every Zeek cluster. This ensures that the depicted remote API
 does not need knowledge about an arbitrary number of Zeek clusters.
 
 
-.. figure:: ../images/websocket-api/one-api-many-zeek-ws-bridge.svg
+.. figure:: /images/websocket-api/one-api-many-zeek-ws-bridge.svg
    :width: 300
 
    Multiple Zeek instances and a single remote API with WebSocket bridges.

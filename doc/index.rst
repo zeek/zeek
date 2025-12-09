@@ -31,12 +31,9 @@ to connect with the community.
    logs/index
    frameworks/index
    customizations
-   troubleshooting
    script-reference/index
-   devel/index
-   components/index
+   advanced/index
    acknowledgements
-   grab-bag/index
 
 * :ref:`Index <genindex>`
 

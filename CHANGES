@@ -1,3 +1,19 @@
+8.1.0-dev.1065 | 2025-12-09 13:47:02 -0700
+
+  * Add new btest for IP anonymizer coverage (Tim Wojtulewicz, Corelight)
+
+  * Make the anonymizer bif docs more descriptive/helpful (Tim Wojtulewicz, Corelight)
+
+  * Member variable cleanup in AnonymizeIPAddr_A50 (Tim Wojtulewicz, Corelight)
+
+  * Lazily initialize the keys for HMAC-MD5 (Tim Wojtulewicz, Corelight)
+
+  * Deprecate MD5 IP anonymizers, add SHA256 versions (Tim Wojtulewicz, Corelight)
+
+  * Add SHA256 hmac methods, BIF, keys, etc (Tim Wojtulewicz, Corelight)
+
+  * Remove superfluous internal_md5() utility method (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1057 | 2025-12-09 20:32:18 +0100
 
   * Attr: Improve &backend/&broker_store deprecation warning (Arne Welzel, Corelight)

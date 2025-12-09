@@ -236,7 +236,7 @@ public:
         for ( size_t i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
             result[i] ^= key[i];
 
-        detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);
+        detail::calculate_digest(detail::Hash_MD5, result, ZEEK_MD5_DIGEST_LENGTH, result);
     }
 
     MD5Val();
@@ -321,6 +321,16 @@ public:
     template<class T>
     static void digest(const T& vlist, u_char result[ZEEK_SHA256_DIGEST_LENGTH]) {
         digest_all(detail::Hash_SHA256, vlist, result);
+    }
+
+    template<class T>
+    static void hmac(const T& vlist, u_char key[ZEEK_SHA256_DIGEST_LENGTH], u_char result[ZEEK_SHA256_DIGEST_LENGTH]) {
+        digest(vlist, result);
+
+        for ( size_t i = 0; i < ZEEK_SHA256_DIGEST_LENGTH; ++i )
+            result[i] ^= key[i];
+
+        detail::calculate_digest(detail::Hash_SHA256, result, ZEEK_SHA256_DIGEST_LENGTH, result);
     }
 
     SHA256Val();

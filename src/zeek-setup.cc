@@ -812,8 +812,9 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // implementation, instantiate it.
         const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
         const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
-        zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
-        if ( broker_enum == cluster_backend_val->AsEnum() ) {
+        zeek_int_t cluster_backend_broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
+        zeek_int_t cluster_backend_none_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_NONE");
+        if ( cluster_backend_broker_enum == cluster_backend_val->AsEnum() ) {
             cluster::backend = broker_mgr;
         }
         else {
@@ -851,8 +852,16 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
         broker_mgr->InitPostScript();
-        if ( cluster::backend != broker_mgr )
+        if ( cluster::backend != broker_mgr ) {
             cluster::backend->InitPostScript();
+
+            if ( cluster_backend_none_enum != cluster_backend_val->AsEnum() ) {
+                // We're running with a non-Broker and non-None backend,
+                // check for all global tables with &backend or &broker_store
+                // and report them as non-functional.
+                cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
+            }
+        }
 
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();

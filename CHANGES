@@ -1,3 +1,12 @@
+8.1.0-dev.1057 | 2025-12-09 20:32:18 +0100
+
+  * Attr: Improve &backend/&broker_store deprecation warning (Arne Welzel, Corelight)
+
+  * cluster/non-Broker: Report errors for &backend and &broker_store (Arne Welzel, Corelight)
+
+    Do this a bit ad-hoc at initialization time. It won't be around
+    forever anyhow.
+
 8.1.0-dev.1054 | 2025-12-09 11:38:14 +0100
 
   * Attr: Deprecate &backend and &broker_store attributes (Arne Welzel, Corelight)

@@ -35,6 +35,10 @@ Breaking Changes
   If you used Zeekctl on a single physical system or virtual machine previously,
   this should all be transparent to you.
 
+- The Broker-specific ``&backend`` and ``&broker_store`` attributes will result
+  in startup errors when a non-Broker cluster backend is selected. See the entry
+  about their deprecation below for more details.
+
 - Python 3.10 is now required for Zeek and all of its associated subprojects.
 
 - The ``&optional`` script attribute will now error when applied to anything that's

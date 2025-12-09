@@ -1,4 +1,5 @@
 # @TEST-DOC: Test the various IP anonymizer methods
+#
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr

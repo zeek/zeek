@@ -1,25 +1,29 @@
+.. _jq_home: https://jqlang.org/
+
+.. _jq_manual: https://jqlang.org/manual/
+
 .. _logs:
 
 ######
  Logs
 ######
 
-At this point, Zeek should be fully working on the docker image.
-Now, we will see the power of Zeek: creating logs.
+At this point, Zeek should be fully working on the docker image. Now, we
+will see the power of Zeek: creating logs.
 
 In this section, we will go over:
 
-1. How to interact with Zeek’s logs and access the fields you want
-2. A few of the common logs you will work with and how to pivot amongst
+#. How to interact with Zeek's logs and access the fields you want
+#. A few of the common logs you will work with and how to pivot amongst
    them
-3. How real systems ingest, process, and store Zeek logs
+#. How real systems ingest, process, and store Zeek logs
 
 ******************
  Zeek Log Formats
 ******************
 
-Zeek’s default log format is tab-separated values, or TSV. TSV logs are
-lightweight, efficient, and easy to parse. But, they’re not as suitable
+Zeek's default log format is tab-separated values, or TSV. TSV logs are
+lightweight, efficient, and easy to parse. But, they're not as suitable
 for human consumption. Thankfully, Zeek comes with a tool called
 ``zeek-cut`` in order to examine these logs.
 
@@ -74,8 +78,24 @@ Now, we can find the ``weird.log``:
 
 Notice how the ``uid`` field in ``weird.log`` is the same as one of the
 entries in ``conn.log``. This indicates that those entries are from the
+
 same connection. You can "pivot" between these two logs, or any other
 logs, using ``uid`` fields!
+
+The ``conn.log`` entries we saw before had some timestamps, but they
+were in epoch time. We can use ``-d`` in order to convert those to a
+human readable format:
+
+.. code:: console
+
+   # cat conn.log | zeek-cut -m ts
+   ts
+   1747147647.668533
+   1747147654.275660
+   # cat conn.log | zeek-cut -m -d ts
+   ts
+   2025-05-13T14:47:27+0000
+   2025-05-13T14:47:34+0000
 
 How do we know which fields to look for? As seen before, the TSV logs
 have field names as headers near the top of the log. But, these can
@@ -85,16 +105,16 @@ often be hard to parse as-is. There is a better way.
  Log Schemas
 *************
 
-The exact set and shape of Zeek’s logs is highly site-dependent. While
+The exact set and shape of Zeek's logs is highly site-dependent. While
 every Zeek version ships with a set of logs enabled by default, it also
-includes optional ones that you’re welcome to enable. (Feel free to
-peruse the full set.) In addition, many of Zeek’s add-on packages
+includes optional ones that you're welcome to enable. (Feel free to
+peruse the full set.) In addition, many of Zeek's add-on packages
 introduce logs of their own, or enrich existing ones with additional
-metadata. And finally, Zeek’s logging framework lets you apply your own
+metadata. And finally, Zeek's logging framework lets you apply your own
 log customizations with a bit of scripting.
 
-Zeek’s logschema package helps you understand your Zeek logs. It
-produces log schemas that detail your installation’s set of logs and
+Zeek's logschema package helps you understand your Zeek logs. It
+produces log schemas that detail your installation's set of logs and
 their fields. For each field, the schemas provide rich metadata
 including name, type, and docstrings. They can also explain the source
 of a field, such as the specific script or the name of the Zeek package
@@ -120,7 +140,7 @@ following:
    # zeek logschema/export/jsonschema packages
 
 Your local directory will now contain a JSON Schema description for each
-of your installation’s logs. If we want to find more about Zeek’s DNS
+of your installation's logs. If we want to find more about Zeek's DNS
 log, we can do the following:
 
 .. code:: console
@@ -176,6 +196,9 @@ Then, we can find these in our DNS logs and examine the logs via
    uid     answers
    Cr3Q4KSOgWL8IEAu2       NAPTR 100 100 s SIPS+D2T _sips._tcp.fp-de-carrier-vodafone.rcs.telephony.goog
 
+From the log schemas, we can tell what fields a particular log has, then
+find the values we need within those logs.
+
 ***********
  JSON logs
 ***********
@@ -188,22 +211,20 @@ you can replicate:
 .. code:: console
 
    # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
-   # cat conn.log | jq
-   {
-     "ts": 1747147647.668533,
-     "uid": "Cj7hJy2lPYsAI0BxEg",
-     ...
-   }
+   # jq . -c conn.log
+   {"ts":1747147647.668533,"uid":"ChtMU84Gm7vUkJ5XI7",...}
+   {"ts":1747147654.27566,"uid":"CIV7B237oz89VBWTF4",...}
 
 .. note::
-   You can do the same in a cluster by simply modifying your site's
+
+   You can do the same in a cluster by modifying your site's
    ``local.zeek``:
 
    .. code:: console
 
       # vim $PREFIX/share/zeek/site/local.zeek
 
-   Then simply add a line (anywhere!) that loads the
+   Then add a line (anywhere!) that loads the
    ``policy/tuning/json-logs`` script:
 
    .. code:: zeek
@@ -212,21 +233,33 @@ you can replicate:
 
    Now, any logs that the cluster creates will be in JSON.
 
+We can use ``jq`` for much more. You can find more about ``jq`` on the
+`JQ homepage <jq_home_>`_. Here we use ``jq`` to print just the
+originator and responder host addresses:
+
+.. code:: console
+
+   # jq -c '[."id.orig_h", ."id.resp_h"]' conn.log
+   ["192.168.1.8","192.0.78.212"]
+   ["192.168.1.8","192.0.78.150"]
+
+For more information, look at the `jq manual <jq_manual_>`_.
+
 JSON logs are used for a few purposes. First, they may be a better start
 in a data-pipeline: JSON is a far more ubiquitous format, so integrating
 with other tools is often far easier. Second, JSON logs contain the log
 column as a key, making it far easier to understand the logs at a
 glance.
 
-However, JSON logs may take up more space. Including the keys for
-every value is redundant and wastes space. Since Zeek's ``conn.log``
-can get very large, this can make the logs take up far more space than
-they otherwise would.
+However, JSON logs may take up more space. Including the keys for every
+value is redundant and wastes space. Since Zeek's ``conn.log`` can get
+very large, this can make the logs take up far more space than they
+otherwise would.
 
-It's up to the user whether TSV logs or JSON logs should be used.
-If neither work, you may also create a custom writer. You may find
-more log writers in the :ref:`Log Writers <log-writers>` section in
-:ref:`Popular Customizations <popular-customizations>`.
+It's up to the user whether TSV logs or JSON logs should be used. If
+neither work, you may also create a custom writer. You may find more log
+writers in the :ref:`Log Writers <log-writers>` section in :ref:`Popular
+Customizations <popular-customizations>`.
 
 .. _zeekcontrol_logs:
 
@@ -237,9 +270,10 @@ more log writers in the :ref:`Log Writers <log-writers>` section in
 This section analyzed logs created from Zeek invoked on capture files.
 However, in a production environment, you will most likely use a cluster
 and analyze the compressed logs from the cluster. To mimic this, you may
-also use ``tcpreplay`` in order to replay traffic onto your cluster, then
-analyze the logs in a similar way. In the docker container, replay the
-quickstart’s pcap in between starting and stopping the cluster, like so:
+also use ``tcpreplay`` in order to replay traffic onto your cluster,
+then analyze the logs in a similar way. In the docker container, replay
+the quickstart's pcap in between starting and stopping the cluster, like
+so:
 
 .. code:: console
 
@@ -269,9 +303,10 @@ quickstart’s pcap in between starting and stopping the cluster, like so:
    # zeekctl stop
    stopping zeek ...
 
+
 When running a Zeek cluster with ``zeekctl``, logs are stored within the
-``logs`` directory relative to Zeek’s installation directory. Thus, when
-running in the tutorial’s Docker container, the logs will get stored in
+``logs`` directory relative to Zeek's installation directory. Thus, when
+running in the tutorial's Docker container, the logs will get stored in
 ``/usr/local/zeek/logs``. The current set of aggregated logs are in
 ``logs/current``. Archived logs are stored in a directory corresponding
 with the date, such as ``logs/2025-08-20``. Log files also get renamed
@@ -284,24 +319,18 @@ to include a timestamp, so ``conn.log`` might become
    variable. This has been setup to point to ``/usr/local/zeek`` by the
    setup script.
 
-These are all gzip-compressed logs, as they end with the ``.gz`` extension.
-You can use a tool such as ``zcat`` to examine these. We can look at
-``conn.log``'s contents from the command line like so:
+These are all gzip-compressed logs, as they end with the ``.gz``
+extension. You can use a tool such as ``zcat`` to examine these. We can
+look at ``conn.log``'s contents from the command line like so:
 
 .. code:: console
 
-   # zcat < $PREFIX/logs/2025-10-30/conn.21\:05\:03-21\:05\:10.log.gz
-   #separator \x09
-   #set_separator  ,
-   #empty_field    (empty)
-   #unset_field    -
-   #path   conn
-   #open   2025-10-30-21-05-03
-   #fields ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto       service duration        orig_bytes      resp_bytes      conn_state      local_orig local_resp       missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes       tunnel_parents  ip_proto
-   #types  time    string  addr    port    addr    port    enum    string  interval        count       count   string  bool    bool    count   string  count   count   count   count   set[string] count
-   1761858297.903499       CRQaDt4ZfFmKyUINR4      192.168.1.8     52917   192.0.78.212    80 tcp      http    0.098687        71      377     SF      T       F       0       ShADTadtFf 12       670     8       1098    -       6
-   1761858304.511300       Cq6HJ1lEBlYcXcZB        192.168.1.8     52918   192.0.78.150    80 tcp      http    0.100184        73      377     SF      T       F       0       ShADTadtFf 12       674     8       1098    -       6
-   #close  2025-10-30-21-05-10
+   # zcat $PREFIX/logs/2025-12-11/conn.21\:55\:57-21\:56\:05.log.gz | zeek-cut -m
+   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       proto   service  duration        orig_bytes      resp_bytes      conn_state      local_orig      local_resp       missed_bytes    history orig_pkts       orig_ip_bytes   resp_pkts       resp_ip_bytes    tunnel_parents  ip_proto
+   1765490152.990320       C8jSq83hCChihltDYd      192.168.1.8     52917   192.0.78.212    80       tcp     http    0.098612        71      377     SF      T       F       0       ShADTadtFf       12      670     8       1098    -       6
+   1765490152.990319       CLyR2u2eyJp1MRMVp4      192.168.1.8     52917   192.0.78.212    80       tcp     http    0.098612        71      377     SF      T       F       0       ShADTadtFf       12      670     8       1098    -       6
+   1765490159.598223       CzA1sF3CaHAqo6yyO3      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100184        73      377     SF      T       F       0       ShADTadtFf       12      674     8       1098    -       6
+   1765490159.598222       CfdV2t3GpevvRneXl7      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100184        73      377     SF      T       F       0       ShADTadtFf       12      674     8       1098    -       6
 
 Then, you may pipe these into ``zeek-cut`` just as before.
 
@@ -309,16 +338,11 @@ Then, you may pipe these into ``zeek-cut`` just as before.
  Zeek's Core Logs
 ******************
 
-Zeek ships with a number of logs by default – no configuration
-necessary. In this section, we will look at a few of these logs, their
-important fields, and how to pivot amongst them in order to understand
-your network traffic. For more detail about the majority of Zeek’s
-included logs, go to the :doc:`logs section </logs/index>`.
-
-Zeek’s most important log is called ``conn.log``. This captures “layer
-3” and “layer 4” elements, such as who is talking to whom, for how long,
-and with what protocol. In order to learn more about what ``conn.log``
-offers, let’s use the logschema package again:
+Zeek ships with a number of logs by default-–-no configuration
+necessary. The most important log is called ``conn.log``. This captures
+“layer 3” and “layer 4” elements, such as who is talking to whom, for
+how long, and with what protocol. In order to learn more about what
+``conn.log`` offers, let's use the logschema package again:
 
 .. code:: console
 
@@ -361,7 +385,7 @@ offers, let’s use the logschema package again:
            "record_type": "Conn::Info",
            "script": "base/protocols/conn/main.zeek"
          }
-       },      
+       },
        ...
      },
      "required": [
@@ -375,19 +399,42 @@ offers, let’s use the logschema package again:
      ]
    }
 
-You can find all fields within the schema’s ``"properties"`` – since we
-are interested in the generated HTTP traffic from before, we mainly care
-about two fields: ``uid`` and ``service``. UID will help “pivot” from
-``conn.log`` into ``http.log`` later, while ``service`` will help determine
-which protocols were confirmed for that connection. We can find those
-fields with the following:
+You can find all fields within the schema's ``"properties"``. Here we
+also show the ``service`` field, which is useful for pivoting between
+logs. With that field, we can see which protocols Zeek confirmed. Then,
+we can check that protocol's logs.
+
+For example, let's look at the logs from the quickstart one more time.
+Generate the traffic as TSV logs, first:
 
 .. code:: console
 
-   # zcat $PREFIX/logs/2025-10-31/conn.13\:48\:27-13\:48\:48.log.gz | zeek-cut uid service
-   CYu35U3lzHj4keTQs4      http
-   CeOHyV3P5Vs7Yyl6Qd      http
+   # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
 
-.. note::
+You can see that both ``conn.log`` entries include ``http`` in the
+service field:
 
-   This section is not complete. Please come back later.
+.. code:: console
+
+   # cat conn.log | zeek-cut -m uid service
+   uid     service
+   C8i2Yl19BvJGppTPwc      http
+   Cztl1P36g6jG9s0wTb      http
+
+All of the (two) connections were HTTP. Given this, we can check the
+HTTP log:
+
+.. code:: console
+
+   # cat http.log | zeek-cut -m uid
+   uid
+   C8i2Yl19BvJGppTPwc
+   Cztl1P36g6jG9s0wTb
+
+Those are the two UIDs we saw before. This pivoting is exactly how you
+can correlate an HTTP connection with its ``conn.log`` entries,
+``weird.log`` weirds, and more.
+
+However, there are simply too many core logs, and too many ways to use
+them, to cover here. For more information, see the :doc:`logs section
+</logs/index>`.

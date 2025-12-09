@@ -3,6 +3,6 @@
 warning in <...>/connect.zeek, line 5: deprecated script loaded from <...>/test-all-policy.zeek:23 "Remove in v9.1: The ZeroMQ connect script has been deprecated. Load the policy<...>/zeromq package directly instead."
 warning in <...>/connect.zeek, line 5: deprecated script loaded from <...>/test-all-policy.zeek:23 "Remove in v9.1: The ZeroMQ connect script has been deprecated. Load the policy<...>/zeromq package directly instead."
 warning in <...>/connect.zeek, line 5: deprecated script loaded from command line arguments "Remove in v9.1: The ZeroMQ connect script has been deprecated. Load the policy<...>/zeromq package directly instead."
-warning in <...>/main.zeek, line 186: Remove in v9.1: Use explicit Cluster::publish() or the storage framework to distribute or persist state.
-warning in <...>/main.zeek, line 186: Remove in v9.1: Use explicit Cluster::publish() or the storage framework to distribute or persist state.
+warning in <...>/main.zeek, line 186: Remove in v9.1: The Broker-specific &backend attribute on tables is deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.
+warning in <...>/main.zeek, line 186: Remove in v9.1: The Broker-specific &backend attribute on tables is deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.
 warning in <...>/setup-connections.zeek, line 1: deprecated script loaded from command line arguments "Remove in v9.1: Load base<...>/setup-subscriptions instead"

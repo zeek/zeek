@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "Remove in v9.1:" | $SCRIPTS/diff-remove-abspath' btest-diff .stderr
 
 module TestModule;
 

@@ -256,6 +256,22 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``&backend`` and ``&broker_store`` attributes for script-layer tables have
+  been deprecated. These are only functional with the Broker cluster backend and
+  their semantics and guarantees considered too loose. There is ongoing discussions
+  and experiments how to provide state propagation and synchronization across
+  cluster processes. Explicit topic-based state propagation using ``Cluster::publish()``,
+  or switching to the storage framework for persistence are available today.
+
+  If you've used ``&backend`` and ``&broker_store`` in your scripts and find
+  it hard or inconvenient to replace them, please reach out with your use-cases,
+  on GitHub or Slack. We're happy to support.
+
+  Some references to GitHub discussion and prototypical ideas:
+
+	https://github.com/zeek/zeek/discussions/5020
+	https://github.com/zeek/zeek/pull/5040
+
 - In Zeek 9.1, returning a value from a hook will become an error. Return values
   from a hooks were previously silently discarded. This behavior was found
   surprising in relation with the ``break`` statement available in hooks.

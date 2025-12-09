@@ -10,7 +10,9 @@
 #include <span>
 #include <string_view>
 #include <vector>
+#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
 #include <zmq.hpp>
+#endif
 
 #include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
@@ -262,6 +264,7 @@ private:
      */
     void UpdateMetrics();
 
+    #ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
     /**
      * Callback function that queries ZeroMQ proxy statistics.
      * Sends a "STATISTICS" request to the proxy and returns the response value.
@@ -275,6 +278,7 @@ private:
      * @return The statistics value, or 0.0 on error.
      */
     double RecvProxyStatistics();
+    #endif
 
     bool in_sync_hook = false;
 
@@ -304,6 +308,7 @@ private:
     uint64_t collector_request_idx = 0;
     uint64_t collector_response_idx = 0;
 
+    #ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
     // ZeroMQ socket for querying statistics from zmq_proxy.
     // Uses a separate context so it can be safely accessed from the main thread.
     zmq::context_t main_ctx;
@@ -312,6 +317,7 @@ private:
     CounterPtr proxy_query_stats_success_counter;
     CounterPtr proxy_recv_stats_success_counter;
     double zeromq_proxy_stats[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    #endif
 };
 
 } // namespace zeek::telemetry

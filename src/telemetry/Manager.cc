@@ -141,6 +141,7 @@ void Manager::InitPostScript() {
                               []() { return static_cast<double>(get_stats()->fds); });
 #endif
 
+#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
     std::string connect_req_endpoint;
     int ipv6 = 0;
 
@@ -203,6 +204,7 @@ void Manager::InitPostScript() {
                                              "Number of bytes sent by the backend socket", "1",
                                              [this]() -> double { return zeromq_proxy_stats[7]; });
     }
+#endif
 
     // These two metrics get set at startup and are never modified after.
     process_start_time = GaugeInstance("process", "start_time", {}, "Process start time", "seconds");
@@ -222,6 +224,14 @@ void Manager::Terminate() {
     // data. This keeps us from getting a request on another thread while
     // we're shutting down.
     prometheus_exposer.reset();
+
+#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
+    // Clean up ZeroMQ socket and context
+    if ( req_socket_connected ) {
+        req_socket.close();
+        req_socket_connected = false;
+    }
+#endif
 
     iosource_mgr->UnregisterFd(collector_flare.FD(), this);
 }
@@ -365,6 +375,7 @@ void Manager::UpdateMetrics() {
         f->RunCallbacks();
 }
 
+#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
 double Manager::QueryProxyStatistics() {
     if ( ! req_socket_connected ) {
         return 0.0;
@@ -437,6 +448,7 @@ double Manager::RecvProxyStatistics() {
     }
     return 0.0;
 }
+#endif
 
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");

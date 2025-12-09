@@ -31,7 +31,6 @@ to connect with the community.
    about
    tutorial/index
    monitoring
-   log-formats
    logs/index
    frameworks/index
    customizations

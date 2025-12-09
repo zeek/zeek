@@ -101,8 +101,7 @@ classified as a "weird" by Zeek.
 
 More information on the various logs and what they report can be found in the
 :doc:`logs/index` section. More information on working with logs can be found in
-the :doc:`log-formats` section.
-
+the :ref:`log-inspection` section of the tutorial.
 
 .. note::
 

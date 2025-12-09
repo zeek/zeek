@@ -829,6 +829,7 @@ if (ZEEK_SANITIZERS)
     # https://cmake.org/pipermail/cmake/2014-August/058268.html
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
+    set(ZEEK_SANITIZER_CXX_FLAGS ${_sanitizer_flags})
 endif ()
 
 # ##############################################################################
@@ -995,6 +996,8 @@ else ()
 endif ()
 
 if (NOT DISABLE_SPICY)
+    set(HILTI_SKIP_EXPENSIVE_DEBUG_CHECKS ON CACHE INTERNAL "" FORCE)
+
     if (SPICY_ROOT_DIR)
         find_package(Spicy REQUIRED) # will set HAVE_SPICY
         spicy_require_version("1.8.0")

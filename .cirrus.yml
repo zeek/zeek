@@ -725,13 +725,16 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
 
   sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
 
-  prepare_builder_script:
-    - set -x
-    - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
-    - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
-    - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+  prepare_builder_script: |
+    set -x
+    mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
+    cd docker && docker build \
+                     --cache-from zeek-builder:latest \
+                     --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                     -t zeek-builder:latest -f builder.Dockerfile .
+    docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
   build_zeek_script: |
     set -x
     docker run --name zeek-builder-container \
@@ -744,12 +747,21 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
 
     # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
     docker commit zeek-builder-container zeek-build
-  build_final_script:
-    - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
-    - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
-  test_script:
-    - docker tag ${IMAGE_TAG} zeek:latest
-    - make -C docker/btest
+  build_final_script: |
+    set -x
+    ZEEK_VERSION=$(cat VERSION)
+    CREATED_DATE=$(date -Iseconds)
+    cd docker && docker build \
+                     --cache-from ${IMAGE_TAG} \
+                     --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                     --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                     --build-arg CREATED_DATE=${CREATED_DATE} \
+                     -t ${IMAGE_TAG} -f final.Dockerfile .
+    docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
+  test_script: |
+    set -x
+    docker tag ${IMAGE_TAG} zeek:latest
+    make -C docker/btest
 
 arm64_container_image_docker_builder:
   env:

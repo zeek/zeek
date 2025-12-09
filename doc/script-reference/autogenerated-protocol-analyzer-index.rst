@@ -9348,7 +9348,7 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`count`
 
    Converts a NetBIOS name type to its corresponding numeric value.
-   See https://en.wikipedia.org/wiki/NetBIOS#NetBIOS_Suffixes.
+   See https://en.wikipedia.org/wiki/NetBIOS#NetBIOS_suffixes.
    
 
    :param name: An encoded NetBIOS name.

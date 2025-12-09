@@ -1,3 +1,27 @@
+8.1.0-dev.1054 | 2025-12-09 11:38:14 +0100
+
+  * Attr: Deprecate &backend and &broker_store attributes (Arne Welzel, Corelight)
+
+    These use Broker specific underpinnings and can be replaced by explicit
+    state propagation via Cluster::publish() or using storage framework
+    functionality, depending on the use case they were leveraged in.
+
+8.1.0-dev.1052 | 2025-12-09 10:41:25 +0100
+
+  * Spicy: Disable expensive debug checks. (Robin Sommer, Corelight)
+
+8.1.0-dev.1049 | 2025-12-08 18:53:12 +0000
+
+  * Add OpenContainers labels to the docker images (Tim Wojtulewicz, Corelight)
+
+  * CI: Format scripts in docker_build_template the same (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1046 | 2025-12-08 11:03:16 -0700
+
+  * Pass sanitizer flags to external plugin builds (Tim Wojtulewicz, Corelight)
+
+  * Fix broken link in documentation (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1043 | 2025-12-08 12:51:29 +0100
 
   * Bump zeekjs to v0.21.0 (Arne Welzel, Corelight)

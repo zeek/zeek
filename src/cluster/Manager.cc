@@ -2,12 +2,49 @@
 
 #include "zeek/cluster/Manager.h"
 
+#include "zeek/Attr.h"
+#include "zeek/Desc.h"
 #include "zeek/Func.h"
+#include "zeek/Scope.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/websocket/WebSocket.h"
 #include "zeek/util.h"
 
 using namespace zeek::cluster;
+
+void detail::report_non_functional_broker_tables(const zeek::EnumValPtr& cluster_backend_val) {
+    auto none_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_NONE");
+    auto broker_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
+
+    assert(cluster_backend_val != none_backend_val);
+    assert(cluster_backend_val != broker_backend_val);
+
+    const auto& globals = zeek::detail::global_scope()->Vars();
+    std::string x509_known_log_certs_with_broker = "X509::known_log_certs_with_broker";
+
+    for ( const auto& [name, id] : globals ) {
+        if ( ! id->HasVal() )
+            continue;
+
+        // Remove in v9.1: This one is only used when a deprecated option is
+        // set that will only work with Broker anyhow. Not overthinking this.
+        if ( id->Name() == x509_known_log_certs_with_broker )
+            continue;
+
+        const char* what = nullptr;
+
+        if ( id->GetAttr(zeek::detail::ATTR_BACKEND) )
+            what = "&backend";
+        else if ( id->GetAttr(zeek::detail::ATTR_BROKER_STORE) )
+            what = "&broker_store";
+
+        if ( ! what )
+            continue;
+
+        id->Error(util::fmt("table %s uses Broker-specific attribute %s, but non-Broker backend %s selected",
+                            id->Name(), what, obj_desc_short(cluster_backend_val).c_str()));
+    }
+}
 
 Manager::Manager()
     : backends(plugin::ComponentManager<BackendComponent>("Cluster", "BackendTag")),

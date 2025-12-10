@@ -1,3 +1,16 @@
+8.0.4-6 | 2026-01-05 12:16:21 -0700
+
+  * Fix ssl certificate logging when encountering protocol errors (Johanna Amann, Corelight)
+
+    This change fixes a problem with ssl certificate logging when a protocol
+    error is encountered after certificates are sent over a SSL/TLS
+    connection, but before the connection is logged. Currently, in these
+    cases, `ssl.log` will not contain the fingerprints of the certifiates
+    contained in the connection. This is due to the necessary hook not being
+    called. See GH-5078
+
+    (cherry picked from commit f1e788cb4a4178f033fff0bd0a02519210a9b895)
+
 8.0.4-5 | 2026-01-05 12:15:27 -0700
 
   * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)

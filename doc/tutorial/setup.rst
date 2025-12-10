@@ -4,22 +4,22 @@
  Setup
 #######
 
-This tutorial will use Zeek's latest docker image: ``zeek/zeek``. You
-can see :doc:`installing Zeek </install>` for how to retrieve that
-image. Then, execute bash inside of it:
+This tutorial will use Zeek's latest container image: ``zeek/zeek`` on
+Docker Hub. You can see :doc:`installing Zeek </install>` for how to
+retrieve that image. Then, execute bash inside of it:
+
+.. code:: console
+
+   $ docker run --name "zeek-tutorial" -it zeek/zeek
 
 .. note::
 
    Throughout this tutorial, we will use console prompts to show
    what you execute. This first command is called from the host to
-   get into the docker container. Almost all of the remaining console
-   prompts are meant to be executed within the docker container as root.
-   The root prompt (within the container) is ``#``, whereas the user
-   prompt (outside of the container) is ``$``.
-
-.. code:: console
-
-   $ docker run --name "zeek-tutorial" -it zeek/zeek
+   enter the container. Almost all of the remaining console
+   prompts are meant to be executed within the container as root.
+   In this tutorial, the root prompt (within the container) is ``#``,
+   whereas the user prompt (outside of the container) is ``$``.
 
 Next, clone the ``zeek-training`` git repository into ``/opt``:
 

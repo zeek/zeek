@@ -8,8 +8,8 @@
  Logs
 ######
 
-At this point, Zeek should be fully working on the docker image. Now, we
-will see the power of Zeek: creating logs.
+At this point, Zeek should be fully working within the tutorial's container.
+Now, we will see the power of Zeek: creating logs.
 
 In this section, we will go over:
 
@@ -271,7 +271,7 @@ This section analyzed logs created from Zeek invoked on capture files.
 However, in a production environment, you will most likely use a cluster
 and analyze the compressed logs from the cluster. To mimic this, you may
 also use ``tcpreplay`` in order to replay traffic onto your cluster,
-then analyze the logs in a similar way. In the docker container, replay
+then analyze the logs in a similar way. In the tutorial's container, replay
 the quickstart's pcap in between starting and stopping the cluster, like
 so:
 
@@ -306,7 +306,7 @@ so:
 
 When running a Zeek cluster with ``zeekctl``, logs are stored within the
 ``logs`` directory relative to Zeek's installation directory. Thus, when
-running in the tutorial's Docker container, the logs will get stored in
+running in the tutorial's container, the logs will get stored in
 ``/usr/local/zeek/logs``. The current set of aggregated logs are in
 ``logs/current``. Archived logs are stored in a directory corresponding
 with the date, such as ``logs/2025-08-20``. Log files also get renamed

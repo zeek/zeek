@@ -117,12 +117,12 @@ loggers and proxies for a given hardware configuration and system.
 
    Zeek loggers are an artificial bottleneck in a Zeek cluster. Particular if all
    Zeek logs are forwarded to messaging queue like Kafka or NATS, it is almost
-   certainly more efficient to have workers direct log writes to the message queue
-   instead of funneling them through a single Zeek process. The tagline here is that
-   Kafka or NATS are likely better Zeek logger process.
+   certainly more efficient to have workers send log to the message queue
+   directly instead of funneling them through an extra Zeek process.
+   The tagline here is that Kafka or NATS are likely better Zeek loggers.
 
-   As of Zeek 8.0, however, there is no ready-to-use recipe for running a logger-less
-   cluster. Contributions are certainly welcome.
+   As of Zeek 8.0, there is no ready-to-use recipe for running a logger-less
+   cluster. Contributions in this area are certainly welcome.
 
    For the classic central file-based logging. a single Zeek logger is useful
    as the aggregation point.
@@ -208,3 +208,42 @@ connected Zeek and non-Zeek processes will see.
    If a single WebSocket API is not sufficient, an idea is to run a WebSocket
    API on all proxy processes and, again, let a fronting Nginx to the
    load-balancing.
+
+
+Operational Metrics via Prometheus
+==================================
+
+Historically, Zeek has exposed many of its operational metrics via logs
+(``stats.log`` specifically) and assumed users will have ETL processes
+in place to load and analyze the data.
+Today, Zeek logs may only be accessible to certain users and analysts, while
+metrics are more interesting to Zeek operators.
+Additionally, `Prometheus <https://prometheus.io/>`_ has become a very popular
+option in the operational metrics space. Starting with version 4.1, Zeek has
+moved into a direction where Prometheus exposition for operational metrics
+is preferred over exporting them as classic Zeek logs.
+
+The model is that in a Zeek cluster, every Zeek process opens a HTTP Prometheus
+listener. An external Prometheus server scrapes metrics from these endpoints
+at regular intervals. ZeekControl currently allocates listener ports statically.
+
+The manager process additionally provides a ``/services.json`` endpoint for
+`HTTP-based service discovery <https://prometheus.io/docs/prometheus/latest/http_sd/>`_
+of all processes in a Zeek cluster.
+This allows the Prometheus Server to discover all metrics endpoints via the
+Zeek manager's ``/services.json`` endpoint.
+
+Adding to the previous diagrams, this looks as follows:
+
+.. figure:: /images/cluster/single-system-prometheus.svg
+
+This should seamlessly work with multi-node clusters.
+
+.. note::
+
+   As of Zeek 8.1, the Zeek manager builds the ``/services.json`` response
+   based on the static ``cluster-layout.zeek``. It statically knows all
+   all the metric endpoints of all other processes. In the future this might
+   be more dynamic. There's no actual reason for this static setup. Other
+   Zeek processes could as well dynamically register their metrics endpoint
+   with the manager process at runtime.

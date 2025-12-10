@@ -63,7 +63,7 @@ HTTP.
       # zeek -C -i eth0 test.zeek
       listening on eth0
 
-   Then, open another terminal in the docker container from the host:
+   Then, open another terminal in the container from the host:
 
    .. code:: console
 

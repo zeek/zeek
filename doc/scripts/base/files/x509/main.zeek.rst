@@ -381,7 +381,7 @@ Events
 Hooks
 #####
 .. zeek:id:: X509::create_deduplication_index
-   :source-code: base/files/x509/main.zeek 203 209
+   :source-code: base/files/x509/main.zeek 205 211
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`X509::Info`) : :zeek:type:`bool`
 

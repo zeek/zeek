@@ -305,6 +305,120 @@
 }
 {
   "ts": 1254722768.224809,
+  "event": "smtp_analyzer_confirmation",
+  "args": {
+    "tag": "Analyzer::ANALYZER_SMTP",
+    "info": {
+      "c": {
+        "id": {
+          "orig_h": "10.10.1.4",
+          "orig_p": {
+            "port": 1470,
+            "proto": "tcp"
+          },
+          "resp_h": "74.53.140.153",
+          "resp_p": {
+            "port": 25,
+            "proto": "tcp"
+          },
+          "proto": 6,
+          "ctx": {}
+        },
+        "orig": {
+          "size": 9,
+          "state": 4,
+          "num_pkts": 2,
+          "num_bytes_ip": 88,
+          "flow_label": 0,
+          "l2_addr": "00:e0:1c:3c:17:c2"
+        },
+        "resp": {
+          "size": 181,
+          "state": 4,
+          "num_pkts": 2,
+          "num_bytes_ip": 269,
+          "flow_label": 0,
+          "l2_addr": "00:1f:33:d9:81:60"
+        },
+        "start_time": 1254722767.529046,
+        "duration": "695.0 msecs 762.872696 usecs",
+        "service": [],
+        "history": "ShAdD",
+        "uid": "ClEkJM2Vm5giqnMf4h",
+        "removal_hooks": [
+          "SMTP::finalize_smtp: Conn::RemovalHook\n{ \nif (SMTP::c?$smtp) \n\tSMTP::smtp_message(SMTP::c);\n\n}"
+        ],
+        "failed_analyzers": [],
+        "conn": {
+          "ts": 1254722767.529046,
+          "uid": "ClEkJM2Vm5giqnMf4h",
+          "id": {
+            "orig_h": "10.10.1.4",
+            "orig_p": {
+              "port": 1470,
+              "proto": "tcp"
+            },
+            "resp_h": "74.53.140.153",
+            "resp_p": {
+              "port": 25,
+              "proto": "tcp"
+            },
+            "proto": 6,
+            "ctx": {}
+          },
+          "proto": "tcp",
+          "local_orig": true,
+          "local_resp": false,
+          "missed_bytes": 0,
+          "ip_proto": 6
+        },
+        "extract_orig": false,
+        "extract_resp": false,
+        "smtp": {
+          "ts": 1254722768.219663,
+          "uid": "ClEkJM2Vm5giqnMf4h",
+          "id": {
+            "orig_h": "10.10.1.4",
+            "orig_p": {
+              "port": 1470,
+              "proto": "tcp"
+            },
+            "resp_h": "74.53.140.153",
+            "resp_p": {
+              "port": 25,
+              "proto": "tcp"
+            },
+            "proto": 6,
+            "ctx": {}
+          },
+          "trans_depth": 1,
+          "last_reply": "220 and/or bulk e-mail.",
+          "path": [
+            "74.53.140.153",
+            "10.10.1.4"
+          ],
+          "tls": false,
+          "process_received_from": true,
+          "has_client_activity": false,
+          "process_smtp_headers": true,
+          "entity_count": 0,
+          "fuids": []
+        },
+        "smtp_state": {
+          "messages_transferred": 0,
+          "trans_mail_from_seen": false,
+          "trans_rcpt_to_seen": false,
+          "invalid_transactions": 0,
+          "bdat_last_observed": false,
+          "mime_depth": 0
+        }
+      },
+      "aid": 6
+    }
+  }
+}
+{
+  "ts": 1254722768.224809,
   "event": "smtp_request",
   "args": {
     "c": {
@@ -3160,6 +3274,120 @@
     "cmd": ">",
     "msg": "uprise ESMTP SubEthaSMTP null",
     "cont_resp": false
+  }
+}
+{
+  "ts": 1437831787.883306,
+  "event": "smtp_analyzer_confirmation",
+  "args": {
+    "tag": "Analyzer::ANALYZER_SMTP",
+    "info": {
+      "c": {
+        "id": {
+          "orig_h": "192.168.133.100",
+          "orig_p": {
+            "port": 49648,
+            "proto": "tcp"
+          },
+          "resp_h": "192.168.133.102",
+          "resp_p": {
+            "port": 25,
+            "proto": "tcp"
+          },
+          "proto": 6,
+          "ctx": {}
+        },
+        "orig": {
+          "size": 24,
+          "state": 4,
+          "num_pkts": 3,
+          "num_bytes_ip": 168,
+          "flow_label": 0,
+          "l2_addr": "58:b0:35:86:54:8d"
+        },
+        "resp": {
+          "size": 35,
+          "state": 4,
+          "num_pkts": 2,
+          "num_bytes_ip": 147,
+          "flow_label": 0,
+          "l2_addr": "00:08:ca:cc:ad:4c"
+        },
+        "start_time": 1437831787.856895,
+        "duration": "26.0 msecs 411.056519 usecs",
+        "service": [],
+        "history": "ShAdD",
+        "uid": "CmES5u32sYpV7JYN",
+        "removal_hooks": [
+          "SMTP::finalize_smtp: Conn::RemovalHook\n{ \nif (SMTP::c?$smtp) \n\tSMTP::smtp_message(SMTP::c);\n\n}"
+        ],
+        "failed_analyzers": [],
+        "conn": {
+          "ts": 1437831787.856895,
+          "uid": "CmES5u32sYpV7JYN",
+          "id": {
+            "orig_h": "192.168.133.100",
+            "orig_p": {
+              "port": 49648,
+              "proto": "tcp"
+            },
+            "resp_h": "192.168.133.102",
+            "resp_p": {
+              "port": 25,
+              "proto": "tcp"
+            },
+            "proto": 6,
+            "ctx": {}
+          },
+          "proto": "tcp",
+          "local_orig": true,
+          "local_resp": true,
+          "missed_bytes": 0,
+          "ip_proto": 6
+        },
+        "extract_orig": false,
+        "extract_resp": false,
+        "smtp": {
+          "ts": 1437831787.867142,
+          "uid": "CmES5u32sYpV7JYN",
+          "id": {
+            "orig_h": "192.168.133.100",
+            "orig_p": {
+              "port": 49648,
+              "proto": "tcp"
+            },
+            "resp_h": "192.168.133.102",
+            "resp_p": {
+              "port": 25,
+              "proto": "tcp"
+            },
+            "proto": 6,
+            "ctx": {}
+          },
+          "trans_depth": 1,
+          "last_reply": "220 uprise ESMTP SubEthaSMTP null",
+          "path": [
+            "192.168.133.102",
+            "192.168.133.100"
+          ],
+          "tls": false,
+          "process_received_from": true,
+          "has_client_activity": false,
+          "process_smtp_headers": true,
+          "entity_count": 0,
+          "fuids": []
+        },
+        "smtp_state": {
+          "messages_transferred": 0,
+          "trans_mail_from_seen": false,
+          "trans_rcpt_to_seen": false,
+          "invalid_transactions": 0,
+          "bdat_last_observed": false,
+          "mime_depth": 0
+        }
+      },
+      "aid": 20
+    }
   }
 }
 {

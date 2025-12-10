@@ -1017,6 +1017,11 @@ type AnalyzerConfirmationInfo: record {
 	aid: count &optional;
 };
 
+## Type signature for analyzer confirmation event handlers registered via
+## :zeek:id:`Analyzer::register_confirmation_handler`.
+type AnalyzerConfirmationHandler:
+	event(tag: Analyzer::Tag, info: AnalyzerConfirmationInfo);
+
 ## Generic analyzer violation info record.
 ##
 ## .. zeek:see:: analyzer_violation_info

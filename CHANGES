@@ -1,3 +1,13 @@
+8.1.0-dev.1072 | 2025-12-10 19:17:04 +0100
+
+  * cirrus: Try double star matching for changesIncludeOnly() (Arne Welzel, Corelight)
+
+    In the original discussion [1], they used 'doc/**', but the docs
+    now show 'doc/*'. Try the former and if it works I'll update their
+    documentation.
+
+    [1] https://github.com/cirruslabs/cirrus-ci-docs/issues/873#issuecomment-882889185
+
 8.1.0-dev.1070 | 2025-12-10 14:33:06 +0000
 
   * Add SHA256 to hash-all-files policy script (Johanna Amann, Corelight)

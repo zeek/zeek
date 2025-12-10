@@ -254,6 +254,8 @@ Changed Functionality
 - Sanitizer flags passed to a Zeek build with ``configure``'s ``--santiizers`` argument are
   now automatically passed to plugins built against that Zeek source tree.
 
+- The ``hash-all-files`` policy script now enables SHA256 logging, in addition to MD5 and SHA1.
+
 Removed Functionality
 ---------------------
 

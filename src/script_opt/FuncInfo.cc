@@ -196,7 +196,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"addr_to_ptr_name", ATTR_FOLDABLE},
     {"addr_to_subnet", ATTR_FOLDABLE},
     {"all_set", ATTR_FOLDABLE},
-    {"anonymize_addr", ATTR_FOLDABLE},
+    {"anonymize_addr", ATTR_IDEMPOTENT},
     {"any_set", ATTR_FOLDABLE},
     {"backtrace", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"bare_mode", ATTR_FOLDABLE},

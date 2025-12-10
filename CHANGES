@@ -1,3 +1,7 @@
+8.1.0-dev.1077 | 2025-12-10 13:10:10 -0700
+
+  * Fix FuncInfo flag for ZAM for anonymize_addr BIF (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1075 | 2025-12-10 11:42:45 -0800
 
   * Bump zeek-testing-cluster to pull in docker-compose modernization (Christian Kreibich, Corelight)

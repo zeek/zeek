@@ -1,27 +1,22 @@
+8.1.0-dev.1068 | 2025-12-10 10:47:09 +0000
+
+  * Fix ssl certificate logging when encountering protocol errors (Johanna Amann, Corelight)
+
+    This change fixes a problem with ssl certificate logging when a protocol
+    error is encountered after certificates are sent over a SSL/TLS
+    connection, but before the connection is logged. Currently, in these
+    cases, `ssl.log` will not contain the fingerprints of the certifiates
+    contained in the connection. This is due to the necessary hook not being
+    called. See GH-5078
+
 8.1.0-dev.1065 | 2025-12-09 13:47:02 -0700
 
-  * Add new btest for IP anonymizer coverage (Tim Wojtulewicz, Corelight)
-
-  * Make the anonymizer bif docs more descriptive/helpful (Tim Wojtulewicz, Corelight)
-
-  * Member variable cleanup in AnonymizeIPAddr_A50 (Tim Wojtulewicz, Corelight)
-
-  * Lazily initialize the keys for HMAC-MD5 (Tim Wojtulewicz, Corelight)
-
   * Deprecate MD5 IP anonymizers, add SHA256 versions (Tim Wojtulewicz, Corelight)
-
-  * Add SHA256 hmac methods, BIF, keys, etc (Tim Wojtulewicz, Corelight)
-
-  * Remove superfluous internal_md5() utility method (Tim Wojtulewicz, Corelight)
+    This necessitates changes addition of related BIFs.
 
 8.1.0-dev.1057 | 2025-12-09 20:32:18 +0100
 
-  * Attr: Improve &backend/&broker_store deprecation warning (Arne Welzel, Corelight)
-
   * cluster/non-Broker: Report errors for &backend and &broker_store (Arne Welzel, Corelight)
-
-    Do this a bit ad-hoc at initialization time. It won't be around
-    forever anyhow.
 
 8.1.0-dev.1054 | 2025-12-09 11:38:14 +0100
 

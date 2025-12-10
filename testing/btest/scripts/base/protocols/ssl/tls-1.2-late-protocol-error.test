@@ -1,0 +1,6 @@
+# @TEST-DOC: This test checks that certificates are logged if an error occurs after certificates are encountered, but before the connection is established.
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls1.2-late-protocol-error.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff analyzer.log
+# @TEST-EXEC: btest-diff x509.log
+

@@ -552,6 +552,8 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 		if ( info$c?$ssl )
 			{
 			# analyzer errored out; prevent us from trying to remove it later
+			if ( ! info$c$ssl$logged )
+				hook ssl_finishing(info$c);
 			delete info$c$ssl$analyzer_id;
 			finish(info$c, F);
 			}

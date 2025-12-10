@@ -19,40 +19,77 @@ causing data loss.
 
 Most network monitoring applications solve this by horizontally scaling the
 packet processing path. Zeek is no different in this respect.
-The high-level idea is to spawn individual Zeek processes. Each process receives
-a *flow-balanced* portion of the monitored traffic.
-Flow-balancing requires that all packets belonging to an individual flow
-between two endpoints are forwarded to the same Zeek process.
+The idea is to spawn individual Zeek processes, each receiving a *flow-balanced*
+portion of the monitored traffic.
+Flow-balancing ensures that all packets belonging to an individual flow - or connection - between two endpoints are forwarded to the same Zeek process.
 The details aren't important at this point. Generally, flow-balancing
 has been solved by various open-source projects or in the firmware of specialized
-network cards. Examples in this area are Linux's AF_PACKET, netmap, PF_RING,
-Napatech streams, Intel hardware queues via AF_PACKET's ``PACKET_FANOUT_QM``,
-and more.
-
-From Zeek's perspective, each worker gets assigned an individual interface.
-In the case of AF_PACKET it is actually the same interface identifier and
-the kernel does some magic behind the scenes.
+network cards by symmetric hashing of network packet headers.
+Examples in this area are
+`Linux's AF_PACKET <https://docs.kernel.org/networking/packet_mmap.html#af-packet-fanout-mode>`_,
+`netmap <https://github.com/luigirizzo/netmap>`_,
+`PF_RING <https://www.ntop.org/products/packet-capture/pf_ring/>`_,
+`Napatech Network Streams <https://docs.napatech.com/r/Software-Architecture/Network-Streams>`_,
+Intel (and others) NIC queues via AF_PACKET's ``PACKET_FANOUT_QM``
+fanout setting, etc.
+Head to the :ref:`Cluster Setup <cluster-setup-on-host-flow-balancing>`
+section for more details around this.
 
 In a cluster, Zeek processes that listen on a network interface are called
 Zeek workers.
+Conceptually, each Zeek worker process gets assigned an individual interface
+via the ``-i`` command-line argument. To a degree, this controls which chunk
+of traffic an individual Zeek worker will receive.
+
+.. note::
+
+   For AF_PACKET, all workers have the same ``-i`` argument: The interface
+   name. The Linux kernel will flow-balance according to the number of running
+   Zeek workers dynamically. This also means that adding or removing workers
+   at runtime redistributes connections to different workers as flow-balancing
+   uses a simple modulo operation with the number of workers. This may negatively
+   impact data quality, so a static number of Zeek workers should be preferred.
+
 Besides Zeek workers, three more process roles exist in a cluster:
 Proxies, loggers and a central manager process.
-Proxies, loggers and workers can be independently scaled.
+Proxy, logger and worker processes can all be scaled independently.
 
-Zeek normally creates log files in its working directory.
+Zeek processes normally create log files in their working directories.
 In a Zeek cluster, worker processes forward their log writes (as created via
 a :zeek:see:`Log::write` script-level call) in a round-robin fashion to the
-Zeek logger processes in the cluster. The exact details depend on the
-Zeek cluster backend in use. See the backend documentation for details.
+Zeek logger processes instead. The exact details depend on the Zeek cluster
+backend in use. See the backend documentation for details.
 
-A process supervisor starts and manages individual Zeek processes.
-Various supervisors have been prototyped and explored over the years.
-As of Zeek 8.0, Zeekctl is still the de-facto standard.
+A process supervisor starts and manages individual Zeek processes. Various
+supervisors and deployment approaches have been prototyped, explored and used
+in certain environments over the years. ZeekControl remains the de-facto
+standard to run and operate a Zeek cluster as of Zeek 8.1.
 
-All processes forming a Zeek cluster are connected via
-a topic-based publish subscribe layer. Zeek processes can subscribe to
-topics and publish remote Zeek events to these topics. Processes do not
-see events they published themselves.
+Processes forming a Zeek cluster are connected via a topic-based publish
+subscribe layer. Zeek processes can subscribe to topics and receive remote
+events published by other Zeek processes. All Zeek processes have visibility
+into remote events published by all other process. Subscriptions use
+prefix matching on topic names.
+
+.. note::
+
+   The publish subscribe visibility aspect has changed in Zeek 8.1 with the
+   ZeroMQ cluster backend.
+   Using the Broker cluster backend this wasn't implemented, putting the
+   burden of routing remote events through the cluster onto the user.
+   You may stumble over scripts where a worker process publishes to the
+   manager's individual topic just for the manager to re-publish the remote
+   event to all workers. This is unnecessary with non-Broker backends. It
+   still works, but is less efficient than sending remote events directly to
+   the destination topic.
+
+   References
+
+   * https://github.com/zeek/zeek/issues/3917
+   * https://github.com/zeek/zeek/discussions/3649
+
+
+
 
 Single Node Examples
 ====================
@@ -103,18 +140,25 @@ powerful 100G NIC. Such an architecture requires an external packet broker
 that ensures consistent flow-balancing across the individual Zeek systems,
 essentially introducing a separate flow-balancing layer.
 
-The following diagram depicts a three node deployment with the system to the
-left running a single logger and manager process. Each system runs a single proxy
-process (named proxy-1, proxy-2 and proxy-3) and four worker processes.
-All Zeek processes can send events to each other through the publish subscribe
-layer that each process connects to.
+Shared Publish Subscribe Layer
+------------------------------
+
+The following diagram depicts a deployment with three individual hardware
+systems with the system to the left running a single logger and manager process.
+Each system runs a single proxy process (proxy-1, proxy-2 and proxy-3) and
+four worker processes.
+All Zeek processes can send remote events to each other through the shared
+publish subscribe layer.
 
 
 .. figure:: /images/cluster/three-systems-one-nic.svg
 
 
-Sometimes, a single Zeek cluster is deployed per physical or virtual system.
-In such cases, the architecture looks as follows.
+Split Publish Subscribe Layer
+-----------------------------
+
+Sometimes, a single Zeek cluster is deployed per physical or virtual system
+with a packet broker in front. In such cases, the architecture looks as follows.
 
 .. figure:: /images/cluster/three-systems-independent-one-nic.svg
 
@@ -123,3 +167,44 @@ If the individual systems depicted all monitor the same network segment, correla
 across different worker processes will be limited to an individual system, however.
 Using the previous architecture where all systems operate using the same publish
 subscribe layer will not have this limitation.
+
+
+WebSocket API to the Publish Subscribe Layer
+============================================
+
+Interacting with Zeek's publish subscribe layer using external non-Zeek
+applications is possible using :ref:`Zeek's WebSocket API <websocket-api>`.
+
+Conventionally, the Zeek manager process listens for incoming WebSocket
+connections from external applications. By default, Zeek 8.1, the manager
+process in a ZeekControl managed cluster listens on::
+
+        ws://127.0.0.1:27759
+
+The sketch below shows the idea.
+
+.. figure:: /images/cluster/single-system-websocket.svg
+
+Essentially, the manager process provides a cluster backend agnostic entry
+point to Zeek's publish subscribe layer. It is possible to start such
+WebSocket entrypoints on other Zeek processes (even workers) using
+:zeek:see:`Cluster::listen_websocket` within your own scripts.
+
+As WebSocket provides a bi-directional persistent connection, this allows
+non-Zeek processes to send and receive remote Zeek events that all other
+connected Zeek and non-Zeek processes will see.
+
+.. note::
+
+   Zeek's WebSocket API does not provide any authentication or authorization
+   mechanisms. Any external application can subscribe to every topic prefix
+   and observe all events produced by processes in a Zeek cluster. Similarly,
+   an external application may publish events
+   If this is concerning to you, place a reverse proxy like Nginx with basic
+   authorization or a more advanced configuration in front of Zeek's
+   WebSocket API. While Zeek supports TLS certificates for WebSocket API, it
+   a fronting Nginx might be the better place to do this.
+
+   If a single WebSocket API is not sufficient, an idea is to run a WebSocket
+   API on all proxy processes and, again, let a fronting Nginx to the
+   load-balancing.

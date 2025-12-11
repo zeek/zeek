@@ -1,3 +1,7 @@
+8.1.0-dev.1080 | 2025-12-11 09:44:51 -0500
+
+  * Attempt to fix circular TOC dependency in docs (Evan Typanski, Corelight)
+
 8.1.0-dev.1077 | 2025-12-10 13:10:10 -0700
 
   * Fix FuncInfo flag for ZAM for anonymize_addr BIF (Tim Wojtulewicz, Corelight)

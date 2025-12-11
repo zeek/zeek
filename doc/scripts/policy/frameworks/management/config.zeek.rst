@@ -12,7 +12,7 @@ anyway). For role-specific settings, see management/controller/config.zeek
 and management/agent/config.zeek.
 
 :Namespace: Management
-:Imports: :doc:`base/misc/installation.zeek </scripts/base/misc/installation.zeek>`, :doc:`policy/frameworks/management/types.zeek </scripts/policy/frameworks/management/types.zeek>`
+:Imports: :doc:`base/misc/installation.zeek </scripts/base/misc/installation.zeek>`, :doc:`policy/frameworks/cluster/backend/broker </scripts/policy/frameworks/cluster/backend/broker/index>`, :doc:`policy/frameworks/management/types.zeek </scripts/policy/frameworks/management/types.zeek>`
 
 Summary
 ~~~~~~~
@@ -44,7 +44,7 @@ Detailed Interface
 Redefinable Options
 ###################
 .. zeek:id:: Management::connect_retry
-   :source-code: policy/frameworks/management/config.zeek 27 27
+   :source-code: policy/frameworks/management/config.zeek 30 30
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -54,7 +54,7 @@ Redefinable Options
    aggressive value compared to Broker's 30s.
 
 .. zeek:id:: Management::default_address
-   :source-code: policy/frameworks/management/config.zeek 23 23
+   :source-code: policy/frameworks/management/config.zeek 26 26
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -65,7 +65,7 @@ Redefinable Options
    remains empty. Unless redefined, this listens on all interfaces.
 
 .. zeek:id:: Management::role
-   :source-code: policy/frameworks/management/config.zeek 18 18
+   :source-code: policy/frameworks/management/config.zeek 21 21
 
    :Type: :zeek:type:`Management::Role`
    :Attributes: :zeek:attr:`&redef`
@@ -94,7 +94,7 @@ Redefinable Options
    running.
 
 .. zeek:id:: Management::spool_dir
-   :source-code: policy/frameworks/management/config.zeek 33 33
+   :source-code: policy/frameworks/management/config.zeek 36 36
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -106,7 +106,7 @@ Redefinable Options
    :zeek:see:`Management::get_spool_dir` function.
 
 .. zeek:id:: Management::state_dir
-   :source-code: policy/frameworks/management/config.zeek 38 38
+   :source-code: policy/frameworks/management/config.zeek 41 41
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -119,7 +119,7 @@ Redefinable Options
 Functions
 #########
 .. zeek:id:: Management::get_spool_dir
-   :source-code: policy/frameworks/management/config.zeek 51 57
+   :source-code: policy/frameworks/management/config.zeek 54 60
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
 
@@ -128,7 +128,7 @@ Functions
    installation's spool directory.
 
 .. zeek:id:: Management::get_state_dir
-   :source-code: policy/frameworks/management/config.zeek 59 65
+   :source-code: policy/frameworks/management/config.zeek 62 68
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
 

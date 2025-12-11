@@ -1,3 +1,9 @@
+8.1.0-dev.1083 | 2025-12-11 11:42:38 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Update zeekctl submodule [nomail] (Arne Welzel, Corelight)
+
 8.1.0-dev.1080 | 2025-12-11 09:44:51 -0500
 
   * Attempt to fix circular TOC dependency in docs (Evan Typanski, Corelight)

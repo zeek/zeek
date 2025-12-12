@@ -94,3 +94,5 @@ Trace Index/Sources:
   for documentation samples.
 - http/testmyids.com
   HTTP request to testmyids.com. Used for documentation samples.
+- igmp/multicast-igmp-version-membership-query-and-report.pcap
+  from https://www.cloudshark.org/captures/7bb04610bb7a for testing IGMP v1

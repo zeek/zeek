@@ -6,52 +6,61 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.1.0
 ==========
 
-We would like to thank @chrisjlly, Klemens Nanni (@klemensn), and Klemens Nanni
-(@klemens-ya) for their contributions to this release.
+We'd like to thank Andrew Raffman (@andyraf), @arm7mm, Artyom Kalabukhov (@predator89090),
+Benjamin Grap (@blightzero), @biswajitutil, Jean-Samuel Marier (@cccs-jsjm), @chrisjlly,
+Craig P (@multicast-bytes), @DigiAngel, Mike Dopheide (@dopheide-esnet), Edoardo Mich
+(@edoardomich), @franky-m, Fupeng Zhao (@AmazingPP), Jan Grashöfer (@J-Gras), Klemens
+Nanni (@klemens-ya), Klemens Nanni (@klemensn), @kshitiz56, Mark Overholser
+(@markoverholser), Mohan Dhawan (@Mohan-Dhawan), Peter Cullen (@pbcullen), RyugaXhypeR
+(@RyugaXhypeR), Seth Hall (@sethhall), Yacin Nadji (@ynadji), Zhang Liang (@JosenLiang),
+Zach Robinette (@zrobinette12) and @zzzdong for their contributions to this release.
 
 Breaking Changes
 ----------------
 
-- A standalone ``zeek`` invocation on the command line will now default to running
-  a No-op Cluster backend (``Cluster::CLUSTER_BACKEND_NONE``). Previously this
-  defaulted to Broker without having any real effect. For a multi-process / cluster
-  deployment of Zeek, a cluster backend policy script needs to be loaded explicitly.
+- A standalone ``zeek`` invocation on the command line will now default to running a No-op
+  Cluster backend (``Cluster::CLUSTER_BACKEND_NONE``). Previously this defaulted to Broker
+  without having any real effect. For a multi-process / cluster deployment of Zeek, a
+  cluster backend policy script needs to be loaded explicitly.
 
-  Zeekctl has been updated to use the ZeroMQ cluster backend by default and should
-  require no action. If you encounter issues with ZeroMQ, it is possible to re-enable
-  the Broker cluster backend by adding the following entry into ``zeekctl.cfg`` and
-  running `zeekctl deploy``:
+  Zeekctl has been updated to use the ZeroMQ cluster backend by default and should require
+  no other action. If you encounter issues with ZeroMQ, it is possible to re-enable the
+  Broker cluster backend by adding the following entry into ``zeekctl.cfg`` and running
+  `zeekctl deploy``:
 
 	ClusterBackend = Broker
 
-  If you manage a non-Zeekctl Zeek setup, load ``policy/frameworks/cluster/backend/zeromq``
-  or ``policy/frameworks/cluster/backend/broker``. If you forget to do so, Zeek
-  will recognize that ``Cluster::node`` is set (e.g. the ``CLUSTER_NODE`` environment
-  variable or ``Cluster::node=...`` is set) but no cluster backend was chosen
-  and will terminate with a fatal error:
+  If you manage a non-Zeekctl Zeek setup, load
+  ``policy/frameworks/cluster/backend/zeromq`` or
+  ``policy/frameworks/cluster/backend/broker``. If you forget to do so, Zeek will
+  recognize that ``Cluster::node`` is set (e.g. the ``CLUSTER_NODE`` environment variable
+  or ``Cluster::node=...`` is set) but no cluster backend was chosen and will terminate
+  with a fatal error:
 
-	fatal error in <...>/main.zeek, line 425: Cluster::node set to 'worker-1', but Cluster::backend is Cluster::CLUSTER_BACKEND_NONE - please select a cluster backend to use.
+	fatal error in <...>/main.zeek, line 425: Cluster::node set to 'worker-1', but
+	Cluster::backend is Cluster::CLUSTER_BACKEND_NONE - please select a cluster backend to
+	use.
 
-  If you used Zeekctl on a single physical system or virtual machine previously,
-  this should all be transparent to you.
+  If you used Zeekctl on a single physical system or virtual machine previously, this
+  should all be transparent to you.
 
-- The Broker-specific ``&backend`` and ``&broker_store`` attributes will result
-  in startup errors when a non-Broker cluster backend is selected. See the entry
-  about their deprecation below for more details.
+- The Broker-specific ``&backend`` and ``&broker_store`` attributes will result in startup
+  errors when a non-Broker cluster backend is selected. See the entry about their
+  deprecation below for more details.
 
 - Python 3.10 is now required for Zeek and all of its associated subprojects.
 
-- The ``&optional`` script attribute will now error when applied to anything that's
-  not a record field. Previously, this would have surprising behavior.
+- The ``&optional`` script attribute will now error when applied to anything that's not a
+  record field. Previously, this would have surprising behavior.
 
 - The BinPAC, Bifcl, and Gen-ZAM tools have all moved directly into the Zeek repo, which
-  should ease maintenance on them a bit. They were moved from the ``auxil`` directory to the
-  tools directory. Along with this, the ``--gen-zam`` argument for ``configure`` was
-  removed and the internal version will always be used.
+  should ease maintenance on them a bit. They were moved from the ``auxil`` directory to
+  the ``tools`` directory. Along with this, the ``--gen-zam`` argument for ``configure``
+  was removed and the internal version will always be used.
 
 - The zeek-af_packet-plugin git submodule was moved directly into the Zeek repo. This used
   to live in the ``auxil`` directory, after having moved there from an external plugin.
-  It is now built as part of main Zeek build whenever building on Linux.
+  It is now automatically built as part of the main Zeek build whenever building on Linux.
 
 - The global ``g_frame_stack`` C++ variable was removed. This variable was used to track
   the current stack of script-function frames, mostly for the built-in script debugger. We
@@ -59,7 +68,7 @@ Breaking Changes
   variable, used by the script profiler. These two have now been combined together into
   ``call_stack``. Plugins using ``g_frame_stack`` will need to be adapted to use the other
   variable. We opted to not use a deprecation cycle for this due to the complication with
-  managing the data across both variables.
+  managing the state across both variables.
 
 - The `unique_id` and `unique_id_from` BIFs now return 96-bit UIDs, which makes them
   consistent with other UIDs created by Zeek such as connection IDs. They were previously
@@ -71,8 +80,8 @@ Breaking Changes
   ``leq``, given that they technically are less-than-or-equal values.
 
 - The ``iosource/Packet.h`` header no longer depends on libpcap being installed and no
-  longer directly includes the ``pcap.h`` header. This may cause some knock-on effects
-  in building plugins that were depending on this header and others that it included
+  longer directly includes the ``pcap.h`` header. This may cause some knock-on effects in
+  building plugins that were depending on this header and others that it included
   indirectly.
 
 - External plugins do not implicitly require OpenSSL and Broker anymore. Starting with
@@ -111,15 +120,23 @@ Breaking Changes
     content in MIME messages. This is similar to the existing ``mime_content_hash`` event
     that sends MD5 versions.
 
+  - The MD5 IP anonymizers (``RANDOM_MD5`` and ``PREFIX_PRESERVING_MD5``) have been
+    deprecated in favor of new SHA256 anonymizers.
+
+  - The ``md5_hmac`` BIF has been deprecated in favor of a new ``sha256_hmac`` BIF.
+
 New Functionality
 -----------------
 
-- A new TapAnalyzer class was added allowing to tap into all packets delivered
-  to child analyzers attached to session adapters.
+- After recently-merged fixes to the ``node`` formula for Homebrew, JavaScript support via
+  ZeekJS can now be built on macOS using that installation of Node.
 
-- Two new hooks, ``Cluster::on_subscribe()`` and ``Cluster::on_unsubscribe()`` have
-  been added to allow observing ``Subscribe()`` and ``Unsubscribe()`` calls on
-  backends by Zeek scripts.
+- A new ``TapAnalyzer`` class was added allowing to tap into all packets delivered to
+  child analyzers attached to session adapters.
+
+- Two new hooks, ``Cluster::on_subscribe()`` and ``Cluster::on_unsubscribe()`` have been
+  added to allow observing ``Subscribe()`` and ``Unsubscribe()`` calls on backends by Zeek
+  scripts.
 
 - The ability to control the length of strings and containers in log output was added. The
   maximum length of individual log fields can be set, as well as the total length of all
@@ -146,30 +163,30 @@ New Functionality
   ``zeek_log_writer_truncated_containers_total``. The metrics are reported for each log
   stream.
 
-- There exists a new configuration file ``<PREFIX>/etc/zeek/zeek.conf`` and a
-  small executable called ``zeek-systemd-generator`` that acts as a systemd
-  unit file generator. These two pieces allow for quickly running an opinionated
-  single node cluster deployment using systemd. See the ``tools/systemd-generator/README.md``
-  and ``tools/systemd-generator/etc/zeek/zeek.conf`` files for more information.
+- There exists a new configuration file ``<PREFIX>/etc/zeek/zeek.conf`` and a small
+  executable called ``zeek-systemd-generator`` that acts as a systemd unit file
+  generator. These two pieces allow for quickly running an opinionated single node cluster
+  deployment using systemd. See the ``tools/systemd-generator/README.md`` and
+  ``tools/systemd-generator/etc/zeek/zeek.conf`` files for more information.
 
   If you've previously built Zeek process management by hand or with tools like
   supervisord, runit, s6, etc on Linux, this might be a viable option to explore.
 
-  This is all Linux specific right now. However, the ``zeek.conf`` file is OS
-  agnostic as to keep options open to re-use it elsewhere.
+  This is all Linux specific right now. However, the ``zeek.conf`` file is OS-agnostic to
+  keep options open for re-use it elsewhere.
 
 - The DNS analyzer now returns the set of parameters for SVCB data. It previously handled
   SVCB packets, but omitted the parameters while parsing.
 
-- The QUIC analyzer now raises QUIC::discarded_packet() when a packet with fixed_bit
-  set to 0 is encountered. Such an occurrence is included in the QUIC history as ``X``.
-  This functionality can be controlled with ``QUIC::max_discarded_packet_events``,
-  setting this variable to -1 disabled the ``QUIC::discarded_packet`` event.
+- The QUIC analyzer now raises a ``QUIC::discarded_packet`` event when a packet with
+  ``fixed_bit`` set to 0 is encountered. Such an occurrence is included in the QUIC
+  history as ``X``.  This functionality can be controlled with
+  ``QUIC::max_discarded_packet_events``. Setting this variable to -1 disables the
+  ``QUIC::discarded_packet`` event.
 
-- Added SHA224, SHA384, and SHA512 calculation BiFs: ``sha224_hash``,
-  ``sha224_hash_init`, ``sha224_hash_update``, ``sha224_hash_finish``.
-  ``sha384_hash``, ``sha384_hash_init`, ``sha384_hash_update``,
-  ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init`,
+- Added SHA224, SHA384, and SHA512 calculation BiFs: ``sha224_hash``, ``sha224_hash_init`,
+  ``sha224_hash_update``, ``sha224_hash_finish``.  ``sha384_hash``, ``sha384_hash_init`,
+  ``sha384_hash_update``, ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init`,
   ``sha512_hash_update``, and ``sha512_hash_finish``.
 
 - Added SHA224, SHA384 and SHA512 file hash analyzers. The analyzers are not enabled by
@@ -178,19 +195,19 @@ New Functionality
 - Added the ``TCP::raw_options`` BiF, which returns the list of TCP options in the current
   packet, including their raw data.
 
-- For SNMPv3, Zeek now parses the Security Parameters for the User-Based Security model. If
-  present, the data is added to the new ``user_security_parameters`` field of the ``SNMP::HeaderV3``
-  record.
+- For SNMPv3, Zeek now parses the Security Parameters for the User-Based Security
+  model. If present, the data is added to the new ``user_security_parameters`` field of
+  the ``SNMP::HeaderV3`` record.
 
 - The QUIC analyzer now raises ``QUIC::short_header_packet_threshold_crossed()`` for every
-  binary logarithmic threshold for QUIC packets with short headers. Each threshold is added to
-  the history as ``O`` or ``o``. E.g., a history containing ``oOoO`` indicates that originator
-  and responder each send at least 3 short packets, while ``oOOoooooo`` would indicate
-  the originator sent at least 3 short packets early in the connection, while the responder
-  sent at least 127 packets.
+  binary logarithmic threshold for QUIC packets with short headers. Each threshold is
+  added to the history as ``O`` or ``o``. E.g., a history containing ``oOoO`` indicates
+  that originator and responder each send at least 3 short packets, while ``oOOoooooo``
+  would indicate the originator sent at least 3 short packets early in the connection,
+  while the responder sent at least 127 packets.
 
-- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
-  and ``sha512_hash_finish``.
+- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`,
+  ``sha512_hash_update``, and ``sha512_hash_finish``.
 
 - Added VLAN PCP and DEI bits when parsing packets. This is exposed alongside ``vlan`` and
   ``inner_vlan`` in a packet's ``l2_hdr`` when scripting, if a VLAN header was present.
@@ -205,38 +222,47 @@ New Functionality
   with the addition of dynamic updates we're now handling a second opcode.
 
 - The `policy/misc/dump-events.zeek` script now features a ``DumpEvents::use_json``
-  Boolean toggle, off by default, to report Zeek's events in JSON format.
+  boolean toggle, false by default, to report Zeek's events in JSON format.
+
+- The list of HTTP methods accepted by dynamic protocol detection was updated to add some
+  missing methods: BIND, LINK, MKCALENDAR, MKREDIRECTREF, REBIND, UNBIND, UNLINK.
+
+- The Docker images generated by Zeek's CI process now contain OCI-approved annotation
+  labels containing various metadata about the image. See
+  https://github.com/opencontainers/image-spec/blob/main/annotations.md for more details
+  about the labels.
 
 Changed Functionality
 ---------------------
 
 - A Zeekctl-managed Zeek cluster now uses the ZeroMQ cluster backend by default.
 
-- The manager node of a Zeekctl-managed Zeek cluster now listens on 127.0.0.1:27759
-  for WebSocket connections by default. This can be disabled with the ``UseWebSocket``
-  setting in ``zeekctl.cfg``, or adapted using the ``WebSocketHost`` and
-  ``WebSocketPort`` settings.
+- The manager node of a Zeekctl-managed Zeek cluster now listens on 127.0.0.1:27759 for
+  WebSocket connections by default. This can be disabled with the ``UseWebSocket`` setting
+  in ``zeekctl.cfg``, or adapted using the ``WebSocketHost`` and ``WebSocketPort``
+  settings.
 
-- The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
-  field anymore.
+- The var-extraction-uri.zeek policy does not include the path in the ``uri_vars`` field
+  anymore.
 
-- The ``get_current_packet_header()`` now populates the returned record also for
+- The ``get_current_packet_header()`` BIF now populates the returned record also for
   fragmented IP datagrams.
 
-- The QUIC parser discards packets with the fixed_bit field set to 0, rather than
-  continuing to parse potentially running into analyzer violations.
+- The QUIC parser discards packets with the ``fixed_bit`` field set to 0, rather than
+  continuing to parse and potentially running into analyzer violations.
 
 - The Notice framework's suppression implementation was changed to batch suppression
   information for up up to 10msec before distributing it to other nodes in a Zeek cluster.
   This reduces cluster communication overhead when there's a storm of notices
   generated. Two new options, ``Notice::suppression_batch_period`` and
   ``Notice::suppression_batch_max_size`` can be used to tune this behavior. See their
-  documentation for details.
+  documentation for details. This most notably reduces CPU usage and cluster event traffic
+  during cluster startup.
 
-- Non-printable ASCII control characters are now always passed as ``\uXXXX`` characters
-  when logging them as JSON. This follows the JSON standard more closely. Previously,
-  they would have been logged in the ``\xXX`` format that Zeek typically uses. For example,
-  an HTTP request with a non-printable character in the URI would have a ``uri`` field that
+- Non-printable ASCII control characters now always result in ``\uXXXX`` characters when
+  logging them as JSON. This follows the JSON standard more closely. Previously, they
+  would have been logged in the ``\xXX`` format that Zeek typically uses. For example, an
+  HTTP request with a non-printable character in the URI would have a ``uri`` field that
   changes from:
 
     "uri":"/non_printable_\\x07"
@@ -245,42 +271,54 @@ Changed Functionality
 
     "uri":"/non_printable_\u0007"
 
-- For SNMPv3, the ``community`` field of the snmp log now contains the SNMPv3 username
-  (if present). Before, the field was empty for all SNMPv3 connections.
+- For SNMPv3, the ``community`` field of ``snmp.log`` now contains the SNMPv3 username (if
+  present). Previously, the field was empty for all SNMPv3 connections.
 
-- The ``x509.log`` deduplication logic has been reimplemented with explicit
+- The ``x509.log`` deduplication logic has been reimplemented with explicit calls to
   ``Cluster::publish()``, rather than relying ``&backend`` tables using Broker.
 
-- Sanitizer flags passed to a Zeek build with ``configure``'s ``--santiizers`` argument are
-  now automatically passed to plugins built against that Zeek source tree.
+- Sanitizer flags passed to a Zeek build with ``configure``'s ``--sanitizers`` argument
+  are now automatically passed to plugins built against that Zeek source tree.
 
-- The ``hash-all-files`` policy script now enables SHA256 logging, in addition to MD5 and SHA1.
+- The ``hash-all-files`` policy script now enables SHA256 logging, in addition to MD5 and
+  SHA1.
 
-Removed Functionality
----------------------
+- The LDAP analyzer was fixed to correctly escape non-ASCII characters when logging filter
+  strings.
+
+- The AF_Packet packet source now reports a warning if you attempt to use it on a loopback
+  interface. This is because AF_PACKET will receive duplicates of every packet when run on
+  a loopback interface and this can be confusing.
+
+- The GSSAPI analyzer gained some fixes to reliably process Kerberos data when that data
+  isn't preceded by an OID. This is valid a ASN.1 structure that wasn't being handled
+  correctly.
+
+- SSL certificates are now correctly logged even when protocol violations occur, assuming
+  the certificate was encountered prior to the violation.
 
 Deprecated Functionality
 ------------------------
 
-- The ``&backend`` and ``&broker_store`` attributes for script-layer tables have
-  been deprecated. These are only functional with the Broker cluster backend and
-  their semantics and guarantees considered too loose. There is ongoing discussions
-  and experiments how to provide state propagation and synchronization across
-  cluster processes. Explicit topic-based state propagation using ``Cluster::publish()``,
-  or switching to the storage framework for persistence are available today.
+- The ``&backend`` and ``&broker_store`` attributes for script-layer tables have been
+  deprecated. These are only functional with the Broker cluster backend and their
+  semantics and guarantees considered too loose. There is ongoing discussion and
+  experiments how to provide state propagation and synchronization across cluster
+  processes. Explicit topic-based state propagation using ``Cluster::publish()``, or
+  switching to the storage framework for persistence are available today.
 
-  If you've used ``&backend`` and ``&broker_store`` in your scripts and find
-  it hard or inconvenient to replace them, please reach out with your use-cases,
-  on GitHub or Slack. We're happy to support.
+  If you've used ``&backend`` and ``&broker_store`` in your scripts and find it hard or
+  inconvenient to replace them, please reach out with your use-cases, on GitHub or
+  Slack. We're happy to support.
 
   Some references to GitHub discussion and prototypical ideas:
 
 	https://github.com/zeek/zeek/discussions/5020
 	https://github.com/zeek/zeek/pull/5040
 
-- In Zeek 9.1, returning a value from a hook will become an error. Return values
-  from a hooks were previously silently discarded. This behavior was found
-  surprising in relation with the ``break`` statement available in hooks.
+- In Zeek 9.1, returning a value from a hook will become an error. Return values from a
+  hooks were previously silently discarded. This behavior was found surprising in relation
+  with the ``break`` statement available in hooks.
 
 - The ``zeek::util::json_escape_utf8`` methods are being replaced by a new ``escape_utf8``
   method in order to fix a bug with how the ``escape_printable_controls`` argument was
@@ -291,6 +329,10 @@ Deprecated Functionality
 
 - The ``zeromq/connect`` script has been deprecated. Load the
   ``frameworks/cluster/backend/zeromq`` package directly instead.
+
+- The ``rfb_auth_result`` event from the RFB analyzer was deprecated and replaced with a
+  new ``rfb_authentication_result`` event. This new event sets the correct value in the
+  ``rfb$auth`` field in the connection.
 
 Zeek 8.0.0
 ==========
@@ -1211,6 +1253,9 @@ New Functionality
 
 - A new weird ``DNS_unknown_opcode`` was added to the DNS analyzer to report
   when it receives opcodes that it cannot process.
+
+- A new BIF ``Log::flush_all`` was added that causes all logs to be written to disk
+  immediately.
 
 Changed Functionality
 ---------------------

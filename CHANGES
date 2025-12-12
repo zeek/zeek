@@ -1,3 +1,11 @@
+8.1.0-dev.1091 | 2025-12-12 15:22:25 -0700
+
+  * Minor wording/grammar/formatting fixes for 8.1 NEWS (Tim Wojtulewicz, Corelight)
+
+  * NEWS updates for 8.1 (Tim Wojtulewicz, Corelight)
+
+  * Use consistent line lengths (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1087 | 2025-12-12 10:11:29 -0700
 
   * Update c-ares to v1.34.6 (Tim Wojtulewicz, Corelight)

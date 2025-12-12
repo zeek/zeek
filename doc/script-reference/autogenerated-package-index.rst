@@ -64,6 +64,17 @@
 :doc:`base/packet-protocols/icmp </scripts/base/packet-protocols/icmp/index>`
 
 
+:doc:`base/packet-protocols/igmp </scripts/base/packet-protocols/igmp/index>`
+
+
+:doc:`base/frameworks/logging </scripts/base/frameworks/logging/index>`
+
+   The logging framework provides a flexible key-value based logging interface.
+
+:doc:`base/frameworks/logging/postprocessors </scripts/base/frameworks/logging/postprocessors/index>`
+
+   Support for postprocessors in the logging framework.
+
 :doc:`base/packet-protocols/llc </scripts/base/packet-protocols/llc/index>`
 
 
@@ -93,14 +104,6 @@
 
 :doc:`base/packet-protocols/gtpv1 </scripts/base/packet-protocols/gtpv1/index>`
 
-
-:doc:`base/frameworks/logging </scripts/base/frameworks/logging/index>`
-
-   The logging framework provides a flexible key-value based logging interface.
-
-:doc:`base/frameworks/logging/postprocessors </scripts/base/frameworks/logging/postprocessors/index>`
-
-   Support for postprocessors in the logging framework.
 
 :doc:`base/frameworks/broker </scripts/base/frameworks/broker/index>`
 

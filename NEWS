@@ -146,6 +146,19 @@ New Functionality
   ``zeek_log_writer_truncated_containers_total``. The metrics are reported for each log
   stream.
 
+- Well-known ports of built-in analyzers can now be configured via redef. For example:
+
+	redef HTTP::ports += { 8181/tcp };
+
+  For protocol analyzers, the variable name is generally ``Analyzer_Module::ports``,
+  but in certain cases (SSL, QUIC, RDP, ...) the variable name includes the protocol
+  name to distinguish different internal analyzers. ``SSL::ssl_ports`` and ``SSL::dtls_ports``
+  as a concrete example. Check the analyzer's module ``export`` section or online documentation.
+  For packet analyzers, the analyzer name is included in the variable name for
+  historical reasons. Example:
+
+	redef PacketAnalyzer::VXLAN::vxlan_ports += { 4711/udp };
+
 - There exists a new configuration file ``<PREFIX>/etc/zeek/zeek.conf`` and a
   small executable called ``zeek-systemd-generator`` that acts as a systemd
   unit file generator. These two pieces allow for quickly running an opinionated
@@ -216,6 +229,12 @@ Changed Functionality
   for WebSocket connections by default. This can be disabled with the ``UseWebSocket``
   setting in ``zeekctl.cfg``, or adapted using the ``WebSocketHost`` and
   ``WebSocketPort`` settings.
+
+- Calling ``Analyzer::register_for_ports()`` now adds the provided server ports to
+  the global ``likely_server_ports`` set. The pattern of adding these ports manually
+  via, e.g., `redef likely_server_ports += { 443/tcp }`` is not required anymore and
+  implicitly done by the well-known port registration. To exclude ports from ``likely_server_ports``,
+  pass the them as the second argument (``non_server_ports``) to ``Analyzer::register_for_ports()``.
 
 - The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
   field anymore.

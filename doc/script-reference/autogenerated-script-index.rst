@@ -68,6 +68,18 @@
    base/packet-protocols/tcp/main.zeek </scripts/base/packet-protocols/tcp/main.zeek>
    base/packet-protocols/icmp/__load__.zeek </scripts/base/packet-protocols/icmp/__load__.zeek>
    base/packet-protocols/icmp/main.zeek </scripts/base/packet-protocols/icmp/main.zeek>
+   base/packet-protocols/igmp/__load__.zeek </scripts/base/packet-protocols/igmp/__load__.zeek>
+   base/packet-protocols/igmp/types.zeek </scripts/base/packet-protocols/igmp/types.zeek>
+   base/packet-protocols/igmp/main.zeek </scripts/base/packet-protocols/igmp/main.zeek>
+   base/frameworks/logging/__load__.zeek </scripts/base/frameworks/logging/__load__.zeek>
+   base/frameworks/logging/main.zeek </scripts/base/frameworks/logging/main.zeek>
+   base/bif/logging.bif.zeek </scripts/base/bif/logging.bif.zeek>
+   base/frameworks/logging/postprocessors/__load__.zeek </scripts/base/frameworks/logging/postprocessors/__load__.zeek>
+   base/frameworks/logging/postprocessors/scp.zeek </scripts/base/frameworks/logging/postprocessors/scp.zeek>
+   base/frameworks/logging/postprocessors/sftp.zeek </scripts/base/frameworks/logging/postprocessors/sftp.zeek>
+   base/frameworks/logging/writers/ascii.zeek </scripts/base/frameworks/logging/writers/ascii.zeek>
+   base/frameworks/logging/writers/sqlite.zeek </scripts/base/frameworks/logging/writers/sqlite.zeek>
+   base/frameworks/logging/writers/none.zeek </scripts/base/frameworks/logging/writers/none.zeek>
    base/packet-protocols/llc/__load__.zeek </scripts/base/packet-protocols/llc/__load__.zeek>
    base/packet-protocols/llc/main.zeek </scripts/base/packet-protocols/llc/main.zeek>
    base/packet-protocols/novell_802_3/__load__.zeek </scripts/base/packet-protocols/novell_802_3/__load__.zeek>
@@ -96,15 +108,6 @@
    base/frameworks/spicy/init-bare.zeek </scripts/base/frameworks/spicy/init-bare.zeek>
    builtin-plugins/__preload__.zeek </scripts/builtin-plugins/__preload__.zeek>
    base/init-frameworks-and-bifs.zeek </scripts/base/init-frameworks-and-bifs.zeek>
-   base/frameworks/logging/__load__.zeek </scripts/base/frameworks/logging/__load__.zeek>
-   base/frameworks/logging/main.zeek </scripts/base/frameworks/logging/main.zeek>
-   base/bif/logging.bif.zeek </scripts/base/bif/logging.bif.zeek>
-   base/frameworks/logging/postprocessors/__load__.zeek </scripts/base/frameworks/logging/postprocessors/__load__.zeek>
-   base/frameworks/logging/postprocessors/scp.zeek </scripts/base/frameworks/logging/postprocessors/scp.zeek>
-   base/frameworks/logging/postprocessors/sftp.zeek </scripts/base/frameworks/logging/postprocessors/sftp.zeek>
-   base/frameworks/logging/writers/ascii.zeek </scripts/base/frameworks/logging/writers/ascii.zeek>
-   base/frameworks/logging/writers/sqlite.zeek </scripts/base/frameworks/logging/writers/sqlite.zeek>
-   base/frameworks/logging/writers/none.zeek </scripts/base/frameworks/logging/writers/none.zeek>
    base/frameworks/broker/__load__.zeek </scripts/base/frameworks/broker/__load__.zeek>
    base/frameworks/broker/main.zeek </scripts/base/frameworks/broker/main.zeek>
    base/bif/comm.bif.zeek </scripts/base/bif/comm.bif.zeek>

@@ -11,6 +11,9 @@ module SIP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SIP.
+	const ports = { 5060/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## The record type which contains the fields of the SIP log.
@@ -100,9 +103,6 @@ redef record connection += {
 	sip:        Info  &optional;
 	sip_state:  State &optional;
 };
-
-const ports = { 5060/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

@@ -7,6 +7,9 @@ module Modbus;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for Modbus.
+	const ports = { 502/tcp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -36,9 +39,6 @@ export {
 redef record connection += {
 	modbus: Info &optional;
 };
-
-const ports = { 502/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

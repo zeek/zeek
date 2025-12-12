@@ -8,6 +8,9 @@ module Syslog;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for Syslog.
+	const ports = { 514/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## The record type which contains the fields of the syslog log.
@@ -32,9 +35,6 @@ export {
 redef record connection += {
 	syslog: Info &optional;
 };
-
-const ports = { 514/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

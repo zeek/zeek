@@ -9,6 +9,12 @@ module KRB;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for KRB over TCP.
+	const tcp_ports = { 88/tcp } &redef;
+
+	## Well-known ports for KRB over UDP.
+	const udp_ports = { 88/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -74,10 +80,6 @@ export {
 redef record connection += {
 	krb: Info &optional;
 };
-
-const tcp_ports = { 88/tcp };
-const udp_ports = { 88/udp };
-redef likely_server_ports += { tcp_ports, udp_ports };
 
 event zeek_init() &priority=5
 	{

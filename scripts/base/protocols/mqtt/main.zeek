@@ -12,6 +12,9 @@ export {
 		PUBLISH_LOG,
 	};
 
+	## Well-known ports for MQTT.
+	const ports = { 1883/tcp } &redef;
+
 	global log_policy_connect: Log::PolicyHook;
 	global log_policy_subscribe: Log::PolicyHook;
 	global log_policy_publish: Log::PolicyHook;
@@ -145,8 +148,6 @@ redef record connection += {
 	mqtt_state: State &optional;
 };
 
-const ports = { 1883/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

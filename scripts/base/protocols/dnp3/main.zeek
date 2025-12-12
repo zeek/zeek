@@ -8,6 +8,9 @@ module DNP3;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for DNP3.
+	const ports = { 20000/tcp, 20000/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -36,9 +39,6 @@ export {
 redef record connection += {
 	dnp3: Info &optional;
 };
-
-const ports = { 20000/tcp , 20000/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

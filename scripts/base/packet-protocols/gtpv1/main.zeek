@@ -15,10 +15,11 @@ module PacketAnalyzer::GTPV1;
 export {
         ## Default analyzer
         const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
+
+	## The set of UDP ports used for GTPV1 tunnels.
+        const gtpv1_ports = { 2152/udp, 2123/udp } &redef;
 }
 
-const gtpv1_ports = { 2152/udp, 2123/udp };
-redef likely_server_ports += { gtpv1_ports };
 
 event zeek_init() &priority=20
 	{

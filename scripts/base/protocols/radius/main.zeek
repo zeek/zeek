@@ -9,6 +9,9 @@ module RADIUS;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for RADIUS.
+	const ports = { 1812/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -59,9 +62,6 @@ export {
 redef record connection += {
 	radius: Info &optional;
 };
-
-const ports = { 1812/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

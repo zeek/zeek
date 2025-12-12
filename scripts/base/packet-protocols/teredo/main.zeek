@@ -15,10 +15,11 @@ module PacketAnalyzer::TEREDO;
 export {
         ## Default analyzer
         const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_IP &redef;
+
+	## The set of UDP ports used for Teredo tunnels.
+	const teredo_ports = { 3544/udp } &redef;
 }
 
-const teredo_ports = { 3544/udp };
-redef likely_server_ports += { teredo_ports };
 
 event zeek_init() &priority=20
 	{

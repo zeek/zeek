@@ -24,7 +24,7 @@ void thread_fun(ProxyThread::Args* args) {
 
     while ( ! done ) {
         try {
-            zmq::proxy(args->xsub, args->xpub, zmq::socket_ref{} /*capture*/);
+            zmq::proxy_steerable(args->xsub, args->xpub, zmq::socket_ref{}, args->rep /*capture*/);
         } catch ( zmq::error_t& err ) {
             if ( err.num() == EINTR )
                 continue;
@@ -32,6 +32,7 @@ void thread_fun(ProxyThread::Args* args) {
             done = true;
             args->xsub.close();
             args->xpub.close();
+            args->rep.close();
 
             if ( err.num() != ETERM ) {
                 std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
@@ -51,6 +52,7 @@ bool ProxyThread::Start() {
 
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
+    zmq::socket_t rep(ctx, zmq::socket_type::rep);
 
     // Enable XPUB_VERBOSER unconditional to enforce nodes receiving
     // notifications about any new and removed subscriptions, even if
@@ -77,7 +79,15 @@ bool ProxyThread::Start() {
         return false;
     }
 
-    args = {.xpub = std::move(xpub), .xsub = std::move(xsub)};
+    try {
+        rep.bind(rep_endpoint);
+    } catch ( zmq::error_t& err ) {
+        zeek::reporter->Error("ZeroMQ: Failed to bind rep socket %s: %s (%d)", rep_endpoint.c_str(), err.what(),
+                              err.num());
+        return false;
+    }
+
+    args = {.xpub = std::move(xpub), .xsub = std::move(xsub), .rep = std::move(rep)};
 
     thread = std::thread(thread_fun, &args);
 

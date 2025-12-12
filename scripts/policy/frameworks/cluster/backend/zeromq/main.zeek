@@ -79,6 +79,12 @@ export {
 	## of the central broker.
 	const connect_xsub_endpoint = "tcp://127.0.0.1:5555" &redef;
 
+	## The central broker's REQ endpoint to connect to.
+	##
+	## Telemetry thread connects with its REQ socket to the REP socket
+	## of the central broker.
+	const connect_req_endpoint = "tcp://127.0.0.1:5557" &redef;
+
 	## Vector of ZeroMQ endpoints to connect to for logging.
 	##
 	## A node's PUSH socket used for logging connects to each
@@ -115,6 +121,12 @@ export {
 	## This setting is used for the XPUB socket of the central broker started
 	## when :zeek:see:`Cluster::Backend::ZeroMQ::run_proxy_thread` is ``T``.
 	const listen_xpub_endpoint = "tcp://127.0.0.1:5555" &redef;
+
+	## REP listen endpoint for the central broker.
+	##
+	## This setting is used for the REP socket of the central broker started
+	## when :zeek:see:`Cluster::Backend::ZeroMQ::run_proxy_thread` is ``T``.
+	const listen_rep_endpoint = "tcp://127.0.0.1:5557" &redef;
 
 	## PULL socket address to listen on for log messages.
 	##

@@ -57,6 +57,8 @@ Packet Analyzers
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_SNAP PacketAnalyzer::Tag
 
+      .. zeek:enum:: PacketAnalyzer::ANALYZER_IGMP PacketAnalyzer::Tag
+
       .. zeek:enum:: PacketAnalyzer::ANALYZER_TCP PacketAnalyzer::Tag
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_TEREDO PacketAnalyzer::Tag

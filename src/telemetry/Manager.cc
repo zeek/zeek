@@ -2,10 +2,6 @@
 
 #include "zeek/telemetry/Manager.h"
 
-#include <cstdint>
-
-#include "Reporter.h"
-
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 
@@ -20,20 +16,19 @@
 #include <algorithm>
 #include <span>
 #include <thread>
-#include <zmq.hpp>
 
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/IPAddr.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
-#include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 #include "zeek/3rdparty/doctest.h"
+
 namespace zeek::telemetry {
 
 /**
@@ -141,71 +136,6 @@ void Manager::InitPostScript() {
                               []() { return static_cast<double>(get_stats()->fds); });
 #endif
 
-#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
-    std::string connect_req_endpoint;
-    int ipv6 = 0;
-
-    auto connect_req_endpoint_id = zeek::id::find("Cluster::Backend::ZeroMQ::connect_req_endpoint");
-    auto ipv6_id = zeek::id::find("Cluster::Backend::ZeroMQ::ipv6");
-
-    if ( connect_req_endpoint_id && ipv6_id ) {
-        connect_req_endpoint = connect_req_endpoint_id->GetVal()->AsStringVal()->ToStdString();
-        ipv6 = ipv6_id->GetVal()->AsBool() ? 1 : 0;
-    }
-
-    // Only initialize if ZeroMQ backend is configured.
-    if ( ! connect_req_endpoint.empty() ) {
-        // Enable IPv6 support if configured.
-        main_ctx.set(zmq::ctxopt::ipv6, ipv6);
-        // Initialize REQ socket for querying statistics from zmq_proxy.
-        req_socket = zmq::socket_t(main_ctx, zmq::socket_type::req);
-
-        try {
-            req_socket.connect(connect_req_endpoint);
-            req_socket_connected = true;
-
-            // Create a counter with a callback that queries proxy statistics.
-            proxy_query_stats_success_counter =
-                zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_proxy_query_stats_success", {},
-                                                     "Whether ZeroMQ proxy statistics queried successfully or not", "1",
-                                                     [this]() -> double { return QueryProxyStatistics(); });
-            // Create a counter with a callback that receives proxy statistics.
-            proxy_recv_stats_success_counter =
-                zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_proxy_recv_stats_success", {},
-                                                     "Whether ZeroMQ proxy statistics received successfully or not",
-                                                     "1", [this]() -> double { return RecvProxyStatistics(); });
-        } catch ( zmq::error_t& err ) {
-            zeek::reporter->Error("Failed to connect zeromq REQ socket to %s: %s", connect_req_endpoint.c_str(),
-                                  err.what());
-            req_socket_connected = false;
-        }
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_received", {},
-                                             "Number of messages received by the frontend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[0]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_received", {},
-                                             "Number of bytes received by the frontend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[1]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_sent", {},
-                                             "Number of messages sent by the frontend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[2]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_sent", {},
-                                             "Number of bytes sent by the frontend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[3]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_received", {},
-                                             "Number of messages received by the backend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[4]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_received", {},
-                                             "Number of bytes received by the backend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[5]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_sent", {},
-                                             "Number of messages sent by the backend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[6]; });
-        zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_sent", {},
-                                             "Number of bytes sent by the backend socket", "1",
-                                             [this]() -> double { return zeromq_proxy_stats[7]; });
-    }
-#endif
-
     // These two metrics get set at startup and are never modified after.
     process_start_time = GaugeInstance("process", "start_time", {}, "Process start time", "seconds");
     process_start_time->Set(run_state::zeek_start_time);
@@ -224,14 +154,6 @@ void Manager::Terminate() {
     // data. This keeps us from getting a request on another thread while
     // we're shutting down.
     prometheus_exposer.reset();
-
-#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
-    // Clean up ZeroMQ socket and context
-    if ( req_socket_connected ) {
-        req_socket.close();
-        req_socket_connected = false;
-    }
-#endif
 
     iosource_mgr->UnregisterFd(collector_flare.FD(), this);
 }
@@ -374,81 +296,6 @@ void Manager::UpdateMetrics() {
     for ( const auto& [name, f] : families )
         f->RunCallbacks();
 }
-
-#ifdef ENABLE_CLUSTER_BACKEND_ZEROMQ
-double Manager::QueryProxyStatistics() {
-    if ( ! req_socket_connected ) {
-        return 0.0;
-    }
-    try {
-        // Send "STATISTICS" request
-        std::string stats_msg = "STATISTICS";
-
-        // Do not wait for the send to complete
-        zmq::send_result_t send_result =
-            req_socket.send(zmq::const_buffer(stats_msg.data(), stats_msg.size()), zmq::send_flags::dontwait);
-
-        if ( ! send_result ) {
-            reporter->Error("Failed to send zeromq proxy STATISTICS request");
-            return 1.0;
-        }
-
-    } catch ( const zmq::error_t& err ) {
-        reporter->Error("Error querying zeromq proxy statistics: %s", err.what());
-        return 2.0;
-    }
-    return 0.0;
-}
-
-double Manager::RecvProxyStatistics() {
-    if ( ! req_socket_connected ) {
-        return 0.0;
-    }
-
-    // Receive response with timeout to avoid blocking Prometheus scraping
-    zmq::message_t reply;
-    zmq::pollitem_t poll_items[] = {{req_socket.handle(), 0, ZMQ_POLLIN, 0}};
-    int poll_result = zmq::poll(poll_items, 1, std::chrono::milliseconds(100));
-
-    if ( poll_result == 0 ) {
-        // Timeout - no zeromq proxy response received
-        reporter->Error("Timeout - no zeromq proxy response received");
-        return 1.0;
-    }
-
-    // Process all response messages in the receive queue so that
-    // we have most up to date statistics. Also to prevent receive queue overflow.
-    while ( poll_result != 0 ) {
-        int more = 1;
-        int i;
-        // Multipart response message is atomic, either all 8 parts
-        // are received or none are received. Hence polling for each part is not required.
-        for ( i = 0; i < 8 && more; i++ ) {
-            zmq::recv_result_t recv_result = req_socket.recv(reply, zmq::recv_flags::none);
-            if ( ! recv_result ) {
-                reporter->Error("Failed to receive zeromq proxy response");
-                return 2.0;
-            }
-            uint64_t* data = (uint64_t*)reply.data();
-            zeromq_proxy_stats[i] = (double)(*data);
-            more = req_socket.get(zmq::sockopt::rcvmore);
-        }
-        // Each multipart response message contains 8 parts
-        // If less than 8 parts are received
-        if ( i != 8 ) {
-            reporter->Error("Error received less than 8 messages in zeromq proxy multipart message");
-            return 3.0;
-        }
-        // If more than 8 parts are received
-        if ( more ) {
-            reporter->Error("Error received more than 8 messages in zeromq proxy multipart message");
-            return 4.0;
-        }
-        poll_result = zmq::poll(poll_items, 1, std::chrono::milliseconds(100));
-    }
-    return 0.0;
-}
-#endif
 
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");

@@ -24,7 +24,7 @@ void thread_fun(ProxyThread::Args* args) {
 
     while ( ! done ) {
         try {
-            zmq::proxy_steerable(args->xsub, args->xpub, zmq::socket_ref{}, args->rep /*capture*/);
+            zmq::proxy_steerable(args->xsub, args->xpub, /*capture=*/zmq::socket_ref{}, /*control=*/args->control);
         } catch ( zmq::error_t& err ) {
             if ( err.num() == EINTR )
                 continue;
@@ -32,7 +32,6 @@ void thread_fun(ProxyThread::Args* args) {
             done = true;
             args->xsub.close();
             args->xpub.close();
-            args->rep.close();
 
             if ( err.num() != ETERM ) {
                 std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
@@ -79,15 +78,7 @@ bool ProxyThread::Start() {
         return false;
     }
 
-    try {
-        rep.bind(rep_endpoint);
-    } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("ZeroMQ: Failed to bind rep socket %s: %s (%d)", rep_endpoint.c_str(), err.what(),
-                              err.num());
-        return false;
-    }
-
-    args = {.xpub = std::move(xpub), .xsub = std::move(xsub), .rep = std::move(rep)};
+    args = {.xpub = std::move(xpub), .xsub = std::move(xsub), .control = std::move(control)};
 
     thread = std::thread(thread_fun, &args);
 

@@ -11,6 +11,9 @@ export {
 	## The DNS logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for DNS traffic.
+	const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp } &redef;
+
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
@@ -162,8 +165,6 @@ redef record connection += {
 	dns:       Info  &optional;
 	dns_state: State &optional;
 };
-
-const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp } &redef;
 
 event zeek_init() &priority=5
 	{

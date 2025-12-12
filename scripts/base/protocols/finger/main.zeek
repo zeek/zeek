@@ -4,6 +4,7 @@
 module Finger;
 
 export {
+	## Well-known ports for Finger.
 	const ports = { 79/tcp } &redef;
 }
 

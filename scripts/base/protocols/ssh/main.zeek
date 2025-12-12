@@ -9,6 +9,9 @@ export {
 	## The SSH protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SSH.
+	const ports = { 22/tcp } &redef;
+
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
@@ -133,8 +136,6 @@ redef record Info += {
 redef record connection += {
 	ssh: Info &optional;
 };
-
-const ports = { 22/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

@@ -8,6 +8,9 @@ module MySQL;
 export {
 	redef enum Log::ID += { mysql::LOG };
 
+	## Well-known ports for MySQL.
+	const ports = { 1434/tcp, 3306/tcp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -40,8 +43,6 @@ export {
 redef record connection += {
 	mysql: Info &optional;
 };
-
-const ports = { 1434/tcp, 3306/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

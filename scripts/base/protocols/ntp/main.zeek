@@ -3,6 +3,9 @@ module NTP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for NTP.
+	const ports = { 123/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -54,8 +57,6 @@ export {
 redef record connection += {
 	ntp: Info &optional;
 };
-
-const ports = { 123/udp } &redef;
 
 event zeek_init() &priority=5
 	{

@@ -7,6 +7,9 @@ module SNMP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SNMP.
+	const ports = { 161/udp, 162/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## Information tracked per SNMP session.
@@ -68,8 +71,6 @@ export {
 redef record connection += {
 	snmp: SNMP::Info &optional;
 };
-
-const ports = { 161/udp, 162/udp } &redef;
 
 event zeek_init() &priority=5
 	{

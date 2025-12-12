@@ -10,6 +10,13 @@ module QUIC;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for QUIC.
+	const quic_ports = {
+		443/udp, # HTTP3-over-QUIC
+		853/udp, # DNS-over-QUIC
+		784/udp, # DNS-over-QUIC early
+	} &redef;
+
 	type Info: record {
 		## Timestamp of first QUIC packet for this entry.
 		ts:          time    &log;
@@ -92,11 +99,6 @@ redef record connection += {
 };
 
 # Faster to modify here than re-compiling .evt files.
-const quic_ports = {
-	443/udp, # HTTP3-over-QUIC
-	853/udp, # DNS-over-QUIC
-	784/udp, # DNS-over-QUIC early
-} &redef;
 
 function add_to_history(c: connection, is_orig: bool, what: string)
 	{

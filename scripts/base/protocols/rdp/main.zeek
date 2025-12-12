@@ -10,6 +10,12 @@ export {
 
 	global log_policy: Log::PolicyHook;
 
+	## Well-known ports for RDP.
+	const rdp_ports = { 3389/tcp } &redef;
+
+	## Well-known ports for RDP over UDP.
+	const rdpeudp_ports = { 3389/udp } &redef;
+
 	type Info: record {
 		## Timestamp for when the event happened.
 		ts:                    time    &log;
@@ -92,8 +98,6 @@ redef record connection += {
 	rdp: Info &optional;
 };
 
-const rdp_ports = { 3389/tcp } &redef;
-const rdpeudp_ports = { 3389/udp } &redef;
 
 event zeek_init() &priority=5
 	{

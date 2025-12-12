@@ -6,6 +6,9 @@ module DCE_RPC;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for DCE/RPC.
+	const ports = { 135/tcp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -72,8 +75,6 @@ redef record connection += {
 	dce_rpc_state: State &optional;
 	dce_rpc_backing: table[count] of BackingState &optional;
 };
-
-const ports = { 135/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

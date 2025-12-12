@@ -5,8 +5,10 @@
 module IRC;
 
 export {
-
 	redef enum Log::ID += { LOG };
+
+	## Well-known ports for IRC.
+	const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp } &redef;
 
 	global log_policy: Log::PolicyHook;
 
@@ -39,8 +41,6 @@ redef record connection += {
 	## IRC session information.
 	irc:  Info &optional;
 };
-
-const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp } &redef;
 
 event zeek_init() &priority=5
 	{

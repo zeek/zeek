@@ -97,6 +97,10 @@ Package: base/bif
 
    Internal functions and types used by the file analysis framework.
 
+:doc:`/scripts/base/bif/logging.bif.zeek`
+
+   Internal functions and types used by the logging framework.
+
 :doc:`/scripts/base/bif/plugins/Zeek_Teredo.events.bif.zeek`
 
 
@@ -108,10 +112,6 @@ Package: base/bif
 
 :doc:`/scripts/base/bif/plugins/Zeek_GTPv1.functions.bif.zeek`
 
-
-:doc:`/scripts/base/bif/logging.bif.zeek`
-
-   Internal functions and types used by the logging framework.
 
 :doc:`/scripts/base/bif/comm.bif.zeek`
 

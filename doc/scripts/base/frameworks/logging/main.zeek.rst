@@ -677,6 +677,11 @@ Types
 
          Print statements that have been redirected to a log stream.
 
+      .. zeek:enum:: IGMP::LOG Log::ID
+
+         (present if :doc:`/scripts/base/packet-protocols/igmp/main.zeek` is loaded)
+
+
       .. zeek:enum:: Broker::LOG Log::ID
 
          (present if :doc:`/scripts/base/frameworks/broker/log.zeek` is loaded)

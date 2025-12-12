@@ -1,3 +1,11 @@
+8.1.0-dev.1087 | 2025-12-12 10:11:29 -0700
+
+  * Update c-ares to v1.34.6 (Tim Wojtulewicz, Corelight)
+
+  * Update expected-lite submodule to latest release (Tim Wojtulewicz, Corelight)
+
+  * Update submodules to master versions [nomail] (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1083 | 2025-12-11 11:42:38 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

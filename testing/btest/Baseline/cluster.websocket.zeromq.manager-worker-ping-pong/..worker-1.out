@@ -12,4 +12,4 @@ XXXXXXXXXX.XXXXXX: got pong: manager reply for ping(to-manager, 302), 6
 XXXXXXXXXX.XXXXXX: got ping: to-worker, 103
 XXXXXXXXXX.XXXXXX: got ping: to-worker, 203
 XXXXXXXXXX.XXXXXX: got ping: to-worker, 303
-XXXXXXXXXX.XXXXXX: Cluster::node_down manager
+XXXXXXXXXX.XXXXXX: got finish from manager, terminate()

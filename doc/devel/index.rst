@@ -1,4 +1,6 @@
 
+.. _doc_repo:  https://github.com/zeek/zeek/tree/master/doc
+
 ================
 Developer Guides
 ================
@@ -9,13 +11,15 @@ content is maintained directly in the `Zeek wiki
 the content (e.g. the author finds it to be more dynamic, informal, meta,
 transient, etc. compared to other documentation).
 
+For more information about the documentation itself, see the ``doc`` directory
+within the Zeek source tree `here <doc_repo_>`_.
+
 .. toctree::
    :maxdepth: 2
 
    plugins
    spicy/index
    websocket-api
-   Documentation Guide </README.rst>
    contributors
    maintainers
    cluster-backend-zeromq

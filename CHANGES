@@ -1,3 +1,73 @@
+8.1.0-dev.1091 | 2025-12-12 15:22:25 -0700
+
+  * Minor wording/grammar/formatting fixes for 8.1 NEWS (Tim Wojtulewicz, Corelight)
+
+  * NEWS updates for 8.1 (Tim Wojtulewicz, Corelight)
+
+  * Use consistent line lengths (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1087 | 2025-12-12 10:11:29 -0700
+
+  * Update c-ares to v1.34.6 (Tim Wojtulewicz, Corelight)
+
+  * Update expected-lite submodule to latest release (Tim Wojtulewicz, Corelight)
+
+  * Update submodules to master versions [nomail] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1083 | 2025-12-11 11:42:38 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Update zeekctl submodule [nomail] (Arne Welzel, Corelight)
+
+8.1.0-dev.1080 | 2025-12-11 09:44:51 -0500
+
+  * Attempt to fix circular TOC dependency in docs (Evan Typanski, Corelight)
+
+8.1.0-dev.1077 | 2025-12-10 13:10:10 -0700
+
+  * Fix FuncInfo flag for ZAM for anonymize_addr BIF (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1075 | 2025-12-10 11:42:45 -0800
+
+  * Bump zeek-testing-cluster to pull in docker-compose modernization (Christian Kreibich, Corelight)
+
+  * Management framework: explicitly use Broker for now (Christian Kreibich, Corelight)
+
+8.1.0-dev.1072 | 2025-12-10 19:17:04 +0100
+
+  * cirrus: Try double star matching for changesIncludeOnly() (Arne Welzel, Corelight)
+
+    In the original discussion [1], they used 'doc/**', but the docs
+    now show 'doc/*'. Try the former and if it works I'll update their
+    documentation.
+
+    [1] https://github.com/cirruslabs/cirrus-ci-docs/issues/873#issuecomment-882889185
+
+8.1.0-dev.1070 | 2025-12-10 14:33:06 +0000
+
+  * Add SHA256 to hash-all-files policy script (Johanna Amann, Corelight)
+
+8.1.0-dev.1068 | 2025-12-10 10:47:09 +0000
+
+  * Fix ssl certificate logging when encountering protocol errors (Johanna Amann, Corelight)
+
+    This change fixes a problem with ssl certificate logging when a protocol
+    error is encountered after certificates are sent over a SSL/TLS
+    connection, but before the connection is logged. Currently, in these
+    cases, `ssl.log` will not contain the fingerprints of the certifiates
+    contained in the connection. This is due to the necessary hook not being
+    called. See GH-5078
+
+8.1.0-dev.1065 | 2025-12-09 13:47:02 -0700
+
+  * Deprecate MD5 IP anonymizers, add SHA256 versions (Tim Wojtulewicz, Corelight)
+    This necessitates changes addition of related BIFs.
+
+8.1.0-dev.1057 | 2025-12-09 20:32:18 +0100
+
+  * cluster/non-Broker: Report errors for &backend and &broker_store (Arne Welzel, Corelight)
+
 8.1.0-dev.1054 | 2025-12-09 11:38:14 +0100
 
   * Attr: Deprecate &backend and &broker_store attributes (Arne Welzel, Corelight)

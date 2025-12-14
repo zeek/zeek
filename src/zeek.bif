@@ -879,11 +879,30 @@ function sha512_hash%(...%): string
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##    sha512_hash_init sha512_hash_update sha512_hash_finish
-function md5_hmac%(...%): string
+function md5_hmac%(...%): string &deprecated="Remove in v9.1. Use sha256_hmac()."
 	%{
+	detail::KeyedHash::InitializeHmacMd5Seed();
+
 	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
+	%}
+
+## Computes an HMAC-SHA256 hash value of the provided list of arguments. The HMAC
+## secret key is generated from available entropy when Zeek starts up, or it can
+## be specified for repeatability using the ``-K`` command line flag.
+##
+## Returns: The HMAC-SHA256 hash value of the concatenated arguments.
+##
+## .. zeek:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
+function sha256_hmac%(...%): string
+	%{
+	unsigned char hmac[ZEEK_SHA256_DIGEST_LENGTH];
+	SHA256Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_sha256_key, hmac);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(hmac));
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
@@ -5515,7 +5534,8 @@ function __init_secondary_bifs%(%): bool
 #include "zeek/Anon.h"
 %%}
 
-## Preserves the prefix of an IP address in anonymization.
+## Preserves the prefix of an IP address in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method.
 ##
 ## a: The address to preserve.
 ##
@@ -5523,11 +5543,9 @@ function __init_secondary_bifs%(%): bool
 ##
 ## .. zeek:see:: preserve_subnet anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
 	%{
-	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
-	if ( ip_anon )
+	if ( auto* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50] )
 		{
 		if ( a->AsAddr().GetFamily() == IPv6 )
 			zeek::emit_builtin_error("preserve_prefix() not supported for IPv6 addresses");
@@ -5542,18 +5560,16 @@ function preserve_prefix%(a: addr, width: count%): any
 	return nullptr;
 	%}
 
-## Preserves the prefix of a subnet in anonymization.
+## Preserves the prefix of a subnet in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method.
 ##
 ## a: The subnet to preserve.
 ##
 ## .. zeek:see:: preserve_prefix anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
 	%{
-	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
-	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
-	if ( ip_anon )
+	if ( auto* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50] )
 		{
 		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
 			zeek::emit_builtin_error("preserve_subnet() not supported for IPv6 addresses");
@@ -5574,17 +5590,22 @@ function preserve_subnet%(a: subnet%): any
 ##
 ## cl: The anonymization class, which can take on three different values:
 ##
-##     - ``ORIG_ADDR``: Tag *a* as an originator address.
+##     - ``ORIG_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``orig_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``RESP_ADDR``: Tag *a* as an responder address.
+##     - ``RESP_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``resp_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``OTHER_ADDR``: Tag *a* as an arbitrary address.
+##     - ``OTHER_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``other_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
 ## Returns: An anonymized version of *a*.
 ##
 ## .. zeek:see:: preserve_prefix preserve_subnet
 ##
-## .. todo:: Currently dysfunctional.
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();

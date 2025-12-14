@@ -7,6 +7,9 @@
 
 @load base/misc/installation
 
+# The management framework runs on Broker.
+@load frameworks/cluster/backend/broker
+
 @load ./types
 
 module Management;

@@ -258,9 +258,8 @@ public:
     StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr, bool interval_as_double = false);
 
     template<typename T>
+        requires std::is_pointer_v<T>
     T As() {
-        // Since we're converting from "this", make sure the type requested is a pointer.
-        static_assert(std::is_pointer<T>());
         return static_cast<T>(this);
     }
 
@@ -1104,7 +1103,7 @@ private:
 // easier in the definitions of GetFieldAs().
 template<typename T>
 struct is_zeek_val {
-    static const bool value = std::disjunction_v<
+    static constexpr bool value = std::disjunction_v<
         std::is_same<AddrVal, T>, std::is_same<BoolVal, T>, std::is_same<CountVal, T>, std::is_same<DoubleVal, T>,
         std::is_same<EnumVal, T>, std::is_same<FileVal, T>, std::is_same<FuncVal, T>, std::is_same<IntVal, T>,
         std::is_same<IntervalVal, T>, std::is_same<ListVal, T>, std::is_same<OpaqueVal, T>, std::is_same<PatternVal, T>,
@@ -1324,6 +1323,7 @@ public:
      * type @c T.
      */
     template<class T, class... Ts>
+        requires std::is_constructible_v<T, Ts...>
     void Assign(int field, Ts&&... args) {
         Assign(field, make_intrusive<T>(std::forward<Ts>(args)...));
     }

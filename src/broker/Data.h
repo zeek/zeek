@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cassert>
+#include <concepts>
 #include <memory>
 #include <type_traits>
 
@@ -420,16 +421,16 @@ private:
 /**
  * Convenience function to check whether a list of Broker data values are all of type `count`.
  */
-template<typename... Args>
-[[nodiscard]] bool are_all_counts(BrokerDataView arg, Args&&... args) {
+template<std::same_as<BrokerDataView>... Args>
+[[nodiscard]] bool are_all_counts(BrokerDataView arg, Args... args) {
     return arg.IsCount() && (args.IsCount() && ...);
 }
 
 /**
  * Convenience function to check whether a list of Broker data values are all of type `integer`.
  */
-template<typename... Args>
-[[nodiscard]] auto to_count(BrokerDataView arg, Args&&... args) {
+template<std::same_as<BrokerDataView>... Args>
+[[nodiscard]] auto to_count(BrokerDataView arg, Args... args) {
     return std::tuple{arg.ToCount(), args.ToCount()...};
 }
 
@@ -494,11 +495,9 @@ public:
 
     BrokerData() = default;
 
-    template<class DataType>
-        requires std::is_same_v<DataType, broker::data>
-    explicit BrokerData(DataType value) : value_(std::move(value)) {
-        // Note: we use enable_if here to avoid nasty implicit conversions of broker::data.
-    }
+    // Templated to suppress implicit conversions of broker::data.
+    template<std::same_as<broker::data> DataType>
+    explicit BrokerData(DataType value) : value_(std::move(value)) {}
 
     BrokerDataView AsView() noexcept { return BrokerDataView{std::addressof(value_)}; }
 

@@ -1091,16 +1091,22 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 ## str: The string to inspect.
 ##
 ## re: The pattern to look for in *str*.
+## 
+## offset: The character offset to start the search from. The search will be confined to the substring s[offset:].
 ##
 ## Returns: The last string in *str* that matches *re*, or the empty string.
 ##
 ## .. zeek:see: find_all find_all_ordered strstr find_first
-function find_last%(str: string, re: pattern%) : string
+function find_last%(str: string, re: pattern, offset: count &default=0%) : string
 	%{
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	for ( const u_char* t = e - 1; t >= s; --t )
+	if ( offset >= str->Len() )
+			return zeek::val_mgr->EmptyString();
+			
+	//Scans backwards from end of string, but stops at the offset.
+	for ( const u_char* t = e - 1; t >=  s + offset; --t )
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
@@ -1116,15 +1122,20 @@ function find_last%(str: string, re: pattern%) : string
 ##
 ## re: The pattern to look for in *str*.
 ##
+## offset: The character offset to start the search from.
+##
 ## Returns: The first string in *str* that matches *re*, or the empty string.
 ##
 ## .. zeek:see:: find_all find_all_ordered find_last strstr
-function find_first%(str: string, re: pattern%) : string
+function find_first%(str: string, re: pattern, offset: count &default=0%) : string
 	%{
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	for ( const u_char* t = s; t < e; ++t )
+	if ( offset >= str->Len() )
+			return zeek::val_mgr->EmptyString();
+	//Starts scanning from the offset
+	for ( const u_char* t = s + offset; t < e; ++t )
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )

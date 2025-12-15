@@ -1,3 +1,9 @@
+8.2.0-dev.4 | 2025-12-15 14:45:44 -0800
+
+  * update ZAM BTest for new BiF (sha256_hmac) (Vern Paxson, Corelight)
+
+  * fix state growth in building NFAs (Vern Paxson, Corelight)
+
 8.2.0-dev | 2025-12-15 11:35:02 -0700
 
   * Start of v8.2.0 development (Tim Wojtulewicz, Corelight)

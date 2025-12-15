@@ -848,6 +848,41 @@ type event_metadata_vec: vector of EventMetadata::Entry;
 
 ## Statistics about a :zeek:type:`connection` endpoint.
 ##
+## .. note::
+##
+##     As of version 8.1, Zeek does not reliably keep the state, num_pkts and
+##     num_bytes_ip fields of endpoint records up-to-date. This means that within
+##     early connection events, protocol analyzer events or scheduled events,
+##     these fields may be stale and not reflect the most recent values as stored
+##     within Zeek's core after processing a packet.
+##
+##     Most notably, the packet and byte counts in a ``new_connection()`` handler
+##     are zero, rather than non-zero for the originator endpoint of a connection.
+##     The same applies to protocol analyzer events: The packet counts may not
+##     include the packet that raised the event.
+##
+##     If you use packet or byte counts in event handlers, the workaround to
+##     get the most recent values on the endpoint records is to execute the
+##     ``lookup_connection()`` function within a handler which will refresh
+##     the script-layer records to what the core holds::
+##
+##         # Refresh dynamic fields on the connection and endpoint records
+##         event new_connection(c: connection) {
+##             print c$orig$num_pkts;  # Prints 0 - stale.
+##
+##             local _ = lookup_connection(c$id);
+##
+##             print c$orig$num_pkts;  # Prints 1.
+##         }
+##
+##     References to issues and PRs with a description, ideas and discussions:
+##
+##       * https://github.com/zeek/zeek/issues/4214
+##       * https://github.com/zeek/zeek/issues/4786
+##       * https://github.com/zeek/zeek/pull/4785
+##       * https://github.com/zeek/zeek/pull/4788
+##       * https://github.com/zeek/zeek/pull/4886
+##
 ## .. zeek:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
@@ -874,6 +909,37 @@ type endpoint: record {
 ## transport-layer information about the conversation. Note that Zeek uses a
 ## liberal interpretation of "connection" and associates instances of this type
 ## also with UDP and ICMP flows.
+##
+## .. note::
+##
+##     As of version 8.1, Zeek's core does not reliably keep the duration and
+##     history fields of connection records up-to-date. This means that within
+##     early connection events, protocol analyzer events or scheduled events,
+##     these fields may be stale and not reflect the most recent values as
+##     stored within Zeek's core after processing a packet.
+##
+##     If you use duration or history in such event handlers, the workaround to
+##     get the most recent values is to execute the ``lookup_connection()`` function
+##     within a handler which will refresh the script-layer records to what
+##     the core holds::
+##
+##         # Refresh dynamic fields on the connection and endpoint records
+##         event new_connection(c: connection) {
+##             print c$history;  # Prints "" - stale.
+##
+##             local _ = lookup_connection(c$id);
+##
+##             print c$history;  # Prints "S" for a TCP connection starting with a SYN packet.
+##         }
+##
+##     References to issues and PRs with a description, ideas and discussions:
+##
+##       * https://github.com/zeek/zeek/issues/4214
+##       * https://github.com/zeek/zeek/issues/4786
+##       * https://github.com/zeek/zeek/pull/4785
+##       * https://github.com/zeek/zeek/pull/4788
+##       * https://github.com/zeek/zeek/pull/4886
+##
 type connection: record {
 	id: conn_id;	##< The connection's identifying 4-tuple.
 	orig: endpoint;	##< Statistics about originator side.

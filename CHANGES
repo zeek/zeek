@@ -1,3 +1,12 @@
+8.1.0-dev.1095 | 2025-12-15 11:13:36 -0700
+
+  * init-bare: Document stale connection and endpoint field behavior (Arne Welzel, Corelight)
+
+    As Jan suggested initially on #4214, lets at least document the
+    surprising behavior.
+
+    References #4214
+
 8.1.0-dev.1093 | 2025-12-15 09:07:41 -0700
 
   * Update CT/CA lists (Tim Wojtulewicz, Corelight)

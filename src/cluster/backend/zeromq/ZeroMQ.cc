@@ -76,44 +76,44 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 ZeekProxyTelemetry::ZeekProxyTelemetry(zmq::socket_t&& arg_req) : req(std::move(arg_req)) {
     // Registry telemetry metric callbacks with the manager. The callbacks run when someone
     // scrapes the Prometheus endpoint.
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_received", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_frontend_messages_received", {},
                                          "Number of messages received by the frontend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[0];
                                          });
 
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_received", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_frontend_bytes_received", {},
                                          "Number of bytes received by the frontend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[1];
                                          });
 
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_msgs_sent", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_frontend_messages_sent", {},
                                          "Number of messages sent by the frontend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[2];
                                          });
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_frontend_bytes_sent", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_frontend_bytes_sent", {},
                                          "Number of bytes sent by the frontend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[3];
                                          });
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_received", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_backend_messages_received", {},
                                          "Number of messages received by the backend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[4];
                                          });
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_received", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_backend_bytes_received", {},
                                          "Number of bytes received by the backend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[5];
                                          });
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_msgs_sent", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_backend_messages_sent", {},
                                          "Number of messages sent by the backend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[6];
                                          });
-    zeek::telemetry_mgr->CounterInstance("zeek", "zeromq_backend_bytes_sent", {},
+    zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_backend_bytes_sent", {},
                                          "Number of bytes sent by the backend socket", "1", [this]() -> double {
                                              RefreshStatisticsIfNeeded();
                                              return proxy_stats[7];

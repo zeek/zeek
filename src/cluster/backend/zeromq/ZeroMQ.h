@@ -59,7 +59,7 @@ private:
 
     zmq::socket_t req;
     double last_updated = 0.0;
-    double proxy_stats[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    std::array<double, 8> proxy_stats = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 };
 
 

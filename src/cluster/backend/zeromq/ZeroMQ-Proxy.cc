@@ -32,6 +32,7 @@ void thread_fun(ProxyThread::Args* args) {
             done = true;
             args->xsub.close();
             args->xpub.close();
+            args->control.close();
 
             if ( err.num() != ETERM ) {
                 std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
@@ -51,7 +52,6 @@ bool ProxyThread::Start() {
 
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
-    zmq::socket_t rep(ctx, zmq::socket_type::rep);
 
     // Enable XPUB_VERBOSER unconditional to enforce nodes receiving
     // notifications about any new and removed subscriptions, even if

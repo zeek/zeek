@@ -74,7 +74,7 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
 ZeekProxyTelemetry::ZeekProxyTelemetry(zmq::socket_t&& arg_req) : req(std::move(arg_req)) {
-    // Registry telemetry metric callbacks with the manager. The callbacks run when someone
+    // Register telemetry metric callbacks with the manager. The callbacks run when someone
     // scrapes the Prometheus endpoint.
     zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_proxy_frontend_messages_received", {},
                                          "Number of messages received by the frontend socket", "1", [this]() -> double {
@@ -138,23 +138,32 @@ void ZeekProxyTelemetry::RefreshStatistics() {
     zmq::message_t msg;
     bool more = true;
 
-    // I guess we'll see if this might hang if we query at the wrong time, but
-    // that would lockup the whole node because this code runs on the main thread
-    // and it should be easily recognizable on the stack when attaching via gdb
-    // or sending SIGABRT to dump a core.
+    // I guess we'll see if can hang if someone queries at the wrong time during
+    // shutdown. This code runs on the main thread, so it'd lockup the whole node
+    // after it received SIGERM. It should be easily recognizable on the stack when
+    // attaching via gdb or sending SIGABRT to dump a core. A reasonable process
+    // supervisor will also forcefully kill the process after a certain timeout
+    // after sending SIGTERM.
     //
-    // The REQ/REP socket and zmq::proxy_steerable() shouldn't just go away. They
-    // are released by the main thread and this code runs also on the main thread
-    // via the telemetry callbacks, so it should be fine.
+    // The REQ/REP socket is inproc:// so it should be reliable and the zmq::proxy_steerable()
+    // shouldn't just go away without req being closes, so this should all be safe.
     try {
+        // Request.
         req.send(buf);
-        for ( int i = 0; more; i++ ) {
+
+        // Read reply.
+        for ( size_t i = 0; more; i++ ) {
             zmq::recv_result_t recv_result = req.recv(msg, zmq::recv_flags::none);
-            proxy_stats[i] = static_cast<double>(*msg.data<uint64_t>());
+
+            if ( i < proxy_stats.size() )
+                proxy_stats[i] = static_cast<double>(*msg.data<uint64_t>());
+            else
+                ZEROMQ_THREAD_PRINTF("ignoring out-of-bound proxy_stats i=%zu\n", i);
+
             more = msg.more();
         }
     } catch ( zmq::error_t& err ) {
-        reporter->Warning("Unexpected exception refreshing ZeroMQ statistics: %s (%d)", err.what(), err.num());
+        ZEROMQ_THREAD_PRINTF("unexpected exception refreshing proxy stats: %s %d", err.what(), err.num());
     }
 }
 
@@ -279,7 +288,7 @@ void ZeroMQBackend::DoTerminate() {
     // thread, but before closing the main context,
     // otherwise ctx.close() below blocks.
     if ( proxy_telemetry ) {
-        ZEROMQ_DEBUG("Shutting proxy telemetry");
+        ZEROMQ_DEBUG("Shutting down proxy telemetry");
         proxy_telemetry->Shutdown();
     }
 
@@ -399,7 +408,7 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
     // Create a inproc REQ/REP connection for use by ProxyTelmeetry so that
     // we can request statistics telemetry callbacks from the zmq::proxy_steerable()
     // invocation running in a separate thread.
-    std::string control_endpoint = "inproc://proxy-control-rep";
+    std::string control_endpoint = "inproc://proxy-control";
     zmq::socket_t req(zmq::socket_t(ctx, zmq::socket_type::req));
     zmq::socket_t rep(zmq::socket_t(ctx, zmq::socket_type::rep));
 

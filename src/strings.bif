@@ -1102,7 +1102,7 @@ function find_last%(str: string, re: pattern, offset: count &default=0%) : strin
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	if ( offset >= str->Len() )
+	if ( offset >= (zeek_uint_t)str->Len() )
 			return zeek::val_mgr->EmptyString();
 			
 	//Scans backwards from end of string, but stops at the offset.
@@ -1132,7 +1132,7 @@ function find_first%(str: string, re: pattern, offset: count &default=0%) : stri
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	if ( offset >= str->Len() )
+	if ( offset >= (zeek_uint_t)str->Len() )
 			return zeek::val_mgr->EmptyString();
 	//Starts scanning from the offset
 	for ( const u_char* t = s + offset; t < e; ++t )

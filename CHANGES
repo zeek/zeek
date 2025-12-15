@@ -1,3 +1,7 @@
+8.1.0-dev.1093 | 2025-12-15 09:07:41 -0700
+
+  * Update CT/CA lists (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.1091 | 2025-12-12 15:22:25 -0700
 
   * Minor wording/grammar/formatting fixes for 8.1 NEWS (Tim Wojtulewicz, Corelight)

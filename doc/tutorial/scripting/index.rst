@@ -2,7 +2,7 @@
  Scripting Tutorial
 ####################
 
-We have previously seen Zeek’s scripting language, but have not examined
+We have previously seen Zeek's scripting language, but have not examined
 the scripting language in depth. This scripting tutorial will consist of
 three parts.
 
@@ -21,14 +21,10 @@ scripting language, then make a custom script.
 
 Third, a basic walkthrough of Javascript as an alternative.
 
-.. note::
-
-   There will also, eventually, be a section about incorporating this
-   script in a cluster setup.
-
-This tutorial will assume some knowledge of programming languages like
-Python before getting started. Specifics of Zeek script will be
-discussed, but any general programming concepts will not.
+This tutorial should not assume any level of programming. However, it
+won't go into fundamentals of many constructs. It is a "learn by doing"
+approach. If you do not have much programming experience, you may need
+to consult a programming basics tutorial first.
 
 .. toctree::
    :maxdepth: 1

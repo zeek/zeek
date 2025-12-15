@@ -5,14 +5,14 @@
 ###############
 
 When invoked standalone, Zeek is primarily used from the command line.
-You can read a trace file using the `-r` flag, like you did during the
+You can read a trace file using the ``-r`` flag, like you did during the
 setup:
 
 .. code:: console
 
    # zeek -r traces/zeek-doc/quickstart.pcap
 
-You can also use Zeek to analyze live traffic.When reading from an
+You can also use Zeek to analyze live traffic. When reading from an
 interface, you can exit Zeek by pressing Ctrl+C.
 
 .. code:: console
@@ -90,8 +90,8 @@ segments:
  Finding More
 **************
 
-This was just an overview of Zeek’s possible options. Feel free to
-browse Zeek’s ``--help`` output for more information:
+This was just an overview of Zeek's possible options. Feel free to
+browse Zeek's ``--help`` output for more information:
 
 .. code:: console
 

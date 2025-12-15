@@ -11,7 +11,7 @@ with the number of matches. This particular script will be very slow, so
 not a production-level analysis, but it will help show many of the core
 principles of Zeek scripts and augmenting logs.
 
-Zeek’s scripting language is event based. As network traffic is
+Zeek's scripting language is event based. As network traffic is
 processed, events get triggered. When making a script, the author has to
 decide what to react to. For this case, we care about HTTP “entities” -
 the body of the request or response.
@@ -28,7 +28,7 @@ is:
 
 Given this, we can see how a package might look. Users can use the
 ``print`` statement in order to print a given object. In this case,
-let’s print the data directly:
+let's print the data directly:
 
 .. literalinclude:: tutorial/01-steps/01.zeek
    :caption: :file:`test.zeek`
@@ -38,7 +38,7 @@ let’s print the data directly:
 .. note::
 
    This (and many other programming tutorials) use printing in order to
-   demonstrate functionality. However, it’s important to note that this
+   demonstrate functionality. However, it's important to note that this
    is almost entirely a tool for debugging. Production-grade scripts
    should use other tools such as logging or the notice framework in
    order to convey information.
@@ -87,7 +87,7 @@ redefinition for ``http_entity_data_delivery_size``:
 
    # zeek -r traces/zeek-doc/quickstart.pcap test.zeek http_entity_data_delivery_size=10
 
-Zeek’s output will look different---namely, every 10 bytes, there should
+Zeek's output will look different---namely, every 10 bytes, there should
 be a newline. The :zeek:see:`http_entity_data` event gets called in
 batches for large files. Therefore, we must reassemble the complete data
 before matching patterns on the entity, just in case the pattern spans
@@ -108,8 +108,8 @@ multiple requests or responses. Not only does this store information
 that the analyzer uses, we can also append our own fields to it for
 various purposes. We will use the ``redef`` keyword for this.
 
-Above the ``http_entity_data`` event, let’s add a string to keep track
-of the entity data we’ve seen so far:
+Above the ``http_entity_data`` event, let's add a string to keep track
+of the entity data we've seen so far:
 
 .. literalinclude:: tutorial/01-steps/02.zeek.diff
    :caption: :file:`test.zeek`
@@ -120,11 +120,11 @@ of the entity data we’ve seen so far:
 This statement will take the ``HTTP::State`` record mentioned before and
 add a field to it. When fields get added, they must have either
 ``&default`` (which specifies the default value) or ``&optional`` (which
-means you don’t need to initialize the field if you don’t want to). In
+means you don't need to initialize the field if you don't want to). In
 this case, we have a simple default that we can use to “build up” the
 entity, so we use ``&default``. The default ``entity`` value gets
 created whenever the ``HTTP::State`` record is created by the HTTP
-analyzer. The HTTP analyzer doesn’t need to know that we just appended a
+analyzer. The HTTP analyzer doesn't need to know that we just appended a
 field to its record.
 
 Then, we can modify the event handler to add the data to this for each
@@ -140,21 +140,21 @@ Inside the event, we have two new statements. The first is where most of
 the magic happens. For Zeek scripting, the ``$`` separates field values.
 This is often ``.`` in other languages (like ``my_class.my_field``). We
 then use the ``+=`` operator to concatenate the ``data`` string to
-what’s in that field.
+what's in that field.
 
 The other key here is that ``connection`` object. The connection record
 (that is, the first argument to the event) carries around state for the
 connection. Many protocols will use ``redef`` to add extra fields
 associated with that protocol---in this case, the HTTP analyzer adds
-both an ``HTTP::Info`` and `HTTP::State`` field. You can see which
+both an ``HTTP::Info`` and ``HTTP::State`` field. You can see which
 fields an analyzer adds to the ``connection`` object in the
-“redefinitions” section in the script’s documentation---:doc:`here
+“redefinitions” section in the script's documentation---:doc:`here
 </scripts/base/protocols/http/main.zeek>` for HTTP. You can see from
 that section that the HTTP analyzer adds a variable ``http_state`` with
 type ``HTTP::State`` to the ``connection`` record---thus, we can use it!
 
-Before we use it, since ``c$http_state`` is an optional field, it could
-be necessary to ensure that the ``c$http_state`` field exists before
+Before we use it, since ``c$http_state`` is an optional field, it is
+necessary to ensure that the ``c$http_state`` field exists before
 using it. If you use an optional field without it being present, that
 would be a runtime error which will fail during execution:
 
@@ -278,8 +278,8 @@ slashes (``/``). You can read more about them from the
 :zeek:type:`pattern` documentation.
 
 We want to find specific strings within the HTTP entity, so this is
-perfect. First, let’s see how you would search for a pattern in HTTP
-traffic. In ``http_end_entity`` we print the entity, let’s change that
+perfect. First, let's see how you would search for a pattern in HTTP
+traffic. In ``http_end_entity`` we print the entity, let's change that
 to print if some pattern matched:
 
 .. literalinclude:: tutorial/02-steps/02.zeek.diff
@@ -316,7 +316,7 @@ At this point, we need:
 #. A list of user-provided patterns to match
 #. How many of those patterns matched the entity content
 
-The first is easy, it’s similar to the ``max_reassembled_entity_size``
+The first is easy, it's similar to the ``max_reassembled_entity_size``
 from before. Just put a vector in the export block with ``&redef``:
 
 .. literalinclude:: tutorial/02-steps/03.zeek.diff
@@ -354,7 +354,7 @@ Now, its implementation simply loops through the patterns in
 
 There is one common trip-up in this function: ``for`` loops. In Zeek
 scripts, using a for loop often loops over the *indexes* rather than
-elements. That’s what the ``_`` in the ``for`` loop is: that’s an unused
+elements. That's what the ``_`` in the ``for`` loop is: that's an unused
 index, which would often just count up from 0 each iteration. You can
 add a second optional parameter, named ``pat`` in the function, which
 contains the actual elements.
@@ -429,7 +429,7 @@ at this point is here for your convenience.
 ********************
 
 This script still prints information. It should, however, convey this
-information in Zeek’s “native” form---logs. For this, we will take two
+information in Zeek's “native” form---logs. For this, we will take two
 approaches: enriching the existing HTTP log, and using the notice
 framework to deliver notices.
 
@@ -438,7 +438,7 @@ Adding a Log Field
 
 Adding a log field to Zeek is actually very simple. Since we want to add
 to the HTTP log, we will use the record that HTTP logs to---its ``Info``
-record. First, we decide what we are logging---in this case, it’s just
+record. First, we decide what we are logging---in this case, it's just
 the number of pattern matches. So, we add that to the
 :zeek:see:`HTTP::Info` record with ``redef``, and mark the field with
 ``&log`` to make sure it gets logged:
@@ -457,7 +457,7 @@ Next, in ``http_end_entity``, set the field:
    :start-after: @@
    :tab-width: 4
 
-We’re done! Log enrichment itself is simple---add the field to the
+We're done! Log enrichment itself is simple---add the field to the
 correct record. However, there are more considerations when making a
 robust script. For example, there can be multiple entities for a given
 HTTP request, so this script simply appends the matches to the previous
@@ -553,24 +553,23 @@ With that, the script is done. Here it is in its entirety:
 Conclusions
 ===========
 
-We went over how to use many of Zeek’s language features as well as ways
+We went over how to use many of Zeek's language features as well as ways
 to expose the new analysis to users. There are ways to learn more about
 Zeek scripting as well:
 
 You can go through `try.zeek.org <https://try.zeek.org>`_---this is an
-interactive tutorial all in the web browser. It explains Zeek’s
+interactive tutorial all in the web browser. It explains Zeek's
 functionality with increasingly advanced scripts. That is a logical next
 step after this tutorial if some language features seem under-explained.
 You can go through the :doc:`script reference </script-reference/index>`
-section. This has detailed explanations of all of Zeek’s :doc:`operators
+section. This has detailed explanations of all of Zeek's :doc:`operators
 </script-reference/operators>`, :doc:`statements
 </script-reference/statements>`, :doc:`attributes
 </script-reference/attributes>`, and more. If you need a deep-dive, that
 is the reference to use.
 
 While this script is not necessarily production-capable, it uses Zeek in
-many of the same ways you would for a real detection. Part of the reason
-it’s not production-capable is that Zeek actually has better ways of
-matching patterns on traffic and files---the :doc:`Signature framework
-</frameworks/signatures>`. In the next section, we will discuss Zeek’s
-many frameworks and how to use some of them
+many of the same ways you would for a real detection. This doesn't handle
+nested entities, plus it's likely quite slow and not very useful.
+Zeek also has another way to solve a similar problem---the
+:doc:`Signature framework </frameworks/signatures>`.

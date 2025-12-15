@@ -51,4 +51,4 @@ quickstart:
    # cd ..
 
 If you get a few log files, then it properly read the quickstart pcap.
-You’re now set up to do the tutorial!
+You're now set up to do the tutorial!

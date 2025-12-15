@@ -166,7 +166,7 @@ with ``zeekctl top``:
    worker-1     worker  localhost        4511      1G   279M   0%  zeek
    worker-2     worker  localhost        4512      1G   279M   0%  zeek
 
-This command is different in the "interactive" mode of ``zeekctl`` - try
+This command is different in the "interactive" mode of ``zeekctl``---try
 running ``zeekctl`` alone, then ``top``. Here you can watch the various
 process resources live!
 
@@ -234,7 +234,7 @@ after killing it:
    worker-1     worker  localhost        running   4511   08 Dec 21:47:35
    worker-2     worker  localhost        running   4512   08 Dec 21:47:35
 
-This requires manually intervention. Instead, you can use ``zeekctl``
+This requires manual intervention. Instead, you can use ``zeekctl``
 with ``cron`` in order to automatically check for crashed nodes and
 restart them. See the `ZeekControl cron`_ command reference for more
 information.

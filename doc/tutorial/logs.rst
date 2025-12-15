@@ -11,12 +11,9 @@
 At this point, Zeek should be fully working within the tutorial's container.
 Now, we will see the power of Zeek: creating logs.
 
-In this section, we will go over:
-
-#. How to interact with Zeek's logs and access the fields you want
-#. A few of the common logs you will work with and how to pivot amongst
-   them
-#. How real systems ingest, process, and store Zeek logs
+In this section, we will go over how to interact with Zeek's logs and access
+the fields we need. We will also touch a few of the common logs and how to
+pivot amongst them.
 
 ******************
  Zeek Log Formats
@@ -78,7 +75,6 @@ Now, we can find the ``weird.log``:
 
 Notice how the ``uid`` field in ``weird.log`` is the same as one of the
 entries in ``conn.log``. This indicates that those entries are from the
-
 same connection. You can "pivot" between these two logs, or any other
 logs, using ``uid`` fields!
 
@@ -313,15 +309,10 @@ with the date, such as ``logs/2025-08-20``. Log files also get renamed
 to include a timestamp, so ``conn.log`` might become
 ``conn.2025-08-20-15-23-42.log``.
 
-.. note::
-
-   For this tutorial, you may also use the ``PREFIX`` environment
-   variable. This has been setup to point to ``/usr/local/zeek`` by the
-   setup script.
-
 These are all gzip-compressed logs, as they end with the ``.gz``
 extension. You can use a tool such as ``zcat`` to examine these. We can
-look at ``conn.log``'s contents from the command line like so:
+look at ``conn.log``'s contents from the command line, then pipe these into
+``zeek-cut`` just as before:
 
 .. code:: console
 
@@ -331,8 +322,6 @@ look at ``conn.log``'s contents from the command line like so:
    1765490152.990319       CLyR2u2eyJp1MRMVp4      192.168.1.8     52917   192.0.78.212    80       tcp     http    0.098612        71      377     SF      T       F       0       ShADTadtFf       12      670     8       1098    -       6
    1765490159.598223       CzA1sF3CaHAqo6yyO3      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100184        73      377     SF      T       F       0       ShADTadtFf       12      674     8       1098    -       6
    1765490159.598222       CfdV2t3GpevvRneXl7      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100184        73      377     SF      T       F       0       ShADTadtFf       12      674     8       1098    -       6
-
-Then, you may pipe these into ``zeek-cut`` just as before.
 
 ******************
  Zeek's Core Logs
@@ -409,7 +398,7 @@ Generate the traffic as TSV logs, first:
 
 .. code:: console
 
-   # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
+   # zeek -r traces/zeek-doc/quickstart.pcap
 
 You can see that both ``conn.log`` entries include ``http`` in the
 service field:

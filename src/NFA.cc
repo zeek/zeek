@@ -10,7 +10,7 @@
 
 namespace zeek::detail {
 
-static int nfa_state_id = 0;
+int NFA_State::nfa_state_id = 0;
 
 NFA_State::NFA_State(int arg_sym, EquivClass* ec) {
     sym = arg_sym;

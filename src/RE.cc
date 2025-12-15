@@ -35,6 +35,7 @@ Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
     dfa = nullptr;
     ecs = nullptr;
     accepted = new AcceptingSet();
+    NFA_State::StartNewNFA();
 }
 
 Specific_RE_Matcher::~Specific_RE_Matcher() {

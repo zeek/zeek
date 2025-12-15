@@ -29,4 +29,3 @@ on your own machine.
    invoking-zeekctl
    logs
    scripting/index
-   cluster-backends

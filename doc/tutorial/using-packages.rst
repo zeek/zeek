@@ -18,12 +18,12 @@ explain how to use ``zkg`` in order to get the packages you need.
  Finding and Installing Packages
 *********************************
 
-Say you’re particularly worried about CVE-2022-26809_ (there is nothing
-special about this CVE, it’s simply an exploit that we can use for
+Say you're particularly worried about CVE-2022-26809_ (there is nothing
+special about this CVE, it's simply an exploit that we can use for
 demonstration). Zeek does not offer any detection for this
 out-of-the-box. But, if you look on the `Zeek Package Browser`_, you can
 easily find a `package by Corelight
-<https://github.com/corelight/cve-2022-26809>`_. Let’s install it.
+<https://github.com/corelight/cve-2022-26809>`_. Let's install it.
 
 First, since this is on the official Zeek package browser, you can
 install it with just the package name:
@@ -56,7 +56,7 @@ This particular package should create notices when traffic for the CVE
 is detected, but we seem to be missing a ``notice.log`` after running that
 command. That's because packages have to be enabled in order to run. This
 is done differently when executing Zeek on the command line versus in the
-cluster. We’ll get to the cluster version later. For now, you can load the
+cluster. We'll get to the cluster version later. For now, you can load the
 package by just including its name in the command line, or by prefixing that
 name with ``packages``:
 
@@ -81,7 +81,7 @@ react to events differently. For now, these are simply reported to
 Packages should be regularly maintained and updated. When doing so,
 users will want to fetch those updates. You can use ``zkg upgrade`` in
 order to upgrade any packages you have, or specify a package to upgrade
-just one. If you definitely don’t want to upgrade certain packages, you
+just one. If you definitely don't want to upgrade certain packages, you
 can use ``zkg pin`` in order to “pin” its version.
 
 For more commands, check out the zkg command line reference.

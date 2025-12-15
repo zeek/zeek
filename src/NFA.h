@@ -34,6 +34,8 @@ public:
     explicit NFA_State(CCL* ccl);
     ~NFA_State() override;
 
+    static void StartNewNFA() { nfa_state_id = 0; }
+
     void AddXtion(NFA_State* next_state) { xtions.push_back(next_state); }
     NFA_state_list* Transitions() { return &xtions; }
     void AddXtionsTo(NFA_state_list* ns);
@@ -66,6 +68,8 @@ protected:
     int id;   // number that uniquely identifies this state
     CCL* ccl; // if nil, then use sym
     int accept;
+
+    static int nfa_state_id;
 
     // Whether the first transition points backwards.  Used
     // to avoid reference-counting loops.

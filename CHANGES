@@ -1,3 +1,13 @@
+8.1.0-rc1.1 | 2025-12-15 15:09:41 -0800
+
+  * Merge branch 'topic/vern/nfa-state-reset' (Christian Kreibich, Corelight)
+
+    * topic/vern/nfa-state-reset:
+      update ZAM BTest for new BiF (sha256_hmac)
+      fix state growth in building NFAs
+
+    (cherry picked from commit 11a2eeb7d053430e4f7ac8aba27004332c944a8e)
+
 8.1.0-rc1 | 2025-12-15 18:17:05 +0000
 
   * Release 8.1.0-rc1. 

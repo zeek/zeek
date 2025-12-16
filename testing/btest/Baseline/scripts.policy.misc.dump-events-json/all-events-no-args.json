@@ -33,6 +33,10 @@
 }
 {
   "ts": 1254722768.224809,
+  "event": "smtp_analyzer_confirmation"
+}
+{
+  "ts": 1254722768.224809,
   "event": "analyzer_confirmation_info"
 }
 {
@@ -402,6 +406,10 @@
 {
   "ts": 1437831787.867142,
   "event": "smtp_reply"
+}
+{
+  "ts": 1437831787.883306,
+  "event": "smtp_analyzer_confirmation"
 }
 {
   "ts": 1437831787.883306,

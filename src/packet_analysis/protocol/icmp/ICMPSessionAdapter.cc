@@ -49,10 +49,12 @@ void ICMPSessionAdapter::Done() {
 
 zeek_uint_t ICMPSessionAdapter::GetEndpointSize(bool is_orig) const {
     zeek_int_t size = is_orig ? request_len : reply_len;
+    // size may be negative if request / reply hasn't been seen yet.
     return size < 0 ? 0 : size;
 }
 
 zeek_uint_t ICMPSessionAdapter::GetEndpointState(bool is_orig) const {
     zeek_int_t size = is_orig ? request_len : reply_len;
+    // size may be negative if request / reply hasn't been seen yet.
     return size < 0 ? ICMP_INACTIVE : ICMP_ACTIVE;
 }

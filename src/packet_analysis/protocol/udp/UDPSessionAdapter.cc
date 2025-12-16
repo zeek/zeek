@@ -70,10 +70,12 @@ void UDPSessionAdapter::ChecksumEvent(bool is_orig, uint32_t threshold) {
 
 zeek_uint_t UDPSessionAdapter::GetEndpointSize(bool is_orig) const {
     zeek_int_t size = is_orig ? request_len : reply_len;
+    // size may be negative if no data has bee been seen yet.
     return size < 0 ? 0 : size;
 }
 
 zeek_uint_t UDPSessionAdapter::GetEndpointState(bool is_orig) const {
     zeek_int_t size = is_orig ? request_len : reply_len;
+    // size may be negative if no data has bee been seen yet.
     return size < 0 ? UDP_INACTIVE : UDP_ACTIVE;
 }

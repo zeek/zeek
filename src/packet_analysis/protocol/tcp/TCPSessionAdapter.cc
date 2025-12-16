@@ -1046,7 +1046,7 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
 #pragma GCC diagnostic pop
 }
 
-// TCPSessionAdapter has its own set of packet children that aren't
+// TCPSessionAdapter has its own set of packet analyzer children that aren't
 // visited in an analyzer::for_each() call, so do it by hand here.
 //
 // This is primarily for the ConnSize analyzer, or any other packet

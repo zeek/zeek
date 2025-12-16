@@ -1115,6 +1115,10 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
         //
         // Add some C++ code to statically assert it's actually a ZVal at
         // compile time.
+        // Ensure statically that the assign value is a zeek::ZVal or zeek::Val
+        // or any base. This should be obvious in the generated code, but
+        // happened to previously work for both, Val and ZVal, which is now
+        // forbidden.
         eval += g->IndentString() + "static_assert(std::is_same_v<decltype(" + v + "), zeek::ZVal>);\n";
         if ( is_managed )
             eval += g->IndentString() + "Unref($$.ManagedVal());\n";
@@ -1122,9 +1126,6 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
         eval += g->IndentString() + "$$ = " + v + ";";
     }
     else {
-        // Ensure statically that the assign value is a zeek::Val or its base
-        // is a zeek::Val. This should be obvious in the generated code, but
-        // this code happened to work for both, Val and ZVal, but is now forbidden.
         eval += g->IndentString() + "static_assert(std::is_base_of_v<zeek::Val, std::remove_reference_t<decltype(*" +
                 v + ")>>);\n";
         if ( is_managed ) {

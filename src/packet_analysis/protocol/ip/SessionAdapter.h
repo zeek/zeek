@@ -113,6 +113,10 @@ public:
 private:
     const SessionAdapter* adapter = nullptr;
     // Pointers to the endpoint records within connection.
+    //
+    // These are owned and kept alive by a Connection's record_val.
+    // Just before the Connection is freed, the Done() method will
+    // clear these raw pointers after uninstalling the field callbacks.
     RecordVal* orig_endp = nullptr;
     RecordVal* resp_endp = nullptr;
 
@@ -235,7 +239,12 @@ public:
                    SkipReason skip_reason = SkipReason::None) const;
 
     /**
-     * Override to install endpoint callbacks.
+     * SessionAdapter implements InitConnVal() to install callbacks
+     * for endpoint's state, num_pkts and num_bytes_ip fields.
+     *
+     * If you derive from SessionAdapter and need additional functionality
+     * other than GetEndpointSize() and GetEndpointState(), override this
+     * method, but do call SessionAdapter::InitConnVal().
      */
     void InitConnVal(RecordVal& conn_val) override;
 

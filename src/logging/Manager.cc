@@ -1654,15 +1654,14 @@ detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, c
         for ( int index : indices ) {
             auto* vr = val->AsRecord();
             const auto& field = vr->RawOptField(index);
+            vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();
 
-            if ( field.HoldsZVal() ) {
+            // Depending on whether the fields holds a ZVal or
+            // a callback, resolve it properly.
+            if ( field.HoldsZVal() )
                 val = *field;
-                vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();
-            }
-            else if ( field.HoldsFieldCallback() ) {
+            else if ( field.HoldsFieldCallback() )
                 val = field.FieldCallback()->Invoke(*vr, index);
-                vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();
-            }
             else {
                 // Value, or any of its parents, is not set.
                 vals.emplace_back(filter->fields[i]->type, false);

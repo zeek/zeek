@@ -103,7 +103,7 @@ macro LoadFieldWithDefault(target, r, f) {
 		}
 	else if ( zvel.HoldsFieldCallback() )
 		{
-		target = zvel.FieldCallback()->Invoke(*r, f);
+		target = zvel.FieldCallback()->Invoke(*r, RecordField(r, f));
 		}
 	else
 		{
@@ -130,7 +130,7 @@ macro LoadField(target, r, f) {
 		}
 	else if ( zvel.HoldsFieldCallback() )
 		{
-		target = zvel.FieldCallback()->Invoke(*r, f);
+		target = zvel.FieldCallback()->Invoke(*r, RecordField(r, f));
 		}
 	else
 		{

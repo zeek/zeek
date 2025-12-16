@@ -120,8 +120,6 @@ redef record connection += {
   ldap: State &optional;
 };
 
-redef likely_server_ports += { LDAP::ports_tcp, LDAP::ports_udp };
-
 #############################################################################
 global OPCODES_FINISHED: set[LDAP::ProtocolOpcode] = { LDAP::ProtocolOpcode_BIND_RESPONSE,
                                                        LDAP::ProtocolOpcode_UNBIND_REQUEST,

@@ -4,8 +4,8 @@
 module Finger;
 
 export {
-	const ports = { 79/tcp };
-	redef likely_server_ports += { ports };
+	## Well-known ports for Finger.
+	const ports = { 79/tcp } &redef;
 }
 
 event zeek_init() &priority=5

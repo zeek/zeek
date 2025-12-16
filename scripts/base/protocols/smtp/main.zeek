@@ -9,6 +9,9 @@ module SMTP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SMTP.
+	const ports = { 25/tcp, 587/tcp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	type Info: record {
@@ -114,9 +117,6 @@ redef record connection += {
 	smtp:       Info  &optional;
 	smtp_state: State &optional;
 };
-
-const ports = { 25/tcp, 587/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

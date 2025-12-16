@@ -7,6 +7,9 @@ module SOCKS;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SOCKS.
+	const ports = { 1080/tcp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## Whether passwords are captured or not.
@@ -49,9 +52,6 @@ export {
 	## SOCKS finalization hook.  Remaining SOCKS info may get logged when it's called.
 	global finalize_socks: Conn::RemovalHook;
 }
-
-const ports = { 1080/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

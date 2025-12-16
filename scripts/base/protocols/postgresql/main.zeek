@@ -11,6 +11,9 @@ export {
 	## Log stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for PostgreSQL.
+	const ports: set[port] = { 5432/tcp } &redef;
+
 	type Version: record {
 		major: count;
 		minor: count;
@@ -61,16 +64,12 @@ export {
 	global log_postgresql: event(rec: Info);
 
 	global finalize_postgresql: Conn::RemovalHook;
-
-	global ports: set[port] = { 5432/tcp } &redef;
 }
 
 redef record connection += {
 	postgresql: Info &optional;
 	postgresql_state: State &optional;
 };
-
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

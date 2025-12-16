@@ -19,6 +19,9 @@ export {
 	## The FTP protocol logging stream identifier.
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for FTP.
+	const ports = { 21/tcp, 2811/tcp } &redef;
+
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
@@ -82,9 +85,6 @@ redef record connection += {
 	ftp: Info &optional;
 	ftp_data_reuse: bool &default=F;
 };
-
-const ports = { 21/tcp, 2811/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

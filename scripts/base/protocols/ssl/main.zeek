@@ -10,6 +10,17 @@ module SSL;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SSL.
+	const ssl_ports = {
+		443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
+		989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
+	} &redef;
+
+	## Ports for DTLS.
+	# There are no well known DTLS ports at the moment. Let's
+	# just add 443 for now for good measure - who knows :)
+	const dtls_ports = { 443/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## The record type which contains the fields of the SSL log.
@@ -181,17 +192,6 @@ redef record Info += {
 	# the record has been delayed.
 	delay_tokens: set[string] &optional;
 };
-
-const ssl_ports = {
-	443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
-	989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
-};
-
-# There are no well known DTLS ports at the moment. Let's
-# just add 443 for now for good measure - who knows :)
-const dtls_ports = { 443/udp };
-
-redef likely_server_ports += { ssl_ports, dtls_ports };
 
 # Priority needs to be higher than priority of zeek_init in ssl/files.zeek
 event zeek_init() &priority=6

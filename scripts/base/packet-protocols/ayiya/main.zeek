@@ -6,8 +6,10 @@ module PacketAnalyzer::AYIYA;
 const IPPROTO_IPV4 : count = 4;
 const IPPROTO_IPV6 : count = 41;
 
-const ayiya_ports = { 5072/udp };
-redef likely_server_ports += { ayiya_ports };
+export {
+	## The set of UDP ports used for AYIYA tunnels.
+	const ayiya_ports = { 5072/udp } &redef;
+}
 
 event zeek_init() &priority=20
 	{

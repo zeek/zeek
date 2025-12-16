@@ -1,3 +1,22 @@
+8.2.0-dev.13 | 2025-12-16 20:00:14 +0100
+
+  * NEWS: Add an entry about redef of analyzer ports (Arne Welzel, Corelight)
+
+  * quic: Exclude DoQ ports from likely_server_ports (Arne Welzel, Corelight)
+
+    There's one connection in the medium.trace private test suite on port
+    853 that's flipped due to 853/udp being a likely_server_port now. For
+    now, do not include them in server_ports, but instead register them
+    via non_server_ports to avoid the baseline churn.
+
+  * Move analyzer port variables into export (Arne Welzel, Corelight)
+
+  * Update btest (Jan Grashoefer, Corelight)
+
+  * Allow port redefs for built-in packet analyzers (Jan Grashoefer, Corelight)
+
+  * Allow port redefs for built-in analyzers (Jan Grashoefer, Corelight)
+
 8.2.0-dev.6 | 2025-12-16 17:46:59 +0000
 
   * Fix tls-1.2-late-protocol-error test failure for Spicy SSL analyzer (Johanna Amann, Corelight)

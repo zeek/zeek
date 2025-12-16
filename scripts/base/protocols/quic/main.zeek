@@ -10,6 +10,26 @@ module QUIC;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for QUIC.
+	const quic_ports = {
+		443/udp, # HTTP3-over-QUIC
+	} &redef;
+
+	## Well-known ports for DNS-over-QUIC.
+	##
+	## Currently not added to likely_server_ports to avoid spurious
+	## originator/responder changes in the private testing baseline.
+	##
+	## You can always add these to likely_server_ports in your local.zeek
+	## file for your environment if needed:
+	##
+	##	redef likely_server_ports += { 853/udp, 784/udp };
+	##
+	const doq_ports = {
+		853/udp, # DNS-over-QUIC
+		784/udp, # DNS-over-QUIC early
+	} &redef;
+
 	type Info: record {
 		## Timestamp of first QUIC packet for this entry.
 		ts:          time    &log;
@@ -92,11 +112,6 @@ redef record connection += {
 };
 
 # Faster to modify here than re-compiling .evt files.
-const quic_ports = {
-	443/udp, # HTTP3-over-QUIC
-	853/udp, # DNS-over-QUIC
-	784/udp, # DNS-over-QUIC early
-};
 
 function add_to_history(c: connection, is_orig: bool, what: string)
 	{
@@ -270,4 +285,5 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_quic, $path="quic", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_QUIC, quic_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_QUIC, set(), doq_ports);
 	}

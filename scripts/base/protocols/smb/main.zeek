@@ -10,6 +10,9 @@ export {
 		FILES_LOG
 	};
 
+	## Well-known ports for SMB.
+	const ports = { 139/tcp, 445/tcp } &redef;
+
 	global log_policy_files: Log::PolicyHook;
 	global log_policy_mapping: Log::PolicyHook;
 
@@ -180,9 +183,6 @@ redef record FileInfo += {
 	## UUID referencing this file if DCE/RPC.
 	uuid : string &optional;
 };
-
-const ports = { 139/tcp, 445/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

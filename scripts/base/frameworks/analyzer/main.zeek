@@ -50,10 +50,15 @@ export {
 	##
 	## tag: The tag of the analyzer.
 	##
-	## ports: The set of well-known ports to associate with the analyzer.
+	## server_ports: The set of well-known server ports to associate with the analyzer.
+	##               These ports will automatically be added to :zeek:see:`likely_server_ports`.
+	##
+	## non_server_ports: The set of well-known non-server ports (e.g., client ports)
+	##                  to associate with the analyzer. These ports will not be added
+	##                  to :zeek:see:`likely_server_ports`.
 	##
 	## Returns: True if the ports were successfully registered.
-	global register_for_ports: function(tag: Analyzer::Tag, ports: set[port]) : bool;
+	global register_for_ports: function(tag: Analyzer::Tag, server_ports: set[port], non_server_ports: set[port] &default=set()) : bool;
 
 	## Registers an individual well-known port for an analyzer. If a future
 	## connection on this port is seen, the analyzer will be automatically
@@ -232,15 +237,24 @@ function disable_analyzer(tag: AllAnalyzers::Tag) : bool
 	return __disable_analyzer(tag);
 	}
 
-function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool
+function register_for_ports(tag: Analyzer::Tag, server_ports: set[port], non_server_ports: set[port] &default=set()) : bool
 	{
 	local rc = T;
 
-	for ( p in ports )
+	for ( p in server_ports )
 		{
 		if ( ! register_for_port(tag, p) )
 			rc = F;
 		}
+
+	for ( p in non_server_ports )
+		{
+		if ( ! register_for_port(tag, p) )
+			rc = F;
+		}
+
+	# Automatically update likely_server_ports with server_ports
+	likely_server_ports += server_ports;
 
 	return rc;
 	}

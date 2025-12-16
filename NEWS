@@ -14,6 +14,19 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Well-known ports of built-in analyzers can now be configured via redef. For example:
+
+	redef HTTP::ports += { 8181/tcp };
+
+  For protocol analyzers, the variable name is generally ``Analyzer_Module::ports``,
+  but in certain cases (SSL, QUIC, RDP, ...) the variable name includes the protocol
+  name to distinguish different internal analyzers. ``SSL::ssl_ports`` and ``SSL::dtls_ports``
+  as a concrete example. Check the analyzer module's ``export`` section or online documentation.
+  For packet analyzers, the analyzer name is included in the variable name for historical
+  reasons. Example:
+
+	redef PacketAnalyzer::VXLAN::vxlan_ports += { 4711/udp };
+
 Changed Functionality
 ---------------------
 

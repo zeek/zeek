@@ -55,6 +55,10 @@ private:
     ConnSize_Analyzer* analyzer = nullptr;
 
     // Pointers to the endpoint records within connection.
+    //
+    // These are owned and kept alive by a Connection's record_val.
+    // Just before the Connection is freed, the Done() method will
+    // clear these raw pointers after uninstalling the field callbacks.
     RecordVal* orig_endp = nullptr;
     RecordVal* resp_endp = nullptr;
 

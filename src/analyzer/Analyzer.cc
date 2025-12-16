@@ -378,7 +378,8 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
         // of these isn't yet the case, this will happen during GetVal()
         // or SetSessionAdapter()
         if ( Conn()->GetSessionAdapter() != nullptr ) {
-            if ( auto* conn_val = Conn()->RawVal(); conn_val != nullptr )
+            auto* conn_val = Conn()->RawVal();
+            if ( conn_val )
                 analyzer->InitConnVal(*conn_val);
         }
     }

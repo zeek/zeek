@@ -621,12 +621,12 @@ public:
      * instantiated for the first time, or right after the analyzer is
      * initialized if the Connection's conn_val is available at that time.
      *
-     * This is only interesting for analyzers that expose data on the
+     * This is only interesting for analyzers that expose data for the
      * connection or any nested records.
      *
      * The \a conn_val will live at least until the analyzer's Done()
      * method is called. If an analyzer installs record field callbacks,
-     * these need to be cleared during Done(). Usually by keeping a pointer
+     * these need to be cleared during Done(), usually by keeping a pointer
      * to the passed RecordVal instance and updating the fields with the
      * last valid value.
      *

@@ -1,3 +1,11 @@
+8.0.10-19 | 2026-09-25 07:58:58 -0700
+
+  * Fix tls-1.2-late-protocol-error test failure for Spicy SSL analyzer (Johanna Amann, Corelight)
+
+    The analyzer.log entry has a different format for the binpac/spicy
+    analyzers. Switch to just checking for the presence of analyzer.log -
+    the exact form of the error does not matter.
+
 8.0.10-17 | 2026-09-25 03:47:22 +0000
 
   * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Tim Wojtulewicz, Corelight)

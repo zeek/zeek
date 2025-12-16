@@ -6,4 +6,4 @@ add_subdirectory(auxil/LightPcapNg)
 zeek_add_plugin(
     Zeek PcapNg
     DEPENDENCIES light_pcapng
-    SOURCES Source.cc Plugin.cc)
+    SOURCES Source.cc Parser.cc Plugin.cc)

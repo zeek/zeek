@@ -1,3 +1,7 @@
+8.2.0-dev.16 | 2025-12-17 05:11:00 +0000
+
+  * CI: Skip image builds by checking label in cached images (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.13 | 2025-12-16 20:00:14 +0100
 
   * NEWS: Add an entry about redef of analyzer ports (Arne Welzel, Corelight)

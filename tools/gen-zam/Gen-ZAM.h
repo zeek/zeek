@@ -184,6 +184,10 @@ enum EmitTarget {
     // output.  For example, for OP_NEGATE_VV_I the corresponding
     // string is "negate-VV-I".
     OpName,
+
+    // A list of cases, indexed by ZAM opcode, that return the inverse
+    // of the opcode (e.g., OP_LE_VVV_I maps to OP_GT_VVV_I).
+    OpInverse,
 };
 
 // A helper class for managing the (ordered) collection of ZAM_OperandClass's
@@ -284,6 +288,11 @@ public:
     // boolean value that can be used in conditionals).
     void SetIsPredicate() { is_predicate = true; }
     bool IsPredicate() const { return is_predicate; }
+
+    // Tracking of "inverse" attributes.
+    bool HasInverseOp() const { return ! inverse_op_name.empty(); }
+    void SetInverseOp(string inv_op) { inverse_op_name = std::move(inv_op); }
+    const string& InverseOp() const { return inverse_op_name; }
 
     // The number of operands the operation takes (not including its
     // assignment target).  A value of 0 is used for operations that
@@ -611,6 +620,9 @@ protected:
     // and the operand class (like "OP_V") of that associated operation.
     string assignment_less_op;
     string assignment_less_op_class;
+
+    // If non-empty, specifies the name of the "inverse" operation.
+    string inverse_op_name;
 };
 
 // A subclass used for "unary-op" templates.
@@ -964,6 +976,13 @@ private:
     void CloseEmitTargets();
     void FinishSwitches();
 
+    // Generates the cases providing inverses for op-codes.
+    void GenInverseMappings();
+
+    // Validates that inverse relationships are symmetric: if A specifies
+    // inverse B, then B must either not specify an inverse, or specify A.
+    void ValidateInverseOps();
+
     // Parses a single template, returning true on success and false
     // if we've reached the end of the input.  (Errors during parsing
     // result instead in exiting.)
@@ -980,10 +999,21 @@ private:
     std::unique_ptr<TemplateInput> ti;
 
     // Tracks all of the templates created so far.
-    vector<std::unique_ptr<ZAM_OpTemplate>> templates;
+    vector<std::shared_ptr<ZAM_OpTemplate>> templates;
 
     // Tracks the macros recorded so far.
     vector<vector<string>> macros;
+
+    // Maps names to their templates, for resolving inverse references.
+    std::unordered_map<string, std::shared_ptr<ZAM_OpTemplate>> name_to_template;
+
+    // Tracks inverse mappings: opcode -> inverse_opcode.
+    // Populated during opcode generation in GenOpCode().
+    std::unordered_map<string, string> inverse_mappings;
+
+    // Tracks all opcodes that were actually generated.
+    // Used to filter out invalid inverse mappings.
+    std::unordered_set<string> generated_opcodes;
 
     // Current indentation level.  Maintained globally rather than
     // per EmitTarget, so the caller needs to ensure it is managed

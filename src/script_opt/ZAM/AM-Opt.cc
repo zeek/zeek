@@ -86,15 +86,30 @@ void ZAMCompiler::OptimizeInsts() {
     }
 
     bool something_changed;
+    int num_rounds = 0;
 
     do {
         something_changed = false;
+
+        if ( dump_intermediaries ) {
+            printf("\nStarting point, round %d:\n", ++num_rounds);
+            DumpInsts1(nullptr);
+        }
 
         while ( RemoveDeadCode() ) {
             something_changed = true;
 
             if ( dump_intermediaries ) {
-                printf("Removed some dead code:\n");
+                printf("\nRemoved some dead code:\n");
+                DumpInsts1(nullptr);
+            }
+        }
+
+        while ( InvertConditionalsAroundGotos() ) {
+            something_changed = true;
+
+            if ( dump_intermediaries ) {
+                printf("\nDid some conditional inversions:\n");
                 DumpInsts1(nullptr);
             }
         }
@@ -103,7 +118,7 @@ void ZAMCompiler::OptimizeInsts() {
             something_changed = true;
 
             if ( dump_intermediaries ) {
-                printf("Did some collapsing:\n");
+                printf("\nDid some collapsing:\n");
                 DumpInsts1(nullptr);
             }
         }
@@ -114,7 +129,7 @@ void ZAMCompiler::OptimizeInsts() {
             something_changed = true;
 
             if ( dump_intermediaries ) {
-                printf("Did some pruning:\n");
+                printf("\nDid some pruning:\n");
                 DumpInsts1(nullptr);
             }
         }
@@ -132,6 +147,9 @@ void ZAMCompiler::TallySwitchTargets(const CaseMapsI<T>& switches) {
 }
 
 bool ZAMCompiler::RemoveDeadCode() {
+    if ( analysis_options.no_ZAM_control_flow_opt )
+        return false;
+
     if ( insts1.empty() )
         return false;
 
@@ -140,11 +158,7 @@ bool ZAMCompiler::RemoveDeadCode() {
     // Note, loops up to the last instruction but not including it.
     for ( unsigned int i = 0; i < insts1.size() - 1; ++i ) {
         auto& i0 = insts1[i];
-
         if ( ! i0->live )
-            continue;
-
-        if ( analysis_options.no_ZAM_control_flow_opt )
             continue;
 
         auto i1 = NextLiveInst(i0);
@@ -183,6 +197,61 @@ bool ZAMCompiler::RemoveDeadCode() {
     return did_removal;
 }
 
+bool ZAMCompiler::InvertConditionalsAroundGotos() {
+    if ( analysis_options.no_ZAM_control_flow_opt )
+        return false;
+
+    if ( insts1.empty() )
+        return false;
+
+    bool did_change = false;
+
+    // Note, loops up to the last instruction but not including it.
+    for ( unsigned int i = 0; i < insts1.size() - 1; ++i ) {
+        auto& i0 = insts1[i];
+        auto target = i0->target;
+        if ( ! i0->live || ! target || ! ZOP_has_inverse(i0->op) )
+            continue;
+
+        auto i1 = NextLiveInst(i0);
+        if ( ! i1 )
+            // No potential goto to branch around.
+            continue;
+
+        if ( ! i1->IsUnconditionalBranch() )
+            continue;
+
+        if ( i1->num_labels > 0 )
+            // It's the target of other branches, don't remove it.
+            continue;
+
+        auto after_branch_ind = NextLiveInst(i1->inst_num);
+        auto target_ind = FirstLiveInst(target->inst_num);
+
+        if ( target_ind != after_branch_ind )
+            continue;
+
+        // The conditional branches to right after following goto. Invert it
+        // and remove goto.
+        auto goto_target = FirstLiveInst(i1->target);
+
+        i0->target = goto_target ? goto_target : pending_inst;
+        i0->op = inverse_ZOP(i0->op);
+
+        if ( goto_target )
+            ++(goto_target->num_labels);
+
+        if ( target_ind >= 0 )
+            --(insts1[target_ind]->num_labels);
+
+        KillInst(i1);
+
+        did_change = true;
+    }
+
+    return did_change;
+}
+
 bool ZAMCompiler::CollapseGoTos() {
     if ( analysis_options.no_ZAM_control_flow_opt )
         return false;
@@ -195,23 +264,22 @@ bool ZAMCompiler::CollapseGoTos() {
         if ( ! i0->live || ! orig_t || orig_t == pending_inst )
             continue;
 
-        // Resolve branch chains.  We both do a version that
-        // follows branches (to jump to the end of any chains),
-        // and one that does (so we can do num_labels bookkeeping
-        // for our initial target).
+        // Resolve branch chains.  We both do a version that follows branches
+        // (to jump to the end of any chains; 2nd argument to FirstLiveInst
+        // is true) and one that does not (so we can do num_labels bookkeeping
+        // for our initial target, 2nd argument is false).
         auto first_branch = FirstLiveInst(orig_t, false);
         if ( ! first_branch )
             // We're jump-to-end, so there's no possibility of
             // a chain.
             continue;
 
-        auto t = FirstLiveInst(orig_t, true);
-
+        auto t = FirstLiveInst(orig_t, true); // final target of chain
         if ( ! t )
             t = pending_inst;
 
         if ( t != orig_t ) {
-            // Update branch.
+            // Update first branch since i0 no longer targets it.
             if ( first_branch->live )
                 --first_branch->num_labels;
             i0->target = t;
@@ -971,18 +1039,9 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         }
     }
 
-    ZInstI* succ = nullptr;
-
-    if ( num_labels > 0 ) {
-        for ( auto j = i + 1; j < insts1.size(); ++j ) {
-            if ( insts1[j]->live ) {
-                succ = insts1[j];
-                break;
-            }
-        }
-        if ( succ )
-            succ->num_labels += num_labels;
-    }
+    ZInstI* succ = NextLiveInst(inst);
+    if ( succ )
+        succ->num_labels += num_labels;
 
     // Look into propagating control flow info.
     if ( inst->aux && ! inst->aux->cft.empty() ) {
@@ -1002,6 +1061,7 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         BackPropagateCFT(i, CFT_BREAK);
         BackPropagateCFT(i, CFT_BLOCK_END);
         BackPropagateCFT(i, CFT_LOOP_END);
+        BackPropagateCFT(i, CFT_INLINED_RETURN);
 
         // If's can be killed because their bodies become empty, break's
         // because they just lead to their following instruction, and next's

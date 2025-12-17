@@ -167,6 +167,14 @@
 #		such as 'b', 'f', 'g', and 's', the corresponding type to
 #		list is 'I', used for integer access.
 #
+#	inverse	For instructions that can be used in conditionals, specifies
+#		the "inverse" conditional. For example, the inverse for LE
+#		(less-than-or-equal) is GT (greater-than). This attribute
+#		isn't needed for instructions that have a "*-Not-*Cond"
+#		form (like "Val2-Is-Not-In-Table-Cond"), since for them
+#		Gen-ZAM can automatically infer that the inverse from
+#		the structure of the name (e.g., "Val2-Is-In-Table-Cond").
+#
 # 	eval	specifies a block of C++ code used to evaluation the
 # 		execution of the instruction.  The block begins with the
 # 		remainder of the "eval" line and continues until either a

@@ -57,7 +57,9 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
         memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
     vlan = pkt->vlan;
+    vlan_present = pkt->vlan_present;
     inner_vlan = pkt->inner_vlan;
+    inner_vlan_present = pkt->inner_vlan_present;
 
     weird = false;
 
@@ -229,10 +231,10 @@ const RecordValPtr& Connection::GetVal() {
         if ( encapsulation && encapsulation->Depth() > 0 )
             conn_val->Assign(8, encapsulation->ToVal());
 
-        if ( vlan != 0 )
+        if ( vlan_present )
             conn_val->Assign(9, vlan);
 
-        if ( inner_vlan != 0 )
+        if ( inner_vlan_present )
             conn_val->Assign(10, inner_vlan);
     }
 

@@ -46,10 +46,12 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     time = ts.tv_sec + double(ts.tv_usec) / 1e6;
     eth_type = 0;
 
+    vlan_present = false;
     vlan = 0;
     vlan_pcp = 0;
     vlan_dei = false;
 
+    inner_vlan_present = false;
     inner_vlan = 0;
     inner_vlan_pcp = 0;
     inner_vlan_dei = false;
@@ -137,13 +139,13 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
         else
             l2_hdr->Assign(4, "00:00:00:00:00:00");
 
-        if ( vlan ) {
+        if ( vlan_present ) {
             l2_hdr->Assign(5, vlan);
             l2_hdr->Assign(6, vlan_pcp);
             l2_hdr->Assign(7, vlan_dei);
         }
 
-        if ( inner_vlan ) {
+        if ( inner_vlan_present ) {
             l2_hdr->Assign(8, inner_vlan);
             l2_hdr->Assign(9, inner_vlan_pcp);
             l2_hdr->Assign(10, inner_vlan_dei);

@@ -163,32 +163,42 @@ public:
     uint32_t eth_type;
 
     /**
-     * (Outermost) VLAN tag if any, else 0.
+     * (Outermost) If the VLAN tag was present
+     */
+    bool vlan_present = false;
+
+    /**
+     * (Outermost) VLAN tag if vlan_present, otherwise invalid
      */
     uint32_t vlan = 0;
 
     /**
-     * (Outermost) VLAN PCP if vlan is set, otherwise invalid
+     * (Outermost) VLAN PCP if vlan_present, otherwise invalid
      */
     uint32_t vlan_pcp = 0;
 
     /**
-     * (Outermost) VLAN DEI if vlan is set, otherwise invalid
+     * (Outermost) VLAN DEI if vlan_present, otherwise invalid
      */
     bool vlan_dei = false;
 
     /**
-     * (Innermost) VLAN tag if any, else 0.
+     * (Innermost) If the inner VLAN tag was present
+     */
+    bool inner_vlan_present = false;
+
+    /**
+     * (Innermost) VLAN tag if inner_vlan_present, otherwise invalid
      */
     uint32_t inner_vlan = 0;
 
     /**
-     * (Innermost) VLAN PCP if inner_vlan is set, otherwise invalid
+     * (Innermost) VLAN PCP if inner_vlan_present, otherwise invalid
      */
     uint32_t inner_vlan_pcp = 0;
 
     /**
-     * (Innermost) VLAN DEI if inner_vlan is set, otherwise invalid
+     * (Innermost) VLAN DEI if inner_vlan_present, otherwise invalid
      */
     bool inner_vlan_dei = false;
 

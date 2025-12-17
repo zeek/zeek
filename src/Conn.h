@@ -201,6 +201,7 @@ private:
     IPAddr resp_addr;
     uint32_t orig_port, resp_port;             // in network order
     uint32_t orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
+    bool vlan_present, inner_vlan_present;     // If the VLANs are available
     uint32_t vlan, inner_vlan;                 // VLAN this connection traverses, if available
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available
     u_char resp_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer responder address, if available

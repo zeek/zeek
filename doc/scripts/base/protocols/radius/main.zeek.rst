@@ -11,6 +11,12 @@ Implements base functionality for RADIUS analysis. Generates the radius.log file
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+============================================================== ============================
+:zeek:id:`RADIUS::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for RADIUS.
+============================================================== ============================
+
 Types
 #####
 ============================================== =
@@ -19,17 +25,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ==========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`RADIUS::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       radius: :zeek:type:`RADIUS::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ==========================================================
+============================================ ==========================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`RADIUS::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               radius: :zeek:type:`RADIUS::Info` :zeek:attr:`&optional`
+============================================ ==========================================================
 
 Events
 ######
@@ -48,10 +53,28 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: RADIUS::ports
+   :source-code: base/protocols/radius/main.zeek 13 13
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            1812/udp
+         }
+
+
+   Well-known ports for RADIUS.
+
 Types
 #####
 .. zeek:type:: RADIUS::Info
-   :source-code: base/protocols/radius/main.zeek 14 49
+   :source-code: base/protocols/radius/main.zeek 17 52
 
    :Type: :zeek:type:`record`
 
@@ -129,7 +152,7 @@ Types
 Events
 ######
 .. zeek:id:: RADIUS::log_radius
-   :source-code: base/protocols/radius/main.zeek 53 53
+   :source-code: base/protocols/radius/main.zeek 56 56
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`RADIUS::Info`)
 
@@ -146,7 +169,7 @@ Hooks
    RADIUS finalization hook.  Remaining RADIUS info may get logged when it's called.
 
 .. zeek:id:: RADIUS::log_policy
-   :source-code: base/protocols/radius/main.zeek 12 12
+   :source-code: base/protocols/radius/main.zeek 15 15
 
    :Type: :zeek:type:`Log::PolicyHook`
 

@@ -36,7 +36,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: rdp_begin_encryption
-   :source-code: base/protocols/rdp/main.zeek 259 269
+   :source-code: base/protocols/rdp/main.zeek 262 272
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 
@@ -62,7 +62,7 @@ Events
    :param data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_client_core_data
-   :source-code: base/protocols/rdp/main.zeek 187 213
+   :source-code: base/protocols/rdp/main.zeek 190 216
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientCoreData`)
 
@@ -75,7 +75,7 @@ Events
    :param data: The data contained in the client core data structure.
 
 .. zeek:id:: rdp_client_network_data
-   :source-code: base/protocols/rdp/main.zeek 215 228
+   :source-code: base/protocols/rdp/main.zeek 218 231
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, channels: :zeek:type:`RDP::ClientChannelList`)
 
@@ -101,7 +101,7 @@ Events
    :param data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_connect_request
-   :source-code: base/protocols/rdp/main.zeek 166 171
+   :source-code: base/protocols/rdp/main.zeek 169 174
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`)
@@ -118,7 +118,7 @@ Events
    :param flags: The flags set by the client.
 
 .. zeek:id:: rdp_gcc_server_create_response
-   :source-code: base/protocols/rdp/main.zeek 230 235
+   :source-code: base/protocols/rdp/main.zeek 233 238
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`count`)
 
@@ -147,7 +147,7 @@ Events
    :param len: The length of the encrypted data.
 
 .. zeek:id:: rdp_negotiation_failure
-   :source-code: base/protocols/rdp/main.zeek 180 185
+   :source-code: base/protocols/rdp/main.zeek 183 188
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`)
@@ -164,7 +164,7 @@ Events
    :param flags: The flags set by the server.
 
 .. zeek:id:: rdp_negotiation_response
-   :source-code: base/protocols/rdp/main.zeek 173 178
+   :source-code: base/protocols/rdp/main.zeek 176 181
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
@@ -181,7 +181,7 @@ Events
    :param flags: The flags set by the server.
 
 .. zeek:id:: rdp_server_certificate
-   :source-code: base/protocols/rdp/main.zeek 245 257
+   :source-code: base/protocols/rdp/main.zeek 248 260
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cert_type: :zeek:type:`count`, permanently_issued: :zeek:type:`bool`)
 
@@ -199,7 +199,7 @@ Events
    :param permanently_issued: Value will be true is the certificate(s) is permanent on the server.
 
 .. zeek:id:: rdp_server_security
-   :source-code: base/protocols/rdp/main.zeek 237 243
+   :source-code: base/protocols/rdp/main.zeek 240 246
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, encryption_method: :zeek:type:`count`, encryption_level: :zeek:type:`count`)
 

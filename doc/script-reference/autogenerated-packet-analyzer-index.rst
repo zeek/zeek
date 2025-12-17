@@ -291,7 +291,7 @@ Events
 ++++++
 
 .. zeek:id:: new_gtpv1_state
-   :source-code: base/packet-protocols/gtpv1/main.zeek 35 38
+   :source-code: base/packet-protocols/gtpv1/main.zeek 36 39
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -708,7 +708,7 @@ Events
       it may become particularly expensive for real-time analysis.
 
 .. zeek:id:: new_teredo_state
-   :source-code: base/packet-protocols/teredo/main.zeek 36 39
+   :source-code: base/packet-protocols/teredo/main.zeek 37 40
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 

@@ -11,11 +11,11 @@ Implements base functionality for PostgreSQL analysis.
 
 Summary
 ~~~~~~~
-State Variables
-###############
-================================================================== =
-:zeek:id:`PostgreSQL::ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-================================================================== =
+Redefinable Options
+###################
+================================================================== ================================
+:zeek:id:`PostgreSQL::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for PostgreSQL.
+================================================================== ================================
 
 Types
 #####
@@ -27,19 +27,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== =========================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              Log stream identifier.
-                                                                     
-                                                                     * :zeek:enum:`PostgreSQL::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       postgresql: :zeek:type:`PostgreSQL::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       postgresql_state: :zeek:type:`PostgreSQL::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =========================================================================
+============================================ =========================================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      Log stream identifier.
+                                             
+                                             * :zeek:enum:`PostgreSQL::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               postgresql: :zeek:type:`PostgreSQL::Info` :zeek:attr:`&optional`
+                                             
+                                               postgresql_state: :zeek:type:`PostgreSQL::State` :zeek:attr:`&optional`
+============================================ =========================================================================
 
 Events
 ######
@@ -56,10 +55,10 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-State Variables
-###############
+Redefinable Options
+###################
 .. zeek:id:: PostgreSQL::ports
-   :source-code: base/protocols/postgresql/main.zeek 65 65
+   :source-code: base/protocols/postgresql/main.zeek 15 15
 
    :Type: :zeek:type:`set` [:zeek:type:`port`]
    :Attributes: :zeek:attr:`&redef`
@@ -72,11 +71,12 @@ State Variables
          }
 
 
+   Well-known ports for PostgreSQL.
 
 Types
 #####
 .. zeek:type:: PostgreSQL::Info
-   :source-code: base/protocols/postgresql/main.zeek 20 49
+   :source-code: base/protocols/postgresql/main.zeek 23 52
 
    :Type: :zeek:type:`record`
 
@@ -132,7 +132,7 @@ Types
    Record type containing the column fields of the PostgreSQL log.
 
 .. zeek:type:: PostgreSQL::State
-   :source-code: base/protocols/postgresql/main.zeek 51 58
+   :source-code: base/protocols/postgresql/main.zeek 54 61
 
    :Type: :zeek:type:`record`
 
@@ -157,7 +157,7 @@ Types
 
 
 .. zeek:type:: PostgreSQL::Version
-   :source-code: base/protocols/postgresql/main.zeek 14 17
+   :source-code: base/protocols/postgresql/main.zeek 17 20
 
    :Type: :zeek:type:`record`
 
@@ -172,7 +172,7 @@ Types
 Events
 ######
 .. zeek:id:: PostgreSQL::log_postgresql
-   :source-code: base/protocols/postgresql/main.zeek 61 61
+   :source-code: base/protocols/postgresql/main.zeek 64 64
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`PostgreSQL::Info`)
 
@@ -181,7 +181,7 @@ Events
 Hooks
 #####
 .. zeek:id:: PostgreSQL::finalize_postgresql
-   :source-code: base/protocols/postgresql/main.zeek 265 268
+   :source-code: base/protocols/postgresql/main.zeek 264 267
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

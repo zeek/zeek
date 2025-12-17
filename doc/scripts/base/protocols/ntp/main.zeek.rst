@@ -9,6 +9,12 @@ base/protocols/ntp/main.zeek
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`NTP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for NTP.
+=========================================================== =========================
+
 Types
 #####
 =========================================== =
@@ -17,17 +23,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`NTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       ntp: :zeek:type:`NTP::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ====================================================
+============================================ ====================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`NTP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               ntp: :zeek:type:`NTP::Info` :zeek:attr:`&optional`
+============================================ ====================================================
 
 Events
 ######
@@ -45,10 +50,28 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: NTP::ports
+   :source-code: base/protocols/ntp/main.zeek 7 7
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            123/udp
+         }
+
+
+   Well-known ports for NTP.
+
 Types
 #####
 .. zeek:type:: NTP::Info
-   :source-code: base/protocols/ntp/main.zeek 8 47
+   :source-code: base/protocols/ntp/main.zeek 11 50
 
    :Type: :zeek:type:`record`
 
@@ -143,7 +166,7 @@ Types
 Events
 ######
 .. zeek:id:: NTP::log_ntp
-   :source-code: base/protocols/ntp/main.zeek 51 51
+   :source-code: base/protocols/ntp/main.zeek 54 54
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`NTP::Info`)
 
@@ -153,7 +176,7 @@ Events
 Hooks
 #####
 .. zeek:id:: NTP::log_policy
-   :source-code: base/protocols/ntp/main.zeek 6 6
+   :source-code: base/protocols/ntp/main.zeek 9 9
 
    :Type: :zeek:type:`Log::PolicyHook`
 

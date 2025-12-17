@@ -25,7 +25,9 @@ Runtime Options
 Redefinable Options
 ###################
 ================================================================== ===========================
+:zeek:id:`SSL::dtls_ports`: :zeek:type:`set` :zeek:attr:`&redef`   Ports for DTLS.
 :zeek:id:`SSL::root_certs`: :zeek:type:`table` :zeek:attr:`&redef` The default root CA bundle.
+:zeek:id:`SSL::ssl_ports`: :zeek:type:`set` :zeek:attr:`&redef`    Well-known ports for SSL.
 ================================================================== ===========================
 
 Types
@@ -38,22 +40,21 @@ Types
 
 Redefinitions
 #############
-==================================================================== =============================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SSL::LOG`
-:zeek:type:`SSL::Info`: :zeek:type:`record`                          
-                                                                     
-                                                                     :New Fields: :zeek:type:`SSL::Info`
-                                                                     
-                                                                       delay_tokens: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       ssl: :zeek:type:`SSL::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =============================================================================
+============================================ =============================================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`SSL::LOG`
+:zeek:type:`SSL::Info`: :zeek:type:`record`  
+                                             
+                                             :New Fields: :zeek:type:`SSL::Info`
+                                             
+                                               delay_tokens: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               ssl: :zeek:type:`SSL::Info` :zeek:attr:`&optional`
+============================================ =============================================================================
 
 Events
 ######
@@ -86,7 +87,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SSL::ct_logs
-   :source-code: base/protocols/ssl/main.zeek 139 139
+   :source-code: base/protocols/ssl/main.zeek 150 150
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`SSL::CTInfo`
    :Attributes: :zeek:attr:`&redef`
@@ -100,7 +101,7 @@ Runtime Options
    are indexed by (binary) log-id.
 
 .. zeek:id:: SSL::disable_analyzer_after_detection
-   :source-code: base/protocols/ssl/main.zeek 144 144
+   :source-code: base/protocols/ssl/main.zeek 155 155
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -123,7 +124,7 @@ Runtime Options
    (especially with large file transfers).
 
 .. zeek:id:: SSL::max_ssl_history_length
-   :source-code: base/protocols/ssl/main.zeek 148 148
+   :source-code: base/protocols/ssl/main.zeek 159 159
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -134,8 +135,24 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: SSL::dtls_ports
+   :source-code: base/protocols/ssl/main.zeek 22 22
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            443/udp
+         }
+
+
+   Ports for DTLS.
+
 .. zeek:id:: SSL::root_certs
-   :source-code: base/protocols/ssl/main.zeek 119 119
+   :source-code: base/protocols/ssl/main.zeek 130 130
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -147,10 +164,36 @@ Redefinable Options
    The default root CA bundle.  By default, the mozilla-ca-list.zeek
    script sets this to Mozilla's root CA list.
 
+.. zeek:id:: SSL::ssl_ports
+   :source-code: base/protocols/ssl/main.zeek 14 14
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            563/tcp,
+            995/tcp,
+            585/tcp,
+            443/tcp,
+            5223/tcp,
+            992/tcp,
+            636/tcp,
+            990/tcp,
+            993/tcp,
+            989/tcp,
+            614/tcp
+         }
+
+
+   Well-known ports for SSL.
+
 Types
 #####
 .. zeek:type:: SSL::CTInfo
-   :source-code: base/protocols/ssl/main.zeek 123 134
+   :source-code: base/protocols/ssl/main.zeek 134 145
 
    :Type: :zeek:type:`record`
 
@@ -184,7 +227,7 @@ Types
    Transparency log bundle.
 
 .. zeek:type:: SSL::Info
-   :source-code: base/protocols/ssl/main.zeek 16 115
+   :source-code: base/protocols/ssl/main.zeek 27 126
 
    :Type: :zeek:type:`record`
 
@@ -701,7 +744,7 @@ Types
 Events
 ######
 .. zeek:id:: SSL::log_ssl
-   :source-code: base/protocols/ssl/main.zeek 160 160
+   :source-code: base/protocols/ssl/main.zeek 171 171
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SSL::Info`)
 
@@ -722,13 +765,13 @@ Hooks
    left to log.
 
 .. zeek:id:: SSL::log_policy
-   :source-code: base/protocols/ssl/main.zeek 13 13
+   :source-code: base/protocols/ssl/main.zeek 24 24
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: SSL::ssl_finishing
-   :source-code: base/protocols/ssl/main.zeek 164 164
+   :source-code: base/protocols/ssl/main.zeek 175 175
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`) : :zeek:type:`bool`
 

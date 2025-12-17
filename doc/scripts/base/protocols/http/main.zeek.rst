@@ -28,6 +28,7 @@ Redefinable Options
 ======================================================================================= =======================================================================
 :zeek:id:`HTTP::default_max_field_string_bytes`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of bytes that a single string field can contain when
                                                                                         logging.
+:zeek:id:`HTTP::ports`: :zeek:type:`set` :zeek:attr:`&redef`                            Well-known ports for HTTP.
 ======================================================================================= =======================================================================
 
 Types
@@ -41,19 +42,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`HTTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       http: :zeek:type:`HTTP::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       http_state: :zeek:type:`HTTP::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =============================================================
+============================================ =============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`HTTP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               http: :zeek:type:`HTTP::Info` :zeek:attr:`&optional`
+                                             
+                                               http_state: :zeek:type:`HTTP::State` :zeek:attr:`&optional`
+============================================ =============================================================
 
 Events
 ######
@@ -75,7 +75,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: HTTP::default_capture_password
-   :source-code: base/protocols/http/main.zeek 25 25
+   :source-code: base/protocols/http/main.zeek 31 31
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -85,7 +85,7 @@ Runtime Options
    not.
 
 .. zeek:id:: HTTP::http_methods
-   :source-code: base/protocols/http/main.zeek 120 120
+   :source-code: base/protocols/http/main.zeek 126 126
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -122,7 +122,7 @@ Runtime Options
    of letters ``[A-Za-z]``.
 
 .. zeek:id:: HTTP::max_pending_requests
-   :source-code: base/protocols/http/main.zeek 141 141
+   :source-code: base/protocols/http/main.zeek 147 147
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -134,7 +134,7 @@ Runtime Options
    state growth.
 
 .. zeek:id:: HTTP::proxy_headers
-   :source-code: base/protocols/http/main.zeek 107 107
+   :source-code: base/protocols/http/main.zeek 113 113
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -158,7 +158,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: HTTP::default_max_field_string_bytes
-   :source-code: base/protocols/http/main.zeek 149 149
+   :source-code: base/protocols/http/main.zeek 155 155
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -171,10 +171,33 @@ Redefinable Options
    
    .. zeek:see:: Log::default_max_field_string_bytes
 
+.. zeek:id:: HTTP::ports
+   :source-code: base/protocols/http/main.zeek 16 16
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            80/tcp,
+            8888/tcp,
+            81/tcp,
+            8000/tcp,
+            3128/tcp,
+            8080/tcp,
+            631/tcp,
+            1080/tcp
+         }
+
+
+   Well-known ports for HTTP.
+
 Types
 #####
 .. zeek:type:: HTTP::Info
-   :source-code: base/protocols/http/main.zeek 28 89
+   :source-code: base/protocols/http/main.zeek 34 95
 
    :Type: :zeek:type:`record`
 
@@ -422,7 +445,7 @@ Types
    The record type which contains the fields of the HTTP log.
 
 .. zeek:type:: HTTP::State
-   :source-code: base/protocols/http/main.zeek 93 104
+   :source-code: base/protocols/http/main.zeek 99 110
 
    :Type: :zeek:type:`record`
 
@@ -453,7 +476,7 @@ Types
    requests and responses.
 
 .. zeek:type:: HTTP::Tags
-   :source-code: base/protocols/http/main.zeek 18 22
+   :source-code: base/protocols/http/main.zeek 24 28
 
    :Type: :zeek:type:`enum`
 
@@ -473,7 +496,7 @@ Types
 Events
 ######
 .. zeek:id:: HTTP::log_http
-   :source-code: base/protocols/http/main.zeek 132 132
+   :source-code: base/protocols/http/main.zeek 138 138
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`HTTP::Info`)
 
@@ -483,14 +506,14 @@ Events
 Hooks
 #####
 .. zeek:id:: HTTP::finalize_http
-   :source-code: base/protocols/http/main.zeek 393 405
+   :source-code: base/protocols/http/main.zeek 394 406
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
    HTTP finalization hook.  Remaining HTTP info may get logged when it's called.
 
 .. zeek:id:: HTTP::log_policy
-   :source-code: base/protocols/http/main.zeek 15 15
+   :source-code: base/protocols/http/main.zeek 21 21
 
    :Type: :zeek:type:`Log::PolicyHook`
 

@@ -18,6 +18,12 @@ Runtime Options
 :zeek:id:`SMB::logged_file_actions`: :zeek:type:`set` :zeek:attr:`&redef`        The file actions which are logged.
 ================================================================================ ===========================================================
 
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`SMB::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SMB.
+=========================================================== =========================
+
 Types
 #####
 =============================================== =======================================================
@@ -31,28 +37,27 @@ Types
 
 Redefinitions
 #############
-==================================================================== ============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SMB::FILES_LOG`
-                                                                     
-                                                                     * :zeek:enum:`SMB::MAPPING_LOG`
-:zeek:type:`SMB::FileInfo`: :zeek:type:`record`                      
-                                                                     
-                                                                     :New Fields: :zeek:type:`SMB::FileInfo`
-                                                                     
-                                                                       fid: :zeek:type:`count` :zeek:attr:`&optional`
-                                                                         ID referencing this file.
-                                                                     
-                                                                       uuid: :zeek:type:`string` :zeek:attr:`&optional`
-                                                                         UUID referencing this file if DCE/RPC.
-:zeek:type:`connection`: :zeek:type:`record`                         Everything below here is used internally in the SMB scripts.
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       smb_state: :zeek:type:`SMB::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ============================================================
+=============================================== ============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`         
+                                                
+                                                * :zeek:enum:`SMB::FILES_LOG`
+                                                
+                                                * :zeek:enum:`SMB::MAPPING_LOG`
+:zeek:type:`SMB::FileInfo`: :zeek:type:`record` 
+                                                
+                                                :New Fields: :zeek:type:`SMB::FileInfo`
+                                                
+                                                  fid: :zeek:type:`count` :zeek:attr:`&optional`
+                                                    ID referencing this file.
+                                                
+                                                  uuid: :zeek:type:`string` :zeek:attr:`&optional`
+                                                    UUID referencing this file if DCE/RPC.
+:zeek:type:`connection`: :zeek:type:`record`    Everything below here is used internally in the SMB scripts.
+                                                
+                                                :New Fields: :zeek:type:`connection`
+                                                
+                                                  smb_state: :zeek:type:`SMB::State` :zeek:attr:`&optional`
+=============================================== ============================================================
 
 Hooks
 #####
@@ -74,7 +79,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SMB::enable_clear_script_state
-   :source-code: base/protocols/smb/main.zeek 52 52
+   :source-code: base/protocols/smb/main.zeek 55 55
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -87,7 +92,7 @@ Runtime Options
    environments with high capture loss or traffic anomalies.
 
 .. zeek:id:: SMB::logged_file_actions
-   :source-code: base/protocols/smb/main.zeek 38 38
+   :source-code: base/protocols/smb/main.zeek 41 41
 
    :Type: :zeek:type:`set` [:zeek:type:`SMB::Action`]
    :Attributes: :zeek:attr:`&redef`
@@ -106,10 +111,29 @@ Runtime Options
 
    The file actions which are logged.
 
+Redefinable Options
+###################
+.. zeek:id:: SMB::ports
+   :source-code: base/protocols/smb/main.zeek 14 14
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            139/tcp,
+            445/tcp
+         }
+
+
+   Well-known ports for SMB.
+
 Types
 #####
 .. zeek:type:: SMB::Action
-   :source-code: base/protocols/smb/main.zeek 17 36
+   :source-code: base/protocols/smb/main.zeek 20 39
 
    :Type: :zeek:type:`enum`
 
@@ -146,7 +170,7 @@ Types
    Abstracted actions for SMB file actions.
 
 .. zeek:type:: SMB::CmdInfo
-   :source-code: base/protocols/smb/main.zeek 101 136
+   :source-code: base/protocols/smb/main.zeek 104 139
 
    :Type: :zeek:type:`record`
 
@@ -247,7 +271,7 @@ Types
    This record is for the smb_cmd.log
 
 .. zeek:type:: SMB::FileInfo
-   :source-code: base/protocols/smb/main.zeek 55 78
+   :source-code: base/protocols/smb/main.zeek 58 81
 
    :Type: :zeek:type:`record`
 
@@ -316,7 +340,7 @@ Types
    This record is for the smb_files.log
 
 .. zeek:type:: SMB::State
-   :source-code: base/protocols/smb/main.zeek 140 161
+   :source-code: base/protocols/smb/main.zeek 143 164
 
    :Type: :zeek:type:`record`
 
@@ -367,7 +391,7 @@ Types
    the file and tree map of the connection.
 
 .. zeek:type:: SMB::TreeInfo
-   :source-code: base/protocols/smb/main.zeek 81 98
+   :source-code: base/protocols/smb/main.zeek 84 101
 
    :Type: :zeek:type:`record`
 
@@ -413,13 +437,13 @@ Types
 Hooks
 #####
 .. zeek:id:: SMB::log_policy_files
-   :source-code: base/protocols/smb/main.zeek 13 13
+   :source-code: base/protocols/smb/main.zeek 16 16
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: SMB::log_policy_mapping
-   :source-code: base/protocols/smb/main.zeek 14 14
+   :source-code: base/protocols/smb/main.zeek 17 17
 
    :Type: :zeek:type:`Log::PolicyHook`
 

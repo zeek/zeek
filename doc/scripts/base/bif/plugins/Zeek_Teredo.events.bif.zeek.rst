@@ -27,7 +27,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: new_teredo_state
-   :source-code: base/packet-protocols/teredo/main.zeek 36 39
+   :source-code: base/packet-protocols/teredo/main.zeek 37 40
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 

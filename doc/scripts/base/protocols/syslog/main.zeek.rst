@@ -12,6 +12,12 @@ one syslog message as one logged record.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+============================================================== ============================
+:zeek:id:`Syslog::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for Syslog.
+============================================================== ============================
+
 Types
 #####
 ============================================== ============================================================
@@ -20,17 +26,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ==========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`Syslog::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       syslog: :zeek:type:`Syslog::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ==========================================================
+============================================ ==========================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`Syslog::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               syslog: :zeek:type:`Syslog::Info` :zeek:attr:`&optional`
+============================================ ==========================================================
 
 Hooks
 #####
@@ -41,10 +46,28 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: Syslog::ports
+   :source-code: base/protocols/syslog/main.zeek 12 12
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            514/udp
+         }
+
+
+   Well-known ports for Syslog.
+
 Types
 #####
 .. zeek:type:: Syslog::Info
-   :source-code: base/protocols/syslog/main.zeek 14 29
+   :source-code: base/protocols/syslog/main.zeek 17 32
 
    :Type: :zeek:type:`record`
 
@@ -89,7 +112,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Syslog::log_policy
-   :source-code: base/protocols/syslog/main.zeek 11 11
+   :source-code: base/protocols/syslog/main.zeek 14 14
 
    :Type: :zeek:type:`Log::PolicyHook`
 

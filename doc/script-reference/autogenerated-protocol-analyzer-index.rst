@@ -1660,7 +1660,7 @@ Events
 ++++++
 
 .. zeek:id:: dhcp_message
-   :source-code: base/protocols/dhcp/main.zeek 301 308
+   :source-code: base/protocols/dhcp/main.zeek 303 310
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCP::Msg`, options: :zeek:type:`DHCP::Options`)
 
@@ -4032,7 +4032,7 @@ Events
       truncate_http_URI http_connection_upgrade
 
 .. zeek:id:: http_reply
-   :source-code: base/protocols/http/main.zeek 274 313
+   :source-code: base/protocols/http/main.zeek 275 314
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
@@ -6115,7 +6115,7 @@ Events
 ++++++
 
 .. zeek:id:: krb_as_request
-   :source-code: base/protocols/krb/main.zeek 145 168
+   :source-code: base/protocols/krb/main.zeek 147 170
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
@@ -6160,7 +6160,7 @@ Events
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
 .. zeek:id:: krb_tgs_request
-   :source-code: base/protocols/krb/main.zeek 196 214
+   :source-code: base/protocols/krb/main.zeek 198 216
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
@@ -6686,7 +6686,7 @@ Events
 ++++++
 
 .. zeek:id:: LDAP::message
-   :source-code: base/protocols/ldap/main.zeek 188 287
+   :source-code: base/protocols/ldap/main.zeek 186 285
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, opcode: :zeek:type:`LDAP::ProtocolOpcode`, result: :zeek:type:`LDAP::ResultCode`, matched_dn: :zeek:type:`string`, diagnostic_message: :zeek:type:`string`, object: :zeek:type:`string`, argument: :zeek:type:`string`)
 
@@ -6717,7 +6717,7 @@ Events
    :param argument: Additional arguments this message includes.
 
 .. zeek:id:: LDAP::bind_request
-   :source-code: base/protocols/ldap/main.zeek 366 397
+   :source-code: base/protocols/ldap/main.zeek 364 395
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, version: :zeek:type:`int`, name: :zeek:type:`string`, auth_type: :zeek:type:`LDAP::BindAuthType`, auth_info: :zeek:type:`string`)
 
@@ -6742,7 +6742,7 @@ Events
    :param auth_info: Additional information related to the used auth type.
 
 .. zeek:id:: LDAP::search_request
-   :source-code: base/protocols/ldap/main.zeek 299 348
+   :source-code: base/protocols/ldap/main.zeek 297 346
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, base_object: :zeek:type:`string`, scope: :zeek:type:`LDAP::SearchScope`, deref: :zeek:type:`LDAP::SearchDerefAlias`, size_limit: :zeek:type:`int`, time_limit: :zeek:type:`int`, types_only: :zeek:type:`bool`, filter: :zeek:type:`string`, attributes: :zeek:type:`vector` of :zeek:type:`string`)
 
@@ -6779,7 +6779,7 @@ Events
    :param attributes: Additional attributes of the SearchRequest.
 
 .. zeek:id:: LDAP::search_result_entry
-   :source-code: base/protocols/ldap/main.zeek 353 358
+   :source-code: base/protocols/ldap/main.zeek 351 356
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, object_name: :zeek:type:`string`)
 
@@ -8511,7 +8511,7 @@ Events
 ++++++
 
 .. zeek:id:: mqtt_connect
-   :source-code: base/protocols/mqtt/main.zeek 177 188
+   :source-code: base/protocols/mqtt/main.zeek 178 189
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`MQTT::ConnectMsg`)
 
@@ -8524,7 +8524,7 @@ Events
    :param msg: MQTT connect message fields.
 
 .. zeek:id:: mqtt_connack
-   :source-code: base/protocols/mqtt/main.zeek 190 197
+   :source-code: base/protocols/mqtt/main.zeek 191 198
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`MQTT::ConnectAckMsg`)
 
@@ -8569,7 +8569,7 @@ Events
    :param msg_id: The id value for the message.
 
 .. zeek:id:: mqtt_pubrec
-   :source-code: base/protocols/mqtt/main.zeek 257 266
+   :source-code: base/protocols/mqtt/main.zeek 258 267
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
 
@@ -8585,7 +8585,7 @@ Events
    :param msg_id: The id value for the message.
 
 .. zeek:id:: mqtt_pubrel
-   :source-code: base/protocols/mqtt/main.zeek 268 277
+   :source-code: base/protocols/mqtt/main.zeek 269 278
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg_id: :zeek:type:`count`)
 
@@ -8617,7 +8617,7 @@ Events
    :param msg_id: The id value for the message.
 
 .. zeek:id:: mqtt_subscribe
-   :source-code: base/protocols/mqtt/main.zeek 306 318
+   :source-code: base/protocols/mqtt/main.zeek 307 319
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`, requested_qos: :zeek:type:`index_vec`)
 
@@ -8639,7 +8639,7 @@ Events
    :param requested_qos: The desired QoS option associated with each topic.
 
 .. zeek:id:: mqtt_suback
-   :source-code: base/protocols/mqtt/main.zeek 320 333
+   :source-code: base/protocols/mqtt/main.zeek 321 334
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, granted_qos: :zeek:type:`count`)
 
@@ -8655,7 +8655,7 @@ Events
    :param msg_id: The id value for the message.
 
 .. zeek:id:: mqtt_unsubscribe
-   :source-code: base/protocols/mqtt/main.zeek 335 346
+   :source-code: base/protocols/mqtt/main.zeek 336 347
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`, topics: :zeek:type:`string_vec`)
 
@@ -8671,7 +8671,7 @@ Events
    :param topics: The topics being unsubscribed from
 
 .. zeek:id:: mqtt_unsuback
-   :source-code: base/protocols/mqtt/main.zeek 348 360
+   :source-code: base/protocols/mqtt/main.zeek 349 361
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg_id: :zeek:type:`count`)
 
@@ -8750,7 +8750,7 @@ Events
    .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
 
 .. zeek:id:: mysql_change_user
-   :source-code: base/protocols/mysql/main.zeek 87 90
+   :source-code: base/protocols/mysql/main.zeek 88 91
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 
@@ -8807,7 +8807,7 @@ Events
    .. zeek:see:: mysql_command_request mysql_error mysql_server_version mysql_handshake
 
 .. zeek:id:: mysql_eof
-   :source-code: base/protocols/mysql/main.zeek 120 137
+   :source-code: base/protocols/mysql/main.zeek 121 138
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_intermediate: :zeek:type:`bool`)
 
@@ -8861,7 +8861,7 @@ Events
    .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_handshake
 
 .. zeek:id:: mysql_handshake
-   :source-code: base/protocols/mysql/main.zeek 52 65
+   :source-code: base/protocols/mysql/main.zeek 53 66
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 
@@ -10344,7 +10344,7 @@ Events
 ++++++
 
 .. zeek:id:: QUIC::initial_packet
-   :source-code: base/protocols/quic/main.zeek 142 146
+   :source-code: base/protocols/quic/main.zeek 157 161
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -10367,7 +10367,7 @@ Events
    
 
 .. zeek:id:: QUIC::retry_packet
-   :source-code: base/protocols/quic/main.zeek 161 171
+   :source-code: base/protocols/quic/main.zeek 176 186
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, retry_token: :zeek:type:`string`, retry_integrity_tag: :zeek:type:`string`)
 
@@ -10395,7 +10395,7 @@ Events
    :param integrity_tag: The Retry Integrity Tag field.
 
 .. zeek:id:: QUIC::handshake_packet
-   :source-code: base/protocols/quic/main.zeek 148 152
+   :source-code: base/protocols/quic/main.zeek 163 167
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -10417,7 +10417,7 @@ Events
    :param scid: The Source Connection ID field.
 
 .. zeek:id:: QUIC::zero_rtt_packet
-   :source-code: base/protocols/quic/main.zeek 154 158
+   :source-code: base/protocols/quic/main.zeek 169 173
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -10439,7 +10439,7 @@ Events
    :param scid: The Source Connection ID field.
 
 .. zeek:id:: QUIC::connection_close_frame
-   :source-code: base/protocols/quic/main.zeek 214 224
+   :source-code: base/protocols/quic/main.zeek 229 239
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, error_code: :zeek:type:`count`, reason_phrase: :zeek:type:`string`)
 
@@ -10469,7 +10469,7 @@ Events
    .. note:: Packets with CONNECTION_CLOSE frames are usually encrypted after connection establishment and not visible to Zeek.
 
 .. zeek:id:: QUIC::unhandled_version
-   :source-code: base/protocols/quic/main.zeek 200 210
+   :source-code: base/protocols/quic/main.zeek 215 225
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -10491,7 +10491,7 @@ Events
    :param scid: The Source Connection ID field.
 
 .. zeek:id:: QUIC::discarded_packet
-   :source-code: base/protocols/quic/main.zeek 187 197
+   :source-code: base/protocols/quic/main.zeek 202 212
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, total_decrypted: :zeek:type:`count`)
 
@@ -10510,7 +10510,7 @@ Events
    :param total_decrypted: The number of QUIC packets successfully decrypted previously.
 
 .. zeek:id:: QUIC::short_header_packet_threshold_crossed
-   :source-code: base/protocols/quic/main.zeek 173 185
+   :source-code: base/protocols/quic/main.zeek 188 200
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
@@ -10963,7 +10963,7 @@ Events
    :param len: The length of the encrypted data.
 
 .. zeek:id:: rdp_connect_request
-   :source-code: base/protocols/rdp/main.zeek 166 171
+   :source-code: base/protocols/rdp/main.zeek 169 174
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`)
@@ -10980,7 +10980,7 @@ Events
    :param flags: The flags set by the client.
 
 .. zeek:id:: rdp_negotiation_response
-   :source-code: base/protocols/rdp/main.zeek 173 178
+   :source-code: base/protocols/rdp/main.zeek 176 181
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
@@ -10997,7 +10997,7 @@ Events
    :param flags: The flags set by the server.
 
 .. zeek:id:: rdp_negotiation_failure
-   :source-code: base/protocols/rdp/main.zeek 180 185
+   :source-code: base/protocols/rdp/main.zeek 183 188
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`, flags: :zeek:type:`count`)
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, failure_code: :zeek:type:`count`)
@@ -11014,7 +11014,7 @@ Events
    :param flags: The flags set by the server.
 
 .. zeek:id:: rdp_client_core_data
-   :source-code: base/protocols/rdp/main.zeek 187 213
+   :source-code: base/protocols/rdp/main.zeek 190 216
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`RDP::ClientCoreData`)
 
@@ -11040,7 +11040,7 @@ Events
    :param data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_client_network_data
-   :source-code: base/protocols/rdp/main.zeek 215 228
+   :source-code: base/protocols/rdp/main.zeek 218 231
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, channels: :zeek:type:`RDP::ClientChannelList`)
 
@@ -11066,7 +11066,7 @@ Events
    :param data: The data contained in the client security data structure.
 
 .. zeek:id:: rdp_gcc_server_create_response
-   :source-code: base/protocols/rdp/main.zeek 230 235
+   :source-code: base/protocols/rdp/main.zeek 233 238
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`count`)
 
@@ -11079,7 +11079,7 @@ Events
    :param result: The 8-bit integer representing the GCC Conference Create Response result.
 
 .. zeek:id:: rdp_server_security
-   :source-code: base/protocols/rdp/main.zeek 237 243
+   :source-code: base/protocols/rdp/main.zeek 240 246
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, encryption_method: :zeek:type:`count`, encryption_level: :zeek:type:`count`)
 
@@ -11095,7 +11095,7 @@ Events
    :param encryption_level: The 32-bit integer representing the encryption level used in the connection.
 
 .. zeek:id:: rdp_server_certificate
-   :source-code: base/protocols/rdp/main.zeek 245 257
+   :source-code: base/protocols/rdp/main.zeek 248 260
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cert_type: :zeek:type:`count`, permanently_issued: :zeek:type:`bool`)
 
@@ -11113,7 +11113,7 @@ Events
    :param permanently_issued: Value will be true is the certificate(s) is permanent on the server.
 
 .. zeek:id:: rdp_begin_encryption
-   :source-code: base/protocols/rdp/main.zeek 259 269
+   :source-code: base/protocols/rdp/main.zeek 262 272
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, security_protocol: :zeek:type:`count`)
 

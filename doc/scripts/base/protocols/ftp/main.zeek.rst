@@ -33,6 +33,12 @@ Runtime Options
                                                                              of the entries related to an FTP session.
 ============================================================================ ======================================================================
 
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`FTP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for FTP.
+=========================================================== =========================
+
 Types
 #####
 ================================================ ===============================================
@@ -41,19 +47,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== ========================================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              The FTP protocol logging stream identifier.
-                                                                     
-                                                                     * :zeek:enum:`FTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       ftp: :zeek:type:`FTP::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       ftp_data_reuse: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ========================================================================================
+============================================ ========================================================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      The FTP protocol logging stream identifier.
+                                             
+                                             * :zeek:enum:`FTP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               ftp: :zeek:type:`FTP::Info` :zeek:attr:`&optional`
+                                             
+                                               ftp_data_reuse: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+============================================ ========================================================================================
 
 Events
 ######
@@ -82,7 +87,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: FTP::guest_ids
-   :source-code: base/protocols/ftp/main.zeek 32 32
+   :source-code: base/protocols/ftp/main.zeek 35 35
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -101,7 +106,7 @@ Runtime Options
    User IDs that can be considered "anonymous".
 
 .. zeek:id:: FTP::logged_commands
-   :source-code: base/protocols/ftp/main.zeek 26 26
+   :source-code: base/protocols/ftp/main.zeek 29 29
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -126,7 +131,7 @@ Runtime Options
    List of commands that should have their command/response pairs logged.
 
 .. zeek:id:: FTP::max_arg_length
-   :source-code: base/protocols/ftp/main.zeek 73 73
+   :source-code: base/protocols/ftp/main.zeek 76 76
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -136,7 +141,7 @@ Runtime Options
    excessive logging volume.
 
 .. zeek:id:: FTP::max_password_length
-   :source-code: base/protocols/ftp/main.zeek 69 69
+   :source-code: base/protocols/ftp/main.zeek 72 72
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -147,7 +152,7 @@ Runtime Options
    of the entries related to an FTP session.
 
 .. zeek:id:: FTP::max_pending_commands
-   :source-code: base/protocols/ftp/main.zeek 59 59
+   :source-code: base/protocols/ftp/main.zeek 62 62
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -158,7 +163,7 @@ Runtime Options
    FTP_too_many_pending_commands is logged for the connection.
 
 .. zeek:id:: FTP::max_reply_msg_length
-   :source-code: base/protocols/ftp/main.zeek 77 77
+   :source-code: base/protocols/ftp/main.zeek 80 80
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -168,7 +173,7 @@ Runtime Options
    excessive logging volume.
 
 .. zeek:id:: FTP::max_user_length
-   :source-code: base/protocols/ftp/main.zeek 64 64
+   :source-code: base/protocols/ftp/main.zeek 67 67
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -178,10 +183,29 @@ Runtime Options
    excessive logging volume as this values is replicated in each
    of the entries related to an FTP session.
 
+Redefinable Options
+###################
+.. zeek:id:: FTP::ports
+   :source-code: base/protocols/ftp/main.zeek 23 23
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            2811/tcp,
+            21/tcp
+         }
+
+
+   Well-known ports for FTP.
+
 Types
 #####
 .. zeek:type:: FTP::ReplyCode
-   :source-code: base/protocols/ftp/main.zeek 36 40
+   :source-code: base/protocols/ftp/main.zeek 39 43
 
    :Type: :zeek:type:`record`
 
@@ -201,7 +225,7 @@ Types
 Events
 ######
 .. zeek:id:: FTP::log_ftp
-   :source-code: base/protocols/ftp/main.zeek 47 47
+   :source-code: base/protocols/ftp/main.zeek 50 50
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`FTP::Info`)
 
@@ -226,7 +250,7 @@ Hooks
    get purged when called.
 
 .. zeek:id:: FTP::log_policy
-   :source-code: base/protocols/ftp/main.zeek 23 23
+   :source-code: base/protocols/ftp/main.zeek 26 26
 
    :Type: :zeek:type:`Log::PolicyHook`
 

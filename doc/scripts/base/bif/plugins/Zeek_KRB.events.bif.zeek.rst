@@ -81,7 +81,7 @@ Events
       krb_ap_request krb_priv krb_safe krb_cred krb_error
 
 .. zeek:id:: krb_as_request
-   :source-code: base/protocols/krb/main.zeek 145 168
+   :source-code: base/protocols/krb/main.zeek 147 170
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 
@@ -213,7 +213,7 @@ Events
       krb_ap_request krb_ap_response krb_priv krb_cred krb_error
 
 .. zeek:id:: krb_tgs_request
-   :source-code: base/protocols/krb/main.zeek 196 214
+   :source-code: base/protocols/krb/main.zeek 198 216
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::KDC_Request`)
 

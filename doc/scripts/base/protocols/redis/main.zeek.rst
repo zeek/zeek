@@ -41,19 +41,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== ===============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              Log stream identifier.
-                                                                     
-                                                                     * :zeek:enum:`Redis::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       redis: :zeek:type:`Redis::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       redis_state: :zeek:type:`Redis::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ===============================================================
+============================================ ===============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      Log stream identifier.
+                                             
+                                             * :zeek:enum:`Redis::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               redis: :zeek:type:`Redis::Info` :zeek:attr:`&optional`
+                                             
+                                               redis_state: :zeek:type:`Redis::State` :zeek:attr:`&optional`
+============================================ ===============================================================
 
 Hooks
 #####
@@ -265,7 +264,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Redis::finalize_redis
-   :source-code: base/protocols/redis/main.zeek 339 357
+   :source-code: base/protocols/redis/main.zeek 337 355
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

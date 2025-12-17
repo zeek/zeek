@@ -20,7 +20,9 @@ Runtime Options
 Redefinable Options
 ###################
 ================================================================================== ==============================================================
+:zeek:id:`QUIC::doq_ports`: :zeek:type:`set` :zeek:attr:`&redef`                   Well-known ports for DNS-over-QUIC.
 :zeek:id:`QUIC::max_discarded_packet_events`: :zeek:type:`int` :zeek:attr:`&redef` Maximum number of QUIC::discarded packet() events to generate.
+:zeek:id:`QUIC::quic_ports`: :zeek:type:`set` :zeek:attr:`&redef`                  Well-known ports for QUIC.
 ================================================================================== ==============================================================
 
 Types
@@ -61,7 +63,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: QUIC::max_history_length
-   :source-code: base/protocols/quic/main.zeek 81 81
+   :source-code: base/protocols/quic/main.zeek 101 101
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -71,8 +73,34 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: QUIC::doq_ports
+   :source-code: base/protocols/quic/main.zeek 28 28
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            784/udp,
+            853/udp
+         }
+
+
+   Well-known ports for DNS-over-QUIC.
+   
+   Currently not added to likely_server_ports to avoid spurious
+   originator/responder changes in the private testing baseline.
+   
+   You can always add these to likely_server_ports in your local.zeek
+   file for your environment if needed:
+   
+   	redef likely_server_ports += { 853/udp, 784/udp };
+   
+
 .. zeek:id:: QUIC::max_discarded_packet_events
-   :source-code: base/protocols/quic/main.zeek 85 85
+   :source-code: base/protocols/quic/main.zeek 105 105
 
    :Type: :zeek:type:`int`
    :Attributes: :zeek:attr:`&redef`
@@ -81,10 +109,26 @@ Redefinable Options
    Maximum number of QUIC::discarded packet() events to generate.
    Set to 0 for unlimited, -1 for disabled.
 
+.. zeek:id:: QUIC::quic_ports
+   :source-code: base/protocols/quic/main.zeek 14 14
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            443/udp
+         }
+
+
+   Well-known ports for QUIC.
+
 Types
 #####
 .. zeek:type:: QUIC::Info
-   :source-code: base/protocols/quic/main.zeek 13 72
+   :source-code: base/protocols/quic/main.zeek 33 92
 
    :Type: :zeek:type:`record`
 
@@ -174,7 +218,7 @@ Types
 Events
 ######
 .. zeek:id:: QUIC::log_quic
-   :source-code: base/protocols/quic/main.zeek 74 74
+   :source-code: base/protocols/quic/main.zeek 94 94
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`QUIC::Info`)
 
@@ -182,13 +226,13 @@ Events
 Hooks
 #####
 .. zeek:id:: QUIC::finalize_quic
-   :source-code: base/protocols/quic/main.zeek 261 267
+   :source-code: base/protocols/quic/main.zeek 276 282
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
 
 .. zeek:id:: QUIC::log_policy
-   :source-code: base/protocols/quic/main.zeek 76 76
+   :source-code: base/protocols/quic/main.zeek 96 96
 
    :Type: :zeek:type:`Log::PolicyHook`
 

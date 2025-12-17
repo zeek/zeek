@@ -19,6 +19,12 @@ Runtime Options
 :zeek:id:`SIP::sip_methods`: :zeek:type:`set` :zeek:attr:`&redef` A list of SIP methods.
 ================================================================= ======================
 
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`SIP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SIP.
+=========================================================== =========================
+
 Types
 #####
 ============================================ =========================================================
@@ -28,19 +34,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== ===========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SIP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       sip: :zeek:type:`SIP::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       sip_state: :zeek:type:`SIP::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ===========================================================
+============================================ ===========================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`SIP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               sip: :zeek:type:`SIP::Info` :zeek:attr:`&optional`
+                                             
+                                               sip_state: :zeek:type:`SIP::State` :zeek:attr:`&optional`
+============================================ ===========================================================
 
 Events
 ######
@@ -62,7 +67,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SIP::sip_methods
-   :source-code: base/protocols/sip/main.zeek 86 86
+   :source-code: base/protocols/sip/main.zeek 89 89
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -86,10 +91,28 @@ Runtime Options
    that the SIP analyzer will only accept methods consisting solely
    of letters ``[A-Za-z]``.
 
+Redefinable Options
+###################
+.. zeek:id:: SIP::ports
+   :source-code: base/protocols/sip/main.zeek 15 15
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            5060/udp
+         }
+
+
+   Well-known ports for SIP.
+
 Types
 #####
 .. zeek:type:: SIP::Info
-   :source-code: base/protocols/sip/main.zeek 17 72
+   :source-code: base/protocols/sip/main.zeek 20 75
 
    :Type: :zeek:type:`record`
 
@@ -222,7 +245,7 @@ Types
    The record type which contains the fields of the SIP log.
 
 .. zeek:type:: SIP::State
-   :source-code: base/protocols/sip/main.zeek 74 81
+   :source-code: base/protocols/sip/main.zeek 77 84
 
    :Type: :zeek:type:`record`
 
@@ -246,7 +269,7 @@ Types
 Events
 ######
 .. zeek:id:: SIP::log_sip
-   :source-code: base/protocols/sip/main.zeek 92 92
+   :source-code: base/protocols/sip/main.zeek 95 95
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SIP::Info`)
 
@@ -263,7 +286,7 @@ Hooks
    SIP finalization hook.  Remaining SIP info may get logged when it's called.
 
 .. zeek:id:: SIP::log_policy
-   :source-code: base/protocols/sip/main.zeek 14 14
+   :source-code: base/protocols/sip/main.zeek 17 17
 
    :Type: :zeek:type:`Log::PolicyHook`
 

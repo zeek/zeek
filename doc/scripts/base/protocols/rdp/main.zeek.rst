@@ -20,6 +20,13 @@ Runtime Options
                                                                                         identified.
 ======================================================================================= ==================================================================
 
+Redefinable Options
+###################
+=================================================================== ==================================
+:zeek:id:`RDP::rdp_ports`: :zeek:type:`set` :zeek:attr:`&redef`     Well-known ports for RDP.
+:zeek:id:`RDP::rdpeudp_ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for RDP over UDP.
+=================================================================== ==================================
+
 Types
 #####
 =========================================== =
@@ -28,27 +35,26 @@ Types
 
 Redefinitions
 #############
-==================================================================== ==============================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`RDP::LOG`
-:zeek:type:`RDP::Info`: :zeek:type:`record`                          
-                                                                     
-                                                                     :New Fields: :zeek:type:`RDP::Info`
-                                                                     
-                                                                       analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
-                                                                         The analyzer ID used for the analyzer instance attached
-                                                                         to each connection.
-                                                                     
-                                                                       done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-                                                                         Track status of logging RDP connections.
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       rdp: :zeek:type:`RDP::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ==============================================================================
+============================================ ==============================================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`RDP::LOG`
+:zeek:type:`RDP::Info`: :zeek:type:`record`  
+                                             
+                                             :New Fields: :zeek:type:`RDP::Info`
+                                             
+                                               analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
+                                                 The analyzer ID used for the analyzer instance attached
+                                                 to each connection.
+                                             
+                                               done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+                                                 Track status of logging RDP connections.
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               rdp: :zeek:type:`RDP::Info` :zeek:attr:`&optional`
+============================================ ==============================================================================
 
 Events
 ######
@@ -70,7 +76,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: RDP::disable_analyzer_after_detection
-   :source-code: base/protocols/rdp/main.zeek 67 67
+   :source-code: base/protocols/rdp/main.zeek 73 73
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -80,7 +86,7 @@ Runtime Options
    continuing to process encrypted traffic.
 
 .. zeek:id:: RDP::rdp_check_interval
-   :source-code: base/protocols/rdp/main.zeek 71 71
+   :source-code: base/protocols/rdp/main.zeek 77 77
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -89,10 +95,44 @@ Runtime Options
    The amount of time to monitor an RDP session from when it is first
    identified. When this interval is reached, the session is logged.
 
+Redefinable Options
+###################
+.. zeek:id:: RDP::rdp_ports
+   :source-code: base/protocols/rdp/main.zeek 14 14
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            3389/tcp
+         }
+
+
+   Well-known ports for RDP.
+
+.. zeek:id:: RDP::rdpeudp_ports
+   :source-code: base/protocols/rdp/main.zeek 17 17
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            3389/udp
+         }
+
+
+   Well-known ports for RDP over UDP.
+
 Types
 #####
 .. zeek:type:: RDP::Info
-   :source-code: base/protocols/rdp/main.zeek 13 63
+   :source-code: base/protocols/rdp/main.zeek 19 69
 
    :Type: :zeek:type:`record`
 
@@ -224,7 +264,7 @@ Types
 Events
 ######
 .. zeek:id:: RDP::log_rdp
-   :source-code: base/protocols/rdp/main.zeek 75 75
+   :source-code: base/protocols/rdp/main.zeek 81 81
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`RDP::Info`)
 
@@ -234,7 +274,7 @@ Events
 Hooks
 #####
 .. zeek:id:: RDP::finalize_rdp
-   :source-code: base/protocols/rdp/main.zeek 296 303
+   :source-code: base/protocols/rdp/main.zeek 299 306
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

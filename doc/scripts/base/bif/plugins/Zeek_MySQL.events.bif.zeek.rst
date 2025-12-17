@@ -99,7 +99,7 @@ Events
    .. zeek:see:: mysql_handshake mysql_auth_more_data
 
 .. zeek:id:: mysql_change_user
-   :source-code: base/protocols/mysql/main.zeek 87 90
+   :source-code: base/protocols/mysql/main.zeek 88 91
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 
@@ -138,7 +138,7 @@ Events
    .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
 
 .. zeek:id:: mysql_eof
-   :source-code: base/protocols/mysql/main.zeek 120 137
+   :source-code: base/protocols/mysql/main.zeek 121 138
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_intermediate: :zeek:type:`bool`)
 
@@ -177,7 +177,7 @@ Events
    .. zeek:see:: mysql_command_request mysql_ok mysql_server_version mysql_handshake
 
 .. zeek:id:: mysql_handshake
-   :source-code: base/protocols/mysql/main.zeek 52 65
+   :source-code: base/protocols/mysql/main.zeek 53 66
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, username: :zeek:type:`string`)
 

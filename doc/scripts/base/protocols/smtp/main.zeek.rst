@@ -22,6 +22,12 @@ Runtime Options
                                                                                        have been observed in an SMTP session.
 ====================================================================================== ================================================================
 
+Redefinable Options
+###################
+============================================================ ==========================
+:zeek:id:`SMTP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SMTP.
+============================================================ ==========================
+
 Types
 #####
 ============================================= =
@@ -31,19 +37,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SMTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       smtp: :zeek:type:`SMTP::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       smtp_state: :zeek:type:`SMTP::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =============================================================
+============================================ =============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`SMTP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               smtp: :zeek:type:`SMTP::Info` :zeek:attr:`&optional`
+                                             
+                                               smtp_state: :zeek:type:`SMTP::State` :zeek:attr:`&optional`
+============================================ =============================================================
 
 Events
 ######
@@ -70,7 +75,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SMTP::mail_path_capture
-   :source-code: base/protocols/smtp/main.zeek 92 92
+   :source-code: base/protocols/smtp/main.zeek 95 95
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
@@ -83,7 +88,7 @@ Runtime Options
       NO_HOSTS - never capture the path.
 
 .. zeek:id:: SMTP::mail_transaction_validation
-   :source-code: base/protocols/smtp/main.zeek 106 106
+   :source-code: base/protocols/smtp/main.zeek 109 109
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -95,7 +100,7 @@ Runtime Options
    many invalid transactions.
 
 .. zeek:id:: SMTP::max_invalid_mail_transactions
-   :source-code: base/protocols/smtp/main.zeek 110 110
+   :source-code: base/protocols/smtp/main.zeek 113 113
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -104,10 +109,29 @@ Runtime Options
    Disable the SMTP analyzer when that many invalid transactions
    have been observed in an SMTP session.
 
+Redefinable Options
+###################
+.. zeek:id:: SMTP::ports
+   :source-code: base/protocols/smtp/main.zeek 13 13
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            25/tcp,
+            587/tcp
+         }
+
+
+   Well-known ports for SMTP.
+
 Types
 #####
 .. zeek:type:: SMTP::Info
-   :source-code: base/protocols/smtp/main.zeek 14 69
+   :source-code: base/protocols/smtp/main.zeek 17 72
 
    :Type: :zeek:type:`record`
 
@@ -275,7 +299,7 @@ Types
 
 
 .. zeek:type:: SMTP::State
-   :source-code: base/protocols/smtp/main.zeek 71 85
+   :source-code: base/protocols/smtp/main.zeek 74 88
 
    :Type: :zeek:type:`record`
 
@@ -320,7 +344,7 @@ Types
 Events
 ######
 .. zeek:id:: SMTP::log_smtp
-   :source-code: base/protocols/smtp/main.zeek 97 97
+   :source-code: base/protocols/smtp/main.zeek 100 100
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SMTP::Info`)
 
@@ -335,7 +359,7 @@ Hooks
    SMTP finalization hook.  Remaining SMTP info may get logged when it's called.
 
 .. zeek:id:: SMTP::log_policy
-   :source-code: base/protocols/smtp/main.zeek 12 12
+   :source-code: base/protocols/smtp/main.zeek 15 15
 
    :Type: :zeek:type:`Log::PolicyHook`
 

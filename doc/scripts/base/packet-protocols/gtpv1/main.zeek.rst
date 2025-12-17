@@ -12,15 +12,10 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-======================================================================================================== ================
+======================================================================================================== ============================================
 :zeek:id:`PacketAnalyzer::GTPV1::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef` Default analyzer
-======================================================================================================== ================
-
-Redefinitions
-#############
-==================================================================== =
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =
+:zeek:id:`PacketAnalyzer::GTPV1::gtpv1_ports`: :zeek:type:`set` :zeek:attr:`&redef`                      The set of UDP ports used for GTPV1 tunnels.
+======================================================================================================== ============================================
 
 
 Detailed Interface
@@ -35,5 +30,22 @@ Redefinable Options
    :Default: ``PacketAnalyzer::ANALYZER_IP``
 
    Default analyzer
+
+.. zeek:id:: PacketAnalyzer::GTPV1::gtpv1_ports
+   :source-code: base/packet-protocols/gtpv1/main.zeek 20 20
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            2152/udp,
+            2123/udp
+         }
+
+
+   The set of UDP ports used for GTPV1 tunnels.
 
 

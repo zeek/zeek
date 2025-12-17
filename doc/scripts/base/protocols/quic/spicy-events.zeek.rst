@@ -30,7 +30,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: QUIC::connection_close_frame
-   :source-code: base/protocols/quic/main.zeek 214 224
+   :source-code: base/protocols/quic/main.zeek 229 239
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, error_code: :zeek:type:`count`, reason_phrase: :zeek:type:`string`)
 
@@ -60,7 +60,7 @@ Events
    .. note:: Packets with CONNECTION_CLOSE frames are usually encrypted after connection establishment and not visible to Zeek.
 
 .. zeek:id:: QUIC::discarded_packet
-   :source-code: base/protocols/quic/main.zeek 187 197
+   :source-code: base/protocols/quic/main.zeek 202 212
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, total_decrypted: :zeek:type:`count`)
 
@@ -79,7 +79,7 @@ Events
    :param total_decrypted: The number of QUIC packets successfully decrypted previously.
 
 .. zeek:id:: QUIC::handshake_packet
-   :source-code: base/protocols/quic/main.zeek 148 152
+   :source-code: base/protocols/quic/main.zeek 163 167
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -101,7 +101,7 @@ Events
    :param scid: The Source Connection ID field.
 
 .. zeek:id:: QUIC::initial_packet
-   :source-code: base/protocols/quic/main.zeek 142 146
+   :source-code: base/protocols/quic/main.zeek 157 161
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -124,7 +124,7 @@ Events
    
 
 .. zeek:id:: QUIC::retry_packet
-   :source-code: base/protocols/quic/main.zeek 161 171
+   :source-code: base/protocols/quic/main.zeek 176 186
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, retry_token: :zeek:type:`string`, retry_integrity_tag: :zeek:type:`string`)
 
@@ -152,7 +152,7 @@ Events
    :param integrity_tag: The Retry Integrity Tag field.
 
 .. zeek:id:: QUIC::short_header_packet_threshold_crossed
-   :source-code: base/protocols/quic/main.zeek 173 185
+   :source-code: base/protocols/quic/main.zeek 188 200
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, threshold: :zeek:type:`count`)
 
@@ -169,7 +169,7 @@ Events
    :param threshold: The threshold that has been reached.
 
 .. zeek:id:: QUIC::unhandled_version
-   :source-code: base/protocols/quic/main.zeek 200 210
+   :source-code: base/protocols/quic/main.zeek 215 225
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
@@ -191,7 +191,7 @@ Events
    :param scid: The Source Connection ID field.
 
 .. zeek:id:: QUIC::zero_rtt_packet
-   :source-code: base/protocols/quic/main.zeek 154 158
+   :source-code: base/protocols/quic/main.zeek 169 173
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 

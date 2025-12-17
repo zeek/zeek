@@ -16,6 +16,12 @@ Runtime Options
 :zeek:id:`SOCKS::default_capture_password`: :zeek:type:`bool` :zeek:attr:`&redef` Whether passwords are captured or not.
 ================================================================================= ======================================
 
+Redefinable Options
+###################
+============================================================= ===========================
+:zeek:id:`SOCKS::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SOCKS.
+============================================================= ===========================
+
 Types
 #####
 ============================================= ===========================================================
@@ -24,17 +30,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SOCKS::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       socks: :zeek:type:`SOCKS::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ========================================================
+============================================ ========================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`SOCKS::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               socks: :zeek:type:`SOCKS::Info` :zeek:attr:`&optional`
+============================================ ========================================================
 
 Events
 ######
@@ -56,7 +61,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SOCKS::default_capture_password
-   :source-code: base/protocols/socks/main.zeek 13 13
+   :source-code: base/protocols/socks/main.zeek 16 16
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -64,10 +69,28 @@ Runtime Options
 
    Whether passwords are captured or not.
 
+Redefinable Options
+###################
+.. zeek:id:: SOCKS::ports
+   :source-code: base/protocols/socks/main.zeek 11 11
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            1080/tcp
+         }
+
+
+   Well-known ports for SOCKS.
+
 Types
 #####
 .. zeek:type:: SOCKS::Info
-   :source-code: base/protocols/socks/main.zeek 16 43
+   :source-code: base/protocols/socks/main.zeek 19 46
 
    :Type: :zeek:type:`record`
 
@@ -139,7 +162,7 @@ Types
 Events
 ######
 .. zeek:id:: SOCKS::log_socks
-   :source-code: base/protocols/socks/main.zeek 47 47
+   :source-code: base/protocols/socks/main.zeek 50 50
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SOCKS::Info`)
 
@@ -156,7 +179,7 @@ Hooks
    SOCKS finalization hook.  Remaining SOCKS info may get logged when it's called.
 
 .. zeek:id:: SOCKS::log_policy
-   :source-code: base/protocols/socks/main.zeek 10 10
+   :source-code: base/protocols/socks/main.zeek 13 13
 
    :Type: :zeek:type:`Log::PolicyHook`
 

@@ -158,7 +158,7 @@ Events
    :param elements: The set of Information Elements comprising the message.
 
 .. zeek:id:: new_gtpv1_state
-   :source-code: base/packet-protocols/gtpv1/main.zeek 35 38
+   :source-code: base/packet-protocols/gtpv1/main.zeek 36 39
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 

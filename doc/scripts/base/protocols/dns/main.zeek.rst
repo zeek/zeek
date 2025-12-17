@@ -25,6 +25,12 @@ Runtime Options
                                                                               reply across this number of different query IDs.
 ============================================================================= =======================================================================
 
+Redefinable Options
+###################
+=========================================================== =================================
+:zeek:id:`DNS::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for DNS traffic.
+=========================================================== =================================
+
 Types
 #####
 ===================================================== ================================================================
@@ -37,19 +43,18 @@ Types
 
 Redefinitions
 #############
-==================================================================== ===========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              The DNS logging stream identifier.
-                                                                     
-                                                                     * :zeek:enum:`DNS::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       dns: :zeek:type:`DNS::Info` :zeek:attr:`&optional`
-                                                                     
-                                                                       dns_state: :zeek:type:`DNS::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ===========================================================
+============================================ ===========================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      The DNS logging stream identifier.
+                                             
+                                             * :zeek:enum:`DNS::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               dns: :zeek:type:`DNS::Info` :zeek:attr:`&optional`
+                                             
+                                               dns_state: :zeek:type:`DNS::State` :zeek:attr:`&optional`
+============================================ ===========================================================
 
 Events
 ######
@@ -76,7 +81,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DNS::max_pending_msgs
-   :source-code: base/protocols/dns/main.zeek 130 130
+   :source-code: base/protocols/dns/main.zeek 133 133
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -89,7 +94,7 @@ Runtime Options
    response is ongoing).
 
 .. zeek:id:: DNS::max_pending_query_ids
-   :source-code: base/protocols/dns/main.zeek 135 135
+   :source-code: base/protocols/dns/main.zeek 138 138
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -99,10 +104,32 @@ Runtime Options
    query/transaction IDs once there is at least one unmatched query or
    reply across this number of different query IDs.
 
+Redefinable Options
+###################
+.. zeek:id:: DNS::ports
+   :source-code: base/protocols/dns/main.zeek 15 15
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            5353/udp,
+            137/udp,
+            5355/udp,
+            53/udp,
+            53/tcp
+         }
+
+
+   Well-known ports for DNS traffic.
+
 Types
 #####
 .. zeek:type:: DNS::Info
-   :source-code: base/protocols/dns/main.zeek 18 90
+   :source-code: base/protocols/dns/main.zeek 21 93
 
    :Type: :zeek:type:`record`
 
@@ -281,7 +308,7 @@ Types
    The record type which contains the column fields of the DNS log.
 
 .. zeek:type:: DNS::PendingMessages
-   :source-code: base/protocols/dns/main.zeek 123 123
+   :source-code: base/protocols/dns/main.zeek 126 126
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`Queue::Queue`
 
@@ -289,7 +316,7 @@ Types
    DNS message query/transaction ID.
 
 .. zeek:type:: DNS::State
-   :source-code: base/protocols/dns/main.zeek 139 154
+   :source-code: base/protocols/dns/main.zeek 142 157
 
    :Type: :zeek:type:`record`
 
@@ -321,7 +348,7 @@ Types
 Events
 ######
 .. zeek:id:: DNS::log_dns
-   :source-code: base/protocols/dns/main.zeek 94 94
+   :source-code: base/protocols/dns/main.zeek 97 97
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`DNS::Info`)
 
@@ -331,7 +358,7 @@ Events
 Hooks
 #####
 .. zeek:id:: DNS::do_reply
-   :source-code: base/protocols/dns/main.zeek 108 108
+   :source-code: base/protocols/dns/main.zeek 111 111
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, reply: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -360,7 +387,7 @@ Hooks
    DNS finalization hook.  Remaining DNS info may get logged when it's called.
 
 .. zeek:id:: DNS::log_policy
-   :source-code: base/protocols/dns/main.zeek 15 15
+   :source-code: base/protocols/dns/main.zeek 18 18
 
    :Type: :zeek:type:`Log::PolicyHook`
 

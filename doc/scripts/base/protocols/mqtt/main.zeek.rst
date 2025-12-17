@@ -12,6 +12,12 @@ Generates the mqtt.log file.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+============================================================ ==========================
+:zeek:id:`MQTT::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for MQTT.
+============================================================ ==========================
+
 Types
 #####
 ================================================================== ======================================================================
@@ -24,23 +30,22 @@ Types
 
 Redefinitions
 #############
-==================================================================== =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`MQTT::CONNECT_LOG`
-                                                                     
-                                                                     * :zeek:enum:`MQTT::PUBLISH_LOG`
-                                                                     
-                                                                     * :zeek:enum:`MQTT::SUBSCRIBE_LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
-                                                                     
-                                                                       mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =============================================================
+============================================ =============================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`MQTT::CONNECT_LOG`
+                                             
+                                             * :zeek:enum:`MQTT::PUBLISH_LOG`
+                                             
+                                             * :zeek:enum:`MQTT::SUBSCRIBE_LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
+                                             
+                                               mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
+============================================ =============================================================
 
 Events
 ######
@@ -69,10 +74,28 @@ Functions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: MQTT::ports
+   :source-code: base/protocols/mqtt/main.zeek 16 16
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            1883/tcp
+         }
+
+
+   Well-known ports for MQTT.
+
 Types
 #####
 .. zeek:type:: MQTT::ConnectInfo
-   :source-code: base/protocols/mqtt/main.zeek 24 45
+   :source-code: base/protocols/mqtt/main.zeek 27 48
 
    :Type: :zeek:type:`record`
 
@@ -124,7 +147,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishInfo
-   :source-code: base/protocols/mqtt/main.zeek 67 107
+   :source-code: base/protocols/mqtt/main.zeek 70 110
 
    :Type: :zeek:type:`record`
 
@@ -211,7 +234,7 @@ Types
 
 
 .. zeek:type:: MQTT::State
-   :source-code: base/protocols/mqtt/main.zeek 122 128
+   :source-code: base/protocols/mqtt/main.zeek 125 131
 
    :Type: :zeek:type:`record`
 
@@ -230,7 +253,7 @@ Types
    Data structure to track pub/sub messaging state of a given connection.
 
 .. zeek:type:: MQTT::SubUnsub
-   :source-code: base/protocols/mqtt/main.zeek 19 23
+   :source-code: base/protocols/mqtt/main.zeek 22 26
 
    :Type: :zeek:type:`enum`
 
@@ -241,7 +264,7 @@ Types
 
 
 .. zeek:type:: MQTT::SubscribeInfo
-   :source-code: base/protocols/mqtt/main.zeek 47 65
+   :source-code: base/protocols/mqtt/main.zeek 50 68
 
    :Type: :zeek:type:`record`
 
@@ -290,7 +313,7 @@ Types
 Events
 ######
 .. zeek:id:: MQTT::log_mqtt
-   :source-code: base/protocols/mqtt/main.zeek 111 111
+   :source-code: base/protocols/mqtt/main.zeek 114 114
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`MQTT::ConnectInfo`)
 
@@ -300,19 +323,19 @@ Events
 Hooks
 #####
 .. zeek:id:: MQTT::log_policy_connect
-   :source-code: base/protocols/mqtt/main.zeek 15 15
+   :source-code: base/protocols/mqtt/main.zeek 18 18
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: MQTT::log_policy_publish
-   :source-code: base/protocols/mqtt/main.zeek 17 17
+   :source-code: base/protocols/mqtt/main.zeek 20 20
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: MQTT::log_policy_subscribe
-   :source-code: base/protocols/mqtt/main.zeek 16 16
+   :source-code: base/protocols/mqtt/main.zeek 19 19
 
    :Type: :zeek:type:`Log::PolicyHook`
 
@@ -320,7 +343,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: MQTT::publish_expire
-   :source-code: base/protocols/mqtt/main.zeek 131 135
+   :source-code: base/protocols/mqtt/main.zeek 134 138
 
    :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::PublishInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
 
@@ -328,7 +351,7 @@ Functions
    yet simply causes the message to be logged.
 
 .. zeek:id:: MQTT::subscribe_expire
-   :source-code: base/protocols/mqtt/main.zeek 137 141
+   :source-code: base/protocols/mqtt/main.zeek 140 144
 
    :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::SubscribeInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
 

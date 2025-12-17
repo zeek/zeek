@@ -14,6 +14,7 @@ Summary
 Redefinable Options
 ###################
 ========================================================================================================== ========================================================
+:zeek:id:`SNMP::ports`: :zeek:type:`set` :zeek:attr:`&redef`                                               Well-known ports for SNMP.
 :zeek:id:`SNMP::version_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` Maps an SNMP version integer to a human readable string.
 ========================================================================================================== ========================================================
 
@@ -25,17 +26,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SNMP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       snmp: :zeek:type:`SNMP::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ======================================================
+============================================ ======================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`SNMP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               snmp: :zeek:type:`SNMP::Info` :zeek:attr:`&optional`
+============================================ ======================================================
 
 Events
 ######
@@ -56,8 +56,25 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
+.. zeek:id:: SNMP::ports
+   :source-code: base/protocols/snmp/main.zeek 11 11
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            162/udp,
+            161/udp
+         }
+
+
+   Well-known ports for SNMP.
+
 .. zeek:id:: SNMP::version_map
-   :source-code: base/protocols/snmp/main.zeek 54 54
+   :source-code: base/protocols/snmp/main.zeek 57 57
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"``
@@ -77,7 +94,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: SNMP::Info
-   :source-code: base/protocols/snmp/main.zeek 13 51
+   :source-code: base/protocols/snmp/main.zeek 16 54
 
    :Type: :zeek:type:`record`
 
@@ -158,7 +175,7 @@ Types
 Events
 ######
 .. zeek:id:: SNMP::log_snmp
-   :source-code: base/protocols/snmp/main.zeek 62 62
+   :source-code: base/protocols/snmp/main.zeek 65 65
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SNMP::Info`)
 
@@ -175,7 +192,7 @@ Hooks
    SNMP finalization hook.  Remaining SNMP info may get logged when it's called.
 
 .. zeek:id:: SNMP::log_policy
-   :source-code: base/protocols/snmp/main.zeek 10 10
+   :source-code: base/protocols/snmp/main.zeek 13 13
 
    :Type: :zeek:type:`Log::PolicyHook`
 

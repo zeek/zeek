@@ -12,6 +12,12 @@ metadata about the connection if it's available.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`IRC::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for IRC.
+=========================================================== =========================
+
 Types
 #####
 =========================================== =
@@ -20,18 +26,17 @@ Types
 
 Redefinitions
 #############
-==================================================================== ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`IRC::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       irc: :zeek:type:`IRC::Info` :zeek:attr:`&optional`
-                                                                         IRC session information.
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ====================================================
+============================================ ====================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`IRC::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               irc: :zeek:type:`IRC::Info` :zeek:attr:`&optional`
+                                                 IRC session information.
+============================================ ====================================================
 
 Events
 ######
@@ -49,10 +54,31 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: IRC::ports
+   :source-code: base/protocols/irc/main.zeek 11 11
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            6666/tcp,
+            6669/tcp,
+            6668/tcp,
+            6667/tcp
+         }
+
+
+   Well-known ports for IRC.
+
 Types
 #####
 .. zeek:type:: IRC::Info
-   :source-code: base/protocols/irc/main.zeek 13 31
+   :source-code: base/protocols/irc/main.zeek 15 33
 
    :Type: :zeek:type:`record`
 
@@ -129,7 +155,7 @@ Types
 Events
 ######
 .. zeek:id:: IRC::irc_log
-   :source-code: base/protocols/irc/main.zeek 35 35
+   :source-code: base/protocols/irc/main.zeek 37 37
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`IRC::Info`)
 
@@ -139,7 +165,7 @@ Events
 Hooks
 #####
 .. zeek:id:: IRC::log_policy
-   :source-code: base/protocols/irc/main.zeek 11 11
+   :source-code: base/protocols/irc/main.zeek 13 13
 
    :Type: :zeek:type:`Log::PolicyHook`
 

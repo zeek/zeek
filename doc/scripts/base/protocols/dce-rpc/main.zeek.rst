@@ -17,6 +17,12 @@ Runtime Options
                                                                                the operations being noisy and low value on most networks.
 ============================================================================== ===============================================================
 
+Redefinable Options
+###################
+=============================================================== =============================
+:zeek:id:`DCE_RPC::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for DCE/RPC.
+=============================================================== =============================
+
 Types
 #####
 ======================================================= =
@@ -41,7 +47,6 @@ Redefinitions
                                                                           dce_rpc_state: :zeek:type:`DCE_RPC::State` :zeek:attr:`&optional`
                                                                         
                                                                           dce_rpc_backing: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`DCE_RPC::BackingState` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef`    
 ======================================================================= =======================================================================================================================
 
 Hooks
@@ -57,7 +62,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DCE_RPC::ignored_operations
-   :source-code: base/protocols/dce-rpc/main.zeek 45 45
+   :source-code: base/protocols/dce-rpc/main.zeek 48 48
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -89,10 +94,28 @@ Runtime Options
    These are DCE-RPC operations that are ignored, typically due to
    the operations being noisy and low value on most networks.
 
+Redefinable Options
+###################
+.. zeek:id:: DCE_RPC::ports
+   :source-code: base/protocols/dce-rpc/main.zeek 10 10
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            135/tcp
+         }
+
+
+   Well-known ports for DCE/RPC.
+
 Types
 #####
 .. zeek:type:: DCE_RPC::BackingState
-   :source-code: base/protocols/dce-rpc/main.zeek 59 62
+   :source-code: base/protocols/dce-rpc/main.zeek 62 65
 
    :Type: :zeek:type:`record`
 
@@ -105,7 +128,7 @@ Types
 
 
 .. zeek:type:: DCE_RPC::Info
-   :source-code: base/protocols/dce-rpc/main.zeek 11 41
+   :source-code: base/protocols/dce-rpc/main.zeek 14 44
 
    :Type: :zeek:type:`record`
 
@@ -161,7 +184,7 @@ Types
 
 
 .. zeek:type:: DCE_RPC::State
-   :source-code: base/protocols/dce-rpc/main.zeek 51 55
+   :source-code: base/protocols/dce-rpc/main.zeek 54 58
 
    :Type: :zeek:type:`record`
 
@@ -186,7 +209,7 @@ Hooks
    DCE_RPC finalization hook.  Remaining DCE_RPC info may get logged when it's called.
 
 .. zeek:id:: DCE_RPC::log_policy
-   :source-code: base/protocols/dce-rpc/main.zeek 9 9
+   :source-code: base/protocols/dce-rpc/main.zeek 12 12
 
    :Type: :zeek:type:`Log::PolicyHook`
 

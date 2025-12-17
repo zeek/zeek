@@ -25,6 +25,13 @@ Runtime Options
 :zeek:id:`DHCP::max_uids_per_log_entry`: :zeek:type:`count` :zeek:attr:`&redef`      The maximum number of uids allowed in a single log entry.
 ==================================================================================== ================================================================
 
+Redefinable Options
+###################
+=================================================================== =================================
+:zeek:id:`DHCP::client_ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known client ports for DHCP.
+:zeek:id:`DHCP::server_ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known server ports for DHCP.
+=================================================================== =================================
+
 State Variables
 ###############
 ================================================== ========================================================
@@ -40,22 +47,21 @@ Types
 
 Redefinitions
 #############
-==================================================================== ===========================================================
-:zeek:type:`DHCP::Info`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`DHCP::Info`
-                                                                     
-                                                                       last_message_ts: :zeek:type:`time` :zeek:attr:`&optional`
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`DHCP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       dhcp: :zeek:type:`DHCP::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ===========================================================
+============================================ ===========================================================
+:zeek:type:`DHCP::Info`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`DHCP::Info`
+                                             
+                                               last_message_ts: :zeek:type:`time` :zeek:attr:`&optional`
+:zeek:type:`Log::ID`: :zeek:type:`enum`      
+                                             
+                                             * :zeek:enum:`DHCP::LOG`
+:zeek:type:`connection`: :zeek:type:`record` 
+                                             
+                                             :New Fields: :zeek:type:`connection`
+                                             
+                                               dhcp: :zeek:type:`DHCP::Info` :zeek:attr:`&optional`
+============================================ ===========================================================
 
 Events
 ######
@@ -79,7 +85,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DHCP::max_msg_types_per_log_entry
-   :source-code: base/protocols/dhcp/main.zeek 98 98
+   :source-code: base/protocols/dhcp/main.zeek 105 105
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -88,7 +94,7 @@ Runtime Options
    The maximum number of msg_types allowed in a single log entry.
 
 .. zeek:id:: DHCP::max_txid_watch_time
-   :source-code: base/protocols/dhcp/main.zeek 92 92
+   :source-code: base/protocols/dhcp/main.zeek 99 99
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -99,7 +105,7 @@ Runtime Options
    transaction narrative.
 
 .. zeek:id:: DHCP::max_uids_per_log_entry
-   :source-code: base/protocols/dhcp/main.zeek 95 95
+   :source-code: base/protocols/dhcp/main.zeek 102 102
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -107,10 +113,45 @@ Runtime Options
 
    The maximum number of uids allowed in a single log entry.
 
+Redefinable Options
+###################
+.. zeek:id:: DHCP::client_ports
+   :source-code: base/protocols/dhcp/main.zeek 20 20
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            68/udp
+         }
+
+
+   Well-known client ports for DHCP.
+
+.. zeek:id:: DHCP::server_ports
+   :source-code: base/protocols/dhcp/main.zeek 18 18
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            67/udp,
+            4011/udp
+         }
+
+
+   Well-known server ports for DHCP.
+
 State Variables
 ###############
 .. zeek:id:: DHCP::log_info
-   :source-code: base/protocols/dhcp/main.zeek 110 110
+   :source-code: base/protocols/dhcp/main.zeek 117 117
 
    :Type: :zeek:type:`DHCP::Info`
    :Default:
@@ -156,7 +197,7 @@ State Variables
 Types
 #####
 .. zeek:type:: DHCP::Info
-   :source-code: base/protocols/dhcp/main.zeek 18 87
+   :source-code: base/protocols/dhcp/main.zeek 25 94
 
    :Type: :zeek:type:`record`
 
@@ -332,7 +373,7 @@ Types
 Events
 ######
 .. zeek:id:: DHCP::aggregate_msgs
-   :source-code: base/protocols/dhcp/main.zeek 104 104
+   :source-code: base/protocols/dhcp/main.zeek 111 111
 
    :Type: :zeek:type:`event` (ts: :zeek:type:`time`, id: :zeek:type:`conn_id`, uid: :zeek:type:`string`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCP::Msg`, options: :zeek:type:`DHCP::Options`)
 
@@ -352,7 +393,7 @@ Events
 Hooks
 #####
 .. zeek:id:: DHCP::log_policy
-   :source-code: base/protocols/dhcp/main.zeek 15 15
+   :source-code: base/protocols/dhcp/main.zeek 22 22
 
    :Type: :zeek:type:`Log::PolicyHook`
 

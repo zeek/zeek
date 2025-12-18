@@ -18,7 +18,6 @@ using pkt_timeval = struct timeval;
 #endif
 
 #include "zeek/IP.h"
-#include "zeek/NetVar.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/session/Session.h"
 
@@ -162,8 +161,8 @@ public:
     static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
     struct VlanTag {
-        uint32_t id = 0;
-        uint32_t pcp = 0;
+        uint16_t id = 0;
+        uint8_t pcp = 0;
         bool dei = false;
 
         auto operator<=>(const VlanTag&) const = default;
@@ -182,7 +181,17 @@ public:
      * (Outermost) VLAN tag if present, otherwise empty
      */
     std::optional<VlanTag> GetVlanTag() const {
-        return vlan_present ? std::optional<VlanTag>{{.id = vlan, .pcp = vlan_pcp, .dei = vlan_dei}} : std::nullopt;
+        if ( ! vlan_present )
+            return {};
+
+        if ( ! std::in_range<uint16_t>(vlan) )
+            reporter->InternalError("VLAN ID value %u exceeds 16 bits", vlan);
+
+        if ( ! std::in_range<uint8_t>(vlan_pcp) )
+            reporter->InternalError("VLAN PCP value %u exceeds 8 bits", vlan_pcp);
+
+        return std::optional<VlanTag>{
+            {.id = static_cast<uint16_t>(vlan), .pcp = static_cast<uint8_t>(vlan_pcp), .dei = vlan_dei}};
     }
 
     /**
@@ -199,9 +208,18 @@ public:
      * (Innermost) VLAN tag if present, otherwise empty
      */
     std::optional<VlanTag> GetInnerVlanTag() const {
-        return inner_vlan_present ?
-                   std::optional<VlanTag>{{.id = inner_vlan, .pcp = inner_vlan_pcp, .dei = inner_vlan_dei}} :
-                   std::nullopt;
+        if ( ! inner_vlan_present )
+            return std::nullopt;
+
+        if ( ! std::in_range<uint16_t>(inner_vlan) )
+            reporter->InternalError("inner VLAN ID value %u exceeds 16 bits", inner_vlan);
+
+        if ( ! std::in_range<uint8_t>(inner_vlan_pcp) )
+            reporter->InternalError("inner VLAN PCP value %u exceeds 8 bits", inner_vlan_pcp);
+
+        return std::optional<VlanTag>{{.id = static_cast<uint16_t>(inner_vlan),
+                                       .pcp = static_cast<uint8_t>(inner_vlan_pcp),
+                                       .dei = inner_vlan_dei}};
     }
 
     /**

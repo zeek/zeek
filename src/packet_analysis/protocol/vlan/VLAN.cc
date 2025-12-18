@@ -17,8 +17,8 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     }
 
     uint16_t tci = (data[0] << 8u) + data[1];
-    uint32_t vlan_id = tci & 0xfff;
-    uint32_t vlan_pcp = (tci & 0xe000) >> 13;
+    uint16_t vlan_id = tci & 0xfff;
+    uint8_t vlan_pcp = (tci & 0xe000) >> 13;
     bool vlan_dei = (tci & 0x1000) != 0;
     if ( ! packet->GetVlanTag() )
         packet->SetVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});

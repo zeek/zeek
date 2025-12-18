@@ -2025,10 +2025,12 @@ std::string double_to_str(double d, int precision, bool no_exp) {
         // is not implemented for the range equivalent of the code
         // (`borrowed_iterator_t` over a `reverse_view`). Stick to the non-ranges
         // version for now.
-        // NOLINTNEXTLINE(modernize-use-ranges)
-        res.erase(std::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(), res.end());
-        if ( res.back() == '.' )
-            res.pop_back();
+        if ( res.ends_with('0') ) {
+            // NOLINTNEXTLINE(modernize-use-ranges)
+            res.erase(std::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(), res.end());
+            if ( res.back() == '.' )
+                res.pop_back();
+        }
     }
 
     if ( neg )

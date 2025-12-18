@@ -161,6 +161,14 @@ public:
      */
     static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
+    struct VlanTag {
+        uint32_t id = 0;
+        uint32_t pcp = 0;
+        bool dei = false;
+
+        auto operator<=>(const VlanTag&) const = default;
+    };
+
     // Accessor methods for VLAN fields
     // Suppress deprecation warnings since these methods need to access deprecated fields
 #if defined(__GNUC__)
@@ -173,75 +181,54 @@ public:
     /**
      * (Outermost) VLAN tag if present, otherwise empty
      */
-    std::optional<uint32_t> GetVlan() const { return vlan_present ? std::optional{vlan} : std::nullopt; }
+    std::optional<VlanTag> GetVlanTag() const {
+        return vlan_present ? std::optional<VlanTag>{{.id = vlan, .pcp = vlan_pcp, .dei = vlan_dei}} : std::nullopt;
+    }
 
     /**
-     * Sets the VLAN tag and marks it as present
+     * (Outermost) Sets the VLAN tag and marks it as present
      */
-    void SetVlan(uint32_t id) {
-        vlan = id;
+    void SetVlanTag(VlanTag tag) {
+        vlan = tag.id;
+        vlan_pcp = tag.pcp;
+        vlan_dei = tag.dei;
         vlan_present = true;
     }
 
     /**
-     * (Outermost) VLAN PCP if present, otherwise empty
-     */
-    std::optional<uint32_t> GetVlanPcp() const { return vlan_present ? std::optional{vlan_pcp} : std::nullopt; }
-
-    /**
-     * Sets the outermost VLAN PCP
-     */
-    void SetVlanPcp(uint32_t pcp) { vlan_pcp = pcp; }
-
-    /**
-     * (Outermost) VLAN DEI if present, otherwise empty
-     */
-    std::optional<bool> GetVlanDei() const { return vlan_present ? std::optional{vlan_dei} : std::nullopt; }
-
-    /**
-     * Sets the outermost VLAN DEI
-     */
-    void SetVlanDei(bool dei) { vlan_dei = dei; }
-
-
-    /**
      * (Innermost) VLAN tag if present, otherwise empty
      */
-    std::optional<uint32_t> GetInnerVlan() const {
-        return inner_vlan_present ? std::optional{inner_vlan} : std::nullopt;
+    std::optional<VlanTag> GetInnerVlanTag() const {
+        return inner_vlan_present ?
+                   std::optional<VlanTag>{{.id = inner_vlan, .pcp = inner_vlan_pcp, .dei = inner_vlan_dei}} :
+                   std::nullopt;
     }
 
     /**
-     * Sets the inner VLAN tag and marks it as present
+     * (Innermost) Sets the VLAN tag and marks it as present
      */
-    void SetInnerVlan(uint32_t id) {
-        inner_vlan = id;
+    void SetInnerVlanTag(VlanTag tag) {
+        inner_vlan = tag.id;
+        inner_vlan_pcp = tag.pcp;
+        inner_vlan_dei = tag.dei;
         inner_vlan_present = true;
     }
 
     /**
-     * (Innermost) VLAN PCP if present, otherwise empty
+     * Clears both of the VLAN tags
      */
-    std::optional<uint32_t> GetInnerVlanPcp() const {
-        return inner_vlan_present ? std::optional{inner_vlan_pcp} : std::nullopt;
+    void ClearVlanTags() {
+        vlan = 0;
+        vlan_pcp = 0;
+        vlan_dei = false;
+        vlan_present = false;
+
+        inner_vlan = 0;
+        inner_vlan_pcp = 0;
+        inner_vlan_dei = false;
+        inner_vlan_present = false;
     }
 
-    /**
-     * Sets the inner VLAN PCP
-     */
-    void SetInnerVlanPcp(uint32_t pcp) { inner_vlan_pcp = pcp; }
-
-    /**
-     * (Innermost) VLAN DEI if present, otherwise empty
-     */
-    std::optional<bool> GetInnerVlanDei() const {
-        return inner_vlan_present ? std::optional{inner_vlan_dei} : std::nullopt;
-    }
-
-    /**
-     * Sets the inner VLAN DEI
-     */
-    void SetInnerVlanDei(bool dei) { inner_vlan_dei = dei; }
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
@@ -262,18 +249,18 @@ public:
      */
     uint32_t eth_type;
 
-    // These should be made private. The types can also change to optional then.
-    [[deprecated("Remove in v9.1. Use GetVlan() instead.")]]
+    // These should be made combined into 2 private, optional VlanTag instances
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     uint32_t vlan = 0;
-    [[deprecated("Remove in v9.1. Use GetVlanPcp() instead.")]]
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     uint32_t vlan_pcp = 0;
-    [[deprecated("Remove in v9.1. Use GetVlanDei() instead.")]]
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     bool vlan_dei = false;
-    [[deprecated("Remove in v9.1. Use GetInnerVlan() instead.")]]
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     uint32_t inner_vlan = 0;
-    [[deprecated("Remove in v9.1. Use GetInnerVlanPcp() instead.")]]
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     uint32_t inner_vlan_pcp = 0;
-    [[deprecated("Remove in v9.1. Use GetInnerVlanDei() instead.")]]
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     bool inner_vlan_dei = false;
 
     /**

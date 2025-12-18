@@ -17,19 +17,13 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     }
 
     uint16_t tci = (data[0] << 8u) + data[1];
-    auto vlan_id = tci & 0xfff;
-    auto vlan_pcp = (tci & 0xe000) >> 13;
+    uint32_t vlan_id = tci & 0xfff;
+    uint32_t vlan_pcp = (tci & 0xe000) >> 13;
     bool vlan_dei = (tci & 0x1000) != 0;
-    if ( ! packet->GetVlan() ) {
-        packet->SetVlan(vlan_id);
-        packet->SetVlanPcp(vlan_pcp);
-        packet->SetVlanDei(vlan_dei);
-    }
-    else {
-        packet->SetInnerVlan(vlan_id);
-        packet->SetInnerVlanPcp(vlan_pcp);
-        packet->SetInnerVlanDei(vlan_dei);
-    }
+    if ( ! packet->GetVlanTag() )
+        packet->SetVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});
+    else
+        packet->SetInnerVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});
 
     // Get the protocol/length field from the last 2 bytes of the header.
     uint32_t protocol = ((data[2] << 8u) + data[3]);

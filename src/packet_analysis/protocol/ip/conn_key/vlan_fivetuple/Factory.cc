@@ -72,10 +72,25 @@ protected:
 
 protected:
     void DoInit(const Packet& pkt) override {
-        key.vlan = pkt.GetVlan() ? *pkt.GetVlan() : 0;
-        key.vlan_present = pkt.GetVlan().has_value();
-        key.inner_vlan = pkt.GetInnerVlan() ? *pkt.GetInnerVlan() : 0;
-        key.inner_vlan_present = pkt.GetInnerVlan().has_value();
+        auto vlan_tag = pkt.GetVlanTag();
+        if ( vlan_tag ) {
+            key.vlan = vlan_tag->id;
+            key.vlan_present = true;
+        }
+        else {
+            key.vlan = 0;
+            key.vlan_present = false;
+        }
+
+        auto inner_vlan_tag = pkt.GetInnerVlanTag();
+        if ( inner_vlan_tag ) {
+            key.inner_vlan = inner_vlan_tag->id;
+            key.inner_vlan_present = true;
+        }
+        else {
+            key.inner_vlan = 0;
+            key.inner_vlan_present = false;
+        }
     }
 
 private:

@@ -46,27 +46,7 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     time = ts.tv_sec + double(ts.tv_usec) / 1e6;
     eth_type = 0;
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#elif defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#endif
-    vlan_present = false;
-    vlan = 0;
-    vlan_pcp = 0;
-    vlan_dei = false;
-
-    inner_vlan_present = false;
-    inner_vlan = 0;
-    inner_vlan_pcp = 0;
-    inner_vlan_dei = false;
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+    ClearVlanTags();
 
     l3_proto = L3_UNKNOWN;
 
@@ -151,16 +131,18 @@ RecordValPtr Packet::ToRawPktHdrVal() const {
         else
             l2_hdr->Assign(4, "00:00:00:00:00:00");
 
-        if ( GetVlan() ) {
-            l2_hdr->Assign(5, *GetVlan());
-            l2_hdr->Assign(6, GetVlanPcp().value_or(0));
-            l2_hdr->Assign(7, GetVlanDei().value_or(0));
+        auto tag = GetVlanTag();
+        if ( tag ) {
+            l2_hdr->Assign(5, tag->id);
+            l2_hdr->Assign(6, tag->pcp);
+            l2_hdr->Assign(7, tag->dei);
         }
 
-        if ( GetInnerVlan() ) {
-            l2_hdr->Assign(8, *GetInnerVlan());
-            l2_hdr->Assign(9, GetInnerVlanPcp().value_or(0));
-            l2_hdr->Assign(10, GetInnerVlanDei().value_or(0));
+        auto inner_tag = GetInnerVlanTag();
+        if ( inner_tag ) {
+            l2_hdr->Assign(8, inner_tag->id);
+            l2_hdr->Assign(9, inner_tag->pcp);
+            l2_hdr->Assign(10, inner_tag->dei);
         }
 
         l2_hdr->Assign(11, eth_type);
@@ -235,12 +217,8 @@ TEST_SUITE("Packet") {
         u_char tmp = 1;
 
         p.eth_type = 1;
-        p.SetVlan(1);
-        p.SetVlanPcp(1);
-        p.SetVlanDei(true);
-        p.SetInnerVlan(1);
-        p.SetInnerVlanPcp(1);
-        p.SetInnerVlanDei(true);
+        p.SetVlanTag({.id = 1, .pcp = 1, .dei = true});
+        p.SetInnerVlanTag({.id = 1, .pcp = 1, .dei = true});
         p.l3_proto = zeek::L3_ARP;
         p.is_orig = true;
         p.l2_checksummed = true;
@@ -269,12 +247,8 @@ TEST_SUITE("Packet") {
         zeek::Packet p_clean;
 
         CHECK(p.eth_type == p_clean.eth_type);
-        CHECK(p.GetVlan() == p_clean.GetVlan());
-        CHECK(p.GetVlanPcp() == p_clean.GetVlanPcp());
-        CHECK(p.GetVlanDei() == p_clean.GetVlanDei());
-        CHECK(p.GetInnerVlan() == p_clean.GetInnerVlan());
-        CHECK(p.GetInnerVlanPcp() == p_clean.GetInnerVlanPcp());
-        CHECK(p.GetInnerVlanDei() == p_clean.GetInnerVlanDei());
+        CHECK(p.GetVlanTag() == p_clean.GetVlanTag());
+        CHECK(p.GetInnerVlanTag() == p_clean.GetInnerVlanTag());
         CHECK(p.l3_proto == p_clean.l3_proto);
         CHECK(p.is_orig == p_clean.is_orig);
         CHECK(p.l2_checksummed == p_clean.l2_checksummed);

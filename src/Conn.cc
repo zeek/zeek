@@ -56,8 +56,13 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     else
         memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
-    vlan = pkt->GetVlan();
-    inner_vlan = pkt->GetInnerVlan();
+    vlan = {};
+    if ( auto vlan_tag = pkt->GetVlanTag() )
+        vlan = vlan_tag->id;
+
+    inner_vlan = {};
+    if ( auto inner_vlan_tag = pkt->GetInnerVlanTag() )
+        inner_vlan = inner_vlan_tag->id;
 
     weird = false;
 

@@ -56,8 +56,8 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     else
         memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
-    vlan = pkt->vlan_present ? std::optional{pkt->vlan} : std::nullopt;
-    inner_vlan = pkt->inner_vlan_present ? std::optional{pkt->inner_vlan} : std::nullopt;
+    vlan = pkt->GetVlan();
+    inner_vlan = pkt->GetInnerVlan();
 
     weird = false;
 

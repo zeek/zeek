@@ -269,10 +269,9 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
 
         if ( packet->tp_status & TP_STATUS_VLAN_VALID ) {
             uint16_t tci = packet->hv1.tp_vlan_tci;
-            pkt->vlan_present = true;
-            pkt->vlan = tci & 0x0FFF;
-            pkt->vlan_pcp = (tci & 0xE000) >> 13;
-            pkt->vlan_dei = (tci & 0x1000) != 0;
+            pkt->SetVlan(tci & 0x0FFF);
+            pkt->SetVlanPcp((tci & 0xE000) >> 13);
+            pkt->SetVlanDei((tci & 0x1000) != 0);
         }
 
         switch ( checksum_mode ) {

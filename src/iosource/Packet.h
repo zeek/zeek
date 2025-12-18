@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #if defined(__OpenBSD__)
@@ -59,6 +60,13 @@ enum Layer3Proto : int8_t {
  */
 class Packet {
 public:
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
     /**
      * Construct and initialize from packet data.
      *
@@ -93,6 +101,11 @@ public:
         pkt_timeval ts = {0, 0};
         Init(0, &ts, 0, 0, nullptr);
     }
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
     /**
      * Destructor.
@@ -148,6 +161,93 @@ public:
      */
     static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
+    // Accessor methods for VLAN fields
+    // Suppress deprecation warnings since these methods need to access deprecated fields
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+    /**
+     * (Outermost) VLAN tag if present, otherwise empty
+     */
+    std::optional<uint32_t> GetVlan() const { return vlan_present ? std::optional{vlan} : std::nullopt; }
+
+    /**
+     * Sets the VLAN tag and marks it as present
+     */
+    void SetVlan(uint32_t id) {
+        vlan = id;
+        vlan_present = true;
+    }
+
+    /**
+     * (Outermost) VLAN PCP if present, otherwise empty
+     */
+    std::optional<uint32_t> GetVlanPcp() const { return vlan_present ? std::optional{vlan_pcp} : std::nullopt; }
+
+    /**
+     * Sets the outermost VLAN PCP
+     */
+    void SetVlanPcp(uint32_t pcp) { vlan_pcp = pcp; }
+
+    /**
+     * (Outermost) VLAN DEI if present, otherwise empty
+     */
+    std::optional<bool> GetVlanDei() const { return vlan_present ? std::optional{vlan_dei} : std::nullopt; }
+
+    /**
+     * Sets the outermost VLAN DEI
+     */
+    void SetVlanDei(bool dei) { vlan_dei = dei; }
+
+
+    /**
+     * (Innermost) VLAN tag if present, otherwise empty
+     */
+    std::optional<uint32_t> GetInnerVlan() const {
+        return inner_vlan_present ? std::optional{inner_vlan} : std::nullopt;
+    }
+
+    /**
+     * Sets the inner VLAN tag and marks it as present
+     */
+    void SetInnerVlan(uint32_t id) {
+        inner_vlan = id;
+        inner_vlan_present = true;
+    }
+
+    /**
+     * (Innermost) VLAN PCP if present, otherwise empty
+     */
+    std::optional<uint32_t> GetInnerVlanPcp() const {
+        return inner_vlan_present ? std::optional{inner_vlan_pcp} : std::nullopt;
+    }
+
+    /**
+     * Sets the inner VLAN PCP
+     */
+    void SetInnerVlanPcp(uint32_t pcp) { inner_vlan_pcp = pcp; }
+
+    /**
+     * (Innermost) VLAN DEI if present, otherwise empty
+     */
+    std::optional<bool> GetInnerVlanDei() const {
+        return inner_vlan_present ? std::optional{inner_vlan_dei} : std::nullopt;
+    }
+
+    /**
+     * Sets the inner VLAN DEI
+     */
+    void SetInnerVlanDei(bool dei) { inner_vlan_dei = dei; }
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+
     // These are passed in through the constructor.
     std::string tag;              /// Used in serialization
     double time;                  /// Timestamp reconstituted as float
@@ -162,44 +262,18 @@ public:
      */
     uint32_t eth_type;
 
-    /**
-     * (Outermost) If the VLAN tag was present
-     */
-    bool vlan_present = false;
-
-    /**
-     * (Outermost) VLAN tag if vlan_present, otherwise invalid
-     */
+    // These should be made private. The types can also change to optional then.
+    [[deprecated("Remove in v9.1. Use GetVlan() instead.")]]
     uint32_t vlan = 0;
-
-    /**
-     * (Outermost) VLAN PCP if vlan_present, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetVlanPcp() instead.")]]
     uint32_t vlan_pcp = 0;
-
-    /**
-     * (Outermost) VLAN DEI if vlan_present, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetVlanDei() instead.")]]
     bool vlan_dei = false;
-
-    /**
-     * (Innermost) If the inner VLAN tag was present
-     */
-    bool inner_vlan_present = false;
-
-    /**
-     * (Innermost) VLAN tag if inner_vlan_present, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlan() instead.")]]
     uint32_t inner_vlan = 0;
-
-    /**
-     * (Innermost) VLAN PCP if inner_vlan_present, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlanPcp() instead.")]]
     uint32_t inner_vlan_pcp = 0;
-
-    /**
-     * (Innermost) VLAN DEI if inner_vlan_present, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlanDei() instead.")]]
     bool inner_vlan_dei = false;
 
     /**
@@ -315,6 +389,16 @@ public:
     session::Session* session = nullptr;
 
 private:
+    /**
+     * (Outermost) If the VLAN tag was present
+     */
+    bool vlan_present = false;
+
+    /**
+     * (Innermost) If the inner VLAN tag was present
+     */
+    bool inner_vlan_present = false;
+
     // Renders an MAC address into its ASCII representation.
     ValPtr FmtEUI48(const u_char* mac) const;
 

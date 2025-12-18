@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <filesystem>
 #include <iostream>
 #include <ranges>

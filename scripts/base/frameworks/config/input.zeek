@@ -12,7 +12,11 @@ export {
 	##
 	## If the same configuration option is defined in several files with
 	## different values, behavior is unspecified.
-	const config_files: set[string] = {} &redef;
+	##
+	## If you change the variable at run-time rather than via &redef,
+	## you need to do so in a zeek_init() event handler with priority
+	## higher than 5 in order to have the change take effect.
+	global config_files: set[string] = {} &redef;
 
 	## Read specified configuration file and apply values; updates to file
 	## are not tracked.

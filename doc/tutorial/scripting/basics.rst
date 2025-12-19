@@ -1,8 +1,14 @@
+.. _basics_video: https://youtu.be/nae8cdrUUKY?si=aGXnYaHPYjkcZk_j
+
 .. _basics:
 
 ############
  The Basics
 ############
+
+.. important::
+
+   This section is also avaliable in video form `on YouTube <basics_video_>`_.
 
 .. _why_script:
 

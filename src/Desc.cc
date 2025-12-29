@@ -91,7 +91,11 @@ void ODesc::Add(int i) {
         AddBytes(&i, sizeof(i));
     else {
         char tmp[256];
-        modp_litoa10(i, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -101,7 +105,11 @@ void ODesc::Add(uint32_t u) {
         AddBytes(&u, sizeof(u));
     else {
         char tmp[256];
-        modp_ulitoa10(u, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -111,7 +119,11 @@ void ODesc::Add(int64_t i) {
         AddBytes(&i, sizeof(i));
     else {
         char tmp[256];
-        modp_litoa10(i, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -121,7 +133,11 @@ void ODesc::Add(uint64_t u) {
         AddBytes(&u, sizeof(u));
     else {
         char tmp[256];
-        modp_ulitoa10(u, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }

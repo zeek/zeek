@@ -21,7 +21,7 @@ public:
 
     size_t MaxSize(const ZVal& zv) { return max_size ? *max_size : ComputeMaxSize(zv); }
 
-    virtual void RenderInto(const ZVal& zv, char*& res) {
+    virtual void RenderInto(const ZVal& zv, char*& res, char* res_end) {
         auto n = *max_size;
         memcpy(res, s->data(), n);
         res += n;
@@ -44,7 +44,7 @@ class FixedCatArg : public CatArg {
 public:
     FixedCatArg(TypePtr t);
 
-    void RenderInto(const ZVal& zv, char*& res) override;
+    void RenderInto(const ZVal& zv, char*& res, char* res_end) override;
 
 protected:
     TypePtr t;
@@ -54,7 +54,7 @@ class StringCatArg : public CatArg {
 public:
     StringCatArg() : CatArg() {}
 
-    void RenderInto(const ZVal& zv, char*& res) override {
+    void RenderInto(const ZVal& zv, char*& res, char* res_end) override {
         auto s = zv.AsString();
         auto n = s->Len();
         memcpy(res, s->Bytes(), n);
@@ -69,7 +69,7 @@ class PatternCatArg : public CatArg {
 public:
     PatternCatArg() : CatArg() {}
 
-    void RenderInto(const ZVal& zv, char*& res) override {
+    void RenderInto(const ZVal& zv, char*& res, char* res_end) override {
         *(res++) = '/';
         strcpy(res, text);
         res += n;
@@ -87,7 +87,7 @@ class DescCatArg : public CatArg {
 public:
     DescCatArg(TypePtr _t) : CatArg(), t(std::move(_t)) { d.SetStyle(RAW_STYLE); }
 
-    void RenderInto(const ZVal& zv, char*& res) override {
+    void RenderInto(const ZVal& zv, char*& res, char* res_end) override {
         auto n = d.Size();
         memcpy(res, d.Bytes(), n);
         res += n;

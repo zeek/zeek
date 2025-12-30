@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"
 
+#include <charconv>
+
 #include "zeek/IPAddr.h"
 #include "zeek/RE.h"
 
@@ -45,7 +47,7 @@ FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
     }
 }
 
-void FixedCatArg::RenderInto(const ZVal& z, char*& res) {
+void FixedCatArg::RenderInto(const ZVal& z, char*& res, char* res_end) {
     int n;
     const char* text;
     std::string str;
@@ -53,15 +55,17 @@ void FixedCatArg::RenderInto(const ZVal& z, char*& res) {
     switch ( t->Tag() ) {
         case TYPE_BOOL: *(res++) = z.AsInt() ? 'T' : 'F'; break;
 
-        case TYPE_INT:
-            n = modp_litoa10(z.AsInt(), res);
-            res += n;
+        case TYPE_INT: {
+            auto tc_result = std::to_chars(res, res_end, z.AsInt());
+            res = tc_result.ptr;
             break;
+        }
 
-        case TYPE_COUNT:
-            n = modp_ulitoa10(z.AsCount(), res);
-            res += n;
+        case TYPE_COUNT: {
+            auto tc_result = std::to_chars(res, res_end, z.AsCount());
+            res = tc_result.ptr;
             break;
+        }
 
         case TYPE_DOUBLE:
         case TYPE_TIME: {
@@ -94,8 +98,8 @@ void FixedCatArg::RenderInto(const ZVal& z, char*& res) {
         case TYPE_PORT: {
             uint32_t full_p = static_cast<uint32_t>(z.AsCount());
             zeek_uint_t p = full_p & ~PORT_SPACE_MASK;
-            n = modp_ulitoa10(p, res);
-            res += n;
+            auto tc_result = std::to_chars(res, res_end, p);
+            res = tc_result.ptr;
 
             if ( (full_p & TCP_PORT_MASK) == TCP_PORT_MASK ) {
                 strcpy(res, "/tcp");

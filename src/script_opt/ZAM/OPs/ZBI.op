@@ -270,8 +270,9 @@ eval	CatNPre()
 		max_size += ca[i]->MaxSize(aux->elems[i].ToDirectZVal(frame));
 	auto res = new char[max_size + /* slop */ n + 1];
 	auto res_p = res;
+    auto res_e = res + max_size + /* slop */ n + 1;
 	for ( int i = 0; i < n; ++i )
-		ca[i]->RenderInto(aux->elems[i].ToDirectZVal(frame), res_p);
+		ca[i]->RenderInto(aux->elems[i].ToDirectZVal(frame), res_p, res_e);
 	*res_p = '\0';
 	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
 	Cat1Op($$, ZVal(new StringVal(s)))
@@ -283,6 +284,7 @@ macro CatNPre()
 macro CatNMid()
 	auto res = new char[max_size + /* slop */ 10];
 	auto res_p = res;
+    auto res_e = res + max_size + /* slop */ 10;
 
 macro CatNPost(lhs)
 	*res_p = '\0';
@@ -295,8 +297,8 @@ eval	CatNPre()
 	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
 	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat3
@@ -306,9 +308,9 @@ eval	CatNPre()
 	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
 	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat4
@@ -319,10 +321,10 @@ eval	CatNPre()
 	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
 	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
-	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat5
@@ -334,11 +336,11 @@ eval	CatNPre()
 	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
 	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
-	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
-	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p, res_e);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat6
@@ -351,12 +353,12 @@ eval	CatNPre()
 	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
 	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
-	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
-	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
-	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p, res_e);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p, res_e);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat7
@@ -370,13 +372,13 @@ eval	CatNPre()
 	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
 	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
-	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
-	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
-	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
-	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p, res_e);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p, res_e);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p, res_e);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Cat8
@@ -391,14 +393,14 @@ eval	CatNPre()
 	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
 	max_size += ca[7]->MaxSize(aux->elems[7].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
-	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
-	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
-	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
-	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
-	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
-	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
-	ca[7]->RenderInto(aux->elems[7].ToDirectZVal(frame), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p, res_e);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p, res_e);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p, res_e);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p, res_e);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p, res_e);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p, res_e);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p, res_e);
+	ca[7]->RenderInto(aux->elems[7].ToDirectZVal(frame), res_p, res_e);
 	CatNPost($$)
 
 internal-op Analyzer-Name

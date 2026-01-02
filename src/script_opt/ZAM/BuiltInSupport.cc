@@ -70,8 +70,9 @@ void FixedCatArg::RenderInto(const ZVal& z, char*& res, char* res_end) {
         case TYPE_DOUBLE:
         case TYPE_TIME: {
             auto d = z.AsDouble();
-            n = modp_dtoa2(d, res, 6);
-            res += n;
+            str = util::double_to_str(d, 6, false);
+            strncpy(res, str.c_str(), str.size());
+            res += str.size();
 
             if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) ) {
                 // disambiguate from integer

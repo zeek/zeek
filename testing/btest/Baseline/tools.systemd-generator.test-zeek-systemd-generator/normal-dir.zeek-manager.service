@@ -5,8 +5,7 @@ Description=Zeek Manager
 SourcePath=<...>/config1
 After=zeek-setup.service
 After=zeek-logger@.service
-Requires=zeek-setup.service
-PartOf=zeek.target
+StopPropagatedFrom=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
@@ -22,6 +21,6 @@ Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=manager
 ExecStart=<...>/zeek policy<...>/systemd-generator ignore_checksums=T the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ
-Slice=zeek.slice
+Slice=zeek-manager.slice
 Restart=always
 RestartSec=1

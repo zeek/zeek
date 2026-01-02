@@ -63,11 +63,10 @@ void ensure_symlink(const path& to, const path& new_link) {
 Unit systemd_add_node_unit(const path& file, const std::string& node, const std::string& description,
                            const ZeekClusterConfig& config) {
     auto unit = Unit(file, description, config.SourcePath());
-    unit.SetPartOf("zeek.target");
+    unit.AddStopPropagatedFrom("zeek.target");
     unit.SetSyslogIdentifier("zeek-" + node);
     unit.SetUser(config.User());
     unit.SetGroup(config.Group());
-    unit.AddRequires("zeek-setup.service");
     unit.AddAfter("zeek-setup.service");
     unit.AddEnvironment("PATH", config.Path());
     unit.AddEnvironment("ZEEKPATH", config.ZeekPath());
@@ -234,7 +233,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         archiver_unit.SetExecStart(config.ArchiverCommand());
         archiver_unit.SetUser(config.User());
         archiver_unit.SetGroup(config.Group());
-        archiver_unit.AddRequires("zeek-setup.service");
         archiver_unit.AddAfter("zeek-setup.service");
         // zeek-archiver copies files from the log queue dir to the
         // archive dir, so restrict its access.

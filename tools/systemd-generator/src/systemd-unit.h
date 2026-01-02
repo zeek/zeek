@@ -17,8 +17,7 @@ public:
     /**
      * Constructor.
      */
-    Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path,
-         std::optional<std::string> part_of = {});
+    Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path);
 
     /**
      * Constructor for drop in units.
@@ -38,6 +37,8 @@ public:
      * Render the unit as a string that can be written to a unit file.
      */
     std::string ToString() const;
+
+    void SetPartOf(std::string p) { part_of = std::move(p); };
 
     void AddAfter(std::string a) { after.emplace_back(std::move(a)); }
 

@@ -9,12 +9,8 @@
 
 namespace zeek::detail::systemd {
 
-Unit::Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path,
-           std::optional<std::string> part_of)
-    : file(std::move(file)),
-      description(std::move(description)),
-      source_path(std::move(source_path)),
-      part_of(std::move(part_of)) {}
+Unit::Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path)
+    : file(std::move(file)), description(std::move(description)), source_path(std::move(source_path)) {}
 
 
 std::string Unit::ToString() const {

@@ -121,12 +121,13 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     setup_unit.SetStartLimitIntervalSec("0");
     setup_unit.AddExecStart("mkdir -p " + config.GeneratedScriptsDir().string());
     setup_unit.AddExecStart(config.ClusterLayoutGeneratorCommand());
-
     setup_unit.AddExecStart("mkdir -p " + (config.LogArchiveDir()).string());
     setup_unit.AddExecStart("chown " + config.User() + ":" + config.Group() + " " + config.LogArchiveDir().string());
     setup_unit.AddExecStart("mkdir -p " + config.LogQueueDir().string());
     setup_unit.AddExecStart("chown " + config.User() + ":" + config.Group() + " " + config.LogQueueDir().string());
     setup_unit.SetRemainAfterExit(true);
+
+    ensure_symlink("../zeek-setup.service", zeek_target_wants / "zeek-setup.service");
 
     // Manager
     setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("manager"));

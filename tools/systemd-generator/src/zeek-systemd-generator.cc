@@ -190,7 +190,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
     manager_unit.AddAfter("zeek-logger@.service");
-    manager_unit.SetSlice("zeek.slice");
+    manager_unit.SetSlice("zeek-manager.slice");
 
     auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "logger-%i", "Zeek Logger %i", config);
     // This makes <PREFIX>/var read-writeable for the logger
@@ -241,6 +241,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         archiver_unit.SetRestart("always");
         archiver_unit.SetRestartSec(config.RestartIntervalSec());
+
+        archiver_unit.SetSlice("zeek-archiver.slice");
 
         archiver_unit.Write();
 

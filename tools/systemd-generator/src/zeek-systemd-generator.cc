@@ -62,7 +62,8 @@ void ensure_symlink(const path& to, const path& new_link) {
 
 Unit systemd_add_node_unit(const path& file, const std::string& node, const std::string& description,
                            const ZeekClusterConfig& config) {
-    auto unit = Unit(file, description, config.SourcePath(), "zeek.target");
+    auto unit = Unit(file, description, config.SourcePath());
+    unit.SetPartOf("zeek.target");
     unit.SetSyslogIdentifier("zeek-" + node);
     unit.SetUser(config.User());
     unit.SetGroup(config.Group());
@@ -114,8 +115,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     auto target_unit = Unit(dir / "zeek.target", std::move(target_desc), config.SourcePath());
 
     // The setup unit creates all working directories and sets permissions
-    auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath(), "zeek.target");
-
+    auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath());
+    setup_unit.SetPartOf("zeek.target");
     setup_unit.SetServiceType("oneshot");
     setup_unit.SetStartLimitIntervalSec("0");
     setup_unit.AddExecStart("mkdir -p " + config.GeneratedScriptsDir().string());
@@ -226,7 +227,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     worker_unit.Write();
 
     if ( config.IsArchiverEnabled() ) {
-        auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath(), "zeek.target");
+        auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());
+        archiver_unit.SetPartOf("zeek.target");
         archiver_unit.SetStartLimitIntervalSec("0");
         archiver_unit.SetExecStart(config.ArchiverCommand());
         archiver_unit.SetUser(config.User());

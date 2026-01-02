@@ -14,7 +14,6 @@
 #include <optional>
 #include <string>
 #include <system_error>
-#include <vector>
 
 #include "systemd-unit.h"
 #include "zeek-cluster-config.h"

@@ -14,4 +14,5 @@ normal-dir/zeek.target.wants/zeek-archiver.service
 normal-dir/zeek.target.wants/zeek-logger@1.service
 normal-dir/zeek.target.wants/zeek-manager.service
 normal-dir/zeek.target.wants/zeek-proxy@1.service
+normal-dir/zeek.target.wants/zeek-setup.service
 normal-dir/zeek.target.wants/zeek-worker@1.service

@@ -44,6 +44,8 @@ public:
 
     void AddRequires(std::string r) { requires_.emplace_back(std::move(r)); }
 
+    void AddStopPropagatedFrom(std::string f) { stop_propagated_from.emplace_back(std::move(f)); }
+
     void AddExecStart(const std::string& cmd, std::initializer_list<std::string> args = {}) {
         std::string add;
         for ( const auto& a : args ) {
@@ -110,6 +112,7 @@ private:
     std::string description;
     std::vector<std::string> after;
     std::vector<std::string> requires_;
+    std::vector<std::string> stop_propagated_from;
     std::filesystem::path source_path;
     std::optional<std::string> part_of;
 

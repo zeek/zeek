@@ -23,8 +23,12 @@ std::string Unit::ToString() const {
 
     for ( const auto& a : after )
         ss << "After=" << a << "\n";
+
     for ( const auto& r : requires_ )
         ss << "Requires=" << r << "\n";
+
+    for ( const auto& s : stop_propagated_from )
+        ss << "StopPropagatedFrom=" << s << "\n";
 
     if ( part_of.has_value() )
         ss << "PartOf=" << *part_of << "\n";

@@ -69,6 +69,9 @@ std::unordered_set<std::string> accessed_events;
 // Maps global names (not identifiers) to the names we use for them.
 std::unordered_map<std::string, std::string> globals;
 
+// The module names that are unique to the compiled (standalone) scripts.
+std::set<std::string> standalone_modules;
+
 // Similar for locals, for the function currently being compiled.
 std::unordered_map<IDPtr, std::string> locals;
 

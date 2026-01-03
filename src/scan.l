@@ -937,30 +937,23 @@ void do_atif(zeek::detail::Expr* expr) {
     set_ignoring(! val->AsBool(), "@if", zeek::obj_desc_short(expr));
 }
 
-void do_atifdef(const char* id) {
-    start_conditional();
-
+static bool id_exists(const char *id) {
     const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
+    if ( i )
+        return true;
 
     // If the ID didn't exist, look to see if this is a module name instead.
-    bool found = (i != nullptr);
-    if ( ! found )
-        found = (zeek::detail::module_names().count(id) != 0);
+    return zeek::detail::module_names().count(id) != 0;
+}
 
-    set_ignoring(! found, "@ifdef", id);
+void do_atifdef(const char* id) {
+    start_conditional();
+    set_ignoring(! id_exists(id), "@ifdef", id);
 }
 
 void do_atifndef(const char* id) {
     start_conditional();
-
-    const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
-
-    // If the ID didn't exist, look to see if this is a module name instead.
-    bool found = (i != nullptr);
-    if ( ! found )
-        found = (zeek::detail::module_names().count(id) != 0);
-
-    set_ignoring(found, "@ifndef", id);
+    set_ignoring(id_exists(id), "@ifndef", id);
 }
 
 void do_atelse() {

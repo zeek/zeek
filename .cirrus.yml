@@ -58,23 +58,23 @@ only_if_pr_master_release: &ONLY_IF_PR_MASTER_RELEASE
       )
     )
 
-only_if_pr_master_release_nightly: &ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+only_if_pr_master_release_nightly: &ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   only_if: >
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
       ( $CIRRUS_PR != '' ||
         $CIRRUS_BRANCH == 'master' ||
         $CIRRUS_BRANCH =~ 'release/.*' ||
+        $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
 
-only_if_pr_release_and_nightly: &ONLY_IF_PR_RELEASE_AND_NIGHTLY
+only_if_release_tag_nightly: &ONLY_IF_RELEASE_TAG_NIGHTLY
   only_if: >
-    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
-      ( $CIRRUS_PR != '' ||
-        $CIRRUS_BRANCH =~ 'release/.*' ||
+      ( $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
@@ -84,15 +84,6 @@ only_if_pr_nightly: &ONLY_IF_PR_NIGHTLY
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
       ( $CIRRUS_PR != '' ||
-        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
-      )
-    )
-
-only_if_release_tag_nightly: &ONLY_IF_RELEASE_TAG_NIGHTLY
-  only_if: >
-    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
-      ( $CIRRUS_CRON != 'weekly' ) &&
-      ( ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
@@ -489,7 +480,7 @@ ubuntu24_04_spicy_head_task:
     dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *ONLY_IF_PR_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
@@ -811,7 +802,7 @@ amd64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 container_image_manifest_docker_builder:
@@ -931,7 +922,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 

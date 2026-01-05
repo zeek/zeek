@@ -611,8 +611,10 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t, int _addl_fields)
 
         field_types.push_back(r_i->type);
 
-        if ( r_i->attrs && c->TargetingStandalone() && obj_matches_opt_files(r_i->attrs) == AnalyzeDecision::SHOULD ) {
-            gi = c->RegisterAttributes(r_i->attrs);
+        auto a = r_i->attrs;
+        if ( a && ! a->GetAttrs().empty() && c->TargetingStandalone() &&
+             obj_matches_opt_files(a) == AnalyzeDecision::SHOULD ) {
+            gi = c->RegisterAttributes(a);
             final_init_cohort = max(final_init_cohort, gi->InitCohort() + 1);
             field_attrs.push_back(gi->Offset());
         }

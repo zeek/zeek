@@ -110,17 +110,18 @@ void CPPCompile::InitializeFieldMappings() {
     for ( const auto& mapping : field_decls ) {
         auto rt_arg = Fmt(mapping.first);
         auto td = mapping.second;
+        auto tda = td->attrs;
 
         string type_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
         string attrs_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
 
-        if ( standalone ) {
+        if ( standalone && tda && ! tda->GetAttrs().empty() ) {
             // We can assess whether this field is one we need to generate
             // because if it is, it will have an &optional attribute that
             // is local to one of the compiled source files.
-            if ( td->attrs && obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD ) {
+            if ( obj_matches_opt_files(tda) == AnalyzeDecision::SHOULD ) {
                 type_arg = Fmt(TypeOffset(td->type));
-                attrs_arg = Fmt(AttributesOffset(td->attrs));
+                attrs_arg = Fmt(AttributesOffset(tda));
             }
         }
 
@@ -220,7 +221,7 @@ void CPPCompile::InitializeGlobal(const IDPtr& g) {
         }
 
         const auto& attrs = g->GetAttrs();
-        if ( attrs ) {
+        if ( attrs && ! attrs->GetAttrs().empty() ) {
             auto attrs_offset = AttributesOffset(attrs);
             auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
             Emit("%s->SetAttrs(%s);", globals[g->Name()], attrs_str);

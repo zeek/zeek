@@ -7,7 +7,7 @@ namespace zeek::detail {
 using namespace std;
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& attrs) {
-    if ( ! attrs )
+    if ( ! attrs || attrs->GetAttrs().empty() )
         return nullptr;
 
     auto a = attrs.get();

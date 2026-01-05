@@ -616,7 +616,13 @@ const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const {
         if ( e->Tag() != EXPR_NAME )
             return nullptr;
 
-        return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num);
+        auto stmt_num2 = e->GetOptInfo()->stmt_num;
+
+        if ( stmt_num2 == stmt_num )
+            // Self-assignment - weird! - but avoid infinite recursion.
+            return nullptr;
+
+        return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num2);
     }
 
     return nullptr;

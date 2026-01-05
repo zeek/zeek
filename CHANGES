@@ -1,3 +1,9 @@
+8.1.0-rc1.7 | 2026-01-05 15:27:38 -0700
+
+  * fix for ZAM optimizer crashing due to infinite recursion on self-assignment (Vern Paxson, Corelight)
+
+    (cherry picked from commit 610d6d21b948d85838c88f364ce09b60c2bdf6ed)
+
 8.1.0-rc1.6 | 2026-01-05 15:26:10 -0700
 
   * tools/systemd-generator: Remove {worker_name} substitution (Arne Welzel, Corelight)

@@ -338,11 +338,11 @@ a network link in a coordinated fashion.  You can operate such a setup from
 a central manager system easily using ZeekControl because it
 hides much of the complexity of the multi-machine installation.
 
-This section gives examples of how to setup common cluster configurations
+This section gives examples of how to set up common cluster configurations
 using ZeekControl.  For a full reference on ZeekControl, see the
 `ZeekControl documentation`_.
 
-Preparing to Setup a Cluster
+Preparing to Set up a Cluster
 ----------------------------
 
 We refer to the user account used to set up the cluster
@@ -377,7 +377,7 @@ instead of the manager process.
 Basic Cluster Configuration
 ---------------------------
 
-With all prerequisites in place, perform the following steps to setup
+With all prerequisites in place, perform the following steps to set up
 a Zeek cluster (do this as the Zeek user on the manager host only):
 
 - Edit the ZeekControl configuration file, ``<prefix>/etc/zeekctl.cfg``,

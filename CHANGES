@@ -1,3 +1,26 @@
+8.1.0-rc1.5 | 2026-01-05 15:25:31 -0700
+
+  * CI: Fix not building container images for RC tags (Arne Welzel, Corelight)
+
+    Rename ONLY_IF_PR_MASTER_RELEASE_NIGHTLY to ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
+    and include matching on CIRRUS_TAG.
+
+    Delete ONLY_IF_PR_RELEASE_AND_NIGHTLY, it was unused.
+
+    Fix ONLY_IF_RELEASE_TAG_NIGHTLY condition
+
+        $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$'
+
+    to use || as CIRRUS_BRANCH is the tag (e.g v8.1.0-rc1) when running for
+    on the tag push and the condition never evaluated to true.
+
+    Change ubuntu24_04_spicy_head_task to just run nightly, doesn't seem
+    like there's a need to run on release.
+
+    [1] https://cirrus-ci.com/build/5640891471233024
+
+    (cherry picked from commit e60dc0db5e9f6a0ddafd1762d3a6bd7abe344b4e)
+
 8.1.0-rc1.4 | 2026-01-05 15:23:46 -0700
 
   * GH-5119: CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)

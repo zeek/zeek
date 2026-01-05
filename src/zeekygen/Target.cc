@@ -386,8 +386,12 @@ void PackageTarget::DoGenerate() const {
 
             vector<string> cmnts = info->GetComments();
 
-            for ( const auto& cmnt : cmnts )
-                fprintf(file.f, "   %s\n", cmnt.c_str());
+            for ( const auto& cmnt : cmnts ) {
+                if ( cmnt.empty() )
+                    fprintf(file.f, "\n");
+                else
+                    fprintf(file.f, "   %s\n", cmnt.c_str());
+            }
 
             fprintf(file.f, "\n");
         }

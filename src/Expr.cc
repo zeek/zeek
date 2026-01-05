@@ -3382,6 +3382,9 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list, std::unique
     else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
         SetError("values in set(...) constructor do not specify a set");
 
+    if ( type->Tag() == TYPE_ERROR )
+        return;
+
     if ( arg_attrs )
         SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
     else

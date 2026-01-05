@@ -1,3 +1,7 @@
+8.2.0-dev.24 | 2026-01-04 20:21:39 -0700
+
+  * fixes for using unspecified vectors/tables in constructors (Vern Paxson, Corelight)
+
 8.2.0-dev.22 | 2026-01-04 19:56:46 -0700
 
   * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)

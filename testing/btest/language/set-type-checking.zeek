@@ -44,6 +44,13 @@ event zeek_init()
     local lea: MySet = set(1003); # type clash
     }
 
+# local, indefinite index type
+event zeek_init()
+    {
+    # This used to generate a fatal error.
+    local lii = set(vector());
+    }
+
 type MyRecord: record {
 	user: string;
 	host: string;

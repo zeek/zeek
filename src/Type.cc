@@ -2271,7 +2271,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2) {
     }
 }
 
-TypePtr merge_enum_types(const Type* t1, const Type* t2) {
+static TypePtr merge_enum_types(const Type* t1, const Type* t2) {
     // Could compare pointers t1 == t2, but maybe there's someone out
     // there creating clones of the type, so safer to compare name.
     if ( t1->GetName() != t2->GetName() ) {
@@ -2302,12 +2302,20 @@ TypePtr merge_enum_types(const Type* t1, const Type* t2) {
     return nullptr;
 }
 
-TypePtr merge_table_types(const Type* t1, const Type* t2) {
-    const IndexType* it1 = static_cast<const IndexType*>(t1);
-    const IndexType* it2 = static_cast<const IndexType*>(t2);
+static TypePtr merge_table_types(const Type* t1, const Type* t2) {
+    auto it1 = t1->AsTableType();
+    auto it2 = t2->AsTableType();
 
     const auto& tl1 = it1->GetIndexTypes();
     const auto& tl2 = it2->GetIndexTypes();
+    const auto& y1 = it1->Yield();
+    const auto& y2 = it2->Yield();
+
+    if ( it1->IsUnspecifiedTable() )
+        return make_intrusive<TableType>(it2->GetIndices(), y2);
+    if ( it2->IsUnspecifiedTable() )
+        return make_intrusive<TableType>(it1->GetIndices(), y1);
+
     TypeListPtr tl3;
 
     if ( tl1.size() != tl2.size() ) {
@@ -2325,8 +2333,6 @@ TypePtr merge_table_types(const Type* t1, const Type* t2) {
         tl3->Append(std::move(tl3_i));
     }
 
-    const auto& y1 = t1->Yield();
-    const auto& y2 = t2->Yield();
     TypePtr y3;
 
     if ( y1 || y2 ) {
@@ -2343,7 +2349,7 @@ TypePtr merge_table_types(const Type* t1, const Type* t2) {
     return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 }
 
-TypePtr merge_func_types(const Type* t1, const Type* t2) {
+static TypePtr merge_func_types(const Type* t1, const Type* t2) {
     if ( ! same_type(t1, t2) ) {
         t1->Error("incompatible types", t2);
         return nullptr;
@@ -2357,7 +2363,7 @@ TypePtr merge_func_types(const Type* t1, const Type* t2) {
     return make_intrusive<FuncType>(std::move(args), std::move(yield), ft1->Flavor());
 }
 
-TypePtr merge_record_types(const Type* t1, const Type* t2) {
+static TypePtr merge_record_types(const Type* t1, const Type* t2) {
     const RecordType* rt1 = static_cast<const RecordType*>(t1);
     const RecordType* rt2 = static_cast<const RecordType*>(t2);
 
@@ -2422,7 +2428,27 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
     return make_intrusive<RecordType>(tdl3);
 }
 
-TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
+static TypePtr merge_vector_types(const Type* t1, const Type* t2) {
+    auto vt1 = t1->AsVectorType();
+    auto vt2 = t2->AsVectorType();
+
+    auto y1 = vt1->Yield();
+    auto y2 = vt2->Yield();
+
+    if ( vt1->IsUnspecifiedVector() )
+        return make_intrusive<VectorType>(y2);
+    if ( vt2->IsUnspecifiedVector() )
+        return make_intrusive<VectorType>(y1);
+
+    if ( ! same_type(y1, y2) ) {
+        t1->Error("incompatible types", t2);
+        return nullptr;
+    }
+
+    return make_intrusive<VectorType>(merge_types(y1, y2));
+}
+
+static TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const TypeList* tl1 = t1->AsTypeList();
     const TypeList* tl2 = t2->AsTypeList();
 
@@ -2497,13 +2523,7 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2) {
 
         case TYPE_LIST: return merge_list_types(t1, t2);
 
-        case TYPE_VECTOR:
-            if ( ! same_type(t1->Yield(), t2->Yield()) ) {
-                t1->Error("incompatible types", t2);
-                return nullptr;
-            }
-
-            return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
+        case TYPE_VECTOR: return merge_vector_types(t1, t2);
 
         case TYPE_FILE:
             if ( ! same_type(t1->Yield(), t2->Yield()) ) {

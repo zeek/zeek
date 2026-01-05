@@ -1,3 +1,18 @@
+8.1.0-rc1.4 | 2026-01-05 15:23:46 -0700
+
+  * GH-5119: CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)
+
+    The docker manifest command was marked as experimental and newer versions of
+    docker include a provenance manifest [1, 2]. Switch to docker imagetools
+    create for creating the multi-platform image instead of docker manifest
+    as suggested in some places [3].
+
+    [1] https://github.com/docker/build-push-action/issues/755
+    [2] https://github.com/docker/buildx/issues/1509
+    [3] https://stackoverflow.com/a/75742743
+
+    (cherry picked from commit 816ca1f2fa73d7b6b5b66ce27251187af2af37ae)
+
 8.1.0-rc1.3 | 2026-01-05 09:49:09 -0700
 
   * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)

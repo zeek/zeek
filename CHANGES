@@ -1,3 +1,9 @@
+8.0.5-1 | 2026-01-13 07:56:01 -0700
+
+  * CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)
+
+    (cherry picked from commit 816ca1f2fa73d7b6b5b66ce27251187af2af37ae)
+
 8.0.5 | 2026-01-12 20:02:07 +0000
 
   * Update ZAM baseline for to_subnet BIFs changes (Tim Wojtulewicz, Corelight)

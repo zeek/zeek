@@ -581,6 +581,7 @@ windows_task:
 docker_build_template: &DOCKER_BUILD_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
+  version_script: docker version && docker buildx version
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
   only_if: >
     ( $CIRRUS_CRON == '' ) &&
@@ -663,6 +664,8 @@ container_image_manifest_docker_builder:
     DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
     AWS_ECR_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
     AWS_ECR_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+    BUILDKIT_PROGRESS: plain
+  version_script: docker version && docker buildx version
   login_script: |
     docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
     AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \

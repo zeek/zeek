@@ -171,7 +171,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         std::map<std::string, std::string> vars = {
             {"worker_index", std::to_string(idx)},
             {"worker_index0", std::to_string(idx - 1)},
-            {"worker_name", "worker-" + std::to_string(idx)},
             {"worker_cpu", cpu},
         };
 

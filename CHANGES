@@ -1,3 +1,15 @@
+8.1.0-rc1.3 | 2026-01-05 09:49:09 -0700
+
+  * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)
+
+        5d30c74 version: 0.22.0
+        7706df3 Executor: Drop args completely
+        0d5c87d Nodejs: Fix args passed as copy for hook handler
+        98e65df tests: Add test from zeek/zeek#5106 to stress hook invocations
+        f329b94 Executor: Do not run task under lock
+
+    (cherry picked from commit 48ba058f390afb77ff50a1f206540a8bd15853fd)
+
 8.1.0-rc1.2 | 2025-12-16 11:21:29 -0700
 
     * Fix tls-1.2-late-protocol-error test failure for Spicy SSL analyzer (Johanna Amann, Corelight)

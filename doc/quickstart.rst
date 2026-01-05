@@ -218,7 +218,7 @@ First, update the configuration’s network interface in
      interface=en0
 
 You can further configure the ``local.zeek`` script found in
-``$PREFIX/share/zeek/site/local.zeek``. ``zeekctl`` loads this script by 
+``$PREFIX/share/zeek/site/local.zeek``. ``zeekctl`` loads this script by
 default. It is not overwritten by Zeek upgrades.
 
 Run ``zeekctl`` in order to start an interactive prompt and manage your Zeek
@@ -263,7 +263,7 @@ And exit from ``zeekctl``:
 
 The logs from ZeekControl will not appear in your current directory. Instead,
 they will appear in ``$PREFIX/logs/current`` when running. Since the process was
-stopped, they will appear in a directory with the current date within 
+stopped, they will appear in a directory with the current date within
 ``$PREFIX/logs/`` - such as ``$PREFIX/logs/2025-01-01/``.
 
 These logs are compressed as ``.log.gz`` files from gzip_. You may decompress
@@ -290,7 +290,7 @@ contains many processes which analyze traffic together. For this example, all
 nodes will be local, but they may also be split among multiple hosts.
 
 First, return to the ``$PREFIX/etc/node.cfg`` configuration file. It currently
-contains one "standalone" node: 
+contains one "standalone" node:
 
 .. code-block:: console
 
@@ -395,7 +395,7 @@ considerations:
   Documentation for Zeek's out-of-the-box logs can be found in the
   :doc:`logs/index` section.
 * Browse scripts from :samp:`{$PREFIX}/share/zeek/policy` that may be useful to
-  load. Their documentation is found in the 
+  load. Their documentation is found in the
   :ref:`overview of script packages <script-packages>`.
 * Review the FAQ_.
 * Join the Zeek community :slacklink:`Slack workspace <>` or

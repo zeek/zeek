@@ -109,7 +109,7 @@ event rdp_gcc_server_create_response%(c: connection, result: count%);
 ## encryption_level: The 32-bit integer representing the encryption level used in the connection.
 event rdp_server_security%(c: connection, encryption_method: count, encryption_level: count%);
 
-## Generated for a server certificate section.  If multiple X.509 
+## Generated for a server certificate section.  If multiple X.509
 ## certificates are included in chain, this event will still
 ## only be generated a single time.
 ##

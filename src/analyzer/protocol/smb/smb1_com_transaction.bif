@@ -9,7 +9,7 @@
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
-## name: A name string that MAY identify the resource (a specific Mailslot or Named Pipe) 
+## name: A name string that MAY identify the resource (a specific Mailslot or Named Pipe)
 ##       against which the operation is performed.
 ##
 ## sub_cmd: The sub command, some may be parsed and have their own events.

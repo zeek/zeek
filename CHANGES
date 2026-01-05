@@ -1,3 +1,7 @@
+8.2.0-dev.41 | 2026-01-05 15:39:08 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.2.0-dev.39 | 2026-01-05 18:51:39 +0100
 
   * tools/systemd-generator: Remove {worker_name} substitution (Arne Welzel, Corelight)

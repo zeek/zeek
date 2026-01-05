@@ -437,7 +437,7 @@ macos_sequoia_task:
 freebsd14_task:
   freebsd_instance:
     # FreeBSD 14 EOL: Nov 30 2028
-    image_family: freebsd-14-2
+    image_family: freebsd-14-3
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

@@ -1,3 +1,61 @@
+8.1.0-rc1.6 | 2026-01-05 15:26:10 -0700
+
+  * tools/systemd-generator: Remove {worker_name} substitution (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+    This is easily replaced with `worker-{worker_index}` if really needed.
+    Also, thinking about multi-interface support, it might be nice to encode
+    the interface into the worker name and having {worker_name} support in
+    the interface name would introduce a chicken and egg problem.
+
+  * btest/tools/systemd-generator: Update baselines (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Fix for stopping extra workers (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+    This drops the Requires=zeek-setup.service line, uses StopPropagatedFrom=zeek.target
+    and also drops PartOf=zeek.target for worker, proxy and logger processes.
+
+    This fixes Zeek processes continuing to exist and restarting them after running a
+    systemctl daemon-reload && systemctl restart sequence when reducing the number
+    of workers in zeek.conf. It's not obvious to me if there's a bug in systemd's
+    dependency and generator handling, but the new behavior is more expected than
+    what happens today.
+
+    Some more details upstream: systemd/systemd#40092
+
+  * tools/systemd-generator: Add zeek-setup.service to zeek.target.wants (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Add StopPropagatedFrom setter (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Add PartOf setter (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Fix README config paragraph (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Fix unused <vector> include (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Fix manager and archiver slice (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
+  * tools/systemd-generator: Fix defaulting to deprecated zeromq/connect script (Arne Welzel, Corelight)
+
+    (cherry picked from commit 663c1f5bf42f6ad4287b6dea079ee226c12c162d)
+
 8.1.0-rc1.5 | 2026-01-05 15:25:31 -0700
 
   * CI: Fix not building container images for RC tags (Arne Welzel, Corelight)

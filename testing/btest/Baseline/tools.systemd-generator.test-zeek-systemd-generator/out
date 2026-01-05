@@ -23,6 +23,7 @@ normal-dir/zeek.target.wants/zeek-logger@3.service
 normal-dir/zeek.target.wants/zeek-manager.service
 normal-dir/zeek.target.wants/zeek-proxy@1.service
 normal-dir/zeek.target.wants/zeek-proxy@2.service
+normal-dir/zeek.target.wants/zeek-setup.service
 normal-dir/zeek.target.wants/zeek-worker@1.service
 normal-dir/zeek.target.wants/zeek-worker@2.service
 normal-dir/zeek.target.wants/zeek-worker@3.service

@@ -1,3 +1,7 @@
+8.1.0-rc1.9 | 2026-01-05 15:38:31 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.1.0-rc1.7 | 2026-01-05 15:27:38 -0700
 
   * fix for ZAM optimizer crashing due to infinite recursion on self-assignment (Vern Paxson, Corelight)

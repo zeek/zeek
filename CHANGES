@@ -1,3 +1,15 @@
+8.0.4-3 | 2026-01-05 10:26:26 -0700
+
+  * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)
+
+        5d30c74 version: 0.22.0
+        7706df3 Executor: Drop args completely
+        0d5c87d Nodejs: Fix args passed as copy for hook handler
+        98e65df tests: Add test from zeek/zeek#5106 to stress hook invocations
+        f329b94 Executor: Do not run task under lock
+
+    (cherry picked from commit 48ba058f390afb77ff50a1f206540a8bd15853fd)
+
 8.0.4-2 | 2026-01-05 10:23:56 -0700
 
   * websocket: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)

@@ -1,3 +1,73 @@
+8.2.0-dev.39 | 2026-01-05 18:51:39 +0100
+
+  * tools/systemd-generator: Remove {worker_name} substitution (Arne Welzel, Corelight)
+
+    This is easily replaced with `worker-{worker_index}` if really needed.
+    Also, thinking about multi-interface support, it might be nice to encode
+    the interface into the worker name and having {worker_name} support in
+    the interface name would introduce a chicken and egg problem.
+
+  * btest/tools/systemd-generator: Update baselines (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix for stopping extra workers (Arne Welzel, Corelight)
+
+    This drops the Requires=zeek-setup.service line, uses StopPropagatedFrom=zeek.target
+    and also drops PartOf=zeek.target for worker, proxy and logger processes.
+
+    This fixes Zeek processes continuing to exist and restarting them after running a
+    systemctl daemon-reload && systemctl restart sequence when reducing the number
+    of workers in zeek.conf. It's not obvious to me if there's a bug in systemd's
+    dependency and generator handling, but the new behavior is more expected than
+    what happens today.
+
+    Some more details upstream: systemd/systemd#40092
+
+  * tools/systemd-generator: Add zeek-setup.service to zeek.target.wants (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Add StopPropagatedFrom setter (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Add PartOf setter (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix README config paragraph (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix unused <vector> include (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix manager and archiver slice (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix defaulting to deprecated zeromq/connect script (Arne Welzel, Corelight)
+
+  * CI: Fix not building container images for RC tags (Arne Welzel, Corelight)
+
+    Rename ONLY_IF_PR_MASTER_RELEASE_NIGHTLY to ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
+    and include matching on CIRRUS_TAG.
+
+    Delete ONLY_IF_PR_RELEASE_AND_NIGHTLY, it was unused.
+
+    Fix ONLY_IF_RELEASE_TAG_NIGHTLY condition
+
+        $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$'
+
+    to use || as CIRRUS_BRANCH is the tag (e.g v8.1.0-rc1) when running for
+    on the tag push and the condition never evaluated to true.
+
+    Change ubuntu24_04_spicy_head_task to just run nightly, doesn't seem
+    like there's a need to run on release.
+
+    [1] https://cirrus-ci.com/build/5640891471233024
+
+  * GH-5119: CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)
+
+    The docker manifest command was marked as experimental and newer versions of
+    docker include a provenance manifest [1, 2]. Switch to docker imagetools
+    create for creating the multi-platform image instead of docker manifest
+    as suggested in some places [3].
+
+    [1] https://github.com/docker/build-push-action/issues/755
+    [2] https://github.com/docker/buildx/issues/1509
+    [3] https://stackoverflow.com/a/75742743
+
+    Fixes #5119
+
 8.2.0-dev.24 | 2026-01-04 20:21:39 -0700
 
   * fixes for using unspecified vectors/tables in constructors (Vern Paxson, Corelight)

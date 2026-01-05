@@ -39,11 +39,11 @@ function do_docker {
 
 function create_and_push_manifest {
     # Expects $1 to be the manifest tag, globals otherwise
-    do_docker manifest create --amend ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${1} \
+    do_docker buildx imagetools create \
+        --debug \
+        --tag ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${1} \
         ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64 \
         ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-amd64
-
-    do_docker manifest push ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/$IMAGE_NAME:${1}
 }
 
 do_docker tag zeek/zeek-multiarch:arm64 ${REGISTRY_PREFIX}${ZEEK_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG}-arm64

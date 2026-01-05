@@ -1,3 +1,13 @@
+8.2.0-dev.22 | 2026-01-04 19:56:46 -0700
+
+  * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)
+
+        5d30c74 version: 0.22.0
+        7706df3 Executor: Drop args completely
+        0d5c87d Nodejs: Fix args passed as copy for hook handler
+        98e65df tests: Add test from zeek/zeek#5106 to stress hook invocations
+        f329b94 Executor: Do not run task under lock
+
 8.2.0-dev.20 | 2026-01-04 19:55:48 -0700
 
   * fix for ZAM optimizer crashing due to infinite recursion on self-assignment (Vern Paxson, Corelight)

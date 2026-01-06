@@ -28,6 +28,9 @@ void Source::Open() {
         return;
     }
 
+    bool send_events = id::find_val("Pcapng::send_events_from_pktsrc")->AsBool();
+    parser = std::make_unique<Parser>(send_events);
+
     // We don't have direct access to the file descriptor in the light_file pointer. It's
     // a FILE object internally to LightPcapNg, but it's not exposed externally.
     props.selectable_fd = -1;
@@ -42,7 +45,7 @@ void Source::Close() {
     if ( ! pd )
         return;
 
-    parser.CleanupLastBlock();
+    parser->CleanupLastBlock();
 
     light_io_close(pd);
     pd = nullptr;
@@ -68,15 +71,15 @@ bool Source::ExtractNextPacket(Packet* pkt) {
             return false;
         }
 
-        status = parser.ParseBlock(block);
+        status = parser->ParseBlock(block);
     }
 
     if ( status == Parser::BAD_PACKET )
         return false;
 
-    auto pkt_block = parser.GetCurrentPacket();
+    auto pkt_block = parser->GetCurrentPacket();
 
-    pkt->Init(parser.GetLinkType(pkt_block.interface), &pkt_block.ts_tval, pkt_block.caplen, pkt_block.origlen,
+    pkt->Init(parser->GetLinkType(pkt_block.interface), &pkt_block.ts_tval, pkt_block.caplen, pkt_block.origlen,
               pkt_block.data);
 
     ++stats.received;
@@ -86,7 +89,7 @@ bool Source::ExtractNextPacket(Packet* pkt) {
     return true;
 }
 
-void Source::DoneWithPacket() { parser.CleanupLastBlock(); }
+void Source::DoneWithPacket() { parser->CleanupLastBlock(); }
 
 void Source::Statistics(Stats* s) {
     s->link = 0;

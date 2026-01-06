@@ -6660,6 +6660,10 @@ export {
 		## 'shb_userappl' option from the Section Header Block.
 		app_desc: string &optional;
 	};
+
+	## Flag for whether the Pcapng packet source should send events about the blocks
+	## when parsing packets.
+	const send_events_from_pktsrc: bool = F &redef;
 }
 
 module GLOBAL;

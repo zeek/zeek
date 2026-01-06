@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "zeek/iosource/PktSrc.h"
@@ -38,7 +39,7 @@ protected:
 private:
     Properties props;
     Stats stats;
-    Parser parser;
+    std::unique_ptr<Parser> parser;
 
     light_file pd = nullptr;
 };

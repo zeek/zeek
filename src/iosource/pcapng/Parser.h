@@ -14,6 +14,8 @@ namespace zeek::iosource::pcapng {
 
 class Parser {
 public:
+    Parser(bool send_events) : send_events(send_events) {}
+
     struct PacketBlock {
         uint32_t interface = 0;
         struct timeval ts_tval{};
@@ -77,6 +79,8 @@ private:
     std::vector<Interface> interfaces;
     light_block current_block = nullptr;
     PacketBlock current_packet;
+
+    bool send_events = false;
 };
 
 } // namespace zeek::iosource::pcapng

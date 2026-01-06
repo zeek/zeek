@@ -86,7 +86,7 @@ Parser::BlockStatus Parser::ParseBlock(light_block block) {
 }
 
 void Parser::ParseSectionHeaderBlock(light_block block) {
-    if ( pcapng_file_info ) {
+    if ( send_events && pcapng_file_info ) {
         // Use the struct defined by Light to avoid some parsing.
         auto lsh = reinterpret_cast<_light_section_header*>(block->body);
 
@@ -230,7 +230,7 @@ void Parser::ParseInterfaceBlock(light_block block) {
         opt = opt->next_option;
     }
 
-    if ( pcapng_new_interface ) {
+    if ( send_events && pcapng_new_interface ) {
         static auto rec_type = id::find_type<RecordType>("Pcapng::Interface");
         auto rec = make_intrusive<RecordVal>(rec_type);
 
@@ -309,12 +309,8 @@ Parser::PacketBlock Parser::ParseEnhancedPacketBlock(light_block block) {
     pb.origlen = lepb->original_capture_length;
     pb.data = lepb->packet_data;
 
-    // TODO: Should we bother parsing any of these options if we're not sending the event? I could see
-    // the dropcount option being important outside of sending an event if we want to extract that one
-    // separately. If we only want to parse them for events, then a bunch of fields in the PacketBlock
-    // structure can go away.
-    light_option opt = block->options;
-    if ( opt && pcapng_packet_options ) {
+    if ( send_events && pcapng_packet_options ) {
+        light_option opt = block->options;
         while ( opt ) {
             switch ( opt->code ) {
                 case LIGHT_OPTION_COMMENT: {
@@ -462,6 +458,11 @@ Parser::PacketBlock Parser::ParseEnhancedPacketBlock(light_block block) {
         event_mgr.Enqueue(pcapng_packet_options,
                           make_intrusive<TimeVal>(pb.ts_tval.tv_sec + static_cast<double>(pb.ts_tval.tv_usec) / 1e6),
                           rec);
+    }
+    else if ( ! send_events ) {
+        // We still need the drop counts for statistics even if we're not sending the events.
+        if ( light_option opt = light_find_option(block, LIGHT_OPTION_EPB_DROPCOUNT) )
+            pb.dropcount = pcapng_extract_uint64(opt->data, opt->length);
     }
 
     return pb;

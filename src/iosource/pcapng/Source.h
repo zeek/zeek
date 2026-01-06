@@ -24,6 +24,7 @@ public:
     ~Source() override;
 
     static PktSrc* Instantiate(const std::string& path, bool is_live);
+    std::string CurrentInterfaceName() const { return current_interface_name; }
 
 protected:
     // PktSrc interface.
@@ -40,6 +41,8 @@ private:
     Properties props;
     Stats stats;
     std::unique_ptr<Parser> parser;
+    std::string current_interface_name;
+    int current_interface_index = -1;
 
     light_file pd = nullptr;
 };

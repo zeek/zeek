@@ -79,6 +79,11 @@ bool Source::ExtractNextPacket(Packet* pkt) {
 
     auto pkt_block = parser->GetCurrentPacket();
 
+    if ( current_interface_index == -1 || pkt_block.interface != static_cast<uint32_t>(current_interface_index) ) {
+        current_interface_index = pkt_block.interface;
+        current_interface_name = parser->GetInterfaceName(pkt_block.interface);
+    }
+
     pkt->Init(parser->GetLinkType(pkt_block.interface), &pkt_block.ts_tval, pkt_block.caplen, pkt_block.origlen,
               pkt_block.data);
 

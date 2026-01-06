@@ -49,6 +49,13 @@ public:
         return interfaces[interface_num].link_type;
     }
 
+    std::string GetInterfaceName(uint32_t interface_num) const {
+        if ( interface_num > interfaces.size() || ! interfaces[interface_num].name )
+            return "<invalid>";
+
+        return interfaces[interface_num].name.value();
+    }
+
 private:
     struct Interface {
         uint16_t link_type = 0;

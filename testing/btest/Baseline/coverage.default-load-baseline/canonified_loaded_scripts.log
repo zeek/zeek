@@ -290,6 +290,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_ConfigReader.config.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RawReader.raw.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteReader.sqlite.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_PcapNg.pcapng.bif.zeek
     build/scripts/base/bif/plugins/Zeek_AsciiWriter.ascii.bif.zeek
     build/scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek

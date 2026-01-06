@@ -6,6 +6,14 @@
 
 redef Pcapng::send_events_from_pktsrc = T;
 
+@load base/protocols/conn
+
+export {
+	redef record Conn::Info += {
+		pcapng_interface: string &optional &log;
+	};
+}
+
 event pcapng_new_interface(interface: Pcapng::Interface) {
 	print "pcapng_new_interface", interface;
 }
@@ -25,4 +33,8 @@ event pcapng_file_info(info: Pcapng::FileInfo) {
 ## options: A record containing the optional metadata fields from the packet.
 event pcapng_packet_options(ts: time, options: Pcapng::PacketOptions) {
 	print "pcap_packet_options", ts, options;
+}
+
+event new_connection(c: connection) &priority=5 {
+	c$conn$pcapng_interface = pcapng_current_interface_name();
 }

@@ -259,12 +259,16 @@ bool IPPrefix::ConvertString(const char* text, IPPrefix* result) {
     if ( ! IPAddr::ConvertString(ip_str.data(), &tmp) )
         return false;
 
+    // Set len_is_v6_relative=true if this looks like an IPv6 address to behave
+    // the same as when parsing subnet literals in the scripting language.
+    bool len_is_v6_relative = s.find(':') != std::string::npos;
+
     auto ip = IPAddr(tmp);
 
-    if ( ! ip.CheckPrefixLength(len) )
+    if ( ! ip.CheckPrefixLength(len, len_is_v6_relative) )
         return false;
 
-    *result = IPPrefix(ip, len);
+    *result = IPPrefix(ip, len, len_is_v6_relative);
     return true;
 }
 

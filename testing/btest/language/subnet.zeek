@@ -10,7 +10,7 @@ function test_case(msg: string, expect: bool)
 # IPv4 addr
 global a1: addr = 192.1.2.3;
 
-# IPv4 subnets 
+# IPv4 subnets
 global s1: subnet = 0.0.0.0/0;
 global s2: subnet = 192.0.0.0/8;
 global s3: subnet = 255.255.255.255/32;
@@ -25,6 +25,8 @@ global b3: addr = [ffff:1::1];
 global t1: subnet = [::]/0;
 global t2: subnet = [ffff::]/64;
 global t3 = [a::]/32;
+global t4 = [::ffff:0:0]/1;  # IPv4-mapped-IPv6 prefix, but too short prefix length
+global t5 = [::abcd:0:0]/1;
 
 # IPv4-mapped-IPv6 subnets
 global u1: subnet = [::ffff:0:0]/96;
@@ -42,6 +44,8 @@ event zeek_init()
 	test_case( "IPv6 subnet in operator", b2 in t2 );
 	test_case( "IPv6 subnet !in operator", b3 !in t2 );
 	test_case( "IPv6 subnet type inference", type_name(t3) == "subnet" );
+
+	test_case( "IPv6 subnet equality prefix 1", t4 == t5 );
 
 	test_case( "IPv4 and IPv6 subnet inequality", s1 != t1 );
 	test_case( "IPv4 address and IPv6 subnet", a1 !in t2 );

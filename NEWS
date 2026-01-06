@@ -30,6 +30,14 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The ``to_subnet()`` built-in function's parsing of IPv6 subnets was changed
+  to align with how IPv6 subnet literals are parsed in Zeek scripts. Previously,
+  any subnet containing the ``::ffff:0:0/96`` IPv4-mapped prefix would produce
+  an IPv4 subnet, even if provided prefix was shorter than the required 96 bits.
+
+  Internally, the behavior of the ``IPPrefix::ConvertString()`` API was changed
+  to accommodate for this.
+
 Deprecated Functionality
 ------------------------
 

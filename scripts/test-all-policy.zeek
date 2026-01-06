@@ -125,6 +125,7 @@
 @load protocols/dhcp/sub-opts.zeek
 @load protocols/dns/auth-addl.zeek
 @load protocols/dns/detect-external-names.zeek
+#@load protocols/dns/disable-opcode-log-fields.zeek
 @load protocols/dns/log-original-query-case.zeek
 @load protocols/ftp/detect-bruteforcing.zeek
 @load protocols/ftp/detect.zeek

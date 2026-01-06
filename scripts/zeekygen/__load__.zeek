@@ -21,6 +21,7 @@
 @load policy/misc/dump-events.zeek
 @load policy/misc/systemd-generator.zeek
 @load policy/protocols/conn/speculative-service.zeek
+@load policy/protocols/dns/disable-opcode-log-fields.zeek
 
 @if ( have_spicy() )
 # Loading this messes up documentation of some elements defined elsewhere.

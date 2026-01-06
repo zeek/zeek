@@ -311,7 +311,11 @@ Parser::PacketBlock Parser::ParseEnhancedPacketBlock(light_block block) {
 
     if ( send_events && pcapng_packet_options ) {
         light_option opt = block->options;
+        bool found_non_dropcount = false;
         while ( opt ) {
+            if ( opt->code != LIGHT_OPTION_EPB_DROPCOUNT )
+                found_non_dropcount = true;
+
             switch ( opt->code ) {
                 case LIGHT_OPTION_COMMENT: {
                     if ( ! pb.comments.has_value() )
@@ -424,40 +428,43 @@ Parser::PacketBlock Parser::ParseEnhancedPacketBlock(light_block block) {
             opt = opt->next_option;
         }
 
-        static auto rec_type = id::find_type<RecordType>("Pcapng::PacketOptions");
-        auto rec = make_intrusive<RecordVal>(rec_type);
+        if ( found_non_dropcount || pb.dropcount != 0 ) {
+            static auto rec_type = id::find_type<RecordType>("Pcapng::PacketOptions");
+            auto rec = make_intrusive<RecordVal>(rec_type);
 
-        if ( pb.comments ) {
-            auto vec = make_intrusive<VectorVal>(id::string_vec);
-            for ( const auto& comment : pb.comments.value() )
-                vec->Append(make_intrusive<StringVal>(comment));
-            rec->Assign(0, vec);
-        }
-        if ( pb.flags )
-            rec->Assign(1, val_mgr->Count(pb.flags.value()));
-        if ( pb.hashes ) {
-            auto vec = make_intrusive<VectorVal>(id::string_vec);
-            for ( const auto& hash : pb.hashes.value() )
-                vec->Append(make_intrusive<StringVal>(hash));
-            rec->Assign(2, vec);
-        }
-        rec->Assign(3, pb.dropcount);
-        if ( pb.packet_id )
-            rec->Assign(4, val_mgr->Count(pb.packet_id.value()));
-        if ( pb.queue )
-            rec->Assign(5, val_mgr->Count(pb.queue.value()));
-        if ( pb.verdicts ) {
-            auto vec = make_intrusive<VectorVal>(id::string_vec);
-            for ( const auto& verdict : pb.verdicts.value() )
-                vec->Append(make_intrusive<StringVal>(verdict));
-            rec->Assign(6, vec);
-        }
-        if ( pb.processid_threadid )
-            rec->Assign(7, make_intrusive<StringVal>(pb.processid_threadid.value()));
+            if ( pb.comments ) {
+                auto vec = make_intrusive<VectorVal>(id::string_vec);
+                for ( const auto& comment : pb.comments.value() )
+                    vec->Append(make_intrusive<StringVal>(comment));
+                rec->Assign(0, vec);
+            }
+            if ( pb.flags )
+                rec->Assign(1, val_mgr->Count(pb.flags.value()));
+            if ( pb.hashes ) {
+                auto vec = make_intrusive<VectorVal>(id::string_vec);
+                for ( const auto& hash : pb.hashes.value() )
+                    vec->Append(make_intrusive<StringVal>(hash));
+                rec->Assign(2, vec);
+            }
+            rec->Assign(3, pb.dropcount);
+            if ( pb.packet_id )
+                rec->Assign(4, val_mgr->Count(pb.packet_id.value()));
+            if ( pb.queue )
+                rec->Assign(5, val_mgr->Count(pb.queue.value()));
+            if ( pb.verdicts ) {
+                auto vec = make_intrusive<VectorVal>(id::string_vec);
+                for ( const auto& verdict : pb.verdicts.value() )
+                    vec->Append(make_intrusive<StringVal>(verdict));
+                rec->Assign(6, vec);
+            }
+            if ( pb.processid_threadid )
+                rec->Assign(7, make_intrusive<StringVal>(pb.processid_threadid.value()));
 
-        event_mgr.Enqueue(pcapng_packet_options,
-                          make_intrusive<TimeVal>(pb.ts_tval.tv_sec + static_cast<double>(pb.ts_tval.tv_usec) / 1e6),
-                          rec);
+            event_mgr.Enqueue(pcapng_packet_options,
+                              make_intrusive<TimeVal>(pb.ts_tval.tv_sec +
+                                                      static_cast<double>(pb.ts_tval.tv_usec) / 1e6),
+                              rec);
+        }
     }
     else if ( ! send_events ) {
         // We still need the drop counts for statistics even if we're not sending the events.

@@ -135,7 +135,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 compiler_options->cxx_namespace_extern =
                     hilti::util::fmt("hlt_%s", hilti::rt::filesystem::path(optarg).stem().string());
                 compiler_options->cxx_namespace_intern =
-                    hilti::util::fmt("__hlt_%s", hilti::rt::filesystem::path(optarg).stem().string());
+                    hilti::util::fmt("hlt_internal_%s", hilti::rt::filesystem::path(optarg).stem().string());
                 break;
 
             case 'X': {

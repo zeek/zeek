@@ -249,7 +249,9 @@ New Functionality
 
   This also adds new ``opcode`` and ``opcode_name`` fields to the DNS log. Previously Zeek
   was only handling opcode 0 (normal requests) so that information wasn't pertinent, but
-  with the addition of dynamic updates we're now handling a second opcode.
+  with the addition of dynamic updates we're now handling a second opcode. The new policy
+  script ``policy/protocols/dns/disable-opcode-log-fields.zeek`` can be loaded to remove
+  these fields from the log if they are not desired.
 
 - The `policy/misc/dump-events.zeek` script now features a ``DumpEvents::use_json``
   boolean toggle, false by default, to report Zeek's events in JSON format.

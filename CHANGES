@@ -1,3 +1,7 @@
+8.2.0-dev.45 | 2026-01-07 11:51:20 -0700
+
+  * Add policy script to disable the opcode and opcode_name fields from dns.log (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.43 | 2026-01-07 17:48:58 +0100
 
   * Bump Spicy. (Robin Sommer, Corelight)

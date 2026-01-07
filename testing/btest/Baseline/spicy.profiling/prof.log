@@ -3,11 +3,11 @@
 # Profiling
 # 
 #name count
-hilti/func/SSH::Banner::_parse_SSH__Banner_stage2 2
-hilti/func/SSH::Banner::_parse_stage1 2
+hilti/func/SSH::Banner::_t_parse_SSH__Banner_stage2 2
+hilti/func/SSH::Banner::_t_parse_stage1 2
 hilti/func/SSH::Banner::parse1 2
-hilti/func/SSH::_register_SSH_Banner 1
-hilti/func/spicy_hooks_SSH::SSH::Banner::_on_0x25_done 2
+hilti/func/SSH::_t_register_SSH_Banner 1
+hilti/func/spicy_hooks_SSH::SSH::Banner::_t_on_0x25_done 2
 hilti/total 1
 spicy/prepare/stream/SSH::Banner 2
 spicy/unit/SSH::Banner 2

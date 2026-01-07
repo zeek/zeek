@@ -452,6 +452,7 @@ ubuntu24_04_clang_tidy_task:
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
+  test_script: echo "Tests disabled for clang-tidy builds"
   env:
     CC: clang-19
     CXX: clang++-19

@@ -1,0 +1,4 @@
+#fields	ip	timestamp	reason
+192.168.17.1	1333252748	Malware host
+192.168.27.2	1330235733	Botnet server
+192.168.250.3	1333145108	Virus detected

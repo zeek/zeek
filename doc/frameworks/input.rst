@@ -35,12 +35,10 @@ example we assume that we want to import data from a denylist that contains
 server IP addresses as well as the timestamp and the reason for the block.
 
 An example input file could look like this (note that all fields must be
-tab-separated)::
+tab-separated):
 
-  #fields ip timestamp reason
-  192.168.17.1 1333252748 Malware host
-  192.168.27.2 1330235733 Botnet server
-  192.168.250.3 1333145108 Virus detected
+.. literalinclude:: input/denylist.file
+   :caption: denylist.file
 
 To read a file into a Zeek table, two record types have to be defined. One
 contains the types and names of the columns that should constitute the table
@@ -460,13 +458,13 @@ values based on the input.
 The following example shows how this can be done, holding two state tables
 in order to allow for removal updates of the read data.
 
-.. literalinclude:: denylist.jsonl
-   :caption:
+.. literalinclude:: input/denylist.jsonl
+   :caption: denylist.jsonl
    :language: json
    :linenos:
    :tab-width: 4
 
-.. literalinclude:: input_json_1.zeek
+.. literalinclude:: input/input_json_1.zeek
    :caption: Loading denylist.jsonl, converting to Zeek types, populating a table.
    :language: zeek
    :linenos:

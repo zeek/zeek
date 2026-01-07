@@ -1,3 +1,9 @@
+8.2.0-dev.47 | 2026-01-07 16:40:02 -0500
+
+  * GH-5133: Fix tabs in input framework docs (Evan Typanski, Corelight)
+
+    Fixes #5133
+
 8.2.0-dev.45 | 2026-01-07 11:51:20 -0700
 
   * Add policy script to disable the opcode and opcode_name fields from dns.log (Tim Wojtulewicz, Corelight)

@@ -184,9 +184,9 @@ New Functionality
   ``QUIC::max_discarded_packet_events``. Setting this variable to -1 disables the
   ``QUIC::discarded_packet`` event.
 
-- Added SHA224, SHA384, and SHA512 calculation BiFs: ``sha224_hash``, ``sha224_hash_init`,
-  ``sha224_hash_update``, ``sha224_hash_finish``.  ``sha384_hash``, ``sha384_hash_init`,
-  ``sha384_hash_update``, ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init`,
+- Added SHA224, SHA384, and SHA512 calculation BiFs: ``sha224_hash``, ``sha224_hash_init``,
+  ``sha224_hash_update``, ``sha224_hash_finish``.  ``sha384_hash``, ``sha384_hash_init``,
+  ``sha384_hash_update``, ``sha384_hash_finish``.  ``sha512_hash``, ``sha512_hash_init``,
   ``sha512_hash_update``, and ``sha512_hash_finish``.
 
 - Added SHA224, SHA384 and SHA512 file hash analyzers. The analyzers are not enabled by
@@ -206,7 +206,7 @@ New Functionality
   would indicate the originator sent at least 3 short packets early in the connection,
   while the responder sent at least 127 packets.
 
-- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`,
+- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init``,
   ``sha512_hash_update``, and ``sha512_hash_finish``.
 
 - Added VLAN PCP and DEI bits when parsing packets. This is exposed alongside ``vlan`` and

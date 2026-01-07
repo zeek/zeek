@@ -665,5 +665,6 @@
    policy/misc/systemd-generator.zeek </scripts/policy/misc/systemd-generator.zeek>
    base/frameworks/cluster/nodes/logger.zeek </scripts/base/frameworks/cluster/nodes/logger.zeek>
    policy/protocols/conn/speculative-service.zeek </scripts/policy/protocols/conn/speculative-service.zeek>
+   policy/protocols/dns/disable-opcode-log-fields.zeek </scripts/policy/protocols/dns/disable-opcode-log-fields.zeek>
    policy/frameworks/spicy/resource-usage.zeek </scripts/policy/frameworks/spicy/resource-usage.zeek>
    zeekygen/example.zeek </scripts/zeekygen/example.zeek>

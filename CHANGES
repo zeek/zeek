@@ -1,3 +1,12 @@
+8.1.0-rc1.10 | 2026-01-07 10:18:37 -0700
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+    Includes a fix for spicyz's internal name spacing, which was still using
+    the reserved double-underscore (which led to trouble now).
+
+    (cherry picked from commit 9e06eaf280c0c320e557523d937f0ecb4050a6df)
+
 8.1.0-rc1.9 | 2026-01-05 15:38:31 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

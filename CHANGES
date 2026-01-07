@@ -1,3 +1,11 @@
+8.1.0-rc1.12 | 2026-01-07 11:52:19 -0700
+
+  * Add policy script to disable the opcode and opcode_name fields from dns.log (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5ff94b85c07d48e896888162cabee2eab5b3f3ec)
+
+  * Update btest submodule (Tim Wojtulewicz, Corelight)
+
 8.1.0-rc1.10 | 2026-01-07 10:18:37 -0700
 
   * Bump Spicy. (Robin Sommer, Corelight)

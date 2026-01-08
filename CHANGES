@@ -1,3 +1,14 @@
+8.2.0-dev.56 | 2026-01-08 18:45:01 +0100
+
+  * NEWS: Add a note about ZeroMQ communication being unencrypted by default (Arne Welzel, Corelight)
+
+  * Update zeekctl submodule [nomail] (Arne Welzel, Corelight)
+
+  * btest/Baseline.zam: Remove to_subnet baselines (Arne Welzel, Corelight)
+
+    These were outdated after the changes for IPv6 subnet parsing. Instead
+    of updating, delete them as the original one appear to work these days.
+
 8.2.0-dev.52 | 2026-01-08 06:55:25 -0700
 
   * CI: Disable running tests for clang-tidy tasks (Tim Wojtulewicz, Corelight)

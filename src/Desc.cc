@@ -76,7 +76,7 @@ void ODesc::PopIndentNoNL() {
 void ODesc::Add(const char* s, int do_indent) {
     size_t n = strlen(s);
 
-    if ( do_indent && IsReadable() && offset > 0 && (reinterpret_cast<const char*>(base))[offset - 1] == '\n' )
+    if ( do_indent && n > 0 && IsReadable() && offset > 0 && (reinterpret_cast<const char*>(base))[offset - 1] == '\n' )
         Indent();
 
     if ( IsBinary() )

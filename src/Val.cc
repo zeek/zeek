@@ -2548,7 +2548,7 @@ void TableVal::Describe(ODesc* d) const {
         if ( table_type->IsSet() ) { // We're a set, not a table.
             if ( d->IsReadable() )
                 if ( dim != 1 )
-                    d_ptr->AddSP("]");
+                    d_ptr->Add("]");
         }
         else {
             if ( d->IsReadable() )

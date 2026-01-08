@@ -1,3 +1,9 @@
+8.2.0-dev.59 | 2026-01-08 14:00:55 -0500
+
+  * Fix trailing spaces in ODesc/Zeekygen for docs (Evan Typanski, Corelight)
+
+  * Remove trailing whitespace when visible in docs (Evan Typanski, Corelight)
+
 8.2.0-dev.56 | 2026-01-08 18:45:01 +0100
 
   * NEWS: Add a note about ZeroMQ communication being unencrypted by default (Arne Welzel, Corelight)

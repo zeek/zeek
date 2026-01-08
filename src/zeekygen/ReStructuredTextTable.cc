@@ -2,7 +2,9 @@
 
 #include "zeek/zeekygen/ReStructuredTextTable.h"
 
+#include <algorithm>
 #include <cassert>
+#include <ranges>
 
 using namespace std;
 
@@ -41,17 +43,36 @@ string ReStructuredTextTable::AsString(char border) const {
     string rval = MakeBorder(longest_row_in_column, border);
 
     for ( const auto& row : rows ) {
+        bool row_is_empty = true;
+        for ( const auto& cell : row ) {
+            if ( ! cell.empty() ) {
+                row_is_empty = false;
+                break;
+            }
+        }
+
+        if ( row_is_empty ) {
+            rval += "\n";
+            continue;
+        }
+
+        string row_str;
         for ( size_t col = 0; col < num_cols; ++col ) {
             if ( col > 0 ) {
                 size_t last = row[col - 1].size();
                 size_t longest = longest_row_in_column[col - 1];
                 size_t whitespace = longest - last + 1;
-                rval += string(whitespace, ' ');
+                row_str += string(whitespace, ' ');
             }
 
-            rval += row[col];
+            row_str += row[col];
         }
 
+        // Pop off trailing spaces
+        auto notspace = [](unsigned char c) { return ! std::isspace(c); };
+        row_str.erase(std::ranges::find_if(std::ranges::reverse_view(row_str), notspace).base(), row_str.end());
+
+        rval += row_str;
         rval += "\n";
     }
 

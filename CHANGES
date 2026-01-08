@@ -1,3 +1,7 @@
+8.2.0-dev.63 | 2026-01-08 13:39:53 -0700
+
+  * Restrict more templates using concepts (Dominik Charousset, Corelight)
+
 8.2.0-dev.61 | 2026-01-08 13:38:21 -0700
 
   * fixes for -O gen-standalone-C++ working with empty Attributes (Vern Paxson, Corelight)

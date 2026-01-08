@@ -16,6 +16,7 @@
 
 #include <libgen.h>
 #include <unistd.h>
+#include <concepts>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -332,7 +333,7 @@ extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
-template<class T>
+template<std::integral T>
 int atoi_n(int len, const char* s, const char** end, int base, T& result);
 extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix = nullptr);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);

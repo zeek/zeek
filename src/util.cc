@@ -1077,7 +1077,7 @@ char* strcasestr(const char* s, const char* find) {
 
 #endif
 
-template<class T>
+template<std::integral T>
 int atoi_n(int len, const char* s, const char** end, int base, T& result) {
     T n = 0;
     int neg = 0;

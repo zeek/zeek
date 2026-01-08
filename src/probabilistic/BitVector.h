@@ -77,7 +77,7 @@ public:
      * @param last End of range.
      *
      */
-    template<typename InputIterator>
+    template<std::input_iterator InputIterator>
     BitVector(InputIterator first, InputIterator last) {
         bits.insert(bits.end(), first, last);
         num_bits = bits.size() * bits_per_block;
@@ -129,13 +129,13 @@ public:
      * @param last An iterator pointing to one past the last element of the
      * sequence.
      */
-    template<typename ForwardIterator>
+    template<std::forward_iterator ForwardIterator>
     void Append(ForwardIterator first, ForwardIterator last) {
         if ( first == last )
             return;
 
         block_type excess = extra_bits();
-        typename std::iterator_traits<ForwardIterator>::difference_type delta = std::distance(first, last);
+        auto delta = std::distance(first, last);
 
         bits.reserve(Blocks() + delta);
 

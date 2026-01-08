@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
+#include <concepts>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -1360,7 +1361,7 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 	%}
 
 %%{
-template<typename IntType>
+template<std::integral IntType>
 IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 	zeek::ODesc desc(zeek::DESC_BINARY);
 
@@ -3506,9 +3507,9 @@ function bytestring_to_float%(s: string%): double
 function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	%{
 #ifdef HOST_BIGENDIAN
-	static const bool host_bigendian = true;
+	static constexpr bool host_bigendian = true;
 #else
-	static const bool host_bigendian = false;
+	static constexpr bool host_bigendian = false;
 #endif
 	const u_char *p = s->Bytes();
 	size_t string_len = static_cast<size_t>(s->Len());

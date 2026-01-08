@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
+#include <concepts>
 #include <vector>
 
 #include "zeek/Reporter.h"
@@ -25,12 +26,12 @@ namespace zeek::analyzer::ssl {
 
 using byte_buffer = std::vector<u_char>;
 
-template<typename T>
+template<std::integral T>
 static inline T MSB(const T a) {
     return ((a >> 8) & 0xff);
 }
 
-template<typename T>
+template<std::integral T>
 static inline T LSB(const T a) {
     return (a & 0xff);
 }

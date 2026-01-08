@@ -278,6 +278,10 @@ New Functionality
   script ``policy/protocols/dns/disable-opcode-log-fields.zeek`` can be loaded to remove
   these fields from the log if they are not desired.
 
+  As part of these additions, an extra field ``is_netbios`` was added to the the
+  ``dns_msg`` script-layer record. This boolean flag is ``T`` if the DNS message is from
+  NetBIOS, and ``F`` if the message is standard DNS.
+
 - The `policy/misc/dump-events.zeek` script now features a ``DumpEvents::use_json``
   boolean toggle, false by default, to report Zeek's events in JSON format.
 

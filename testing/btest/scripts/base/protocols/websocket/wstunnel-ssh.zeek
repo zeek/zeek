@@ -4,7 +4,7 @@
 #
 # @TEST-EXEC: btest-diff-cut -m ts uid history service conn.log
 # @TEST-EXEC: btest-diff-cut -m ts uid client server auth_success auth_attempts kex_alg host_key_alg ssh.log
-# @TEST-EXEC: btest-diff websocket.log
+# @TEST-EXEC: btest-diff-cut -m websocket.log
 # @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f weird.log
 

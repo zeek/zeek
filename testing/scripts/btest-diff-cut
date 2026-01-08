@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -eu
+
+[ "$#" -lt 1 ] && echo "Usage: $0 [options] filename" >&2 && exit 1
+
+args=("${@:1:$#-1}") # bash array magic slicing all but the last argument
+file=${!#}
+tmpfile=$(mktemp --tmpdir=. "$file.cut.XXXXXXXXXX")
+trap 'rm -f "${tmpfile}"' EXIT
+"${TEST_DIFF_CUTTER:-zeek-cut}" "${args[@]}" <"$file" >"$tmpfile" && mv "$tmpfile" "$file"
+btest-diff "$file"

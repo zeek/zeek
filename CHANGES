@@ -1,3 +1,7 @@
+8.2.0-dev.52 | 2026-01-08 06:55:25 -0700
+
+  * CI: Disable running tests for clang-tidy tasks (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.50 | 2026-01-08 13:58:41 +0100
 
   * GH-5118: IPAddr: Align IPPrefix::ConvertString() parsing to Zeek script semantics (Arne Welzel, Corelight)

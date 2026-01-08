@@ -1,3 +1,7 @@
+8.2.0-dev.61 | 2026-01-08 13:38:21 -0700
+
+  * fixes for -O gen-standalone-C++ working with empty Attributes (Vern Paxson, Corelight)
+
 8.2.0-dev.59 | 2026-01-08 14:00:55 -0500
 
   * Fix trailing spaces in ODesc/Zeekygen for docs (Evan Typanski, Corelight)

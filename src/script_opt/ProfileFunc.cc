@@ -112,7 +112,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 TrackType(t);
 
                 auto attrs = id->GetAttrs();
-                if ( attrs )
+                if ( attrs && ! attrs->GetAttrs().empty() )
                     constructor_attrs[attrs.get()] = t;
 
                 if ( t->Tag() == TYPE_RECORD )
@@ -454,7 +454,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto sc = static_cast<const SetConstructorExpr*>(e);
             const auto& attrs = sc->GetAttrs();
 
-            if ( attrs )
+            if ( attrs && ! attrs->GetAttrs().empty() )
                 constructor_attrs[attrs.get()] = sc->GetType();
         } break;
 
@@ -462,7 +462,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto tc = static_cast<const TableConstructorExpr*>(e);
             const auto& attrs = tc->GetAttrs();
 
-            if ( attrs )
+            if ( attrs && ! attrs->GetAttrs().empty() )
                 constructor_attrs[attrs.get()] = tc->GetType();
         } break;
 
@@ -559,14 +559,14 @@ void ProfileFunc::TrackAssignment(const IDPtr id) {
 
 void ProfileFunc::CheckRecordConstructor(TypePtr t) {
     auto rt = cast_intrusive<RecordType>(t);
-    for ( auto td : *rt->Types() )
-        if ( td->attrs ) {
+    for ( auto td : *rt->Types() ) {
+        auto attrs = td->attrs.get();
+        if ( attrs && ! attrs->GetAttrs().empty() ) {
             // In principle we could figure out whether this particular
             // constructor happens to explicitly specify &default fields, and
             // not include those attributes if it does since they won't come
             // into play. However that seems like added complexity for almost
             // surely no ultimate gain.
-            auto attrs = td->attrs.get();
             constructor_attrs[attrs] = rt;
 
             if ( ! rec_constructor_attrs.contains(rt.get()) )
@@ -574,6 +574,7 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
             else
                 rec_constructor_attrs[rt.get()].insert(attrs);
         }
+    }
 }
 
 ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes,

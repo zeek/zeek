@@ -1,3 +1,12 @@
+8.2.0-dev.50 | 2026-01-08 13:58:41 +0100
+
+  * GH-5118: IPAddr: Align IPPrefix::ConvertString() parsing to Zeek script semantics (Arne Welzel, Corelight)
+
+    If in Zeek script an IPv6 net is parsed, we pass len_is_v6_relative=true
+    into the IPPrefix constructor to account for that, do the same in
+    IPPrefix::ConvertString() to align its and to_subnet() with the behavior
+    of the script parser.
+
 8.2.0-dev.47 | 2026-01-07 16:40:02 -0500
 
   * GH-5133: Fix tabs in input framework docs (Evan Typanski, Corelight)

@@ -3,8 +3,8 @@ set -eu
 
 [ "$#" -lt 2 ] && echo "Usage: $0 [options] filename" >&2 && exit 1
 
-args=("${@:1:$#-1}") # bash array magic slicing everything but the last argument
+args=("${@:1:$#-1}") # bash array magic slicing all but the last argument
 file=${!#}
-tmpfile=$(mktemp --suffix="$file.cut")
-zeek-cut "${args[@]}" <"$file" >"$tmpfile" && mv "$tmpfile" "$file"
+tmpfile=$(mktemp --tmpdir=. -t "$file.cut.XXXXXXXXXX")
+"${TEST_DIFF_CUTTER:-zeek-cut}" "${args[@]}" <"$file" >"$tmpfile" && mv "$tmpfile" "$file"
 exec btest-diff "$file"

@@ -3,8 +3,8 @@
 # @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.trace test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
-# @TEST-EXEC: touch test.log && zeek-cut -m -F'|' < test.log > test.cut
-# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
+# @TEST-EXEC: touch test.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff-cut -m -F'|' test.log
 
 
 # @TEST-START-FILE test.zeek

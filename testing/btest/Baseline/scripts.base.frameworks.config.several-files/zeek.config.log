@@ -5,6 +5,7 @@ XXXXXXXXXX.XXXXXX	test_vector	(empty)	1,2,3,4,5,6	../configfile1
 XXXXXXXXXX.XXXXXX	testaddr	127.0.0.1	127.0.0.1	../configfile2
 XXXXXXXXXX.XXXXXX	testbool	T	F	../configfile1
 XXXXXXXXXX.XXXXXX	testcount	0	2	../configfile1
+XXXXXXXXXX.XXXXXX	testcountDyn	0	99	../configfileDyn
 XXXXXXXXXX.XXXXXX	testenum	SSH::LOG	Conn::LOG	../configfile1
 XXXXXXXXXX.XXXXXX	testint	0	-1	../configfile1
 XXXXXXXXXX.XXXXXX	testinterval	1.0 sec	1.0 min	../configfile2

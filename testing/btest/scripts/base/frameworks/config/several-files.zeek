@@ -24,6 +24,10 @@ testinterval 60
 testtime 1507321987
 # @TEST-END-FILE
 
+# @TEST-START-FILE configfileDyn
+testcountDyn 99
+# @TEST-END-FILE
+
 @load base/protocols/ssh
 @load base/protocols/conn
 
@@ -39,7 +43,14 @@ export {
 	option teststring = "a";
 	option test_set: set[string] = {};
 	option test_vector: vector of count = {};
+
+	option testcountDyn = 0;
 }
+
+event zeek_init() &priority=10
+	{
+	Config::config_files += set("../configfileDyn");
+	}
 
 global ct = 0;
 
@@ -51,7 +62,7 @@ event Input::end_of_data(name: string, source: string)
 	++ct;
 
 	# Exit after this event has been raised for each config file.
-	if ( ct == 2 )
+	if ( ct == 3 )
 		terminate();
 
 	}

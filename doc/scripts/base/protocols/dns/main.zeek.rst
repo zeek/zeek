@@ -252,12 +252,12 @@ Types
       The DNS query was rejected by the server.
 
 
-   .. zeek:field:: opcode :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+   .. zeek:field:: opcode :zeek:type:`count` :zeek:attr:`&optional`
 
       The opcode value of the DNS request/response.
 
 
-   .. zeek:field:: opcode_name :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+   .. zeek:field:: opcode_name :zeek:type:`string` :zeek:attr:`&optional`
 
       A descriptive string for the opcode.
 

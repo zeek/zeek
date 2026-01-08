@@ -68,6 +68,23 @@ Breaking Changes
 
 	ClusterBackend = Broker
 
+  Note that ZeroMQ cluster communication is unencrypted and in the clear by default.
+  If you're running Zeek on a single host, communication happens via localhost only.
+  When running a multi host Zeek setup, Zeekctl will output the following warning,
+  informing you about this behavior:
+
+	Warning: ZeroMQ cluster backend enabled and multi-node cluster detected (10.0.0.1, 10.0.0.2).
+	Communication between Zeek nodes using ZeroMQ is currently unencrypted. Use Broker with TLS if this
+	is concerning to you. ZeroMQ encryption is tracked at https://github.com/zeek/zeek/issues/4432
+
+	You may disable this warning by setting the following option in zeekctl.cfg:
+
+	  cluster_backend_zeromq.disable_unencrypted_warning = 1
+
+  Support for opt-in ZeroMQ encryption is targeted for Zeek 8.2. If this is a
+  requirement for your environment, please report and for the time being continue
+  using the Broker backend.
+
   If you manage a non-Zeekctl Zeek setup, load
   ``policy/frameworks/cluster/backend/zeromq`` or
   ``policy/frameworks/cluster/backend/broker``. If you forget to do so, Zeek will

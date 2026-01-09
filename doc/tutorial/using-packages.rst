@@ -11,7 +11,7 @@
 Zeek contains a decent amount of functionality “out of the box”---but
 its strength comes from the package ecosystem. These packages are
 managed by the `Zeek Package Manager <zkg_docs_>`_, or ``zkg``. You
-can find packages on the `Zeek Package Browser`_. This section will
+can find packages on the `Zeek Package Browser`_ website. This section will
 explain how to use ``zkg`` in order to get the packages you need.
 
 *********************************
@@ -25,44 +25,47 @@ out-of-the-box. But, if you look on the `Zeek Package Browser`_, you can
 easily find a `package by Corelight
 <https://github.com/corelight/cve-2022-26809>`_. Let's install it.
 
-First, since this is on the official Zeek package browser, you can
-install it with just the package name:
-
 .. code:: console
 
    # zkg install cve-2022-26809
 
-You may also use the git URL of the package:
+The package manager knows where to find this package because it's listed in its
+default `"package source" <https://github.com/zeek/packages>`_, an index that
+anyone can contribute to.
+
+You may also install packages via their git URL, or from a local directory,
+regardless of whether they're listed in a package source. For example:
 
 .. code:: console
 
    # zkg install https://github.com/corelight/cve-2022-26809
 
-The direct URL is necessary if the package is not in Zeek's `packages
-<https://github.com/zeek/packages>`_ repository.
-
 Most packages include a set of tests to ensure the package executes correctly
-in your environment. During installation, ``zkg`` will ask you to run the tests.
-The tests may fail, but you can still accept the prompt to install anyways.
+in your environment. During installation, ``zkg`` will run available tests.
+These tests may fail, but you can still accept the prompt to install anyways.
 
-The script you ran back in the Setup section also cloned this repository into
-the tutorial installation. Try running Zeek on the pcap from the package:
+The script you ran during tutorial setup also cloned this package into
+the tutorial installation. Try running Zeek on a pcap from the package:
 
 .. code:: console
 
    # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap
 
-This particular package should create notices when traffic for the CVE
-is detected, but we seem to be missing a ``notice.log`` after running that
-command. That's because packages have to be enabled in order to run. This
-is done differently when executing Zeek on the command line versus in the
-cluster. We'll get to the cluster version later. For now, you can load the
-package by just including its name in the command line, or by prefixing that
-name with ``packages``:
+This particular package creates notices when it detects traffic for the CVE,
+but we seem to be missing a ``notice.log`` after running that command.
+That's because packages have to be loaded explicitly in order to run. You can
+do so by including its name on the command line:
 
 .. code:: console
 
-   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap packages/cve-2022-26809
+   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap cve-2022-26809
+
+Alternatively you can also load all installed packages by simply adding the
+``packages`` directory to your invocation:
+
+.. code:: console
+
+   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap packages
 
 Then check the ``notice.log``:
 
@@ -82,7 +85,8 @@ Packages should be regularly maintained and updated. When doing so,
 users will want to fetch those updates. You can use ``zkg upgrade`` in
 order to upgrade any packages you have, or specify a package to upgrade
 just one. If you definitely don't want to upgrade certain packages, you
-can use ``zkg pin`` in order to “pin” its version.
+can use ``zkg pin`` in order to “pin” its version. To revert to a clean
+slate, say ``zkg purge``.
 
 For more commands, check out the zkg command line reference.
 

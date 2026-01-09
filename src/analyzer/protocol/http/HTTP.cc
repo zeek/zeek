@@ -112,6 +112,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
         switch ( chunked_transfer_state ) {
             case EXPECT_CHUNK_SIZE:
+                ASSERT(Depth() == 0); // chunked transfer only allowed for top-level entity
                 ASSERT(trailing_CRLF);
                 if ( ! util::atoi_n(len, data, nullptr, 16, expect_data_length) ) {
                     http_message->Weird("HTTP_bad_chunk_size");
@@ -432,16 +433,29 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
     }
 
     else if ( analyzer::mime::istrequal(h->get_name(), "transfer-encoding") ) {
-        HTTP_Analyzer::HTTP_VersionNumber http_version;
+        // Only process Transfer-Encoding headers of the top-level entity.
+        //
+        // Processing this header changes the analyzer behavior and we only
+        // want to allow this for the most outer HTTP entity, not for any
+        // nested MIME entities in the HTTP body.
+        //
+        // Previously one could set a Transfer-Encoding header within a MIME
+        // message of a HTTP body and modify plain delivery parameters.
+        if ( Depth() == 0 ) {
+            HTTP_Analyzer::HTTP_VersionNumber http_version;
 
-        if ( http_message->analyzer->GetRequestOngoing() )
-            http_version = http_message->analyzer->GetRequestVersionNumber();
-        else // reply_ongoing
-            http_version = http_message->analyzer->GetReplyVersionNumber();
+            if ( http_message->analyzer->GetRequestOngoing() )
+                http_version = http_message->analyzer->GetRequestVersionNumber();
+            else // reply_ongoing
+                http_version = http_message->analyzer->GetReplyVersionNumber();
 
-        data_chunk_t vt = h->get_value_token();
-        if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
-            chunked_transfer_state = BEFORE_CHUNK;
+            data_chunk_t vt = h->get_value_token();
+            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
+                chunked_transfer_state = BEFORE_CHUNK;
+        }
+        else {
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");
+        }
     }
 
     else if ( analyzer::mime::istrequal(h->get_name(), "content-encoding") ) {

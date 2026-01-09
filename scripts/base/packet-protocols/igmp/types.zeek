@@ -5,7 +5,7 @@ module IGMP;
 export {
 
 	## IGMP message types, as defined in :rfc:`3376#section-4`.
-	type IgmpMessageType: enum {
+	type MessageType: enum {
 		MEMBERSHIP_QUERY     = 0x11,
 		MEMBERSHIP_REPORT_V1 = 0x12,
 		MEMBERSHIP_REPORT_V2 = 0x16,
@@ -27,7 +27,7 @@ export {
 
 	## IGMP Version 3 Membership Report Group record, as defined in
 	## :rfc:`3376#section-4.2`
-	type MulticastGroup: record {
+	type Group: record {
 		## The type of the multicast record being reported.
 		group_type:     GroupType;
 		## The length of the auxiliary data field in this group record.

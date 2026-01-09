@@ -107,8 +107,29 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
 
     // Entity body.
     if ( content_type == analyzer::mime::CONTENT_TYPE_MULTIPART ||
-         content_type == analyzer::mime::CONTENT_TYPE_MESSAGE )
+         content_type == analyzer::mime::CONTENT_TYPE_MESSAGE ) {
         DeliverBody(len, data, trailing_CRLF); // NOLINT(bugprone-branch-clone)
+
+        // If this is the top-level entity and a content_length was
+        // set, ensure we do not consume more bytes than the content
+        // length specified by client or server.
+        //
+        // This is a copy of the content_length > 0 path below :-(
+        if ( Depth() == 0 && content_length > 0 ) {
+            expect_data_length -= len;
+            if ( trailing_CRLF )
+                expect_data_length -= 2;
+
+            if ( expect_data_length <= 0 ) {
+                if ( DEBUG_http )
+                    DEBUG_MSG("%.6f HTTP_Entity::Deliver[%p, %" PRId64
+                              "] Calling EndOfData() trailing_CRLF=%d expect_data_length=% " PRId64 "\n",
+                              run_state::network_time, this, Depth(), trailing_CRLF, expect_data_length);
+                SetPlainDelivery(0);
+                EndOfData();
+            }
+        }
+    }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
         switch ( chunked_transfer_state ) {
@@ -521,6 +542,18 @@ void HTTP_Entity::SubmitAllHeaders() {
         if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
             http_message->Weird("HTTP_chunked_transfer_for_multipart_message");
         }
+
+        // For the top-level entity, even if it is multipart or a MIME message,
+        // we do not want to consume more bytes than what the Content-Length
+        // header specifies, so set expect_data_length accordingly.
+        if ( Depth() == 0 && content_length >= 0 ) {
+            if ( content_length > 0 ) {
+                expect_data_length = content_length;
+                http_message->SetDeliverySize(content_length);
+            }
+            else
+                EndOfData(); // handle the case that content-length = 0
+        }
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -528,6 +561,9 @@ void HTTP_Entity::SubmitAllHeaders() {
 
     else if ( content_length >= 0 ) {
         if ( content_length > 0 ) {
+            // If Content-Length is set at a Depth() > 0, the outer Content-Length
+            // should be larger or unbounded via IsConnectionClose or
+            // Transfer-Encoding: chunked.
             expect_data_length = content_length;
             SetPlainDelivery(content_length);
         }

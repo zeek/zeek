@@ -15,10 +15,12 @@ on your own machine.
 
 .. note::
 
-   While the hope is that you walk away with a working Zeek
-   configuration, we will not discuss third-party content in much
-   detail. This helps the tutorial stay relevant, but may require extra
-   considerations when working with various extensions to Zeek.
+   While we hope that you will walk away with a working Zeek
+   configuration, we won't discuss third-party content in much
+   detail here. This helps the tutorial stay relevant, but may require
+   extra consideration when working with extensions to Zeek. The
+   :ref:`Popular Customizations <popular-customizations>` section
+   details some of them.
 
 .. toctree::
    :maxdepth: 1

@@ -1033,7 +1033,7 @@ add an entire new type to the scripting language.
     print paraglob_match(p, "dog");
     # out: [*, *og, d?g, d[!wl]g]
 
-  For more documentation on paraglob see :doc:`/components/index`.
+  For more documentation on paraglob see :doc:`/advanced/subcomponents`.
 
 .. zeek:see:: md5_hash_init sha1_hash_init sha256_hash_init
               hll_cardinality_add bloomfilter_basic_init

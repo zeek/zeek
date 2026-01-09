@@ -26,16 +26,13 @@ to connect with the community.
 
    get-started
    about
+   tutorial/index
    monitoring
-   log-formats
    logs/index
-   scripting/index
    frameworks/index
    customizations
-   troubleshooting
    script-reference/index
-   devel/index
-   components/index
+   advanced/index
    acknowledgements
 
 * :ref:`Index <genindex>`

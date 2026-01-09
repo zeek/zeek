@@ -101,8 +101,7 @@ classified as a "weird" by Zeek.
 
 More information on the various logs and what they report can be found in the
 :doc:`logs/index` section. More information on working with logs can be found in
-the :doc:`log-formats` section.
-
+the :ref:`log-inspection` section of the tutorial.
 
 .. note::
 
@@ -192,7 +191,7 @@ In another terminal, run the two ``curl`` commands from before:
 The terminal running Zeek will print each command as it gets processed.
 
 More information on how to use Zeek’s scripting language can be found in the
-:doc:`scripting/index` section. Experiment with Zeek scripting at
+:doc:`tutorial/scripting/index` section. Experiment with Zeek scripting at
 `try.zeek.org <https://try.zeek.org>`_.
 
 Managing Zeek

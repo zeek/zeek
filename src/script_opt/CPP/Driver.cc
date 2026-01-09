@@ -52,6 +52,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
         if ( had_to_skip )
             reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
+        // Used to find modules only present in the analyzed code.
+        unordered_set<string> analyzed_modules;
+        unordered_set<string> non_analyzed_modules;
+
         for ( auto& g : global_scope()->OrderedVars() ) {
             bool compiled_global = obj_matches_opt_files(g) == AnalyzeDecision::SHOULD;
 
@@ -62,8 +66,16 @@ void CPPCompile::Compile(bool report_uncompilable) {
                         break;
                     }
 
-            if ( ! compiled_global )
+            if ( ! compiled_global ) {
+                if ( g->GetLocationInfo()->FirstLine() != 0 )
+                    // Make sure we're dealing with a global actually used
+                    // elsewhere (for example, weed out some spicy events
+                    // that don't have matching Zeek script).
+                    non_analyzed_modules.insert(g->ModuleName());
                 continue;
+            }
+
+            analyzed_modules.insert(g->ModuleName());
 
             // We will need to generate this global's definition, including
             // its initialization. Make sure we're tracking it and its
@@ -93,6 +105,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
                     pfs->ProfileLambda(l);
             }
         }
+
+        for ( auto& m : analyzed_modules )
+            if ( ! non_analyzed_modules.contains(m) )
+                standalone_modules.insert(m);
 
         for ( auto& g : pfs->CalledBiFGlobals() )
             all_accessed_globals.insert(g);

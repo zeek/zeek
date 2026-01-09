@@ -1,3 +1,9 @@
+8.2.0-dev.70 | 2026-01-09 19:45:59 +0100
+
+  * -O gen-standalone-C++ support for creating modules unique to compiled scripts (Vern Paxson, Corelight)
+
+  * minor factoring of logic for @ifdef conditionals (Vern Paxson, Corelight)
+
 8.2.0-dev.67 | 2026-01-09 06:41:13 -0700
 
   * Update ZAM btest baseline that fails on CI (Tim Wojtulewicz, Corelight)

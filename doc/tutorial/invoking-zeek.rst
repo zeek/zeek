@@ -61,14 +61,8 @@ in JSON instead of TSV:
 
    # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
 
-Or in the setup, when we changed the default logging directory:
-
-.. code:: console
-
-   # zeek -r traces/zeek-doc/quickstart.pcap Log::default_logdir=scratch
-
-But this can be extended further---you can modify any exported script
-``option`` or ``&redef`` globals! For example, you can change the FTP
+This can be extended further---you can modify any exported script
+``option``, or ``&redef`` globals! For example, you can change the FTP
 analyzer to capture passwords and log the necessary command:
 
 .. code:: console

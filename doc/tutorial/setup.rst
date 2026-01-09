@@ -48,7 +48,7 @@ quickstart:
 .. code:: console
 
    # mkdir scratch && cd scratch
-   # zeek -r traces/zeek-doc/quickstart.pcap Log::default_logdir=scratch
+   # zeek -r ../traces/zeek-doc/quickstart.pcap
    # ls
    conn.log  files.log  http.log  packet_filter.log  weird.log
    # cd ..

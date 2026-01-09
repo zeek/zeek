@@ -4,24 +4,32 @@
  Invoking Zeek
 ###############
 
-When invoked standalone, Zeek is primarily used from the command line.
+When invoked from the command line, Zeek is primarily used for offline traffic analysis.
 You can read a trace file using the ``-r`` flag, like you did during the
-setup:
+setup, to produce logs in the local directory:
 
 .. code:: console
 
    # zeek -r traces/zeek-doc/quickstart.pcap
 
-You can also use Zeek to analyze live traffic. When reading from an
-interface, you can exit Zeek by pressing Ctrl+C.
+By default, Zeek does not clean up pre-existing log files and will overwrite any
+that it decides to write to. To get a clean slate for the next steps, let's
+remove any logs produced by the above command:
+
+.. code:: console
+
+   # rm -f *.log
+
+You can also use Zeek to analyze live traffic. When reading from a network
+interface, Zeek runs indefinitely:
 
 .. code:: console
 
    # zeek -C -i eth0
    listening on eth0
 
-In another command prompt, connect to the container and use a ping
-command to test:
+In another command prompt on your system, connect to the container
+and use a ping command to create test traffic:
 
 .. code:: console
 
@@ -36,10 +44,11 @@ command to test:
    rtt min/avg/max/mdev = 89.961/89.961/89.961/0.000 ms
    # exit
 
-Back in the original container, use Ctrl+C to exit, then run ``ls`` to
-see a few log files. We'll dive deeper into these logs later.
+Back in the original container, use Ctrl+C to exit Zeek, then run ``ls`` to
+see a few log files. Feel free to explore ``conn.log`` and look for
+evidence of the above ping! We'll dive deeper into these logs later.
 
-On local environments and with capture files, it may be useful to tell
+On local environments and with capture files, it's often useful to tell
 Zeek to ignore checksums with the ``-C`` flag. Otherwise, Zeek discards
 any packets with checksum errors---due to checksum offloading, this may
 be all packets in a particular direction!
@@ -62,12 +71,14 @@ in JSON instead of TSV:
    # zeek -r traces/zeek-doc/quickstart.pcap LogAscii::use_json=T
 
 This can be extended further---you can modify any exported script
-``option``, or ``&redef`` globals! For example, you can change the FTP
-analyzer to capture passwords and log the necessary command:
+``option``, or ``&redef`` globals! (Don't worry for now about what
+exactly these terms mean---in essence, you're adjusting some of Zeek's
+many tuning knobs.) For example, you can change the FTP
+analyzer to capture passwords and log the necessary FTP command:
 
 .. code:: console
 
-   # zeek -Cr traces/zeek-testing/ftp/ftp-password-pass-command.pcap "FTP::default_capture_password=T; FTP::logged_commands+={\"PASS\"};"
+   # zeek -Cr traces/zeek-testing/ftp/ftp-password-pass-command.pcap FTP::default_capture_password=T 'FTP::logged_commands+={"PASS"}'
    # cat ftp.log
    ...
 
@@ -80,6 +91,9 @@ segments:
    hello
    there
 
+As you begin to make more complex adjustments, it quickly becomes
+easier to write your own Zeek scripts. More on this shortly!
+
 **************
  Finding More
 **************
@@ -90,7 +104,7 @@ browse Zeek's ``--help`` output for more information:
 .. code:: console
 
    # zeek --help
-   zeek version 8.0.3
+   zeek version 8.0.4
    ...
 
 There are other options for power-users which have their own

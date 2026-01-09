@@ -84,3 +84,5 @@ Trace Index/Sources:
 - ldap/gap-data-missing.pcapng
   Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
   for #5221. It's just an LDAP connection that contains a gap.
+- igmp/multicast-igmp-version-membership-query-and-report.pcap
+  from https://www.cloudshark.org/captures/7bb04610bb7a for testing IGMP v1

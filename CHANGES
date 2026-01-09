@@ -1,3 +1,7 @@
+8.2.0-dev.67 | 2026-01-09 06:41:13 -0700
+
+  * Update ZAM btest baseline that fails on CI (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.65 | 2026-01-08 17:03:17 -0700
 
   * Add note to 8.1 NEWS about dns_msg [skip ci] (Tim Wojtulewicz, Corelight)

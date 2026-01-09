@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 
 #include "zeek/File.h"
 #include "zeek/IPAddr.h"
@@ -89,57 +90,29 @@ void ODesc::Add(const char* s, int do_indent) {
 void ODesc::Add(int i) {
     if ( IsBinary() )
         AddBytes(&i, sizeof(i));
-    else {
-        char tmp[256];
-        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
-        size_t len = res.ptr - tmp;
-        if ( len > 255 )
-            len = 255;
-        tmp[len] = '\0';
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", i).c_str());
 }
 
 void ODesc::Add(uint32_t u) {
     if ( IsBinary() )
         AddBytes(&u, sizeof(u));
-    else {
-        char tmp[256];
-        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
-        size_t len = res.ptr - tmp;
-        if ( len > 255 )
-            len = 255;
-        tmp[len] = '\0';
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", u).c_str());
 }
 
 void ODesc::Add(int64_t i) {
     if ( IsBinary() )
         AddBytes(&i, sizeof(i));
-    else {
-        char tmp[256];
-        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
-        size_t len = res.ptr - tmp;
-        if ( len > 255 )
-            len = 255;
-        tmp[len] = '\0';
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", i).c_str());
 }
 
 void ODesc::Add(uint64_t u) {
     if ( IsBinary() )
         AddBytes(&u, sizeof(u));
-    else {
-        char tmp[256];
-        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
-        size_t len = res.ptr - tmp;
-        if ( len > 255 )
-            len = 255;
-        tmp[len] = '\0';
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", u).c_str());
 }
 
 void ODesc::Add(double d, bool no_exp) {

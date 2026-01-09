@@ -4,6 +4,7 @@
 
 #include <charconv>
 #include <cstdlib>
+#include <format>
 #include <string>
 
 #include "zeek/3rdparty/zeek_inet_ntop.h"
@@ -222,21 +223,10 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative) 
 }
 
 std::string IPPrefix::AsString() const {
-    std::string str = prefix.AsString() + "/";
-    size_t prefix_len = str.size();
-    str.reserve(prefix_len + 16);
-
-    char* start = str.data() + prefix_len;
-    std::to_chars_result res;
     if ( prefix.GetFamily() == IPv4 )
-        res = std::to_chars(start, start + 16, length - 96);
-    else
-        res = std::to_chars(start, start + 16, length);
+        return prefix.AsString() + "/" + std::format("{:d}", length - 96);
 
-    // The string comes back from to_chars without a null terminator, but res.ptr shows
-    // what character needs to be null.
-    *res.ptr = '\0';
-    return str;
+    return prefix.AsString() + "/" + std::format("{:d}", length);
 }
 
 std::unique_ptr<detail::HashKey> IPPrefix::MakeHashKey() const {

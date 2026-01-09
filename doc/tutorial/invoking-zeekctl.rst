@@ -1,8 +1,8 @@
-.. _invoking-zeekctl:
-
 .. _zeekcontrol cron: https://github.com/zeek/zeekctl?tab=readme-ov-file#zeekcontrol-cron-command
 
 .. _zeekcontrol documentation: https://github.com/zeek/zeekctl
+
+.. _invoking-zeekctl:
 
 #############
  ZeekControl
@@ -11,9 +11,11 @@
 ZeekControl (or ``zeekctl``) is Zeek's primary tool for cluster
 orchestration. A Zeek cluster analyzes network traffic by using multiple
 coordinated Zeek processes. Every Zeek process in a cluster
-is called a "node"---nodes within a cluster have different roles. A
-node's role defines its type. You use ``zeekctl`` in order to coordinate
-how many of each node type, what their options are, and start them.
+is called a "node". Nodes within a cluster have different roles, such
+as packet analysis, runtime state management, or logging. Each node
+learns its role by assigning it a type. You use ``zeekctl`` in
+order to define how many nodes of each type to run, adjust configurable
+options, start (or stop) them, and check in on the running cluster.
 
 This section will go more in depth about how to manage a Zeek cluster
 using ``zeekctl``, but it is not a reference. See the `ZeekControl
@@ -44,7 +46,10 @@ via arguments to the ``zeekctl`` executable. We will simply execute
 commands as arguments to ``zeekctl`` directly, but feel free to use the
 interactive prompt if that suits you better.
 
-First, the most common ``zeekctl`` command is ``deploy``:
+Zeek ships with a default configuration for a very minimal "cluster", using just a
+single node that sniffs on the ``eth0`` interface.
+
+The most common ``zeekctl`` command is ``deploy``, which launches this cluster:
 
 .. code:: console
 
@@ -234,7 +239,7 @@ after killing it:
    worker-1     worker  localhost        running   4511   08 Dec 21:47:35
    worker-2     worker  localhost        running   4512   08 Dec 21:47:35
 
-This requires manual intervention. Instead, you can use ``zeekctl``
+This required manual intervention. Instead, you can use ``zeekctl``
 with ``cron`` in order to automatically check for crashed nodes and
 restart them. See the `ZeekControl cron`_ command reference for more
 information.
@@ -244,6 +249,18 @@ information.
    ZeekControl itself has no active process monitoring. Therefore, in
    order to perform automatic restarts, you need to put the ``zeekctl
    cron`` command into a ``crontab`` entry.
+
+=======================================
+ Customizing Zeek in a Cluster Setting
+=======================================
+
+In the above we intentionally introduced an error to a Zeek script called
+``$PREFIX/share/zeek/site/local.zeek``. This file has a special purpose: it is
+your entry point to persistent Zeek customizations, such as the FTP adjustments
+we made earlier on the command line. We suggest you take a minute to poke
+through it! Among other suggested settings, it includes a (commented-out) line
+to load any installed Zeek packages. Feel free to experiment with changes to the
+configuration, and deploying them via ``zeekctl deploy``.
 
 Many basic clusters can be maintained with just what was discussed here:
 a mixture of ``zeekctl`` commands like ``deploy``, ``start``, ``stop``,

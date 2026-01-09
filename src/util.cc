@@ -2009,41 +2009,59 @@ std::string double_to_str(double d, int precision, bool no_exp) {
     else if ( d == -0.0 )
         d = 0.0;
 
-    // Buffer needs enough chars to store max. possible "double" value
-    // of 1.79e308 without using scientific notation.
-    char buf[350];
-    memset(buf, 0, sizeof(buf));
+    size_t buf_size = 32;
 
-    std::string res;
-    std::to_chars_result result;
-    if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::scientific);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
-    }
-    else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::general, precision);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
-    }
-    else {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::fixed, precision);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
+    while ( true ) {
+        // Double the buffer size. This defaults to 64 bytes, which should big
+        // enough for almost every string, but there might be sometimes we
+        // have to be larger.
+        buf_size *= 2;
 
-        // We require `std::reverse_iterator::base` here which in e.g., gcc-10.2.1
-        // is not implemented for the range equivalent of the code
-        // (`borrowed_iterator_t` over a `reverse_view`). Stick to the non-ranges
-        // version for now.
-        if ( res.ends_with('0') ) {
-            // NOLINTNEXTLINE(modernize-use-ranges)
-            res.erase(std::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(), res.end());
-            if ( res.back() == '.' )
-                res.pop_back();
+        // Buffer needs enough chars to store max. possible "double" value
+        // of 1.79e308 without using scientific notation.
+        std::string res = "-";
+        res.resize(buf_size);
+
+        char* start = res.data();
+        char* end = res.data() + buf_size;
+        if ( neg )
+            start += 1;
+
+        std::to_chars_result result;
+        if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
+            result = std::to_chars(start, end, d, std::chars_format::scientific);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
         }
+        else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
+            result = std::to_chars(start, end, d, std::chars_format::general, precision);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
+        }
+        else {
+            result = std::to_chars(start, end, d, std::chars_format::fixed, precision);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
+
+            if ( res.ends_with('0') ) {
+                res.erase(std::ranges::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(),
+                          res.end());
+                if ( res.back() == '.' )
+                    res.pop_back();
+            }
+        }
+
+        return res;
     }
-
-    if ( neg )
-        res.insert(0, 1, '-');
-
-    return res;
 }
 
 

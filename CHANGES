@@ -1,3 +1,7 @@
+8.2.0-dev.65 | 2026-01-08 17:03:17 -0700
+
+  * Add note to 8.1 NEWS about dns_msg [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.63 | 2026-01-08 13:39:53 -0700
 
   * Restrict more templates using concepts (Dominik Charousset, Corelight)

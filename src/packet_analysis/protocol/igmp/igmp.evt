@@ -15,7 +15,6 @@ packet analyzer IGMP:
 # Generated for every processed IGMP message.
 # :param $packet: raw packet header
 # :param self.msg_type: IGMP message type
-# :param self.checksum: transmitted message checksum
 on IGMP::Message -> event igmp::message($packet, self.msg_type);
 
 # Generated for every IGMP message which did not pass checksum verification.

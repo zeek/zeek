@@ -78,3 +78,5 @@ Trace Index/Sources:
 - tls//ssl-to-http-server.pcap
   Extracted from CTU-SME-11 after observing detect-protocols not detecting
   SSL for this connection anymore (because it's SSL client hello to a HTTP server).
+- igmp/multicast-igmp-version-membership-query-and-report.pcap
+  from https://www.cloudshark.org/captures/7bb04610bb7a for testing IGMP v1

@@ -5,7 +5,8 @@
 #######
 
 This tutorial will use Zeek's latest container image: ``zeek/zeek`` on
-Docker Hub. You can see :doc:`installing Zeek </install>` for how to
+`our Docker Hub <https://hub.docker.com/u/zeek>`_.
+You can refer to :ref:`Docker image installation <docker-images>` for how to
 retrieve that image. Then, execute bash inside of it:
 
 .. code:: console
@@ -27,14 +28,16 @@ Next, clone the ``zeek-training`` git repository into ``/opt``:
 
    # git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
 
-Now, run the provided setup script:
+You should find yourself in ``/opt/zeek-training``, in a fresh clone
+of our training content.
+Now run the provided setup script to prepare the tutorial's resources
+and add required tooling, all inside the container:
 
 .. code:: console
 
    # ./setup.sh tutorial
 
-Once that completes, you should be in ``/opt/zeek-training`` with
-the setup script ran. You can look in ``zeek/`` to find the Zeek source
+You can look in ``zeek/`` to find the Zeek source
 code, ``traces/`` to find a collection of sample traces, and
 ``scripts/`` to find some scripts used throughout the tutorial. Feel
 free to use those as a playground during some of the upcoming exercises.
@@ -50,5 +53,5 @@ quickstart:
    conn.log  files.log  http.log  packet_filter.log  weird.log
    # cd ..
 
-If you get a few log files, then it properly read the quickstart pcap.
+If you get a few log files, then Zeek properly processed the quickstart pcap.
 You're now set up to do the tutorial!

@@ -24,7 +24,7 @@ void thread_fun(ProxyThread::Args* args) {
 
     while ( ! done ) {
         try {
-            zmq::proxy(args->xsub, args->xpub, zmq::socket_ref{} /*capture*/);
+            zmq::proxy_steerable(args->xsub, args->xpub, /*capture=*/zmq::socket_ref{}, /*control=*/args->control);
         } catch ( zmq::error_t& err ) {
             if ( err.num() == EINTR )
                 continue;
@@ -32,6 +32,7 @@ void thread_fun(ProxyThread::Args* args) {
             done = true;
             args->xsub.close();
             args->xpub.close();
+            args->control.close();
 
             if ( err.num() != ETERM ) {
                 std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
@@ -77,7 +78,7 @@ bool ProxyThread::Start() {
         return false;
     }
 
-    args = {.xpub = std::move(xpub), .xsub = std::move(xsub)};
+    args = {.xpub = std::move(xpub), .xsub = std::move(xsub), .control = std::move(control)};
 
     thread = std::thread(thread_fun, &args);
 

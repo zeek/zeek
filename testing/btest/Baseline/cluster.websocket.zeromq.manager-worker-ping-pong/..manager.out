@@ -21,4 +21,5 @@ XXXXXXXXXX.XXXXXX: got pong: worker-1 reply for ping(to-worker, 303), 9
 XXXXXXXXXX.XXXXXX: Cluster::websocket_client_lost 1
 XXXXXXXXXX.XXXXXX: Cluster::websocket_client_lost 2
 XXXXXXXXXX.XXXXXX: Cluster::websocket_client_lost 3
-XXXXXXXXXX.XXXXXX: terminate()
+XXXXXXXXXX.XXXXXX: Cluster::publish of finish
+XXXXXXXXXX.XXXXXX: Cluster::node_down worker-1

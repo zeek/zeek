@@ -19,7 +19,7 @@ export {
 		## Destination IP address
 		dst_addr:  addr &log;
 		## Message type
-		msg_type:  IgmpMessageType &log;
+		msg_type:  MessageType &log;
 	};
 
 	## Event that can be handled to access the IGMP record as it is sent on
@@ -37,7 +37,7 @@ event zeek_init() &priority=5
 	Log::create_stream(IGMP::LOG, [$columns=Info, $ev=log_igmp, $path="igmp", $policy=log_policy]);
 	}
 
-event igmp::message(pkt_hdr: raw_pkt_hdr, msg_type: IgmpMessageType) &priority=-5
+event igmp::message(pkt_hdr: raw_pkt_hdr, msg_type: IGMP::MessageType) &priority=-5
 	{
 	Log::write(IGMP::LOG, Info(
 		$timestamp = network_time(),

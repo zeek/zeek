@@ -27,13 +27,13 @@ Types
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SNMP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                snmp: :zeek:type:`SNMP::Info` :zeek:attr:`&optional`
 ============================================ ======================================================
 
@@ -48,7 +48,7 @@ Hooks
 #####
 ============================================================== =======================
 :zeek:id:`SNMP::finalize_snmp`: :zeek:type:`Conn::RemovalHook` SNMP finalization hook.
-:zeek:id:`SNMP::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`SNMP::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 

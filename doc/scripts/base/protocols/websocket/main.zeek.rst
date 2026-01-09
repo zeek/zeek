@@ -24,14 +24,14 @@ Types
 Redefinitions
 #############
 ========================================================================== ================================================================
-:zeek:id:`HTTP::upgrade_analyzers`: :zeek:type:`table` :zeek:attr:`&redef` 
-:zeek:type:`Log::ID`: :zeek:type:`enum`                                    
-                                                                           
+:zeek:id:`HTTP::upgrade_analyzers`: :zeek:type:`table` :zeek:attr:`&redef`
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                            * :zeek:enum:`WebSocket::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                               
-                                                                           
+:zeek:type:`connection`: :zeek:type:`record`
+
                                                                            :New Fields: :zeek:type:`connection`
-                                                                           
+
                                                                              websocket: :zeek:type:`WebSocket::Info` :zeek:attr:`&optional`
 ========================================================================== ================================================================
 
@@ -141,21 +141,21 @@ Hooks
 
 
    :param Experimental: Hook to intercept WebSocket analyzer configuration.
-   
+
    Breaking from this hook disables the WebSocket analyzer immediately.
    To modify the configuration of the analyzer, use the
    :zeek:see:`WebSocket::AnalyzerConfig` type.
-   
+
    While this API allows quite some flexibility currently, should be
    considered experimental and may change in the future with or
    without a deprecation phase.
-   
+
 
    :param c: The connection
-   
+
 
    :param aid: The analyzer ID for the WebSocket analyzer.
-   
+
 
    :param config: The configuration record, also containing information
            about the subprotocol and extensions.

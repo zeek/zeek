@@ -13,7 +13,7 @@ Summary
 Redefinitions
 #############
 ============================================================================================================== =
-:zeek:id:`SMB::statuses`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`SMB::statuses`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
 ============================================================================================================== =
 
 

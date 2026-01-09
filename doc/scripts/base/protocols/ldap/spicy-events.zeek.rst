@@ -33,22 +33,22 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, version: :zeek:type:`int`, name: :zeek:type:`string`, auth_type: :zeek:type:`LDAP::BindAuthType`, auth_info: :zeek:type:`string`)
 
    Event generated for each LDAPMessage containing a BindRequest.
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param version: The version field in the BindRequest.
-   
+
 
    :param name: The name field in the BindRequest.
-   
+
 
    :param auth_type: The auth type field in the BindRequest.
-   
+
 
    :param auth_info: Additional information related to the used auth type.
 
@@ -58,16 +58,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, request_name: :zeek:type:`string`, request_value: :zeek:type:`string`)
 
    Event generated for each ExtendedRequest in LDAP messages.
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param request_name: The name of the extended request.
-   
+
 
    :param request_value: The value of the extended request (empty if missing).
 
@@ -77,19 +77,19 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, result: :zeek:type:`LDAP::ResultCode`, response_name: :zeek:type:`string`, response_value: :zeek:type:`string`)
 
    Event generated for each ExtendedResponse in LDAP messages.
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param result: The result code of the response.
-   
+
 
    :param response_name: The name of the extended response (empty if missing).
-   
+
 
    :param response_value: The value of the extended response (empty if missing).
 
@@ -99,28 +99,28 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, opcode: :zeek:type:`LDAP::ProtocolOpcode`, result: :zeek:type:`LDAP::ResultCode`, matched_dn: :zeek:type:`string`, diagnostic_message: :zeek:type:`string`, object: :zeek:type:`string`, argument: :zeek:type:`string`)
 
    Event generated for each LDAPMessage (either direction).
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param opcode: The protocolOp field in the message.
-   
+
 
    :param result: The result code if the message contains a result.
-   
+
 
    :param matched_dn: The DN if the message contains a result.
-   
+
 
    :param diagnostic_message: Diagnostic message if the LDAP message contains a result.
-   
+
 
    :param object: The object name this message refers to.
-   
+
 
    :param argument: Additional arguments this message includes.
 
@@ -130,34 +130,34 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, base_object: :zeek:type:`string`, scope: :zeek:type:`LDAP::SearchScope`, deref: :zeek:type:`LDAP::SearchDerefAlias`, size_limit: :zeek:type:`int`, time_limit: :zeek:type:`int`, types_only: :zeek:type:`bool`, filter: :zeek:type:`string`, attributes: :zeek:type:`vector` of :zeek:type:`string`)
 
    Event generated for each LDAPMessage containing a SearchRequest.
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param base_object: The baseObject field in the SearchRequest.
-   
+
 
    :param scope: The scope field in the SearchRequest.
-   
+
 
    :param deref_alias: The derefAlias field in the SearchRequest
-   
+
 
    :param size_limit: The sizeLimit field in the SearchRequest.
-   
+
 
    :param time_limit: The timeLimit field in the SearchRequest.
-   
+
 
    :param types_only: The typesOnly field in the SearchRequest.
-   
+
 
    :param filter: The string representation of the filter field in the SearchRequest.
-   
+
 
    :param attributes: Additional attributes of the SearchRequest.
 
@@ -167,13 +167,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, object_name: :zeek:type:`string`)
 
    Event generated for each SearchResultEntry in LDAP messages.
-   
+
 
    :param c: The connection.
-   
+
 
    :param message_id: The messageID element.
-   
+
 
    :param object_name: The object name in the SearchResultEntry.
 
@@ -183,9 +183,9 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated when a plaintext LDAP connection switched to TLS.
-   
+
 
    :param c: The connection.
-   
+
 
 

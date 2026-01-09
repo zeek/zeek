@@ -14,22 +14,22 @@ Summary
 Types
 #####
 ============================================== =
-:zeek:type:`SMTP::Entity`: :zeek:type:`record` 
+:zeek:type:`SMTP::Entity`: :zeek:type:`record`
 ============================================== =
 
 Redefinitions
 #############
 ============================================= =====================================================================================
-:zeek:type:`SMTP::Info`: :zeek:type:`record`  
-                                              
+:zeek:type:`SMTP::Info`: :zeek:type:`record`
+
                                               :New Fields: :zeek:type:`SMTP::Info`
-                                              
+
                                                 entity: :zeek:type:`SMTP::Entity` :zeek:attr:`&optional`
                                                   The current entity being seen.
-:zeek:type:`SMTP::State`: :zeek:type:`record` 
-                                              
+:zeek:type:`SMTP::State`: :zeek:type:`record`
+
                                               :New Fields: :zeek:type:`SMTP::State`
-                                              
+
                                                 mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
                                                   Track the number of MIME encoded files transferred
                                                   during a session.

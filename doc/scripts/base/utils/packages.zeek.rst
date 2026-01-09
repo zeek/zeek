@@ -27,14 +27,14 @@ Functions
 
    Checks whether @load of a given package name could
    be successful.
-   
+
    This tests for the existence of corresponding script files
    in ZEEKPATH. It does not attempt to parse and validate
    any actual Zeek script code.
-   
+
 
    :param path: The filename, package or path to test.
-   
+
 
    :returns: T if the given filename, package or path may load.
 

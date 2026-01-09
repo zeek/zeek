@@ -26,7 +26,7 @@ Package: policy/frameworks/management/controller
    it to launch the Management controller process. The controller's main logic
    resides in main.zeek, similarly to other frameworks. The new process will
    execute that script.
-   
+
    If the current process is not the Zeek supervisor, this does nothing.
 
 :doc:`/scripts/policy/frameworks/management/controller/main.zeek`

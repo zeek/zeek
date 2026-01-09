@@ -14,14 +14,14 @@ Summary
 Types
 #####
 ====================================================== =
-:zeek:type:`NetControl::DropInfo`: :zeek:type:`record` 
+:zeek:type:`NetControl::DropInfo`: :zeek:type:`record`
 ====================================================== =
 
 Redefinitions
 #############
 ======================================= ===================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`NetControl::DROP_LOG`
 ======================================= ===================================
 
@@ -37,7 +37,7 @@ Hooks
 ==================================================================== =======================================================================
 :zeek:id:`NetControl::drop_rule_policy`: :zeek:type:`hook`           Hook that allows the modification of rules passed to drop_* before they
                                                                      are passed on.
-:zeek:id:`NetControl::log_policy_drop`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`NetControl::log_policy_drop`: :zeek:type:`Log::PolicyHook`
 ==================================================================== =======================================================================
 
 Functions
@@ -118,7 +118,7 @@ Hooks
 
    Hook that allows the modification of rules passed to drop_* before they
    are passed on. If one of the hooks uses break, the rule is ignored.
-   
+
 
    :param r: The rule to be added.
 
@@ -136,16 +136,16 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops all packets involving an IP address from being forwarded.
-   
+
 
    :param a: The address to be dropped.
-   
+
 
    :param t: How long to drop it, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing where the drop was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 
@@ -155,16 +155,16 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`conn_id`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops all packets involving a connection address from being forwarded.
-   
+
 
    :param c: The connection to be dropped.
-   
+
 
    :param t: How long to drop it, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing where the drop was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 

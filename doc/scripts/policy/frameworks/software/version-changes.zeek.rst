@@ -24,8 +24,8 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Software::Software_Version_Change`:
                                                For certain software, a version changing may matter.
 ============================================ ======================================================

@@ -22,8 +22,8 @@ Constants
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`PacketFilter::Dropped_Packets`:
                                                Indicates packets were dropped by the packet filter.
 ============================================ ======================================================

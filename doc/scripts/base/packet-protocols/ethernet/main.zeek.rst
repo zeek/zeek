@@ -12,9 +12,9 @@ Summary
 Constants
 #########
 ============================================================================== =
-:zeek:id:`PacketAnalyzer::ETHERNET::LLC_FORWARDING_KEY`: :zeek:type:`count`    
-:zeek:id:`PacketAnalyzer::ETHERNET::NOVELL_FORWARDING_KEY`: :zeek:type:`count` 
-:zeek:id:`PacketAnalyzer::ETHERNET::SNAP_FORWARDING_KEY`: :zeek:type:`count`   
+:zeek:id:`PacketAnalyzer::ETHERNET::LLC_FORWARDING_KEY`: :zeek:type:`count`
+:zeek:id:`PacketAnalyzer::ETHERNET::NOVELL_FORWARDING_KEY`: :zeek:type:`count`
+:zeek:id:`PacketAnalyzer::ETHERNET::SNAP_FORWARDING_KEY`: :zeek:type:`count`
 ============================================================================== =
 
 

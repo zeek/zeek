@@ -30,10 +30,10 @@ Functions
    :Type: :zeek:type:`function` (rec: :zeek:type:`FTP::Info`) : :zeek:type:`string`
 
    Creates a URL from an :zeek:type:`FTP::Info` record.
-   
+
 
    :param rec: An :zeek:type:`FTP::Info` record.
-   
+
 
    :returns: A URL, not prefixed by ``"ftp://"``.
 
@@ -43,10 +43,10 @@ Functions
    :Type: :zeek:type:`function` (rec: :zeek:type:`FTP::Info`) : :zeek:type:`string`
 
    Creates a URL from an :zeek:type:`FTP::Info` record.
-   
+
 
    :param rec: An :zeek:type:`FTP::Info` record.
-   
+
 
    :returns: A URL prefixed with ``"ftp://"``.
 

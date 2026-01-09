@@ -48,18 +48,18 @@ Types
 Redefinitions
 #############
 ============================================ ===========================================================
-:zeek:type:`DHCP::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`DHCP::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`DHCP::Info`
-                                             
+
                                                last_message_ts: :zeek:type:`time` :zeek:attr:`&optional`
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`DHCP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                dhcp: :zeek:type:`DHCP::Info` :zeek:attr:`&optional`
 ============================================ ===========================================================
 
@@ -76,7 +76,7 @@ Events
 Hooks
 #####
 ========================================================= =
-:zeek:id:`DHCP::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`DHCP::log_policy`: :zeek:type:`Log::PolicyHook`
 ========================================================= =
 
 

@@ -40,7 +40,7 @@ Types
 :zeek:type:`Input::EventDescription`: :zeek:type:`record`    An event input stream type used to send input data to a Zeek event.
 :zeek:type:`Input::Mode`: :zeek:type:`enum`                  Type that defines the input stream read mode.
 :zeek:type:`Input::TableDescription`: :zeek:type:`record`    A table input stream type used to send data to a Zeek table.
-:zeek:type:`Input::Reader`: :zeek:type:`enum`                
+:zeek:type:`Input::Reader`: :zeek:type:`enum`
 ============================================================ ===================================================================
 
 Events
@@ -262,7 +262,7 @@ Types
       be closed.
       The event receives the :zeek:see:`Input::EventDescription` as the first argument, the
       message as the second argument and the :zeek:see:`Reporter::Level` as the third argument.
-      
+
       The event is raised like it had been declared as follows:
       error_ev: function(desc: EventDescription, message: string, level: Reporter::Level) &optional;
       The actual declaration uses the :zeek:type:`any` type because of deficiencies of the Zeek type system.
@@ -372,7 +372,7 @@ Types
       be closed.
       The event receives the Input::TableDescription as the first argument, the
       message as the second argument and the Reporter::Level as the third argument.
-      
+
       The event is raised like if it had been declared as follows:
       error_ev: function(desc: TableDescription, message: string, level: Reporter::Level) &optional;
       The actual declaration uses the :zeek:type:`any` type because of deficiencies of the Zeek type system.
@@ -413,10 +413,10 @@ Events
 
    Event that is called when the end of a data source has been reached,
    including after an update.
-   
+
 
    :param name: Name of the input stream.
-   
+
 
    :param source: String that identifies the data source (such as the filename).
 
@@ -430,10 +430,10 @@ Functions
    Create a new file analysis input stream from a given source.  Data read
    from the source is automatically forwarded to the file analysis
    framework.
-   
+
 
    :param description: A record describing the source.
-   
+
 
    :returns: true on success.
 
@@ -443,10 +443,10 @@ Functions
    :Type: :zeek:type:`function` (description: :zeek:type:`Input::EventDescription`) : :zeek:type:`bool`
 
    Create a new event input stream from a given source.
-   
+
 
    :param description: :zeek:see:`Input::EventDescription` record describing the source.
-   
+
 
    :returns: true on success.
 
@@ -456,10 +456,10 @@ Functions
    :Type: :zeek:type:`function` (description: :zeek:type:`Input::TableDescription`) : :zeek:type:`bool`
 
    Create a new table input stream from a given source.
-   
+
 
    :param description: :zeek:see:`Input::TableDescription` record describing the source.
-   
+
 
    :returns: true on success.
 
@@ -469,10 +469,10 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
 
    Forces the current input to be checked for changes.
-   
+
 
    :param id: string value identifying the stream.
-   
+
 
    :returns: true on success and false if the named stream was not found.
 
@@ -482,10 +482,10 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
 
    Remove an input stream.
-   
+
 
    :param id: string value identifying the stream to be removed.
-   
+
 
    :returns: true on success and false if the named stream was not found.
 

@@ -14,10 +14,10 @@ Summary
 Redefinitions
 #############
 ============================================ ===============================================================================
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`Conn::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`Conn::Info`
-                                             
+
                                                pppoe_session_id: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  The PPPoE session id, if applicable for this connection.
 ============================================ ===============================================================================

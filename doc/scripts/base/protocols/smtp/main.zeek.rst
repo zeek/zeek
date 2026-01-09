@@ -31,36 +31,36 @@ Redefinable Options
 Types
 #####
 ============================================= =
-:zeek:type:`SMTP::Info`: :zeek:type:`record`  
-:zeek:type:`SMTP::State`: :zeek:type:`record` 
+:zeek:type:`SMTP::Info`: :zeek:type:`record`
+:zeek:type:`SMTP::State`: :zeek:type:`record`
 ============================================= =
 
 Redefinitions
 #############
 ============================================ =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SMTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                smtp: :zeek:type:`SMTP::Info` :zeek:attr:`&optional`
-                                             
+
                                                smtp_state: :zeek:type:`SMTP::State` :zeek:attr:`&optional`
 ============================================ =============================================================
 
 Events
 ######
 ============================================= =
-:zeek:id:`SMTP::log_smtp`: :zeek:type:`event` 
+:zeek:id:`SMTP::log_smtp`: :zeek:type:`event`
 ============================================= =
 
 Hooks
 #####
 ============================================================== =======================
 :zeek:id:`SMTP::finalize_smtp`: :zeek:type:`Conn::RemovalHook` SMTP finalization hook.
-:zeek:id:`SMTP::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`SMTP::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 Functions

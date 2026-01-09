@@ -28,7 +28,7 @@ Events
 
    Generated when a XMPP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.
-   
+
 
    :param c: The connection.
 

@@ -19,8 +19,8 @@ Types
 Redefinitions
 #############
 ======================================= ========================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`OCSP::LOG`
 ======================================= ========================
 
@@ -34,7 +34,7 @@ Events
 Hooks
 #####
 ========================================================= =
-:zeek:id:`OCSP::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`OCSP::log_policy`: :zeek:type:`Log::PolicyHook`
 ========================================================= =
 
 

@@ -67,7 +67,7 @@ Redefinable Options
    The default priority that is used when using the high-level functions to
    push whitelist entries to the backends (:zeek:see:`NetControl::whitelist_address` and
    :zeek:see:`NetControl::whitelist_subnet`).
-   
+
    Note that this priority is not automatically used when manually creating rules
    that have a :zeek:see:`NetControl::RuleType` of :zeek:enum:`NetControl::WHITELIST`.
 
@@ -167,7 +167,7 @@ Types
 
    Flow is used in :zeek:type:`NetControl::Entity` together with :zeek:enum:`NetControl::FLOW` to specify
    a uni-directional flow that a rule applies to.
-   
+
    If optional fields are not set, they are interpreted as wildcarded.
 
 .. zeek:type:: NetControl::FlowInfo
@@ -333,7 +333,7 @@ Types
       .. zeek:enum:: NetControl::DROP NetControl::RuleType
 
          Stop forwarding all packets matching the entity.
-         
+
          No additional arguments.
 
       .. zeek:enum:: NetControl::MODIFY NetControl::RuleType
@@ -341,13 +341,13 @@ Types
          Modify all packets matching entity. The packets
          will be modified according to the `mod` entry of
          the rule.
-         
+
 
       .. zeek:enum:: NetControl::REDIRECT NetControl::RuleType
 
          Redirect all packets matching entity to a different switch port,
          given in the `out_port` argument of the rule.
-         
+
 
       .. zeek:enum:: NetControl::WHITELIST NetControl::RuleType
 
@@ -358,7 +358,7 @@ Types
 
    Type of rules that the framework supports. Each type lists the extra
    :zeek:type:`NetControl::Rule` fields it uses, if any.
-   
+
    Plugins may extend this type to define their own.
 
 .. zeek:type:: NetControl::TargetType
@@ -371,7 +371,7 @@ Types
       .. zeek:enum:: NetControl::MONITOR NetControl::TargetType
 
    Type defining the target of a rule.
-   
+
    Rules can either be applied to the forward path, affecting all network traffic, or
    on the monitor path, only affecting the traffic that is sent to Zeek. The second
    is mostly used for shunting, which allows Zeek to tell the networking hardware that

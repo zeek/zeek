@@ -18,19 +18,19 @@ Redefinable Options
 Types
 #####
 =========================================== =
-:zeek:type:`NTP::Info`: :zeek:type:`record` 
+:zeek:type:`NTP::Info`: :zeek:type:`record`
 =========================================== =
 
 Redefinitions
 #############
 ============================================ ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`NTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                ntp: :zeek:type:`NTP::Info` :zeek:attr:`&optional`
 ============================================ ====================================================
 
@@ -44,7 +44,7 @@ Events
 Hooks
 #####
 ======================================================== =
-:zeek:id:`NTP::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`NTP::log_policy`: :zeek:type:`Log::PolicyHook`
 ======================================================== =
 
 

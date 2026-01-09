@@ -14,16 +14,16 @@ Summary
 Types
 #####
 =========================================================== =
-:zeek:type:`ConnThreshold::Thresholds`: :zeek:type:`record` 
+:zeek:type:`ConnThreshold::Thresholds`: :zeek:type:`record`
 =========================================================== =
 
 Redefinitions
 #############
 ============================================ ===========================================================================
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                thresholds: :zeek:type:`ConnThreshold::Thresholds` :zeek:attr:`&optional`
 ============================================ ===========================================================================
 
@@ -91,13 +91,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`)
 
    Generated for a connection that crossed a set byte threshold
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: True if the threshold was crossed by the originator of the connection
 
@@ -110,13 +110,13 @@ Events
    not raised at the exact moment that a duration threshold is crossed; instead it is raised
    when the next packet is seen after the threshold has been crossed. On a connection that is
    idle, this can be raised significantly later.
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: True if the threshold was crossed by the originator of the connection
 
@@ -126,13 +126,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`)
 
    Generated for a connection that crossed a set byte threshold
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: True if the threshold was crossed by the originator of the connection
 
@@ -144,16 +144,16 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Deletes a byte threshold for connection sizes.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in bytes to remove.
-   
+
 
    :param is_orig: If true, threshold is removed for packets from originator, otherwise for packets from responder.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -163,13 +163,13 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, threshold: :zeek:type:`interval`) : :zeek:type:`bool`
 
    Deletes a duration threshold for a connection.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in packets.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -179,16 +179,16 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Deletes a packet threshold for connection sizes.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in packets.
-   
+
 
    :param is_orig: If true, threshold is removed for packets from originator, otherwise for packets from responder.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -199,16 +199,16 @@ Functions
 
    Sets a byte threshold for connection sizes, adding it to potentially already existing thresholds.
    conn_bytes_threshold_crossed will be raised for each set threshold.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in bytes.
-   
+
 
    :param is_orig: If true, threshold is set for bytes from originator, otherwise for bytes from responder.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -219,13 +219,13 @@ Functions
 
    Sets a duration threshold for a connection, adding it to potentially already existing thresholds.
    conn_duration_threshold_crossed will be raised for each set threshold.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in seconds.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -236,16 +236,16 @@ Functions
 
    Sets a packet threshold for connection sizes, adding it to potentially already existing thresholds.
    conn_packets_threshold_crossed will be raised for each set threshold.
-   
+
 
    :param cid: The connection id.
-   
+
 
    :param threshold: Threshold in packets.
-   
+
 
    :param is_orig: If true, threshold is set for packets from originator, otherwise for packets from responder.
-   
+
 
    :returns: T on success, F on failure.
 

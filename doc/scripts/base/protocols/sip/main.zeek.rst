@@ -29,21 +29,21 @@ Types
 #####
 ============================================ =========================================================
 :zeek:type:`SIP::Info`: :zeek:type:`record`  The record type which contains the fields of the SIP log.
-:zeek:type:`SIP::State`: :zeek:type:`record` 
+:zeek:type:`SIP::State`: :zeek:type:`record`
 ============================================ =========================================================
 
 Redefinitions
 #############
 ============================================ ===========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SIP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                sip: :zeek:type:`SIP::Info` :zeek:attr:`&optional`
-                                             
+
                                                sip_state: :zeek:type:`SIP::State` :zeek:attr:`&optional`
 ============================================ ===========================================================
 
@@ -58,7 +58,7 @@ Hooks
 #####
 ============================================================ ======================
 :zeek:id:`SIP::finalize_sip`: :zeek:type:`Conn::RemovalHook` SIP finalization hook.
-:zeek:id:`SIP::log_policy`: :zeek:type:`Log::PolicyHook`     
+:zeek:id:`SIP::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================ ======================
 
 

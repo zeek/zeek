@@ -38,9 +38,9 @@ Events
    broadcasted from the manager once all nodes reported that they have set
    up all their outgoing connections to other cluster nodes based on the
    given cluster layout.
-   
+
    .. warning::
-   
+
        There is no tracking of cluster node connectivity. Thus, there is
        no guarantee that all peerings still exist at the time of this event
        being raised.
@@ -54,19 +54,19 @@ Events
    the manager and raised locally, once a cluster node has successfully
    conducted cluster-level handshakes for all its outgoing connections to
    other cluster nodes based on the given cluster layout.
-   
+
 
    :param name: The name of the now fully connected node.
-   
+
 
    :param id: The identifier of the now fully connected node.
-   
+
 
    :param resending: If true, the node has previously signaled that it is fully
               connected. This may happen in case the manager restarts.
-   
+
    .. warning::
-   
+
        There is no tracking of cluster node connectivity. Thus, there is
        no guarantee that all peerings still exist at the time of this event
        being raised.

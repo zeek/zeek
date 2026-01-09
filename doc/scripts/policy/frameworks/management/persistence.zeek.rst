@@ -13,7 +13,7 @@ Summary
 Redefinitions
 #############
 ============================================================================= =
-:zeek:id:`Log::default_rotation_dir`: :zeek:type:`string` :zeek:attr:`&redef` 
+:zeek:id:`Log::default_rotation_dir`: :zeek:type:`string` :zeek:attr:`&redef`
 ============================================================================= =
 
 

@@ -45,14 +45,14 @@ Redefinitions
 #############
 ============================================ ===========================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The DNS logging stream identifier.
-                                             
+
                                              * :zeek:enum:`DNS::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                dns: :zeek:type:`DNS::Info` :zeek:attr:`&optional`
-                                             
+
                                                dns_state: :zeek:type:`DNS::State` :zeek:attr:`&optional`
 ============================================ ===========================================================
 
@@ -366,16 +366,16 @@ Hooks
    which may not represent the full data available from the resource
    record, but it's generally considered a summarization of the
    responses.
-   
+
 
    :param c: The connection record for which to fill in DNS reply data.
-   
+
 
    :param msg: The DNS message header information for the response.
-   
+
 
    :param ans: The general information of a RR response.
-   
+
 
    :param reply: The specific response information according to RR type/class.
 
@@ -401,13 +401,13 @@ Hooks
    A hook that is called whenever a session is being set.
    This can be used if additional initialization logic needs to happen
    when creating a new session value.
-   
+
 
    :param c: The connection involved in the new session.
-   
+
 
    :param msg: The DNS message header information.
-   
+
 
    :param is_query: Indicator for if this is being called for a query or a response.
 

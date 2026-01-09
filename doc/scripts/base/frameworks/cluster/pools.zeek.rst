@@ -27,9 +27,9 @@ Types
 #####
 ========================================================= ===========================================================
 :zeek:type:`Cluster::PoolNode`: :zeek:type:`record`       Store state of a cluster within the context of a work pool.
-:zeek:type:`Cluster::PoolNodeTable`: :zeek:type:`table`   
+:zeek:type:`Cluster::PoolNodeTable`: :zeek:type:`table`
 :zeek:type:`Cluster::PoolSpec`: :zeek:type:`record`       A pool specification.
-:zeek:type:`Cluster::RoundRobinTable`: :zeek:type:`table` 
+:zeek:type:`Cluster::RoundRobinTable`: :zeek:type:`table`
 ========================================================= ===========================================================
 
 Functions
@@ -296,14 +296,14 @@ Functions
 
    Retrieve the topic associated with the node mapped via Rendezvous hash
    of an arbitrary key.
-   
+
 
    :param pool: the pool of nodes to consider.
-   
+
 
    :param key: data used for input to the hashing function that will uniformly
         distribute keys among available nodes.
-   
+
 
    :returns: a topic string associated with a cluster node that is alive
             or an empty string if nothing is alive.
@@ -332,10 +332,10 @@ Functions
    :Type: :zeek:type:`function` (pool: :zeek:type:`Cluster::Pool`, key: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Retrieve the topic associated with the node in a round-robin fashion.
-   
+
 
    :param pool: the pool of nodes to consider.
-   
+
 
    :param key: an arbitrary string to identify the purpose for which you're
         requesting the topic.  e.g. consider using a name-spaced key
@@ -344,7 +344,7 @@ Functions
         without other messages being interleaved within the round-robin.
         Usually sharing the default key is fine for load-balancing
         purposes.
-   
+
 
    :returns: a topic string associated with a cluster node that is alive,
             or an empty string if nothing is alive.

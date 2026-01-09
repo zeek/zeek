@@ -12,7 +12,7 @@ Summary
 Functions
 #########
 ================================================================================== =
-:zeek:id:`Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread`: :zeek:type:`function` 
+:zeek:id:`Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread`: :zeek:type:`function`
 ================================================================================== =
 
 

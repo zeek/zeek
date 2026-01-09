@@ -80,7 +80,7 @@ Functions
    :Type: :zeek:type:`function` (pool: :zeek:type:`HashHRW::Pool`, site: :zeek:type:`HashHRW::Site`) : :zeek:type:`bool`
 
    Add a site to a pool.
-   
+
 
    :returns: F is the site is already in the pool, else T.
 
@@ -98,7 +98,7 @@ Functions
    :Type: :zeek:type:`function` (pool: :zeek:type:`HashHRW::Pool`, site: :zeek:type:`HashHRW::Site`) : :zeek:type:`bool`
 
    Remove a site from a pool.
-   
+
 
    :returns: F if the site is not in the pool, else T.
 

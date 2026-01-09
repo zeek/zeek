@@ -27,17 +27,17 @@ Functions
 
    Returns the distance between two IP addresses using the haversine formula,
    based on GeoIP database locations.  Requires Zeek to be built with GeoIP.
-   
+
 
    :param a1: First IP address.
-   
+
 
    :param a2: Second IP address.
-   
+
 
    :returns: The distance between *a1* and *a2* in miles, or -1.0 if GeoIP data
             is not available for either of the IP addresses.
-   
+
    .. zeek:see:: haversine_distance lookup_location
 
 

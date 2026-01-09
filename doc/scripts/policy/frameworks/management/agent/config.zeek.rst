@@ -192,7 +192,7 @@ Redefinable Options
    produce a free-form log (i.e., not one governed by Zeek's logging
    framework) in the agent's working directory. If left empty, no such
    log results.
-   
+
    Note that the agent also establishes a "proper" Zeek log via the
    :zeek:see:`Management::Log` module.
 

@@ -25,7 +25,7 @@ Summary
 Redefinitions
 #############
 ============================================================================================ =
-:zeek:id:`Cluster::Backend::ZeroMQ::run_proxy_thread`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`Cluster::Backend::ZeroMQ::run_proxy_thread`: :zeek:type:`bool` :zeek:attr:`&redef`
 ============================================================================================ =
 
 

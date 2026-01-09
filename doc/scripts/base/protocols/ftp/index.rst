@@ -32,7 +32,7 @@ Support for File Transfer Protocol (FTP) analysis.
 :doc:`/scripts/base/protocols/ftp/gridftp.zeek`
 
    A detection script for GridFTP data and control channels.
-   
+
    GridFTP control channels are identified by FTP control channels
    that successfully negotiate the GSSAPI method of an AUTH request
    and for which the exchange involved an encoded TLS/SSL handshake,
@@ -40,7 +40,7 @@ Support for File Transfer Protocol (FTP) analysis.
    is all supported internally, this script simply adds the "gridftp"
    label to the *service* field of the control channel's
    :zeek:type:`connection` record.
-   
+
    GridFTP data channels are identified by a heuristic that relies on
    the fact that default settings for GridFTP clients typically
    mutually authenticate the data channel with TLS/SSL and negotiate a

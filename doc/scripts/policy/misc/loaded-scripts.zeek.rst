@@ -14,21 +14,21 @@ Summary
 Types
 #####
 ===================================================== =
-:zeek:type:`LoadedScripts::Info`: :zeek:type:`record` 
+:zeek:type:`LoadedScripts::Info`: :zeek:type:`record`
 ===================================================== =
 
 Redefinitions
 #############
 ======================================= =================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`LoadedScripts::LOG`
 ======================================= =================================
 
 Hooks
 #####
 ================================================================== =
-:zeek:id:`LoadedScripts::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`LoadedScripts::log_policy`: :zeek:type:`Log::PolicyHook`
 ================================================================== =
 
 

@@ -33,10 +33,10 @@ Functions
 
    Helper function that converts a set (of arbitrary index type) to
    a "vector of any".
-   
+
 
    :param v: an "any" type corresponding to a set.
-   
+
 
    :returns: a vector-of-any with one element for each member of v.
 
@@ -47,21 +47,21 @@ Functions
 
    Set an option to a new value. This change will also cause the option change
    handlers to be called.
-   
+
 
    :param ID: The ID of the option to update.
-   
+
 
    :param val: The new value of the option.
-   
+
 
    :param location: Optional parameter detailing where this change originated from.
-   
+
 
    :returns: true on success, false when an error occurred.
-   
+
    .. zeek:see:: Option::set_change_handler Config::set_value
-   
+
    .. note:: :zeek:id:`Option::set` only works on one node and does not distribute
              new values across a cluster. The higher-level :zeek:id:`Config::set_value`
              supports clusterization and should typically be used instead of this
@@ -74,10 +74,10 @@ Functions
 
    Set a change handler for an option. The change handler will be
    called anytime :zeek:id:`Option::set` is called for the option.
-   
+
 
    :param ID: The ID of the option for which change notifications are desired.
-   
+
 
    :param on_change: The function that will be called when a change occurs. The
               function can choose to receive two or three parameters: the first
@@ -90,15 +90,15 @@ Functions
               that are being set. When several change handlers are set for an
               option they are chained; the second change handler will see the
               return value of the first change handler as the "new value".
-   
+
 
    :param priority: The priority of the function that was added; functions with higher
              priority are called first, functions with the same priority are
              called in the order in which they were added.
-   
+
 
    :returns: true when the change handler was set, false when an error occurred.
-   
+
    .. zeek:see:: Option::set
 
 

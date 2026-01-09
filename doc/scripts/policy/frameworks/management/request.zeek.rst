@@ -35,10 +35,10 @@ Types
 Redefinitions
 #############
 ============================================================== ===========================================================================================================================
-:zeek:type:`Management::Request::Request`: :zeek:type:`record` 
-                                                               
+:zeek:type:`Management::Request::Request`: :zeek:type:`record`
+
                                                                :New Fields: :zeek:type:`Management::Request::Request`
-                                                               
+
                                                                  finish: :zeek:type:`function` (req: :zeek:type:`Management::Request::Request`) : :zeek:type:`void` :zeek:attr:`&optional`
                                                                    A callback to invoke when this request is finished via
                                                                    :zeek:see:`Management::Request::finish`.
@@ -223,10 +223,10 @@ Events
    This event fires when a request times out (as per the
    Management::Request::timeout_interval) before it has been finished via
    Management::Request::finish().
-   
+
 
    :param req: the request state that is expiring.
-   
+
 
 Functions
 #########
@@ -236,10 +236,10 @@ Functions
    :Type: :zeek:type:`function` (reqid: :zeek:type:`string` :zeek:attr:`&default` = ``EAZk938eUP3ZisBy5`` :zeek:attr:`&optional`) : :zeek:type:`Management::Request::Request`
 
    This function establishes request state.
-   
+
 
    :param reqid: the identifier to use for the request.
-   
+
 
 .. zeek:id:: Management::Request::finish
    :source-code: policy/frameworks/management/request.zeek 134 148
@@ -249,10 +249,10 @@ Functions
    This function marks a request as complete and causes Zeek to release
    its internal state. When the request does not exist, this does
    nothing.
-   
+
 
    :param reqid: the ID of the request state to release.
-   
+
 
 .. zeek:id:: Management::Request::is_null
    :source-code: policy/frameworks/management/request.zeek 150 156
@@ -261,13 +261,13 @@ Functions
 
    This function is a helper predicate to indicate whether a given
    request is null.
-   
+
 
    :param request: a Request record to check.
-   
+
 
    :returns: T if the given request matches the null_req instance, F otherwise.
-   
+
 
 .. zeek:id:: Management::Request::lookup
    :source-code: policy/frameworks/management/request.zeek 126 132
@@ -276,10 +276,10 @@ Functions
 
    This function looks up the request for a given request ID and returns
    it. When no such request exists, returns Management::Request::null_req.
-   
+
 
    :param reqid: the ID of the request state to retrieve.
-   
+
 
 .. zeek:id:: Management::Request::to_string
    :source-code: policy/frameworks/management/request.zeek 158 168
@@ -287,9 +287,9 @@ Functions
    :Type: :zeek:type:`function` (request: :zeek:type:`Management::Request::Request`) : :zeek:type:`string`
 
    For troubleshooting, this function renders a request record to a string.
-   
+
 
    :param request: the request to render.
-   
+
 
 

@@ -11,29 +11,29 @@ Summary
 Constants
 #########
 ======================================================================= =
-:zeek:id:`ip_addr_regex`: :zeek:type:`pattern`                          
-:zeek:id:`ipv4_addr_regex`: :zeek:type:`pattern`                        
-:zeek:id:`ipv4_decim`: :zeek:type:`pattern`                             
-:zeek:id:`ipv6_8hex_regex`: :zeek:type:`pattern`                        
-:zeek:id:`ipv6_addr_regex`: :zeek:type:`pattern`                        
-:zeek:id:`ipv6_compressed_hex4dec_regex`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_hex_regex`: :zeek:type:`pattern`              
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets0`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets1`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets2`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets3`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets4`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_hext4dec_lead_hextets5`: :zeek:type:`pattern` 
-:zeek:id:`ipv6_compressed_lead_hextets0`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets1`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets2`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets3`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets4`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets5`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets6`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_compressed_lead_hextets7`: :zeek:type:`pattern`          
-:zeek:id:`ipv6_hex4dec_regex`: :zeek:type:`pattern`                     
-:zeek:id:`ipv6_hextet`: :zeek:type:`pattern`                            
+:zeek:id:`ip_addr_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv4_addr_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv4_decim`: :zeek:type:`pattern`
+:zeek:id:`ipv6_8hex_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv6_addr_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hex4dec_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hex_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets0`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets1`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets2`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets3`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets4`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_hext4dec_lead_hextets5`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets0`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets1`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets2`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets3`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets4`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets5`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets6`: :zeek:type:`pattern`
+:zeek:id:`ipv6_compressed_lead_hextets7`: :zeek:type:`pattern`
+:zeek:id:`ipv6_hex4dec_regex`: :zeek:type:`pattern`
+:zeek:id:`ipv6_hextet`: :zeek:type:`pattern`
 ======================================================================= =
 
 Functions
@@ -338,10 +338,10 @@ Functions
    Returns the string representation of an IP address suitable for inclusion
    in a URI.  For IPv4, this does no special formatting, but for IPv6, the
    address is included in square brackets.
-   
+
 
    :param a: the address to make suitable for URI inclusion.
-   
+
 
    :returns: the string representation of the address suitable for URI inclusion.
 
@@ -351,13 +351,13 @@ Functions
    :Type: :zeek:type:`function` (input: :zeek:type:`string`, check_wrapping: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`string_vec`
 
    Extracts all IP (v4 or v6) address strings from a given string.
-   
+
 
    :param input: a string that may contain an IP address anywhere within it.
-   
+
 
    :param check_wrapping: if true, will only return IP addresses that are wrapped in matching pairs of spaces, square brackets, curly braces, or parens. This can be used to avoid extracting strings that look like IPs from innocuous strings, such as SMTP headers.
-   
+
 
    :returns: an array containing all valid IP address strings found in *input*.
 
@@ -367,10 +367,10 @@ Functions
    :Type: :zeek:type:`function` (octets: :zeek:type:`string_vec`) : :zeek:type:`bool`
 
    Checks if all elements of a string array are a valid octet value.
-   
+
 
    :param octets: an array of strings to check for valid octet values.
-   
+
 
    :returns: T if every element is between 0 and 255, inclusive, else F.
 
@@ -382,10 +382,10 @@ Functions
    Given a string, extracts the hex digits and returns a MAC address in
    the format: 00:a0:32:d7:81:8f. If the string doesn't contain 12 or 16 hex
    digits, an empty string is returned.
-   
+
 
    :param a: the string to normalize.
-   
+
 
    :returns: a normalized MAC address, or an empty string in the case of an error.
 

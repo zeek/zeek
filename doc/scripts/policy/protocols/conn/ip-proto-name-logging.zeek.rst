@@ -16,10 +16,10 @@ Summary
 Redefinitions
 #############
 ============================================ =============================================================================
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`Conn::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`Conn::Info`
-                                             
+
                                                ip_proto_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  A string version of the ip_proto field
 ============================================ =============================================================================

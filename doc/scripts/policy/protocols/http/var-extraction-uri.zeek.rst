@@ -15,10 +15,10 @@ Summary
 Redefinitions
 #############
 ============================================ ===============================================================================================
-:zeek:type:`HTTP::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`HTTP::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`HTTP::Info`
-                                             
+
                                                uri_vars: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
                                                  Variable names from the URI.
 ============================================ ===============================================================================================

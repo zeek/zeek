@@ -14,14 +14,14 @@ Summary
 Functions
 #########
 ============================================================= =
-:zeek:id:`Supervisor::__create`: :zeek:type:`function`        
-:zeek:id:`Supervisor::__destroy`: :zeek:type:`function`       
-:zeek:id:`Supervisor::__is_supervised`: :zeek:type:`function` 
-:zeek:id:`Supervisor::__is_supervisor`: :zeek:type:`function` 
-:zeek:id:`Supervisor::__node`: :zeek:type:`function`          
-:zeek:id:`Supervisor::__restart`: :zeek:type:`function`       
-:zeek:id:`Supervisor::__status`: :zeek:type:`function`        
-:zeek:id:`Supervisor::__stem_pid`: :zeek:type:`function`      
+:zeek:id:`Supervisor::__create`: :zeek:type:`function`
+:zeek:id:`Supervisor::__destroy`: :zeek:type:`function`
+:zeek:id:`Supervisor::__is_supervised`: :zeek:type:`function`
+:zeek:id:`Supervisor::__is_supervisor`: :zeek:type:`function`
+:zeek:id:`Supervisor::__node`: :zeek:type:`function`
+:zeek:id:`Supervisor::__restart`: :zeek:type:`function`
+:zeek:id:`Supervisor::__status`: :zeek:type:`function`
+:zeek:id:`Supervisor::__stem_pid`: :zeek:type:`function`
 ============================================================= =
 
 

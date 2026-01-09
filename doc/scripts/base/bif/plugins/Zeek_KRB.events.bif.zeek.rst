@@ -44,19 +44,19 @@ Events
    in :rfc:`4120`. This message contains authentication information
    that should be part of the first message in an authenticated
    transaction.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param ticket: The Kerberos ticket being used for authentication.
-   
+
 
    :param opts: A Kerberos AP options data structure.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
@@ -70,13 +70,13 @@ Events
    All of the interesting information in here is encrypted, so the event
    doesn't have much useful data, but it's provided in case it's important
    to know that this message was sent.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_priv krb_safe krb_cred krb_error
 
@@ -90,16 +90,16 @@ Events
    requesting authentication, and returns an AS reply with an
    encrypted Ticket Granting Ticket (TGT) for that user. The TGT
    can then be used to request further tickets for other services.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param msg: A Kerberos KDC request message data structure.
-   
+
    .. zeek:see:: krb_as_response krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
@@ -112,16 +112,16 @@ Events
    in :rfc:`4120`. Following the AS request for a user, an AS reply
    contains an encrypted Ticket Granting Ticket (TGT) for that user.
    The TGT can then be used to request further tickets for other services.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param msg: A Kerberos KDC reply message data structure.
-   
+
    .. zeek:see:: krb_as_request krb_tgs_request krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
@@ -132,19 +132,19 @@ Events
 
    A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`. This is
    a private (encrypted) message to forward credentials.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param is_orig: Whether the originator of the connection sent this message.
-   
+
 
    :param tickets: Tickets obtained from the KDC that are being forwarded.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_error
 
@@ -154,16 +154,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`KRB::Error_Msg`)
 
    A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param msg: A Kerberos error message data structure.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_safe krb_cred
 
@@ -176,16 +176,16 @@ Events
    is a private (encrypted) application message, so the event doesn't
    have much useful data, but it's provided in case it's important to
    know that this message was sent.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param is_orig: Whether the originator of the connection sent this message.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_safe krb_cred krb_error
 
@@ -196,19 +196,19 @@ Events
 
    A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`. This is a
    safe (checksummed) application message.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param is_orig: Whether the originator of the connection sent this message.
-   
+
 
    :param msg: A Kerberos SAFE message data structure.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
       krb_ap_request krb_ap_response krb_priv krb_cred krb_error
 
@@ -222,16 +222,16 @@ Events
    successful, the client now has a Ticket Granting Ticket (TGT). To
    authenticate to a Kerberized service, the client requests a Service
    Ticket, which will be returned in the TGS reply.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param msg: A Kerberos KDC request message data structure.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_response krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 
@@ -244,16 +244,16 @@ Events
    in :rfc:`4120`. This message returns a Service Ticket to the client,
    which is encrypted with the service's long-term key, and which the
    client can use to authenticate to that service.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
-   
+
 
    :param c: The connection over which this Kerberos message was sent.
-   
+
 
    :param msg: A Kerberos KDC reply message data structure.
-   
+
    .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_ap_request
       krb_ap_response krb_priv krb_safe krb_cred krb_error
 

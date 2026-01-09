@@ -33,14 +33,14 @@ Redefinable Options
 Types
 #####
 ================================================================== =
-:zeek:type:`Software::VulnerableVersionRange`: :zeek:type:`record` 
+:zeek:type:`Software::VulnerableVersionRange`: :zeek:type:`record`
 ================================================================== =
 
 Redefinitions
 #############
 ============================================ ===============================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Software::Vulnerable_Version`:
                                                Indicates that a vulnerable version of software was detected.
 ============================================ ===============================================================

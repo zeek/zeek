@@ -11,7 +11,7 @@ The logging framework provides a flexible key-value based logging interface.
 :doc:`/scripts/base/frameworks/logging/main.zeek`
 
    The Zeek logging interface.
-   
+
    See :doc:`/frameworks/logging` for an introduction to Zeek's
    logging framework.
 
@@ -26,7 +26,7 @@ The logging framework provides a flexible key-value based logging interface.
    rotation time intervals.  Generally, to use this functionality
    you must handle the :zeek:id:`zeek_init` event and do the following
    in your handler:
-   
+
    1) Create a new :zeek:type:`Log::Filter` record that defines a name/path,
       rotation interval, and set the ``postprocessor`` to
       :zeek:id:`Log::scp_postprocessor`.
@@ -43,7 +43,7 @@ The logging framework provides a flexible key-value based logging interface.
    rotation time intervals.  Generally, to use this functionality
    you must handle the :zeek:id:`zeek_init` event and do the following
    in your handler:
-   
+
    1) Create a new :zeek:type:`Log::Filter` record that defines a name/path,
       rotation interval, and set the ``postprocessor`` to
       :zeek:id:`Log::sftp_postprocessor`.
@@ -56,26 +56,26 @@ The logging framework provides a flexible key-value based logging interface.
 
    Interface for the ASCII log writer.  Redefinable options are available
    to tweak the output format of ASCII logs.
-   
+
    The ASCII writer currently supports one writer-specific per-filter config
    option: setting ``tsv`` to the string ``T`` turns the output into
    "tab-separated-value" mode where only a single header row with the column
    names is printed out as meta information, with no "# fields" prepended; no
    other meta data gets included in that mode.  Example filter using this::
-   
+
       local f = Log::Filter($name = "my-filter",
                             $writer = Log::WRITER_ASCII,
                             $config = table(["tsv"] = "T"));
-   
+
 
 :doc:`/scripts/base/frameworks/logging/writers/sqlite.zeek`
 
    Interface for the SQLite log writer. Redefinable options are available
    to tweak the output format of the SQLite reader.
-   
+
    See :doc:`/frameworks/logging-input-sqlite` for an introduction on how to
    use the SQLite log writer.
-   
+
    The SQL writer currently supports one writer-specific filter option via
    ``config``: setting ``tablename`` sets the name of the table that is used
    or created in the SQLite database. An example for this is given in the

@@ -20,19 +20,19 @@ Redefinable Options
 Types
 #####
 ============================================ =
-:zeek:type:`DNP3::Info`: :zeek:type:`record` 
+:zeek:type:`DNP3::Info`: :zeek:type:`record`
 ============================================ =
 
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`DNP3::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                dnp3: :zeek:type:`DNP3::Info` :zeek:attr:`&optional`
 ============================================ ======================================================
 
@@ -47,7 +47,7 @@ Hooks
 #####
 ============================================================== =======================
 :zeek:id:`DNP3::finalize_dnp3`: :zeek:type:`Conn::RemovalHook` DNP3 finalization hook.
-:zeek:id:`DNP3::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`DNP3::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 

@@ -45,7 +45,7 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, source: :zeek:type:`string`, exit_code: :zeek:type:`count`, signal_exit: :zeek:type:`bool`)
 
    Event that is called when a process created by the raw reader exits.
-   
+
 
    :param name: name of the input stream.
 

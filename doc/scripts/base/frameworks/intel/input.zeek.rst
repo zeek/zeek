@@ -70,16 +70,16 @@ Events
    This event is raised each time the intel framework reads a new line
    from an intel file. It is used in the intel framework but can
    also be used in custom scripts for further checks.
-   
+
 
    :param desc: The :zeek:type:`Input::EventDescription` record which generated the event.
-   
+
 
    :param tpe: The type of input event.
-   
+
 
    :param item: The intel item being read (of type :zeek:type:`Intel::Item`).
-   
+
 
 .. zeek:id:: Intel::read_error
    :source-code: base/frameworks/intel/input.zeek 46 46
@@ -89,15 +89,15 @@ Events
    This event is raised each time the input framework detects an error
    while reading the intel file. It can be used to implement further checks
    in custom scripts. Errors can be of different levels (information, warning, errors).
-   
+
 
    :param desc: The :zeek:type:`Input::EventDescription` record which generated the error.
-   
+
 
    :param message: An error message.
-   
+
 
    :param level: The :zeek:type:`Reporter::Level` of the error.
-   
+
 
 

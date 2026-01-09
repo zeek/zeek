@@ -13,7 +13,7 @@ Summary
 Redefinitions
 #############
 ================================================================== =
-:zeek:id:`SSL::root_certs`: :zeek:type:`table` :zeek:attr:`&redef` 
+:zeek:id:`SSL::root_certs`: :zeek:type:`table` :zeek:attr:`&redef`
 ================================================================== =
 
 

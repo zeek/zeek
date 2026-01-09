@@ -12,7 +12,7 @@ Summary
 Redefinitions
 #############
 =============================================================================== =
-:zeek:id:`default_file_bof_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef` 
+:zeek:id:`default_file_bof_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`
 =============================================================================== =
 
 

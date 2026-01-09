@@ -11,8 +11,8 @@ Summary
 Types
 #####
 ========================================= =
-:zeek:type:`Direction`: :zeek:type:`enum` 
-:zeek:type:`Host`: :zeek:type:`enum`      
+:zeek:type:`Direction`: :zeek:type:`enum`
+:zeek:type:`Host`: :zeek:type:`enum`
 ========================================= =
 
 Functions
@@ -83,13 +83,13 @@ Functions
    :Type: :zeek:type:`function` (ip: :zeek:type:`addr`, h: :zeek:type:`Host`) : :zeek:type:`bool`
 
    Checks whether a given host (IP address) matches a given host type.
-   
+
 
    :param ip: address of a host.
-   
+
 
    :param h: a host type.
-   
+
 
    :returns: T if the given host matches the given type, else F.
 
@@ -100,13 +100,13 @@ Functions
 
    Checks whether a given connection is of a given direction with respect
    to the locally-monitored network.
-   
+
 
    :param id: a connection record containing the originator/responder hosts.
-   
+
 
    :param d: a direction with respect to the locally-monitored network.
-   
+
 
    :returns: T if the two connection endpoints match the given direction, else F.
 

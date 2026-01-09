@@ -54,10 +54,10 @@ Redefinitions
 #############
 ============================================ ===================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The weird logging stream identifier.
-                                             
+
                                              * :zeek:enum:`Weird::LOG`
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Weird::Activity`:
                                                Generic unusual but notice-worthy weird activity.
 ============================================ ===================================================
@@ -78,7 +78,7 @@ Hooks
 Functions
 #########
 ============================================== =
-:zeek:id:`Weird::weird`: :zeek:type:`function` 
+:zeek:id:`Weird::weird`: :zeek:type:`function`
 ============================================== =
 
 
@@ -458,7 +458,7 @@ Events
 
    Handlers of this event are invoked once per write to the weird
    logging stream before the data is actually written.
-   
+
 
    :param rec: The weird columns about to be logged to the weird stream.
 

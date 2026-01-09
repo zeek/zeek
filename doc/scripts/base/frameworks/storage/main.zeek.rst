@@ -13,8 +13,8 @@ Summary
 Redefinable Options
 ###################
 ================================================================================== =
-:zeek:id:`Storage::default_forced_sync`: :zeek:type:`bool` :zeek:attr:`&redef`     
-:zeek:id:`Storage::latency_metric_bounds`: :zeek:type:`vector` :zeek:attr:`&redef` 
+:zeek:id:`Storage::default_forced_sync`: :zeek:type:`bool` :zeek:attr:`&redef`
+:zeek:id:`Storage::latency_metric_bounds`: :zeek:type:`vector` :zeek:attr:`&redef`
 ================================================================================== =
 
 Types
@@ -25,8 +25,8 @@ Types
                                                           :zeek:see:`Storage::Sync::open_backend`.
 :zeek:type:`Storage::PutArgs`: :zeek:type:`record`        Record for passing arguments to :zeek:see:`Storage::Async::put` and
                                                           :zeek:see:`Storage::Sync::put`.
-:zeek:type:`Storage::Backend`: :zeek:type:`enum`          
-:zeek:type:`Storage::Serializer`: :zeek:type:`enum`       
+:zeek:type:`Storage::Backend`: :zeek:type:`enum`
+:zeek:type:`Storage::Serializer`: :zeek:type:`enum`
 ========================================================= ===================================================================
 
 

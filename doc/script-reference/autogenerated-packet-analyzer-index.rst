@@ -92,28 +92,28 @@ Events
    :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP requests.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
    for more information about the ARP protocol.
-   
+
 
    :param mac_src: The request's source MAC address.
-   
+
 
    :param mac_dst: The request's destination MAC address.
-   
+
 
    :param SPA: The sender protocol address.
-   
+
 
    :param SHA: The sender hardware address.
-   
+
 
    :param TPA: The target protocol address.
-   
+
 
    :param THA: The target hardware address.
-   
+
    .. zeek:see:: arp_reply  bad_arp
 
 .. zeek:id:: arp_reply
@@ -122,28 +122,28 @@ Events
    :Type: :zeek:type:`event` (mac_src: :zeek:type:`string`, mac_dst: :zeek:type:`string`, SPA: :zeek:type:`addr`, SHA: :zeek:type:`string`, TPA: :zeek:type:`addr`, THA: :zeek:type:`string`)
 
    Generated for ARP replies.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
    for more information about the ARP protocol.
-   
+
 
    :param mac_src: The reply's source MAC address.
-   
+
 
    :param mac_dst: The reply's destination MAC address.
-   
+
 
    :param SPA: The sender protocol address.
-   
+
 
    :param SHA: The sender hardware address.
-   
+
 
    :param TPA: The target protocol address.
-   
+
 
    :param THA: The target hardware address.
-   
+
    .. zeek:see::  arp_request bad_arp
 
 .. zeek:id:: bad_arp
@@ -154,24 +154,24 @@ Events
    Generated for ARP packets that Zeek cannot interpret. Examples are packets
    with non-standard hardware address formats or hardware addresses that do not
    match the originator of the packet.
-   
+
 
    :param SPA: The sender protocol address.
-   
+
 
    :param SHA: The sender hardware address.
-   
+
 
    :param TPA: The target protocol address.
-   
+
 
    :param THA: The target hardware address.
-   
+
 
    :param explanation: A short description of why the ARP packet is considered "bad".
-   
+
    .. zeek:see:: arp_reply arp_request
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -235,16 +235,16 @@ Events
 
    Generated for any packet encapsulated in a Geneve tunnel.
    See :rfc:`8926` for more information about the Geneve protocol.
-   
+
 
    :param outer: The Geneve tunnel connection.
-   
+
 
    :param inner: The Geneve-encapsulated Ethernet packet header and transport header.
-   
+
 
    :param vni: Geneve Network Identifier.
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -257,10 +257,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`geneve_options_vec_vec`
 
    Returns all Geneve options from all layers of the current packet.
-   
+
    The last entry in the outer vector are the options of the most
    inner Geneve header.
-   
+
    Returns a vector of vector of :zeek:see:`PacketAnalyzer::Geneve::Option` records.
 
 .. _plugin-zeek-gre:
@@ -296,10 +296,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a new GTP analyzer is instantiated for a connection.
-   
+
    This event exists to install a connection removal hook to clear
    internal per-connection GTPv1 state.
-   
+
 
    :param c: The connection for which the analyzer is instantiated.
 
@@ -309,10 +309,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`)
 
    Generated for any GTP message with a GTPv1 header.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
 
@@ -323,16 +323,16 @@ Events
 
    Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
    that includes a GTP header followed by an IPv4 or IPv6 packet.
-   
+
 
    :param outer: The GTP outer tunnel connection.
-   
+
 
    :param inner_gtp: The GTP header.
-   
+
 
    :param inner_ip: The inner IP and transport layer packet headers.
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -342,13 +342,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Create PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -358,13 +358,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Create PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -374,13 +374,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Update PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -390,13 +390,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Update PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -406,13 +406,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Delete PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -422,13 +422,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Delete PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -618,10 +618,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
    Returns the PPPoE Session ID of the current packet, if present.
-   
+
    If no PPPoE Session ID is present, 0xFFFFFFFF is returned, which
    is out of range of the session ID.
-   
+
 
    :returns: The PPPoE session ID if present, 0xFFFFFFFF otherwise.
 
@@ -695,15 +695,15 @@ Events
 
    Generated for any IPv6 packet encapsulated in a Teredo tunnel.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_authentication teredo_origin_indication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -713,10 +713,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when per connection Teredo state is created.
-   
+
    This is primarily useful to install a connection removal hook to clear
    internal per-connection Teredo state.
-   
+
 
    :param c: The Teredo tunnel connection.
 
@@ -728,15 +728,15 @@ Events
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo authentication encapsulation method.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_origin_indication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -748,15 +748,15 @@ Events
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo origin indication encapsulation method.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_authentication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -768,15 +768,15 @@ Events
    Generated for Teredo bubble packets.  That is, IPv6 packets encapsulated
    in a Teredo tunnel that have a Next Header value of :zeek:id:`IPPROTO_NONE`.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_authentication teredo_origin_indication
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -835,16 +835,16 @@ Events
 
    Generated for any packet encapsulated in a VXLAN tunnel.
    See :rfc:`7348` for more information about the VXLAN protocol.
-   
+
 
    :param outer: The VXLAN tunnel connection.
-   
+
 
    :param inner: The VXLAN-encapsulated Ethernet packet header and transport header.
-   
+
 
    :param vni: VXLAN Network Identifier.
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 

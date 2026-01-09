@@ -30,20 +30,20 @@ Events
    version 1 requests of type *transaction_secondary*. This command
    serves as an additional request data container for the
    Transaction Subprotocol Commands (carried by *transaction* requests).
-   
+
    For more information, see MS-CIFS:2.2.4.34
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param parameters: the SMB_Data.Trans_Parameters field content
-   
+
 
    :param data: the SMB_Data.Trans_Data field content
-   
+
 
 

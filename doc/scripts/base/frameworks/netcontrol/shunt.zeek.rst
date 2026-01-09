@@ -14,14 +14,14 @@ Summary
 Types
 #####
 ======================================================= =
-:zeek:type:`NetControl::ShuntInfo`: :zeek:type:`record` 
+:zeek:type:`NetControl::ShuntInfo`: :zeek:type:`record`
 ======================================================= =
 
 Redefinitions
 #############
 ======================================= ================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`NetControl::SHUNT`
 ======================================= ================================
 
@@ -35,7 +35,7 @@ Events
 Hooks
 #####
 ===================================================================== =
-:zeek:id:`NetControl::log_policy_shunt`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`NetControl::log_policy_shunt`: :zeek:type:`Log::PolicyHook`
 ===================================================================== =
 
 Functions
@@ -107,16 +107,16 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`flow_id`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Stops forwarding a uni-directional flow's packets to Zeek.
-   
+
 
    :param f: The flow to shunt.
-   
+
 
    :param t: How long to leave the shunt in place, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing where the shunt was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 

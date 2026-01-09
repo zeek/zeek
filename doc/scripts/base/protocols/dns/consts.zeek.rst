@@ -15,12 +15,12 @@ Constants
 #########
 ================================================================================================= ===============================================================================
 :zeek:id:`DNS::ANY`: :zeek:type:`count`                                                           A QTYPE value describing a request for all records.
-:zeek:id:`DNS::DNS_OP_DSO`: :zeek:type:`count`                                                    
-:zeek:id:`DNS::DNS_OP_DYNAMIC_UPDATE`: :zeek:type:`count`                                         
-:zeek:id:`DNS::DNS_OP_IQUERY`: :zeek:type:`count`                                                 
-:zeek:id:`DNS::DNS_OP_NOTIFY`: :zeek:type:`count`                                                 
-:zeek:id:`DNS::DNS_OP_QUERY`: :zeek:type:`count`                                                  
-:zeek:id:`DNS::DNS_OP_SERVER_STATUS`: :zeek:type:`count`                                          
+:zeek:id:`DNS::DNS_OP_DSO`: :zeek:type:`count`
+:zeek:id:`DNS::DNS_OP_DYNAMIC_UPDATE`: :zeek:type:`count`
+:zeek:id:`DNS::DNS_OP_IQUERY`: :zeek:type:`count`
+:zeek:id:`DNS::DNS_OP_NOTIFY`: :zeek:type:`count`
+:zeek:id:`DNS::DNS_OP_QUERY`: :zeek:type:`count`
+:zeek:id:`DNS::DNS_OP_SERVER_STATUS`: :zeek:type:`count`
 :zeek:id:`DNS::EDNS`: :zeek:type:`count`                                                          An OPT RR TYPE value described by EDNS.
 :zeek:id:`DNS::NONE`: :zeek:type:`count`                                                          A class representing no classes, used by dynamic update.
 :zeek:id:`DNS::PTR`: :zeek:type:`count`                                                           RR TYPE value for a domain name pointer.

@@ -32,10 +32,10 @@ Functions
    Disable a specific Spicy file analyzer if not already inactive. If
    this analyzer replaces an standard analyzer, that one will automatically
    be re-enabled.
-   
+
 
    :param tag: analyzer to toggle
-   
+
 
    :returns: true if the operation succeeded
 
@@ -47,10 +47,10 @@ Functions
    Disable a specific Spicy protocol analyzer if not already inactive. If
    this analyzer replaces an standard analyzer, that one will automatically
    be re-enabled.
-   
+
 
    :param tag: analyzer to toggle
-   
+
 
    :returns: true if the operation succeeded
 
@@ -62,10 +62,10 @@ Functions
    Enable a specific Spicy file analyzer if not already active. If this
    analyzer replaces an standard analyzer, that one will automatically be
    disabled.
-   
+
 
    :param tag: analyzer to toggle
-   
+
 
    :returns: true if the operation succeeded
 
@@ -77,10 +77,10 @@ Functions
    Enable a specific Spicy protocol analyzer if not already active. If this
    analyzer replaces an standard analyzer, that one will automatically be
    disabled.
-   
+
 
    :param tag: analyzer to toggle
-   
+
 
    :returns: true if the operation succeeded
 

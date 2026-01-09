@@ -31,13 +31,13 @@ Types
 Redefinitions
 #############
 ============================================ ========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SOCKS::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                socks: :zeek:type:`SOCKS::Info` :zeek:attr:`&optional`
 ============================================ ========================================================
 
@@ -52,7 +52,7 @@ Hooks
 #####
 ================================================================ ========================
 :zeek:id:`SOCKS::finalize_socks`: :zeek:type:`Conn::RemovalHook` SOCKS finalization hook.
-:zeek:id:`SOCKS::log_policy`: :zeek:type:`Log::PolicyHook`       
+:zeek:id:`SOCKS::log_policy`: :zeek:type:`Log::PolicyHook`
 ================================================================ ========================
 
 

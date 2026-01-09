@@ -13,7 +13,7 @@ Summary
 Redefinitions
 #############
 ============================================ =
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
+:zeek:type:`Conn::Info`: :zeek:type:`record`
 ============================================ =
 
 

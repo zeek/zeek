@@ -14,13 +14,13 @@ Summary
 Redefinitions
 #############
 ============================================ ============================================================================
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`Conn::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`Conn::Info`
-                                             
+
                                                orig_l2_addr: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  Link-layer address of the originator, if available.
-                                             
+
                                                resp_l2_addr: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  Link-layer address of the responder, if available.
 ============================================ ============================================================================

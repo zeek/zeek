@@ -13,7 +13,7 @@ Summary
 Functions
 #########
 ================================================================================== =
-:zeek:id:`PacketAnalyzer::TEREDO::remove_teredo_connection`: :zeek:type:`function` 
+:zeek:id:`PacketAnalyzer::TEREDO::remove_teredo_connection`: :zeek:type:`function`
 ================================================================================== =
 
 

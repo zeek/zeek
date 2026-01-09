@@ -13,19 +13,19 @@ Summary
 Redefinable Options
 ###################
 =================================================================================================================== =
-:zeek:id:`WebSocket::opcodes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` 
+:zeek:id:`WebSocket::opcodes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
 =================================================================================================================== =
 
 Constants
 #########
 ============================================================= =
-:zeek:id:`WebSocket::HANDSHAKE_GUID`: :zeek:type:`string`     
-:zeek:id:`WebSocket::OPCODE_BINARY`: :zeek:type:`count`       
-:zeek:id:`WebSocket::OPCODE_CLOSE`: :zeek:type:`count`        
-:zeek:id:`WebSocket::OPCODE_CONTINUATION`: :zeek:type:`count` 
-:zeek:id:`WebSocket::OPCODE_PING`: :zeek:type:`count`         
-:zeek:id:`WebSocket::OPCODE_PONG`: :zeek:type:`count`         
-:zeek:id:`WebSocket::OPCODE_TEXT`: :zeek:type:`count`         
+:zeek:id:`WebSocket::HANDSHAKE_GUID`: :zeek:type:`string`
+:zeek:id:`WebSocket::OPCODE_BINARY`: :zeek:type:`count`
+:zeek:id:`WebSocket::OPCODE_CLOSE`: :zeek:type:`count`
+:zeek:id:`WebSocket::OPCODE_CONTINUATION`: :zeek:type:`count`
+:zeek:id:`WebSocket::OPCODE_PING`: :zeek:type:`count`
+:zeek:id:`WebSocket::OPCODE_PONG`: :zeek:type:`count`
+:zeek:id:`WebSocket::OPCODE_TEXT`: :zeek:type:`count`
 ============================================================= =
 
 

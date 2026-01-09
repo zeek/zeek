@@ -17,10 +17,10 @@ Summary
 Redefinitions
 #############
 ============================================ ============================================================================================================================
-:zeek:type:`DHCP::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`DHCP::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`DHCP::Info`
-                                             
+
                                                msg_orig: :zeek:type:`vector` of :zeek:type:`addr` :zeek:attr:`&log` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`
                                                  The address that originated each message from the
                                                  `msg_types` field.

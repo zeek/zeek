@@ -41,18 +41,18 @@ Types
 Redefinitions
 #############
 ============================================ =============================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSL::LOG`
-:zeek:type:`SSL::Info`: :zeek:type:`record`  
-                                             
+:zeek:type:`SSL::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`SSL::Info`
-                                             
+
                                                delay_tokens: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                ssl: :zeek:type:`SSL::Info` :zeek:attr:`&optional`
 ============================================ =============================================================================
 
@@ -67,7 +67,7 @@ Hooks
 #####
 ============================================================ ====================================================================
 :zeek:id:`SSL::finalize_ssl`: :zeek:type:`Conn::RemovalHook` SSL finalization hook.
-:zeek:id:`SSL::log_policy`: :zeek:type:`Log::PolicyHook`     
+:zeek:id:`SSL::log_policy`: :zeek:type:`Log::PolicyHook`
 :zeek:id:`SSL::ssl_finishing`: :zeek:type:`hook`             Hook that can be used to perform actions right before the log record
                                                              is written.
 ============================================================ ====================================================================
@@ -347,11 +347,11 @@ Types
 
       SSL history showing which types of packets we received in which order.
       Letters have the following meaning with client-sent letters being capitalized:
-      
+
       A direction flip occurs when the client hello packet is not sent from the originator
       of a connection. This can, e.g., occur when DTLS is used in a connection that was
       set up using STUN.
-      
+
       ======  ====================================================
       Letter  Meaning
       ======  ====================================================
@@ -383,7 +383,7 @@ Types
       L       alert
       Q       unknown_content_type
       ======  ====================================================
-      
+
 
 
    .. zeek:field:: delay_tokens :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&optional`

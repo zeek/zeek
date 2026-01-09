@@ -37,9 +37,9 @@ Support for connection (TCP, UDP, or ICMP) analysis.
    would be to handle the :zeek:id:`connection_established` event elsewhere
    and set the ``extract_orig`` and ``extract_resp`` options there.
    However, there may be trouble with the timing due to event queue delay.
-   
+
    .. note::
-   
+
       This script does not work well in a cluster context unless it has a
       remotely mounted disk to write the content files to.
 

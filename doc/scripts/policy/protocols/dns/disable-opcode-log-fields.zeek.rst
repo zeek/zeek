@@ -12,8 +12,8 @@ Summary
 Redefinitions
 #############
 =========================================== =
-:zeek:type:`DNS::Info`: :zeek:type:`record` 
-:zeek:type:`DNS::Info`: :zeek:type:`record` 
+:zeek:type:`DNS::Info`: :zeek:type:`record`
+:zeek:type:`DNS::Info`: :zeek:type:`record`
 =========================================== =
 
 

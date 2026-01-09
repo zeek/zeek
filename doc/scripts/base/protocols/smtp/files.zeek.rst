@@ -13,14 +13,14 @@ Summary
 Redefinitions
 #############
 ============================================ ===========================================================================================================================
-:zeek:type:`SMTP::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`SMTP::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`SMTP::Info`
-                                             
+
                                                fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`
                                                  An ordered vector of file unique IDs seen attached to
                                                  the message.
-                                             
+
                                                rfc822_msg_fuid: :zeek:type:`string` :zeek:attr:`&optional`
                                                  Tracks the fuid of the top-level RFC822 mail message if
                                                  :zeek:see:`SMTP::enable_rfc822_msg_file_analysis` is set.

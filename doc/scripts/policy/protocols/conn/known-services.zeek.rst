@@ -58,7 +58,7 @@ State Variables
 Types
 #####
 ============================================================ ======================================================================
-:zeek:type:`Known::AddrPortServTriplet`: :zeek:type:`record` 
+:zeek:type:`Known::AddrPortServTriplet`: :zeek:type:`record`
 :zeek:type:`Known::ServicesInfo`: :zeek:type:`record`        The record type which contains the column fields of the known-services
                                                              log.
 ============================================================ ======================================================================
@@ -67,12 +67,12 @@ Redefinitions
 #############
 ============================================ =============================================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The known-services logging stream identifier.
-                                             
+
                                              * :zeek:enum:`Known::SERVICES_LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                known_services_done: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
 ============================================ =============================================================================================
 
@@ -269,10 +269,10 @@ State Variables
    Tracks the set of daily-detected services for preventing the logging
    of duplicates, but can also be inspected by other scripts for
    different purposes.
-   
+
    In cluster operation, this table is uniformly distributed across
    proxy nodes.
-   
+
    This table is automatically populated and shouldn't be directly modified.
 
 Types

@@ -60,20 +60,20 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, chans: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserchannels*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param chans: The number of channels as returned in the reply.
-   
+
    .. zeek:see::  irc_channel_topic irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -86,23 +86,23 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, channel: :zeek:type:`string`, topic: :zeek:type:`string`)
 
    Generated for an IRC reply of type *topic*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param channel: The channel name specified in the reply.
-   
+
 
    :param topic: The topic specified in the reply.
-   
+
    .. zeek:see:: irc_channel_info  irc_dcc_message irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -116,42 +116,42 @@ Events
 
    Generated for IRC messages of type *dcc*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
    information about the DCC.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param target: The target specified in the message.
-   
+
 
    :param dcc_type: The DCC type specified in the message.
-   
+
 
    :param argument:  The argument specified in the message.
-   
+
 
    :param address: The address specified in the message.
-   
+
 
    :param dest_port: The destination port specified in the message.
-   
+
 
    :param size: The size specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic  irc_error_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -165,19 +165,19 @@ Events
 
    Generated for IRC messages of type *dcc*. This event is generated for
    DCC SEND acknowledge message.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
    information about the DCC.
-   
+
 
    :param c: The connection.
-   
+
 
    :param bytes_received: The number of bytes received as reported by the recipient.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -191,24 +191,24 @@ Events
 
    Generated for IRC messages of type *error*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param message: The textual description specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_global_users
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -221,24 +221,24 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for an IRC reply of type *globalusers*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param msg: The message coming with the reply.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -251,17 +251,17 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
    Generated when a server rejects an IRC nickname.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users  irc_invite_message irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -275,27 +275,27 @@ Events
 
    Generated for IRC messages of type *invite*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param nickname: The nickname specified in the message.
-   
+
 
    :param channel: The channel specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick  irc_join_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -309,20 +309,20 @@ Events
 
    Generated for IRC messages of type *join*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param info_list: The user information coming with the command.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_kick_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -336,30 +336,30 @@ Events
 
    Generated for IRC messages of type *kick*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param chans: The channels specified in the message.
-   
+
 
    :param users: The users specified in the message.
-   
+
 
    :param comment: The comment specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
@@ -372,34 +372,34 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, message: :zeek:type:`string`)
 
    Generated for IRC commands forwarded from the server to the client.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Always false.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param command: The command.
-   
+
 
    :param message: TODO.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message  irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message irc_dcc_send_ack
-   
+
    .. note::
-   
+
       This event is generated only for messages that are forwarded by the server
       to the client. Commands coming from client trigger the
       :zeek:id:`irc_request` event instead.
@@ -411,24 +411,24 @@ Events
 
    Generated for IRC messages of type *mode*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param params: The parameters coming with the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message  irc_names_info irc_network_info irc_nick_message
@@ -441,26 +441,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, c_type: :zeek:type:`string`, channel: :zeek:type:`string`, users: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *namereply*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param c_type: The channel type.
-   
+
 
    :param channel: The channel.
-   
+
 
    :param users: The set of users.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message  irc_network_info irc_nick_message
@@ -473,26 +473,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserclient*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param users: The number of users as returned in the reply.
-   
+
 
    :param services: The number of services as returned in the reply.
-   
+
 
    :param servers: The number of servers as returned in the reply.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_nick_message
@@ -506,23 +506,23 @@ Events
 
    Generated for IRC messages of type *nick*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param who: The user changing its nickname.
-   
+
 
    :param newnick: The new nickname.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -536,26 +536,26 @@ Events
 
    Generated for IRC messages of type *notice*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param source: The source of the private communication.
-   
+
 
    :param target: The target of the private communication.
-   
+
 
    :param message: The text of communication.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -569,23 +569,23 @@ Events
 
    Generated for IRC messages of type *oper*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param user: The user specified in the message.
-   
+
 
    :param password: The password specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -598,21 +598,21 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, got_oper: :zeek:type:`bool`)
 
    Generated for IRC replies of type *youreoper* and *nooperhost*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param got_oper: True if the *oper* command was executed successfully
              (*youreport*) and false otherwise (*nooperhost*).
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -626,26 +626,26 @@ Events
 
    Generated for IRC messages of type *part*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param nick: The nickname coming with the message.
-   
+
 
    :param chans: The set of channels affected.
-   
+
 
    :param message: The text coming with the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -659,20 +659,20 @@ Events
 
    Generated for IRC messages of type *password*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param password: The password specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -686,26 +686,26 @@ Events
 
    Generated for IRC messages of type *privmsg*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param source: The source of the private communication.
-   
+
 
    :param target: The target of the private communication.
-   
+
 
    :param message: The text of communication.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -719,23 +719,23 @@ Events
 
    Generated for IRC messages of type *quit*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param nick: The nickname coming with the message.
-   
+
 
    :param message: The text included with the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -749,27 +749,27 @@ Events
 
    Generated for all IRC replies. IRC replies are sent in response to a
    request and come with a reply code.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the reply. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param code: The reply code, as specified by the protocol.
-   
+
 
    :param params: The reply's parameters.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -782,32 +782,32 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, command: :zeek:type:`string`, arguments: :zeek:type:`string`)
 
    Generated for all client-side IRC commands.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Always true.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param command: The command.
-   
+
 
    :param arguments: The arguments for the command.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
       irc_nick_message irc_notice_message irc_oper_message irc_oper_response
       irc_part_message irc_password_message irc_dcc_send_ack
-   
+
    .. note:: This event is generated only for messages that originate
       at the client-side. Commands coming in from remote trigger
       the :zeek:id:`irc_message` event instead.
@@ -818,26 +818,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, users: :zeek:type:`count`, services: :zeek:type:`count`, servers: :zeek:type:`count`)
 
    Generated for an IRC reply of type *luserme*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param users: The number of users as returned in the reply.
-   
+
 
    :param services: The number of services as returned in the reply.
-   
+
 
    :param servers: The number of servers as returned in the reply.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -851,26 +851,26 @@ Events
 
    Generated for IRC messages of type *squery*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param source: The source of the private communication.
-   
+
 
    :param target: The target of the private communication.
-   
+
 
    :param message: The text of communication.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -884,27 +884,27 @@ Events
 
    Generated for IRC messages of type *squit*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param prefix: The optional prefix coming with the command. IRC uses the prefix to
            indicate the true origin of a message.
-   
+
 
    :param server: The server specified in the message.
-   
+
 
    :param message: The textual description specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -919,7 +919,7 @@ Events
    Generated if an IRC connection switched to TLS using STARTTLS. After this
    event no more IRC events will be raised for the connection. See the SSL
    analyzer for related SSL events, which will now be generated.
-   
+
 
    :param c: The connection.
 
@@ -930,29 +930,29 @@ Events
 
    Generated for IRC messages of type *user*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param user: The user specified in the message.
-   
+
 
    :param host: The host name specified in the message.
-   
+
 
    :param server: The server name specified in the message.
-   
+
 
    :param real_name: The real name specified in the message.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -965,44 +965,44 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, target_nick: :zeek:type:`string`, channel: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, server: :zeek:type:`string`, nick: :zeek:type:`string`, params: :zeek:type:`string`, hops: :zeek:type:`count`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoreply*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param target_nick: The target nickname.
-   
+
 
    :param channel: The channel.
-   
+
 
    :param user: The user.
-   
+
 
    :param host: The host.
-   
+
 
    :param server: The server.
-   
+
 
    :param nick: The nickname.
-   
+
 
    :param params: The parameters.
-   
+
 
    :param hops: The hop count.
-   
+
 
    :param real_name: The real name.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -1016,23 +1016,23 @@ Events
 
    Generated for IRC messages of type *who*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param mask: The mask specified in the message.
-   
+
 
    :param oper: True if the operator flag was set.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -1045,23 +1045,23 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, chans: :zeek:type:`string_set`)
 
    Generated for an IRC reply of type *whoischannels*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param nick: The nickname specified in the reply.
-   
+
 
    :param chans: The set of channels returned.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -1075,23 +1075,23 @@ Events
 
    Generated for IRC messages of type *whois*. This event is generated for
    messages coming from both the client and the server.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param server: TODO.
-   
+
 
    :param users: TODO.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -1104,20 +1104,20 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisoperator*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param nick: The nickname specified in the reply.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
@@ -1130,29 +1130,29 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, nick: :zeek:type:`string`, user: :zeek:type:`string`, host: :zeek:type:`string`, real_name: :zeek:type:`string`)
 
    Generated for an IRC reply of type *whoisuser*.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param nick: The nickname specified in the reply.
-   
+
 
    :param user: The user name specified in the reply.
-   
+
 
    :param host: The host name specified in the reply.
-   
+
 
    :param real_name: The real name specified in the reply.
-   
+
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
       irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info

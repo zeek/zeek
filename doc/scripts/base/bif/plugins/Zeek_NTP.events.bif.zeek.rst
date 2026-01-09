@@ -27,16 +27,16 @@ Events
 
    Generated for all NTP messages. Different from many other of Zeek's events,
    this one is generated for both client-side and server-side messages.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
    more information about the NTP protocol.
-   
+
 
    :param c: The connection record describing the corresponding UDP flow.
-   
+
 
    :param is_orig: True if the message was sent by the originator.
-   
+
 
    :param msg: The parsed NTP message.
 

@@ -278,7 +278,7 @@
 :doc:`base/protocols/imap </scripts/base/protocols/imap/index>`
 
    Support for the Internet Message Access Protocol (IMAP).
-   
+
    Note that currently the IMAP analyzer only supports analyzing IMAP sessions
    until they do or do not switch to TLS using StartTLS. Hence, we do not get
    mails from IMAP sessions, only X509 certificates.
@@ -377,7 +377,7 @@
 :doc:`base/protocols/xmpp </scripts/base/protocols/xmpp/index>`
 
    Support for the Extensible Messaging and Presence Protocol (XMPP).
-   
+
    Note that currently the XMPP analyzer only supports analyzing XMPP sessions
    until they do or do not switch to TLS using StartTLS. Hence, we do not get
    actual chat information from XMPP sessions, only X509 certificates.

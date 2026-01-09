@@ -39,15 +39,15 @@ State Variables
 Types
 #####
 ========================================================= =
-:zeek:type:`Known::AddrCertHashPair`: :zeek:type:`record` 
-:zeek:type:`Known::CertsInfo`: :zeek:type:`record`        
+:zeek:type:`Known::AddrCertHashPair`: :zeek:type:`record`
+:zeek:type:`Known::CertsInfo`: :zeek:type:`record`
 ========================================================= =
 
 Redefinitions
 #############
 ======================================= ===============================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`Known::CERTS_LOG`
 ======================================= ===============================
 
@@ -61,7 +61,7 @@ Events
 Hooks
 #####
 ================================================================ =
-:zeek:id:`Known::log_policy_certs`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Known::log_policy_certs`: :zeek:type:`Log::PolicyHook`
 ================================================================ =
 
 
@@ -166,7 +166,7 @@ State Variables
    logging. It can also be used from other scripts to
    inspect if a certificate has been seen in use. The string value
    in the set is for storing the DER formatted certificate' SHA1 hash.
-   
+
    In cluster operation, this set is uniformly distributed across
    proxy nodes.
 

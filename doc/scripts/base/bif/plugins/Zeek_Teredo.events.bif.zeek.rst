@@ -32,10 +32,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when per connection Teredo state is created.
-   
+
    This is primarily useful to install a connection removal hook to clear
    internal per-connection Teredo state.
-   
+
 
    :param c: The Teredo tunnel connection.
 
@@ -47,15 +47,15 @@ Events
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo authentication encapsulation method.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_origin_indication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -67,15 +67,15 @@ Events
    Generated for Teredo bubble packets.  That is, IPv6 packets encapsulated
    in a Teredo tunnel that have a Next Header value of :zeek:id:`IPPROTO_NONE`.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_authentication teredo_origin_indication
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -87,15 +87,15 @@ Events
    Generated for IPv6 packets encapsulated in a Teredo tunnel that
    use the Teredo origin indication encapsulation method.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_packet teredo_authentication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -106,15 +106,15 @@ Events
 
    Generated for any IPv6 packet encapsulated in a Teredo tunnel.
    See :rfc:`4380` for more information about the Teredo protocol.
-   
+
 
    :param outer: The Teredo tunnel connection.
-   
+
 
    :param inner: The Teredo-encapsulated IPv6 packet header and transport header.
-   
+
    .. zeek:see:: teredo_authentication teredo_origin_indication teredo_bubble
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 

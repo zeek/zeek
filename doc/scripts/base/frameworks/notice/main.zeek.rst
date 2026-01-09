@@ -61,11 +61,11 @@ Types
 Redefinitions
 #############
 ======================================= =================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`Notice::ALARM_LOG`:
                                           This is the alarm stream.
-                                        
+
                                         * :zeek:enum:`Notice::LOG`:
                                           This is the primary logging stream for notices.
 ======================================= =================================================
@@ -84,7 +84,7 @@ Hooks
 #####
 ================================================================= ==========================================================
 :zeek:id:`Notice::log_policy`: :zeek:type:`Log::PolicyHook`       Default logging policy hooks for the streams.
-:zeek:id:`Notice::log_policy_alarm`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Notice::log_policy_alarm`: :zeek:type:`Log::PolicyHook`
 :zeek:id:`Notice::notice`: :zeek:type:`hook`                      This is the event that is called as the entry point to the
                                                                   notice framework by the global :zeek:id:`NOTICE` function.
 :zeek:id:`Notice::policy`: :zeek:type:`hook`                      The hook to modify notice handling.
@@ -93,7 +93,7 @@ Hooks
 Functions
 #########
 =================================================================== ==========================================================================
-:zeek:id:`NOTICE`: :zeek:type:`function`                            
+:zeek:id:`NOTICE`: :zeek:type:`function`
 :zeek:id:`Notice::apply_policy`: :zeek:type:`function`              This is an internal function to populate policy records.
 :zeek:id:`Notice::create_file_info`: :zeek:type:`function`          Creates a record containing a subset of a full :zeek:see:`fa_file` record.
 :zeek:id:`Notice::email_headers`: :zeek:type:`function`             Constructs mail headers to which an email body can be appended for
@@ -158,7 +158,7 @@ Runtime Options
    :Default: ``"Zeek <zeek@localhost>"``
 
    Address that emails will be from.
-   
+
    Note that this is overridden by the ZeekControl MailFrom option.
 
 .. zeek:id:: Notice::mail_subject_prefix
@@ -169,7 +169,7 @@ Runtime Options
    :Default: ``"[Zeek]"``
 
    Text string prefixed to the subject of all emails sent out.
-   
+
    Note that this is overridden by the ZeekControl MailSubjectPrefix
    option.
 
@@ -199,7 +199,7 @@ Runtime Options
    :Default: ``"/usr/sbin/sendmail"``
 
    Local system sendmail program.
-   
+
    Note that this is overridden by the ZeekControl SendMail option.
 
 .. zeek:id:: Notice::suppression_batch_max_size
@@ -221,7 +221,7 @@ Runtime Options
 
    How long to batch suppression information locally before sending
    it out within the cluster.
-   
+
    Setting this prevents workers from sending suppression information for every
    individual notice. At high notice and suppression rates, sending individual events
    causes a flood of remote events in the cluster. Batching these up for
@@ -239,7 +239,7 @@ Redefinable Options
    The default email address to send notices with the
    :zeek:enum:`Notice::ACTION_EMAIL` action or to send bulk alarm logs
    on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
-   
+
    Note that this is overridden by the ZeekControl MailTo option or by
    the ``email_dest`` field in the :zeek:see:`Notice::Info` record.
 
@@ -515,7 +515,7 @@ Types
       field should be filled out in almost all cases when
       generating notices to define when a notice is conceptually
       a duplicate of a previous notice.
-      
+
       For example, an SSL certificate that is going to expire soon
       should always have the same identifier no matter the client
       IP address that connected and resulted in the certificate
@@ -523,7 +523,7 @@ Types
       of the certificate would be used to create this value.  The
       hash of the cert is included because servers can return
       multiple certificates on the same port.
-      
+
       Another example might be a host downloading a file which
       triggered a notice because the MD5 sum of the file it
       downloaded was known by some set of intelligence.  In that
@@ -993,16 +993,16 @@ Events
    :Type: :zeek:type:`event` (ts: :zeek:type:`time`, suppress_for: :zeek:type:`interval`, note: :zeek:type:`Notice::Type`, identifier: :zeek:type:`string`)
 
    This event is generated when a notice begins to be suppressed.
-   
+
 
    :param ts: time indicating then when the notice to be suppressed occurred.
-   
+
 
    :param suppress_for: length of time that this notice should be suppressed.
-   
+
 
    :param note: The :zeek:type:`Notice::Type` of the notice.
-   
+
 
    :param identifier: The identifier string of the notice that should be suppressed.
 
@@ -1013,7 +1013,7 @@ Events
 
    This event can be handled to access the :zeek:type:`Notice::Info`
    record as it is sent on to the logging framework.
-   
+
 
    :param rec: The record containing notice data before it is logged.
 
@@ -1024,7 +1024,7 @@ Events
 
    This event is generated on each occurrence of an event being
    suppressed.
-   
+
 
    :param n: The record containing notice data regarding the notice type
       being suppressed.
@@ -1054,7 +1054,7 @@ Hooks
    time this event is generated, default values have already been
    filled out in the :zeek:type:`Notice::Info` record and the notice
    policy has also been applied.
-   
+
 
    :param n: The record containing notice data.
 
@@ -1086,10 +1086,10 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`Notice::FileInfo`
 
    Creates a record containing a subset of a full :zeek:see:`fa_file` record.
-   
+
 
    :param f: record containing metadata about a file.
-   
+
 
    :returns: record containing a subset of fields copied from *f*.
 
@@ -1100,13 +1100,13 @@ Functions
 
    Constructs mail headers to which an email body can be appended for
    sending with sendmail.
-   
+
 
    :param subject_desc: a subject string to use for the mail.
-   
+
 
    :param dest: recipient string to use for the mail.
-   
+
 
    :returns: a string of mail headers to which an email body can be
             appended.
@@ -1119,13 +1119,13 @@ Functions
    Call this function to send a notice in an email.  It is already used
    by default with the built in :zeek:enum:`Notice::ACTION_EMAIL` and
    :zeek:enum:`Notice::ACTION_PAGE` actions.
-   
+
 
    :param n: The record of notice data to email.
-   
+
 
    :param dest: The intended recipient of the notice email.
-   
+
 
    :param extend: Whether to extend the email using the
            ``email_body_sections`` field of *n*.
@@ -1136,7 +1136,7 @@ Functions
    :Type: :zeek:type:`function` (n: :zeek:type:`Notice::Info`) : :zeek:type:`bool`
 
    A function to determine if an event is supposed to be suppressed.
-   
+
 
    :param n: The record containing the notice in question.
 
@@ -1148,10 +1148,10 @@ Functions
    A log postprocessing function that implements emailing the contents
    of a log upon rotation to any configured :zeek:id:`Notice::mail_dest`.
    The rotated log is removed upon being sent.
-   
+
 
    :param info: A record containing the rotated log file information.
-   
+
 
    :returns: True.
 
@@ -1161,10 +1161,10 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
 
    Populates file-related fields in a notice info record.
-   
+
 
    :param f: record containing metadata about a file.
-   
+
 
    :param n: a notice record that needs file-related fields populated.
 
@@ -1174,10 +1174,10 @@ Functions
    :Type: :zeek:type:`function` (fi: :zeek:type:`Notice::FileInfo`, n: :zeek:type:`Notice::Info`) : :zeek:type:`void`
 
    Populates file-related fields in a notice info record.
-   
+
 
    :param fi: record containing metadata about a file.
-   
+
 
    :param n: a notice record that needs file-related fields populated.
 

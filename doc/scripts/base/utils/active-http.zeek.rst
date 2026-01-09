@@ -22,8 +22,8 @@ Runtime Options
 Types
 #####
 ====================================================== =
-:zeek:type:`ActiveHTTP::Request`: :zeek:type:`record`  
-:zeek:type:`ActiveHTTP::Response`: :zeek:type:`record` 
+:zeek:type:`ActiveHTTP::Request`: :zeek:type:`record`
+:zeek:type:`ActiveHTTP::Response`: :zeek:type:`record`
 ====================================================== =
 
 Functions
@@ -131,10 +131,10 @@ Functions
    Perform an HTTP request according to the
    :zeek:type:`ActiveHTTP::Request` record.  This is an asynchronous
    function and must be called within a "when" statement.
-   
+
 
    :param req: A record instance representing all options for an HTTP request.
-   
+
 
    :returns: A record with the full response message.
 

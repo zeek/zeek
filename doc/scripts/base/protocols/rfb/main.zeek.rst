@@ -19,27 +19,27 @@ Types
 Redefinitions
 #############
 ============================================ ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`RFB::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                rfb: :zeek:type:`RFB::Info` :zeek:attr:`&optional`
 ============================================ ====================================================
 
 Events
 ######
 =========================================== =
-:zeek:id:`RFB::log_rfb`: :zeek:type:`event` 
+:zeek:id:`RFB::log_rfb`: :zeek:type:`event`
 =========================================== =
 
 Hooks
 #####
 ============================================================ ======================
 :zeek:id:`RFB::finalize_rfb`: :zeek:type:`Conn::RemovalHook` RFB finalization hook.
-:zeek:id:`RFB::log_policy`: :zeek:type:`Log::PolicyHook`     
+:zeek:id:`RFB::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================ ======================
 
 

@@ -33,7 +33,7 @@ Summary
 Redefinitions
 #############
 ================================================================================= =
-:zeek:id:`Cluster::backend`: :zeek:type:`Cluster::BackendTag` :zeek:attr:`&redef` 
+:zeek:id:`Cluster::backend`: :zeek:type:`Cluster::BackendTag` :zeek:attr:`&redef`
 ================================================================================= =
 
 

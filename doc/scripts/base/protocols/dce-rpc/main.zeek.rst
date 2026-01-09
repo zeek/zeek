@@ -26,26 +26,26 @@ Redefinable Options
 Types
 #####
 ======================================================= =
-:zeek:type:`DCE_RPC::BackingState`: :zeek:type:`record` 
-:zeek:type:`DCE_RPC::Info`: :zeek:type:`record`         
-:zeek:type:`DCE_RPC::State`: :zeek:type:`record`        
+:zeek:type:`DCE_RPC::BackingState`: :zeek:type:`record`
+:zeek:type:`DCE_RPC::Info`: :zeek:type:`record`
+:zeek:type:`DCE_RPC::State`: :zeek:type:`record`
 ======================================================= =
 
 Redefinitions
 #############
 ======================================================================= =======================================================================================================================
-:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef` 
-:zeek:type:`Log::ID`: :zeek:type:`enum`                                 
-                                                                        
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef`
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                         * :zeek:enum:`DCE_RPC::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                            
-                                                                        
+:zeek:type:`connection`: :zeek:type:`record`
+
                                                                         :New Fields: :zeek:type:`connection`
-                                                                        
+
                                                                           dce_rpc: :zeek:type:`DCE_RPC::Info` :zeek:attr:`&optional`
-                                                                        
+
                                                                           dce_rpc_state: :zeek:type:`DCE_RPC::State` :zeek:attr:`&optional`
-                                                                        
+
                                                                           dce_rpc_backing: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`DCE_RPC::BackingState` :zeek:attr:`&optional`
 ======================================================================= =======================================================================================================================
 
@@ -53,7 +53,7 @@ Hooks
 #####
 ==================================================================== ==========================
 :zeek:id:`DCE_RPC::finalize_dce_rpc`: :zeek:type:`Conn::RemovalHook` DCE_RPC finalization hook.
-:zeek:id:`DCE_RPC::log_policy`: :zeek:type:`Log::PolicyHook`         
+:zeek:id:`DCE_RPC::log_policy`: :zeek:type:`Log::PolicyHook`
 ==================================================================== ==========================
 
 
@@ -158,11 +158,11 @@ Types
    .. zeek:field:: named_pipe :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       Remote pipe name.
-      
+
       Note that this value is from the "sec_addr" field in the
       protocol. Zeek uses the "named_pipe" name for historical reasons,
       but it may also contain local port numbers rather than named pipes.
-      
+
       If you prefer to use the "secondary address" name, consider
       using :zeek:see:`Log::default_field_name_map`, a ``Log::Filter``'s
       :zeek:field:`Log::Filter$field_name_map` field, or removing

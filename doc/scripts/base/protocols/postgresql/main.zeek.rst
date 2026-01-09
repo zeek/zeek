@@ -21,22 +21,22 @@ Types
 #####
 ===================================================== ===============================================================
 :zeek:type:`PostgreSQL::Info`: :zeek:type:`record`    Record type containing the column fields of the PostgreSQL log.
-:zeek:type:`PostgreSQL::State`: :zeek:type:`record`   
-:zeek:type:`PostgreSQL::Version`: :zeek:type:`record` 
+:zeek:type:`PostgreSQL::State`: :zeek:type:`record`
+:zeek:type:`PostgreSQL::Version`: :zeek:type:`record`
 ===================================================== ===============================================================
 
 Redefinitions
 #############
 ============================================ =========================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      Log stream identifier.
-                                             
+
                                              * :zeek:enum:`PostgreSQL::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                postgresql: :zeek:type:`PostgreSQL::Info` :zeek:attr:`&optional`
-                                             
+
                                                postgresql_state: :zeek:type:`PostgreSQL::State` :zeek:attr:`&optional`
 ============================================ =========================================================================
 
@@ -49,7 +49,7 @@ Events
 Hooks
 #####
 ========================================================================== =
-:zeek:id:`PostgreSQL::finalize_postgresql`: :zeek:type:`Conn::RemovalHook` 
+:zeek:id:`PostgreSQL::finalize_postgresql`: :zeek:type:`Conn::RemovalHook`
 ========================================================================== =
 
 

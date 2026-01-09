@@ -22,9 +22,9 @@ Redefinitions
 #############
 ========================================================= ========================================================================
 :zeek:type:`NetControl::PluginState`: :zeek:type:`record` Table for a plugin to store instance-specific configuration information.
-                                                          
+
                                                           :New Fields: :zeek:type:`NetControl::PluginState`
-                                                          
+
                                                             plugin: :zeek:type:`NetControl::Plugin` :zeek:attr:`&optional`
                                                               The plugin that the state belongs to.
 ========================================================= ========================================================================
@@ -56,7 +56,7 @@ Types
 
       One-time initialization function called when plugin gets registered, and
       before any other methods are called.
-      
+
       If this function is provided, NetControl assumes that the plugin has to
       perform, potentially lengthy, initialization before the plugin will become
       active. In this case, the plugin has to call ``NetControl::plugin_activated``,
@@ -87,13 +87,13 @@ Types
 
 
    Definition of a plugin.
-   
+
    Generally a plugin needs to implement only what it can support.  By
    returning failure, it indicates that it can't support something and
    the framework will then try another plugin, if available; or inform the
    that the operation failed. If a function isn't implemented by a plugin,
    that's considered an implicit failure to support the operation.
-   
+
    If plugin accepts a rule operation, it *must* generate one of the reporting
    events ``rule_{added,remove,error}`` to signal if it indeed worked out;
    this is separate from accepting the operation because often a plugin
@@ -173,7 +173,7 @@ Types
 
 
    This record keeps the per instance state of a plugin.
-   
+
    Individual plugins commonly extend this record to suit their needs.
 
 

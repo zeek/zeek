@@ -48,22 +48,22 @@ Redefinitions
 #############
 ============================================ =================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      Add the packet filter logging stream.
-                                             
+
                                              * :zeek:enum:`PacketFilter::LOG`
 :zeek:type:`Notice::Type`: :zeek:type:`enum` Add notice types related to packet filter errors.
-                                             
+
                                              * :zeek:enum:`PacketFilter::Compile_Failure`:
                                                This notice is generated if a packet filter cannot be compiled.
-                                             
+
                                              * :zeek:enum:`PacketFilter::Install_Failure`:
                                                Generated if a packet filter fails to install.
-                                             
+
                                              * :zeek:enum:`PacketFilter::Too_Long_To_Compile_Filter`:
                                                Generated when a notice takes too long to compile.
-:zeek:type:`PcapFilterID`: :zeek:type:`enum` 
-                                             
+:zeek:type:`PcapFilterID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`PacketFilter::DefaultPcapFilter`
-                                             
+
                                              * :zeek:enum:`PacketFilter::FilterTester`
 ============================================ =================================================================
 
@@ -110,7 +110,7 @@ Redefinable Options
 
    Enables the old filtering approach of "only watch common ports for
    analyzed protocols".
-   
+
    Unless you know what you are doing, leave this set to F.
 
 .. zeek:id:: PacketFilter::max_filter_compile_time
@@ -232,14 +232,14 @@ Functions
    Install a BPF filter to exclude some traffic.  The filter should
    positively match what is to be excluded, it will be wrapped in
    a "not".
-   
+
 
    :param filter_id: An arbitrary string that can be used to identify
               the filter.
-   
+
 
    :param filter: A BPF expression of traffic that should be excluded.
-   
+
 
    :returns: A boolean value to indicate if the filter was successfully
             installed or not.
@@ -252,17 +252,17 @@ Functions
    Install a temporary filter to traffic which should not be passed
    through the BPF filter.  The filter should match the traffic you
    don't want to see (it will be wrapped in a "not" condition).
-   
+
 
    :param filter_id: An arbitrary string that can be used to identify
               the filter.
-   
+
 
    :param filter: A BPF expression of traffic that should be excluded.
-   
+
 
    :param length: The duration for which this filter should be put in place.
-   
+
 
    :returns: A boolean value to indicate if the filter was successfully
             installed or not.
@@ -290,10 +290,10 @@ Functions
    Remove a previously added exclude filter fragment by name. The
    traffic that was being filtered will be allowed through the filter
    after calling this function.
-   
+
 
    :param filter_id: The name given to the filter fragment which you'd like to remove.
-   
+
 
    :returns: A boolean value to indicate if a filter fragment with the given name
             actually installed.

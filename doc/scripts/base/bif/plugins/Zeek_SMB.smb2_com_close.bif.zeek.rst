@@ -31,18 +31,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *close*. This is used by the client to close an instance of a
    file that was opened previously with a successful SMB2 CREATE Request.
-   
+
    For more information, see MS-SMB2:2.2.15
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_name: The SMB2 GUID of the file being closed.
-   
+
    .. zeek:see:: smb2_message smb2_close_response
 
 .. zeek:id:: smb2_close_response
@@ -53,18 +53,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *close*. This is sent by the server to indicate that an SMB2 CLOSE
    request was processed successfully.
-   
+
    For more information, see MS-SMB2:2.2.16
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param response: A record of attributes returned from the server from the close.
-   
+
    .. zeek:see:: smb2_message smb2_close_request
 
 

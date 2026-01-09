@@ -11,7 +11,7 @@ Summary
 Constants
 #########
 ================================================== =
-:zeek:id:`absolute_path_pat`: :zeek:type:`pattern` 
+:zeek:id:`absolute_path_pat`: :zeek:type:`pattern`
 ================================================== =
 
 Functions
@@ -48,13 +48,13 @@ Functions
    :Type: :zeek:type:`function` (dir: :zeek:type:`string`, file_name: :zeek:type:`string`) : :zeek:type:`string`
 
    Constructs a path to a file given a directory and a file name.
-   
+
 
    :param dir: the directory in which the file lives.
-   
+
 
    :param file_name: the name of the file.
-   
+
 
    :returns: the concatenation of the directory path and file name, or just
             the file name if it's already an absolute path or dir is empty.
@@ -74,12 +74,12 @@ Functions
 
    Given an arbitrary string, extracts a single, absolute path (directory
    with filename).
-   
+
    .. todo:: Make this work on Window's style directories.
-   
+
 
    :param input: a string that may contain an absolute path.
-   
+
 
    :returns: the first absolute path found in input string, else an empty string.
 

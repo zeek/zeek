@@ -29,16 +29,16 @@ Events
 
    The Supervisor generates this event whenever it has received a status
    update from the stem, indicating that a node exited.
-   
+
 
    :param node: the name of a node previously created via
        :zeek:see:`Supervisor::create`.
-   
+
 
    :param outputs: stdout/stderr context for the node. The contained strings
        span up to the 100 most recent lines in the corresponding
        stream. See :zeek:see:`Management::Supervisor::output_max_lines`
        to adjust the line limit.
-   
+
 
 

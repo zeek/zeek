@@ -28,12 +28,12 @@ Events
 
    This event is generated each time file analysis performs
    entropy testing on a file.
-   
+
 
    :param f: The file.
-   
+
 
    :param ent: The results of the entropy testing.
-   
+
 
 

@@ -21,48 +21,48 @@ Runtime Options
 Types
 #####
 ============================================== =
-:zeek:type:`HTTP::Entity`: :zeek:type:`record` 
+:zeek:type:`HTTP::Entity`: :zeek:type:`record`
 ============================================== =
 
 Redefinitions
 #############
 ============================================================= ======================================================================================================
-:zeek:type:`HTTP::Info`: :zeek:type:`record`                  
-                                                              
+:zeek:type:`HTTP::Info`: :zeek:type:`record`
+
                                                               :New Fields: :zeek:type:`HTTP::Info`
-                                                              
+
                                                                 orig_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of file unique IDs.
-                                                              
+
                                                                 orig_filenames: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of filenames from the client.
-                                                              
+
                                                                 orig_mime_types: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of mime types.
-                                                              
+
                                                                 resp_fuids: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of file unique IDs.
-                                                              
+
                                                                 resp_filenames: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of filenames from the server.
-                                                              
+
                                                                 resp_mime_types: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   An ordered vector of mime types.
-                                                              
+
                                                                 current_entity: :zeek:type:`HTTP::Entity` :zeek:attr:`&optional`
                                                                   The current entity.
-                                                              
+
                                                                 orig_mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
                                                                   Current number of MIME entities in the HTTP request message
                                                                   body.
-                                                              
+
                                                                 resp_mime_depth: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
                                                                   Current number of MIME entities in the HTTP response message
                                                                   body.
-:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                              
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                               :New Fields: :zeek:type:`fa_file`
-                                                              
+
                                                                 http: :zeek:type:`HTTP::Info` :zeek:attr:`&optional`
 ============================================================= ======================================================================================================
 

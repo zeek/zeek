@@ -19,12 +19,12 @@ Redefinable Options
 Redefinitions
 #############
 ============================================ ============================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`PacketFilter::Cannot_BPF_Shunt_Conn`:
                                                Limitations in BPF make shunting some connections with BPF
                                                impossible.
-                                             
+
                                              * :zeek:enum:`PacketFilter::No_More_Conn_Shunts_Available`:
                                                Indicative that :zeek:id:`PacketFilter::max_bpf_shunts`
                                                connections are already being shunted with BPF filters and

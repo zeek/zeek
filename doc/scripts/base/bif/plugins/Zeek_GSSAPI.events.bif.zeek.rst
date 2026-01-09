@@ -26,12 +26,12 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, state: :zeek:type:`count`)
 
    Generated for GSSAPI negotiation results.
-   
+
 
    :param c: The connection.
-   
+
 
    :param state: The resulting state of the negotiation.
-   
+
 
 

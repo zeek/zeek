@@ -13,16 +13,16 @@ Summary
 Redefinitions
 #############
 ============================================================= ====================================================================
-:zeek:type:`IRC::Info`: :zeek:type:`record`                   
-                                                              
+:zeek:type:`IRC::Info`: :zeek:type:`record`
+
                                                               :New Fields: :zeek:type:`IRC::Info`
-                                                              
+
                                                                 fuid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                   File unique ID.
-:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                              
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                               :New Fields: :zeek:type:`fa_file`
-                                                              
+
                                                                 irc: :zeek:type:`IRC::Info` :zeek:attr:`&optional`
 ============================================================= ====================================================================
 

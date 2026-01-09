@@ -55,16 +55,16 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, c: :zeek:type:`connection`, addl: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`, source: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Generates a "conn" weird.
-   
+
 
    :param name: the name of the weird.
-   
+
 
    :param c: the connection associated with the weird.
-   
+
 
    :param addl: additional information to accompany the weird.
-   
+
 
    :returns: Always true.
 
@@ -76,13 +76,13 @@ Functions
    Generates a usually non-fatal error indicative of a definite problem that
    should be addressed. Program execution does not terminate unless the error
    is reported during initialization (e.g., :zeek:see:`zeek_init`).
-   
+
 
    :param msg: The error message to report.
-   
+
 
    :returns: Always true.
-   
+
    .. zeek:see:: reporter_error
 
 .. zeek:id:: Reporter::fatal
@@ -91,10 +91,10 @@ Functions
    :Type: :zeek:type:`function` (msg: :zeek:type:`string`) : :zeek:type:`bool`
 
    Generates a fatal error on stderr and terminates program execution.
-   
+
 
    :param msg: The error message to report.
-   
+
 
    :returns: Always true.
 
@@ -105,10 +105,10 @@ Functions
 
    Generates a fatal error on stderr and terminates program execution
    after dumping a core file
-   
+
 
    :param msg: The error message to report.
-   
+
 
    :returns: Always true.
 
@@ -118,16 +118,16 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, f: :zeek:type:`fa_file`, addl: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`, source: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Generates a "file" weird.
-   
+
 
    :param name: the name of the weird.
-   
+
 
    :param f: the file associated with the weird.
-   
+
 
    :param addl: additional information to accompany the weird.
-   
+
 
    :returns: true if the file was still valid, else false.
 
@@ -137,16 +137,16 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, orig: :zeek:type:`addr`, resp: :zeek:type:`addr`, addl: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`, source: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Generates a "flow" weird.
-   
+
 
    :param name: the name of the weird.
-   
+
 
    :param orig: the originator host associated with the weird.
-   
+
 
    :param resp: the responder host associated with the weird.
-   
+
 
    :returns: Always true.
 
@@ -156,7 +156,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`interval`
 
    Gets the current weird sampling duration.
-   
+
 
    :returns: weird sampling duration.
 
@@ -166,7 +166,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`string_set`
 
    Gets the weird sampling global list
-   
+
 
    :returns: Current weird sampling global list
 
@@ -176,7 +176,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
    Gets the current weird sampling rate.
-   
+
 
    :returns: weird sampling rate.
 
@@ -186,7 +186,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
    Gets the current weird sampling threshold
-   
+
 
    :returns: current weird sampling threshold.
 
@@ -196,7 +196,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`string_set`
 
    Gets the weird sampling whitelist
-   
+
 
    :returns: Current weird sampling whitelist
 
@@ -206,13 +206,13 @@ Functions
    :Type: :zeek:type:`function` (msg: :zeek:type:`string`) : :zeek:type:`bool`
 
    Generates an informational message.
-   
+
 
    :param msg: The informational message to report.
-   
+
 
    :returns: Always true.
-   
+
    .. zeek:see:: reporter_info
 
 .. zeek:id:: Reporter::net_weird
@@ -221,10 +221,10 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, addl: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`, source: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Generates a "net" weird.
-   
+
 
    :param name: the name of the weird.
-   
+
 
    :returns: Always true.
 
@@ -235,10 +235,10 @@ Functions
 
    Sets the current weird sampling duration. Please note that
    this will not delete already running timers.
-   
+
 
    :param weird_sampling_duration: New weird sampling duration.
-   
+
 
    :returns: always returns True
 
@@ -248,10 +248,10 @@ Functions
    :Type: :zeek:type:`function` (weird_sampling_global_list: :zeek:type:`string_set`) : :zeek:type:`bool`
 
    Sets the weird sampling global list
-   
+
 
    :param global_list: New weird sampling rate.
-   
+
 
    :returns: Always true.
 
@@ -261,10 +261,10 @@ Functions
    :Type: :zeek:type:`function` (weird_sampling_rate: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the weird sampling rate.
-   
+
 
    :param weird_sampling_rate: New weird sampling rate.
-   
+
 
    :returns: Always returns true.
 
@@ -274,10 +274,10 @@ Functions
    :Type: :zeek:type:`function` (weird_sampling_threshold: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the current weird sampling threshold
-   
+
 
    :param threshold: New weird sampling threshold.
-   
+
 
    :returns: Always returns true;
 
@@ -287,10 +287,10 @@ Functions
    :Type: :zeek:type:`function` (weird_sampling_whitelist: :zeek:type:`string_set`) : :zeek:type:`bool`
 
    Sets the weird sampling whitelist
-   
+
 
    :param whitelist: New weird sampling rate.
-   
+
 
    :returns: Always true.
 
@@ -300,13 +300,13 @@ Functions
    :Type: :zeek:type:`function` (msg: :zeek:type:`string`) : :zeek:type:`bool`
 
    Generates a message that warns of a potential problem.
-   
+
 
    :param msg: The warning message to report.
-   
+
 
    :returns: Always true.
-   
+
    .. zeek:see:: reporter_warning
 
 

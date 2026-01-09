@@ -197,10 +197,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::AuthCommand`)
 
    Generated for Redis AUTH commands sent to the Redis server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param command: The AUTH command sent to the server and its data.
 
@@ -210,10 +210,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cmd: :zeek:type:`Redis::Command`)
 
    Generated for every command sent by the client to the Redis server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param cmd: The command sent to the server.
 
@@ -224,10 +224,10 @@ Events
 
    Generated for every error response sent by the Redis server to the
    client.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The server data sent to the client.
 
@@ -237,10 +237,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
 
    Generated for Redis GET commands sent to the Redis server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param command: The GET command sent to the server and its data.
 
@@ -250,10 +250,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::HelloCommand`)
 
    Generated for Redis HELLO commands sent to the Redis server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param command: The HELLO command sent to the server and its data.
 
@@ -266,13 +266,13 @@ Events
    client. For RESP2, this includes "push" messages, which are out of band.
    These will also raise a server_push event. RESP3 push messages will only
    raise a server_push event.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The server data sent to the client.
-   
+
    .. zeek:see:: Redis::server_push
 
 .. zeek:id:: Redis::server_push
@@ -282,10 +282,10 @@ Events
 
    Generated for out-of-band data, outside of the request-response
    model.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The server data sent to the client.
 
@@ -295,10 +295,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::SetCommand`)
 
    Generated for Redis SET commands sent to the Redis server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param command: The SET command sent to the server and its data.
 

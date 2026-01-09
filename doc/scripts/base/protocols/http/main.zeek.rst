@@ -43,15 +43,15 @@ Types
 Redefinitions
 #############
 ============================================ =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`HTTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                http: :zeek:type:`HTTP::Info` :zeek:attr:`&optional`
-                                             
+
                                                http_state: :zeek:type:`HTTP::State` :zeek:attr:`&optional`
 ============================================ =============================================================
 
@@ -66,7 +66,7 @@ Hooks
 #####
 ============================================================== =======================
 :zeek:id:`HTTP::finalize_http`: :zeek:type:`Conn::RemovalHook` HTTP finalization hook.
-:zeek:id:`HTTP::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`HTTP::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 
@@ -168,7 +168,7 @@ Redefinable Options
    logging. If a string reaches this limit, the log output for the field will be
    truncated. Setting this to zero disables the limiting. HTTP has no maximum
    length for various fields such as the URI, so this is set to zero by default.
-   
+
    .. zeek:see:: Log::default_max_field_string_bytes
 
 .. zeek:id:: HTTP::ports

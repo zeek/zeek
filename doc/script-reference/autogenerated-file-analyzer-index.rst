@@ -65,13 +65,13 @@ Events
 
    This event is generated each time file analysis performs
    entropy testing on a file.
-   
+
 
    :param f: The file.
-   
+
 
    :param ent: The results of the entropy testing.
-   
+
 
 .. _plugin-zeek-fileextract:
 
@@ -97,21 +97,21 @@ Events
    to exceed the maximum permitted file size allowed by the
    *extract_limit* field of :zeek:see:`Files::AnalyzerArgs`.
    The analyzer is automatically removed from file *f*.
-   
+
 
    :param f: The file.
-   
+
 
    :param args: Arguments that identify a particular file extraction analyzer.
          This is only provided to be able to pass along to
          :zeek:see:`FileExtract::set_limit`.
-   
+
 
    :param limit: The limit, in bytes, the extracted file is about to breach.
-   
+
 
    :param len: The length of the file chunk about to be written.
-   
+
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
 
 Functions
@@ -156,16 +156,16 @@ Events
 
    This event is generated each time file analysis generates a digest of the
    file contents.
-   
+
 
    :param f: The file.
-   
+
 
    :param kind: The type of digest algorithm.
-   
+
 
    :param hash: The result of the hashing.
-   
+
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
       Files::ANALYZER_SHA1 Files::ANALYZER_SHA224
       Files::ANALYZER_SHA256 Files::ANALYZER_SHA384
@@ -194,13 +194,13 @@ Events
    A :abbr:`PE (Portable Executable)` file DOS header was parsed.
    This is the top-level header and contains information like the
    size of the file, initial value of registers, etc.
-   
+
 
    :param f: The file.
-   
+
 
    :param h: The parsed DOS header information.
-   
+
    .. zeek:see:: pe_dos_code pe_file_header pe_optional_header pe_section_header
 
 .. zeek:id:: pe_dos_code
@@ -211,13 +211,13 @@ Events
    A :abbr:`PE (Portable Executable)` file DOS stub was parsed.
    The stub is a valid application that runs under MS-DOS, by default
    to inform the user that the program can't be run in DOS mode.
-   
+
 
    :param f: The file.
-   
+
 
    :param code: The DOS stub
-   
+
    .. zeek:see:: pe_dos_header pe_file_header pe_optional_header pe_section_header
 
 .. zeek:id:: pe_file_header
@@ -229,13 +229,13 @@ Events
    This header contains information like the target machine,
    the timestamp when the file was created, the number of sections, and
    pointers to other parts of the file.
-   
+
 
    :param f: The file.
-   
+
 
    :param h: The parsed file header information.
-   
+
    .. zeek:see:: pe_dos_header pe_dos_code pe_optional_header pe_section_header
 
 .. zeek:id:: pe_optional_header
@@ -248,13 +248,13 @@ Events
    It contains information like OS requirements to execute the file, the
    original entry point address, and information needed to load the file
    into memory.
-   
+
 
    :param f: The file.
-   
+
 
    :param h: The parsed optional header information.
-   
+
    .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_section_header
 
 .. zeek:id:: pe_section_header
@@ -265,13 +265,13 @@ Events
    A :abbr:`PE (Portable Executable)` file section header was parsed.
    This header contains information like the section name, size, address,
    and characteristics.
-   
+
 
    :param f: The file.
-   
+
 
    :param h: The parsed section header information.
-   
+
    .. zeek:see:: pe_dos_header pe_dos_code pe_file_header pe_optional_header
 
 .. _plugin-zeek-x509:
@@ -485,20 +485,20 @@ Events
 
    Generated for encountered X509 certificates, e.g., in the clear SSL/TLS
    connection handshake.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
    about the X.509 format.
-   
+
 
    :param f: The file.
-   
+
 
    :param cert_ref: An opaque pointer to the underlying OpenSSL data structure of the
              certificate.
-   
+
 
    :param cert: The parsed certificate information.
-   
+
    .. zeek:see:: x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
@@ -509,16 +509,16 @@ Events
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::Extension`)
 
    Generated for X509 extensions seen in a certificate.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
    about the X.509 format.
-   
+
 
    :param f: The file.
-   
+
 
    :param ext: The parsed extension.
-   
+
    .. zeek:see:: x509_certificate x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
@@ -530,13 +530,13 @@ Events
 
    Generated for the X509 basic constraints extension seen in a certificate.
    This extension can be used to identify the subject of a certificate as a CA.
-   
+
 
    :param f: The file.
-   
+
 
    :param ext: The parsed basic constraints extension.
-   
+
    .. zeek:see:: x509_certificate x509_extension
                 x509_ext_subject_alternative_name x509_parse x509_verify
                 x509_get_certificate_string x509_ocsp_ext_signed_certificate_timestamp
@@ -550,13 +550,13 @@ Events
    This extension can be used to allow additional entities to be bound to the
    subject of the certificate. Usually it is used to specify one or multiple DNS
    names for which a certificate is valid.
-   
+
 
    :param f: The file.
-   
+
 
    :param ext: The parsed subject alternative name extension.
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_parse x509_verify x509_ocsp_ext_signed_certificate_timestamp
                 x509_get_certificate_string
@@ -570,28 +570,28 @@ Events
    :rfc:`6962`. The extension is used to transmit signed proofs that are
    used for Certificate Transparency. Raised when the extension is encountered
    in an X.509 certificate or in an OCSP reply.
-   
+
 
    :param f: The file.
-   
+
 
    :param version: the version of the protocol to which the SCT conforms. Always
             should be 0 (representing version 1)
-   
+
 
    :param logid: 32 bit key id
-   
+
 
    :param timestamp: the NTP Time when the entry was logged measured since
               the epoch, ignoring leap seconds, in milliseconds.
-   
+
 
    :param signature_and_hashalgorithm: signature and hash algorithm used for the
                                 digitally_signed struct
-   
+
 
    :param signature: signature part of the digitally_signed struct
-   
+
    .. zeek:see:: ssl_extension_signed_certificate_timestamp x509_extension x509_ext_basic_constraints
                 x509_parse x509_verify x509_ext_subject_alternative_name
                 x509_get_certificate_string ssl_extension_signed_certificate_timestamp
@@ -606,15 +606,15 @@ Events
 
    Event that is raised when encountering an OCSP request, e.g. in an HTTP
    connection. See :rfc:`6960` for more details.
-   
+
    This event is raised exactly once for each OCSP Request.
-   
+
 
    :param f: The file.
-   
+
 
    :param req: version: the version of the OCSP request. Typically 0 (Version 1).
-   
+
    .. zeek:see:: ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -626,23 +626,23 @@ Events
 
    Event that is raised when encountering an OCSP request for a certificate,
    e.g. in an HTTP connection. See :rfc:`6960` for more details.
-   
+
    Note that a single OCSP request can contain requests for several certificates.
    Thus this event can fire several times for one OCSP request, each time
    requesting information for a different (or in theory even the same) certificate.
-   
+
 
    :param f: The file.
-   
+
 
    :param hashAlgorithm: The hash algorithm used for the issuerKeyHash.
-   
+
 
    :param issuerKeyHash: Hash of the issuers public key.
-   
+
 
    :param serialNumber: Serial number of the certificate for which the status is requested.
-   
+
    .. zeek:see:: ocsp_request ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -654,15 +654,15 @@ Events
 
    This event is raised when encountering an OCSP reply, e.g. in an HTTP
    connection or a TLS extension. See :rfc:`6960` for more details.
-   
+
    This event is raised exactly once for each OCSP reply.
-   
+
 
    :param f: The file.
-   
+
 
    :param status: The status of the OCSP response (e.g. successful, malformedRequest, tryLater).
-   
+
    .. zeek:see:: ocsp_request ocsp_request_certificate
                 ocsp_response_bytes ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -675,29 +675,29 @@ Events
    This event is raised when encountering an OCSP response that contains response information.
    An OCSP reply can be encountered, for example, in an HTTP connection or
    a TLS extension. See :rfc:`6960` for more details on OCSP.
-   
+
 
    :param f: The file.
-   
+
 
    :param status: The status of the OCSP response (e.g. successful, malformedRequest, tryLater).
-   
+
 
    :param version: Version of the OCSP response (typically - for version 1).
-   
+
 
    :param responderId: The id of the OCSP responder; either a public key hash or a distinguished name.
-   
+
 
    :param producedAt: Time at which the reply was produced.
-   
+
 
    :param signatureAlgorithm: Algorithm used for the OCSP signature.
-   
+
 
    :param certs: Optional list of certificates that are sent with the OCSP response; these typically
           are needed to perform validation of the reply.
-   
+
    .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_certificate ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -709,37 +709,37 @@ Events
 
    This event is raised for each SingleResponse contained in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
-   
+
 
    :param f: The file.
-   
+
 
    :param hashAlgorithm: The hash algorithm used for issuerNameHash and issuerKeyHash.
-   
+
 
    :param issuerNameHash: Hash of the issuer's distinguished name.
-   
+
 
    :param issuerKeyHash: Hash of the issuer's public key.
-   
+
 
    :param serialNumber: Serial number of the affected certificate.
-   
+
 
    :param certStatus: Status of the certificate.
-   
+
 
    :param revokeTime: Time the certificate was revoked, 0 if not revoked.
-   
+
 
    :param revokeReason: Reason certificate was revoked; empty string if not revoked or not specified.
-   
+
 
    :param thisUpdate: Time this response was generated.
-   
+
 
    :param nextUpdate: Time next response will be ready; 0 if not supplied.
-   
+
    .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_extension
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -751,17 +751,17 @@ Events
 
    This event is raised when an OCSP extension is encountered in an OCSP response.
    See :rfc:`6960` for more details on OCSP.
-   
+
 
    :param f: The file.
-   
+
 
    :param ext: The parsed extension (same format as X.509 extensions).
-   
+
 
    :param global_resp: T if extension encountered in the global response (in ResponseData),
                 F when encountered in a SingleResponse.
-   
+
    .. zeek:see:: ocsp_request ocsp_request_certificate ocsp_response_status
                 ocsp_response_bytes ocsp_response_certificate
                 x509_ocsp_ext_signed_certificate_timestamp
@@ -775,13 +775,13 @@ Functions
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509) : :zeek:type:`X509::Certificate`
 
    Parses a certificate into an X509::Certificate structure.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :returns: A X509::Certificate structure.
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_verify
                 x509_get_certificate_string
@@ -792,10 +792,10 @@ Functions
    :Type: :zeek:type:`function` (der: :zeek:type:`string`) : :zeek:type:`opaque` of x509
 
    Constructs an opaque of X509 from a der-formatted string.
-   
+
 
    :param Note: this function is mostly meant for testing purposes
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_verify
                 x509_get_certificate_string x509_parse
@@ -806,18 +806,18 @@ Functions
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, pem: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Returns the string form of a certificate.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :param pem: A boolean that specifies if the certificate is returned
         in pem-form (true), or as the raw ASN1 encoded binary
         (false).
-   
+
 
    :returns: X509 certificate as a string.
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse x509_verify
 
@@ -827,23 +827,23 @@ Functions
    :Type: :zeek:type:`function` (certs: :zeek:type:`x509_opaque_vector`, ocsp_reply: :zeek:type:`string`, root_certs: :zeek:type:`table_string_of_string`, verify_time: :zeek:type:`time` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`) : :zeek:type:`X509::Result`
 
    Verifies an OCSP reply.
-   
+
 
    :param certs: Specifies the certificate chain to use. Server certificate first.
-   
+
 
    :param ocsp_reply: the ocsp reply to validate.
-   
+
 
    :param root_certs: A list of root certificates to validate the certificate chain.
-   
+
 
    :param verify_time: Time for the validity check of the certificates.
-   
+
 
    :returns: A record of type X509::Result containing the result code of the
             verify operation.
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse
                 x509_get_certificate_string x509_verify
@@ -854,23 +854,23 @@ Functions
    :Type: :zeek:type:`function` (certs: :zeek:type:`x509_opaque_vector`, root_certs: :zeek:type:`table_string_of_string`, verify_time: :zeek:type:`time` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`) : :zeek:type:`X509::Result`
 
    Verifies a certificate.
-   
+
 
    :param certs: Specifies a certificate chain that is being used to validate
           the given certificate against the root store given in *root_certs*.
           The host certificate has to be at index 0.
-   
+
 
    :param root_certs: A list of root certificates to validate the certificate chain.
-   
+
 
    :param verify_time: Time for the validity check of the certificates.
-   
+
 
    :returns: A record of type X509::Result containing the result code of the
             verify operation. In case of success also returns the full
             certificate chain.
-   
+
    .. zeek:see:: x509_certificate x509_extension x509_ext_basic_constraints
                 x509_ext_subject_alternative_name x509_parse
                 x509_get_certificate_string x509_ocsp_verify sct_verify
@@ -882,30 +882,30 @@ Functions
 
    Verifies a Signed Certificate Timestamp as used for Certificate Transparency.
    See RFC6962 for more details.
-   
+
 
    :param cert: Certificate against which the SCT should be validated.
-   
+
 
    :param logid: Log id of the SCT.
-   
+
 
    :param log_key: Public key of the Log that issued the SCT proof.
-   
+
 
    :param timestamp: Timestamp at which the proof was generated.
-   
+
 
    :param hash_algorithm: Hash algorithm that was used for the SCT proof.
-   
+
 
    :param issuer_key_hash: The SHA-256 hash of the certificate issuer's public key.
                     This only has to be provided if the SCT was encountered in an X.509
                     certificate extension; in that case, it is necessary for validation.
-   
+
 
    :returns: T if the validation could be performed successfully, F otherwise.
-   
+
    .. zeek:see:: ssl_extension_signed_certificate_timestamp
                 x509_ocsp_ext_signed_certificate_timestamp
                 x509_verify
@@ -916,18 +916,18 @@ Functions
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the subject's distinguished name.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :param hash_alg: the hash algorithm to use, according to the IANA mapping at
 
              :param https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
-   
+
 
    :returns: The hash as a string.
-   
+
    .. zeek:see:: x509_issuer_name_hash x509_spki_hash
                 x509_verify sct_verify
 
@@ -937,18 +937,18 @@ Functions
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the issuer's distinguished name.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :param hash_alg: the hash algorithm to use, according to the IANA mapping at
 
              :param https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
-   
+
 
    :returns: The hash as a string.
-   
+
    .. zeek:see:: x509_subject_name_hash x509_spki_hash
                 x509_verify sct_verify
 
@@ -958,18 +958,18 @@ Functions
    :Type: :zeek:type:`function` (cert: :zeek:type:`opaque` of x509, hash_alg: :zeek:type:`count`) : :zeek:type:`string`
 
    Get the hash of the Subject Public Key Information of the certificate.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :param hash_alg: the hash algorithm to use, according to the IANA mapping at
 
              :param https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-18
-   
+
 
    :returns: The hash as a string.
-   
+
    .. zeek:see:: x509_subject_name_hash x509_issuer_name_hash
                 x509_verify sct_verify
 
@@ -980,22 +980,22 @@ Functions
 
    This function can be used to set up certificate caching. It has to be passed a table[string] which
    can contain any type.
-   
+
    After this is set up, for each certificate encountered, the X509 analyzer will check if the entry
    tbl[sha256 of certificate] is set. If this is the case, the X509 analyzer will skip all further
    processing, and instead just call the callback that is set with
 
    :param zeek:id:`x509_set_certificate_cache_hit_callback`.
-   
+
 
    :param tbl: Table to use as the certificate cache.
-   
+
 
    :returns: Always returns true.
-   
+
    .. note:: The base scripts use this function to set up certificate caching. You should only change the
              cache table if you are sure you will not conflict with the base scripts.
-   
+
    .. zeek:see:: x509_set_certificate_cache_hit_callback
 
 .. zeek:id:: x509_set_certificate_cache_hit_callback
@@ -1005,16 +1005,16 @@ Functions
 
    This function sets up the callback that is called when an entry is matched against the table set
    by :zeek:id:`x509_set_certificate_cache`.
-   
+
 
    :param f: The callback that will be called when encountering a certificate in the cache table.
-   
+
 
    :returns: Always returns true.
-   
+
    .. note:: The base scripts use this function to set up certificate caching. You should only change the
              callback function if you are sure you will not conflict with the base scripts.
-   
+
    .. zeek:see:: x509_set_certificate_cache
 
 .. zeek:id:: x509_check_hostname
@@ -1027,16 +1027,16 @@ Functions
    only allowed in the leftmost label, wildcards only span one label, the wildcard has to be the
    last character before the label-separator, but additional characters are allowed before it, and
    the wildcard has to be at least at the third level (so \*.a.b).
-   
+
 
    :param hostname: Hostname to test
-   
+
 
    :param certname: Name given in the CN/SAN of a certificate; wildcards will be expanded
-   
+
 
    :returns: True if the hostname matches.
-   
+
    .. zeek:see:: x509_check_cert_hostname
 
 .. zeek:id:: x509_check_cert_hostname
@@ -1045,21 +1045,21 @@ Functions
    :Type: :zeek:type:`function` (cert_opaque: :zeek:type:`opaque` of x509, hostname: :zeek:type:`string`) : :zeek:type:`string`
 
    This function checks if a hostname matches one of the hostnames given in the certificate.
-   
+
    For our matching we adhere to RFC6128 for the labels (see :zeek:id:`x509_check_hostname`).
    Furthermore we adhere to RFC2818 and check only the names given in the SAN, if a SAN is present,
    ignoring CNs in the Subject. If no SAN is present, we will use the last CN in the subject
    for our tests.
-   
+
 
    :param cert: The X509 certificate opaque handle.
-   
+
 
    :param hostname: Hostname to check
-   
+
 
    :returns: empty string if the hostname does not match; matched name (which can contain wildcards)
             if it did.
-   
+
    .. zeek:see:: x509_check_hostname
 

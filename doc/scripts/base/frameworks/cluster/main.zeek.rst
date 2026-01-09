@@ -80,16 +80,16 @@ Types
 ================================================================= ====================================================================
 :zeek:type:`Cluster::Info`: :zeek:type:`record` :zeek:attr:`&log` The record type which contains the column fields of the cluster log.
 :zeek:type:`Cluster::StoreInfo`: :zeek:type:`record`              Information regarding a cluster-enabled data store.
-:zeek:type:`Cluster::BackendTag`: :zeek:type:`enum`               
-:zeek:type:`Cluster::EventSerializerTag`: :zeek:type:`enum`       
-:zeek:type:`Cluster::LogSerializerTag`: :zeek:type:`enum`         
+:zeek:type:`Cluster::BackendTag`: :zeek:type:`enum`
+:zeek:type:`Cluster::EventSerializerTag`: :zeek:type:`enum`
+:zeek:type:`Cluster::LogSerializerTag`: :zeek:type:`enum`
 ================================================================= ====================================================================
 
 Redefinitions
 #############
 ======================================= ======================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The cluster logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Cluster::LOG`
 ======================================= ======================================
 
@@ -518,9 +518,9 @@ Hooks
    This hook is called when the local node connects to other nodes based on
    the given cluster layout. Breaking from the hook will prevent connection
    establishment.
-   
+
    This hook only applies to the Broker cluster backend.
-   
+
 
    :param connectee: The node to connect to.
 
@@ -540,13 +540,13 @@ Functions
 
    Sets up a cluster-enabled data store.  They will also still properly
    function for uses that are not operating a cluster.
-   
+
 
    :param name: the name of the data store to create.
-   
+
 
    :param persistent: whether the data store must be persistent.
-   
+
 
    :returns: the store's information.  For master stores, the store will be
             ready to use immediately.  For clones, the store field will not
@@ -575,9 +575,9 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
    Initialize the cluster backend.
-   
+
    Cluster backends usually invoke this from a :zeek:see:`zeek_init` handler.
-   
+
 
    :returns: T on success, else F.
 
@@ -588,7 +588,7 @@ Functions
 
    This function can be called at any time to determine if the cluster
    framework is being enabled for this run.
-   
+
 
    :returns: True if :zeek:id:`Cluster::node` has been set.
 
@@ -598,10 +598,10 @@ Functions
    :Type: :zeek:type:`function` (options: :zeek:type:`Cluster::WebSocketServerOptions`) : :zeek:type:`bool`
 
    Start listening on a WebSocket address.
-   
+
 
    :param options: The server :zeek:see:`Cluster::WebSocketServerOptions` to use.
-   
+
 
    :returns: T on success, else F.
 
@@ -614,7 +614,7 @@ Functions
    metrics port for Prometheus being used by current Zeek instance. If
    :zeek:id:`Cluster::is_enabled` returns false or the node isn't found,
    ``0/unknown`` is returned.
-   
+
 
    :returns: The metrics port used by the calling node.
 
@@ -627,7 +627,7 @@ Functions
    cluster node the current Zeek instance is going to be acting as.
    If :zeek:id:`Cluster::is_enabled` returns false, then
    :zeek:enum:`Cluster::NONE` is returned.
-   
+
 
    :returns: The :zeek:type:`Cluster::NodeType` the calling node acts as.
 
@@ -645,7 +645,7 @@ Functions
    :Attributes: :zeek:attr:`&redef`
 
    Function returning this node's identifier.
-   
+
    By default this is :zeek:see:`Broker::node_id`, but can be
    redefined by other cluster backends. This identifier should be
    a short lived identifier that resets when a node is restarted.
@@ -657,10 +657,10 @@ Functions
    :Attributes: :zeek:attr:`&redef`
 
    Retrieve the topic associated with a specific node in the cluster.
-   
+
 
    :param name: the name of the cluster node (e.g. "manager").
-   
+
 
    :returns: a topic string that may used to send a message exclusively to
             a given cluster node.
@@ -672,10 +672,10 @@ Functions
 
    Retrieve the cluster-level naming of a node based on its node ID,
    a backend-specific identifier.
-   
+
 
    :param id: the node ID of a peer.
-   
+
 
    :returns: the :zeek:see:`Cluster::NamedNode` for the requested node, if
             known, otherwise a "null" instance with an empty name field.
@@ -687,11 +687,11 @@ Functions
    :Attributes: :zeek:attr:`&redef`
 
    Retrieve the topic associated with a specific node in the cluster.
-   
+
 
    :param id: the id of the cluster node (from :zeek:see:`Broker::EndpointInfo`
        or :zeek:see:`Broker::node_id`.
-   
+
 
    :returns: a topic string that may used to send a message exclusively to
             a given cluster node.

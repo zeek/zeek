@@ -34,10 +34,10 @@ Events
    analyzers exceeds :zeek:see:`SMB::max_dce_rpc_analyzers`.
    Occurrence of this event may indicate traffic loss, traffic load-balancing
    issues or abnormal SMB protocol usage.
-   
+
 
    :param c: The connection.
-   
+
 
 .. zeek:id:: smb_pipe_connect_heuristic
    :source-code: base/protocols/smb/main.zeek 243 247
@@ -51,7 +51,7 @@ Events
    the DCE_RPC analyzer. This heuristic can be tuned by adding or
    removing "named pipe" names from the :zeek:see:`SMB::pipe_filenames`
    const.
-   
+
 
    :param c: The connection.
 

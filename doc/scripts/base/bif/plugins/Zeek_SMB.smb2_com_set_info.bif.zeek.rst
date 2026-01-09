@@ -54,21 +54,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *allocation* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param alloc_size: desired allocation size.
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_delete
@@ -78,22 +78,22 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *delete* subtype.
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
 
-   :param delete_pending: A boolean value to indicate that a file should be deleted 
+
+   :param delete_pending: A boolean value to indicate that a file should be deleted
                    when it's closed if set to T.
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_endoffile
@@ -103,21 +103,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *end_of_file* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param end_of_file: the absolute new end of file position as a byte offset from the start of the file
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_fscontrol
@@ -127,21 +127,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *fs_control* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param fs_control: contains fs_control info (see MS-FCC 2.5.2)
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_fsobjectid
@@ -151,24 +151,24 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *fs_object_id* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param object_id: contains a 16-bytes GUID that identifies the file system volume (see MS-FCC 2.5.6)
-   
+
 
    :param extended_info: contains extended information on the file system volume
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link
 
 .. zeek:id:: smb2_file_fullea
@@ -178,21 +178,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *full_EA* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param FileEAs: a vector of extended file attributes as defined in MS-FSCC:2.4.15
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_link
@@ -202,24 +202,24 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *link* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param root_directory: contains the file handle for the directory where the link is to be created
-   
+
 
    :param file_name: contains the name to be assigned to the newly created link
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_mode
@@ -229,21 +229,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *mode* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param mode: specifies how the file will subsequently be accessed.
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_pipe
@@ -253,24 +253,24 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *pipe* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param read_mode: specifies if data must be read as a stream of bytes or messages
-   
+
 
    :param completion_mode: specifies if blocking mode must be enabled or not
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_position
@@ -280,21 +280,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *position* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param current_byte_offset: specifies the offset, in bytes, of the file pointer from the beginning of the file
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_rename
@@ -304,21 +304,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *rename* subtype.
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: A GUID to identify the file.
-   
+
 
    :param dst_filename: The filename to rename the file into.
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_sattr
@@ -328,24 +328,24 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *file* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param times: Timestamps associated with the file in question.
-   
+
 
    :param attrs: File attributes.
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_shortname
@@ -355,21 +355,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *short_name* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param file_name: specifies the name of the file to be changed
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 .. zeek:id:: smb2_file_validdatalength
@@ -379,21 +379,21 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *set_info* of the *valid_data_length* subtype
-   
+
    For more information, see MS-SMB2:2.2.39
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The SMB2 GUID for the file.
-   
+
 
    :param valid_data_length: specifies the new valid data length for the file
-   
+
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link smb2_file_fsobjectid
 
 

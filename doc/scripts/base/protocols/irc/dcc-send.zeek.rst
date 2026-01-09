@@ -20,16 +20,16 @@ Summary
 Redefinitions
 #############
 =========================================== =============================================================================
-:zeek:type:`IRC::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`IRC::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`IRC::Info`
-                                            
+
                                               dcc_file_name: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 DCC filename requested.
-                                            
+
                                               dcc_file_size: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Size of the DCC transfer as indicated by the sender.
-                                            
+
                                               dcc_mime_type: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Sniffed mime type of the file.
 =========================================== =============================================================================

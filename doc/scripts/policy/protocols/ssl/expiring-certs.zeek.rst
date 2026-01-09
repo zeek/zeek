@@ -25,16 +25,16 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ==============================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSL::Certificate_Expired`:
                                                Indicates that a certificate's NotValidAfter date has lapsed
                                                and the certificate is now invalid.
-                                             
+
                                              * :zeek:enum:`SSL::Certificate_Expires_Soon`:
                                                Indicates that a certificate is going to expire within
                                                :zeek:id:`SSL::notify_when_cert_expiring_in`.
-                                             
+
                                              * :zeek:enum:`SSL::Certificate_Not_Valid_Yet`:
                                                Indicates that a certificate's NotValidBefore date is future
                                                dated.

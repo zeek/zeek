@@ -49,14 +49,14 @@ Redefinitions
 #############
 ============================================ ========================================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The FTP protocol logging stream identifier.
-                                             
+
                                              * :zeek:enum:`FTP::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                ftp: :zeek:type:`FTP::Info` :zeek:attr:`&optional`
-                                             
+
                                                ftp_data_reuse: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
 ============================================ ========================================================================================
 

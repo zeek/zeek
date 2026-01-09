@@ -35,18 +35,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *find first2*. This transaction is used to begin
    a search for file(s) within a directory or for a directory
-   
+
    For more information, see MS-CIFS:2.2.6.2
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param args: A record data structure with arguments given to the command.
-   
+
    .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request
 
@@ -58,18 +58,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *get DFS referral*. This transaction is used
    to request a referral for a disk object in DFS.
-   
+
    For more information, see MS-CIFS:2.2.6.16
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param file_name: File name the request is in reference to.
-   
+
    .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_query_path_info_request
 
@@ -81,18 +81,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 *transaction2* requests of subtype *query path info*. This transaction is used to
    get information about a specific file or directory.
-   
+
    For more information, see MS-CIFS:2.2.6.6
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
 
-   :param file_name: File name the request is in reference to. 
-   
+
+   :param file_name: File name the request is in reference to.
+
    .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
       smb1_trans2_get_dfs_referral_request
 
@@ -108,18 +108,18 @@ Events
    Transaction Subprotocol Commands, these commands allow clients to set and retrieve Extended
    Attribute key/value pairs, make use of long file names (longer than the original 8.3 format
    names), and perform directory searches, among other tasks.
-   
+
    For more information, see MS-CIFS:2.2.4.46
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param sub_cmd: The sub command, some are parsed and have their own events.
-   
+
    .. zeek:see:: smb1_message smb1_trans2_find_first2_request smb1_trans2_query_path_info_request
       smb1_trans2_get_dfs_referral_request smb1_transaction_request
 

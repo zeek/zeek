@@ -29,10 +29,10 @@ Functions
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`bool`
 
    Checks whether a storage backend was opened in forced-synchronous mode.
-   
+
 
    :param backend: A handle to the backend to check.
-   
+
 
    :returns: T if the forced_synchronous option was set to T, F otherwise or if the
             handle is invalid.
@@ -43,10 +43,10 @@ Functions
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`bool`
 
    Checks whether a storage backend is open.
-   
+
 
    :param backend: A handle to the backed to check.
-   
+
 
    :returns: T if the backend is open, F if the backend is not open or if the handle
             is invalid.

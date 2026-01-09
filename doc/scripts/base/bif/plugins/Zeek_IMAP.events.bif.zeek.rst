@@ -30,10 +30,10 @@ Events
 
    Generated when a server sends a capability list to the client,
    after being queried using the CAPABILITY command.
-   
+
 
    :param c: The connection.
-   
+
 
    :param capabilities: The list of IMAP capabilities as sent by the server.
 
@@ -44,7 +44,7 @@ Events
 
    Generated when a IMAP connection goes encrypted after a successful
    StartTLS exchange between the client and the server.
-   
+
 
    :param c: The connection.
 

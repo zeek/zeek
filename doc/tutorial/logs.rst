@@ -42,8 +42,9 @@ First, run Zeek on the pcap from the quickstart for demonstration:
    1747147654.275660       Cr9BdR12amVJ5y2dE9      192.168.1.8     52918   192.0.78.150    80       tcp     http    0.100107        73      377     SF      T       F       0       ShADadFf 6       337     4       549     -       6
    #close  2025-12-05-16-38-23
 
-This has a lot of information. We can pipe this through ``zeek-cut`` in
-order to get more condensed information:
+This has a lot of information (and looks a bit confusing here, since
+metadata in the TSV files starts with a ``#`` character). We can pipe
+this through ``zeek-cut`` in order to get more condensed information:
 
 .. code:: console
 
@@ -55,7 +56,7 @@ order to get more condensed information:
 This removes much of the random TSV declarations (like
 ``#set_separator``). The header name for each log column is provided due
 to the ``-m`` flag. You can also ask ``zeek-cut`` to only provide
-certain fields. In this case, we may only care about the uid and ip
+certain fields. In this case, we may only care about the UID and IP
 addresses. You can ask for just those fields:
 
 .. code:: console
@@ -142,7 +143,6 @@ log, we can do the following:
 .. code:: console
 
    # cat zeek-dns-log.schema.json | jq
-
    {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
      "title": "Schema for Zeek dns.log",
@@ -175,8 +175,8 @@ log, we can do the following:
        ...
    }
 
-Most fields are omitted with ``...`` for brevity, but two fields were
-included: ``uid`` and ``answers``. Let's use one of the testing PCAPs to
+The above omits most fields with ``...`` for brevity, but it shows two
+fields: ``uid`` and ``answers``. Let's use one of the testing PCAPs to
 make some DNS logs:
 
 .. code:: console
@@ -193,7 +193,9 @@ Then, we can find these in our DNS logs and examine the logs via
    Cr3Q4KSOgWL8IEAu2       NAPTR 100 100 s SIPS+D2T _sips._tcp.fp-de-carrier-vodafone.rcs.telephony.goog
 
 From the log schemas, we can tell what fields a particular log has, then
-find the values we need within those logs.
+find the values we need within those logs. Some of the JSON Schema information
+is of course most relevant to JSON data, so let's look at how to make
+Zeek speak JSON next.
 
 ***********
  JSON logs
@@ -228,6 +230,8 @@ you can replicate:
       @load policy/tuning/json-logs
 
    Now, any logs that the cluster creates will be in JSON.
+   Take a look at how that scripts does this! You have already used
+   the same technique in the Zeek invocation setction.
 
 We can use ``jq`` for much more. You can find more about ``jq`` on the
 `JQ homepage <jq_home_>`_. Here we use ``jq`` to print just the
@@ -263,13 +267,15 @@ Customizations <popular-customizations>`.
  Analyzing Logs from Zeekctl
 *****************************
 
-This section analyzed logs created from Zeek invoked on capture files.
+In the above we analyzed logs that Zeek created from capture files.
 However, in a production environment, you will most likely use a cluster
-and analyze the compressed logs from the cluster. To mimic this, you may
-also use ``tcpreplay`` in order to replay traffic onto your cluster,
-then analyze the logs in a similar way. In the tutorial's container, replay
-the quickstart's pcap in between starting and stopping the cluster, like
-so:
+and analyze the compressed logs from the cluster.
+
+To explore this setting, it helps to use the traffic from capture files.
+You can use the ``tcpreplay`` tool to replay recorded traffic onto a network
+interface monitored by your cluster, and then analyze the logs in a similar
+way. In the tutorial's container, replay the quickstart's pcap in between
+starting and stopping the cluster, like so:
 
 .. code:: console
 
@@ -327,10 +333,10 @@ look at ``conn.log``'s contents from the command line, then pipe these into
  Zeek's Core Logs
 ******************
 
-Zeek ships with a number of logs by default-–-no configuration
+Zeek ships with :ref:`dozens of logs <log-files>` by default---no configuration
 necessary. The most important log is called ``conn.log``. This captures
-“layer 3” and “layer 4” elements, such as who is talking to whom, for
-how long, and with what protocol. In order to learn more about what
+“layer 3” and “layer 4” elements, such as who is talking to whom and how much,
+for how long, and with what protocols. In order to learn more about what
 ``conn.log`` offers, let's use the logschema package again:
 
 .. code:: console
@@ -425,5 +431,5 @@ can correlate an HTTP connection with its ``conn.log`` entries,
 ``weird.log`` weirds, and more.
 
 However, there are simply too many core logs, and too many ways to use
-them, to cover here. For more information, see the :doc:`logs section
-</logs/index>`.
+them, to cover here. For more information on the most important ones,
+see the :doc:`logs section </logs/index>`.

@@ -65,3 +65,5 @@ Trace Index/Sources:
 - tcp/ctu-64702-888.pcap
   Extracted from CTU-SME-11 after observing ConnSize differences when
   fixing is_orig behavior (port 64702 and port 888).
+- igmp/multicast-igmp-version-membership-query-and-report.pcap
+  from https://www.cloudshark.org/captures/7bb04610bb7a for testing IGMP v1

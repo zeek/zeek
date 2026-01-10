@@ -645,5 +645,10 @@ inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* del
     return split(std::wstring_view(s), std::wstring_view(delim));
 }
 
+/**
+ * Returns a string version of a double value following all of the rules from the modp_dtoa methods.
+ */
+std::string double_to_str(double v, int precision, bool no_exp);
+
 } // namespace util
 } // namespace zeek

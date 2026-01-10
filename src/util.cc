@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <filesystem>
 #include <iostream>
 #include <ranges>
@@ -1992,6 +1993,77 @@ string escape_utf8(string_view val, int flags) {
  * Returns whether two double values are approximately equal within some tolerance value.
  */
 bool approx_equal(double a, double b, double tolerance) { return std::abs(a - b) < std::abs(tolerance); }
+
+std::string double_to_str(double d, int precision, bool no_exp) {
+    // Short-circuit check for NaN, which should always return the same string
+    if ( std::isnan(d) )
+        return "nan";
+
+    // work with positive values and add the negative sign at the end if needed. Also special
+    // case negative zero so it ends up positive in the end.
+    bool neg = false;
+    if ( d < 0 ) {
+        neg = true;
+        d = -d;
+    }
+    else if ( d == -0.0 )
+        d = 0.0;
+
+    size_t buf_size = 32;
+
+    while ( true ) {
+        // Double the buffer size. This defaults to 64 bytes, which should big
+        // enough for almost every string, but there might be sometimes we
+        // have to be larger.
+        buf_size *= 2;
+
+        // Buffer needs enough chars to store max. possible "double" value
+        // of 1.79e308 without using scientific notation.
+        std::string res = "-";
+        res.resize(buf_size);
+
+        char* start = res.data();
+        char* end = res.data() + buf_size;
+        if ( neg )
+            start += 1;
+
+        std::to_chars_result result;
+        if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
+            result = std::to_chars(start, end, d, std::chars_format::scientific);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
+        }
+        else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
+            result = std::to_chars(start, end, d, std::chars_format::general, precision);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
+        }
+        else {
+            result = std::to_chars(start, end, d, std::chars_format::fixed, precision);
+            if ( result.ec == std::errc::value_too_large )
+                continue;
+
+            *result.ptr = '\0';
+            res.resize(result.ptr - res.data());
+
+            if ( res.ends_with('0') ) {
+                res.erase(std::ranges::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(),
+                          res.end());
+                if ( res.back() == '.' )
+                    res.pop_back();
+            }
+        }
+
+        return res;
+    }
+}
+
 
 TEST_SUITE("util") {
     TEST_CASE("extract_ip") {

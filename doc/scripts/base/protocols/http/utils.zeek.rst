@@ -33,10 +33,10 @@ Functions
 
    Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
    handle edge cases such as proxied requests appropriately.
-   
+
 
    :param rec: An :zeek:type:`HTTP::Info` record.
-   
+
 
    :returns: A URL, not prefixed by ``"http://"``.
 
@@ -47,10 +47,10 @@ Functions
 
    Creates a URL from an :zeek:type:`HTTP::Info` record.  This should
    handle edge cases such as proxied requests appropriately.
-   
+
 
    :param rec: An :zeek:type:`HTTP::Info` record.
-   
+
 
    :returns: A URL prefixed with ``"http://"``.
 
@@ -68,14 +68,14 @@ Functions
 
    Given a string containing a series of key-value pairs separated
    by "=", this function can be used to parse out all of the key names.
-   
+
 
    :param data: The raw data, such as a URL or cookie value.
-   
+
 
    :param kv_splitter: A regular expression representing the separator between
                 key-value pairs.
-   
+
 
    :returns: A vector of strings containing the keys.
 

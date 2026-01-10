@@ -122,11 +122,11 @@ State Variables
 
    A set of protocol, packet or file analyzer tags requested to
    be enabled during startup.
-   
+
    By default, all analyzers in Zeek are enabled. When all analyzers
    are disabled through :zeek:see:`Analyzer::disable_all`, this set
    set allows to record analyzers to be enabled during Zeek startup.
-   
+
    This set can be added to via :zeek:see:`redef`.
 
 Events
@@ -138,20 +138,20 @@ Events
 
    Event that is raised when an analyzer raised a service violation and was
    removed.
-   
+
    The event is also raised if the analyzer already was no longer active by
    the time that the violation was handled - so if it happens at the very
    end of a connection.
-   
+
    Currently this event is only raised for protocol analyzers, as packet
    and file analyzers are never actively removed/disabled.
-   
+
 
    :param ts: time at which the violation occurred
-   
+
 
    :param atype: atype: The analyzer tag, such as ``Analyzer::ANALYZER_HTTP``.
-   
+
 
    :param info: Details about the violation. This record should include a :zeek:type:`connection`
 
@@ -163,7 +163,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`table` [:zeek:type:`AllAnalyzers::Tag`] of :zeek:type:`set` [:zeek:type:`port`]
 
    Returns a table of all ports-to-analyzer mappings currently registered.
-   
+
 
    :returns: A table mapping each analyzer to the set of ports
             registered for it.
@@ -176,10 +176,10 @@ Functions
    Automatically creates a BPF filter for the specified protocol based
    on the data supplied for the protocol through the
    :zeek:see:`Analyzer::register_for_ports` function.
-   
+
 
    :param tag: The analyzer tag.
-   
+
 
    :returns: BPF filter string.
 
@@ -190,10 +190,10 @@ Functions
 
    Disables an analyzer. Once disabled, the analyzer will not be used
    further for analysis of future connections.
-   
+
 
    :param tag: The tag of the analyzer to disable.
-   
+
 
    :returns: True if the analyzer was successfully disabled.
 
@@ -204,10 +204,10 @@ Functions
 
    Enables an analyzer. Once enabled, the analyzer may be used for analysis
    of future connections as decided by Zeek's dynamic protocol detection.
-   
+
 
    :param tag: The tag of the analyzer to enable.
-   
+
 
    :returns: True if the analyzer was successfully enabled.
 
@@ -226,14 +226,14 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`AllAnalyzers::Tag`
 
    Translates an analyzer's name to a tag enum value.
-   
+
    The analyzer is assumed to exist; call
    :zeek:see:`Analyzer::has_tag` first to verify that name is a
    valid analyzer name.
-   
+
 
    :param name: The analyzer name.
-   
+
 
    :returns: The analyzer tag corresponding to the name.
 
@@ -243,13 +243,13 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`bool`
 
    Check whether the given analyzer name exists.
-   
+
    This can be used before calling :zeek:see:`Analyzer::get_tag` to
    verify that the given name as string is a valid analyzer name.
-   
+
 
    :param name: The analyzer name.
-   
+
 
    :returns: True if the given name is a valid analyzer, else false.
 
@@ -259,12 +259,12 @@ Functions
    :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`string`
 
    Translates an analyzer type to a string with the analyzer's type.
-   
+
    Possible values are "protocol", "packet", "file", or "unknown".
-   
+
 
    :param tag: The analyzer tag.
-   
+
 
    :returns: The analyzer kind corresponding to the tag.
 
@@ -274,10 +274,10 @@ Functions
    :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`string`
 
    Translates an analyzer type to a string with the analyzer's name.
-   
+
 
    :param tag: The analyzer tag.
-   
+
 
    :returns: The analyzer name corresponding to the tag.
 
@@ -290,13 +290,13 @@ Functions
    connection on this port is seen, the analyzer will be automatically
    assigned to parsing it. The function *adds* to all ports already
    registered, it doesn't replace them.
-   
+
 
    :param tag: The tag of the analyzer.
-   
+
 
    :param p: The well-known port to associate with the analyzer.
-   
+
 
    :returns: True if the port was successfully registered.
 
@@ -309,19 +309,19 @@ Functions
    connection on one of these ports is seen, the analyzer will be
    automatically assigned to parsing it. The function *adds* to all ports
    already registered, it doesn't replace them.
-   
+
 
    :param tag: The tag of the analyzer.
-   
+
 
    :param server_ports: The set of well-known server ports to associate with the analyzer.
                  These ports will automatically be added to :zeek:see:`likely_server_ports`.
-   
+
 
    :param non_server_ports: The set of well-known non-server ports (e.g., client ports)
                     to associate with the analyzer. These ports will not be added
                     to :zeek:see:`likely_server_ports`.
-   
+
 
    :returns: True if the ports were successfully registered.
 
@@ -332,10 +332,10 @@ Functions
 
    Returns a set of all well-known ports currently registered for a
    specific analyzer.
-   
+
 
    :param tag: The tag of the analyzer.
-   
+
 
    :returns: The set of ports.
 
@@ -346,24 +346,24 @@ Functions
 
    Schedules an analyzer for a future connection originating from a
    given IP address and port.
-   
+
 
    :param orig: The IP address originating a connection in the future.
          0.0.0.0 can be used as a wildcard to match any originator address.
-   
+
 
    :param resp: The IP address responding to a connection from *orig*.
-   
+
 
    :param resp_p: The destination port at *resp*.
-   
+
 
    :param analyzer: The analyzer ID.
-   
+
 
    :param tout: A timeout interval after which the scheduling request will be
          discarded if the connection has not yet been seen.
-   
+
 
    :returns: True if successful.
 

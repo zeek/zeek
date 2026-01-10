@@ -31,15 +31,15 @@ Events
    connection represented by UID in the SMB Header. The server releases all locks and closes
    all files currently open by this user, disconnects all tree connects, cancels any outstanding
    requests for this UID, and invalidates the UID.
-   
+
    For more information, see MS-CIFS:2.2.4.54
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Indicates which host sent the logoff message.
-   
+
    .. zeek:see:: smb1_message
 
 

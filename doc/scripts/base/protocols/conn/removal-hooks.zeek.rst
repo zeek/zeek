@@ -27,10 +27,10 @@ Types
 Redefinitions
 #############
 ============================================ =========================================================================================
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                removal_hooks: :zeek:type:`set` [:zeek:type:`Conn::RemovalHook`] :zeek:attr:`&optional`
 ============================================ =========================================================================================
 
@@ -68,14 +68,14 @@ Functions
 
    Register a hook that will later be called during a connection's
    :zeek:see:`connection_state_remove` event.
-   
+
 
    :param c: The associated connection whose :zeek:see:`connection_state_remove`
       event should trigger a callback to *hk*.
-   
+
 
    :param hk: The hook function to use as a callback.
-   
+
 
    :returns: false if the provided hook was previously registered, else true.
 
@@ -87,14 +87,14 @@ Functions
    Unregister a hook that would have been called during a connection's
    :zeek:see:`connection_state_remove` event such that it will no longer
    be called.
-   
+
 
    :param c: The associated connection whose :zeek:see:`connection_state_remove`
       event could have triggered a callback to *hk*.
-   
+
 
    :param hk: The hook function that would have been used as a callback.
-   
+
 
    :returns: true if the provided hook was previously registered, else false.
 

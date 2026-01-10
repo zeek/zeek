@@ -23,7 +23,7 @@ Types
 Functions
 #########
 ============================================================== ==================================================
-:zeek:id:`decompose_uri`: :zeek:type:`function`                
+:zeek:id:`decompose_uri`: :zeek:type:`function`
 :zeek:id:`find_all_urls`: :zeek:type:`function`                Extracts URLs discovered in arbitrary text.
 :zeek:id:`find_all_urls_without_scheme`: :zeek:type:`function` Extracts URLs discovered in arbitrary text without
                                                                the URL scheme included.

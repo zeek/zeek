@@ -87,10 +87,10 @@ Events
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`Supervisor::NodeConfig`)
 
    Send a request to a remote Supervisor process to create a node.
-   
+
 
    :param reqid: an arbitrary string that will be directly echoed in the response
-   
+
 
    :param node: the desired configuration for the new supervised node process.
 
@@ -101,10 +101,10 @@ Events
 
    Handle a response from a Supervisor process that received
    :zeek:see:`SupervisorControl::create_request`.
-   
+
 
    :param reqid: an arbitrary string matching the value in the original request.
-   
+
 
    :param result: the return value of the remote call to
            :zeek:see:`Supervisor::create`.
@@ -115,10 +115,10 @@ Events
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
    Send a request to a remote Supervisor process to destroy a node.
-   
+
 
    :param reqid: an arbitrary string that will be directly echoed in the response
-   
+
 
    :param node: the name of the node to destroy or empty string to mean "all
          nodes".
@@ -130,10 +130,10 @@ Events
 
    Handle a response from a Supervisor process that received
    :zeek:see:`SupervisorControl::destroy_request`.
-   
+
 
    :param reqid: an arbitrary string matching the value in the original request.
-   
+
 
    :param result: the return value of the remote call to
            :zeek:see:`Supervisor::destroy`.
@@ -147,12 +147,12 @@ Events
    status message update from the stem, indicating node has
    (re-)started. This is the remote equivalent of
    :zeek:see:`Supervisor::node_status`.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
          child process the stdout line is associated.
-   
+
 
    :param pid: the process ID the stem reported for this node.
 
@@ -162,10 +162,10 @@ Events
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
    Send a request to a remote Supervisor process to restart a node.
-   
+
 
    :param reqid: an arbitrary string that will be directly echoed in the response
-   
+
 
    :param node: the name of the node to restart or empty string to mean "all
          nodes".
@@ -177,10 +177,10 @@ Events
 
    Handle a response from a Supervisor process that received
    :zeek:see:`SupervisorControl::restart_request`.
-   
+
 
    :param reqid: an arbitrary string matching the value in the original request.
-   
+
 
    :param result: the return value of the remote call to
            :zeek:see:`Supervisor::restart`.
@@ -191,10 +191,10 @@ Events
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, node: :zeek:type:`string`)
 
    Send a request to a remote Supervisor process to retrieve node status.
-   
+
 
    :param reqid: an arbitrary string that will be directly echoed in the response
-   
+
 
    :param node: the name of the node to get status of or empty string to mean "all
          nodes".
@@ -206,10 +206,10 @@ Events
 
    Handle a response from a Supervisor process that received
    :zeek:see:`SupervisorControl::status_request`.
-   
+
 
    :param reqid: an arbitrary string matching the value in the original request.
-   
+
 
    :param result: the return value of the remote call to
            :zeek:see:`Supervisor::status`.

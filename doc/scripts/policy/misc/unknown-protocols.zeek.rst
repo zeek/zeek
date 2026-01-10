@@ -17,21 +17,21 @@ Summary
 Types
 #####
 ======================================================= =
-:zeek:type:`UnknownProtocol::Info`: :zeek:type:`record` 
+:zeek:type:`UnknownProtocol::Info`: :zeek:type:`record`
 ======================================================= =
 
 Redefinitions
 #############
 ======================================= ===================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`UnknownProtocol::LOG`
 ======================================= ===================================
 
 Hooks
 #####
 ==================================================================== =
-:zeek:id:`UnknownProtocol::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`UnknownProtocol::log_policy`: :zeek:type:`Log::PolicyHook`
 ==================================================================== =
 
 

@@ -35,9 +35,9 @@ Hooks
    :Type: :zeek:type:`hook` (topic: :zeek:type:`string`) : :zeek:type:`bool`
 
    A hook invoked for every :zeek:see:`Cluster::subscribe` call.
-   
+
    Breaking from this hook has no effect.
-   
+
 
    :param topic: The topic string as given to :zeek:see:`Cluster::subscribe`.
 
@@ -47,9 +47,9 @@ Hooks
    :Type: :zeek:type:`hook` (topic: :zeek:type:`string`) : :zeek:type:`bool`
 
    A hook invoked for every :zeek:see:`Cluster::subscribe` call.
-   
+
    Breaking from this hook has no effect.
-   
+
 
    :param topic: The topic string as given to :zeek:see:`Cluster::subscribe`.
 
@@ -61,10 +61,10 @@ Functions
    :Type: :zeek:type:`function` (topic: :zeek:type:`string`) : :zeek:type:`bool`
 
    Subscribe to the given topic.
-   
+
 
    :param topic: The topic to subscribe to.
-   
+
 
    :returns: T on success, else F.
 
@@ -74,10 +74,10 @@ Functions
    :Type: :zeek:type:`function` (topic: :zeek:type:`string`) : :zeek:type:`bool`
 
    Unsubscribe from the given topic.
-   
+
 
    :param topic: The topic to unsubscribe from.
-   
+
 
    :returns: T on success, else F.
 

@@ -20,19 +20,19 @@ Redefinable Options
 Types
 #####
 ============================================= =
-:zeek:type:`MySQL::Info`: :zeek:type:`record` 
+:zeek:type:`MySQL::Info`: :zeek:type:`record`
 ============================================= =
 
 Redefinitions
 #############
 ============================================ ========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`mysql::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                mysql: :zeek:type:`MySQL::Info` :zeek:attr:`&optional`
 ============================================ ========================================================
 
@@ -47,7 +47,7 @@ Hooks
 #####
 ================================================================ ========================
 :zeek:id:`MySQL::finalize_mysql`: :zeek:type:`Conn::RemovalHook` MySQL finalization hook.
-:zeek:id:`MySQL::log_policy`: :zeek:type:`Log::PolicyHook`       
+:zeek:id:`MySQL::log_policy`: :zeek:type:`Log::PolicyHook`
 ================================================================ ========================
 
 

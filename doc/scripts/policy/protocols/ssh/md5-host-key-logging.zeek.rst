@@ -14,10 +14,10 @@ Summary
 Redefinitions
 #############
 =========================================== ========================================================================
-:zeek:type:`SSH::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`SSH::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`SSH::Info`
-                                            
+
                                               host_key: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 The server's key fingerprint
 =========================================== ========================================================================

@@ -13,10 +13,10 @@ Summary
 Redefinitions
 #############
 ============================================== =======================================================================
-:zeek:type:`SMB::CmdInfo`: :zeek:type:`record` 
-                                               
+:zeek:type:`SMB::CmdInfo`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`SMB::CmdInfo`
-                                               
+
                                                  smb1_offered_dialects: :zeek:type:`string_vec` :zeek:attr:`&optional`
                                                    Dialects offered by the client.
 ============================================== =======================================================================

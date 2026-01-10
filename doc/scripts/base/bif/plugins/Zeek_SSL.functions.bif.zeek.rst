@@ -33,13 +33,13 @@ Functions
 
    Decodes a DER-encoded distinguished name into an ASCII string,
    using the RFC2253 representation
-   
+
 
    :param dn: DER encoded distinguished name
-   
+
 
    :returns: Ascii representation on success, empty string on failure
-   
+
    .. zeek:see:: ssl_certificate_request
 
 .. zeek:id:: set_keys
@@ -49,13 +49,13 @@ Functions
 
    Set the decryption keys that should be used to decrypt
    TLS application data in the connection.
-   
+
 
    :param c: The affected connection
-   
+
 
    :param keys: The key buffer as derived via TLS PRF.
-   
+
 
    :returns: T on success, F on failure.
 
@@ -66,13 +66,13 @@ Functions
 
    Set the secret that should be used to derive keys for the connection.
    (For TLS 1.2 this is the pre-master secret).
-   
+
 
    :param c: The affected connection
-   
+
 
    :param secret: secret to set
-   
+
 
    :returns: T on success, F on failure.
 
@@ -83,10 +83,10 @@ Functions
 
    Sets if the SSL analyzer should consider the connection established (handshake
    finished successfully).
-   
+
 
    :param c: The SSL connection.
-   
+
 
    :returns: T on success, F on failure.
 

@@ -112,7 +112,7 @@ Events
    :Type: :zeek:type:`event` (path: :zeek:type:`string`)
 
    An event that signals a pcap file is done being processed.
-   
+
 
    :param path: the filesystem path of the pcap file
 
@@ -122,22 +122,22 @@ Events
    :Type: :zeek:type:`event` (atype: :zeek:type:`AllAnalyzers::Tag`, info: :zeek:type:`AnalyzerConfirmationInfo`)
 
    Generated when an analyzer confirms successful parsing of a protocol, file, or packets.
-   
+
 
    :param atype: The type of the analyzer confirming analysis. The value may be associated
           with a protocol, file or packet analyzer.
-   
+
 
    :param info: Details about the confirmation, which may include a :zeek:type:`connection`
          object or :zeek:type:`fa_file` object related to the confirmation.
-   
+
    .. note::
-   
+
       For packet analyzers, a confirmation is only raised if there's a session
       (connection) associated with a given packet. Confirmations are raised only
       once per session. Tunnel protocols like VXLAN or Geneve are examples for
       this behavior.
-   
+
    .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
 
 .. zeek:id:: analyzer_violation_info
@@ -146,16 +146,16 @@ Events
    :Type: :zeek:type:`event` (atype: :zeek:type:`AllAnalyzers::Tag`, info: :zeek:type:`AnalyzerViolationInfo`)
 
    Generated for analyzer violations when parsing of a protocol, file, or packet.
-   
+
 
    :param atype: The type of the analyzer reporting the violation. The value may be associated
           with a protocol, file or packet analyzer.
-   
+
 
    :param info: Details about the violation. This record may include a :zeek:type:`connection`
          object or :zeek:type:`fa_file` and optionally the raw data as :zeek:type:`string`
          related to this violation.
-   
+
    .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
 
 .. zeek:id:: anonymization_mapping
@@ -173,16 +173,16 @@ Events
    Generated when a TCP connection terminated, passing on statistics about the
    two endpoints. This event is always generated when Zeek flushes the internal
    connection state, independent of how a connection terminates.
-   
+
 
    :param c: The connection.
-   
+
 
    :param os: Statistics for the originator endpoint.
-   
+
 
    :param rs: Statistics for the responder endpoint.
-   
+
    .. zeek:see:: connection_state_remove
 
 .. zeek:id:: conn_weird
@@ -196,24 +196,24 @@ Events
    protocol's specification, it raises one of the ``*_weird`` events to report
    that. This event is raised if the activity is tied directly to a specific
    connection.
-   
+
 
    :param name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
-   
+
 
    :param c: The corresponding connection.
-   
+
 
    :param addl: Optional additional context further describing the situation.
-   
+
 
    :param source: Optional source for the weird. When called by analyzers, this should
            be filled in with the name of the analyzer.
-   
+
    .. zeek:see:: flow_weird net_weird file_weird expired_conn_weird
-   
+
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
       violation could be an attack attempt, it's much more likely that an
@@ -229,10 +229,10 @@ Events
    kept on a connection record for originator and responder, this event
    can be used to update or reset such state. The ``orig`` and ``resp`` fields
    as well as the contents of the ``id`` field reflect the post-flip state.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_established new_connection
 
 .. zeek:id:: connection_flow_label_changed
@@ -242,19 +242,19 @@ Events
 
    Generated for a connection over IPv6 when one direction has changed
    the flow label that it's using.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
 
    :param old_label: The old flow label that the endpoint was using.
-   
+
 
    :param new_label: The new flow label that the endpoint is using.
-   
+
    .. zeek:see:: connection_established new_connection
 
 .. zeek:id:: connection_reused
@@ -265,10 +265,10 @@ Events
    Generated when a connection 4-tuple is reused. This event is raised when Zeek
    sees a new TCP session or UDP flow using a 4-tuple matching that of an
    earlier connection it still considers active.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -287,10 +287,10 @@ Events
    script-level cleanup that needs to be performed for every connection.  This
    event is generated not only for TCP sessions but also for UDP and ICMP
    flows.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -308,10 +308,10 @@ Events
    Generated in regular intervals during the lifetime of a connection. The
    event is raised each ``connection_status_update_interval`` seconds
    and can be used to check conditions on a regular basis.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -328,10 +328,10 @@ Events
    no activity was seen for an interval of at least
    :zeek:id:`tcp_connection_linger`, and either one endpoint has already
    closed the connection or one side never became active.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -339,9 +339,9 @@ Events
       connection_state_remove connection_status_update
       scheduled_analyzer_applied new_connection new_connection_contents
       partial_connection
-   
+
    .. note::
-   
+
       The precise semantics of this event can be unintuitive as it only
       covers a subset of cases where a connection times out. Often, handling
       :zeek:id:`connection_state_remove` is the better option. That one will be
@@ -358,21 +358,21 @@ Events
    event is raised when Zeek, while reassembling a payload stream, determines
    that a chunk of payload is missing (e.g., because the responder has already
    acknowledged it, even though Zeek didn't see it).
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the gap is on the originator's side.
-   
+
 
    :param seq: The sequence number where the gap starts.
-   
+
 
    :param length: The number of bytes missing.
-   
+
    .. note::
-   
+
       Content gaps tend to occur occasionally for various reasons, including
       broken TCP stacks. If, however, one finds lots of them, that typically
       means that there is a problem with the monitoring infrastructure such as
@@ -388,18 +388,18 @@ Events
    the past.  Zeek keeps an internal DNS cache for host names and IP addresses
    it has already resolved. This event is generated when a subsequent lookup
    returns a different answer than we have stored in the cache.
-   
+
 
    :param dm: A record describing the new resolver result.
-   
+
 
    :param old_addrs: Addresses that used to be part of the returned set for the query
               described by *dm*, but are not anymore.
-   
+
 
    :param new_addrs: Addresses that were not part of the returned set for the query
               described by *dm*, but now are.
-   
+
    .. zeek:see:: dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid
 
@@ -413,10 +413,10 @@ Events
    and IP addresses it has already resolved. This event is generated when
    on a subsequent lookup we receive an answer that is empty even
    though we have already stored a result in the cache.
-   
+
 
    :param dm: A record describing the old resolver result.
-   
+
    .. zeek:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid
 
@@ -430,12 +430,12 @@ Events
    and IP addresses it has already resolved. This event is generated when
    on a subsequent lookup we receive an answer that has a different host
    string than we already have in the cache.
-   
+
 
    :param prev: A record describing the old resolver result.
 
    :param latest: A record describing the new resolver result.
-   
+
    .. zeek:see:: dns_mapping_altered dns_mapping_new_name dns_mapping_unverified
       dns_mapping_valid
 
@@ -448,10 +448,10 @@ Events
    did not. Zeek keeps an internal DNS cache for host names and IP
    addresses it has already resolved. This event is generated when a subsequent
    lookup produces an answer for a query that was marked as failed in the cache.
-   
+
 
    :param dm: A record describing the new resolver result.
-   
+
    .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_unverified
       dns_mapping_valid
 
@@ -465,10 +465,10 @@ Events
    addresses it has already resolved. This event is generated when a
    subsequent lookup does not produce an answer even though we have
    already stored a result in the cache.
-   
+
 
    :param dm: A record describing the old resolver result.
-   
+
    .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_valid
 
@@ -481,10 +481,10 @@ Events
    Zeek keeps an internal DNS cache for host names and IP addresses it has
    already resolved. This event is generated when a subsequent lookup returns
    the same result as stored in the cache.
-   
+
 
    :param dm: A record describing the new resolver result (which matches the old one).
-   
+
    .. zeek:see:: dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified
 
@@ -495,10 +495,10 @@ Events
 
    Generated for any packets using the IPv6 Encapsulating Security Payload (ESP)
    extension header.
-   
+
 
    :param p: Information from the header of the packet that triggered the event.
-   
+
    .. zeek:see:: new_packet tcp_packet ipv6_ext_headers
 
 .. zeek:id:: event_queue_flush_point
@@ -524,27 +524,27 @@ Events
    protocol's specification, it raises one of the ``*_weird`` events to report
    that. This event is raised if the activity is tied directly to a specific
    connection.
-   
+
 
    :param name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
-   
+
 
    :param id: The tuple associated with a previously-expired connection.
-   
+
 
    :param uid: The UID string associated with a previously-expired connection.
-   
+
 
    :param addl: Optional additional context further describing the situation.
-   
+
 
    :param source: Optional source for the weird. When called by analyzers, this should
            be filled in with the name of the analyzer.
-   
+
    .. zeek:see:: flow_weird net_weird file_weird conn_weird
-   
+
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
       violation could be an attack attempt, it's much more likely that an
@@ -556,16 +556,16 @@ Events
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, offset: :zeek:type:`count`, len: :zeek:type:`count`)
 
    Indicates that a chunk of the file is missing.
-   
+
 
    :param f: The file.
-   
+
 
    :param offset: The byte offset from the start of the file at which the gap begins.
-   
+
 
    :param len: The number of missing bytes.
-   
+
    .. zeek:see:: file_new file_over_new_connection file_timeout
       file_sniff file_state_remove file_reassembly_overflow
 
@@ -582,10 +582,10 @@ Events
    :zeek:see:`get_file_handle`/:zeek:see:`set_file_handle` mechanism.  That is,
    Zeek triggers this event whenever a protocol analyzer thinks it's
    encountering a new file.
-   
+
 
    :param f: The file.
-   
+
    .. zeek:see:: file_over_new_connection file_timeout file_gap
       file_sniff file_state_remove
 
@@ -597,7 +597,7 @@ Events
    Generated each time Zeek's script interpreter opens a file. This event is
    triggered only for files opened via :zeek:id:`open`, and in particular not for
    normal log files as created by log writers.
-   
+
 
    :param f: The opened file.
 
@@ -613,16 +613,16 @@ Events
    analyzer defines file identity.  When Zeek encounters a file for the first
    time, it first triggers :zeek:see:`file_new`, then
    :zeek:see:`file_over_new_connection`.
-   
+
 
    :param f: The file.
-   
+
 
    :param c: The new connection over which the file is seen being transferred.
-   
+
 
    :param is_orig: true if the originator of *c* is the one sending the file.
-   
+
    .. zeek:see:: file_new file_timeout file_gap file_sniff
       file_state_remove
 
@@ -633,19 +633,19 @@ Events
 
    Indicates that the file had an overflow of the reassembly buffer.
    This is a specialization of the :zeek:id:`file_gap` event.
-   
+
 
    :param f: The file.
-   
+
 
    :param offset: The byte offset from the start of the file at which the reassembly
            couldn't continue due to running out of reassembly buffer space.
-   
+
 
    :param skipped: The number of bytes of the file skipped over to flush some
             file data and get back under the reassembly buffer size limit.
             This value will also be represented as a gap.
-   
+
    .. zeek:see:: file_new file_over_new_connection file_timeout
       file_sniff file_state_remove file_gap
       Files::enable_reassembler Files::reassembly_buffer_size
@@ -666,13 +666,13 @@ Events
    in an :zeek:type:`fa_file` record. The event will be raised even if content inspection
    has been unable to infer any metadata, in which case the fields in *meta*
    will be left all unset.
-   
+
 
    :param f: The file.
-   
+
 
    :param meta: Metadata that's been discovered about the file.
-   
+
    .. zeek:see:: file_over_new_connection file_timeout file_gap
       file_state_remove
 
@@ -682,10 +682,10 @@ Events
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`)
 
    This event is generated each time file analysis is ending for a given file.
-   
+
 
    :param f: The file.
-   
+
    .. zeek:see:: file_new file_over_new_connection file_timeout file_gap
       file_sniff
 
@@ -696,10 +696,10 @@ Events
 
    Indicates that file analysis has timed out because no activity was seen
    for the file in a while.
-   
+
 
    :param f: The file.
-   
+
    .. zeek:see:: file_new file_over_new_connection file_gap
       file_sniff file_state_remove default_file_timeout_interval
       Files::set_timeout_interval
@@ -714,23 +714,23 @@ Events
    When Zeek's packet analysis encounters activity that
    does not conform to a protocol's specification, it raises one of the
    ``*_weird`` events to report that.
-   
+
 
    :param name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
-   
+
 
    :param f: The corresponding file.
-   
+
 
    :param addl: Additional information related to the weird.
-   
+
 
    :param source: The name of the file analyzer that generated the weird.
-   
+
    .. zeek:see:: flow_weird net_weird conn_weird expired_conn_weird
-   
+
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
       violation could be an attack attempt, it's much more likely that an
@@ -748,27 +748,27 @@ Events
    the ``*_weird`` events to report that. This event is raised if the activity
    is related to a pair of hosts, yet not to a specific connection between
    them.
-   
+
 
    :param name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
-   
+
 
    :param src: The source address corresponding to the activity.
-   
+
 
    :param dst: The destination address corresponding to the activity.
-   
+
 
    :param addl: Optional additional context further describing the situation.
-   
+
 
    :param source: Optional source for the weird. When called by analyzers, this should
            be filled in with the name of the analyzer.
-   
+
    .. zeek:see:: conn_weird net_weird file_weird expired_conn_weird
-   
+
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
       violation could be an attack attempt, it's much more likely that an
@@ -785,16 +785,16 @@ Events
    on a handler for this event to return a string value that uniquely
    identifies a file.  Among all handlers of this event, the last one to
    call :zeek:see:`set_file_handle` will "win".
-   
+
 
    :param tag: The analyzer which is carrying the file data.
-   
+
 
    :param c: The connection which is carrying the file data.
-   
+
 
    :param is_orig: The direction the file data is flowing over the connection.
-   
+
    .. zeek:see:: set_file_handle
 
 .. zeek:id:: ipv6_ext_headers
@@ -805,13 +805,13 @@ Events
    Generated for every IPv6 packet that contains extension headers.
    This is potentially an expensive event to handle if analysing IPv6 traffic
    that happens to utilize extension headers frequently.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param p: Information from the header of the packet that triggered the event.
-   
+
    .. zeek:see:: new_packet tcp_packet packet_contents esp_packet
 
 .. zeek:id:: mobile_ipv6_message
@@ -820,10 +820,10 @@ Events
    :Type: :zeek:type:`event` (p: :zeek:type:`pkt_hdr`)
 
    Generated for any packet using a Mobile IPv6 Mobility Header.
-   
+
 
    :param p: Information from the header of the packet that triggered the event.
-   
+
    .. zeek:see:: new_packet tcp_packet ipv6_ext_headers
 
 .. zeek:id:: net_done
@@ -838,14 +838,14 @@ Events
    signal, or because Zeek was run without a network input source and has
    finished executing any global statements.  This event comes before
    :zeek:see:`zeek_done`.
-   
+
 
    :param t: The time at with the Zeek-termination process started.
-   
+
    .. zeek:see:: zeek_init zeek_done
-   
+
    .. note::
-   
+
       If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
       is not generated.
 
@@ -860,21 +860,21 @@ Events
    does not conform to a protocol's specification, it raises one of the
    ``*_weird`` events to report that. This event is raised if the activity is
    not tied directly to a specific connection or pair of hosts.
-   
+
 
    :param name: A unique name for the specific type of "weird" situation. Zeek's default
          scripts use this name in filtering policies that specify which
          "weirds" are worth reporting.
-   
+
 
    :param addl: Optional additional context further describing the situation.
-   
+
 
    :param source: Optional source for the weird. When called by analyzers, this should
            be filled in with the name of the analyzer.
-   
+
    .. zeek:see:: flow_weird file_weird conn_weird expired_conn_weird
-   
+
    .. note:: "Weird" activity is much more common in real-world network traffic
       than one would intuitively expect. While in principle, any protocol
       violation could be an attack attempt, it's much more likely that an
@@ -888,9 +888,9 @@ Events
    Generated when network time is initialized. The event engine generates this
    event after the network time has been determined but before processing of
    packets is started.
-   
+
    .. zeek:see:: zeek_init network_time
-   
+
 
 .. zeek:id:: new_connection
    :source-code: base/bif/event.bif.zeek 118 118
@@ -901,19 +901,19 @@ Events
    packet of a previously unknown connection. Zeek uses a flow-based definition
    of "connection" here that includes not only TCP sessions but also UDP and
    ICMP flows.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected connection_reset connection_reused
       connection_state_remove connection_status_update connection_timeout
       scheduled_analyzer_applied new_connection_contents partial_connection
-   
+
    .. note::
-   
+
       Handling this event is potentially expensive. For example, during a SYN
       flooding attack, every spoofed SYN packet will lead to a new
       event. Consider to use events like :zeek:id:`connection_established` or
@@ -926,13 +926,13 @@ Events
 
    A meta event generated for events that Zeek raises. This will report all
    events for which at least one handler is defined.
-   
+
    Note that handling this meta event is expensive and should be limited to
    debugging purposes.
-   
+
 
    :param name: The name of the event.
-   
+
 
    :param params: The event's parameters.
 
@@ -944,18 +944,18 @@ Events
    Generated for all packets that make it into Zeek's connection processing. In
    contrast to :zeek:id:`raw_packet` this filters out some more packets that don't
    pass certain sanity checks.
-   
+
    This is a very low-level and expensive event that should be avoided when at all
    possible. It's usually infeasible to handle when processing even medium volumes
    of traffic in real-time. That said, if you work from a trace and want to do some
    packet-level analysis, it may come in handy.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param p: Information from the header of the packet that triggered the event.
-   
+
    .. zeek:see:: tcp_packet packet_contents raw_packet
 
 .. zeek:id:: packet_contents
@@ -969,13 +969,13 @@ Events
    medium volumes of traffic in real-time. It's even worse than
    :zeek:id:`new_packet`. That said, if you work from a trace and want to
    do some packet-level analysis, it may come in handy.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param contents: The raw transport-layer payload.
-   
+
    .. zeek:see:: new_packet tcp_packet
 
 .. zeek:id:: packet_not_processed
@@ -987,7 +987,7 @@ Events
    being marked as processed. Note that this event may lead to unpredictable
    performance spikes, particularly if a network suddenly receives a burst
    of packets that are unprocessed.
-   
+
 
    :param pkt: Data for the unprocessed packet
 
@@ -999,14 +999,14 @@ Events
    Generated each time Zeek's internal profiling log is updated. The file is
    defined by :zeek:id:`profiling_file`, and its update frequency by
    :zeek:id:`profiling_interval` and :zeek:id:`expensive_profiling_multiple`.
-   
+
 
    :param f: The profiling file.
-   
+
 
    :param expensive: True if this event corresponds to heavier-weight profiling as
               indicated by the :zeek:id:`expensive_profiling_multiple` variable.
-   
+
    .. zeek:see::  profiling_interval expensive_profiling_multiple
 
 .. zeek:id:: protocol_late_match
@@ -1017,16 +1017,16 @@ Events
    Generated if a DPD signature matched but the DPD buffer is already exhausted
    and thus the analyzer could not be attached. While this does not confirm
    that a protocol is actually used, it allows to retain that information.
-   
+
 
    :param c: The connection.
-   
+
 
    :param atype: The type of the analyzer confirming that its protocol is in
           use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
           ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
           parsing an HTTP connection.
-   
+
    .. zeek:see:: dpd_buffer_size dpd_max_packets
 
 .. zeek:id:: raw_packet
@@ -1039,10 +1039,10 @@ Events
    possible. It's usually infeasible to handle when processing even medium volumes
    of traffic in real-time. That said, if you work from a trace and want to do some
    packet-level analysis, it may come in handy.
-   
+
 
    :param p: Information from the header of the packet that triggered the event.
-   
+
    .. zeek:see:: new_packet packet_contents
 
 .. zeek:id:: reporter_error
@@ -1054,20 +1054,20 @@ Events
    Raised for errors reported via Zeek's reporter framework. Such messages may
    be generated internally by the event engine and also by other scripts calling
    :zeek:id:`Reporter::error`.
-   
+
 
    :param t: The time the error was passed to the reporter.
-   
+
 
    :param msg: The error message.
-   
+
 
    :param location: A (potentially empty) string describing a location associated with
        the error.
-   
+
    .. zeek:see:: reporter_info reporter_warning Reporter::info Reporter::warning
       Reporter::error
-   
+
    .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
@@ -1081,20 +1081,20 @@ Events
    Raised for informational messages reported via Zeek's reporter framework. Such
    messages may be generated internally by the event engine and also by other
    scripts calling :zeek:id:`Reporter::info`.
-   
+
 
    :param t: The time the message was passed to the reporter.
-   
+
 
    :param msg: The message itself.
-   
+
 
    :param location: A (potentially empty) string describing a location associated with
              the message.
-   
+
    .. zeek:see:: reporter_warning reporter_error Reporter::info Reporter::warning
       Reporter::error
-   
+
    .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
@@ -1108,20 +1108,20 @@ Events
    Raised for warnings reported via Zeek's reporter framework. Such messages may
    be generated internally by the event engine and also by other scripts calling
    :zeek:id:`Reporter::warning`.
-   
+
 
    :param t: The time the warning was passed to the reporter.
-   
+
 
    :param msg: The warning message.
-   
+
 
    :param location: A (potentially empty) string describing a location associated with
        the warning.
-   
+
    .. zeek:see:: reporter_info reporter_error Reporter::info Reporter::warning
       Reporter::error
-   
+
    .. note:: Zeek will not call reporter events recursively. If the handler of
       any reporter event triggers a new reporter message itself, the output
       will go to ``stderr`` instead.
@@ -1137,16 +1137,16 @@ Events
    payload but with different content than originally, this event will be
    raised. In addition, if :zeek:id:`tcp_max_old_segments` is larger than zero,
    mismatches with that older still-buffered data will likewise trigger the event.
-   
+
 
    :param c: The connection showing the inconsistency.
-   
+
 
    :param t1: The original payload.
-   
+
 
    :param t2: The new payload.
-   
+
 
    :param tcp_flags: A string with the TCP flags of the packet triggering the
               inconsistency. In the string, each character corresponds to one
@@ -1154,7 +1154,7 @@ Events
               ``A`` -> ACK; ``P`` -> PUSH; ``U`` -> URGENT. This string will
               not always be set, only if the information is available; it's
               "best effort".
-   
+
    .. zeek:see:: tcp_rexmit tcp_contents
 
 .. zeek:id:: scheduled_analyzer_applied
@@ -1167,23 +1167,23 @@ Events
    particular connection to come up, and which analyzer to associate with it.
    Once the first packet of such a connection is indeed seen, this event is
    raised.
-   
+
 
    :param c: The connection.
-   
+
 
    :param a: The analyzer that was scheduled for the connection with the
       :zeek:id:`Analyzer::schedule_analyzer` call. When the event is raised, that
       analyzer will already have been activated to process the connection. The
       ``count`` is one of the ``ANALYZER_*`` constants, e.g., ``ANALYZER_HTTP``.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected connection_reset connection_reused
       connection_state_remove connection_status_update connection_timeout
       new_connection new_connection_contents partial_connection
-   
+
    .. todo:: We don't have a good way to document the automatically generated
       ``ANALYZER_*`` constants right now.
 
@@ -1197,17 +1197,17 @@ Events
    high-performance pattern matching separately from the normal script
    processing. If a signature with an ``event`` action matches, this event is
    raised.
-   
+
    See the :doc:`user manual </frameworks/signatures>` for more information
    about Zeek's signature engine.
-   
+
 
    :param state: Context about the match, including which signatures triggered the
           event and the connection for which the match was found.
-   
+
 
    :param msg: The message passed to the ``event`` signature action.
-   
+
 
    :param data: The last chunk of input that triggered the match. Note that the
          specifics here are not well-defined as Zeek does not buffer any input.
@@ -1229,10 +1229,10 @@ Events
    behavior is to track the latest tunnel encapsulation per-connection,
    then a handler of this event should assign *e* to ``c$tunnel`` (which Zeek's
    default scripts are doing).
-   
+
 
    :param c: The connection whose tunnel/encapsulation changed.
-   
+
 
    :param e: The new encapsulation.
 
@@ -1245,10 +1245,10 @@ Events
    Zeek's application-layer UDP analyzers flag the end of a session by raising
    this event. Currently, the analyzers for DNS, NTP, Netbios, Syslog, AYIYA,
    Teredo, and GTPv1 support this.
-   
+
 
    :param u: The connection record for the corresponding UDP flow.
-   
+
    .. zeek:see:: udp_contents udp_reply udp_request
 
 .. zeek:id:: unknown_protocol
@@ -1258,21 +1258,21 @@ Events
 
    Generated when a packet analyzer attempts to forward a protocol that it doesn't
    know how to handle.
-   
+
 
    :param analyzer_name: The string name of the analyzer attempting to forward the protocol
-   
+
 
    :param protocol: The identifier of the protocol being forwarded
-   
+
 
    :param first_bytes: A certain number of bytes at the start of the unknown protocol's header.
-   
+
 
    :param analyzer_history: The chain of packet analyzers that processed the packet up to this
                      point. This includes the history of encapsulating packets in case
                      of tunneling.
-   
+
    .. zeek:see:: UnknownProtocol::first_bytes_count
 
 .. zeek:id:: zeek_done
@@ -1284,11 +1284,11 @@ Events
    Zeek is about to terminate, either due to having exhausted reading its input
    trace file(s), receiving a termination signal, or because Zeek was run without
    a network input source and has finished executing any global statements.
-   
+
    .. zeek:see:: zeek_init
-   
+
    .. note::
-   
+
       If Zeek terminates due to an invocation of :zeek:id:`exit`, then this event
       is not generated.
 
@@ -1301,11 +1301,11 @@ Events
    event just before normal input processing begins. It can be used to execute
    one-time initialization code at startup. At the time a handler runs, Zeek will
    have executed any global initializations and statements.
-   
+
    .. zeek:see:: zeek_done network_time_init
-   
+
    .. note::
-   
+
       When a ``zeek_init`` handler executes, Zeek has not yet seen any input
       packets and therefore :zeek:id:`network_time` is not initialized yet. An
       artifact of that is that any timer installed in a ``zeek_init`` handler,
@@ -1313,7 +1313,7 @@ Events
       packet. The standard way to work around that is to ignore the first time
       the timer fires and immediately reschedule or to instead schedule the
       first event from with the :zeek:see:`network_time_init` event.
-   
+
 
 .. zeek:id:: zeek_script_loaded
    :source-code: policy/misc/loaded-scripts.zeek 37 40
@@ -1321,10 +1321,10 @@ Events
    :Type: :zeek:type:`event` (path: :zeek:type:`string`, level: :zeek:type:`count`)
 
    Raised for each policy script loaded by the script interpreter.
-   
+
 
    :param path: The full path to the script loaded.
-   
+
 
    :param level: The "nesting level": zero for a top-level Zeek script and incremented
           recursively for each ``@load``.

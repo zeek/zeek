@@ -12,9 +12,9 @@ Summary
 Constants
 #########
 ========================================================================== =
-:zeek:id:`PacketAnalyzer::VLAN::LLC_FORWARDING_KEY`: :zeek:type:`count`    
-:zeek:id:`PacketAnalyzer::VLAN::NOVELL_FORWARDING_KEY`: :zeek:type:`count` 
-:zeek:id:`PacketAnalyzer::VLAN::SNAP_FORWARDING_KEY`: :zeek:type:`count`   
+:zeek:id:`PacketAnalyzer::VLAN::LLC_FORWARDING_KEY`: :zeek:type:`count`
+:zeek:id:`PacketAnalyzer::VLAN::NOVELL_FORWARDING_KEY`: :zeek:type:`count`
+:zeek:id:`PacketAnalyzer::VLAN::SNAP_FORWARDING_KEY`: :zeek:type:`count`
 ========================================================================== =
 
 

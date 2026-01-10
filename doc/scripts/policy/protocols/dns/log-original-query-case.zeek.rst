@@ -15,10 +15,10 @@ Summary
 Redefinitions
 #############
 =========================================== ==============================================================================
-:zeek:type:`DNS::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`DNS::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`DNS::Info`
-                                            
+
                                               original_query: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Query with original letter casing
 =========================================== ==============================================================================

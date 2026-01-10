@@ -36,21 +36,21 @@ Types
 Redefinitions
 #############
 ============================================================================== =============================================================================================================
-:zeek:type:`Management::Request::Request`: :zeek:type:`record`                 
-                                                                               
+:zeek:type:`Management::Request::Request`: :zeek:type:`record`
+
                                                                                :New Fields: :zeek:type:`Management::Request::Request`
-                                                                               
+
                                                                                  deploy_state: :zeek:type:`Management::Controller::Runtime::DeployState` :zeek:attr:`&optional`
-                                                                               
+
                                                                                  get_nodes_state: :zeek:type:`Management::Controller::Runtime::GetNodesState` :zeek:attr:`&optional`
-                                                                               
+
                                                                                  node_dispatch_state: :zeek:type:`Management::Controller::Runtime::NodeDispatchState` :zeek:attr:`&optional`
-                                                                               
+
                                                                                  restart_state: :zeek:type:`Management::Controller::Runtime::RestartState` :zeek:attr:`&optional`
-                                                                               
+
                                                                                  test_state: :zeek:type:`Management::Controller::Runtime::TestState` :zeek:attr:`&optional`
-:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef` 
-:zeek:id:`table_expire_interval`: :zeek:type:`interval` :zeek:attr:`&redef`    
+:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef`
+:zeek:id:`table_expire_interval`: :zeek:type:`interval` :zeek:attr:`&redef`
 ============================================================================== =============================================================================================================
 
 

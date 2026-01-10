@@ -95,7 +95,7 @@ Hooks
 
    This hook performs event-replays in case a certificate that already
    is in the cache is encountered.
-   
+
    It is possible to change this behavior/skip sending the events by
    installing a higher priority hook instead.
 

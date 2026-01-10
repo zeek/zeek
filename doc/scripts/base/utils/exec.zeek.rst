@@ -14,8 +14,8 @@ Summary
 Types
 #####
 =============================================== =
-:zeek:type:`Exec::Command`: :zeek:type:`record` 
-:zeek:type:`Exec::Result`: :zeek:type:`record`  
+:zeek:type:`Exec::Command`: :zeek:type:`record`
+:zeek:type:`Exec::Result`: :zeek:type:`record`
 =============================================== =
 
 Functions
@@ -103,10 +103,10 @@ Functions
    Function for running command line programs and getting
    output. This is an asynchronous function which is meant
    to be run with the ``when`` statement.
-   
+
 
    :param cmd: The command to run. Use care to avoid injection attacks!
-   
+
 
    :returns: A record representing the full results from the
             external program execution.

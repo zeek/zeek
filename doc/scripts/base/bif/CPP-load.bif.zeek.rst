@@ -28,12 +28,12 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`count`) : :zeek:type:`bool`
 
    Activates the compile-to-C++ scripts associated with the given hash.
-   
+
 
    :param h: Hash of the set of C++ scripts.
-   
+
 
    :returns: True if it was present and loaded, false if not.
-   
+
 
 

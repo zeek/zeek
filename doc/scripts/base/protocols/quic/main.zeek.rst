@@ -28,33 +28,33 @@ Redefinable Options
 Types
 #####
 ============================================ =
-:zeek:type:`QUIC::Info`: :zeek:type:`record` 
+:zeek:type:`QUIC::Info`: :zeek:type:`record`
 ============================================ =
 
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`QUIC::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                quic: :zeek:type:`QUIC::Info` :zeek:attr:`&optional`
 ============================================ ======================================================
 
 Events
 ######
 ============================================= =
-:zeek:id:`QUIC::log_quic`: :zeek:type:`event` 
+:zeek:id:`QUIC::log_quic`: :zeek:type:`event`
 ============================================= =
 
 Hooks
 #####
 ============================================================== =
-:zeek:id:`QUIC::finalize_quic`: :zeek:type:`Conn::RemovalHook` 
-:zeek:id:`QUIC::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`QUIC::finalize_quic`: :zeek:type:`Conn::RemovalHook`
+:zeek:id:`QUIC::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =
 
 
@@ -89,15 +89,15 @@ Redefinable Options
 
 
    Well-known ports for DNS-over-QUIC.
-   
+
    Currently not added to likely_server_ports to avoid spurious
    originator/responder changes in the private testing baseline.
-   
+
    You can always add these to likely_server_ports in your local.zeek
    file for your environment if needed:
-   
+
    	redef likely_server_ports += { 853/udp, 784/udp };
-   
+
 
 .. zeek:id:: QUIC::max_discarded_packet_events
    :source-code: base/protocols/quic/main.zeek 105 105
@@ -189,10 +189,10 @@ Types
    .. zeek:field:: history :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
 
       QUIC history.
-      
+
       Letters have the following meaning with client-sent
       letters being capitalized:
-      
+
       ======  ====================================================
       Letter  Meaning
       ======  ====================================================

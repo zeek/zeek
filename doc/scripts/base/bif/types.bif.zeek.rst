@@ -20,21 +20,21 @@ Types
 ======================================================= ====================================
 :zeek:type:`AF_Packet::ChecksumMode`: :zeek:type:`enum` Available checksum validation modes.
 :zeek:type:`AF_Packet::FanoutMode`: :zeek:type:`enum`   Available fanout modes.
-:zeek:type:`MOUNT3::auth_flavor_t`: :zeek:type:`enum`   
-:zeek:type:`MOUNT3::proc_t`: :zeek:type:`enum`          
-:zeek:type:`MOUNT3::status_t`: :zeek:type:`enum`        
-:zeek:type:`NFS3::createmode_t`: :zeek:type:`enum`      
-:zeek:type:`NFS3::file_type_t`: :zeek:type:`enum`       
-:zeek:type:`NFS3::proc_t`: :zeek:type:`enum`            
-:zeek:type:`NFS3::stable_how_t`: :zeek:type:`enum`      
-:zeek:type:`NFS3::status_t`: :zeek:type:`enum`          
-:zeek:type:`NFS3::time_how_t`: :zeek:type:`enum`        
-:zeek:type:`Reporter::Level`: :zeek:type:`enum`         
-:zeek:type:`TableChange`: :zeek:type:`enum`             
-:zeek:type:`Tunnel::Type`: :zeek:type:`enum`            
-:zeek:type:`layer3_proto`: :zeek:type:`enum`            
-:zeek:type:`link_encap`: :zeek:type:`enum`              
-:zeek:type:`rpc_status`: :zeek:type:`enum`              
+:zeek:type:`MOUNT3::auth_flavor_t`: :zeek:type:`enum`
+:zeek:type:`MOUNT3::proc_t`: :zeek:type:`enum`
+:zeek:type:`MOUNT3::status_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::createmode_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::file_type_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::proc_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::stable_how_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::status_t`: :zeek:type:`enum`
+:zeek:type:`NFS3::time_how_t`: :zeek:type:`enum`
+:zeek:type:`Reporter::Level`: :zeek:type:`enum`
+:zeek:type:`TableChange`: :zeek:type:`enum`
+:zeek:type:`Tunnel::Type`: :zeek:type:`enum`
+:zeek:type:`layer3_proto`: :zeek:type:`enum`
+:zeek:type:`link_encap`: :zeek:type:`enum`
+:zeek:type:`rpc_status`: :zeek:type:`enum`
 ======================================================= ====================================
 
 

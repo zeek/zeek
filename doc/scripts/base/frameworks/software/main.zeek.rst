@@ -44,7 +44,7 @@ Redefinitions
 #############
 ======================================= =======================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The software logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Software::LOG`
 ======================================= =======================================
 
@@ -400,7 +400,7 @@ Functions
    :Type: :zeek:type:`function` (v1: :zeek:type:`Software::Version`, v2: :zeek:type:`Software::Version`) : :zeek:type:`int`
 
    Compare two version records.
-   
+
 
    :returns:  -1 for v1 < v2, 0 for v1 == v2, 1 for v1 > v2.
              If the numerical version numbers match, the *addl* string
@@ -412,13 +412,13 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`conn_id`, info: :zeek:type:`Software::Info`) : :zeek:type:`bool`
 
    Other scripts should call this function when they detect software.
-   
+
 
    :param id: The connection id where the software was discovered.
-   
+
 
    :param info: A record representing the software discovered.
-   
+
 
    :returns: T if the software was logged, F otherwise.
 

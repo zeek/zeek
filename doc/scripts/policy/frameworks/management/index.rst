@@ -27,7 +27,7 @@ Package: policy/frameworks/management
    The cluster agent boot logic runs in Zeek's supervisor and instructs it to
    launch a Management agent process. The agent's main logic resides in main.zeek,
    similarly to other frameworks. The new process will execute that script.
-   
+
    If the current process is not the Zeek supervisor, this does nothing.
 
 :doc:`/scripts/policy/frameworks/management/agent/config.zeek`
@@ -96,7 +96,7 @@ Package: policy/frameworks/management
    it to launch the Management controller process. The controller's main logic
    resides in main.zeek, similarly to other frameworks. The new process will
    execute that script.
-   
+
    If the current process is not the Zeek supervisor, this does nothing.
 
 :doc:`/scripts/policy/frameworks/management/node/api.zeek`

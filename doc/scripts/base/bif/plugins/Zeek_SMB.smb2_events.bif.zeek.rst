@@ -35,10 +35,10 @@ Events
    traffic loss, traffic load-balancing issues, or failures to parse or match
    SMB responses with SMB requests. When this event is raised, internal per-connection
    parser state has been reset.
-   
+
 
    :param c: The affected connection.
-   
+
 
    :param state: String describing what kind of state was affected.
           One of read, ioctl or tree.
@@ -50,22 +50,22 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 messages.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
    ports 138/139 and :abbr:`SMB (Server Message Block)`-over-TCP on port 445.
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param is_orig: True if the message came from the originator side.
-   
+
    .. zeek:see:: smb1_message
 
 

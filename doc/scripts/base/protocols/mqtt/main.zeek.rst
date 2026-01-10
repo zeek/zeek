@@ -21,29 +21,29 @@ Redefinable Options
 Types
 #####
 ================================================================== ======================================================================
-:zeek:type:`MQTT::ConnectInfo`: :zeek:type:`record`                
-:zeek:type:`MQTT::PublishInfo`: :zeek:type:`record`                
+:zeek:type:`MQTT::ConnectInfo`: :zeek:type:`record`
+:zeek:type:`MQTT::PublishInfo`: :zeek:type:`record`
 :zeek:type:`MQTT::State`: :zeek:type:`record`                      Data structure to track pub/sub messaging state of a given connection.
-:zeek:type:`MQTT::SubUnsub`: :zeek:type:`enum` :zeek:attr:`&redef` 
-:zeek:type:`MQTT::SubscribeInfo`: :zeek:type:`record`              
+:zeek:type:`MQTT::SubUnsub`: :zeek:type:`enum` :zeek:attr:`&redef`
+:zeek:type:`MQTT::SubscribeInfo`: :zeek:type:`record`
 ================================================================== ======================================================================
 
 Redefinitions
 #############
 ============================================ =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`MQTT::CONNECT_LOG`
-                                             
+
                                              * :zeek:enum:`MQTT::PUBLISH_LOG`
-                                             
+
                                              * :zeek:enum:`MQTT::SUBSCRIBE_LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                mqtt: :zeek:type:`MQTT::ConnectInfo` :zeek:attr:`&optional`
-                                             
+
                                                mqtt_state: :zeek:type:`MQTT::State` :zeek:attr:`&optional`
 ============================================ =============================================================
 
@@ -57,9 +57,9 @@ Events
 Hooks
 #####
 =================================================================== =
-:zeek:id:`MQTT::log_policy_connect`: :zeek:type:`Log::PolicyHook`   
-:zeek:id:`MQTT::log_policy_publish`: :zeek:type:`Log::PolicyHook`   
-:zeek:id:`MQTT::log_policy_subscribe`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`MQTT::log_policy_connect`: :zeek:type:`Log::PolicyHook`
+:zeek:id:`MQTT::log_policy_publish`: :zeek:type:`Log::PolicyHook`
+:zeek:id:`MQTT::log_policy_subscribe`: :zeek:type:`Log::PolicyHook`
 =================================================================== =
 
 Functions

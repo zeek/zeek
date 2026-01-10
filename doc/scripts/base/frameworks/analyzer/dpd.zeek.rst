@@ -24,10 +24,10 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ==================================================================================================================
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                failed_analyzers: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
                                                  The set of prototol analyzers that were removed due to a protocol
                                                  violation after the same analyzer had previously been confirmed.

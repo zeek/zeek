@@ -50,14 +50,14 @@ Functions
    every time a previously unseen file is seen.  If a file is deleted
    and seen to be gone, then the file is available for being seen again
    in the future.
-   
+
 
    :param dir: The directory to monitor for files.
-   
+
 
    :param callback: Callback that gets executed with each file name
              that is found.  Filenames are provided with the full path.
-   
+
 
    :param poll_interval: An interval at which to check for new files.
 

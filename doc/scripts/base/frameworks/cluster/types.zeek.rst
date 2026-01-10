@@ -43,10 +43,10 @@ Redefinable Options
    :Default: ``32``
 
    The default maximum queue size for WebSocket event dispatcher instances.
-   
+
    If the maximum queue size is reached, events from external WebSocket
    clients will be stalled and processed once the queue has been drained.
-   
+
    An internal metric named ``cluster_onloop_queue_stalls`` and
    labeled with a ``WebSocketEventDispatcher:<host>:<port>`` tag
    is incremented when the maximum queue size is reached.
@@ -98,7 +98,7 @@ Types
 
 
    An event instance for cluster pub/sub.
-   
+
    See :zeek:see:`Cluster::publish` and :zeek:see:`Cluster::make_event`.
 
 .. zeek:type:: Cluster::NamedNode
@@ -286,7 +286,7 @@ Types
 
 
    The TLS options for a WebSocket server.
-   
+
    If cert_file and key_file are set, TLS is enabled. If both
    are unset, TLS is disabled. Any other combination is an error.
 

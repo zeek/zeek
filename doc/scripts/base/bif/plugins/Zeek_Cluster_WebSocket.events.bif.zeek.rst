@@ -28,10 +28,10 @@ Events
    :Type: :zeek:type:`event` (endpoint: :zeek:type:`Cluster::EndpointInfo`, subscriptions: :zeek:type:`string_vec`)
 
    Generated when a new WebSocket client has connected.
-   
+
 
    :param endpoint: Various information about the WebSocket client.
-   
+
 
    :param subscriptions: The WebSocket client's subscriptions as provided in the handshake.
 
@@ -41,7 +41,7 @@ Events
    :Type: :zeek:type:`event` (endpoint: :zeek:type:`Cluster::EndpointInfo`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
    Generated when a WebSocket client was lost.
-   
+
 
    :param endpoint: Various information about the WebSocket client.
 

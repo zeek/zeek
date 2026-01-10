@@ -14,7 +14,7 @@ Redefinable Options
 ============================================================================ ===============================================================
 :zeek:id:`Spicy::abort_on_exceptions`: :zeek:type:`bool` :zeek:attr:`&redef` abort() instead of throwing HILTI exceptions.
 :zeek:id:`Spicy::enable_print`: :zeek:type:`bool` :zeek:attr:`&redef`        Show output of Spicy print statements.
-:zeek:id:`Spicy::enable_profiling`: :zeek:type:`bool` :zeek:attr:`&redef`    
+:zeek:id:`Spicy::enable_profiling`: :zeek:type:`bool` :zeek:attr:`&redef`
 :zeek:id:`Spicy::max_file_depth`: :zeek:type:`count` :zeek:attr:`&redef`     Maximum depth of recursive file analysis (Spicy analyzers only)
 :zeek:id:`Spicy::show_backtraces`: :zeek:type:`bool` :zeek:attr:`&redef`     Include backtraces when reporting unhandled exceptions.
 ============================================================================ ===============================================================

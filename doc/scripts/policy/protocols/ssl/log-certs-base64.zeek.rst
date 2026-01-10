@@ -14,10 +14,10 @@ Summary
 Redefinitions
 #############
 ======================================================================================= ==========================================================================
-:zeek:type:`X509::Info`: :zeek:type:`record`                                            
-                                                                                        
+:zeek:type:`X509::Info`: :zeek:type:`record`
+
                                                                                         :New Fields: :zeek:type:`X509::Info`
-                                                                                        
+
                                                                                           cert: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                                             Base64 encoded X.509 certificate.
 :zeek:id:`X509::default_max_field_string_bytes`: :zeek:type:`count` :zeek:attr:`&redef` Certificates can be large and we don't want to risk truncating the output.

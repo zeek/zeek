@@ -23,19 +23,19 @@ Types
 #####
 ====================================================== ==================================================================================================
 :zeek:type:`NetControl::OfConfig`: :zeek:type:`record` This record specifies the configuration that is passed to :zeek:see:`NetControl::create_openflow`.
-:zeek:type:`NetControl::OfTable`: :zeek:type:`record`  
+:zeek:type:`NetControl::OfTable`: :zeek:type:`record`
 ====================================================== ==================================================================================================
 
 Redefinitions
 #############
 ========================================================= =========================================================================
-:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
-                                                          
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record`
+
                                                           :New Fields: :zeek:type:`NetControl::PluginState`
-                                                          
+
                                                             of_controller: :zeek:type:`OpenFlow::Controller` :zeek:attr:`&optional`
                                                               OpenFlow controller for NetControl OpenFlow plugin.
-                                                          
+
                                                             of_config: :zeek:type:`NetControl::OfConfig` :zeek:attr:`&optional`
                                                               OpenFlow configuration record that is passed on initialization.
 ========================================================= =========================================================================
@@ -108,13 +108,13 @@ Types
    .. zeek:field:: check_pred :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
 
       Predicate that is called on rule insertion or removal.
-      
+
 
       :param p: Current plugin state.
-      
+
 
       :param r: The rule to be inserted or removed.
-      
+
 
       :returns: T if the rule can be handled by the current backend, F otherwise.
 
@@ -124,16 +124,16 @@ Types
       This predicate is called each time an OpenFlow match record is created.
       The predicate can modify the match structure before it is sent on to the
       device.
-      
+
 
       :param p: Current plugin state.
-      
+
 
       :param r: The rule to be inserted or removed.
-      
+
 
       :param m: The openflow match structures that were generated for this rules.
-      
+
 
       :returns: The modified OpenFlow match structures that will be used in place of the structures passed in m.
 
@@ -142,16 +142,16 @@ Types
 
       This predicate is called before a FlowMod message is sent to the OpenFlow
       device. It can modify the FlowMod message before it is passed on.
-      
+
 
       :param p: Current plugin state.
-      
+
 
       :param r: The rule to be inserted or removed.
-      
+
 
       :param m: The OpenFlow FlowMod message.
-      
+
 
       :returns: The modified FlowMod message that is used in lieu of m.
 

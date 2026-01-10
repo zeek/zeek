@@ -20,20 +20,20 @@ Types
 Redefinitions
 #############
 ============================================== ==========================================================================================
-:zeek:type:`Queue::Queue`: :zeek:type:`record` 
-                                               
+:zeek:type:`Queue::Queue`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`Queue::Queue`
-                                               
+
                                                  initialized: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-                                               
+
                                                  vals: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`any` :zeek:attr:`&optional`
-                                               
+
                                                  settings: :zeek:type:`Queue::Settings` :zeek:attr:`&optional`
-                                               
+
                                                  top: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
-                                               
+
                                                  bottom: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
-                                               
+
                                                  size: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
 ============================================== ==========================================================================================
 
@@ -103,10 +103,10 @@ Functions
    :Type: :zeek:type:`function` (q: :zeek:type:`Queue::Queue`) : :zeek:type:`any`
 
    Get a value from the end of a queue.
-   
+
 
    :param q: The queue to get the value from.
-   
+
 
    :returns: The value gotten from the queue.
 
@@ -116,10 +116,10 @@ Functions
    :Type: :zeek:type:`function` (q: :zeek:type:`Queue::Queue`, ret: :zeek:type:`vector` of :zeek:type:`any`) : :zeek:type:`void`
 
    Get the contents of the queue as a vector.
-   
+
 
    :param q: The queue.
-   
+
 
    :param ret: A vector containing the current contents of the queue
         as the type of ret.
@@ -130,10 +130,10 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Queue::Settings` :zeek:attr:`&default` = ``[]`` :zeek:attr:`&optional`) : :zeek:type:`Queue::Queue`
 
    Initialize a queue record structure.
-   
+
 
    :param s: A record which configures the queue.
-   
+
 
    :returns: An opaque queue record.
 
@@ -143,10 +143,10 @@ Functions
    :Type: :zeek:type:`function` (q: :zeek:type:`Queue::Queue`) : :zeek:type:`count`
 
    Get the number of items in a queue.
-   
+
 
    :param q: The queue.
-   
+
 
    :returns: The length of the queue.
 
@@ -158,13 +158,13 @@ Functions
    Merge two queues together.  If any settings are applied
    to the queues, the settings from *q1* are used for the new
    merged queue.
-   
+
 
    :param q1: The first queue.  Settings are taken from here.
-   
+
 
    :param q2: The second queue.
-   
+
 
    :returns: A new queue from merging the other two together.
 
@@ -174,10 +174,10 @@ Functions
    :Type: :zeek:type:`function` (q: :zeek:type:`Queue::Queue`) : :zeek:type:`any`
 
    Peek at the value at the end of the queue without removing it.
-   
+
 
    :param q: The queue to get the value from.
-   
+
 
    :returns: The value at the end of the queue.
 
@@ -187,10 +187,10 @@ Functions
    :Type: :zeek:type:`function` (q: :zeek:type:`Queue::Queue`, val: :zeek:type:`any`) : :zeek:type:`void`
 
    Put a value onto the beginning of a queue.
-   
+
 
    :param q: The queue to put the value into.
-   
+
 
    :param val: The value to insert into the queue.
 

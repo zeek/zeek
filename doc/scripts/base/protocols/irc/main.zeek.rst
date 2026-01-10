@@ -21,19 +21,19 @@ Redefinable Options
 Types
 #####
 =========================================== =
-:zeek:type:`IRC::Info`: :zeek:type:`record` 
+:zeek:type:`IRC::Info`: :zeek:type:`record`
 =========================================== =
 
 Redefinitions
 #############
 ============================================ ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`IRC::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                irc: :zeek:type:`IRC::Info` :zeek:attr:`&optional`
                                                  IRC session information.
 ============================================ ====================================================
@@ -48,7 +48,7 @@ Events
 Hooks
 #####
 ======================================================== =
-:zeek:id:`IRC::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`IRC::log_policy`: :zeek:type:`Log::PolicyHook`
 ======================================================== =
 
 

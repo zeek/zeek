@@ -88,21 +88,21 @@ Types
 :zeek:type:`Log::RotationPostProcessorFunc`: :zeek:type:`function` The function type for log rotation post processors.
 :zeek:type:`Log::Stream`: :zeek:type:`record`                      Type defining the content of a logging stream.
 :zeek:type:`Log::StreamPolicyHook`: :zeek:type:`hook`              A hook type to implement filtering policy.
-:zeek:type:`Log::Writer`: :zeek:type:`enum`                        
+:zeek:type:`Log::Writer`: :zeek:type:`enum`
 ================================================================== ==============================================================================
 
 Redefinitions
 #############
 ======================================================================================= =============================================================
-:zeek:type:`Log::Filter`: :zeek:type:`record`                                           
-                                                                                        
+:zeek:type:`Log::Filter`: :zeek:type:`record`
+
                                                                                         :New Fields: :zeek:type:`Log::Filter`
-                                                                                        
+
                                                                                           policy: :zeek:type:`Log::PolicyHook` :zeek:attr:`&optional`
                                                                                             Policy hooks can adjust log entry values and veto
                                                                                             the writing of a log entry for the record passed
                                                                                             into it.
-:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef` 
+:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef`
 ======================================================================================= =============================================================
 
 Events
@@ -191,7 +191,7 @@ Runtime Options
    This table contains environment variables to be used for the
    :zeek:see:`Log::default_rotation_postprocessor_cmd` command
    when executed via :zeek:see:`Log::run_rotation_postprocessor_cmd`.
-   
+
    The entries in this table will be prepended with ``ZEEK_ARG_``
    as done by :zeek:see:`system_env`.
 
@@ -228,7 +228,7 @@ Redefinable Options
 
    Default logging directory. An empty string implies using the
    current working directory.
-   
+
    This directory is also used for rotated logs in cases where
    :zeek:see:`Log::rotation_format_func` returns a record with
    an empty or unset ``dir`` field.
@@ -248,7 +248,7 @@ Redefinable Options
 
    Default alarm summary mail interval. Zero disables alarm summary
    mails.
-   
+
    Note that this is overridden by the ZeekControl MailAlarmsInterval
    option.
 
@@ -300,7 +300,7 @@ Redefinable Options
 
    Default rotation interval to use for filters that do not specify
    an interval. Zero disables rotation.
-   
+
    Note that this is overridden by the ZeekControl LogRotationInterval
    option.
 
@@ -538,13 +538,13 @@ Types
 
       Output path for recording entries matching this
       filter.
-      
+
       The specific interpretation of the string is up to the
       logging writer, and may for example be the destination
       file name. Generally, filenames are expected to be given
       without any extensions; writers will add appropriate
       extensions automatically.
-      
+
       If this path is found to conflict with another filter's
       for the same writer type, it is automatically corrected
       by appending "-N", where N is the smallest integer greater
@@ -562,21 +562,21 @@ Types
       connection.  Upon adding a filter to a stream, if neither
       ``path`` nor ``path_func`` is explicitly set by them, then
       :zeek:see:`Log::default_path_func` is used.
-      
+
 
       :param id: The ID associated with the log stream.
-      
+
 
       :param path: A suggested path value, which may be either the filter's
             ``path`` if defined, else a previous result from the
             function.  If no ``path`` is defined for the filter,
             then the first call to the function will contain an
             empty string.
-      
+
 
       :param rec: An instance of the stream's ``columns`` type with its
            fields set to the values to be logged.
-      
+
 
       :returns: The path to be used for the filter, which will be
                subject to the same automatic correction rules as
@@ -657,7 +657,7 @@ Types
       the writing of a log entry for the record passed
       into it. Any hook that breaks from its body signals
       that Zeek won't log the entry passed into it.
-      
+
       When no policy hook is defined, the filter inherits
       the hook from the stream it's associated with.
 
@@ -1065,15 +1065,15 @@ Types
    so get a :zeek:see:`Log::Filter` instance as additional
    argument. You can pass additional state into the hook via the
    the filter$config table.
-   
+
 
    :param rec: An instance of the stream's ``columns`` type with its
         fields set to the values to be logged.
-   
+
 
    :param id: The ID associated with the logging stream the filter
        belongs to.
-   
+
 
    :param filter: The :zeek:type:`Log::Filter` instance that steers
            the output of the given log record.
@@ -1084,11 +1084,11 @@ Types
    :Type: :zeek:type:`function` (rec: :zeek:type:`any`, id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Type of function to invoke when delaying a log write has completed.
-   
+
    Functions of this type take the same arguments as :zeek:see:`Log::StreamPolicyHook`
    and act as a callback passed to :zeek:see:`Log::delay`. They execute
    just before the record is forwarded to the individual log filters.
-   
+
    Returning ``F`` from a post delay callback discards the log write.
 
 .. zeek:type:: Log::PrintLogInfo
@@ -1276,7 +1276,7 @@ Types
       signals that Zeek won't log the entry passed into
       it. You can pass arbitrary state into the hook via
       the filter instance and its config table.
-      
+
       New Filters created for this stream will inherit
       this policy hook, unless they provide their own.
 
@@ -1286,11 +1286,11 @@ Types
       Event groups associated with this stream that are disabled
       when :zeek:see:`Log::disable_stream` is invoked and
       re-enabled during :zeek:see:`Log::enable_stream`.
-      
+
       This field can be used to short-circuit event handlers that
       are solely responsible for logging functionality at runtime
       when a log stream is disabled.
-      
+
       This field allows for both, attribute event groups and module
       event groups. If the given group names exists as attribute
       or module or either event group, they are disabled when the
@@ -1301,10 +1301,10 @@ Types
    .. zeek:field:: max_delay_interval :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Log::default_max_delay_interval` :zeek:attr:`&optional`
 
       Maximum delay interval for this stream.
-      
+
       This value can be increased using :zeek:see:`Log::set_max_delay_interval`
       after the stream has been created.
-      
+
       .. :zeek:see:`Log::default_max_delay_interval`
       .. :zeek:see:`Log::set_max_delay_interval`
 
@@ -1312,10 +1312,10 @@ Types
    .. zeek:field:: max_delay_queue_size :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Log::default_max_delay_queue_size` :zeek:attr:`&optional`
 
       Maximum delay queue size of this stream.
-      
+
       This value can be changed using :zeek:see:`Log::set_max_delay_queue_size`
       after the stream has been created.
-      
+
       .. :zeek:see:`Log::default_max_delay_queue_size`
       .. :zeek:see:`Log::set_max_delay_queue_size`
 
@@ -1323,28 +1323,28 @@ Types
    .. zeek:field:: max_field_string_bytes :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Log::default_max_field_string_bytes` :zeek:attr:`&optional`
 
       Maximum string size for field in a log record from this stream.
-      
+
       .. :zeek:see:`Log::default_max_field_string_bytes`
 
 
    .. zeek:field:: max_total_string_bytes :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Log::default_max_total_string_bytes` :zeek:attr:`&optional`
 
       Maximum total string size in a log record from this stream.
-      
+
       .. :zeek:see:`Log::default_max_total_string_bytes`
 
 
    .. zeek:field:: max_field_container_elements :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Log::default_max_field_container_elements` :zeek:attr:`&optional`
 
       Maximum container elements for field in a log record from this stream.
-      
+
       .. :zeek:see:`Log::default_max_field_container_elements`
 
 
    .. zeek:field:: max_total_container_elements :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Log::default_max_total_container_elements` :zeek:attr:`&optional`
 
       Maximum total container elements in a log record from this stream.
-      
+
       .. :zeek:see:`Log::default_max_total_container_elements`
 
 
@@ -1359,11 +1359,11 @@ Types
    on each log record. They can implement arbitrary per-record
    processing, alter the log record, or veto the writing of the
    given record by breaking from the hook handler.
-   
+
 
    :param rec: An instance of the stream's ``columns`` type with its
         fields set to the values to be logged.
-   
+
 
    :param id: The ID associated with the logging stream the filter
        belongs to.
@@ -1410,16 +1410,16 @@ Functions
 
    Adds a default :zeek:type:`Log::Filter` record with ``name`` field
    set as "default" to a given logging stream.
-   
+
 
    :param id: The ID associated with a logging stream for which to add a default
        filter.
-   
+
 
    :returns: The status of a call to :zeek:id:`Log::add_filter` using a
             default :zeek:type:`Log::Filter` argument with ``name`` field
             set to "default".
-   
+
    .. zeek:see:: Log::add_filter Log::remove_filter
       Log::remove_default_filter
 
@@ -1431,18 +1431,18 @@ Functions
    Adds a custom filter to an existing logging stream.  If a filter
    with a matching ``name`` field already exists for the stream, it
    is removed when the new filter is successfully added.
-   
+
 
    :param id: The ID associated with the logging stream to filter.
-   
+
 
    :param filter: A record describing the desired logging parameters.
-   
+
 
    :returns: True if the filter was successfully added, false if
             the filter was not added or the *filter* argument was not
             the correct type.
-   
+
    .. zeek:see:: Log::remove_filter Log::add_default_filter
       Log::remove_default_filter Log::get_filter Log::get_filter_names
 
@@ -1452,17 +1452,17 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, stream: :zeek:type:`Log::Stream`) : :zeek:type:`bool`
 
    Creates a new logging stream with the default filter.
-   
+
 
    :param id: The ID enum to be associated with the new logging stream.
-   
+
 
    :param stream: A record defining the content that the new stream will log.
-   
+
 
    :returns: True if a new logging stream was successfully created and
             a default filter added to it.
-   
+
    .. zeek:see:: Log::add_default_filter Log::remove_default_filter
 
 .. zeek:id:: Log::default_ext_func
@@ -1488,20 +1488,20 @@ Functions
    to derive a name.  Upon adding a filter to a stream, if neither
    ``path`` nor ``path_func`` is explicitly set by them, then
    this function is used as the ``path_func``.
-   
+
 
    :param id: The ID associated with the log stream.
-   
+
 
    :param path: A suggested path value, which may be either the filter's
          ``path`` if defined, else a previous result from the function.
          If no ``path`` is defined for the filter, then the first call
          to the function will contain an empty string.
-   
+
 
    :param rec: An instance of the stream's ``columns`` type with its
         fields set to the values to be logged.
-   
+
 
    :returns: The path to be used for the filter.
 
@@ -1511,36 +1511,36 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, post_delay_cb: :zeek:type:`Log::PostDelayCallback` :zeek:attr:`&default` = :zeek:see:`Log::empty_post_delay_cb` :zeek:attr:`&optional`) : :zeek:type:`Log::DelayToken`
 
    Delay a log write.
-   
+
    Calling this function is currently only allowed within the execution
    of a :zeek:see:`Log::log_stream_policy` hook and requires the caller
    to provide the stream ID and log record of the active write operation
    as parameters.
-   
+
    Conceptually, the delay is inserted between the execution of the
    :zeek:see:`Log::log_stream_policy` hook and the policy hooks of filters.
-   
+
    Calling this function increments a reference count that can subsequently
    be decremented using :zeek:see:`Log::delay_finish`.
    The delay completes when either the reference count reaches zero, or
    the configured maximum delay interval for the stream expires. The
    optional *post_delay_cb* is invoked when the delay completed.
-   
+
    The *post_delay_cb* function can extend the delay by invoking
    :zeek:see:`Log::delay` again. There's no limit to how often a write
    can be re-delayed. Further, it can discard the log record altogether
    by returning ``F``. If *post_delay_cb* is not provided, the behavior
    is equivalent to a no-op callback solely returning ``T``.
-   
+
 
    :param id: The ID associated with a logging stream.
-   
+
 
    :param rec: The log record.
-   
+
 
    :param post_delay_cb: A callback to invoke when the delay completed.
-   
+
 
    :returns: An opaque token of type :zeek:see:`Log::DelayToken`
             to be passed to :zeek:see:`Log::delay_finish`.
@@ -1551,19 +1551,19 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, token: :zeek:type:`Log::DelayToken`) : :zeek:type:`bool`
 
    Release a delay reference taken with :zeek:see:`Log::delay`.
-   
+
    When the last reference is released, :zeek:see:`Log::delay_finish`
    synchronously resumes the delayed :zeek:see:`Log::write` operation.
-   
+
 
    :param id: The ID associated with a logging stream.
-   
+
 
    :param rec: The log record.
-   
+
 
    :param token: The opaque token as returned by :zeek:see:`Log::delay`.
-   
+
 
    :returns: ``T`` on success, ``F`` if an inconsistent combination of
             *id*, *rec* and *token* was provided.
@@ -1576,13 +1576,13 @@ Functions
    Disables a currently enabled logging stream.  Disabled streams
    will not be written to until they are enabled again.  New streams
    are enabled by default.
-   
+
 
    :param id: The ID associated with the logging stream to disable.
-   
+
 
    :returns: True if the stream is now disabled or was already disabled.
-   
+
    .. zeek:see:: Log::enable_stream
 
 .. zeek:id:: Log::empty_post_delay_cb
@@ -1601,13 +1601,13 @@ Functions
    Enables a previously disabled logging stream.  Disabled streams
    will not be written to until they are enabled again.  New streams
    are enabled by default.
-   
+
 
    :param id: The ID associated with the logging stream to enable.
-   
+
 
    :returns: True if the stream is re-enabled or was not previously disabled.
-   
+
    .. zeek:see:: Log::disable_stream
 
 .. zeek:id:: Log::flush
@@ -1617,16 +1617,16 @@ Functions
 
    Flushes any currently buffered output for all the writers of a given
    logging stream.
-   
+
 
    :param id: The ID associated with a logging stream for which to flush buffered
        data.
-   
+
 
    :returns: True if all writers of a log stream were signalled to flush
             buffered data or if the logging stream is disabled,
             false if the logging stream does not exist.
-   
+
    .. zeek:see:: Log::set_buf Log::enable_stream Log::disable_stream
 
 .. zeek:id:: Log::get_delay_queue_size
@@ -1635,10 +1635,10 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`int`
 
    Get the current size of the delay queue for a stream.
-   
+
 
    :param id: The ID associated with a logging stream.
-   
+
 
    :returns: The current size of the delay queue, or -1 on error.
 
@@ -1648,20 +1648,20 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, name: :zeek:type:`string`) : :zeek:type:`Log::Filter`
 
    Gets a filter associated with an existing logging stream.
-   
+
 
    :param id: The ID associated with a logging stream from which to
        obtain one of its filters.
-   
+
 
    :param name: A string to match against the ``name`` field of a
          :zeek:type:`Log::Filter` for identification purposes.
-   
+
 
    :returns: A filter attached to the logging stream *id* matching
             *name* or, if no matches are found returns the
             :zeek:id:`Log::no_filter` sentinel value.
-   
+
    .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
                 Log::remove_default_filter Log::get_filter_names
 
@@ -1672,14 +1672,14 @@ Functions
 
    Gets the names of all filters associated with an existing
    logging stream.
-   
+
 
    :param id: The ID of a logging stream from which to obtain the list
        of filter names.
-   
+
 
    :returns: The set of filter names associated with the stream.
-   
+
    .. zeek:see:: Log::remove_filter Log::add_default_filter
                  Log::remove_default_filter Log::get_filter
 
@@ -1690,15 +1690,15 @@ Functions
 
    Removes the :zeek:type:`Log::Filter` with ``name`` field equal to
    "default".
-   
+
 
    :param id: The ID associated with a logging stream from which to remove the
        default filter.
-   
+
 
    :returns: The status of a call to :zeek:id:`Log::remove_filter` using
             "default" as the argument.
-   
+
    .. zeek:see:: Log::add_filter Log::remove_filter Log::add_default_filter
 
 .. zeek:id:: Log::remove_filter
@@ -1707,19 +1707,19 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, name: :zeek:type:`string`) : :zeek:type:`bool`
 
    Removes a filter from an existing logging stream.
-   
+
 
    :param id: The ID associated with the logging stream from which to
        remove a filter.
-   
+
 
    :param name: A string to match against the ``name`` field of a
          :zeek:type:`Log::Filter` for identification purposes.
-   
+
 
    :returns: True if the logging stream's filter was removed or
             if no filter associated with *name* was found.
-   
+
    .. zeek:see:: Log::remove_filter Log::add_default_filter
       Log::remove_default_filter Log::get_filter Log::get_filter_names
 
@@ -1729,13 +1729,13 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
    Removes a logging stream completely, stopping all the threads.
-   
+
 
    :param id: The ID associated with the logging stream.
-   
+
 
    :returns: True if the stream was successfully removed.
-   
+
    .. zeek:see:: Log::create_stream
 
 .. zeek:id:: Log::rotation_format_func
@@ -1754,20 +1754,20 @@ Functions
    Runs a command given by :zeek:id:`Log::default_rotation_postprocessor_cmd`
    on a rotated file.  Meant to be called from postprocessor functions
    that are added to :zeek:id:`Log::default_rotation_postprocessors`.
-   
+
 
    :param info: A record holding meta-information about the log being rotated.
-   
+
 
    :param npath: The new path of the file (after already being rotated/processed
           by writer-specific postprocessor as defined in
           :zeek:id:`Log::default_rotation_postprocessors`).
-   
+
 
    :returns: True when :zeek:id:`Log::default_rotation_postprocessor_cmd`
             is empty or the system command given by it has been invoked
             to postprocess a rotated log file.
-   
+
    .. zeek:see:: Log::default_rotation_date_format
       Log::default_rotation_postprocessor_cmd_env
       Log::default_rotation_postprocessor_cmd
@@ -1781,18 +1781,18 @@ Functions
    Sets the buffering status for all the writers of a given logging stream.
    A given writer implementation may or may not support buffering and if
    it doesn't then toggling buffering with this function has no effect.
-   
+
 
    :param id: The ID associated with a logging stream for which to
        enable/disable buffering.
-   
+
 
    :param buffered: Whether to enable or disable log buffering.
-   
+
 
    :returns: True if buffering status was set, false if the logging stream
             does not exist.
-   
+
    .. zeek:see:: Log::flush
 
 .. zeek:id:: Log::set_max_delay_interval
@@ -1801,20 +1801,20 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_delay: :zeek:type:`interval`) : :zeek:type:`bool`
 
    Set the maximum delay for a stream.
-   
+
    Multiple calls to this function will only ever increase the maximum
    delay, the delay cannot be lowered. The default maximum delay for a
    stream is :zeek:see:`Log::default_max_delay_interval`.
-   
+
    When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
    the new stream is re-configured with the previously used maximum delay.
-   
+
 
    :param id: The ID associated with a logging stream.
-   
+
 
    :param max_delay: The maximum delay interval for this stream.
-   
+
 
    :returns: ``T`` on success, else ``F``.
 
@@ -1824,19 +1824,19 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_size: :zeek:type:`count`) : :zeek:type:`bool`
 
    Set the given stream's delay queue size.
-   
+
    If the queue holds more records than the given *queue_size*, these are
    attempted to be evicted at the time of the call.
-   
+
    When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
    the new stream is re-configured with the most recently used queue size.
-   
+
 
    :param id: The ID associated with a logging stream.
-   
+
 
    :param max_delay: The maximum delay interval of this stream.
-   
+
 
    :returns: ``T`` on success, else ``F``.
 
@@ -1846,14 +1846,14 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, columns: :zeek:type:`any`) : :zeek:type:`bool`
 
    Writes a new log line/entry to a logging stream.
-   
+
 
    :param id: The ID associated with a logging stream to be written to.
-   
+
 
    :param columns: A record value describing the values of each field/column
             to write to the log stream.
-   
+
 
    :returns: True if the stream was found and no error occurred in writing
             to it or if the stream was disabled and nothing was written.
@@ -1861,7 +1861,7 @@ Functions
             argument did not match what the stream was initially defined
             to handle, or one of the stream's filters has an invalid
             ``path_func``.
-   
+
    .. zeek:see:: Log::enable_stream Log::disable_stream
 
 

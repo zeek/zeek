@@ -36,22 +36,22 @@ Redefinitions
 #############
 ============================================ ================================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The SSH protocol logging stream identifier.
-                                             
+
                                              * :zeek:enum:`SSH::LOG`
-:zeek:type:`SSH::Info`: :zeek:type:`record`  
-                                             
+:zeek:type:`SSH::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`SSH::Info`
-                                             
+
                                                logged: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-                                             
+
                                                capabilities: :zeek:type:`SSH::Capabilities` :zeek:attr:`&optional`
-                                             
+
                                                analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
                                                  Analyzer ID
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                ssh: :zeek:type:`SSH::Info` :zeek:attr:`&optional`
 ============================================ ================================================================================
 
@@ -267,13 +267,13 @@ Events
    determination is based on packet size analysis, and errs on the
    side of caution - that is, if there's any doubt about the
    authentication failure, this event is *not* raised.
-   
+
    This event is only raised once per connection.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_result ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -290,20 +290,20 @@ Events
    connection. This determination is based on packet size analysis,
    and errs on the side of caution - that is, if there's any doubt
    about the result of the authentication, this event is *not* raised.
-   
+
    This event is only raised once per connection.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param result: True if the authentication was successful, false if not.
-   
+
 
    :param auth_attempts: The number of authentication attempts that were
       observed.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key

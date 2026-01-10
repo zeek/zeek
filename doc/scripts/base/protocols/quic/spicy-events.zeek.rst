@@ -35,28 +35,28 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, error_code: :zeek:type:`count`, reason_phrase: :zeek:type:`string`)
 
    Generated for a QUIC CONNECTION_CLOSE frame.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
-   
+
 
    :param error_code: Count indicating the reason for closing this connection.
-   
+
 
    :param reason_phrase: Additional diagnostic information for the closure.
-   
+
    .. note:: Packets with CONNECTION_CLOSE frames are usually encrypted after connection establishment and not visible to Zeek.
 
 .. zeek:id:: QUIC::discarded_packet
@@ -65,16 +65,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, total_decrypted: :zeek:type:`count`)
 
    Generated when a QUIC packet with fixed_bit 0 is encountered.
-   
+
    This event is only generated if some INITIAL QUIC packets were successfully
    decrypted previously.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param total_decrypted: The number of QUIC packets successfully decrypted previously.
 
@@ -84,19 +84,19 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
    Generated for a QUIC Handshake packet.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
 
@@ -106,22 +106,22 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
    Generated for a QUIC Initial packet.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
-   
+
 
 .. zeek:id:: QUIC::retry_packet
    :source-code: base/protocols/quic/main.zeek 176 186
@@ -129,25 +129,25 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`, retry_token: :zeek:type:`string`, retry_integrity_tag: :zeek:type:`string`)
 
    Generated for a QUIC Retry packet.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
-   
+
 
    :param retry_token: The Retry Token field.
-   
+
 
    :param integrity_tag: The Retry Integrity Tag field.
 
@@ -158,13 +158,13 @@ Events
 
    Generated when a binary logarithmic number of QUIC packets with a short
    header has been observed.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the threshold is for connection's originator, otherwise false.
-   
+
 
    :param threshold: The threshold that has been reached.
 
@@ -174,19 +174,19 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
    Generated for an unrecognized QUIC version.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
 
@@ -196,19 +196,19 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`, dcid: :zeek:type:`string`, scid: :zeek:type:`string`)
 
    Generated for a QUIC 0-RTT packet.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the packet is from the the connection's originator.
-   
+
 
    :param version: The Version field.
-   
+
 
    :param dcid: The Destination Connection ID field.
-   
+
 
    :param scid: The Source Connection ID field.
 

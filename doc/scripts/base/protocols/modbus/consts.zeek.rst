@@ -12,7 +12,7 @@ Summary
 Redefinable Options
 ###################
 ======================================================================================================================== =======================================
-:zeek:id:`Modbus::exception_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` 
+:zeek:id:`Modbus::exception_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
 :zeek:id:`Modbus::function_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`  Standard defined Modbus function codes.
 ======================================================================================================================== =======================================
 

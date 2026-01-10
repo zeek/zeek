@@ -18,7 +18,7 @@ internally generated messages/warnings/errors.
    :zeek:see:`Reporter::info_to_stderr`,
    :zeek:see:`Reporter::warnings_to_stderr`, and
    :zeek:see:`Reporter::errors_to_stderr`.
-   
+
    Note that this framework deals with the handling of internally generated
    reporter messages, for the interface
    into actually creating reporter messages from the scripting layer, use

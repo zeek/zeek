@@ -34,13 +34,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Create PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -50,13 +50,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_create_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Create PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -66,13 +66,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Delete PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -82,13 +82,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_delete_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Delete PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -99,16 +99,16 @@ Events
 
    Generated for GTPv1 G-PDU packets.  That is, packets with a UDP payload
    that includes a GTP header followed by an IPv4 or IPv6 packet.
-   
+
 
    :param outer: The GTP outer tunnel connection.
-   
+
 
    :param inner_gtp: The GTP header.
-   
+
 
    :param inner_ip: The inner IP and transport layer packet headers.
-   
+
    .. note:: Since this event may be raised on a per-packet basis, handling
       it may become particularly expensive for real-time analysis.
 
@@ -118,10 +118,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`)
 
    Generated for any GTP message with a GTPv1 header.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
 
@@ -131,13 +131,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_request_elements`)
 
    Generated for GTPv1-C Update PDP Context Request messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -147,13 +147,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`gtpv1_hdr`, elements: :zeek:type:`gtp_update_pdp_ctx_response_elements`)
 
    Generated for GTPv1-C Update PDP Context Response messages.
-   
+
 
    :param c: The connection over which the message is sent.
-   
+
 
    :param hdr: The GTPv1 header.
-   
+
 
    :param elements: The set of Information Elements comprising the message.
 
@@ -163,10 +163,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated when a new GTP analyzer is instantiated for a connection.
-   
+
    This event exists to install a connection removal hook to clear
    internal per-connection GTPv1 state.
-   
+
 
    :param c: The connection for which the analyzer is instantiated.
 

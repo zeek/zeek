@@ -235,12 +235,12 @@ Events
    A notification event the Supervisor generates when it receives a
    status message update from the stem, indicating node has
    (re-)started.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
          child process the stdout line is associated.
-   
+
 
    :param pid: the process ID the stem reported for this node.
 
@@ -254,7 +254,7 @@ Hooks
    Hooks into the stderr stream for all supervisor's child processes.
    If a hook terminates with ``break``, that will suppress output to the
    associated stream.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
@@ -262,7 +262,7 @@ Hooks
          A empty value is used to indicate the message
          came from the internal supervisor stem process.
          (this should typically never happen).
-   
+
 
    :param msg: line-buffered contents from the stderr of a child process.
 
@@ -274,7 +274,7 @@ Hooks
    Hooks into the stdout stream for all supervisor's child processes.
    If a hook terminates with ``break``, that will suppress output to the
    associated stream.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
@@ -282,7 +282,7 @@ Hooks
          An empty value is used to indicate the message
          came from the internal supervisor stem process
          (this should typically never happen).
-   
+
 
    :param msg: line-buffered contents from the stdout of a child process.
 
@@ -295,10 +295,10 @@ Functions
 
    Create a new supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the desired configuration for the new supervised node process.
-   
+
 
    :returns: an empty string on success or description of the error/failure.
 
@@ -309,11 +309,11 @@ Functions
 
    Destroy and remove a supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to destroy or an empty string to mean
          "all nodes".
-   
+
 
    :returns: true on success.
 
@@ -351,11 +351,11 @@ Functions
    Restart a supervised node process by destroying (killing) and
    re-recreating it.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to restart or an empty string to mean
          "all nodes".
-   
+
 
    :returns: true on success.
 
@@ -366,11 +366,11 @@ Functions
 
    Retrieve current status of a supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to get the status of or an empty string
          to mean "all nodes".
-   
+
 
    :returns: the current status of a set of nodes.
 

@@ -30,13 +30,13 @@ Functions
 
    Performs an lookup of AS number & organization of an IP address.
    Requires Zeek to be built with ``libmaxminddb``.
-   
+
 
    :param a: The IP address to lookup.
-   
+
 
    :returns: A record with autonomous system number and organization that contains *a*.
-   
+
    .. zeek:see:: lookup_location
 
 .. zeek:id:: lookup_location
@@ -46,13 +46,13 @@ Functions
 
    Performs a geo-lookup of an IP address.
    Requires Zeek to be built with ``libmaxminddb``.
-   
+
 
    :param a: The IP address to lookup.
-   
+
 
    :returns: A record with country, region, city, latitude, and longitude.
-   
+
    .. zeek:see:: lookup_autonomous_system
 
 .. zeek:id:: mmdb_open_asn_db
@@ -62,13 +62,13 @@ Functions
 
    Initializes MMDB for later use of lookup_autonomous_system.
    Requires Zeek to be built with ``libmaxminddb``.
-   
+
 
    :param f: The filename of the MaxMind ASN DB.
-   
+
 
    :returns: A boolean indicating whether the db was successfully opened.
-   
+
    .. zeek:see:: lookup_autonomous_system
 
 .. zeek:id:: mmdb_open_location_db
@@ -78,13 +78,13 @@ Functions
 
    Initializes MMDB for later use of lookup_location.
    Requires Zeek to be built with ``libmaxminddb``.
-   
+
 
    :param f: The filename of the MaxMind City or Country DB.
-   
+
 
    :returns: A boolean indicating whether the db was successfully opened.
-   
+
    .. zeek:see:: lookup_autonomous_system
 
 

@@ -27,20 +27,20 @@ Types
 Redefinitions
 #############
 ============================================ ==========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Syslog::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                syslog: :zeek:type:`Syslog::Info` :zeek:attr:`&optional`
 ============================================ ==========================================================
 
 Hooks
 #####
 =========================================================== =
-:zeek:id:`Syslog::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Syslog::log_policy`: :zeek:type:`Log::PolicyHook`
 =========================================================== =
 
 

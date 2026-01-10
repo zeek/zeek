@@ -20,8 +20,8 @@ Types
 #####
 ================================================================ ================
 :zeek:type:`PacketAnalyzer::Geneve::Option`: :zeek:type:`record` A Geneve option.
-:zeek:type:`geneve_options_vec`: :zeek:type:`vector`             
-:zeek:type:`geneve_options_vec_vec`: :zeek:type:`vector`         
+:zeek:type:`geneve_options_vec`: :zeek:type:`vector`
+:zeek:type:`geneve_options_vec_vec`: :zeek:type:`vector`
 ================================================================ ================
 
 

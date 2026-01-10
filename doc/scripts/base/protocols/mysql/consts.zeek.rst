@@ -12,7 +12,7 @@ Summary
 Constants
 #########
 ============================================================================================ =
-:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
 ============================================================================================ =
 
 

@@ -14,7 +14,7 @@ Summary
 Redefinitions
 #############
 ============================================================================ =
-:zeek:id:`Intel::item_expiration`: :zeek:type:`interval` :zeek:attr:`&redef` 
+:zeek:id:`Intel::item_expiration`: :zeek:type:`interval` :zeek:attr:`&redef`
 ============================================================================ =
 
 

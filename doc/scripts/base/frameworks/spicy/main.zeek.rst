@@ -13,8 +13,8 @@ Summary
 Redefinitions
 #############
 ============================================ ===================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Spicy::Spicy_Max_File_Depth_Exceeded`
 ============================================ ===================================================
 

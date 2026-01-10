@@ -115,19 +115,19 @@ State Variables
 Redefinitions
 #############
 ================================================================================================================= =
-:zeek:id:`Cluster::Backend::ZeroMQ::run_proxy_thread`: :zeek:type:`bool` :zeek:attr:`&redef`                      
-:zeek:id:`Cluster::Telemetry::topic_normalizations`: :zeek:type:`table` :zeek:attr:`&ordered` :zeek:attr:`&redef` 
-:zeek:id:`Cluster::backend`: :zeek:type:`Cluster::BackendTag` :zeek:attr:`&redef`                                 
-:zeek:id:`Cluster::logger_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`                          
-:zeek:id:`Cluster::logger_topic`: :zeek:type:`string` :zeek:attr:`&redef`                                         
-:zeek:id:`Cluster::manager_topic`: :zeek:type:`string` :zeek:attr:`&redef`                                        
-:zeek:id:`Cluster::node_id`: :zeek:type:`function` :zeek:attr:`&redef`                                            
-:zeek:id:`Cluster::node_topic`: :zeek:type:`function` :zeek:attr:`&redef`                                         
-:zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function` :zeek:attr:`&redef`                                       
-:zeek:id:`Cluster::proxy_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`                           
-:zeek:id:`Cluster::proxy_topic`: :zeek:type:`string` :zeek:attr:`&redef`                                          
-:zeek:id:`Cluster::worker_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`                          
-:zeek:id:`Cluster::worker_topic`: :zeek:type:`string` :zeek:attr:`&redef`                                         
+:zeek:id:`Cluster::Backend::ZeroMQ::run_proxy_thread`: :zeek:type:`bool` :zeek:attr:`&redef`
+:zeek:id:`Cluster::Telemetry::topic_normalizations`: :zeek:type:`table` :zeek:attr:`&ordered` :zeek:attr:`&redef`
+:zeek:id:`Cluster::backend`: :zeek:type:`Cluster::BackendTag` :zeek:attr:`&redef`
+:zeek:id:`Cluster::logger_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
+:zeek:id:`Cluster::logger_topic`: :zeek:type:`string` :zeek:attr:`&redef`
+:zeek:id:`Cluster::manager_topic`: :zeek:type:`string` :zeek:attr:`&redef`
+:zeek:id:`Cluster::node_id`: :zeek:type:`function` :zeek:attr:`&redef`
+:zeek:id:`Cluster::node_topic`: :zeek:type:`function` :zeek:attr:`&redef`
+:zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function` :zeek:attr:`&redef`
+:zeek:id:`Cluster::proxy_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
+:zeek:id:`Cluster::proxy_topic`: :zeek:type:`string` :zeek:attr:`&redef`
+:zeek:id:`Cluster::worker_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
+:zeek:id:`Cluster::worker_topic`: :zeek:type:`string` :zeek:attr:`&redef`
 ================================================================================================================= =
 
 Events
@@ -156,7 +156,7 @@ Redefinable Options
 
 
    Vector of ZeroMQ endpoints to connect to for logging.
-   
+
    A node's PUSH socket used for logging connects to each
    of the ZeroMQ endpoints listed in this vector.
 
@@ -168,7 +168,7 @@ Redefinable Options
    :Default: ``"tcp://127.0.0.1:5556"``
 
    The central broker's XPUB endpoint to connect to.
-   
+
    A node connects with its XSUB socket to the XPUB socket
    of the central broker.
 
@@ -180,14 +180,14 @@ Redefinable Options
    :Default: ``T``
 
    Do not silently drop messages if high-water-mark is reached.
-   
+
    Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
    connecting to the proxy to detect when sending a message fails
    due to reaching the high-water-mark. If you set this to **F**,
    then the XPUB drops metric will stop working as sending on the
    XPUB socket will always succeed. Unless you're developing on the
    ZeroMQ cluster backend, keep this set to **T**.
-   
+
    See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
    for more details.
 
@@ -199,7 +199,7 @@ Redefinable Options
    :Default: ``"tcp://127.0.0.1:5555"``
 
    The central broker's XSUB endpoint to connect to.
-   
+
    A node connects with its XPUB socket to the XSUB socket
    of the central broker.
 
@@ -211,10 +211,10 @@ Redefinable Options
    :Default: ``0``
 
    Bitmask to enable low-level stderr based debug printing.
-   
+
        poll:   1 (produce verbose zmq::poll() output)
        thread: 2 (produce thread related output)
-   
+
    Or values from the above list together and set debug_flags
    to the result. E.g. use 7 to select 4, 2 and 1. Only use this
    in development if something seems off. The thread used internally
@@ -228,7 +228,7 @@ Redefinable Options
    :Default: ``10.0 secs``
 
    Expiration for hello state.
-   
+
    How long to wait before expiring information about
    subscriptions and hello messages from other
    nodes. These expirations trigger reporter warnings.
@@ -241,9 +241,9 @@ Redefinable Options
    :Default: ``"zeek.zeromq.internal."``
 
    The topic prefix used for internal ZeroMQ specific communication.
-   
+
    This is used for the "ready to publish callback" topics.
-   
+
    Zeek creates a short-lived subscription for a auto-generated
    topic name with this prefix and waits for it to be confirmed
    on its XPUB socket. Once this happens, the XPUB socket should've
@@ -259,10 +259,10 @@ Redefinable Options
    :Default: ``T``
 
    Set ZMQ_IPV6 option.
-   
+
    The ZeroMQ library has IPv6 support in ZeroMQ. For Zeek we enable it
    unconditionally such that listening or connecting  with IPv6 just works.
-   
+
    See ZeroMQ's `ZMQ_IPV6 documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc23>`_
    for more details.
 
@@ -274,14 +274,14 @@ Redefinable Options
    :Default: ``500``
 
    Configure the ZeroMQ's sockets linger value.
-   
+
    The default used by libzmq is 30 seconds (30 000) which is very long
    when loggers vanish before workers during a shutdown, so we reduce
    this to 500 milliseconds by default.
-   
+
    A value of ``-1`` configures blocking forever, while ``0`` would
    immediately discard any pending messages.
-   
+
    See ZeroMQ's `ZMQ_LINGER documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc24>`_
    for more details.
 
@@ -293,7 +293,7 @@ Redefinable Options
    :Default: ``""``
 
    PULL socket address to listen on for log messages.
-   
+
    If empty, don't listen for log messages, otherwise
    a ZeroMQ address to bind to. E.g., ``tcp://127.0.0.1:5555``.
 
@@ -305,7 +305,7 @@ Redefinable Options
    :Default: ``"tcp://127.0.0.1:5555"``
 
    XPUB listen endpoint for the central broker.
-   
+
    This setting is used for the XPUB socket of the central broker started
    when :zeek:see:`Cluster::Backend::ZeroMQ::run_proxy_thread` is ``T``.
 
@@ -317,14 +317,14 @@ Redefinable Options
    :Default: ``T``
 
    Do not silently drop messages if high-water-mark is reached.
-   
+
    Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
    to detect when sending a message fails due to reaching
    the high-water-mark.
-   
+
    This setting applies to the XPUB/XSUB broker started when
    :zeek:see:`Cluster::Backend::ZeroMQ::run_proxy_thread` is ``T``.
-   
+
    See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
    for more details.
 
@@ -336,7 +336,7 @@ Redefinable Options
    :Default: ``"tcp://127.0.0.1:5556"``
 
    XSUB listen endpoint for the central broker.
-   
+
    This setting is used for the XSUB socket of the central broker started
    when :zeek:see:`Cluster::Backend::ZeroMQ::run_proxy_thread` is ``T``.
 
@@ -348,11 +348,11 @@ Redefinable Options
    :Default: ``F``
 
    Configure ZeroMQ's immediate setting on PUSH sockets
-   
+
    Setting this to ``T`` will queue log writes only to completed
    connections. By default, log writes are queued to all potential
    endpoints listed in :zeek:see:`Cluster::Backend::ZeroMQ::connect_log_endpoints`.
-   
+
    See ZeroMQ's `ZMQ_IMMEDIATE documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc21>`_
    for more details.
 
@@ -364,9 +364,9 @@ Redefinable Options
    :Default: ``-1``
 
    Kernel receive buffer size for log sockets.
-   
+
    Using -1 will use the kernel's default.
-   
+
    See ZeroMQ's `ZMQ_RCVBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc34>`_
    for more details.
 
@@ -378,12 +378,12 @@ Redefinable Options
    :Default: ``1000``
 
    Receive high water mark value for the log PULL sockets.
-   
+
    If reached, Zeek workers will block or drop messages.
-   
+
    See ZeroMQ's `ZMQ_RCVHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc35>`_
    for more details.
-   
+
    TODO: Make action configurable (block vs drop)
 
 .. zeek:id:: Cluster::Backend::ZeroMQ::log_sndbuf
@@ -394,9 +394,9 @@ Redefinable Options
    :Default: ``-1``
 
    Kernel transmit buffer size for log sockets.
-   
+
    Using -1 will use the kernel's default.
-   
+
    See ZeroMQ's `ZMQ_SNDBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc45>`_.
 
 .. zeek:id:: Cluster::Backend::ZeroMQ::log_sndhwm
@@ -407,12 +407,12 @@ Redefinable Options
    :Default: ``1000``
 
    Send high water mark value for the log PUSH sockets.
-   
+
    If reached, Zeek nodes will block or drop messages.
-   
+
    See ZeroMQ's `ZMQ_SNDHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc46>`_
    for more details.
-   
+
    TODO: Make action configurable (block vs drop)
 
 .. zeek:id:: Cluster::Backend::ZeroMQ::onloop_queue_hwm
@@ -423,13 +423,13 @@ Redefinable Options
    :Default: ``10000``
 
    Maximum number of incoming events queued for Zeek's event loop.
-   
+
    This constant defines the maximum number of remote events queued
    by the ZeroMQ cluster backend for Zeek's event loop to drain in
    one go. If you set this value to 0 (unlimited), consider closely
    CPU and memory usage of cluster nodes as high remote event rates
    may starve packet processing.
-   
+
    If more events are received than can fit the queue, new events will be
    dropped and the ``zeek_cluster_zeromq_onloop_drops_total`` metric
    incremented.
@@ -442,7 +442,7 @@ Redefinable Options
    :Default: ``100``
 
    Messages to receive before yielding.
-   
+
    Yield from the receive loop when this many messages have been
    received from one of the used sockets.
 
@@ -479,13 +479,13 @@ Redefinable Options
 
 
    Toggle for running a central ZeroMQ XPUB-XSUB broker on this node.
-   
+
    If set to ``T``, :zeek:see:`Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread`
    is called during :zeek:see:`zeek_init`. The node will listen
    on :zeek:see:`Cluster::Backend::ZeroMQ::listen_xsub_endpoint` and
    :zeek:see:`Cluster::Backend::ZeroMQ::listen_xpub_endpoint` and
    forward subscriptions and messages between nodes.
-   
+
    By default, this is set to ``T`` on the manager and ``F`` elsewhere.
 
 .. zeek:id:: Cluster::Backend::ZeroMQ::xpub_sndbuf
@@ -496,9 +496,9 @@ Redefinable Options
    :Default: ``-1``
 
    Kernel transmit buffer size for the XPUB socket.
-   
+
    Using -1 will use the kernel's default.
-   
+
    See ZeroMQ's `ZMQ_SNDBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc45>`_
    for more details.
 
@@ -510,10 +510,10 @@ Redefinable Options
    :Default: ``1000``
 
    Send high water mark value for the XPUB socket.
-   
+
    Events published when the XPUB queue is full will be dropped and the
    ``zeek_cluster_zeromq_xpub_drops_total`` metric incremented.
-   
+
    See ZeroMQ's `ZMQ_SNDHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc46>`_
    for more details.
 
@@ -525,9 +525,9 @@ Redefinable Options
    :Default: ``-1``
 
    Kernel receive buffer size for the XSUB socket.
-   
+
    Using -1 will use the kernel's default.
-   
+
    See ZeroMQ's `ZMQ_RCVBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc34>`_
    for more details.
 
@@ -539,10 +539,10 @@ Redefinable Options
    :Default: ``1000``
 
    Receive high water mark value for the XSUB socket.
-   
+
    If reached, the Zeek node will start reporting back pressure
    to the central XPUB socket.
-   
+
    See ZeroMQ's `ZMQ_RCVHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc35>`_
    for more details.
 
@@ -574,10 +574,10 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, id: :zeek:type:`string`)
 
    Low-level event send to a node in response to their subscription.
-   
+
 
    :param name: The sending node's name in :zeek:see:`Cluster::nodes`.
-   
+
 
    :param id: The sending node's identifier, as generated by :zeek:see:`Cluster::node_id`.
 
@@ -587,12 +587,12 @@ Events
    :Type: :zeek:type:`event` (topic: :zeek:type:`string`)
 
    Low-level event when a subscription is added.
-   
+
    Every node observes all subscriptions from other nodes
    in a cluster through its XPUB socket. Whenever a new
    subscription topic is added, this event is raised with
    the topic.
-   
+
 
    :param topic: The topic.
 
@@ -602,12 +602,12 @@ Events
    :Type: :zeek:type:`event` (topic: :zeek:type:`string`)
 
    Low-level event when a subscription vanishes.
-   
+
    Every node observes all subscriptions from other nodes
    in a cluster through its XPUB socket. Whenever a subscription
    is removed from the local XPUB socket, this event is raised
    with the topic set to the removed subscription.
-   
+
 
    :param topic: The topic.
 

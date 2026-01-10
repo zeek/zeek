@@ -28,19 +28,19 @@ Redefinable Options
 Types
 #####
 =========================================== =
-:zeek:type:`KRB::Info`: :zeek:type:`record` 
+:zeek:type:`KRB::Info`: :zeek:type:`record`
 =========================================== =
 
 Redefinitions
 #############
 ============================================ ====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`KRB::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                krb: :zeek:type:`KRB::Info` :zeek:attr:`&optional`
 ============================================ ====================================================
 
@@ -55,7 +55,7 @@ Hooks
 #####
 ============================================================ ===========================
 :zeek:id:`KRB::finalize_krb`: :zeek:type:`Conn::RemovalHook` Kerberos finalization hook.
-:zeek:id:`KRB::log_policy`: :zeek:type:`Log::PolicyHook`     
+:zeek:id:`KRB::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================ ===========================
 
 

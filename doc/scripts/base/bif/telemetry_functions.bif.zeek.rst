@@ -14,21 +14,21 @@ Summary
 Functions
 #########
 ========================================================================== =
-:zeek:id:`Telemetry::__collect_histogram_metrics`: :zeek:type:`function`   
-:zeek:id:`Telemetry::__collect_metrics`: :zeek:type:`function`             
-:zeek:id:`Telemetry::__counter_family`: :zeek:type:`function`              
-:zeek:id:`Telemetry::__counter_inc`: :zeek:type:`function`                 
-:zeek:id:`Telemetry::__counter_metric_get_or_add`: :zeek:type:`function`   
-:zeek:id:`Telemetry::__counter_value`: :zeek:type:`function`               
-:zeek:id:`Telemetry::__gauge_dec`: :zeek:type:`function`                   
-:zeek:id:`Telemetry::__gauge_family`: :zeek:type:`function`                
-:zeek:id:`Telemetry::__gauge_inc`: :zeek:type:`function`                   
-:zeek:id:`Telemetry::__gauge_metric_get_or_add`: :zeek:type:`function`     
-:zeek:id:`Telemetry::__gauge_value`: :zeek:type:`function`                 
-:zeek:id:`Telemetry::__histogram_family`: :zeek:type:`function`            
-:zeek:id:`Telemetry::__histogram_metric_get_or_add`: :zeek:type:`function` 
-:zeek:id:`Telemetry::__histogram_observe`: :zeek:type:`function`           
-:zeek:id:`Telemetry::__histogram_sum`: :zeek:type:`function`               
+:zeek:id:`Telemetry::__collect_histogram_metrics`: :zeek:type:`function`
+:zeek:id:`Telemetry::__collect_metrics`: :zeek:type:`function`
+:zeek:id:`Telemetry::__counter_family`: :zeek:type:`function`
+:zeek:id:`Telemetry::__counter_inc`: :zeek:type:`function`
+:zeek:id:`Telemetry::__counter_metric_get_or_add`: :zeek:type:`function`
+:zeek:id:`Telemetry::__counter_value`: :zeek:type:`function`
+:zeek:id:`Telemetry::__gauge_dec`: :zeek:type:`function`
+:zeek:id:`Telemetry::__gauge_family`: :zeek:type:`function`
+:zeek:id:`Telemetry::__gauge_inc`: :zeek:type:`function`
+:zeek:id:`Telemetry::__gauge_metric_get_or_add`: :zeek:type:`function`
+:zeek:id:`Telemetry::__gauge_value`: :zeek:type:`function`
+:zeek:id:`Telemetry::__histogram_family`: :zeek:type:`function`
+:zeek:id:`Telemetry::__histogram_metric_get_or_add`: :zeek:type:`function`
+:zeek:id:`Telemetry::__histogram_observe`: :zeek:type:`function`
+:zeek:id:`Telemetry::__histogram_sum`: :zeek:type:`function`
 ========================================================================== =
 
 

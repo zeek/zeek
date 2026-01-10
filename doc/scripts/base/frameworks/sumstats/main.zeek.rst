@@ -32,12 +32,12 @@ Types
 Redefinitions
 #############
 =================================================== ==============================================================================================
-:zeek:type:`SumStats::Reducer`: :zeek:type:`record` 
-                                                    
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`
+
                                                     :New Fields: :zeek:type:`SumStats::Reducer`
-                                                    
+
                                                       ssname: :zeek:type:`string` :zeek:attr:`&optional`
-                                                    
+
                                                       calc_funcs: :zeek:type:`vector` of :zeek:type:`SumStats::Calculation` :zeek:attr:`&optional`
 =================================================== ==============================================================================================
 
@@ -472,7 +472,7 @@ Types
       based detection needs to be set to a
       value that should be expected to happen within
       this epoch.
-      
+
       Passing an epoch of zero (e.g. ``0 secs``) causes this
       sumstat to be set to manual epochs. You will have to manually
       end the epoch by calling :zeek:see:`SumStats::next_epoch`.
@@ -532,7 +532,7 @@ Types
    Represents a SumStat, which consists of an aggregation of reducers along
    with mechanisms to handle various situations like the epoch ending
    or thresholds being crossed.
-   
+
    It's best to not access any global state outside
    of the variables given to the callbacks because there
    is no assurance provided as to where the callbacks
@@ -546,7 +546,7 @@ Functions
    :Type: :zeek:type:`function` (ss: :zeek:type:`SumStats::SumStat`) : :zeek:type:`void`
 
    Create a summary statistic.
-   
+
 
    :param ss: The SumStat to create.
 
@@ -557,10 +557,10 @@ Functions
 
    Helper function to represent a :zeek:type:`SumStats::Key` value as
    a simple string.
-   
+
 
    :param key: The metric key that is to be converted into a string.
-   
+
 
    :returns: A string representation of the metric key.
 
@@ -573,16 +573,16 @@ Functions
    cause the end of the epoch processing of sumstats to start. Note that the
    epoch will not end immediately - especially in a cluster settings, a number
    of messages need to be exchanged between the cluster nodes.
-   
+
    Note that this function only can be called if the sumstat was created with
    an epoch time of zero (manual epochs).
-   
+
    In a cluster, this function must be called on the manager; it will not have
    any effect when called on workers.
-   
+
 
    :param ss_name: SumStat name.
-   
+
 
    :returns: true on success, false on failure. Failures can be: sumstat not found,
             or sumstat not created for manual epochs.
@@ -594,14 +594,14 @@ Functions
 
    Add data into an observation stream. This should be
    called when a script has measured some point value.
-   
+
 
    :param id: The observation stream identifier that the data
        point represents.
-   
+
 
    :param key: The key that the value is related to.
-   
+
 
    :param obs: The data point to send into the stream.
 
@@ -615,13 +615,13 @@ Functions
    from the :zeek:see:`SumStats::SumStat` record. The function is only
    available for use within "when" statements as an asynchronous
    function.
-   
+
 
    :param ss_name: SumStat name.
-   
+
 
    :param key: The SumStat key being requested.
-   
+
 
    :returns: The result for the requested sumstat key.
 

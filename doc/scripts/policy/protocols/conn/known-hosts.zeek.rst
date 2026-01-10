@@ -48,7 +48,7 @@ Redefinitions
 #############
 ======================================= ==========================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The known-hosts logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Known::HOSTS_LOG`
 ======================================= ==========================================
 
@@ -167,7 +167,7 @@ State Variables
    inspect if an address has been seen in use.
    Maintain the list of known hosts for 24 hours so that the existence
    of each individual address is logged each day.
-   
+
    In cluster operation, this set is distributed uniformly across
    proxy nodes.
 

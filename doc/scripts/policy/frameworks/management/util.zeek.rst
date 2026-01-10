@@ -28,10 +28,10 @@ Functions
    :Type: :zeek:type:`function` (ss: :zeek:type:`set` [:zeek:type:`string`]) : :zeek:type:`vector` of :zeek:type:`string`
 
    Renders a set of strings to an alphabetically sorted vector.
-   
+
 
    :param ss: the string set to convert.
-   
+
 
    :returns: the vector of all strings in ss.
 

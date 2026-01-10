@@ -13,10 +13,10 @@ Summary
 Constants
 #########
 =============================================================================================== =
-:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`    
-:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   
-:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
-:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     
+:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
 =============================================================================================== =
 
 

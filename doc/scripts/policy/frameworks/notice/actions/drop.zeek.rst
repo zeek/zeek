@@ -15,10 +15,10 @@ Summary
 Redefinitions
 #############
 ============================================== ===================================================================================================
-:zeek:type:`Notice::Info`: :zeek:type:`record` 
-                                               
+:zeek:type:`Notice::Info`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`Notice::Info`
-                                               
+
                                                  dropped: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
                                                    Indicate if the $src IP address was dropped and denied
                                                    network access.

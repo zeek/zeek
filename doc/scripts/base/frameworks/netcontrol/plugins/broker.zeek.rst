@@ -22,13 +22,13 @@ Types
 Redefinitions
 #############
 ========================================================= =============================================================================
-:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
-                                                          
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record`
+
                                                           :New Fields: :zeek:type:`NetControl::PluginState`
-                                                          
+
                                                             broker_config: :zeek:type:`NetControl::BrokerConfig` :zeek:attr:`&optional`
                                                               OpenFlow controller for NetControl Broker plugin.
-                                                          
+
                                                             broker_id: :zeek:type:`count` :zeek:attr:`&optional`
                                                               The ID of this broker instance - for the mapping to PluginStates.
 ========================================================= =============================================================================
@@ -36,13 +36,13 @@ Redefinitions
 Events
 ######
 ============================================================== =
-:zeek:id:`NetControl::broker_add_rule`: :zeek:type:`event`     
-:zeek:id:`NetControl::broker_remove_rule`: :zeek:type:`event`  
-:zeek:id:`NetControl::broker_rule_added`: :zeek:type:`event`   
-:zeek:id:`NetControl::broker_rule_error`: :zeek:type:`event`   
-:zeek:id:`NetControl::broker_rule_exists`: :zeek:type:`event`  
-:zeek:id:`NetControl::broker_rule_removed`: :zeek:type:`event` 
-:zeek:id:`NetControl::broker_rule_timeout`: :zeek:type:`event` 
+:zeek:id:`NetControl::broker_add_rule`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_remove_rule`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_rule_added`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_rule_error`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_rule_exists`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_rule_removed`: :zeek:type:`event`
+:zeek:id:`NetControl::broker_rule_timeout`: :zeek:type:`event`
 ============================================================== =
 
 Functions
@@ -90,13 +90,13 @@ Types
    .. zeek:field:: check_pred :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
 
       Predicate that is called on rule insertion or removal.
-      
+
 
       :param p: Current plugin state.
-      
+
 
       :param r: The rule to be inserted or removed.
-      
+
 
       :returns: T if the rule can be handled by the current backend, F otherwise.
 

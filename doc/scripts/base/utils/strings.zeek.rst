@@ -30,13 +30,13 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`string`, tail_len: :zeek:type:`count`) : :zeek:type:`string`
 
    Cut a number of characters from the end of the given string.
-   
+
 
    :param s: a string to trim.
-   
+
 
    :param tail_len: the number of characters to remove from the end of the string.
-   
+
 
    :returns: the given string with *tail_len* characters removed from the end.
 
@@ -54,13 +54,13 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`string`, chars: :zeek:type:`string`) : :zeek:type:`string`
 
    Given a string, returns an escaped version.
-   
+
 
    :param s: a string to escape.
-   
+
 
    :param chars: a string containing all the characters that need to be escaped.
-   
+
 
    :returns: a string with all occurrences of any character in *chars* escaped
             using ``\``, and any literal ``\`` characters likewise escaped.

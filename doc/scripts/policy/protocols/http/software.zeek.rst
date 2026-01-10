@@ -20,14 +20,14 @@ Runtime Options
 Redefinitions
 #############
 ============================================== ========================================================
-:zeek:type:`Software::Type`: :zeek:type:`enum` 
-                                               
+:zeek:type:`Software::Type`: :zeek:type:`enum`
+
                                                * :zeek:enum:`HTTP::APPSERVER`:
                                                  Identifier for app servers in the software framework.
-                                               
+
                                                * :zeek:enum:`HTTP::BROWSER`:
                                                  Identifier for web browsers in the software framework.
-                                               
+
                                                * :zeek:enum:`HTTP::SERVER`:
                                                  Identifier for web servers in the software framework.
 ============================================== ========================================================

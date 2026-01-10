@@ -30,16 +30,16 @@ Summary
 Redefinitions
 #############
 ====================================================================================== ==================================================================================================
-:zeek:type:`SSL::Info`: :zeek:type:`record`                                            
-                                                                                       
+:zeek:type:`SSL::Info`: :zeek:type:`record`
+
                                                                                        :New Fields: :zeek:type:`SSL::Info`
-                                                                                       
+
                                                                                          always_raise_x509_events: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
                                                                                            Set to true to force certificate events to always be raised for this connection.
-:zeek:type:`X509::Info`: :zeek:type:`record`                                           
-                                                                                       
+:zeek:type:`X509::Info`: :zeek:type:`record`
+
                                                                                        :New Fields: :zeek:type:`X509::Info`
-                                                                                       
+
                                                                                          always_raise_x509_events: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
                                                                                            Set to true to force certificate events to always be raised for this certificate.
 :zeek:id:`X509::certificate_cache_max_entries`: :zeek:type:`count` :zeek:attr:`&redef` Let's be a bit more generous with the number of certificates that we allow to be put into

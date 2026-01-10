@@ -23,7 +23,7 @@ Redefinitions
 #############
 ======================================= =====================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The config logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Config::LOG`
 ======================================= =====================================
 
@@ -116,16 +116,16 @@ Functions
    value for all nodes in the cluster, no matter where it was called. Note
    that :zeek:see:`Option::set` does not distribute configuration changes
    to other nodes.
-   
+
 
    :param ID: The ID of the option to update.
-   
+
 
    :param val: The new value of the option.
-   
+
 
    :param location: Optional parameter detailing where this change originated from.
-   
+
 
    :returns: true on success, false when an error occurs.
 

@@ -38,32 +38,32 @@ Types
 Redefinitions
 #############
 =============================================== ============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`         
-                                                
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                 * :zeek:enum:`SMB::FILES_LOG`
-                                                
+
                                                 * :zeek:enum:`SMB::MAPPING_LOG`
-:zeek:type:`SMB::FileInfo`: :zeek:type:`record` 
-                                                
+:zeek:type:`SMB::FileInfo`: :zeek:type:`record`
+
                                                 :New Fields: :zeek:type:`SMB::FileInfo`
-                                                
+
                                                   fid: :zeek:type:`count` :zeek:attr:`&optional`
                                                     ID referencing this file.
-                                                
+
                                                   uuid: :zeek:type:`string` :zeek:attr:`&optional`
                                                     UUID referencing this file if DCE/RPC.
 :zeek:type:`connection`: :zeek:type:`record`    Everything below here is used internally in the SMB scripts.
-                                                
+
                                                 :New Fields: :zeek:type:`connection`
-                                                
+
                                                   smb_state: :zeek:type:`SMB::State` :zeek:attr:`&optional`
 =============================================== ============================================================
 
 Hooks
 #####
 ================================================================ =
-:zeek:id:`SMB::log_policy_files`: :zeek:type:`Log::PolicyHook`   
-:zeek:id:`SMB::log_policy_mapping`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`SMB::log_policy_files`: :zeek:type:`Log::PolicyHook`
+:zeek:id:`SMB::log_policy_mapping`: :zeek:type:`Log::PolicyHook`
 ================================================================ =
 
 Functions
@@ -87,7 +87,7 @@ Runtime Options
 
    Whether to reset a connection's SMB script state whenever a
    :zeek:see:`smb2_discarded_messages_state` event is raised.
-   
+
    This setting protects from unbounded script state growth in
    environments with high capture loss or traffic anomalies.
 

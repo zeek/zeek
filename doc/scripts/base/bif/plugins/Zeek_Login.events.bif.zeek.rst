@@ -47,13 +47,13 @@ Events
    Generated for Telnet sessions when encryption is activated. The Telnet
    protocol includes options for negotiating encryption. When such a series of
    options is successfully negotiated, the event engine generates this event.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: authentication_accepted authentication_rejected authentication_skipped
       login_confused login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
@@ -67,22 +67,22 @@ Events
    protocol includes options for negotiating authentication. When such an
    option is sent from client to server and the server replies that it accepts
    the authentication, then the event engine generates this event.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param name: The authenticated name.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see::  authentication_rejected authentication_skipped login_success
-   
+
    .. note::  This event inspects the corresponding Telnet option
       while :zeek:id:`login_success` heuristically determines success by watching
       session data.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -98,22 +98,22 @@ Events
    protocol includes options for negotiating authentication. When such an option
    is sent from client to server and the server replies that it did not accept
    the authentication, then the event engine generates this event.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param name: The attempted authentication name.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: authentication_accepted authentication_skipped login_failure
-   
+
    .. note::  This event inspects the corresponding Telnet option
       while :zeek:id:`login_success` heuristically determines failure by watching
       session data.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -127,22 +127,22 @@ Events
 
    Generated for Telnet/Rlogin sessions when a pattern match indicates
    that no authentication is performed.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: authentication_accepted authentication_rejected direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
-   
+
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying activity. This
       configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -155,18 +155,18 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for an ill-formed or unrecognized Telnet option.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: inconsistent_option bad_option_termination authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -179,18 +179,18 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for a Telnet option that's incorrectly terminated.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: inconsistent_option bad_option authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -209,13 +209,13 @@ Events
    engine sees a peer violate either what the other peer has instructed it to
    do, or what it itself offered in terms of options in the past, then the
    engine generates this event.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: bad_option bad_option_termination  authentication_accepted
       authentication_rejected authentication_skipped login_confused
       login_confused_text login_display login_failure login_input_line
@@ -230,25 +230,25 @@ Events
    *login* analyzer uses a number of heuristics to extract authentication
    information, it may become confused. If it can no longer correctly track
    the authentication dialog, it raises this event.
-   
+
 
    :param c: The connection.
-   
+
 
    :param msg: Gives the particular problem the heuristics detected (for example,
         ``multiple_login_prompts`` means that the engine saw several login
         prompts in a row, without the type-ahead from the client side presumed
         necessary to cause them)
-   
+
 
    :param line: The line of text that caused the heuristics to conclude they were
          confused.
-   
+
    .. zeek:see::  login_confused_text login_display login_failure login_input_line login_output_line
       login_prompt login_success login_terminal direct_login_prompts get_login_state
       login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -264,18 +264,18 @@ Events
    authentication dialog. The *login* analyzer generates this even for every
    line of user input after it has reported :zeek:id:`login_confused` for a
    connection.
-   
+
 
    :param c: The connection.
-   
+
 
    :param line: The line the user typed.
-   
+
    .. zeek:see:: login_confused  login_display login_failure login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts
       login_success_msgs login_timeouts set_login_state
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -289,16 +289,16 @@ Events
 
    Generated for clients transmitting an X11 DISPLAY in a Telnet session. This
    information is extracted out of environment variables sent as Telnet options.
-   
+
 
    :param c: The connection.
-   
+
 
    :param display: The DISPLAY transmitted.
-   
+
    .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -314,35 +314,35 @@ Events
    Telnet/Rlogin sessions to heuristically extract username and password
    information as well as the text returned by the login server. This event is
    raised if a login attempt appears to have been unsuccessful.
-   
+
 
    :param c: The connection.
-   
+
 
    :param user: The user name tried.
-   
+
 
    :param client_user: For Telnet connections, this is an empty string, but for Rlogin
          connections, it is the client name passed in the initial authentication
          information (to check against .rhosts).
-   
+
 
    :param password:  The password tried.
-   
+
 
    :param line:  The line of text that led the analyzer to conclude that the
           authentication had failed.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_input_line
       login_output_line login_prompt login_success login_terminal direct_login_prompts
       get_login_state login_failure_msgs login_non_failure_msgs login_prompts login_success_msgs
       login_timeouts set_login_state
-   
+
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
       configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
-   
+
    .. todo:: Zeeks's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -356,16 +356,16 @@ Events
 
    Generated for lines of input on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
-   
+
 
    :param c: The connection.
-   
+
 
    :param line: The input line.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_output_line login_prompt login_success login_terminal    rsh_request
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -379,16 +379,16 @@ Events
 
    Generated for lines of output on Telnet/Rlogin sessions. The line will have
    control characters (such as in-band Telnet options) removed.
-   
+
 
    :param c: The connection.
-   
+
 
    :param line: The output line.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line  login_prompt login_success login_terminal rsh_reply
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -403,19 +403,19 @@ Events
    Generated for clients transmitting a terminal prompt in a Telnet session.
    This information is extracted out of environment variables sent as Telnet
    options.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param prompt: The TTYPROMPT transmitted.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line  login_success login_terminal
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -431,35 +431,35 @@ Events
    Telnet/Rlogin sessions to heuristically extract username and password
    information as well as the text returned by the login server. This event is
    raised if a login attempt appears to have been successful.
-   
+
 
    :param c: The connection.
-   
+
 
    :param user: The user name used.
-   
+
 
    :param client_user: For Telnet connections, this is an empty string, but for Rlogin
          connections, it is the client name passed in the initial authentication
          information (to check against .rhosts).
-   
+
 
    :param password: The password used.
-   
+
 
    :param line:  The line of text that led the analyzer to conclude that the
           authentication had succeeded.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_terminal
       direct_login_prompts get_login_state login_failure_msgs login_non_failure_msgs
       login_prompts login_success_msgs login_timeouts set_login_state
-   
+
    .. note:: The login analyzer depends on a set of script-level variables that
       need to be configured with patterns identifying login attempts. This
       configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -473,16 +473,16 @@ Events
 
    Generated for clients transmitting a terminal type in a Telnet session.  This
    information is extracted out of environment variables sent as Telnet options.
-   
+
 
    :param c: The connection.
-   
+
 
    :param terminal: The TERM value transmitted.
-   
+
    .. zeek:see:: login_confused login_confused_text login_display login_failure
       login_input_line login_output_line login_prompt login_success
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
@@ -495,30 +495,30 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`)
 
    Generated for client side commands on an RSH connection.
-   
+
    See :rfc:`1258` for more information about the Rlogin/Rsh protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param client_user: The client-side user name as sent in the initial protocol
          handshake.
-   
+
 
    :param server_user: The server-side user name as sent in the initial protocol
          handshake.
-   
+
 
    :param line: The command line sent in the request.
-   
+
    .. zeek:see:: rsh_request login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
-   
+
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -530,33 +530,33 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, client_user: :zeek:type:`string`, server_user: :zeek:type:`string`, line: :zeek:type:`string`, new_session: :zeek:type:`bool`)
 
    Generated for client side commands on an RSH connection.
-   
+
    See :rfc:`1258` for more information about the Rlogin/Rsh protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param client_user: The client-side user name as sent in the initial protocol
          handshake.
-   
+
 
    :param server_user: The server-side user name as sent in the initial protocol
          handshake.
-   
+
 
    :param line: The command line sent in the request.
-   
+
 
    :param new_session: True if this is the first command of the Rsh session.
-   
+
    .. zeek:see:: rsh_reply login_confused login_confused_text login_display
       login_failure login_input_line login_output_line login_prompt login_success
       login_terminal
-   
+
    .. note:: For historical reasons, these events are separate from the
       ``login_`` events. Ideally, they would all be handled uniquely.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to

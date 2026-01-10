@@ -69,27 +69,27 @@ Events
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
    appropriate key exchange message is seen for SSH1.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param p: The exponent for the server's public host key (note this parameter
       is truly the exponent even though named *p* and the *exponent* parameter
       will eventually replace it).
-   
+
 
    :param e: The prime modulus for the server's public host key (note this parameter
       is truly the modulus even though named *e* and the *modulus* parameter
       will eventually replace it).
-   
+
 
    :param modulus: The prime modulus of the server's public host key.
-   
+
 
    :param exponent: The exponent of the server's public host key.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -106,13 +106,13 @@ Events
    key exchange method. This event contains the direction of the key
    exchange setup, which is indicated by the the SSH_MSG_KEX_DH_GEX_INIT
    message as defined in :rfc:`4419#section-3`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Did this message come from the originator?
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -129,16 +129,16 @@ Events
    key exchange method. This event contains the server DH parameters,
    which are sent in the SSH_MSG_KEY_DH_GEX_GROUP message as defined in
    :rfc:`4419#section-3`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param p: The DH prime modulus.
-   
+
 
    :param q: The DH generator.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -159,13 +159,13 @@ Events
    to originate from the client and not from the server.
    For more information, see:
    :rfc:`5656#section-4`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Did this message come from the originator?
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -184,16 +184,16 @@ Events
    secret. This event is generated when either the client's or
    server's ephemeral public key is seen. For more information, see:
    :rfc:`5656#section-4`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Did this message come from the originator?
-   
+
 
    :param q: The ephemeral public key
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -210,19 +210,19 @@ Events
    send an error message with some additional details. This event is
    generated when such an error message is seen. For more information,
    see :rfc:`4462#section-2.1`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param major_status: GSS-API major status code.
-   
+
 
    :param minor_status: GSS-API minor status code.
-   
+
 
    :param err_msg: Detailed human-readable error message
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -238,13 +238,13 @@ Events
    In the event of a GSS-API key exchange, this event is raised on
    SSH_MSG_KEXGSS_INIT message.
    For more information see :rfc:`4462#section-2.1`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Did this message come from the originator?
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -261,13 +261,13 @@ Events
    SSH_MSG_KEXRSA_PUBKEY message. This message is sent first by the server,
    after which the server will respond with a SSH_MSG_KEXRSA_SECRET message.
    For more information see :rfc:`4432#section-4`.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Did this message come from the originator?
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -283,15 +283,15 @@ Events
    During the :abbr:`SSH (Secure Shell)` key exchange, the server
    supplies its public host key. This event is generated when the
    appropriate key exchange message is seen for SSH2.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param key: The server's public host key. Note that this is the public key
       itself, and not just the fingerprint or hash.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_attempted ssh_capabilities
       ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
@@ -310,25 +310,25 @@ Events
    on the side of caution - that is, if there's any doubt about
    whether or not an authentication attempt occurred, this event is
    *not* raised.
-   
+
    At this point in the protocol, all we can determine is whether
    or not the user is authenticated. We don't know if the particular
    attempt succeeded or failed, since some servers require multiple
    authentications (e.g. require both a password AND a pubkey), and
    could return an authentication failed message which is marked
    as a partial success.
-   
+
    This event will often be raised multiple times per connection.
    In almost all connections, it will be raised once unless
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param authenticated: This is true if the analyzer detected a
       successful connection from the authentication attempt.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -346,17 +346,17 @@ Events
    authentication. This determination is based on packet size
    analysis, and errs on the side of caution - that is, if there's any
    doubt about the authentication success, this event is *not* raised.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param auth_method_none: This is true if the analyzer detected a
       successful connection before any authentication challenge. The
       :abbr:`SSH (Secure Shell)` protocol provides a mechanism for
       unauthenticated access, which some servers support.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -374,19 +374,19 @@ Events
    preference. This event is generated for each endpoint, when the
    SSH_MSG_KEXINIT message is seen. See :rfc:`4253#section-7.1` for
    details.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param cookie: The SSH_MSG_KEXINIT cookie - a random value generated by
       the sender.
-   
+
 
    :param capabilities: The list of algorithms and languages that the sender
       advertises support for, in order of preference.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -403,13 +403,13 @@ Events
    from the client. This contains an identification string that's used
    for version identification. See :rfc:`4253#section-4.2` for
    details.
-   
+
 
    :param c: The connection over which the message was sent.
-   
+
 
    :param version: The identification string
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -427,19 +427,19 @@ Events
    is provided for heuristic analysis scripts. Note that you have to set
    :zeek:id:`SSH::disable_analyzer_after_detection` to false to use this
    event. This carries a performance penalty.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param orig: Whether the packet was sent by the originator of the TCP
       connection.
-   
+
 
    :param len: The length of the :abbr:`SSH (Secure Shell)` payload, in
       bytes. Note that this ignores reassembly, as this is unknown.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -456,11 +456,11 @@ Events
    supplies its public host key. This event is generated when the
    appropriate key exchange message is seen for SSH1 or SSH2 and provides
    a fingerprint of the server's host key.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param hash: an MD5 hash fingerprint associated with the server's host key.
          For SSH2, this is the hash of the "server public host key" string as
@@ -474,7 +474,7 @@ Events
          In either case, the hash is the same "fingerprint" string as presented
          by other traditional tools, ``ssh``, ``ssh-keygen``, etc, and is the
          hexadecimal representation of all 16 MD5 hash bytes delimited by colons.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -491,16 +491,16 @@ Events
    supplies its public host key. This event is generated when the
    appropriate key exchange message is seen for SSH1 or SSH2 and provides
    a fingerprint of the server's host key.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param fingerprint: A fingerprint of the host key, generated in the same fashion as
                 the ``ssh-keygen -l`` command would generate it, with the hash
                 used followed by a base64-encoded version of the hash of the key.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -516,17 +516,17 @@ Events
    SSH servers can send textual data to the client before sending
    a banner. The primary use case of this are error messages of TCP
    wrappers.
-   
+
    As this event happens before the SSH banner is exchanged, it is
    possible that it contains data from different protocols; e.g. if
    an SSH client connects to a non-SSH-server.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The pre-banner data.
-   
+
    .. zeek:see:: ssh_server_version
 
 .. zeek:id:: ssh_server_version
@@ -538,13 +538,13 @@ Events
    from the server. This contains an identification string that's used
    for version identification. See :rfc:`4253#section-4.2` for
    details.
-   
+
 
    :param c: The connection over which the message was sent.
-   
+
 
    :param version: The identification string
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
       ssh_auth_result ssh_auth_successful ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key

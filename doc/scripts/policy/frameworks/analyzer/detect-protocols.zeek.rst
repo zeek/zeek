@@ -14,37 +14,37 @@ Summary
 Runtime Options
 ###############
 ======================================================================================== =
-:zeek:id:`ProtocolDetector::minimum_duration`: :zeek:type:`interval` :zeek:attr:`&redef` 
-:zeek:id:`ProtocolDetector::minimum_volume`: :zeek:type:`double` :zeek:attr:`&redef`     
-:zeek:id:`ProtocolDetector::suppress_servers`: :zeek:type:`set` :zeek:attr:`&redef`      
-:zeek:id:`ProtocolDetector::valids`: :zeek:type:`table` :zeek:attr:`&redef`              
+:zeek:id:`ProtocolDetector::minimum_duration`: :zeek:type:`interval` :zeek:attr:`&redef`
+:zeek:id:`ProtocolDetector::minimum_volume`: :zeek:type:`double` :zeek:attr:`&redef`
+:zeek:id:`ProtocolDetector::suppress_servers`: :zeek:type:`set` :zeek:attr:`&redef`
+:zeek:id:`ProtocolDetector::valids`: :zeek:type:`table` :zeek:attr:`&redef`
 ======================================================================================== =
 
 Constants
 #########
 ================================================================== =
-:zeek:id:`ProtocolDetector::check_interval`: :zeek:type:`interval` 
+:zeek:id:`ProtocolDetector::check_interval`: :zeek:type:`interval`
 ================================================================== =
 
 State Variables
 ###############
 ================================================================================================== =
-:zeek:id:`ProtocolDetector::servers`: :zeek:type:`table` :zeek:attr:`&read_expire` = ``14.0 days`` 
+:zeek:id:`ProtocolDetector::servers`: :zeek:type:`table` :zeek:attr:`&read_expire` = ``14.0 days``
 ================================================================================================== =
 
 Types
 #####
 ===================================================== =
-:zeek:type:`ProtocolDetector::dir`: :zeek:type:`enum` 
+:zeek:type:`ProtocolDetector::dir`: :zeek:type:`enum`
 ===================================================== =
 
 Redefinitions
 #############
 ============================================ ===============================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`ProtocolDetector::Protocol_Found`
-                                             
+
                                              * :zeek:enum:`ProtocolDetector::Server_Found`
 ============================================ ===============================================
 
@@ -57,7 +57,7 @@ Hooks
 Functions
 #########
 ================================================================== =
-:zeek:id:`ProtocolDetector::found_protocol`: :zeek:type:`function` 
+:zeek:id:`ProtocolDetector::found_protocol`: :zeek:type:`function`
 ================================================================== =
 
 

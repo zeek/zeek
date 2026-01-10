@@ -31,18 +31,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree_connect*. This is sent by a client to request access to a
    particular share on the server.
-   
+
    For more information, see MS-SMB2:2.2.9
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param path: Path of the requested tree.
-   
+
    .. zeek:see:: smb2_message smb2_tree_connect_response
 
 .. zeek:id:: smb2_tree_connect_response
@@ -53,18 +53,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 responses of type *tree_connect*. This is sent by the server when a *tree_connect*
    request is successfully processed by the server.
-   
+
    For more information, see MS-SMB2:2.2.10
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param response: A record with more information related to the response.
-   
+
    .. zeek:see:: smb2_message smb2_tree_connect_request
 
 

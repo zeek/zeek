@@ -231,7 +231,7 @@ Redefinable Options
    will produce a free-form log (i.e., not one governed by Zeek's
    logging framework) in the controller's working directory. If left
    empty, no such log results.
-   
+
    Note that the controller also establishes a "proper" Zeek log via the
    :zeek:see:`Management::Log` module.
 

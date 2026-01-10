@@ -13,25 +13,25 @@ Summary
 Redefinitions
 #############
 =========================================== ===================================================================================
-:zeek:type:`KRB::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`KRB::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`KRB::Info`
-                                            
+
                                               client_cert: :zeek:type:`Files::Info` :zeek:attr:`&optional`
                                                 Client certificate
-                                            
+
                                               client_cert_subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Subject of client certificate, if any
-                                            
+
                                               client_cert_fuid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 File unique ID of client cert, if any
-                                            
+
                                               server_cert: :zeek:type:`Files::Info` :zeek:attr:`&optional`
                                                 Server certificate
-                                            
+
                                               server_cert_subject: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Subject of server certificate, if any
-                                            
+
                                               server_cert_fuid: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 File unique ID of server cert, if any
 =========================================== ===================================================================================

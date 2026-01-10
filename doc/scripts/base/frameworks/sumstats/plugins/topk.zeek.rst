@@ -19,20 +19,20 @@ Summary
 Redefinitions
 #############
 ===================================================== ======================================================================================
-:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
-                                                      
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum`
+
                                                       * :zeek:enum:`SumStats::TOPK`:
                                                         Keep a top-k list of values.
-:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
-                                                      
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::Reducer`
-                                                      
+
                                                         topk_size: :zeek:type:`count` :zeek:attr:`&default` = ``500`` :zeek:attr:`&optional`
                                                           Number of elements to keep in the top-k list.
-:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
-                                                      
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::ResultVal`
-                                                      
+
                                                         topk: :zeek:type:`opaque` of topk :zeek:attr:`&optional`
                                                           A handle which can be passed to some built-in functions to get
                                                           the top-k results.

@@ -12,8 +12,8 @@ Summary
 Constants
 #########
 ============================================================================================= =
-:zeek:id:`KRB::cipher_name`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
-:zeek:id:`KRB::error_msg`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   
+:zeek:id:`KRB::cipher_name`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`KRB::error_msg`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
 ============================================================================================= =
 
 

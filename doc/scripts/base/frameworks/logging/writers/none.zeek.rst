@@ -20,7 +20,7 @@ Redefinable Options
 Redefinitions
 #############
 ======================================================================================= =
-:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef` 
+:zeek:id:`Log::default_rotation_postprocessors`: :zeek:type:`table` :zeek:attr:`&redef`
 ======================================================================================= =
 
 

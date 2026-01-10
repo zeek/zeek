@@ -20,7 +20,7 @@ necessary to interface to OpenFlow capable hardware.
 :doc:`/scripts/base/frameworks/openflow/main.zeek`
 
    Zeek's OpenFlow control framework.
-   
+
    This plugin-based framework allows to control OpenFlow capable
    switches by implementing communication to an OpenFlow controller
    via plugins. The framework has to be instantiated via the new function

@@ -20,19 +20,19 @@ Redefinable Options
 Types
 #####
 ============================================== =
-:zeek:type:`RADIUS::Info`: :zeek:type:`record` 
+:zeek:type:`RADIUS::Info`: :zeek:type:`record`
 ============================================== =
 
 Redefinitions
 #############
 ============================================ ==========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`RADIUS::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                radius: :zeek:type:`RADIUS::Info` :zeek:attr:`&optional`
 ============================================ ==========================================================
 
@@ -47,7 +47,7 @@ Hooks
 #####
 ================================================================== =========================
 :zeek:id:`RADIUS::finalize_radius`: :zeek:type:`Conn::RemovalHook` RADIUS finalization hook.
-:zeek:id:`RADIUS::log_policy`: :zeek:type:`Log::PolicyHook`        
+:zeek:id:`RADIUS::log_policy`: :zeek:type:`Log::PolicyHook`
 ================================================================== =========================
 
 

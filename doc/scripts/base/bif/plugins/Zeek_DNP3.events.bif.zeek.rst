@@ -231,16 +231,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, application: :zeek:type:`count`, fc: :zeek:type:`count`)
 
    Generated for a DNP3 request header.
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param fc: function code.
-   
+
 
 .. zeek:id:: dnp3_application_response_header
    :source-code: base/protocols/dnp3/main.zeek 61 76
@@ -248,19 +248,19 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, application: :zeek:type:`count`, fc: :zeek:type:`count`, iin: :zeek:type:`count`)
 
    Generated for a DNP3 response header.
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param fc: function code.
-   
+
 
    :param iin: internal indication number.
-   
+
 
 .. zeek:id:: dnp3_attribute_common
    :source-code: base/bif/plugins/Zeek_DNP3.events.bif.zeek 103 103
@@ -511,25 +511,25 @@ Events
    script-level. This header mimics the DNP3 transport-layer yet is only passed
    once for each sequence of DNP3 records (which are otherwise reassembled and
    treated as a single entity).
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param len:   the "length" field in the DNP3 Pseudo Link Layer.
-   
+
 
    :param ctrl:  the "control" field in the DNP3 Pseudo Link Layer.
-   
+
 
    :param dest_addr: the "destination" field in the DNP3 Pseudo Link Layer.
-   
+
 
    :param src_addr: the "source" field in the DNP3 Pseudo Link Layer.
-   
+
 
 .. zeek:id:: dnp3_object_header
    :source-code: base/bif/plugins/Zeek_DNP3.events.bif.zeek 50 50
@@ -537,33 +537,33 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, obj_type: :zeek:type:`count`, qua_field: :zeek:type:`count`, number: :zeek:type:`count`, rf_low: :zeek:type:`count`, rf_high: :zeek:type:`count`)
 
    Generated for the object header found in both DNP3 requests and responses.
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param obj_type: type of object, which is classified based on an 8-bit group number
              and an 8-bit variation number.
-   
+
 
    :param qua_field: qualifier field.
-   
+
 
    :param number: TODO.
-   
+
 
    :param rf_low: the structure of the range field depends on the qualified field.
            In some cases, the range field contains only one logic part, e.g.,
            number of objects, so only *rf_low* contains useful values.
-   
+
 
    :param rf_high: in some cases, the range field contains two logic parts, e.g., start
             index and stop index, so *rf_low* contains the start index
             while *rf_high* contains the stop index.
-   
+
 
 .. zeek:id:: dnp3_object_prefix
    :source-code: base/bif/plugins/Zeek_DNP3.events.bif.zeek 62 62
@@ -572,16 +572,16 @@ Events
 
    Generated for the prefix before a DNP3 object. The structure and the meaning
    of the prefix are defined by the qualifier field.
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param prefix_value: The prefix.
-   
+
 
 .. zeek:id:: dnp3_pcb
    :source-code: base/bif/plugins/Zeek_DNP3.events.bif.zeek 113 113
@@ -603,16 +603,16 @@ Events
    in a few cases, object data are directly basic types, such as int16_t, or
    int8_t; thus we use an additional *data_value* to record the values of those
    object data.
-   
+
 
    :param c: The connection the DNP3 communication is part of.
-   
+
 
    :param is_orig: True if this reflects originator-side activity.
-   
+
 
    :param data_value: The value for those objects that carry their information here
                directly.
-   
+
 
 

@@ -15,14 +15,14 @@ Runtime Options
 ======================================================================================= ===================================================================
 :zeek:id:`SMTP::suspicious_origination_countries`: :zeek:type:`set` :zeek:attr:`&redef` Places where it's suspicious for mail to originate from represented
                                                                                         as all-capital, two character country codes (e.g., US).
-:zeek:id:`SMTP::suspicious_origination_networks`: :zeek:type:`set` :zeek:attr:`&redef`  
+:zeek:id:`SMTP::suspicious_origination_networks`: :zeek:type:`set` :zeek:attr:`&redef`
 ======================================================================================= ===================================================================
 
 Redefinitions
 #############
 ============================================ ===========================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SMTP::Suspicious_Origination`
 ============================================ ===========================================
 

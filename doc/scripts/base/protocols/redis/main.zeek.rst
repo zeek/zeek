@@ -13,7 +13,7 @@ Summary
 Runtime Options
 ###############
 ============================================================================== =
-:zeek:id:`Redis::max_pending_commands`: :zeek:type:`count` :zeek:attr:`&redef` 
+:zeek:id:`Redis::max_pending_commands`: :zeek:type:`count` :zeek:attr:`&redef`
 ============================================================================== =
 
 Redefinable Options
@@ -25,9 +25,9 @@ Redefinable Options
 State Variables
 ###############
 ========================================================= =
-:zeek:id:`Redis::enter_subscribed_mode`: :zeek:type:`set` 
-:zeek:id:`Redis::exit_subscribed_mode`: :zeek:type:`set`  
-:zeek:id:`Redis::no_response_commands`: :zeek:type:`set`  
+:zeek:id:`Redis::enter_subscribed_mode`: :zeek:type:`set`
+:zeek:id:`Redis::exit_subscribed_mode`: :zeek:type:`set`
+:zeek:id:`Redis::no_response_commands`: :zeek:type:`set`
 ========================================================= =
 
 Types
@@ -35,29 +35,29 @@ Types
 ===================================================== ===============================================================================
 :zeek:type:`Redis::Info`: :zeek:type:`record`         Record type containing the column fields of the Redis log.
 :zeek:type:`Redis::NoReplyRange`: :zeek:type:`record` Which numbered commands should not expect a reply due to CLIENT REPLY commands.
-:zeek:type:`Redis::RESPVersion`: :zeek:type:`enum`    
-:zeek:type:`Redis::State`: :zeek:type:`record`        
+:zeek:type:`Redis::RESPVersion`: :zeek:type:`enum`
+:zeek:type:`Redis::State`: :zeek:type:`record`
 ===================================================== ===============================================================================
 
 Redefinitions
 #############
 ============================================ ===============================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      Log stream identifier.
-                                             
+
                                              * :zeek:enum:`Redis::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                redis: :zeek:type:`Redis::Info` :zeek:attr:`&optional`
-                                             
+
                                                redis_state: :zeek:type:`Redis::State` :zeek:attr:`&optional`
 ============================================ ===============================================================
 
 Hooks
 #####
 ================================================================ =============================================
-:zeek:id:`Redis::finalize_redis`: :zeek:type:`Conn::RemovalHook` 
+:zeek:id:`Redis::finalize_redis`: :zeek:type:`Conn::RemovalHook`
 :zeek:id:`Redis::log_policy`: :zeek:type:`Log::PolicyHook`       A default logging policy hook for the stream.
 ================================================================ =============================================
 

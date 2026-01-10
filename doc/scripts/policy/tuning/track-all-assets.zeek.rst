@@ -11,10 +11,10 @@ Summary
 Redefinitions
 #############
 ========================================================================== =
-:zeek:id:`Known::cert_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`     
-:zeek:id:`Known::host_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`     
-:zeek:id:`Known::service_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`  
-:zeek:id:`Software::asset_tracking`: :zeek:type:`Host` :zeek:attr:`&redef` 
+:zeek:id:`Known::cert_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`
+:zeek:id:`Known::host_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`
+:zeek:id:`Known::service_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`
+:zeek:id:`Software::asset_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`
 ========================================================================== =
 
 

@@ -14,17 +14,17 @@ Summary
 Runtime Options
 ###############
 ======================================================================== =
-:zeek:id:`CommunityID::do_base64`: :zeek:type:`bool` :zeek:attr:`&redef` 
-:zeek:id:`CommunityID::seed`: :zeek:type:`count` :zeek:attr:`&redef`     
+:zeek:id:`CommunityID::do_base64`: :zeek:type:`bool` :zeek:attr:`&redef`
+:zeek:id:`CommunityID::seed`: :zeek:type:`count` :zeek:attr:`&redef`
 ======================================================================== =
 
 Redefinitions
 #############
 ============================================ ============================================================================
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`Conn::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`Conn::Info`
-                                             
+
                                                community_id: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
 ============================================ ============================================================================
 

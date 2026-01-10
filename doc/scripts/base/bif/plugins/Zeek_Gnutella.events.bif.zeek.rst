@@ -31,13 +31,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg_type: :zeek:type:`count`, ttl: :zeek:type:`count`, hops: :zeek:type:`count`, msg_len: :zeek:type:`count`, payload: :zeek:type:`string`, payload_len: :zeek:type:`count`, trunc: :zeek:type:`bool`, complete: :zeek:type:`bool`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_text_msg
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -49,13 +49,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
       gnutella_partial_binary_msg gnutella_text_msg
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -67,13 +67,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
       gnutella_partial_binary_msg gnutella_text_msg
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -85,13 +85,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_partial_binary_msg gnutella_text_msg
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -103,13 +103,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, msg: :zeek:type:`string`, len: :zeek:type:`count`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish  gnutella_text_msg
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -121,14 +121,14 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, headers: :zeek:type:`string`)
 
    TODO.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
-   
+
    .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
       gnutella_not_establish gnutella_partial_binary_msg
-   
-   
+
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to

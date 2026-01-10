@@ -20,19 +20,19 @@ Redefinable Options
 Types
 #####
 ============================================== =
-:zeek:type:`Modbus::Info`: :zeek:type:`record` 
+:zeek:type:`Modbus::Info`: :zeek:type:`record`
 ============================================== =
 
 Redefinitions
 #############
 ============================================ ==========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`Modbus::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                modbus: :zeek:type:`Modbus::Info` :zeek:attr:`&optional`
 ============================================ ==========================================================
 
@@ -46,7 +46,7 @@ Events
 Hooks
 #####
 =========================================================== =
-:zeek:id:`Modbus::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Modbus::log_policy`: :zeek:type:`Log::PolicyHook`
 =========================================================== =
 
 

@@ -35,22 +35,22 @@ Events
    connections use multi-line responses to send bulk data, such as the actual
    mails. This event is generated once for each line that's part of such a
    response.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the data was sent by the originator of the TCP connection.
-   
+
 
    :param data: The data sent.
-   
+
    .. zeek:see:: pop3_login_failure pop3_login_success pop3_reply pop3_request
       pop3_unexpected
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -62,26 +62,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for unsuccessful authentications on POP3 connections.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Always false.
-   
+
 
    :param user: The user name attempted for authentication. The event is only
          generated if a non-empty user name was used.
-   
+
 
    :param password: The password attempted for authentication.
-   
+
    .. zeek:see:: pop3_data pop3_login_success pop3_reply pop3_request
       pop3_unexpected
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -93,26 +93,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, user: :zeek:type:`string`, password: :zeek:type:`string`)
 
    Generated for successful authentications on POP3 connections.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: Always false.
-   
+
 
    :param user: The user name used for authentication. The event is only generated if
          a non-empty user name was used.
-   
+
 
    :param password: The password used for authentication.
-   
+
    .. zeek:see:: pop3_data pop3_login_failure pop3_reply pop3_request
       pop3_unexpected
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -124,29 +124,29 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, cmd: :zeek:type:`string`, msg: :zeek:type:`string`)
 
    Generated for server-side replies to commands on POP3 connections.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param cmd: The success indicator sent by the server. This corresponds to the
         first token on the line sent, and should be either ``OK`` or ``ERR``.
-   
+
 
    :param msg: The textual description the server sent along with *cmd*.
-   
+
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_request
       pop3_unexpected
-   
+
    .. todo:: This event is receiving odd parameters, should unify.
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -158,26 +158,26 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
    Generated for client-side commands on POP3 connections.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the command was sent by the originator of the TCP
             connection.
-   
+
 
    :param command: The command sent.
-   
+
 
    :param arg: The argument to the command.
-   
+
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_unexpected
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -192,16 +192,16 @@ Events
    clear-text protocol, extensions exist to switch to encryption. This event is
    generated if that happens and the analyzer then stops processing the
    connection.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply
       pop3_request pop3_unexpected
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -215,24 +215,24 @@ Events
    Generated for errors encountered on POP3 sessions. If the POP3 analyzer
    finds state transitions that do not conform to the protocol specification,
    or other situations it can't handle, it raises this event.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the data was sent by the originator of the TCP connection.
-   
+
 
    :param msg: A textual description of the situation.
-   
+
 
    :param detail: The input that triggered the event.
-   
+
    .. zeek:see:: pop3_data pop3_login_failure pop3_login_success pop3_reply pop3_request
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to

@@ -31,24 +31,24 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the client to write data to the file or
    named pipe on the server.
-   
+
    For more information, see MS-SMB2:2.2.21
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param file_id: The GUID being used for the file.
-   
+
 
    :param offset: How far into the file this write should be taking place.
-   
+
 
    :param length: The number of bytes of the file being written.
-   
+
    .. zeek:see:: smb2_message
 
 .. zeek:id:: smb2_write_response
@@ -59,18 +59,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *write*. This is sent by the server in response to a write request or
    named pipe on the server.
-   
+
    For more information, see MS-SMB2:2.2.22
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
 
    :param length: The number of bytes of the file being written.
-   
+
    .. zeek:see:: smb2_message
 
 

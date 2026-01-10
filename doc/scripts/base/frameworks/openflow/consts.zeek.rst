@@ -13,51 +13,51 @@ Summary
 Constants
 #########
 =============================================================== ======================================================================
-:zeek:id:`OpenFlow::ETH_APPLETALK`: :zeek:type:`count`          
-:zeek:id:`OpenFlow::ETH_APPLETALK_ARP`: :zeek:type:`count`      
-:zeek:id:`OpenFlow::ETH_ARP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::ETH_EAP_OVER_LAN`: :zeek:type:`count`       
-:zeek:id:`OpenFlow::ETH_ETHER_FLOW_CONTROL`: :zeek:type:`count` 
-:zeek:id:`OpenFlow::ETH_IPX`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::ETH_IPX_OLD`: :zeek:type:`count`            
-:zeek:id:`OpenFlow::ETH_IPv4`: :zeek:type:`count`               
-:zeek:id:`OpenFlow::ETH_IPv6`: :zeek:type:`count`               
-:zeek:id:`OpenFlow::ETH_JUMBO_FRAMES`: :zeek:type:`count`       
-:zeek:id:`OpenFlow::ETH_MAC_SECURITY`: :zeek:type:`count`       
-:zeek:id:`OpenFlow::ETH_MPLS_MULTICAST`: :zeek:type:`count`     
-:zeek:id:`OpenFlow::ETH_MPLS_UNICAST`: :zeek:type:`count`       
-:zeek:id:`OpenFlow::ETH_PPPOE_DISCOVERY`: :zeek:type:`count`    
-:zeek:id:`OpenFlow::ETH_PPPOE_SESSION`: :zeek:type:`count`      
-:zeek:id:`OpenFlow::ETH_PROVIDER_BRIDING`: :zeek:type:`count`   
-:zeek:id:`OpenFlow::ETH_QINQ`: :zeek:type:`count`               
-:zeek:id:`OpenFlow::ETH_RARP`: :zeek:type:`count`               
-:zeek:id:`OpenFlow::ETH_VLAN`: :zeek:type:`count`               
-:zeek:id:`OpenFlow::ETH_WOL`: :zeek:type:`count`                
+:zeek:id:`OpenFlow::ETH_APPLETALK`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_APPLETALK_ARP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_ARP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_EAP_OVER_LAN`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_ETHER_FLOW_CONTROL`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_IPX`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_IPX_OLD`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_IPv4`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_IPv6`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_JUMBO_FRAMES`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_MAC_SECURITY`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_MPLS_MULTICAST`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_MPLS_UNICAST`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_PPPOE_DISCOVERY`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_PPPOE_SESSION`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_PROVIDER_BRIDING`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_QINQ`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_RARP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_VLAN`: :zeek:type:`count`
+:zeek:id:`OpenFlow::ETH_WOL`: :zeek:type:`count`
 :zeek:id:`OpenFlow::INVALID_COOKIE`: :zeek:type:`count`         Return value for a cookie from a flow
                                                                 which is not added, modified or deleted
                                                                 from the Zeek openflow framework.
-:zeek:id:`OpenFlow::IP_CBT`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_EGP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_ETHERIP`: :zeek:type:`count`             
-:zeek:id:`OpenFlow::IP_FC`: :zeek:type:`count`                  
-:zeek:id:`OpenFlow::IP_GGP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_GRE`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_HOPOPT`: :zeek:type:`count`              
-:zeek:id:`OpenFlow::IP_ICMP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_IGMP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_IGP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_IPIP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_IPv6`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_ISIS`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_L2TP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_MPLS`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_MTP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_OSPF`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_RDP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_RSVP`: :zeek:type:`count`                
-:zeek:id:`OpenFlow::IP_ST`: :zeek:type:`count`                  
-:zeek:id:`OpenFlow::IP_TCP`: :zeek:type:`count`                 
-:zeek:id:`OpenFlow::IP_UDP`: :zeek:type:`count`                 
+:zeek:id:`OpenFlow::IP_CBT`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_EGP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_ETHERIP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_FC`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_GGP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_GRE`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_HOPOPT`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_ICMP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_IGMP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_IGP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_IPIP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_IPv6`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_ISIS`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_L2TP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_MPLS`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_MTP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_OSPF`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_RDP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_RSVP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_ST`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_TCP`: :zeek:type:`count`
+:zeek:id:`OpenFlow::IP_UDP`: :zeek:type:`count`
 :zeek:id:`OpenFlow::OFPFF_CHECK_OVERLAP`: :zeek:type:`count`    Check for overlapping entries first.
 :zeek:id:`OpenFlow::OFPFF_EMERG`: :zeek:type:`count`            Remark this is for emergency.
 :zeek:id:`OpenFlow::OFPFF_SEND_FLOW_REM`: :zeek:type:`count`    Send flow removed message when flow
@@ -71,8 +71,8 @@ Constants
 :zeek:id:`OpenFlow::OFPP_LOCAL`: :zeek:type:`count`             Local openflow "port".
 :zeek:id:`OpenFlow::OFPP_NORMAL`: :zeek:type:`count`            Process with normal L2/L3 switching.
 :zeek:id:`OpenFlow::OFPP_TABLE`: :zeek:type:`count`             Perform actions in flow table.
-:zeek:id:`OpenFlow::OFPTT_ALL`: :zeek:type:`count`              
-:zeek:id:`OpenFlow::OFP_NO_BUFFER`: :zeek:type:`count`          
+:zeek:id:`OpenFlow::OFPTT_ALL`: :zeek:type:`count`
+:zeek:id:`OpenFlow::OFP_NO_BUFFER`: :zeek:type:`count`
 =============================================================== ======================================================================
 
 Types
@@ -562,7 +562,7 @@ Types
          Vendor specific.
 
    Openflow action_type definitions.
-   
+
    The openflow action type defines
    what actions openflow can take
    to modify a packet
@@ -587,7 +587,7 @@ Types
       .. zeek:enum:: OpenFlow::OFPC_FRAG_MASK OpenFlow::ofp_config_flags
 
    Openflow config flag definitions.
-   
+
    TODO: describe
 
 .. zeek:type:: OpenFlow::ofp_flow_mod_command
@@ -616,7 +616,7 @@ Types
          Strictly matching wildcards and priority.
 
    Openflow flow_mod_command definitions.
-   
+
    The openflow flow_mod_command describes
    of what kind an action is.
 

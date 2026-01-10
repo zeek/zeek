@@ -26,10 +26,10 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`any`
 
    Skips SMTP data until the next email in a connection.
-   
+
 
    :param c: The SMTP connection.
-   
+
    .. zeek:see:: skip_http_entity_data
 
 

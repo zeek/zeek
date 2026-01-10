@@ -13,19 +13,19 @@ Summary
 Types
 #####
 ========================================== =
-:zeek:type:`PE::Info`: :zeek:type:`record` 
+:zeek:type:`PE::Info`: :zeek:type:`record`
 ========================================== =
 
 Redefinitions
 #############
 ============================================================= ==================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                       
-                                                              
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                               * :zeek:enum:`PE::LOG`
-:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                              
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                               :New Fields: :zeek:type:`fa_file`
-                                                              
+
                                                                 pe: :zeek:type:`PE::Info` :zeek:attr:`&optional`
 ============================================================= ==================================================
 
@@ -38,7 +38,7 @@ Events
 Hooks
 #####
 ======================================================= ====================================================
-:zeek:id:`PE::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`PE::log_policy`: :zeek:type:`Log::PolicyHook`
 :zeek:id:`PE::set_file`: :zeek:type:`hook`              A hook that gets called when we first see a PE file.
 ======================================================= ====================================================
 

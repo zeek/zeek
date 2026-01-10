@@ -26,16 +26,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, reply_line: :zeek:type:`string`)
 
    Generated for Finger replies.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param reply_line: The reply as returned by the server
-   
+
    .. zeek:see:: finger_request
 
 .. zeek:id:: finger_request
@@ -44,22 +44,22 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, full: :zeek:type:`bool`, username: :zeek:type:`string`, hostname: :zeek:type:`string`)
 
    Generated for Finger requests.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param full: True if verbose information is requested (``/W`` switch).
-   
+
 
    :param username: The request's user name.
-   
+
 
    :param hostname: The request's host name.
-   
+
    .. zeek:see:: finger_reply
 
 

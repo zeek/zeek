@@ -14,20 +14,20 @@ Summary
 Redefinitions
 #############
 ===================================================== ============================================================================================
-:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
-                                                      
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum`
+
                                                       * :zeek:enum:`SumStats::LAST`:
                                                         Keep last X observations in a queue.
-:zeek:type:`SumStats::Reducer`: :zeek:type:`record`   
-                                                      
+:zeek:type:`SumStats::Reducer`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::Reducer`
-                                                      
+
                                                         num_last_elements: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
                                                           Number of elements to keep.
-:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
-                                                      
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::ResultVal`
-                                                      
+
                                                         last_elements: :zeek:type:`Queue::Queue` :zeek:attr:`&optional`
                                                           This is the queue where elements are maintained.
 ===================================================== ============================================================================================

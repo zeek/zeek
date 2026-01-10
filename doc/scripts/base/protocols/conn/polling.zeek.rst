@@ -30,10 +30,10 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, callback: :zeek:type:`function` (c: :zeek:type:`connection`, cnt: :zeek:type:`count`) : :zeek:type:`interval`, cnt: :zeek:type:`count`, i: :zeek:type:`interval`) : :zeek:type:`void`
 
    Starts monitoring a given connection.
-   
+
 
    :param c: The connection to watch.
-   
+
 
    :param callback: A callback function that takes as arguments the monitored
              *connection*, and counter *cnt* that increments each time
@@ -41,10 +41,10 @@ Functions
              how long in the future to schedule an event which will call
              the callback.  A negative return interval causes polling
              to stop.
-   
+
 
    :param cnt: The initial value of a counter which gets passed to *callback*.
-   
+
 
    :param i: The initial interval at which to schedule the next callback.
       May be ``0secs`` to poll right away.

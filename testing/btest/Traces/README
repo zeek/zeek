@@ -65,3 +65,6 @@ Trace Index/Sources:
 - tcp/ctu-64702-888.pcap
   Extracted from CTU-SME-11 after observing ConnSize differences when
   fixing is_orig behavior (port 64702 and port 888).
+- pcapng-multi-interface.pcapng
+  Generated using tshark/wireshark on a docker container and a Windows host, then merged
+  together using mergecap.

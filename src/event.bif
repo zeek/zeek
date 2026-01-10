@@ -906,3 +906,21 @@ event unknown_protocol%(analyzer_name: string, protocol: count, first_bytes: str
 ##
 ## pkt: Data for the unprocessed packet
 event packet_not_processed%(pkt: pcap_packet%);
+
+## Generated for each new interface in a pcapng file.
+##
+## interface: A record containing data about the interface.
+event pcapng_new_interface%(interface: Pcapng::Interface%);
+
+## Generated when a section header block is found in a pcapng file. This contains various
+## fields about the file.
+##
+## info: A record containing the fields from the section header block.
+event pcapng_file_info%(info: Pcapng::FileInfo%);
+
+## Generated when a packet contains optional metadata.
+##
+## ts: The timestamp of the packet
+##
+## options: A record containing the optional metadata fields from the packet.
+event pcapng_packet_options%(ts: time, options: Pcapng::PacketOptions%);

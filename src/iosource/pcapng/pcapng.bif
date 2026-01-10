@@ -1,0 +1,15 @@
+%%{
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/pcapng/Source.h"
+%%}
+
+function pcapng_current_interface_name%(%): string
+	%{
+	auto ps = zeek::iosource_mgr->GetPktSrc();
+    auto ngps = dynamic_cast<zeek::iosource::pcapng::Source*>(ps);
+
+    if ( ! ngps )
+    	return zeek::make_intrusive<StringVal>("");
+
+    return zeek::make_intrusive<StringVal>(ngps->CurrentInterfaceName());
+	%}

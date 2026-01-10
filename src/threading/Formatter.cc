@@ -3,6 +3,8 @@
 #include "zeek/threading/Formatter.h"
 
 #include <cerrno>
+#include <charconv>
+#include <format>
 
 #include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/threading/MsgThread.h"
@@ -77,22 +79,16 @@ threading::Value::addr_t Formatter::ParseAddr(const std::string& s) const {
 }
 
 std::string Formatter::Render(const threading::Value::subnet_t& subnet) {
-    char l[16];
-
     if ( subnet.prefix.family == IPv4 )
-        modp_uitoa10(subnet.length - 96, l);
-    else
-        modp_uitoa10(subnet.length, l);
+        return Render(subnet.prefix) + "/" + std::format("{:d}", subnet.length - 96);
 
-    std::string s = Render(subnet.prefix) + "/" + l;
-
-    return s;
+    return Render(subnet.prefix) + "/" + std::format("{:d}", subnet.length);
 }
 
 std::string Formatter::Render(double d) {
     char buf[256];
-    modp_dtoa(d, buf, 6);
-    return buf;
+    auto res = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::fixed, 6);
+    return {buf, static_cast<size_t>(res.ptr - buf)};
 }
 
 std::string Formatter::Render(TransportProto proto) {

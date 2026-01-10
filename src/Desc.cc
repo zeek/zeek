@@ -3,9 +3,11 @@
 #include "zeek/Desc.h"
 
 #include <cerrno>
+#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 
 #include "zeek/File.h"
 #include "zeek/IPAddr.h"
@@ -88,59 +90,40 @@ void ODesc::Add(const char* s, int do_indent) {
 void ODesc::Add(int i) {
     if ( IsBinary() )
         AddBytes(&i, sizeof(i));
-    else {
-        char tmp[256];
-        modp_litoa10(i, tmp);
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", i).c_str());
 }
 
 void ODesc::Add(uint32_t u) {
     if ( IsBinary() )
         AddBytes(&u, sizeof(u));
-    else {
-        char tmp[256];
-        modp_ulitoa10(u, tmp);
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", u).c_str());
 }
 
 void ODesc::Add(int64_t i) {
     if ( IsBinary() )
         AddBytes(&i, sizeof(i));
-    else {
-        char tmp[256];
-        modp_litoa10(i, tmp);
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", i).c_str());
 }
 
 void ODesc::Add(uint64_t u) {
     if ( IsBinary() )
         AddBytes(&u, sizeof(u));
-    else {
-        char tmp[256];
-        modp_ulitoa10(u, tmp);
-        Add(tmp);
-    }
+    else
+        Add(std::format("{:d}", u).c_str());
 }
 
 void ODesc::Add(double d, bool no_exp) {
     if ( IsBinary() )
         AddBytes(&d, sizeof(d));
     else {
-        // Buffer needs enough chars to store max. possible "double" value
-        // of 1.79e308 without using scientific notation.
-        char tmp[350];
+        auto res = util::double_to_str(d, IsReadable() ? 6 : 8, no_exp);
 
-        if ( no_exp )
-            modp_dtoa3(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8);
-        else
-            modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
+        AddBytes(res.data(), res.size());
 
-        Add(tmp);
-
-        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') )
+        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && (res.find('e') == std::string::npos) )
             // disambiguate from integer
             Add(".0");
     }

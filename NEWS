@@ -3,6 +3,48 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.5
+==========
+
+We would like to thank clopmz, Mohan Dhawan (@Mohan-Dhawan), and Zach Robinette for their
+contributions to this release.
+
+This release fixes the following bugs:
+
+- ZeekJS was upgraded to v0.22.
+
+- The ``to_subnet()`` built-in function's parsing of IPv6 subnets was changed to align
+  with how IPv6 subnet literals are parsed in Zeek scripts. Previously, any subnet
+  containing the ``::ffff:0:0/96`` IPv4-mapped prefix would produce an IPv4 subnet, even
+  if provided prefix was shorter than the required 96 bits.
+
+  Internally, the behavior of the ``IPPrefix::ConvertString()`` API was changed to
+  accommodate for this.
+
+- Zeek now reports a better error message when a table constructor is called without
+  square brackets around the keys.
+
+- ``ssl.log`` will now correctly report certificate fingerprints when a protocol error is
+  encountered after certificates are passed, but before the connection is
+  logged. Previously, the log wouldn't contain the fingerprints.
+
+- An unbounded growth issue was fixed with Zeek's internal regex engine, which caused
+  excessive memory usage when constructing large numbers of patterns.
+
+- An attribute error related to metrics ports reported by zeekctl when using standalone
+  mode was fixed. The ``metrics_port`` entry is no longer automatically rendered for
+  standalone mode if ``MetricsPort`` is set to zero in zeekctl.cfg.
+
+- Zeek now correctly handles blocks being used when defining Spicy units. Previously, it
+  would report an error.
+
+- A potential crash around evaluating invalid expressions during Zeek initialization was
+  fixed.
+
+- Zeek now properly accounts for originator and responder packets and byte counts when a
+  connection flip happens on the second packet. Previously, one packet and its data
+  payload were associated with the wrong endpoint.
+
 Zeek 8.0.4
 ==========
 

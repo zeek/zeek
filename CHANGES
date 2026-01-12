@@ -1,3 +1,9 @@
+8.0.5 | 2026-01-12 20:02:07 +0000
+
+  * Update ZAM baseline for to_subnet BIFs changes (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 8.0.5 release (Tim Wojtulewicz, Corelight)
+
 8.0.4-15 | 2026-01-12 11:42:44 -0700
 
   * GH-5118: IPAddr: Align IPPrefix::ConvertString() parsing to Zeek script semantics (Arne Welzel, Corelight)

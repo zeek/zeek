@@ -1,3 +1,7 @@
+8.2.0-dev.75 | 2026-01-12 13:30:46 -0700
+
+  * Remove gcc-10.2 workaround from util::strsplit (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.73 | 2026-01-12 11:02:12 -0700
 
   * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)

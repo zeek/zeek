@@ -1,3 +1,11 @@
+8.1.0-rc2.4 | 2026-01-12 11:10:12 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+  * Fix pre-commit warning with doc/conf.py (Tim Wojtulewicz, Corelight)
+
+  * Fix some formatting in 8.1.0 NEWS [nomai] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.1.0-rc2 | 2026-01-07 20:58:04 +0000
 
   * Update docs for 8.1.0-rc2 release [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

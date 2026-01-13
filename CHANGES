@@ -1,3 +1,7 @@
+8.0.5-2 | 2026-01-13 08:00:21 -0700
+
+  * Update zeek-testing-cluster commit hash to fix docker-compose usage (Tim Wojtulewicz, Corelight)
+
 8.0.5-1 | 2026-01-13 07:56:01 -0700
 
   * CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)

@@ -8,6 +8,7 @@
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	46982	127.0.0.1	80	http_09_reply_before_request	-	F	zeek	HTTP
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	46982	127.0.0.1	80	HTTP_bytes_remaining_at_eod	-	F	zeek	HTTP
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	46982	127.0.0.1	80	HTTP_response_before_request	-	F	zeek	-
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	46982	127.0.0.1	80	HTTP_version_mismatch	-	F	zeek	HTTP
 #close XXXX-XX-XX-XX-XX-XX

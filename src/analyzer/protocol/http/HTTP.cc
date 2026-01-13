@@ -74,6 +74,20 @@ void HTTP_Entity::EndOfData() {
     http_message->MyHTTP_Analyzer()->Conn()->Match(rule, reinterpret_cast<const u_char*>(""), 0, http_message->IsOrig(),
                                                    false, true, false);
 
+    // If there was a Content-Length header, but EndOfData() happens with some
+    // expected bytes remaining, raise a weird. In #5125 it was reported that
+    // this can sometimes happen, but it's definitely weird (or a connection
+    // simply aborted).
+    if ( Depth() == 0 && content_length > 0 && expect_data_length > 0 ) {
+        http_message->MyHTTP_Analyzer()->Weird("HTTP_bytes_remaining_at_eod");
+
+        // Also raise as http_event()
+        bool had_gap = http_message->MyHTTP_Analyzer()->TCP()->HadGap(http_message->IsOrig());
+        const char* detail = util::fmt("remaining=%" PRId64 " content_length=%" PRId64 " had_gap=%d",
+                                       expect_data_length, content_length, had_gap);
+        http_message->MyHTTP_Analyzer()->HTTP_Event("HTTP_bytes_remaining_at_eod", detail);
+    }
+
     if ( body_length )
         http_message->MyHTTP_Analyzer()->ForwardEndOfData(http_message->IsOrig());
 

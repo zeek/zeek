@@ -2003,21 +2003,24 @@ std::string double_to_str(double d, int precision, bool no_exp) {
     else if ( d == -0.0 )
         d = 0.0;
 
-    size_t buf_size = 32;
+    std::string res = "-";
+    bool first_pass = true;
 
     while ( true ) {
-        // Double the buffer size. This defaults to 64 bytes, which should big
-        // enough for almost every string, but there might be sometimes we
-        // have to be larger.
-        buf_size *= 2;
-
-        // Buffer needs enough chars to store max. possible "double" value
-        // of 1.79e308 without using scientific notation.
-        std::string res = "-";
-        res.resize(buf_size);
+        if ( first_pass ) {
+            // This forces the size() of the string to be at least the initial capacity.
+            // Otherwise, if you write something directly into it it'll still say that
+            // the size is zero. We use the initial capacity because this allows us to
+            // abuse small-string optimization to avoid a heap allocation.
+            res.resize(res.capacity());
+            first_pass = false;
+        }
+        else
+            // Double the buffer size.
+            res.resize(res.capacity() * 2);
 
         char* start = res.data();
-        char* end = res.data() + buf_size;
+        char* end = res.data() + res.capacity();
         if ( neg )
             start += 1;
 

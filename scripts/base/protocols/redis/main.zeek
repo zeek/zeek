@@ -336,13 +336,20 @@ event error(c: connection, data: ReplyData)
 
 hook finalize_redis(c: connection)
 	{
+	if ( ! c?$redis_state )
+		{
+		# If there's no redis state, the analyzer didn't do anything with this connection.
+		return;
+		}
+
 	if ( c$redis_state$violation )
 		{
 		# If there's a violation, don't log the remaining parts, just return.
 		return;
 		}
+
 	# Flush all pending but incomplete command/reply pairs.
-	if ( c?$redis_state && c$redis_state$current_reply != 0 )
+	if ( c$redis_state$current_reply != 0 )
 		{
 		for ( r, info in c$redis_state$pending )
 			{

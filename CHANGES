@@ -1,3 +1,9 @@
+8.1.0-2 | 2026-01-23 15:52:05 -0700
+
+  * Add extra state check to finalize_redis hook (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 730345857129c44ac380382e44628640ea7a2d8b)
+
 8.1.0-1 | 2026-01-23 15:51:26 -0700
 
   * GH-5164: Correctly handle vector self assign-append (Benjamin Bannier, Corelight)

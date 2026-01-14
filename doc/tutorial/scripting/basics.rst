@@ -30,6 +30,8 @@ engine. In Zeek scripts, you react to *events* that Zeek generates as it
 processes sniffed packets, and this *event handling* drives all of Zeek's
 user-visible behavior. So let's learn more about events next.
 
+.. _basics_events:
+
 *************
  Zeek Events
 *************
@@ -378,18 +380,19 @@ use that!
 
 With this change, nothing will print---all addresses were allowed.
 
-Redef
-=====
+***************
+ Redefinitions
+***************
 
-We can change more than just native variables. In fact, you can use
-:zeek:see:`redef` to do far more. When you redefine something with
-``redef``, that change is set in stone after Zeek initializes. First,
-we will use ``redef`` to demonstrate one of the most powerful features
-in Zeek: redefining the ``connection`` record. Later, we will see how
+We can change more than just native variables. The :zeek:see:`redef` keyword
+lets you *redefine* a constant or type when Zeek initializes. Such changes
+are set in stone thereafter, and you cannot redefine anything later on at
+runtime. First, we will use ``redef`` to demonstrate one of the most powerful
+features in Zeek: redefining the ``connection`` record. Later, we will see how
 constructs can declare that they may be redefined.
 
-In this example, we want to flag specific connections in the logs so
-that we can find them easily later. So, we will add a ``denied`` field:
+In this example, we want to flag specific connections in the logs so that we can
+find them easily later. Let's redefine the record to include a ``denied`` field:
 
 .. literalinclude:: basics/scope_redef_connection.zeek
    :caption:
@@ -411,7 +414,7 @@ We can also modify the script slightly to log the flag in ``conn.log``:
    :tab-width: 4
    :emphasize-lines: 8,15,20
 
-There are three changes here, which are highlighted in order:
+There are three changes here, highlighted in order:
 
 #. The ``redef`` redefines :zeek:see:`Conn::Info` instead of
    ``connection``.
@@ -423,10 +426,12 @@ There are three changes here, which are highlighted in order:
    it, ``c$conn`` is the specific record that gets written to
    ``conn.log``.
 
-By convention, analyzers which log use ``Info`` records to store the
-state that they wish to log. ``conn.log`` is no different. So, if you
-want to change what goes in ``conn.log``, you add fields to
-``Conn::Info``.
+Each Zeek log's layout is defined by a record type, and by convention such
+records are named ``Info``. The record type underpinning Zeek's ``conn.log`` is
+called :zeek:type:`Conn::Info`. So, if you want to expand what goes in
+``conn.log``, you add fields to ``Conn::Info``. (Zeek's :ref:`logging framework
+<framework-logging>` handles all of the details, but we won't go into details on
+it just yet.)
 
 .. note::
 
@@ -449,12 +454,13 @@ now has a ``denied`` field:
    T
 
 Using ``&redef``
-----------------
+================
 
-This is possible with the ``&redef`` attribute. If you're writing a
+You cannot redefine just anything in Zeek, only things that declare themselves
+to be redefinable. The ``&redef`` attribute makes this possible. If you're writing a
 library and want to allow users to customize parts, you may include
 ``&redef`` to allow extra fields in the record, to log more fields, or
-just to configure a constant.
+just to make a runtime constant configurable at startup.
 
 .. literalinclude:: basics/scope_redef_attr.zeek
    :caption:
@@ -469,7 +475,7 @@ For more information, see :zeek:see:`redef` and :zeek:see:`&redef`. Also look
 at :zeek:see:`option` and :zeek:see:`const` for some more ways to customize
 libraries via ``redef``.
 
-.. _basics_events_functions:
+.. _basics_functions:
 
 ***********
  Functions
@@ -497,8 +503,8 @@ we modify ``host`` within a separate function:
    :tab-width: 4
 
 The most important part here is that only certain types in Zeek are
-"pass by reference." You may pass types like a ``table`` or ``record``
-into a function by reference, so that function may modify its values.
+"pass by reference." You pass aggregate types like a ``table`` or ``record``
+into a function by reference, so the function may modify their values.
 But, if you pass a ``count``, then the function will modify a *copy*,
 not the original. Try modifying the above script to pass
 ``host$scanned_count`` in by value and see that it doesn't get updated.
@@ -517,7 +523,7 @@ Some functions may take some time to complete, so Zeek should not wait
 for it to complete before continuing with its execution. Zeek provides a
 ``when`` keyword in order to wait for that result, then make it
 available when it's ready. In this example, we use ``when`` in order to
-lookup the DNS TXT record from ``www.zeek.org``:
+lookup the DNS TXT record for ``www.zeek.org``:
 
 .. literalinclude:: basics/functions_async.zeek
    :caption:
@@ -542,8 +548,8 @@ For more information, see :zeek:see:`when`.
  Understanding a Real Script
 *****************************
 
-Now, we have the tools to understand the detect-mhr script from before.
-At the beginning, we only showed the ``file_hash`` event contents. The
+We now have the tools to understand the detect-mhr script in its entirety.
+At the beginning, we only showed the ``file_hash`` event handler. The
 logic for the event was mostly within ``do_mhr_lookup``, which is a
 function call. Here is that function in its entirety, then we will go
 through the entire script and explain each part:

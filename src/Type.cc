@@ -1948,12 +1948,42 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         case TYPE_ANY:
         case TYPE_ERROR: return true;
 
-        case TYPE_ENUM:
-            // We should probably check to see whether all of the
-            // enumerations are present and in the same location.
-            // FIXME: Yes, but perhaps we should better return
-            // true per default?
+        case TYPE_ENUM: {
+            // We have enum types with the same name, but different pointers.
+            // This comes from situations where the same enum is defined within
+            // a .bif file and a .zeek file. Supervisor::ClusterRole and
+            // Broker::BackendType are examples.
+            //
+            // It'd be nice if enum types were singletons instead.
+            if ( t1->GetName() == t2->GetName() )
+                return true;
+
+            // If an EnumType has a parent and the type to compare
+            // against is that parent, they are compatible...
+            const auto* t1p = t1->AsEnumType()->GetParentType().get();
+            const auto* t2p = t2->AsEnumType()->GetParentType().get();
+
+            if ( t1p && t1p == t2 )
+                return true;
+
+            if ( t2p && t2p == t1 )
+                return true;
+
+            // Remove in v9.1: Make enums nominally typed. Change trailing
+            // return to false.
+            //
+            // We only output warnings during parse time for the user to see
+            // when we return true for nominally different enum types. I'm a
+            // bit worried we may somehow get here at runtime and spill a lot
+            // of warnings unexpectedly.
+            if ( run_state::is_parsing )
+                reporter->Deprecation(
+                    util::fmt("Remove in v9.1. Mixing incompatible enum types %s and %s will become an error.",
+                              obj_desc_short(t1).c_str(), obj_desc_short(t2).c_str()));
+
+            // Remove in v9.1: Change to return false.
             return true;
+        }
 
         case TYPE_OPAQUE: {
             const OpaqueType* ot1 = static_cast<const OpaqueType*>(t1);

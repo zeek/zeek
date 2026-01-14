@@ -330,6 +330,7 @@ function analyzer_to_bpf(tag: Analyzer::Tag): string
 function get_bpf(): string
 	{
 	local output = "";
+	print 3 as int;
 	for ( tag in ports )
 		{
 		output = PacketFilter::combine_filters(output, "or", analyzer_to_bpf(tag));

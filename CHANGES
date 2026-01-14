@@ -1,3 +1,13 @@
+8.1.1-15 | 2026-04-13 12:37:47 -0700
+
+  * testing/btest: Update ZAM baseline for wstunnel-configure-break (Arne Welzel, Corelight)
+
+    (cherry picked from commit cda987316c322b72a7d7bfadd658e5d80a0ef4d4)
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Sleep for a couple seconds to let redis-server to start up in btests (Tim Wojtulewicz, Corelight)
+
 8.1.1-12 | 2026-04-13 10:05:41 -0700
 
   * testing/btest: Some btest-diff-cut examples (Arne Welzel, Corelight)

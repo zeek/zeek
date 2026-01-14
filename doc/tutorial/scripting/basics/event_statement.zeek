@@ -1,4 +1,4 @@
-# This is a brand new event
+# This is a brand new event type
 event my_custom_event(a_num: count) {
 	print fmt("My custom event got %d!", a_num);
 }

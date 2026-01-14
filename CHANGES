@@ -1,3 +1,13 @@
+8.2.0-dev.89 | 2026-01-14 17:36:29 +0100
+
+  * testing/btest/zeromq: Add steerable proxy metrics test (Arne Welzel, Corelight)
+
+  * Renaming statistics. Resolving comment https://github.com/zeek/zeek/pull/5052#discussion_r2616958150 (kshitiz56)
+
+  * Using zmq::proxy_steerable to create proxy in order to gather statistics. (kshitiz56)
+
+    Also includes @awelzel provided rework and improvement changes.
+
 8.2.0-dev.85 | 2026-01-14 16:52:10 +0100
 
   * testing/btest: Some btest-diff-cut examples (Arne Welzel, Corelight)

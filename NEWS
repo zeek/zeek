@@ -27,6 +27,15 @@ New Functionality
 
 	redef PacketAnalyzer::VXLAN::vxlan_ports += { 4711/udp };
 
+- The number of messages and bytes processed by the central ZeroMQ XPUB/XSUB
+  cluster component is now exposed as metrics of the form:
+
+	zeek_cluster_zeromq_proxy_{frontend,backend}_{bytes,messages}_{sent,received}
+
+  by the process running this component in a cluster. Note that Zeek uses multipart
+  messages for events: Publishing a single event currently counts as four messages
+  as we're simply exposing ZeroMQ's low-level ``zmq::proxy_steerable()`` statistics.
+
 Changed Functionality
 ---------------------
 

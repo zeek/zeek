@@ -1,3 +1,7 @@
+8.2.0-dev.82 | 2026-01-14 16:26:02 +0100
+
+  * added debugging "dump" for ZAM instruction auxiliary information (Vern Paxson, Corelight)
+
 8.2.0-dev.79 | 2026-01-13 11:31:25 -0700
 
   * Add extra state check to finalize_redis hook (Tim Wojtulewicz, Corelight)

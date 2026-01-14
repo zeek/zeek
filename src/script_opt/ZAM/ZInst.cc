@@ -77,10 +77,12 @@ void ZInst::Dump(FILE* f, const string& prefix, const string& id1, const string&
         case OP_VVVC_I1_I2_I3: fprintf(f, "%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str()); break;
     }
 
-    auto func = aux ? aux->func : nullptr;
+    if ( aux ) {
+        fprintf(f, " aux:");
+        aux->Dump(f);
+    }
 
-    if ( func )
-        fprintf(f, " (func %s)", func->GetName().c_str());
+    auto func = aux ? aux->func : nullptr;
 
     if ( loc ) {
         auto l = loc->Describe(true);
@@ -330,65 +332,6 @@ TraversalCode ZInst::Traverse(TraversalCallback* cb) const {
     if ( aux ) {
         tc = aux->Traverse(cb);
         HANDLE_TC_STMT_POST(tc);
-    }
-
-    return TC_CONTINUE;
-}
-
-TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
-    TraversalCode tc;
-
-    if ( id_val ) {
-        tc = id_val->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    // Don't traverse the "func" field, as if it's a recursive function
-    // we can wind up right back here.
-
-    if ( lambda ) {
-        tc = lambda->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    if ( event_handler ) {
-        auto g = lookup_ID(event_handler->Name(), GLOBAL_MODULE_NAME, false, false, false);
-        ASSERT(g);
-        tc = g->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    if ( attrs ) {
-        tc = attrs->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    if ( value_var_type ) {
-        tc = value_var_type->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    for ( auto& lvt : types ) {
-        tc = lvt->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
-    }
-
-    if ( elems ) {
-        for ( int i = 0; i < n; ++i ) {
-            auto& e_i = elems[i];
-
-            auto& c = e_i.Constant();
-            if ( c ) {
-                tc = c->GetType()->Traverse(cb);
-                HANDLE_TC_STMT_PRE(tc);
-            }
-
-            auto& t = e_i.GetType();
-            if ( t ) {
-                tc = t->Traverse(cb);
-                HANDLE_TC_STMT_PRE(tc);
-            }
-        }
     }
 
     return TC_CONTINUE;

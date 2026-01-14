@@ -1310,16 +1310,22 @@ function paraglob_init%(v: any%) : opaque of paraglob
 		}
 
 	std::vector<std::string> patterns;
+	size_t tree_size = 0;
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto s = vv->StringAt(i);
 		patterns.emplace_back(reinterpret_cast<const char*>(s->Bytes()), s->Len());
+		tree_size += std::abs(s->Len());
 		}
+
+	// The libaca docs recommend adding one to the sum of the string lengths as the size
+	// of the tree.
+	tree_size += 1;
 
 	try
 		{
-		auto p = std::make_unique<paraglob::Paraglob>(patterns);
+		auto p = std::make_unique<paraglob::Paraglob>(patterns, tree_size);
 		return zeek::make_intrusive<zeek::ParaglobVal>(std::move(p));
 		}
 	// Thrown if paraglob fails to add a pattern.
@@ -1370,7 +1376,7 @@ IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 
 	if (input->GetType()->Tag() == zeek::TYPE_STRING)
 		{
-        auto sv = static_cast<zeek::StringVal*>(input);
+		auto sv = static_cast<zeek::StringVal*>(input);
 		length = sv->Len();
 		bytes = sv->Bytes();
 		}

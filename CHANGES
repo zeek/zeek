@@ -1,3 +1,31 @@
+8.1.1-12 | 2026-04-13 10:05:41 -0700
+
+  * testing/btest: Some btest-diff-cut examples (Arne Welzel, Corelight)
+
+    (cherry picked from commit 68ba7610638a8d4f3dc231838d725a0e06523a9f)
+
+  * testing/scripts: Add btest-diff-cut (Arne Welzel, Corelight)
+
+    This is a reimplementation of Benjamin's btest-diff-cut in a few
+    lines of bash instead of Python to include in the Zeek tree.
+
+    (cherry picked from commit 68ba7610638a8d4f3dc231838d725a0e06523a9f)
+
+  * Preliminary NEWS changes for 8.1.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * cluster/backend/zeromq: Set ipv6=F by default (Arne Welzel, Corelight)
+
+    On systems without support for dual-stack sockets, the default of ipv6=T
+    results in a broken default as binding the ZeroMQ XPUB/XSUB and PULL sockets
+    fails. The ZeekControl ZeroMQ plugin is adapted separately to set the option
+    true if any of the node addresses is an IPv6 address.
+
+    This was reported by @klemensn while testing on OpenBSD. Thanks!
+
+    Closes #5251
+
+    (cherry picked from commit bc2362d92052899c0be9e119d4c92a3611f09556)
+
 8.1.1-9 | 2026-04-13 09:16:12 -0700
 
   * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)

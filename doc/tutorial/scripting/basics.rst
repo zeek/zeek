@@ -16,25 +16,79 @@
  Why Script?
 *************
 
-We have already seen the main *output* from Zeek: logs. But, Zeek has a
-whole layer designed to define the logic that creates those logs (and
-more!). That is Zeek's scripting language.
+We know the main *output* from Zeek: logs. But, Zeek has a whole architectural
+layer dedicated to the logic that creates those logs (and more!).
+That is Zeek's scripting language.
 
-We have already seen parts of Zeek script. The :ref:`Providing Script
-Values <providing_script_values>` section covered how to pass values
-from the command line. We can use this in order to change Zeek's core
-functionality from the command line, or from the ``local.zeek`` file in
-a cluster.
+We have already caught glimpses of Zeekscript. The :ref:`Providing Script Values
+<providing_script_values>` section covered how to adjust Zeekscript values from
+the command line, and while covering :ref:`ZeekControl <invoking-zeekctl>` we
+saw that the ``local.zeek`` file customizes a Zeek cluster's configuration.
 
-Zeek scripting is also the core of *detection* logic. You can use Zeek's
-scripting language to react to network events, store state about those
-events, and then inform incident responders.
+But scripting goes much further: it forms the heart of Zeek's entire analysis
+engine. In Zeek scripts, you react to *events* that Zeek generates as it
+processes sniffed packets, and this *event handling* drives all of Zeek's
+user-visible behavior. So let's learn more about events next.
 
-We will demonstrate this with a high level example. For this, we will
+*************
+ Zeek Events
+*************
+
+Parsing into network packets, Zeek's protocol analyzers attempt to make sense of
+the traffic. As protocols unfold on the wire, Zeek's analyzers generate events
+along the way, sending them into the scripting engine for processing. Examples
+of such events include observing a new connection (:zeek:see:`new_connection`),
+an HTTP request (:zeek:see:`http_request`), or a completed TLS handshake
+(:zeek:see:`ssl_established`). Most, but not all, events relate to network
+traffic. Two common generic events are :zeek:id:`zeek_init`, which Zeek
+generates at startup, and :zeek:id:`zeek_done`, indicating Zeek is about to shut
+down.
+
+Zeek ships with hundreds of different types of events, each suitably named and
+carrying a list of typed arguments to convey context. When Zeek's core sends an
+event into the script layer, scripts can handle it in many places via
+independent *event handlers*. For example, at startup Zeek only creates a single
+:zeek:id:`zeek_init` event, but dozens of scripts handle it independently.
+
+.. literalinclude:: basics/event_multiple_handlers.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+These events just happen to be in the same file. You can guarantee
+ordering events with the :zeek:see:`&priority` attribute:
+
+.. literalinclude:: basics/event_multiple_handlers_priority.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+      
+You can trigger your own events from a script with the :zeek:see:`event`
+statement:
+
+.. literalinclude:: basics/event_statement.zeek
+   :caption:
+   :language: zeek
+   :linenos:
+   :tab-width: 4
+
+This is the only way to trigger an event from a script. Zeek does not execute
+these events immediately, it enqueues them for subsequent processing. Don't
+think of events as functions that run *now*, think of them as interesting things
+that Zeek will handle later.
+
+It's important to remember that Zeek's events generally *don't judge*: they're
+policy-neutral, simply reporting on observed activity. It's up to scripts to
+build up state from processed events, infer meaning, and eventually trigger
+output (perhaps, but not necessarily, a detection) that informs analysts.
+
+We will demonstrate this with a high level example. We will
 check if the network traffic contains any malware from the `Team Cymru
 Malware hash registry <https://www.team-cymru.com>`_. Should you load
-the full script, Zeek will produce a ``notice.log`` entry whenever
-it encounters malware hashes, like this:
+the full script, Zeek will produce a ``notice.log`` entry with hashes
+for any observed known malware, like this:
 
 .. code:: console
 
@@ -50,23 +104,23 @@ registry---via scripting!
    :language: zeek
    :tab-width: 4
 
-When Zeek sees a file, it calculates its hash. Whenever that hash is
-calculated, it triggers the :zeek:see:`file_hash` event.
-
+Whenever Zeek sees a file transferred over a protocol, it calculates the
+file's hash, and whenever it has computed a hash, it triggers the
+:zeek:see:`file_hash` event.
 The body of our event handler does two things:
 
-#. It checks if we care about this specific file
+#. It checks if we care about this specific file.
 #. It calls a function (``do_mhr_lookup``) to check the registry.
 
-This leaves out the core of the script, but we introduced one of Zeek's
-core concepts already: events. We'll see more of those later. First, we
-have to understand the types you can use when scripting.
+This leaves out the core of the script, but we've learned about one of Zeek's
+most important concepts: events. To flesh the script out further, we next need
+to learn more about Zeek's available data types.
 
 .. _basics_types:
 
-*******
- Types
-*******
+************
+ Data Types
+************
 
 Network Types
 =============
@@ -101,10 +155,9 @@ occurred. Zeek provides time values as native types:
    :tab-width: 4
 
 The :zeek:see:`current_time` call gets the "wall clock" time when it is
-called. The time types are useful for more, though. You can cause some
-data to *expire* after a certain interval with :zeek:see:`&create_expire`,
-or schedule events to execute some time in the future with
-:zeek:see:`schedule`.
+called. The time types are useful for more, though. For example, you
+can cause stored state to *expire* after a certain time interval, or
+schedule events to execute some time in the future with.
 
 For more information, see :zeek:see:`time` and :zeek:see:`interval`.
 
@@ -130,8 +183,8 @@ preference:
    :tab-width: 4
 
 Sets are useful for checking membership. They represent a unique
-collection of items (like an allow list or deny list). Here, we create a
-set of "safe" ports that are allowed:
+collection of items, for example in allow/deny lists.
+Here, we create a set of "safe" ports that are allowed:
 
 .. literalinclude:: basics/types_set.zeek
    :caption:
@@ -161,12 +214,11 @@ Record Types
 
 Records are just collections of named values---like a ``struct`` in C.
 Zeek uses records liberally in order to provide structured data and pass
-it amongst events. The most used record is the ``connection`` record,
-which represents everything Zeek determined for a given connection.
+it amongst events. The most used record is :zeek:type:`connection`,
+which captures Zeek's knowledge of a given network connection.
 
 You can get data from the record with the ``$`` operator. The following
-script will use the :zeek:see:`new_connection` event and print who the
-connection is between:
+script will use the :zeek:see:`new_connection` event and print its endpoints:
 
 .. literalinclude:: basics/types_connection.zeek
    :caption:
@@ -200,10 +252,10 @@ For example, here is the output for the capture file from the
    will flip the endpoint roles, making the sender of this packet the
    connection's responder.
 
-The ``connection`` record carries around the state from the connection.
+The ``connection`` record carries around the bulk of Zeek's connection state.
 Scripts can add state to this record in order to piece together what
-they need, like how Zeek's HTTP scripts correlate requests and responses
-with the connection record. The added state is often declared as
+they need. For example, Zeek's HTTP scripts correlate requests and responses
+via the connection record. The added state is often declared as
 :zeek:see:`&optional`, so you should use ``?$`` to make sure the record
 contains that field before accessing it. Here, we use ``?$`` to ensure
 the connection has HTTP state in the :zeek:see:`http_request` event:
@@ -419,64 +471,9 @@ libraries via ``redef``.
 
 .. _basics_events_functions:
 
-**********************
- Events and Functions
-**********************
-
-Events
-======
-
-Throughout this section, we have used events such as :zeek:see:`zeek_init`
-and :zeek:see:`new_connection`. Zeek itself executes through a series of
-events in a queue. For example, when Zeek sees an HTTP request in some
-network traffic, it triggers the :zeek:see:`http_request` event. HTTP
-scripts may then use that event in order to gather data, correlate a
-request with a response, and more. This is core to Zeek's execution.
-
-Zeek does this by placing events into an ordered event queue. Then,
-*handlers* get triggered in a first-come-first-served basis. In our
-examples above, we only ever used one event at a time, but really there
-can be many handlers for a single event:
-
-.. literalinclude:: basics/event_multiple_handlers.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-These events just happen to be in the same file. You can guarantee
-ordering events with the :zeek:see:`&priority` attribute:
-
-.. literalinclude:: basics/event_multiple_handlers_priority.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Imagine Zeek analyzing network traffic, and as it does so, it raises
-events so that you can react to what was just seen. The DNS analyzer
-raises :zeek:see:`dns_request` events when DNS requests are seen, the file
-analyzer raises ``file_hash`` when a file hash is computed, and many
-more.
-
-You may even choose to trigger an event from a script with the ``event``
-statement:
-
-.. literalinclude:: basics/event_statement.zeek
-   :caption:
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-This is the only way to trigger an event in a script. They do not get
-immediately executed, and they cannot return values. Don't think of
-events as functions that runs *now*, think of them as interesting things
-that will be handled later.
-
-For more information, see :zeek:see:`event`.
-
-Functions
-=========
+***********
+ Functions
+***********
 
 From other programming languages, functions are exactly what you expect:
 you can call them to immediately execute some statements in-order. In

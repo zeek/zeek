@@ -1366,6 +1366,8 @@ add_subdirectory(scripts)
 add_subdirectory(man)
 add_subdirectory(testing)
 
+add_subdirectory(benchmarks)
+
 if (NOT DISABLE_SPICY)
     zeek_add_dependencies(spicyz)
 endif ()

@@ -1,8 +1,8 @@
 .. _tutorial-example:
 
-#############################
- HTTP Entity Patterns Script
-#############################
+#######################
+ A More Complex Script
+#######################
 
 For this tutorial, we will build a script which searches for certain
 patterns in HTTP entities. These will be in a list of “interesting
@@ -11,23 +11,23 @@ with the number of matches. This particular script will be very slow, so
 not a production-level analysis, but it will help show many of the core
 principles of Zeek scripts and augmenting logs.
 
-Zeek's scripting language is event based. As network traffic is
-processed, events get triggered. When making a script, the author has to
-decide what to react to. For this case, we care about HTTP “entities” -
-the body of the request or response.
+Recall that Zeek's scripting language is :ref:`event-based <basics_events>`.  As
+Zeek processes network traffic, it triggers events.  When making a script, the
+author has to decide which events to react to. For this case, we care about HTTP
+“entities”: the body of HTTP requests and responses.
 
 We can find the corresponding event by looking through the HTTP protocol
 documentation. In this case, we care about HTTP entities, so the
-:zeek:see:`http_entity_data` event is promising. This event can
-provide a ``string`` containing the data from the entity. Its signature
+:zeek:see:`http_entity_data` event looks promising. This event
+provides a ``string`` containing the entity data. Its signature
 is:
 
 .. code:: zeek
 
    event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
 
-Given this, we can see how a package might look. Users can use the
-``print`` statement in order to print a given object. In this case,
+With this information we can see what entities might look like. Users can use the
+:zeek:see:`print` statement in order to print a given object. In this case,
 let's print the data directly:
 
 .. literalinclude:: tutorial/01-steps/01.zeek
@@ -38,12 +38,13 @@ let's print the data directly:
 .. note::
 
    This (and many other programming tutorials) use printing in order to
-   demonstrate functionality. However, it's important to note that this
-   is almost entirely a tool for debugging. Production-grade scripts
-   should use other tools such as logging or the notice framework in
-   order to convey information.
+   demonstrate functionality. However, it's important to note that in Zeek
+   :zeek:see:`print` is almost entirely a tool for debugging. Production-grade scripts
+   should use other tools such as logging, the notice framework, or
+   Zeek's :doc:`reporter facility </scripts/base/frameworks/reporter/main.zeek>`
+   in order to convey information.
 
-Save that in a file ``test.zeek`` and evoke Zeek on the quickstart pcap:
+Save the above in a file ``test.zeek`` and invoke Zeek on the quickstart pcap:
 
 .. code:: console
 
@@ -89,7 +90,8 @@ redefinition for ``http_entity_data_delivery_size``:
 
 Zeek's output will look different---namely, every 10 bytes, there should
 be a newline. The :zeek:see:`http_entity_data` event gets called in
-batches for large files. Therefore, we must reassemble the complete data
+batches for large entities, so Zeek doesn't have to buffer up the entity
+in its entirety. Therefore, we must reassemble the complete data
 before matching patterns on the entity, just in case the pattern spans
 over multiple events. That will be the first step.
 
@@ -98,15 +100,15 @@ over multiple events. That will be the first step.
 ****************************
 
 Thankfully, Zeek provides a convenient way to store state between event
-calls within the same connection: The connection record!
+calls within the same connection: The :zeek:type:`connection` record!
 
 Many protocols append a record to the connection record in order to
-store its state, either for logging or simply tracking something. For
+store connection state, either for logging or simply tracking something. For
 HTTP, this record is the :zeek:see:`HTTP::State` record. The name
 ``State`` is convention for protocols which must maintain state for
 multiple requests or responses. Not only does this store information
 that the analyzer uses, we can also append our own fields to it for
-various purposes. We will use the ``redef`` keyword for this.
+various purposes. We will use the :zeek:see:`redef` keyword for this.
 
 Above the ``http_entity_data`` event, let's add a string to keep track
 of the entity data we've seen so far:
@@ -117,13 +119,21 @@ of the entity data we've seen so far:
    :start-after: @@
    :tab-width: 4
 
-This statement will take the ``HTTP::State`` record mentioned before and
+This statement will take the :zeek:type:`HTTP::State` record mentioned before and
 add a field to it. When fields get added, they must have either
 ``&default`` (which specifies the default value) or ``&optional`` (which
-means you don't need to initialize the field if you don't want to). In
-this case, we have a simple default that we can use to “build up” the
+means you don't need to initialize the field if you don't want to).
+
+.. note::
+
+   To see why these are needed, consider pre-existing code that creates an
+   :zeek:type:`HTTP::State` instance: it wasn't written with awareness of the new field,
+   so Zeek wouldn't know what value to assign it. Either of the attributes
+   provides a way out.
+
+In this case, we have a simple default that we can use to “build up” the
 entity, so we use ``&default``. The default ``entity`` value gets
-created whenever the ``HTTP::State`` record is created by the HTTP
+created whenever the :zeek:type:`HTTP::State` record is created by the HTTP
 analyzer. The HTTP analyzer doesn't need to know that we just appended a
 field to its record.
 
@@ -144,19 +154,18 @@ what's in that field.
 
 The other key here is that ``connection`` object. The connection record
 (that is, the first argument to the event) carries around state for the
-connection. Many protocols will use ``redef`` to add extra fields
+connection. Many protocols will use :zeek:see:`redef` to add extra fields
 associated with that protocol---in this case, the HTTP analyzer adds
-both an ``HTTP::Info`` and ``HTTP::State`` field. You can see which
+both an :zeek:type:`HTTP::Info` and :zeek:type:`HTTP::State` field. You can see which
 fields an analyzer adds to the ``connection`` object in the
-“redefinitions” section in the script's documentation---:doc:`here
+“redefinitions” section in the script's documentation---such as :doc:`here
 </scripts/base/protocols/http/main.zeek>` for HTTP. You can see from
 that section that the HTTP analyzer adds a variable ``http_state`` with
-type ``HTTP::State`` to the ``connection`` record---thus, we can use it!
+type :zeek:type:`HTTP::State` to the ``connection`` record---thus, we can use it!
 
-Before we use it, since ``c$http_state`` is an optional field, it is
-necessary to ensure that the ``c$http_state`` field exists before
-using it. If you use an optional field without it being present, that
-would be a runtime error which will fail during execution:
+Before we do so, we need to ensure that the ``c$http_state`` field exists before
+we use it, since its presence is optional. Using an optional field that's absent
+would be a runtime error:
 
 .. code:: console
 
@@ -171,18 +180,17 @@ value existence check with ``?$``:
    :start-after: @@
    :tab-width: 4
 
-This will print everything it has accumulated as the entity to that
-point. If the entity data is split over multiple event invocations, this
-will print an increasingly large HTTP entity.
+For every update, this will print the accumulated entity up to that point. If
+the entity data is split over multiple event invocations, this will print an
+increasingly larger entity chunks.
 
 For testing, try deleting the connection record`s ``http_state`` before
 the ``if`` statement. Nothing should print, since you check the
 existence of that optional field before printing.
 
-This prints the information as it is getting collected. Instead, it
-should only print once at the end. For this, we can use the
-:zeek:see:`http_end_entity` event. Remove the ``print`` that is in
-``http_entity_data`` and move it to the ``http_end_entity`` event:
+It'd be better to print the entity only once, when complete. For this, we can use the
+:zeek:see:`http_end_entity` event. Remove the ``print`` in
+``http_entity_data``, and move it to the ``http_end_entity`` event:
 
 .. literalinclude:: tutorial/01-steps/05.zeek.diff
    :caption: :file:`test.zeek`
@@ -553,11 +561,10 @@ With that, the script is done. Here it is in its entirety:
 Conclusions
 ===========
 
-We went over how to use many of Zeek's language features as well as ways
-to expose the new analysis to users. There are ways to learn more about
-Zeek scripting as well:
+We just covered many of Zeek's language features, as well as ways to expose a
+new analysis' results to users. There's a lot more to cover:
 
-You can go through `try.zeek.org <https://try.zeek.org>`_---this is an
+Explore the tutorial at `try.zeek.org <https://try.zeek.org>`_---this is an
 interactive tutorial all in the web browser. It explains Zeek's
 functionality with increasingly advanced scripts. That is a logical next
 step after this tutorial if some language features seem under-explained.
@@ -568,8 +575,7 @@ section. This has detailed explanations of all of Zeek's :doc:`operators
 </script-reference/attributes>`, and more. If you need a deep-dive, that
 is the reference to use.
 
-While this script is not necessarily production-capable, it uses Zeek in
-many of the same ways you would for a real detection. This doesn't handle
-nested entities, plus it's likely quite slow and not very useful.
-Zeek also has another way to solve a similar problem---the
-:doc:`Signature framework </frameworks/signatures>`.
+While this script is not necessarily production-ready, it uses Zeek in many of
+the same ways you would for a real detection. In it, we've briefly touched
+several of Zeek's commonly used frameworks, and you should :doc:`explore them
+</frameworks/index>` to understand Zeek's broader capabilities.

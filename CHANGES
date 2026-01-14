@@ -1,3 +1,12 @@
+8.2.0-dev.85 | 2026-01-14 16:52:10 +0100
+
+  * testing/btest: Some btest-diff-cut examples (Arne Welzel, Corelight)
+
+  * testing/scripts: Add btest-diff-cut (Arne Welzel, Corelight)
+
+    This is a reimplementation of Benjamin's btest-diff-cut in a few
+    lines of bash instead of Python to include in the Zeek tree.
+
 8.2.0-dev.82 | 2026-01-14 16:26:02 +0100
 
   * added debugging "dump" for ZAM instruction auxiliary information (Vern Paxson, Corelight)

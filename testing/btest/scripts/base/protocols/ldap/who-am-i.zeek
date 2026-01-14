@@ -2,9 +2,8 @@
 
 # @TEST-REQUIRES: have-spicy
 # @TEST-EXEC: zeek -r ${TRACES}/ldap/ldap-who-am-i.pcap %INPUT >out
-# @TEST-EXEC: cat conn.log | zeek-cut -Cn local_orig local_resp > conn.log2 && mv conn.log2 conn.log
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff-cut -Cn local_orig local_resp conn.log
 # @TEST-EXEC: btest-diff ldap.log
 # @TEST-EXEC: ! test -f analyzer.log
 #

@@ -5,8 +5,7 @@
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb
 # @TEST-EXEC: zeek -b -r $TRACES/rotation.trace %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
-# @TEST-EXEC: zeek-cut -m < reporter.log > reporter.log.tmp && mv reporter.log.tmp reporter.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff reporter.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff-cut -m reporter.log
 
 @load base/frameworks/reporter
 

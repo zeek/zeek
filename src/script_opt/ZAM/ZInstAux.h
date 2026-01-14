@@ -191,6 +191,8 @@ public:
     // Same but for constants.
     void Add(int i, ValPtr c) { elems[i].SetConstant(c); }
 
+    void Dump(FILE* f) const;
+
     TraversalCode Traverse(TraversalCallback* cb) const;
 
     // Member variables.  We could add accessors for manipulating

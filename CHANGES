@@ -1,3 +1,13 @@
+8.2.0-dev.94 | 2026-01-15 14:52:03 +0100
+
+  * CI: Install ZeroMQ 4.3.5 from source on opensuse/leap 15.6 (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Require ZeroMQ 4.3.0 or later (Arne Welzel, Corelight)
+
+  * cluster/zeromq/cmake: Extract ZeroMQ_VERSION (Arne Welzel, Corelight)
+
+  * testing/btest: Update ZAM baseline for wstunnel-configure-break (Arne Welzel, Corelight)
+
 8.2.0-dev.89 | 2026-01-14 17:36:29 +0100
 
   * testing/btest/zeromq: Add steerable proxy metrics test (Arne Welzel, Corelight)

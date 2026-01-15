@@ -28,8 +28,7 @@ void Source::Open() {
         return;
     }
 
-    bool send_events = id::find_val("Pcapng::send_events_from_pktsrc")->AsBool();
-    parser = std::make_unique<Parser>(send_events);
+    parser = std::make_unique<Parser>();
 
     // We don't have direct access to the file descriptor in the light_file pointer. It's
     // a FILE object internally to LightPcapNg, but it's not exposed externally.

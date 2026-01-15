@@ -6,8 +6,6 @@
 #include <cinttypes>
 #include <cmath>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h" // Needed for the event definitions
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
@@ -58,9 +56,7 @@ static uint64_t pcapng_extract_uint64(uint8_t* opt_data, uint16_t opt_length) {
 }
 
 Parser::BlockStatus Parser::ParseBlock(light_block block) {
-    if ( block->type == LIGHT_SECTION_HEADER_BLOCK )
-        ParseSectionHeaderBlock(block);
-    else if ( block->type == LIGHT_INTERFACE_BLOCK )
+    if ( block->type == LIGHT_INTERFACE_BLOCK )
         ParseInterfaceBlock(block);
     else if ( block->type == LIGHT_ENHANCED_PACKET_BLOCK ) {
         current_packet = ParseEnhancedPacketBlock(block);
@@ -83,55 +79,6 @@ Parser::BlockStatus Parser::ParseBlock(light_block block) {
     }
 
     return OK;
-}
-
-void Parser::ParseSectionHeaderBlock(light_block block) {
-    if ( send_events && pcapng_file_info ) {
-        // Use the struct defined by Light to avoid some parsing.
-        auto lsh = reinterpret_cast<_light_section_header*>(block->body);
-
-        // Skip over the byte-order magic number and pull the major and minor version as
-        // 16-bit values. We're ok to skip this because we already verified the magic
-        // number by selecting the packet source in the first place.
-
-        static auto file_info = id::find_type<RecordType>("Pcapng::FileInfo");
-        auto rec = make_intrusive<RecordVal>(file_info);
-        VectorValPtr comments;
-
-        rec->Assign(0, make_intrusive<StringVal>(util::fmt("%d.%d", lsh->major_version, lsh->minor_version)));
-
-        light_option opt = block->options;
-        while ( opt ) {
-            switch ( opt->code ) {
-                case LIGHT_OPTION_COMMENT:
-                    if ( ! comments )
-                        comments = make_intrusive<VectorVal>(id::string_vec);
-                    comments->Append(
-                        make_intrusive<StringVal>(std::string_view{reinterpret_cast<char*>(opt->data), opt->length}));
-                    break;
-                case LIGHT_OPTION_SHB_HARDWARE:
-                    rec->Assign(2, make_intrusive<StringVal>(
-                                       std::string_view{reinterpret_cast<char*>(opt->data), opt->length}));
-                    break;
-                case LIGHT_OPTION_SHB_OS:
-                    rec->Assign(3, make_intrusive<StringVal>(
-                                       std::string_view{reinterpret_cast<char*>(opt->data), opt->length}));
-                    break;
-                case LIGHT_OPTION_SHB_APP:
-                    rec->Assign(4, make_intrusive<StringVal>(
-                                       std::string_view{reinterpret_cast<char*>(opt->data), opt->length}));
-                    break;
-                default: break;
-            }
-
-            opt = opt->next_option;
-        }
-
-        if ( comments )
-            rec->Assign(1, comments);
-
-        event_mgr.Enqueue(pcapng_file_info, rec);
-    }
 }
 
 void Parser::ParseInterfaceBlock(light_block block) {
@@ -230,58 +177,6 @@ void Parser::ParseInterfaceBlock(light_block block) {
         opt = opt->next_option;
     }
 
-    if ( send_events && pcapng_new_interface ) {
-        static auto rec_type = id::find_type<RecordType>("Pcapng::Interface");
-        auto rec = make_intrusive<RecordVal>(rec_type);
-
-        rec->Assign(0, val_mgr->Count(intf.link_type));
-        rec->Assign(1, val_mgr->Count(intf.snaplen));
-
-        if ( intf.name )
-            rec->Assign(2, make_intrusive<StringVal>(intf.name.value()));
-        if ( intf.description )
-            rec->Assign(3, make_intrusive<StringVal>(intf.description.value()));
-        if ( intf.ipv4_addrs ) {
-            auto vec = make_intrusive<VectorVal>(id::string_vec);
-            for ( const auto& addr : intf.ipv4_addrs.value() )
-                vec->Append(make_intrusive<StringVal>(addr));
-            rec->Assign(4, vec);
-        }
-        if ( intf.ipv6_addrs ) {
-            auto vec = make_intrusive<VectorVal>(id::string_vec);
-            for ( const auto& addr : intf.ipv6_addrs.value() )
-                vec->Append(make_intrusive<StringVal>(addr));
-            rec->Assign(5, vec);
-        }
-        if ( intf.mac_addr )
-            rec->Assign(6, make_intrusive<StringVal>(intf.mac_addr.value()));
-        if ( intf.eui_addr )
-            rec->Assign(7, make_intrusive<StringVal>(intf.eui_addr.value()));
-        if ( intf.if_speed )
-            rec->Assign(8, val_mgr->Count(intf.if_speed.value()));
-
-        rec->Assign(9, val_mgr->Count(intf.ts_resolution));
-
-        if ( intf.filter )
-            rec->Assign(10, make_intrusive<StringVal>(intf.filter.value()));
-        if ( intf.os )
-            rec->Assign(11, make_intrusive<StringVal>(intf.os.value()));
-        if ( intf.fcs_len )
-            rec->Assign(12, val_mgr->Count(intf.fcs_len.value()));
-        if ( intf.ts_offset )
-            rec->Assign(13, val_mgr->Count(intf.ts_offset.value()));
-        if ( intf.hardware )
-            rec->Assign(14, make_intrusive<StringVal>(intf.hardware.value()));
-        if ( intf.tx_speed )
-            rec->Assign(15, val_mgr->Count(intf.tx_speed.value()));
-        if ( intf.rx_speed )
-            rec->Assign(16, val_mgr->Count(intf.rx_speed.value()));
-        if ( intf.iana_tzname )
-            rec->Assign(17, make_intrusive<StringVal>(intf.iana_tzname.value()));
-
-        event_mgr.Enqueue(pcapng_new_interface, rec);
-    }
-
     interfaces.emplace_back(std::move(intf));
 }
 
@@ -309,167 +204,116 @@ Parser::PacketBlock Parser::ParseEnhancedPacketBlock(light_block block) {
     pb.origlen = lepb->original_capture_length;
     pb.data = lepb->packet_data;
 
-    if ( send_events && pcapng_packet_options ) {
-        light_option opt = block->options;
-        bool found_non_dropcount = false;
-        while ( opt ) {
-            if ( opt->code != LIGHT_OPTION_EPB_DROPCOUNT )
-                found_non_dropcount = true;
-
-            switch ( opt->code ) {
-                case LIGHT_OPTION_COMMENT: {
-                    if ( ! pb.comments.has_value() )
-                        pb.comments = std::vector<std::string>{};
-                    pb.comments->emplace_back(reinterpret_cast<char*>(opt->data), opt->length);
-                    break;
-                }
-                case LIGHT_OPTION_EPB_FLAGS: pb.flags = pcapng_extract_uint32(opt->data, opt->length); break;
-                case LIGHT_OPTION_EPB_HASH: {
-                    std::string hashstr;
-                    // expected lengths here include the one byte for the option type.
-                    uint16_t expected_length = UINT16_MAX;
-                    switch ( opt->data[0] ) {
-                        case 0: hashstr = "2scomp:"; break;
-                        case 1: hashstr = "xor:"; break;
-                        case 2:
-                            hashstr = "crc32:";
-                            expected_length = 5;
-                            break;
-                        case 3:
-                            hashstr = "md5:";
-                            expected_length = 17;
-                            break;
-                        case 4:
-                            hashstr = "sha-1:";
-                            expected_length = 21;
-                            break;
-                        case 5:
-                            hashstr = "toeplitz:";
-                            expected_length = 5;
-                            break;
-                        default: hashstr = "unknown:"; break;
-                    }
-
-                    if ( ! validate_option_length(expected_length, opt->length) )
+    light_option opt = block->options;
+    while ( opt ) {
+        switch ( opt->code ) {
+            case LIGHT_OPTION_COMMENT: {
+                if ( ! pb.comments.has_value() )
+                    pb.comments = std::vector<std::string>{};
+                pb.comments->emplace_back(reinterpret_cast<char*>(opt->data), opt->length);
+                break;
+            }
+            case LIGHT_OPTION_EPB_FLAGS: pb.flags = pcapng_extract_uint32(opt->data, opt->length); break;
+            case LIGHT_OPTION_EPB_HASH: {
+                std::string hashstr;
+                // expected lengths here include the one byte for the option type.
+                uint16_t expected_length = UINT16_MAX;
+                switch ( opt->data[0] ) {
+                    case 0: hashstr = "2scomp:"; break;
+                    case 1: hashstr = "xor:"; break;
+                    case 2:
+                        hashstr = "crc32:";
+                        expected_length = 5;
                         break;
-
-                    for ( size_t i = 1; i < opt->length; i++ )
-                        hashstr.append(util::fmt("%02x", opt->data[i]));
-
-                    if ( ! pb.hashes.has_value() )
-                        pb.hashes = std::vector<std::string>{};
-                    pb.hashes->emplace_back(std::move(hashstr));
-                    break;
+                    case 3:
+                        hashstr = "md5:";
+                        expected_length = 17;
+                        break;
+                    case 4:
+                        hashstr = "sha-1:";
+                        expected_length = 21;
+                        break;
+                    case 5:
+                        hashstr = "toeplitz:";
+                        expected_length = 5;
+                        break;
+                    default: hashstr = "unknown:"; break;
                 }
-                case LIGHT_OPTION_EPB_DROPCOUNT: pb.dropcount = pcapng_extract_uint64(opt->data, opt->length); break;
-                case LIGHT_OPTION_EPB_PACKETID: pb.packet_id = pcapng_extract_uint64(opt->data, opt->length); break;
-                case LIGHT_OPTION_EPB_QUEUE: pb.queue = pcapng_extract_uint32(opt->data, opt->length); break;
-                case LIGHT_OPTION_EPB_VERDICT: {
-                    if ( ! pb.verdicts.has_value() )
-                        pb.verdicts = std::vector<std::string>{};
 
-                    switch ( opt->data[0] ) {
-                        case 0: {
-                            std::string verdict = "hardware:";
-                            verdict.append({reinterpret_cast<char*>(opt->data), opt->length});
-                            pb.verdicts->emplace_back(std::move(verdict));
-                            break;
-                        }
-                        case 1: {
-                            if ( ! validate_option_length(9, opt->length) )
-                                break;
+                if ( ! validate_option_length(expected_length, opt->length) )
+                    break;
 
-                            uint64_t val = pcapng_extract_uint64(opt->data + 1, opt->length - 1);
-                            switch ( val ) {
-                                case 0: pb.verdicts->emplace_back("Linux_eBPF_TC:OK"); break;
-                                case 1: pb.verdicts->emplace_back("Linux_eBPF_TC:RECLASSIFY"); break;
-                                case 2: pb.verdicts->emplace_back("Linux_eBPF_TC:SHOT"); break;
-                                case 3: pb.verdicts->emplace_back("Linux_eBPF_TC:PIPE"); break;
-                                case 4: pb.verdicts->emplace_back("Linux_eBPF_TC:STOLEN"); break;
-                                case 5: pb.verdicts->emplace_back("Linux_eBPF_TC:QUEUED"); break;
-                                case 6: pb.verdicts->emplace_back("Linux_eBPF_TC:REPEAT"); break;
-                                case 7: pb.verdicts->emplace_back("Linux_eBPF_TC:REDIRECT"); break;
-                                case 8: pb.verdicts->emplace_back("Linux_eBPF_TC:TRAP"); break;
-                                default:
-                                    pb.verdicts->emplace_back(util::fmt("Linux_eBPF_TC:unknown(%" PRIu64 ")", val));
-                            }
-                            break;
-                        }
-                        case 2: {
-                            if ( ! validate_option_length(9, opt->length) )
-                                break;
+                for ( size_t i = 1; i < opt->length; i++ )
+                    hashstr.append(util::fmt("%02x", opt->data[i]));
 
-                            uint64_t val = pcapng_extract_uint64(opt->data + 1, opt->length - 1);
-                            switch ( val ) {
-                                case 0: pb.verdicts->emplace_back("Linux_eBPF_XDP:ABORTED"); break;
-                                case 1: pb.verdicts->emplace_back("Linux_eBPF_XDP:DROP"); break;
-                                case 2: pb.verdicts->emplace_back("Linux_eBPF_XDP:PASS"); break;
-                                case 3: pb.verdicts->emplace_back("Linux_eBPF_XDP:TX"); break;
-                                case 4: pb.verdicts->emplace_back("Linux_eBPF_XDP:REDIRECT"); break;
-                                default:
-                                    pb.verdicts->emplace_back(util::fmt("Linux_eBPF_XDP:unknown(%" PRIu64 ")", val));
-                            }
-                            break;
-                        }
-                        default: pb.verdicts->emplace_back(util::fmt("unknown_type(%d)", opt->data[0])); break;
+                if ( ! pb.hashes.has_value() )
+                    pb.hashes = std::vector<std::string>{};
+                pb.hashes->emplace_back(std::move(hashstr));
+                break;
+            }
+            case LIGHT_OPTION_EPB_DROPCOUNT: pb.dropcount = pcapng_extract_uint64(opt->data, opt->length); break;
+            case LIGHT_OPTION_EPB_PACKETID: pb.packet_id = pcapng_extract_uint64(opt->data, opt->length); break;
+            case LIGHT_OPTION_EPB_QUEUE: pb.queue = pcapng_extract_uint32(opt->data, opt->length); break;
+            case LIGHT_OPTION_EPB_VERDICT: {
+                if ( ! pb.verdicts.has_value() )
+                    pb.verdicts = std::vector<std::string>{};
+
+                switch ( opt->data[0] ) {
+                    case 0: {
+                        std::string verdict = "hardware:";
+                        verdict.append({reinterpret_cast<char*>(opt->data), opt->length});
+                        pb.verdicts->emplace_back(std::move(verdict));
+                        break;
                     }
-                    break;
-                }
-                case LIGHT_OPTION_EPB_PID_TID: {
-                    uint64_t pidtid = pcapng_extract_uint64(opt->data, opt->length);
-                    uint32_t pid = pidtid >> 32;
-                    uint32_t tid = pidtid & 0xFFFFFFFF;
-                    pb.processid_threadid = util::fmt("%d-%d", pid, tid);
-                    break;
-                }
-                default: break;
-            }
+                    case 1: {
+                        if ( ! validate_option_length(9, opt->length) )
+                            break;
 
-            opt = opt->next_option;
+                        uint64_t val = pcapng_extract_uint64(opt->data + 1, opt->length - 1);
+                        switch ( val ) {
+                            case 0: pb.verdicts->emplace_back("Linux_eBPF_TC:OK"); break;
+                            case 1: pb.verdicts->emplace_back("Linux_eBPF_TC:RECLASSIFY"); break;
+                            case 2: pb.verdicts->emplace_back("Linux_eBPF_TC:SHOT"); break;
+                            case 3: pb.verdicts->emplace_back("Linux_eBPF_TC:PIPE"); break;
+                            case 4: pb.verdicts->emplace_back("Linux_eBPF_TC:STOLEN"); break;
+                            case 5: pb.verdicts->emplace_back("Linux_eBPF_TC:QUEUED"); break;
+                            case 6: pb.verdicts->emplace_back("Linux_eBPF_TC:REPEAT"); break;
+                            case 7: pb.verdicts->emplace_back("Linux_eBPF_TC:REDIRECT"); break;
+                            case 8: pb.verdicts->emplace_back("Linux_eBPF_TC:TRAP"); break;
+                            default: pb.verdicts->emplace_back(util::fmt("Linux_eBPF_TC:unknown(%" PRIu64 ")", val));
+                        }
+                        break;
+                    }
+                    case 2: {
+                        if ( ! validate_option_length(9, opt->length) )
+                            break;
+
+                        uint64_t val = pcapng_extract_uint64(opt->data + 1, opt->length - 1);
+                        switch ( val ) {
+                            case 0: pb.verdicts->emplace_back("Linux_eBPF_XDP:ABORTED"); break;
+                            case 1: pb.verdicts->emplace_back("Linux_eBPF_XDP:DROP"); break;
+                            case 2: pb.verdicts->emplace_back("Linux_eBPF_XDP:PASS"); break;
+                            case 3: pb.verdicts->emplace_back("Linux_eBPF_XDP:TX"); break;
+                            case 4: pb.verdicts->emplace_back("Linux_eBPF_XDP:REDIRECT"); break;
+                            default: pb.verdicts->emplace_back(util::fmt("Linux_eBPF_XDP:unknown(%" PRIu64 ")", val));
+                        }
+                        break;
+                    }
+                    default: pb.verdicts->emplace_back(util::fmt("unknown_type(%d)", opt->data[0])); break;
+                }
+                break;
+            }
+            case LIGHT_OPTION_EPB_PID_TID: {
+                uint64_t pidtid = pcapng_extract_uint64(opt->data, opt->length);
+                uint32_t pid = pidtid >> 32;
+                uint32_t tid = pidtid & 0xFFFFFFFF;
+                pb.processid_threadid = util::fmt("%d-%d", pid, tid);
+                break;
+            }
+            default: break;
         }
 
-        if ( found_non_dropcount || pb.dropcount != 0 ) {
-            static auto rec_type = id::find_type<RecordType>("Pcapng::PacketOptions");
-            auto rec = make_intrusive<RecordVal>(rec_type);
-
-            if ( pb.comments ) {
-                auto vec = make_intrusive<VectorVal>(id::string_vec);
-                for ( const auto& comment : pb.comments.value() )
-                    vec->Append(make_intrusive<StringVal>(comment));
-                rec->Assign(0, vec);
-            }
-            if ( pb.flags )
-                rec->Assign(1, val_mgr->Count(pb.flags.value()));
-            if ( pb.hashes ) {
-                auto vec = make_intrusive<VectorVal>(id::string_vec);
-                for ( const auto& hash : pb.hashes.value() )
-                    vec->Append(make_intrusive<StringVal>(hash));
-                rec->Assign(2, vec);
-            }
-            rec->Assign(3, pb.dropcount);
-            if ( pb.packet_id )
-                rec->Assign(4, val_mgr->Count(pb.packet_id.value()));
-            if ( pb.queue )
-                rec->Assign(5, val_mgr->Count(pb.queue.value()));
-            if ( pb.verdicts ) {
-                auto vec = make_intrusive<VectorVal>(id::string_vec);
-                for ( const auto& verdict : pb.verdicts.value() )
-                    vec->Append(make_intrusive<StringVal>(verdict));
-                rec->Assign(6, vec);
-            }
-            if ( pb.processid_threadid )
-                rec->Assign(7, make_intrusive<StringVal>(pb.processid_threadid.value()));
-
-            event_mgr.Enqueue(pcapng_packet_options,
-                              make_intrusive<TimeVal>(pb.ts_tval.tv_sec +
-                                                      static_cast<double>(pb.ts_tval.tv_usec) / 1e6),
-                              rec);
-        }
-    }
-    else if ( ! send_events ) {
-        // We still need the drop counts for statistics even if we're not sending the events.
-        if ( light_option opt = light_find_option(block, LIGHT_OPTION_EPB_DROPCOUNT) )
-            pb.dropcount = pcapng_extract_uint64(opt->data, opt->length);
+        opt = opt->next_option;
     }
 
     return pb;

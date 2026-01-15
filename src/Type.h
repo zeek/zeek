@@ -58,6 +58,11 @@ public:
 
 } // namespace detail
 
+namespace plugin {
+template<class>
+class ComponentManager;
+} // namespace plugin
+
 // Zeek types.
 enum TypeTag : uint8_t {
     TYPE_VOID,     // 0
@@ -884,6 +889,27 @@ protected:
     // as a flag to prevent mixing of auto-increment and explicit
     // enumerator specifications.
     zeek_int_t counter;
+
+    // For some EnumTypes, concretely Analyzer::Tag, Files::Tag, PacketAnalyzer::Tag,
+    // their values are mirrored with different names, but the same
+    // integer values, into a separate AllAnalyzers::Tag EnumType. This happens
+    // in ComponentManager where this type is called the parent_tag_enum_type.
+    //
+    // Mark the ComponentManager class and the zeek::same_type() API as friends so
+    // the SetParentType() and GetParentType() APIs below aren't exposed elsewhere.
+    //
+    // This isn't a super clean design, but an add-on compromise to realize the
+    // expected behavior for the AllAnalyzers::Tag. Feel free to redo this, there's
+    // no deprecation cycle needed.
+    template<class>
+    friend class zeek::plugin::ComponentManager;
+    friend bool same_type(const Type& t1, const Type& t2, bool is_init, bool match_record_field_names);
+
+    void SetParentType(EnumTypePtr arg_parent) { parent = std::move(arg_parent); }
+    const EnumTypePtr& GetParentType() const { return parent; }
+
+    // This field tracks the "parent" for type checking purposes.
+    EnumTypePtr parent;
 };
 
 class VectorType final : public Type {

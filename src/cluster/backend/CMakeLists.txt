@@ -8,11 +8,10 @@ if (ENABLE_CLUSTER_BACKEND_ZEROMQ)
         find_package(ZeroMQ CONFIG REQUIRED)
     else ()
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/zeromq/cmake")
-        find_package(ZeroMQ REQUIRED)
-    endif ()
 
-    if (NOT ZeroMQ_FOUND)
-        message(FATAL_ERROR "ENABLE_CLUSTER_BACKEND_ZEROMQ set, but ZeroMQ library not available")
+        # Require ZeroMQ version 4.3.0 released in late 2018. The proxy_steerable()
+        # STATISTICS command was a draft API before that, but we'd like to use it.
+        find_package(ZeroMQ 4.3.0 REQUIRED)
     endif ()
 
     add_subdirectory(zeromq)

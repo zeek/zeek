@@ -45,7 +45,7 @@ development headers for libraries:
     * OpenSSL (https://www.openssl.org)
     * Python 3.9 or greater (https://www.python.org/)
     * SWIG (https://www.swig.org)
-    * ZeroMQ (https://zeromq.org)
+    * ZeroMQ 4.3.0 or greater (https://zeromq.org)
     * Zlib (https://zlib.net/)
 
 To install these, you can use:

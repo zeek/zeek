@@ -10,7 +10,6 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.6
     bison \
     ccache \
     cmake \
-    cppzmq-devel \
     curl \
     dnsmasq \
     flex \
@@ -41,3 +40,13 @@ RUN pip3 install websockets junit2html
 
 RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-12 100
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-12 100
+
+# Leap 15.6 ships ZeroMQ 4.2.3 from 2017, install a newer version.
+ENV ZEROMQ_VERSION=4.3.5
+ENV ZEROMQ_SHA1=bdbf686c8a40ba638e21cf74e34dbb425e108500
+RUN cd /opt \
+    && curl -L https://github.com/zeromq/libzmq/releases/download/v${ZEROMQ_VERSION}/zeromq-${ZEROMQ_VERSION}.tar.gz -o zeromq-${ZEROMQ_VERSION}.tar.gz \
+    && echo "${ZEROMQ_SHA1} zeromq-${ZEROMQ_VERSION}.tar.gz" | sha1sum -c \
+    && tar xf zeromq-${ZEROMQ_VERSION}.tar.gz \
+    && (cd ./zeromq-${ZEROMQ_VERSION} && ./configure --prefix=/usr/local && make -j && make install) \
+    && rm -rf zeromq-${ZEROMQ_VERSION}*

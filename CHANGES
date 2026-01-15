@@ -1,3 +1,21 @@
+8.1.0-7 | 2026-01-26 14:53:21 -0700
+
+  * CI: Install ZeroMQ 4.3.5 from source on opensuse/leap 15.6 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 10dc7c8945c6525d2079d03264761c5184463a1d)
+
+  * cluster/zeromq: Require ZeroMQ 4.3.0 or later (Arne Welzel, Corelight)
+
+    (cherry picked from commit 10dc7c8945c6525d2079d03264761c5184463a1d)
+
+  * cluster/zeromq/cmake: Extract ZeroMQ_VERSION (Arne Welzel, Corelight)
+
+    (cherry picked from commit 10dc7c8945c6525d2079d03264761c5184463a1d)
+
+  * testing/btest: Update ZAM baseline for wstunnel-configure-break (Arne Welzel, Corelight)
+
+    (cherry picked from commit 10dc7c8945c6525d2079d03264761c5184463a1d)
+
 8.1.0-6 | 2026-01-26 14:52:12 -0700
 
   * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)

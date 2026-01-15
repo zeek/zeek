@@ -11,6 +11,9 @@ We'd like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- The minimum version requirement for ZeroMQ is now 4.3.0. This version has
+  been released at the end of 2018 - a good 7 years ago.
+
 New Functionality
 -----------------
 

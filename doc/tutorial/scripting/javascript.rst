@@ -8,54 +8,71 @@ JavaScript
 
 .. note::
 
-   Link to external `ZeekJS documentation`_.
-
+   Zeek's JavaScript support started out as an independent Zeek package called
+   `ZeekJS`_, which features `additional documentation <https://zeekjs.readthedocs.io/en/latest/>`_.
 
 .. note::
 
    The JavaScript integration does not provide Zeek's typical backwards
-   compatibility guarantees at this point. The plugin itself is at semantic
-   version 0.20.0 at the time of writing meaning the API is not stable.
-   That said, we'll avoid unnecessary breakage.
+   compatibility guarantees at this point. That said, we'll avoid unnecessary
+   breakage.
 
 
 Preamble
 ========
 
-In the scope of integrating with external systems, Zeek can be extended by
-:ref:`implementing C++ plugins <writing-plugins>` or using the :zeek:see:`system`
-function to call external programs from Zeek scripts. The :ref:`framework-input`
-can be leveraged for data ingestion (with :ref:`raw reader <input-raw-reader>`
-reader providing flexibility to consume input from external programs as events).
-The :ref:`broker-framework` is popular for exchanging events between
-Zeek and an external program using WebSockets.
-The external program sometimes solely acts as a proxy between Zeek and another
-external system.
+If you'd like to integrate Zeek with external systems, Zeek offers several options.
+Developers can extend Zeek by :ref:`implementing C++ plugins <writing-plugins>`.
+The :zeek:see:`system` function lets you invoke external programs from Zeek scripts.
+The :ref:`framework-input` supports flexible data ingestion via its
+:ref:`raw reader <input-raw-reader>`, and Zeek's
+:doc:`WebSocket support </scripts/policy/frameworks/cluster/websocket/server.zeek>`
+allows exchanging events between Zeek and external programs.
 
-JavaScript integration adds to the above by enabling Zeek to load JavaScript
+Zeek's JavaScript support adds to the above by enabling Zeek to load JavaScript
 code directly, thereby allowing developers to use its rich ecosystem of
 built-in and third-party libraries directly within Zeek.
 
-If you previously wanted to start a `HTTP server`_ within Zeek, record Zeek
-event data on-the-fly to a `Redis`_ database, got scared at looking at
-:zeek:see:`ActiveHTTP`'s implementation (or annoyed that it eats all newlines
-in HTTP responses), you may want to give JavaScript a go!
+If you'd like to start a `HTTP server`_ within Zeek, record Zeek event data
+on-the-fly to a `Redis`_ database, speak to a REST API in your infrastructure,
+or simply are quite familiar with JavaScript, then keep reading!
 
-Built-in Plugin
-===============
+Enabling JavaScript
+===================
 
-The external `ZeekJS`_ plugin is included with Zeek as an optional built-in plugin.
-When `Node.js`_ development headers and libraries are found when building Zeek
-from source, the plugin is automatically included.
+JavaScript support is an optional Zeek feature. When `Node.js`_ development
+headers and libraries are found when building Zeek from source, the plugin is
+automatically included. Our :ref:`build instructions <building-from-source>`
+cover the required dependencies for a range of distributions and operating
+systems. Our :ref:`Docker images <docker-images>` support it out-of-the-box.
+To test if the plugin is available on a given Zeek installation, run ``zeek -N Zeek::JavaScript``.
+The ``zeek`` executable will also be dynamically linked against ``libnode.so``.
+
+.. code-block:: console
+
+   $ zeek -NN Zeek::JavaScript
+   Zeek::JavaScript - Experimental JavaScript support for Zeek (built-in)
+       Implements LoadFile (priority 0)
+
+   $ ldd $(which zeek) | grep libnode
+           libnode.so.111 => /opt/node-19.8/lib/libnode.so.111 (0x00007f281aa25000)
+
+The main hooking mechanism used by the plugin is loading files with ``.js`` and ``.cjs`` suffixes.
+
+If no such files are provided on the command-line or via ``@load``, neither
+the Node.js environment nor the V8 JavaScript engine will be initialized and there
+will be no runtime overhead of having the plugin available. When JavaScript
+code is loaded, additional overhead may come from processing JavaScript's I/O
+loop or running garbage collection.
+
+Nonstandard Builds
+------------------
 
 If Node.js is installed in a non-standard location, ``-D NODEJS_ROOT_DIR`` has
 to be provided to ``./configure``.
 Assuming an installation of Node.js in ``/opt/node-19.8``, the command to
 use is as follows. Discovered headers and libraries will be reported in the
 output.
-On Linux distributions providing Node.js development packages
-(Ubuntu 22.10, Fedora, Debian bookworm) the extra ``-D NODEJS_ROOT_DIR``
-is not required.
 
 .. code-block:: console
 
@@ -74,34 +91,13 @@ is not required.
    ...
    $ sudo make install
 
-To test if the plugin is available on a given Zeek installation, run ``zeek -N Zeek::JavaScript``.
-The ``zeek`` executable will also be dynamically linked against ``libnode.so``.
-
-.. code-block:: console
-
-   $ zeek -NN Zeek::JavaScript
-   Zeek::JavaScript - Experimental JavaScript support for Zeek (built-in)
-       Implements LoadFile (priority 0)
-
-   $ ldd $(which zeek) | grep libnode
-           libnode.so.111 => /opt/node-19.8/lib/libnode.so.111 (0x00007f281aa25000)
-
-The main hooking mechanism used by the plugin is loading files with ``.js`` and ``.cjs`` suffixes.
-
-If no such files are provided on the command-line or via ``@load``, neither
-the Node.js environment nor the V8 JavaScript engine will be initialized and there
-will be no runtime overhead of having the plugin available. When JavaScript
-code is loaded, additional overhead may come from processing JavaScript's IO
-loop or running garbage collection.
-
-
 Hello World
 ===========
 
-When JavaScript is executed by Zeek, a ``zeek`` object is added to
-the JavaScript's global namespace.
-This object can be used to register event or hook handlers, raise new Zeek
-events, invoking Zeek side functions, etc. This is similar to the global
+When Zeek executes JavaScript, it adds a ``zeek`` object to
+the JavaScript runtime's global namespace.
+You can use this object to register event or hook handlers, raise new Zeek
+events, invoke Zeek-side functions, etc. This is similar to the global
 ``document`` object in a browser, but for Zeek functionality.
 
 The API documentation for the global ``zeek`` object created is available
@@ -120,13 +116,15 @@ within a ``zeek_init`` handler:
 .. code-block:: console
 
    $ zeek js/hello.js
-   Hello, Zeek 6.0.0!
+   Hello, Zeek 8.0.0!
 
 
 Execution Model
 ===============
 
-There are two ways in which Zeek executes JavaScript code.
+Zeek executes JavaScript code in two ways. We'll have to get a bit technical
+here for a moment to explain them, but don't worry if the details don't make
+sense right now!
 
 First, JavaScript event or hook handlers are added as additional ``Func::Body``
 instances to the respective ``Func`` objects. These extra bodies

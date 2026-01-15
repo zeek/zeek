@@ -266,7 +266,8 @@ bool TypeList::AllMatch(const Type* t, bool is_init) const {
 
 void TypeList::Append(TypePtr t) {
     if ( pure_type && ! same_type(t, pure_type) )
-        reporter->InternalError("pure type-list violation");
+        reporter->InternalError("pure type-list violation t=%s (%p) pure_type=%s (%p)", obj_desc_short(t).c_str(),
+                                t.get(), obj_desc_short(pure_type).c_str(), pure_type.get());
 
     types.emplace_back(std::move(t));
 }

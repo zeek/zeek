@@ -13,9 +13,9 @@ const char* RegEx::kMatchPrefix = "MatchPrefix";
 string escape_char(const string& s) {
     char* buf = new char[s.length() * 2 + 1];
     int j = 0;
-    for ( int i = 0; i < (int)s.length(); ++i ) {
+    for ( size_t i = 0; i < s.length(); ++i ) {
         if ( s[i] == '\\' ) {
-            if ( i + 1 < (int)s.length() ) {
+            if ( i + 1 < s.length() ) {
                 buf[j++] = '\\';
                 if ( s[i + 1] == '/' )
                     buf[j - 1] = s[++i];

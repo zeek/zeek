@@ -146,11 +146,14 @@ void ODesc::Add(double d, bool no_exp) {
     if ( IsBinary() )
         AddBytes(&d, sizeof(d));
     else {
-        auto res = util::double_to_str(d, IsReadable() ? 6 : 8, no_exp);
+        char tmp[350];
+        auto res = util::double_to_str(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8, no_exp);
+        if ( res == 0 )
+            return;
 
-        AddBytes(res.data(), res.size());
+        AddBytes(tmp, res);
 
-        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && (res.find('e') == std::string::npos) )
+        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && (strchr(tmp, 'e') == nullptr) )
             // disambiguate from integer
             Add(".0");
     }

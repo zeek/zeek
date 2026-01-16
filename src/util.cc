@@ -1988,56 +1988,55 @@ string escape_utf8(string_view val, int flags) {
  */
 bool approx_equal(double a, double b, double tolerance) { return std::abs(a - b) < std::abs(tolerance); }
 
-std::string double_to_str(double d, int precision, bool no_exp) {
+size_t double_to_str(double d, char* buf, size_t buf_size, int precision, bool no_exp) {
     // Short-circuit check for NaN, which should always return the same string
-    if ( std::isnan(d) )
-        return "nan";
+    if ( std::isnan(d) ) {
+        strcpy(buf, "nan");
+        buf[3] = '\0';
+        return 3;
+    }
 
-    // work with positive values and add the negative sign at the end if needed. Also special
-    // case negative zero so it ends up positive in the end.
-    bool neg = false;
+    char* start = buf;
+    char* end = buf + buf_size;
+
     if ( d < 0 ) {
-        neg = true;
+        buf[0] = '-';
+        start += 1;
         d = -d;
     }
     else if ( d == -0.0 )
         d = 0.0;
 
-    // Buffer needs enough chars to store max. possible "double" value
-    // of 1.79e308 without using scientific notation.
-    char buf[350];
-    memset(buf, 0, sizeof(buf));
-
-    std::string res;
     std::to_chars_result result;
     if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::scientific);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
+        result = std::to_chars(start, end, d, std::chars_format::scientific);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
+
+        *result.ptr = '\0';
+        return result.ptr - buf;
     }
     else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::general, precision);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
-    }
-    else {
-        result = std::to_chars(buf, buf + sizeof(buf), d, std::chars_format::fixed, precision);
-        res = std::string{buf, static_cast<size_t>(result.ptr - buf)};
+        result = std::to_chars(start, end, d, std::chars_format::general, precision);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
 
-        // We require `std::reverse_iterator::base` here which in e.g., gcc-10.2.1
-        // is not implemented for the range equivalent of the code
-        // (`borrowed_iterator_t` over a `reverse_view`). Stick to the non-ranges
-        // version for now.
-        if ( res.ends_with('0') ) {
-            // NOLINTNEXTLINE(modernize-use-ranges)
-            res.erase(std::find_if(res.rbegin(), res.rend(), [](char c) { return c != '0'; }).base(), res.end());
-            if ( res.back() == '.' )
-                res.pop_back();
-        }
+        *result.ptr = '\0';
+        return result.ptr - buf;
     }
 
-    if ( neg )
-        res.insert(0, 1, '-');
+    result = std::to_chars(start, end, d, std::chars_format::fixed, precision);
+    if ( result.ec == std::errc::value_too_large )
+        return 0;
 
-    return res;
+    char* last = result.ptr - 1;
+    while ( *last == '0' )
+        last--;
+    if ( *last != '.' )
+        last++;
+
+    *last = '\0';
+    return last - buf;
 }
 
 

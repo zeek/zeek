@@ -2,6 +2,8 @@
 
 #include "zeek/iosource/Component.h"
 
+#include <algorithm>
+
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"

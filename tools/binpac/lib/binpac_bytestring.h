@@ -38,7 +38,8 @@ public:
     bool operator==(const_datastring<T> const& s) {
         if ( length() != s.length() )
             return false;
-        return memcmp((const void*)begin(), (const void*)s.begin(), sizeof(T) * length()) == 0;
+        return memcmp(reinterpret_cast<const void*>(begin()), reinterpret_cast<const void*>(s.begin()),
+                      sizeof(T) * length()) == 0;
     }
 
     void set_begin(T const* begin) { begin_ = begin; }

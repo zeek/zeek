@@ -13,4 +13,5 @@ zeek_add_subdir_library(
     PktSrc.cc)
 
 add_subdirectory(pcap)
+add_subdirectory(pcapng)
 add_subdirectory(af_packet)

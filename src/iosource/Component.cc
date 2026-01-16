@@ -13,22 +13,22 @@ Component::Component(const std::string& name) : plugin::Component(plugin::compon
 Component::Component(plugin::component::Type type, const std::string& name) : plugin::Component(type, name) {}
 
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix, InputType arg_type,
-                                 factory_callback arg_factory)
-    : Component(plugin::component::PKTSRC, arg_name) {
+                                 factory_callback arg_factory, std::vector<uint32_t> arg_magic_nums)
+    : Component(plugin::component::PKTSRC, arg_name),
+      type(arg_type),
+      factory(arg_factory),
+      magic_nums(std::move(arg_magic_nums)) {
     util::tokenize_string(arg_prefix, ":", &prefixes);
-    type = arg_type;
-    factory = arg_factory;
 }
 
 const std::vector<std::string>& PktSrcComponent::Prefixes() const { return prefixes; }
 
 bool PktSrcComponent::HandlesPrefix(const std::string& prefix) const {
-    for ( const auto& pfx : prefixes ) {
-        if ( pfx == prefix )
-            return true;
-    }
+    return std::ranges::find(prefixes, prefix) != prefixes.end();
+}
 
-    return false;
+bool PktSrcComponent::HandlesMagicNumber(uint32_t magic_num) const {
+    return std::ranges::find(magic_nums, magic_num) != magic_nums.end();
 }
 
 bool PktSrcComponent::DoesLive() const { return type == LIVE || type == BOTH; }
@@ -55,6 +55,20 @@ void PktSrcComponent::DoDescribe(ODesc* d) const {
 
     d->Add(" ");
     d->Add(prefs);
+
+    if ( ! magic_nums.empty() ) {
+        d->Add("; magic number");
+        if ( magic_nums.size() > 1 )
+            d->Add("s");
+
+        d->Add(" ");
+        for ( auto it = magic_nums.begin(); it != magic_nums.end(); ++it ) {
+            if ( it != magic_nums.begin() )
+                d->Add(", ");
+            d->Add(util::fmt("0x%08x", *it));
+        }
+    }
+
     d->Add("; supports ");
 
     switch ( type ) {

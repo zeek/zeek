@@ -305,6 +305,12 @@ New Functionality
   https://github.com/opencontainers/image-spec/blob/main/annotations.md for more details
   about the labels.
 
+- A new packet source was added that supports reading pcapng files. This supports packet
+  captures with multiple interfaces, packet metadata, and capture file metadata. It will
+  be automatically used when the magic number in the file header is detected, or if
+  ``pcapng::`` is passed as a prefix to the filename with Zeek's ``-r`` argument. It does
+  not currently support BPF filtering via Zeek's ``-f`` argument.
+
 Changed Functionality
 ---------------------
 

@@ -3,6 +3,7 @@
 #include "zeek/Desc.h"
 
 #include <cerrno>
+#include <charconv>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -90,7 +91,11 @@ void ODesc::Add(int i) {
         AddBytes(&i, sizeof(i));
     else {
         char tmp[256];
-        modp_litoa10(i, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -100,7 +105,11 @@ void ODesc::Add(uint32_t u) {
         AddBytes(&u, sizeof(u));
     else {
         char tmp[256];
-        modp_ulitoa10(u, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -110,7 +119,11 @@ void ODesc::Add(int64_t i) {
         AddBytes(&i, sizeof(i));
     else {
         char tmp[256];
-        modp_litoa10(i, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), i);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -120,7 +133,11 @@ void ODesc::Add(uint64_t u) {
         AddBytes(&u, sizeof(u));
     else {
         char tmp[256];
-        modp_ulitoa10(u, tmp);
+        auto res = std::to_chars(tmp, tmp + sizeof(tmp), u);
+        size_t len = res.ptr - tmp;
+        if ( len > 255 )
+            len = 255;
+        tmp[len] = '\0';
         Add(tmp);
     }
 }
@@ -129,18 +146,14 @@ void ODesc::Add(double d, bool no_exp) {
     if ( IsBinary() )
         AddBytes(&d, sizeof(d));
     else {
-        // Buffer needs enough chars to store max. possible "double" value
-        // of 1.79e308 without using scientific notation.
         char tmp[350];
+        auto res = util::double_to_str(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8, no_exp);
+        if ( res == 0 )
+            return;
 
-        if ( no_exp )
-            modp_dtoa3(d, tmp, sizeof(tmp), IsReadable() ? 6 : 8);
-        else
-            modp_dtoa2(d, tmp, IsReadable() ? 6 : 8);
+        AddBytes(tmp, res);
 
-        Add(tmp);
-
-        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') )
+        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && (strchr(tmp, 'e') == nullptr) )
             // disambiguate from integer
             Add(".0");
     }

@@ -1,3 +1,21 @@
+8.2.0-dev.105 | 2026-01-16 16:11:54 -0700
+
+  * Make util::double_to_str take a buffer instead of returning a string (Tim Wojtulewicz, Corelight)
+
+  * Replace use of modp_dtoa2 method in ZAM code (Tim Wojtulewicz, Corelight)
+
+  * Replace uses of modp integer methods in ZAM code (Tim Wojtulewicz, Corelight)
+
+    This adds a new argument to the RenderInto methods for the end of
+    the data block passed in, since the to_chars methods require that
+    information.
+
+  * Replace uses of modp integer methods in ODesc::Add (Tim Wojtulewicz, Corelight)
+
+  * Remove uses of modp_* methods from threading::Formatter and IPPrefix (Tim Wojtulewicz, Corelight)
+
+  * Replace use of modp_dtoa2 in ODesc::Add with std::to_chars (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.98 | 2026-01-16 15:13:05 -0700
 
   * Add missing #include (Tim Wojtulewicz, Corelight)

@@ -2061,6 +2061,57 @@ std::string double_to_str(double d, int precision, bool no_exp) {
     }
 }
 
+size_t double_to_str2(double d, char* buf, size_t buf_size, int precision, bool no_exp) {
+    // Short-circuit check for NaN, which should always return the same string
+    if ( std::isnan(d) ) {
+        strcpy(buf, "nan");
+        buf[3] = '\0';
+        return 3;
+    }
+
+    char* start = buf;
+    char* end = buf + buf_size;
+
+    if ( d < 0 ) {
+        buf[0] = '-';
+        start += 1;
+        d = -d;
+    }
+    else if ( d == -0.0 )
+        d = 0.0;
+
+    std::to_chars_result result;
+    if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
+        result = std::to_chars(start, end, d, std::chars_format::scientific);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
+
+        *result.ptr = '\0';
+        return result.ptr - buf;
+    }
+    else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
+        result = std::to_chars(start, end, d, std::chars_format::general, precision);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
+
+        *result.ptr = '\0';
+        return result.ptr - buf;
+    }
+
+    result = std::to_chars(start, end, d, std::chars_format::fixed, precision);
+    if ( result.ec == std::errc::value_too_large )
+        return 0;
+
+    char* last = result.ptr - 1;
+    while ( *last == '0' )
+        last--;
+    if ( *last != '.' )
+        last++;
+
+    *last = '\0';
+    return last - buf;
+}
+
 
 TEST_SUITE("util") {
     TEST_CASE("extract_ip") {

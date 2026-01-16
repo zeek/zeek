@@ -39,6 +39,17 @@ static void BM_double_std_to_chars(benchmark::State& state) {
     };
 };
 
+static void BM_double_std_to_chars2(benchmark::State& state) {
+    double value = static_cast<double>(state.range(0)) + wiggle;
+
+    char tmp[350];
+    for ( auto _ : state ) {
+        auto result = zeek::util::double_to_str2(value, tmp, sizeof(tmp), 6, /*no_exp=*/true);
+        if ( result == 0 )
+            std::exit(1);
+    };
+};
+
 static void BM_double_raw_std_to_chars_fixed(benchmark::State& state) {
     double value = static_cast<double>(state.range(0)) + wiggle;
     char buf[64] = {};
@@ -55,5 +66,6 @@ constexpr int range_multiplier = 128;
 BENCHMARK(BM_double_snprintf)->RangeMultiplier(range_multiplier)->Range(0, 1768397792);
 BENCHMARK(BM_double_modp_dtoa)->RangeMultiplier(range_multiplier)->Range(0, 1768397792);
 BENCHMARK(BM_double_std_to_chars)->RangeMultiplier(range_multiplier)->Range(0, 1768397792);
+BENCHMARK(BM_double_std_to_chars2)->RangeMultiplier(range_multiplier)->Range(0, 1768397792);
 BENCHMARK(BM_double_raw_std_to_chars_fixed)->RangeMultiplier(range_multiplier)->Range(0, 1768397792);
 BENCHMARK_MAIN();

@@ -98,7 +98,7 @@ eval	auto& primary_func = Z_AUX_PRIMARY_FUNC;
 	auto& body = primary_func->GetBodies()[0].stmts;
 	ASSERT(body->Tag() == STMT_ZAM);
 	auto lamb = make_intrusive<ScriptFunc>(Z_AUX_ID);
-	lamb->AddBody(body, $1);
+	lamb->AddBody({.stmts = body}, {}, $1);
 	lamb->SetName(Z_AUX_LAMBDA_NAME.c_str());
 	auto& aux = Z_AUX;
 	if ( aux->n > 0 )

@@ -109,18 +109,27 @@ public:
         return Invoke(&zargs);
     }
 
-    // Various ways to add a new event handler to an existing function
-    // (event).  The usual version to use is the first with its default
-    // parameter.  All of the others are for use by script optimization,
-    // as is a non-default second parameter to the first method, which
-    // overrides the function body in "ingr".
+    // Adds a new event handler to an existing function (event), with the
+    // second argument being used for lambdas to override what's in the
+    // "ingredients".
     void AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body = nullptr);
+
+    // A version for supporting creating StdFunctionStmt's.
+    void AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority = 0);
+
+    // A richer interface for controlling priority, event groups,
+    // initializations, and frame size.
+    virtual void AddBody(Func::Body new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size);
+
+    // Deprecated interfaces.
+    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
     virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                          int priority, const std::set<EventGroupPtr>& groups);
+    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
     void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                  int priority = 0);
+    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
     void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
-    void AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority = 0);
 
     virtual void SetScope(detail::ScopePtr newscope);
     virtual detail::ScopePtr GetScope() const { return scope; }
@@ -170,7 +179,7 @@ public:
     ScriptFunc(const IDPtr& id);
 
     // For compiled scripts.
-    ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies, std::vector<int> priorities);
+    ScriptFunc(std::string name, FuncTypePtr ft, std::vector<Func::Body> bodies);
 
     ~ScriptFunc() override;
 
@@ -252,6 +261,9 @@ public:
 
     using Func::AddBody;
 
+    void AddBody(Func::Body new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) override;
+
+    // Deprecated interface.
     void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                  int priority, const std::set<EventGroupPtr>& groups) override;
 

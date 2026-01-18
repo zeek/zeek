@@ -72,9 +72,8 @@ void analyze_global_stmts(Stmt* stmts) {
     id->SetType(func_t);
 
     auto sc = current_scope();
-    std::vector<IDPtr> empty_inits;
     global_stmts = make_intrusive<ScriptFunc>(id);
-    global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
+    global_stmts->AddBody({.stmts = stmts->ThisPtr()}, {}, sc->Length());
     global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();

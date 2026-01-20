@@ -253,7 +253,7 @@ value will be the domain queried in the malware hash registry.
 
 The rest of the script is contained within a ``when`` block.  In
 short, a ``when`` block is used when Zeek needs to perform asynchronous
-actions, such as a DNS lookup, to ensure that performance isn't effected.
+actions, such as a DNS lookup, to ensure that performance isn't affected.
 The ``when`` block performs a DNS TXT lookup and stores the result
 in the local variable ``MHR_result``.  Effectively, processing for
 this event continues and upon receipt of the values returned by
@@ -768,7 +768,7 @@ You can see the full script and its output below.
 Tables
 ~~~~~~
 
-A table in Zeek is a mapping of a key to a value or yield.  While the
+A table in Zeek is a mapping of a key to a value or field.  While the
 values don't have to be unique, each key in the table must be unique
 to preserve a one-to-one mapping of keys to values.
 

@@ -50,7 +50,7 @@ the output is as follows.
 
 Such debugging functionality would generally only be enabled on demand. Extending
 the above script, we introduce an option and a change handler function from the
-:ref:`configuration framework`<framework-configuration>`
+:ref:`configuration framework <framework-configuration>`
 to enable and disable the ``http-print-debugging`` event group at runtime.
 
 .. literalinclude:: event_groups_attr_02.zeek

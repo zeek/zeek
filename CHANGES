@@ -1,3 +1,7 @@
+8.2.0-dev.107 | 2026-01-20 04:18:43 +0000
+
+  * Fix minor documentation issues (Stefan Götz)
+
 8.2.0-dev.105 | 2026-01-16 16:11:54 -0700
 
   * Make util::double_to_str take a buffer instead of returning a string (Tim Wojtulewicz, Corelight)

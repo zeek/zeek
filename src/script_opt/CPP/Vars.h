@@ -33,6 +33,10 @@ bool AddGlobal(const std::string& g, const char* suffix);
 // Tracks that the body we're currently compiling refers to the given event.
 void RegisterEvent(std::string ev_name);
 
+// True if the given global has a truly constant (aggregate) initialization
+// that will not change across runs.
+bool HasFixedInit(const IDPtr& g) const;
+
 // The following match various forms of identifiers to the name used for
 // their C++ equivalent.
 const char* IDName(const IDPtr& id) { return IDNameStr(id).c_str(); }

@@ -1,3 +1,9 @@
+8.1.0-8 | 2026-01-26 14:54:15 -0700
+
+  * Bump zeekjs for cmake quoting fix (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7d34917ade4a2d59d1af7ed489e5fddc39579f52)
+
 8.1.0-7 | 2026-01-26 14:53:21 -0700
 
   * CI: Install ZeroMQ 4.3.5 from source on opensuse/leap 15.6 (Arne Welzel, Corelight)

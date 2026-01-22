@@ -1,3 +1,7 @@
+8.2.0-dev.111 | 2026-01-22 15:56:05 +0100
+
+  * Bump zeekjs for cmake quoting fix (Arne Welzel, Corelight)
+
 8.2.0-dev.109 | 2026-01-22 09:19:45 +0100
 
   * GH-5164: Correctly handle vector self assign-append (Benjamin Bannier, Corelight)

@@ -46,7 +46,22 @@ concept IsAnyOf = (std::same_as<T, U> || ...);
 template<typename T>
 concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_pair_key>;
 
+/**
+ * Loads and attaches to the XDP program. This will simply grab the file
+ * descriptor if it's already there, otherwise it will load the XDP program
+ * itself.
+ *
+ * Normally, the Zeek cluster should start the XDP program before, then
+ * each process simply gets the FD.
+ */
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter**);
+
+/**
+ * Detaches the XDP program and unpins the maps. Note that this should only
+ * ever be done with a corresponding load_and_attach call. Otherwise, it
+ * should not be up to the Zeek process itself to load and unload the XDP
+ * program.
+ */
 void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options opts);
 
 struct bpf_map* get_canonical_id_map(struct filter* skel);

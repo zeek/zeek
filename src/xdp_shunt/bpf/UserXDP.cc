@@ -52,6 +52,16 @@ uint32_t flags(xdp_options opts) {
 }
 
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
+    // TODO: Probably don't hardcode the pin path.
+    const char* pin_path = "/sys/fs/bpf/zeek_xdp_shunter";
+    auto prog_fd = bpf_obj_get(pin_path);
+
+    // Already exists
+    if ( prog_fd >= 0 ) {
+        bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
+        return {};
+    }
+
     *skel = filter::open();
 
     // This must be 1 or greater.
@@ -61,11 +71,13 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
     (*skel)->rodata->include_vlan = opts.include_vlan;
 
     filter::load(*skel);
-    auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
-    if ( prog_fd == 0 )
+    prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
+    if ( prog_fd < 0 )
         return "Could not find BPF program";
 
-    int err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
+    auto err = bpf_obj_pin(prog_fd, pin_path);
+    
+    err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
     if ( err ) {
         char err_buf[256];
         libbpf_strerror(err, err_buf, sizeof(err_buf));
@@ -146,7 +158,6 @@ template std::optional<shunt_val> get_val<ip_pair_key>(struct bpf_map* map, ip_p
 void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options attached_opts) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
     unlink(bpf_map__pin_path(skel->maps.ip_pair_map));
-    unlink(bpf_map__pin_path(skel->maps.filter_rb));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };
@@ -156,10 +167,3 @@ void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options att
     filter::destroy(skel);
 }
 
-struct ring_buffer* make_shunt_fin_buffer(struct filter* skel, ring_buffer_sample_fn cb) {
-    return ring_buffer__new(bpf_map__fd(skel->maps.filter_rb), cb, nullptr, nullptr);
-}
-
-void free_ring_buffer(ring_buffer* rb) { ring_buffer__free(rb); }
-
-void poll_shunt_fin(ring_buffer* rb, int timeout_ms) { ring_buffer__poll(rb, timeout_ms); }

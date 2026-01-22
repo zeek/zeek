@@ -249,3 +249,15 @@ event zeek_init()
 	test_case( fmt("pv1 == pv2 -> %s", pv_eq), (pv_eq[0] == T) && (pv_eq[1] == F) );
 	test_case( fmt("pv1 != pv2 -> %s", pv_ne), (pv_ne[0] == F) && (pv_ne[1] == T) );
 }
+
+# Assign-append of self.
+event zeek_init()
+{
+	local v1: vector of count;
+	v1 += v1;
+	assert |v1| == 0, fmt("%s", v1);
+
+	local v2 = vector(1, 2, 3);
+	v2 += v2;
+	assert all_set(v2 == vector(1, 2, 3, 1, 2, 3)), fmt("%s", v2);
+}

@@ -14,3 +14,6 @@ on TFTP::Request if ( ! is_read ) -> event tftp::write_request($conn, $is_orig, 
 on TFTP::Data            -> event tftp::data($conn, $is_orig, self.num, self.data);
 on TFTP::Acknowledgement -> event tftp::ack($conn, $is_orig, self.num);
 on TFTP::Error           -> event tftp::error($conn, $is_orig, self.code, self.msg);
+
+# Due to https://github.com/zeek/spicy/issues/2251 we need check via a label whether this value was known.
+on TFTP::Packet if (!self.op.has_label()) -> event tftp::unknown_opcode($conn, $is_orig, cast<uint64>(self.op));

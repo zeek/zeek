@@ -1,3 +1,14 @@
+8.0.5-3 | 2026-01-23 15:30:26 -0700
+
+  * GH-5164: Correctly handle vector self assign-append (Benjamin Bannier, Corelight)
+
+    When iterating over the source vector during vector `+=` we previously
+    would not cache the size which lead to an infinite loop for self
+    assign-append. By now caching the size we only append the elements
+    originally present.
+
+    (cherry picked from commit b8a66bc1aa75ff485a04130bf8475b71a07e31df)
+
 8.0.5-2 | 2026-01-13 08:00:21 -0700
 
   * Update zeek-testing-cluster commit hash to fix docker-compose usage (Tim Wojtulewicz, Corelight)

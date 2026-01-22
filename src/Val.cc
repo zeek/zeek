@@ -3428,7 +3428,9 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const {
 
     auto last_idx = v->Size();
 
-    for ( auto i = 0u; i < Size(); ++i )
+    const auto num_elements = Size();
+
+    for ( auto i = 0u; i < num_elements; ++i )
         if ( ! v->Assign(last_idx++, At(i)) )
             return false;
 

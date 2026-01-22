@@ -1,6 +1,7 @@
 // clang-format off
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <unistd.h>
@@ -51,9 +52,40 @@ uint32_t flags(xdp_options opts) {
     return flags;
 }
 
+std::optional<std::string> reconnect(struct filter** skel) {
+    // TODO: Probably don't hardcode the pin path.
+    const char* pin_path = "/sys/fs/bpf/zeek";
+    // Exit if the map dir doesn't exist
+    if ( ! std::filesystem::exists(pin_path) )
+        // TODO: Also don't hardcode here.
+        return "Pin path /sys/fs/bpf/zeek does not exist";
+
+    struct bpf_object_open_opts opts = {
+        .sz = sizeof(struct bpf_object_open_opts),
+        .pin_root_path = pin_path,
+    };
+    *skel = filter::open(&opts);
+
+    if ( ! *skel )
+        return "Failed to open BPF skeleton";
+
+    if ( auto err = filter::load(*skel) ) {
+        filter::destroy(*skel);
+        *skel = nullptr;
+        return "Failed to load BPF skeleton";
+    }
+
+    return {};
+}
+
+void disconnect(struct filter** skel) {
+    filter::destroy(*skel);
+    *skel = nullptr;
+}
+
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
     // TODO: Probably don't hardcode the pin path.
-    const char* pin_path = "/sys/fs/bpf/zeek_xdp_shunter";
+    const char* pin_path = "/sys/fs/bpf/zeek";
     auto prog_fd = bpf_obj_get(pin_path);
 
     // Already exists
@@ -76,7 +108,7 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
         return "Could not find BPF program";
 
     auto err = bpf_obj_pin(prog_fd, pin_path);
-    
+
     err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
     if ( err ) {
         char err_buf[256];
@@ -166,4 +198,3 @@ void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options att
     bpf_xdp_detach(ifindex, flags(attached_opts), &opts);
     filter::destroy(skel);
 }
-

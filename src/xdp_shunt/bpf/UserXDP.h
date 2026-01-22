@@ -47,6 +47,22 @@ template<typename T>
 concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_pair_key>;
 
 /**
+ * Connects to an already-existing XDP shunter. The options must align
+ * with how it was created, namely for the max sizes of the maps.
+ *
+ * This is the preferred way of connecting Zeek to the XDP program so that
+ * the brittle Zeek process is not in charge of the health of the XDP
+ * program.
+ */
+std::optional<std::string> reconnect(struct filter**);
+
+/**
+ * Disconnects this filter and invalidates it. This does NOT unload or
+ * otherwise invalidate the XDP program or its maps.
+ */
+void disconnect(struct filter**);
+
+/**
  * Loads and attaches to the XDP program. This will simply grab the file
  * descriptor if it's already there, otherwise it will load the XDP program
  * itself.

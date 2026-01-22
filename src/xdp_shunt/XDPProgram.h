@@ -13,6 +13,9 @@ public:
     XDPProgramVal(struct filter* prog, xdp_options opts)
         : OpaqueVal(detail::program_opaque), prog(prog), opts(opts) {}
 
+    XDPProgramVal(struct filter* prog)
+        : OpaqueVal(detail::program_opaque), prog(prog) {}
+
     ~XDPProgramVal() override = default;
 
     static zeek::expected<xdp::shunter::detail::XDPProgramVal*, std::string> CastFromAny(Val* prog) {
@@ -27,6 +30,9 @@ public:
     }
 
     struct filter* prog;
+    // TODO: Figure out a better way to do opts, might get removed if I
+    // make it so Zeek can't load the XDP program itself. It's needed for
+    // detaching later.
     xdp_options opts;
 
 protected:

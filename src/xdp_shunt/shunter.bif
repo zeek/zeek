@@ -11,6 +11,27 @@
 
 module XDP;
 
+function _reconnect_shunt%(%) : opaque of XDP::Program %{
+    struct filter* skel = nullptr;
+    auto err = reconnect(&skel);
+    if ( err ) {
+        zeek::reporter->Error("Failed to load BPF skeleton: %s", (*err).c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
+    return xdp_prog;
+%}
+
+function _disconnect_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog )
+        return zeek::val_mgr->Bool(false);
+
+    disconnect(&(*zeek_prog)->prog);
+    return zeek::val_mgr->Bool(true);
+%}
+
 function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
     auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));

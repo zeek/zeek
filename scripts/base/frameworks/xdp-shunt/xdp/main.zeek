@@ -1,6 +1,20 @@
 module XDP;
 
 export {
+	## Reconnects to an already-existing XDP shunting program.
+	## This allows Zeek to add and remove from the map.
+	##
+	## Reconnecting is preferable to start_shunt in all but standalone
+	## instances of Zeek.
+	##
+	## Returns: An opaque value representing the now-attached BPF program
+	##
+	## .. zeek:see:: start_shunt
+	global reconnect: function(): opaque of XDP::Program;
+
+	## Disconnects an XDP program and invalidates what was passed in.
+	global disconnect: function(xdp_prog: opaque of XDP::Program);
+
 	## Begins shunting with XDP by loading the XDP program and necessary BPF maps.
 	##
 	## Returns: An opaque value representing the now-attached BPF program
@@ -20,6 +34,15 @@ export {
 	## by sorting the IPs and ports as the shunting map does.
 	global conn_id_to_canonical: function(cid: conn_id): XDP::canonical_id;
 }
+function reconnect(): opaque of XDP::Program
+	{
+	return _reconnect_shunt();
+	}
+
+function disconnect(xdp_prog: opaque of XDP::Program)
+	{
+	return _disconnect_shunt();
+	}
 
 function start_shunt(options: XDP::ShuntOptions): opaque of XDP::Program
 	{

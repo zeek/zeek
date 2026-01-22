@@ -1,3 +1,14 @@
+8.2.0-dev.109 | 2026-01-22 09:19:45 +0100
+
+  * GH-5164: Correctly handle vector self assign-append (Benjamin Bannier, Corelight)
+
+    When iterating over the source vector during vector `+=` we previously
+    would not cache the size which lead to an infinite loop for self
+    assign-append. By now caching the size we only append the elements
+    originally present.
+
+    Closes #5164.
+
 8.2.0-dev.107 | 2026-01-20 04:18:43 +0000
 
   * Fix minor documentation issues (Stefan Götz)

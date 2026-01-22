@@ -1,7 +1,10 @@
 set(LIGHT_USE_ZSTD OFF CACHE BOOL "" FORCE)
 set(LIGHT_USE_ZLIB OFF CACHE BOOL "" FORCE)
 
+set(_build_shared ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(auxil/LightPcapNg)
+set(BUILD_SHARED_LIBS ${_build_shared})
 
 zeek_add_plugin(
     Zeek Pcapng

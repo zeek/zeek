@@ -102,13 +102,21 @@ void CPP_InitsInfo::BuildOffsetSet(CPPCompile* c) {
 }
 
 static std::string describe_initializer(const Obj* o) {
-    auto od = obj_desc(o);
+    auto od = obj_desc_short(o);
+
+    const size_t max_useful_size = 200;
+    if ( od.size() > max_useful_size ) {
+        od = od.substr(0, max_useful_size) + "...";
+    }
 
     // Escape any embedded comment characters.
     od = regex_replace(od, std::regex("/\\*"), "<<SLASH-STAR>>");
     od = regex_replace(od, std::regex("\\*/"), "<<STAR-SLASH>>");
 
-    return od;
+    ODesc ldesc;
+    o->GetLocationInfo()->Describe(&ldesc);
+
+    return od + " " + ldesc.Description();
 }
 
 void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_InitInfo>>& cohort) {
@@ -419,18 +427,22 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr _g, string _CPP_name)
     gc.is_enum_const = g->IsEnumConst();
     gc.is_type = g->IsType();
 
-    // We don't initialize the global directly because its initialization
-    // might be an expression rather than a simple constant. Instead we
-    // make sure that it can be generated per the use of GetCohortIDs()
-    // in CPPCompile::GenFinishInit().
-    val = ValElem(c, nullptr);
+    // Check whether the global has a constant initialization. If so then we
+    // can initialize it directly, which for (very) large aggregates can save
+    // a bunch of C++ compile time. If not then we'll make sure that it can be
+    // generated per the use of GetCohortIDs() in CPPCompile::GenFinishInit().
+    if ( c->HasFixedInit(g) )
+        val = ValElem(c, g->GetVal());
+    else {
+        val = ValElem(c, nullptr);
 
-    // This code here parallels that of CPPCompile::InitializeGlobal().
-    const auto& oi = g->GetOptInfo();
-    for ( auto& init : oi->GetInitExprs() )
-        // We use GetOp2() because initialization expressions are
-        // capture in the form of some sort of assignment.
-        init_cohort = max(init_cohort, c->ReadyExpr(init->GetOp2()) + 1);
+        // This code here parallels that of CPPCompile::InitializeGlobal().
+        const auto& oi = g->GetOptInfo();
+        for ( auto& init : oi->GetInitExprs() )
+            // We use GetOp2() because initialization expressions are
+            // represented as some sort of assignment.
+            init_cohort = max(init_cohort, c->ReadyExpr(init->GetOp2()) + 1);
+    }
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
         // Be sure not to try to create BiFs. In addition, GetVal() can be

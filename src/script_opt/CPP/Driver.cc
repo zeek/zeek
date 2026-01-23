@@ -592,7 +592,8 @@ void CPPCompile::GenFinishInit() {
             gi->GetCohortIDs(c, init_ids);
 
             for ( auto& ii : init_ids )
-                InitializeGlobal(ii);
+                if ( ! HasFixedInit(ii) )
+                    InitializeGlobal(ii);
         }
 
     NL();

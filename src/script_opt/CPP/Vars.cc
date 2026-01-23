@@ -123,6 +123,64 @@ bool CPPCompile::AddGlobal(const string& g, const char* suffix) {
 
 void CPPCompile::RegisterEvent(string ev_name) { body_events[body_name].emplace_back(std::move(ev_name)); }
 
+class FixedInitChecker : public TraversalCallback {
+public:
+    FixedInitChecker() {}
+
+    bool IsFixed() const { return is_fixed; }
+
+    TraversalCode PreExpr(const Expr* e);
+
+private:
+    TraversalCode NotFixed() {
+        is_fixed = false;
+        return TC_ABORTALL;
+    }
+
+    bool is_fixed = true;
+};
+
+TraversalCode FixedInitChecker::PreExpr(const Expr* e) {
+    switch ( e->Tag() ) {
+        case EXPR_NAME: {
+            const auto& id = e->AsNameExpr()->IdPtr();
+            if ( ! id->IsGlobal() || ! id->IsConst() )
+                return NotFixed();
+            return TC_CONTINUE;
+        }
+
+        case EXPR_CALL: // Too hard to analyze given the modest gain
+            return NotFixed();
+
+        case EXPR_LAMBDA:
+            // A lambda itself is fixed, even if its body might not be.
+            // Avoid going into the body.
+            return TC_ABORTSTMT;
+
+        default: return TC_CONTINUE;
+    }
+}
+
+bool CPPCompile::HasFixedInit(const IDPtr& g) const {
+    if ( ! g->IsGlobal() || ! g->GetOptInfo() )
+        return false;
+
+    if ( ! IsAggr(g->GetType()) )
+        // Fixed inits are only applicable for aggregates.
+        return false;
+
+    for ( const auto& ie : g->GetOptInfo()->GetInitExprs() ) {
+        // We use GetOp2() because initializations are represented
+        // as some form of assignment.
+        FixedInitChecker c;
+        ie->GetOp2()->Traverse(&c);
+        if ( ! c.IsFixed() )
+            return false;
+    }
+
+    return true;
+}
+
 const string& CPPCompile::IDNameStr(const IDPtr& id) {
     if ( id->IsGlobal() ) {
         auto g = string(id->Name());

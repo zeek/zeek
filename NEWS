@@ -3,6 +3,24 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.6
+==========
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- A missing state check was added to the ``finalize_redis`` hook in the Redis
+  analyzer. This was needed for rare cases where that hook got called and the rest of the
+  analzyer had never been invoked, leading to Zeek throwing an error because the state
+  didn't exist yet.
+
+- A bug was fixed when attempting to append a ``vector`` to itself that would cause an
+  infinite loop.
+
+- A minor update was added to the documentation to better describe how what versions of
+  docs we keep available on the website.
+
 Zeek 8.0.5
 ==========
 

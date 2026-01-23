@@ -163,8 +163,9 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
     // FIXME: sha384 should not be hardcoded
     // The const-cast is a bit ugly - but otherwise we have to copy the static string.
     *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, const_cast<char*>(SN_sha384), 0);
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET, (void*)secret.data(), secret.size());
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, (void*)seed.data(), seed.size());
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET,
+                                             reinterpret_cast<void*>(const_cast<char*>(secret.data())), secret.size());
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, reinterpret_cast<void*>(seed.data()), seed.size());
     *p = OSSL_PARAM_construct_end();
 
     auto keybuf = std::vector<u_char>(requested_len);
@@ -233,7 +234,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
     if ( ! secret.empty() && keys.empty() ) {
 #ifdef OPENSSL_HAVE_KDF_H
         DBG_LOG(DBG_ANALYZER, "Deriving TLS keys for connection");
-        uint32_t ts = htonl((uint32_t)handshake_interp->gmt_unix_time());
+        uint32_t ts = htonl(static_cast<uint32_t>(handshake_interp->gmt_unix_time()));
 
         auto c_rnd = handshake_interp->client_random();
         auto s_rnd = handshake_interp->server_random();

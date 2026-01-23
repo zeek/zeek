@@ -275,7 +275,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
 ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
                                                    std::shared_ptr<zeek::IP_Hdr>& inner) {
     if ( proto == IPPROTO_IPV6 ) {
-        if ( caplen < (int)sizeof(struct ip6_hdr) )
+        if ( caplen < static_cast<int>(sizeof(struct ip6_hdr)) )
             return ParseResult::CAPLEN_TOO_SMALL;
 
         const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(pkt);
@@ -285,7 +285,7 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
     }
 
     else if ( proto == IPPROTO_IPV4 ) {
-        if ( caplen < (int)sizeof(struct ip) )
+        if ( caplen < static_cast<int>(sizeof(struct ip)) )
             return ParseResult::BAD_PROTOCOL;
 
         const struct ip* ip4 = reinterpret_cast<const struct ip*>(pkt);
@@ -297,8 +297,9 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
         return ParseResult::BAD_PROTOCOL;
     }
 
-    if ( (uint32_t)caplen != inner->TotalLen() )
-        return (uint32_t)caplen < inner->TotalLen() ? ParseResult::CAPLEN_TOO_SMALL : ParseResult::CAPLEN_TOO_LARGE;
+    if ( static_cast<uint32_t>(caplen) != inner->TotalLen() )
+        return static_cast<uint32_t>(caplen) < inner->TotalLen() ? ParseResult::CAPLEN_TOO_SMALL :
+                                                                   ParseResult::CAPLEN_TOO_LARGE;
 
     return ParseResult::OK;
 }

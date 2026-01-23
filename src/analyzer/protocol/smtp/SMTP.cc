@@ -841,7 +841,7 @@ void SMTP_Analyzer::UnexpectedCommand(int cmd_code, int reply_code) {
     // ### Eventually, these should be turned into "weird" events.
     static char buf[512];
     int len = snprintf(buf, sizeof(buf), "%s reply = %d state = %d", SMTP_CMD_WORD(cmd_code), reply_code, state);
-    if ( len > (int)sizeof(buf) )
+    if ( len > static_cast<int>(sizeof(buf)) )
         len = sizeof(buf);
     Unexpected(true, "unexpected command", len, buf);
 }

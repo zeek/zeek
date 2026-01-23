@@ -491,7 +491,7 @@ Val* Login_Analyzer::PopUserTextVal() {
     char* s = PopUserText();
 
     if ( s )
-        return new StringVal(new String(true, byte_vec(s), strlen(s)));
+        return new StringVal(new String(true, reinterpret_cast<byte_vec>(s), strlen(s)));
     else
         return val_mgr->EmptyString()->Ref();
 }

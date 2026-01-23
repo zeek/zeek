@@ -566,7 +566,7 @@ ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTypeTag i
         default: reporter->InternalError("bad switch type");
     }
 
-    insts1[sw_head.stmt_num]->v2 = int(tbl);
+    insts1[sw_head.stmt_num]->v2 = static_cast<int>(tbl);
 
     AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
 

@@ -50,7 +50,7 @@ refine flow MQTT_Flow += {
 			m->Assign(1, ${msg.protocol_version});
 			m->Assign(2, zeek::make_intrusive<zeek::StringVal>(${msg.client_id.str}.length(),
 			                           reinterpret_cast<const char*>(${msg.client_id.str}.begin())));
-			m->AssignInterval(3, double(${msg.keep_alive}));
+			m->AssignInterval(3, static_cast<double>(${msg.keep_alive}));
 
 			m->Assign(4, ${msg.clean_session});
 			m->Assign(5, ${msg.will_retain});

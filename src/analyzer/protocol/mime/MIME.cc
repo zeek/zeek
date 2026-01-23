@@ -459,7 +459,7 @@ MIME_Entity::MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entit
         depth = parent->Depth() + 1;
     }
 
-    want_all_headers = (bool)mime_all_headers;
+    want_all_headers = static_cast<bool>(mime_all_headers);
 }
 
 void MIME_Entity::init() {
@@ -958,7 +958,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data) {
             DataOctet(data[i]);
 
         else {
-            IllegalEncoding(util::fmt("control characters in quoted-printable encoding: %d", (int)(data[i])));
+            IllegalEncoding(
+                util::fmt("control characters in quoted-printable encoding: %d", static_cast<int>(data[i])));
             DataOctet(data[i]);
         }
     }

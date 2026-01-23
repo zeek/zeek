@@ -96,9 +96,9 @@ void RandTest::end(double* r_ent, double* r_chisq, double* r_mean, double* r_mon
     for ( i = 0; i < 256; i++ ) {
         double a = ccount[i] - cexp;
 
-        prob[i] = ((double)ccount[i]) / totalc;
+        prob[i] = (static_cast<double>(ccount[i])) / totalc;
         chisq += (a * a) / cexp;
-        datasum += ((double)i) * ccount[i];
+        datasum += (static_cast<double>(i)) * ccount[i];
     }
 
     /* Calculate entropy */
@@ -110,7 +110,7 @@ void RandTest::end(double* r_ent, double* r_chisq, double* r_mean, double* r_mon
 
     /* Calculate Monte Carlo value for PI from percentage of hits
        within the circle */
-    montepi = mcount == 0 ? 0 : 4.0 * (((double)inmont) / mcount);
+    montepi = mcount == 0 ? 0 : 4.0 * ((static_cast<double>(inmont)) / mcount);
 
     /* Return results through arguments */
     *r_ent = ent;

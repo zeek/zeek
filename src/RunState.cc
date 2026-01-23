@@ -81,11 +81,11 @@ RETSIGTYPE watchdog(int /* signo */) {
 
             double ct = util::current_time();
 
-            int int_ct = int(ct);
-            int frac_ct = int((ct - int_ct) * 1e6);
+            int int_ct = static_cast<int>(ct);
+            int frac_ct = static_cast<int>((ct - int_ct) * 1e6);
 
-            int int_pst = int(processing_start_time);
-            int frac_pst = int((processing_start_time - int_pst) * 1e6);
+            int int_pst = static_cast<int>(processing_start_time);
+            int frac_pst = static_cast<int>((processing_start_time - int_pst) * 1e6);
 
             if ( current_pkt ) {
                 if ( ! pkt_dumper ) {
@@ -357,7 +357,8 @@ void get_final_stats() {
         double dropped_pct = s.dropped > 0 ? pct(s.dropped, s.received) : 0.0;
 
         uint64_t unprocessed = packet_mgr->PacketsUnprocessed();
-        double unprocessed_pct = unprocessed > 0 ? ((double)unprocessed / (double)s.received) * 100.0 : 0.0;
+        double unprocessed_pct =
+            unprocessed > 0 ? (static_cast<double>(unprocessed) / static_cast<double>(s.received)) * 100.0 : 0.0;
 
         std::string filtered = "";
         if ( s.filtered ) {

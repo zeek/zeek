@@ -48,12 +48,12 @@ double zeek::analyzer::rpc::extract_XDR_time(const u_char*& buf, int& len) {
     uint32_t uhi = extract_XDR_uint32(buf, len);
     uint32_t ulo = extract_XDR_uint32(buf, len);
 
-    return double(uhi) + double(ulo) / 1e9;
+    return static_cast<double>(uhi) + static_cast<double>(ulo) / 1e9;
 }
 
 const u_char* zeek::analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& len, int& n, int max_len,
                                                       bool short_buf_ok) {
-    n = int(extract_XDR_uint32(buf, len));
+    n = static_cast<int>(extract_XDR_uint32(buf, len));
     if ( ! buf )
         return nullptr;
 

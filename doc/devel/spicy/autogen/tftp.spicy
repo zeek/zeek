@@ -24,6 +24,9 @@ public type Packet = unit {
         Opcode::DATA -> data: Data;
         Opcode::ACK -> ack: Acknowledgement;
         Opcode::ERROR -> error: Error;
+        # In the case of TFTP we can continue parsing when seeing
+        # an unsupported opcode, so simply ignore such packets.
+        * -> : void; # Ignored.
     };
 };
 
@@ -35,6 +38,13 @@ public type Packet = unit {
 #   3     Data (DATA)
 #   4     Acknowledgment (ACK)
 #   5     Error (ERROR)
+#
+#
+# https://tools.ietf.org/html/rfc2347 adds an additional opcode:
+#
+# opcode  operation
+#   6     Option acknowledgment (OACK)
+#
 type Opcode = enum {
     RRQ = 0x01,
     WRQ = 0x02,

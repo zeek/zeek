@@ -1,3 +1,9 @@
+8.0.5-8 | 2026-01-26 22:00:52 +0000
+
+  * Regenerate spicy autogen docs based on recent spicy-tftp changes (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3c9f051b47f0b1350111bc9e9839ba11113ddaa5)
+
 8.0.5-7 | 2026-01-26 21:58:49 +0000
 
   * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)

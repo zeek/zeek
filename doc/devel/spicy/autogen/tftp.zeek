@@ -153,6 +153,17 @@ event tftp::error(c: connection, is_orig: bool, code: count, msg: string)
 	log_pending(c);
 	}
 
+event tftp::unknown_opcode(c: connection, is_orig: bool, code: count)
+	{
+	local info = Weird::Info(
+		$uid=c$uid,
+		$ts=network_time(),
+		$name="unknown_opcode",
+		$addl=fmt("%d", code),
+		$source="TFTP");
+	Weird::weird(info);
+	}
+
 event connection_state_remove(c: connection)
 	{
 	if ( ! c?$tftp || c$tftp$done )

@@ -2,9 +2,9 @@
 [T, T, T, T, T]
 T
 F
-[*, *og, d?g, d[!wl]g]
+[d?g, d[!wl]g, d?g, d[!wl]g, *og, *]
 [once]
 []
-[*.gov*, *malware*]
+[*malware*, *.gov*]
 [z*ro, zero\x00zero]
-[*.gov*, *malware*]
+[*malware*, *.gov*]

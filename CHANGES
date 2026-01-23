@@ -1,3 +1,9 @@
+8.1.0-4 | 2026-01-23 15:53:19 -0700
+
+  * Fix issues with paraglob size limtations (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 8e0fafe52a4ef8253efce9ef12519e6a8513c05a)
+
 8.1.0-3 | 2026-01-23 15:52:37 -0700
 
   * Describe current as default docs version (Evan Typanski, Corelight)

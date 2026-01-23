@@ -1,3 +1,7 @@
+8.2.0-dev.119 | 2026-01-23 15:07:53 -0700
+
+  * Force building only static lightpcapng lib, fixes Windows builds (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.117 | 2026-01-23 15:03:06 -0700
 
   * Regenerate spicy autogen docs based on recent spicy-tftp changes (Tim Wojtulewicz, Corelight)

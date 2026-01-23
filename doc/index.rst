@@ -2,6 +2,9 @@
 .. image:: /images/zeek-logo-text.png
    :align: center
 
+.. centered::
+   Version |release|
+
 ==================
 Zeek Documentation
 ==================

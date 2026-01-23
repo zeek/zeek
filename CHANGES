@@ -1,3 +1,7 @@
+8.2.0-dev.121 | 2026-01-23 14:24:25 -0800
+
+  * Docs: render the version on the index page (Christian Kreibich, Corelight)
+
 8.2.0-dev.119 | 2026-01-23 15:07:53 -0700
 
   * Force building only static lightpcapng lib, fixes Windows builds (Tim Wojtulewicz, Corelight)

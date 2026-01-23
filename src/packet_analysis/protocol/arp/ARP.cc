@@ -148,7 +148,7 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     }
 
     // Check MAC src address = ARP sender MAC address.
-    if ( memcmp(packet->l2_src, (const char*)ar_sha(ah), ah->ar_hln) != 0 ) {
+    if ( memcmp(packet->l2_src, reinterpret_cast<const char*>(ar_sha(ah)), ah->ar_hln) != 0 ) {
         BadARPEvent(ah, "weird-arp-sha");
         return false;
     }

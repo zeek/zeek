@@ -97,8 +97,8 @@ void ProfileLogger::Log() {
     static double first_stime = 0;
 
     double rtime = util::current_time();
-    double utime = double(tv_utime.tv_sec) + double(tv_utime.tv_usec) / 1e6;
-    double stime = double(tv_stime.tv_sec) + double(tv_stime.tv_usec) / 1e6;
+    double utime = static_cast<double>(tv_utime.tv_sec) + static_cast<double>(tv_utime.tv_usec) / 1e6;
+    double stime = static_cast<double>(tv_stime.tv_sec) + static_cast<double>(tv_stime.tv_usec) / 1e6;
 
     if ( first_total == 0 ) {
         first_total = total;
@@ -298,8 +298,8 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes) {
     }
 
     if ( (update_mode == MODE_TIME && t > last_timestamp + update_freq) ||
-         (update_mode == MODE_PACKET && double(pkt_cnt) > update_freq) ||
-         (update_mode == MODE_VOLUME && double(pkt_cnt) > update_freq) ) {
+         (update_mode == MODE_PACKET && static_cast<double>(pkt_cnt) > update_freq) ||
+         (update_mode == MODE_VOLUME && static_cast<double>(pkt_cnt) > update_freq) ) {
         struct rusage res;
         struct timeval ptimestamp;
         getrusage(RUSAGE_SELF, &res);

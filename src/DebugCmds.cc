@@ -102,7 +102,7 @@ static void choose_global_symbols_regex(const string& regex, vector<ID*>& choice
             return;
         }
         int option = atoi(input.c_str());
-        if ( option > 0 && option <= (int)choices.size() ) {
+        if ( option > 0 && option <= static_cast<int>(choices.size()) ) {
             ID* choice = choices[option - 1];
             choices.clear();
             choices.push_back(choice);
@@ -134,8 +134,8 @@ DebugCmdInfo::DebugCmdInfo(DebugCmd arg_cmd, const char* const* arg_names, int a
 }
 
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd) {
-    if ( (int)cmd < g_DebugCmdInfos.size() )
-        return g_DebugCmdInfos[(int)cmd];
+    if ( static_cast<int>(cmd) < g_DebugCmdInfos.size() )
+        return g_DebugCmdInfos[static_cast<int>(cmd)];
     else
         return nullptr;
 }
@@ -177,7 +177,8 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 // Start, end bounds of which frame numbers to print
 static int dbg_backtrace_internal(int start, int end) {
-    if ( start < 0 || end < 0 || (unsigned)start >= call_stack.size() || (unsigned)end >= call_stack.size() )
+    if ( start < 0 || end < 0 || static_cast<unsigned>(start) >= call_stack.size() ||
+         static_cast<unsigned>(end) >= call_stack.size() )
         reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
     if ( start < end ) {
@@ -191,7 +192,7 @@ static int dbg_backtrace_internal(int start, int end) {
         const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
         string context = get_context_description(stmt, f);
-        debug_msg("#%d  %s\n", int(call_stack.size() - 1 - i), context.c_str());
+        debug_msg("#%d  %s\n", static_cast<int>(call_stack.size() - 1 - i), context.c_str());
     };
 
     return 1;
@@ -252,7 +253,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
                 return 0;
             }
 
-            if ( idx < 0 || (unsigned int)idx >= call_stack.size() ) {
+            if ( idx < 0 || static_cast<unsigned int>(idx) >= call_stack.size() ) {
                 debug_msg("No frame %d", idx);
                 return 0;
             }
@@ -271,7 +272,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
     }
 
     else if ( cmd == dcUp ) {
-        if ( (unsigned int)(g_debugger_state.curr_frame_idx + 1) == call_stack.size() ) {
+        if ( static_cast<unsigned int>(g_debugger_state.curr_frame_idx + 1) == call_stack.size() ) {
             debug_msg("Outermost frame already selected\n");
             return 0;
         }
@@ -397,7 +398,7 @@ int dbg_cmd_break_condition(DebugCmd cmd, const vector<string>& args) {
     DbgBreakpoint* bp = g_debugger_state.breakpoints[idx];
 
     string expr;
-    for ( int i = 1; i < int(args.size()); ++i ) {
+    for ( size_t i = 1; i < args.size(); ++i ) {
         expr += args[i];
         expr += " ";
     }
@@ -570,7 +571,9 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args) {
         pre_offset = 0;
     }
 
-    if ( (int)pre_offset + (int)g_debugger_state.last_loc.FirstLine() - (int)CENTER_IDX < 0 )
+    if ( static_cast<int>(pre_offset) + static_cast<int>(g_debugger_state.last_loc.FirstLine()) -
+             static_cast<int>(CENTER_IDX) <
+         0 )
         pre_offset = CENTER_IDX - g_debugger_state.last_loc.FirstLine();
 
     g_debugger_state.last_loc.IncrementLine(pre_offset);

@@ -322,7 +322,7 @@ private:
     /**
      * Computes the bitmask block to extract a bit a given bit position.
      */
-    static block_type bit_mask(size_type i) { return block_type(1) << bit_index(i); }
+    static block_type bit_mask(size_type i) { return static_cast<block_type>(1) << bit_index(i); }
 
     /**
      * Computes the number of blocks needed to represent a given number of

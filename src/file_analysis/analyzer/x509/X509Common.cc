@@ -180,7 +180,8 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext) {
     unsigned char* ext_val_second_pointer = ext_val_copy;
     memcpy(ext_val_copy, ext_val->data, ext_val->length);
 
-    ASN1_OCTET_STRING* inner = d2i_ASN1_OCTET_STRING(nullptr, (const unsigned char**)&ext_val_copy, ext_val->length);
+    ASN1_OCTET_STRING* inner =
+        d2i_ASN1_OCTET_STRING(nullptr, const_cast<const unsigned char**>(&ext_val_copy), ext_val->length);
     if ( ! inner ) {
         OPENSSL_free(ext_val_second_pointer);
         reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
@@ -295,7 +296,7 @@ StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, file_analysis::File* f) {
         return nullptr;
     }
 
-    BIO_read(bio, (void*)buffer, length);
+    BIO_read(bio, reinterpret_cast<void*>(buffer), length);
     auto ext_val = make_intrusive<StringVal>(length, buffer);
 
     free(buffer);

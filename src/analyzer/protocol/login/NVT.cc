@@ -533,7 +533,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
 
     if ( ! is_suboption ) {
         // We now have the full 3-byte option.
-        SawOption(u_char(buf[offset - 1]), data[0]);
+        SawOption(static_cast<u_char>(buf[offset - 1]), data[0]);
 
         // Delete the option.
         offset -= 2; // code + IAC
@@ -605,7 +605,7 @@ void NVT_Analyzer::SawOption(unsigned int code, unsigned int subcode) {
 }
 
 void NVT_Analyzer::SawSubOption(const char* subopt, int len) {
-    unsigned int subcode = u_char(subopt[0]);
+    unsigned int subcode = static_cast<u_char>(subopt[0]);
 
     ++subopt;
     --len;

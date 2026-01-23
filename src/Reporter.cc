@@ -580,7 +580,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     }
 
     if ( raise_event && event && via_events && ! in_error_handler ) {
-        auto vl_size = 1 + (bool)time + (bool)location + (bool)conn + (addl ? addl->length() : 0);
+        auto vl_size = 1 + static_cast<bool>(time) + static_cast<bool>(location) + static_cast<bool>(conn) +
+                       (addl ? addl->length() : 0);
 
         Args vl;
         vl.reserve(vl_size);

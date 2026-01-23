@@ -69,7 +69,7 @@ void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags, strin
                 attr_vals += ", ";
             }
 
-            attr_tags += Fmt(int(a->Tag()));
+            attr_tags += Fmt(static_cast<int>(a->Tag()));
 
             const auto& e = a->GetExpr();
 

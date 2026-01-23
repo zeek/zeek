@@ -158,7 +158,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
         }
 
         int frame_type_index = IsOrig() ? 16 : 8;
-        int frame_type = ((int)data[frame_type_index]) << 8 | data[frame_type_index + 1];
+        int frame_type = (static_cast<int>(data[frame_type_index])) << 8 | data[frame_type_index + 1];
 
         if ( frame_type != 0x1111 && frame_type != 0x2222 && frame_type != 0x3333 && frame_type != 0x5555 &&
              frame_type != 0x7777 && frame_type != 0x9999 )

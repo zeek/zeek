@@ -766,8 +766,8 @@ void Ascii::RotateLeftoverLogs() {
         rot_info->Assign(0, writer_val);
         rot_info->Assign(1, rotation_path);
         rot_info->Assign(2, ll.Path());
-        rot_info->AssignTime(3, double(ll.open_time));
-        rot_info->AssignTime(4, double(ll.close_time));
+        rot_info->AssignTime(3, static_cast<double>(ll.open_time));
+        rot_info->AssignTime(4, static_cast<double>(ll.close_time));
         rot_info->Assign(5, false);
 
         if ( rename(ll.filename.data(), rotation_path.data()) != 0 )
@@ -801,7 +801,7 @@ string Ascii::LogExt() {
 }
 
 string Ascii::Timestamp(double t) {
-    time_t teatime = time_t(t);
+    time_t teatime = static_cast<time_t>(t);
 
     if ( ! teatime )
         teatime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());

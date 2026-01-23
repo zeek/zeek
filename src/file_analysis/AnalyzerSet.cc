@@ -85,7 +85,7 @@ void AnalyzerSet::AddMod::Abort() { delete a; }
 bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args) { return Remove(tag, GetKey(tag, std::move(args))); }
 
 bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key) {
-    auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
+    auto a = analyzer_map.Remove(key.get());
 
     if ( ! a ) {
         DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s", file->GetID().c_str(),

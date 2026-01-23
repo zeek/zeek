@@ -142,11 +142,11 @@ ValPtr from_any_vec__CPP(const ValPtr& v, const TypePtr& t) {
 SubNetValPtr addr_mask__CPP(const IPAddr& a, uint32_t mask) {
     if ( a.GetFamily() == IPv4 ) {
         if ( mask > 32 )
-            reporter->CPPRuntimeError("bad IPv4 subnet prefix length: %d", int(mask));
+            reporter->CPPRuntimeError("bad IPv4 subnet prefix length: %d", static_cast<int>(mask));
     }
     else {
         if ( mask > 128 )
-            reporter->CPPRuntimeError("bad IPv6 subnet prefix length: %d", int(mask));
+            reporter->CPPRuntimeError("bad IPv6 subnet prefix length: %d", static_cast<int>(mask));
     }
 
     return make_intrusive<SubNetVal>(a, mask);

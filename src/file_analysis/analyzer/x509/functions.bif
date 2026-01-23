@@ -35,7 +35,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 		return nullptr;
 		}
 
-	for ( int i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
+	for ( int i = 1; i < static_cast<int>(certs_vec->Size()); ++i ) // start at 1 - 0 is host cert
 		{
 		auto sv = certs_vec->ValAt(i);
 
@@ -292,7 +292,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		return x509_result_record(-1, "Problem initializing list of untrusted certificates");
 
 	// from here, always goto cleanup. Initialize all other required variables...
-	time_t vtime = (time_t) verify_time;
+	time_t vtime = static_cast<time_t>(verify_time);
 	OCSP_BASICRESP *basic = nullptr;
 	OCSP_SINGLERESP *single = nullptr;
 	X509_STORE_CTX *csc = nullptr;
@@ -375,7 +375,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	csc = X509_STORE_CTX_new();
 	X509_STORE_CTX_init(csc, ctx, signer, ocsp_certs);
-	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_time(csc, 0, static_cast<time_t>(verify_time));
 	X509_STORE_CTX_set_purpose(csc, X509_PURPOSE_OCSP_HELPER);
 
 	result = X509_verify_cert(csc);
@@ -572,7 +572,7 @@ function x509_verify%(certs: x509_opaque_vector, root_certs: table_string_of_str
 
 	X509_STORE_CTX *csc = X509_STORE_CTX_new();
 	X509_STORE_CTX_init(csc, ctx, cert, untrusted_certs);
-	X509_STORE_CTX_set_time(csc, 0, (time_t) verify_time);
+	X509_STORE_CTX_set_time(csc, 0, static_cast<time_t>(verify_time));
 	X509_STORE_CTX_set_flags(csc, X509_V_FLAG_USE_CHECK_TIME);
 
 	int result = X509_verify_cert(csc);

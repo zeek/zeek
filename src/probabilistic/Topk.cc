@@ -90,7 +90,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
             Element* e = *eit;
             // lookup if we already know this one...
             zeek::detail::HashKey* key = GetHash(e->value);
-            Element* olde = (Element*)elementDict->Lookup(key);
+            Element* olde = elementDict->Lookup(key);
 
             if ( olde == nullptr ) {
                 olde = new Element();
@@ -198,7 +198,7 @@ VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 
 uint64_t TopkVal::GetCount(Val* value) const {
     zeek::detail::HashKey* key = GetHash(value);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
     delete key;
 
     if ( e == nullptr ) {
@@ -211,7 +211,7 @@ uint64_t TopkVal::GetCount(Val* value) const {
 
 uint64_t TopkVal::GetEpsilon(Val* value) const {
     zeek::detail::HashKey* key = GetHash(value);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
     delete key;
 
     if ( e == nullptr ) {
@@ -252,7 +252,7 @@ void TopkVal::Encountered(ValPtr encountered) {
 
     // Step 1 - get the hash.
     zeek::detail::HashKey* key = GetHash(encountered);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
 
     if ( e == nullptr ) {
         e = new Element();
@@ -292,7 +292,7 @@ void TopkVal::Encountered(ValPtr encountered) {
             assert(! b->elements.empty());
             zeek::detail::HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
             b->elements.erase(b->elements.begin());
-            Element* deleteElement = (Element*)elementDict->RemoveEntry(deleteKey);
+            Element* deleteElement = elementDict->RemoveEntry(deleteKey);
             assert(deleteElement); // there has to have been a minimal element...
             delete deleteElement;
             delete deleteKey;

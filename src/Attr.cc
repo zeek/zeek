@@ -15,7 +15,7 @@ namespace zeek::detail {
 const char* attr_name(AttrTag t) {
     // Do not collapse the list.
     // clang-format off
-	static const char* attr_names[int(NUM_ATTRS)] = {
+	static const char* attr_names[static_cast<int>(NUM_ATTRS)] = {
 		"&optional",
 		"&default",
 		"&default_insert",
@@ -46,8 +46,8 @@ const char* attr_name(AttrTag t) {
 	};
     // clang-format on
 
-    if ( int(t) >= 0 && int(t) < NUM_ATTRS )
-        return attr_names[int(t)];
+    if ( static_cast<int>(t) >= 0 && static_cast<int>(t) < NUM_ATTRS )
+        return attr_names[static_cast<int>(t)];
     else
         return "<unknown>";
 }

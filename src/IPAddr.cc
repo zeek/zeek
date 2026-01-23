@@ -19,14 +19,14 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 IPAddr::IPAddr(const String& s) { Init(s.CheckString()); }
 
 std::unique_ptr<detail::HashKey> IPAddr::MakeHashKey() const {
-    return std::make_unique<detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
+    return std::make_unique<detail::HashKey>(reinterpret_cast<const void*>(in6.s6_addr), sizeof(in6.s6_addr));
 }
 
 static inline uint32_t bit_mask32(int bottom_bits) {
     if ( bottom_bits >= 32 )
         return 0xffffffff;
 
-    return (((uint32_t)1) << bottom_bits) - 1;
+    return ((static_cast<uint32_t>(1)) << bottom_bits) - 1;
 }
 
 void IPAddr::Mask(int top_bits_to_keep) {
@@ -133,12 +133,13 @@ std::string IPAddr::AsHexString() const {
 
     if ( GetFamily() == IPv4 ) {
         const uint32_t* p = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
-        snprintf(buf, sizeof(buf), "%08x", (uint32_t)ntohl(*p));
+        snprintf(buf, sizeof(buf), "%08x", static_cast<uint32_t>(ntohl(*p)));
     }
     else {
         const uint32_t* p = reinterpret_cast<const uint32_t*>(in6.s6_addr);
-        snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", (uint32_t)ntohl(p[0]), (uint32_t)ntohl(p[1]),
-                 (uint32_t)ntohl(p[2]), (uint32_t)ntohl(p[3]));
+        snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", static_cast<uint32_t>(ntohl(p[0])),
+                 static_cast<uint32_t>(ntohl(p[1])), static_cast<uint32_t>(ntohl(p[2])),
+                 static_cast<uint32_t>(ntohl(p[3])));
     }
 
     return buf;

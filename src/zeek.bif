@@ -156,7 +156,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 			break;
 			}
 
-		time_t time = time_t(v->InternalDouble());
+		time_t time = static_cast<time_t>(v->InternalDouble());
 		struct tm t;
 
 		bool is_time_fmt = *fmt == 'T';
@@ -319,9 +319,9 @@ zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
 	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
 
 	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
-	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(static_cast<unsigned int>(0)));
 	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(static_cast<unsigned int>(0)));
 	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, std::move(id_val));
 
@@ -1471,7 +1471,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = zeek_uint_t(double(max) * double(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
+	auto result = static_cast<zeek_uint_t>(static_cast<double>(max) * static_cast<double>(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -3079,7 +3079,7 @@ function int_to_count%(n: int%): count
 ## .. zeek:see:: double_to_time
 function double_to_int%(d: double%): int
 	%{
-	return zeek::val_mgr->Int(zeek_int_t(rint(d)));
+	return zeek::val_mgr->Int(static_cast<zeek_int_t>(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -3094,7 +3094,7 @@ function double_to_count%(d: double%): count
 	if ( d < 0.0 )
 		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
 
-	return zeek::val_mgr->Count(zeek_uint_t(rint(d)));
+	return zeek::val_mgr->Count(static_cast<zeek_uint_t>(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`. For values where
@@ -3220,7 +3220,7 @@ function port_to_count%(p: port%): count
 ## .. zeek:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return zeek::val_mgr->Port(num, (TransportProto)proto->AsEnum());
+	return zeek::val_mgr->Port(num, static_cast<TransportProto>(proto->AsEnum()));
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`addr`.
@@ -3365,7 +3365,7 @@ function count_to_v4_addr%(ip: count%): addr
 	if ( ip > 4294967295LU )
 		{
 		zeek::emit_builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
-		return zeek::make_intrusive<zeek::AddrVal>(uint32_t(0));
+		return zeek::make_intrusive<zeek::AddrVal>(0);
 		}
 
 	return zeek::make_intrusive<zeek::AddrVal>(htonl(static_cast<uint32_t>(ip)));
@@ -3973,7 +3973,7 @@ function strftime%(fmt: string, d: time%) : string
 	%{
 	static char buffer[128];
 
-	time_t timeval = time_t(d);
+	time_t timeval = static_cast<time_t>(d);
 	struct tm t;
 
 	if ( ! localtime_r(&timeval, &t) ||
@@ -5184,7 +5184,7 @@ function file_size%(f: string%) : double
 	if ( stat(f->CheckString(), &s) < 0 )
 		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
 
-	return zeek::make_intrusive<zeek::DoubleVal>(double(s.st_size));
+	return zeek::make_intrusive<zeek::DoubleVal>(static_cast<double>(s.st_size));
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
@@ -5466,7 +5466,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 	if ( ! zeek::detail::rule_matcher )
 		return zeek::val_mgr->False();
 
-	c->Match((zeek::detail::Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+	c->Match(static_cast<zeek::detail::Rule::PatternType>(pattern_type), s->Bytes(), s->Len(),
 	         from_orig, bol, eol, clear);
 
 	return zeek::val_mgr->True();

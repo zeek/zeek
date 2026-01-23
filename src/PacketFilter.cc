@@ -92,7 +92,8 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip, int len, int c
         len -= ip_hdr_len; // remove IP header
         caplen -= ip_hdr_len;
 
-        if ( (unsigned int)len < sizeof(struct tcphdr) || (unsigned int)caplen < sizeof(struct tcphdr) )
+        if ( static_cast<unsigned int>(len) < sizeof(struct tcphdr) ||
+             static_cast<unsigned int>(caplen) < sizeof(struct tcphdr) )
             // Packet too short, will be dropped anyway.
             return false;
 

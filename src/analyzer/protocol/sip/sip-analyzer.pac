@@ -12,7 +12,7 @@ refine flow SIP_Flow += {
 
 	%init{
 		content_length = 0;
-		build_headers = bool(sip_all_headers);
+		build_headers = static_cast<bool>(sip_all_headers);
 	%}
 
 	function get_content_length(): int

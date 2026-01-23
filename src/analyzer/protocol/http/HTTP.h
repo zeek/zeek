@@ -124,7 +124,7 @@ public:
     void SetDeliverySize(int64_t length);
     void SkipEntityData();
 
-    HTTP_Analyzer* MyHTTP_Analyzer() const { return (HTTP_Analyzer*)analyzer; }
+    HTTP_Analyzer* MyHTTP_Analyzer() const { return analyzer; }
 
     void Weird(const char* msg);
     bool IsOrig() { return is_orig; }

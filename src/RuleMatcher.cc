@@ -717,7 +717,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
 
                     auto* m = new RuleEndpointState::Matcher;
                     m->state = new RE_Match_State(set->re);
-                    m->type = (Rule::PatternType)i;
+                    m->type = static_cast<Rule::PatternType>(i);
                     state->matchers.push_back(m);
                 }
             }
@@ -820,7 +820,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 
     // Feed data into all relevant matchers.
     for ( const auto& m : state->matchers ) {
-        if ( m->type == type && m->state->Match((const u_char*)data, data_len, bol, eol, clear) )
+        if ( m->type == type && m->state->Match(data, data_len, bol, eol, clear) )
             newmatch = true;
     }
 
@@ -1050,7 +1050,7 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node) const {
             RuleHdrTest::PatternSet* set = node->psets[i][j];
 
             fprintf(stderr, "[%d patterns in %s group %d from %zu rules]\n", set->patterns.length(),
-                    Rule::TypeToString((Rule::PatternType)i), j, set->ids.size());
+                    Rule::TypeToString(static_cast<Rule::PatternType>(i)), j, set->ids.size());
         }
     }
 
@@ -1128,7 +1128,7 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
             assert(set->re);
 
             f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time,
-                               set->re->DFA()->NumStates(), Rule::TypeToString((Rule::PatternType)i), j));
+                               set->re->DFA()->NumStates(), Rule::TypeToString(static_cast<Rule::PatternType>(i)), j));
 
             for ( const auto& id : set->ids ) {
                 Rule* r = Rule::rule_table[id - 1];

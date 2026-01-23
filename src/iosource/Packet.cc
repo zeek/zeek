@@ -43,7 +43,7 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     else
         data = arg_data;
 
-    time = ts.tv_sec + double(ts.tv_usec) / 1e6;
+    time = ts.tv_sec + static_cast<double>(ts.tv_usec) / 1e6;
     eth_type = 0;
 
     vlan = 0;

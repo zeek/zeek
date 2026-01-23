@@ -184,7 +184,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
                 const Stmt* succ;
 
-                if ( i == int(stmts.size()) - 1 ) { // Very last statement.
+                if ( i == static_cast<int>(stmts.size()) - 1 ) { // Very last statement.
                     succ = succ_stmt;
                     if ( successor2.contains(s) ) {
                         om.AddObj(s_i);

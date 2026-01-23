@@ -45,7 +45,7 @@ InstLabel ZAMCompiler::GoToTarget(const ZAMStmt s) { return insts1[s.stmt_num]; 
 InstLabel ZAMCompiler::GoToTargetBeyond(const ZAMStmt s) {
     int n = s.stmt_num;
 
-    if ( n == int(insts1.size()) - 1 ) {
+    if ( n == static_cast<int>(insts1.size()) - 1 ) {
         if ( ! pending_inst )
             pending_inst = new ZInstI();
 
@@ -67,10 +67,10 @@ ZInstI* ZAMCompiler::FindLiveTarget(ZInstI* goto_target) {
     int idx = goto_target->inst_num;
     ASSERT(idx >= 0 && idx <= int(insts1.size()));
 
-    while ( idx < int(insts1.size()) && ! insts1[idx]->live )
+    while ( idx < static_cast<int>(insts1.size()) && ! insts1[idx]->live )
         ++idx;
 
-    if ( idx == int(insts1.size()) )
+    if ( idx == static_cast<int>(insts1.size()) )
         return pending_inst;
     else
         return insts1[idx];

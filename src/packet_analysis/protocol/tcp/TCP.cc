@@ -150,7 +150,7 @@ const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& le
         return nullptr;
     }
 
-    if ( tcp_hdr_len > uint32_t(len) || tcp_hdr_len > uint32_t(remaining) ) {
+    if ( tcp_hdr_len > static_cast<uint32_t>(len) || tcp_hdr_len > static_cast<uint32_t>(remaining) ) {
         // This can happen even with the above test, due to TCP options.
         adapter->Weird("truncated_header");
         return nullptr;

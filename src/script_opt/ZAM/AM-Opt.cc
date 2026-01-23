@@ -937,7 +937,7 @@ const ZInstI* ZAMCompiler::BeginningOfLoop(const ZInstI* inst, int depth) const 
 const ZInstI* ZAMCompiler::EndOfLoop(const ZInstI* inst, int depth) const {
     auto i = inst->inst_num;
 
-    while ( i < int(insts1.size()) && insts1[i]->loop_depth >= depth )
+    while ( i < static_cast<int>(insts1.size()) && insts1[i]->loop_depth >= depth )
         ++i;
 
     if ( i == inst->inst_num )

@@ -714,7 +714,7 @@ protected:
 class TableEntryVal {
 public:
     explicit TableEntryVal(ValPtr v) : val(std::move(v)) {
-        expire_access_time = int(run_state::network_time - run_state::zeek_start_network_time);
+        expire_access_time = static_cast<int>(run_state::network_time - run_state::zeek_start_network_time);
     }
 
     TableEntryVal* Clone(Val::CloneState* state);
@@ -723,7 +723,9 @@ public:
 
     // Returns/sets time of last expiration relevant access to this value.
     double ExpireAccessTime() const { return run_state::zeek_start_network_time + expire_access_time; }
-    void SetExpireAccess(double time) { expire_access_time = int(time - run_state::zeek_start_network_time); }
+    void SetExpireAccess(double time) {
+        expire_access_time = static_cast<int>(time - run_state::zeek_start_network_time);
+    }
 
 protected:
     friend class TableVal;
@@ -1337,26 +1339,26 @@ public:
 
     // The following provide efficient record field assignments.
     void Assign(int field, bool new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
 
     // For int types, we provide both [u]int32_t and [u]int64_t versions for
     // convenience, since sometimes the caller has one rather than the other.
     void Assign(int field, int32_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, int64_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, uint32_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_uint_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, uint64_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_uint_t>(new_val));
         AddedField(field);
     }
 

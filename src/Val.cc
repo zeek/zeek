@@ -638,7 +638,7 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type) {
     return port_num;
 }
 
-PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), zeek_uint_t(p)) {}
+PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), static_cast<zeek_uint_t>(p)) {}
 
 uint32_t PortVal::Port() const {
     uint32_t p = static_cast<uint32_t>(uint_val);
@@ -732,7 +732,7 @@ int SubNetVal::Width() const { return subnet_val->Length(); }
 
 ValPtr SubNetVal::SizeVal() const {
     int retained = 128 - subnet_val->LengthIPv6();
-    return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
+    return make_intrusive<DoubleVal>(pow(2.0, static_cast<double>(retained)));
 }
 
 void SubNetVal::ValDescribe(ODesc* d) const { d->Add(string(*subnet_val).c_str()); }
@@ -1316,8 +1316,7 @@ ValPtr StringVal::DoClone(CloneState* state) {
     // We could likely treat this type as immutable and return a reference
     // instead of creating a new copy, but we first need to be careful and
     // audit whether anything internal actually does mutate it.
-    return state->NewClone(this, make_intrusive<StringVal>(
-                                     new String((u_char*)string_val->Bytes(), string_val->Len(), true)));
+    return state->NewClone(this, make_intrusive<StringVal>(new String(string_val->Bytes(), string_val->Len(), true)));
 }
 
 FuncVal::FuncVal(FuncPtr f) : Val(f->GetType()) { func_val = std::move(f); }
@@ -1826,7 +1825,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
                       bool* iterators_invalidated) {
     bool is_set = table_type->IsSet();
 
-    if ( is_set == (bool)new_val )
+    if ( is_set == static_cast<bool>(new_val) )
         InternalWarning("bad set/table in TableVal::Assign");
 
     TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
@@ -3267,7 +3266,7 @@ VectorVal::~VectorVal() {
     }
 }
 
-ValPtr VectorVal::SizeVal() const { return val_mgr->Count(uint32_t(vector_val.size())); }
+ValPtr VectorVal::SizeVal() const { return val_mgr->Count(static_cast<uint32_t>(vector_val.size())); }
 
 bool VectorVal::CheckElementType(const ValPtr& element) {
     if ( ! element )

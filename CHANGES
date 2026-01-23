@@ -1,3 +1,9 @@
+8.1.0-9 | 2026-01-26 14:54:56 -0700
+
+  * Regenerate spicy autogen docs based on recent spicy-tftp changes (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3c9f051b47f0b1350111bc9e9839ba11113ddaa5)
+
 8.1.0-8 | 2026-01-26 14:54:15 -0700
 
   * Bump zeekjs for cmake quoting fix (Arne Welzel, Corelight)

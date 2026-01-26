@@ -3,6 +3,36 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.1.1
+==========
+
+We would like to thank Siavash Tahmureszadeh for their contribution to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- A missing state check was added to the ``finalize_redis`` hook in the Redis
+  analyzer. This was needed for rare cases where that hook got called and the rest of the
+  analyzer had never been invoked, leading to Zeek throwing an error because the state
+  didn't exist yet.
+
+- A bug was fixed when attempting to append a ``vector`` to itself that would cause an
+  infinite loop.
+
+- A minor update was added to the documentation to better describe how what versions of
+  docs we keep available on the website.
+
+- A memory leak was fixed that occurred when looping over tables while running Zeek with
+  ZAM enabled.
+
+- The upgraded library used for ``paraglob`` in Zeek 8.1.0 exposed an issue with handling
+  very large data sets. This was fixed via better initialization of the library when
+  creating the ``paraglob`` objects.
+
+- Zeek now requires ZeroMQ 4.3.0 or later due to some missing API features in earlier
+  versions.
+
 Zeek 8.1.0
 ==========
 

@@ -36,6 +36,7 @@ struct xdp_options {
     __u32 conn_id_map_max_size;
     __u32 ip_pair_map_max_size;
     bool include_vlan;
+    const char* pin_path;
 };
 
 // Helper
@@ -54,7 +55,7 @@ concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_pair_key>;
  * the brittle Zeek process is not in charge of the health of the XDP
  * program.
  */
-std::optional<std::string> reconnect(struct filter**);
+std::optional<std::string> reconnect(struct filter**, xdp_options opts);
 
 /**
  * Disconnects this filter and invalidates it. This does NOT unload or

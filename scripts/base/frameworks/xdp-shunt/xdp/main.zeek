@@ -10,7 +10,7 @@ export {
 	## Returns: An opaque value representing the now-attached BPF program
 	##
 	## .. zeek:see:: start_shunt
-	global reconnect: function(): opaque of XDP::Program;
+	global reconnect: function(options: XDP::ShuntOptions): opaque of XDP::Program;
 
 	## Disconnects an XDP program and invalidates what was passed in.
 	global disconnect: function(xdp_prog: opaque of XDP::Program);
@@ -34,9 +34,9 @@ export {
 	## by sorting the IPs and ports as the shunting map does.
 	global conn_id_to_canonical: function(cid: conn_id): XDP::canonical_id;
 }
-function reconnect(): opaque of XDP::Program
+function reconnect(options: XDP::ShuntOptions): opaque of XDP::Program
 	{
-	return _reconnect_shunt();
+	return _reconnect_shunt(options);
 	}
 
 function disconnect(xdp_prog: opaque of XDP::Program)

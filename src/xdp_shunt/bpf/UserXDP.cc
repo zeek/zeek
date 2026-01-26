@@ -6,6 +6,7 @@
 #include <string>
 #include <unistd.h>
 #include <xdp/libxdp.h>
+#include <zeek/util.h>
 
 #include "UserXDP.h"
 
@@ -52,19 +53,20 @@ uint32_t flags(xdp_options opts) {
     return flags;
 }
 
-std::optional<std::string> reconnect(struct filter** skel) {
-    // TODO: Probably don't hardcode the pin path.
-    const char* pin_path = "/sys/fs/bpf/zeek";
+std::optional<std::string> reconnect(struct filter** skel, xdp_options opts) {
     // Exit if the map dir doesn't exist
-    if ( ! std::filesystem::exists(pin_path) )
+    if ( ! std::filesystem::exists(opts.pin_path) )
         // TODO: Also don't hardcode here.
         return "Pin path /sys/fs/bpf/zeek does not exist";
 
-    struct bpf_object_open_opts opts = {
+    struct bpf_object_open_opts open_opts = {
         .sz = sizeof(struct bpf_object_open_opts),
-        .pin_root_path = pin_path,
+        .pin_root_path = opts.pin_path,
     };
-    *skel = filter::open(&opts);
+    *skel = filter::open(&open_opts);
+
+    bpf_map__set_max_entries(get_canonical_id_map(*skel), opts.conn_id_map_max_size);
+    bpf_map__set_max_entries(get_ip_pair_map(*skel), opts.ip_pair_map_max_size);
 
     if ( ! *skel )
         return "Failed to open BPF skeleton";
@@ -84,9 +86,7 @@ void disconnect(struct filter** skel) {
 }
 
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
-    // TODO: Probably don't hardcode the pin path.
-    const char* pin_path = "/sys/fs/bpf/zeek";
-    auto prog_fd = bpf_obj_get(pin_path);
+    auto prog_fd = bpf_obj_get(zeek::util::fmt("%s/%s", opts.pin_path, "xdp_filter"));
 
     // Already exists
     if ( prog_fd >= 0 ) {
@@ -94,7 +94,11 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
         return {};
     }
 
-    *skel = filter::open();
+    struct bpf_object_open_opts open_opts = {
+        .sz = sizeof(struct bpf_object_open_opts),
+        .pin_root_path = opts.pin_path,
+    };
+    *skel = filter::open(&open_opts);
 
     // This must be 1 or greater.
     bpf_map__set_max_entries(get_canonical_id_map(*skel), opts.conn_id_map_max_size);
@@ -107,9 +111,7 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
     if ( prog_fd < 0 )
         return "Could not find BPF program";
 
-    auto err = bpf_obj_pin(prog_fd, pin_path);
-
-    err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
+    auto err = bpf_xdp_attach(ifindex, prog_fd, flags(opts), nullptr);
     if ( err ) {
         char err_buf[256];
         libbpf_strerror(err, err_buf, sizeof(err_buf));

@@ -1,3 +1,15 @@
+8.2.0-dev.127 | 2026-01-26 13:54:35 -0500
+
+  * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)
+
+    Clear loop_vars vector before populating it to prevent unbounded
+    growth when TableIterInfo objects are reused during ZAM table
+    iterations.
+
+    Fixes memory leak where loop_vars vector accumulates elements
+    across multiple BeginLoop() calls, causing ~192MB+ growth in
+    production workloads with frequent table iterations.
+
 8.2.0-dev.123 | 2026-01-26 08:16:45 -0700
 
   * Fix clang-tidy findings from recent merge (Tim Wojtulewicz, Corelight)

@@ -41,7 +41,7 @@ function reconnect(): opaque of XDP::Program
 
 function disconnect(xdp_prog: opaque of XDP::Program)
 	{
-	return _disconnect_shunt();
+	_disconnect_shunt(xdp_prog);
 	}
 
 function start_shunt(options: XDP::ShuntOptions): opaque of XDP::Program

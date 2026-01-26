@@ -1,3 +1,10 @@
+8.2.0-dev.130 | 2026-01-26 15:55:04 -0700
+
+  * Bump ZeekJS submodule (Tim Wojtulewicz, Corelight)
+
+  * Fixes for event grounds in standalone compilation (Vern Paxson, Corelight)
+    Streamlining of Func::AddBody interfaces
+
 8.2.0-dev.127 | 2026-01-26 13:54:35 -0500
 
   * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)

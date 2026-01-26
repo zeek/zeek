@@ -558,10 +558,7 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
             auto fn = global->Name();
             auto ft = cast_intrusive<FuncType>(t);
 
-            vector<StmtPtr> no_bodies;
-            vector<int> no_priorities;
-
-            auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
+            auto sf = make_intrusive<ScriptFunc>(fn, ft, std::vector<Func::Body>{});
 
             auto v = make_intrusive<FuncVal>(std::move(sf));
             global->SetVal(v);

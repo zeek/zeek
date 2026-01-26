@@ -284,7 +284,11 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
         merged_body->Stmts().emplace_back(std::move(ie_s));
     }
 
-    auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);
+    // The groups are empty here because CoalescedScriptFunc handles the
+    // case of groups turning elements on/off.
+    Func::Body new_body = {.stmts = merged_body};
+
+    auto inlined_func = make_intrusive<CoalescedScriptFunc>(new_body, new_scope, func);
     inlined_func->SetScope(new_scope);
 
     // Replace the function for that EventHandler with the delegating one.

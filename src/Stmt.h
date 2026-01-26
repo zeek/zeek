@@ -768,7 +768,7 @@ protected:
 };
 
 // Statement that calls a std::function. These can be added to a Func body
-// to directly all a C++ method.
+// to directly call a C++ method.
 class StdFunctionStmt : public Stmt {
 public:
     StdFunctionStmt(std::function<void(const zeek::Args&, StmtFlowType&)> f)
@@ -776,10 +776,7 @@ public:
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-    StmtPtr Duplicate() override {
-        reporter->Error("Duplicate() on StdFunctionStmt not implemented");
-        return {zeek::NewRef{}, this};
-    }
+    StmtPtr Duplicate() override { return make_intrusive<StdFunctionStmt>(func); }
 
     TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 

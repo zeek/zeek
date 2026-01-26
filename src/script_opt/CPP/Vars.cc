@@ -125,11 +125,11 @@ void CPPCompile::RegisterEvent(string ev_name) { body_events[body_name].emplace_
 
 class FixedInitChecker : public TraversalCallback {
 public:
-    FixedInitChecker() {}
+    FixedInitChecker() = default;
 
     bool IsFixed() const { return is_fixed; }
 
-    TraversalCode PreExpr(const Expr* e);
+    TraversalCode PreExpr(const Expr* e) override;
 
 private:
     TraversalCode NotFixed() {

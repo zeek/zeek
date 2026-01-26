@@ -1,3 +1,27 @@
+8.0.5-7 | 2026-01-26 21:58:49 +0000
+
+  * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)
+
+    Clear loop_vars vector before populating it to prevent unbounded
+    growth when TableIterInfo objects are reused during ZAM table
+    iterations.
+
+    Fixes memory leak where loop_vars vector accumulates elements
+    across multiple BeginLoop() calls, causing ~192MB+ growth in
+    production workloads with frequent table iterations.
+
+    (cherry picked from commit 8363a25c864143d1516a071b21d63f4075536bf7)
+
+  * Initial NEWS updates for 8.0.6 (Tim Wojtulewicz, Corelight)
+
+  * Describe current as default docs version (Evan Typanksi, Corelight)
+
+    (cherry picked from commit 3da3f51d29e1c53a0337a914429b1d8fbff34e63)
+
+  * Add extra state check to finalize_redis hook (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 730345857129c44ac380382e44628640ea7a2d8b)
+
 8.0.5-3 | 2026-01-23 15:44:06 -0700
 
   * Describe current as default docs version (Evan Typanski, Corelight)

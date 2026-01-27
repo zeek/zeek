@@ -391,6 +391,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"mkdir", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"mmdb_open_asn_db", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"mmdb_open_location_db", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"modulo", ATTR_IDEMPOTENT}, // can error
     {"network_time", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"open", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"open_for_append", ATTR_NO_SCRIPT_SIDE_EFFECTS},

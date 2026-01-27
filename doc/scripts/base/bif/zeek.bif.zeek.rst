@@ -178,6 +178,7 @@ Functions
 :zeek:id:`md5_hash_update`: :zeek:type:`function`                           Updates the MD5 value associated with a given index.
 :zeek:id:`md5_hmac`: :zeek:type:`function` :zeek:attr:`&deprecated` = *...* Computes an HMAC-MD5 hash value of the provided list of arguments.
 :zeek:id:`mkdir`: :zeek:type:`function`                                     Creates a new directory.
+:zeek:id:`modulo`: :zeek:type:`function`                                    Performs the modulo operator, resembling ``a % b``.
 :zeek:id:`network_time`: :zeek:type:`function`                              Returns the timestamp of the last packet processed.
 :zeek:id:`open`: :zeek:type:`function`                                      Opens a file for writing.
 :zeek:id:`open_for_append`: :zeek:type:`function`                           Opens a file for writing or appending.
@@ -2622,6 +2623,18 @@ Functions
    .. zeek:see:: active_file open_for_append close write_file
                 get_file_name set_buf flush_all enable_raw_output
                 rmdir unlink rename
+
+.. zeek:id:: modulo
+   :source-code: base/bif/zeek.bif.zeek 3113 3113
+
+   :Type: :zeek:type:`function` (a: :zeek:type:`int`, b: :zeek:type:`int`) : :zeek:type:`int`
+
+   Performs the modulo operator, resembling ``a % b``. This is different
+   from Zeek's ``%`` operator, which is for remainder. The result is never
+   negative, unlike for remainder.
+
+
+   :returns: The modulo result of "a modulo b"
 
 .. zeek:id:: network_time
    :source-code: base/bif/zeek.bif.zeek 42 42

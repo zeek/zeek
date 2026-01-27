@@ -426,6 +426,7 @@ global known_BiFs = set(
 	"mkdir",
 	"mmdb_open_asn_db",
 	"mmdb_open_location_db",
+	"modulo",
 	"network_time",
 	"open",
 	"open_for_append",

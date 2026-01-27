@@ -94,7 +94,8 @@ Arithmetic operators
 
   * - Remainder
     - ``a % b``
-    - Operand types cannot be :zeek:type:`double`.
+    - Operand types cannot be :zeek:type:`double`. This is remainder, not
+      :zeek:see:`modulo`, which behaves differently for negative numbers.
 
   * - Unary plus
     - ``+a``

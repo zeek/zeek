@@ -1,3 +1,5 @@
+.. _why-zeek:
+
 Why Zeek?
 =========
 
@@ -48,7 +50,7 @@ content data collection, and that task is best handled by software written to
 fulfill that requirement.
 
 Beyond the forms of network data that Zeek can natively collect and generate,
-Zeek has advantages that appeared in the `What Is Zeek?`_ section. These
+Zeek has advantages that appeared in the :ref:`what-is-zeek` section. These
 include its built-in functionality for a range of analysis and detection
 tasks, and its status as a fully customizable and extensible platform for
 traffic analysis.  Zeek is also attractive because of its ability to run on

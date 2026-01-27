@@ -30,10 +30,8 @@ to connect with the community.
    get-started
    about/index
    tutorial/index
-   logs/index
-   frameworks/index
+   reference/index
    customizations
-   script-reference/index
    advanced/index
    acknowledgements
 
@@ -57,7 +55,7 @@ Documentation Versioning
       <https://docs.zeek.org/en/current>`_
     * Long-term support release: `docs.zeek.org/en/lts
       <https://docs.zeek.org/en/lts>`_
-    * Git ``master`` branch: `docs.zeek.org/en/master
+    * Ongoing development: `docs.zeek.org/en/master
       <https://docs.zeek.org/en/master>`_
 
   We typically keep the last version from each release cycle available.

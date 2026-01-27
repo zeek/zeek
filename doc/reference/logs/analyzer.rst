@@ -1,6 +1,6 @@
-============
-analyzer.log
-============
+==================
+DPD & analyzer.log
+==================
 
 Dynamic protocol detection (DPD) is a method by which Zeek identifies protocols
 on ports beyond those used as standard services. Rather than selecting which

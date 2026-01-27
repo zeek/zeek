@@ -1,7 +1,7 @@
-.. _websocket-api:
-
 .. _websocat: https://github.com/vi/websocat
 
+
+.. _websocket-api:
 
 ======================================
 Interacting with Zeek using WebSockets

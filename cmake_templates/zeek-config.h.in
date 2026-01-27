@@ -4,6 +4,9 @@
 
 #pragma once
 
+// Clang-format breaks all of the cmake templating below.
+/* clang-format off */
+
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and
    pcap_compile_nopcap */
 #cmakedefine DONT_HAVE_LIBPCAP_PCAP_FREECODE
@@ -311,3 +314,5 @@
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
 // NOLINTEND(modernize-macro-to-enum)
+
+/* clang-format on */

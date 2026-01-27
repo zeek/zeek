@@ -10,6 +10,6 @@ user.
    :titlesonly:
 
    troubleshooting
+   scripting/index
    devel/index
-   grab-bag/index
    subcomponents 

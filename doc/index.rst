@@ -28,9 +28,8 @@ to connect with the community.
    :caption: Table of Contents
 
    get-started
-   about
+   about/index
    tutorial/index
-   monitoring
    logs/index
    frameworks/index
    customizations

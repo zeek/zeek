@@ -92,7 +92,7 @@ Arithmetic operators
     - For :zeek:type:`int` or :zeek:type:`count` operands, the fractional part
       of the result is dropped.
 
-  * - Modulo
+  * - Remainder
     - ``a % b``
     - Operand types cannot be :zeek:type:`double`.
 

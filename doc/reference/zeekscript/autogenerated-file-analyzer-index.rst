@@ -1062,4 +1062,3 @@ Functions
             if it did.
 
    .. zeek:see:: x509_check_hostname
-

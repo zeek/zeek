@@ -1,3 +1,5 @@
+.. _what-is-zeek:
+
 What Is Zeek?
 =============
 

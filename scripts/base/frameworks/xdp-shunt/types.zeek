@@ -10,8 +10,8 @@ export {
 
     type ShuntOptions: record {
         attach_mode: AttachMode &default=UNSPEC;
-        conn_id_map_max_size: count &default=65536; # Must be >1
-        ip_pair_map_max_size: count &default=65536; # Must be >1
+        conn_id_map_max_size: count &default=65535; # Must be >1
+        ip_pair_map_max_size: count &default=65535; # Must be >1
         include_vlan: bool &default=F; # Whether we include vlans in the keys
         pin_path: string &default="/sys/fs/bpf/zeek"; # Directory to pin the BPF maps into
     };

@@ -432,4 +432,4 @@ can correlate an HTTP connection with its ``conn.log`` entries,
 
 However, there are simply too many core logs, and too many ways to use
 them, to cover here. For more information on the most important ones,
-see the :doc:`logs section </logs/index>`.
+see the :doc:`logs section </reference/logs/index>`.

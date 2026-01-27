@@ -568,11 +568,11 @@ Explore the tutorial at `try.zeek.org <https://try.zeek.org>`_---this is an
 interactive tutorial all in the web browser. It explains Zeek's
 functionality with increasingly advanced scripts. That is a logical next
 step after this tutorial if some language features seem under-explained.
-You can go through the :doc:`script reference </script-reference/index>`
+You can go through the :doc:`script reference </reference/zeekscript/index>`
 section. This has detailed explanations of all of Zeek's :doc:`operators
-</script-reference/operators>`, :doc:`statements
-</script-reference/statements>`, :doc:`attributes
-</script-reference/attributes>`, and more. If you need a deep-dive, that
+</reference/zeekscript/operators>`, :doc:`statements
+</reference/zeekscript/statements>`, :doc:`attributes
+</reference/zeekscript/attributes>`, and more. If you need a deep-dive, that
 is the reference to use.
 
 While this script is not necessarily production-ready, it uses Zeek in many of

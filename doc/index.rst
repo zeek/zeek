@@ -30,10 +30,8 @@ to connect with the community.
    get-started
    about/index
    tutorial/index
-   logs/index
-   frameworks/index
+   reference/index
    customizations
-   script-reference/index
    advanced/index
    acknowledgements
 

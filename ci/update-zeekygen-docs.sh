@@ -42,7 +42,7 @@ printf "script\t*\t$scripts_output_dir/" >$conf_file
 echo "Generating $scripts_output_dir/"
 run_zeek
 
-script_ref_dir=$output_dir/script-reference
+script_ref_dir=$output_dir/reference/zeekscript
 mkdir -p $script_ref_dir
 
 function generate_index {

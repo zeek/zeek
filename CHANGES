@@ -1,3 +1,17 @@
+8.2.0-dev.133 | 2026-01-27 09:25:06 +0100
+
+  * Attr: Allow va_args function for &on_change (Arne Welzel, Corelight)
+
+    This allows a generic bif to be used for &on_change. Look at
+    it with git log --patch -w
+
+  * tools/bifcl: Support void functions (Arne Welzel, Corelight)
+
+    This allows skipping the return type of builtin functions to allow
+    creating void typed builtin functions. This still requires to return
+    a nullptr from the BiF implementation, but the type checking in Zeek
+    script is more sensible.
+
 8.2.0-dev.130 | 2026-01-26 15:55:04 -0700
 
   * Bump ZeekJS submodule (Tim Wojtulewicz, Corelight)

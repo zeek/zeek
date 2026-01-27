@@ -39,6 +39,13 @@ New Functionality
   messages for events: Publishing a single event currently counts as four messages
   as we're simply exposing ZeroMQ's low-level ``zmq::proxy_steerable()`` statistics.
 
+- ``bifcl`` now accepts missing return types in functions signatures, creating
+  void functions rather than complaining. The C++ signature will continue
+  to have a ``ValPtr`` return type and the implementation should return a ``Val::nil``,
+  but the Zeek script function signature will have a void return type.
+
+- The ``&on_change`` attribute for tables or sets now accepts variable argument functions.
+
 Changed Functionality
 ---------------------
 

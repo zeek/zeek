@@ -211,8 +211,17 @@ int xdp_filter(struct xdp_md* ctx) {
         struct udphdr* udph = transport_header;
         if ( (void*)udph + sizeof(*udph) > data_end )
             return XDP_PASS;
+
         port_source = bpf_ntohs(udph->source);
         port_dest = bpf_ntohs(udph->dest);
+    }
+    else if ( l4_protocol == IPPROTO_ICMP ) {
+        struct icmphdr* icmph = transport_header;
+        if ( (void*)icmph + sizeof(*icmph) > data_end )
+            return XDP_PASS;
+
+        port_source = 0;
+        port_dest = 0;
     }
     else
         return XDP_PASS;

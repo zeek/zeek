@@ -13,7 +13,7 @@
 
 module XDP::Shunt::ConnID;
 
-function _get_map%(xdp_prog: opaque of XDP::Program, 
+function _get_map%(xdp_prog: opaque of XDP::Program,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
@@ -21,7 +21,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
     auto zeek_table = zeek::make_intrusive<zeek::TableVal>(shunt_table);
 
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return zeek_table;
     }
 
@@ -67,7 +67,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : bo
 
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return zeek::val_mgr->Bool(false);
     }
 
@@ -75,7 +75,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : bo
     auto err = update_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
+        zeek::reporter->Error("Failed to add to map: %s", (*err).c_str());
         return zeek::val_mgr->Bool(false);
     }
 
@@ -89,7 +89,7 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%
 
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return makeEmptyShuntedStats();
     }
 
@@ -108,7 +108,7 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : 
 
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return makeEmptyShuntedStats();
     }
 
@@ -121,7 +121,7 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : 
     auto err = remove_from_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
+        zeek::reporter->Error("Failed to remove from map: %s", (*err).c_str());
         return makeEmptyShuntedStats();
     }
 

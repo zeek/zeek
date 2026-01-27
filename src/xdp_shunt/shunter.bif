@@ -96,7 +96,7 @@ function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
 function _end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return zeek::val_mgr->Bool(false);
     }
 

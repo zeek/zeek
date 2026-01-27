@@ -13,7 +13,7 @@
 
 module XDP::Shunt::IPPair;
 
-function _get_map%(xdp_prog: opaque of XDP::Program, 
+function _get_map%(xdp_prog: opaque of XDP::Program,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     static auto ip_shunt_table = zeek::id::find_type<zeek::TableType>("XDP::ip_pair_shunt_table");
@@ -21,7 +21,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
     auto zeek_table = zeek::make_intrusive<zeek::TableVal>(ip_shunt_table);
 
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return zeek_table;
     }
 
@@ -58,7 +58,7 @@ function _get_map%(xdp_prog: opaque of XDP::Program,
 function _shunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return zeek::val_mgr->Bool(false);
     }
 
@@ -68,7 +68,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : bool %
     auto err = update_map(get_ip_pair_map(prog), &key);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
+        zeek::reporter->Error("Failed to add to map: %s", (*err).c_str());
         return zeek::val_mgr->Bool(false);
     }
 
@@ -78,7 +78,7 @@ function _shunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : bool %
 function _shunt_stats%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return makeEmptyShuntedStats();
     }
 
@@ -100,7 +100,7 @@ function _shunt_stats%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : 
 function _unshunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
+        zeek::reporter->Error("%s", zeek_prog.error().c_str());
         return makeEmptyShuntedStats();
     }
 
@@ -114,7 +114,7 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair%) : XDP:
     auto err = remove_from_map(get_ip_pair_map(prog), &key);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
+        zeek::reporter->Error("Failed to add to map: %s", (*err).c_str());
         return makeEmptyShuntedStats();
     }
 

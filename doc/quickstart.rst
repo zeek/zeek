@@ -100,7 +100,7 @@ request and one with a ``WEIRD`` request. The ``WEIRD`` request was rightfully
 classified as a "weird" by Zeek.
 
 More information on the various logs and what they report can be found in the
-:doc:`logs/index` section. More information on working with logs can be found in
+:doc:`/reference/logs/index` section. More information on working with logs can be found in
 the :ref:`log-inspection` section of the tutorial.
 
 .. note::
@@ -392,7 +392,7 @@ considerations:
   `try.zeek.org <https://try.zeek.org>`_.
 * Read more of the documentation: the documentation can be read sequentially.
   Documentation for Zeek's out-of-the-box logs can be found in the
-  :doc:`logs/index` section.
+  :doc:`/reference/logs/index` section.
 * Browse scripts from :samp:`{$PREFIX}/share/zeek/policy` that may be useful to
   load. Their documentation is found in the
   :ref:`overview of script packages <script-packages>`.

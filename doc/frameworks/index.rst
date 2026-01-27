@@ -1,7 +1,7 @@
 
-==========
-Frameworks
-==========
+======================
+ Scripting Frameworks
+======================
 
 Zeek includes several software frameworks that provide commonly used
 functionality to the scripting layer. Among other things, these frameworks

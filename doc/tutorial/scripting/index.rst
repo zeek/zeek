@@ -7,13 +7,13 @@ have not examined it in any in depth. Let's close that gap, in three steps!
 
 First, a simple walkthrough of language features and how to do various
 common tasks. Where needed, we'll link to the :doc:`script
-reference </script-reference/index>` to further explain the concepts.
+reference </reference/zeekscript/index>` to further explain the concepts.
 
 Second, we will build up a small Zeek script from scratch. This should
 cover many of the necessary parts for common detections. It's meant
 to supplement other resources, including `try.zeek.org
 <https://try.zeek.org>`_ and the :doc:`script reference
-</script-reference/index>`. The scripting reference covers each language
+</reference/zeekscript/index>`. The scripting reference covers each language
 construct, while this step in the tutorial aims to explain essential
 components of the scripting language, required to build a custom script.
 

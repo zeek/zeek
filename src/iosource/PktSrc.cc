@@ -59,7 +59,7 @@ void PktSrc::Opened(const Properties& arg_props) {
     }
 
     if ( props.is_live )
-        Info(util::fmt("listening on %s\n", props.path.c_str()));
+        Info(util::fmt("listening on %s", props.path.c_str()));
 
     if ( props.selectable_fd != -1 )
         if ( ! iosource_mgr->RegisterFd(props.selectable_fd, this) )

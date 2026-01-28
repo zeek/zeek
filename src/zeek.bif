@@ -6033,3 +6033,17 @@ function get_plugin_components%(category: string%): plugin_component_vec
 
 	return result;
 	%}
+
+## Performs the modulo operator, resembling ``a % b``. This is different
+## from Zeek's ``%`` operator, which is for remainder. The result is never
+## negative, unlike for remainder.
+##
+## Returns: The modulo result of "a modulo b"
+function modulo%(a: int, b: int%): int
+	%{
+	if ( b == 0 ) {
+		zeek::reporter->Error("modulo by zero");
+		return 0;
+	}
+	return zeek::val_mgr->Int(((a % b) + b) % b);
+	%}

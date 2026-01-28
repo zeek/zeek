@@ -46,6 +46,9 @@ New Functionality
 
 - The ``&on_change`` attribute for tables or sets now accepts variable argument functions.
 
+- Added the ``modulo`` BiF, which behaves differently from Zeek's ``%`` operator
+  for negative numbers.
+
 Changed Functionality
 ---------------------
 

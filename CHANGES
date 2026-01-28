@@ -1,3 +1,15 @@
+8.2.0-dev.136 | 2026-01-28 09:21:03 -0500
+
+  * Add `modulo` bif (Evan Typanski)
+
+  * GH-5181: Change `%` in docs to be "remainder" (Evan Typanski)
+
+    Fixes #5181
+
+    Since our behavior for `%` is based on C++, it is indeed remainder and
+    not the modulo operator. This does not change anything internal, such
+    as the expression being `ModExpr`.
+
 8.2.0-dev.133 | 2026-01-27 09:25:06 +0100
 
   * Attr: Allow va_args function for &on_change (Arne Welzel, Corelight)

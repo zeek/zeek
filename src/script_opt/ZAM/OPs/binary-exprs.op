@@ -61,12 +61,12 @@ eval $1 % $2
 binary-expr-op And-And
 op-type I
 vector
-eval zeek_int_t($1 && $2)
+eval static_cast<zeek_int_t>($1 && $2)
 
 binary-expr-op Or-Or
 op-type I
 vector
-eval zeek_int_t($1 || $2)
+eval static_cast<zeek_int_t>($1 || $2)
 
 binary-expr-op And
 op-type U P T

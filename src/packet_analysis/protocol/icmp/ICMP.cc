@@ -267,7 +267,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
     uint32_t src_port;
     uint32_t dst_port;
 
-    if ( len < (int)sizeof(struct ip) ) {
+    if ( len < static_cast<int>(sizeof(struct ip)) ) {
         // We don't have an entire IP header.
         bad_hdr_len = true;
         bad_checksum = false;
@@ -298,7 +298,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
         MF = ip_hdr->MF();
         frag_offset = ip_hdr->FragOffset();
 
-        if ( uint32_t(len) >= ip_hdr_len + 4 )
+        if ( static_cast<uint32_t>(len) >= ip_hdr_len + 4 )
             proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
         else {
             // 4 above is the magic number meaning that both
@@ -343,7 +343,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP6Context(int len, const u_char*& dat
     uint32_t src_port;
     uint32_t dst_port;
 
-    if ( len < (int)sizeof(struct ip6_hdr) ) {
+    if ( len < static_cast<int>(sizeof(struct ip6_hdr)) ) {
         bad_hdr_len = 1;
         ip_len = 0;
         src_port = dst_port = 0;
@@ -359,7 +359,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP6Context(int len, const u_char*& dat
         MF = ip_hdr->MF();
         DF = ip_hdr->DF();
 
-        if ( uint32_t(len) >= uint32_t(ip_hdr->HdrLen() + 4) )
+        if ( static_cast<uint32_t>(len) >= static_cast<uint32_t>(ip_hdr->HdrLen() + 4) )
             proto = GetContextProtocol(ip_hdr, &src_port, &dst_port);
         else {
             // 4 above is the magic number meaning that both
@@ -424,10 +424,10 @@ void ICMPAnalyzer::RouterAdvert(double t, const struct icmp* icmpp, int len, int
     uint32_t reachable = 0;
     uint32_t retrans = 0;
 
-    if ( caplen >= (int)sizeof(reachable) )
+    if ( caplen >= static_cast<int>(sizeof(reachable)) )
         memcpy(&reachable, data, sizeof(reachable));
 
-    if ( caplen >= (int)sizeof(reachable) + (int)sizeof(retrans) )
+    if ( caplen >= static_cast<int>(sizeof(reachable)) + static_cast<int>(sizeof(retrans)) )
         memcpy(&retrans, data + sizeof(reachable), sizeof(retrans));
 
     int opt_offset = sizeof(reachable) + sizeof(retrans);
@@ -440,9 +440,9 @@ void ICMPAnalyzer::RouterAdvert(double t, const struct icmp* icmpp, int len, int
                               val_mgr->Count((icmpp->icmp_wpa & 0x18) >> 3), // Pref
                               val_mgr->Bool(icmpp->icmp_wpa & 0x04),         // Proxy
                               val_mgr->Count(icmpp->icmp_wpa & 0x02),        // Reserved
-                              make_intrusive<IntervalVal>((double)ntohs(icmpp->icmp_lifetime), Seconds),
-                              make_intrusive<IntervalVal>((double)ntohl(reachable), Milliseconds),
-                              make_intrusive<IntervalVal>((double)ntohl(retrans), Milliseconds),
+                              make_intrusive<IntervalVal>(static_cast<double>(ntohs(icmpp->icmp_lifetime)), Seconds),
+                              make_intrusive<IntervalVal>(static_cast<double>(ntohl(reachable)), Milliseconds),
+                              make_intrusive<IntervalVal>(static_cast<double>(ntohl(retrans)), Milliseconds),
                               BuildNDOptionsVal(caplen - opt_offset, data + opt_offset, adapter));
 }
 
@@ -455,7 +455,7 @@ void ICMPAnalyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len, i
 
     IPAddr tgtaddr;
 
-    if ( caplen >= (int)sizeof(in6_addr) )
+    if ( caplen >= static_cast<int>(sizeof(in6_addr)) )
         tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     int opt_offset = sizeof(in6_addr);
@@ -477,7 +477,7 @@ void ICMPAnalyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len, 
 
     IPAddr tgtaddr;
 
-    if ( caplen >= (int)sizeof(in6_addr) )
+    if ( caplen >= static_cast<int>(sizeof(in6_addr)) )
         tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     int opt_offset = sizeof(in6_addr);
@@ -497,10 +497,10 @@ void ICMPAnalyzer::Redirect(double t, const struct icmp* icmpp, int len, int cap
     IPAddr tgtaddr;
     IPAddr dstaddr;
 
-    if ( caplen >= (int)sizeof(in6_addr) )
+    if ( caplen >= static_cast<int>(sizeof(in6_addr)) )
         tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
-    if ( caplen >= 2 * (int)sizeof(in6_addr) )
+    if ( caplen >= 2 * static_cast<int>(sizeof(in6_addr)) )
         dstaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data + sizeof(in6_addr)));
 
     int opt_offset = 2 * sizeof(in6_addr);
@@ -570,8 +570,8 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
             break;
         }
 
-        uint8_t type = *((const uint8_t*)data);
-        uint16_t length = *((const uint8_t*)(data + 1));
+        uint8_t type = *(reinterpret_cast<const uint8_t*>(data));
+        uint16_t length = *(reinterpret_cast<const uint8_t*>((data + 1)));
 
         if ( length == 0 ) {
             adapter->Weird("zero_length_ICMPv6_ND_option");
@@ -620,8 +620,8 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
                         info->Assign(0, val_mgr->Count(prefix_len));
                         info->Assign(1, val_mgr->Bool(L_flag));
                         info->Assign(2, val_mgr->Bool(A_flag));
-                        info->Assign(3, make_intrusive<IntervalVal>((double)ntohl(valid_life), Seconds));
-                        info->Assign(4, make_intrusive<IntervalVal>((double)ntohl(prefer_life), Seconds));
+                        info->Assign(3, make_intrusive<IntervalVal>(static_cast<double>(ntohl(valid_life)), Seconds));
+                        info->Assign(4, make_intrusive<IntervalVal>(static_cast<double>(ntohl(prefer_life)), Seconds));
                         info->Assign(5, make_intrusive<AddrVal>(IPAddr(prefix)));
                         rv->Assign(3, std::move(info));
                     }
@@ -663,7 +663,7 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
         }
 
         if ( set_payload_field ) {
-            String* payload = new String(data, std::min((int)length, caplen), false);
+            String* payload = new String(data, std::min(static_cast<int>(length), caplen), false);
             rv->Assign(6, make_intrusive<StringVal>(payload));
         }
 

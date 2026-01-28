@@ -17,15 +17,15 @@ namespace zeek::input::reader::detail {
 
 Benchmark::Benchmark(ReaderFrontend* frontend) : ReaderBackend(frontend) {
     num_lines = 0;
-    multiplication_factor = double(BifConst::InputBenchmark::factor);
-    autospread = double(BifConst::InputBenchmark::autospread);
-    spread = int(BifConst::InputBenchmark::spread);
-    add = int(BifConst::InputBenchmark::addfactor);
+    multiplication_factor = static_cast<double>(BifConst::InputBenchmark::factor);
+    autospread = static_cast<double>(BifConst::InputBenchmark::autospread);
+    spread = static_cast<int>(BifConst::InputBenchmark::spread);
+    add = static_cast<int>(BifConst::InputBenchmark::addfactor);
     autospread_time = 0;
-    stopspreadat = int(BifConst::InputBenchmark::stopspreadat);
-    timedspread = double(BifConst::InputBenchmark::timedspread);
+    stopspreadat = static_cast<int>(BifConst::InputBenchmark::stopspreadat);
+    timedspread = static_cast<double>(BifConst::InputBenchmark::timedspread);
     heartbeatstarttime = 0;
-    heartbeat_interval = double(BifConst::Threading::heartbeat_interval);
+    heartbeat_interval = static_cast<double>(BifConst::Threading::heartbeat_interval);
 
     ascii = new threading::formatter::Ascii(this, threading::formatter::Ascii::SeparatorInfo());
 }
@@ -42,7 +42,7 @@ bool Benchmark::DoInit(const ReaderInfo& info, int num_fields, const threading::
     num_lines = atoi(info.source);
 
     if ( autospread != 0.0 )
-        autospread_time = (int)((double)1000000 / (autospread * (double)num_lines));
+        autospread_time = static_cast<int>(1000000.0 / (autospread * static_cast<double>(num_lines)));
 
     heartbeatstarttime = CurrTime();
     DoUpdate();
@@ -70,7 +70,7 @@ double Benchmark::CurrTime() {
         FatalError(Fmt("Could not get time: %d", errno));
     }
 
-    return double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
+    return static_cast<double>(tv.tv_sec) + (static_cast<double>(tv.tv_usec) / 1e6);
 }
 
 // read the entire file and send appropriate thingies back to InputMgr
@@ -198,7 +198,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 }
 
 bool Benchmark::DoHeartbeat(double network_time, double current_time) {
-    num_lines = (int)((double)num_lines * multiplication_factor);
+    num_lines = static_cast<int>(static_cast<double>(num_lines) * multiplication_factor);
     num_lines += add;
     heartbeatstarttime = CurrTime();
 
@@ -222,7 +222,7 @@ bool Benchmark::DoHeartbeat(double network_time, double current_time) {
 
             if ( autospread != 0.0 )
                 // because executing this in every loop is apparently too expensive.
-                autospread_time = (int)((double)1000000 / (autospread * (double)num_lines));
+                autospread_time = static_cast<int>(1000000.0 / (autospread * static_cast<double>(num_lines)));
 
             Update(); // call update and not DoUpdate, because update actually checks disabled.
 

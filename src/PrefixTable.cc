@@ -165,10 +165,10 @@ void* PrefixTable::GetNext(iterator* i) {
             i->Xrn = *(--i->Xsp);
 
         else
-            i->Xrn = (patricia_node_t*)nullptr;
+            i->Xrn = nullptr;
 
         if ( i->Xnode->prefix )
-            return (void*)i->Xnode->data;
+            return reinterpret_cast<void*>(i->Xnode->data);
     }
 
     // Not reached.

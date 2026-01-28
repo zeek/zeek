@@ -1860,18 +1860,20 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
     switch ( val->type ) {
         case TYPE_BOOL:
         case TYPE_INT:
-            memcpy(data + startpos, (const void*)&(val->val.int_val), sizeof(val->val.int_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.int_val)), sizeof(val->val.int_val));
             return sizeof(val->val.int_val);
 
         case TYPE_COUNT:
-            memcpy(data + startpos, (const void*)&(val->val.uint_val), sizeof(val->val.uint_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.uint_val)), sizeof(val->val.uint_val));
             return sizeof(val->val.uint_val);
 
         case TYPE_PORT: {
             int length = 0;
-            memcpy(data + startpos, (const void*)&(val->val.port_val.port), sizeof(val->val.port_val.port));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.port_val.port)),
+                   sizeof(val->val.port_val.port));
             length += sizeof(val->val.port_val.port);
-            memcpy(data + startpos + length, (const void*)&(val->val.port_val.proto), sizeof(val->val.port_val.proto));
+            memcpy(data + startpos + length, reinterpret_cast<const void*>(&(val->val.port_val.proto)),
+                   sizeof(val->val.port_val.proto));
             length += sizeof(val->val.port_val.proto);
             return length;
         }
@@ -1879,7 +1881,7 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
         case TYPE_DOUBLE:
         case TYPE_TIME:
         case TYPE_INTERVAL:
-            memcpy(data + startpos, (const void*)&(val->val.double_val), sizeof(val->val.double_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.double_val)), sizeof(val->val.double_val));
             return sizeof(val->val.double_val);
 
         case TYPE_STRING:

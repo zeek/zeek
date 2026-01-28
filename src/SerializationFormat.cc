@@ -89,7 +89,7 @@ bool BinarySerializationFormat::Read(int* v, const char* tag) {
     if ( ! ReadData(&tmp, sizeof(tmp)) )
         return false;
 
-    *v = (int)ntohl(tmp);
+    *v = static_cast<int>(ntohl(tmp));
     DBG_LOG(DBG_SERIAL, "Read int %d [%s]", *v, tag);
     return true;
 }
@@ -117,7 +117,7 @@ bool BinarySerializationFormat::Read(int64_t* v, const char* tag) {
     if ( ! ReadData(x, sizeof(x)) )
         return false;
 
-    *v = ((int64_t(ntohl(x[0]))) << 32) | ntohl(x[1]);
+    *v = ((static_cast<int64_t>(ntohl(x[0]))) << 32) | ntohl(x[1]);
     DBG_LOG(DBG_SERIAL, "Read int64_t %" PRId64 " [%s]", *v, tag);
     return true;
 }
@@ -127,7 +127,7 @@ bool BinarySerializationFormat::Read(uint64_t* v, const char* tag) {
     if ( ! ReadData(x, sizeof(x)) )
         return false;
 
-    *v = ((uint64_t(ntohl(x[0]))) << 32) | ntohl(x[1]);
+    *v = ((static_cast<uint64_t>(ntohl(x[0]))) << 32) | ntohl(x[1]);
     DBG_LOG(DBG_SERIAL, "Read uint64_t %" PRIu64 " [%s]", *v, tag);
     return true;
 }
@@ -241,7 +241,7 @@ bool BinarySerializationFormat::Read(IPPrefix* prefix, const char* tag) {
 }
 
 bool BinarySerializationFormat::Read(struct in_addr* addr, const char* tag) {
-    uint32_t* bytes = (uint32_t*)&addr->s_addr;
+    uint32_t* bytes = reinterpret_cast<uint32_t*>(&addr->s_addr);
 
     if ( ! Read(&bytes[0], "addr4") )
         return false;

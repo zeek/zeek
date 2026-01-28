@@ -269,17 +269,18 @@ void init_net_var() {
     tcp_storm_thresh = id::find_val("tcp_storm_thresh")->AsCount();
     tcp_storm_interarrival_thresh = id::find_val("tcp_storm_interarrival_thresh")->AsInterval();
 
-    tcp_content_deliver_all_orig = bool(id::find_val("tcp_content_deliver_all_orig")->AsBool());
-    tcp_content_deliver_all_resp = bool(id::find_val("tcp_content_deliver_all_resp")->AsBool());
+    tcp_content_deliver_all_orig = static_cast<bool>(id::find_val("tcp_content_deliver_all_orig")->AsBool());
+    tcp_content_deliver_all_resp = static_cast<bool>(id::find_val("tcp_content_deliver_all_resp")->AsBool());
 
-    udp_content_deliver_all_orig = bool(id::find_val("udp_content_deliver_all_orig")->AsBool());
-    udp_content_deliver_all_resp = bool(id::find_val("udp_content_deliver_all_resp")->AsBool());
-    udp_content_delivery_ports_use_resp = bool(id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
+    udp_content_deliver_all_orig = static_cast<bool>(id::find_val("udp_content_deliver_all_orig")->AsBool());
+    udp_content_deliver_all_resp = static_cast<bool>(id::find_val("udp_content_deliver_all_resp")->AsBool());
+    udp_content_delivery_ports_use_resp =
+        static_cast<bool>(id::find_val("udp_content_delivery_ports_use_resp")->AsBool());
 
     dns_session_timeout = id::find_val("dns_session_timeout")->AsInterval();
     rpc_timeout = id::find_val("rpc_timeout")->AsInterval();
 
-    watchdog_interval = int(id::find_val("watchdog_interval")->AsInterval());
+    watchdog_interval = static_cast<int>(id::find_val("watchdog_interval")->AsInterval());
 
     max_timer_expires = id::find_val("max_timer_expires")->AsCount();
 

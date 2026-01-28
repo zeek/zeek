@@ -38,8 +38,9 @@ string orig_label(bool is_orig)
 
 		uint64 operator()(uint48 * num) const
 		{
-		return ((uint64)num->byte1() << 40) | ((uint64)num->byte2() << 32) | ((uint64)num->byte3() << 24) |
-		  ((uint64)num->byte4() << 16) | ((uint64)num->byte5() << 8) | (uint64)num->byte6();
+		return (static_cast<uint64>(num->byte1()) << 40) | (static_cast<uint64>(num->byte2()) << 32) |
+               (static_cast<uint64>(num->byte3()) << 24) | (static_cast<uint64>(num->byte4()) << 16) |
+               (static_cast<uint64>(num->byte5()) << 8) | static_cast<uint64>(num->byte6());
 		}
 	};
 %}

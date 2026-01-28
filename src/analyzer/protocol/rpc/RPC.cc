@@ -37,7 +37,7 @@ RPC_CallInfo::RPC_CallInfo(uint32_t arg_xid, const u_char*& buf, int& n, double 
     rpc_len = arg_rpc_len;
     call_n = n;
     call_buf = new u_char[call_n];
-    memcpy((void*)call_buf, (const void*)buf, call_n);
+    memcpy(reinterpret_cast<void*>(call_buf), reinterpret_cast<const void*>(buf), call_n);
 
     rpc_version = extract_XDR_uint32(buf, n);
     prog = extract_XDR_uint32(buf, n);
@@ -95,7 +95,7 @@ bool RPC_CallInfo::CompareRexmit(const u_char* buf, int n) const {
     if ( n != call_n )
         return false;
 
-    return memcmp((const void*)call_buf, (const void*)buf, call_n) == 0;
+    return memcmp(reinterpret_cast<const void*>(call_buf), reinterpret_cast<const void*>(buf), call_n) == 0;
 }
 
 RPC_Interpreter::RPC_Interpreter(analyzer::Analyzer* arg_analyzer) { analyzer = arg_analyzer; }
@@ -185,7 +185,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, bool is_or
             // The first members of BifEnum::RPC_* correspond
             // to accept_stat.
             if ( accept_stat <= RPC_SYSTEM_ERR )
-                status = (BifEnum::rpc_status)accept_stat;
+                status = static_cast<BifEnum::rpc_status>(accept_stat);
 
             if ( ! buf )
                 return 0;
@@ -245,7 +245,8 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, bool is_or
             }
 
             else {
-                if ( ! RPC_BuildReply(call, (BifEnum::rpc_status)status, buf, n, start_time, last_time, rpc_len) )
+                if ( ! RPC_BuildReply(call, static_cast<BifEnum::rpc_status>(status), buf, n, start_time, last_time,
+                                      rpc_len) )
                     Weird("bad_RPC");
             }
 
@@ -334,7 +335,7 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len) {
     // How many bytes do we want to process with this call?  Either the
     // all of the bytes available or the number of bytes that we are
     // still missing.
-    int64_t to_process = std::min(int64_t(len), (expected - processed));
+    int64_t to_process = std::min(static_cast<int64_t>(len), (expected - processed));
 
     if ( fill < maxsize ) {
         // We haven't yet filled the buffer. How many bytes to copy
@@ -564,7 +565,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
 
                 if ( got_marker ) {
                     const u_char* dummy_p = marker_buf.GetBuf();
-                    int dummy_len = (int)marker_buf.GetFill();
+                    int dummy_len = static_cast<int>(marker_buf.GetFill());
 
                     // have full marker
                     marker = extract_XDR_uint32(dummy_p, dummy_len);
@@ -606,10 +607,10 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                     // last fragment.
                     if ( state == WAIT_FOR_LAST_DATA ) {
                         const u_char* dummy_p = msg_buf.GetBuf();
-                        int dummy_len = (int)msg_buf.GetFill();
+                        int dummy_len = static_cast<int>(msg_buf.GetFill());
 
-                        if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(), IsOrig(), start_time,
-                                                  last_time) )
+                        if ( ! interp->DeliverRPC(dummy_p, dummy_len, static_cast<int>(msg_buf.GetExpected()), IsOrig(),
+                                                  start_time, last_time) )
                             Conn()->Weird("partial_RPC");
 
                         state = WAIT_FOR_MESSAGE;

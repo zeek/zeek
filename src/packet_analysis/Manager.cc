@@ -182,7 +182,7 @@ void Manager::DumpPacket(const Packet* pkt, int len) {
         return;
 
     if ( len != 0 ) {
-        if ( (uint32_t)len > pkt->cap_len )
+        if ( static_cast<uint32_t>(len) > pkt->cap_len )
             reporter->Warning("bad modified caplen");
         else
             const_cast<Packet*>(pkt)->cap_len = len;

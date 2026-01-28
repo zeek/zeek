@@ -474,7 +474,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, uint64_t total_len, bool se
     uint8_t next_type = IPPROTO_IPV6;
     const u_char* hdrs = reinterpret_cast<const u_char*>(ip6);
 
-    if ( total_len < (int)sizeof(struct ip6_hdr) ) {
+    if ( total_len < static_cast<int>(sizeof(struct ip6_hdr)) ) {
         reporter->InternalWarning("truncated IP header in IPv6_HdrChain::Init");
         return;
     }

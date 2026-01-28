@@ -54,7 +54,7 @@ HTTP_Entity::HTTP_Entity(HTTP_Message* arg_message, analyzer::mime::MIME_Entity*
     send_size = true;
     // Always override what MIME_Entity set for want_all_headers: HTTP doesn't
     // raise the generic MIME events, but rather it's own specific ones.
-    want_all_headers = (bool)http_all_headers;
+    want_all_headers = static_cast<bool>(http_all_headers);
 }
 
 void HTTP_Entity::EndOfData() {
@@ -1098,8 +1098,10 @@ void HTTP_Analyzer::GenStats() {
 
 const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix,
                                        bool ignore_case) {
-    while ( *prefix && line < end_of_line &&
-            ((ignore_case && tolower((unsigned char)*prefix) == tolower((unsigned char)*line)) || *prefix == *line) ) {
+    while (
+        *prefix && line < end_of_line &&
+        ((ignore_case && tolower(static_cast<unsigned char>(*prefix)) == tolower(static_cast<unsigned char>(*line))) ||
+         *prefix == *line) ) {
         ++prefix;
         ++line;
     }
@@ -1177,7 +1179,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line) {
 
     request_method = make_intrusive<StringVal>(end_of_method - line, line);
 
-    Conn()->Match(zeek::detail::Rule::HTTP_REQUEST, (const u_char*)unescaped_URI->AsString()->Bytes(),
+    Conn()->Match(zeek::detail::Rule::HTTP_REQUEST, static_cast<const u_char*>(unescaped_URI->AsString()->Bytes()),
                   unescaped_URI->AsString()->Len(), true, true, true, true);
 
     return 1;
@@ -1520,7 +1522,7 @@ int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line) {
     }
 
     rest = util::skip_whitespace(rest, end_of_line);
-    reply_reason_phrase = make_intrusive<StringVal>(end_of_line - rest, (const char*)rest);
+    reply_reason_phrase = make_intrusive<StringVal>(end_of_line - rest, rest);
 
     return 1;
 }

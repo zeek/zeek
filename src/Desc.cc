@@ -316,7 +316,7 @@ void ODesc::AddBytesRaw(const void* bytes, size_t n) {
         // The following casting contortions are necessary because
         // simply using &base[offset] generates complaints about
         // using a void* for pointer arithmetic.
-        memcpy((void*)&(reinterpret_cast<char*>(base))[offset], bytes, n);
+        memcpy(reinterpret_cast<void*>(&(reinterpret_cast<char*>(base))[offset]), bytes, n);
         offset += n;
 
         (reinterpret_cast<char*>(base))[offset] = '\0'; // ensure that always NUL-term.

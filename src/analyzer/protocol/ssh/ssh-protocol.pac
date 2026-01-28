@@ -441,7 +441,7 @@ refine connection SSH_Conn += {
 
 	function update_kex_state_if_startswith(s: string, to_state: state) : bool
 		%{
-		if ( (uint) kex_algorithm_.length() < s.length() )
+		if ( static_cast<uint>(kex_algorithm_.length()) < s.length() )
 			return false;
 
 		if ( std_str(kex_algorithm_).substr(0, s.length()).compare(s) == 0 )
@@ -476,7 +476,7 @@ refine connection SSH_Conn += {
 				if ( *(client_list->StringAt(i)) == *(server_list->StringAt(j)) )
 					{
 					kex_algorithm_.free();
-					kex_algorithm_.init((const uint8 *) client_list->StringAt(i)->Bytes(),
+					kex_algorithm_.init(reinterpret_cast<const uint8*>(client_list->StringAt(i)->Bytes()),
 						client_list->StringAt(i)->Len());
 
 					// UNTESTED

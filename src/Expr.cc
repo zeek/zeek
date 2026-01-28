@@ -38,7 +38,7 @@ const char* expr_name(ExprTag t) {
     // rather than symbols, and (2) don't have custom ExprDescribe printers.
     // Adding the spaces here lets them leverage the UnaryExpr::ExprDescribe
     // method without it having to know about such expressions.
-    static const char* expr_names[int(NUM_EXPRS)] = {
+    static const char* expr_names[static_cast<int>(NUM_EXPRS)] = {
         "name",
         "const",
         "(*)",
@@ -112,17 +112,17 @@ const char* expr_name(ExprTag t) {
         "nop", // don't add after this, it's used to compute NUM_EXPRS
     };
 
-    if ( int(t) >= NUM_EXPRS ) {
+    if ( static_cast<int>(t) >= NUM_EXPRS ) {
         static char errbuf[512];
 
         // This isn't quite right - we return a static buffer,
         // so multiple calls to expr_name() could lead to confusion
         // by overwriting the buffer.  But oh well.
-        snprintf(errbuf, sizeof(errbuf), "%d: not an expression tag", int(t));
+        snprintf(errbuf, sizeof(errbuf), "%d: not an expression tag", static_cast<int>(t));
         return errbuf;
     }
 
-    return expr_names[int(t)];
+    return expr_names[static_cast<int>(t)];
 }
 
 int Expr::num_exprs = 0;
@@ -377,7 +377,7 @@ void Expr::Describe(ODesc* d) const {
 
 void Expr::AddTag(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
     else
         d->AddSP(expr_name(Tag()));
 }
@@ -4038,7 +4038,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
         if ( table_type->IsPatternIndex() && v1->GetType()->Tag() == TYPE_STRING )
             res = table_val->MatchPattern({NewRef{}, v1->AsStringVal()});
         else
-            res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+            res = static_cast<bool>(v2->AsTableVal()->Find({NewRef{}, v1}));
     }
 
     return val_mgr->Bool(res);
@@ -4160,7 +4160,7 @@ ValPtr CallExpr::Eval(Frame* f) const {
     // Check for that.
     if ( f ) {
         if ( trigger::Trigger* trigger = f->GetTrigger() ) {
-            if ( Val* v = trigger->Lookup((void*)this) ) {
+            if ( Val* v = trigger->Lookup(reinterpret_cast<const void*>(this)) ) {
                 DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
                 return {NewRef{}, v};
             }

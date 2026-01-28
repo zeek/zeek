@@ -230,7 +230,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 
 	new_s[ind] = '\0';
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(new_s), ind));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(new_s), ind));
 	%}
 
 ## Get a substring from a string, given a starting position and length.
@@ -668,7 +668,7 @@ function to_upper%(str: string%): string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(s), strlen(s)));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(s), strlen(s)));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -686,7 +686,7 @@ function clean%(str: string%): string
 function to_string_literal%(str: string%): string
 	%{
 	char* s = str->AsString()->Render(zeek::String::ZEEK_STRING_LITERAL);
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(s), strlen(s)));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(s), strlen(s)));
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
@@ -935,7 +935,7 @@ function string_fill%(len: int, source: string%): string
 
 	dst[len - 1] = 0;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(dst), len));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(dst), len));
 	%}
 
 ## Takes a string and escapes characters that would allow execution of
@@ -1196,10 +1196,9 @@ function hexdump%(data_str: string%) : string
 			}
 
 		char hex_byte[3];
-		snprintf(hex_byte, sizeof(hex_byte),
-				"%.2x", (u_char) *data_ptr);
+		snprintf(hex_byte, sizeof(hex_byte), "%.2x", *data_ptr);
 
-		int val = (u_char) *data_ptr;
+		int val = *data_ptr;
 
 		u_char ascii_byte = val;
 

@@ -1,3 +1,13 @@
+8.2.0-dev.138 | 2026-01-28 17:01:22 -0500
+
+  * GH-5181: Describe `%` as remainder and add a note for `int` (Evan Typanski)
+
+    There was a public-facing section I missed that referred to `%` as
+    modulo (it is remainder). This also adds a note in the `int` section for
+    maximum clarity.
+
+    See #5181 and #5182
+
 8.2.0-dev.136 | 2026-01-28 09:21:03 -0500
 
   * Add `modulo` bif (Evan Typanski)

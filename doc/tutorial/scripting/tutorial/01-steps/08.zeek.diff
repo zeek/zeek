@@ -1,0 +1,14 @@
+--- 07.zeek	2025-11-06 10:18:31
++++ 08.zeek	2025-11-06 10:20:50
+@@ -15,7 +15,10 @@
+ 		if ( remaining_available <= 0 )
+ 			return;
+ 
+-		c$http_state$entity += data;
++		if ( length <= remaining_available )
++			c$http_state$entity += data;
++		else
++			c$http_state$entity += data[:remaining_available];
+ 		}
+ 	}
+ 

@@ -274,7 +274,7 @@
 	#endif
 #endif
 
-#if defined(ZEEK_ASAN) && !defined(__FreeBSD__)
+#if defined(ZEEK_ASAN) && ! defined(__FreeBSD__) && ! defined(__APPLE__)
     #include <sanitizer/lsan_interface.h>
     #define ZEEK_LSAN_CHECK(...) __lsan_do_leak_check(__VA_ARGS__)
     #define ZEEK_LSAN_ENABLE(...) __lsan_enable(__VA_ARGS__)

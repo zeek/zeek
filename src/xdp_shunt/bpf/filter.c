@@ -195,14 +195,21 @@ int xdp_filter(struct xdp_md* ctx) {
 
     __u16 port_source;
     __u16 port_dest;
-    char is_control_packet = 0;
     if ( l4_protocol == IPPROTO_TCP ) {
         struct tcphdr* tcph = transport_header;
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
 
-        // Forward all TCP control packets
-        is_control_packet = tcph->fin || tcph->rst || tcph->syn || tcph->ack;
+        // Forward start/ends of connection for Zeek
+        if ( tcph->fin || tcph->rst || tcph->syn )
+            return XDP_PASS;
+
+        // Forward ack if it has no data
+        if ( tcph->ack ) {
+            void* payload_start = (void*)tcph + (tcph->doff * 4);
+            if ( payload_start == data_end )
+                return XDP_PASS;
+        }
 
         port_source = bpf_ntohs(tcph->source);
         port_dest = bpf_ntohs(tcph->dest);
@@ -248,8 +255,6 @@ int xdp_filter(struct xdp_md* ctx) {
     struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( val ) {
         update_value(val, ctx, from_ip1);
-        if ( is_control_packet )
-            return XDP_PASS;
         return XDP_DROP;
     }
 
@@ -268,8 +273,6 @@ int xdp_filter(struct xdp_md* ctx) {
     val = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( val ) {
         update_value(val, ctx, from_ip1);
-        if ( is_control_packet )
-            return XDP_PASS;
         return XDP_DROP;
     }
 

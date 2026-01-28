@@ -852,6 +852,12 @@ operators (``+``, ``-``, ``*``, ``/``, ``%``), comparison operators
 (e.g., ``|-3|`` is 3, but the result type is :zeek:type:`count`), and
 bitwise shift operations (``<<``, ``>>``).
 
+.. note::
+
+   Zeek's ``%`` operator is remainder, the same as C++. This is different
+   than the modulo operator for negative numbers. If modulo is necessary,
+   use :zeek:see:`modulo`.
+
 When using type inferencing, use care so that the
 intended type is inferred, e.g. ``local size_difference = 0`` will
 infer :zeek:type:`count`, while ``local size_difference = +0``
@@ -2066,7 +2072,7 @@ decrement each element in the vector.
 
 Vectors of arithmetic types (:zeek:type:`int` or :zeek:type:`count`, or :zeek:type:`double`) can be
 operands of the arithmetic operators (``+``, ``-``, ``*``, ``/``, ``%``),
-but both operands must have the same number of elements (and the modulus
+but both operands must have the same number of elements (and the remainder
 operator ``%`` cannot be used if either operand is a ``vector of double``).
 The resulting vector contains the result of the operation applied to each
 of the elements in the operand vectors.

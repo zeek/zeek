@@ -308,7 +308,7 @@ void finish_alternative_mode() {
 #endif
 
 // FreeBSD doesn't support LeakSanitizer
-#if defined(USING_ASAN) && ! defined(__FreeBSD__)
+#if defined(USING_ASAN) && ! defined(__FreeBSD__) && ! defined(__APPLE__)
 #include <sanitizer/lsan_interface.h>
 #define BIFCL_LSAN_DISABLE() __lsan_disable()
 #else

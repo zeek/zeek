@@ -42,14 +42,14 @@ protected:
         IPBasedConnKey::DoPopulateConnIdVal(conn_id, ctx);
 
         // Nothing to do if we have no VLAN tags at all.
-        if ( key.vlan == 0 && key.inner_vlan == 0 )
+        if ( ! key.vlan_present && ! key.inner_vlan_present )
             return;
 
         auto [vlan_offset, inner_vlan_offset] = GetConnCtxFieldOffsets();
 
-        if ( key.vlan && vlan_offset >= 0 )
+        if ( key.vlan_present && vlan_offset >= 0 )
             ctx.Assign(vlan_offset, static_cast<int>(key.vlan));
-        if ( key.inner_vlan && inner_vlan_offset >= 0 )
+        if ( key.inner_vlan_present && inner_vlan_offset >= 0 )
             ctx.Assign(inner_vlan_offset, static_cast<int>(key.inner_vlan));
     };
 
@@ -72,8 +72,25 @@ protected:
 
 protected:
     void DoInit(const Packet& pkt) override {
-        key.vlan = pkt.vlan;
-        key.inner_vlan = pkt.inner_vlan;
+        auto vlan_tag = pkt.GetVlanTag();
+        if ( vlan_tag ) {
+            key.vlan = vlan_tag->id;
+            key.vlan_present = true;
+        }
+        else {
+            key.vlan = 0;
+            key.vlan_present = false;
+        }
+
+        auto inner_vlan_tag = pkt.GetInnerVlanTag();
+        if ( inner_vlan_tag ) {
+            key.inner_vlan = inner_vlan_tag->id;
+            key.inner_vlan_present = true;
+        }
+        else {
+            key.inner_vlan = 0;
+            key.inner_vlan_present = false;
+        }
     }
 
 private:
@@ -83,9 +100,11 @@ private:
         struct detail::PackedConnTuple tuple;
         // Add 802.1Q vlan tags to connection tuples. The tag representation
         // here is as in the Packet class (where it's oddly 32-bit), since
-        // that's where we learn the tag values from. 0 indicates absence.
+        // that's where we learn the tag values from.
         uint32_t vlan;
         uint32_t inner_vlan;
+        bool vlan_present;
+        bool inner_vlan_present;
     } __attribute__((packed, aligned)) key;
 };
 
@@ -106,11 +125,15 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     if ( vlan_offset < 0 || inner_vlan_offset < 0 )
         return zeek::unexpected<std::string>{"missing vlan or inner_vlan field in context"};
 
-    if ( ctx->HasField(vlan_offset) )
+    if ( ctx->HasField(vlan_offset) ) {
+        k->key.vlan_present = true;
         k->key.vlan = ctx->GetFieldAs<zeek::IntVal>(vlan_offset);
+    }
 
-    if ( ctx->HasField(inner_vlan_offset) )
+    if ( ctx->HasField(inner_vlan_offset) ) {
+        k->key.inner_vlan_present = true;
         k->key.inner_vlan = ctx->GetFieldAs<zeek::IntVal>(inner_vlan_offset);
+    }
 
     return ck;
 }

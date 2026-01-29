@@ -10,6 +10,13 @@ We would like to thank Siavash Tahmureszadeh for their contribution to this rele
 
 This release fixes the following security issues:
 
+- Zeek's HTTP analyzer can be tricked into interpreting ``Transfer-Encoding`` or
+  ``Content-Length`` headers set in MIME entities within HTTP bodies and change the
+  analyzer behavior. This can be used to hide HTTP requests from analysis. Due to the fact
+  that these packets can be received from remote hosts, this is a DoS risk. The fix is to
+  only process the headers from the outermost MIME entity, which causes all internal
+  entities to be parsed.
+
 This release fixes the following bugs:
 
 - A missing state check was added to the ``finalize_redis`` hook in the Redis

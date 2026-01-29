@@ -1,3 +1,53 @@
+8.0.5-14 | 2026-01-29 07:34:58 -0700
+
+  * btest/http: Add test PCAPs from CTU-SME and m57-long external tests (Arne Welzel, Corelight)
+
+    Connections extracted that showed baseline diffs in http.log and
+    files.log after changing the handling on Transfer-Encoding and
+    Content-Length within Zeek's HTTP analyzer.
+
+    Previously there were spurious http.log entries and the resp_body_len
+    now reflects Content-Length if provided.
+
+    (cherry picked from commit 5c12d65ce1aca2267686a6ece3ca8c1f7468b769)
+
+  * btest/http: Regression tests for Transfer-Encoding and Content-Length in bodies (Arne Welzel, Corelight)
+
+    Previously Zeek would pick up on Transfer-Encoding and Content-Length
+    headers within a HTTP request body, potentially skipping requests
+    following within the same HTTP connection.
+
+    (cherry picked from commit ca5741d474c1e9d602cbe688261a2b730cc1814f)
+
+  * btest/http/deeply-nested-mime: Remove spurious http.log entry (Arne Welzel, Corelight)
+
+    The PCAP only contains a single HTTP request and response, so
+    this is actually an improvement. This should be due to the fact
+    that the top-level Content-Length header is now respected.
+
+    (cherry picked from commit 9ac5d1a9e1bcd2327b6a1833da1315991afd816d)
+
+  * HTTP: Respect most outer Content-Length also for multipart and message (Arne Welzel, Corelight)
+
+    Previously, a nested Content-Length header would change the analyzers
+    behavior which could be exploited to hide subsequent HTTP requests
+    within the same connection from analysis.
+
+    (cherry picked from commit 6528cd7a2bea7ece2b862ffbff01cf93e887bb5a)
+
+  * HTTP: Ignore Transfer-Encoding header of inner MIME entities (Arne Welzel, Corelight)
+
+    Processing the Transfer-Encoding header changes the analyzer behavior and we
+    only want to allow this for the most outer HTTP entity, not for any nested
+    MIME entities in the HTTP body.
+
+    Previously one could set a Transfer-Encoding header within a RFC822
+    message placed within the HTTP body, allowing to modify plain delivery
+    parameters of the analyzer, thereby hiding subsequent HTTP requests
+    within the same connection from analysis.
+
+    (cherry picked from commit bb2170d3bfeb43fe53c2c2a73530821e2d7f20d1)
+
 8.0.5-8 | 2026-01-26 22:00:52 +0000
 
   * Regenerate spicy autogen docs based on recent spicy-tftp changes (Tim Wojtulewicz, Corelight)

@@ -62,3 +62,8 @@ Trace Index/Sources:
 - tcp/ctu-64702-888.pcap
   Extracted from CTU-SME-11 after observing ConnSize differences when
   fixing is_orig behavior (port 64702 and port 888).
+- http/ctu-62604-80.pcap
+  Extracted from CTU-SME-11 after observing http.log differences when
+  fixing MIME entity behavior (port 64702 and port 80).
+- http/m57-long-49525-80.pcap http/m57-long-49600-80.pcap
+  Extracted from m57-long test after observing http.log and files.log differences.

@@ -58,7 +58,8 @@ HTTP_Entity::HTTP_Entity(HTTP_Message* arg_message, analyzer::mime::MIME_Entity*
 
 void HTTP_Entity::EndOfData() {
     if ( DEBUG_http )
-        DEBUG_MSG("%.6f: end of data\n", run_state::network_time);
+        DEBUG_MSG("%.6f HTTP_Entity::EndOfData[%p, %" PRId64 "] is_orig=%d\n", run_state::network_time, this, Depth(),
+                  http_message->IsOrig());
 
     if ( zip ) {
         zip->Done();
@@ -81,7 +82,10 @@ void HTTP_Entity::EndOfData() {
 
 void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
     if ( DEBUG_http ) {
-        DEBUG_MSG("%.6f HTTP_Entity::Deliver len=%d, in_header=%d\n", run_state::network_time, len, in_header);
+        DEBUG_MSG("%.6f HTTP_Entity::Deliver[%p, %" PRId64 "] len=%d content_type=%d content_length=%" PRId64
+                  " expect_data_length=%" PRId64 " trailing_CRLF=%d in_header=%d is_orig=%d\n",
+                  run_state::network_time, this, Depth(), len, content_type, content_length, expect_data_length,
+                  trailing_CRLF, in_header, http_message->IsOrig());
     }
 
     if ( end_of_data ) {
@@ -102,12 +106,34 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
 
     // Entity body.
     if ( content_type == analyzer::mime::CONTENT_TYPE_MULTIPART ||
-         content_type == analyzer::mime::CONTENT_TYPE_MESSAGE )
+         content_type == analyzer::mime::CONTENT_TYPE_MESSAGE ) {
         DeliverBody(len, data, trailing_CRLF); // NOLINT(bugprone-branch-clone)
+
+        // If this is the top-level entity and a content_length was
+        // set, ensure we do not consume more bytes than the content
+        // length specified by client or server.
+        //
+        // This is a copy of the content_length > 0 path below :-(
+        if ( Depth() == 0 && content_length > 0 ) {
+            expect_data_length -= len;
+            if ( trailing_CRLF )
+                expect_data_length -= 2;
+
+            if ( expect_data_length <= 0 ) {
+                if ( DEBUG_http )
+                    DEBUG_MSG("%.6f HTTP_Entity::Deliver[%p, %" PRId64
+                              "] Calling EndOfData() trailing_CRLF=%d expect_data_length=% " PRId64 "\n",
+                              run_state::network_time, this, Depth(), trailing_CRLF, expect_data_length);
+                SetPlainDelivery(0);
+                EndOfData();
+            }
+        }
+    }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
         switch ( chunked_transfer_state ) {
             case EXPECT_CHUNK_SIZE:
+                ASSERT(Depth() == 0); // chunked transfer only allowed for top-level entity
                 ASSERT(trailing_CRLF);
                 if ( ! util::atoi_n(len, data, nullptr, 16, expect_data_length) ) {
                     http_message->Weird("HTTP_bad_chunk_size");
@@ -193,6 +219,10 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
 
 void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF) {
     bool new_data = (body_length == 0);
+
+    if ( DEBUG_http )
+        DEBUG_MSG("%.6f HTTP_Entity::DeliverBodyClear[%p, %" PRId64 "] len=%d is_orig=%d\n", run_state::network_time,
+                  this, Depth(), len, http_message->IsOrig());
 
     body_length += len;
     if ( trailing_CRLF )
@@ -310,6 +340,10 @@ void HTTP_Entity::SetPlainDelivery(int64_t length) {
     ASSERT(length >= 0);
     ASSERT(length == 0 || ! in_header);
 
+    if ( DEBUG_http )
+        DEBUG_MSG("%.6f SetPlainDelivery(%" PRId64 ") is_orig=%d\n", run_state::network_time, length,
+                  http_message->IsOrig());
+
     http_message->SetPlainDelivery(length);
 
     // If we skip HTTP data, the skipped part will appear as
@@ -372,8 +406,8 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         std::string last_byte_pos = byte_range_resp_spec.substr(p + 1);
 
         if ( DEBUG_http )
-            DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(), first_byte_pos.c_str(),
-                      last_byte_pos.c_str(), instance_length_str.c_str());
+            DEBUG_MSG("%.6f Parsed Content-Range: %s %s-%s/%s\n", run_state::network_time, byte_unit.c_str(),
+                      first_byte_pos.c_str(), last_byte_pos.c_str(), instance_length_str.c_str());
 
         int64_t f;
         int64_t l;
@@ -387,7 +421,7 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         int64_t len = l - f + 1;
 
         if ( DEBUG_http )
-            DEBUG_MSG("Content-Range length = %" PRId64 "\n", len);
+            DEBUG_MSG("%.6f Content-Range length = %" PRId64 "\n", run_state::network_time, len);
 
         if ( len > 0 ) {
             if ( instance_length_str != "*" ) {
@@ -420,16 +454,29 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
     }
 
     else if ( analyzer::mime::istrequal(h->get_name(), "transfer-encoding") ) {
-        HTTP_Analyzer::HTTP_VersionNumber http_version;
+        // Only process Transfer-Encoding headers of the top-level entity.
+        //
+        // Processing this header changes the analyzer behavior and we only
+        // want to allow this for the most outer HTTP entity, not for any
+        // nested MIME entities in the HTTP body.
+        //
+        // Previously one could set a Transfer-Encoding header within a MIME
+        // message of a HTTP body and modify plain delivery parameters.
+        if ( Depth() == 0 ) {
+            HTTP_Analyzer::HTTP_VersionNumber http_version;
 
-        if ( http_message->analyzer->GetRequestOngoing() )
-            http_version = http_message->analyzer->GetRequestVersionNumber();
-        else // reply_ongoing
-            http_version = http_message->analyzer->GetReplyVersionNumber();
+            if ( http_message->analyzer->GetRequestOngoing() )
+                http_version = http_message->analyzer->GetRequestVersionNumber();
+            else // reply_ongoing
+                http_version = http_message->analyzer->GetReplyVersionNumber();
 
-        data_chunk_t vt = h->get_value_token();
-        if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
-            chunked_transfer_state = BEFORE_CHUNK;
+            data_chunk_t vt = h->get_value_token();
+            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
+                chunked_transfer_state = BEFORE_CHUNK;
+        }
+        else {
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");
+        }
     }
 
     else if ( analyzer::mime::istrequal(h->get_name(), "content-encoding") ) {
@@ -448,7 +495,11 @@ void HTTP_Entity::SubmitAllHeaders() {
     ASSERT(! in_header);
 
     if ( DEBUG_http )
-        DEBUG_MSG("%.6f end of headers\n", run_state::network_time);
+        DEBUG_MSG("%.6f HTTP_Entity::SubmitAllHeaders[%p, %" PRId64
+                  "] content_type=%d chunked_transfer_state=%d encoding=%d "
+                  "content_length=%" PRId64 " is_orig=%d\n",
+                  run_state::network_time, this, Depth(), content_type, chunked_transfer_state, encoding,
+                  content_length, http_message->IsOrig());
 
     if ( Parent() && Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART ) {
         // Don't treat single \r or \n characters in the multipart body content
@@ -490,6 +541,18 @@ void HTTP_Entity::SubmitAllHeaders() {
         if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
             http_message->Weird("HTTP_chunked_transfer_for_multipart_message");
         }
+
+        // For the top-level entity, even if it is multipart or a MIME message,
+        // we do not want to consume more bytes than what the Content-Length
+        // header specifies, so set expect_data_length accordingly.
+        if ( Depth() == 0 && content_length >= 0 ) {
+            if ( content_length > 0 ) {
+                expect_data_length = content_length;
+                http_message->SetDeliverySize(content_length);
+            }
+            else
+                EndOfData(); // handle the case that content-length = 0
+        }
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -497,6 +560,9 @@ void HTTP_Entity::SubmitAllHeaders() {
 
     else if ( content_length >= 0 ) {
         if ( content_length > 0 ) {
+            // If Content-Length is set at a Depth() > 0, the outer Content-Length
+            // should be larger or unbounded via IsConnectionClose or
+            // Transfer-Encoding: chunked.
             expect_data_length = content_length;
             SetPlainDelivery(content_length);
         }
@@ -599,7 +665,7 @@ void HTTP_Message::BeginEntity(analyzer::mime::MIME_Entity* entity) {
     if ( DEBUG_http )
         DEBUG_MSG("%.6f: begin entity (%d)\n", run_state::network_time, is_orig);
 
-    current_entity = (HTTP_Entity*)entity;
+    current_entity = static_cast<HTTP_Entity*>(entity);
 
     if ( http_begin_entity )
         analyzer->EnqueueConnEvent(http_begin_entity, analyzer->ConnVal(), val_mgr->Bool(is_orig));
@@ -607,7 +673,8 @@ void HTTP_Message::BeginEntity(analyzer::mime::MIME_Entity* entity) {
 
 void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
     if ( DEBUG_http )
-        DEBUG_MSG("%.6f: end entity (%d)\n", run_state::network_time, is_orig);
+        DEBUG_MSG("%.6f HTTP_Message::EndEntity[%p, %" PRId64 " is_orig=%d\n", run_state::network_time, entity,
+                  entity->Depth(), is_orig);
 
     if ( entity == top_level ) {
         body_length += ((HTTP_Entity*)entity)->BodyLength();
@@ -692,13 +759,21 @@ void HTTP_Message::SubmitEvent(int event_type, const char* detail) {
 }
 
 void HTTP_Message::SetPlainDelivery(int64_t length) {
+    if ( DEBUG_http )
+        DEBUG_MSG("%.6f SetPlainDelivery(%" PRId64 ") is_orig=%d\n", run_state::network_time, length, IsOrig());
+
     content_line->SetPlainDelivery(length);
 
     if ( length > 0 && BifConst::skip_http_data )
         content_line->SkipBytesAfterThisLine(length);
 }
 
-void HTTP_Message::SetDeliverySize(int64_t length) { content_line->SetDeliverySize(length); }
+void HTTP_Message::SetDeliverySize(int64_t length) {
+    if ( DEBUG_http )
+        DEBUG_MSG("%.6f SetDeliverySize(%" PRId64 ") is_orig=%d\n", run_state::network_time, length, IsOrig());
+
+    content_line->SetDeliverySize(length);
+}
 
 void HTTP_Message::SkipEntityData() {
     if ( current_entity )
@@ -771,6 +846,15 @@ void HTTP_Analyzer::Done() {
 void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(len, data, is_orig);
 
+    analyzer::tcp::ContentLine_Analyzer* content_line = is_orig ? content_line_orig : content_line_resp;
+
+    if ( DEBUG_http )
+        DEBUG_MSG(
+            "%.6f HTTP_Analyzer::DeliverStream len=%d deliver_stream_remaining=%d is_plain_delivery=%d "
+            "request_state=%d reply_state=%d is_orig=%d\n",
+            run_state::network_time, len, content_line->GetDeliverStreamRemainingLength(),
+            content_line->IsPlainDelivery(), is_orig, request_state, reply_state);
+
     if ( TCP() && TCP()->IsPartial() )
         return;
 
@@ -811,8 +895,6 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
         reply_message->Deliver(len, line, false);
         return;
     }
-
-    analyzer::tcp::ContentLine_Analyzer* content_line = is_orig ? content_line_orig : content_line_resp;
 
     if ( content_line->IsPlainDelivery() ) {
         if ( is_orig ) {
@@ -1583,9 +1665,6 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, analyzer::mime::MIME_Header* h) {
         Conn()->Match(rule, (const u_char*)hd_name.data, hd_name.length, is_orig, true, false, true);
         Conn()->Match(rule, (const u_char*)": ", 2, is_orig, false, false, false);
         Conn()->Match(rule, (const u_char*)hd_value.data, hd_value.length, is_orig, false, true, false);
-
-        if ( DEBUG_http )
-            DEBUG_MSG("%.6f http_header\n", run_state::network_time);
 
         auto upper_hn = analyzer::mime::to_string_val(h->get_name());
         upper_hn->ToUpper();

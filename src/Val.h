@@ -657,7 +657,7 @@ public:
     // Constructor used to build up a homogeneous list of values;
     // or, if 't' is TYPE_ANY, then a heterogeneous one whose type
     // is built up as values are appended.
-    explicit ListVal(TypeTag t);
+    explicit ListVal(TypeTag t) : ListVal(base_type(t)) {}
 
     // Constructor used to build up a homogeneous list of values;
     // or, if 't' is nil or base_type(TYPE_ANY), then a heterogeneous

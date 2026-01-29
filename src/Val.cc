@@ -1408,9 +1408,6 @@ ListVal::ListVal(TypePtr t) : Val(make_intrusive<TypeList>(t ? (t->Tag() == TYPE
     tag = t ? t->Tag() : TYPE_ANY;
 }
 
-// Delegate to ListVal(TypePtr t) using base_type(t).
-ListVal::ListVal(TypeTag t) : ListVal(base_type(t)) {}
-
 ListVal::ListVal(TypeListPtr tl, std::vector<ValPtr> _vals) : Val(std::move(tl)) {
     tag = TYPE_ANY;
     vals = std::move(_vals);

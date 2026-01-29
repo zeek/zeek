@@ -1,4 +1,8 @@
-8.0.5-14 | 2026-01-29 07:34:58 -0700
+8.0.6 | 2026-01-29 15:49:13 +0000
+
+  * Release 8.0.6.
+
+8.0.5-16 | 2026-01-29 07:35:18 -0700
 
   * btest/http: Add test PCAPs from CTU-SME and m57-long external tests (Arne Welzel, Corelight)
 

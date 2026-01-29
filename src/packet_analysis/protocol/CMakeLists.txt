@@ -24,6 +24,7 @@ add_subdirectory(ip)
 add_subdirectory(udp)
 add_subdirectory(tcp)
 add_subdirectory(icmp)
+add_subdirectory(igmp)
 add_subdirectory(vntag)
 add_subdirectory(unknown_ip_transport)
 

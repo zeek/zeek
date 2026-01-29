@@ -2,6 +2,9 @@
 
 # IGMP Spicy analyzer and events
 
+%doc-id = Zeek::IGMP;
+%doc-description = "IGMP analyzer";
+
 import IGMP;
 
 
@@ -15,36 +18,36 @@ packet analyzer IGMP:
 # Generated for every processed IGMP message.
 # :param $packet: raw packet header
 # :param self.msg_type: IGMP message type
-on IGMP::Message -> event igmp::message($packet, self.msg_type);
+on IGMP::Message -> event IGMP::message($packet, self.msg_type);
 
 # Generated for every IGMP message which did not pass checksum verification.
 # :param $packet: raw packet header
 # :param self.checksum: checksum value transmitted in the message
 # :param self.computed_checksum: checksum value computed over the message
-on IGMP::Message if ( !self.is_checksum_ok ) -> event igmp::bad_checksum($packet, self.transmitted_checksum, self.computed_checksum);
+on IGMP::Message if ( !self.is_checksum_ok ) -> event IGMP::bad_checksum($packet, self.transmitted_checksum, self.computed_checksum);
 
 # Generated for every IGMP Membership Query.
 # :param $packet: raw packet header
 # :param self.group_addr: Multicast group address
-on IGMP::MembershipQuery -> event igmp::membership_query($packet, self.group_addr);
+on IGMP::MembershipQuery -> event IGMP::membership_query($packet, self.group_addr);
 
 # Generated for every IGMP Version 1 Membership Report.
 # :param $packet: raw packet header
 # :param self.group_addr: Multicast group address
-on IGMP::MembershipReportV1 -> event igmp::membership_report_v1($packet, self.group_addr);
+on IGMP::MembershipReportV1 -> event IGMP::membership_report_v1($packet, self.group_addr);
 
 # Generated for every IGMP Version 2 Membership Report.
 # :param $packet: raw packet header
 # :param self.group_addr: Multicast group address
-on IGMP::MessageV2 if ( is_membership_report ) -> event igmp::membership_report_v2($packet, self.group_addr);
+on IGMP::MessageV2 if ( is_membership_report ) -> event IGMP::membership_report_v2($packet, self.group_addr);
 
 # Generated for every IGMP Version 2 Leave Group Message.
 # :param $packet: raw packet header
 # :param self.group_addr: Multicast group address
-on IGMP::MessageV2 if ( ! is_membership_report ) -> event igmp::leave_group($packet, self.group_addr);
+on IGMP::MessageV2 if ( ! is_membership_report ) -> event IGMP::leave_group($packet, self.group_addr);
 
 # Generated for every IGMP Version 3 Membership Report.
 # :param $packet: raw packet header
 # :param self.num_groups: number of Multicast groups
 # :param self.groups: vector of Multicast groups
-on IGMP::MembershipReportV3 -> event igmp::membership_report_v3($packet, self.num_groups, self.groups);
+on IGMP::MembershipReportV3 -> event IGMP::membership_report_v3($packet, self.num_groups, self.groups);

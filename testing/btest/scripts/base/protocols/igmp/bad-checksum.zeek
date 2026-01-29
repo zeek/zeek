@@ -4,6 +4,6 @@
 # @TEST-EXEC: btest-diff igmp.log
 # @TEST-EXEC: btest-diff out
 
-event igmp::bad_checksum(packet: raw_pkt_hdr, transmitted_checksum: count, computed_checksum: count) {
+event IGMP::bad_checksum(packet: raw_pkt_hdr, transmitted_checksum: count, computed_checksum: count) {
 	print packet, fmt("transmitted: 0x%x   computed: 0x%x", transmitted_checksum, computed_checksum);
 }

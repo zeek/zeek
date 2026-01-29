@@ -492,6 +492,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./scp, <...>/scp.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sftp, <...>/sftp.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./spicy-events, <...>/spicy-events.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek) -> -1
@@ -811,6 +812,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./sftp, <...>/sftp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek) -> (-1, <no content>)
@@ -1450,6 +1452,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./scp, <...>/scp.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sftp, <...>/sftp.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek)
@@ -1769,6 +1772,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./sftp, <...>/sftp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek)
@@ -2419,6 +2423,7 @@
 0.000000 | HookLoadFile  ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFile  ./scp <...>/scp.zeek
 0.000000 | HookLoadFile  ./sftp <...>/sftp.zeek
+0.000000 | HookLoadFile  ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFile  ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFile  ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFile  ./storage-async.bif.zeek <...>/storage-async.bif.zeek
@@ -2738,6 +2743,7 @@
 0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFileExtended ./scp <...>/scp.zeek
 0.000000 | HookLoadFileExtended ./sftp <...>/sftp.zeek
+0.000000 | HookLoadFileExtended ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFileExtended ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFileExtended ./storage-async.bif.zeek <...>/storage-async.bif.zeek

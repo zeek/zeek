@@ -13,4 +13,3 @@
 -./frameworks/packet-filter/cluster.zeek
 -./frameworks/sumstats/cluster.zeek
 -./init-supervisor.zeek
--./packet-protocols/igmp/spicy-events.zeek

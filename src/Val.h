@@ -657,7 +657,12 @@ public:
     // Constructor used to build up a homogeneous list of values;
     // or, if 't' is TYPE_ANY, then a heterogeneous one whose type
     // is built up as values are appended.
-    explicit ListVal(TypeTag t);
+    explicit ListVal(TypeTag t) : ListVal(base_type(t)) {}
+
+    // Constructor used to build up a homogeneous list of values;
+    // or, if 't' is nil or base_type(TYPE_ANY), then a heterogeneous
+    // one whose type is built up as values are appended.
+    explicit ListVal(TypePtr t);
 
     // Constructor used to build the list in one shot, with the type
     // pre-computed.
@@ -946,7 +951,11 @@ public:
     ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
     // Returns a ListVal representation of the table (which must be a set).
-    ListValPtr ToListVal(TypeTag t = TYPE_ANY) const;
+    [[deprecated("Remove in v9.1. Pass a TypePtr instead, using Type::nil for TYPE_ANY")]]
+    ListValPtr ToListVal(TypeTag t) const;
+
+    // Returns a ListVal representation of the table (which must be a set).
+    ListValPtr ToListVal(TypePtr t = nullptr) const;
 
     // Returns a ListVal representation of the table (which must be a set
     // with non-composite index type).

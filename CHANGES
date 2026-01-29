@@ -1,3 +1,35 @@
+8.2.0-dev.145 | 2026-01-29 15:42:33 +0100
+
+  * Val: Inline ListVal(TypeTag t) constructor (Arne Welzel, Corelight)
+
+  * Val: Use concrete TypePtr in ToListVal() (Arne Welzel, Corelight)
+
+    Previously, pure lists would only hold base type pointers. Now that
+    enum types are nominally typed and not compatible with base_type(TYPE_ENUM)
+    anymore, we need to pass the specific EnumTypePtr into the ListVal.
+
+    I was tempted to deprecate the ListVal(TypeTag) constructor, but
+    that involves a bunch of changes elsewhere that I'm not sure look
+    much better when going from ListVal(TYPE_ANY) to ListVal(Type::nil),
+    so keeping that constructor functional and delegating to the new one.
+
+  * TypeList::Append: More verbose internal error (Arne Welzel, Corelight)
+
+  * GH-1820: Type: Make enum type checking nominal (Arne Welzel, Corelight)
+
+    Zeek has allowed freely mixing of enum values of different enum types
+    previously. This change makes this invalid by switching to nominal typing,
+    comparing the types using their names instead. This keeps the
+    AllAnalyzers::Tag special case functional by checking the parent type
+    introduced earlier.
+
+  * plugin/ComponentManager: Set parent type of tag enums (Arne Welzel, Corelight)
+
+  * Type: Add "parent" API to EnumType (Arne Welzel, Corelight)
+
+    See the comment in the class. This is mostly dealing with reality
+    rather than re-designing enum behavior.
+
 8.2.0-dev.138 | 2026-01-28 17:01:22 -0500
 
   * GH-5181: Describe `%` as remainder and add a note for `int` (Evan Typanski)

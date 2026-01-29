@@ -1,3 +1,86 @@
+8.2.0-dev.153 | 2026-01-29 08:05:33 -0700
+
+  * external: Update zeek-testing baseline (Arne Welzel, Corelight)
+
+  * btest/http: Add test PCAPs from CTU-SME and m57-long external tests (Arne Welzel, Corelight)
+
+    Connections extracted that showed baseline diffs in http.log and
+    files.log after changing the handling on Transfer-Encoding and
+    Content-Length within Zeek's HTTP analyzer.
+
+    Previously there were spurious http.log entries and the resp_body_len
+    now reflects Content-Length if provided.
+
+  * btest/http: Regression tests for Transfer-Encoding and Content-Length in bodies (Arne Welzel, Corelight)
+
+    Previously Zeek would pick up on Transfer-Encoding and Content-Length
+    headers within a HTTP request body, potentially skipping requests
+    following within the same HTTP connection.
+
+  * btest/http/deeply-nested-mime: Remove spurious http.log entry (Arne Welzel, Corelight)
+
+    The PCAP only contains a single HTTP request and response, so
+    this is actually an improvement. This should be due to the fact
+    that the top-level Content-Length header is now respected.
+
+  * HTTP: Respect most outer Content-Length also for multipart and message (Arne Welzel, Corelight)
+
+    Previously, a nested Content-Length header would change the analyzers
+    behavior which could be exploited to hide subsequent HTTP requests
+    within the same connection from analysis.
+
+  * HTTP: Ignore Transfer-Encoding header of inner MIME entities (Arne Welzel, Corelight)
+
+    Processing the Transfer-Encoding header changes the analyzer behavior and we
+    only want to allow this for the most outer HTTP entity, not for any nested
+    MIME entities in the HTTP body.
+
+    Previously one could set a Transfer-Encoding header within a RFC822
+    message placed within the HTTP body, allowing to modify plain delivery
+    parameters of the analyzer, thereby hiding subsequent HTTP requests
+    within the same connection from analysis.
+
+  * HTTP: Make debug messages more useful (Arne Welzel, Corelight)
+
+    I'm not sure this is the right approach, but it's mind-twistingly hard to
+    debug this analyzer, so a bit more debug output can only be good.
+
+    When DEBUG_http is false, these should all be compiled out.
+
+    Maybe could switch to a plugin debug stream, too.
+
+8.2.0-dev.145 | 2026-01-29 15:42:33 +0100
+
+  * Val: Inline ListVal(TypeTag t) constructor (Arne Welzel, Corelight)
+
+  * Val: Use concrete TypePtr in ToListVal() (Arne Welzel, Corelight)
+
+    Previously, pure lists would only hold base type pointers. Now that
+    enum types are nominally typed and not compatible with base_type(TYPE_ENUM)
+    anymore, we need to pass the specific EnumTypePtr into the ListVal.
+
+    I was tempted to deprecate the ListVal(TypeTag) constructor, but
+    that involves a bunch of changes elsewhere that I'm not sure look
+    much better when going from ListVal(TYPE_ANY) to ListVal(Type::nil),
+    so keeping that constructor functional and delegating to the new one.
+
+  * TypeList::Append: More verbose internal error (Arne Welzel, Corelight)
+
+  * GH-1820: Type: Make enum type checking nominal (Arne Welzel, Corelight)
+
+    Zeek has allowed freely mixing of enum values of different enum types
+    previously. This change makes this invalid by switching to nominal typing,
+    comparing the types using their names instead. This keeps the
+    AllAnalyzers::Tag special case functional by checking the parent type
+    introduced earlier.
+
+  * plugin/ComponentManager: Set parent type of tag enums (Arne Welzel, Corelight)
+
+  * Type: Add "parent" API to EnumType (Arne Welzel, Corelight)
+
+    See the comment in the class. This is mostly dealing with reality
+    rather than re-designing enum behavior.
+
 8.2.0-dev.138 | 2026-01-28 17:01:22 -0500
 
   * GH-5181: Describe `%` as remainder and add a note for `int` (Evan Typanski)

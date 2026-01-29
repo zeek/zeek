@@ -219,6 +219,8 @@ ComponentManager<C>::ComponentManager(const std::string& module, const std::stri
             zeek::detail::add_type(id.get(), parent_tag_enum_type, nullptr);
             zeek::detail::zeekygen_mgr->Identifier(std::move(id));
         }
+
+        tag_enum_type->SetParentType(parent_tag_enum_type);
     }
 }
 

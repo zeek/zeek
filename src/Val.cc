@@ -1400,7 +1400,13 @@ ValPtr PatternVal::DoClone(CloneState* state) {
     return state->NewClone(this, make_intrusive<PatternVal>(re));
 }
 
-ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t))) { tag = t; }
+// The TypeList constructor wants a nullptr arg for pure_type when dealing with
+// a heterogenous (non-pure) list, so check t's Tag for TYPE_ANY to fulfill
+// that API. Because t can be a nullptr, implying TYPE_ANY, we have the
+// ternary complications.
+ListVal::ListVal(TypePtr t) : Val(make_intrusive<TypeList>(t ? (t->Tag() == TYPE_ANY ? nullptr : t) : nullptr)) {
+    tag = t ? t->Tag() : TYPE_ANY;
+}
 
 ListVal::ListVal(TypeListPtr tl, std::vector<ValPtr> _vals) : Val(std::move(tl)) {
     tag = TYPE_ANY;
@@ -2444,14 +2450,16 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     return va;
 }
 
-ListValPtr TableVal::ToListVal(TypeTag t) const {
+ListValPtr TableVal::ToListVal(TypeTag t) const { return ToListVal(base_type(t)); }
+
+ListValPtr TableVal::ToListVal(TypePtr t) const {
     auto l = make_intrusive<ListVal>(t);
 
     for ( const auto& tble : *table_val ) {
         auto k = tble.GetHashKey();
         auto index = GetTableHash()->RecoverVals(*k);
 
-        if ( t == TYPE_ANY )
+        if ( ! t || t->Tag() == TYPE_ANY )
             l->Append(std::move(index));
         else {
             // We're expecting a pure list, flatten the ListVal.
@@ -2472,7 +2480,7 @@ ListValPtr TableVal::ToPureListVal() const {
         return nullptr;
     }
 
-    return ToListVal(tl[0]->Tag());
+    return ToListVal(tl[0]);
 }
 
 std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const {

@@ -511,9 +511,9 @@ function describe(f: fa_file): string
 	}
 
 # Only warn once about un-registered get_file_handle()
-global missing_get_file_handle_warned: table[Files::Tag] of bool &default=F;
+global missing_get_file_handle_warned: table[Analyzer::Tag] of bool &default=F;
 
-event get_file_handle(tag: Files::Tag, c: connection, is_orig: bool) &priority=5
+event get_file_handle(tag: Analyzer::Tag, c: connection, is_orig: bool) &priority=5
 	{
 	if ( tag !in registered_protocols )
 		{

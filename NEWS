@@ -14,6 +14,15 @@ Breaking Changes
 - The minimum version requirement for ZeroMQ is now 4.3.0. This version has
   been released at the end of 2018 - a good 7 years ago.
 
+- Enums are now nominally typed. Zeek will produce warnings of the following form
+  if you have scripts where enum types are mixed.
+
+	Remove in v9.1. Mixing incompatible enum types color and city will become an error.
+
+  With version 9.1, these warnings will become errors. Previously, all enum types were
+  compatible with each other, resulting in quirks and making certain optimizations more
+  difficult than they should be.
+
 New Functionality
 -----------------
 

@@ -21,6 +21,7 @@
 @load base/packet-protocols/udp
 @load base/packet-protocols/tcp
 @load base/packet-protocols/icmp
+@load base/packet-protocols/igmp
 @load base/packet-protocols/llc
 @load base/packet-protocols/novell_802_3
 @load base/packet-protocols/snap

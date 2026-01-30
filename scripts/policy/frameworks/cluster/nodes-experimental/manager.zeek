@@ -25,8 +25,8 @@ event node_fully_connected(name: string, id: string, resending: bool)
 		{
 		event cluster_started();
 
-		for ( topic in Cluster::broadcast_topics )
-			Broker::publish(topic, Cluster::Experimental::cluster_started);
+		Cluster::publish(cluster_started_topic,
+		                 Cluster::Experimental::cluster_started);
 		}
 	}
 
@@ -41,8 +41,15 @@ event zeek_init() &priority=-15
 	{
 	# Make sure the manager recognizes itself as ready if no
 	# connections have to be initiated.
+	#
+	# This is only needed for Broker. With non-Broker backends, nodes
+	# see Cluster::node_up() from all other nodes in a cluster due to
+	# global pub/sub reachability.
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
+		return;
+
 	if ( |connectees_pending| == 0 )
-		event node_fully_connected(Cluster::node, Broker::node_id(), F);
+		event node_fully_connected(Cluster::node, Cluster::node_id(), F);
 	}
 
 event Cluster::node_up(name: string, id: string)
@@ -50,6 +57,12 @@ event Cluster::node_up(name: string, id: string)
 	# Loggers may not know any manager and would thus be unable to
 	# report successful setup. As they do not establish connections
 	# we can consider this case here.
+
+	# This is only needed for Broker. With non-Broker backends, nodes
+	# see Cluster::node_up() from all other nodes in a cluster due to
+	# global pub/sub reachability.
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
+		return;
 
 	local n = Cluster::nodes[name];
 	if ( n$node_type == Cluster::LOGGER && ! n?$manager )

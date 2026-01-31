@@ -455,6 +455,14 @@ OptAssignZBI bfl_ZBI{ "Broker::__flush_logs",
     0
 };
 
+MultiZBI faa_ZBI{ "Files::__add_analyzer",
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VCV, OP_VVC}}},
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VVCV, OP_VVVC}}},
+    1
+};
+
 MultiZBI fra_ZBI{ "Files::__remove_analyzer",
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_REMOVE_ANALYZER_VCV, OP_VVC}}},

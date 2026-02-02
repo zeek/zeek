@@ -16,6 +16,7 @@ event zeek_init()
     print "find_first (offset 15): ", find_first(s, /ana/, 15);   
     print "find_first (offset 18): ", find_first(s, /ana/, 18);   
     print "find_first (OOB 99):    ", find_first(s, /ana/, 99);   
+    print "find_first (fail):      ", find_first(s, /banana/, 10);   
 
     print "---------------------------------";
 
@@ -24,4 +25,5 @@ event zeek_init()
     print "find_last (offset 10):  ", find_last(s, /ana/, 10);    
     print "find_last (offset 18):  ", find_last(s, /ana/, 18);    
     print "find_last (OOB 99):     ", find_last(s, /ana/, 99);    
+    print "find_last (fail):       ", find_last(s, /banana/, 10);    
     }

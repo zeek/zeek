@@ -13,7 +13,10 @@ assert ! zeek::has_analyzer("XXX");
 assert zeek::analyzer_type("HTTP") == zeek::AnalyzerType::Protocol;
 assert zeek::analyzer_type("SHA1") == zeek::AnalyzerType::File;
 assert zeek::analyzer_type("VLAN") == zeek::AnalyzerType::Packet;
+
+assert zeek::analyzer_type("XXX") == zeek::AnalyzerType::Undef;
 assert ! zeek::analyzer_type("XXX");
+assert ! zeek::AnalyzerType::Undef;
 
 # Disable the SSH analyzer and check that we pay attention to its state.
 public function disable_ssh() &cxxname="disable_ssh";

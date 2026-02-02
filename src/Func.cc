@@ -141,7 +141,7 @@ void Func::AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)>
     AddBody({.stmts = std::move(stmt), .priority = priority}, {}, 0);
 }
 
-void Func::AddBody(Func::Body new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) {
+void Func::AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) {
     Internal("Func::AddBody called");
 }
 
@@ -539,7 +539,7 @@ void ScriptFunc::SetCaptures(Frame* f) {
     }
 }
 
-void ScriptFunc::AddBody(Func::Body new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size) {
+void ScriptFunc::AddBody(Func::Body&& new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size) {
     auto num_args = static_cast<size_t>(GetType()->Params()->NumFields());
     frame_size = std::max({frame_size, new_frame_size, num_args});
 

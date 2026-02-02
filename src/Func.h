@@ -119,7 +119,7 @@ public:
 
     // A richer interface for controlling priority, event groups,
     // initializations, and frame size.
-    virtual void AddBody(Func::Body new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size);
+    virtual void AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size);
 
     // Deprecated interfaces.
     [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
@@ -261,7 +261,7 @@ public:
 
     using Func::AddBody;
 
-    void AddBody(Func::Body new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) override;
+    void AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) override;
 
     // Deprecated interface.
     void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,

@@ -86,7 +86,7 @@ And run it:
 `zeek hello.zeek`
 
 For learning more about the Zeek scripting
-language, [try.zeek.org](http://try.zeek.org) is a great resource.
+language, [try.zeek.org](https://try.zeek.org) is a great resource.
 
 Development
 -----------

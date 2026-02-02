@@ -1,3 +1,10 @@
+8.2.0-dev.157 | 2026-02-02 08:20:42 -0500
+
+  * docs: use HTTPS for try.zeek.org link in README (agent-connor)
+
+    The try.zeek.org site supports HTTPS. Updated the link to use the
+    secure protocol for better security and to follow modern best practices.
+
 8.2.0-dev.155 | 2026-01-31 08:16:55 -0700
 
   * restore ZAM custom instruction for Files::__add_analyzer (Vern Paxson, Corelight)

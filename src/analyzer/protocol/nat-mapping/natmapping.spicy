@@ -1,0 +1,72 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module NATMapping;
+
+import spicy;
+import NATPMP;
+import PCP;
+
+type EventData = struct {
+    int_port: port;
+    ext_port: port;
+    internal_ip: optional<addr>;
+};
+
+public type Packet = unit {
+    %port = 5351/udp;
+
+    version: uint8;
+    switch (self.version) {
+        0 -> natpmp: NATPMP::Record();
+        2 -> pcp: PCP::Record();
+    };
+};
+
+public function make_event_data(req: PCP::Request): EventData {
+    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = req.ip];
+
+    if (req.opcode_ == PCP::Opcode::MAP) {
+        event_data.int_port = port(req.map_op.internal_port, req.map_op.proto);
+        event_data.ext_port = port(req.map_op.external_port, req.map_op.proto);
+    } else if (req.opcode_ == PCP::Opcode::PEER) {
+        event_data.int_port = port(req.peer_op.internal_port, req.peer_op.proto);
+        event_data.ext_port = port(req.peer_op.external_port, req.peer_op.proto);
+    }
+
+    return event_data;
+}
+
+public function make_event_data(resp: PCP::Response): EventData {
+    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = Null];
+
+    if (resp.opcode_ == PCP::Opcode::MAP) {
+        event_data.int_port = port(resp.map_op.internal_port, resp.map_op.proto);
+        event_data.ext_port = port(resp.map_op.external_port, resp.map_op.proto);
+    } else if (resp.opcode_ == PCP::Opcode::PEER) {
+        event_data.int_port = port(resp.peer_op.internal_port, resp.peer_op.proto);
+        event_data.ext_port = port(resp.peer_op.external_port, resp.peer_op.proto);
+    }
+
+    return event_data;
+}
+
+public function make_event_data(req: NATPMP::MapRequest): EventData {
+    return [$int_port = port(req.internal_port, req.proto), $ext_port = port(req.external_port, req.proto), $internal_ip = Null];
+}
+
+public function make_event_data(resp: NATPMP::MapResponse): EventData {
+    return [$int_port = port(resp.internal_port, resp.proto), $ext_port = port(resp.external_port, resp.proto), $internal_ip = Null];
+}
+
+public function convert_result_code(resp: NATPMP::MapResponse): PCP::ResultCode {
+    switch (resp.result_code) {
+        case NATPMP::ResultCode::SUCCESS: return PCP::ResultCode::SUCCESS;
+        case NATPMP::ResultCode::UNSUPPORTED_VERSION: return PCP::ResultCode::UNSUPP_VERSION;
+        case NATPMP::ResultCode::NOT_AUTHORIZED: return PCP::ResultCode::NOT_AUTHORIZED;
+        case NATPMP::ResultCode::NETWORK_FAILURE: return PCP::ResultCode::NETWORK_FAILURE;
+        case NATPMP::ResultCode::OUT_OF_RESOURCES: return PCP::ResultCode::NO_RESOURCES;
+        case NATPMP::ResultCode::UNSUPPORTED_OPCODE: return PCP::ResultCode::UNSUPP_OPCODE;
+    }
+
+    return PCP::ResultCode::SUCCESS;
+}

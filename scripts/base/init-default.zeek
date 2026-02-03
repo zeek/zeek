@@ -66,6 +66,7 @@
 @load base/protocols/modbus
 @load base/protocols/mqtt
 @load base/protocols/mysql
+@load base/protocols/nat-mapping
 @load base/protocols/ntlm
 @load base/protocols/ntp
 @load base/protocols/pop3

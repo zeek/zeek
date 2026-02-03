@@ -1,3 +1,9 @@
+8.2.0-dev.167 | 2026-02-03 10:32:48 -0700
+
+  * Check for __APPLE__ when checking if lsan should be enabled (Tim Wojtulewicz, Corelight)
+
+  * Disable clang-format for zeek-config.h.in (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.163 | 2026-02-02 13:11:33 -0500
 
   * Enhancement: Add offset parameter to find_first/find_last (Rudra Mohapatro)

@@ -1,3 +1,22 @@
+8.0.6-4 | 2026-03-25 13:55:43 +0100
+
+  * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)
+
+    There are users and packages (logschema) that rely on Experimental::cluster_started()
+    and will not function otherwise.
+    Implement support for ZeroMQ with semantics of all nodes have seen
+    Cluster::node_up() from all other nodes, report to the manager which
+    then broadcasts to all other nodes.
+
+    This switches to use a single cluster_started() specific topic rather than
+    going through broadcast_topics, because that's the better mechanism to
+    use with global pub/sub visibility (and it works for Broker, too).
+
+    Technically there's no connection between nodes for pub/sub in ZeroMQ anymore,
+    so the terminology is a bit off now.
+
+    (cherry picked from commit 23ac86f95ed43ad9bdac222e0197573d1479beae)
+
 8.0.6-3 | 2026-03-25 13:54:43 +0100
 
   * restore ZAM custom instruction for Files::__add_analyzer (Vern Paxson, Corelight)

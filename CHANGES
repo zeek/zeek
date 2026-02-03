@@ -1,3 +1,23 @@
+8.2.0-dev.172 | 2026-02-03 19:31:40 +0100
+
+  * src/CMakeLists: Exclude headers from auxil directories (Arne Welzel, Corelight)
+
+    It seems we included all headers within the auxil/ directories under
+    src/ into the zeek/include installation directory. That's not great.
+    The REGEX ... EXCLUDE prevents this, but it still creates empty
+    directories for auxil/cppzmq and auxil/IXWebSocket and
+    auxil/LightPcapNg.
+
+    Ignoring this for now. The relevant CMake issue is here which and
+    it seems there's no great solution right now:
+
+        https://gitlab.kitware.com/cmake/cmake/-/issues/19189
+
+    An alternative might be for us to be more explicit about headers,
+    rather than running FILES_MATCHING over the whole directory.
+
+  * pcpang/CMakeLists: Do not install the targets (Arne Welzel, Corelight)
+
 8.2.0-dev.169 | 2026-02-03 10:33:41 -0700
 
   * Fix clang-tidy warning about needless parameter copies (Benjamin Bannier, Corelight)

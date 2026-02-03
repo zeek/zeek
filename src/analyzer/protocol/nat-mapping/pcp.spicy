@@ -1,0 +1,113 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module PCP;
+
+import spicy;
+
+public type Opcode = enum {
+    ANNOUNCE = 0,
+    MAP = 1,
+    PEER = 2,
+};
+
+public type ResultCode = enum {
+    SUCCESS = 0,
+    UNSUPP_VERSION = 1,
+    NOT_AUTHORIZED = 2,
+    MALFORMED_REQUEST = 3,
+    UNSUPP_OPCODE = 4,
+    UNSUPP_OPTION = 5,
+    MALFORMED_OPTION = 6,
+    NETWORK_FAILURE = 7,
+    NO_RESOURCES = 8,
+    UNSUPP_PROTOCOL = 9,
+    USER_EX_QUOTA = 10,
+    CANNOT_PROVIDE_EXTERNAL = 11,
+    ADDRESS_MISMATCH = 12,
+    EXCESSIVE_REMOTE_PEERS = 13,
+    TIMEOUT = 14, # Extra entry to match the values in script land
+    REREQUEST = 15, # Extra entry to match the values in script land
+};
+
+public type Record = unit {
+    : bitfield(8) {
+        reqresp: 0;
+        opcode: 1..7 &convert=Opcode($$);
+    } &bit-order=spicy::BitOrder::MSB0;
+    switch (self.reqresp) {
+        0 -> req: Request(self.opcode);
+        1 -> resp: Response(self.opcode);
+    };
+};
+
+public type Request = unit(opcode: Opcode) {
+    : uint16;
+    lifetime: uint32;
+    ip: addr &ipv6;
+    switch (opcode) {
+        Opcode::ANNOUNCE -> announce_op: AnnounceRequest();
+        Opcode::MAP -> map_op: MapOp();
+        Opcode::PEER -> peer_op: PeerOp();
+    };
+    options: Option[] &eod;
+
+    var opcode_: Opcode = opcode;
+};
+
+public type Response = unit(opcode: Opcode) {
+    : uint8;
+    result_code: uint8 &convert=ResultCode($$);
+    lifetime: uint32;
+    epoch: uint32;
+    : bytes &size=12;
+    switch (opcode) {
+        Opcode::ANNOUNCE -> announce_op: AnnounceResponse();
+        Opcode::MAP -> map_op: MapOp();
+        Opcode::PEER -> peer_op: PeerOp();
+    };
+    options: Option[] &eod;
+
+    var opcode_: Opcode = opcode;
+};
+
+public type AnnounceRequest = unit {};
+
+public type AnnounceResponse = unit {
+    result_code: uint8 &convert=ResultCode($$);
+    epoch: uint32;
+};
+
+public function convert_protocol(proto: uint8): spicy::Protocol {
+    if (proto == 6)
+        return spicy::Protocol::TCP;
+
+    return spicy::Protocol::UDP;
+}
+
+public type MapOp = unit {
+    nonce: bytes &size=12;
+    proto: uint8 &convert=convert_protocol($$);
+    : bytes &size=3;
+    internal_port: uint16;
+    external_port: uint16;
+    external_addr: addr &ipv6;
+};
+
+public type PeerOp = unit {
+    nonce: bytes &size=12;
+    proto: uint8 &convert=convert_protocol($$);
+    : bytes &size=3;
+    internal_port: uint16;
+    external_port: uint16;
+    external_addr: addr &ipv6;
+    remote_peer_port: uint16;
+    : uint16;
+    remote_peer_addr: addr &ipv6;
+};
+
+public type Option = unit {
+    code: uint8;
+    : uint8;
+    length: uint16;
+    data: bytes &size=self.length;
+};

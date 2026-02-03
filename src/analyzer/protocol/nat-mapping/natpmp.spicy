@@ -1,0 +1,59 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module NATPMP;
+
+import spicy;
+
+public type Opcode = enum {
+    EXTERNAL_ADDR_REQUEST = 0,
+    EXTERNAL_ADDR_RESPONSE = 128,
+    MAP_UDP_REQUEST = 1,
+    MAP_TCP_REQUEST = 2,
+    MAP_UDP_RESPONSE = 129,
+    MAP_TCP_RESPONSE = 130,
+};
+
+public type ResultCode = enum {
+    SUCCESS = 0,
+    UNSUPPORTED_VERSION = 1,
+    NOT_AUTHORIZED = 2,
+    NETWORK_FAILURE = 3,
+    OUT_OF_RESOURCES = 4,
+    UNSUPPORTED_OPCODE = 5,
+};
+
+public type Record = unit {
+    opcode: uint8 &convert=Opcode($$);
+    if (self.opcode != Opcode::EXTERNAL_ADDR_REQUEST) {
+        switch (self.opcode) {
+            Opcode::EXTERNAL_ADDR_RESPONSE -> ext_addr_response: ExtAddrResponse();
+            Opcode::MAP_UDP_REQUEST -> udp_request: MapRequest(spicy::Protocol::UDP);
+            Opcode::MAP_TCP_REQUEST -> tcp_request: MapRequest(spicy::Protocol::TCP);
+            Opcode::MAP_UDP_RESPONSE -> udp_response: MapResponse(spicy::Protocol::UDP);
+            Opcode::MAP_TCP_RESPONSE -> tcp_response: MapResponse(spicy::Protocol::TCP);
+        };
+    };
+};
+
+public type ExtAddrResponse = unit {
+    result_code: uint16;
+    epoch_time: uint32;
+    external_addr: addr &ipv4;
+};
+
+public type MapRequest = unit(protocol: spicy::Protocol) {
+    reserved: uint16;
+    internal_port: uint16;
+    external_port: uint16;
+    lifetime: uint32;
+    var proto: spicy::Protocol = protocol;
+};
+
+public type MapResponse = unit(protocol: spicy::Protocol) {
+    result_code: uint8 &convert=ResultCode($$);
+    epoch_time: uint32;
+    internal_port: uint16;
+    external_port: uint16;
+    lifetime: uint32;
+    var proto: spicy::Protocol = protocol;
+};

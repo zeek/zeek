@@ -106,6 +106,10 @@ New Functionality
   member to determine if they are being stopped even before a ``FinishMessage``
   is processed. This can be useful to drain pending messages during shutdown.
 
+- Added a new analyzer for handling NAT-PMP and PCP protocols for mapping NAT
+  traversals. A new ``nat-traversal.log`` log file was added that logs the results of
+  these mapping attempts.
+
 Changed Functionality
 ---------------------
 

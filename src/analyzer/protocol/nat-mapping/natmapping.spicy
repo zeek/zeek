@@ -1,0 +1,17 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module NATMapping;
+
+import spicy;
+import natpmp;
+import pcp;
+
+public type Packet = unit {
+    %port = 5351/udp;
+
+    version: uint8;
+    switch (self.version) {
+        0 -> natpmp: NATPMP::Record();
+        2 -> pcp: PCP::Record();
+    };
+};

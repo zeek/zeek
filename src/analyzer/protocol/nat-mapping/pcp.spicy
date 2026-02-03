@@ -1,0 +1,100 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module PCP;
+
+import spicy;
+
+public type PCP_Opcode = enum {
+    ANNOUNCE = 0,
+    MAP = 1,
+    PEER = 2,
+};
+
+public type PCP_ResultCode = enum {
+    SUCCESS = 0,
+    UNSUPP_VERSION = 1,
+    NOT_AUTHORIZED = 2,
+    MALFORMED_REQUEST = 3,
+    UNSUPP_OPCODE = 4,
+    UNSUPP_OPTION = 5,
+    MALFORMED_OPTION = 6,
+    NETWORK_FAILURE = 7,
+    NO_RESOURCES = 8,
+    UNSUPP_PROTOCOL = 9,
+    USER_EX_QUOTA = 10,
+    CANNOT_PROVIDE_EXTERNAL = 11,
+    ADDRESS_MISMATCH = 12,
+    EXCESSIVE_REMOTE_PEERS = 13,
+};
+
+public type Record = unit {
+    : bitfield(8) {
+        reqresp: 0;
+        opcode: 1..7 &convert=PCP_Opcode($$);
+    } &bit-order=spicy::BitOrder::MSB0;
+    switch (self.reqresp) {
+        0 -> req: PCP_Request(self.opcode);
+        1 -> resp: PCP_Response(self.opcode);
+    };
+};
+
+public type PCP_Request = unit(opcode: PCP_Opcode) {
+    : uint16;
+    lifetime: uint32;
+    ip: addr &ipv6;
+    switch (opcode) {
+        PCP_Opcode::ANNOUNCE -> announce_op: PCP_AnnounceRequest();
+        PCP_Opcode::MAP -> map_op: PCP_MapOp();
+        PCP_Opcode::PEER -> peer_op: PCP_PeerOp();
+    };
+    options: PCP_Option[] &eod;
+};
+
+public type PCP_Response = unit(opcode: PCP_Opcode) {
+    : uint8;
+    result_code: uint8 &convert=PCP_ResultCode($$);
+    lifetime: uint32;
+    epoch: uint32;
+    : bytes &size=12;
+    switch (opcode) {
+        PCP_Opcode::ANNOUNCE -> announce_op: PCP_AnnounceResponse();
+        PCP_Opcode::MAP -> map_op: PCP_MapOp();
+        PCP_Opcode::PEER -> peer_op: PCP_PeerOp();
+    };
+    options: PCP_Option[] &eod;
+};
+
+public type PCP_AnnounceRequest = unit {};
+
+public type PCP_AnnounceResponse = unit {
+    result_code: uint8 &convert=PCP_ResultCode($$);
+    epoch: uint32;
+};
+
+public type PCP_MapOp = unit {
+    nonce: bytes &size=12;
+    proto: uint8;
+    : bytes &size=3;
+    internal_port: uint16;
+    external_port: uint16;
+    external_addr: addr &ipv6;
+};
+
+public type PCP_PeerOp = unit {
+    nonce: bytes &size=12;
+    proto: uint8;
+    : bytes &size=3;
+    internal_port: uint16;
+    external_port: uint16;
+    external_addr: addr &ipv6;
+    remote_peer_port: uint16;
+    : uint16;
+    remote_peer_addr: addr &ipv6;
+};
+
+public type PCP_Option = unit {
+    code: uint8;
+    : uint8;
+    length: uint16;
+    data: bytes &size=self.length;
+};

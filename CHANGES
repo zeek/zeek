@@ -1,3 +1,20 @@
+8.2.0-dev.174 | 2026-02-03 21:50:16 +0100
+
+  * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)
+
+    There are users and packages (logschema) that rely on Experimental::cluster_started()
+    and will not function otherwise.
+    Implement support for ZeroMQ with semantics of all nodes have seen
+    Cluster::node_up() from all other nodes, report to the manager which
+    then broadcasts to all other nodes.
+
+    This switches to use a single cluster_started() specific topic rather than
+    going through broadcast_topics, because that's the better mechanism to
+    use with global pub/sub visibility (and it works for Broker, too).
+
+    Technically there's no connection between nodes for pub/sub in ZeroMQ anymore,
+    so the terminology is a bit off now.
+
 8.2.0-dev.172 | 2026-02-03 19:31:40 +0100
 
   * src/CMakeLists: Exclude headers from auxil directories (Arne Welzel, Corelight)

@@ -13,7 +13,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 40
-# @TEST-EXEC: btest-diff manager/.stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=sort btest-diff manager/.stdout
 
 @load policy/frameworks/cluster/experimental
 
@@ -21,11 +21,11 @@ redef Log::default_rotation_interval = 0secs;
 
 event Cluster::Experimental::node_fully_connected(name: string, id: string, resending: bool)
 	{
-	print "node fully connected";
+	print "A) node fully connected", name, resending;
 	}
 
 event Cluster::Experimental::cluster_started()
 	{
-	print "Got cluster_started event";
+	print "B) Got cluster_started event";
 	terminate();
 	}

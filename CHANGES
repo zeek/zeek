@@ -1,3 +1,12 @@
+8.2.0-dev.169 | 2026-02-03 10:33:41 -0700
+
+  * Fix clang-tidy warning about needless parameter copies (Benjamin Bannier, Corelight)
+
+    Since not all overloads of the function might consume the passed
+    parameter clang-tidy correctly warns that the copy might be needless (it
+    is for the default implementation). Rewrite the code to a version which
+    performs no copy.
+
 8.2.0-dev.167 | 2026-02-03 10:32:48 -0700
 
   * Check for __APPLE__ when checking if lsan should be enabled (Tim Wojtulewicz, Corelight)

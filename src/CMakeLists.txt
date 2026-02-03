@@ -665,6 +665,10 @@ install(
     PATTERN "*.h"
     PATTERN "*.pac"
     PATTERN "3rdparty/*" EXCLUDE
+    # Prevent installing header files from submodules.
+    PATTERN "cluster/backend/zeromq/auxil/*" EXCLUDE
+    PATTERN "cluster/websocket/auxil/*" EXCLUDE
+    PATTERN "iosource/pcapng/auxil/*" EXCLUDE
     # Headers used only during build
     PATTERN "threading/formatters/detail" EXCLUDE
     # The "zeek -> ." symlink isn't needed in the install-tree

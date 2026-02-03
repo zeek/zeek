@@ -1,0 +1,217 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module NATPMP;
+
+import spicy;
+
+type MappingEventData = struct {
+    int_port: port;
+    ext_port: port;
+    lifetime: interval;
+    epoch: uint32;
+};
+
+type PCPEventData = struct {
+    mapping: MappingEventData;
+    int_addr: optional<addr>;
+    ext_addr: addr;
+    nonce_high: uint64;
+    nonce_low: uint32;
+    remote_addr: optional<addr>;
+    remote_port: optional<port>;
+};
+
+public type Packet = unit {
+    version: uint8;
+    switch (self.version) {
+        0 -> natpmp: NATPMP_Record();
+        2 -> pcp: PCP_Record();
+    };
+
+    on %done {
+        spicy::accept_input();
+    }
+};
+
+public function make_event_data(r: NATPMP_MapRequest): MappingEventData {
+    return [$int_port = port(r.int_port, r.proto), $ext_port = port(r.ext_port, r.proto), $lifetime = interval(r.lifetime), $epoch = 0];
+}
+
+public function make_event_data(r: NATPMP_MapResponse): MappingEventData {
+    return [$int_port = port(r.int_port, r.proto), $ext_port = port(r.ext_port, r.proto), $lifetime = interval(r.lifetime), $epoch = r.epoch];
+}
+
+public function make_event_data(r: PCP_Request): PCPEventData {
+    local mapping: MappingEventData = [$int_port = port(r.op.int_port, r.op.proto), $ext_port = port(r.op.ext_port, r.op.proto), $lifetime = interval(r.lifetime), $epoch = 0];
+
+    local data: PCPEventData = [$mapping = mapping, $int_addr = r.client_ip, $ext_addr = r.op.ext_addr, $nonce_high = r.op.nonce_high, $nonce_low = r.op.nonce_low, $remote_addr = Null, $remote_port = Null];
+
+    if (r.opcode_ == PCP_Opcode::PEER) {
+        data.remote_addr = r.op.remote.peer_addr;
+        data.remote_port = port(r.op.remote.peer_port, r.op.proto);
+    }
+
+    return data;
+}
+
+public function make_event_data(r: PCP_Response): PCPEventData {
+    local mapping: MappingEventData = [$int_port = port(r.op.int_port, r.op.proto), $ext_port = port(r.op.ext_port, r.op.proto), $lifetime = interval(r.lifetime), $epoch = r.epoch];
+
+    local data: PCPEventData = [$mapping = mapping, $int_addr = Null, $ext_addr = r.op.ext_addr, $nonce_high = r.op.nonce_high, $nonce_low = r.op.nonce_low, $remote_addr = Null, $remote_port = Null];
+
+    if (r.opcode_ == PCP_Opcode::PEER) {
+        data.remote_addr = r.op.remote.peer_addr;
+        data.remote_port = port(r.op.remote.peer_port, r.op.proto);
+    }
+
+    return data;
+}
+
+public type NATPMP_Opcode = enum {
+    EXTERNAL_ADDR_REQUEST = 0,
+    EXTERNAL_ADDR_RESPONSE = 128,
+    MAP_UDP_REQUEST = 1,
+    MAP_TCP_REQUEST = 2,
+    MAP_UDP_RESPONSE = 129,
+    MAP_TCP_RESPONSE = 130,
+};
+
+public type NATPMP_ResultCode = enum {
+    SUCCESS = 0,
+    UNSUPPORTED_VERSION = 1,
+    NOT_AUTHORIZED = 2,
+    NETWORK_FAILURE = 3,
+    OUT_OF_RESOURCES = 4,
+    UNSUPPORTED_OPCODE = 5,
+};
+
+public type NATPMP_Record = unit {
+    opcode: uint8 &convert=NATPMP_Opcode($$);
+    if (self.opcode != NATPMP_Opcode::EXTERNAL_ADDR_REQUEST) {
+        switch (self.opcode) {
+            NATPMP_Opcode::EXTERNAL_ADDR_RESPONSE -> : void;
+            NATPMP_Opcode::MAP_UDP_REQUEST -> udp_request: NATPMP_MapRequest(spicy::Protocol::UDP);
+            NATPMP_Opcode::MAP_TCP_REQUEST -> tcp_request: NATPMP_MapRequest(spicy::Protocol::TCP);
+            NATPMP_Opcode::MAP_UDP_RESPONSE -> udp_response: NATPMP_MapResponse(spicy::Protocol::UDP);
+            NATPMP_Opcode::MAP_TCP_RESPONSE -> tcp_response: NATPMP_MapResponse(spicy::Protocol::TCP);
+        };
+    };
+};
+
+public type NATPMP_MapRequest = unit(protocol: spicy::Protocol) {
+    reserved: uint16;
+    int_port: uint16;
+    ext_port: uint16;
+    lifetime: uint32;
+    var proto: spicy::Protocol = protocol;
+};
+
+public type NATPMP_MapResponse = unit(protocol: spicy::Protocol) {
+    result_code: uint16 &convert=NATPMP_ResultCode($$);
+    epoch: uint32;
+    int_port: uint16;
+    ext_port: uint16;
+    lifetime: uint32;
+    var proto: spicy::Protocol = protocol;
+};
+
+public type PCP_Opcode = enum {
+    ANNOUNCE = 0,
+    MAP = 1,
+    PEER = 2,
+};
+
+public type PCP_ResultCode = enum {
+    SUCCESS = 0,
+    UNSUPPORTED_VERSION = 1,
+    NOT_AUTHORIZED = 2,
+    MALFORMED_REQUEST = 3,
+    UNSUPPORTED_OPCODE = 4,
+    UNSUPPORTED_OPTION = 5,
+    MALFORMED_OPTION = 6,
+    NETWORK_FAILURE = 7,
+    NO_RESOURCES = 8,
+    UNSUPPORTED_PROTOCOL = 9,
+    USER_EX_QUOTA = 10,
+    CANNOT_PROVIDE_EXTERNAL = 11,
+    ADDRESS_MISMATCH = 12,
+    EXCESSIVE_REMOTE_PEERS = 13,
+};
+
+public type PCP_Record = unit {
+    : bitfield(8) {
+        reqresp: 0;
+        opcode: 1..7 &convert=PCP_Opcode($$);
+    } &bit-order=spicy::BitOrder::MSB0;
+    switch (self.reqresp) {
+        0 -> req: PCP_Request(self.opcode);
+        1 -> resp: PCP_Response(self.opcode);
+    };
+};
+
+public type PCP_Request = unit(opcode: PCP_Opcode) {
+    : uint16;
+    lifetime: uint32;
+    client_ip: addr &ipv6;
+    switch (opcode) {
+        PCP_Opcode::ANNOUNCE -> : void;
+        PCP_Opcode::MAP -> op: PCP_MapOp(False);
+        PCP_Opcode::PEER -> op: PCP_MapOp(True);
+    };
+    options: PCP_Option[] &eod;
+
+    var opcode_: PCP_Opcode = opcode;
+};
+
+public type PCP_Response = unit(opcode: PCP_Opcode) {
+    : uint8;
+    result_code: uint8 &convert=PCP_ResultCode($$);
+    lifetime: uint32;
+    epoch: uint32;
+    : bytes &size=12;
+    switch (opcode) {
+        PCP_Opcode::ANNOUNCE -> : skip bytes &eod;
+        PCP_Opcode::MAP -> op: PCP_MapOp(False);
+        PCP_Opcode::PEER -> op: PCP_MapOp(True);
+    };
+    options: PCP_Option[] &eod;
+
+    var opcode_: PCP_Opcode = opcode;
+};
+
+public function pcp_convert_protocol(proto: uint8): spicy::Protocol {
+    # TODO: This should obviously handle other protocols instead of collapsing everything
+    # that isn't TCP into UDP.
+    if (proto == 6)
+        return spicy::Protocol::TCP;
+
+    return spicy::Protocol::UDP;
+}
+
+## Extra information included in a peer operation about the remote peer.
+public type PCP_RemotePeer = unit {
+    peer_port: uint16;
+    : uint16;
+    peer_addr: addr &ipv6;
+};
+
+public type PCP_MapOp = unit(is_peer_op: bool) {
+    nonce_high: uint64;
+    nonce_low: uint32;
+    proto: uint8 &convert=pcp_convert_protocol($$);
+    : bytes &size=3;
+    int_port: uint16;
+    ext_port: uint16;
+    ext_addr: addr &ipv6;
+    switch (is_peer_op) {
+        True -> remote: PCP_RemotePeer();
+        False -> : void;
+    };
+};
+
+public type PCP_Option = unit {
+    code: uint8;
+    : uint8;
+    length: uint16;
+    data: bytes &size=self.length;
+};

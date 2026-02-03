@@ -119,6 +119,10 @@ New Functionality
   Studio easier. The file is named ``launch.vs.json.template`` to avoid overwriting any
   existing ``launch.vs.json`` file.
 
+- Added a new analyzer for handling the NAT-PMP and PCP protocols for mapping NAT
+  traversals. A new ``nat-traversal.log`` log file was added that logs the results of
+  these mapping attempts.
+
 Changed Functionality
 ---------------------
 

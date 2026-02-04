@@ -20,8 +20,8 @@ We know the main *output* from Zeek: logs. But, Zeek has a whole architectural
 layer dedicated to the logic that creates those logs (and more!).
 That is Zeek's scripting language.
 
-We have already caught glimpses of Zeekscript. The :ref:`Providing Script Values
-<providing_script_values>` section covered how to adjust Zeekscript values from
+We have already caught glimpses of this language. The :ref:`Providing Script Values
+<providing_script_values>` section covered how to adjust variables in Zeek scripts from
 the command line, and while covering :ref:`ZeekControl <invoking-zeekctl>` we
 saw that the ``local.zeek`` file customizes a Zeek cluster's configuration.
 

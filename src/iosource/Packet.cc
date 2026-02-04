@@ -240,7 +240,7 @@ TEST_SUITE("Packet") {
         p.encap = std::make_shared<zeek::EncapsulationStack>();
         p.ip_hdr = std::make_shared<zeek::IP_Hdr>(nullptr, false);
         p.proto = 1;
-        p.tunnel_type = BifEnum::Tunnel::IP;
+        p.tunnel_type = zeek::BifEnum::Tunnel::IP;
         p.gre_version = 1;
         p.gre_link_type = DLT_EN10MB;
         p.session = reinterpret_cast<zeek::session::Session*>(1);

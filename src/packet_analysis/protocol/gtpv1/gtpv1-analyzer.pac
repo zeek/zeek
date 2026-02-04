@@ -653,7 +653,7 @@ flow GTPv1_Flow(is_orig: bool)
 			return false;
 			}
 
-		if ( e && e->LastType() == BifEnum::Tunnel::GTPv1 )
+		if ( e && e->LastType() == zeek::BifEnum::Tunnel::GTPv1 )
 			{
 			// GTP is never tunneled in GTP so, this must be a regular packet
 			violate("GTP-in-GTP", pdu);

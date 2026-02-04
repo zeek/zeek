@@ -431,9 +431,9 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			// We don't support fully qualified names as enumerators. Use a module name
 			fprintf(fp_netvar_h, "// NOLINTNEXTLINE(performance-enum-size)\n");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
-				fprintf(fp_netvar_h, "namespace BifEnum::%s { ", decl.module_name.c_str());
+				fprintf(fp_netvar_h, "namespace zeek::BifEnum::%s { ", decl.module_name.c_str());
 			else
-				fprintf(fp_netvar_h, "namespace BifEnum { ");
+				fprintf(fp_netvar_h, "namespace zeek::BifEnum { ");
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
 	;

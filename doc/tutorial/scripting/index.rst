@@ -18,7 +18,7 @@ construct, while this step in the tutorial aims to explain essential
 components of the scripting language, required to build a custom script.
 
 Third, a basic walkthrough of Zeek's Javascript support as an alternative
-to scripting in Zeekscript.
+to scripting in its own language.
 
 Ideally, this tutorial wouldn't assume any level of programming experience.
 However, we won't go into the fundamentals of several constructs, instead

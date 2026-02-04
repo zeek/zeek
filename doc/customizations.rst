@@ -240,6 +240,8 @@ The following shows every FTP connection from hosts in Ohio, US:
     }
 
 
+.. _log-writers:
+ 
 Log Writers
 ===========
 

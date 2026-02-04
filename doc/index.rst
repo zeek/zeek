@@ -28,17 +28,11 @@ to connect with the community.
    :caption: Table of Contents
 
    get-started
-   about
-   monitoring
-   log-formats
-   logs/index
-   scripting/index
-   frameworks/index
+   about/index
+   tutorial/index
+   reference/index
    customizations
-   troubleshooting
-   script-reference/index
-   devel/index
-   components/index
+   advanced/index
    acknowledgements
 
 * :ref:`Index <genindex>`
@@ -61,7 +55,7 @@ Documentation Versioning
       <https://docs.zeek.org/en/current>`_
     * Long-term support release: `docs.zeek.org/en/lts
       <https://docs.zeek.org/en/lts>`_
-    * Git ``master`` branch: `docs.zeek.org/en/master
+    * Ongoing development: `docs.zeek.org/en/master
       <https://docs.zeek.org/en/master>`_
 
   We typically keep the last version from each release cycle available.

@@ -110,6 +110,9 @@ jobs:
 
           cd doc
 
+          echo "*** Running pre-commit ***"
+          pre-commit run -a --show-diff-on-failure --color=always
+
           echo "*** Generating Sphinx Docs ***"
           make > make.out 2>&1
           make_status=$?

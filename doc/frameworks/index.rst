@@ -3,7 +3,7 @@
  Scripting Frameworks
 ======================
 
-Zeek includes several software frameworks that provide commonly used
+Zeek includes several frameworks that provide commonly used
 functionality to the scripting layer. Among other things, these frameworks
 enhance Zeek’s ability to ingest data, structure and filter its outputs, adapt
 settings at runtime, and interact with other components in your network. Most

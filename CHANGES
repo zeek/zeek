@@ -1,3 +1,7 @@
+8.2.0-dev.177 | 2026-02-05 09:30:10 -0700
+
+  * Move BifEnum to zeek namespace to match other bif namespaces (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.174 | 2026-02-03 21:50:16 +0100
 
   * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)

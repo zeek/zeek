@@ -1,3 +1,5 @@
+#pragma once
+
 #include <zeek/IntrusivePtr.h>
 #include <zeek/OpaqueVal.h>
 
@@ -10,11 +12,8 @@ extern zeek::OpaqueTypePtr program_opaque;
 class XDPProgramVal : public zeek::OpaqueVal {
 public:
     XDPProgramVal() : zeek::OpaqueVal(program_opaque) {}
-    XDPProgramVal(struct filter* prog, xdp_options opts)
-        : OpaqueVal(detail::program_opaque), prog(prog), opts(opts) {}
-
-    XDPProgramVal(struct filter* prog)
-        : OpaqueVal(detail::program_opaque), prog(prog) {}
+    XDPProgramVal(struct filter* prog, xdp_options opts) : OpaqueVal(detail::program_opaque), prog(prog), opts(opts) {}
+    XDPProgramVal(struct filter* prog) : OpaqueVal(detail::program_opaque), prog(prog) {}
 
     ~XDPProgramVal() override = default;
 

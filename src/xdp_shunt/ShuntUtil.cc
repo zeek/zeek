@@ -1,10 +1,13 @@
 #include "ShuntUtil.h"
 
-#include "zeek/IPAddr.h"
-#include "zeek/Val.h"
+#include <zeek/Event.h>
+#include <zeek/IPAddr.h>
+#include <zeek/Val.h>
+#include <zeek/session/Manager.h>
 
-#include "XDPProgram.h"
+#include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
+#include "conn_id_shunter.bif.h"
 
 struct in6_addr addrToIpVal(const zeek::IPAddr& addr) {
     const uint32_t* bytes;
@@ -65,6 +68,49 @@ ip_pair_key makeIPPairKey(zeek::RecordVal* pair_r) {
     pair.inner_vlan_id = inner_vlan_id;
 
     return pair;
+}
+
+zeek::AddrValPtr makeAddr(struct in6_addr ip) {
+    if ( IN6_IS_ADDR_V4MAPPED(&ip) )
+        return zeek::make_intrusive<zeek::AddrVal>(*reinterpret_cast<const uint32_t*>(&ip.s6_addr[12]));
+    else
+        return zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&ip.s6_addr));
+}
+
+zeek::RecordValPtr makeCanonicalTuple(const canonical_tuple& tup) {
+    static auto canonical_id = zeek::id::find_type<zeek::RecordType>("XDP::canonical_id");
+    auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(canonical_id);
+    zeek_key->Assign(0, makeAddr(tup.ip1));
+    zeek_key->Assign(1, zeek::val_mgr->Port(tup.port1));
+
+    zeek_key->Assign(2, makeAddr(tup.ip2));
+    zeek_key->Assign(3, zeek::val_mgr->Port(tup.port2));
+
+    zeek_key->Assign(4, zeek::val_mgr->Count(tup.protocol));
+
+    return zeek_key;
+}
+
+zeek::RecordValPtr makeCanonicalConnId(const canonical_tuple& canonical) {
+    // Stole this idea from fivetuple factory, it's easy :)
+    constexpr int orig_h = 0;
+    constexpr int orig_p = 1;
+    constexpr int resp_h = 2;
+    constexpr int resp_p = 3;
+    constexpr int proto = 4;
+
+    // orig and resp do not matter!
+    auto cid = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+    cid->Assign(orig_h, makeAddr(canonical.ip1));
+    cid->Assign(orig_p, zeek::val_mgr->Port(canonical.port1));
+
+    cid->Assign(resp_h, makeAddr(canonical.ip2));
+    cid->Assign(resp_p, zeek::val_mgr->Port(canonical.port2));
+
+    cid->Assign(proto, zeek::val_mgr->Count(canonical.protocol));
+
+    // TODO: VLANs!
+    return cid;
 }
 
 // Probably a better way to do this.
@@ -137,4 +183,23 @@ bool origIsIp1(zeek::RecordVal* cid_r) {
 
     // TODO: Check if this is accurate, might be flipped
     return compare_ips(&ip1, &ip2) < 0;
+}
+
+void collectGarbage(struct filter* skel, uint64_t expiry_interval) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    auto now_mono_ns = (static_cast<uint64_t>(ts.tv_sec) * 1000000000ULL) + ts.tv_nsec;
+    auto threshold = now_mono_ns - expiry_interval;
+
+    for ( auto&& [key, val] : get_map<canonical_tuple>(get_canonical_id_map(skel)) ) {
+        if ( val.timestamp < threshold ) {
+            remove_from_map(get_canonical_id_map(skel), &key);
+            zeek::event_mgr.Enqueue(XDP::Shunt::ConnID::unshunted_conn, makeCanonicalTuple(key),
+                                    makeShuntedStats(true, &val));
+
+            auto* c = zeek::session_mgr->FindConnection(makeCanonicalConnId(key).get());
+            if ( c )
+                c->RemovalEvent();
+        }
+    }
 }

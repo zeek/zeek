@@ -141,7 +141,7 @@ template std::optional<std::string> update_map<canonical_tuple>(struct bpf_map* 
 template std::optional<std::string> update_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
 template<SupportedBpfKey Key>
-std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
+std::optional<std::string> remove_from_map(struct bpf_map* map, const Key* key) {
     auto err = bpf_map_delete_elem(bpf_map__fd(map), key);
     if ( err ) {
         char err_buf[256];
@@ -152,8 +152,8 @@ std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
     return {};
 }
 
-template std::optional<std::string> remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
-template std::optional<std::string> remove_from_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
+template std::optional<std::string> remove_from_map<canonical_tuple>(struct bpf_map* map, const canonical_tuple* key);
+template std::optional<std::string> remove_from_map<ip_pair_key>(struct bpf_map* map, const ip_pair_key* key);
 
 template<SupportedBpfKey Key>
 std::map<Key, struct shunt_val> get_map(struct bpf_map* map) {

@@ -88,17 +88,10 @@ template<SupportedBpfKey Key>
 std::optional<std::string> update_map(struct bpf_map* map, Key* key);
 
 template<SupportedBpfKey Key>
-std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key);
+std::optional<std::string> remove_from_map(struct bpf_map* map, const Key* key);
 template<SupportedBpfKey Key>
 std::map<Key, struct shunt_val> get_map(struct bpf_map* map);
 template<SupportedBpfKey Key>
 std::optional<shunt_val> get_val(struct bpf_map* map, Key* key);
-
-using ring_buffer_sample_fn = int (*)(void* ctx, void* data, size_t size);
-struct ring_buffer* make_shunt_fin_buffer(struct filter* skel, ring_buffer_sample_fn cb);
-// Thin wrapper around ring_buffer__free
-void free_ring_buffer(ring_buffer* rb);
-// Thin wrapper around ring_buffer__poll
-void poll_shunt_fin(ring_buffer* rb, int timeout_ms);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

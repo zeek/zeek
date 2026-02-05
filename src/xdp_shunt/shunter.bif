@@ -31,6 +31,7 @@ function _reconnect_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program
         .include_vlan = include_vlan,
         .pin_path = pin_path,
     };
+
     struct filter* skel = nullptr;
     auto err = reconnect(&skel, opts);
     if ( err ) {
@@ -38,7 +39,7 @@ function _reconnect_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program
         return zeek::val_mgr->Bool(false);
     }
 
-    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
+    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel, opts);
     return xdp_prog;
 %}
 

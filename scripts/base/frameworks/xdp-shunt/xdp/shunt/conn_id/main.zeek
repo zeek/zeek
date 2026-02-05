@@ -1,12 +1,6 @@
 module XDP::Shunt::ConnID;
 
 export {
-	## Event raised whenever a connection is shunted.
-	global shunted_conn: event(cid: XDP::canonical_id);
-
-	## Event raised whenever a connection is unshunted.
-	global unshunted_conn: event(cid: XDP::canonical_id, stats: XDP::ShuntedStats);
-
 	## Retrieves the current values in the canonical ID map.
 	##
 	## time_since_last_packet: Interval that must elapse since the last packet

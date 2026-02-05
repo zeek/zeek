@@ -221,7 +221,7 @@ void ZAMCompiler::ResolveHookBreaks() {
 
 void ZAMCompiler::ComputeLoopLevels() {
     // Compute which instructions are inside loops.
-    for ( auto i = 0; i < int(insts1.size()); ++i ) {
+    for ( auto i = 0; i < static_cast<int>(insts1.size()); ++i ) {
         auto inst = insts1[i];
 
         auto t = inst->target;

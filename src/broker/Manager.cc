@@ -1055,7 +1055,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
 
     DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
-    if ( log_buffers.size() <= (unsigned int)stream_id_num )
+    if ( log_buffers.size() <= static_cast<unsigned int>(stream_id_num) )
         log_buffers.resize(stream_id_num + 1);
 
     auto& lb = log_buffers[stream_id_num];

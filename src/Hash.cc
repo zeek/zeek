@@ -276,7 +276,7 @@ void HashKey::Set(zeek_int_t bi) {
 }
 
 void HashKey::Set(zeek_uint_t bu) {
-    key_u.bi = zeek_int_t(bu);
+    key_u.bi = static_cast<zeek_int_t>(bu);
     key = reinterpret_cast<char*>(&key_u);
     size = write_size = sizeof(bu);
 }

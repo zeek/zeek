@@ -49,7 +49,8 @@ void DTLS_Analyzer::SendHandshake(uint16_t raw_tls_version, uint8_t msg_type, ui
                                   const u_char* end, bool orig) {
     handshake_interp->set_record_version(raw_tls_version);
     try {
-        handshake_interp->NewData(orig, (const unsigned char*)&msg_type, (const unsigned char*)&msg_type + 1);
+        handshake_interp->NewData(orig, reinterpret_cast<const unsigned char*>(&msg_type),
+                                  reinterpret_cast<const unsigned char*>(&msg_type) + 1);
         uint32_t host_length = htonl(length);
         // the parser inspects a uint24_t - since it is big-endian, it should be ok to just skip
         // the first byte of the uint32_t. Since we get the data from an uint24_t from the

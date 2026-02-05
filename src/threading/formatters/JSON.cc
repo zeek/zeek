@@ -95,7 +95,7 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
             if ( timestamps == TS_ISO8601 ) {
                 char buffer[40];
                 char buffer2[48];
-                time_t the_time = time_t(floor(val->val.double_val));
+                time_t the_time = static_cast<time_t>(floor(val->val.double_val));
                 struct tm t;
 
                 if ( ! gmtime_r(&the_time, &t) || ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) ) {
@@ -122,7 +122,7 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
 
             else if ( timestamps == TS_MILLIS ) {
                 // ElasticSearch uses milliseconds for timestamps
-                writer.Int64((int64_t)(val->val.double_val * 1000));
+                writer.Int64(static_cast<int64_t>(val->val.double_val * 1000));
             }
             else if ( timestamps == TS_MILLIS_UNSIGNED ) {
                 // Without the cast through int64_t the resulting

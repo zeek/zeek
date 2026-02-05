@@ -678,7 +678,7 @@ string CPPCompile::GenArithCoerceExpr(const Expr* e, GenType gt) {
         default: reporter->InternalError("bad type in arithmetic coercion");
     }
 
-    return NativeToGT(cast_name + "(" + GenExpr(op, GEN_NATIVE) + ")", t, gt);
+    return NativeToGT("static_cast<" + cast_name + ">(" + GenExpr(op, GEN_NATIVE) + ")", t, gt);
 }
 
 string CPPCompile::GenRecordCoerceExpr(const Expr* e) {
@@ -830,7 +830,7 @@ string CPPCompile::GenVal(const ValPtr& v) {
         return GenEnum(t, v);
 
     if ( tag == TYPE_PORT )
-        return Fmt(int(v->AsCount()));
+        return Fmt(static_cast<int>(v->AsCount()));
 
     if ( it == TYPE_INTERNAL_DOUBLE )
         return Fmt(v->AsDouble());

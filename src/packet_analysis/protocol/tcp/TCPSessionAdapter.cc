@@ -1358,7 +1358,7 @@ void TCPSessionAdapter::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip) {
 bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt) {
     const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(pkt);
 
-    if ( unsigned(tp->th_off) < sizeof(struct tcphdr) / 4 )
+    if ( static_cast<unsigned>(tp->th_off) < sizeof(struct tcphdr) / 4 )
         // Bogus header, don't interpret further.
         return false;
 
@@ -1430,10 +1430,10 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
         const auto& dport = val_mgr->Port(ntohs(Conn()->RespPort()), TRANSPORT_TCP);
 
         if ( ! reass )
-            reass = (bool)tcp_content_delivery_ports_orig->FindOrDefault(dport);
+            reass = static_cast<bool>(tcp_content_delivery_ports_orig->FindOrDefault(dport));
 
         if ( ! reass )
-            reass = (bool)tcp_content_delivery_ports_resp->FindOrDefault(dport);
+            reass = static_cast<bool>(tcp_content_delivery_ports_resp->FindOrDefault(dport));
     }
 
     if ( reass )

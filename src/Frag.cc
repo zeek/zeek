@@ -36,7 +36,7 @@ FragReassembler::FragReassembler(session::Manager* arg_s, const std::shared_ptr<
         proto_hdr_len = ip->HdrLen();
         proto_hdr = new u_char[64]; // max IP header + slop
         // Don't do a structure copy - need to pick up options, too.
-        memcpy((void*)proto_hdr, (const void*)ip4, proto_hdr_len);
+        memcpy(reinterpret_cast<void*>(proto_hdr), reinterpret_cast<const void*>(ip4), proto_hdr_len);
     }
     else {
         proto_hdr_len = ip->HdrLen() - 8; // minus length of fragment header
@@ -159,7 +159,7 @@ void FragReassembler::Weird(const char* name) const {
 }
 
 void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n) {
-    if ( memcmp((const void*)b1, (const void*)b2, n) != 0 )
+    if ( memcmp(reinterpret_cast<const void*>(b1), reinterpret_cast<const void*>(b2), n) != 0 )
         Weird("fragment_inconsistency");
     else
         Weird("fragment_overlap");
@@ -225,7 +225,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */) {
     // for a more recent one.
 
     u_char* pkt = new u_char[n];
-    memcpy((void*)pkt, (const void*)proto_hdr, proto_hdr_len);
+    memcpy(reinterpret_cast<void*>(pkt), reinterpret_cast<const void*>(proto_hdr), proto_hdr_len);
 
     u_char* pkt_start = pkt;
 

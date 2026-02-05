@@ -101,7 +101,7 @@ void validate_ZAM_insts() {
     // The following primes a data structure we access.
     (void)AssignmentFlavor(OP_NOP, TYPE_VOID, false);
 
-    for ( int i = 0; i < int(OP_NOP); ++i ) {
+    for ( int i = 0; i < static_cast<int>(OP_NOP); ++i ) {
         auto zop = ZOp(i);
         if ( ! zam_inst_desc.contains(zop) && ! assignment_flavor.contains(zop) )
             reporter->InternalError("op %s missing from description", ZOP_name(zop));

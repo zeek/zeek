@@ -30,11 +30,15 @@ global orig_addr_anonymization: IPAddrAnonymization = PREFIX_PRESERVING_A50;
 
 event zeek_init()
 	{
-	local a: addr = 1.2.3.4;
-	local b: subnet = 1.2.3.0/16;
+	local a: subnet = 1.2.3.0/24;
+	local b: addr = 1.2.3.4;
+	local c: addr = 1.2.10.5;
+	local d: addr = 1.3.4.5;
 
-	preserve_subnet(b);
-	print anonymize_addr(a, ORIG_ADDR);
+	preserve_subnet(a);
+	print anonymize_addr(b, ORIG_ADDR);
+	print anonymize_addr(c, ORIG_ADDR);
+	print anonymize_addr(d, ORIG_ADDR);
 	}
 
 # @TEST-START-NEXT

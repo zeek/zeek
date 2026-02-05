@@ -64,7 +64,6 @@ jobs:
           python3 -m venv ci-docs-venv
           source ci-docs-venv/bin/activate
           pip3 install -r doc/requirements.txt
-          pip3 install pre-commit
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -92,12 +91,6 @@ jobs:
 
       - name: Check Spicy docs
         run: cd doc && make check-spicy-docs
-
-      # Cache pre-commit environment for reuse.
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: doc-pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('doc/.pre-commit-config.yaml') }}
 
       - name: Generate Docs
         run: |

@@ -1,3 +1,7 @@
+8.2.0-dev.179 | 2026-02-05 09:30:35 -0700
+
+  * Remove install/caching of pre-commit in docs generation workflow (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.177 | 2026-02-05 09:30:10 -0700
 
   * Move BifEnum to zeek namespace to match other bif namespaces (Tim Wojtulewicz, Corelight)

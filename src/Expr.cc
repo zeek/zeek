@@ -4407,15 +4407,19 @@ ValPtr LambdaExpr::Eval(Frame* f) const {
     lamb->SetFrameSize(primary_func->FrameSize());
     StmtPtr body = primary_func->GetBodies()[0].stmts;
 
-    if ( run_state::is_parsing )
+    if ( run_state::is_parsing ) {
         // We're evaluating this lambda at parse time, which happens
         // for initializations.  If we're doing script optimization
         // then the current version of the body might be left in an
         // inconsistent state (e.g., if it's replaced with ZAM code)
         // causing problems if we execute this lambda subsequently.
         // To avoid that problem, we duplicate the AST so it's
-        // distinct.
+        // distinct, and we inform script optimization so it can track
+        // the alias we're introducing.
+        auto orig_body = body;
         body = body->Duplicate();
+        register_lambda_alias(orig_body, body);
+    }
 
     lamb->AddBody(*ingredients, body);
     lamb->CreateCaptures(f);

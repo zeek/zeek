@@ -433,7 +433,7 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr _g, string _CPP_name)
     // a bunch of C++ compile time. If not then we'll make sure that it can be
     // generated per the use of GetCohortIDs() in CPPCompile::GenFinishInit().
     if ( c->HasFixedInit(g) )
-        val = ValElem(c, g->GetVal());
+        val = ValElem(c, c->GenFixedInit(g));
     else {
         val = ValElem(c, nullptr);
 

@@ -181,6 +181,17 @@ bool CPPCompile::HasFixedInit(const IDPtr& g) const {
     return true;
 }
 
+ValPtr CPPCompile::GenFixedInit(IDPtr g) const {
+    for ( const auto& ie : g->GetOptInfo()->GetInitExprs() )
+        try {
+            (void)eval_in_isolation(ie);
+        } catch ( InterpreterException& ) {
+            g->Error("re-initialization for compiling standalone script failed");
+        }
+
+    return g->GetVal();
+}
+
 const string& CPPCompile::IDNameStr(const IDPtr& id) {
     if ( id->IsGlobal() ) {
         auto g = string(id->Name());

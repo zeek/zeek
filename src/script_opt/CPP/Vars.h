@@ -37,6 +37,10 @@ void RegisterEvent(std::string ev_name);
 // that will not change across runs.
 bool HasFixedInit(const IDPtr& g) const;
 
+// For a global with a fixed initialization, assigns the global to that value
+// and (for convenience) returns it.
+ValPtr GenFixedInit(IDPtr g) const;
+
 // The following match various forms of identifiers to the name used for
 // their C++ equivalent.
 const char* IDName(const IDPtr& id) { return IDNameStr(id).c_str(); }

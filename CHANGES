@@ -1,3 +1,7 @@
+8.2.0-dev.183 | 2026-02-06 12:46:15 -0800
+
+  * Contributor update in NEWS (Christian Kreibich, Corelight)
+
 8.2.0-dev.181 | 2026-02-05 09:31:39 -0700
 
   * Add better documentation for prefix anonymization (Tim Wojtulewicz, Corelight)

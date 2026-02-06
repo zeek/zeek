@@ -79,8 +79,8 @@ Zeek 8.1.0
 ==========
 
 We'd like to thank Andrew Raffman (@andyraf), @arm7mm, Artyom Kalabukhov (@predator89090),
-Benjamin Grap (@blightzero), @biswajitutil, Jean-Samuel Marier (@cccs-jsjm), @chrisjlly,
-Craig P (@multicast-bytes), @DigiAngel, Mike Dopheide (@dopheide-esnet), Edoardo Mich
+Benjamin Grap (@blightzero), @biswajitutil, @cccs-jsjm, @chrisjlly, Craig P
+(@multicast-bytes), @DigiAngel, Mike Dopheide (@dopheide-esnet), Edoardo Mich
 (@edoardomich), @franky-m, Fupeng Zhao (@AmazingPP), Jan Grashöfer (@J-Gras), Klemens
 Nanni (@klemens-ya), Klemens Nanni (@klemensn), @kshitiz56, Mark Overholser
 (@markoverholser), Mohan Dhawan (@Mohan-Dhawan), Peter Cullen (@pbcullen), RyugaXhypeR
@@ -441,7 +441,7 @@ Zeek 8.0.0
 We would like to thank @aidans111, Anthony Verez (@netantho), Baa (@Baa14453),
 Bhaskar Bhar (@bhaskarbhar), @dwhitemv25, EdKo (@ephikos), @edoardomich, Fupeng
 Zhao (@AmazingPP), hendrik.schwartke@os-s.de (@hendrikschwartke), @i2z1, Jan
-Grashöfer (@J-Gras) Jean-Samuel Marier, Justin Azoff (@JustinAzoff), Mario D
+Grashöfer (@J-Gras), @cccs-jsjm, Justin Azoff (@JustinAzoff), Mario D
 (@mari0d), Markus Elfring (@elfring), Peter Cullen (@pbcullen), Sean Donaghy,
 Simeon Miteff (@simeonmiteff), Steve Smoot (@stevesmoot), @timo-mue,
 @wojciech-graj, and Xiaochuan Ye (@XueSongTap) for their contributions to this

@@ -436,7 +436,7 @@ Functions
         Missing elements count as false.
 
 .. zeek:id:: anonymize_addr
-   :source-code: base/bif/zeek.bif.zeek 2901 2901
+   :source-code: base/bif/zeek.bif.zeek 2907 2907
 
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`, cl: :zeek:type:`IPAddrAnonymizationClass`) : :zeek:type:`addr`
 
@@ -708,7 +708,7 @@ Functions
                 rmdir unlink rename
 
 .. zeek:id:: compress_path
-   :source-code: base/bif/zeek.bif.zeek 2964 2964
+   :source-code: base/bif/zeek.bif.zeek 2970 2970
 
    :Type: :zeek:type:`function` (dir: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -946,7 +946,7 @@ Functions
    .. zeek:see:: Analyzer::schedule_analyzer Analyzer::name
 
 .. zeek:id:: disable_event_group
-   :source-code: base/bif/zeek.bif.zeek 3014 3014
+   :source-code: base/bif/zeek.bif.zeek 3020 3020
 
    :Type: :zeek:type:`function` (group: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -962,7 +962,7 @@ Functions
                  enable_module_events disable_module_events has_module_events
 
 .. zeek:id:: disable_module_events
-   :source-code: base/bif/zeek.bif.zeek 3046 3046
+   :source-code: base/bif/zeek.bif.zeek 3052 3052
 
    :Type: :zeek:type:`function` (module_name: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -1113,7 +1113,7 @@ Functions
    .. zeek:see:: get_matcher_stats
 
 .. zeek:id:: enable_event_group
-   :source-code: base/bif/zeek.bif.zeek 3002 3002
+   :source-code: base/bif/zeek.bif.zeek 3008 3008
 
    :Type: :zeek:type:`function` (group: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -1129,7 +1129,7 @@ Functions
                  enable_module_events disable_module_events has_module_events
 
 .. zeek:id:: enable_module_events
-   :source-code: base/bif/zeek.bif.zeek 3035 3035
+   :source-code: base/bif/zeek.bif.zeek 3041 3041
 
    :Type: :zeek:type:`function` (module_name: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -1385,7 +1385,7 @@ Functions
    .. zeek:see:: entropy_test_init entropy_test_add entropy_test_finish
 
 .. zeek:id:: find_in_zeekpath
-   :source-code: base/bif/zeek.bif.zeek 3096 3096
+   :source-code: base/bif/zeek.bif.zeek 3102 3102
 
    :Type: :zeek:type:`function` (p: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -1509,7 +1509,7 @@ Functions
    :returns: The hashed value.
 
 .. zeek:id:: from_json
-   :source-code: base/bif/zeek.bif.zeek 2955 2955
+   :source-code: base/bif/zeek.bif.zeek 2961 2961
 
    :Type: :zeek:type:`function` (s: :zeek:type:`string`, t: :zeek:type:`any`, key_func: :zeek:type:`string_mapper` :zeek:attr:`&default` = :zeek:see:`from_json_default_key_mapper` :zeek:attr:`&optional`) : :zeek:type:`from_json_result`
 
@@ -1667,7 +1667,7 @@ Functions
    .. zeek:see:: open
 
 .. zeek:id:: get_plugin_components
-   :source-code: base/bif/zeek.bif.zeek 3105 3105
+   :source-code: base/bif/zeek.bif.zeek 3111 3111
 
    :Type: :zeek:type:`function` (category: :zeek:type:`string`) : :zeek:type:`plugin_component_vec`
 
@@ -1773,7 +1773,7 @@ Functions
    Returns a set giving the names of all global options.
 
 .. zeek:id:: has_event_group
-   :source-code: base/bif/zeek.bif.zeek 3023 3023
+   :source-code: base/bif/zeek.bif.zeek 3029 3029
 
    :Type: :zeek:type:`function` (group: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -1786,7 +1786,7 @@ Functions
                  enable_module_events disable_module_events has_module_events
 
 .. zeek:id:: has_module_events
-   :source-code: base/bif/zeek.bif.zeek 3055 3055
+   :source-code: base/bif/zeek.bif.zeek 3061 3061
 
    :Type: :zeek:type:`function` (group: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -1799,7 +1799,7 @@ Functions
                  enable_module_events disable_module_events has_module_events
 
 .. zeek:id:: have_spicy
-   :source-code: base/bif/zeek.bif.zeek 3060 3060
+   :source-code: base/bif/zeek.bif.zeek 3066 3066
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -1807,7 +1807,7 @@ Functions
    is the default).
 
 .. zeek:id:: have_spicy_analyzers
-   :source-code: base/bif/zeek.bif.zeek 3065 3065
+   :source-code: base/bif/zeek.bif.zeek 3071 3071
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -2106,7 +2106,7 @@ Functions
    :param returns: true if the named event is handled.
 
 .. zeek:id:: is_file_analyzer
-   :source-code: base/bif/zeek.bif.zeek 2980 2980
+   :source-code: base/bif/zeek.bif.zeek 2986 2986
 
    :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`bool`
 
@@ -2147,7 +2147,7 @@ Functions
    :returns: True if *ip* belongs to a local interface.
 
 .. zeek:id:: is_packet_analyzer
-   :source-code: base/bif/zeek.bif.zeek 2988 2988
+   :source-code: base/bif/zeek.bif.zeek 2994 2994
 
    :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`bool`
 
@@ -2170,7 +2170,7 @@ Functions
                  continue_processing
 
 .. zeek:id:: is_protocol_analyzer
-   :source-code: base/bif/zeek.bif.zeek 2972 2972
+   :source-code: base/bif/zeek.bif.zeek 2978 2978
 
    :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`bool`
 
@@ -2625,7 +2625,7 @@ Functions
                 rmdir unlink rename
 
 .. zeek:id:: modulo
-   :source-code: base/bif/zeek.bif.zeek 3113 3113
+   :source-code: base/bif/zeek.bif.zeek 3119 3119
 
    :Type: :zeek:type:`function` (a: :zeek:type:`int`, b: :zeek:type:`int`) : :zeek:type:`int`
 
@@ -2819,7 +2819,7 @@ Functions
    .. zeek:see:: floor ceil sqrt exp ln log2 log10
 
 .. zeek:id:: preserve_prefix
-   :source-code: base/bif/zeek.bif.zeek 2866 2866
+   :source-code: base/bif/zeek.bif.zeek 2865 2865
 
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`, width: :zeek:type:`count`) : :zeek:type:`any`
 
@@ -2836,12 +2836,19 @@ Functions
 
 
 .. zeek:id:: preserve_subnet
-   :source-code: base/bif/zeek.bif.zeek 2876 2876
+   :source-code: base/bif/zeek.bif.zeek 2882 2882
 
    :Type: :zeek:type:`function` (a: :zeek:type:`subnet`) : :zeek:type:`any`
 
    Preserves the prefix of a subnet in anonymization. This only works with the
-   PREFIX_PRESERVING_A50 anonymizer method.
+   PREFIX_PRESERVING_A50 anonymizer method. When a subnet is passed in, the anonymizer
+   will attempt to keep each octet the same that matches the subnet. For example, if the
+   subnet provided is ``1.2.3.0/24``, the following addresses get anonymized as follows,
+   with X representing the octets that get replaced:
+
+     - 1.2.3.4 becomes 1.2.3.X
+     - 1.2.4.5 becomes 1.2.X.X
+     - 1.3.4.5 becomes 1.X.X.X
 
 
    :param a: The subnet to preserve.
@@ -3970,7 +3977,7 @@ Functions
    .. zeek:see:: table_values
 
 .. zeek:id:: table_pattern_matcher_stats
-   :source-code: base/bif/zeek.bif.zeek 3083 3083
+   :source-code: base/bif/zeek.bif.zeek 3089 3089
 
    :Type: :zeek:type:`function` (tbl: :zeek:type:`any`) : :zeek:type:`MatcherStats`
 
@@ -4105,7 +4112,7 @@ Functions
    .. zeek:see:: to_addr to_port to_subnet
 
 .. zeek:id:: to_json
-   :source-code: base/bif/zeek.bif.zeek 2923 2923
+   :source-code: base/bif/zeek.bif.zeek 2929 2929
 
    :Type: :zeek:type:`function` (val: :zeek:type:`any`, only_loggable: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`, field_escape_pattern: :zeek:type:`pattern` :zeek:attr:`&default` = ``/^?(^_)$?/`` :zeek:attr:`&optional`, interval_as_double: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`string`
 

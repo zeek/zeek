@@ -1,5 +1,8 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+%doc-id = Zeek::PostgreSQL;
+%doc-description = "PostgreSQL analyzer";
+
 import PostgreSQL;
 import PostgreSQL_Zeek;
 

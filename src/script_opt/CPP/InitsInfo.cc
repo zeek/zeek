@@ -233,7 +233,8 @@ StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
 
 PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
     auto re = v->AsPatternVal()->Get();
-    pattern = c->TrackString(CPPEscape(re->OrigText()));
+    exact_pat = c->TrackString(CPPEscape(re->PatternText()));
+    any_pat = c->TrackString(CPPEscape(re->AnywherePatternText()));
     is_case_insensitive = re->IsCaseInsensitive();
     is_single_line = re->IsSingleLine();
 }

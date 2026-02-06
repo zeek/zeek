@@ -93,10 +93,13 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<StringValPtr>& 
 template<class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<PatternValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) {
-    auto re = new RE_Matcher(im->Strings(init_vals[0]));
-    if ( init_vals[1] )
-        re->MakeCaseInsensitive();
+    auto exact_pat = im->Strings(init_vals[0]);
+    auto any_pat = im->Strings(init_vals[1]);
+
+    auto re = new RE_Matcher(exact_pat, any_pat);
     if ( init_vals[2] )
+        re->MakeCaseInsensitive();
+    if ( init_vals[3] )
         re->MakeSingleLine();
 
     re->Compile();

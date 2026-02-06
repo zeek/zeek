@@ -1,7 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifdef DEBUG
-
 #include "zeek/DebugLogger.h"
 
 #include <unistd.h>
@@ -203,5 +201,3 @@ std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const 
 }
 
 } // namespace zeek::detail
-
-#endif

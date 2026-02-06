@@ -128,10 +128,6 @@ void ID::SetVal(ValPtr v) {
     val = std::move(v);
     Modified();
 
-#ifdef DEBUG
-    UpdateValID();
-#endif
-
     if ( type && val && type->Tag() == TYPE_FUNC && type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ) {
         EventHandler* handler = event_registry->Lookup(name);
         auto func = val.get()->As<FuncVal*>()->AsFuncPtr();
@@ -575,13 +571,6 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
         }
     }
 }
-
-#ifdef DEBUG
-void ID::UpdateValID() {
-    if ( IsGlobal() && val && name && name[0] != '#' )
-        val->SetID(this);
-}
-#endif
 
 void ID::AddOptionHandler(FuncPtr callback, int priority) {
     option_handlers.emplace_front(priority, callback);

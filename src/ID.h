@@ -153,10 +153,6 @@ public:
 protected:
     void EvalFunc(ExprPtr ef, ExprPtr ev);
 
-#ifdef DEBUG
-    void UpdateValID();
-#endif
-
     const char* name;
     TypePtr type;
     IDScope scope;

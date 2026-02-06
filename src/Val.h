@@ -228,14 +228,6 @@ public:
     // notification.
     virtual notifier::detail::Modifiable* Modifiable() { return nullptr; }
 
-#ifdef DEBUG
-    // For debugging, we keep a reference to the global ID to which a
-    // value has been bound *last*.
-    detail::ID* GetID() const;
-
-    void SetID(detail::ID* id);
-#endif
-
     TableValPtr GetRecordFields();
 
     /**
@@ -308,11 +300,6 @@ protected:
     virtual ValPtr DoClone(CloneState* state);
 
     TypePtr type;
-
-#ifdef DEBUG
-    // For debugging, we keep the name of the ID to which a Val is bound.
-    const char* bound_id = nullptr;
-#endif
 };
 
 // Holds pre-allocated Val objects for those where it's more optimal to

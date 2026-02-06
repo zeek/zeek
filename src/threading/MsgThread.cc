@@ -99,7 +99,6 @@ public:
     }
 };
 
-#ifdef DEBUG
 // A debug message from the child to be passed on to the DebugLogger.
 class DebugMessage final : public OutputMessage<MsgThread> {
 public:
@@ -120,7 +119,6 @@ private:
     const char* msg;
     DebugStream stream;
 };
-#endif
 
 // An event that the child wants to pass into the main event queue
 class SendEventMessage final : public OutputMessage<MsgThread> {
@@ -371,13 +369,9 @@ void MsgThread::InternalError(const char* msg) {
     abort();
 }
 
-#ifdef DEBUG
-
 void MsgThread::Debug(DebugStream stream, const char* msg) {
     SendOut(new detail::DebugMessage(stream, this, BuildMsgWithLocation(msg)));
 }
-
-#endif
 
 void MsgThread::SendIn(BasicInputMessage* msg, bool force) {
     if ( Terminating() && ! force ) {

@@ -5,8 +5,6 @@
 
 #pragma once
 
-#ifdef DEBUG
-
 #include <cstdint>
 #include <cstdio>
 #include <set>
@@ -15,6 +13,8 @@
 #ifdef _MSC_VER
 #include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
 #endif
+
+#ifdef DEBUG
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(stream, ...)                                                                                           \
@@ -28,6 +28,17 @@
 
 #define PLUGIN_DBG_LOG(plugin, ...) ::zeek::detail::debug_logger.Log(plugin, __VA_ARGS__)
 // NOLINTEND(cppcoreguidelines-macro-usage)
+
+#else
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define DBG_LOG(...)
+#define DBG_LOG_VERBOSE(...)
+#define DBG_PUSH(stream)
+#define DBG_POP(stream)
+#define PLUGIN_DBG_LOG(plugin, ...)
+// NOLINTEND(cppcoreguidelines-macro-usage)
+
+#endif
 
 namespace zeek {
 
@@ -123,14 +134,5 @@ private:
 extern DebugLogger debug_logger;
 
 } // namespace detail
-} // namespace zeek
 
-#else
-// NOLINTBEGIN(cppcoreguidelines-macro-usage)
-#define DBG_LOG(...)
-#define DBG_LOG_VERBOSE(...)
-#define DBG_PUSH(stream)
-#define DBG_POP(stream)
-#define PLUGIN_DBG_LOG(plugin, ...)
-// NOLINTEND(cppcoreguidelines-macro-usage)
-#endif
+} // namespace zeek

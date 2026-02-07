@@ -17,13 +17,13 @@
 // Type for function to be called when deleting elements.
 using dict_delete_func = void (*)(void*);
 
-#if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
+#if defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o) o->AssertValid()
 #define ASSERT_EQUAL(a, b) ASSERT(a == b)
 #else
 #define ASSERT_VALID(o)
 #define ASSERT_EQUAL(a, b)
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
 namespace zeek {
 
@@ -81,7 +81,7 @@ constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
 template<typename T>
 class DictEntry {
 public:
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
     int bucket = 0;
 #endif
 
@@ -130,14 +130,14 @@ public:
     bool Empty() const { return distance == TOO_FAR_TO_REACH; }
     void SetEmpty() {
         distance = TOO_FAR_TO_REACH;
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 
         hash = 0;
         key = nullptr;
         value = nullptr;
         key_size = 0;
         bucket = 0;
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
     }
 
     void Clear() {
@@ -1212,9 +1212,9 @@ private:
     /// Insert entry, Adjust iterators when necessary.
     void InsertRelocateAndAdjust(detail::DictEntry<T>& entry, int insert_position) {
 /// e.distance is adjusted to be the one at insert_position.
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
         entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
         int last_affected_position = insert_position;
         InsertAndRelocate(entry, insert_position, &last_affected_position);
         space_distance_sum += last_affected_position - insert_position;
@@ -1395,9 +1395,9 @@ private:
             return false;
         detail::DictEntry<T> entry =
             RemoveAndRelocate(position); // no iteration cookies to adjust, no need for last_affected_position.
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
         entry.bucket = expected;
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
         // find insert position.
         int insert_position = EndOfClusterByBucket(expected);

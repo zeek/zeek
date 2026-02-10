@@ -1,58 +1,138 @@
-# WARNING: New redirects cannot be added, since RTD introduced a cap of 100
-# redirects. You can, however, manually edit and remove redirects in the UI.
-# When doing so, modify this file as well for documentation.
+# This file defines all the HTTP redirects required for the Readthedocs projects
+# at docs.zeek.org. They apply in the order given in this file, so
+# first-hit-wins.  RTD applies these redirects only if a page 404s, so you can
+# add redirects as soon as a broken link needs to be fixed in latest/master and
+# it won't automatically try to redirect the still-working page in
+# stable/release.
 #
-# These are all the Page Redirects required for RTD project at docs.zeek.org.
-# A nice thing about RTD redirects is that they are only utilized if a page
-# 404s, so redirects can be added as soon as a broken link needs to be fixed in
-# latest/master and it won't automatically try to redirect the still-working
-# page in stable/release.
+# The doc-redirects script in zeek-aux/devel-tools assists in the maintenance of
+# this file and the deployment of updates to RTD. The full set of keys understood
+# for a given redirect is:
 #
-# RTD doesn't have an official API to add all the redirects defined here, but
-# this tool uses its HTML interface:
+#   from_url: the URL to redirect from
 #
-#     https://github.com/honzajavorek/rtd-redirects
+#   to_url: the URL to redirect to
+#
+#   type: defaults to "page", but can also be "exact" and a few others, see
+#   https://docs.readthedocs.com/platform/stable/api/v3.html#redirect-create
+#
+#   enabled: boolean true / false, defaults to true
+#
+#   http_status: 301 (permanent) or 302 (transient), defaults to 301
+#
+#   description: an optional comment that gets rendered in the RTD UI when pulling
+#   up the redirect.
+#
+# WARNING: for its free tier, RTD introduces a cap of 100 redirects, so try to
+# avoid per-file redirects when directory-level ones are appropriate.
 
-redirects:
-  # "Book of Zeek" revisions.
-  "/configuration/index.html": "/cluster-setup.html#cluster-configuration"
-  "/configuration/": "/cluster-setup.html#cluster-configuration"
-  "/install/guidelines.html": "/install.html"
-  "/install/NEWS.html": "https://github.com/zeek/zeek/blob/master/NEWS"
-  "/install/release-notes.html": "https://github.com/zeek/zeek/blob/master/NEWS"
-  "/install/changes.html": "https://github.com/zeek/zeek/blob/master/CHANGES"
-  "/install/install.html": "/install.html"
-  "/install/upgrade.html": "/install.html"
-  "/install/cross-compiling.html": "/building-from-source.html#cross-compiling"
-  "/install/index.html": "/install.html"
-  "/install/": "/install.html"
-  "/examples/index.html": "/index.html"
-  "/examples/": "/index.html"
-  "/examples/ids/index.html": "/scripting/index.html"
-  "/examples/ids/": "/scripting/index.html"
-  "/examples/mimestats/index.html": "/scripting/index.html"
-  "/examples/mimestats/": "/scripting/index.html"
-  "/examples/scripting/index.html": "/scripting/index.html"
-  "/examples/scripting/": "/scripting/index.html"
-  "/examples/httpmonitor/index.html": "/logs/http.html"
-  "/examples/httpmonitor/": "/logs/http.html"
-  "/examples/logs/index.html": "/log-formats.html"
-  "/examples/logs/": "/log-formats.html"
-  "/cluster/index.html": "/cluster-setup.html"
-  "/cluster/": "/cluster-setup.html"
-  "/quickstart/index.html": "/quickstart.html"
-  "/quickstart/": "/quickstart.html"
-  "/devel/maintainers/index.html": "/devel/maintainers.html"
-  "/devel/maintainers/": "/devel/maintainers.html"
-  "/devel/maintainers/release-process.html": "/devel/maintainers.html"
-  "/devel/contributors/coding-style.html": "/devel/contributors.html"
-  "/devel/contributors/index.html": "/devel/contributors.html"
-  "/devel/contributors/": "/devel/contributors.html"
-  "/devel/contributors/documentation-style.html": "/devel/contributors.html"
-  "/devel/contributors/memory-checks.html": "/devel/contributors.html"
-  "/intro/index.html": "/about.html"
-  "/intro/": "/about.html"
-  # Revamped geolocation docs
-  "/frameworks/geoip.html": "/customizations.html#address-geolocation-and-as-lookups"
-  # Moved coding style doc when re-organizing maintainer/contributor guides.
-  "/devel/style_guide.html": "/devel/contributors/coding-style.html"
+- from_url: /README.html
+  to_url: https://github.com/zeek/zeek/blob/master/doc/README
+  description: README.rst was removed from the TOC https://github.com/zeek/zeek/pull/5089
+- from_url: /projects/package-manager/en/stable/bro-pkg.html
+  to_url: /projects/package-manager/en/stable/zkg.html
+  type: exact
+- from_url: /projects/package-manager/en/latest/bro-pkg.html
+  to_url: /projects/package-manager/en/latest/zkg.html
+  type: exact
+  http_status: 302
+- from_url: /scripts/base/bif/bro.bif.zeek.html
+  to_url: /scripts/base/bif/zeek.bif.zeek.html
+- from_url: /devel/style_guide.html
+  to_url: /devel/contributors/coding-style.html
+- from_url: /projects/package-manager
+  to_url: /projects/package-manager/en/stable
+  type: exact
+- from_url: /projects/broker
+  to_url: /projects/broker/en/current
+  type: exact
+- from_url: /en/stable/*
+  to_url: /en/current/:splat
+  type: exact
+- from_url: /en/latest/*
+  to_url: /en/master/:splat
+  type: exact
+- from_url: /projects/broker/en/stable/*
+  to_url: /projects/broker/en/current/:splat
+  type: exact
+- from_url: /projects/broker/en/latest/*
+  to_url: /projects/broker/en/master/:splat
+  type: exact
+- from_url: /projects/package-manager/en/latest/*
+  to_url: /projects/package-manager/en/master/:splat
+  type: exact
+- from_url: /configuration/index.html
+  to_url: /cluster-setup.html#cluster-configuration
+- from_url: /install/guidelines.html
+  to_url: /install.html
+- from_url: /install/NEWS.html
+  to_url: https://github.com/zeek/zeek/blob/master/NEWS
+- from_url: /install/release-notes.html
+  to_url: https://github.com/zeek/zeek/blob/master/NEWS
+- from_url: /install/changes.html
+  to_url: https://github.com/zeek/zeek/blob/master/CHANGES
+- from_url: /install/install.html
+  to_url: /install.html
+- from_url: /install/upgrade.html
+  to_url: /install.html
+- from_url: /install/cross-compiling.html
+  to_url: /building-from-source.html#cross-compiling
+- from_url: /install/index.html
+  to_url: /install.html
+- from_url: /examples/index.html
+  to_url: /index.html
+- from_url: /examples/ids/index.html
+  to_url: /scripting/index.html
+- from_url: /examples/mimestats/index.html
+  to_url: /scripting/index.html
+- from_url: /examples/scripting/index.html
+  to_url: /scripting/index.html
+  http_status: 302
+- from_url: /examples/httpmonitor/index.html
+  to_url: /logs/http.html
+- from_url: /examples/logs/index.html
+  to_url: /log-formats.html
+- from_url: /cluster/index.html
+  to_url: /cluster-setup.html
+- from_url: /quickstart/index.html
+  to_url: /quickstart.html
+- from_url: /devel/maintainers/index.html
+  to_url: /devel/maintainers.html
+- from_url: /devel/maintainers/release-process.html
+  to_url: /devel/maintainers.html
+- from_url: /devel/contributors/coding-style.html
+  to_url: /devel/contributors.html
+- from_url: /devel/contributors/index.html
+  to_url: /devel/contributors.html
+- from_url: /devel/contributors/documentation-style.html
+  to_url: /devel/contributors.html
+- from_url: /devel/contributors/memory-checks.html
+  to_url: /devel/contributors.html
+- from_url: /intro/index.html
+  to_url: /about.html
+- from_url: /examples/logs
+  to_url: /log-formats.html
+- from_url: /configuration
+  to_url: /cluster-setup.html#cluster-configuration
+- from_url: /install
+  to_url: /install.html
+- from_url: /examples
+  to_url: /index.html
+- from_url: /examples/ids
+  to_url: /scripting/index.html
+- from_url: /examples/mimestats
+  to_url: /scripting/index.html
+- from_url: /examples/scripting
+  to_url: /scripting/index.html
+- from_url: /examples/httpmonitor
+  to_url: /logs/http.html
+- from_url: /cluster
+  to_url: /cluster-setup.html
+- from_url: /quickstart
+  to_url: /quickstart.html
+- from_url: /devel/maintainers
+  to_url: /devel/maintainers.html
+- from_url: /devel/contributors
+  to_url: /devel/contributors.html
+- from_url: /intro
+  to_url: /about.html

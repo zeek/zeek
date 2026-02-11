@@ -13,10 +13,7 @@
 using namespace zeek::cluster;
 
 void detail::report_non_functional_broker_tables(const zeek::EnumValPtr& cluster_backend_val) {
-    auto none_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_NONE");
     auto broker_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
-
-    assert(cluster_backend_val != none_backend_val);
     assert(cluster_backend_val != broker_backend_val);
 
     const auto& globals = zeek::detail::global_scope()->Vars();

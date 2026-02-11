@@ -162,3 +162,7 @@
 @load protocols/ssl/weak-keys.zeek
 @load tuning/json-logs.zeek
 @load tuning/track-all-assets.zeek
+
+
+# Switch to Broker after loading zeromq above. In 8.1. we use NONE here.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;

@@ -15,7 +15,7 @@
 #
 # No errors with Broker, only deprecation warnings.
 # @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
-# @TEST-EXEC: CLUSTER_NODE=manager zeek frameworks/cluster/backend/broker %INPUT 2>broker.err
+# @TEST-EXEC: CLUSTER_NODE=manager zeek %INPUT 2>broker.err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff broker.err
 
 redef Log::default_rotation_interval = 0sec;

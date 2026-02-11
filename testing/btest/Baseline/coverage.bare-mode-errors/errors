@@ -2,4 +2,6 @@
 ### NOTE: This file has been sorted with diff-sort.
 warning in <...>/detect-protocols.zeek, line 1: deprecated script loaded from command line arguments ("frameworks<...>/detect-protocols.zeek moved to frameworks<...>/detect-protocols.zeek. Please switch to frameworks<...>/detect-protocols.zeek. Remove in 8.1")
 warning in <...>/detect-sqli.zeek, line 16: deprecated script loaded from command line arguments "Remove in v8.1: Switch to the improved detect-sql-injection script"
+warning in <...>/main.zeek, line 185: Remove in v9.1: The Broker-specific &backend attribute on tables is deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.
+warning in <...>/main.zeek, line 185: Remove in v9.1: The Broker-specific &backend attribute on tables is deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.
 warning in <...>/packet-segment-logging.zeek, line 1: deprecated script loaded from command line arguments ("Please switch to frameworks<...>/packet-segment-logging, which logs to analyzer.log. Remove in 8.1")

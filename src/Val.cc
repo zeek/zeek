@@ -51,11 +51,7 @@ using namespace std;
 
 namespace zeek {
 
-Val::~Val() {
-#ifdef DEBUG
-    delete[] bound_id;
-#endif
-}
+Val::~Val() = default;
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
@@ -298,15 +294,6 @@ void Val::ValDescribeReST(ODesc* d) const {
             d->Add("``");
     }
 }
-
-#ifdef DEBUG
-detail::ID* Val::GetID() const { return bound_id ? detail::global_scope()->Find(bound_id).get() : nullptr; }
-
-void Val::SetID(detail::ID* id) {
-    delete[] bound_id;
-    bound_id = id ? util::copy_string(id->Name()) : nullptr;
-}
-#endif
 
 TableValPtr Val::GetRecordFields() {
     static auto record_field_table = id::find_type<TableType>("record_field_table");

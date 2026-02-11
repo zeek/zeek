@@ -1,3 +1,21 @@
+8.2.0-dev.187 | 2026-02-11 11:41:57 +0100
+
+  * GH-5120: Avoid ABI-breaking use of `DEBUG` (Benjamin Bannier, Corelight)
+
+    Some public classes were depending on `NDEBUG` emit different members or
+    methods. This meant that classes had a different API and ABI depending
+    on whether the user code was built in debug mode or not, and even not
+    using the conditional fields could lead to random failures in user code.
+
+    The correct approach would have been to use a Zeek-specific preprocessor
+    variable so the Zeek ABI depends on the way Zeek itself was built, and
+    not how the user code was. It seems the affected fields were not really
+    used anymore, so this patch simply removes them. Since we now
+    unconditionally emit debug functions we also need to unconditionally
+    emit declarations used in the signatures of these types.
+
+    Closes #5120.
+
 8.2.0-dev.185 | 2026-02-10 11:41:38 +0100
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

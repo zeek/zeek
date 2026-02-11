@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #if defined(__OpenBSD__)
@@ -17,7 +18,6 @@ using pkt_timeval = struct timeval;
 #endif
 
 #include "zeek/IP.h"
-#include "zeek/NetVar.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/session/Session.h"
 
@@ -59,6 +59,13 @@ enum Layer3Proto : int8_t {
  */
 class Packet {
 public:
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
     /**
      * Construct and initialize from packet data.
      *
@@ -93,6 +100,11 @@ public:
         pkt_timeval ts = {0, 0};
         Init(0, &ts, 0, 0, nullptr);
     }
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
     /**
      * Destructor.
@@ -148,6 +160,99 @@ public:
      */
     static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
+    struct VlanTag {
+        uint16_t id = 0;
+        uint8_t pcp = 0;
+        bool dei = false;
+
+        auto operator<=>(const VlanTag&) const = default;
+    };
+
+    // Accessor methods for VLAN fields
+    // Suppress deprecation warnings since these methods need to access deprecated fields
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+    /**
+     * (Outermost) VLAN tag if present, otherwise empty
+     */
+    std::optional<VlanTag> GetVlanTag() const {
+        if ( ! vlan_present )
+            return {};
+
+        if ( ! std::in_range<uint16_t>(vlan) )
+            reporter->InternalError("VLAN ID value %u exceeds 16 bits", vlan);
+
+        if ( ! std::in_range<uint8_t>(vlan_pcp) )
+            reporter->InternalError("VLAN PCP value %u exceeds 8 bits", vlan_pcp);
+
+        return std::optional<VlanTag>{
+            {.id = static_cast<uint16_t>(vlan), .pcp = static_cast<uint8_t>(vlan_pcp), .dei = vlan_dei}};
+    }
+
+    /**
+     * (Outermost) Sets the VLAN tag and marks it as present
+     */
+    void SetVlanTag(VlanTag tag) {
+        vlan = tag.id;
+        vlan_pcp = tag.pcp;
+        vlan_dei = tag.dei;
+        vlan_present = true;
+    }
+
+    /**
+     * (Innermost) VLAN tag if present, otherwise empty
+     */
+    std::optional<VlanTag> GetInnerVlanTag() const {
+        if ( ! inner_vlan_present )
+            return std::nullopt;
+
+        if ( ! std::in_range<uint16_t>(inner_vlan) )
+            reporter->InternalError("inner VLAN ID value %u exceeds 16 bits", inner_vlan);
+
+        if ( ! std::in_range<uint8_t>(inner_vlan_pcp) )
+            reporter->InternalError("inner VLAN PCP value %u exceeds 8 bits", inner_vlan_pcp);
+
+        return std::optional<VlanTag>{{.id = static_cast<uint16_t>(inner_vlan),
+                                       .pcp = static_cast<uint8_t>(inner_vlan_pcp),
+                                       .dei = inner_vlan_dei}};
+    }
+
+    /**
+     * (Innermost) Sets the VLAN tag and marks it as present
+     */
+    void SetInnerVlanTag(VlanTag tag) {
+        inner_vlan = tag.id;
+        inner_vlan_pcp = tag.pcp;
+        inner_vlan_dei = tag.dei;
+        inner_vlan_present = true;
+    }
+
+    /**
+     * Clears both of the VLAN tags
+     */
+    void ClearVlanTags() {
+        vlan = 0;
+        vlan_pcp = 0;
+        vlan_dei = false;
+        vlan_present = false;
+
+        inner_vlan = 0;
+        inner_vlan_pcp = 0;
+        inner_vlan_dei = false;
+        inner_vlan_present = false;
+    }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+
     // These are passed in through the constructor.
     std::string tag;              /// Used in serialization
     double time;                  /// Timestamp reconstituted as float
@@ -162,34 +267,18 @@ public:
      */
     uint32_t eth_type;
 
-    /**
-     * (Outermost) VLAN tag if any, else 0.
-     */
+    // These should be made combined into 2 private, optional VlanTag instances
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     uint32_t vlan = 0;
-
-    /**
-     * (Outermost) VLAN PCP if vlan is set, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     uint32_t vlan_pcp = 0;
-
-    /**
-     * (Outermost) VLAN DEI if vlan is set, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetVlanTag() and SetVlanTag(tag) instead.")]]
     bool vlan_dei = false;
-
-    /**
-     * (Innermost) VLAN tag if any, else 0.
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     uint32_t inner_vlan = 0;
-
-    /**
-     * (Innermost) VLAN PCP if inner_vlan is set, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     uint32_t inner_vlan_pcp = 0;
-
-    /**
-     * (Innermost) VLAN DEI if inner_vlan is set, otherwise invalid
-     */
+    [[deprecated("Remove in v9.1. Use GetInnerVlanTag() and SetInnerVlanTag(tag) instead.")]]
     bool inner_vlan_dei = false;
 
     /**
@@ -305,6 +394,16 @@ public:
     session::Session* session = nullptr;
 
 private:
+    /**
+     * (Outermost) If the VLAN tag was present
+     */
+    bool vlan_present = false;
+
+    /**
+     * (Innermost) If the inner VLAN tag was present
+     */
+    bool inner_vlan_present = false;
+
     // Renders an MAC address into its ASCII representation.
     ValPtr FmtEUI48(const u_char* mac) const;
 

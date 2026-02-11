@@ -1390,7 +1390,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                 SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
 
                 for ( const auto& f : fields )
-                    SPICY_DEBUG(hilti::util::fmt("  %s", f));
+                    SPICY_DEBUG(hilti::util::fmt("  %s", *f));
             }
             else
                 SPICY_DEBUG(hilti::util::fmt("Creating (empty) Zeek record type %s::%s", ns, local));
@@ -1699,6 +1699,94 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
     }
 };
 } // namespace
+
+namespace {
+
+// Collects all unit and struct types that are passed to Zeek through calls to
+// `to_val()`.
+struct VisitorExportsCollect : public spicy::visitor::PreOrder {
+    hilti::declaration::Module* current_module = nullptr;
+    std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>> exports;
+
+    void operator()(hilti::declaration::Module* n) final { current_module = n; }
+
+    void operator()(::hilti::operator_::function::Call* n) final {
+        assert(current_module);
+
+        if ( n->op0()->as<hilti::expression::Name>()->id() == "zeek_rt::to_val" ) {
+            const auto& arg_type = n->op1()
+                                       ->as<hilti::expression::Ctor>()
+                                       ->ctor()
+                                       ->as<hilti::ctor::Tuple>()
+                                       ->value()
+                                       .front()
+                                       ->type()
+                                       ->type();
+            assert(arg_type->isResolved());
+
+            if ( arg_type->isA<::spicy::type::Unit>() || arg_type->isA<hilti::type::Struct>() ) {
+                auto* decl = arg_type->typeDeclaration();
+                assert(decl);
+                exports.emplace_back(current_module, decl);
+            }
+        }
+    }
+};
+
+// Adds HILT-side `export` statements for all unit and struct types that were
+// either collected directly by `VisitorExportsCollect`, or are transitively
+// reachable from those through their fields.
+struct VisitorExportsMutate : public spicy::visitor::PreOrder {
+    VisitorExportsMutate(Builder* builder) : builder(builder) {}
+
+    void setModule(hilti::declaration::Module* m) { module = m; }
+
+    hilti::Builder* builder;
+    hilti::declaration::Module* module;
+
+    std::set<std::pair<hilti::ID, hilti::ID>> exported;
+
+    void addExport(hilti::declaration::Type* decl) {
+        assert(module);
+        assert(decl->type()->isResolved());
+
+        if ( exported.contains({module->id(), decl->fullyQualifiedID()}) )
+            return;
+
+        if ( auto* t = decl->type()->type(); ! t->isA<::spicy::type::Unit>() && ! t->isA<hilti::type::Struct>() )
+            return;
+
+        SPICY_DEBUG(hilti::util::fmt("Adding Spicy export for type '%s' to module '%s'", decl->fullyQualifiedID(),
+                                     module->id()));
+        module->add(builder->context(), builder->export_(decl->fullyQualifiedID(), decl->meta()));
+        exported.emplace(module->id(), decl->fullyQualifiedID());
+    }
+
+    void operator()(hilti::declaration::Type* n) final {
+        addExport(n);
+
+        for ( auto* dep : builder->context()->dependentDeclarations(n) ) {
+            if ( auto* t = dep->tryAs<hilti::declaration::Type>() )
+                addExport(t);
+        }
+    }
+};
+
+} // namespace
+
+bool GlueCompiler::createHILTIExports(hilti::ASTRoot* root) {
+    VisitorExportsCollect v1;
+    hilti::visitor::visit(v1, root);
+
+    VisitorExportsMutate v2(builder());
+
+    for ( const auto& [module, decl] : v1.exports ) {
+        v2.setModule(module);
+        hilti::visitor::visit(v2, decl);
+    }
+
+    return ! v2.exported.empty();
+}
 
 std::vector<GlueCompiler::RecordField> GlueCompiler::recordFields(const ::spicy::type::Unit* unit) {
     VisitorUnitFields unit_field_converter;

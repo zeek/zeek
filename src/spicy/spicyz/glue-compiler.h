@@ -218,6 +218,15 @@ public:
     hilti::Result<hilti::Nothing> createZeekType(hilti::QualifiedType* t, const hilti::ID& id,
                                                  ::spicy::Builder* builder, ZeekTypeCache* cache) const;
 
+    /**
+     * Creates all HILTI-side `export` declarations that we need for any of the
+     * types we send to Zeek.
+     *
+     * @param root the AST root, which will be searched for all relevant type operations
+     * @return true if any export declarations were created, false otherwise
+     */
+    bool createHILTIExports(hilti::ASTRoot* root);
+
     /** Return type for `recordField()`. */
     struct RecordField {
         hilti::ID id;                         /**< name of record field */

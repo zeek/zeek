@@ -12,6 +12,9 @@ module foo;
 global n: uint64 = 0;
 
 public type X = unit { y: Y; };
+public type Z = struct {
+    not_used: real; # this mustn't be optimized out because Zeek will still expect it
+};
 
 type Y = unit {
     var n: uint64;
@@ -20,6 +23,8 @@ type Y = unit {
         self.n = n;
     }
     y: bytes &until=b"\x0a";
+
+    var z: Z;
 };
 # @TEST-END-FILE
 

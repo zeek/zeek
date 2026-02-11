@@ -39,8 +39,8 @@ public type Test = unit {
 };
 
 type MyStruct = struct {
-    i: int64;
-    s: string &optional;
+    i: int64 &always-emit;
+    s: string &optional &always-emit;
 };
 
 # @TEST-END-FILE

@@ -277,24 +277,34 @@ bool Driver::hookNewASTPostCompilation(const hilti::Plugin& plugin, hilti::ASTRo
     if ( plugin.component != "Spicy" )
         return false;
 
-    if ( ! _need_glue )
-        return false;
+    switch ( _glue_phase ) {
+        case GluePhase::Create: {
+            auto v = VisitorTypes(this, _glue.get(), true);
+            hilti::visitor::visit(v, root, ".spicy");
 
-    _need_glue = false;
+            for ( auto&& t : v.types ) {
+                SPICY_DEBUG(hilti::util::fmt("  Got type '%s' (post-compile)", t.id));
+                _types[t.id] = t;
+                hookNewType(t);
+            }
 
-    auto v = VisitorTypes(this, _glue.get(), true);
-    hilti::visitor::visit(v, root, ".spicy");
+            if ( ! _glue->compile() )
+                _error = hilti::result::Error("glue compilation failed");
 
-    for ( auto&& t : v.types ) {
-        SPICY_DEBUG(hilti::util::fmt("  Got type '%s' (post-compile)", t.id));
-        _types[t.id] = t;
-        hookNewType(t);
+            _glue_phase = GluePhase::ExportTypes;
+            return true;
+        }
+
+        case GluePhase::ExportTypes: {
+            auto changed = _glue->createHILTIExports(root);
+            _glue_phase = GluePhase::Done;
+            return changed;
+        }
+
+        case GluePhase::Done: return false;
     }
 
-    if ( ! _glue->compile() )
-        _error = hilti::result::Error("glue compilation failed");
-
-    return true;
+    hilti::util::cannotBeReached();
 }
 
 hilti::Result<hilti::Nothing> Driver::hookCompilationFinished(hilti::ASTRoot* root) { return _error; }

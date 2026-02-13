@@ -595,6 +595,36 @@ see the `jq manual <https://stedolan.github.io/jq/manual/>`_.
 With this basic understanding of how to interact with Zeek logs, we can now
 turn to specific logs and interpret their values.
 
+How to interpret \u00xx in JSON String Values
+=============================================
+
+It is not uncommon that string values in Zeek logs contain arbitrary binary bytes
+that aren't ASCII or do not form valid UTF-8 sequences. Zeek encodes such bytes
+in JSON logs as `\u00XX`. Note that technically `\u00XX` describes a Unicode
+character with a specific Unicode code point. For Zeek's JSON logs, this is not
+the case. A `\u00XX` escape sequence always describes the occurrence of an individual
+byte that has the value `XX` and that wasn't part of a valid UTF-8 sequence. For example,
+if you see `\u00d4` within a JSON string, the original string contained a `\xd4` byte.
+There is no relation to the `LATIN CAPITAL LETTER O WITH CIRCUMFLEX` character.
+The UTF-8 encoding of this character, which is `\xc3\x94`, will never be converted
+to the semantically equivalent `\u00d4` presentation to allow disambiguation.
+
+In general, if a log field is expected to contain arbitrary binary data, you should
+encode it using base64 or hexlify it before logging. Concretely,if you design a log
+and a string contains very many `\u00XX\u00YY\u00ZZ` sequences, use :zeek:see:`encode_base64`
+or :zeek:see:`bytestring_to_hex` to encode it before logging.
+
+Off-the-shelf JSON parsers will most likely interpret the `\u00xx` sequence as
+Unicode characters, potentially resulting in confusing behavior. Above explanation
+should help. In Python you may implement a custom ``JSONDecoder`` to handle the
+`\u00xx` sequences as binary data, combine this with Python's surrogate escape
+mechanism to then smuggle the actual byte values into your application.
+
+Previously, Zeek used to encode such bytes using `\\xXX`. However, this made it
+impossible to disambiguate between an `\xXX` byte in a string and the four character
+sequence `\\xXX` within a string.
+
+
 Log Schemas
 ===========
 

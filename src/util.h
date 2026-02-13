@@ -553,6 +553,36 @@ enum UTF8EscapingFlags : uint8_t {
  */
 std::string escape_utf8(std::string_view val, int flags);
 
+/**
+ * Special purpose escape function for Zeek to preserve non-UTF8 byte sequences
+ * in JSON strings using \u00XX.
+ *
+ * Produces a std::string that can be used as a kStringType to rapidjson's
+ * writer RawValue() function. The result has quotes around it.
+ *
+ * This leverages the \u00XX representation for raw byte values that are not
+ * part of a valid UTF-8 sequence. From a purely technical perspective this
+ * isn't correct. For example, a lone byte with the value \xd4 is placed into
+ * the resulting string as \u00D4. Usually, this represents the Unicode character
+ * 'LATIN CAPITAL LETTER O WITH CIRCUMFLEX' which would be encoded as \xc3\x94
+ * using UTF-8, but in Zeek's JSON string, it represents the occurrence of the
+ * raw byte \xd4. So far, this is the most reasonable idea how to preserve the
+ * the original meaning and still produce a valid JSON string.
+ * Further note that the byte sequence \xc3\x94 within a string will never be
+ * converted to \u00D4, even if conceptually in JSON that would have the same
+ * meaning. For Zeek's JSON string, the meaning isn't the same.
+ *
+ * Previously we "\\xd4" encoded a lone \xd4 byte, but that made it impossible to
+ * disambiguate it from the string "\\xd4". See #3948 for the whole story.
+ *
+ * If you have better ideas here, go for it, please.
+ *
+ * @param sv the character data to be escaped. this is a string_view which may hold
+ * null characters in the middle of the data.
+ * @return the escaped string
+ */
+std::string escape_as_u00xx_utf8_json_string(std::string_view sv);
+
 [[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
 inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
     return escape_utf8(std::string_view{val, val_size},

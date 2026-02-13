@@ -1983,6 +1983,66 @@ string escape_utf8(string_view val, int flags) {
         return utf_result;
 }
 
+std::string escape_as_u00xx_utf8_json_string(std::string_view sv) {
+    std::string result;
+    const size_t n = sv.size();
+    result.reserve(n + 2);
+    result.push_back('"');
+    auto sv_data = reinterpret_cast<const unsigned char*>(sv.data());
+    std::string_view backslash_u00 = "\\u00";
+
+    size_t idx = 0;
+
+    while ( idx < n ) {
+        const char ch = sv[idx];
+
+        if ( ch == '"' || ch == '\\' || ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' ) {
+            result.push_back('\\');
+
+            switch ( ch ) {
+                case '"': result.push_back('"'); break;
+                case '\\': result.push_back('\\'); break;
+                case '\b': result.push_back('b'); break;
+                case '\f': result.push_back('f'); break;
+                case '\n': result.push_back('n'); break;
+                case '\r': result.push_back('r'); break;
+                case '\t': result.push_back('t'); break;
+                default: assert(false);
+            }
+
+            idx += 1;
+        }
+        else if ( ch >= 32 && ch < 127 ) {
+            // Just include printable ASCII as valid UTF-8.
+            result.push_back(ch);
+
+            idx += 1;
+        }
+        else {
+            // High-bit set!
+            assert(ch & 0x80);
+            unsigned int char_size = getNumBytesForUTF8(ch);
+
+            if ( idx + char_size > sv.size() || ! check_ok_utf8(sv_data + idx, sv_data + idx + char_size) ) {
+                // Not enough data remaining, or not a valid UTF-8 sequence.
+                // Append this byte in \u00YY form, then jump it.
+                result.append(backslash_u00);
+                result.resize(result.size() + 2);
+                bytetohex(ch, result.data() + result.size() - 2);
+                idx += 1;
+            }
+            else {
+                // It's a valid UTF-8 encoded character, append it.
+                result.append(sv.data() + idx, char_size);
+                idx += char_size;
+            }
+        }
+    }
+
+    result.push_back('"');
+    return result;
+}
+
 /**
  * Returns whether two double values are approximately equal within some tolerance value.
  */

@@ -132,7 +132,8 @@ export {
 	##          :zeek:see:`Broker::is_closed` will return true if the store
 	##          could not be created/opened.
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
-	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store;
+	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
+	                               &deprecated="Remove in v9.1. Broker stores are deprecated.";
 
 	## Create a clone of a master data store which may live with a remote peer.
 	## A clone automatically synchronizes to the master by
@@ -169,7 +170,8 @@ export {
 	global create_clone: function(name: string,
 	                              resync_interval: interval &default = default_clone_resync_interval,
 	                              stale_interval: interval &default = default_clone_stale_interval,
-	                              mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store;
+	                              mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
+	                              &deprecated="Remove in v9.1. Broker stores are deprecated.";
 
 	## Close a data store.
 	##
@@ -777,7 +779,9 @@ module Broker;
 function create_master(name: string, b: BackendType &default = MEMORY,
                        options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
 	{
+@pragma push ignore-deprecations
 	return __create_master(name, b, options);
+@pragma pop
 	}
 
 function create_clone(name: string,
@@ -785,8 +789,10 @@ function create_clone(name: string,
                       stale_interval: interval &default = default_clone_stale_interval,
                       mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
 	{
+@pragma push ignore-deprecations
 	return __create_clone(name, resync_interval, stale_interval,
 	                      mutation_buffer_interval);
+@pragma pop
 	}
 
 function close(h: opaque of Broker::Store): bool

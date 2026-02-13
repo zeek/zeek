@@ -24,6 +24,13 @@ namespace detail {
  */
 void report_non_functional_broker_tables(const zeek::EnumValPtr& cluster_backend_val);
 
+/**
+ * Walk the AST and error on any calls Broker::create_master(), Broker::create_clone()
+ * and Cluster::create_store().
+ *
+ * Remove in v9.1: We should rip out Broker::create_master() and Broker::create_clone()
+ */
+void report_non_functional_broker_stores(const zeek::EnumValPtr& cluster_backend_val);
 } // namespace detail
 
 /**

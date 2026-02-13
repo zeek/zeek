@@ -6,6 +6,8 @@
 # speculatively attach clones. This should be possible once the new ALM Broker
 # transport becomes available.
 
+@deprecated "Remove in v9.1. Broker stores have been deprecated. To distribute state across cluster nodes, use the new &publish_on_change attribute for global sets/tables, or leverage explicit remote events with Cluster::publish(). For state persistence, use the storage framework.";
+
 @load ./main
 
 module Broker;
@@ -58,7 +60,9 @@ event Broker::announce_masters(masters: set[string])
 		{
 		# this magic name for the store is created in broker/Manager.cc for the manager.
 		local name = "___sync_store_" + i;
+@pragma push ignore-deprecations
 		Broker::create_clone(name);
+@pragma pop ignore-deprecations
 		}
 	}
 

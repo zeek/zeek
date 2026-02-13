@@ -27,6 +27,7 @@ enum BackendType %{
 
 function Broker::__create_master%(id: string, b: BackendType,
                                   options: BackendOptions &default = BackendOptions()%): opaque of Broker::Store
+                                  &deprecated="Remove in v9.1. Broker stores are deprecated."
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();
@@ -53,6 +54,7 @@ function Broker::__create_master%(id: string, b: BackendType,
 function Broker::__create_clone%(id: string, resync_interval: interval,
                                  stale_interval: interval,
                                  mutation_buffer_interval: interval%): opaque of Broker::Store
+                                 &deprecated="Remove in v9.1. Broker stores are deprecated."
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	auto name = id->CheckString();

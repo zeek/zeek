@@ -1,6 +1,6 @@
 # @TEST-DOC: Configure a broker store to be in WAL mode withou journal_mode NORMAL.
 # @TEST-REQUIRES: sqlite3 --version
-# @TEST-EXEC: zeek -b %INPUT 2>&1 | grep -v 'Remove in v9.1:' > out
+# @TEST-EXEC: zeek -b %INPUT 2>&1 | grep -v 'Remove in v9.1' > out
 #
 # This is poking a bit at SQLite internals, but because WAL mode
 # was flipped on, expect a wal and a shm file to exist.

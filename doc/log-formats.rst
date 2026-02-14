@@ -612,13 +612,31 @@ to the semantically equivalent `\u00d4` presentation to allow disambiguation.
 In general, if a log field is expected to contain arbitrary binary data, you should
 encode it using base64 or hexlify it before logging. Concretely,if you design a log
 and a string contains very many `\u00XX\u00YY\u00ZZ` sequences, use :zeek:see:`encode_base64`
-or :zeek:see:`bytestring_to_hex` to encode it before logging.
+or :zeek:see:`bytestring_to_hexstr` to encode it before logging.
 
 Off-the-shelf JSON parsers will most likely interpret the `\u00xx` sequence as
 Unicode characters, potentially resulting in confusing behavior. Above explanation
 should help. In Python you may implement a custom ``JSONDecoder`` to handle the
 `\u00xx` sequences as binary data, combine this with Python's surrogate escape
 mechanism to then smuggle the actual byte values into your application.
+
+An potentially easier alternative is to run ``re.sub()`` over the input log line
+and replace `\u00xx` sequences before passing it to ``json.loads()``:
+
+.. code-block:: python
+
+    ZEEK_RE = re.compile(r'(?<!\\)\\u00([8-9a-fA-F][0-9a-fA-F])')
+    def decode_zeek(line):
+        # Map \u00xx -> chr(0xDC00 + byte) -- See PEP383.
+        line2 = ZEEK_RE.sub(lambda m: chr(0xDC00 + int(m.group(1), 16)), line)
+        return json.loads(line2)
+
+    l = b'{"s": "\\u008f\\u009f \xf0\x9f\x9a\x80"}'.decode("utf-8")
+    print(decode_zeek("\u008f\u009f \xf0\x9f\x9a\x80"))
+    # Outputs: {'s': '\udc8f\udc9f 🚀'}
+
+In the resulting string values, one can determine the original byte value by
+subtracting 0xDC00 from the lone surrogates.
 
 Previously, Zeek used to encode such bytes using `\\xXX`. However, this made it
 impossible to disambiguate between an `\xXX` byte in a string and the four character

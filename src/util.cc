@@ -2019,8 +2019,8 @@ std::string escape_as_u00xx_utf8_json_string(std::string_view sv) {
             idx += 1;
         }
         else {
-            // High-bit set!
-            assert(ch & 0x80);
+            // ASCII-control character or high-bit 0x80-0xff bytes
+            // are all encoded as \u00xx.
             unsigned int char_size = getNumBytesForUTF8(ch);
 
             if ( idx + char_size > sv.size() || ! check_ok_utf8(sv_data + idx, sv_data + idx + char_size) ) {

@@ -17,6 +17,7 @@
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
 #include "zeek/threading/formatters/detail/json.h"
+#include "zeek/util.h"
 
 namespace zeek::threading::formatter {
 
@@ -140,8 +141,13 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
             break;
         }
 
+        case TYPE_STRING: {
+            std::string escaped = util::escape_as_u00xx_utf8_json_string(
+                {val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)});
+            writer.RawValue(escaped.data(), escaped.size(), rapidjson::kStringType);
+            break;
+        }
         case TYPE_ENUM:
-        case TYPE_STRING:
         case TYPE_FILE:
         case TYPE_FUNC: {
             writer.String(util::escape_utf8({val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)},

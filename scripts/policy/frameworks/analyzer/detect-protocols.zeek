@@ -224,6 +224,26 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 		}
 	}
 
+# If an analyzer failed for a connection, remove it from the tracking table.
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+	{
+	if ( ! is_protocol_analyzer(atype) )
+		return;
+
+	local c = info$c;
+
+	# Only remove failed analyzers if they happen before the
+	# configured reporting thresholds.
+	local duration = network_time() - c$start_time;
+	local size = c$resp$size + c$orig$size;
+
+	if ( duration >= minimum_duration || size >= minimum_volume )
+		return;
+
+	if ( c$id in conns )
+		delete conns[c$id][atype];
+	}
+
 function found_protocol(c: connection, atype: AllAnalyzers::Tag, protocol: string)
 	{
 	# Don't report anything running on a well-known port.

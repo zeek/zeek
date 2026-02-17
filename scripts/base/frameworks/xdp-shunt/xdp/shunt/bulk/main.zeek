@@ -50,8 +50,6 @@ redef record connection += {
 	xdp_bulk: Info &optional;
 };
 
-global xdp_prog: opaque of XDP::Program;
-
 function make_info(cid: XDP::canonical_id, stats: XDP::ShuntedStats): Info
 	{
 	local info: Info = [$id=cid,
@@ -66,7 +64,7 @@ function make_info(cid: XDP::canonical_id, stats: XDP::ShuntedStats): Info
 function conn_callback(c: connection, cnt: count): interval
 	{
 	local can_id = XDP::conn_id_to_canonical(c$id);
-	local stats = XDP::Shunt::ConnID::shunt_stats(xdp_prog, can_id);
+	local stats = XDP::Shunt::ConnID::shunt_stats(can_id);
 	if ( stats$present && stats?$timestamp )
 		{
 		# This connection is shunted, check if it timed out
@@ -74,7 +72,7 @@ function conn_callback(c: connection, cnt: count): interval
 			{
 			# Use the final stats in case something was shunted between first check and now.
 			# Technically this could break if shunt->unshunt->shunt->unshunt a connection
-			c$xdp_bulk = make_info(can_id, XDP::Shunt::ConnID::unshunt(xdp_prog, can_id));
+			c$xdp_bulk = make_info(can_id, XDP::Shunt::ConnID::unshunt(can_id));
 
 			return -1sec;
 			}
@@ -84,7 +82,7 @@ function conn_callback(c: connection, cnt: count): interval
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
 		Conn::register_removal_hook(c, finalize_shunt);
-		XDP::Shunt::ConnID::shunt(xdp_prog, can_id);
+		XDP::Shunt::ConnID::shunt(can_id);
 		return unshunt_poll_interval;
 		}
 
@@ -107,14 +105,14 @@ event zeek_init()
 		$conn_id_map_max_size=max_shunted_conns,
 		$ip_pair_map_max_size=1, # Effectively 0
 	];
-	xdp_prog = XDP::start_shunt(opts);
+	XDP::start_shunt(opts);
 
 	Log::create_stream(XDP::Shunt::Bulk::LOG, [$columns=Info, $path="xdp_bulk"]);
 	}
 
 event zeek_done()
 	{
-	XDP::end_shunt(xdp_prog);
+	XDP::end_shunt();
 	}
 
 hook finalize_shunt(c: connection)
@@ -128,7 +126,7 @@ hook finalize_shunt(c: connection)
 
 	# Else try to unshunt it
 	local can_id = XDP::conn_id_to_canonical(c$id);
-	local final_stats = XDP::Shunt::ConnID::unshunt(xdp_prog, can_id);
+	local final_stats = XDP::Shunt::ConnID::unshunt(can_id);
 	if ( final_stats$present )
 		Log::write(LOG, make_info(can_id, final_stats));
 	}

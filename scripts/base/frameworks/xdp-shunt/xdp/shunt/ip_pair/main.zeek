@@ -13,56 +13,54 @@ export {
 	## to include
 	##
 	## Returns: A table of the IP pairs getting shunted
-	global get_map: function(xdp_prog: opaque of XDP::Program,
-	    time_since_last_packet: interval &default=0sec): XDP::shunt_table;
+	global get_map: function(time_since_last_packet: interval &default=0sec)
+	    : XDP::shunt_table;
 
 	## Starts shunting anything between two IPs.
 	##
 	## Returns: Whether the operation succeeded
 	##
 	## .. zeek:see:: unshunt shunt_stats
-	global shunt: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): bool;
+	global shunt: function(pair: XDP::ip_pair): bool;
 
 	## Provides the shunting statistics for this IP pair.
 	##
 	## Returns: The shunting statistics
 	##
 	## .. zeek:see:: shunt unshunt
-	global shunt_stats: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair)
-	    : XDP::ShuntedStats;
+	global shunt_stats: function(pair: XDP::ip_pair): XDP::ShuntedStats;
 
 	## Stops shunting anything between two IPs.
 	##
 	## Returns: The shunted statistics right before removing
 	##
 	## .. zeek:see:: shunt shunt_stats
-	global unshunt: function(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair)
-	    : XDP::ShuntedStats;
+	global unshunt: function(pair: XDP::ip_pair): XDP::ShuntedStats;
 }
 
-function get_map(xdp_prog: opaque of XDP::Program,
-    time_since_last_packet: interval &default=0sec): XDP::shunt_table
+function get_map(time_since_last_packet: interval &default=0sec)
+    : XDP::shunt_table
 	{
-	return _get_map(xdp_prog, time_since_last_packet);
+	return _get_map(XDP::xdp_prog, time_since_last_packet);
 	}
 
-function shunt(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): bool
+function shunt(pair: XDP::ip_pair): bool
 	{
-	local result = _shunt(xdp_prog, pair);
+	local result = _shunt(XDP::xdp_prog, pair);
 	if ( result )
 		event shunted_pair(pair);
 
 	return result;
 	}
 
-function shunt_stats(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): XDP::ShuntedStats
+function shunt_stats(pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	return _shunt_stats(xdp_prog, pair);
+	return _shunt_stats(XDP::xdp_prog, pair);
 	}
 
-function unshunt(xdp_prog: opaque of XDP::Program, pair: XDP::ip_pair): XDP::ShuntedStats
+function unshunt(pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	local stats = _unshunt(xdp_prog, pair);
+	local stats = _unshunt(XDP::xdp_prog, pair);
 	if ( stats$present )
 		event unshunted_pair(pair, stats);
 

@@ -10,46 +10,52 @@ export {
 	## Returns: An opaque value representing the now-attached BPF program
 	##
 	## .. zeek:see:: start_shunt
-	global reconnect: function(options: XDP::ShuntOptions): opaque of XDP::Program;
+	global reconnect: function(options: XDP::ShuntOptions): bool;
 
-	## Disconnects an XDP program and invalidates what was passed in.
-	global disconnect: function(xdp_prog: opaque of XDP::Program);
+	## Disconnects the XDP program.
+	global disconnect: function();
 
 	## Begins shunting with XDP by loading the XDP program and necessary BPF maps.
 	##
 	## Returns: An opaque value representing the now-attached BPF program
 	##
 	## .. zeek:see:: end_shunt
-	global start_shunt: function(options: XDP::ShuntOptions): opaque of
-	    XDP::Program;
+	global start_shunt: function(options: XDP::ShuntOptions): bool;
 
 	## Stops the XDP shunting program.
 	##
 	## Returns: Whether the operation succeeded
 	##
 	## .. zeek:see:: start_shunt
-	global end_shunt: function(xdp_prog: opaque of XDP::Program): bool;
+	global end_shunt: function(): bool;
 
 	## Transforms a conn_id into its canonical_id representation
 	## by sorting the IPs and ports as the shunting map does.
 	global conn_id_to_canonical: function(cid: conn_id): XDP::canonical_id;
+
+	global xdp_prog: opaque of XDP::Program;
 }
-function reconnect(options: XDP::ShuntOptions): opaque of XDP::Program
+
+function reconnect(options: XDP::ShuntOptions): bool
 	{
-	return _reconnect_shunt(options);
+	xdp_prog = _reconnect_shunt(options);
+	# TODO: if it fails this should probably return F
+	return T;
 	}
 
-function disconnect(xdp_prog: opaque of XDP::Program)
+function disconnect()
 	{
 	_disconnect_shunt(xdp_prog);
 	}
 
-function start_shunt(options: XDP::ShuntOptions): opaque of XDP::Program
+function start_shunt(options: XDP::ShuntOptions): bool
 	{
-	return _start_shunt(options);
+	xdp_prog = _start_shunt(options);
+	# TODO: if it fails this should probably return F
+	return T;
 	}
 
-function end_shunt(xdp_prog: opaque of XDP::Program): bool
+function end_shunt(): bool
 	{
 	return _end_shunt(xdp_prog);
 	}

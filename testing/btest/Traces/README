@@ -73,3 +73,5 @@ Trace Index/Sources:
   fixing MIME entity behavior (port 64702 and port 80).
 - http/m57-long-49525-80.pcap http/m57-long-49600-80.pcap
   Extracted from m57-long test after observing http.log and files.log differences.
+- igmp/multicast-igmp-version-membership-query-and-report.pcap
+  from https://www.cloudshark.org/captures/7bb04610bb7a for testing IGMP v1

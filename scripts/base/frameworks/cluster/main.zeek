@@ -129,7 +129,7 @@ export {
 	##          ready to use immediately.  For clones, the store field will not
 	##          be set until the node containing the master store has connected.
 	global create_store: function(name: string, persistent: bool &default=F): StoreInfo
-	&deprecated="Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated.";
+	&deprecated="Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.";
 
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };

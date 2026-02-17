@@ -6,7 +6,7 @@
 # speculatively attach clones. This should be possible once the new ALM Broker
 # transport becomes available.
 
-@deprecated "Remove in v9.1. Broker stores are deprecated."
+@deprecated "Remove in v9.1. Broker stores are deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.";
 
 @load ./main
 

@@ -133,7 +133,7 @@ export {
 	##          could not be created/opened.
 	global create_master: function(name: string, b: BackendType &default = MEMORY,
 	                               options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
-	                               &deprecated="Remove in v9.1. Broker stores are deprecated.";
+	                               &deprecated="Remove in v9.1. Broker stores are deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.";
 
 	## Create a clone of a master data store which may live with a remote peer.
 	## A clone automatically synchronizes to the master by
@@ -171,7 +171,7 @@ export {
 	                              resync_interval: interval &default = default_clone_resync_interval,
 	                              stale_interval: interval &default = default_clone_stale_interval,
 	                              mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
-	                              &deprecated="Remove in v9.1. Broker stores are deprecated.";
+	                              &deprecated="Remove in v9.1. Broker stores are deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.";
 
 	## Close a data store.
 	##

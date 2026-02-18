@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -x
+
+if [ $# -lt 1 ]; then
+    echo "Usage $0 <listen_port> [password]" >&2
+    exit 1
+fi
+
+listen_port=$1
+
+INITDB_BIN=$(which initdb)
+POSTGRES_BIN=$(which postgres)
+
+# Homebrew on macOS names the binaries with a version number. Check a
+# few to see if they exist.
+for i in 16 17 18; do
+    if [ -z "${INITDB_BIN}" ]; then
+        INITDB_BIN=$(which initdb-${i})
+    fi
+    if [ -z "${POSTGRES_BIN}" ]; then
+        POSTGRES_BIN=$(which POSTGRES-${i})
+    fi
+done
+
+if [ -z "${INITDB_BIN}" -o -z "${POSTGRES_BIN}" ]; then
+    echo "Failed to find initdb or postgres binary. Check that they are in your PATH"
+    exit 1
+fi
+
+if [ $# -ne 2 ]; then
+    ${INITDB_BIN} -D postgres-data
+else
+    ${INITDB_BIN} -D postgres-data -A password --pwfile=<(echo $2)
+fi
+
+exec ${POSTGRES_BIN} \
+    -h 127.0.0.1 \
+    -p ${listen_port} \
+    -D postgres-data \
+    -k .

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+POSTGRES_BIN=$(which postgres)
+
+# Homebrew on macOS names the binaries with a version number. Check a
+# few to see if they exist.
+for i in 16 17 18; do
+    if [ -z "${POSTGRES_BIN}" ]; then
+        POSTGRES_BIN=$(which POSTGRES-${i})
+    fi
+done
+
+zeek -N Zeek::Storage_Backend_PostgreSQL && test -n ${POSTGRES_BIN} >/dev/null
+exit $?

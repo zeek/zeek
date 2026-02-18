@@ -1609,6 +1609,7 @@ message("")
 output_summary_line("Storage backends")
 output_summary_bool("  - SQLite" ON)
 output_summary_bool("  - Redis" ${ENABLE_STORAGE_BACKEND_REDIS})
+output_summary_bool("  - PostgreSQL" ${ENABLE_STORAGE_BACKEND_POSTGRESQL})
 message("")
 
 output_summary_bool("Fuzz Targets" ${ZEEK_ENABLE_FUZZERS})

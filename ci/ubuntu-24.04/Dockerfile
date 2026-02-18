@@ -29,8 +29,10 @@ RUN apt-get update && apt-get -y install \
     libmaxminddb-dev \
     libnode-dev \
     libpcap-dev \
+    libpq-dev \
     libssl-dev \
     make \
+    postgresql \
     python3 \
     python3-dev \
     python3-git \

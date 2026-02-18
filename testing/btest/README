@@ -80,3 +80,27 @@ If you create a new top-level testing directory for collecting related
 tests, then you'll need to add it to the list of ``TestDirs`` in
 ``btest.cfg``. Do this only if your test really doesn't fit logically in
 any of the extant directories.
+
+Running Tests on Windows
+========================
+
+Windows takes some additional care to get running correctly. ``btest`` has to be run from
+a Git bash (gitbash.exe) or msys2 bash shell. The other standard Windows shells (devcmd,
+Powershell, Windows Terminal, etc) all throw Python errors with the output handler.
+
+From within a ``bash`` shell, create a Python virtual environment, install the
+``multiprocess`` module, and use that venv to run the tests:
+
+    python -m venv /path/to/venv
+    /path/to/venv/Scripts/python -m pip install multiprocess
+    cd <repo>/testing/btest
+    /path/to/venv/Scripts/python ../../auxil/btest/btest <btest options>
+
+There are various tests that are intentionally skipped on Windows. These tests are
+annotated with a ``@TEST-REQUIRES`` directive checking for whether they're running in
+Windows and will be automatically skipped. Some of these tests hang indefinitely, while
+others use features that are not available (such as Broker, clusters, etc).
+
+If running a build from Visual Studio, you will also need to modify
+``testing/btest/btest.cfg`` and change the ``build_dir`` setting to point at the correct
+build path.

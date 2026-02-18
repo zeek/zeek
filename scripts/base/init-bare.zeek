@@ -1763,6 +1763,15 @@ const icmp_inactivity_timeout = 1 min &redef;
 ## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
 const unknown_ip_inactivity_timeout = 1 min &redef;
 
+## A hook that can be used to veto timing out a connection via :zeek:see:`break`.
+## The connection will then wait another inactivity interval until attempting
+## another timeout.
+##
+## c: The connection
+##
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
+type connection_timing_out: hook(c: connection);
+
 ## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within
 ## intervals of at most :zeek:see:`tcp_storm_interarrival_thresh`.

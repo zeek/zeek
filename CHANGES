@@ -1,3 +1,18 @@
+8.2.0-dev.189 | 2026-02-18 15:06:45 +0100
+
+  * GH-5204: analyzer/detect-protocols: Honor analyzer_failed() (Arne Welzel, Corelight)
+
+    The detect-protocols script tracks confirmed protocols analyzers for
+    connections and raises notices for detected protocols and servers. It
+    doesn't honor analyzer violation events, however, and so in the case
+    where a HTTP client connects to an SSH server, the HTTP request results
+    in an analyzer confirmation, but the SSH identification string from the
+    server tickles a violation. However, previously Zeek raised notices about
+    an HTTP server running on port 22 despite the analyzer clearly
+    indicating a violation.
+
+    Closes #5204
+
 8.2.0-dev.187 | 2026-02-11 11:41:57 +0100
 
   * GH-5120: Avoid ABI-breaking use of `DEBUG` (Benjamin Bannier, Corelight)

@@ -72,6 +72,12 @@ Changed Functionality
   Internally, the behavior of the ``IPPrefix::ConvertString()`` API was changed
   to accommodate for this.
 
+- The ``policy/frameworks/analyzer/detect-protocols`` script now respects analyzer
+  violations to suppress ``Server_Found`` or ``Protocol_Found`` for connections which
+  first had an analyzer confirmation, but later a analyzer violation happened. Previously,
+  Zeek would report a HTTP server when a client issued a HTTP request to an SSH servers,
+  or SSL when a client sent a TLS Client Hello to a HTTP server.
+
 Deprecated Functionality
 ------------------------
 

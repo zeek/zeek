@@ -1,3 +1,9 @@
+8.2.0-dev.195 | 2026-02-18 19:12:41 +0000
+
+  * Fix ZAM CI btest failure from previous Windows changes (Tim Wojtulewicz, Corelight)
+
+  * Disable an additional btest on Windows (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.192 | 2026-02-18 17:25:15 +0000
 
   * Skip some tests on Windows that hang indefinitely (Tim Wojtulewicz, Corelight)

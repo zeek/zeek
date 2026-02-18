@@ -1,5 +1,8 @@
 # @TEST-DOC: Start each node type and ensure there are no unexpected warnings to be seen
 #
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
+#
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_LOGGER1_PORT
 # @TEST-PORT: BROKER_PROXY1_PORT

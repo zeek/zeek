@@ -1,3 +1,5 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-GROUP: broker
 #
 # @TEST-EXEC: zeek -b %INPUT >send.out

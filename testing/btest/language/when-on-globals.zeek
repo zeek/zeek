@@ -1,3 +1,5 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT | sort >out
 # @TEST-EXEC: btest-diff out
 
@@ -68,4 +70,3 @@ event zeek_init()
 
 	schedule 2secs { quit() };
 }
-

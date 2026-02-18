@@ -1,3 +1,9 @@
+8.2.0-dev.192 | 2026-02-18 17:25:15 +0000
+
+  * Skip some tests on Windows that hang indefinitely (Tim Wojtulewicz, Corelight)
+
+  * Add note about running btests on Windows (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.189 | 2026-02-18 15:06:45 +0100
 
   * GH-5204: analyzer/detect-protocols: Honor analyzer_failed() (Arne Welzel, Corelight)

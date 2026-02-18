@@ -1,0 +1,4 @@
+#!/bin/sh
+
+zeek -N Zeek::Storage_Backend_PostgreSQL && which postgres >/dev/null
+exit $?

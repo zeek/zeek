@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -eux
+
+if ! postgres --version; then
+    exit 1
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Usage $0 <listen_port> <data path> <dbname>" >2
+    exit 1
+fi
+
+listen_port=$1
+data_path=$2
+
+exec postgres \
+    -h 127.0.0.1 \
+    -p ${listen_port} \
+    -D ${data_path}

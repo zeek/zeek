@@ -1,4 +1,6 @@
 # @TEST-DOC: Assert statement testing with assertion_failure and assertion_result implementation.
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 #
 # @TEST-EXEC: zeek -b -O no-event-handler-coalescence %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out

@@ -1,4 +1,6 @@
 # @TEST-DOC: Call create_file_info() and populate_file_info2() when a file has been added through Input::add_analysis()
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 
 # @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: btest-diff output

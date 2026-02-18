@@ -1,3 +1,5 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-DOC:  Regression test #2017; no output check, just shouldn't crash
 

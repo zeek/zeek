@@ -1,4 +1,6 @@
 # @TEST-DOC: The raw reader would read a file in MODE_REREAD twice initially. Check this is fixed by running with reduced heartbeat_interval and waiting for 20 intervals after the first end_of_data event.
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 #
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out

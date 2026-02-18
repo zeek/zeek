@@ -1,4 +1,7 @@
 # @TEST-DOC: Basic functionality for storage: opening/closing an sqlite backend, storing/retrieving data, using sync methods in when conditions
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
+#
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr

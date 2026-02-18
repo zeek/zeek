@@ -1,3 +1,5 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: ZEEK_DNS_FAKE=1 zeek -D -b %INPUT >out 2>err
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err

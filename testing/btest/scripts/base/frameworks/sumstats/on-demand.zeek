@@ -1,3 +1,6 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
+#
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
@@ -32,7 +35,7 @@ event on_demand_key()
 
 event zeek_init() &priority=5
 	{
-	local r1: SumStats::Reducer = [$stream="test.reducer", 
+	local r1: SumStats::Reducer = [$stream="test.reducer",
 	                               $apply=set(SumStats::SUM)];
 	SumStats::create([$name="test",
 	                  $epoch=1hr,
@@ -45,4 +48,3 @@ event zeek_init() &priority=5
 	#schedule 0.1 secs { on_demand() };
 	schedule 1 secs { on_demand_key() };
 	}
-

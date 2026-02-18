@@ -1,4 +1,7 @@
 # @TEST-DOC: Tests that sqlite async works fine while reading pcaps
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
+#
 # @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT > out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr

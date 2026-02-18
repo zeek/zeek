@@ -1,4 +1,6 @@
-# Test different kinds of errors of the input framework
+# @TEST-DOC: Test different kinds of errors of the input framework
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 #
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr

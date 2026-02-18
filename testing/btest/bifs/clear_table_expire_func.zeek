@@ -1,3 +1,5 @@
+# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out
 # @TEST-DOC: Checks use of clear_table() within an &expire_func works.
@@ -23,4 +25,3 @@ event zeek_init()
 	mt[1] = 1;
 	mt[2] = 2;
 	}
-

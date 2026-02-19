@@ -200,17 +200,6 @@ int xdp_filter(struct xdp_md* ctx) {
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
 
-        // Forward start/ends of connection for Zeek
-        if ( tcph->fin || tcph->rst || tcph->syn )
-            return XDP_PASS;
-
-        // Forward ack if it has no data
-        if ( tcph->ack ) {
-            void* payload_start = (void*)tcph + (tcph->doff * 4);
-            if ( payload_start == data_end )
-                return XDP_PASS;
-        }
-
         port_source = bpf_ntohs(tcph->source);
         port_dest = bpf_ntohs(tcph->dest);
     }

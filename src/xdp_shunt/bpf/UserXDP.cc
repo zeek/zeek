@@ -56,8 +56,16 @@ uint32_t flags(xdp_options opts) {
 std::optional<std::string> reconnect(struct filter** skel, xdp_options opts) {
     // Exit if the map dir doesn't exist
     if ( ! std::filesystem::exists(opts.pin_path) )
-        // TODO: Also don't hardcode here.
-        return "Pin path /sys/fs/bpf/zeek does not exist";
+        return "Pin path " + std::string(opts.pin_path) + " does not exist";
+
+    // Check each map...
+    auto filter_map = opts.pin_path + std::string("/filter_map");
+    if ( ! std::filesystem::exists(filter_map) )
+        return "Pinned canonical ID map not found at " + filter_map;
+
+    auto ip_pair_map = opts.pin_path + std::string("/ip_pair_map");
+    if ( ! std::filesystem::exists(ip_pair_map) )
+        return "Pinned IP pair map not found at " + ip_pair_map;
 
     struct bpf_object_open_opts open_opts = {
         .sz = sizeof(struct bpf_object_open_opts),

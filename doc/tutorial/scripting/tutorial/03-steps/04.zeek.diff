@@ -1,0 +1,13 @@
+--- 03.zeek	2025-11-06 10:56:05
++++ 04.zeek	2025-11-06 10:57:34
+@@ -15,6 +15,10 @@
+ 	num_entity_matches: count &default=0 &log;
+ };
+ 
++redef enum Notice::Type += {
++	Entity_Pattern_Threshold,
++};
++
+ function num_entity_pattern_matches(state: HTTP::State): count
+ 	{
+ 	local num_matches = 0;

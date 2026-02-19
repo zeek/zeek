@@ -144,7 +144,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: ProtocolDetector::found_protocol
-   :source-code: policy/frameworks/analyzer/detect-protocols.zeek 227 238
+   :source-code: policy/frameworks/analyzer/detect-protocols.zeek 247 258
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, atype: :zeek:type:`AllAnalyzers::Tag`, protocol: :zeek:type:`string`) : :zeek:type:`void`
 

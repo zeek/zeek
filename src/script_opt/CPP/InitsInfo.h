@@ -399,12 +399,15 @@ public:
     PatternConstInfo(CPPCompile* c, ValPtr v);
 
     void InitializerVals(std::vector<std::string>& ivs) const override {
-        ivs.emplace_back(std::to_string(pattern));
+        ivs.emplace_back(std::to_string(exact_pat));
+        ivs.emplace_back(std::to_string(any_pat));
         ivs.emplace_back(std::to_string(is_case_insensitive));
         ivs.emplace_back(std::to_string(is_single_line));
     }
 
 private:
+    int exact_pat;           // string representation of "exact" pattern
+    int any_pat;             // same but for "any" pattern
     int pattern;             // index into string representation of pattern
     int is_case_insensitive; // case-insensitivity flag, 0 or 1
     int is_single_line;      // single-line flag, 0 or 1

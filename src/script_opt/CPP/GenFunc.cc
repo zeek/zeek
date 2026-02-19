@@ -218,6 +218,8 @@ string CPPCompile::BodyName(const FuncInfo& func) {
 
 p_hash_type CPPCompile::BodyHash(const Stmt* body) {
     auto bn = body_names.find(body);
+    if ( bn == body_names.end() )
+        bn = body_names.find(look_up_lambda_alias(body));
     ASSERT(bn != body_names.end());
 
     auto& body_name = bn->second;

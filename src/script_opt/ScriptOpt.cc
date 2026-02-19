@@ -52,7 +52,17 @@ void analyze_lambda(LambdaExpr* l) {
 
 void analyze_when_lambda(LambdaExpr* l) { when_lambdas.insert(l->PrimaryFunc().get()); }
 
+static std::unordered_map<const Stmt*, const Stmt*> lambda_aliases;
+
+void register_lambda_alias(const StmtPtr& orig, const StmtPtr& alias) { lambda_aliases[alias.get()] = orig.get(); }
+
+extern const Stmt* look_up_lambda_alias(const Stmt* alias) {
+    auto lookup = lambda_aliases.find(alias);
+    return lookup == lambda_aliases.end() ? nullptr : lookup->second;
+}
+
 bool is_lambda(const ScriptFunc* f) { return lambdas.contains(f); }
+
 
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.contains(f); }
 

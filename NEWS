@@ -61,6 +61,12 @@ New Functionality
 - Added the ``modulo`` BiF, which behaves differently from Zeek's ``%`` operator
   for negative numbers.
 
+- Added the ``connection_timing_out`` hook which, if ``break`` is used within, will
+  prevent Zeek from timing out a particular connection. The motivation is to align
+  a shunted connection's timeout with Zeek. Since Zeek does not see packets from
+  a shunted connection, it needs special handling to keep the connection alive while
+  shunted.
+
 Changed Functionality
 ---------------------
 

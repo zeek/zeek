@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Stats.h"
 #include "zeek/Val.h"
@@ -155,13 +156,25 @@ void Session::AddTimer(timer_func timer, double t, bool do_expire, zeek::detail:
 void Session::RemoveTimer(zeek::detail::Timer* t) { timers.remove(t); }
 
 void Session::InactivityTimer(double t) {
+    auto new_timeout = inactivity_timeout;
+
     if ( last_time + inactivity_timeout <= t ) {
-        Event(session_timeout_event, nullptr);
-        session_mgr->Remove(this);
-        ++zeek::detail::killed_by_inactivity;
+        static const auto timing_out_hook = zeek::id::find_func("connection_timing_out");
+        if ( ! timing_out_hook || timing_out_hook->Invoke(GetVal())->IsOne() ) {
+            Event(session_timeout_event, nullptr);
+            session_mgr->Remove(this);
+            ++zeek::detail::killed_by_inactivity;
+
+            // Do not reset the timer.
+            return;
+        }
+
+        // The hooked stopped us! Add the inactivity timeout so that we don't
+        // immediately run again.
+        new_timeout += inactivity_timeout;
     }
-    else
-        ADD_TIMER(&Session::InactivityTimer, last_time + inactivity_timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
+
+    ADD_TIMER(&Session::InactivityTimer, last_time + new_timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
 }
 
 void Session::StatusUpdateTimer(double t) {

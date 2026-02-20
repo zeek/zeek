@@ -1,3 +1,20 @@
+8.2.0-dev.200 | 2026-02-20 11:18:44 -0500
+
+  * Add a hook to prevent timeouts (Evan Typanski, Corelight)
+
+    For shunting, there is a problem when finding out how to unshunt. We
+    want to use timeouts, but then clusters have issues determining who
+    unshunts what. We do not want to stop the world to clean up the shunt
+    map.
+
+    Instead, this adds a new feature to Zeek: the ability to prevent a
+    timeout based on external criteria. Then, shunting can rely entirely on
+    Zeek's timeout timers, just hooking in to say "no don't timeout this
+    connection yet, the BPF map says it's still getting shunted packets."
+
+    This could be generally useful, like when sharing data between Zeek and
+    some other monitoring system. Those are theoretical, though.
+
 8.2.0-dev.198 | 2026-02-20 09:58:16 +0100
 
   * Update Spicy integration for new struct field optimization. (Robin Sommer, Corelight)

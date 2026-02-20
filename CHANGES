@@ -1,3 +1,24 @@
+8.2.0-dev.198 | 2026-02-20 09:58:16 +0100
+
+  * Update Spicy integration for new struct field optimization. (Robin Sommer, Corelight)
+
+    Generally Spicy's new struct field optimization is safe in terms of
+    only removing fields that aren't used anywhere, including inside the
+    generated Zeek glue code. There's one exception however: when we pass
+    a struct instance to Zeek through `to_val()`, the Spicy optimizer
+    can't tell that all the fields are required on the receiving side
+    (because the Zeek-side layout is statically determined, either from
+    the Spicy-side type (if using EVT `export`), or by the Zeek user
+    creating the corresponding `record` manually). In other words, we need
+    to tell Spicy not to mess with structs that are passed wholesale
+    through `to_val()`. This change adds corresponding HILTI-side `export`
+    declarations for all types that go, directly or indirectly, through
+    `to_val()`. Internally that needs some care because we can determine
+    the relevant types only once our glue code has been created and fully
+    resolved.
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 8.2.0-dev.195 | 2026-02-18 19:12:41 +0000
 
   * Fix ZAM CI btest failure from previous Windows changes (Tim Wojtulewicz, Corelight)

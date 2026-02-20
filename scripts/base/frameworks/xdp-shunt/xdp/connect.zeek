@@ -3,6 +3,10 @@
 module XDP;
 
 export {
+	## Whether we want to start a new XDP program or reconnect to an existing
+	## one.
+	option start_new_xdp: bool = F;
+
 	## The XDP mode to attach via.
 	option attach_mode: AttachMode = UNSPEC;
 
@@ -31,5 +35,8 @@ event zeek_init()
 	    $ip_pair_map_max_size=ip_pair_map_max_size,
 	    $include_vlan=include_vlan, $pin_path=pin_path,  ];
 
-	reconnect(opts);
+	if ( start_new_xdp )
+		start_shunt(opts);
+	else
+		reconnect(opts);
 	}

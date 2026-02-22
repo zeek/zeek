@@ -1,8 +1,14 @@
 %%{
+#include <zmq.h>
+
+#include "zeek/ID.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 %%}
 
-function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
+module Cluster::Backend::ZeroMQ;
+
+function spawn_zmq_proxy_thread%(%): bool
 	%{
 	// Spawn the ZeroMQ broker thread.
 	auto *zeromq_backend = dynamic_cast<zeek::cluster::zeromq::ZeroMQBackend*>(zeek::cluster::backend);
@@ -13,4 +19,32 @@ function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
 		}
 
 	return zeek::val_mgr->Bool(zeromq_backend->SpawnZmqProxyThread());
+	%}
+
+## Generate a CURVE keypair
+##
+## Returns: A table[string] of string with keys "public" and "secret".
+function generate_keypair%(%): table_string_of_string
+	%{
+	char public_key[41];
+	char secret_key[41];
+	auto table_sos = zeek::id::find_type<zeek::TableType>("table_string_of_string");
+	auto result = zeek::make_intrusive<zeek::TableVal>(table_sos);
+	if ( zmq_curve_keypair(public_key, secret_key) != 0 )
+		{
+		zeek::emit_builtin_error("zmq_curve_keypair() failed");
+		return result;
+		}
+
+	result->Assign(
+		zeek::make_intrusive<zeek::StringVal>("public"),
+		zeek::make_intrusive<zeek::StringVal>(public_key)
+	);
+
+	result->Assign(
+		zeek::make_intrusive<zeek::StringVal>("secret"),
+		zeek::make_intrusive<zeek::StringVal>(secret_key)
+	);
+
+	return result;
 	%}

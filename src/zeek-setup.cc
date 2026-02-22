@@ -860,6 +860,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
                 // check for all global tables with &backend or &broker_store
                 // and report them as non-functional.
                 cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
+
+                // Also check for name expressions referencing the broker store API
+                // (create_master(), create_clone(), etc etc.)
+                cluster::detail::report_non_functional_broker_stores(cluster_backend_val);
             }
         }
 

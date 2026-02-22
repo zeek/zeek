@@ -59,7 +59,9 @@ redef Cluster::manager_is_logger = F;
 @load ./nodes/worker
 @endif
 
+@pragma push ignore-deprecations
 @load ./broker-stores.zeek
+@pragma pop ignore-deprecations
 
 @endif
 @endif

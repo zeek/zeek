@@ -4,8 +4,10 @@
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
+#include "zeek/Expr.h"
 #include "zeek/Func.h"
 #include "zeek/Scope.h"
+#include "zeek/Traverse.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/websocket/WebSocket.h"
 #include "zeek/util.h"
@@ -44,6 +46,64 @@ void detail::report_non_functional_broker_tables(const zeek::EnumValPtr& cluster
         id->Error(util::fmt("table %s uses Broker-specific attribute %s, but non-Broker backend %s selected",
                             id->Name(), what, obj_desc_short(cluster_backend_val).c_str()));
     }
+}
+
+void detail::report_non_functional_broker_stores(const zeek::EnumValPtr& cluster_backend_val) {
+    auto none_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_NONE");
+    auto broker_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
+
+    assert(cluster_backend_val != none_backend_val);
+    assert(cluster_backend_val != broker_backend_val);
+
+    /**
+     * Report all NameExpr for Broker::create_master(), Broker::create_clone()
+     * and Cluster::create_store().
+     */
+    class ErrorOnStoreNameExprs : public zeek::detail::TraversalCallback {
+    public:
+        ErrorOnStoreNameExprs(zeek::EnumValPtr cluster_backend_val)
+            : cluster_backend_val(std::move(cluster_backend_val)) {}
+
+        zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* e) override {
+            if ( e->Tag() != zeek::detail::EXPR_NAME )
+                return zeek::detail::TC_CONTINUE;
+
+            const auto* ne = e->AsNameExpr();
+            const auto* name = ne->Id()->Name();
+
+            if ( ! error_names.contains(name) )
+                return zeek::detail::TC_CONTINUE;
+
+            // Ignore
+            const auto* loc = ne->GetLocationInfo();
+            for ( const auto& allowed : allowed_scripts )
+                if ( std::string(loc->FileName()).ends_with(allowed) )
+                    return zeek::detail::TC_CONTINUE;
+
+            e->Error(
+                util::fmt("Call to %s with non-Broker backend %s", name, obj_desc_short(cluster_backend_val).c_str()));
+
+            return zeek::detail::TC_CONTINUE;
+        }
+
+        EnumValPtr cluster_backend_val;
+
+        std::set<std::string> error_names = {
+            "Broker::create_master",  "Broker::__create_master", "Broker::create_clone",
+            "Broker::__create_clone", "Cluster::create_store",
+        };
+
+        // Give some base scripts a free pass. We only really want
+        // to catch user scripts and not our own internal scripts.
+        std::set<std::string> allowed_scripts = {
+            "cluster/broker-stores.zeek", // Broker specific code.
+            "broker/store.zeek",
+            "cluster/main.zeek",
+        };
+    };
+
+    ErrorOnStoreNameExprs tc(cluster_backend_val);
+    zeek::detail::traverse_all(&tc);
 }
 
 Manager::Manager()

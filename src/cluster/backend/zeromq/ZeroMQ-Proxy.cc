@@ -62,6 +62,13 @@ bool ProxyThread::Start() {
 
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
+    // Setup curve encryption on the two sockets if enabled. The central XPUB/XSUB
+    // sockets act as curve servers and connecting Zeek processe as curve clients.
+    if ( curve_config.isServerEnabled() ) {
+        curve_config.configureServerCurveSockOpts(xpub);
+        curve_config.configureServerCurveSockOpts(xsub);
+    }
+
     try {
         xpub.bind(xpub_endpoint);
     } catch ( zmq::error_t& err ) {

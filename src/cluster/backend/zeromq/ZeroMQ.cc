@@ -167,6 +167,17 @@ void ZeekProxyTelemetry::RefreshStatistics() {
     }
 }
 
+void CurveConfig::configureClientCurveSockOpts(zmq::socket_t& sock) const {
+    sock.set(zmq::sockopt::curve_serverkey, server_publickey);
+    sock.set(zmq::sockopt::curve_secretkey, client_secretkey);
+    sock.set(zmq::sockopt::curve_publickey, client_publickey);
+}
+
+void CurveConfig::configureServerCurveSockOpts(zmq::socket_t& sock) const {
+    sock.set(zmq::sockopt::curve_server, true);
+    sock.set(zmq::sockopt::curve_secretkey, server_secretkey);
+}
+
 std::unique_ptr<Backend> ZeroMQBackend::Instantiate(std::unique_ptr<EventSerializer> es,
                                                     std::unique_ptr<LogSerializer> ls,
                                                     std::unique_ptr<detail::EventHandlingStrategy> ehs) {
@@ -248,6 +259,16 @@ void ZeroMQBackend::DoInitPostScript() {
     log_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndbuf")->AsInt());
     log_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvhwm")->AsInt());
     log_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvbuf")->AsInt());
+
+    // CURVE variables for encrypting ZeroMQ connections.
+    curve_config.client_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_publickey")->ToStdString();
+    curve_config.client_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_secretkey")->ToStdString();
+    curve_config.server_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_publickey")->ToStdString();
+    curve_config.server_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_secretkey")->ToStdString();
 }
 
 void ZeroMQBackend::DoTerminate() {
@@ -323,6 +344,12 @@ bool ZeroMQBackend::DoInit() {
     xsub.set(zmq::sockopt::rcvhwm, xsub_rcvhwm);
     xsub.set(zmq::sockopt::rcvbuf, xsub_rcvbuf);
 
+    if ( curve_config.isClientEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on client XPUB and XSUB sockets");
+        curve_config.configureClientCurveSockOpts(xpub);
+        curve_config.configureClientCurveSockOpts(xsub);
+    }
+
     try {
         xsub.connect(connect_xsub_endpoint);
     } catch ( zmq::error_t& err ) {
@@ -347,9 +374,20 @@ bool ZeroMQBackend::DoInit() {
     log_push.set(zmq::sockopt::linger, linger_ms);
     log_push.set(zmq::sockopt::immediate, log_immediate);
 
+    if ( curve_config.isClientEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on client log PUSH socket");
+        curve_config.configureClientCurveSockOpts(log_push);
+    }
+
     log_pull.set(zmq::sockopt::rcvhwm, log_rcvhwm);
     log_pull.set(zmq::sockopt::rcvbuf, log_rcvbuf);
 
+    // Logger processes also become CURVE servers for the log PULL sockets
+    // if encryption is enabled.
+    if ( curve_config.isServerEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on server log PULL socket");
+        curve_config.configureServerCurveSockOpts(log_pull);
+    }
 
     if ( ! listen_log_endpoint.empty() ) {
         ZEROMQ_DEBUG("Listening on log pull socket: %s", listen_log_endpoint.c_str());
@@ -430,7 +468,7 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
 
     proxy_telemetry = std::make_unique<ZeekProxyTelemetry>(std::move(req));
     proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, std::move(rep), ipv6,
-                                                 listen_xpub_nodrop, proxy_io_threads);
+                                                 listen_xpub_nodrop, proxy_io_threads, curve_config);
     return proxy_thread->Start();
 }
 

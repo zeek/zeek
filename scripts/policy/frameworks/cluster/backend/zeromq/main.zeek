@@ -61,6 +61,44 @@
 ##! options :zeek:see:`Cluster::Telemetry::core_metrics` and
 ##! :zeek:see:`Cluster::Telemetry::websocket_metrics` for ways to get a better
 ##! understanding about the events published and received.
+##!
+##! Encryption using the CURVE mechanism
+##!
+##!   http://api.zeromq.org/4-2:zmq-curve
+##!
+##! When a Zeek cluster spans multiple systems on a shared and untrusted network,
+##! it's strongly recommended to encrypt the network traffic between individual
+##! Zeek systems. To enable ZeroMQ CURVE encryption, generate keypairs for the
+##! server and client roles using :zeek:see:`Cluster::Backend::ZeroMQ::generate_keypair`
+##! and set the following variables:
+##!
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_server_publickey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_server_secretkey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_client_publickey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_client_secretkey`
+##!
+##! The server variables are used for the XPUB/XSUB sockets created by the proxy thread.
+##! If you're hosting the proxy thread elsewhere or using a non-Zeek process, make sure
+##! to configure it with the proper secret key. The logger's PULL sockets use the same
+##! secret key at this point. This means the secret key is required by logger nodes
+##! even if a central XPUB/XSUB component is used externally.
+##!
+##! You may generate the keys as follows. Index 0 is the public key, index 1 the secret key.
+##!
+##!     $ zeek -e 'print Cluster::Backend::ZeroMQ::generate_keypair()'
+##!     [ZE%G/b%A#RP&i(J!#b8CDT^x]XRTMSjdWhAbN$>x, >bxKhbk*%5Wu{V[&-]:1*X5A2%gL3!!=TRK[tx4z]
+##!
+##! All Zeek processes share and have access to the same credentials. Note that while
+##! the underlying protocol uses asymmetric cryptographic primitives, we leverage this
+##! more like shared symmetric encryption. Any client with the server's public key can
+##! connect to a Zeek cluster.
+##!
+##! ZeroMQ supports ZAP to do per-client authentication, i.e. the central XPUB/XSUB
+##! component may have a registry of allowed client public keys and every Zeek process
+##! receiving its own credentials, but not clear this would be all that useful. More
+##! useful would probably be adding authentication and authorization concepts to the
+##! WebSocket API instead.
+
 @load base/utils/addrs
 
 module Cluster::Backend::ZeroMQ;
@@ -278,6 +316,26 @@ export {
 	## in development if something seems off. The thread used internally
 	## will produce output on stderr.
 	const debug_flags: count = 0 &redef;
+
+	##! Server public key to use for the central XPUB/XSUB sockets and
+	##! the logger's PULL sockets.
+	##!
+	##! This key is used by Zeek processes for the connection to the
+	##! central XPUB/XSUB sockets and individual logger PULL sockets
+	##! as the public CURVE server key.
+	const curve_server_publickey = "" &redef;
+
+	##! Server secret key to use for the central XPUB/XSUB sockets and
+	##! logger PULL sockets.
+	const curve_server_secretkey = "" &redef;
+
+	##! Client public key to use by Zeek processes connecting to the
+	##! central XPUB/XSUB sockets and PULL sockets.
+	const curve_client_publickey = "" &redef;
+
+	##! Client secret key to use by Zeek processes connecting to the
+	##! central XPUB/XSUB sockets and PULL sockets.
+	const curve_client_secretkey = "" &redef;
 
 	## The node topic prefix to use.
 	global node_topic_prefix = "zeek.cluster.node" &redef;

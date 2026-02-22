@@ -73,6 +73,17 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
+
+/**
+ * Enum for the values used for the opaque BackendMessage.
+ */
+enum class ZeroMQBackendMessageTag : uint8_t {
+    Unsubscription = 0,
+    Subscription = 1,
+};
+
+constexpr bool operator==(int x, ZeroMQBackendMessageTag tag) { return x == static_cast<int>(tag); }
+
 ZeekProxyTelemetry::ZeekProxyTelemetry(zmq::socket_t&& arg_req) : req(std::move(arg_req)) {
     // Register telemetry metric callbacks with the manager. The callbacks run when someone
     // scrapes the Prometheus endpoint.
@@ -726,10 +737,10 @@ void ZeroMQBackend::HandleXPubMessages(const std::vector<MultipartMessage>& msgs
             auto* end = msg[0].data<std::byte>() + msg[0].size();
             byte_buffer topic(start, end);
             if ( first == 1 ) {
-                qm = BackendMessage{1, std::move(topic)};
+                qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::Subscription), std::move(topic)};
             }
             else if ( first == 0 ) {
-                qm = BackendMessage{0, std::move(topic)};
+                qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::Unsubscription), std::move(topic)};
             }
             else {
                 ZEROMQ_THREAD_PRINTF("xpub: error: unexpected first char: have '0x%02x'", first);
@@ -915,11 +926,11 @@ void ZeroMQBackend::Run() {
 }
 
 bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
-    if ( tag == 0 || tag == 1 ) {
+    if ( tag == ZeroMQBackendMessageTag::Subscription || tag == ZeroMQBackendMessageTag::Unsubscription ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
         zeek::EventHandlerPtr eh;
 
-        if ( tag == 1 ) {
+        if ( tag == ZeroMQBackendMessageTag::Subscription ) {
             // If this is the first time the subscription was observed, raise
             // the ZeroMQ internal event.
             if ( ! xpub_subscriptions.contains(topic) ) {
@@ -935,7 +946,7 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
                 subscription_callbacks.erase(cbit);
             }
         }
-        else if ( tag == 0 ) {
+        else if ( tag == ZeroMQBackendMessageTag::Unsubscription ) {
             eh = event_unsubscription;
             xpub_subscriptions.erase(topic);
         }

@@ -5,6 +5,8 @@
 #include "pac_dbg.h"
 #include "pac_exception.h"
 
+#include <unistd.h>
+
 namespace {
 
 class EscapeException {

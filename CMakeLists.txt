@@ -129,6 +129,7 @@ if (MSVC)
         /guard:cf # required by CheckCFlags
         /Z7 # required by CheckCFlags
         /J # Similar to -funsigned-char on other platforms
+        /D_CRT_DECLARE_NONSTDC_NAMES=0
         /wd4068) # Disable unknown pragma warnings
 
     add_link_options(/debug:full # required by CheckCFlags

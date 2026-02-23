@@ -90,14 +90,14 @@
 ##!
 ##! All Zeek processes share and have access to the same credentials. Note that while
 ##! the underlying protocol uses asymmetric cryptographic primitives, we leverage this
-##! more like shared symmetric encryption. Any client with the server's public key can
-##! connect to a Zeek cluster.
+##! more like shared symmetric encryption. Any external process with the server's public
+##! key can and the client secret and public key may connect to the central XPUB/XSUB
+##! socket.
 ##!
-##! ZeroMQ supports ZAP to do per-client authentication, i.e. the central XPUB/XSUB
-##! component may have a registry of allowed client public keys and every Zeek process
-##! receiving its own credentials, but not clear this would be all that useful. More
-##! useful would probably be adding authentication and authorization concepts to the
-##! WebSocket API instead.
+##! ZeroMQ supports ZAP to do per-client authentication. This is lightly implemented
+##! such that any client needs to possess the configured client secret and public key.
+##! It's not clear if anything more is really useful. More advanced authentication or
+##! authorization concpets should probably be added to the WebSocket API insteead.
 
 @load base/utils/addrs
 

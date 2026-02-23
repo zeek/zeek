@@ -2,11 +2,13 @@
 
 #include "ZeroMQ.h"
 
+#include <zmq.h>
 #include <array>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -80,6 +82,7 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 enum class ZeroMQBackendMessageTag : uint8_t {
     Unsubscription = 0,
     Subscription = 1,
+    MonitoringEvent = 2,
 };
 
 constexpr bool operator==(int x, ZeroMQBackendMessageTag tag) { return x == static_cast<int>(tag); }
@@ -256,6 +259,7 @@ void ZeroMQBackend::DoInitPostScript() {
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
+    event_monitoring_event = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::monitoring_event");
 
     // xpub/xsub hwm configuration
     xpub_sndhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndhwm")->AsInt());
@@ -359,6 +363,44 @@ bool ZeroMQBackend::DoInit() {
         ZEROMQ_DEBUG("Enabling encryption on client XPUB and XSUB sockets");
         curve_config.configureClientCurveSockOpts(xpub);
         curve_config.configureClientCurveSockOpts(xsub);
+    }
+
+    // Create monitoring sockets for xpub, xsub and log_push sockets. For now,
+    // there'll only be three client sockets.
+    constexpr int events_to_monitor = ZMQ_EVENT_ALL;
+
+    struct SocketMonitorParam {
+        zmq::socket_ref sock;
+        std::string addr;
+    };
+
+    std::array<SocketMonitorParam, 3> to_monitor = {
+        SocketMonitorParam{xpub, "inproc://monitor-xpub"},
+        SocketMonitorParam{xsub, "inproc://monitor-xsub"},
+        SocketMonitorParam{log_push, "inproc://monitor-log-push"},
+    };
+
+    assert(to_monitor.size() == monitoring_sockets.size());
+
+    for ( size_t i = 0; i < to_monitor.size(); i++ ) {
+        auto& [sock, addr] = to_monitor[i];
+
+        ZEROMQ_DEBUG("Creating zmq_socket_monitor for %s (%p)", addr.c_str(), sock.handle());
+        int r = zmq_socket_monitor(sock.handle(), addr.c_str(), events_to_monitor);
+        if ( r != 0 ) {
+            zeek::reporter->Error("ZeroMQ: Failed setup monitor socket for %s: %s", addr.c_str(),
+                                  zmq_strerror(zmq_errno()));
+            return false;
+        }
+
+        // Create and connect the other end of the PAIR socket for listening for the events.
+        monitoring_sockets[i] = zmq::socket_t(ctx, zmq::socket_type::pair);
+        try {
+            monitoring_sockets[i].connect(addr);
+        } catch ( zmq::error_t& err ) {
+            zeek::reporter->Error("ZeroMQ: Failed to connect monitor socket %s: %s", addr.c_str(), err.what());
+            return false;
+        }
     }
 
     try {
@@ -792,6 +834,27 @@ void ZeroMQBackend::HandleXSubMessages(const std::vector<MultipartMessage>& msgs
     }
 }
 
+void ZeroMQBackend::HandleMonitoringMessages(const std::vector<MultipartMessage>& msgs) {
+    for ( const auto& msg : msgs ) {
+        if ( msg.size() == 2 ) {
+            // Concatenate the frames of the monitoring event into a single string
+            // and copy its content into the BackendMessage payload. The DoProcessBackendMessage()
+            // implementation understands how to unpack this again.
+            std::string str = msg[0].to_string() + msg[1].to_string();
+            byte_buffer payload{reinterpret_cast<std::byte*>(str.data()),
+                                reinterpret_cast<std::byte*>(str.data()) + str.size()};
+
+            auto qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::MonitoringEvent), std::move(payload)};
+            OnLoop()->QueueForProcessing(std::move(qm), zeek::detail::QueueFlag::Force);
+        }
+        else {
+            ZEROMQ_THREAD_PRINTF("mon: error: expected 2 parts, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
+            continue;
+        }
+    }
+}
+
 void ZeroMQBackend::Run() {
     char name[4 + 2 + 16 + 1]{}; // zmq-0x<8byte pointer in hex><nul>
     snprintf(name, sizeof(name), "zmq-%p", this);
@@ -809,6 +872,15 @@ void ZeroMQBackend::Run() {
         {.socket = xpub, .name = "xpub", .handler = [this](const auto& msgs) { HandleXPubMessages(msgs); }},
         {.socket = xsub, .name = "xsub", .handler = [this](const auto& msgs) { HandleXSubMessages(msgs); }},
         {.socket = log_pull, .name = "log_pull", .handler = [this](const auto& msgs) { HandleLogMessages(msgs); }},
+        {.socket = monitoring_sockets[0],
+         .name = "mon-xpub",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
+        {.socket = monitoring_sockets[1],
+         .name = "mon-xsub",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
+        {.socket = monitoring_sockets[2],
+         .name = "mon-log-push",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
     };
 
     // Called when Run() terminates.
@@ -816,6 +888,10 @@ void ZeroMQBackend::Run() {
         xpub.close();
         xsub.close();
         log_pull.close();
+
+        for ( auto& s : monitoring_sockets )
+            s.close();
+
         ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread sockets closed (%p)\n", this);
     });
 
@@ -957,8 +1033,23 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
 
         return true;
     }
+    else if ( tag == ZeroMQBackendMessageTag::MonitoringEvent && payload.size() >= 6 ) {
+        // https://libzmq.readthedocs.io/en/latest/zmq_socket_monitor.html
+        uint16_t event_number = *reinterpret_cast<const uint16_t*>(payload.data());
+        uint32_t event_value = *reinterpret_cast<const uint32_t*>(payload.data() + 2);
+        const char* addr_ptr = reinterpret_cast<const char*>(payload.data() + 6);
+        std::string addr = {addr_ptr, payload.size() - 6};
+        ZEROMQ_DEBUG("BackendMessage: monitoring_event 0x%x with value value 0x%x for socket %s", event_number,
+                     event_value, addr.c_str());
+
+        if ( event_monitoring_event )
+            EnqueueEvent(event_monitoring_event, {val_mgr->Count(event_number), val_mgr->Count(event_value),
+                                                  zeek::make_intrusive<zeek::StringVal>(addr)});
+
+        return true;
+    }
     else {
-        zeek::reporter->Error("Ignoring bad BackendMessage tag=%d", tag);
+        zeek::reporter->Error("Ignoring bad BackendMessage with tag %d (payload size %zu)", tag, payload.size());
         return false;
     }
 }

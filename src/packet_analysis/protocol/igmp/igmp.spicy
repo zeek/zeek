@@ -7,6 +7,8 @@
 
 module IGMP;
 
+import zeek;
+
 # ICMP message types
 type Type = enum {
     MEMBERSHIP_QUERY = 0x11,
@@ -14,7 +16,6 @@ type Type = enum {
     MEMBERSHIP_REPORT_V2 = 0x16,
     LEAVE_GROUP = 0x17,
     MEMBERSHIP_REPORT_V3 = 0x22,
-    BAD_CHECKSUM = 0x00, # Dummy type, indicating a bad checksum
 };
 
 # Version 3 Membership Report Group Record Types
@@ -49,7 +50,6 @@ public type Message = unit {
     ### FIRST STEP: verify message checksum
 
     var computed_checksum: uint32 = uint32(0); # Checksum verification accumulator
-    var is_checksum_ok: bool = False; # Indicates if the checksum verification is OK or not
     first_2_bytes: uint16 {
         self.computed_checksum = self.first_2_bytes;
     } # Add first 2 bytes to accumulator
@@ -69,18 +69,16 @@ public type Message = unit {
     on remaining_bytes {
         # Compare checksum values
         self.computed_checksum = ~cast<uint16>(self.computed_checksum);
-        self.is_checksum_ok = self.transmitted_checksum == self.computed_checksum;
+        if (self.transmitted_checksum != self.computed_checksum)
+            zeek::weird("igmp_invalid_checksum");
+
         # Backtrack to beginning of message
         self.set_input(self.start);
     }
 
     ### SECOND STEP: Parse message if checksum verification passed
 
-    msg_type: uint8 &convert=Type($$) {
-        if (!self.is_checksum_ok) {
-            self.msg_type = Type::BAD_CHECKSUM;
-        }
-    }
+    msg_type: uint8 &convert=Type($$);
 
     # Determine message type
     switch (self.msg_type) {
@@ -89,7 +87,6 @@ public type Message = unit {
         Type::MEMBERSHIP_REPORT_V2 -> mrv2: MessageV2(True);
         Type::LEAVE_GROUP -> lg: MessageV2(False);
         Type::MEMBERSHIP_REPORT_V3 -> mrv3: MembershipReportV3;
-        Type::BAD_CHECKSUM -> : void;
     };
 
     #on %done { print self; }

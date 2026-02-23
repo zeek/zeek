@@ -9,15 +9,6 @@
 ## msg_type: The type of message received.
 global IGMP::message: event(packet: raw_pkt_hdr, msg_type: IGMP::MessageType);
 
-## Generated for every IGMP message which did not pass checksum verification.
-##
-## packet: raw packet header
-##
-## transmitted_checksum: checksum value transmitted in the message
-##
-## computed_checksum: checksum value computed over the message
-global IGMP::bad_checksum: event(packet: raw_pkt_hdr, transmitted_checksum: count, computed_checksum: count);
-
 ## Generated for every IGMP Membership Query.
 ##
 ## packet: raw packet header

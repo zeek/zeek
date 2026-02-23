@@ -16,7 +16,7 @@
 #
 # Wait for the worker to be up, then wait for it to terminate by itself.
 # @TEST-EXEC: $SCRIPTS/wait-for-file worker/.pid 30
-# @TEST-EXEC: timeout 30 bash -c 'while kill -0 $(cat worker/.pid ); do sleep 0.5; done'
+# @TEST-EXEC: while kill -0 $(cat worker/.pid ); do sleep 0.5; done
 #
 # Initiate manager shutdown
 # @TEST-EXEC: kill $(cat manager/.pid )
@@ -69,4 +69,15 @@ event Cluster::node_up(name: string, id: string) {
 event finish(name: string) &is_used {
 	terminate();
 }
+
+event do_terminate()
+	{
+	if ( ! zeek_is_terminating() )
+		Reporter::fatal("unexpected do_terminate()");
+	}
+
+event network_time_init()
+	{
+	schedule 30sec { do_terminate() };
+	}
 # @TEST-END-FILE

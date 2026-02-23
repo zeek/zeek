@@ -173,6 +173,7 @@ private:
     void HandleLogMessages(const std::vector<MultipartMessage>& msgs);
     void HandleXPubMessages(const std::vector<MultipartMessage>& msgs);
     void HandleXSubMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleMonitoringMessages(const std::vector<MultipartMessage>& msgs);
 
     // Script level variables.
     std::string connect_xsub_endpoint;
@@ -192,6 +193,7 @@ private:
 
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
+    EventHandlerPtr event_monitoring_event;
 
     // xpub/xsub configuration
     int xpub_sndhwm = 1000; // libzmq default
@@ -222,6 +224,9 @@ private:
     std::vector<std::string> connect_log_endpoints;
     zmq::socket_t log_push;
     zmq::socket_t log_pull;
+
+    // PAIR sockets for per socket monitoring events.
+    std::array<zmq::socket_t, 3> monitoring_sockets;
 
     std::thread self_thread;
     bool self_thread_shutdown_requested = false;

@@ -384,6 +384,16 @@ export {
 	## topic: The topic.
 	global unsubscription: event(topic: string);
 
+	## Low-level event raised for ZeroMQ socket events.
+	##
+	## See ``zmq_socket_monitor()`` and the ``ZMQ_EVENT_*`` constants in
+	## ``zmq.h`` for possible values of ``number`` and ``value``.
+	##
+	## number: The event number.
+	## value: The event value.
+	## address: The socket address of the event.
+	global monitoring_event: event(number: count, value: count, address: string);
+
 	## Low-level event send to a node in response to their subscription.
 	##
 	## name: The sending node's name in :zeek:see:`Cluster::nodes`.
@@ -650,4 +660,32 @@ event Cluster::Backend::ZeroMQ::unsubscription(topic: string)
 		event Cluster::node_down(name, gone_node_id);
 	else
 		Reporter::warning(fmt("unsubscription of unknown node with id '%s'", gone_node_id));
+	}
+
+event Cluster::Backend::ZeroMQ::monitoring_event(number: count, value: count, address: string)
+	{
+	# Anytime we see a handshake failed error (e.g. wrong CURVE keys in use
+	# or CURVE socket connecting to non-CURVE sockets), the Zeek process
+	# terminates with Reporter::fatal() as this is a configuration error.
+	#
+	# From zmq.h
+	# Unspecified system errors during handshake. Event value is an errno.
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL 0x0800
+	# Handshake complete successfully with successful authentication (if enabled). Event value is unused.
+	# #define ZMQ_EVENT_HANDSHAKE_SUCCEEDED 0x1000
+	# Protocol errors between ZMTP peers or between server and ZAP handler.
+	# Event value is one of ZMQ_PROTOCOL_ERROR
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL 0x2000
+	# Failed authentication requests. Event value is the numeric ZAP status
+	# code, i.e. 300, 400 or 500.
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_AUTH 0x4000
+
+	# We don't treat 0x0800 as fatal as this can happen when there's
+	# connection errors during the handshake. Hard-exiting the process
+	# is a bit too much in that case.
+	if ( number == 0x0800 )
+		Reporter::warning(fmt("ZeroMQ: Handshake for socket %s failed: event=0x%x value=%s", address, number, value));
+
+	if ( number == 0x2000 || number == 0x4000 )
+		Reporter::fatal(fmt("ZeroMQ: Handshake for socket %s failed: event=0x%x value=%s", address, number, value));
 	}

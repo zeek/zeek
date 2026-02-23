@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/smtp/BDAT.h"
 
+#include <strings.h>
 #include <cinttypes>
 
 #include "zeek/Conn.h"

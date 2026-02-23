@@ -18,6 +18,7 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <strings.h>
 #include <unistd.h>
 #include <cctype>
 #include <cerrno>

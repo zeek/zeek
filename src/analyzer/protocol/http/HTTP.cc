@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
+#include <strings.h>
 #include <algorithm>
 #include <cctype>
 #include <cinttypes>

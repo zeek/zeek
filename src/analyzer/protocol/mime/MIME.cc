@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
+#include <strings.h>
 #include <openssl/evp.h>
 #include <cinttypes>
 

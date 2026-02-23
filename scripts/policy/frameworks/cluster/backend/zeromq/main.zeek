@@ -97,7 +97,7 @@
 ##! ZeroMQ supports ZAP to do per-client authentication. This is lightly implemented
 ##! such that any client needs to possess the configured client secret and public key.
 ##! It's not clear if anything more is really useful. More advanced authentication or
-##! authorization concpets should probably be added to the WebSocket API insteead.
+##! authorization concepts should probably be added to the WebSocket API instead.
 
 @load base/utils/addrs
 

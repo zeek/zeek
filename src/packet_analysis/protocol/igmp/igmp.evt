@@ -20,12 +20,6 @@ packet analyzer IGMP:
 # :param self.msg_type: IGMP message type
 on IGMP::Message -> event IGMP::message($packet, self.msg_type);
 
-# Generated for every IGMP message which did not pass checksum verification.
-# :param $packet: raw packet header
-# :param self.checksum: checksum value transmitted in the message
-# :param self.computed_checksum: checksum value computed over the message
-on IGMP::Message if ( !self.is_checksum_ok ) -> event IGMP::bad_checksum($packet, self.transmitted_checksum, self.computed_checksum);
-
 # Generated for every IGMP Membership Query.
 # :param $packet: raw packet header
 # :param self.group_addr: Multicast group address

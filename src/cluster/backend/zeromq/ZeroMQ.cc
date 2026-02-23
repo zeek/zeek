@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ZeroMQ.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 
 #include <zmq.h>
 #include <array>
@@ -28,6 +28,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/backend/zeromq/Plugin.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util-types.h"
 #include "zeek/util.h"
@@ -192,6 +193,20 @@ void CurveConfig::configureServerCurveSockOpts(zmq::socket_t& sock) const {
     sock.set(zmq::sockopt::curve_secretkey, server_secretkey);
 }
 
+void CurveConfig::initZap(zmq::context_t& ctx, ZapArgs& args) const {
+    args.zap_rep = zmq::socket_t(ctx, zmq::socket_type::rep);
+
+    // Prepare the allowed public key from the CurveConfig
+    if ( client_publickey.size() == 40 ) {
+        std::string raw_client_publickey(32, '\0');
+        zmq_z85_decode(reinterpret_cast<uint8_t*>(raw_client_publickey.data()), client_publickey.c_str());
+        args.allowed_publickeys.insert(raw_client_publickey);
+    }
+    else if ( ! client_publickey.empty() ) {
+        zeek::reporter->FatalError("ZeroMQ/ZAP: client public key has unexpected size %zu", client_publickey.size());
+    }
+}
+
 std::unique_ptr<Backend> ZeroMQBackend::Instantiate(std::unique_ptr<EventSerializer> es,
                                                     std::unique_ptr<LogSerializer> ls,
                                                     std::unique_ptr<detail::EventHandlingStrategy> ehs) {
@@ -319,6 +334,11 @@ void ZeroMQBackend::DoTerminate() {
         proxy_thread.reset();
     }
 
+    // The ZAP handler thread will have observed the ctx
+    // shutdown and terminate itself.
+    if ( zap_thread.joinable() )
+        zap_thread.join();
+
     // Shutdown REQ socket for proxy telemetry, this
     // needs to be done after shutting down the proxy
     // thread, but before closing the main context,
@@ -440,6 +460,10 @@ bool ZeroMQBackend::DoInit() {
     if ( curve_config.isServerEnabled() ) {
         ZEROMQ_DEBUG("Enabling encryption on server log PULL socket");
         curve_config.configureServerCurveSockOpts(log_pull);
+
+        // Also launch a ZAP handler thread for the log_pull socket.
+        curve_config.initZap(ctx, zap_args);
+        zap_thread = std::thread(zeek::cluster::zeromq::zap_thread_fun, &zap_args);
     }
 
     if ( ! listen_log_endpoint.empty() ) {

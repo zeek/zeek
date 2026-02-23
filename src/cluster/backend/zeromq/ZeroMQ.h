@@ -8,7 +8,7 @@
 
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Serializer.h"
-
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 
 namespace zeek {
 
@@ -112,6 +112,11 @@ struct CurveConfig {
      * @param sock ZeroMQ socket to enable encryption on.
      */
     void configureServerCurveSockOpts(zmq::socket_t& sock) const;
+
+    /**
+     * Initialize the given ZapArgs struct.
+     */
+    void initZap(zmq::context_t& ctx, ZapArgs& args) const;
 };
 
 class ProxyThread;
@@ -231,6 +236,11 @@ private:
     std::thread self_thread;
     bool self_thread_shutdown_requested = false;
     bool self_thread_stop = false;
+
+    // If encryption is enabled, the local ZAP thread for
+    // used by the log pull socket on logger nodes.
+    std::thread zap_thread;
+    ZapArgs zap_args;
 
     int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;

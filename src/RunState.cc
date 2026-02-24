@@ -16,7 +16,6 @@
 #endif
 #endif
 
-#include <unistd.h>
 #include <csignal>
 #include <cstdlib>
 

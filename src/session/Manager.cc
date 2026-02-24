@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pcap.h>
-#include <unistd.h>
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 
 #include "zeek/Conn.h"
@@ -34,7 +34,7 @@ public:
     struct Protocol {
         std::shared_ptr<telemetry::Gauge> active;
         std::shared_ptr<telemetry::Counter> total;
-        ssize_t max = 0;
+        ptrdiff_t max = 0;
 
         Protocol(const std::shared_ptr<telemetry::GaugeFamily>& active_family,
                  const std::shared_ptr<telemetry::CounterFamily>& total_family, std::string protocol)

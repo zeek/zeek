@@ -9,7 +9,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/param.h>
-#include <unistd.h>
 #include <algorithm>
 #include <cctype>
 #include <cerrno>

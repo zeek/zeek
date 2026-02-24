@@ -19,7 +19,6 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
-#include <sys/param.h>
 #include <unistd.h>
 #include <libgen.h>
 
@@ -423,12 +422,12 @@ when	return TOK_WHEN;
 	std::string rval = zeek::util::SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' ) {
-		char path[MAXPATHLEN];
-
-		if ( ! getcwd(path, MAXPATHLEN) )
-			zeek::reporter->InternalError("getcwd failed: %s", strerror(errno));
+		std::error_code ec;
+		auto cwd = std::filesystem::current_path(ec);
+		if ( ec )
+			zeek::reporter->InternalError("current_path failed: %s", ec.message().c_str());
 		else
-			rval = std::string(path) + "/" + rval;
+			rval = (std::filesystem::path(cwd) / rval).string();
 	}
 
 	RET_CONST(new zeek::StringVal(rval.c_str()));

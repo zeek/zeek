@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sys/stat.h>
-#include <unistd.h>
 #include <cerrno>
+#include <filesystem>
 
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/IDOptInfo.h"
@@ -325,12 +325,14 @@ void CPPCompile::GenProlog() {
 
     // Get the working directory for annotating the output to help
     // with debugging.
-    char working_dir[8192];
-    if ( ! getcwd(working_dir, sizeof working_dir) )
-        reporter->FatalError("getcwd failed: %s", strerror(errno));
+    std::error_code ec;
+    auto cwd = std::filesystem::current_path(ec);
+    if ( ec )
+        reporter->FatalError("current_path failed: %s", ec.message().c_str());
+    std::string working_dir = cwd.string();
 
     Emit("namespace zeek::detail { //\n");
-    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), string(working_dir));
+    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir.c_str());
 
     // The following might-or-might-not wind up being populated/used.
     Emit("std::vector<zeek_int_t> field_mapping;");

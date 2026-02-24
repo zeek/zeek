@@ -5,7 +5,6 @@
 #include <fts.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <regex>
 
 #include "zeek/Reporter.h"

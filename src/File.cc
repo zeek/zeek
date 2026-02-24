@@ -30,7 +30,11 @@
 
 namespace zeek {
 
-std::list<std::pair<std::string, File*>> File::open_files;
+namespace {
+
+std::list<std::pair<std::string, File*>> open_files;
+
+} // namespace
 
 // Maximizes the number of open file descriptors.
 static void maximize_num_fds() {

@@ -253,7 +253,7 @@ public:
     /**
      * @return the process ID of the Stem.
      */
-    pid_t StemPID() const { return stem_pid; }
+    int StemPID() const { return stem_pid; }
 
     /**
      * @return the state of currently supervised processes.  The map uses
@@ -323,7 +323,7 @@ private:
     static std::optional<detail::SupervisedNode> supervised_node;
 
     Config config;
-    pid_t stem_pid;
+    int stem_pid;
     std::atomic<int> last_signal = -1;
     std::unique_ptr<detail::PipePair> stem_pipe;
     detail::LineBufferedPipe stem_stdout;
@@ -356,7 +356,7 @@ struct SupervisorStemHandle {
     /**
      * The Stem's process ID.
      */
-    pid_t pid = 0;
+    int pid = 0;
 };
 
 /**
@@ -378,7 +378,7 @@ struct SupervisedNode {
      * The process ID of the supervised node's parent process (i.e. the PID
      * of the Stem process).
      */
-    pid_t parent_pid;
+    int parent_pid;
 };
 
 /**
@@ -409,7 +409,7 @@ struct SupervisorNode {
     /**
      * Process ID of the node (positive/non-zero are valid/live PIDs).
      */
-    pid_t pid = 0;
+    int pid = 0;
     /**
      * Whether the node is voluntarily marked for termination by the
      * Supervisor.

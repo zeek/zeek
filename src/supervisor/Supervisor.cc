@@ -12,6 +12,7 @@
 #include <csignal>
 #include <cstdarg>
 #include <cstdio>
+#include <filesystem>
 #include <sstream>
 #include <utility>
 #include <variant>
@@ -1400,9 +1401,11 @@ void SupervisedNode::Init(Options* options) const {
     const auto& node_name = config.name;
 
     if ( config.directory ) {
-        if ( chdir(config.directory->data()) ) {
-            fprintf(stderr, "node '%s' failed to chdir to %s: %s\n", node_name.data(), config.directory->data(),
-                    strerror(errno));
+        std::error_code ec;
+        std::filesystem::current_path(config.directory->data(), ec);
+        if ( ec ) {
+            fprintf(stderr, "node '%s' failed to set working directory to %s: %s\n", node_name.data(),
+                    config.directory->data(), ec.message().c_str());
             exit(1);
         }
     }

@@ -36,15 +36,15 @@ user-visible behavior. So let's learn more about events next.
  Zeek Events
 *************
 
-Parsing into network packets, Zeek's protocol analyzers attempt to make sense of
-the traffic. As protocols unfold on the wire, Zeek's analyzers generate events
-along the way, sending them into the scripting engine for processing. Examples
-of such events include observing a new connection (:zeek:see:`new_connection`),
-an HTTP request (:zeek:see:`http_request`), or a completed TLS handshake
-(:zeek:see:`ssl_established`). Most, but not all, events relate to network
-traffic. Two common generic events are :zeek:id:`zeek_init`, which Zeek
-generates at startup, and :zeek:id:`zeek_done`, indicating Zeek is about to shut
-down.
+Zeek's protocol analyzers attempt to make sense of traffic as they parse into
+network packets. As protocols unfold on the wire, Zeek's analyzers generate
+events along the way, sending them into the scripting engine for processing.
+Examples of such events include observing a new connection
+(:zeek:see:`new_connection`), an HTTP request (:zeek:see:`http_request`), or a
+completed TLS handshake (:zeek:see:`ssl_established`). Most, but not all, events
+relate to network traffic. Two common generic events are :zeek:id:`zeek_init`,
+which Zeek generates at startup, and :zeek:id:`zeek_done`, which Zeek generates
+when it is about to shut down.
 
 Zeek ships with hundreds of different types of events, each suitably named and
 carrying a list of typed arguments to convey context. When Zeek's core sends an
@@ -77,9 +77,9 @@ statement:
    :tab-width: 4
 
 This is the only way to trigger an event from a script. Zeek does not execute
-these events immediately, it enqueues them for subsequent processing. Don't
-think of events as functions that run *now*, think of them as interesting things
-that Zeek will handle later.
+these events immediately, it enqueues them for subsequent processing. Events are
+not functions that run *now*, they are interesting things that Zeek will handle
+later.
 
 It's important to remember that Zeek's events generally *don't judge*: they're
 policy-neutral, simply reporting on observed activity. It's up to scripts to
@@ -361,8 +361,7 @@ in a new connection, then we print a warning:
    :linenos:
    :tab-width: 4
 
-As-is, running this on the quickstart pcap says one of the addresses is
-not allowed:
+As-is, running this on the quickstart pcap says some addresses were not allowed:
 
 .. code:: console
 
@@ -370,7 +369,7 @@ not allowed:
    Address 192.0.78.150 is not allowed!
 
 If we can't change the original script, we can create a new script and
-use that!
+add the allowed IP addresses!
 
 .. literalinclude:: basics/scope_use_export.zeek
    :caption:
@@ -503,7 +502,7 @@ we modify ``host`` within a separate function:
    :tab-width: 4
 
 The most important part here is that only certain types in Zeek are
-"pass by reference." You pass aggregate types like a ``table`` or ``record``
+"pass by reference". You pass aggregate types like a ``table`` or ``record``
 into a function by reference, so the function may modify their values.
 But, if you pass a ``count``, then the function will modify a *copy*,
 not the original. Try modifying the above script to pass

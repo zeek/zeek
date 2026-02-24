@@ -1,3 +1,11 @@
+8.2.0-dev.203 | 2026-02-24 17:16:06 +0100
+
+  * cluster/pf_ring: Update instructions to use 9.2.0 (Arne Welzel, Corelight)
+
+    ...and leave a note about the libkqueue/epoll fix that made it into
+    8.8.0. Seems PF_RING is well and alive, so would definitely keep this
+    section around.
+
 8.2.0-dev.200 | 2026-02-20 11:18:44 -0500
 
   * Add a hook to prevent timeouts (Evan Typanski, Corelight)

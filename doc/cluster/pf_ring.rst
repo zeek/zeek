@@ -4,18 +4,27 @@
 PF_RING Setup Guide
 ===================
 
+.. note::
+
+   PF_RING versions before 8.8.0 did not work correctly with Zeek's ``libkqueue``
+   based IO loop. For best performance, please upgrade to PF_RING 8.8.0 or later.
+
+   References:
+     * https://github.com/ntop/PF_RING/issues/878
+     * https://community.zeek.org/t/performance-issues-after-upgrade-to-zeek-6/7094
+
 Installing PF_RING
 ******************
 
 1. Download and install PF_RING for your system following the instructions
-   `here <https://www.ntop.org/guides/pf_ring/get_started/index.html>`_.  The following
+   `here <https://www.ntop.org/guides/pf_ring/get_started/index.html>`_. The following
    commands will install the PF_RING libraries and kernel module (replace
-   the version number 5.6.2 in this example with the version that you
+   the version number 9.2.0 in this example with the version that you
    downloaded)::
 
      cd /usr/src
-     tar xvzf PF_RING-5.6.2.tar.gz
-     cd PF_RING-5.6.2/userland/lib
+     tar xvzf PF_RING-9.2.0.tar.gz
+     cd PF_RING-9.2.0/userland/lib
      ./configure --prefix=/opt/pfring
      make install
 
@@ -23,7 +32,7 @@ Installing PF_RING
      ./configure --prefix=/opt/pfring
      make install
 
-     cd ../tcpdump-4.1.1
+     cd ../tcpdump
      ./configure --prefix=/opt/pfring
      make install
 

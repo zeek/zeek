@@ -63,6 +63,11 @@ Expect: /this/is/a/dir\ is\ current\ directory
 Result: /this/is/a/dir\ is\ current\ directory
 Result: SUCCESS
 ===============================
+Given : "C:\Temp\zeek\base test\utils" is current directory
+Expect: C:\Temp\zeek\base test\utils
+Result: C:\Temp\zeek\base test\utils
+Result: SUCCESS
+===============================
 Given : hey, /foo/bar/baz.zeek is a cool script
 Expect: /foo/bar/baz.zeek
 Result: /foo/bar/baz.zeek

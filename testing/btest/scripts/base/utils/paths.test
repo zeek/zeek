@@ -13,9 +13,27 @@ function test_extract(str: string, expect: string)
 	print "===============================";
 	}
 
+function normalize_path(str: string): string
+	{
+	if ( getenv("OS") == "Windows_NT" )
+		{
+		str = gsub(str, /\\/, "/");
+
+		if ( str != "/" && ! ( /[A-Za-z]:\/$/ in str ) && ends_with(str, "/") )
+			str = sub_bytes(str, 0, |str| - 1);
+		}
+
+		if (str == ".") {
+			str = "";
+		}
+
+	return str;
+	}
+	
 function test_compress(str: string, expect: string)
 	{
 	local result = compress_path(str);
+	result = normalize_path(result);
 	print fmt("Given : %s", str);
 	print fmt("Expect: %s", expect);
 	print fmt("Result: %s", result);
@@ -40,14 +58,15 @@ print "===============================";
 test_extract("\"/this/is/a/dir\" is current directory", "/this/is/a/dir");
 test_extract("/this/is/a/dir is current directory", "/this/is/a/dir");
 test_extract("/this/is/a/dir\\ is\\ current\\ directory", "/this/is/a/dir\\ is\\ current\\ directory");
+test_extract("\"C:\\Temp\\zeek\\base test\\utils\" is current directory", "C:\\Temp\\zeek\\base test\\utils");
 test_extract("hey, /foo/bar/baz.zeek is a cool script", "/foo/bar/baz.zeek");
 test_extract("here's two dirs: /foo/bar and /foo/baz", "/foo/bar");
 
 print "test build_path_compressed()";
 print "===============================";
-print build_path_compressed("/home/zeek/", "policy/somefile.zeek");
-print build_path_compressed("/home/zeek/", "/usr/local/zeek/share/zeek/somefile.zeek");
-print build_path_compressed("/home/zeek/", "/usr/local/zeek/share/../../zeek/somefile.zeek");
+print normalize_path(build_path_compressed("/home/zeek/", "policy/somefile.zeek"));
+print normalize_path(build_path_compressed("/home/zeek/", "/usr/local/zeek/share/zeek/somefile.zeek"));
+print normalize_path(build_path_compressed("/home/zeek/", "/usr/local/zeek/share/../../zeek/somefile.zeek"));
 
 print "===============================";
 print "test build_path()";

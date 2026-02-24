@@ -5,14 +5,23 @@ const absolute_path_pat = /(\/|[A-Za-z]:[\\\/]).*/;
 ## Given an arbitrary string, extracts a single, absolute path (directory
 ## with filename).
 ##
-## .. todo:: Make this work on Window's style directories.
-##
 ## input: a string that may contain an absolute path.
 ##
 ## Returns: the first absolute path found in input string, else an empty string.
 function extract_path(input: string): string
 	{
+	const quoted_dir_pattern = /\"(\/|[A-Za-z]:[\\\/])[^\"]*\"/;
 	const dir_pattern = /(\/|[A-Za-z]:[\\\/])([^\"\ ]|(\\\ ))*/;
+	local quoted_parts = split_string_all(input, quoted_dir_pattern);
+
+	if ( |quoted_parts| >= 3 )
+		{
+		local path = quoted_parts[1];
+		path = sub(path, /^\"/, "");
+		path = sub(path, /\"$/, "");
+		return path;
+		}
+
 	local parts = split_string_all(input, dir_pattern);
 
 	if ( |parts| < 3 )

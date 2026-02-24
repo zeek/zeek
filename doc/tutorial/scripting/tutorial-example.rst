@@ -423,8 +423,8 @@ this is invoked from a Bash shell:
    Found 4 matches in the HTTP entity
    Found 4 matches in the HTTP entity
 
-Finally, we have the core functionality for this script. The full script
-at this point is here for your convenience.
+We have the core functionality for this script. The full script at
+this point is here for your convenience.
 
 .. literalinclude:: tutorial/02-http-patterns.zeek
    :caption: :file:`scripts/tutorial/02-http-patterns.zeek`
@@ -446,7 +446,7 @@ Adding a Log Field
 
 Adding a log field to Zeek is actually very simple. Since we want to add
 to the HTTP log, we will use the record that HTTP logs to---its ``Info``
-record. First, we decide what we are logging---in this case, it's just
+record. First, we decide what we are logging. In this case, it's just
 the number of pattern matches. So, we add that to the
 :zeek:see:`HTTP::Info` record with ``redef``, and mark the field with
 ``&log`` to make sure it gets logged:

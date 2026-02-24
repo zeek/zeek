@@ -231,7 +231,7 @@ you can replicate:
 
    Now, any logs that the cluster creates will be in JSON.
    Take a look at how that scripts does this! You have already used
-   the same technique in the Zeek invocation setction.
+   the same technique in the Zeek invocation section.
 
 We can use ``jq`` for much more. You can find more about ``jq`` on the
 `JQ homepage <jq_home_>`_. Here we use ``jq`` to print just the

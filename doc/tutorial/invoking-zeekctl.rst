@@ -111,9 +111,9 @@ the standalone node):
 
 .. note::
 
-   This section will use ``$PREFIX`` extensively to refer to Zeek's
-   installation directory. This is set as an environment variable by the
-   tutorial setup script, so you can use it verbatim.
+   This section will use ``$PREFIX`` to refer to Zeek's installation
+   directory. This is set as an environment variable by the tutorial
+   setup script, so you can use it verbatim.
 
 Now, you can change the cluster setup to include multiple Zeek
 processes. First, modify ``$PREFIX/etc/node.cfg`` by uncommenting the

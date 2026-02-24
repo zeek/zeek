@@ -77,10 +77,6 @@ Then check the ``notice.log``:
    1649954026.275892       -       -       -       -       -       -       -       -       -  CVE_2022_26809::ExploitSuccess   192.168.56.102 exploited 192.168.56.104 Found via big_endian_specific (in dce_rpc_message)  -       -       -       -       -       Notice::ACTION_LOG (empty)  3600.000000     -       -       -       -       -
    1649954026.275892       -       -       -       -       -       -       -       -       -  CVE_2022_26809::ExploitSuccess   192.168.56.102 exploited 192.168.56.104 Found via big_endian (in dce_rpc_message)   -       -       -       -       -       Notice::ACTION_LOG      (empty)     3600.000000     -       -       -       -       -
 
-Later, we will see how Zeek's notice framework can be configured to
-react to events differently. For now, these are simply reported to
-``notice.log``.
-
 Packages should be regularly maintained and updated. When doing so,
 users will want to fetch those updates. You can use ``zkg upgrade`` in
 order to upgrade any packages you have, or specify a package to upgrade

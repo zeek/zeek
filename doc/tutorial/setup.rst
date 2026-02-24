@@ -26,7 +26,7 @@ Next, clone the ``zeek-training`` git repository into ``/opt``:
 
 .. code:: console
 
-   # git clone https://github.com/zeek/zeek-training.git /opt/zeek-training -b topic/etyp/new-setup-script && cd /opt/zeek-training/
+   # git clone https://github.com/zeek/zeek-training.git /opt/zeek-training && cd /opt/zeek-training/
 
 You should find yourself in ``/opt/zeek-training``, in a fresh clone
 of our training content.

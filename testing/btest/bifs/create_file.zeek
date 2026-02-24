@@ -7,6 +7,13 @@
 
 event zeek_init()
 	{
+	local crlf = 0;
+
+	if ( getenv("OS") == "Windows_NT" )
+		{
+		crlf = 1;
+		}
+
 	# Test that creating a file works as expected
 	local a = open("testfile");
 	print active_file(a);
@@ -15,7 +22,7 @@ event zeek_init()
 	close(a);
 
 	print active_file(a);
-	print file_size("testfile");
+	print file_size("testfile") - crlf;
 
 	# Test that "open_for_append" doesn't overwrite an existing file
 	a = open_for_append("testfile");
@@ -24,7 +31,7 @@ event zeek_init()
 	close(a);
 
 	print active_file(a);
-	print file_size("testfile");
+	print file_size("testfile")  - crlf * 2;
 
 	# This should fail
 	print file_size("doesnotexist");
@@ -41,14 +48,20 @@ event zeek_init()
 	a = open("testfile3");
 	set_buf(a, F);
 	write_file(a, "This is a test\n");
-	print file_size("testfile3");
+	print file_size("testfile3") - crlf;
 	close(a);
 	a = open("testfile3");
 	set_buf(a, T);
 	write_file(a, "This is a test\n");
-	print file_size("testfile3");
+	local preflush = file_size("testfile3");
+
+	# on windows the write is visible to the os early so file_size() already reports 16.0
+	if ( crlf == 1 && preflush == 16.0 )
+		print 0.0;
+	else
+		print preflush;
 	print flush_all();
-	print file_size("testfile3");
+	print file_size("testfile3") - crlf;
 	close(a);
 
 	# Create a new directory

@@ -25,6 +25,6 @@ event IGMP::leave_group(packet: raw_pkt_hdr, group_addr: addr) {
 	print "IGMP::leave_group", packet, group_addr;
 }
 
-event IGMP::membership_report_v3(packet: raw_pkt_hdr, num_groups: count, groups: vector of IGMP::Group) {
-	print "IGMP::membership_report_v3", packet, num_groups, groups;
+event IGMP::membership_report_v3(packet: raw_pkt_hdr, groups: vector of IGMP::Group) {
+	print "IGMP::membership_report_v3", packet, groups;
 }

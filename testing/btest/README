@@ -94,6 +94,7 @@ From within a ``bash`` shell, create a Python virtual environment, install the
     python -m venv /path/to/venv
     /path/to/venv/Scripts/python -m pip install multiprocess
     cd <repo>/testing/btest
+    export MSYS=disable_pcon
     /path/to/venv/Scripts/python ../../auxil/btest/btest <btest options>
 
 There are various tests that are intentionally skipped on Windows. These tests are
@@ -101,6 +102,11 @@ annotated with a ``@TEST-REQUIRES`` directive checking for whether they're runni
 Windows and will be automatically skipped. Some of these tests hang indefinitely, while
 others use features that are not available (such as Broker, clusters, etc).
 
-If running a build from Visual Studio, you will also need to modify
-``testing/btest/btest.cfg`` and change the ``build_dir`` setting to point at the correct
-build path.
+If running a build from Visual Studio (including CMake presets), note that preset builds
+write artifacts to ``out/build/${presetName}`` instead of ``build``. You must set
+``build_dir`` accordingly, either by editing ``testing/btest/btest.cfg`` or passing it on
+the command line, for example:
+
+```bash
+/path/to/venv/Scripts/python ../../auxil/btest/btest -s "build_dir=out/build/x64-Release"
+```

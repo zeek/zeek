@@ -16,6 +16,18 @@ if (WIN32)
     # This needs to happen before the project() call below so that it
     # doesn't need to be manually passed on the command line.
     set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
+
+    # Set custom vcpkg triplet for Windows to use static libraries with proper PCAP support
+    if (NOT DEFINED VCPKG_TARGET_TRIPLET)
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "Vcpkg target triplet")
+    endif ()
+    if (NOT DEFINED VCPKG_HOST_TRIPLET)
+        set(VCPKG_HOST_TRIPLET "x64-windows-static" CACHE STRING "Vcpkg host triplet")
+    endif ()
+    if (NOT DEFINED VCPKG_OVERLAY_TRIPLETS)
+        set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/vcpkg-triplets"
+            CACHE STRING "Vcpkg overlay triplets")
+    endif ()
 endif ()
 
 if (APPLE AND CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.0 AND NOT CMAKE_OSX_SYSROOT)

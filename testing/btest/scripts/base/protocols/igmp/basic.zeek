@@ -6,6 +6,9 @@
 
 @load base/packet-protocols/igmp/types
 
+# Redefine this to a lower value so that bypassing the rate limit is tested
+redef IGMP::rate_limit_duration = 2sec;
+
 event IGMP::message(packet: raw_pkt_hdr, msg_type: IGMP::MessageType) {
 	print "IGMP::message", packet, msg_type;
 }

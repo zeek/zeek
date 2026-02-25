@@ -34,7 +34,7 @@ export {
 		aux_data_len:   count;
 		## The number of source addresses.
 		num_sources:    count;
-		## The multicase address to which this record pertains.
+		## The multicast address to which this record pertains.
 		multicast_addr: addr;
 		## A vector of source addresses.
 		sources:        vector of addr;

@@ -1,13 +1,14 @@
-
 #include "Plugin.h"
 
-namespace plugin {
-namespace XDP_Shunter {
-Plugin plugin;
-}
-} // namespace plugin
+#include <zeek/IntrusivePtr.h>
 
-using namespace plugin::XDP_Shunter;
+#include "XDPProgram.h"
+
+namespace xdp::shunter {
+Plugin plugin;
+} // namespace xdp::shunter
+
+using namespace xdp::shunter;
 
 zeek::plugin::Configuration Plugin::Configure() {
     zeek::plugin::Configuration config;
@@ -18,3 +19,5 @@ zeek::plugin::Configuration Plugin::Configure() {
     config.version.patch = 0;
     return config;
 }
+
+void Plugin::InitPostScript() { detail::program_opaque = zeek::make_intrusive<zeek::OpaqueType>("xdp::XDPProgram"); }

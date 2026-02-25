@@ -126,7 +126,7 @@ event IGMP::leave_group(packet: raw_pkt_hdr, group_addr: addr) {
 	}
 }
 
-event IGMP::membership_report_v3(packet: raw_pkt_hdr, num_groups: count, groups: vector of IGMP::Group) {
+event IGMP::membership_report_v3(packet: raw_pkt_hdr, groups: vector of IGMP::Group) {
 	for ( _, g in groups ) {
 		local action: GroupAction;
 		if ( g$group_type == CHANGE_TO_EXCLUDE_MODE )

@@ -42,6 +42,5 @@ on IGMP::MessageV2 if ( ! is_membership_report ) -> event IGMP::leave_group($pac
 
 # Generated for every IGMP Version 3 Membership Report.
 # :param $packet: raw packet header
-# :param self.num_groups: number of Multicast groups
 # :param self.groups: vector of Multicast groups
-on IGMP::MembershipReportV3 -> event IGMP::membership_report_v3($packet, self.num_groups, self.groups);
+on IGMP::MembershipReportV3 -> event IGMP::membership_report_v3($packet, self.groups);

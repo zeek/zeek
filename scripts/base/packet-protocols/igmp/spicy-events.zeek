@@ -41,7 +41,5 @@ global IGMP::leave_group: event(packet: raw_pkt_hdr, group_addr: addr);
 ##
 ## packet: raw packet header
 ##
-## num_groups: number of Multicast groups
-##
 ## groups: vector of Multicast groups
-global IGMP::membership_report_v3: event(packet: raw_pkt_hdr, num_groups: count, groups: vector of IGMP::Group);
+global IGMP::membership_report_v3: event(packet: raw_pkt_hdr, groups: vector of IGMP::Group);

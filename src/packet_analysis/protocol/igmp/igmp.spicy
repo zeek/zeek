@@ -30,12 +30,12 @@ type GroupType = enum {
 
 # Version 3 Membership Report Group Record
 type Group = unit {
-    group_type: uint8 &convert=GroupType($$);
-    aux_data_len: uint8;
-    num_sources: uint16;
-    multicast_addr: addr &ipv4;
-    sources: (addr &ipv4)[self.num_sources];
-    aux_data: bytes &eod;
+    group_type: uint8 &convert=GroupType($$) &always-emit;
+    aux_data_len: uint8 &always-emit;
+    num_sources: uint16 &always-emit;
+    multicast_addr: addr &ipv4 &always-emit;
+    sources: (addr &ipv4)[self.num_sources] &always-emit;
+    aux_data: bytes &eod &always-emit;
 };
 
 # Generic IGMP message

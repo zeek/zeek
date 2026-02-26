@@ -684,7 +684,14 @@ function piped_exec%(program: string, to_write: string%): bool
 	%{
 	const char* prog = program->CheckString();
 
+#ifdef _MSC_VER
+	// _popen() on Windows uses cmd.exe which doesn't handle Unix shell
+	// syntax.  Wrap the command in bash for consistent behavior.
+	std::string bash_cmd = std::string("bash -c \"") + prog + "\"";
+	FILE* f = popen(bash_cmd.c_str(), "wb");
+#else
 	FILE* f = popen(prog, "w");
+#endif
 	if ( ! f )
 		{
 		zeek::reporter->Error("Failed to popen %s", prog);

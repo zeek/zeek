@@ -604,7 +604,13 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 
 static int do_system(const char* s)
 	{
+#ifdef _MSC_VER
+	// system() on Windows uses cmd.exe which doesn't handle Unix shell
+	// syntax.  Wrap the command in bash for consistent behavior.
+	const char* system_fmt = "bash -c \"(%s) 1>&2 &\"";
+#else
 	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
+#endif
 	auto cmd_len = strlen(system_fmt) + strlen(s) + 1;
 	char* cmd = new char[cmd_len];
 

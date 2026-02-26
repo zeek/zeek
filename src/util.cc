@@ -691,6 +691,30 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info) {
 
     // Then move old file to "<name>.<pid>.<timestamp>" and make sure
     // it really gets created.
+#ifdef _MSC_VER
+    // Windows doesn't support hard links via link(). Use rename() instead.
+    if ( rename(name, newname) < 0 ) {
+        reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
+        fclose(newf);
+        unlink(tmpname);
+        return nullptr;
+    }
+
+    // Close tmpfile before renaming (Windows locks open files).
+    fclose(newf);
+
+    if ( rename(tmpname, name) < 0 ) {
+        reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
+        exit(1); // hard to fix, but shouldn't happen anyway...
+    }
+
+    // Reopen the file at its new location.
+    newf = fopen(name, "w");
+    if ( ! newf ) {
+        reporter->Error("rotate_file: can't reopen %s: %s", name, strerror(errno));
+        return nullptr;
+    }
+#else
     struct stat dummy;
     if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 ) {
         reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
@@ -705,6 +729,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info) {
         reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
         exit(1); // hard to fix, but shouldn't happen anyway...
     }
+#endif
 
     // Init rotate_info.
     if ( rotate_info ) {
@@ -1501,9 +1526,9 @@ double current_time(bool real) {
     struct timeval tv;
 #ifdef _MSC_VER
     auto now = std::chrono::system_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
-    tv.tv_sec = ms.count() / 1000;
-    tv.tv_usec = (ms.count() % 1000) * 1000;
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+    tv.tv_sec = static_cast<long>(us.count() / 1000000);
+    tv.tv_usec = static_cast<long>(us.count() % 1000000);
 #else
     if ( gettimeofday(&tv, nullptr) < 0 )
         reporter->InternalError("gettimeofday failed in current_time()");

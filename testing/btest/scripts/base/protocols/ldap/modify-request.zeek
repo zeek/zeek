@@ -4,4 +4,3 @@
 # @TEST-EXEC: zeek -C -r ${TRACES}/ldap/ldap-size-not-consumed.pcapng %INPUT >output 2>&1
 # @TEST-EXEC: btest-diff-cut -m uid id.orig_h id.resp_h id.resp_p service conn.log
 # @TEST-EXEC: btest-diff-cut -m ldap.log
-#

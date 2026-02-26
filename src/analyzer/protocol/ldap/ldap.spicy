@@ -983,7 +983,8 @@ public function stringify_partial_attribute(pa: ASN1::ASN1Message&): string {
     # A PartialAttribute is sequence of length 1 or more.
     # The first element contains a string that is the "type" , the
     # the second element is "vals". We concatenate this to
-    # <type_>[=val1,val2,val3]. Not overly great, but should work.
+    # <type>[=val1,val2,val3]. If there's no vals, this renders
+    # just <type>.
     #
     # https://datatracker.ietf.org/doc/html/rfc4511#section-4.1.7
     local submsgs = pa.body.seq.submessages;
@@ -993,19 +994,21 @@ public function stringify_partial_attribute(pa: ASN1::ASN1Message&): string {
             throw "unexpected type for modification vals %s" % submsgs[1].head.tag.type_;
 
         local vals = submsgs[1].body.seq.submessages;
-        local first = True;
+        if (|vals| > 0) {
+            local first = True;
 
-        repr += "=";
+            repr += "=";
 
-        # Just append the str_values as comma separated strings.
-        # Does this need some fancy escaping?
-        for (v in vals) {
-            if (!first) {
-                repr += ",";
-                first = False;
+            # Just append the str_values from vals as comma separated
+            # strings. Does this need some fancy escaping?
+            for (v in vals) {
+                if (!first) {
+                    repr += ",";
+                    first = False;
+                }
+
+                repr += v.body.str_value;
             }
-
-            repr += v.body.str_value;
         }
     }
 

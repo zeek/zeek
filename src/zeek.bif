@@ -4582,81 +4582,97 @@ function haversine_distance%(lat1: double, long1: double, lat2: double, long2: d
 ##          ``rw[xsS]rw[xsS]rw[xtT]``.
 function file_mode%(mode: count%): string
 	%{
+	// Use standard POSIX bit values directly so this function works
+	// correctly on all platforms, including Windows where the system
+	// defines map group/other bits to user bits.
+	constexpr unsigned int PM_IRUSR = 0400;
+	constexpr unsigned int PM_IWUSR = 0200;
+	constexpr unsigned int PM_IXUSR = 0100;
+	constexpr unsigned int PM_IRGRP = 0040;
+	constexpr unsigned int PM_IWGRP = 0020;
+	constexpr unsigned int PM_IXGRP = 0010;
+	constexpr unsigned int PM_IROTH = 0004;
+	constexpr unsigned int PM_IWOTH = 0002;
+	constexpr unsigned int PM_IXOTH = 0001;
+	constexpr unsigned int PM_ISUID = 04000;
+	constexpr unsigned int PM_ISGID = 02000;
+	constexpr unsigned int PM_ISVTX = 01000;
+
 	char str[12];
 	char *p = str;
 
 	/* usr */
-	if (mode & S_IRUSR)
+	if (mode & PM_IRUSR)
 		*p++ = 'r';
 	else
 		*p++ = '-';
 
-	if (mode & S_IWUSR)
+	if (mode & PM_IWUSR)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXUSR | S_ISUID)) {
+	switch (mode & (PM_IXUSR | PM_ISUID)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXUSR:
+	case PM_IXUSR:
 		*p++ = 'x';
 		break;
-	case S_ISUID:
+	case PM_ISUID:
 		*p++ = 'S';
 		break;
-	case S_IXUSR | S_ISUID:
+	case PM_IXUSR | PM_ISUID:
 		*p++ = 's';
 		break;
 	}
 
 	/* group */
-	if (mode & S_IRGRP)
+	if (mode & PM_IRGRP)
 		*p++ = 'r';
 	else
 		*p++ = '-';
-	if (mode & S_IWGRP)
+	if (mode & PM_IWGRP)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXGRP | S_ISGID)) {
+	switch (mode & (PM_IXGRP | PM_ISGID)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXGRP:
+	case PM_IXGRP:
 		*p++ = 'x';
 		break;
-	case S_ISGID:
+	case PM_ISGID:
 		*p++ = 'S';
 		break;
-	case S_IXGRP | S_ISGID:
+	case PM_IXGRP | PM_ISGID:
 		*p++ = 's';
 		break;
 	}
 
 	/* other */
-	if (mode & S_IROTH)
+	if (mode & PM_IROTH)
 		*p++ = 'r';
 	else
 		*p++ = '-';
-	if (mode & S_IWOTH)
+	if (mode & PM_IWOTH)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXOTH | S_ISVTX)) {
+	switch (mode & (PM_IXOTH | PM_ISVTX)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXOTH:
+	case PM_IXOTH:
 		*p++ = 'x';
 		break;
-	case S_ISVTX:
+	case PM_ISVTX:
 		*p++ = 'T';
 		break;
-	case S_IXOTH | S_ISVTX:
+	case PM_IXOTH | PM_ISVTX:
 		*p++ = 't';
 		break;
 	}
@@ -4863,7 +4879,7 @@ function open%(f: string%): file
 	if ( zeek::util::streq(file, "-") )
 		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
-		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(file, "w"));
+		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(file, "wb"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4878,7 +4894,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
+	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(f->CheckString(), "ab"));
 	%}
 
 ## Closes an open file and flushes any buffered content.

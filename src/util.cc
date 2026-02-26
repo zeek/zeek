@@ -545,7 +545,15 @@ string normalize_path(std::string_view path) {
     if ( stringPath.starts_with("//") ) {
         stringPath.erase(0, 2);
     }
-    return std::filesystem::path(stringPath).lexically_normal().string();
+    auto result = std::filesystem::path(stringPath).lexically_normal().generic_string();
+
+    // lexically_normal() strips a leading "./" but the POSIX implementation
+    // preserves it.  Re-add when the original path started with "./" or ".\".
+    bool had_dot_prefix = stringPath.starts_with("./") || stringPath.starts_with(".\\");
+    if ( had_dot_prefix && ! result.starts_with("./") && ! result.starts_with("../") )
+        result = "./" + result;
+
+    return result;
 #else
     if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos ) {
         // no need to normalize anything
@@ -840,10 +848,17 @@ int setvbuf(FILE* stream, char* buf, int type, size_t size) {
 #ifndef _MSC_VER
     return ::setvbuf(stream, buf, type, size);
 #else
-    // TODO: this turns off buffering altogether because Windows wants us to pass a valid
-    // buffer and length if we're going to pass one of the other modes. We need to
-    // investigate the performance ramifications of this.
-    return ::setvbuf(stream, NULL, _IONBF, 0);
+    // MSVC doesn't support _IOLBF (line buffering) and treats it as _IOFBF.
+    // Use _IONBF instead so data is flushed promptly on each write, which is
+    // closer to line-buffering semantics than full buffering.
+    if ( type == _IOLBF )
+        return ::setvbuf(stream, NULL, _IONBF, 0);
+
+    // For _IOFBF, allocate a default-sized buffer when none is provided.
+    if ( type == _IOFBF && buf == nullptr && size == 0 )
+        size = BUFSIZ;
+
+    return ::setvbuf(stream, buf, type, size);
 #endif
 }
 
@@ -2082,7 +2097,31 @@ TEST_SUITE("util") {
 
     TEST_CASE("normalize_path") {
 #ifdef _MSC_VER
-        // TODO: adapt these tests to Windows
+        // Cases matching the compress_path btest
+        CHECK(detail::normalize_path("./../foo") == "../foo");
+        CHECK(detail::normalize_path("././../foo") == "../foo");
+
+        // Basic normalization (forward slashes)
+        CHECK(detail::normalize_path("/1/2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/./2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/2/../3") == "/1/3");
+        CHECK(detail::normalize_path("../zeek") == "../zeek");
+        CHECK(detail::normalize_path("../zeek/testing/..") == "../zeek");
+
+        // Windows-style backslash paths should return forward slashes
+        CHECK(detail::normalize_path("foo\\bar") == "foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\bar") == "C:/foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\..\\bar") == "C:/bar");
+        CHECK(detail::normalize_path("C:/foo/./bar") == "C:/foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\.\\bar\\..\\baz") == "C:/foo/baz");
+
+        // Leading "./" must be preserved (matches POSIX behavior)
+        CHECK(detail::normalize_path("./zeek") == "./zeek");
+        CHECK(detail::normalize_path("./pkg1.zeek") == "./pkg1.zeek");
+        CHECK(detail::normalize_path("./foo/./bar") == "./foo/bar");
+        // Backslash variant of ".\" should also produce "./" prefix
+        CHECK(detail::normalize_path(".\\pkg1.zeek") == "./pkg1.zeek");
+        CHECK(detail::normalize_path(".\\foo\\bar") == "./foo/bar");
 #else
         CHECK(detail::normalize_path("/1/2/3") == "/1/2/3");
         CHECK(detail::normalize_path("/1/./2/3") == "/1/2/3");

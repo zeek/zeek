@@ -1,0 +1,13 @@
+--- 04.zeek	2025-11-06 10:37:17
++++ 05.zeek	2025-11-06 10:38:46
+@@ -43,8 +43,8 @@
+ 	{
+ 	if ( c?$http_state && |c$http_state$entity| > 0 )
+ 		{
+-		local pat = /Will not match!/;
+-		print fmt("Did the pattern '%s' match? %s", pat, pat in c$http_state$entity);
++		print fmt("Found %d matches in the HTTP entity", num_entity_pattern_matches(
++		    c$http_state));
+ 		delete c$http_state$entity;
+ 		}
+ 	}

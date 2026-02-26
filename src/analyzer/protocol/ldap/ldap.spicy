@@ -979,16 +979,85 @@ type SearchResultDone = unit(inout message: Message) {
 #
 # };
 
+public function stringify_partial_attribute(pa: ASN1::ASN1Message&): string {
+    # A PartialAttribute is sequence of length 1 or more.
+    # The first element contains a string that is the "type" , the
+    # the second element is "vals". We concatenate this to
+    # <type>[=val1,val2,val3]. If there's no vals, this renders
+    # just <type>.
+    #
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.1.7
+    local submsgs = pa.body.seq.submessages;
+    local repr: string = pa.body.seq.submessages[0].body.str_value;
+    if (|submsgs| > 1) {
+        if (submsgs[1].head.tag.type_ != ASN1::ASN1Type::Set)
+            throw "unexpected type for modification vals %s" % submsgs[1].head.tag.type_;
+
+        local vals = submsgs[1].body.seq.submessages;
+        if (|vals| > 0) {
+            local first = True;
+
+            repr += "=";
+
+            # Just append the str_values from vals as comma separated
+            # strings. Does this need some fancy escaping?
+            for (v in vals) {
+                if (!first) {
+                    repr += ",";
+                    first = False;
+                }
+
+                repr += v.body.str_value;
+            }
+        }
+    }
+
+    return repr;
+}
+
+public function stringify_changes(mr: ModifyRequest): string {
+    local changes_vec: vector<string>;
+    local submsgs = mr.changes.body.seq.submessages;
+
+    # Go through changes of the ModifyRequest and stringify them such
+    # that we can place them into msg.arg and expose them to script-land.
+    #
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.1.7
+    for (msg in submsgs) {
+        local submessages = msg.body.seq.submessages;
+        if (|submessages| != 2)
+            throw "unexpected length of changes subsequence: %s" % |submessages|;
+
+        # sequence of operation and PartialAttribute
+        local op = submessages[0].body.num_value;
+        local opstr: string;
+        switch (op) {
+            case 0:
+                opstr = "add";
+            case 1:
+                opstr = "delete";
+            case 2:
+                opstr = "replace";
+            default: throw "unexpected modify operation value %s" % op;
+        }
+
+        changes_vec.push_back("%s(%s)" % (opstr, stringify_partial_attribute(submessages[1])));
+    }
+
+    return (b",".join(changes_vec)).decode();
+}
+
 #-----------------------------------------------------------------------------
 # Modify Operation
 # https://datatracker.ietf.org/doc/html/rfc4511#section-4.6
-
 type ModifyRequest = unit(inout message: Message) {
     objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
         message.obj = self.objectName;
     }
 
-    # TODO: parse changes
+    changes: ASN1::ASN1Message(True) &requires=($$.head.tag.type_ == ASN1::ASN1Type::Sequence) {
+        message.arg = stringify_changes(self);
+    }
 };
 
 type ModifyResponse = unit(inout message: Message) {

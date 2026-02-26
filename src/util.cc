@@ -643,14 +643,13 @@ std::string get_exe_path(const std::string& invocation) {
 
     if ( invocation_path.is_relative() && invocation_path.has_parent_path() ) {
         // Relative path
-        char cwd[PATH_MAX];
-
-        if ( ! getcwd(cwd, sizeof(cwd)) ) {
-            fprintf(stderr, "failed to get current directory: %s\n", strerror(errno));
+        std::error_code ec;
+        auto cwd = std::filesystem::current_path(ec);
+        if ( ec ) {
+            fprintf(stderr, "failed to get current directory: %s\n", ec.message().c_str());
             exit(1);
         }
-
-        return (std::filesystem::path(cwd) / invocation_path).string();
+        return (cwd / invocation_path).string();
     }
 
     auto path = getenv("PATH");

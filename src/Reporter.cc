@@ -5,7 +5,6 @@
 #include "zeek/Reporter.h"
 
 #include <syslog.h>
-#include <unistd.h>
 
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"

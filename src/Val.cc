@@ -12,7 +12,6 @@
 #include <rapidjson/error/en.h>
 #include <sys/param.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

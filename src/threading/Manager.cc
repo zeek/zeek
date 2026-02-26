@@ -3,7 +3,6 @@
 #include "zeek/threading/Manager.h"
 
 #include <sys/socket.h>
-#include <unistd.h>
 #include <cstdint>
 #include <limits>
 

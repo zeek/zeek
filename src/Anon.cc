@@ -3,7 +3,6 @@
 #include "zeek/Anon.h"
 
 #include <sys/time.h>
-#include <unistd.h>
 #include <cassert>
 #include <cstdlib>
 

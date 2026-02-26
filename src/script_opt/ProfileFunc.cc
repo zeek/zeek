@@ -2,7 +2,6 @@
 
 #include "zeek/script_opt/ProfileFunc.h"
 
-#include <unistd.h>
 #include <cerrno>
 
 #include "zeek/Desc.h"

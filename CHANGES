@@ -1,3 +1,15 @@
+8.2.0-dev.207 | 2026-02-26 09:59:39 -0700
+
+  * Remove trivial uses for unistd.h (Dominik Charousset)
+
+    - Replace `sleep` and `usleep` with `sleep_for`
+    - Replace `ssize_t` with `ptrdiff_t`
+    - Replace `pid_t` with `int`
+    - Replace uses of `cwd` & co with `std::filesystem`
+    - Remove `unistd.h` includes where they aren't actually needed
+
+  * make build pass on windows (Maor Hamami)
+
 8.2.0-dev.203 | 2026-02-24 17:16:06 +0100
 
   * cluster/pf_ring: Update instructions to use 9.2.0 (Arne Welzel, Corelight)

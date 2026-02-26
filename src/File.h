@@ -112,9 +112,6 @@ protected:
     bool raw_output = false;
 
     static constexpr int MIN_BUFFER_SIZE = 1024;
-
-private:
-    static std::list<std::pair<std::string, File*>> open_files;
 };
 
 } // namespace zeek

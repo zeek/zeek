@@ -4,8 +4,9 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <cerrno>
+#include <chrono>
+#include <thread>
 
 #include "zeek/input/readers/benchmark/benchmark.bif.h"
 #include "zeek/threading/SerialTypes.h"
@@ -75,6 +76,8 @@ double Benchmark::CurrTime() {
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Benchmark::DoUpdate() {
+    using std::chrono::microseconds;
+
     int linestosend = num_lines * heartbeat_interval;
     for ( int i = 0; i < linestosend; i++ ) {
         threading::Value** field = new threading::Value*[NumFields()];
@@ -89,10 +92,10 @@ bool Benchmark::DoUpdate() {
 
         if ( stopspreadat == 0 || num_lines < stopspreadat ) {
             if ( spread != 0 )
-                usleep(spread);
+                std::this_thread::sleep_for(microseconds{spread});
 
             if ( autospread_time != 0 )
-                usleep(autospread_time);
+                std::this_thread::sleep_for(microseconds{autospread_time});
         }
 
         if ( timedspread != 0.0 ) {

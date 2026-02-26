@@ -10,10 +10,11 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <algorithm>
 #include <cerrno>
+#include <chrono>
 #include <cstdlib>
+#include <thread>
 #include <vector>
 
 #ifdef TIME_WITH_SYS_TIME
@@ -45,6 +46,8 @@ using ztd::out_ptr::out_ptr;
 #include "zeek/telemetry/Manager.h"
 
 #include "zeek/3rdparty/doctest.h"
+
+using namespace std::literals;
 
 // Number of seconds we'll wait for a reply.
 constexpr int DNS_TIMEOUT = 5;
@@ -1538,7 +1541,7 @@ TEST_CASE("dns_mgr async host" * doctest::skip(true)) {
     int count = 0;
     while ( ! cb.done && (count < DNS_TIMEOUT + 1) ) {
         mgr.Process();
-        sleep(1);
+        std::this_thread::sleep_for(1s);
         if ( ! cb.timeout )
             count++;
     }
@@ -1566,7 +1569,7 @@ TEST_CASE("dns_mgr async addr" * doctest::skip(true)) {
     int count = 0;
     while ( ! cb.done && (count < DNS_TIMEOUT + 1) ) {
         mgr.Process();
-        sleep(1);
+        std::this_thread::sleep_for(1s);
         if ( ! cb.timeout )
             count++;
     }
@@ -1590,7 +1593,7 @@ TEST_CASE("dns_mgr async text" * doctest::skip(true)) {
     int count = 0;
     while ( ! cb.done && (count < DNS_TIMEOUT + 1) ) {
         mgr.Process();
-        sleep(1);
+        std::this_thread::sleep_for(1s);
         if ( ! cb.timeout )
             count++;
     }
@@ -1645,7 +1648,7 @@ TEST_CASE("dns_mgr async timeouts" * doctest::skip(true)) {
     int count = 0;
     while ( ! cb.done && (count < DNS_TIMEOUT + 1) ) {
         mgr.Process();
-        sleep(1);
+        std::this_thread::sleep_for(1s);
         if ( ! cb.timeout )
             count++;
     }

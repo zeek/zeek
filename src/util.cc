@@ -768,7 +768,7 @@ double calc_next_rotate(double current, double interval, double base) {
 
 void terminate_processing() {
     if ( ! run_state::terminating )
-        kill(getpid(), SIGTERM);
+        raise(SIGTERM);
 }
 
 void set_processing_status(const char* status, const char* reason) {

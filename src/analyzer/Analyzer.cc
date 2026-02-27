@@ -67,6 +67,19 @@ void AnalyzerTimer::Init(Analyzer* arg_analyzer, analyzer_timer_func arg_timer, 
 
 analyzer::ID Analyzer::id_counter = 0;
 
+void Analyzer::SetSkip(bool do_skip) {
+    // This should not be done.
+    //
+    // Should we just deprecate the do_skip parameter?
+    if ( skip && ! do_skip )
+        zeek::reporter->InternalWarning("unskipping analyzer %s", fmt_analyzer(this).c_str());
+
+    if ( ! skip && do_skip )
+        EnqueueAnalyzerSkipInfo("skip", tag);
+
+    skip = do_skip;
+}
+
 const char* Analyzer::GetAnalyzerName() const {
     assert(tag);
     return analyzer_mgr->GetComponentName(tag).c_str();
@@ -665,6 +678,20 @@ void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data
         info->Assign(info_data_idx, make_intrusive<StringVal>(len, data));
 
     event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
+}
+
+void Analyzer::EnqueueAnalyzerSkipInfo(const char* reason, const zeek::Tag& arg_tag) {
+    static auto info_type = zeek::id::find_type<RecordType>("AnalyzerSkipInfo");
+    static auto info_reason_idx = info_type->FieldOffset("reason");
+    static auto info_c_idx = info_type->FieldOffset("c");
+    static auto info_aid_idx = info_type->FieldOffset("aid");
+
+    auto info = zeek::make_intrusive<RecordVal>(info_type);
+    info->Assign(info_reason_idx, make_intrusive<StringVal>(reason));
+    info->Assign(info_c_idx, ConnVal());
+    info->Assign(info_aid_idx, val_mgr->Count(id));
+
+    event_mgr.Enqueue(analyzer_skip_info, arg_tag.AsVal(), info);
 }
 
 // NOLINT here because changing the function signature breaks the API.

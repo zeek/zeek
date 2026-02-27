@@ -1108,6 +1108,28 @@ type AnalyzerViolationInfo: record {
 	data: string &optional;
 };
 
+## Generic analyzer skip info record.
+##
+## .. zeek:see:: analyzer_violation_info
+type AnalyzerSkipInfo: record {
+	## The reason for skipping - should be user readable.
+	reason: string;
+
+	## The connection related to the analyzer, if any.
+	## This field may be set if there's any connection related information
+	## available. For protocol analyzers, it is guaranteed to be set,
+	## but may also be added by file analyzers as additional contextual
+	## information.
+	c: connection &optional;
+
+	## The file object related to this violation, if any.
+	f: fa_file &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+};
+
 ## The maximum number of analyzer violations the core generates before
 ## suppressing them for a given analyzer instance. A weird providing
 ## information about the analyzer and connection is generated once the

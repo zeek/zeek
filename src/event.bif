@@ -397,6 +397,18 @@ event analyzer_confirmation_info%(atype: AllAnalyzers::Tag, info: AnalyzerConfir
 ## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
 event analyzer_violation_info%(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo%);
 
+## Generated when an analyzer starts skipping protocol parsing.
+##
+## atype: The type of the analyzer. The value may be associated
+##        with a protocol, file or packet analyzer.
+##
+## info: Details about the event. This record may include a :zeek:type:`connection`
+##       object or :zeek:type:`fa_file` and optionally the raw data as :zeek:type:`string`
+##       related to this violation.
+##
+## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
+event analyzer_skip_info%(atype: AllAnalyzers::Tag, info: AnalyzerSkipInfo%);
+
 ## Generated if a DPD signature matched but the DPD buffer is already exhausted
 ## and thus the analyzer could not be attached. While this does not confirm
 ## that a protocol is actually used, it allows to retain that information.

@@ -321,7 +321,7 @@ public:
      *
      * @param do_skip If true, further processing will be skipped.
      */
-    void SetSkip(bool do_skip) { skip = do_skip; }
+    void SetSkip(bool do_skip);
 
     /**
      * Returns true if the analyzer has been told to skip processing all
@@ -742,6 +742,10 @@ private:
 
     // Internal helper to raise analyzer_violation_info
     void EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len, const zeek::Tag& arg_tag);
+
+    // Internal helper to raise analyzer_skip_info when SetSkip()
+    // is called for the first time.
+    void EnqueueAnalyzerSkipInfo(const char* reason, const zeek::Tag& arg_tag);
 
     zeek::Tag tag;
     ID id;

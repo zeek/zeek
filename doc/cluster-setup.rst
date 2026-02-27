@@ -117,6 +117,8 @@ stream of flows, or onward to a commodity switch to split the traffic out to
 multiple 1G interfaces for the workers.  This greatly reduces
 costs since workers can use relatively inexpensive 1G interfaces.
 
+.. _cluster-setup-on-host-flow-balancing:
+
 On host flow balancing
 **********************
 

@@ -1,6 +1,12 @@
-MMDC?=./node_modules/.bin/mmdc
+# Needs svgbob_cli to regenerate SVG files (https://ivanceras.github.io/content/Svgbob.html)
+SVGBOB=svgbob_cli
 
-%.png : %.mermaid
-	$(MMDC) -i $< -e png -o $@
+%.svg : %.txt
+	$(SVGBOB) $< -o $@
 
-all: zeromq-cluster.png zeromq-pubsub.png zeromq-logging.png
+all: single-system-one-nic.svg \
+	single-system-two-nics.svg \
+	three-systems-shared-pubsub.svg \
+	three-systems-individual-pubsub.svg \
+	single-system-prometheus.svg \
+	single-system-websocket.svg

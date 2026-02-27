@@ -1,3 +1,11 @@
+8.2.0-dev.211 | 2026-02-27 13:53:31 +0100
+
+  * doc/devel/cluster: Add overview for cluster architecture (Arne Welzel, Corelight)
+
+  * doc: Move ZeroMQ notes into devel/cluster/backend (Arne Welzel, Corelight)
+
+  * devel/websocket-api: Fix anchor (Arne Welzel, Corelight)
+
 8.2.0-dev.207 | 2026-02-26 09:59:39 -0700
 
   * Remove trivial uses for unistd.h (Dominik Charousset)

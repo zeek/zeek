@@ -17,4 +17,3 @@ double mono_to_wall(uint64_t bpf_monotonic_ns);
 zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, const shunt_val* val);
 zeek::RecordValPtr makeCanonicalConnId(const canonical_tuple&);
 bool origIsIp1(zeek::RecordVal* cid_r);
-void collectGarbage(struct filter* skel, uint64_t expiry_interval);

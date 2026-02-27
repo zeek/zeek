@@ -184,22 +184,3 @@ bool origIsIp1(zeek::RecordVal* cid_r) {
     // TODO: Check if this is accurate, might be flipped
     return compare_ips(&ip1, &ip2) < 0;
 }
-
-void collectGarbage(struct filter* skel, uint64_t expiry_interval) {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    auto now_mono_ns = (static_cast<uint64_t>(ts.tv_sec) * 1000000000ULL) + ts.tv_nsec;
-    auto threshold = now_mono_ns - expiry_interval;
-
-    for ( auto&& [key, val] : get_map<canonical_tuple>(get_canonical_id_map(skel)) ) {
-        if ( val.timestamp < threshold ) {
-            remove_from_map(get_canonical_id_map(skel), &key);
-            zeek::event_mgr.Enqueue(XDP::Shunt::ConnID::unshunted_conn, makeCanonicalTuple(key),
-                                    makeShuntedStats(true, &val));
-
-            auto* c = zeek::session_mgr->FindConnection(makeCanonicalConnId(key).get());
-            if ( c )
-                c->RemovalEvent();
-        }
-    }
-}

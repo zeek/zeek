@@ -14,9 +14,9 @@
 module XDP::Shunt::ConnID;
 
 ## Event raised whenever a connection is shunted.
-event shunted_conn%(cid: XDP::canonical_id%);
+event shunted_conn%(cid: conn_id%);
 ## Event raised whenever a connection is unshunted.
-event unshunted_conn%(cid: XDP::canonical_id, stats: XDP::ShuntedStats%); 
+event unshunted_conn%(cid: conn_id, stats: XDP::ShuntedStats%); 
 
 function _get_map%(xdp_prog: opaque of XDP::Program,
                 time_since_last_packet: interval &default=0sec%) : XDP::shunt_table %{
@@ -131,19 +131,4 @@ function _unshunt%(xdp_prog: opaque of XDP::Program, cid: XDP::canonical_id%) : 
     }
 
     return makeShuntedStats(origIsIp1(cid->AsRecordVal()), &*opt_val);
-%}
-
-function _collect_garbage%(xdp_prog: opaque of XDP::Program, timeout_interval: interval%) : bool %{
-    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
-    if ( ! zeek_prog ) {
-        zeek::reporter->Error("%s", zeek_prog.error().c_str());
-        return zeek::val_mgr->Bool(false);
-    }
-
-    auto prog = (*zeek_prog)->prog;
-    auto timeout_interval_ns = timeout_interval * 1e9;
-
-    collectGarbage(prog, timeout_interval_ns);
-
-    return zeek::val_mgr->Bool(true);
 %}

@@ -15,21 +15,21 @@ export {
 	## Returns: Whether the operation succeeded
 	##
 	## .. zeek:see:: unshunt shunt_stats
-	global shunt: function(cid: XDP::canonical_id): bool;
+	global shunt: function(cid: conn_id): bool;
 
 	## Provides the shunting statistics for this connection ID.
 	##
 	## Returns: The shunting statistics
 	##
 	## .. zeek:see:: shunt unshunt
-	global shunt_stats: function(cid: XDP::canonical_id): XDP::ShuntedStats;
+	global shunt_stats: function(cid: conn_id): XDP::ShuntedStats;
 
 	## Stops shunting anything with the conn_id.
 	##
 	## Returns: The shunted statistics right before removing
 	##
 	## .. zeek:see:: shunt shunt_stats
-	global unshunt: function(cid: XDP::canonical_id): XDP::ShuntedStats;
+	global unshunt: function(cid: conn_id): XDP::ShuntedStats;
 
 	## If we should override Zeek's timeout, so it will only timeout a
 	## connection if it has been timeout_interval time since the last shunted
@@ -56,23 +56,23 @@ function get_map(time_since_last_packet: interval &default=0sec)
 	return _get_map(XDP::xdp_prog, time_since_last_packet);
 	}
 
-function shunt(cid: XDP::canonical_id): bool
+function shunt(cid: conn_id): bool
 	{
-	local result = _shunt(XDP::xdp_prog, cid);
+	local result = _shunt(XDP::xdp_prog, XDP::conn_id_to_canonical(cid));
 	if ( result )
 		event shunted_conn(cid);
 
 	return result;
 	}
 
-function shunt_stats(cid: XDP::canonical_id): XDP::ShuntedStats
+function shunt_stats(cid: conn_id): XDP::ShuntedStats
 	{
-	return _shunt_stats(XDP::xdp_prog, cid);
+	return _shunt_stats(XDP::xdp_prog, XDP::conn_id_to_canonical(cid));
 	}
 
-function unshunt(cid: XDP::canonical_id): XDP::ShuntedStats
+function unshunt(cid: conn_id): XDP::ShuntedStats
 	{
-	local stats = _unshunt(XDP::xdp_prog, cid);
+	local stats = _unshunt(XDP::xdp_prog, XDP::conn_id_to_canonical(cid));
 	if ( stats$present )
 		event unshunted_conn(cid, stats);
 
@@ -84,7 +84,7 @@ hook ::connection_timing_out(c: connection)
 	if ( ! shunt_timeout )
 		return;
 
-	local stats = XDP::Shunt::ConnID::shunt_stats(XDP::conn_id_to_canonical(c$id));
+	local stats = XDP::Shunt::ConnID::shunt_stats(c$id);
 	if ( stats?$timestamp && network_time() - stats$timestamp < timeout_interval )
 		break;
 	}
@@ -92,5 +92,5 @@ hook ::connection_timing_out(c: connection)
 event connection_state_remove(c: connection)
 	{
 	if ( unshunt_on_connection_remove )
-		XDP::Shunt::ConnID::unshunt(XDP::conn_id_to_canonical(c$id));
+		XDP::Shunt::ConnID::unshunt(c$id);
 	}

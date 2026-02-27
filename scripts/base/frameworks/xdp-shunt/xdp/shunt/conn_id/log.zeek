@@ -7,7 +7,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	type Info: record {
-		id: XDP::canonical_id &log;
+		id: conn_id &log;
 		bytes_shunted: count &log;
 		packets_shunted: count &log;
 		last_packet: time &log &optional;
@@ -18,7 +18,7 @@ redef record connection += {
 	xdp_shunt: Info &optional;
 };
 
-function make_info(cid: XDP::canonical_id, stats: XDP::ShuntedStats): Info
+function make_info(cid: conn_id, stats: XDP::ShuntedStats): Info
 	{
 	local info: Info = [$id=cid,
 	    $bytes_shunted=stats$bytes_from_1 + stats$bytes_from_2,
@@ -29,9 +29,9 @@ function make_info(cid: XDP::canonical_id, stats: XDP::ShuntedStats): Info
 	return info;
 	}
 
-event XDP::Shunt::ConnID::unshunted_conn(can_id: XDP::canonical_id, stats: XDP::ShuntedStats)
+event XDP::Shunt::ConnID::unshunted_conn(cid: conn_id, stats: XDP::ShuntedStats)
 	{
-	Log::write(LOG, make_info(can_id, stats));
+	Log::write(LOG, make_info(cid, stats));
 	}
 
 event zeek_init()

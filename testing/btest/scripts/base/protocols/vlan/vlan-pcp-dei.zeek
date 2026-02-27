@@ -1,10 +1,10 @@
 # @TEST-DOC: Verify VLANs parse PCP and DEI bits
-# 
+#
 # See the end of the file for instructions to create the pcap.
-# 
+#
 # @TEST-EXEC: zeek -r $TRACES/vlan-pcp-dei.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
- 
+
 event raw_packet(p: raw_pkt_hdr)
 	{
 	if ( p$l2?$vlan )
@@ -22,7 +22,7 @@ event raw_packet(p: raw_pkt_hdr)
 	}
 
 # The pcap is completely artificial, first with some in.pcap made via:
-# 
+#
 # #!/usr/bin/env python3
 # from scapy.all import *
 # wrpcap(
@@ -39,9 +39,9 @@ event raw_packet(p: raw_pkt_hdr)
 #         / TCP(sport=12345, dport=80, flags="A", seq=1001, ack=2001),
 #     ],
 # )
-# 
+#
 # Then with a couple of rewrites:
-# 
+#
 # $ tcprewrite --enet-vlan=add --enet-vlan-tag 20 --enet-vlan-cfi=1 --enet-vlan-pri=5 -i in.pcap -o tagged_1.pcap
 # $ tcprewrite --enet-vlan=add --enet-vlan-tag 10 --enet-vlan-cfi=0 --enet-vlan-pri=7 -i tagged_1.pcap -o tagged_2.pcap
 # $ mergecap -w vlan-test.pcap in.pcap tagged_1.pcap tagged_2.pcap

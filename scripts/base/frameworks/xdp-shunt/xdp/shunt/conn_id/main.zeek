@@ -32,18 +32,25 @@ export {
 	global unshunt: function(cid: conn_id): XDP::ShuntedStats;
 
 	## If we should override Zeek's timeout, so it will only timeout a
-	## connection if it has been timeout_interval time since the last shunted
+	## connection if it has been shunted_inactivity_timeout time since the last shunted
 	## packet, if shunted. Does not change anything if the connection was not
 	## shunted.
 	##
-	## .. zeek:see:: timeout_interval
+	## .. zeek:see:: shunted_inactivity_timeout shunted_connection_timeout
 	option shunt_timeout: bool = T;
 
 	## The interval to timeout after if a connection is shunted. Only applies
 	## if shunt_timeout is enabled.
 	##
-	## .. zeek:see::shunt_timeout
-	option timeout_interval: interval = 10sec;
+	## .. zeek:see::shunt_timeout shunted_connection_timeout
+	option shunted_inactivity_timeout: interval = 10sec;
+
+	## The new timeout for the connection when it's shunted. Zeek will only
+	## check if it's inactive each one of these intervals. Only applies if
+	## shunt_timeout is enabled.
+	##
+	## .. zeek:see::shunt_timeout shunted_inactivity_timeout
+	option shunted_connection_timeout: interval = 10sec;
 
 	## If connections should always unshunt when the connection is removed
 	## from Zeek.
@@ -59,8 +66,12 @@ function get_map(time_since_last_packet: interval &default=0sec)
 function shunt(cid: conn_id): bool
 	{
 	local result = _shunt(XDP::xdp_prog, XDP::conn_id_to_canonical(cid));
-	if ( result )
+	if ( result ) {
+		if ( shunt_timeout )
+			set_inactivity_timeout(cid, shunted_connection_timeout);
+		
 		event shunted_conn(cid);
+	}
 
 	return result;
 	}
@@ -85,7 +96,7 @@ hook ::connection_timing_out(c: connection)
 		return;
 
 	local stats = XDP::Shunt::ConnID::shunt_stats(c$id);
-	if ( stats?$timestamp && network_time() - stats$timestamp < timeout_interval )
+	if ( stats?$timestamp && network_time() - stats$timestamp < shunted_inactivity_timeout )
 		break;
 	}
 

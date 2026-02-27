@@ -1,0 +1,9 @@
+# @TEST-DOC: Test zeek-cut without any command-line options.
+#
+
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log | zeek-cut > no-opts
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff no-opts
+
+# Log file in "tsv" (tab-separated-values) format.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn-tsv.log | zeek-cut > tsv
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff tsv

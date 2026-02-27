@@ -1,3 +1,7 @@
+8.2.0-dev.213 | 2026-02-27 12:57:57 -0700
+
+  * Update btest submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.211 | 2026-02-27 13:53:31 +0100
 
   * doc/devel/cluster: Add overview for cluster architecture (Arne Welzel, Corelight)

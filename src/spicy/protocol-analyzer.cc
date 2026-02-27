@@ -66,6 +66,10 @@ void ProtocolAnalyzer::Process(bool is_orig, int len, const u_char* data) {
     try {
         hilti::rt::context::CookieSetter _(endp->cookie());
         endp->process(len, reinterpret_cast<const char*>(data));
+    } catch ( const hilti::rt::MissingData& e ) {
+        originator().skipRemaining();
+        responder().skipRemaining();
+        endp->protocol().analyzer->SetSkip(true);
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(is_orig, hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForProtocolAnalyzer(endp->protocol().analyzer->GetAnalyzerTag());
@@ -88,6 +92,8 @@ void ProtocolAnalyzer::Finish(bool is_orig) {
     try {
         hilti::rt::context::CookieSetter _(endp->cookie());
         endp->finish();
+    } catch ( const hilti::rt::MissingData& e ) {
+        endp->skipRemaining();
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(is_orig, hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForProtocolAnalyzer(endp->protocol().analyzer->GetAnalyzerTag());

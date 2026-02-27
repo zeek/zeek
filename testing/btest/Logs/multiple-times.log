@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	test
+#open	2014-04-01-23-16-29
+#fields	ts1	proto	ts2
+#types	time	enum	time
+1329843175.736107	tcp	1329843185.736107
+1329843179.871641	udp	1329843179.982531
+1329843194.151526	tcp	1329843204.151526
+1329843204.987656	tcp	1329843255.123456
+#close	2014-04-01-23-16-29

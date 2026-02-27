@@ -2,17 +2,17 @@
 #
 
 # Use a different field separator on two columns.
-# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -F , uid ts > some-columns
-# @TEST-EXEC: btest-diff some-columns
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log | zeek-cut -F , uid ts > some-columns
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff some-columns
 
 # Show that -F option is used even when field separator in log files changes.
-# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conncomma.log | zeek-cut -F : proto uid > nondefault-separator
-# @TEST-EXEC: btest-diff nondefault-separator
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log $ZEEK_CUT_LOGS/conncomma.log | zeek-cut -F : proto uid > nondefault-separator
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff nondefault-separator
 
 # Field separator is not relevant because log has only one column.
-# @TEST-EXEC: cat $LOGS/onecolumn.log | zeek-cut -F , > only-column
-# @TEST-EXEC: btest-diff only-column
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/onecolumn.log | zeek-cut -F , > only-column
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff only-column
 
 # Show header and use a different field separator.
-# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -F . -c > show-header
-# @TEST-EXEC: btest-diff show-header
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log | zeek-cut -F . -c > show-header
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff show-header

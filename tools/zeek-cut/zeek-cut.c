@@ -7,6 +7,7 @@
 #define _WITH_GETLINE
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -61,6 +62,22 @@ int usage(void) {
     puts("setting an environment variable ZEEK_CUT_TIMEFMT.\n");
     exit(1);
 }
+
+#ifdef _WIN32
+
+// strsep() is a function from glibc that doesn't have a corollary on Windows.
+char* strsep(char** sp, char* sep) {
+    char *p, *s;
+    if ( sp == NULL || *sp == NULL || **sp == '\0' )
+        return (NULL);
+    s = *sp;
+    p = s + strcspn(s, sep);
+    if ( *p != '\0' )
+        *p++ = '\0';
+    *sp = p;
+    return (s);
+}
+#endif
 
 /* Return the index in "haystack" where "needle" is located (or -1 if not
  * found).

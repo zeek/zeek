@@ -936,6 +936,7 @@ set(_bifcl_exe_path "included")
 add_subdirectory(tools/gen-zam)
 
 add_subdirectory(tools/systemd-generator)
+add_subdirectory(tools/zeek-cut)
 
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")

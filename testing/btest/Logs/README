@@ -1,0 +1,3 @@
+These files are used by the zeek-cut btests to have a consistent
+set of logs to test against without needing to recreate them
+with each execution.

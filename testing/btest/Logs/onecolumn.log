@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	onecolumn
+#open	2014-04-01-23-15-59
+#fields	id.orig_h
+#types	addr
+79.26.245.236
+#close	2014-04-01-23-15-59

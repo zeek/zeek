@@ -605,18 +605,22 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 static int do_system(const char* s)
 	{
 #ifdef _MSC_VER
-	// system() on Windows uses cmd.exe which doesn't handle Unix shell
-	// syntax.  Wrap the command in bash for consistent behavior.
-	const char* system_fmt = "bash -c \"(%s) 1>&2 &\"";
+	// Pipe the command to bash's stdin to avoid quoting issues with
+	// cmd.exe that system() uses on Windows.
+	FILE* f = popen("bash", "wb");
+	if ( ! f )
+		return -1;
+	fprintf(f, "(%s) 1>&2 &\n", s);
+	int status = pclose(f);
 #else
 	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
-#endif
 	auto cmd_len = strlen(system_fmt) + strlen(s) + 1;
 	char* cmd = new char[cmd_len];
 
 	snprintf(cmd, cmd_len, system_fmt, s);
 	int status = system(cmd);
 	delete [] cmd;
+#endif
 
 	return status;
 	}
@@ -691,15 +695,39 @@ function piped_exec%(program: string, to_write: string%): bool
 	const char* prog = program->CheckString();
 
 #ifdef _MSC_VER
-	// _popen() on Windows uses cmd.exe which doesn't handle Unix shell
-	// syntax.  Wrap the command in bash for consistent behavior.
-	std::string bash_cmd = std::string("bash -c \"") + prog + "\"";
+	// Write the program to a temp script to avoid quoting issues when
+	// _popen() passes through cmd.exe on Windows.
+	char* tmppath = _tempnam(nullptr, "zeek");
+	if ( ! tmppath )
+		{
+		zeek::reporter->Error("Failed to create temp file name for %s", prog);
+		return zeek::val_mgr->False();
+		}
+
+		{
+		FILE* tf = fopen(tmppath, "w");
+		if ( ! tf )
+			{
+			free(tmppath);
+			zeek::reporter->Error("Failed to create temp file for %s", prog);
+			return zeek::val_mgr->False();
+			}
+		fputs(prog, tf);
+		fputc('\n', tf);
+		fclose(tf);
+		}
+
+	std::string bash_cmd = std::string("bash \"") + tmppath + "\"";
 	FILE* f = popen(bash_cmd.c_str(), "wb");
 #else
 	FILE* f = popen(prog, "w");
 #endif
 	if ( ! f )
 		{
+#ifdef _MSC_VER
+		remove(tmppath);
+		free(tmppath);
+#endif
 		zeek::reporter->Error("Failed to popen %s", prog);
 		return zeek::val_mgr->False();
 		}
@@ -710,6 +738,11 @@ function piped_exec%(program: string, to_write: string%): bool
 	int bytes_written = fwrite(input_data, 1, input_data_len, f);
 
 	pclose(f);
+
+#ifdef _MSC_VER
+	remove(tmppath);
+	free(tmppath);
+#endif
 
 	if ( bytes_written != input_data_len )
 		{

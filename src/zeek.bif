@@ -4628,9 +4628,23 @@ function haversine_distance%(lat1: double, long1: double, lat2: double, long2: d
 ##          ``rw[xsS]rw[xsS]rw[xtT]``.
 function file_mode%(mode: count%): string
 	%{
-	// Use standard POSIX bit values directly so this function works
-	// correctly on all platforms, including Windows where the system
-	// defines map group/other bits to user bits.
+#ifndef _WIN32
+	// On POSIX systems, use the standard library constants.
+	constexpr unsigned int PM_IRUSR = S_IRUSR;
+	constexpr unsigned int PM_IWUSR = S_IWUSR;
+	constexpr unsigned int PM_IXUSR = S_IXUSR;
+	constexpr unsigned int PM_IRGRP = S_IRGRP;
+	constexpr unsigned int PM_IWGRP = S_IWGRP;
+	constexpr unsigned int PM_IXGRP = S_IXGRP;
+	constexpr unsigned int PM_IROTH = S_IROTH;
+	constexpr unsigned int PM_IWOTH = S_IWOTH;
+	constexpr unsigned int PM_IXOTH = S_IXOTH;
+	constexpr unsigned int PM_ISUID = S_ISUID;
+	constexpr unsigned int PM_ISGID = S_ISGID;
+	constexpr unsigned int PM_ISVTX = S_ISVTX;
+#else
+	// On Windows the system defines map group/other bits to user bits,
+	// so use standard POSIX bit values directly.
 	constexpr unsigned int PM_IRUSR = 0400;
 	constexpr unsigned int PM_IWUSR = 0200;
 	constexpr unsigned int PM_IXUSR = 0100;
@@ -4643,6 +4657,7 @@ function file_mode%(mode: count%): string
 	constexpr unsigned int PM_ISUID = 04000;
 	constexpr unsigned int PM_ISGID = 02000;
 	constexpr unsigned int PM_ISVTX = 01000;
+#endif
 
 	char str[12];
 	char *p = str;

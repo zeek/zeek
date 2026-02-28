@@ -37,7 +37,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_cert_store = F &redef;
+	const use_cert_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance issues and will be removed.";
 
 	type AddrCertHashPair: record {
 		host: addr;
@@ -76,16 +76,20 @@ export {
 
 event zeek_init()
 	{
+@pragma push ignore-deprecations
 	if ( ! Known::use_cert_store )
 		return;
 
 	Known::cert_store = Cluster::create_store(Known::cert_store_name);
+@pragma pop ignore-deprecations
 	}
 
 event Known::cert_found(info: CertsInfo, hash: string)
     {
+@pragma push ignore-deprecations
 	if ( ! Known::use_cert_store )
 		return;
+@pragma pop ignore-deprecations
 
 	local key = AddrCertHashPair($host = info$host, $hash = hash);
 
@@ -110,8 +114,10 @@ event Known::cert_found(info: CertsInfo, hash: string)
 
 event known_cert_add(info: CertsInfo, hash: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_cert_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( [info$host, hash] in Known::certs )
 		return;
@@ -126,8 +132,10 @@ event known_cert_add(info: CertsInfo, hash: string)
 
 event Known::cert_found(info: CertsInfo, hash: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_cert_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( [info$host, hash] in Known::certs )
 		return;
@@ -139,8 +147,10 @@ event Known::cert_found(info: CertsInfo, hash: string)
 
 event Cluster::node_up(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_cert_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -151,8 +161,10 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_cert_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;

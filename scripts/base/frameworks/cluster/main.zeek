@@ -128,7 +128,8 @@ export {
 	## Returns: the store's information.  For master stores, the store will be
 	##          ready to use immediately.  For clones, the store field will not
 	##          be set until the node containing the master store has connected.
-	global create_store: function(name: string, persistent: bool &default=F): StoreInfo;
+	global create_store: function(name: string, persistent: bool &default=F): StoreInfo
+	&deprecated="Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated. Use explicit remote events via Cluster::publish() or the storage framework to distribute or persist state.";
 
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };
@@ -464,7 +465,9 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 			return info;
 			}
 
+@pragma push ignore-deprecations
 		info$store = Broker::create_master(name, info$backend, info$options);
+@pragma pop ignore-deprecations
 		info$master = T;
 		stores[name] = info;
 		return info;
@@ -485,6 +488,7 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 		Reporter::fatal(fmt("master node '%s' for cluster store '%s' does not exist",
 		                    info$master_node, name));
 
+@pragma push ignore-deprecations
 	if ( Cluster::node == info$master_node )
 		{
 		info$store = Broker::create_master(name, info$backend, info$options);
@@ -500,6 +504,7 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 	                                  info$clone_resync_interval,
 	                                  info$clone_stale_interval,
 	                                  info$clone_mutation_buffer_interval);
+@pragma pop ignore-deprecations
 	Cluster::log(fmt("created clone store: %s", info$name));
 	return info;
 	}

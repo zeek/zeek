@@ -28,7 +28,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_host_store = F &redef;
+	const use_host_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
 
 	## The hosts whose existence should be logged and tracked.
 	## See :zeek:type:`Host` for possible choices.
@@ -66,16 +66,20 @@ export {
 
 event zeek_init()
 	{
+@pragma push ignore-deprecations
 	if ( ! Known::use_host_store )
 		return;
 
 	Known::host_store = Cluster::create_store(Known::host_store_name);
+@pragma pop ignore-deprecations
 	}
 
 event Known::host_found(info: HostsInfo)
 	{
+@pragma push ignore-deprecations
 	if ( ! Known::use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
 	when [info] ( local r = Broker::put_unique(Known::host_store$store, info$host,
 	                                    T, Known::host_store_expiry) )
@@ -98,8 +102,10 @@ event Known::host_found(info: HostsInfo)
 
 event known_host_add(info: HostsInfo)
 	{
+@pragma push ignore-deprecations
 	if ( use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( info$host in Known::hosts )
 		return;
@@ -114,8 +120,10 @@ event known_host_add(info: HostsInfo)
 
 event Cluster::node_up(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -126,8 +134,10 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -138,8 +148,10 @@ event Cluster::node_down(name: string, id: string)
 
 event Known::host_found(info: HostsInfo)
 	{
+@pragma push ignore-deprecations
 	if ( use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( info$host in Known::hosts )
 		return;

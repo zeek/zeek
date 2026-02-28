@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-run zeek "BROKER_FILE_VERBOSITY=error BROKER_CONSOLE_VERBOSITY=quiet zeek -b %INPUT >out 2>err"
 # @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: btest-diff zeek/out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath $SCRIPTS/diff-sort" btest-diff zeek/err
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "Remove in v9.1" | $SCRIPTS/diff-remove-abspath $SCRIPTS/diff-sort' btest-diff zeek/err
 
 redef exit_only_after_terminate = T;
 

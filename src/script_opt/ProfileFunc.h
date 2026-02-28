@@ -137,7 +137,7 @@ public:
         ASSERT(hash_val);
         return *hash_val;
     }
-    bool HasHashVal() const { return bool(hash_val); }
+    bool HasHashVal() const { return hash_val.has_value(); }
 
 protected:
     // Construct the profile for the given function signature and body.

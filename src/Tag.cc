@@ -16,7 +16,7 @@ Tag::Tag(const EnumTypePtr& etype, type_t arg_type, subtype_t arg_subtype)
     : type(arg_type), subtype(arg_subtype), etype(etype) {
     assert(arg_type > 0);
 
-    int64_t i = (int64_t)(type) | ((int64_t)subtype << 31);
+    int64_t i = static_cast<int64_t>(type) | (static_cast<int64_t>(subtype) << 31);
 
     if ( etype )
         val = etype->GetEnumVal(i);

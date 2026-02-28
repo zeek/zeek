@@ -28,7 +28,7 @@ static const char* basic_pactype_name[] = {
 
 void BuiltInType::static_init() {
     for ( int bit_type = 0; basic_pactype_name[bit_type]; ++bit_type ) {
-        Type::AddPredefinedType(basic_pactype_name[bit_type], new BuiltInType((BITType)bit_type));
+        Type::AddPredefinedType(basic_pactype_name[bit_type], new BuiltInType(static_cast<BITType>(bit_type)));
     }
 }
 

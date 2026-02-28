@@ -89,7 +89,7 @@ public:
      * @return A 64-bit sequence space number it would take to overflow
      *         a 32-bit sequence space \a wraps number of times.
      */
-    static uint64_t ToFullSeqSpace(uint32_t wraps) { return (uint64_t(wraps) << 32); }
+    static uint64_t ToFullSeqSpace(uint32_t wraps) { return (static_cast<uint64_t>(wraps) << 32); }
 
     /**
      * @param tcp_seq_num A 32-bit TCP sequence space number.

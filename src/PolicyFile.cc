@@ -157,7 +157,8 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
         start_line = 1;
 
     if ( start_line > pf->lines.size() ) {
-        debug_msg("Line number %d out of range; %s has %d lines\n", start_line, policy_filename, int(pf->lines.size()));
+        debug_msg("Line number %d out of range; %s has %d lines\n", start_line, policy_filename,
+                  static_cast<int>(pf->lines.size()));
         return false;
     }
 

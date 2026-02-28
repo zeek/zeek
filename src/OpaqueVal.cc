@@ -566,7 +566,7 @@ void HashVal::digest_one(detail::HashDigestState* h, const Val* v) {
     else {
         ODesc d(DESC_BINARY);
         v->Describe(&d);
-        detail::hash_update(h, (const u_char*)d.Bytes(), d.Size());
+        detail::hash_update(h, d.Bytes(), d.Size());
     }
 }
 

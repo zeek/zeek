@@ -24,7 +24,7 @@
 namespace zeek::detail {
 
 const char* stmt_name(StmtTag t) {
-    static const char* stmt_names[int(NUM_STMTS)] = {
+    static const char* stmt_names[static_cast<int>(NUM_STMTS)] = {
         "alarm", // Does no longer exist, but kept for keeping enums consistent.
         "print",
         "event",
@@ -51,7 +51,7 @@ const char* stmt_name(StmtTag t) {
         "std-function",
     };
 
-    return stmt_names[int(t)];
+    return stmt_names[static_cast<int>(t)];
 }
 
 int Stmt::num_stmts = 0;
@@ -202,7 +202,7 @@ void Stmt::DecrBPCount() {
 
 void Stmt::AddTag(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
     else
         d->Add(stmt_name(Tag()));
     d->SP();

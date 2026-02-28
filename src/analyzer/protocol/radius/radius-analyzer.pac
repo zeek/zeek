@@ -33,7 +33,7 @@ refine flow RADIUS_Flow += {
 				else
 					{
 					auto attribute_list = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::RADIUS::AttributeList);
-					attribute_list->Assign((unsigned int)0, std::move(val));
+					attribute_list->Assign(static_cast<unsigned int>(0), std::move(val));
 					attributes->Assign(std::move(index), std::move(attribute_list));
 					}
 				}

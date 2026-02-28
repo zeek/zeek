@@ -107,7 +107,7 @@ public:
 
     DictEntry(void* arg_key, uint32_t key_size = 0, hash_t hash = 0, T* value = nullptr, int16_t d = TOO_FAR_TO_REACH,
               bool copy_key = false)
-        : distance(d), key_size(key_size), hash((uint32_t)hash), value(value) {
+        : distance(d), key_size(key_size), hash(static_cast<uint32_t>(hash)), value(value) {
         if ( ! arg_key )
             return;
 
@@ -858,7 +858,7 @@ public:
         printf(
             "cap %'7d ent %'7d %'-7d load %.2f max_dist %2d key/ent %3d lg "
             "%2d remaps %1d remap_end %4d ",
-            Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1), max_distance,
+            Capacity(), Length(), MaxLength(), static_cast<double>(Length()) / (table ? Capacity() : 1), max_distance,
             key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
         if ( Length() > 0 ) {
             for ( size_t i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
@@ -877,9 +877,9 @@ public:
                     printf("%'10d \n", i);
                 else
                     printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3d) %2d\n", i, (i <= remap_end ? "*" : ""),
-                           BucketByPosition(i), (int)table[i].distance, OffsetInClusterByPosition(i),
-                           uint(table[i].hash), FibHash(table[i].hash), (int)FibHash(table[i].hash) & 0xFF,
-                           (int)table[i].key_size);
+                           BucketByPosition(i), static_cast<int>(table[i].distance), OffsetInClusterByPosition(i),
+                           uint(table[i].hash), FibHash(table[i].hash), static_cast<int>(FibHash(table[i].hash) & 0xFF),
+                           static_cast<int>(table[i].key_size));
         }
     }
 
@@ -923,7 +923,7 @@ public:
 
         DistanceStats(max_distance);
         if ( binary ) {
-            char key = char(random() % 26) + 'A';
+            char key = static_cast<char>(random() % 26) + 'A';
             snprintf(key_file, 100, "%d.%d-%c.key", Length(), max_distance, key);
             std::ofstream f(key_file, std::ios::binary | std::ios::out | std::ios::trunc);
             for ( int idx = 0; idx < Capacity(); idx++ )
@@ -934,12 +934,12 @@ public:
                 }
         }
         else {
-            char key = char(random() % 26) + 'A';
+            char key = static_cast<char>(random() % 26) + 'A';
             snprintf(key_file, 100, "%d.%d-%d.ckey", Length(), max_distance, key);
             std::ofstream f(key_file, std::ios::out | std::ios::trunc);
             for ( int idx = 0; idx < Capacity(); idx++ )
                 if ( ! table[idx].Empty() ) {
-                    std::string s((char*)table[idx].GetKey(), table[idx].key_size);
+                    std::string s(reinterpret_cast<char*>(table[idx].GetKey()), table[idx].key_size);
                     f << s << "\n";
                 }
             f << std::flush;
@@ -1122,7 +1122,7 @@ private:
 
     void Init() {
         ASSERT(! table);
-        table = (detail::DictEntry<T>*)malloc(sizeof(detail::DictEntry<T>) * ExpectedCapacity());
+        table = reinterpret_cast<detail::DictEntry<T>*>(malloc(sizeof(detail::DictEntry<T>) * ExpectedCapacity()));
         for ( int i = Capacity() - 1; i >= 0; i-- )
             table[i].SetEmpty();
     }
@@ -1415,7 +1415,7 @@ private:
         SetLog2Buckets(log2_buckets + 1);
 
         int capacity = Capacity();
-        table = (detail::DictEntry<T>*)realloc(table, capacity * sizeof(detail::DictEntry<T>));
+        table = static_cast<detail::DictEntry<T>*>(realloc(table, capacity * sizeof(detail::DictEntry<T>)));
         for ( int i = prev_capacity; i < capacity; i++ )
             table[i].SetEmpty();
 

@@ -89,11 +89,11 @@ public:
     void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
     void Log(const plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
-    void PushIndent(DebugStream stream) { ++streams[int(stream)].indent; }
-    void PopIndent(DebugStream stream) { --streams[int(stream)].indent; }
+    void PushIndent(DebugStream stream) { ++streams[static_cast<int>(stream)].indent; }
+    void PopIndent(DebugStream stream) { --streams[static_cast<int>(stream)].indent; }
 
-    void EnableStream(DebugStream stream) { streams[int(stream)].enabled = true; }
-    void DisableStream(DebugStream stream) { streams[int(stream)].enabled = false; }
+    void EnableStream(DebugStream stream) { streams[static_cast<int>(stream)].enabled = true; }
+    void DisableStream(DebugStream stream) { streams[static_cast<int>(stream)].enabled = false; }
 
     // Takes comma-separated list of stream prefixes.
     void EnableStreams(const char* streams);
@@ -101,7 +101,7 @@ public:
     // Check the enabled streams for invalid ones.
     bool CheckStreams(const std::set<std::string>& plugin_names);
 
-    bool IsEnabled(DebugStream stream) const { return streams[int(stream)].enabled; }
+    bool IsEnabled(DebugStream stream) const { return streams[static_cast<int>(stream)].enabled; }
 
     // Are any streams enabled?
     bool HasEnabledStreams() const { return ! enabled_streams.empty(); }

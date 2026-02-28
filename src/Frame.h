@@ -190,7 +190,7 @@ public:
 
     void SetCall(const CallExpr* arg_call) {
         call = arg_call;
-        SetTriggerAssoc((void*)call);
+        SetTriggerAssoc(reinterpret_cast<const void*>(call));
     }
     void SetOnlyCall(const CallExpr* arg_call) { call = arg_call; }
     const CallExpr* GetCall() const { return call; }

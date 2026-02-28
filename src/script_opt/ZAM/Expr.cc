@@ -757,7 +757,7 @@ ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, const 
         return AddInst(z);
     }
 
-    auto aggr = n2 ? (Expr*)n2 : (Expr*)c;
+    auto aggr = n2 ? reinterpret_cast<const Expr*>(n2) : reinterpret_cast<const Expr*>(c);
 
     ASSERT(aggr->GetType()->Tag() != TYPE_VECTOR);
 

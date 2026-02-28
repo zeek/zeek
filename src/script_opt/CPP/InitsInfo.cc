@@ -165,7 +165,7 @@ void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
 
             vector<string> ivs;
             co->InitializerVals(ivs);
-            c->Emit(Fmt(int(ivs.size())) + ",");
+            c->Emit(Fmt(static_cast<int>(ivs.size())) + ",");
             BuildCohortElement(c, co->InitializerType(), ivs);
         }
 
@@ -498,7 +498,7 @@ void EnumTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
 
     for ( const auto& name_pair : et->Names() ) {
         ivs.emplace_back(Fmt(c->TrackString(name_pair.first)));
-        ivs.emplace_back(Fmt(int(name_pair.second)));
+        ivs.emplace_back(Fmt(static_cast<int>(name_pair.second)));
     }
 }
 

@@ -817,7 +817,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         // Exception: extension fields provided by the filter's ext_func remain.
         if ( j >= num_ext_fields && include ) {
             auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
-            bool result = (bool)include->FindOrDefault(new_path_val);
+            bool result = static_cast<bool>(include->FindOrDefault(new_path_val));
 
             if ( ! result )
                 continue;
@@ -827,7 +827,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         // Here too, extension fields always remain.
         if ( j >= num_ext_fields && exclude ) {
             auto new_path_val = make_intrusive<StringVal>(new_path.c_str());
-            bool result = (bool)exclude->FindOrDefault(new_path_val);
+            bool result = static_cast<bool>(exclude->FindOrDefault(new_path_val));
 
             if ( result )
                 continue;
@@ -856,7 +856,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         else if ( t->Tag() == TYPE_VECTOR )
             st = t->AsVectorType()->Yield()->Tag();
 
-        bool optional = (bool)rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL);
+        bool optional = static_cast<bool>(rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
 
         filter->fields[filter->num_fields - 1] =
             new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
@@ -2189,7 +2189,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
             rval = util::fmt("%s/%s", dir, prefix);
     }
     else {
-        auto rot_str = format_rotation_time_fallback((time_t)open);
+        auto rot_str = format_rotation_time_fallback(static_cast<time_t>(open));
         rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(), rot_str.data());
         reporter->Error(
             "Failed to call Log::rotation_format_func for path %.*s "

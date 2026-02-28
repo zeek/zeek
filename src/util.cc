@@ -206,7 +206,7 @@ int expand_escape(const char*& s) {
 
 const char* fmt_access_time(double t) {
     static char buf[256];
-    time_t time = (time_t)t;
+    time_t time = static_cast<time_t>(t);
     struct tm ts;
 
     if ( ! localtime_r(&time, &ts) ) {
@@ -735,7 +735,7 @@ double calc_next_rotate(double current, double interval, double base) {
     }
 
     // Calculate start of day.
-    time_t teatime = time_t(current);
+    time_t teatime = static_cast<time_t>(current);
 
     struct tm t;
     if ( ! localtime_r(&teatime, &t) ) {
@@ -1200,14 +1200,14 @@ const char* fmt_bytes(const char* data, int len) {
     static char buf[1024];
     char* p = buf;
 
-    for ( int i = 0; i < len && p - buf < int(sizeof(buf)); ++i ) {
-        if ( isprint((unsigned char)(data[i])) )
+    for ( int i = 0; i < len && p - buf < static_cast<int>(sizeof(buf)); ++i ) {
+        if ( isprint(static_cast<unsigned char>(data[i])) )
             *p++ = data[i];
         else
-            p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", (unsigned char)data[i]);
+            p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", static_cast<unsigned char>(data[i]));
     }
 
-    if ( p - buf < int(sizeof(buf)) )
+    if ( p - buf < static_cast<int>(sizeof(buf)) )
         *p = '\0';
     else
         buf[sizeof(buf) - 1] = '\0';
@@ -1493,7 +1493,7 @@ double current_time(bool real) {
     if ( gettimeofday(&tv, nullptr) < 0 )
         reporter->InternalError("gettimeofday failed in current_time()");
 #endif
-    double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
+    double t = static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6;
 
     if ( ! run_state::pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
         return t;
@@ -1529,7 +1529,7 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b) {
 double curr_CPU_time() {
     struct timespec ts;
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+    return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) / 1e9;
 }
 
 struct UIDEntry {
@@ -1578,7 +1578,7 @@ uint64_t calculate_unique_id(size_t pool) {
             gethostname(unique.hostname, 120);
             unique.hostname[sizeof(unique.hostname) - 1] = '\0';
             gettimeofday(&unique.time, nullptr);
-            unique.pool = (uint64_t)pool;
+            unique.pool = static_cast<uint64_t>(pool);
             unique.pid = getpid();
             unique.rnd = static_cast<int>(detail::random_number());
 
@@ -2147,7 +2147,7 @@ TEST_SUITE("util") {
         strcpy(orig, "two words");
 
         SUBCASE("get first word") {
-            char* a = (char*)orig;
+            char* a = static_cast<char*>(orig);
             char* b = get_word(a);
 
             CHECK(strcmp(a, "words") == 0);
@@ -2167,7 +2167,7 @@ TEST_SUITE("util") {
         char orig[10];
         strcpy(orig, "two words");
 
-        char* a = (char*)orig;
+        char* a = static_cast<char*>(orig);
         const char* b;
         int blen;
 

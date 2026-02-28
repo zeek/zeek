@@ -155,7 +155,7 @@ bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names) {
 }
 
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...) {
-    Stream* g = &streams[int(stream)];
+    Stream* g = &streams[static_cast<int>(stream)];
 
     if ( ! g->enabled )
         return;

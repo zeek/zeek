@@ -89,7 +89,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
     // Reply always starts with the NFS status.
     if ( rpc_success ) {
         if ( n >= 4 )
-            nfs_status = (BifEnum::NFS3::status_t)extract_XDR_uint32(buf, n);
+            nfs_status = static_cast<BifEnum::NFS3::status_t>(extract_XDR_uint32(buf, n));
         else
             nfs_status = BifEnum::NFS3::NFS3ERR_UNKNOWN;
     }
@@ -213,8 +213,8 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
     if ( event ) {
         auto request = c->TakeRequestVal();
 
-        auto vl =
-            event_common_vl(c, rpc_status, nfs_status, start_time, last_time, reply_len, (bool)request + (bool)reply);
+        auto vl = event_common_vl(c, rpc_status, nfs_status, start_time, last_time, reply_len,
+                                  static_cast<bool>(request) + static_cast<bool>(reply));
 
         if ( request )
             vl.emplace_back(std::move(request));
@@ -243,7 +243,7 @@ StringValPtr NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t off
 
     // Ok, so we want to return some data
     data_n = std::min(data_n, size);
-    data_n = std::min(data_n, int(BifConst::NFS3::return_data_max));
+    data_n = std::min(data_n, static_cast<int>(BifConst::NFS3::return_data_max));
 
     if ( data && data_n > 0 )
         return make_intrusive<StringVal>(new String(data, data_n, false));
@@ -351,13 +351,13 @@ RecordValPtr NFS_Interp::nfs3_fattr(const u_char*& buf, int& n) {
 }
 
 EnumValPtr NFS_Interp::nfs3_time_how(const u_char*& buf, int& n) {
-    BifEnum::NFS3::time_how_t t = (BifEnum::NFS3::time_how_t)extract_XDR_uint32(buf, n);
+    BifEnum::NFS3::time_how_t t = static_cast<BifEnum::NFS3::time_how_t>(extract_XDR_uint32(buf, n));
     auto rval = BifType::Enum::NFS3::time_how_t->GetEnumVal(t);
     return rval;
 }
 
 EnumValPtr NFS_Interp::nfs3_ftype(const u_char*& buf, int& n) {
-    BifEnum::NFS3::file_type_t t = (BifEnum::NFS3::file_type_t)extract_XDR_uint32(buf, n);
+    BifEnum::NFS3::file_type_t t = static_cast<BifEnum::NFS3::file_type_t>(extract_XDR_uint32(buf, n));
     auto rval = BifType::Enum::NFS3::file_type_t->GetEnumVal(t);
     return rval;
 }
@@ -438,7 +438,7 @@ RecordValPtr NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n) {
 }
 
 EnumValPtr NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) {
-    BifEnum::NFS3::stable_how_t stable = (BifEnum::NFS3::stable_how_t)extract_XDR_uint32(buf, n);
+    BifEnum::NFS3::stable_how_t stable = static_cast<BifEnum::NFS3::stable_how_t>(extract_XDR_uint32(buf, n));
     auto rval = BifType::Enum::NFS3::stable_how_t->GetEnumVal(stable);
     return rval;
 }
@@ -682,7 +682,9 @@ uint64_t NFS_Interp::ExtractUint64(const u_char*& buf, int& n) { return extract_
 
 double NFS_Interp::ExtractTime(const u_char*& buf, int& n) { return extract_XDR_time(buf, n); }
 
-double NFS_Interp::ExtractInterval(const u_char*& buf, int& n) { return double(extract_XDR_uint32(buf, n)); }
+double NFS_Interp::ExtractInterval(const u_char*& buf, int& n) {
+    return static_cast<double>(extract_XDR_uint32(buf, n));
+}
 
 bool NFS_Interp::ExtractBool(const u_char*& buf, int& n) { return extract_XDR_uint32(buf, n); }
 

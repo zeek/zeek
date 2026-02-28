@@ -23,14 +23,14 @@ op-type I U D A N S T V *
 explicit-result-type
 set-type $$
 set-type2 $1
-eval-type I	$$ = ZVal(zeek_int_t($1 < 0 ? -$1 : $1));
+eval-type I	$$ = ZVal(static_cast<zeek_int_t>($1 < 0 ? -$1 : $1));
 eval-type U	$$ = ZVal($1);
 eval-type D	$$ = ZVal($1 < 0 ? -$1 : $1);
-eval-type A	$$ = ZVal(zeek_uint_t($1->AsAddr().GetFamily() == IPv4 ? 32 : 128));
-eval-type N	$$ = ZVal(pow(2.0, double(128 - $1->AsSubNet().LengthIPv6())));
-eval-type S	$$ = ZVal(zeek_uint_t($1->Len()));
-eval-type T	$$ = ZVal(zeek_uint_t($1->Size()));
-eval-type V	$$ = ZVal(zeek_uint_t($1->Size()));
+eval-type A	$$ = ZVal(static_cast<zeek_uint_t>($1->AsAddr().GetFamily() == IPv4 ? 32 : 128));
+eval-type N	$$ = ZVal(pow(2.0, static_cast<double>(128 - $1->AsSubNet().LengthIPv6())));
+eval-type S	$$ = ZVal(static_cast<zeek_uint_t>($1->Len()));
+eval-type T	$$ = ZVal(static_cast<zeek_uint_t>($1->Size()));
+eval-type V	$$ = ZVal(static_cast<zeek_uint_t>($1->Size()));
 eval	auto v = $1.ToVal(Z_TYPE2)->SizeVal();
 	$$ = BuildVal(v, Z_TYPE);
 

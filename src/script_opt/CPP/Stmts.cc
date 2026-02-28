@@ -298,9 +298,9 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases) {
                 string c_v_rep;
 
                 if ( is_int )
-                    c_v_rep = Fmt(int(c_v->AsInt()));
+                    c_v_rep = Fmt(static_cast<int>(c_v->AsInt()));
                 else if ( is_uint )
-                    c_v_rep = Fmt(p_hash_type(c_v->AsCount()));
+                    c_v_rep = Fmt(static_cast<p_hash_type>(c_v->AsCount()));
                 else
                     c_v_rep = Fmt(p_hash(c_v));
 

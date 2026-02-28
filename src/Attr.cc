@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
+#include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
@@ -463,6 +464,11 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
                     if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
                         return AttrError("&on_change: value type does not match table");
             }
+        } break;
+
+        case ATTR_PUBLISH_ON_CHANGE: {
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("&on_change only applicable to sets/tables");
         } break;
 
         case ATTR_BACKEND: {

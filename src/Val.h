@@ -59,6 +59,9 @@ class ValTrace;
 class ZBody;
 class CPPRuntime;
 
+// src/PublishOnChange.h
+class PublishOnChangeState;
+
 } // namespace detail
 
 namespace logging {
@@ -1078,6 +1081,7 @@ protected:
     ValPtr def_val;
     detail::ExprPtr change_func;
     std::string broker_store;
+    std::unique_ptr<detail::PublishOnChangeState> publish_on_change;
     // prevent recursion of change functions
     bool in_change_func = false;
 

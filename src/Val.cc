@@ -34,6 +34,7 @@
 #include "zeek/Notifier.h"
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
+#include "zeek/PublishOnChange.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
@@ -1777,6 +1778,12 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
         broker_store = c->AsStringVal()->AsString()->CheckString();
         broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
     }
+
+    auto poc_attr = attrs->Find(detail::ATTR_PUBLISH_ON_CHANGE);
+    auto val = poc_attr->GetExpr()->Eval(nullptr);
+    auto rval = zeek::cast_intrusive<zeek::RecordVal>(val);
+
+    publish_on_change = detail::PublishOnChangeState::FromRecord(*rval);
 }
 
 void TableVal::CheckExpireAttr(detail::AttrTag at) {

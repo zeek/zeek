@@ -481,6 +481,26 @@ a infinite loop:
 
 .. zeek:attr:: &raw_output
 
+
+&publish_on_change
+------------------
+
+The ``&publish_on_change`` attribute allows to automatically publish
+table changes to a topic in the cluster for propagation to other Zeek
+processes.
+By default, the topic used is ``zeek.table.<identifier>``, where identifier
+is represents the identifier of the table.
+
+This attribute requires a record value of type :zeek:see:`Cluster::Table::PublishOnChangeParams` as argument. Minimally, the types of changes to publish have to be
+selected.
+
+.. code-block:: zeek
+
+    global tbl: table[string] of string
+        &write_expire=30sec
+        &publish_on_change=[$changes=set(TABLE_ELEMENT_NEW)];
+
+
 &raw_output
 -----------
 

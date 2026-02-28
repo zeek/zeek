@@ -78,3 +78,6 @@ Trace Index/Sources:
 - tls//ssl-to-http-server.pcap
   Extracted from CTU-SME-11 after observing detect-protocols not detecting
   SSL for this connection anymore (because it's SSL client hello to a HTTP server).
+- ldap/gap-data-missing.pcapng
+  Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
+  for #5221. It's just an LDAP connection that contains a gap.

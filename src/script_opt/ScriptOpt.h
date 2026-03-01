@@ -236,6 +236,14 @@ extern void analyze_lambda(LambdaExpr* f);
 // has already been called.
 extern void analyze_when_lambda(LambdaExpr* f);
 
+// Inform script optimization that we've instantiated a lambda (during
+// initialization) and thus its AST has an alias.
+extern void register_lambda_alias(const StmtPtr& orig, const StmtPtr& alias);
+
+// Look up the original body associated with a given potential lambda alias.
+// Returns nil if there's no such alias.
+extern const Stmt* look_up_lambda_alias(const Stmt* alias);
+
 // Whether a given script function is a lambda or (separately) a "when" lambda.
 extern bool is_lambda(const ScriptFunc* f);
 extern bool is_when_lambda(const ScriptFunc* f);

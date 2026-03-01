@@ -233,7 +233,8 @@ StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
 
 PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
     auto re = v->AsPatternVal()->Get();
-    pattern = c->TrackString(CPPEscape(re->OrigText()));
+    exact_pat = c->TrackString(CPPEscape(re->PatternText()));
+    any_pat = c->TrackString(CPPEscape(re->AnywherePatternText()));
     is_case_insensitive = re->IsCaseInsensitive();
     is_single_line = re->IsSingleLine();
 }
@@ -432,7 +433,7 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr _g, string _CPP_name)
     // a bunch of C++ compile time. If not then we'll make sure that it can be
     // generated per the use of GetCohortIDs() in CPPCompile::GenFinishInit().
     if ( c->HasFixedInit(g) )
-        val = ValElem(c, g->GetVal());
+        val = ValElem(c, c->GenFixedInit(g));
     else {
         val = ValElem(c, nullptr);
 

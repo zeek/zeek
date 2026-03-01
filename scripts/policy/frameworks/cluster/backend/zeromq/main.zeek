@@ -61,6 +61,44 @@
 ##! options :zeek:see:`Cluster::Telemetry::core_metrics` and
 ##! :zeek:see:`Cluster::Telemetry::websocket_metrics` for ways to get a better
 ##! understanding about the events published and received.
+##!
+##! Encryption using the CURVE mechanism
+##!
+##!   http://api.zeromq.org/4-2:zmq-curve
+##!
+##! When a Zeek cluster spans multiple systems on a shared and untrusted network,
+##! it's strongly recommended to encrypt the network traffic between individual
+##! Zeek systems. To enable ZeroMQ CURVE encryption, generate keypairs for the
+##! server and client roles using :zeek:see:`Cluster::Backend::ZeroMQ::generate_keypair`
+##! and set the following variables:
+##!
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_server_publickey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_server_secretkey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_client_publickey`
+##!   * :zeek:see`Cluster::Backend::ZeroMQ::curve_client_secretkey`
+##!
+##! The server variables are used for the XPUB/XSUB sockets created by the proxy thread.
+##! If you're hosting the proxy thread elsewhere or using a non-Zeek process, make sure
+##! to configure it with the proper secret key. The logger's PULL sockets use the same
+##! secret key at this point. This means the secret key is required by logger nodes
+##! even if a central XPUB/XSUB component is used externally.
+##!
+##! You may generate the keys as follows. Index 0 is the public key, index 1 the secret key.
+##!
+##!     $ zeek -e 'print Cluster::Backend::ZeroMQ::generate_keypair()'
+##!     [ZE%G/b%A#RP&i(J!#b8CDT^x]XRTMSjdWhAbN$>x, >bxKhbk*%5Wu{V[&-]:1*X5A2%gL3!!=TRK[tx4z]
+##!
+##! All Zeek processes share and have access to the same credentials. Note that while
+##! the underlying protocol uses asymmetric cryptographic primitives, we leverage this
+##! more like shared symmetric encryption. Any external process with the server's public
+##! key can and the client secret and public key may connect to the central XPUB/XSUB
+##! socket.
+##!
+##! ZeroMQ supports ZAP to do per-client authentication. This is lightly implemented
+##! such that any client needs to possess the configured client secret and public key.
+##! It's not clear if anything more is really useful. More advanced authentication or
+##! authorization concepts should probably be added to the WebSocket API instead.
+
 @load base/utils/addrs
 
 module Cluster::Backend::ZeroMQ;
@@ -279,6 +317,26 @@ export {
 	## will produce output on stderr.
 	const debug_flags: count = 0 &redef;
 
+	##! Server public key to use for the central XPUB/XSUB sockets and
+	##! the logger's PULL sockets.
+	##!
+	##! This key is used by Zeek processes for the connection to the
+	##! central XPUB/XSUB sockets and individual logger PULL sockets
+	##! as the public CURVE server key.
+	const curve_server_publickey = "" &redef;
+
+	##! Server secret key to use for the central XPUB/XSUB sockets and
+	##! logger PULL sockets.
+	const curve_server_secretkey = "" &redef;
+
+	##! Client public key to use by Zeek processes connecting to the
+	##! central XPUB/XSUB sockets and PULL sockets.
+	const curve_client_publickey = "" &redef;
+
+	##! Client secret key to use by Zeek processes connecting to the
+	##! central XPUB/XSUB sockets and PULL sockets.
+	const curve_client_secretkey = "" &redef;
+
 	## The node topic prefix to use.
 	global node_topic_prefix = "zeek.cluster.node" &redef;
 
@@ -304,6 +362,16 @@ export {
 	##
 	## topic: The topic.
 	global unsubscription: event(topic: string);
+
+	## Low-level event raised for ZeroMQ socket events.
+	##
+	## See ``zmq_socket_monitor()`` and the ``ZMQ_EVENT_*`` constants in
+	## ``zmq.h`` for possible values of ``number`` and ``value``.
+	##
+	## number: The event number.
+	## value: The event value.
+	## address: The socket address of the event.
+	global monitoring_event: event(number: count, value: count, address: string);
 
 	## Low-level event send to a node in response to their subscription.
 	##
@@ -571,4 +639,27 @@ event Cluster::Backend::ZeroMQ::unsubscription(topic: string)
 		event Cluster::node_down(name, gone_node_id);
 	else
 		Reporter::warning(fmt("unsubscription of unknown node with id '%s'", gone_node_id));
+	}
+
+event Cluster::Backend::ZeroMQ::monitoring_event(number: count, value: count, address: string)
+	{
+	# Anytime we see a handshake failed error (e.g. wrong CURVE keys or CURVE vs non-CURVE sockets)
+	# speaking, terminate the Zeek process. Preferably we'd do this with
+	#
+	# From zmq.h
+	# Unspecified system errors during handshake. Event value is an errno.
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL 0x0800
+	# Handshake complete successfully with successful authentication (if enabled). Event value is unused.
+	# #define ZMQ_EVENT_HANDSHAKE_SUCCEEDED 0x1000
+	# Protocol errors between ZMTP peers or between server and ZAP handler.
+	# Event value is one of ZMQ_PROTOCOL_ERROR
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL 0x2000
+	# Failed authentication requests. Event value is the numeric ZAP status
+	# code, i.e. 300, 400 or 500.
+	# #define ZMQ_EVENT_HANDSHAKE_FAILED_AUTH 0x4000
+	if ( number == 0x2000 || number == 0x4000 )
+		{
+		Reporter::fatal(fmt("ZeroMQ: Handshake for socket %s failed: %x (%s)", address, number, value));
+		terminate();
+		}
 	}

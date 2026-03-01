@@ -8,8 +8,7 @@
 
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Serializer.h"
-#include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
-
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 
 namespace zeek {
 
@@ -62,6 +61,65 @@ private:
     std::array<double, 8> proxy_stats = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 };
 
+/**
+ * Helper class for encryption related configuration.
+ *
+ * ZeroMQ CURVE encryption is enabled, when the server's public key as well as
+ * a client secret and public key is configured.
+ *
+ * Server side encryption is enabled when the servers secretkey is available. It's passed
+ * to the proxy thread when hosting the XPUB and XSUB socket. See ZeroMQ-Proxy.cc. Also
+ * the log PULL sockets are configured as curve servers using the secret key stored here.
+ *
+ * If we ever want to do per-client certificate authentication, we could stash client certs
+ * here as well.
+ *
+ * There's no provisions about wiping the key material. It's stored in scripts and loaded into
+ * memory here. If someone manages to own a Zeek process or has the ability to gdb, they can
+ * easily get to the secrets. Mainly we want to prevent evasdropping on Zeek cluster communication
+ * on the network.
+ */
+struct CurveConfig {
+    // Loaded during InitPostScript() from Cluster::Backend::ZeroMQ module
+    // const redef variables.
+    std::string client_publickey;
+    std::string client_secretkey;
+    std::string server_publickey;
+    std::string server_secretkey;
+
+    /**
+     * @return true if enough keys are available to enable client side encryption.
+     */
+    bool isClientEnabled() const {
+        return ! server_publickey.empty() && ! client_secretkey.empty() && ! client_publickey.empty();
+    };
+
+    /**
+     * @return true if enough keys are available to enable client side encryption.
+     */
+    bool isServerEnabled() const { return ! server_secretkey.empty(); };
+
+    /**
+     * Configure the server's public key and client secret and public key on the give socket.
+     *
+     * @param sock ZeroMQ socket to enable encryption on.
+     */
+    void configureClientCurveSockOpts(zmq::socket_t& sock) const;
+
+    /**
+     * Configure the given socket as a curve server socket.
+     *
+     * @param sock ZeroMQ socket to enable encryption on.
+     */
+    void configureServerCurveSockOpts(zmq::socket_t& sock) const;
+
+    /**
+     * Initialize the given ZapArgs struct.
+     */
+    void initZap(zmq::context_t& ctx, ZapArgs& args) const;
+};
+
+class ProxyThread;
 
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
@@ -120,6 +178,7 @@ private:
     void HandleLogMessages(const std::vector<MultipartMessage>& msgs);
     void HandleXPubMessages(const std::vector<MultipartMessage>& msgs);
     void HandleXSubMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleMonitoringMessages(const std::vector<MultipartMessage>& msgs);
 
     // Script level variables.
     std::string connect_xsub_endpoint;
@@ -139,6 +198,7 @@ private:
 
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
+    EventHandlerPtr event_monitoring_event;
 
     // xpub/xsub configuration
     int xpub_sndhwm = 1000; // libzmq default
@@ -170,13 +230,23 @@ private:
     zmq::socket_t log_push;
     zmq::socket_t log_pull;
 
+    // PAIR sockets for per socket monitoring events.
+    std::array<zmq::socket_t, 3> monitoring_sockets;
+
     std::thread self_thread;
     bool self_thread_shutdown_requested = false;
     bool self_thread_stop = false;
 
+    // If encryption is enabled, the local ZAP thread for
+    // used by the log pull socket on logger nodes.
+    std::thread zap_thread;
+    ZapArgs zap_args;
+
     int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;
     std::unique_ptr<ZeekProxyTelemetry> proxy_telemetry;
+
+    CurveConfig curve_config;
 
     // Tracking the subscriptions on the local XPUB socket.
     std::map<std::string, SubscribeCallback> subscription_callbacks;

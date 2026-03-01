@@ -1,4 +1,4 @@
-# @TEST-DOC: Startup a manager running the ZeroMQ proxy thread, a worker connects and the manager sends a finish event to terminate the worker.
+# @TEST-DOC: Manager runs the proxy thread and has the curve_server_secretkey set to enable encryption.
 #
 # @TEST-REQUIRES: have-zeromq
 #
@@ -21,6 +21,12 @@
 
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
+
+redef Cluster::Backend::ZeroMQ::curve_server_publickey = "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7";
+redef Cluster::Backend::ZeroMQ::curve_server_secretkey = "JTKVSB%%)wK0E.X)V>+}o?pNmC{O&4W4b!Ni{Lh6";
+
+redef Cluster::Backend::ZeroMQ::curve_client_publickey = "Yne@$w-vo<fVvi]a<NY6T1ed:M$fCG*[IaLV{hID";
+redef Cluster::Backend::ZeroMQ::curve_client_secretkey = "D:)Q[IlAW!ahhC2ac:9*A}h:p?([4%wOTJ%JR%cs";
 
 global finish: event(name: string);
 # @TEST-END-FILE

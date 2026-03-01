@@ -202,7 +202,7 @@ private:
     // of all fields that are in the record in order. Recursively unrolls
     // records
     bool UnrollRecordType(std::vector<threading::Field*>* fields, const RecordType* rec, const std::string& nameprepend,
-                          bool allow_file_func) const;
+                          bool allow_file_func, bool parent_optional = false) const;
 
     // Send events
     void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
@@ -234,7 +234,7 @@ private:
     // Converts a threading::value to a record type. Mostly used by
     // ValueToVal.
     RecordVal* ValueToRecordVal(const Stream* i, const threading::Value* const* vals, RecordType* request_type,
-                                int* position, bool& have_error) const;
+                                int* position, bool& have_error, bool parent_optional = false) const;
 
     Val* RecordValToIndexVal(RecordVal* r) const;
 

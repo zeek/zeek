@@ -136,6 +136,18 @@ Package: base/packet-protocols
 :doc:`/scripts/base/packet-protocols/icmp/main.zeek`
 
 
+:doc:`/scripts/base/packet-protocols/igmp/__load__.zeek`
+
+
+:doc:`/scripts/base/packet-protocols/igmp/types.zeek`
+
+
+:doc:`/scripts/base/packet-protocols/igmp/main.zeek`
+
+   Implements base functionality for IGMP analysis.
+   Registers the IGMP packet analyzer.
+   Generates the IGMP.log file.
+
 :doc:`/scripts/base/packet-protocols/llc/__load__.zeek`
 
 

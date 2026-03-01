@@ -1,0 +1,132 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# Spicy grammar for the IGMP protocol.
+# Supports IGMPv1, v2 and v3.
+# See RFC 1112 (IGMPv1), RFC 2236 (IGMPv2) and RFC 3376 (IGMPv3)
+# for information about the IGMP protocol.
+
+module IGMP;
+
+import zeek;
+
+# ICMP message types
+type Type = enum {
+    MEMBERSHIP_QUERY = 0x11,
+    MEMBERSHIP_REPORT_V1 = 0x12,
+    MEMBERSHIP_REPORT_V2 = 0x16,
+    LEAVE_GROUP = 0x17,
+    MEMBERSHIP_REPORT_V3 = 0x22,
+};
+
+# Version 3 Membership Report Group Record Types
+type GroupType = enum {
+    MODE_IS_INCLUDE = 1,
+    MODE_IS_EXCLUDE = 2,
+    CHANGE_TO_INCLUDE_MODE = 3,
+    CHANGE_TO_EXCLUDE_MODE = 4,
+    ALLOW_NEW_SOURCES = 5,
+    BLOCK_OLD_SOURCES = 6,
+};
+
+# Version 3 Membership Report Group Record
+type Group = unit {
+    group_type: uint8 &convert=GroupType($$) &always-emit;
+    aux_data_len: uint8 &always-emit;
+    num_sources: uint16 &always-emit;
+    multicast_addr: addr &ipv4 &always-emit;
+    sources: (addr &ipv4)[self.num_sources] &always-emit;
+    aux_data: bytes &eod &always-emit;
+};
+
+# Generic IGMP message
+public type Message = unit {
+
+    # Iterator, to parse message after checksum has been verified
+    var start: iterator<stream>;
+    on %init {
+        self.start = self.input();
+    }
+
+    ### FIRST STEP: verify message checksum
+
+    var computed_checksum: uint32 = uint32(0); # Checksum verification accumulator
+    first_2_bytes: uint16 {
+        self.computed_checksum = self.first_2_bytes;
+    } # Add first 2 bytes to accumulator
+    transmitted_checksum: uint16; # Transmitted checksum value
+    remaining_bytes: uint16[] &eod; # All remaining bytes until the end, grouped by 2 bytes
+
+    # Add remaining bytes to accumulator
+    on remaining_bytes foreach {
+        self.computed_checksum += $$;
+        if (self.computed_checksum >= uint32(0x10000)) {
+            # If accumulator exceeds 0x10000, subtract 0xffff
+            self.computed_checksum -= uint32(0xffff);
+        }
+    }
+
+    # First pass finished
+    on remaining_bytes {
+        # Compare checksum values
+        self.computed_checksum = ~cast<uint16>(self.computed_checksum);
+        if (self.transmitted_checksum != self.computed_checksum)
+            zeek::weird("igmp_invalid_checksum");
+
+        # Backtrack to beginning of message
+        self.set_input(self.start);
+    }
+
+    ### SECOND STEP: Parse message if checksum verification passed
+
+    msg_type: uint8 &convert=Type($$);
+
+    # Determine message type
+    switch (self.msg_type) {
+        Type::MEMBERSHIP_QUERY -> mq: MembershipQuery;
+        Type::MEMBERSHIP_REPORT_V1 -> mrv1: MembershipReportV1;
+        Type::MEMBERSHIP_REPORT_V2 -> mrv2: MessageV2(True);
+        Type::LEAVE_GROUP -> lg: MessageV2(False);
+        Type::MEMBERSHIP_REPORT_V3 -> mrv3: MembershipReportV3;
+    };
+
+    #on %done { print self; }
+};
+
+# Generic IGMPv2 message
+type MessageV2 = unit(is_membership_report: bool) {
+    max_resp_time: uint8;
+    checksum: uint16;
+    group_addr: addr &ipv4;
+};
+
+# msg_type = 0x11: Membership Query
+type MembershipQuery = unit {
+    max_resp_code: uint8;
+    checksum: uint16;
+    group_addr: addr &ipv4;
+    flags: bitfield(8) {
+        resv: 0..3;
+        s: 4;
+        qrv: 5..7;
+    };
+    qqic: uint8;
+    num_sources: uint16;
+    sources: (addr &ipv4)[self.num_sources];
+    additional_data: bytes &eod;
+};
+
+# msg_type = 0x12: Version 1 Membership Report
+type MembershipReportV1 = unit {
+    : uint8; # Unused (1 byte)
+    checksum: uint16;
+    group_addr: addr &ipv4;
+};
+
+# msg_type = 0x22: Version 3 Membership Report
+type MembershipReportV3 = unit {
+    : skip bytes &size=1; # Reserved (1 byte)
+    checksum: uint16;
+    : skip bytes &size=2; # Reserved (2 bytes)
+    num_groups: uint16;
+    groups: Group[self.num_groups];
+};

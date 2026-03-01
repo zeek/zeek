@@ -1,0 +1,46 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# IGMP Spicy analyzer and events
+
+%doc-id = Zeek::IGMP;
+%doc-description = "IGMP analyzer";
+
+import IGMP;
+
+
+########## PACKET ANALYZER ##########
+packet analyzer IGMP:
+    parse with IGMP::Message;
+
+
+########## EVENTS ##########
+
+# Generated for every processed IGMP message.
+# :param $packet: raw packet header
+# :param self.msg_type: IGMP message type
+on IGMP::Message -> event IGMP::message($packet, self.msg_type);
+
+# Generated for every IGMP Membership Query.
+# :param $packet: raw packet header
+# :param self.group_addr: Multicast group address
+on IGMP::MembershipQuery -> event IGMP::membership_query($packet, self.group_addr);
+
+# Generated for every IGMP Version 1 Membership Report.
+# :param $packet: raw packet header
+# :param self.group_addr: Multicast group address
+on IGMP::MembershipReportV1 -> event IGMP::membership_report_v1($packet, self.group_addr);
+
+# Generated for every IGMP Version 2 Membership Report.
+# :param $packet: raw packet header
+# :param self.group_addr: Multicast group address
+on IGMP::MessageV2 if ( is_membership_report ) -> event IGMP::membership_report_v2($packet, self.group_addr);
+
+# Generated for every IGMP Version 2 Leave Group Message.
+# :param $packet: raw packet header
+# :param self.group_addr: Multicast group address
+on IGMP::MessageV2 if ( ! is_membership_report ) -> event IGMP::leave_group($packet, self.group_addr);
+
+# Generated for every IGMP Version 3 Membership Report.
+# :param $packet: raw packet header
+# :param self.groups: vector of Multicast groups
+on IGMP::MembershipReportV3 -> event IGMP::membership_report_v3($packet, self.groups);

@@ -1,5 +1,8 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+%doc-id = Zeek::SSL;
+%doc-description = "SSL/TLS/DTLS analyzer";
+
 protocol analyzer SSL over TCP:
 	parse with SSL::Message;
 

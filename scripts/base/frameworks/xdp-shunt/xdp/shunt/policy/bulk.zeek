@@ -22,19 +22,19 @@ export {
 
 	## If we should even look at shunting this connection. Break if we should
 	## not start polling to shunt it.
-	global bulk_shunt_policy: hook(cid: conn_id) &redef;
+	global bulk_shunt_policy: hook(c: connection) &redef;
 }
 
 function conn_callback(c: connection, cnt: count): interval
 	{
-	local stats = XDP::Shunt::ConnID::shunt_stats(c$id);
+	local stats = XDP::Shunt::ConnID::shunt_stats(c);
 	if ( stats$present )
 		return -1sec; # Failsafe
 
 	# Shunt it if over threshold
 	if ( c$orig$size > size_threshold || c$resp$size > size_threshold )
 		{
-		XDP::Shunt::ConnID::shunt(c$id);
+		XDP::Shunt::ConnID::shunt(c);
 		return -1sec;
 		}
 
@@ -46,6 +46,6 @@ function conn_callback(c: connection, cnt: count): interval
 
 event new_connection(c: connection) &priority=-5
 	{
-	if ( hook bulk_shunt_policy(c$id) )
+	if ( hook bulk_shunt_policy(c) )
 		ConnPolling::watch(c, conn_callback, 0, 0secs);
 	}

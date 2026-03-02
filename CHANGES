@@ -1,3 +1,25 @@
+8.2.0-dev.226 | 2026-03-02 13:18:15 -0700
+
+  * remove trailing slash in windows unless its a drive root (Maor Hamami)
+
+  * code review changes (Maor Hamami)
+
+  * [windows] use bash in a more safe way (Maor Hamami)
+
+  * fix sig_handler on windows (Maor Hamami)
+
+  * [btest] fix bifs.zeek_args in windows by removing the .exe suffix (Maor Hamami)
+
+  * val manager should use the same static const for windows - raised by bifs.to_count (Maor Hamami)
+
+  * [windows] handle rotate,sleep,system issues (Maor Hamami)
+
+  * [windows] piped_exec should use bash for consistent behavior (Maor Hamami)
+
+  * replace kill command with raise for windows compatibility (Maor Hamami)
+
+  * [windows] working on path resolving and file management (Maor Hamami)
+
 8.2.0-dev.215 | 2026-03-02 20:09:38 +0100
 
   * GH-5232: ldap: Implement ModifyRequest handling (Arne Welzel, Corelight)

@@ -389,6 +389,10 @@ static void terminate_zeek() {
 }
 
 RETSIGTYPE sig_handler(int signo) {
+    // Re-install handler to maintain BSD semantics on platforms where
+    // signal() has one-shot (SysV) behavior, e.g., Windows.
+    setsignal(signo, sig_handler);
+
     util::detail::set_processing_status("TERMINATING", "sig_handler");
     signal_val = signo;
 

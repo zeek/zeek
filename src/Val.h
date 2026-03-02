@@ -306,15 +306,9 @@ protected:
 // re-use existing ones rather than allocate anew.
 class ValManager {
 public:
-#ifdef _MSC_VER
-    static constexpr zeek_uint_t PREALLOCATED_COUNTS = 1;
-    static constexpr zeek_uint_t PREALLOCATED_INTS = 1;
-    static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = 0;
-#else
     static constexpr zeek_uint_t PREALLOCATED_COUNTS = 4096;
     static constexpr zeek_uint_t PREALLOCATED_INTS = 512;
     static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = -255;
-#endif
     static constexpr zeek_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST + PREALLOCATED_INTS - 1;
 
     ValManager();

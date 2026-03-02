@@ -1,3 +1,10 @@
+8.2.0-dev.215 | 2026-03-02 20:09:38 +0100
+
+  * GH-5232: ldap: Implement ModifyRequest handling (Arne Welzel, Corelight)
+
+    This uses the existing ASN1Message unit for parsing and manual poking at
+    the resulting structure to create a string representation for the log.
+
 8.2.0-dev.213 | 2026-02-27 12:57:57 -0700
 
   * Update btest submodule [nomail] (Tim Wojtulewicz, Corelight)

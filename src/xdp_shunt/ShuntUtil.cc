@@ -203,7 +203,7 @@ std::pair<int, int> GetVlanConnCtxFieldOffsets() {
     return {vlan_offset, inner_vlan_offset};
 }
 
-zeek::RecordValPtr connIDToCanonical(zeek::RecordVal* conn_id) {
+zeek::RecordValPtr connIDToCanonical(zeek::RecordVal* conn_id, bool vlans_included) {
     static auto canonical_id = zeek::id::find_type<zeek::RecordType>("XDP::canonical_id");
     auto canonical = zeek::make_intrusive<zeek::RecordVal>(canonical_id);
 
@@ -221,9 +221,12 @@ zeek::RecordValPtr connIDToCanonical(zeek::RecordVal* conn_id) {
     }
     canonical->Assign(4, conn_id->GetField(4));
 
+    if ( ! vlans_included )
+        return canonical;
+
     auto [vlan_offset, inner_vlan_offset] = GetVlanConnCtxFieldOffsets();
 
-    // Not present, that's fine.
+    // Not present, that's fine but weird.
     if ( vlan_offset < 0 || inner_vlan_offset < 0 )
         return canonical;
 

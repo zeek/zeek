@@ -34,6 +34,8 @@ export {
 	global conn_id_to_canonical: function(cid: conn_id): XDP::canonical_id;
 
 	global xdp_prog: opaque of XDP::Program;
+
+	global vlans_included: bool;
 }
 
 function reconnect(options: XDP::ShuntOptions): bool
@@ -62,5 +64,5 @@ function end_shunt(): bool
 
 function conn_id_to_canonical(cid: conn_id): XDP::canonical_id
 	{
-	return _conn_id_to_canonical(cid);
+	return _conn_id_to_canonical(cid, XDP::vlans_included);
 	}

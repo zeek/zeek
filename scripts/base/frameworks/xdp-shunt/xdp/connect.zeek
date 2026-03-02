@@ -20,6 +20,11 @@ export {
 
 	## The directory that the BPF maps are pinned to.
 	option pin_path: string = "/sys/fs/bpf/zeek";
+
+	## If we should force not using VLANs, regardless of conn_id_ctx. This
+	## is used to override the VLAN handling from loading the vlan conn key
+	## factory if necessary.
+	option force_no_vlans: bool = F;
 }
 
 function should_load_with_vlan(): bool
@@ -30,10 +35,12 @@ function should_load_with_vlan(): bool
 
 event zeek_init()
 	{
+	vlans_included = ( ! force_no_vlans ) && should_load_with_vlan();
+
 	local opts: XDP::ShuntOptions = [ $attach_mode=attach_mode,
 	    $conn_id_map_max_size=conn_id_map_max_size,
 	    $ip_pair_map_max_size=ip_pair_map_max_size,
-	    $include_vlan=should_load_with_vlan(), $pin_path=pin_path,  ];
+	    $include_vlan=vlans_included, $pin_path=pin_path,  ];
 
 	if ( start_new_xdp )
 		start_shunt(opts);

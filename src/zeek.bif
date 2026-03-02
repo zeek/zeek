@@ -6126,7 +6126,7 @@ function modulo%(a: int, b: int%): int
 	%{
 	if ( b == 0 ) {
 		zeek::reporter->Error("modulo by zero");
-		return 0;
+		return nullptr;
 	}
 	return zeek::val_mgr->Int(((a % b) + b) % b);
 	%}

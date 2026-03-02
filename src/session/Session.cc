@@ -156,7 +156,7 @@ void Session::AddTimer(timer_func timer, double t, bool do_expire, zeek::detail:
 void Session::RemoveTimer(zeek::detail::Timer* t) { timers.remove(t); }
 
 void Session::InactivityTimer(double t) {
-    auto new_timeout = inactivity_timeout;
+    auto check_inactivity_from = last_time;
 
     if ( last_time + inactivity_timeout <= t ) {
         static const auto timing_out_hook = zeek::id::find_func("connection_timing_out");
@@ -169,12 +169,17 @@ void Session::InactivityTimer(double t) {
             return;
         }
 
-        // The hooked stopped us! Add the inactivity timeout so that we don't
-        // immediately run again.
-        new_timeout += inactivity_timeout;
+        // The hooked stopped us! Wait inactivity_timeout time until
+        // checking again from this time, not from the last packet.
+        // Schedule the next timer based on this timer's expiry rather than
+        // the Session's last_time (last packet timestamp). Otherwise, the
+        // InactivityTimer expires right away again, causing infinite
+        // spinning.
+        check_inactivity_from = t;
     }
 
-    ADD_TIMER(&Session::InactivityTimer, last_time + new_timeout, 0, zeek::detail::TIMER_CONN_INACTIVITY);
+    ADD_TIMER(&Session::InactivityTimer, check_inactivity_from + inactivity_timeout, 0,
+              zeek::detail::TIMER_CONN_INACTIVITY);
 }
 
 void Session::StatusUpdateTimer(double t) {

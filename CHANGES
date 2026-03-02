@@ -1,3 +1,7 @@
+8.2.0-dev.228 | 2026-03-02 16:55:19 -0500
+
+  * Fix issue with timeouts rescheduling too much (Evan Typanski)
+
 8.2.0-dev.226 | 2026-03-02 13:18:15 -0700
 
   * remove trailing slash in windows unless its a drive root (Maor Hamami)

@@ -553,6 +553,14 @@ string normalize_path(std::string_view path) {
     if ( had_dot_prefix && ! result.starts_with("./") && ! result.starts_with("../") )
         result = "./" + result;
 
+    if ( result.size() > 1 && result.back() == '/' ) {
+        bool is_drive_root = result.size() == 3 && std::isalpha(static_cast<unsigned char>(result[0])) &&
+                             result[1] == ':' && result[2] == '/';
+
+        if ( ! is_drive_root )
+            result.pop_back();
+    }
+
     return result;
 #else
     if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos ) {

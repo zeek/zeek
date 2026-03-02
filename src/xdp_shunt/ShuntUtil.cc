@@ -184,3 +184,56 @@ bool origIsIp1(zeek::RecordVal* cid_r) {
     // TODO: Check if this is accurate, might be flipped
     return compare_ips(&ip1, &ip2) < 0;
 }
+
+// Stolen from conn key factory
+std::pair<int, int> GetVlanConnCtxFieldOffsets() {
+    static int vlan_offset = -2;
+    static int inner_vlan_offset = -2;
+
+    if ( vlan_offset == -2 && inner_vlan_offset == -2 ) {
+        vlan_offset = zeek::id::conn_id_ctx->FieldOffset("vlan");
+        if ( vlan_offset < 0 || zeek::id::conn_id_ctx->GetFieldType(vlan_offset)->Tag() != zeek::TYPE_INT )
+            vlan_offset = -1;
+
+        inner_vlan_offset = zeek::id::conn_id_ctx->FieldOffset("inner_vlan");
+        if ( inner_vlan_offset < 0 || zeek::id::conn_id_ctx->GetFieldType(inner_vlan_offset)->Tag() != zeek::TYPE_INT )
+            inner_vlan_offset = -1;
+    }
+
+    return {vlan_offset, inner_vlan_offset};
+}
+
+zeek::RecordValPtr connIDToCanonical(zeek::RecordVal* conn_id) {
+    static auto canonical_id = zeek::id::find_type<zeek::RecordType>("XDP::canonical_id");
+    auto canonical = zeek::make_intrusive<zeek::RecordVal>(canonical_id);
+
+    if ( origIsIp1(conn_id) ) {
+        canonical->Assign(0, conn_id->GetField(0));
+        canonical->Assign(1, conn_id->GetField(1));
+        canonical->Assign(2, conn_id->GetField(2));
+        canonical->Assign(3, conn_id->GetField(3));
+    }
+    else {
+        canonical->Assign(0, conn_id->GetField(2));
+        canonical->Assign(1, conn_id->GetField(3));
+        canonical->Assign(2, conn_id->GetField(0));
+        canonical->Assign(3, conn_id->GetField(1));
+    }
+    canonical->Assign(4, conn_id->GetField(4));
+
+    auto [vlan_offset, inner_vlan_offset] = GetVlanConnCtxFieldOffsets();
+
+    // Not present, that's fine.
+    if ( vlan_offset < 0 || inner_vlan_offset < 0 )
+        return canonical;
+
+    auto ctx = conn_id->GetFieldAs<zeek::RecordVal>(5);
+
+    if ( ctx->HasField(vlan_offset) )
+        canonical->Assign(5, ctx->GetFieldAs<zeek::IntVal>(vlan_offset));
+
+    if ( ctx->HasField(inner_vlan_offset) )
+        canonical->Assign(6, ctx->GetFieldAs<zeek::IntVal>(inner_vlan_offset));
+
+    return canonical;
+}

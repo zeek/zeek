@@ -18,22 +18,22 @@ export {
 	## loaded with, or it will fail to load.
 	option ip_pair_map_max_size: count = 65535;
 
-	## Whether or not to include vlans in flow tracking.
-	##
-	## TODO: This should probably be inferred, then also in the canonical
-	## ID mapping.
-	option include_vlan: bool = F;
-
 	## The directory that the BPF maps are pinned to.
 	option pin_path: string = "/sys/fs/bpf/zeek";
 }
+
+function should_load_with_vlan(): bool
+	{
+	local fields = record_fields(conn_id_ctx);
+	return "vlan" in fields && "inner_vlan" in fields;
+	}
 
 event zeek_init()
 	{
 	local opts: XDP::ShuntOptions = [ $attach_mode=attach_mode,
 	    $conn_id_map_max_size=conn_id_map_max_size,
 	    $ip_pair_map_max_size=ip_pair_map_max_size,
-	    $include_vlan=include_vlan, $pin_path=pin_path,  ];
+	    $include_vlan=should_load_with_vlan(), $pin_path=pin_path,  ];
 
 	if ( start_new_xdp )
 		start_shunt(opts);

@@ -62,22 +62,5 @@ function end_shunt(): bool
 
 function conn_id_to_canonical(cid: conn_id): XDP::canonical_id
 	{
-	# Users can add vlans if they wish.
-	local can_id = XDP::canonical_id($ip1=cid$orig_h, $ip1_port=cid$orig_p,
-	    $ip2=cid$resp_h, $ip2_port=cid$resp_p, $proto=cid$proto, );
-
-	# Order them so ip2 is the higher one.
-	if ( can_id$ip1 > can_id$ip2
-	    || ( ( can_id$ip1 == can_id$ip2 ) && can_id$ip1_port > can_id$ip2_port ) )
-		{
-		# Flip the ips and ports
-		local tmp_a = can_id$ip1;
-		local tmp_p = can_id$ip1_port;
-		can_id$ip1 = can_id$ip2;
-		can_id$ip1_port = can_id$ip2_port;
-		can_id$ip2 = tmp_a;
-		can_id$ip2_port = tmp_p;
-		}
-
-	return can_id;
+	return _conn_id_to_canonical(cid);
 	}

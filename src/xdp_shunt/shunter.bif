@@ -118,3 +118,8 @@ function _end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
 
     return zeek::val_mgr->Bool(true);
 %}
+
+function _conn_id_to_canonical%(cid: conn_id%) : XDP::canonical_id %{
+    // In a separate file for LSP support :)
+    return connIDToCanonical(cid->AsRecordVal());
+%}

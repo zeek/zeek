@@ -1,3 +1,9 @@
+8.2.0-dev.247 | 2026-03-03 13:19:14 -0700
+
+  * Switch default check pragma for sqlite to quick_check (Tim Wojtulewicz, Corelight)
+
+  * Move storage tests into directories based on backend (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.244 | 2026-03-03 18:31:49 +0000
 
   * Fix potential UB in HashKey (Tim Wojtulewicz, Corelight)

@@ -32,7 +32,7 @@ export {
 		## set the value to an empty string. Setting the ``busy_timeout`` pragma
 		## here will be ignored.
 		pragma_commands: table[string] of string &ordered &default=table(
-			["integrity_check"] = "",
+			["quick_check"] = "",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"

@@ -1,0 +1,14 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2014-04-01-23-15-49
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	count	string	count	count	count	count	set[string]
+1329843175.736107	CjhGID4nQcgTWjvg4c	141.142.220.235	37604	199.233.217.249	56666	tcp	ftp-data	0.112432	0	342	SF	-	0	ShAdfFa	4	216	4	562	(empty)
+1329843179.871641	CCvvfg3TEfuqmmG4bh	141.142.220.235	59378	199.233.217.249	56667	tcp	ftp-data	0.111218	0	77	SF	-	0	ShAdfFa	4	216	4	297	(empty)
+1329843194.151526	CsRx2w45OKnoww6xl4	199.233.217.249	61920	141.142.220.235	33582	tcp	ftp-data	0.056211	342	0	SF	-	0	ShADaFf	5	614	3	164	(empty)
+1329843197.783443	CRJuHdVW0XPVINV8a	199.233.217.249	61918	141.142.220.235	37835	tcp	ftp-data	0.056005	77	0	SF	-	0	ShADaFf	5	349	3	164	(empty)
+1329843161.968492	CXWv6p3arKYeMETxOg	141.142.220.235	50003	199.233.217.249	21	tcp	ftp	38.055625	180	3146	SF	-	0	ShAdDfFa	38	2164	25	4458	(empty)
+#close	2014-04-01-23-15-49

@@ -1,0 +1,34 @@
+# @TEST-DOC: Test zeek-cut with column names, but no other options.
+#
+
+# Select one column.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log | zeek-cut uid > one
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff one
+
+# Log file has only one column.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/onecolumn.log | zeek-cut id.orig_h > only
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff only
+
+# Swap the order of two columns.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log | zeek-cut proto uid > swap-order
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff swap-order
+
+# Specify all columns in the log file.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/test.log | zeek-cut ts uid id.orig_h id.orig_p id.resp_h > all
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff all
+
+# Log files use different field separators.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log $ZEEK_CUT_LOGS/conncomma.log | zeek-cut proto uid > nondefault-separator
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff nondefault-separator
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log $ZEEK_CUT_LOGS/conntimelast.log | zeek-cut ts uid > different-col-order
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff different-col-order
+
+# Specify a column name that exists only in the first log file.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/conn.log $ZEEK_CUT_LOGS/test.log | zeek-cut uid proto > one-nonexistent-1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff one-nonexistent-1
+
+# Specify a column name that exists only in the second log file.
+# @TEST-EXEC: cat $ZEEK_CUT_LOGS/test.log $ZEEK_CUT_LOGS/conn.log | zeek-cut uid proto > one-nonexistent-2
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff one-nonexistent-2

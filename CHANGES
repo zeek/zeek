@@ -1,3 +1,11 @@
+8.2.0-dev.232 | 2026-03-02 17:43:51 -0700
+
+  * Adapt zeek-cut btests to running from zeek repo (Tim Wojtulewicz, Corelight)
+
+  * Add adaptations to make zeek-cut build on Windows (Tim Wojtulewicz, Corelight)
+
+  * Add version of zeek-cut from zeek-aux with no changes (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.228 | 2026-03-02 16:55:19 -0500
 
   * Fix issue with timeouts rescheduling too much (Evan Typanski)

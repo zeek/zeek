@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+#
+# Replace the time zone with "+0000".  This is needed for any zeek-cut tests
+# that convert UTC timestamps and show the time zone, because strftime
+# with the "%z" format string behaves differently on OS X (it just always
+# shows the local time zone instead of "+0000").
+
+sed 's/[+-][0-9][0-9][0-9][0-9]/+0000/g'

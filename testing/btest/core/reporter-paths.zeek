@@ -1,7 +1,7 @@
 # This test verifies Zeek's file path normalization.
 #
 # Absolute paths are preserved but normalized:
-# @TEST-EXEC: zeek -b $PWD/././test.zeek 2>&1 | sed "s|$PWD|/...|" >output
+# @TEST-EXEC: zeek -b $PWD/././test.zeek 2>&1 | sed "s|$(cygpath -m "$PWD" 2>/dev/null || echo "$PWD")|/...|;s|$PWD|/...|" >output
 #
 # Unanchored files become localized ("./test.zeek"):
 # @TEST-EXEC: zeek -b test.zeek 2>>output

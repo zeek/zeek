@@ -75,8 +75,12 @@ private:
 
     int64_t offset;
 
-    int pipes[6] = {-1};
+    int pipes[6] = {-1, -1, -1, -1, -1, -1};
     int childpid;
+
+#ifdef _MSC_VER
+    void* child_process_handle_; // HANDLE, stored as void* to avoid windows.h in header
+#endif
 
     enum IoChannels : uint8_t {
         stdout_in = 0,

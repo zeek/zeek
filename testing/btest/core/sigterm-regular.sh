@@ -10,7 +10,16 @@
 zeek_pid() {
     # The btest-bg-run .pid file contains the parent of the Zeek process
     local ppid=$(cat zeek/.pid)
-    ps -xo pid,ppid,comm | awk "\$2 == \"$ppid\" && \$3 == \"zeek\" { print \$1 }"
+    case "$(uname -s)" in
+        MINGW* | MSYS* | CYGWIN*)
+            # MSYS ps doesn't support -xo; use default format where
+            # PID=$1, PPID=$2, and COMMAND is the last field.
+            ps | awk "\$2 == $ppid && \$NF ~ /\/zeek(\.exe)?$/ { print \$1 }"
+            ;;
+        *)
+            ps -xo pid,ppid,comm | awk "\$2 == \"$ppid\" && \$3 == \"zeek\" { print \$1 }"
+            ;;
+    esac
 }
 
 cleanup() {

@@ -522,8 +522,17 @@ string flatten_script_name(const string& name, const string& prefix) {
     if ( ! rval.empty() )
         rval.append(".");
 
-    if ( is_package_loader(name) )
-        rval.append(SafeDirname(name).result);
+    if ( is_package_loader(name) ) {
+        string dir = SafeDirname(name).result;
+
+#ifdef _MSC_VER
+        // Windows dirname() may leave a trailing separator.
+        while ( ! dir.empty() && (dir.back() == '/' || dir.back() == '\\') )
+            dir.pop_back();
+#endif
+
+        rval.append(dir);
+    }
     else
         rval.append(name);
 
@@ -531,6 +540,11 @@ string flatten_script_name(const string& name, const string& prefix) {
 
     while ( (i = rval.find('/')) != string::npos )
         rval[i] = '.';
+
+#ifdef _MSC_VER
+    while ( (i = rval.find('\\')) != string::npos )
+        rval[i] = '.';
+#endif
 
     return rval;
 }

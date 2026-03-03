@@ -1,3 +1,13 @@
+8.1.1-5 | 2026-04-13 09:12:01 -0700
+
+  * Switch default check pragma for sqlite to quick_check (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit f8ae7aae6f50fbebc6199789e89cb0e23e9e283c)
+
+  * Move storage tests into directories based on backend (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit f8ae7aae6f50fbebc6199789e89cb0e23e9e283c)
+
 8.1.1-4 | 2026-04-13 09:11:01 -0700
 
   * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)

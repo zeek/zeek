@@ -1,3 +1,9 @@
+8.0.6-5 | 2026-03-25 13:56:55 +0100
+
+  * Switch default check pragma for sqlite to quick_check (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 233c42f44bbe8335f76b1c667f1a8bf699b06646)
+
 8.0.6-4 | 2026-03-25 13:55:43 +0100
 
   * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)

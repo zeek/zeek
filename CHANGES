@@ -1,3 +1,9 @@
+8.2.0-dev.239 | 2026-03-03 14:15:06 +0100
+
+  * ci/freebsd: Bump 13.5 to 15.0, keep 14.3 (Arne Welzel, Corelight)
+
+  * ci/freebsd/prepare.sh: Use latest over quarterly ABI to fix missing dnsmasq package (Arne Welzel, Corelight)
+
 8.2.0-dev.236 | 2026-03-03 09:44:31 +0100
 
   * GH-5221: spicy/protocol-analyzer: No analyzer violation for gaps (Arne Welzel, Corelight)

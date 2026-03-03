@@ -532,6 +532,19 @@ macos_sequoia_task:
   << : *MACOS_ENVIRONMENT
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
+freebsd15_task:
+  freebsd_instance:
+    # FreeBSD 15 EOL: Dec 29 2029
+    image_family: freebsd-15-0-amd64-zfs
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  << : *FREEBSD_ENVIRONMENT
+
+# FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
     # FreeBSD 14 EOL: Nov 30 2028
@@ -542,18 +555,6 @@ freebsd14_task:
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_SKIP_ALL
-  << : *FREEBSD_ENVIRONMENT
-
-freebsd13_task:
-  freebsd_instance:
-    # FreeBSD 13 EOL: January 31, 2026
-    image_family: freebsd-13-5
-    << : *FREEBSD_RESOURCES_TEMPLATE
-
-  prepare_script: ./ci/freebsd/prepare.sh
-  << : *CI_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_CI
   << : *FREEBSD_ENVIRONMENT
 
 asan_sanitizer_task:

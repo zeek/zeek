@@ -9,6 +9,7 @@ zeek_add_subdir_library(
     Component.cc
     Event.cc
     Manager.cc
+    PublishOnChange.cc
     Telemetry.cc
     BIFS
     cluster.bif)

@@ -6143,27 +6143,32 @@ export {
 module Cluster::Table;
 
 export {
-	option default_publish_on_change_max_batch_size = 100;
+	## Default maximum batch size for the &publish_on_change attribute.
+	option default_publish_on_change_max_batch_size = 10;
+
+	## Default maximum delay for the &publish_on_change attribute.
 	option default_publish_on_change_max_batch_delay = 10msec;
 
-	## The record type used for &publish_on_change modifications.
-	type PublishOnChangeParams: record {
+	## The record type used for &publish_on_change.
+	type PublishOnChangeAttr: record {
 		## Which changes to publish.
 		changes: set[TableChange];
 		topic: string &optional;
-		topic_func: function(xs: any): string &optional;
+		topic_func: function(va_args: any): string &optional;
 		max_batch_size: count &default=default_publish_on_change_max_batch_size;
 		max_batch_delay: interval &default=default_publish_on_change_max_batch_delay;
 	};
 
-	# Record encapsulating a generic table change for distribution in the cluster.
-	type Change: record {
-		## The change.
+	## Record encapsulating a table change for distribution to other Zeek processes.
+	type TableChangeInfo: record {
+		## The type of change.
 		change: TableChange;
+
 		## The key value. Internally tables and sets use ListVal
 		## instances, but for cluster communication we use vector
 		## of any.
 		key: vector of any;
+
 		## The initial value of the new element. If id resolves
 		## to a set, this field should conventionally be set to true.
 		value: any;
@@ -6172,6 +6177,8 @@ export {
 		## is :zeek:see:`TABLE_ELEMENT_CHANGED`.
 		previous_value: any &optional;
 	};
+
+	type TableChangeInfos: vector of TableChangeInfo;
 }
 
 

@@ -2,6 +2,7 @@
 @load ./main
 @load ./pools
 @load ./pubsub
+@load ./table
 @load ./telemetry
 @load ./types
 

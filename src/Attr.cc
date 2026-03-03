@@ -35,6 +35,7 @@ const char* attr_name(AttrTag t) {
 		"&type_column",
 		"(&tracked)",
 		"&on_change",
+		"&publish_on_change",
 		"&broker_store",
 		"&broker_allow_complex_type",
 		"&backend",
@@ -467,8 +468,8 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
         } break;
 
         case ATTR_PUBLISH_ON_CHANGE: {
-            if ( type->Tag() != TYPE_TABLE )
-                return AttrError("&on_change only applicable to sets/tables");
+            if ( ! global_var || type->Tag() != TYPE_TABLE )
+                return AttrError("&publish_on_change only applicable to global sets/tables");
         } break;
 
         case ATTR_BACKEND: {

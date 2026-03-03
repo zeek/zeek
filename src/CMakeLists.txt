@@ -363,7 +363,6 @@ set(MAIN_SRCS
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
-    PublishOnChange.cc
     RE.cc
     RandTest.cc
     Reassem.cc

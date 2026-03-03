@@ -34,7 +34,6 @@
 #include "zeek/Notifier.h"
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
-#include "zeek/PublishOnChange.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
@@ -43,6 +42,7 @@
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
+#include "zeek/cluster/PublishOnChange.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -1779,11 +1779,17 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
         broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
     }
 
-    auto poc_attr = attrs->Find(detail::ATTR_PUBLISH_ON_CHANGE);
-    auto val = poc_attr->GetExpr()->Eval(nullptr);
-    auto rval = zeek::cast_intrusive<zeek::RecordVal>(val);
-
-    publish_on_change = detail::PublishOnChangeState::FromRecord(*rval);
+    if ( auto poc_attr = attrs->Find(detail::ATTR_PUBLISH_ON_CHANGE); poc_attr ) {
+        if ( ! poc_attr->GetExpr()->IsError() ) {
+            auto val = eval_in_isolation(poc_attr->GetExpr());
+            if ( val ) {
+                auto rval = zeek::cast_intrusive<zeek::RecordVal>(val);
+                publish_on_change = detail::PublishOnChangeState::FromRecord(this, *rval);
+            }
+            else
+                poc_attr->GetExpr()->SetError("&publish_on_change argument eval failed");
+        }
+    }
 }
 
 void TableVal::CheckExpireAttr(detail::AttrTag at) {
@@ -1854,7 +1860,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
     Modified();
 
-    if ( change_func || (broker_forward && ! broker_store.empty()) ) {
+    if ( change_func || publish_on_change || (broker_forward && ! broker_store.empty()) ) {
         auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
         if ( broker_forward && ! broker_store.empty() )
@@ -1863,6 +1869,12 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
         if ( change_func ) {
             const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
             CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+        }
+
+        if ( publish_on_change ) {
+            detail::TableChange tc = old_entry_val ? detail::TableChange::Changed : detail::TableChange::New;
+            zeek::ValPtr previous_value = old_entry_val ? old_entry_val->GetVal() : nullptr;
+            publish_on_change->OnChange(tc, change_index, new_entry_val->GetVal(), previous_value);
         }
     }
 

@@ -59,7 +59,7 @@ class ValTrace;
 class ZBody;
 class CPPRuntime;
 
-// src/PublishOnChange.h
+// From src/PublishOnChange.h
 class PublishOnChangeState;
 
 } // namespace detail
@@ -1026,6 +1026,11 @@ public:
      * Re-enables change notifications after being disabled by DisableChangeNotifications.
      */
     void EnableChangeNotifications() { in_change_func = false; }
+
+    /**
+     * @return pointer to PublishOnChangeState if table is global and has a &publish_on_change attribute.
+     */
+    detail::PublishOnChangeState* GetPublishOnChangeState() const { return publish_on_change.get(); }
 
 protected:
     void Init(TableTypePtr t, bool ordered = false);

@@ -55,6 +55,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
+#include "zeek/cluster/PublishOnChange.h"
 #include "zeek/cluster/Telemetry.h"
 #include "zeek/conn_key/Manager.h"
 #include "zeek/file_analysis/Manager.h"
@@ -801,6 +802,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             exit(1);
 
         RecordType::InitPostScript();
+        PublishOnChangeState::InitPostScript();
         Connection::InitPostScript();
 
         conn_key_mgr->InitPostScript();

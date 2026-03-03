@@ -392,7 +392,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
  */
 static void sock_cb(void* data, ares_socket_t s, int read, int write) {
     auto mgr = reinterpret_cast<DNS_Mgr*>(data);
-    mgr->RegisterSocket((int)s, read == 1, write == 1);
+    mgr->RegisterSocket(static_cast<int>(s), read == 1, write == 1);
 }
 
 DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource(true), mode(arg_mode) { ares_library_init(ARES_LIB_INIT_ALL); }

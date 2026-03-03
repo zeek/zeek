@@ -247,7 +247,7 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
         out_cc->println("%s = %s;", env->LValue(val_var), default_case->value()->EvalExpr(out_cc, env));
     }
     else {
-        out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", (int64)%s);", Location(),
+        out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", static_cast<int64>(%s));", Location(),
                         operand_[0]->EvalExpr(out_cc, env));
     }
     out_cc->println("break;");

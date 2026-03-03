@@ -59,7 +59,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
     // Reply always starts with the MOUNT status.
     if ( rpc_success ) {
         if ( n >= 4 )
-            mount_status = (BifEnum::MOUNT3::status_t)extract_XDR_uint32(buf, n);
+            mount_status = static_cast<BifEnum::MOUNT3::status_t>(extract_XDR_uint32(buf, n));
         else
             mount_status = BifEnum::MOUNT3::MOUNT3ERR_UNKNOWN;
     }
@@ -120,8 +120,8 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
     if ( event ) {
         auto request = c->TakeRequestVal();
 
-        auto vl =
-            event_common_vl(c, rpc_status, mount_status, start_time, last_time, reply_len, (bool)request + (bool)reply);
+        auto vl = event_common_vl(c, rpc_status, mount_status, start_time, last_time, reply_len,
+                                  static_cast<bool>(request) + static_cast<bool>(reply));
 
         if ( request )
             vl.emplace_back(std::move(request));
@@ -169,7 +169,7 @@ Args MOUNT_Interp::event_common_vl(RPC_CallInfo* c, BifEnum::rpc_status rpc_stat
 }
 
 EnumValPtr MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n) {
-    BifEnum::MOUNT3::auth_flavor_t t = (BifEnum::MOUNT3::auth_flavor_t)extract_XDR_uint32(buf, n);
+    BifEnum::MOUNT3::auth_flavor_t t = static_cast<BifEnum::MOUNT3::auth_flavor_t>(extract_XDR_uint32(buf, n));
     auto rval = BifType::Enum::MOUNT3::auth_flavor_t->GetEnumVal(t);
     return rval;
 }

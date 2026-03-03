@@ -1,3 +1,13 @@
+8.2.0-dev.244 | 2026-03-03 18:31:49 +0000
+
+  * Fix potential UB in HashKey (Tim Wojtulewicz, Corelight)
+
+  * Fix a couple other clang-tidy warnings (Tim Wojtulewicz, Corelight)
+
+  * Fixing findings from new clang-tidy modernize-avoid-c-style-cast checker (Tim Wojtulewicz, Corelight)
+
+  * Fix c-style casts in binpac/bifcl, including generated code (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.239 | 2026-03-03 14:15:06 +0100
 
   * ci/freebsd: Bump 13.5 to 15.0, keep 14.3 (Arne Welzel, Corelight)

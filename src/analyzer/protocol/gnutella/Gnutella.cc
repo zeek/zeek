@@ -179,7 +179,8 @@ void Gnutella_Analyzer::SendEvents(detail::GnutellaMsgState* p, bool is_orig) {
         EnqueueConnEvent(gnutella_binary_msg, ConnVal(), val_mgr->Bool(is_orig), val_mgr->Count(p->msg_type),
                          val_mgr->Count(p->msg_ttl), val_mgr->Count(p->msg_hops), val_mgr->Count(p->msg_len),
                          make_intrusive<StringVal>(p->payload), val_mgr->Count(p->payload_len),
-                         val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+                         val_mgr->Bool(
+                             (p->payload_len < std::min(p->msg_len, static_cast<unsigned int>(GNUTELLA_MAX_PAYLOAD)))),
                          val_mgr->Bool((p->payload_left == 0)));
 }
 

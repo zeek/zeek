@@ -15,7 +15,7 @@ namespace zeek::probabilistic::detail {
 
 int CardinalityCounter::OptimalB(double error, double confidence) const {
     double initial_estimate = 2 * (log(1.04) - log(error)) / std::numbers::ln2;
-    int answer = (int)floor(initial_estimate);
+    int answer = static_cast<int>(floor(initial_estimate));
 
     // k is the number of standard deviations that we have to go to have
     // a confidence level of conf.
@@ -85,7 +85,7 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept {
 
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence) {
     int b = OptimalB(error_margin, confidence);
-    Init((uint64_t)pow(2, b));
+    Init(static_cast<uint64_t>(pow(2, b)));
 
     assert(b == p);
 }
@@ -141,13 +141,13 @@ double CardinalityCounter::Size() const {
         return -1.0;
 
     for ( unsigned int i = 0; i < m; i++ )
-        answer += pow(2, -((int)buckets[i]));
+        answer += pow(2, -(static_cast<int>(buckets[i])));
 
     answer = 1 / answer;
     answer = (alpha_m * m * m * answer);
 
-    if ( answer <= 5.0 * (((double)m) / 2) )
-        return m * log(((double)m) / V);
+    if ( answer <= 5.0 * ((static_cast<double>(m) / 2.0)) )
+        return m * log(static_cast<double>(m) / V);
 
     else if ( answer <= (pow(2, 64) / 30) )
         return answer;
@@ -265,7 +265,7 @@ int CardinalityCounter::flsll(uint64_t mask) {
     if ( mask == 0 )
         return (0);
     for ( bit = 1; mask != 1; bit++ )
-        mask = (uint64_t)mask >> 1;
+        mask = static_cast<uint64_t>(mask) >> 1;
     return (bit);
 }
 

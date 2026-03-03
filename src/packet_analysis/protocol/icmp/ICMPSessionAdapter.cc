@@ -42,11 +42,11 @@ void ICMPSessionAdapter::UpdateEndpointVal(RecordVal* endp, bool is_orig) {
 
     if ( size < 0 ) {
         endp->Assign(0, val_mgr->Count(0));
-        endp->Assign(1, val_mgr->Count(int(ICMP_INACTIVE)));
+        endp->Assign(1, val_mgr->Count(static_cast<int>(ICMP_INACTIVE)));
     }
     else {
         endp->Assign(0, val_mgr->Count(size));
-        endp->Assign(1, val_mgr->Count(int(ICMP_ACTIVE)));
+        endp->Assign(1, val_mgr->Count(static_cast<int>(ICMP_ACTIVE)));
     }
 }
 

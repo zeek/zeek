@@ -845,9 +845,9 @@ public:
 protected:
     const char* VecEvalRE(bool have_target) const override {
         if ( have_target )
-            return "$$$$ = ZVal(zeek_int_t($1))";
+            return "$$$$ = ZVal(static_cast<zeek_int_t>($1))";
         else
-            return "ZVal(zeek_int_t($&))";
+            return "ZVal(static_cast<zeek_int_t>($&))";
     }
 
     void Instantiate() override;

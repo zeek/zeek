@@ -242,7 +242,7 @@ bool DNS_Interpreter::ParseQuestion(detail::DNS_MsgInfo* msg, const u_char*& dat
     if ( ! name_end )
         return false;
 
-    if ( len < int(sizeof(short)) * 2 ) {
+    if ( len < static_cast<int>((sizeof(short))) * 2 ) {
         analyzer->Weird("DNS_truncated_quest_too_short");
         return false;
     }
@@ -290,7 +290,7 @@ bool DNS_Interpreter::ParseAnswerHeader(detail::DNS_MsgInfo* msg, const u_char*&
     if ( ! name_end )
         return false;
 
-    if ( len < int(sizeof(short)) * 2 ) {
+    if ( len < static_cast<int>((sizeof(short)) * 2) ) {
         analyzer->Weird("DNS_truncated_ans_too_short");
         return false;
     }
@@ -697,10 +697,10 @@ bool DNS_Interpreter::ParseRR_SOA(detail::DNS_MsgInfo* msg, const u_char*& data,
         r->Assign(0, new String(mname, mname_end - mname, true));
         r->Assign(1, new String(rname, rname_end - rname, true));
         r->Assign(2, serial);
-        r->AssignInterval(3, double(refresh));
-        r->AssignInterval(4, double(retry));
-        r->AssignInterval(5, double(expire));
-        r->AssignInterval(6, double(minimum));
+        r->AssignInterval(3, static_cast<double>(refresh));
+        r->AssignInterval(4, static_cast<double>(retry));
+        r->AssignInterval(5, static_cast<double>(expire));
+        r->AssignInterval(6, static_cast<double>(minimum));
 
         analyzer->EnqueueConnEvent(dns_SOA_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
                                    std::move(r));
@@ -1083,7 +1083,7 @@ bool DNS_Interpreter::ParseRR_TKEY(detail::DNS_MsgInfo* msg, const u_char*& data
 
     if ( dns_TKEY ) {
         detail::TKEY_DATA tkey;
-        tkey.alg_name = new String(alg_name, int(alg_name_end - alg_name), true);
+        tkey.alg_name = new String(alg_name, static_cast<int>(alg_name_end - alg_name), true);
         tkey.inception = inception;
         tkey.expiration = expiration;
         tkey.mode = mode;
@@ -1967,7 +1967,7 @@ RecordValPtr DNS_MsgInfo::BuildAnswerVal() {
     r->Assign(1, query_name);
     r->Assign(2, atype);
     r->Assign(3, aclass);
-    r->AssignInterval(4, double(ttl));
+    r->AssignInterval(4, static_cast<double>(ttl));
 
     return r;
 }
@@ -2001,7 +2001,7 @@ RecordValPtr DNS_MsgInfo::BuildEDNS_Val() {
     r->Assign(4, return_error);
     r->Assign(5, version);
     r->Assign(6, z);
-    r->AssignInterval(7, double(ttl));
+    r->AssignInterval(7, static_cast<double>(ttl));
     r->Assign(8, is_query);
 
     return r;
@@ -2069,7 +2069,7 @@ RecordValPtr DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig) {
     r->Assign(2, tsig->alg_name);
     r->Assign(3, tsig->sig);
     r->AssignTime(4, rtime);
-    r->AssignTime(5, double(tsig->fudge));
+    r->AssignTime(5, static_cast<double>(tsig->fudge));
     r->Assign(6, tsig->orig_id);
     r->Assign(7, tsig->rr_error);
     r->Assign(8, is_query);
@@ -2086,9 +2086,9 @@ RecordValPtr DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig) {
     r->Assign(2, rrsig->type_covered);
     r->Assign(3, rrsig->algorithm);
     r->Assign(4, rrsig->labels);
-    r->AssignInterval(5, double(rrsig->orig_ttl));
-    r->AssignTime(6, double(rrsig->sig_exp));
-    r->AssignTime(7, double(rrsig->sig_incep));
+    r->AssignInterval(5, static_cast<double>(rrsig->orig_ttl));
+    r->AssignTime(6, static_cast<double>(rrsig->sig_exp));
+    r->AssignTime(7, static_cast<double>(rrsig->sig_incep));
     r->Assign(8, rrsig->key_tag);
     r->Assign(9, rrsig->signer_name);
     r->Assign(10, rrsig->signature);
@@ -2254,7 +2254,7 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         if ( msg_buf ) {
             if ( buf_len < msg_size ) {
                 buf_len = msg_size;
-                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc((void*)msg_buf, buf_len));
+                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc(reinterpret_cast<void*>(msg_buf), buf_len));
             }
         }
         else {

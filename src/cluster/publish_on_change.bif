@@ -1,0 +1,16 @@
+%%{
+#include "zeek/Val.h"
+#include "zeek/Scope.h"
+#include "zeek/cluster/PublishOnChange.h"
+%%}
+
+module Cluster::Table;
+
+function apply_table_change_infos%(id: string, table_change_infos: TableChangeInfos%): bool
+	%{
+	ScriptLocationScope scope{frame};
+	const auto& idptr = zeek::detail::global_scope()->Find(id->ToStdStringView());
+
+	std::fprintf(stderr, "apply todo %p!\n", idptr.get());
+	return zeek::val_mgr->True();
+	%}

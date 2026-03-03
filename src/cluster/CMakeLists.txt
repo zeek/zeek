@@ -12,9 +12,9 @@ zeek_add_subdir_library(
     PublishOnChange.cc
     Telemetry.cc
     BIFS
-    cluster.bif)
+    cluster.bif
+    publish_on_change.bif)
 
 add_subdirectory(backend)
 add_subdirectory(serializer)
-add_subdirectory(table)
 add_subdirectory(websocket)

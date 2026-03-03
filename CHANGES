@@ -1,3 +1,7 @@
+8.2.0-dev.234 | 2026-03-02 18:41:09 -0700
+
+  * Update commit hash for zeek-testing-private (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.232 | 2026-03-02 17:43:51 -0700
 
   * Adapt zeek-cut btests to running from zeek repo (Tim Wojtulewicz, Corelight)

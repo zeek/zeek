@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
 # A bunch of tests for the unification of global initializations and

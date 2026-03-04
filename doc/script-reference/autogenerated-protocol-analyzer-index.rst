@@ -367,6 +367,8 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SPICY_WEBSOCKET AllAnalyzers::Tag
 
+      .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_IGMP AllAnalyzers::Tag
+
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SSH AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_DTLS AllAnalyzers::Tag
@@ -16648,136 +16650,6 @@ Events
 
 
    :param code: The response code for the attempted login.
-
-.. _plugin-zeek-spicy:
-
-Zeek::Spicy
------------
-
-Support for Spicy parsers (.hlto)
-
-Types
-+++++
-
-.. zeek:type:: Redis::RedisCommand
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: Redis::RedisCommand_APPEND Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_AUTH Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITCOUNT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITFIELD Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITFIELD_RO Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITPOS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BLMPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BLPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BRPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_CLIENT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_COPY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DECR Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DECRBY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DUMP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXISTS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIRE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIREAT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIRETIME Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETBIT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETDEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETEX Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETRANGE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HDEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HELLO Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HGET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_INCR Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_INCRBY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_KEYS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MGET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MOVE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PERSIST Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PUNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_QUIT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_RENAME Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_RESET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_STRLEN Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SUNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_TTL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_TYPE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_UNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_Undef Redis::RedisCommand
-
-
-.. zeek:type:: Redis::ReplyType
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: Redis::ReplyType_Reply Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Error Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Push Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Undef Redis::ReplyType
-
 
 .. _plugin-zeek-ssh:
 

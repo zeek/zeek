@@ -124,10 +124,10 @@ void NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len, bool is
 void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len, bool is_query) {
     NetbiosSSN_RawMsgHdr hdr(data, len);
 
-    if ( hdr.length > unsigned(len) )
+    if ( hdr.length > static_cast<unsigned>(len) )
         analyzer->Weird("excess_netbios_hdr_len", util::fmt("(%d > %d)", hdr.length, len));
 
-    else if ( hdr.length < unsigned(len) ) {
+    else if ( hdr.length < static_cast<unsigned>(len) ) {
         analyzer->Weird("deficit_netbios_hdr_len");
         len = hdr.length;
     }
@@ -138,10 +138,10 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len, bool i
 void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool is_query) {
     NetbiosDGM_RawMsgHdr hdr(data, len);
 
-    if ( unsigned(hdr.length - 14) > unsigned(len) )
+    if ( static_cast<unsigned>(hdr.length - 14) > static_cast<unsigned>(len) )
         analyzer->Weird("excess_netbios_hdr_len", util::fmt("(%d > %d)", hdr.length, len));
 
-    else if ( hdr.length < unsigned(len) ) {
+    else if ( hdr.length < static_cast<unsigned>(len) ) {
         analyzer->Weird("deficit_netbios_hdr_len", util::fmt("(%d < %d)", hdr.length, len));
         len = hdr.length;
     }

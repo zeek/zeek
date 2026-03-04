@@ -30,7 +30,7 @@ constexpr uint8_t count_table[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 
 
 } // namespace
 
-BitVector::Reference::Reference(block_type& block, block_type i) : block(block), mask((block_type(1) << i)) {
+BitVector::Reference::Reference(block_type& block, block_type i) : block(block), mask(static_cast<block_type>(1) << i) {
     assert(i < bits_per_block);
 }
 
@@ -91,7 +91,8 @@ BitVector::Reference& BitVector::Reference::operator-=(bool x) {
 
 BitVector::BitVector() { num_bits = 0; }
 
-BitVector::BitVector(size_type size, bool value) : bits(bits_to_blocks(size), value ? ~block_type(0) : 0) {
+BitVector::BitVector(size_type size, bool value)
+    : bits(bits_to_blocks(size), value ? ~(static_cast<block_type>(0)) : 0) {
     num_bits = size;
 }
 
@@ -145,7 +146,7 @@ BitVector& BitVector::operator<<=(size_type n) {
             b[div] = b[0];
         }
 
-        std::fill_n(b, div, block_type(0));
+        std::fill_n(b, div, static_cast<block_type>(0));
         zero_unused_bits();
     }
 
@@ -177,7 +178,7 @@ BitVector& BitVector::operator>>=(size_type n) {
                 b[i - div] = b[i];
         }
 
-        std::fill_n(b + (Blocks() - div), div, block_type(0));
+        std::fill_n(b + (Blocks() - div), div, static_cast<block_type>(0));
     }
 
     return *this;
@@ -262,7 +263,7 @@ bool operator<(BitVector const& x, BitVector const& y) {
 void BitVector::Resize(size_type n, bool value) {
     size_type old = Blocks();
     size_type required = bits_to_blocks(n);
-    block_type block_value = value ? ~block_type(0) : block_type(0);
+    block_type block_value = value ? ~static_cast<block_type>(0) : static_cast<block_type>(0);
 
     if ( required != old )
         bits.resize(required, block_value);
@@ -313,7 +314,7 @@ BitVector& BitVector::Set(size_type i, bool bit) {
 }
 
 BitVector& BitVector::Set() {
-    std::ranges::fill(bits, ~block_type(0));
+    std::ranges::fill(bits, ~static_cast<block_type>(0));
     zero_unused_bits();
     return *this;
 }
@@ -325,7 +326,7 @@ BitVector& BitVector::Reset(size_type i) {
 }
 
 BitVector& BitVector::Reset() {
-    std::ranges::fill(bits, block_type(0));
+    std::ranges::fill(bits, static_cast<block_type>(0));
     return *this;
 }
 
@@ -397,7 +398,7 @@ BitVector::size_type BitVector::FindNext(size_type i) const {
 
     ++i;
     size_type bi = block_index(i);
-    block_type block = bits[bi] & (~block_type(0) << bit_index(i));
+    block_type block = bits[bi] & (~static_cast<block_type>(0) << bit_index(i));
     return block ? bi * bits_per_block + lowest_bit(block) : find_from(bi + 1);
 }
 
@@ -470,7 +471,7 @@ BitVector::block_type BitVector::extra_bits() const { return bit_index(Size()); 
 
 void BitVector::zero_unused_bits() {
     if ( extra_bits() )
-        bits.back() &= ~(~block_type(0) << extra_bits());
+        bits.back() &= ~(~static_cast<block_type>(0) << extra_bits());
 }
 
 BitVector::size_type BitVector::find_from(size_type i) const {

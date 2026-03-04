@@ -825,7 +825,7 @@ void POP3_Analyzer::POP3Event(const EventHandlerPtr& event, bool is_orig, const 
         return;
 
     Args vl;
-    vl.reserve(2 + (bool)arg1 + (bool)arg2);
+    vl.reserve(2 + static_cast<bool>(arg1) + static_cast<bool>(arg2));
 
     vl.emplace_back(ConnVal());
     vl.emplace_back(val_mgr->Bool(is_orig));

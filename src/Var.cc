@@ -172,7 +172,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init, std:
 
     if ( id->GetType() && ! id->IsBlank() ) {
         if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) ) {
-            Obj* redef_obj = init ? (Obj*)init.get() : (Obj*)t.get();
+            Obj* redef_obj = init ? reinterpret_cast<Obj*>(init.get()) : reinterpret_cast<Obj*>(t.get());
             if ( dt != VAR_REDEF )
                 id->Warn("redefinition requires \"redef\"", redef_obj, true);
         }

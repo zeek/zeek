@@ -272,7 +272,7 @@ DFA_State* DFA_State_Cache::Lookup(const NFA_state_list& nfas, DigestStr* digest
         if ( n->TransSym() != SYM_EPSILON || n->Accept() != NO_ACCEPT ) {
             int id = n->ID();
             do {
-                *p++ = '0' + (char)(id % 10);
+                *p++ = '0' + static_cast<char>(id % 10);
                 id /= 10;
             } while ( id > 0 );
             *p++ = '&';

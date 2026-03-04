@@ -33,7 +33,7 @@ Type::TypeAliasMap Type::type_aliases;
 
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t) {
-    static constexpr const char* type_names[int(NUM_TYPES)] = {
+    static constexpr const char* type_names[static_cast<int>(NUM_TYPES)] = {
         "void",     // 0
         "bool",     // 1
         "int",      // 2
@@ -59,10 +59,10 @@ const char* type_name(TypeTag t) {
         "error",    // 22
     };
 
-    if ( int(t) >= NUM_TYPES )
+    if ( static_cast<int>(t) >= NUM_TYPES )
         return "type_name(): not a type tag";
 
-    return type_names[int(t)];
+    return type_names[static_cast<int>(t)];
 }
 
 Type::Type(TypeTag t, bool arg_base_type)
@@ -227,7 +227,7 @@ void Type::Describe(ODesc* d) const {
 
 void Type::DoDescribe(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
     else {
         TypeTag t = Tag();
         if ( IsSet() )
@@ -283,7 +283,7 @@ void TypeList::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("list of");
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         d->Add(IsPure());
         if ( IsPure() )
             pure_type->Describe(d);
@@ -733,7 +733,7 @@ void FuncType::DoDescribe(ODesc* d) const {
         }
     }
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         d->Add(flavor);
         d->Add(yield != nullptr);
         args->DescribeFields(d, true);
@@ -1219,7 +1219,7 @@ void RecordType::DoDescribe(ODesc* d) const {
     }
 
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         DescribeFields(d);
     }
 
@@ -1549,7 +1549,7 @@ void FileType::DoDescribe(ODesc* d) const {
         yield->Describe(d);
     }
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         yield->Describe(d);
     }
 }
@@ -1571,7 +1571,7 @@ void OpaqueType::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("opaque of");
     else
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
 
     d->Add(name.c_str());
 }
@@ -1745,7 +1745,7 @@ void EnumType::DoDescribe(ODesc* d) const {
     auto t = Tag();
 
     if ( d->IsBinary() ) {
-        d->Add(int(t));
+        d->Add(static_cast<int>(t));
         if ( ! d->IsShort() )
             d->Add(GetName());
     }
@@ -1862,7 +1862,7 @@ void VectorType::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("vector of");
     else
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
 
     yield_type->Describe(d);
 }

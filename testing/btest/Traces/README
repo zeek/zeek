@@ -81,3 +81,6 @@ Trace Index/Sources:
 - ldap/modify-request.pcapng
   Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
   for #5235. PCAP contains an LDAP connection with a ModifyRequest.
+- ldap/gap-data-missing.pcapng
+  Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
+  for #5221. It's just an LDAP connection that contains a gap.

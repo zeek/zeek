@@ -2,5 +2,5 @@
 *.pac linguist-detectable=false
 *.bif linguist-language=C++
 *.l linguist-language=Lex
-testing/btest/Baseline/** linguist-detectable=false -text
+testing/btest/Baseline/** linguist-detectable=false
 testing/btest/language/crlf-parsing.zeek text eol=crlf

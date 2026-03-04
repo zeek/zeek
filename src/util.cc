@@ -525,12 +525,6 @@ string flatten_script_name(const string& name, const string& prefix) {
     if ( is_package_loader(name) ) {
         string dir = SafeDirname(name).result;
 
-#ifdef _MSC_VER
-        // Windows dirname() may leave a trailing separator.
-        while ( ! dir.empty() && (dir.back() == '/' || dir.back() == '\\') )
-            dir.pop_back();
-#endif
-
         rval.append(dir);
     }
     else

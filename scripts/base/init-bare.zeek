@@ -6140,6 +6140,7 @@ export {
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
 
 }
+
 module Cluster::Table;
 
 export {
@@ -6154,7 +6155,7 @@ export {
 		## Which changes to publish.
 		changes: set[TableChange];
 		topic: string &optional;
-		topic_func: function(va_args: any): string &optional;
+		topic_func: any &optional;
 		max_batch_size: count &default=default_publish_on_change_max_batch_size;
 		max_batch_delay: interval &default=default_publish_on_change_max_batch_delay;
 	};
@@ -6164,23 +6165,37 @@ export {
 		## The type of change.
 		change: TableChange;
 
-		## The key value. Internally tables and sets use ListVal
+		## The network time of this change.
+		ts: time;
+
+		## The index value. Internally tables and sets use ListVal
 		## instances, but for cluster communication we use vector
 		## of any.
-		key: vector of any;
+		index: vector of any;
 
 		## The initial value of the new element. If id resolves
-		## to a set, this field should conventionally be set to true.
-		value: any;
+		## to a set, this field should not be set.
+		value: any &optional;
 
 		## The previous value in the table when the change field
 		## is :zeek:see:`TABLE_ELEMENT_CHANGED`.
 		previous_value: any &optional;
 	};
 
+	## Vector of individual TableChange instances.
 	type TableChangeInfos: vector of TableChangeInfo;
-}
 
+	## Internal'ish event for propagating table changes via publish/subscribe.
+	##
+	## id: script-layer identifier for the table as a string
+	## ts: network time of publish of this event for symmetry with ts within TableChangeInfo records.
+	## table_change_infos: Accumulated changes as a vector.
+	global table_change_infos_internal: event(id: string, ts: time, table_change_infos: TableChangeInfos);
+
+	## A hook for testing and intercepting changes to tables coming in
+	## via the &publish_on_change mechanism from other nodes.
+	global apply_table_change_infos_policy: hook(id: string, ts: time, table_change_infos: TableChangeInfos);
+}
 
 module Weird;
 

@@ -1718,6 +1718,20 @@ TableVal::~TableVal() {
 }
 
 void TableVal::RemoveAll() {
+    // Forward RemoveAll() as individual changes. The user should be aware that
+    // if they call clear_table() on a table with a million or so entries, that'll
+    // probably overload something... For small testing with clear_table() it's nice
+    // if this works though.
+    //
+    // Broker backed tables were never hooked up, apparently.
+    if ( publish_on_change ) {
+        for ( const auto& k : *table_val ) {
+            const auto index = RecreateIndex(*k.GetHashKey());
+            publish_on_change->OnChange(detail::TableChangeBits::Removed, *index, k.value->GetVal(),
+                                        /*previous_value=*/nullptr);
+        }
+    }
+
     delete expire_iterator;
     expire_iterator = nullptr;
     // Here we take the brute force approach.
@@ -1872,9 +1886,10 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
         }
 
         if ( publish_on_change ) {
-            detail::TableChange tc = old_entry_val ? detail::TableChange::Changed : detail::TableChange::New;
+            detail::TableChangeBits tc =
+                old_entry_val ? detail::TableChangeBits::Changed : detail::TableChangeBits::New;
             zeek::ValPtr previous_value = old_entry_val ? old_entry_val->GetVal() : nullptr;
-            publish_on_change->OnChange(tc, change_index, new_entry_val->GetVal(), previous_value);
+            publish_on_change->OnChange(tc, *change_index, new_entry_val->GetVal(), previous_value);
         }
     }
 
@@ -2419,6 +2434,19 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
         // this is totally cheating around the fact that we need a Intrusive pointer.
         ValPtr changefunc_val = RecreateIndex(*(k.get()));
         CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
+    }
+
+    if ( publish_on_change ) {
+        // This is a bit strange. The code above sets va to {NewRef{}, this}
+        // when the TableEntryVal didn't have a value. But this doesn't make
+        // a lot of sense.
+        auto va2 = va;
+        if ( GetType()->IsSet() ) {
+            assert(va.get() == this);
+            va2 = nullptr;
+        }
+
+        publish_on_change->OnChange(detail::TableChangeBits::Removed, index, va2, /*previous_value=*/nullptr);
     }
 
     return va;

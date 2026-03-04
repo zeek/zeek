@@ -1,16 +1,33 @@
 %%{
-#include "zeek/Val.h"
+#include "zeek/Reporter.h"
 #include "zeek/Scope.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/PublishOnChange.h"
 %%}
 
 module Cluster::Table;
 
-function apply_table_change_infos%(id: string, table_change_infos: TableChangeInfos%): bool
+function apply_table_change_infos%(id: string, ts: time, table_change_infos: TableChangeInfos%): bool
 	%{
 	ScriptLocationScope scope{frame};
 	const auto& idptr = zeek::detail::global_scope()->Find(id->ToStdStringView());
 
-	std::fprintf(stderr, "apply todo %p!\n", idptr.get());
+	const auto& val = idptr->GetVal();
+
+	if ( val->GetType()->Tag() != TYPE_TABLE ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s not a table!", id->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
+
+	auto tval = zeek::cast_intrusive<zeek::TableVal>(val);
+	auto* poc_state = tval->GetPublishOnChangeState();
+	if ( ! poc_state ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
+		                        id->ToStdString().c_str(), tval.get());
+		return zeek::val_mgr->False();
+	}
+
+	poc_state->ApplyChanges(ts, *table_change_infos->AsVectorVal());
+
 	return zeek::val_mgr->True();
 	%}

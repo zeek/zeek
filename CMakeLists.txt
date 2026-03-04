@@ -421,6 +421,11 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
     ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
 
+if (MSVC)
+    add_zeek_dynamic_plugin_build_interface_include_directories(
+        ${PROJECT_SOURCE_DIR}/auxil/libunistd/unistd)
+endif ()
+
 target_include_directories(
     zeek_dynamic_plugin_base SYSTEM
     INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)
@@ -884,7 +889,8 @@ endif ()
 # variable survives CMake re-runs. Note: This variable is picked up in
 # ZeekPluginConfig.cmake.in.
 if (DEFINED ENV{PKG_CONFIG_PATH})
-    set(ZeekPkgConfigPath "$ENV{PKG_CONFIG_PATH}" CACHE INTERNAL "" FORCE)
+    file(TO_CMAKE_PATH "$ENV{PKG_CONFIG_PATH}" _zeek_pkg_config_path)
+    set(ZeekPkgConfigPath "${_zeek_pkg_config_path}" CACHE INTERNAL "" FORCE)
 endif ()
 
 # Installation directory for the distribution's Python modules. An override via

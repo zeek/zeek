@@ -1,3 +1,11 @@
+8.2.0-dev.250 | 2026-03-04 10:13:15 -0700
+
+  * Spicy: Fix event parameter mismatches due to too aggressive optimizations. (Robin Sommer, Corelight)
+
+    We now declare units as exported not only when they are passed
+    directly as event parameters, but also if they are nested into other
+    aggregates (e.g., a vector of units).
+
 8.2.0-dev.247 | 2026-03-03 13:19:14 -0700
 
   * Switch default check pragma for sqlite to quick_check (Tim Wojtulewicz, Corelight)

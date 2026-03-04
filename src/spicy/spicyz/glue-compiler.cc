@@ -1702,8 +1702,55 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
 
 namespace {
 
-// Collects all unit and struct types that are passed to Zeek through calls to
-// `to_val()`.
+// Helper for main collector that unpacks aggregate types (maps, sets, vectors,
+// tuples) to find any unit and struct types that need to be exported. When
+// finding a unit/struct, this visitor stops there and doesn't further unpack
+// its fields because we will later use HILTI's already computed type
+// dependency information to determine all the types that any units/structs we
+// find here depend on. Doing it this way keeps the logic simpler (cycles!) and
+// aligned with HILTI.
+struct VisitorExportsCollectUnpackTypes : public spicy::visitor::PreOrder {
+    VisitorExportsCollectUnpackTypes(
+        hilti::declaration::Module* current_module,
+        std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>>* exports)
+        : current_module(current_module), exports(exports) {}
+
+    hilti::declaration::Module* current_module;
+    std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>>* exports;
+
+    void operator()(hilti::type::Map* t) final {
+        dispatch(t->keyType());
+        dispatch(t->valueType());
+    }
+
+    void operator()(hilti::type::Optional* t) final { dispatch(t->dereferencedType()); }
+
+    void operator()(hilti::QualifiedType* t) final { dispatch(t->type()); }
+
+    void operator()(hilti::type::Set* t) final { dispatch(t->elementType()); }
+
+    void operator()(hilti::type::Struct* t) final {
+        auto* decl = t->typeDeclaration();
+        assert(decl);
+        exports->emplace_back(current_module, decl);
+    }
+
+    void operator()(hilti::type::Tuple* t) final {
+        for ( const auto& e : t->elements() )
+            dispatch(e->type());
+    }
+
+    void operator()(::spicy::type::Unit* t) final {
+        auto* decl = t->typeDeclaration();
+        assert(decl);
+        exports->emplace_back(current_module, decl);
+    }
+
+    void operator()(hilti::type::Vector* t) final { dispatch(t->elementType()); }
+};
+
+// Main collector visitor that collects all unit and struct types that are
+// passed to Zeek through calls to `to_val()`.
 struct VisitorExportsCollect : public spicy::visitor::PreOrder {
     hilti::declaration::Module* current_module = nullptr;
     std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>> exports;
@@ -1723,12 +1770,7 @@ struct VisitorExportsCollect : public spicy::visitor::PreOrder {
                                        ->type()
                                        ->type();
             assert(arg_type->isResolved());
-
-            if ( arg_type->isA<::spicy::type::Unit>() || arg_type->isA<hilti::type::Struct>() ) {
-                auto* decl = arg_type->typeDeclaration();
-                assert(decl);
-                exports.emplace_back(current_module, decl);
-            }
+            VisitorExportsCollectUnpackTypes(current_module, &exports).dispatch(arg_type);
         }
     }
 };

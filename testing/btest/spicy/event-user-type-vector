@@ -1,0 +1,43 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d foo.spicy foo.evt -o foo.hlto
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto foo.zeek >output 2>&1
+# @TEST-EXEC: btest-diff output
+#
+# @TEST-DOC: Regression test for a special case of types being sent to Zeek where we pass a vector of a user-defined type that contains a field that's never read; this ensure that field doesn't get optimized out
+
+# @TEST-START-FILE foo.spicy
+module foo;
+
+global n: uint64 = 0;
+
+public type X = unit {
+    y: Y[];
+};
+
+type Y = unit {
+    i: uint8;
+};
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+protocol analyzer spicy::foo over UDP:
+    parse with foo::X,
+    ports { 31337/udp };
+
+import foo;
+
+export foo::X;
+export foo::Y;
+
+on foo::X -> event foo::x(self.y);
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.zeek
+module foo;
+
+event foo::x(y: vector of Y)
+{
+	print y;
+}
+# @TEST-END-FILE

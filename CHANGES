@@ -1,3 +1,11 @@
+8.2.0-dev.254 | 2026-03-04 13:04:54 -0700
+
+  * fix for global initializations when compiling to standalone C++ (Vern Paxson, Corelight)
+
+  * fix for -O gen-standalone-C++ initializations of patterns (Vern Paxson, Corelight)
+
+  * fix for -O gen-standalone-C++ tracking lambdas instantiated during initialization (Vern Paxson, Corelight)
+
 8.2.0-dev.250 | 2026-03-04 10:13:15 -0700
 
   * Spicy: Fix event parameter mismatches due to too aggressive optimizations. (Robin Sommer, Corelight)

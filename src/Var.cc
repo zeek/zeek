@@ -112,24 +112,24 @@ static ExprPtr initialize_var(const IDPtr& id, InitClass c, ExprPtr init) {
             if ( ! IsAggr(t) )
                 return nullptr;
 
-            ValPtr init_val;
+            auto empty_list = make_intrusive<ListExpr>();
 
             if ( t->Tag() == TYPE_RECORD ) {
-                try {
-                    init_val = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t));
-                } catch ( InterpreterException& ) {
-                    id->Error("initialization failed");
-                    return nullptr;
-                }
+                auto rt = cast_intrusive<RecordType>(t);
+                init = make_intrusive<RecordConstructorExpr>(rt, empty_list, false);
             }
 
-            else if ( t->Tag() == TYPE_TABLE )
-                init_val = make_intrusive<TableVal>(cast_intrusive<TableType>(t), id->GetAttrs());
+            else if ( t->Tag() == TYPE_TABLE ) {
+                auto tt = cast_intrusive<TableType>(t);
+                if ( tt->Yield() )
+                    init = make_intrusive<TableConstructorExpr>(empty_list, nullptr, tt, id->GetAttrs());
+                else
+                    init = make_intrusive<SetConstructorExpr>(empty_list, nullptr, tt, id->GetAttrs());
+            }
 
             else if ( t->Tag() == TYPE_VECTOR )
-                init_val = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
+                init = make_intrusive<VectorConstructorExpr>(empty_list);
 
-            init = make_intrusive<ConstExpr>(init_val);
             c = INIT_FULL;
         }
 

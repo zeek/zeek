@@ -1,3 +1,17 @@
+8.2.0-dev.256 | 2026-03-04 13:05:20 -0700
+
+  * Avoid integer overflow (Benjamin Bannier, Corelight)
+
+    In 76044ce860 we replaced many C-style casts with proper ones. In the
+    review I suggested to rewrite one expression "for readability" so more
+    of a computation would be performed in `int` and only casted to
+    `uint32_t` later. I missed that that would introduce a potential bug
+    since signed integer overflow is UB while unsigned overflow (liked used
+    previously) is well-defined.
+
+    This patch reverts the expression to the previous types, but now using
+    proper casts.
+
 8.2.0-dev.254 | 2026-03-04 13:04:54 -0700
 
   * fix for global initializations when compiling to standalone C++ (Vern Paxson, Corelight)

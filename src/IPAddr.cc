@@ -26,7 +26,7 @@ static inline uint32_t bit_mask32(int bottom_bits) {
     if ( bottom_bits >= 32 )
         return 0xffffffff;
 
-    return static_cast<uint32_t>((1 << bottom_bits) - 1);
+    return ((static_cast<uint32_t>(1)) << bottom_bits) - 1;
 }
 
 void IPAddr::Mask(int top_bits_to_keep) {

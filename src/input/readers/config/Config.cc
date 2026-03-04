@@ -12,6 +12,10 @@
 #include <cerrno>
 #include <unordered_set>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "zeek/Desc.h"
 #include "zeek/input/Manager.h"
 #include "zeek/input/readers/config/config.bif.h"
@@ -115,9 +119,30 @@ bool Config::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            if ( sb.st_ino == ino && sb.st_mtime == mtime )
+            uint64_t current_ino = sb.st_ino;
+#ifdef _WIN32
+            // On Windows, stat().st_ino is always 0. Use the NTFS file
+            // index as a reliable replacement for inode-based change detection.
+            {
+                HANDLE h =
+                    CreateFileA(Info().source, FILE_READ_ATTRIBUTES,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+                if ( h != INVALID_HANDLE_VALUE ) {
+                    BY_HANDLE_FILE_INFORMATION fi;
+                    if ( GetFileInformationByHandle(h, &fi) )
+                        current_ino = (static_cast<uint64_t>(fi.nFileIndexHigh) << 32) | fi.nFileIndexLow;
+                    CloseHandle(h);
+                }
+            }
+#endif
+
+            if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
+#ifdef _WIN32
+                file.close();
+#endif
                 return true;
+            }
 
             // Warn again in case of trouble if the file changes. The comparison to 0
             // is to suppress an extra warning that we'd otherwise get on the initial
@@ -126,7 +151,7 @@ bool Config::DoUpdate() {
                 StopWarningSuppression();
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = current_ino;
             // File changed. Fall through to re-read.
         }
 
@@ -265,6 +290,14 @@ bool Config::DoUpdate() {
     // clean up all options we did not see
     for ( const auto& i : unseen_options )
         option_values.erase(i);
+
+#ifdef _WIN32
+    // Close the file between reads in MODE_REREAD so that the file handle
+    // is not held across heartbeats. On Windows, an open handle prevents
+    // external file replacement (e.g. mv) from succeeding.
+    if ( Info().mode == MODE_REREAD )
+        file.close();
+#endif
 
     return true;
 }

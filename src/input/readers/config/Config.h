@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <fstream>
 #include <unordered_map>
 
@@ -39,7 +40,7 @@ private:
 
     std::ifstream file;
     time_t mtime;
-    ino_t ino;
+    uint64_t ino;
 
     bool fail_on_file_problem;
 

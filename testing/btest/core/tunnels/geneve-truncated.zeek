@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -Cr $TRACES/tunnels/geneve-truncated.pcap %INPUT
+# @TEST-EXEC: zeek -b -Cr $TRACES/tunnels/geneve-truncated.pcapng %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: test ! -e tunnel.log

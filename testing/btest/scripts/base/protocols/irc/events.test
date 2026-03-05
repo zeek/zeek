@@ -1,12 +1,12 @@
 # Test IRC events
 
-# @TEST-EXEC: echo "-------------- irc-dcc-send.pcap --------------" > output
-# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.pcap %INPUT >> output
-# @TEST-EXEC: echo "------------- irc-basic-send.pcap -------------" >> output
+# @TEST-EXEC: echo "-------------- irc-dcc-send.pcapng --------------" > output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.pcapng %INPUT >> output
+# @TEST-EXEC: echo "---------------- irc-basic.pcap -----------------" >> output
 # @TEST-EXEC: zeek -b -r $TRACES/irc-basic.pcap %INPUT >> output
-# @TEST-EXEC: echo "---------- irc-whitespace-send.pcap -----------" >> output
+# @TEST-EXEC: echo "------------- irc-whitespace.pcap ---------------" >> output
 # @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.pcap %INPUT >> output
-# @TEST-EXEC: echo "----------- irc-more-commands.pcap ------------" >> output
+# @TEST-EXEC: echo "------------ irc-more-commands.pcap -------------" >> output
 # @TEST-EXEC: zeek -C -b -r $TRACES/irc-more-commands.pcap %INPUT >> output
 # @TEST-EXEC: btest-diff output
 

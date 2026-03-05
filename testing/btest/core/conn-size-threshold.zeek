@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.pcapng %INPUT
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 

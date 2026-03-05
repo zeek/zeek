@@ -83,7 +83,7 @@ int* Base64Converter::InitBase64Table(const std::string& alphabet) {
     return base64_table;
 }
 
-Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet) {
+Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_alphabet, bool silent) {
     if ( ! arg_alphabet.empty() ) {
         assert(arg_alphabet.size() == 64);
         alphabet = arg_alphabet;
@@ -97,6 +97,7 @@ Base64Converter::Base64Converter(Connection* arg_conn, const std::string& arg_al
     base64_padding = base64_after_padding = 0;
     errored = 0;
     conn = arg_conn;
+    this->silent = silent;
 }
 
 Base64Converter::~Base64Converter() {
@@ -203,7 +204,8 @@ int Base64Converter::Done(int* pblen, char** pbuf) {
 }
 
 void Base64Converter::IllegalEncoding(const char* msg) {
-    // strncpy(error_msg, msg, sizeof(error_msg));
+    if ( silent )
+        return;
     if ( conn )
         conn->Weird("base64_illegal_encoding", msg);
     else
@@ -251,6 +253,22 @@ String* encode_base64(const String* s, const String* a, Connection* conn) {
     enc.Encode(s->Len(), static_cast<const unsigned char*>(s->Bytes()), &outlen, &outbuf);
 
     return new String(true, reinterpret_cast<u_char*>(outbuf), outlen);
+}
+
+bool is_valid_base64(const String* s, const String* a) {
+    if ( a && a->Len() != 0 && a->Len() != 64 )
+        return false;
+
+    int buf_len = static_cast<int>((s->Len() + 3) / 4) * 3 + 1;
+    int rlen = buf_len;
+    char* rbuf = new char[rlen];
+
+    Base64Converter dec(nullptr, a && a->Len() ? a->CheckString() : "", true);
+    dec.Decode(s->Len(), reinterpret_cast<const char*>(s->Bytes()), &rlen, &rbuf);
+
+    bool ok = !dec.Errored();
+    delete[] rbuf;
+    return ok;
 }
 
 } // namespace zeek::detail

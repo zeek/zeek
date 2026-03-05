@@ -53,9 +53,16 @@ class PublishOnChangeState {
 public:
     /**
      * Constructor.
+     *
+     * @param tv The associated table value
+     * @param change_mask Bitmask of changes to publish.
+     * @param topic Optional static topic
+     * @param topic_func A Zeek script function to dynamically determine the topic.
+     * @param max_batch_size
+     * @param max_batch_delay
      */
     PublishOnChangeState(TableVal* tv, uint8_t change_mask, std::optional<std::string> topic, FuncPtr topic_func,
-                         size_t max_batch_size, double max_batch_delay, EventHandlerPtr eh);
+                         size_t max_batch_size, double max_batch_delay);
 
     /**
      * Destructor.
@@ -168,6 +175,13 @@ public:
      */
     static void InitPostScript();
 
+    /**
+     * Called from a BiF to use the forward_table_change_infos() event instead
+     * of directly publishing. Needed for Broker.
+     *
+     * @param topic The topic to send the forwarding events to, usually Cluster::manager_topic.
+     */
+    static void SetForwardTableChangeInfosTopic(std::string topic);
 
 private:
     detail::Timer* ArmPublishTimer(double now);
@@ -201,7 +215,9 @@ private:
     double last_publish_ts = 0.0;                       // Timestamp of last publish.
     Timer* timer = nullptr;                             // Timer to flush any queued changes.
 
-    EventHandlerPtr event_handler; // event(id: string, ts: time: changes: vector of TableChangeInfo)
+    static EventHandlerPtr eh_table_change_infos; // event(id: string, ts: time: changes: vector of TableChangeInfo)
+    static EventHandlerPtr eh_forward_table_change_infos; // event(..., to: string)
+    static std::optional<std::string> forward_topic;      // static topic to forward changes to instead of using topic.
 };
 
 } // namespace detail

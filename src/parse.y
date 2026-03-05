@@ -1755,7 +1755,7 @@ attr:
 			{ $$ = new Attr(ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_PUBLISH_ON_CHANGE '=' '[' field_assigns expr_list_opt_comma  ']'
 			{
-			auto rt = zeek::id::find_type<zeek::RecordType>("Cluster::Table::PublishOnChangeAttr");
+			static const auto rt = zeek::id::find_type<zeek::RecordType>("Cluster::PublishOnChangeAttr");
 			auto *constructor = new RecordConstructorExpr(rt, {AdoptRef{}, $4});
 			$$ = new Attr(ATTR_PUBLISH_ON_CHANGE, {AdoptRef{}, constructor});
 			}

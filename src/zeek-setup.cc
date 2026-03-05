@@ -55,7 +55,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
-#include "zeek/cluster/PublishOnChange.h"
+#include "zeek/cluster/PublishOnChangeState.h"
 #include "zeek/cluster/Telemetry.h"
 #include "zeek/conn_key/Manager.h"
 #include "zeek/file_analysis/Manager.h"

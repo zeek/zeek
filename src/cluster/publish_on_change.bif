@@ -2,10 +2,16 @@
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
-#include "zeek/cluster/PublishOnChange.h"
+#include "zeek/cluster/PublishOnChangeState.h"
 %%}
 
-module Cluster::Table;
+module Cluster;
+
+function set_forward_table_change_infos_topic%(topic: string%)
+	%{
+	zeek::detail::PublishOnChangeState::SetForwardTableChangeInfosTopic(topic->ToStdString());
+	return nullptr;
+	%}
 
 function apply_table_change_infos%(id: string, ts: time, table_change_infos: TableChangeInfos%): bool
 	%{

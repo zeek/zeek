@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 //
-#include "zeek/cluster/PublishOnChange.h"
+#include "zeek/cluster/PublishOnChangeState.h"
 
 #include <cstdio>
 #include <optional>
@@ -8,6 +8,7 @@
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
@@ -16,6 +17,7 @@
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
+#include "zeek/ZeekString.h"
 #include "zeek/broker/Data.h" // for data_to_val()
 #include "zeek/cluster/Backend.h"
 #include "zeek/types.bif.netvar_h"
@@ -184,8 +186,8 @@ struct RecordInfo {
 };
 
 RecordInfo init_record_info() {
-    auto table_change_info = zeek::id::find_type<zeek::RecordType>("Cluster::Table::TableChangeInfo");
-    auto table_change_infos = zeek::id::find_type<zeek::VectorType>("Cluster::Table::TableChangeInfos");
+    auto table_change_info = zeek::id::find_type<zeek::RecordType>("Cluster::TableChangeInfo");
+    auto table_change_infos = zeek::id::find_type<zeek::VectorType>("Cluster::TableChangeInfos");
     int change_offset = table_change_info->FieldOffset("change");
     int ts_offset = table_change_info->FieldOffset("ts");
     int index_offset = table_change_info->FieldOffset("index");
@@ -231,16 +233,21 @@ RecordInfo init_record_info() {
 
 namespace zeek::detail {
 
+// Storage for static variables.
+std::optional<std::string> PublishOnChangeState::forward_topic;
+EventHandlerPtr PublishOnChangeState::eh_table_change_infos;
+EventHandlerPtr PublishOnChangeState::eh_forward_table_change_infos;
+
+void PublishOnChangeState::SetForwardTableChangeInfosTopic(std::string topic) { forward_topic = std::move(topic); }
+
 PublishOnChangeState::PublishOnChangeState(TableVal* table_val, uint8_t change_mask, std::optional<std::string> topic,
-                                           FuncPtr topic_func, size_t max_batch_size, double max_batch_delay,
-                                           EventHandlerPtr eh)
+                                           FuncPtr topic_func, size_t max_batch_size, double max_batch_delay)
     : change_mask(change_mask),
       topic(std::move(topic)),
       topic_func(std::move(topic_func)),
       max_batch_size(max_batch_size),
       max_batch_delay(max_batch_delay),
-      table_val(table_val),
-      event_handler(std::move(eh)) {}
+      table_val(table_val) {}
 
 
 PublishOnChangeState::~PublishOnChangeState() = default;
@@ -295,16 +302,16 @@ void PublishOnChangeState::QueueChange(TableChangeBits tc, const Val& index, con
         topic_ptr = &(*topic);
     else if ( topic_func ) {
         const auto* lv = index.AsListVal();
-        zeek::Args args;
+        Args args;
         args.reserve(lv->Length());
         for ( int i = 0; i < lv->Length(); i++ )
             args.emplace_back(lv->Idx(i));
 
         auto result = topic_func->Invoke(&args);
         if ( ! result || result->GetType()->Tag() != TYPE_STRING ) {
-            zeek::reporter->Error("PublishOnChange: Failed to call topic_func %s for %s (result=%s)",
-                                  obj_desc_short(topic_func).c_str(), identifier->ToStdString().c_str(),
-                                  result ? obj_desc_short(result).c_str() : "nil");
+            reporter->Error("PublishOnChange: Failed to call topic_func %s for %s (result=%s)",
+                            obj_desc_short(topic_func).c_str(), identifier->ToStdString().c_str(),
+                            result ? obj_desc_short(result).c_str() : "nil");
             return;
         }
 
@@ -312,7 +319,7 @@ void PublishOnChangeState::QueueChange(TableChangeBits tc, const Val& index, con
         topic_ptr = &effective_topic;
     }
     else {
-        zeek::reporter->InternalError("Neither topic nor topic_func set for %s", identifier->ToStdString().c_str());
+        reporter->InternalError("Neither topic nor topic_func set for %s", identifier->ToStdString().c_str());
     }
 
     debug("QueueChange %ld index=%s value=%p %s", change, obj_desc_short(&index).c_str(), value.get(),
@@ -368,9 +375,6 @@ void PublishOnChangeState::PublishQueuedChanges(double now) {
     debug("Publishing to %zu topics (total=%zu)", queued_changes.size(), queued_changes_total);
 
     for ( const auto& [topic, table_change_infos] : queued_changes ) {
-        debug("Publish event %s to topic %s table_change_infos=%u", event_handler->Name(), topic.c_str(),
-              table_change_infos->Size());
-
         auto ts = make_intrusive<TimeVal>(now);
         Args args{identifier, ts, std::move(table_change_infos)};
 
@@ -378,8 +382,24 @@ void PublishOnChangeState::PublishQueuedChanges(double now) {
         if ( BifConst::EventMetadata::add_network_timestamp )
             meta = detail::MakeEventMetadataVector(now);
 
-        cluster::Event ev{event_handler, std::move(args), std::move(meta)};
-        if ( ! cluster::backend->PublishEvent(topic, ev) ) {
+        // If the forward_topic is empty, publish directly to topic using event_handler,
+        // otherwise use forward_topic to publish and append the topic to the arguments.
+        const auto& effective_event_handler =
+            forward_topic.has_value() ? eh_forward_table_change_infos : eh_table_change_infos;
+        const auto& effective_topic = forward_topic.has_value() ? forward_topic.value() : topic;
+
+        // The forwarding event has the original topic as the last parameter,
+        // so we append it here has a StringVal.
+        if ( forward_topic.has_value() )
+            args.emplace_back(make_intrusive<StringVal>(topic));
+
+        cluster::Event ev{effective_event_handler, std::move(args), std::move(meta)};
+
+        debug("Publish event %s to topic %s table_change_infos=%u", effective_event_handler->Name(),
+              effective_topic.c_str(), table_change_infos->Size());
+
+
+        if ( ! cluster::backend->PublishEvent(effective_topic, ev) ) {
             reporter->InternalError("PublishOnChange: PublishEvent() failed");
         }
     }
@@ -401,13 +421,13 @@ void PublishOnChangeState::ApplyChanges(double ts, const VectorVal& table_change
     for ( size_t i = 0; i < table_change_infos.Size(); i++ ) {
         const auto& cr = raw_vec[i]->AsRecord();
 
-        auto change = cr->GetFieldAs<zeek::EnumVal>(ri.change_offset);
-        auto index_raw_vec = cr->GetFieldAs<zeek::VectorVal>(ri.index_offset)->RawVec();
+        auto change = cr->GetFieldAs<EnumVal>(ri.change_offset);
+        auto index_raw_vec = cr->GetFieldAs<VectorVal>(ri.index_offset)->RawVec();
 
         ValPtr index = raw_vec_to_listval(table_val->GetType()->AsTableType()->GetIndices(), index_raw_vec);
         if ( ! index ) {
-            zeek::reporter->InternalWarning("PublishOnChange: failed to create index (change=%ld i=%zu identifier=%s)",
-                                            change, i, identifier->ToStdString().c_str());
+            reporter->InternalWarning("PublishOnChange: failed to create index (change=%ld i=%zu identifier=%s)",
+                                      change, i, identifier->ToStdString().c_str());
             continue;
         }
 
@@ -417,7 +437,7 @@ void PublishOnChangeState::ApplyChanges(double ts, const VectorVal& table_change
             value = cr->GetField(ri.value_offset);
 
             if ( table_val->GetType()->IsSet() ) {
-                zeek::reporter->InternalWarning(
+                reporter->InternalWarning(
                     "PublishOnChange: unexpected value for set (index=%s value=%s change=%ld i=%zu identifier=%s)",
                     obj_desc_short(index).c_str(), obj_desc_short(value).c_str(), change, i,
                     identifier->ToStdString().c_str());
@@ -434,7 +454,7 @@ void PublishOnChangeState::ApplyChanges(double ts, const VectorVal& table_change
             // Don't expect previous values when the element is new, removed or expired.
             if ( change == BifEnum::TABLE_ELEMENT_NEW || change == BifEnum::TABLE_ELEMENT_REMOVED ||
                  change == BifEnum::TABLE_ELEMENT_EXPIRED ) {
-                zeek::reporter->InternalWarning(
+                reporter->InternalWarning(
                     "PublishOnChange: unexpected previous value (index=%s value=%s change=%ld i=%zu identifier=%s)",
                     obj_desc_short(index).c_str(), obj_desc_short(value).c_str(), change, i,
                     identifier->ToStdString().c_str());
@@ -460,7 +480,7 @@ void PublishOnChangeState::ApplyChanges(double ts, const VectorVal& table_change
                 break;
 
             default:
-                zeek::reporter->InternalWarning(
+                reporter->InternalWarning(
                     "PublishOnChange: unexpected change (index=%s value=%s change=%ld i=%zu identifier=%s)",
                     obj_desc_short(index).c_str(), value ? obj_desc_short(value).c_str() : "<no value>", change, i,
                     identifier->ToStdString().c_str());
@@ -468,7 +488,7 @@ void PublishOnChangeState::ApplyChanges(double ts, const VectorVal& table_change
     }
 }
 
-zeek::detail::Timer* PublishOnChangeState::ArmPublishTimer(double from) {
+detail::Timer* PublishOnChangeState::ArmPublishTimer(double from) {
     auto* new_timer = new PublishQueuedChangesTimer(from + max_batch_delay, this);
     detail::timer_mgr->Add(new_timer);
     return new_timer;
@@ -486,17 +506,11 @@ void PublishOnChangeState::SetIdentifier(const std::string& id) { identifier = m
 
 std::unique_ptr<PublishOnChangeState> PublishOnChangeState::FromRecord(TableVal* table_val, const RecordVal& rec) {
     // Static type and field offsets.
-    static const auto poc_attr_type = id::find_type<RecordType>("Cluster::Table::PublishOnChangeAttr");
+    static const auto poc_attr_type = id::find_type<RecordType>("Cluster::PublishOnChangeAttr");
     static const int changes_offset = poc_attr_type->FieldOffset("changes");
     static const int topic_offset = poc_attr_type->FieldOffset("topic");
-    static const int topic_func_offset = poc_attr_type->FieldOffset("topic_func");
     static const int max_batch_size_offset = poc_attr_type->FieldOffset("max_batch_size");
     static const int max_batch_delay_offset = poc_attr_type->FieldOffset("max_batch_delay");
-
-    // The event handler that's used for publishing.
-    static auto eh = event_registry->Register("Cluster::Table::table_change_infos_internal");
-    if ( ! eh.Ptr() )
-        reporter->InternalError("could not find event for &publish_on_change");
 
     if ( rec.GetType() != poc_attr_type )
         reporter->InternalError("got %s instead of %s", obj_desc_short(rec.GetType()).c_str(),
@@ -506,17 +520,26 @@ std::unique_ptr<PublishOnChangeState> PublishOnChangeState::FromRecord(TableVal*
     assert(changes->GetType()->IsSet());
     assert(changes->GetType<TableType>()->GetIndexTypes().size() == 1);
 
+    if ( changes->Size() == 0 ) {
+        rec.Error("changes for &publish_on_change cannot be empty");
+        // fallthrough
+    }
+
     uint8_t change_mask = changes_to_bitmask(*changes);
 
     std::optional<std::string> topic;
     FuncPtr topic_func;
 
-    if ( rec.HasField(topic_offset) && ! rec.HasField(topic_func_offset) )
-        topic = rec.GetField<StringVal>(topic_offset)->ToStdString();
-    else if ( rec.HasField(topic_func_offset) && ! rec.HasField(topic_offset) ) {
-        if ( rec.GetField(topic_func_offset)->GetType()->Tag() == TYPE_FUNC ) {
-            topic_func = rec.GetField<FuncVal>(topic_func_offset)->AsFuncPtr();
+    if ( rec.HasField(topic_offset) ) {
+        // Topic is an any. We support either TYPE_FUNC, or TYPE_STRING.
+        auto topic_val = rec.GetField(topic_offset);
+        const auto& topic_val_type = topic_val->GetType();
 
+        if ( topic_val_type->Tag() == TYPE_STRING ) {
+            topic = topic_val->AsStringVal()->ToStdString();
+        }
+        else if ( topic_val_type->Tag() == TYPE_FUNC ) {
+            topic_func = topic_val->AsFuncVal()->AsFuncPtr();
             if ( ! topic_func_is_ok(*table_val, *topic_func) ) {
                 reporter->Error("topic_func %s not applicable for table type %s",
                                 obj_desc_short(topic_func->GetType()).c_str(),
@@ -525,24 +548,33 @@ std::unique_ptr<PublishOnChangeState> PublishOnChangeState::FromRecord(TableVal*
             }
         }
         else {
-            rec.Error("topic_func is not a function");
+            rec.Error(util::fmt("topic must be string or a function returning a string, got %s",
+                                obj_desc_short(topic_val).c_str()));
         }
     }
-    else if ( ! rec.HasField(topic_offset) && ! rec.HasField(topic_func_offset) )
+    else {
         // Actual topic will be determined during InitPostScript() and populated
         // via SetTopic(). See below in static InitPostScript() function.
         topic = std::nullopt;
-    else
-        rec.Error("only one of topic or topic_func can be set for &publish_on_change");
+    }
 
     zeek_uint_t max_batch_size = rec.GetField<CountVal>(max_batch_size_offset)->AsCount();
     double max_batch_delay = rec.GetField<IntervalVal>(max_batch_delay_offset)->AsInterval();
 
     return std::make_unique<PublishOnChangeState>(table_val, change_mask, std::move(topic), std::move(topic_func),
-                                                  max_batch_size, max_batch_delay, eh);
+                                                  max_batch_size, max_batch_delay);
 }
 
 void PublishOnChangeState::InitPostScript() {
+    // The event handler that's used for publishing.
+    eh_table_change_infos = event_registry->Register("Cluster::table_change_infos");
+    if ( ! eh_table_change_infos.Ptr() )
+        reporter->InternalError("could not find Cluster::table_change_infos event for &publish_on_change");
+
+    eh_forward_table_change_infos = event_registry->Register("Cluster::forward_table_change_infos");
+    if ( ! eh_forward_table_change_infos.Ptr() )
+        reporter->InternalError("could not find Cluster::forward_table_change_infos event for &publish_on_change");
+
     // Find all top-level global tables with the &publish_on_change attribute.
     for ( const auto& [name, id] : global_scope()->Vars() ) {
         if ( ! id->GetAttr(detail::ATTR_PUBLISH_ON_CHANGE) )

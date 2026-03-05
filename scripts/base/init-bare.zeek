@@ -6139,25 +6139,25 @@ export {
 	## This currently has no effect for backend BROKER.
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
 
-}
+	## Default maximum batch size for the &publish_on_change attribute on tables.
+	option default_table_publish_on_change_max_batch_size = 10;
 
-module Cluster::Table;
-
-export {
-	## Default maximum batch size for the &publish_on_change attribute.
-	option default_publish_on_change_max_batch_size = 10;
-
-	## Default maximum delay for the &publish_on_change attribute.
-	option default_publish_on_change_max_batch_delay = 10msec;
+	## Default maximum delay size for the &publish_on_change attribute on tables.
+	option default_table_publish_on_change_max_batch_delay = 10msec;
 
 	## The record type used for &publish_on_change.
 	type PublishOnChangeAttr: record {
-		## Which changes to publish.
+		## Which changes to publish. Cannot be empty.
 		changes: set[TableChange];
-		topic: string &optional;
-		topic_func: any &optional;
-		max_batch_size: count &default=default_publish_on_change_max_batch_size;
-		max_batch_delay: interval &default=default_publish_on_change_max_batch_delay;
+		## Either a string or a function returning a string with function parameters
+		## matching the index types of the :zeek:type:`table` or :zeek:type:`set`.
+		topic: any &optional;
+		## Maximum number of changes to queue into a batch before publishing.
+		## Setting this value to 0 disables batching behavior.
+		max_batch_size: count &default=default_table_publish_on_change_max_batch_size;
+		## Maximum interval to delay the publish.
+		## Setting this value to 0sec disables batching behavior.
+		max_batch_delay: interval &default=default_table_publish_on_change_max_batch_delay;
 	};
 
 	## Record encapsulating a table change for distribution to other Zeek processes.
@@ -6173,12 +6173,12 @@ export {
 		## of any.
 		index: vector of any;
 
-		## The initial value of the new element. If id resolves
-		## to a set, this field should not be set.
+		## The new, updated or removed value of the new element.
+		## Unused for sets.
 		value: any &optional;
 
 		## The previous value in the table when the change field
-		## is :zeek:see:`TABLE_ELEMENT_CHANGED`.
+		## is :zeek:see:`TABLE_ELEMENT_CHANGED`. Unused for sets.
 		previous_value: any &optional;
 	};
 
@@ -6189,11 +6189,30 @@ export {
 	##
 	## id: script-layer identifier for the table as a string
 	## ts: network time of publish of this event for symmetry with ts within TableChangeInfo records.
-	## table_change_infos: Accumulated changes as a vector.
-	global table_change_infos_internal: event(id: string, ts: time, table_change_infos: TableChangeInfos);
+	## tcinfos: Accumulated changes as a vector.
+	global table_change_infos: event(id: string, ts: time, tcinfos: TableChangeInfos);
+
+	## Internal helper event used by worker processes to delegate publishing
+	## to the Zeek manager when running under Broker.
+	##
+	## If ``to`` is manager_topic or starts with /zeek/table/, the manager
+	## will also raise table_change_infos() locally.
+	##
+	## id: script-layer identifier for the table as a string
+	## ts: network time of publish of this event for symmetry with ts within TableChangeInfo records.
+	## tcinfos: Accumulated changes as a vector.
+	## to: The topic to publish the remaining parameters as table_change_infos() event.
+	global forward_table_change_infos: event(id: string, ts: time, tcinfos: TableChangeInfos, to: string);
 
 	## A hook for testing and intercepting changes to tables coming in
-	## via the &publish_on_change mechanism from other nodes.
+	## via the &publish_on_change mechanism from other Zeek processes.
+	##
+	## Breaking from this hook discards the changes. I.e. they'll not
+	## be applied to the table or set identified by id.
+	##
+	## id: Script-level identifier of the table or set.
+	## ts: Network timestamp at the time of sending.
+	## table_change_infos: vector of changes as batched by the remote Zeek process.
 	global apply_table_change_infos_policy: hook(id: string, ts: time, table_change_infos: TableChangeInfos);
 }
 

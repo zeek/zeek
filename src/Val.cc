@@ -42,7 +42,7 @@
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
-#include "zeek/cluster/PublishOnChange.h"
+#include "zeek/cluster/PublishOnChangeState.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 #include "zeek/3rdparty/doctest.h"

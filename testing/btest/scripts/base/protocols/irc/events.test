@@ -1,13 +1,13 @@
 # Test IRC events
 
-# @TEST-EXEC: echo "-------------- irc-dcc-send.trace --------------" > output
-# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.trace %INPUT >> output
-# @TEST-EXEC: echo "------------- irc-basic-send.trace -------------" >> output
-# @TEST-EXEC: zeek -b -r $TRACES/irc-basic.trace %INPUT >> output
-# @TEST-EXEC: echo "---------- irc-whitespace-send.trace -----------" >> output
-# @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.trace %INPUT >> output
-# @TEST-EXEC: echo "----------- irc-more-commands.trace ------------" >> output
-# @TEST-EXEC: zeek -C -b -r $TRACES/irc-more-commands.trace %INPUT >> output
+# @TEST-EXEC: echo "-------------- irc-dcc-send.pcap --------------" > output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.pcap %INPUT >> output
+# @TEST-EXEC: echo "------------- irc-basic-send.pcap -------------" >> output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-basic.pcap %INPUT >> output
+# @TEST-EXEC: echo "---------- irc-whitespace-send.pcap -----------" >> output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.pcap %INPUT >> output
+# @TEST-EXEC: echo "----------- irc-more-commands.pcap ------------" >> output
+# @TEST-EXEC: zeek -C -b -r $TRACES/irc-more-commands.pcap %INPUT >> output
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/irc

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap-skip.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap-skip.pcap %INPUT
 
 # In this trace, we should be able to determine that a gap lies
 # entirely within the body of an entity that specifies Content-Range,

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/tls/chrome-34-google.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/chrome-34-google.pcap %INPUT
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls13_psk_succesfull.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout

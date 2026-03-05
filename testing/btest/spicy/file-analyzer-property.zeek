@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto text.spicy ./text.evt
-# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.hlto %INPUT >output
+# @TEST-EXEC: zeek -r ${TRACES}/http/post.pcap test.hlto %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 event text::data(f: fa_file, data: string)

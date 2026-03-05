@@ -3,7 +3,7 @@
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN Demo::Foo >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/retr.trace %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/retr.pcap %INPUT >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 # @TEST-EXEC: btest-diff weird.log
 

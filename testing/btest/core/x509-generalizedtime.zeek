@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/x509-generalizedtime.pcap %INPUT >>output 2>&1
-# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.trace %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.pcap %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/ssl

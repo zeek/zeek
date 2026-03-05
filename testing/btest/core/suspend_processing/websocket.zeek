@@ -8,7 +8,7 @@
 #
 # @TEST-EXEC: zeek --parse-only %INPUT
 #
-# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.pcap -b %INPUT"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 # @TEST-EXEC: btest-bg-wait 30
 #

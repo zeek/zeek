@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -b -r ${TRACES}/var-services-std-ports.trace %INPUT base/protocols/dns base/protocols/conn
+# @TEST-EXEC: zeek -b -r ${TRACES}/var-services-std-ports.pcap %INPUT base/protocols/dns base/protocols/conn
 # @TEST-EXEC: cat conn.log | zeek-cut service | grep -q dns
 #
 

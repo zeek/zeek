@@ -11,9 +11,9 @@
 # @TEST-EXEC: zeek --parse-only %INPUT
 # @TEST-EXEC: btest-bg-run zeek ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/up 5 || (btest-bg-wait -k 1 && false)
-# @TEST-EXEC: ./fetch-metrics.sh 1.trace metrics1.txt
-# @TEST-EXEC: ./fetch-metrics.sh 2.trace metrics2.txt
-# @TEST-EXEC: ./fetch-metrics.sh 3.trace metrics3.txt
+# @TEST-EXEC: ./fetch-metrics.sh 1.pcap metrics1.txt
+# @TEST-EXEC: ./fetch-metrics.sh 2.pcap metrics2.txt
+# @TEST-EXEC: ./fetch-metrics.sh 3.pcap metrics3.txt
 # @TEST-EXEC: btest-bg-wait 10
 #
 # @TEST-EXEC: btest-diff zeek/.stdout

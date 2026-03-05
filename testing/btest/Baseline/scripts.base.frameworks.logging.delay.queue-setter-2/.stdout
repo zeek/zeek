@@ -62,7 +62,7 @@
 1362692527.080972, post_delay_cb - re-delay, [ts=1362692527.011846, post_ts=<uninitialized>, write_ts=<uninitialized>, msg=packet number 12, redelayed=F]
 1362692527.080972, post_delay_cb - re-delay, [ts=1362692527.080828, post_ts=<uninitialized>, write_ts=<uninitialized>, msg=packet number 13, redelayed=F]
 1362692527.080972, post_delay_cb - re-delay, [ts=1362692527.080972, post_ts=<uninitialized>, write_ts=<uninitialized>, msg=packet number 14, redelayed=F]
-1362692527.080972, Pcap::file_done, <...>/get.trace
+1362692527.080972, Pcap::file_done, <...>/get.pcap
 1362692527.080972, post_delay_cb - done, [ts=1362692527.009887, post_ts=1362692527.080972, write_ts=<uninitialized>, msg=packet number 11, redelayed=T]
 1362692527.080972, log_policy
 1362692527.080972, post_delay_cb - done, [ts=1362692527.011846, post_ts=1362692527.080972, write_ts=<uninitialized>, msg=packet number 12, redelayed=T]

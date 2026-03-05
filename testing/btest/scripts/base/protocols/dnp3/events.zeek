@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -b -r $TRACES/dnp3/dnp3.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/dnp3/dnp3.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $1}' | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/dnp3/events.bif  | grep "^event dnp3_" | wc -l >total
@@ -97,7 +97,7 @@ event dnp3_frozen_counter_16wFlagTime(c: connection, is_orig: bool, flag:count, 
 event dnp3_frozen_counter_32woFlag(c: connection, is_orig: bool, count_value: count)
 	{
 	print "dnp3_frozen_counter_32woFlag", is_orig, count_value;
-	}	
+	}
 
 event dnp3_frozen_counter_16woFlag(c: connection, is_orig: bool, count_value: count)
 	{
@@ -264,5 +264,3 @@ event dnp3_debug_byte(c: connection, is_orig: bool, debug: string)
 {
 	print "dnp3_debug_byte", is_orig, debug;
 }
-
-

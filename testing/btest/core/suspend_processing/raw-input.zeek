@@ -1,6 +1,6 @@
 # @TEST-DOC: suspend_processing() in zeek_init()
 # @TEST-EXEC: echo "first line" > raw_file
-# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.pcap %INPUT >output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 type OneLine: record {

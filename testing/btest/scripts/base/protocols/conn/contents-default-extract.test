@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -f "tcp port 21" -r $TRACES/ftp/ipv6.trace base/protocols/conn "Conn::default_extract=T"
+# @TEST-EXEC: zeek -b -f "tcp port 21" -r $TRACES/ftp/ipv6.pcap base/protocols/conn "Conn::default_extract=T"
 
 # On Linux, filenames contain colons from IPv6 addresses; rename to hyphens for
 # baseline comparison. On Windows, colons are replaced at generation time.

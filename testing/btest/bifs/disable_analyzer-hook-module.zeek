@@ -1,5 +1,5 @@
 # @TEST-DOC: Hook Analyzer::disabling_analyzer in a module
-# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/http

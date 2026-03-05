@@ -1,5 +1,5 @@
 # @TEST-DOC: Nested records with non-const &defaults are not deferred initialized. Regression test for #3260
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT >output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 module Test;

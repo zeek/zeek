@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/ocsp-stapling.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/ssl

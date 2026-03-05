@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT
+# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.pcap %INPUT
 # @TEST-EXEC-FAIL: test -f must-not-exist
 
 module Test;

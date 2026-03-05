@@ -4,7 +4,7 @@
 #
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"
-# @TEST-EXEC: btest-bg-run send "zeek -b -r $TRACES/smtp.trace --pseudo-realtime ../send.zeek >send.out"
+# @TEST-EXEC: btest-bg-run send "zeek -b -r $TRACES/smtp.pcap --pseudo-realtime ../send.zeek >send.out"
 
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff send/netcontrol.log

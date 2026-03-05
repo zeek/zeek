@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/tunnels/ayiya3.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/ayiya3.pcap %INPUT
 # @TEST-EXEC: btest-diff tunnel.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log

@@ -1,6 +1,6 @@
 # @TEST-DOC: Count packets, disable the packet log stream (and it's module group) and re-enable it again, verifying handlers are disabled and re-enabled, too.
 
-# @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.trace -f 'port 53' %INPUT >output
+# @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.pcap -f 'port 53' %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff packet.log
 

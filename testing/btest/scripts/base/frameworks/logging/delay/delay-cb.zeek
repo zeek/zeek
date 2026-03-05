@@ -3,7 +3,7 @@
 # During new_connection() a Log::write() happens. Each packet is printed
 # to observe timing behavior.
 #
-# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.trace test.zeek %INPUT
+# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto listconv.spicy ./listconv.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 event zeek_init() {

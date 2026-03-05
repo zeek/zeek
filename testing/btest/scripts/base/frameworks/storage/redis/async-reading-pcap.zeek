@@ -4,7 +4,7 @@
 # @TEST-PORT: REDIS_PORT
 
 # @TEST-EXEC: btest-bg-run redis-server run-redis-server ${REDIS_PORT%/tcp}
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace -b %INPUT > out
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap -b %INPUT > out
 # @TEST-EXEC: btest-bg-wait -k 0
 
 # @TEST-EXEC: btest-diff out

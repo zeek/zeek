@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT >output
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 function test(rec: HTTP::Info, expect: string)

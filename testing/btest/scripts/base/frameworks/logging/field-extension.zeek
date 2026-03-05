@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-timestamps btest-diff conn.log
 
 @load base/protocols/conn

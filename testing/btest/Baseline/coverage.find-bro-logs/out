@@ -29,6 +29,7 @@ mqtt_connect
 mqtt_publish
 mqtt_subscribe
 mysql
+nat
 netcontrol
 netcontrol_catch_release
 netcontrol_drop

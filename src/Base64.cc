@@ -266,7 +266,7 @@ bool is_valid_base64(const String* s, const String* a) {
     Base64Converter dec(nullptr, a && a->Len() ? a->CheckString() : "", true);
     dec.Decode(s->Len(), reinterpret_cast<const char*>(s->Bytes()), &rlen, &rbuf);
 
-    bool ok = !dec.Errored();
+    bool ok = ! dec.Errored();
     delete[] rbuf;
     return ok;
 }

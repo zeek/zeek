@@ -269,9 +269,10 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
 
         if ( packet->tp_status & TP_STATUS_VLAN_VALID ) {
             uint16_t tci = packet->hv1.tp_vlan_tci;
-            pkt->vlan = tci & 0x0FFF;
-            pkt->vlan_pcp = (tci & 0xE000) >> 13;
-            pkt->vlan_dei = (tci & 0x1000) != 0;
+            uint16_t vlan_id = tci & 0xfff;
+            uint8_t vlan_pcp = (tci & 0xe000) >> 13;
+            bool vlan_dei = (tci & 0x1000) != 0;
+            pkt->SetVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});
         }
 
         switch ( checksum_mode ) {

@@ -17,6 +17,7 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
@@ -56,8 +57,13 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     else
         memset(resp_l2_addr, 0, sizeof(resp_l2_addr));
 
-    vlan = pkt->vlan;
-    inner_vlan = pkt->inner_vlan;
+    vlan = vlan_unset_val;
+    if ( auto vlan_tag = pkt->GetVlanTag() )
+        vlan = vlan_tag->id;
+
+    inner_vlan = vlan_unset_val;
+    if ( auto inner_vlan_tag = pkt->GetInnerVlanTag() )
+        inner_vlan = inner_vlan_tag->id;
 
     weird = false;
 
@@ -229,10 +235,10 @@ const RecordValPtr& Connection::GetVal() {
         if ( encapsulation && encapsulation->Depth() > 0 )
             conn_val->Assign(8, encapsulation->ToVal());
 
-        if ( vlan != 0 )
+        if ( vlan != vlan_unset_val )
             conn_val->Assign(9, vlan);
 
-        if ( inner_vlan != 0 )
+        if ( inner_vlan != vlan_unset_val )
             conn_val->Assign(10, inner_vlan);
     }
 

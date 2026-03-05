@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/dce-rpc/dce_rpc_netlogon.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/dce-rpc/dce_rpc_netlogon.pcapng %INPUT
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: btest-diff dce_rpc.log
 

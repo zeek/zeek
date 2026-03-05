@@ -450,6 +450,9 @@ scripts/base/init-default.zeek
   scripts/base/protocols/mysql/__load__.zeek
     scripts/base/protocols/mysql/main.zeek
       scripts/base/protocols/mysql/consts.zeek
+  scripts/base/protocols/nat-mapping/__load__.zeek
+    scripts/base/protocols/nat-mapping/spicy-events.zeek
+    scripts/base/protocols/nat-mapping/main.zeek
   scripts/base/protocols/ntlm/__load__.zeek
     scripts/base/protocols/ntlm/main.zeek
   scripts/base/protocols/ntp/__load__.zeek

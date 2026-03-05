@@ -8,6 +8,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8080/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::disable_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 3128/tcp)) -> <no result>
@@ -17,6 +18,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8080/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}, {})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
@@ -307,6 +309,7 @@
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
+0.000000   MetaHookPost  CallFunction(spicy_analyzer_for_port, <null>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
@@ -947,6 +950,7 @@
 0.000000   MetaHookPost  LoadFileExtended(1, ./python, <...>/python.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./video, <...>/video.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, s2, ./s2.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  QueueEvent(spicy_analyzer_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp)) -> false
 0.000000   MetaHookPost  QueueEvent(zeek_init()) -> false
 0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -957,6 +961,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8080/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::disable_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 3128/tcp))
@@ -966,6 +971,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8080/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}, {}))
 0.000000   MetaHookPre   CallFunction(Cluster::__subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
@@ -1256,6 +1262,7 @@
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
+0.000000   MetaHookPre   CallFunction(spicy_analyzer_for_port, <null>, (Analyzer::ANALYZER_NATMAPPING, 5351/udp))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
@@ -1896,6 +1903,7 @@
 0.000000   MetaHookPre   LoadFileExtended(1, ./python, <...>/python.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./video, <...>/video.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, s2, ./s2.sig)
+0.000000   MetaHookPre   QueueEvent(spicy_analyzer_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp))
 0.000000   MetaHookPre   QueueEvent(zeek_init())
 0.000000 | HookCallFunction Analyzer::__disable_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -1906,6 +1914,7 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 8080/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 81/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 8888/tcp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp)
 0.000000 | HookCallFunction Analyzer::disable_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 3128/tcp)
@@ -1915,6 +1924,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 8080/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 81/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 8888/tcp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp)
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp}, {})
 0.000000 | HookCallFunction Cluster::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Cluster::is_enabled()
@@ -2204,6 +2214,7 @@
 0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
+0.000000 | HookCallFunction spicy_analyzer_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
 0.000000 | HookCallFunction zeek_init()
@@ -2844,6 +2855,7 @@
 0.000000 | HookLoadFileExtended builtin-plugins/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended s1.sig ./s1.sig
 0.000000 | HookLoadFileExtended s2 ./s2.sig
+0.000000 | HookQueueEvent spicy_analyzer_for_port(Analyzer::ANALYZER_NATMAPPING, 5351/udp)
 0.000000 | HookQueueEvent zeek_init()
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::__flush_logs, <frame>, ()) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::flush_logs, <frame>, ()) -> <no result>

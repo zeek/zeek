@@ -30,6 +30,7 @@ mqtt_publish
 mqtt_subscribe
 multicast_participants
 mysql
+nat
 netcontrol
 netcontrol_catch_release
 netcontrol_drop

@@ -1,3 +1,7 @@
+8.2.0-dev.258 | 2026-03-05 12:15:52 -0700
+
+  * Fix a 'broken' link in docs (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.256 | 2026-03-04 13:05:20 -0700
 
   * Avoid integer overflow (Benjamin Bannier, Corelight)

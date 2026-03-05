@@ -336,6 +336,8 @@ linkcheck_ignore = [
     # This consistently gets rate-limited even though we're only linking
     # to it once in the docs. Ignore it since we know it's valid.
     r"^https://www\.gnu\.org/software/bison/",
+    # This gets reported as a 403 more often than not.
+    r"^https://docutils.sourceforge.io/rst.html",
 ]
 
 linkcheck_allowed_redirects = {

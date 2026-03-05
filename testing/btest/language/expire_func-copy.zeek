@@ -1,6 +1,6 @@
 # @TEST-DOC: Test that expire_func is copied (the expiration behavior of existing elements 
 #
-# @TEST-EXEC: zeek -b -C -r $TRACES/var-services-std-ports.trace %INPUT >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/var-services-std-ports.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 function inform_me(s: table[string] of count, idx: string): interval

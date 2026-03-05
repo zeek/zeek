@@ -2,9 +2,9 @@
 #
 # @TEST-EXEC: spicyz -o ssh.hlto ssh.spicy ssh.evt
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace ssh.hlto %INPUT ENABLE=T >>output;
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap ssh.hlto %INPUT ENABLE=T >>output;
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace ssh.hlto %INPUT ENABLE=F >>output;
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap ssh.hlto %INPUT ENABLE=F >>output;
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: btest-diff output
 #

@@ -1,5 +1,5 @@
 # @TEST-DOC: A non-behaving rotation_format_func could cause segfaults by not returning a value. Cover this.
-# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT
+# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.pcap %INPUT
 # @TEST-EXEC: ls test*log | sort >> out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr

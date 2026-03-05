@@ -4,7 +4,7 @@
 # @TEST-EXEC: mv conn.log conn-post-large.log
 # @TEST-EXEC: btest-diff conn-post-large.log
 
-# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.pcap %INPUT
 # @TEST-EXEC: mv conn.log conn-wiki.log
 # @TEST-EXEC: btest-diff conn-wiki.log
 

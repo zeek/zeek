@@ -6,7 +6,7 @@ depend on them for tests.
 
 Trace Index/Sources:
 
-- modbus/modbus-eit.trace:
+- modbus/modbus-eit.pcap:
   Sourced from https://www.netresec.com/?page=PCAP4SICS, credit to https://cs3sthlm.se/.
   The packets in this trace were pulled from the 4SICS-GeekLounge-151021.pcap file.
 - [ldap/simpleauth.pcap](https://github.com/arkime/arkime/blob/main/tests/pcap/ldap-simpleauth.pcap)
@@ -42,7 +42,7 @@ Trace Index/Sources:
 - quic/merlinc2_Zeek_example.pcapng
   Provided by Faan Rossouw on #4198
   https://github.com/zeek/zeek/issues/4198
-- pe/pe.trace
+- pe/pe.pcap
   VirusTotal reports that this file contains malware. The PE analyzer was originally added
   to decode info for malware, so this is expected. See
   https://zeekorg.slack.com/archives/CSZBXF6TH/p1738261449655049
@@ -60,7 +60,7 @@ Trace Index/Sources:
   Generated with scapy/chatgpt by @Mohan-Dhawan
   https://github.com/zeek/zeek/issues/4545
 - tcp/one-sided-2745.pcap
-  Extracted from short.trace.gz (port 2745 and port 281) or (port 2745 and port 1433)
+  Extracted from short.pcap.gz (port 2745 and port 281) or (port 2745 and port 1433)
   and used tcprewrite to remove mac/ip. No actual payload in the packets.
 - tcp/ctu-64702-888.pcap
   Extracted from CTU-SME-11 after observing ConnSize differences when

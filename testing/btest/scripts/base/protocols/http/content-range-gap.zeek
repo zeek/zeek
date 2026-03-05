@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/content-range-gap.pcap %INPUT
 # @TEST-EXEC: btest-diff --binary extract_files/thefile
 
 @load base/protocols/http

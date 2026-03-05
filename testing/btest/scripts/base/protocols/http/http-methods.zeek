@@ -1,6 +1,6 @@
 # This tests that the HTTP analyzer handles strange HTTP methods properly.
 #
-# @TEST-EXEC: zeek -b -r $TRACES/http/methods.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/methods.pcap %INPUT
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: btest-diff http.log
 

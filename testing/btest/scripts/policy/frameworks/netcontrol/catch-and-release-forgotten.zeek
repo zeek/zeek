@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/smtp.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/smtp.pcap %INPUT
 # @TEST-EXEC: btest-diff netcontrol_catch_release.log
 # @TEST-EXEC: btest-diff .stdout
 

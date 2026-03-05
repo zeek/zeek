@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -D zeek -do export.hlto export.spicy export.evt
-# @TEST-EXEC: zeek export.hlto %INPUT -r $TRACES/http/get.trace >>output
+# @TEST-EXEC: zeek export.hlto %INPUT -r $TRACES/http/get.pcap >>output
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Test type export with a block in an if

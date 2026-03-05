@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/ipv6_zero_len_ah.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/ipv6_zero_len_ah.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # Shouldn't crash, but we also won't have seq and data fields set of the ip6_ah

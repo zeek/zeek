@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.pcap %INPUT > output
 # @TEST-EXEC: btest-diff http.log
 
 @load base/protocols/http

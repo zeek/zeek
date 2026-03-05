@@ -4,7 +4,7 @@
 # @TEST-GROUP: sqlite
 #
 # @TEST-EXEC: mkdir logs
-# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT >zeek.out 2>&1
+# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.pcap %INPUT >zeek.out 2>&1
 # @TEST-EXEC: sqlite3 ./logs/test.sqlite 'select * from test' > test.select
 # @TEST-EXEC: btest-diff test.select
 # @TEST-EXEC: btest-diff zeek.out

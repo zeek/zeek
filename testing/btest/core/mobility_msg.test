@@ -1,11 +1,11 @@
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_back.trace %INPUT >output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_be.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_brr.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_bu.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_cot.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_coti.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hot.trace %INPUT >>output
-# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hoti.trace %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_back.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_be.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_brr.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_bu.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_cot.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_coti.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hot.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r $TRACES/mobile-ipv6/mip6_hoti.pcap %INPUT >>output
 # @TEST-EXEC: btest-diff output
 
 event mobile_ipv6_message(p: pkt_hdr)

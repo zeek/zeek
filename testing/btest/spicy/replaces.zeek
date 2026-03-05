@@ -2,8 +2,8 @@
 #
 # @TEST-EXEC: mkdir -p modules
 # @TEST-EXEC: spicyz -d -o modules/ssh.hlto ssh.spicy ./ssh.evt
-# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.trace %INPUT | sort >>output
-# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/ssh-on-port-80.trace %INPUT | sort >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.pcap %INPUT | sort >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/ssh-on-port-80.pcap %INPUT | sort >>output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff conn.log
 #

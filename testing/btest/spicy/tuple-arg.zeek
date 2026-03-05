@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto ssh.spicy ./ssh-tuple.evt
-# @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT | sort >output
+# @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT | sort >output
 # @TEST-EXEC: grep event .stderr | sort >>output
 # @TEST-EXEC: btest-diff output
 

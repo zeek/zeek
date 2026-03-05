@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 # Default timer expiration interval is very conservative (10sec) and never runs for short pcaps.

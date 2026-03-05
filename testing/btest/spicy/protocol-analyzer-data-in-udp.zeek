@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
-# @TEST-EXEC: zeek -B dpd -s test.sig -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >&2
+# @TEST-EXEC: zeek -B dpd -s test.sig -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T >&2
 # @TEST-EXEC: btest-diff syslog.log
 
 event zeek_init() {

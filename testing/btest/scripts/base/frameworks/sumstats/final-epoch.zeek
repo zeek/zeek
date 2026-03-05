@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b %INPUT -r $TRACES/wikipedia.trace
+# @TEST-EXEC: zeek -b %INPUT -r $TRACES/wikipedia.pcap
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 
 @load base/frameworks/sumstats

@@ -1,5 +1,5 @@
 # @TEST-DOC: Tests interemediate lines to not confuse cwd tracking.
-# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6-retr-samba.trace %INPUT > out
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6-retr-samba.pcap %INPUT > out
 # @TEST-EXEC: btest-diff ftp.log
 # @TEST-EXEC: btest-diff out
 

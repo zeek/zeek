@@ -1,5 +1,5 @@
 # @TEST-DOC: Running zeek -r in non-bare mode and ensure reporter errors happen.
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-canonifier' btest-diff reporter.log
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr

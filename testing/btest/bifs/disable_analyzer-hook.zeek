@@ -1,5 +1,5 @@
 # @TEST-DOC: Disable the analyzer if 5 or more messages have been seen on a connection.
-# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/http/pipelined-requests.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/http

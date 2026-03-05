@@ -19,18 +19,19 @@ using namespace std;
 
 namespace zeek::zeekygen::detail {
 
-static void DbgAndWarn(const char* msg) {
+void Manager::DbgAndWarn(const char* msg) const {
     if ( reporter->Errors() )
         // We've likely already reported to real source of the problem
         // as an error, avoid adding an additional warning which may
         // be confusing.
         return;
 
-    reporter->Warning("%s", msg);
+    if ( enable_warnings )
+        reporter->Warning("%s", msg);
     DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
 }
 
-static void WarnMissingScript(const char* type, const zeek::detail::ID* id, const string& script) {
+void Manager::WarnMissingScript(const char* type, const zeek::detail::ID* id, const string& script) const {
     if ( script == "<command line>" )
         return;
 
@@ -62,6 +63,9 @@ Manager::Manager(const string& arg_config, const string& command)
       config(arg_config) {
     if ( getenv("ZEEK_DISABLE_ZEEKYGEN") )
         disabled = true;
+
+    if ( getenv("ZEEK_ENABLE_ZEEKYGEN_WARNINGS") )
+        enable_warnings = true;
 
     // If running Zeek without the "-X" option, then we don't need mtime.
     if ( disabled || arg_config.empty() )

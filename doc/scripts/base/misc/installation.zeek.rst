@@ -35,7 +35,7 @@ Constants
    :source-code: base/misc/installation.zeek 15 15
 
    :Type: :zeek:type:`string`
-   :Default: ``"/usr/local/zeek/etc"``
+   :Default: ``"/opt/zeek2/etc"``
 
    The installation's configuration directory.
 
@@ -43,7 +43,7 @@ Constants
    :source-code: base/misc/installation.zeek 18 18
 
    :Type: :zeek:type:`string`
-   :Default: ``"/usr/local/zeek/logs"``
+   :Default: ``"/opt/zeek2/logs"``
 
    The installation's log directory.
 
@@ -51,7 +51,7 @@ Constants
    :source-code: base/misc/installation.zeek 12 12
 
    :Type: :zeek:type:`string`
-   :Default: ``"/usr/local/zeek"``
+   :Default: ``"/opt/zeek2"``
 
    Zeek installation root directory.
 
@@ -59,7 +59,7 @@ Constants
    :source-code: base/misc/installation.zeek 21 21
 
    :Type: :zeek:type:`string`
-   :Default: ``"/usr/local/zeek/spool"``
+   :Default: ``"/opt/zeek2/spool"``
 
    The installation's spool directory.
 
@@ -67,7 +67,7 @@ Constants
    :source-code: base/misc/installation.zeek 24 24
 
    :Type: :zeek:type:`string`
-   :Default: ``"/usr/local/zeek/var/lib"``
+   :Default: ``"/opt/zeek2/var/lib"``
 
    The installation's variable-state directory.
 

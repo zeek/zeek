@@ -3,7 +3,7 @@
 # from the current working directory.
 #
 # @TEST-EXEC: mkdir -p alternative
-# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b %INPUT >output
+# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$(cd "$TEST_BASE/scripts/base/frameworks/input/path-prefix" && pwd) zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE alternative/input.data

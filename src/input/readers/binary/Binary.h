@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <fstream>
 
+#include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail {
@@ -32,9 +33,9 @@ private:
     int UpdateModificationTime();
 
     std::string fname;
-    std::ifstream* in = nullptr;
+    InputFile* in = nullptr;
     time_t mtime = 0;
-    ino_t ino = 0;
+    uint64_t ino = 0;
     bool firstrun = true;
 
     // options set from the script-level.

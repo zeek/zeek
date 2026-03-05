@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 
@@ -50,8 +51,9 @@ private:
     bool execute;
     bool firstrun;
     time_t mtime;
-    ino_t ino;
+    uint64_t ino;
     dev_t dev;
+    off_t fsize;
 
     // options set from the script-level.
     std::string separator;
@@ -80,6 +82,7 @@ private:
 
 #ifdef _MSC_VER
     void* child_process_handle_; // HANDLE, stored as void* to avoid windows.h in header
+    void* child_job_handle_;     // Job Object HANDLE for killing the entire process tree
 #endif
 
     enum IoChannels : uint8_t {

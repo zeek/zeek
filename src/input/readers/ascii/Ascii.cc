@@ -7,6 +7,10 @@
 #include <algorithm>
 #include <cerrno>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "zeek/input/readers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/threading/formatters/Ascii.h"
@@ -121,7 +125,7 @@ bool Ascii::OpenFile() {
     // Handle path-prefixing. See similar logic in Binary::DoInit().
     fname = Info().source;
 
-    if ( fname.front() != '/' && ! path_prefix.empty() ) {
+    if ( ! is_absolute_path(fname) && ! path_prefix.empty() ) {
         std::size_t last = path_prefix.find_last_not_of('/');
 
         string path;
@@ -269,9 +273,27 @@ bool Ascii::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            if ( sb.st_ino == ino && sb.st_mtime == mtime )
+            uint64_t current_ino = sb.st_ino;
+#ifdef _WIN32
+            // On Windows, stat().st_ino is always 0. Use the NTFS file
+            // index as a reliable replacement for inode-based change detection.
+            {
+                HANDLE h =
+                    CreateFileA(fname.c_str(), FILE_READ_ATTRIBUTES,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+                if ( h != INVALID_HANDLE_VALUE ) {
+                    BY_HANDLE_FILE_INFORMATION fi;
+                    if ( GetFileInformationByHandle(h, &fi) )
+                        current_ino = (static_cast<uint64_t>(fi.nFileIndexHigh) << 32) | fi.nFileIndexLow;
+                    CloseHandle(h);
+                }
+            }
+#endif
+
+            if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
                 return true;
+            }
 
             // Warn again in case of trouble if the file changes. The comparison to 0
             // is to suppress an extra warning that we'd otherwise get on the initial
@@ -280,7 +302,7 @@ bool Ascii::DoUpdate() {
                 StopWarningSuppression();
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = current_ino;
             // File changed. Fall through to re-read.
         }
 

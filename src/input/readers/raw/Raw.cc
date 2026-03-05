@@ -23,6 +23,7 @@
 extern char** environ;
 
 #include "zeek/input/Component.h"
+#include "zeek/input/InputFile.h"
 #include "zeek/input/readers/raw/Plugin.h"
 #include "zeek/input/readers/raw/raw.bif.h"
 #include "zeek/threading/SerialTypes.h"
@@ -44,6 +45,7 @@ Raw::Raw(ReaderFrontend* frontend) : ReaderBackend(frontend), file(nullptr, fclo
     mtime = 0;
     ino = 0;
     dev = 0;
+    fsize = 0;
     forcekill = false;
     offset = 0;
     separator.assign(reinterpret_cast<const char*>(BifConst::InputRaw::record_separator->Bytes()),
@@ -62,6 +64,7 @@ Raw::Raw(ReaderFrontend* frontend) : ReaderBackend(frontend), file(nullptr, fclo
 
 #ifdef _MSC_VER
     child_process_handle_ = INVALID_HANDLE_VALUE;
+    child_job_handle_ = INVALID_HANDLE_VALUE;
 #endif
 
     stdin_towrite = 0; // by default do not open stdin
@@ -77,12 +80,24 @@ void Raw::DoClose() {
     if ( execute && childpid > 0 ) {
 #ifdef _MSC_VER
         HANDLE h = static_cast<HANDLE>(child_process_handle_);
-        if ( h != INVALID_HANDLE_VALUE ) {
+        HANDLE job = static_cast<HANDLE>(child_job_handle_);
+
+        // Terminate via job object to kill the entire process tree.
+        if ( job != INVALID_HANDLE_VALUE ) {
+            TerminateJobObject(job, 1);
+            CloseHandle(job);
+            child_job_handle_ = INVALID_HANDLE_VALUE;
+        }
+        else if ( h != INVALID_HANDLE_VALUE ) {
             TerminateProcess(h, 1);
-            if ( forcekill ) {
-                Sleep(200);
-                TerminateProcess(h, 9);
-            }
+        }
+
+        if ( forcekill && h != INVALID_HANDLE_VALUE ) {
+            Sleep(200);
+            TerminateProcess(h, 9);
+        }
+
+        if ( h != INVALID_HANDLE_VALUE ) {
             CloseHandle(h);
             child_process_handle_ = INVALID_HANDLE_VALUE;
         }
@@ -189,8 +204,8 @@ bool Raw::Execute() {
     char cmdline[MAX_PATH] = "bash";
 
     PROCESS_INFORMATION pi = {};
-    BOOL ok =
-        CreateProcessA(nullptr, cmdline, nullptr, nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi);
+    BOOL ok = CreateProcessA(nullptr, cmdline, nullptr, nullptr, TRUE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED,
+                             nullptr, nullptr, &si, &pi);
 
     // Close child-side pipe ends regardless of success
     CloseHandle(hStdoutWrite);
@@ -206,6 +221,19 @@ bool Raw::Execute() {
             CloseHandle(hStderrRead);
         return false;
     }
+
+    // Put the child in a Job Object so TerminateJobObject kills the
+    // entire process tree (matching POSIX kill(-pid, SIGTERM) semantics).
+    HANDLE job = CreateJobObjectA(nullptr, nullptr);
+    if ( job ) {
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = {};
+        jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
+        AssignProcessToJobObject(job, pi.hProcess);
+        child_job_handle_ = job;
+    }
+
+    ResumeThread(pi.hThread);
 
     childpid = static_cast<int>(pi.dwProcessId);
     child_process_handle_ = pi.hProcess;
@@ -230,7 +258,7 @@ bool Raw::Execute() {
         return false;
     }
 
-    file = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stdout_fd, "r"), fclose);
+    file = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stdout_fd, "rb"), fclose);
     if ( ! file ) {
         Error("Could not convert stdout fd to FILE");
         _close(stdout_fd);
@@ -244,7 +272,7 @@ bool Raw::Execute() {
             return false;
         }
 
-        stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stderr_fd, "r"), fclose);
+        stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stderr_fd, "rb"), fclose);
         if ( ! stderrfile ) {
             Error("Could not convert stderr fd to FILE");
             _close(stderr_fd);
@@ -398,7 +426,9 @@ bool Raw::OpenInput() {
         return Execute();
 
     else {
-        file = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(fname.c_str(), "r"), fclose);
+        file = std::unique_ptr<FILE, int (*)(FILE*)>(zeek::input::reader::detail::fopen_with_share_delete(fname.c_str(),
+                                                                                                          "r"),
+                                                     fclose);
         if ( ! file ) {
             if ( Info().mode == MODE_STREAM )
                 // Wait for file to appear
@@ -420,8 +450,9 @@ bool Raw::OpenInput() {
             }
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = reliable_inode(fname.c_str(), sb.st_ino);
             dev = sb.st_dev;
+            fsize = sb.st_size;
         }
 
         if ( ! SetFDFlags(fileno(file.get()), F_SETFD, FD_CLOEXEC) )
@@ -478,6 +509,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
     mtime = 0;
     ino = 0;
     dev = 0;
+    fsize = 0;
     execute = false;
     firstrun = true;
     int want_fields = 1;
@@ -574,25 +606,47 @@ int64_t Raw::GetLine(FILE* arg_file) {
     for ( ;; ) {
 #ifdef _MSC_VER
         // On Windows, pipes don't support O_NONBLOCK / fcntl().
-        // Limit the fread size to what PeekNamedPipe reports available
-        // so that fread never blocks on an empty pipe.
-        size_t to_read = bufsize - bufpos;
-        if ( execute ) {
+        // For STREAM mode, use PeekNamedPipe + _read() to bypass the
+        // CRT's FILE* buffering layer (fread may read ahead into an
+        // internal buffer that PeekNamedPipe cannot see).  _read() is
+        // the CRT's unbuffered I/O call — equivalent to POSIX read().
+        // For other modes (MANUAL, REREAD), let fread block — same as
+        // Linux where the pipe is left in blocking mode.
+        size_t readbytes;
+        bool at_eof = false;
+        if ( execute && Info().mode == MODE_STREAM ) {
             int fd = _fileno(arg_file);
             HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
             DWORD avail = 0;
-            if ( ! PeekNamedPipe(h, nullptr, 0, nullptr, &avail, nullptr) ) {
-                // Pipe broken (child exited); flush remaining buffer.
-                if ( bufpos == 0 )
-                    return -1;
-                outbuf = std::move(buf);
-                return bufpos;
+            if ( PeekNamedPipe(h, nullptr, 0, nullptr, &avail, nullptr) ) {
+                if ( avail == 0 && bufpos == 0 )
+                    return -2; // truly no data anywhere
+                if ( avail == 0 ) {
+                    readbytes = 0; // no new data; search existing buffer below
+                }
+                else {
+                    unsigned int to_read =
+                        static_cast<unsigned int>((std::min)(bufsize - bufpos, static_cast<size_t>(avail)));
+                    int r = _read(fd, buf.get() + bufpos, to_read);
+                    readbytes = (r > 0) ? static_cast<size_t>(r) : 0;
+                    if ( r == 0 )
+                        at_eof = true;
+                }
             }
-            if ( avail == 0 && bufpos == 0 )
-                return -2; // truly no data anywhere
-            to_read = (std::min)(to_read, static_cast<size_t>(avail));
+            else {
+                // Pipe broken — _read() won't block on a broken pipe.
+                // It returns 0 (EOF), letting the existing separator /
+                // EOF logic below flush any remaining buffered data.
+                unsigned int to_read = static_cast<unsigned int>(bufsize - bufpos);
+                int r = (to_read > 0) ? _read(fd, buf.get() + bufpos, to_read) : 0;
+                readbytes = (r > 0) ? static_cast<size_t>(r) : 0;
+                if ( r <= 0 )
+                    at_eof = true;
+            }
         }
-        size_t readbytes = fread(buf.get() + bufpos, 1, to_read, arg_file);
+        else {
+            readbytes = fread(buf.get() + bufpos, 1, bufsize - bufpos, arg_file);
+        }
 #else
         size_t readbytes = fread(buf.get() + bufpos, 1, bufsize - bufpos, arg_file);
 #endif
@@ -614,7 +668,13 @@ int64_t Raw::GetLine(FILE* arg_file) {
         if ( found == -1 ) {
             // we did not find it and have to search again in the next try.
             // but first check if we encountered the file end - because if we did this was it.
-            if ( feof(arg_file) != 0 ) {
+#ifdef _MSC_VER
+            // _read() signals EOF via return value (at_eof), not via feof().
+            bool is_eof = at_eof || feof(arg_file) != 0;
+#else
+            bool is_eof = feof(arg_file) != 0;
+#endif
+            if ( is_eof ) {
                 if ( bufpos == 0 )
                     return -1; // signal EOF - and that we had no more data.
                 else {
@@ -708,13 +768,16 @@ bool Raw::DoUpdate() {
                     return false;
                 }
 
-                if ( sb.st_dev == dev && sb.st_ino == ino && sb.st_mtime == mtime )
+                uint64_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
+
+                if ( sb.st_dev == dev && current_ino == ino && sb.st_mtime == mtime && sb.st_size == fsize )
                     // no change
                     return true;
 
                 mtime = sb.st_mtime;
-                ino = sb.st_ino;
+                ino = current_ino;
                 dev = sb.st_dev;
+                fsize = sb.st_size;
                 // file changed. reread.
                 //
                 // fallthrough
@@ -742,13 +805,17 @@ bool Raw::DoUpdate() {
                     // File was removed
                     break;
 
-                // Is it the same file?
-                if ( file && sb.st_ino == ino && sb.st_dev == dev )
-                    break;
+                // Is it the same file? In STREAM mode this only detects
+                // file replacement (different inode), not appended data.
+                {
+                    uint64_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
+                    if ( file && current_ino == ino && sb.st_dev == dev )
+                        break;
+                }
 
                 // File was replaced
                 FILE* tfile;
-                tfile = fopen(fname.c_str(), "r");
+                tfile = zeek::input::reader::detail::fopen_with_share_delete(fname.c_str(), "r");
                 if ( ! tfile )
                     break;
 
@@ -762,7 +829,7 @@ bool Raw::DoUpdate() {
                 if ( file )
                     file.reset(nullptr);
                 file = std::unique_ptr<FILE, int (*)(FILE*)>(tfile, fclose);
-                ino = sb.st_ino;
+                ino = reliable_inode(fname.c_str(), sb.st_ino);
                 dev = sb.st_dev;
                 offset = 0;
                 bufpos = 0;

@@ -138,9 +138,6 @@ bool Config::DoUpdate() {
 
             if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
-#ifdef _WIN32
-                file.close();
-#endif
                 return true;
             }
 
@@ -290,14 +287,6 @@ bool Config::DoUpdate() {
     // clean up all options we did not see
     for ( const auto& i : unseen_options )
         option_values.erase(i);
-
-#ifdef _WIN32
-    // Close the file between reads in MODE_REREAD so that the file handle
-    // is not held across heartbeats. On Windows, an open handle prevents
-    // external file replacement (e.g. mv) from succeeding.
-    if ( Info().mode == MODE_REREAD )
-        file.close();
-#endif
 
     return true;
 }

@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stdout
 # @TEST-EXEC: btest-diff weird.log
 
 # @TEST-START-FILE test.zeek

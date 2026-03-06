@@ -111,7 +111,7 @@ FILE* fopen_with_share_delete(const char* path, const char* mode) {
     return fp;
 }
 
-uint64_t reliable_inode(const char* path, uint64_t stat_ino) {
+file_ino_t reliable_inode(const char* path, file_ino_t stat_ino) {
     HANDLE h = CreateFileA(path, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
                            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if ( h != INVALID_HANDLE_VALUE ) {
@@ -137,7 +137,7 @@ namespace zeek::input::reader::detail {
 
 FILE* fopen_with_share_delete(const char* path, const char* mode) { return fopen(path, mode); }
 
-uint64_t reliable_inode(const char* path, uint64_t stat_ino) { return stat_ino; }
+file_ino_t reliable_inode(const char* path, file_ino_t stat_ino) { return stat_ino; }
 
 } // namespace zeek::input::reader::detail
 

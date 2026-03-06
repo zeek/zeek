@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 
+#include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail {
@@ -51,7 +52,7 @@ private:
     bool execute;
     bool firstrun;
     time_t mtime;
-    uint64_t ino;
+    file_ino_t ino;
     dev_t dev;
     off_t fsize;
 

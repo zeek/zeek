@@ -35,7 +35,7 @@ private:
     std::string fname;
     InputFile* in = nullptr;
     time_t mtime = 0;
-    uint64_t ino = 0;
+    file_ino_t ino = 0;
     bool firstrun = true;
 
     // options set from the script-level.

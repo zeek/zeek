@@ -66,7 +66,7 @@ private:
 
     InputFile file;
     time_t mtime;
-    uint64_t ino;
+    file_ino_t ino;
 
     // The name using which we actually load the file -- compared
     // to the input source name, this one may have a path_prefix

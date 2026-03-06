@@ -4,7 +4,7 @@
 # Input::REREAD ingestion mode.)
 #
 # @TEST-EXEC: mkdir -p alternative
-# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b %INPUT >output
+# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$(cd "$TEST_BASE/scripts/base/frameworks/intel/path-prefix" && pwd) zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE alternative/test.data

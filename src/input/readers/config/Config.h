@@ -41,7 +41,7 @@ private:
 
     InputFile file;
     time_t mtime;
-    uint64_t ino;
+    file_ino_t ino;
 
     bool fail_on_file_problem;
 

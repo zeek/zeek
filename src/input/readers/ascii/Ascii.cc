@@ -7,10 +7,7 @@
 #include <algorithm>
 #include <cerrno>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
+#include "zeek/input/InputFile.h"
 #include "zeek/input/readers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/threading/formatters/Ascii.h"
@@ -273,22 +270,7 @@ bool Ascii::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            uint64_t current_ino = sb.st_ino;
-#ifdef _WIN32
-            // On Windows, stat().st_ino is always 0. Use the NTFS file
-            // index as a reliable replacement for inode-based change detection.
-            {
-                HANDLE h =
-                    CreateFileA(fname.c_str(), FILE_READ_ATTRIBUTES,
-                                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
-                if ( h != INVALID_HANDLE_VALUE ) {
-                    BY_HANDLE_FILE_INFORMATION fi;
-                    if ( GetFileInformationByHandle(h, &fi) )
-                        current_ino = (static_cast<uint64_t>(fi.nFileIndexHigh) << 32) | fi.nFileIndexLow;
-                    CloseHandle(h);
-                }
-            }
-#endif
+            file_ino_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
 
             if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change

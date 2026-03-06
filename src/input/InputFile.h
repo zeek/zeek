@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <sys/types.h>
+#include <cstdint>
 #include <cstdio>
 #include <fstream>
 #include <string>
@@ -12,6 +14,10 @@
 #include <memory>
 
 namespace zeek::input::reader::detail {
+
+/// MSVC defines ino_t as unsigned short (16-bit), too small for 64-bit NTFS
+/// file indices from GetFileInformationByHandle.  Use uint64_t on Windows.
+using file_ino_t = uint64_t;
 
 class WinShareDeleteBuf;
 
@@ -48,6 +54,9 @@ namespace zeek::input::reader::detail {
 
 using InputFile = std::ifstream;
 
+/// On POSIX, ino_t is already large enough for inodes.
+using file_ino_t = ino_t;
+
 } // namespace zeek::input::reader::detail
 
 #endif
@@ -77,6 +86,6 @@ FILE* fopen_with_share_delete(const char* path, const char* mode);
 /// Returns a reliable inode-like identifier for the file at the given path.
 /// On Windows, stat().st_ino is always 0, so this uses GetFileInformationByHandle
 /// to obtain the NTFS file index instead. On other platforms, returns stat_ino as-is.
-uint64_t reliable_inode(const char* path, uint64_t stat_ino);
+file_ino_t reliable_inode(const char* path, file_ino_t stat_ino);
 
 } // namespace zeek::input::reader::detail

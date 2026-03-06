@@ -768,7 +768,7 @@ bool Raw::DoUpdate() {
                     return false;
                 }
 
-                uint64_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
+                file_ino_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
 
                 if ( sb.st_dev == dev && current_ino == ino && sb.st_mtime == mtime && sb.st_size == fsize )
                     // no change
@@ -808,7 +808,7 @@ bool Raw::DoUpdate() {
                 // Is it the same file? In STREAM mode this only detects
                 // file replacement (different inode), not appended data.
                 {
-                    uint64_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
+                    file_ino_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
                     if ( file && current_ino == ino && sb.st_dev == dev )
                         break;
                 }

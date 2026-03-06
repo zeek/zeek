@@ -59,7 +59,7 @@ class ValTrace;
 class ZBody;
 class CPPRuntime;
 
-// From src/PublishOnChange.h
+// From src/PublishOnChangeChange.h
 class PublishOnChangeState;
 
 } // namespace detail
@@ -1030,7 +1030,12 @@ public:
     /**
      * @return pointer to PublishOnChangeState if table is global and has a &publish_on_change attribute.
      */
-    detail::PublishOnChangeState* GetPublishOnChangeState() const { return publish_on_change.get(); }
+    detail::PublishOnChangeState* GetPublishOnChangeState() const { return poc_state.get(); }
+
+    /**
+     * Attach a PublishOnChange state to this table value.
+     */
+    void SetPublishOnChangeState(std::unique_ptr<detail::PublishOnChangeState> poc_state_arg);
 
 protected:
     void Init(TableTypePtr t, bool ordered = false);
@@ -1086,7 +1091,12 @@ protected:
     ValPtr def_val;
     detail::ExprPtr change_func;
     std::string broker_store;
-    std::unique_ptr<detail::PublishOnChangeState> publish_on_change;
+
+    // The "poc_state" stands for &publish_on_change state. This member is set
+    // during detail::PublishOnChangeState::InitPostScript() if the table/set
+    // is global and has a &publish_on_change attribute.
+    std::unique_ptr<detail::PublishOnChangeState> poc_state;
+
     // prevent recursion of change functions
     bool in_change_func = false;
 

@@ -1717,6 +1717,14 @@ TableVal::~TableVal() {
     delete expire_iterator;
 }
 
+void TableVal::SetPublishOnChangeState(std::unique_ptr<detail::PublishOnChangeState> poc_state_arg) {
+    // Today this should only be done once during InitPostScript() and never otherwise.
+    if ( poc_state )
+        reporter->InternalError("poc_state of %s already initialized", obj_desc(this).c_str());
+
+    poc_state = std::move(poc_state_arg);
+}
+
 void TableVal::RemoveAll() {
     // Forward RemoveAll() as individual changes. The user should be aware that
     // if they call clear_table() on a table with a million or so entries, that'll
@@ -1724,11 +1732,11 @@ void TableVal::RemoveAll() {
     // if this works though.
     //
     // Broker backed tables were never hooked up, apparently.
-    if ( publish_on_change ) {
+    if ( poc_state ) {
         for ( const auto& k : *table_val ) {
             const auto index = RecreateIndex(*k.GetHashKey());
-            publish_on_change->OnChange(detail::TableChangeBits::Removed, *index, k.value->GetVal(),
-                                        /*previous_value=*/nullptr);
+            poc_state->OnChange(detail::TableChangeBits::Removed, *index, k.value->GetVal(),
+                                /*previous_value=*/nullptr);
         }
     }
 
@@ -1791,18 +1799,6 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
         assert(c->GetType()->Tag() == TYPE_STRING);
         broker_store = c->AsStringVal()->AsString()->CheckString();
         broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
-    }
-
-    if ( auto poc_attr = attrs->Find(detail::ATTR_PUBLISH_ON_CHANGE); poc_attr ) {
-        if ( ! poc_attr->GetExpr()->IsError() ) {
-            auto val = eval_in_isolation(poc_attr->GetExpr());
-            if ( val ) {
-                auto rval = zeek::cast_intrusive<zeek::RecordVal>(val);
-                publish_on_change = detail::PublishOnChangeState::FromRecord(this, *rval);
-            }
-            else
-                poc_attr->GetExpr()->SetError("&publish_on_change argument eval failed");
-        }
     }
 }
 
@@ -1874,7 +1870,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
     Modified();
 
-    if ( change_func || publish_on_change || (broker_forward && ! broker_store.empty()) ) {
+    if ( change_func || poc_state || (broker_forward && ! broker_store.empty()) ) {
         auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
         if ( broker_forward && ! broker_store.empty() )
@@ -1885,11 +1881,11 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
             CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
         }
 
-        if ( publish_on_change ) {
+        if ( poc_state ) {
             detail::TableChangeBits tc =
                 old_entry_val ? detail::TableChangeBits::Changed : detail::TableChangeBits::New;
             zeek::ValPtr previous_value = old_entry_val ? old_entry_val->GetVal() : nullptr;
-            publish_on_change->OnChange(tc, *change_index, new_entry_val->GetVal(), previous_value);
+            poc_state->OnChange(tc, *change_index, new_entry_val->GetVal(), previous_value);
         }
     }
 
@@ -2436,17 +2432,16 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
         CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
     }
 
-    if ( publish_on_change ) {
+    if ( poc_state ) {
         // This is a bit strange. The code above sets va to {NewRef{}, this}
-        // when the TableEntryVal didn't have a value. But this doesn't make
-        // a lot of sense.
+        // when the TableEntryVal didn't have a value. This should only happen
+        // for sets and there we actually want to use a nullptr for the value
+        // instead of the full remaining set.
         auto va2 = va;
-        if ( GetType()->IsSet() ) {
-            assert(va.get() == this);
+        if ( GetType()->IsSet() )
             va2 = nullptr;
-        }
 
-        publish_on_change->OnChange(detail::TableChangeBits::Removed, index, va2, /*previous_value=*/nullptr);
+        poc_state->OnChange(detail::TableChangeBits::Removed, index, va2, /*previous_value=*/nullptr);
     }
 
     return va;
@@ -2470,13 +2465,27 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
 
     Modified();
 
-    if ( va && (change_func || ! broker_store.empty()) ) {
+    if ( va && (change_func || ! broker_store.empty() || poc_state) ) {
         auto index = GetTableHash()->RecoverVals(k);
         if ( ! broker_store.empty() )
             SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 
         if ( change_func && va )
             CallChangeFunc(index, va, ELEMENT_REMOVED);
+
+        // Same as in the other Remove() implementation.
+        //
+        // This is a bit strange. The code above sets va to {NewRef{}, this}
+        // when the TableEntryVal didn't have a value. This should only happen
+        // for sets and there we actually want to use a nullptr for the value
+        // instead of the full remaining set.
+        if ( poc_state ) {
+            auto va2 = va;
+            if ( GetType()->IsSet() )
+                va2 = nullptr;
+
+            poc_state->OnChange(detail::TableChangeBits::Removed, *index, va2, /*previous_value=*/nullptr);
+        }
     }
 
     return va;
@@ -2736,11 +2745,17 @@ void TableVal::DoExpire(double t) {
             }
 
             table_val->RemoveEntry(k.get());
-            if ( change_func ) {
+
+            if ( change_func || poc_state ) {
                 if ( ! idx )
                     idx = RecreateIndex(*k);
 
-                CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
+                if ( change_func )
+                    CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
+
+                if ( poc_state )
+                    poc_state->OnChange(detail::TableChangeBits::Expired, *idx, v->GetVal(),
+                                        /*previous_value=*/nullptr);
             }
 
             delete v;

@@ -6164,19 +6164,15 @@ export {
 	type TableChangeInfo: record {
 		## The type of change.
 		change: TableChange;
-
 		## The network time of this change.
 		ts: time;
-
 		## The index value. Internally tables and sets use ListVal
 		## instances, but for cluster communication we use vector
 		## of any.
 		index: vector of any;
-
 		## The new, updated or removed value of the new element.
 		## Unused for sets.
 		value: any &optional;
-
 		## The previous value in the table when the change field
 		## is :zeek:see:`TABLE_ELEMENT_CHANGED`. Unused for sets.
 		previous_value: any &optional;
@@ -6185,24 +6181,33 @@ export {
 	## Vector of individual TableChange instances.
 	type TableChangeInfos: vector of TableChangeInfo;
 
-	## Internal'ish event for propagating table changes via publish/subscribe.
+	## Record
+	type TableChangeHeader: record {
+		## The script-layer identifier of this table.
+		id: string;
+		## The network timestamp when this event was published.
+		ts: time;
+		## The :zeek:see:`Cluster::node_id` value of the sending process.
+		node_id: string;
+	};
+
+	## Internal'ish event for propagating table changes via publish/subscribe
+	## to other Zeek processes in a cluster.
 	##
-	## id: script-layer identifier for the table as a string
-	## ts: network time of publish of this event for symmetry with ts within TableChangeInfo records.
+	## tcheader: Header with common information.
 	## tcinfos: Accumulated changes as a vector.
-	global table_change_infos: event(id: string, ts: time, tcinfos: TableChangeInfos);
+	global table_change_infos: event(tcheader: TableChangeHeader, tcinfos: TableChangeInfos);
 
 	## Internal helper event used by worker processes to delegate publishing
 	## to the Zeek manager when running under Broker.
 	##
 	## If ``to`` is manager_topic or starts with /zeek/table/, the manager
-	## will also raise table_change_infos() locally.
+	## will also raise table_change_infos() locally for itself.
 	##
-	## id: script-layer identifier for the table as a string
-	## ts: network time of publish of this event for symmetry with ts within TableChangeInfo records.
+	## tcheader: Header with common information.
 	## tcinfos: Accumulated changes as a vector.
-	## to: The topic to publish the remaining parameters as table_change_infos() event.
-	global forward_table_change_infos: event(id: string, ts: time, tcinfos: TableChangeInfos, to: string);
+	## to_topic: The topic to publish the table_change_infos() event to.
+	global forward_table_change_infos: event(tcheader: TableChangeHeader, tcinfos: TableChangeInfos, to_topic: string);
 
 	## A hook for testing and intercepting changes to tables coming in
 	## via the &publish_on_change mechanism from other Zeek processes.
@@ -6213,7 +6218,7 @@ export {
 	## id: Script-level identifier of the table or set.
 	## ts: Network timestamp at the time of sending.
 	## table_change_infos: vector of changes as batched by the remote Zeek process.
-	global apply_table_change_infos_policy: hook(id: string, ts: time, table_change_infos: TableChangeInfos);
+	global apply_table_change_infos_policy: hook(tcheader: TableChangeHeader, tcinfos: TableChangeInfos);
 }
 
 module Weird;

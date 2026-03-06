@@ -1754,11 +1754,7 @@ attr:
 	|	TOK_ATTR_ON_CHANGE '=' expr
 			{ $$ = new Attr(ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_PUBLISH_ON_CHANGE '=' '[' field_assigns expr_list_opt_comma  ']'
-			{
-			static const auto rt = zeek::id::find_type<zeek::RecordType>("Cluster::PublishOnChangeAttr");
-			auto *constructor = new RecordConstructorExpr(rt, {AdoptRef{}, $4});
-			$$ = new Attr(ATTR_PUBLISH_ON_CHANGE, {AdoptRef{}, constructor});
-			}
+			{ $$ = new Attr(ATTR_PUBLISH_ON_CHANGE, {AdoptRef{}, $4}); }
 	|	TOK_ATTR_BROKER_STORE '=' expr
 			{ $$ = new Attr(ATTR_BROKER_STORE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX

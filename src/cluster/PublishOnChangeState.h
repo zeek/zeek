@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// Functionality to support &publish_on_change on tables and sets.
+// Functionality to support &publish_on_change for tables and sets.
 
 #pragma once
 
@@ -23,6 +23,7 @@ class Val;
 class VectorVal;
 
 using FuncPtr = IntrusivePtr<Func>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
@@ -48,21 +49,21 @@ constexpr uint8_t operator|=(uint8_t& mask, TableChangeBits v) {
     return mask;
 }
 
-
 class PublishOnChangeState {
 public:
     /**
      * Constructor.
      *
+     * @param identifier The string-level identifier in StringVal form
      * @param tv The associated table value
      * @param change_mask Bitmask of changes to publish.
      * @param topic Optional static topic
      * @param topic_func A Zeek script function to dynamically determine the topic.
-     * @param max_batch_size
-     * @param max_batch_delay
+     * @param max_batch_size Maximum number of batched changes.
+     * @param max_batch_delay Maximum delay for batched changes.
      */
-    PublishOnChangeState(TableVal* tv, uint8_t change_mask, std::optional<std::string> topic, FuncPtr topic_func,
-                         size_t max_batch_size, double max_batch_delay);
+    PublishOnChangeState(StringValPtr identifier, TableVal* tv, uint8_t change_mask, std::optional<std::string> topic,
+                         FuncPtr topic_func, size_t max_batch_size, double max_batch_delay);
 
     /**
      * Destructor.
@@ -71,10 +72,11 @@ public:
 
     /**
      * This method receives all changes done to a TableVal and queues
-     * those changes that pass the changes_bitmask.
+     * those changes that pass the change_bitmask.
      *
-     * If the change happens while ApplyChanges() is active, this method
-     * short-circuits.
+     * If OnChange() is called while ApplyChanges() is active, this method
+     * short-circuits as to not re-publish changes from remote. Use the
+     * script-layer hooks if you want to do something in this direction.
      *
      * @param tc
      * @param index
@@ -120,10 +122,10 @@ public:
     /**
      * Apply all changes from TableChangeInfos vector.
      *
-     * @param ts The explicit timestamp field from the event parameter.
-     * @param changes: TableChangeInfos vector containing all changes to be applied.
+     * @param tcheader The TableChangeHeader record with misc information.
+     * @param tcinfos TableChangeInfos vector containing all changes to be applied.
      */
-    void ApplyChanges(double ts, const VectorVal& changes);
+    void ApplyChanges(const RecordVal& tcheader, const VectorVal& tcinfos);
 
     /**
      * Called from a timer's Dispatch() method to clear timer member.
@@ -149,29 +151,23 @@ public:
     const FuncPtr& GetTopicFunc() const { return topic_func; }
 
     /**
-     * Store the script-layer identifier.
-     *
-     * @param id The script-layer identifier.
-     */
-    void SetIdentifier(const std::string& id);
-
-    /**
      * Interpret the given record value given to &publish_on_change and create a
      * fresh PublishOnChangeState instance for \a table_val.
      *
-     * @param table_value The table value this state will be attached to.
-     * @param rec The record given to the &publish_on_change attribute.
+     * @param id The script-level identifier.
+     * @param table_val The table value this state will be attached to.
+     * @param rec The record evaluated from the &publish_on_change attribute.
      *
      * @return PublishOnChangeState
      */
-    static std::unique_ptr<PublishOnChangeState> FromRecord(TableVal* table_val, const RecordVal& rec);
+    static std::unique_ptr<PublishOnChangeState> Instantiate(const std::string& id, TableVal* table_val,
+                                                             const RecordVal& rec);
 
     /**
      * InitPostScript() hook for &publish_on_change support.
      *
-     * Find all global tables with an attached PublishOnChangeState and
-     * if for each that does not have a topic or topic_func set, update
-     * it based on the table identifier.
+     * Find all global tables with an attached PublishOnChangeState and initialize
+     * a PublishOnChangeState instance via Instantiate().
      */
     static void InitPostScript();
 
@@ -184,19 +180,6 @@ public:
     static void SetForwardTableChangeInfosTopic(std::string topic);
 
 private:
-    detail::Timer* ArmPublishTimer(double now);
-    void CancelPublishTimer();
-
-    uint8_t change_mask = 0;          // Bitmask created from $changes field.
-    std::optional<std::string> topic; // Pre-computed topic if topic_func nil.
-    FuncPtr topic_func;               // Function to compute topic, can be nil.
-    size_t max_batch_size = 0;        // Maximum size of queued_changes.
-    double max_batch_delay = 0.0;     // Maximum delay before publishing the batch
-    StringValPtr identifier;          // Script-layer identifier as string.
-
-    TableVal* table_val = nullptr; // Pointer back to the table. Modified during ApplyChanges()
-    bool in_apply_changes = false; // Set to true why processing remote changes.
-
     /**
      * Helper class to set in_apply_changes and unset when leaving a scope.
      *
@@ -210,14 +193,55 @@ private:
         PublishOnChangeState* poc = nullptr;
     };
 
-    size_t queued_changes_total = 0;                    // Number of total changes in queued_changes.
-    std::map<std::string, VectorValPtr> queued_changes; // Queued changes to be published per topic.
-    double last_publish_ts = 0.0;                       // Timestamp of last publish.
-    Timer* timer = nullptr;                             // Timer to flush any queued changes.
+    /**
+     * Arm the publish timer for publishing.
+     */
+    detail::Timer* ArmPublishTimer(double now);
+
+    /**
+     * Cancel the publish timer if it is set.
+     */
+    void CancelPublishTimer();
+
+    /**
+     * Helper to publish a single Cluster::table_change_infos() event.
+     *
+     * @param topic
+     * @param tcheader
+     * @param tcinfos
+     */
+    void PublishQueuedChanges(double now, const std::string& topic, const RecordValPtr tcheader,
+                              const VectorValPtr tcinfos);
+
+    StringValPtr identifier;       // Global script-layer identifier of the value as StringValPtr.
+    TableVal* table_val = nullptr; // Pointer back to the table. Modified during ApplyChanges()
+    uint8_t change_mask = 0;       // Bitmask created from $changes field.
+    size_t max_batch_size = 0;     // Maximum size of queued_changes.
+    double max_batch_delay = 0.0;  // Maximum delay before publishing the batch
+    bool in_apply_changes = false; // Set to true when processing remote changes through Apply
+
+    // If topic is set, it is a static topic used for every change and
+    // changes are queued in the changes member. The topic_func and
+    // topic_changes members below are unused.
+    std::optional<std::string> topic;
+    VectorValPtr changes;
+
+    // If topic_func is not nil, for every change a new topic is
+    // determined by calling topic_func. Changes are queued per
+    // topic in the topic_changes map. The topic and changes
+    // members above are unused.
+    FuncPtr topic_func;
+    std::map<std::string, VectorValPtr> topic_changes;
+
+    size_t queued_changes_total = 0; // Number of total queued changes.
+    double last_publish_ts = 0.0;    // Timestamp of last publish.
+    Timer* timer = nullptr;          // Timer for when to publish out the queued changes.
 
     static EventHandlerPtr eh_table_change_infos; // event(id: string, ts: time: changes: vector of TableChangeInfo)
     static EventHandlerPtr eh_forward_table_change_infos; // event(..., to: string)
     static std::optional<std::string> forward_topic;      // static topic to forward changes to instead of using topic.
+
+    static StringValPtr local_node_id; // node_id value determined lazily via Cluster::node_id() on the first publish.
 };
 
 } // namespace detail

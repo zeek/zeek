@@ -7,21 +7,34 @@
 
 module Cluster;
 
+# Broker-specific:
+#
+# Helper for Broker when workers need to publish their changes through the manager, they
+# set the forward topic to Cluster::manager_topic.
 function set_forward_table_change_infos_topic%(topic: string%)
 	%{
 	zeek::detail::PublishOnChangeState::SetForwardTableChangeInfosTopic(topic->ToStdString());
 	return nullptr;
 	%}
 
-function apply_table_change_infos%(id: string, ts: time, table_change_infos: TableChangeInfos%): bool
+function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_infos: TableChangeInfos%): bool
 	%{
 	ScriptLocationScope scope{frame};
-	const auto& idptr = zeek::detail::global_scope()->Find(id->ToStdStringView());
+
+	const auto* tcheader_rec = tcheader->AsRecordVal();
+
+	const auto& idstr = tcheader_rec->GetFieldAs<zeek::StringVal>(0);  // hard-coded offset, always first
+	const auto& idptr = zeek::detail::global_scope()->Find(idstr->ToStdStringView());
+
+	if ( ! idptr ) {
+		zeek::reporter->Warning("apply_table_change_infos: no such identifier %s", idstr->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
 
 	const auto& val = idptr->GetVal();
 
 	if ( val->GetType()->Tag() != TYPE_TABLE ) {
-		zeek::reporter->Warning("apply_table_change_infos: %s not a table!", id->ToStdString().c_str());
+		zeek::reporter->Warning("apply_table_change_infos: %s not a table!", idstr->ToStdString().c_str());
 		return zeek::val_mgr->False();
 	}
 
@@ -29,11 +42,10 @@ function apply_table_change_infos%(id: string, ts: time, table_change_infos: Tab
 	auto* poc_state = tval->GetPublishOnChangeState();
 	if ( ! poc_state ) {
 		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
-		                        id->ToStdString().c_str(), tval.get());
+		                        idstr->ToStdString().c_str(), tval.get());
 		return zeek::val_mgr->False();
 	}
 
-	poc_state->ApplyChanges(ts, *table_change_infos->AsVectorVal());
-
+	poc_state->ApplyChanges(*tcheader->AsRecordVal(), *table_change_infos->AsVectorVal());
 	return zeek::val_mgr->True();
 	%}

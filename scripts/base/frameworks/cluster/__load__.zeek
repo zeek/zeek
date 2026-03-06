@@ -1,8 +1,8 @@
 # Load the core cluster support.
 @load ./main
 @load ./pools
+@load ./publish-on-change
 @load ./pubsub
-@load ./table
 @load ./telemetry
 @load ./types
 

@@ -1,3 +1,14 @@
+8.2.0-dev.264 | 2026-03-06 16:38:59 -0700
+
+  * remove unnecessary rlen variable in is_valid_base64 (Martin)
+
+  * style: apply clang-format to Base64.cc (martincmr)
+
+  * Add is_valid_base64() BiF (martincmr)
+
+    Returns T/F instead of generating reporter errors.
+    Fixes #5242
+
 8.2.0-dev.260 | 2026-03-06 12:04:40 -0700
 
   * Updates to TLS consts (Johanna Amann, Corelight)

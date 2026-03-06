@@ -19,7 +19,7 @@ public:
     // encode_base64()), encoding-errors will go to Reporter instead of
     // Weird. Usage errors go to Reporter in any case. Empty alphabet
     // indicates the default base64 alphabet.
-    explicit Base64Converter(Connection* conn, const std::string& alphabet = "");
+    explicit Base64Converter(Connection* conn, const std::string& alphabet = "", bool silent = false);
     ~Base64Converter();
 
     // A note on Decode():
@@ -60,10 +60,12 @@ protected:
     int* base64_table;
     int errored; // if true, we encountered an error - skip further processing
     Connection* conn;
+    bool silent;
 };
 
 String* decode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
 String* encode_base64(const String* s, const String* a = nullptr, Connection* conn = nullptr);
+bool is_valid_base64(const String* s, const String* a = nullptr);
 
 } // namespace detail
 } // namespace zeek

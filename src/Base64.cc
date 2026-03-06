@@ -260,11 +260,10 @@ bool is_valid_base64(const String* s, const String* a) {
         return false;
 
     int buf_len = static_cast<int>((s->Len() + 3) / 4) * 3 + 1;
-    int rlen = buf_len;
-    char* rbuf = new char[rlen];
+    char* rbuf = new char[buf_len];
 
     Base64Converter dec(nullptr, a && a->Len() ? a->CheckString() : "", true);
-    dec.Decode(s->Len(), reinterpret_cast<const char*>(s->Bytes()), &rlen, &rbuf);
+    dec.Decode(s->Len(), reinterpret_cast<const char*>(s->Bytes()), &buf_len, &rbuf);
 
     bool ok = ! dec.Errored();
     delete[] rbuf;

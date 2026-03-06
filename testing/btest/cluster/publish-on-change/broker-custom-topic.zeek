@@ -1,4 +1,4 @@
-# @TEST-DOC: Test that $topic=Cluster::worker_topic also works for Broker.
+# @TEST-DOC: Ensure that a completely custom topic works with Broker. The manager also receives the changes.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_PROXY1_PORT
@@ -8,6 +8,7 @@
 # @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 
 # @TEST-EXEC: zeek --parse-only manager.zeek
+# @TEST-EXEC: zeek --parse-only proxy.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
@@ -23,19 +24,35 @@
 
 
 # @TEST-START-FILE common.zeek
+@load frameworks/cluster/experimental
+
 global endpoints: set[addr, addr] &write_expire=300sec &publish_on_change=[
 	$changes=set(TABLE_ELEMENT_NEW),
 	# Changes are only published to the Cluster::worker_topic
-	$topic=Cluster::worker_topic,
+	$topic="/my/custom/topic/endpoints",
+	$max_batch_delay=100msec,  # Delay a bit longer after the first publish.
 ];
+
+event zeek_init()
+	{
+	Cluster::subscribe("/my/custom/topic/");
+	}
 
 event start_test()
 	{
 	if ( Cluster::node == "worker-1" )
+		{
 		add endpoints[192.168.0.1, 10.0.0.1];
+		add endpoints[192.168.0.2, 10.0.0.2];
+		add endpoints[192.168.0.3, 10.0.0.3];
+		}
 
 	if ( Cluster::node == "worker-2" )
-		add endpoints[192.168.0.2, 10.0.0.2];
+		{
+		add endpoints[192.168.0.4, 10.0.0.4];
+		add endpoints[192.168.0.5, 10.0.0.5];
+		add endpoints[192.168.0.6, 10.0.0.6];
+		}
 	}
 
 event do_terminate()
@@ -49,17 +66,13 @@ global done_test: event();
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
-global nodes_up = 0;
 global nodes_done = 0;
 global nodes_down = 0;
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	++nodes_up;
-	print "nodes_up", nodes_up;
-
-	if ( nodes_up == 3 )
-		Cluster::publish(Cluster::worker_topic, start_test);
+	print "cluster_started";
+	Cluster::publish(Cluster::worker_topic, start_test);
 	}
 
 event done_test()
@@ -79,33 +92,27 @@ event Cluster::node_down(name: string, id: string)
 	print "nodes_down", nodes_down;
 
 	if ( nodes_down == 3 )
-		{
-		if ( |endpoints| != 0 )
-			print fmt("ERROR: endpoints not empty: %s", endpoints);
-
 		terminate();
-		}
 	}
 
 event zeek_done()
 	{
-	print "zeek_done endpoints", endpoints;
-	if ( |endpoints| != 0 )
-		print fmt("ERROR: endpoints not empty: %s", endpoints);
+	print "zeek_done endpoints", |endpoints|;
 	}
 # @TEST-END-FILE
 
 # @TEST-START-FILE proxy.zeek
 @load ./common.zeek
-# Proxy does nothing, but receives do_terminate() and prints its endpoint
-# table which should be empty.
+# Proxy also receives the inserts like all other nodes, and we use it
+# for hook logging.
+hook Cluster::apply_table_change_infos_policy(tcheader: Cluster::TableChangeHeader, tcinfos: Cluster::TableChangeInfos)
+	{
+	print "apply_table_change_infos_policy", tcheader$id, |tcinfos|;
+	}
 event zeek_done()
 	{
-	print "zeek_done endpoints", endpoints;
-	if ( |endpoints| != 0 )
-		print fmt("ERROR: endpoints not empty: %s", endpoints);
+	print "zeek_done endpoints", |endpoints|;
 	}
-
 # @TEST-END-FILE
 
 # @TEST-START-FILE worker.zeek
@@ -113,8 +120,9 @@ event zeek_done()
 
 event zeek_init()
 	{
-	# Await for two entries inserted by the workers themselves.
-	when ( |endpoints| == 2 )
+	# Await for two entries inserted by the workers themselves and
+	# one from the manager.
+	when ( |endpoints| == 6 )
 		{
 		print "end", endpoints;
 		Cluster::publish(Cluster::manager_topic, done_test);

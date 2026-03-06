@@ -41,7 +41,15 @@ global tbl3: table[string, string] of string &publish_on_change=[
 ];
 
 # @TEST-START-NEXT
+# Wrongly typed topic.
 global tbl4: table[string, string] of string &publish_on_change=[
 	$changes=set(TABLE_ELEMENT_NEW),
 	$topic=42,
+];
+
+# @TEST-START-NEXT
+# Just an unknown field for the constructor
+global tbl5: table[string, string] of string &publish_on_change=[
+	$changes=set(TABLE_ELEMENT_NEW),
+	$unknown="unknown",
 ];

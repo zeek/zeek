@@ -41,10 +41,11 @@ event do_terminate()
 global nodes_up = 0;
 global nodes_down = 0;
 
-hook Cluster::apply_table_change_infos_policy(id: string, ts: time, table_change_infos: Cluster::TableChangeInfos)
+hook Cluster::apply_table_change_infos_policy(tcheader: Cluster::TableChangeHeader, tcinfos: Cluster::TableChangeInfos)
 	{
-	print "apply_table_change_infos_policy", id, |table_change_infos|;
-	for ( _, tci in table_change_infos )
+	local id = tcheader$id;
+	print "apply_table_change_infos_policy", id, |tcinfos|;
+	for ( _, tci in tcinfos )
 		print "table_change", id, tci;
 	}
 

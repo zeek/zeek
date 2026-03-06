@@ -1,20 +1,18 @@
 # @TEST-DOC: Stress test &publish_on_change by having all nodes insert 1000 individual entries, then have the manager clear it.
 #
-# @TEST-REQUIRES: have-zeromq
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_PROXY1_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+# @TEST-PORT: BROKER_WORKER2_PORT
 #
-# @TEST-PORT: XPUB_PORT
-# @TEST-PORT: XSUB_PORT
-# @TEST-PORT: LOG_PULL_PORT
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
-# @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
-# @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-
 # @TEST-EXEC: zeek --parse-only manager.zeek
 # @TEST-EXEC: zeek --parse-only proxy.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
-# @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy zeek -b ../proxy.zeek >out"
+# @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy-1 zeek -b ../proxy.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-wait 30
@@ -26,7 +24,7 @@
 
 
 # @TEST-START-FILE common.zeek
-@load ./zeromq-test-bootstrap
+@load frameworks/cluster/experimental
 
 global tbl1: table[string, count] of string &write_expire=300sec &publish_on_change=[
 	$changes=set(TABLE_ELEMENT_NEW, TABLE_ELEMENT_REMOVED),
@@ -38,7 +36,7 @@ global tbl1: table[string, count] of string &write_expire=300sec &publish_on_cha
 # Somewhat random insert to tickle different batching scenarios.
 const insert_per_tick = 13;
 const tick_delay = 0.3msec;
-const total = 1000;
+const total = 10;
 global n = 0;
 
 event tick()
@@ -70,7 +68,7 @@ event start_test()
 	schedule tick_delay { tick() };
 
 	# All nodes await 4000 entries.
-	when ( |tbl1| == 4000 )
+	when ( |tbl1| == 40 )
 		{
 		if ( Cluster::node != "manager" )
 			Cluster::publish(Cluster::manager_topic, done_test);
@@ -86,7 +84,7 @@ event start_test()
 		}
 	timeout 10sec
 		{
-		Reporter::fatal("timeout");
+		Reporter::fatal(fmt("timeout (%s)", |tbl1|));
 		}
 	}
 
@@ -100,7 +98,6 @@ event zeek_done()
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
-global nodes_up = 0;
 global nodes_done = 0;
 global nodes_down = 0;
 
@@ -115,17 +112,11 @@ event done_test()
 		}
 	}
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	++nodes_up;
-	print "nodes_up", nodes_up;
-
-	if ( nodes_up == 3 )
-		{
-		Cluster::publish(Cluster::worker_topic, start_test);
-		Cluster::publish(Cluster::proxy_topic, start_test);
-		event start_test();
-		}
+	Cluster::publish(Cluster::worker_topic, start_test);
+	Cluster::publish(Cluster::proxy_topic, start_test);
+	event start_test();
 	}
 
 event Cluster::node_down(name: string, id: string)

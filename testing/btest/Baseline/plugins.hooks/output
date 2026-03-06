@@ -22,6 +22,8 @@
 0.000000   MetaHookPost  CallFunction(Cluster::__subscribe, <frame>, (zeek<...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::on_subscribe, <null>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Cluster::on_subscribe, <null>, (zeek<...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
@@ -98,8 +100,8 @@
 0.000000   MetaHookPost  CallFunction(Option::set, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::failure_data_max_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Cluster::Table::default_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Cluster::Table::default_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Cluster::default_table_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Cluster::default_table_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::extraction_prefix, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
@@ -295,6 +297,8 @@
 0.000000   MetaHookPost  CallFunction(Supervisor::is_supervisor, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_secondary_bifs, <null>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(convert_for_pattern, <frame>, (zeek/supervisor)) -> <no result>
+0.000000   MetaHookPost  CallFunction(convert_for_pattern, <frame>, (zeek<...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(double_to_time, <null>, (0.0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
@@ -313,6 +317,8 @@
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
+0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, (zeek\/supervisor.*, F)) -> <no result>
+0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, (zeek\<...>/.*, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
@@ -485,6 +491,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./polling, <...>/polling.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./pools, <...>/pools.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./postprocessors, <...>/postprocessors) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./publish-on-change, <...>/publish-on-change.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./publish_on_change.bif.zeek, <...>/publish_on_change.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./pubsub, <...>/pubsub.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek) -> -1
@@ -501,7 +508,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./table, <...>/table.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry, <...>/telemetry.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek) -> -1
@@ -806,6 +812,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./polling, <...>/polling.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./pools, <...>/pools.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./postprocessors, <...>/postprocessors) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./publish-on-change, <...>/publish-on-change.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./publish_on_change.bif.zeek, <...>/publish_on_change.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
@@ -822,7 +829,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./table, <...>/table.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek) -> (-1, <no content>)
@@ -982,6 +988,8 @@
 0.000000   MetaHookPre   CallFunction(Cluster::__subscribe, <frame>, (zeek<...>/))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
+0.000000   MetaHookPre   CallFunction(Cluster::on_subscribe, <null>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(Cluster::on_subscribe, <null>, (zeek<...>/))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F]))
@@ -1058,8 +1066,8 @@
 0.000000   MetaHookPre   CallFunction(Option::set, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::failure_data_max_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Cluster::Table::default_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Cluster::Table::default_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Cluster::default_table_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Cluster::default_table_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::extraction_prefix, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
@@ -1255,6 +1263,8 @@
 0.000000   MetaHookPre   CallFunction(Supervisor::is_supervisor, <frame>, ())
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(__init_secondary_bifs, <null>, ())
+0.000000   MetaHookPre   CallFunction(convert_for_pattern, <frame>, (zeek/supervisor))
+0.000000   MetaHookPre   CallFunction(convert_for_pattern, <frame>, (zeek<...>/))
 0.000000   MetaHookPre   CallFunction(double_to_time, <null>, (0.0))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
@@ -1273,6 +1283,8 @@
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
+0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, (zeek\/supervisor.*, F))
+0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, (zeek\<...>/.*, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
 0.000000   MetaHookPre   DrainEvents()
@@ -1445,6 +1457,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFile(0, ./publish-on-change, <...>/publish-on-change.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./publish_on_change.bif.zeek, <...>/publish_on_change.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek)
@@ -1461,7 +1474,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./table, <...>/table.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry, <...>/telemetry.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek)
@@ -1766,6 +1778,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFileExtended(0, ./publish-on-change, <...>/publish-on-change.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./publish_on_change.bif.zeek, <...>/publish_on_change.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek)
@@ -1782,7 +1795,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./table, <...>/table.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek)
@@ -1941,6 +1953,8 @@
 0.000000 | HookCallFunction Cluster::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Cluster::__subscribe(zeek<...>/)
 0.000000 | HookCallFunction Cluster::is_enabled()
+0.000000 | HookCallFunction Cluster::on_subscribe(zeek/supervisor)
+0.000000 | HookCallFunction Cluster::on_subscribe(zeek<...>/)
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])
@@ -2017,8 +2031,8 @@
 0.000000 | HookCallFunction Option::set(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)
 0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::failure_data_max_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::peer_counts_as_iosource, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Cluster::Table::default_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Cluster::Table::default_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Cluster::default_table_publish_on_change_max_batch_delay, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Cluster::default_table_publish_on_change_max_batch_size, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::analyzer_inactivity_timeouts, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::default_extract, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::extraction_prefix, Config::config_option_changed: function(ID:string, new_value:any, location:string) : any{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
@@ -2214,6 +2228,8 @@
 0.000000 | HookCallFunction Supervisor::is_supervisor()
 0.000000 | HookCallFunction __init_primary_bifs()
 0.000000 | HookCallFunction __init_secondary_bifs()
+0.000000 | HookCallFunction convert_for_pattern(zeek/supervisor)
+0.000000 | HookCallFunction convert_for_pattern(zeek<...>/)
 0.000000 | HookCallFunction double_to_time(0.0)
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
@@ -2232,6 +2248,8 @@
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
+0.000000 | HookCallFunction string_to_pattern(zeek\/supervisor.*, F)
+0.000000 | HookCallFunction string_to_pattern(zeek\<...>/.*, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
 0.000000 | HookCallFunction zeek_init()
 0.000000 | HookDrainEvents
@@ -2415,6 +2433,7 @@
 0.000000 | HookLoadFile  ./pools <...>/pools.zeek
 0.000000 | HookLoadFile  ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFile  ./programming <...>/programming.sig
+0.000000 | HookLoadFile  ./publish-on-change <...>/publish-on-change.zeek
 0.000000 | HookLoadFile  ./publish_on_change.bif.zeek <...>/publish_on_change.bif.zeek
 0.000000 | HookLoadFile  ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFile  ./python <...>/python.sig
@@ -2432,7 +2451,6 @@
 0.000000 | HookLoadFile  ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFile  ./supervisor.bif.zeek <...>/supervisor.bif.zeek
-0.000000 | HookLoadFile  ./table <...>/table.zeek
 0.000000 | HookLoadFile  ./telemetry <...>/telemetry.zeek
 0.000000 | HookLoadFile  ./telemetry_consts.bif.zeek <...>/telemetry_consts.bif.zeek
 0.000000 | HookLoadFile  ./telemetry_functions.bif.zeek <...>/telemetry_functions.bif.zeek
@@ -2736,6 +2754,7 @@
 0.000000 | HookLoadFileExtended ./pools <...>/pools.zeek
 0.000000 | HookLoadFileExtended ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFileExtended ./programming <...>/programming.sig
+0.000000 | HookLoadFileExtended ./publish-on-change <...>/publish-on-change.zeek
 0.000000 | HookLoadFileExtended ./publish_on_change.bif.zeek <...>/publish_on_change.bif.zeek
 0.000000 | HookLoadFileExtended ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFileExtended ./python <...>/python.sig
@@ -2753,7 +2772,6 @@
 0.000000 | HookLoadFileExtended ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFileExtended ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFileExtended ./supervisor.bif.zeek <...>/supervisor.bif.zeek
-0.000000 | HookLoadFileExtended ./table <...>/table.zeek
 0.000000 | HookLoadFileExtended ./telemetry <...>/telemetry.zeek
 0.000000 | HookLoadFileExtended ./telemetry_consts.bif.zeek <...>/telemetry_consts.bif.zeek
 0.000000 | HookLoadFileExtended ./telemetry_functions.bif.zeek <...>/telemetry_functions.bif.zeek

@@ -16,7 +16,7 @@ export {
 		## Unique ID for the connection.
 		uid: string &log;
 		## Address of host that requested the mapping.
-		int_addr: addr &log;
+		int_addr: addr &log &optional;
 		## Internal port for the mapping.
 		int_port: port &log;
 		## External port for the mapping.
@@ -38,7 +38,7 @@ function request_expire_callback(t: set[EventData], data: EventData) : interval 
 		$ts = network_time(),
 		# TODO: pass over the connection ID
 		$uid = "",
-		$int_addr = data$internal_ip,
+#		$int_addr = data$internal_ip,
 		$int_port = data$int_port,
 		$ext_port = data$ext_port,
 		$result = TIMEOUT));

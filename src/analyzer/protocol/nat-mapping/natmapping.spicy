@@ -10,7 +10,8 @@ type EventData = struct {
     int_port: port;
     ext_port: port;
     internal_ip: optional<addr>;
-    nonce: optional<bytes>;
+    nonce_high: optional<uint64>;
+    nonce_low: optional<uint32>;
 };
 
 public type Packet = unit {
@@ -24,43 +25,47 @@ public type Packet = unit {
 };
 
 public function make_event_data(req: PCP::Request): EventData {
-    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = req.ip, $nonce = Null];
+    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = req.ip, $nonce_high = Null, $nonce_low = Null];
 
     if (req.opcode_ == PCP::Opcode::MAP) {
         event_data.int_port = port(req.map_op.internal_port, req.map_op.proto);
         event_data.ext_port = port(req.map_op.external_port, req.map_op.proto);
-        event_data.nonce = req.map_op.nonce;
+        event_data.nonce_high = req.map_op.nonce_high;
+        event_data.nonce_low = req.map_op.nonce_low;
     } else if (req.opcode_ == PCP::Opcode::PEER) {
         event_data.int_port = port(req.peer_op.internal_port, req.peer_op.proto);
         event_data.ext_port = port(req.peer_op.external_port, req.peer_op.proto);
-        event_data.nonce = req.peer_op.nonce;
+        event_data.nonce_high = req.peer_op.nonce_high;
+        event_data.nonce_low = req.peer_op.nonce_low;
     }
 
     return event_data;
 }
 
 public function make_event_data(resp: PCP::Response): EventData {
-    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = Null, $nonce = Null];
+    local event_data: EventData = [$int_port = 0/tcp, $ext_port = 0/tcp, $internal_ip = Null, $nonce_high = Null, $nonce_low = Null];
 
     if (resp.opcode_ == PCP::Opcode::MAP) {
         event_data.int_port = port(resp.map_op.internal_port, resp.map_op.proto);
         event_data.ext_port = port(resp.map_op.external_port, resp.map_op.proto);
-        event_data.nonce = resp.map_op.nonce;
+        event_data.nonce_high = resp.map_op.nonce_high;
+        event_data.nonce_low = resp.map_op.nonce_low;
     } else if (resp.opcode_ == PCP::Opcode::PEER) {
         event_data.int_port = port(resp.peer_op.internal_port, resp.peer_op.proto);
         event_data.ext_port = port(resp.peer_op.external_port, resp.peer_op.proto);
-        event_data.nonce = resp.peer_op.nonce;
+        event_data.nonce_high = resp.peer_op.nonce_high;
+        event_data.nonce_low = resp.peer_op.nonce_low;
     }
 
     return event_data;
 }
 
 public function make_event_data(req: NATPMP::MapRequest): EventData {
-    return [$int_port = port(req.internal_port, req.proto), $ext_port = port(req.external_port, req.proto), $internal_ip = Null, $nonce = Null];
+    return [$int_port = port(req.internal_port, req.proto), $ext_port = port(req.external_port, req.proto), $internal_ip = Null, $nonce_high = Null, $nonce_low = Null];
 }
 
 public function make_event_data(resp: NATPMP::MapResponse): EventData {
-    return [$int_port = port(resp.internal_port, resp.proto), $ext_port = port(resp.external_port, resp.proto), $internal_ip = Null, $nonce = Null];
+    return [$int_port = port(resp.internal_port, resp.proto), $ext_port = port(resp.external_port, resp.proto), $internal_ip = Null, $nonce_high = Null, $nonce_low = Null];
 }
 
 public function convert_result_code(resp: NATPMP::MapResponse): PCP::ResultCode {

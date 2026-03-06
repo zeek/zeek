@@ -85,7 +85,8 @@ public function convert_protocol(proto: uint8): spicy::Protocol {
 }
 
 public type MapOp = unit {
-    nonce: bytes &size=12;
+    nonce_high: uint64;
+    nonce_low: uint32;
     proto: uint8 &convert=convert_protocol($$);
     : bytes &size=3;
     internal_port: uint16;
@@ -94,7 +95,8 @@ public type MapOp = unit {
 };
 
 public type PeerOp = unit {
-    nonce: bytes &size=12;
+    nonce_high: uint64;
+    nonce_low: uint32;
     proto: uint8 &convert=convert_protocol($$);
     : bytes &size=3;
     internal_port: uint16;

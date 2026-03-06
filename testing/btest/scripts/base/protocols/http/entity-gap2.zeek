@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/entity_gap2.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/entity_gap2.pcap %INPUT
 # @TEST-EXEC: btest-diff entity_data
 # @TEST-EXEC: btest-diff extract_files/file0
 

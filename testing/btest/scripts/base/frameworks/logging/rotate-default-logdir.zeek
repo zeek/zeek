@@ -1,6 +1,6 @@
 # @TEST-DOC: Set Log::default_logdir to ./logs. Ensure logs stay within ./logs.
 # @TEST-EXEC: mkdir logs
-# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.trace %INPUT >zeek.out 2>&1
+# @TEST-EXEC: zeek -b -r ${TRACES}/rotation.pcap %INPUT >zeek.out 2>&1
 # @TEST-EXEC: grep "test" zeek.out | sort >out
 # @TEST-EXEC: for i in `ls ./logs/test.*.log | sort`; do printf '> %s\n' $i; cat $i; done >>out
 # @TEST-EXEC: btest-diff out

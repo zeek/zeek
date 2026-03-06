@@ -1,5 +1,5 @@
 # @TEST-DOC: Check telemetry.log for log stream and log filter writes.
-# @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r ${TRACES}/wikipedia.pcap %INPUT
 # @TEST-EXEC: btest-diff telemetry.log
 
 @load base/protocols/conn

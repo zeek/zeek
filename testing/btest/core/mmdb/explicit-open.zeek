@@ -6,7 +6,7 @@
 # @TEST-REQUIRES: $BUILD/zeek-config --have-geoip
 #
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb
-# @TEST-EXEC: zeek -b -r $TRACES/rotation.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/rotation.pcap %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff-cut -m reporter.log
 

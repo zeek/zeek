@@ -7,9 +7,9 @@
 # @TEST-EXEC: ${DIST}/cmake/zeek-plugin-install-package.sh Demo_Foo `pwd`/test-install
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek -NN Demo::Foo >>output
 # @TEST-EXEC: echo "===" >>output
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek -r $TRACES/empty.trace >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek -r $TRACES/empty.pcap >>output
 # @TEST-EXEC: echo "===" >>output
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek Demo/Foo -r $TRACES/empty.trace >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/test-install zeek Demo/Foo -r $TRACES/empty.pcap >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 mkdir -p the-plugin/scripts/Demo/Foo/base/

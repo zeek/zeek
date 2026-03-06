@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -f "tcp port 21" -r $TRACES/ftp/ipv6.trace base/protocols/conn "Conn::default_extract=T"
+# @TEST-EXEC: zeek -b -f "tcp port 21" -r $TRACES/ftp/ipv6.pcap base/protocols/conn "Conn::default_extract=T"
 
 # Note: files renamed to remove colons due to Windows filesystem limitations.
 # Allows one to clone the source tree on Windows for now.  For real Windows

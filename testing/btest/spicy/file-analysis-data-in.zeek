@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: cat ssh.spicy ssh-1.spicy > ssh-test.spicy
 # @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T 2>&1 | sort  >output-1
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T 2>&1 | sort  >output-1
 #
 # @TEST-EXEC: cat x509.log | grep -v ^# | cut -f 4-5 >x509.log.tmp && mv x509.log.tmp x509.log
 # @TEST-EXEC: btest-diff x509.log
@@ -12,7 +12,7 @@
 #
 # @TEST-EXEC: cat ssh.spicy ssh-2.spicy > ssh-test.spicy
 # @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T 2>&1  | sort  >output-2
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T 2>&1  | sort  >output-2
 #
 # @TEST-EXEC: cat files.log | zeek-cut fuid filename >files.log.tmp && mv files.log.tmp files-2.log
 # @TEST-EXEC: btest-diff files-2.log

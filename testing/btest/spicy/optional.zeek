@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace foo.hlto %INPUT > output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap foo.hlto %INPUT > output 2>&1
 # @TEST-EXEC: btest-diff output
 
 type R: record {

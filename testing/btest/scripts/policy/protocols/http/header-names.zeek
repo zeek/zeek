@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 
 @load base/protocols/http

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/tls/tls1.2.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/tls1.2.pcap %INPUT
 # This is a hack to get around the fact that the output format changed between OpenSSL 1.1 and OpenSS:
 # 3.0.
 # @TEST-EXEC: cp .stdout stdout-openssl-3.0

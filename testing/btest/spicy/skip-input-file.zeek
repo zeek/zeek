@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto ssh.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Validate that `skip_input` works for file analyzers.

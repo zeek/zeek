@@ -3,19 +3,19 @@
 # Don't run for C++ scripts because there's no script to compile.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT Known::host_tracking=LOCAL_HOSTS
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT Known::host_tracking=LOCAL_HOSTS
 # @TEST-EXEC: mv known_hosts.log knownhosts-local.log
 # @TEST-EXEC: btest-diff knownhosts-local.log
 
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT Known::host_tracking=REMOTE_HOSTS
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT Known::host_tracking=REMOTE_HOSTS
 # @TEST-EXEC: mv known_hosts.log knownhosts-remote.log
 # @TEST-EXEC: btest-diff knownhosts-remote.log
 
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT Known::host_tracking=ALL_HOSTS
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT Known::host_tracking=ALL_HOSTS
 # @TEST-EXEC: mv known_hosts.log knownhosts-all.log
 # @TEST-EXEC: btest-diff knownhosts-all.log
 
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT Known::host_tracking=NO_HOSTS
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT Known::host_tracking=NO_HOSTS
 # @TEST-EXEC: test '!' -e known_hosts.log
 
 @load protocols/conn/known-hosts

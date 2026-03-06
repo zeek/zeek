@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
-# @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.trace misc/dump-events test.hlto %INPUT
+# @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.pcap misc/dump-events test.hlto %INPUT
 # Zeek versions differ in their quoting of the newline character in analyzer.log (two slashes vs one).
 # @TEST-EXEC: cat analyzer.log | sed 's#\\\\#\\#g' >analyzer.log.tmp && mv analyzer.log.tmp analyzer.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer.log

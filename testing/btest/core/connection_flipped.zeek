@@ -1,6 +1,6 @@
 # @TEST-DOC: A connection flip does not reset the ConnVal. Regression test for #3028.
 
-# @TEST-EXEC: zeek -b -r $TRACES/tcp/handshake-reorder.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/tcp/handshake-reorder.pcap %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff out
 
 redef record conn_id += {

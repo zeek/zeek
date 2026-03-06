@@ -1,7 +1,7 @@
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Testing LoadFileExtended
 # @TEST-EXEC: cp -r %DIR/plugin-load-file-extended/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=$(pwd) zeek -r $TRACES/wikipedia.trace -b Testing::LoadFileExtended xxx xxx2 yyy -s abc.sig >> output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=$(pwd) zeek -r $TRACES/wikipedia.pcap -b Testing::LoadFileExtended xxx xxx2 yyy -s abc.sig >> output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE xxx.zeek

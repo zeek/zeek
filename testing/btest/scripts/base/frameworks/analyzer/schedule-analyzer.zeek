@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -b  -r ${TRACES}/rotation.trace %INPUT | sort >output
+# @TEST-EXEC: zeek -b  -r ${TRACES}/rotation.pcap %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
 
 global x = 0;

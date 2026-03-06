@@ -3,7 +3,7 @@
 #   SMB authentication event and therefore relies on the SMB
 #   analyzer as well.
 
-# @TEST-EXEC: zeek -b -C -r $TRACES/krb/smb_gssapi.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/krb/smb_gssapi.pcap %INPUT
 # @TEST-EXEC: btest-diff kerberos.log
 # @TEST-EXEC: btest-diff-rst scripts.base.protocols.krb
 

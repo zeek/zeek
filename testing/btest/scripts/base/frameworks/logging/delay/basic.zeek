@@ -1,6 +1,6 @@
 # @TEST-DOC: Basic tests.
 
-# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.trace test.zeek %INPUT
+# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: touch test.log

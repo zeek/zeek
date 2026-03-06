@@ -1,6 +1,6 @@
 # @TEST-DOC: Test invalid BDAT lines. Pcaps generated with a Python client against Postfix.
 #
-# @TEST-EXEC: zeek -b -r $TRACES/smtp/smtp-bdat-cmd-invalid.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/smtp/smtp-bdat-cmd-invalid.pcapng %INPUT >out
 # @TEST-EXEC: btest-diff smtp.log
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: btest-diff out

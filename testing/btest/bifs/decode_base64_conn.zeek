@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -r $TRACES/smtp.trace %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/smtp.pcap %INPUT >out
 # @TEST-EXEC: btest-diff weird.log
 
 event connection_established(c: connection)

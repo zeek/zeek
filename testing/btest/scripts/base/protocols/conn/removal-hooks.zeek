@@ -1,5 +1,5 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT >out
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT test_unregister=T >>out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT test_unregister=T >>out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/conn/removal-hooks

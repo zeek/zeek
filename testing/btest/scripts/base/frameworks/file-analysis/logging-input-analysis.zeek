@@ -1,7 +1,7 @@
 # @TEST-DOC: Verify the files.log mat when Input::add_analysis() The fields info$id and info$uid are not expected to be set.
 # TODO: This test hangs indefinitely on Windows and is skipped for the time being.
 # @TEST-REQUIRES: ! is-windows
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap $SCRIPTS/file-analysis-test.zeek %INPUT
 # @TEST-EXEC: btest-diff files.log
 
 @load base/frameworks/files

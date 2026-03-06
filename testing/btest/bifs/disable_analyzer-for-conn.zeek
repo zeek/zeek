@@ -3,7 +3,7 @@
 # Not compatible with -O gen-C++ due to use of multiple scripts.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
-# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/ssh-on-port-80.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/ssh-on-port-80.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # This first test should trigger one analyzer violation, since the given pcap

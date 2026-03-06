@@ -1,5 +1,5 @@
 # @TEST-DOC: Ensure only the HTTP analyzer is enabled (filter out some noise from the trace)
-# @TEST-EXEC: zeek -b -f 'port 53 or port 80'  -r ${TRACES}/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -f 'port 53 or port 80'  -r ${TRACES}/wikipedia.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: test ! -f dns.log

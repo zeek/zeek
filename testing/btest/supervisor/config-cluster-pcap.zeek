@@ -25,7 +25,7 @@ event zeek_init()
 		$p=to_port(getenv("MANAGER_PORT"))];
 	cluster["worker"] = [$role=Supervisor::WORKER, $host=127.0.0.1,
 		$p=to_port(getenv("WORKER_PORT")),
-		$pcap_file=(getenv("TRACES") + "/wikipedia.trace")];
+		$pcap_file=(getenv("TRACES") + "/wikipedia.pcap")];
 
 	for ( n, ep in cluster )
 		{

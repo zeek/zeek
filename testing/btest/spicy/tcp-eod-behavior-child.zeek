@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o x.hlto x.spicy x.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy x.hlto x.zeek >output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap Zeek::Spicy x.hlto x.zeek >output 2>&1
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Checks that a analyzer is properly finished when a protocol handle is closed.

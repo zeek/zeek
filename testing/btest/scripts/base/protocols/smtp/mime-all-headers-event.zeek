@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/smtp.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/smtp.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/smtp

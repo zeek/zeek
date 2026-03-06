@@ -1,12 +1,12 @@
-# @TEST-EXEC: zeek -r ${TRACES}/socks.trace %INPUT
+# @TEST-EXEC: zeek -r ${TRACES}/socks.pcap %INPUT
 # @TEST-EXEC: mv analyzer_debug.log analyzer_debug.log-default
 # @TEST-EXEC: btest-diff analyzer_debug.log-default
 
-# @TEST-EXEC: zeek -r ${TRACES}/socks.trace %INPUT Analyzer::DebugLogging::include_confirmations=F
+# @TEST-EXEC: zeek -r ${TRACES}/socks.pcap %INPUT Analyzer::DebugLogging::include_confirmations=F
 # @TEST-EXEC: mv analyzer_debug.log analyzer_debug.log-dontinclude-confirmations
 # @TEST-EXEC: btest-diff analyzer_debug.log-dontinclude-confirmations
 
-# @TEST-EXEC: zeek -r ${TRACES}/socks.trace %INPUT Analyzer::DebugLogging::include_disabling=F
+# @TEST-EXEC: zeek -r ${TRACES}/socks.pcap %INPUT Analyzer::DebugLogging::include_disabling=F
 # @TEST-EXEC: mv analyzer_debug.log analyzer_debug.log-dontinclude-disabling
 # @TEST-EXEC: btest-diff analyzer_debug.log-dontinclude-disabling
 

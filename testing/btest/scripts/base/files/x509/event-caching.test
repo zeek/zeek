@@ -1,6 +1,6 @@
 # Test that certificate event caching works as expected.
 
-# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.pcap %INPUT
 # @TEST-EXEC: btest-diff x509.log
 # @TEST-EXEC: btest-diff .stdout
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/dns-tsig.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/dns-tsig.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/dns

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: btest-diff files.log
 
 @load base/protocols/http

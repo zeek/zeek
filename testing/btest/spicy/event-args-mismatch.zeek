@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT >output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
 #
 # @TEST-DOC: Test error reporting when an Zeek-side event parameter type does not match what Spicy sends.

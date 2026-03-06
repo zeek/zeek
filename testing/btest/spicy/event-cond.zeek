@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto ssh.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT | sort  >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT | sort  >output
 # @TEST-EXEC: btest-diff output
 
 event ssh::banner1(c: connection, is_orig: bool, version: string, software: string)

@@ -1,6 +1,6 @@
 # Authorization: Basic is followed by two spaces rather than one.
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/http/basic-auth-with-extra-space.trace %INPUT
+# @TEST-EXEC: zeek -b -Cr $TRACES/http/basic-auth-with-extra-space.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 
 @load base/protocols/http

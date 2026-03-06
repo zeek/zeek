@@ -1,6 +1,6 @@
 /*
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace main.zeek LogAscii::use_json=T
+ * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.pcap main.zeek LogAscii::use_json=T
  * @TEST-EXEC: btest-diff http.log
  */
 // @TEST-START-FILE main.zeek

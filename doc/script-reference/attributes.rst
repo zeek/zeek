@@ -490,21 +490,33 @@ a infinite loop:
 .. versionadded:: 8.2
 
 The ``&publish_on_change`` attribute allows to automatically publish modifications
-of :zeek:type:`table` or :zeek:type:`set` values to a configurable topic.
+of global :zeek:type:`table` or :zeek:type:`set` variables to a configurable topic.
 This attribute provides an alternative state distribution primitive that works
 with any cluster backend, replacing the Broker-specific :zeek:attr:`&backend` and
 :zeek:attr:`&broker_store` attributes which have been deprecated.
 
-This attribute is closely related to :zeek:attr:`&on_change`. It only works with
-global :zeek:type:`table` and :zeek:type:`set` variables. Note that modifications
-to complex table values are not automatically published. See the note in
-:zeek:attr:`&on_change` about this.
+If you're looking to implement some form of cluster-wide suppressions table or
+best-effort state distribution, ``&publish_on_change`` is a useful primitive.
+
+.. note::
+
+   Due to limitations in Broker's publish/subscribe visibility, changes from worker
+   nodes are forwarded to the central manager node which then re-publishes them
+   to the intended topic. This results in a bit of extra overhead on the manager
+   when Broker is in use. Using ZeroMQ does not incur the extra overhead.
+
+This attribute is closely related to the :zeek:attr:`&on_change` attribute.
+It only works with global :zeek:type:`table` and :zeek:type:`set` variables.
+Further note that modifications to complex table values are not published.
+See the note in :zeek:attr:`&on_change` about this - ``&publish_on_change`` is
+no different in this regard.
 
 You assign the ``&publish_on_change`` attribute an instance of a :zeek:see:`Cluster::PublishOnChangeAttr`
-record type in ``[ ...field assignments... ]`` style to tune the behavior.
-It is required to provide a non-empty :zeek:field:`Cluster::PublishOnChangeAttr$changes`
-field. This field takes a :zeek:type:`set` of :zeek:type:`TableChange` values. See
-the :zeek:attr:`&on_change` documentation for their meaning.
+record type in ``[ ...field assignments... ]`` style to define the publish behavior.
+Minimally, it is required to provide a non-empty :zeek:field:`Cluster::PublishOnChangeAttr$changes`
+field to select which changes will be published. This :zeek:field`changes` field
+takes a :zeek:type:`set` of :zeek:type:`TableChange` values. See the :zeek:attr:`&on_change`
+documentation for their meaning.
 
 .. code-block:: zeek
 
@@ -515,41 +527,39 @@ the :zeek:attr:`&on_change` documentation for their meaning.
     ];
 
 Internally, every change is recorded as a :zeek:see:`Cluster::TableChangeInfo`
-value and batched for a per-table configurable interval (see :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_delay`)
-or until a maximum number of changes is pending (see :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_size`).
+record value and batched for a per-table configurable interval (see :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_delay`)
+or until a maximum number of changes is queued (see :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_size`).
 All batched changes are published using a single :zeek:see:`Cluster::table_change_infos` event
-containing the changes as a :zeek:see:`Cluster::TableChangeInfo` vector.
+with a header of type :zeek:see:`Cluster::TableChangeHeader` and the changes as
+a :zeek:see:`Cluster::TableChangeInfos` vector.
 
-By default, the :zeek:see:`Cluster::table_change_infos` event is handled
-by all Zeek processes. All contained updates are applied  to the receivers
-local table instance.
-The resulting behavior depends heavily on which processes in a cluster modify which keys
-of a table, the type of changes selected for publishing,
-and additionally delays introduced by the batching optimization and publish/subscribe
-messaging in general.
+By default, the :zeek:see:`Cluster::table_change_infos` event is handled by all
+Zeek nodes and all table changes are applied to the receivers local table
+instance.
+The observable behavior depends heavily on which nodes in a cluster modify
+which keys of a such a shared table, the type of changes selected for publishing,
+delays introduced by batching and general publish/subscribe messaging delays
+between nodes in a cluster.
 Additionally, when a Zeek cluster is overloaded, events may be dropped arbitrarily
-by the sending or receiving processes. This should, however, be the exception and
-treated similarly to packet drops. There's cluster backend specific metrics for
-tracking such occurrences.
+by the sending or receiving nodes. Also, there's not automatic restore of tables/sets
+when a Zeek node crashes and restarts.
 
-All in all, the guarantees are fairly soft. It's easiest to stick with usages
-of ``&publish_on_change`` that are easily explainable. For example, sending only
-new entries in a table/set to other Zeek processes and using :zeek:attr:`&write_expire`
-for cleanup allows to implement a well understood caching table. On the other hand,
-publishing :zeek:see:`TABLE_ELEMENT_NEW` and :zeek:see:`TABLE_ELEMENT_REMOVED`
-already becomes fuzzy when different Zeek processes insert or remove the same
-key at approximately the same time. However, this can still be interesting when keys
-in a table have just one owner. For example, using :zeek:see:`conn_id` as index
-and assuming perfect load-balancing, each key should be owned by exactly one Zeek
-worker.
-
-The :zeek:see:`Cluster::apply_table_change_infos_policy` hook exists
-to intercept, change or simply debug the processing of
-:zeek:see:`Cluster::TableChangeInfo` records.
-Breaking from this hook skips applying the changes. This is a fairly advanced
-and low-level topic. For normal use-cases it should not be required, but if
-you want to experiment with other strategies to apply changes, this is the hook
-you're looking for.
+In summary, the consistency guarantees are light. This should not be thought
+of as synchronization primitive, but rather as an event stream that's published
+to the configured topic.
+Given this, it's best to stick with usages of ``&publish_on_change`` that are easily
+explainable. For example, sending
+new entries to other Zeek nodes only and using :zeek:attr:`&write_expire`
+for cleanup allows to implement a well understood cluster-wide best-effort
+caching table.
+On the other hand, publishing :zeek:see:`TABLE_ELEMENT_NEW` and :zeek:see:`TABLE_ELEMENT_REMOVED`
+already becomes fuzzy when different Zeek nodes insert or remove the same
+key at approximately the same time. It can still be interesting to leverage
+when keys in a table have a single owner node. For example, using :zeek:see:`conn_id` as
+table index and assuming perfect connection load-balancing, each key is optimally
+owned by exactly one Zeek worker. With an appropriate :zeek:attr:`&write_expire`
+attribute, this can leveraged to, for example, implement some form of cluster-wide
+replicated connection table.
 
 The :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_delay` and
 :zeek:field:`Cluster::PublishOnChangeAttr$max_batch_size` fields
@@ -590,7 +600,7 @@ It's also possible to set :zeek:field:`Cluster::PublishOnChangeAttr$topic`
 to a function returning a :zeek:type:`string` and function parameters matching the
 table index types. This allows to dynamically compute a topic for a given table
 element. For example, using :zeek:see:`Cluster::hrw_topic`, inserts done
-by workers can be replicated in a sharded manner to proxy processes.
+by workers can be replicated in a sharded manner to proxy nodes.
 
 .. code-block:: zeek
 
@@ -601,15 +611,12 @@ by workers can be replicated in a sharded manner to proxy processes.
         },
     ];
 
-
-.. note::
-
-   Due to limitations in Broker's publish/subscribe visibility, changes from worker
-   processes are forwarded to the manager which then republishes them to the actual
-   topic. This results in extra overhead on the manager as well as an artifact that
-   the originating Zeek process will apply its own changes to a table.
-
-   You should probably switch to the ZeroMQ cluster backend if you care.
+The :zeek:see:`Cluster::apply_table_change_infos_policy` hook exists
+to intercept, change or simply debug incoming :zeek:see:`Cluster::TableChangeInfo` records.
+Breaking from this hook skips applying the changes. This is meant for fairly advanced
+and low-level use-cases and should normally not be needed. If you want to experiment
+with other strategies to apply changes to tables or replicate them to an external
+system, this might be the hook you're looking for.
 
 .. zeek:attr:: &raw_output
 

@@ -39,9 +39,9 @@ of Zeek instances.
    Defines an interface for managing pools of cluster nodes.  Pools are
    a useful way to distribute work or data among nodes within a cluster.
 
-:doc:`/scripts/base/frameworks/cluster/table.zeek`
+:doc:`/scripts/base/frameworks/cluster/publish-on-change.zeek`
 
-   Supporting code for &publish_on_change
+   Supporting script code for the &publish_on_change attribute.
 
 :doc:`/scripts/base/frameworks/cluster/telemetry.zeek`
 

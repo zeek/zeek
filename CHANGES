@@ -1,3 +1,9 @@
+8.2.0-dev.260 | 2026-03-06 12:04:40 -0700
+
+  * Updates to TLS consts (Johanna Amann, Corelight)
+
+    Some new values, mostly comment updates due to changed standards
+
 8.2.0-dev.258 | 2026-03-05 12:15:52 -0700
 
   * Fix a 'broken' link in docs (Tim Wojtulewicz, Corelight)

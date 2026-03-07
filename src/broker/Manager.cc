@@ -50,6 +50,17 @@ using namespace std;
 
 namespace {
 
+// On Windows, colons in Zeek namespace-qualified names (e.g., "Module::var")
+// are invalid in filenames. Replace them with underscores for path use.
+string sanitize_store_filename(string name) {
+#ifdef _WIN32
+    for ( auto& c : name )
+        if ( c == ':' )
+            c = '_';
+#endif
+    return name;
+}
+
 broker::vector broker_vector_from(const broker::variant& arg) {
     auto tmp = arg.to_data();
     return std::move(broker::get<broker::vector>(tmp));
@@ -673,7 +684,7 @@ void Manager::InitializeBrokerStoreForwarding() {
                 default: break;
             }
 
-            auto path = zeek_table_db_directory + "/" + storename + suffix;
+            auto path = zeek_table_db_directory + "/" + sanitize_store_filename(storename) + suffix;
 
             MakeMaster(storename, backend, broker::backend_options{{"path", path}});
         }
@@ -1930,7 +1941,7 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
             default: break;
         }
 
-        it->second = name + suffix;
+        it->second = sanitize_store_filename(name) + suffix;
     }
 
     auto result = bstate->endpoint.attach_master(name, type, std::move(opts));

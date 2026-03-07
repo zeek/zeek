@@ -5,8 +5,8 @@
 # /foo/bar/intel).
 #
 # @TEST-EXEC: mkdir -p intel
-# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$PWD/intel|" >input.zeek
-# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b input.zeek >output
+# @TEST-EXEC: cat %INPUT | sed "s|@path_prefix@|$(cygpath -m "$PWD" 2>/dev/null || echo "$PWD")/intel|" >input.zeek
+# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$(cd "$TEST_BASE/scripts/base/frameworks/intel/path-prefix" && pwd) zeek -b input.zeek >output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE intel/test.data

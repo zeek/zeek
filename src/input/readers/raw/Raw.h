@@ -3,9 +3,11 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 
+#include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail {
@@ -50,8 +52,9 @@ private:
     bool execute;
     bool firstrun;
     time_t mtime;
-    ino_t ino;
+    file_ino_t ino;
     dev_t dev;
+    off_t fsize;
 
     // options set from the script-level.
     std::string separator;
@@ -75,8 +78,13 @@ private:
 
     int64_t offset;
 
-    int pipes[6] = {-1};
+    int pipes[6] = {-1, -1, -1, -1, -1, -1};
     int childpid;
+
+#ifdef _MSC_VER
+    void* child_process_handle_; // HANDLE, stored as void* to avoid windows.h in header
+    void* child_job_handle_;     // Job Object HANDLE for killing the entire process tree
+#endif
 
     enum IoChannels : uint8_t {
         stdout_in = 0,

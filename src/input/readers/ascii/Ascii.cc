@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cerrno>
 
+#include "zeek/input/InputFile.h"
 #include "zeek/input/readers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/threading/formatters/Ascii.h"
@@ -121,7 +122,7 @@ bool Ascii::OpenFile() {
     // Handle path-prefixing. See similar logic in Binary::DoInit().
     fname = Info().source;
 
-    if ( fname.front() != '/' && ! path_prefix.empty() ) {
+    if ( ! is_absolute_path(fname) && ! path_prefix.empty() ) {
         std::size_t last = path_prefix.find_last_not_of('/');
 
         string path;
@@ -269,9 +270,12 @@ bool Ascii::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            if ( sb.st_ino == ino && sb.st_mtime == mtime )
+            file_ino_t current_ino = reliable_inode(fname.c_str(), sb.st_ino);
+
+            if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
                 return true;
+            }
 
             // Warn again in case of trouble if the file changes. The comparison to 0
             // is to suppress an extra warning that we'd otherwise get on the initial
@@ -280,7 +284,7 @@ bool Ascii::DoUpdate() {
                 StopWarningSuppression();
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = current_ino;
             // File changed. Fall through to re-read.
         }
 

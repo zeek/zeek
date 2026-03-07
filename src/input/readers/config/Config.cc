@@ -13,6 +13,7 @@
 #include <unordered_set>
 
 #include "zeek/Desc.h"
+#include "zeek/input/InputFile.h"
 #include "zeek/input/Manager.h"
 #include "zeek/input/readers/config/config.bif.h"
 #include "zeek/threading/SerialTypes.h"
@@ -115,9 +116,12 @@ bool Config::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            if ( sb.st_ino == ino && sb.st_mtime == mtime )
+            file_ino_t current_ino = reliable_inode(Info().source, sb.st_ino);
+
+            if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
                 return true;
+            }
 
             // Warn again in case of trouble if the file changes. The comparison to 0
             // is to suppress an extra warning that we'd otherwise get on the initial
@@ -126,7 +130,7 @@ bool Config::DoUpdate() {
                 StopWarningSuppression();
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = current_ino;
             // File changed. Fall through to re-read.
         }
 

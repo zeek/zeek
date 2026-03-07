@@ -9,10 +9,12 @@
 #include <vector>
 
 #include "zeek/Obj.h"
+#include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/Formatter.h"
 
 namespace zeek::input::reader::detail {
+
 
 // Description for input field mapping.
 struct FieldMapping {
@@ -62,9 +64,9 @@ private:
     bool GetLine(std::string& str);
     bool OpenFile();
 
-    std::ifstream file;
+    InputFile file;
     time_t mtime;
-    ino_t ino;
+    file_ino_t ino;
 
     // The name using which we actually load the file -- compared
     // to the input source name, this one may have a path_prefix

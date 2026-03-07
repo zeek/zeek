@@ -4,7 +4,7 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: zeek -b %INPUT >out
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 
 @load base/frameworks/telemetry

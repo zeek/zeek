@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -D %INPUT  >output 2>&1
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff output
 
 global my_subs = { 1.2.3.4/19, 5.6.7.8/21 };
 

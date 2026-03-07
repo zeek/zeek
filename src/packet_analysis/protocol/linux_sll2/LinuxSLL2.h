@@ -19,6 +19,8 @@ public:
 
 private:
     // Structure layout is based on https://www.tcpdump.org/linktypes/LINKTYPE_LINUX_SLL2.html
+    // Use #pragma pack for cross-compiler support (MSVC ignores __attribute__((packed))).
+#pragma pack(push, 1)
     struct SLL2Header {
         uint16_t protocol_type;
         uint16_t reserved;
@@ -27,7 +29,8 @@ private:
         uint8_t packet_type;
         uint8_t addr_len;
         uint64_t addr;
-    } __attribute__((__packed__));
+    };
+#pragma pack(pop)
 };
 
 } // namespace zeek::packet_analysis::LinuxSLL2

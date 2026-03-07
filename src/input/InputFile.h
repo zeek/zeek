@@ -2,18 +2,21 @@
 
 #pragma once
 
-#include <sys/types.h>
-#include <cstdint>
 #include <cstdio>
-#include <fstream>
 #include <string>
 
 #ifdef _WIN32
-
+#include <cstdint>
 #include <istream>
 #include <memory>
+#else
+#include <sys/types.h>
+#include <fstream>
+#endif
 
 namespace zeek::input::reader::detail {
+
+#ifdef _WIN32
 
 /// MSVC defines ino_t as unsigned short (16-bit), too small for 64-bit NTFS
 /// file indices from GetFileInformationByHandle.  Use uint64_t on Windows.
@@ -46,22 +49,14 @@ private:
     std::unique_ptr<WinShareDeleteBuf> buf_;
 };
 
-} // namespace zeek::input::reader::detail
-
 #else
-
-namespace zeek::input::reader::detail {
 
 using InputFile = std::ifstream;
 
 /// On POSIX, ino_t is already large enough for inodes.
 using file_ino_t = ino_t;
 
-} // namespace zeek::input::reader::detail
-
 #endif
-
-namespace zeek::input::reader::detail {
 
 /// Returns true if the path is absolute (starts with '/' on POSIX, or a
 /// drive letter like 'C:/' or 'C:\' on Windows).

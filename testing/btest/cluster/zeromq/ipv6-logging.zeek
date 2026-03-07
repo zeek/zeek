@@ -32,6 +32,9 @@
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
 
+# Enable IPv6, disabled by default.
+redef Cluster::Backend::ZeroMQ::ipv6 = T;
+
 redef Log::default_rotation_interval = 0sec;
 redef Log::flush_interval = 0.01sec;
 

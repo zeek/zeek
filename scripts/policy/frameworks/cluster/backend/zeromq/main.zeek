@@ -229,12 +229,14 @@ export {
 
 	## Set ZMQ_IPV6 option.
 	##
-	## The ZeroMQ library has IPv6 support in ZeroMQ. For Zeek we enable it
-	## unconditionally such that listening or connecting  with IPv6 just works.
+	## The ZeroMQ library has IPv6 support in ZeroMQ. By default, IPv6 support
+	## on the ZeroMQ sockets is disabled. If you're using IPv6 addresses for
+	## any of the endpoint options you'll likely want to set this option
+	## to ``T``.
 	##
 	## See ZeroMQ's `ZMQ_IPV6 documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc23>`_
 	## for more details.
-	const ipv6 = T &redef;
+	const ipv6 = F &redef;
 
 	## Do not silently drop messages if high-water-mark is reached.
 	##

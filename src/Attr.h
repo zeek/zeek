@@ -43,6 +43,7 @@ enum AttrTag : uint8_t {
     ATTR_TYPE_COLUMN,                // for input framework
     ATTR_TRACKED,                    // hidden attribute, tracked by NotifierRegistry
     ATTR_ON_CHANGE,                  // for table change tracking
+    ATTR_PUBLISH_ON_CHANGE,          // for table change publishing
     ATTR_BROKER_STORE,               // for Broker store backed tables
     ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
     ATTR_BACKEND,                    // for Broker store backed tables

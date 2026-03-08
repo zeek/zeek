@@ -55,8 +55,8 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc rules_ rules_)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
                          rules_ rules_)
-flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
-            COMPILE_FLAGS "-Prules_")
+flex_target(RuleScanner ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l
+            ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc COMPILE_FLAGS "-Prules_")
 set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # RE parser/scanner
@@ -67,7 +67,8 @@ bison_target(
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
                          re_ RE_)
-flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc COMPILE_FLAGS "-Pre_")
+flex_target(REScanner ${CMAKE_CURRENT_SOURCE_DIR}/re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
+            COMPILE_FLAGS "-Pre_")
 add_flex_bison_dependency(REScanner REParser)
 set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
@@ -79,7 +80,8 @@ bison_target(
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY_DIR}/parse.cc zeek
                          yy)
-flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc COMPILE_FLAGS "-Pzeek")
+flex_target(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
+            COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 set(zeek_bison_generated_files

@@ -6,7 +6,8 @@ set(BISON_FLAGS "--debug")
 # BIF parser/scanner
 bison_target(BIFParser builtin-func.y ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
              DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h COMPILE_FLAGS "${BISON_FLAGS}")
-flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
+flex_target(BIFScanner ${CMAKE_CURRENT_SOURCE_DIR}/builtin-func.l
+            ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
 
 set(bifcl_SRCS ${BISON_BIFParser_INPUT} ${FLEX_BIFScanner_INPUT} ${BISON_BIFParser_OUTPUTS}

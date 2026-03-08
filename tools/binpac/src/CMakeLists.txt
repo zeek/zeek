@@ -3,7 +3,8 @@ find_package(BISON REQUIRED)
 
 bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
              DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h COMPILE_FLAGS "--debug")
-flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
+flex_target(PACScanner ${CMAKE_CURRENT_SOURCE_DIR}/pac_scan.ll
+            ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
 if (MSVC)
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")

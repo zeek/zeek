@@ -42,6 +42,7 @@
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
+#include "zeek/cluster/PublishOnChangeState.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -1716,6 +1717,14 @@ TableVal::~TableVal() {
     delete expire_iterator;
 }
 
+void TableVal::SetPublishOnChangeState(std::unique_ptr<detail::PublishOnChangeState> poc_state_arg) {
+    // Today this should only be done once during InitPostScript() and never otherwise.
+    if ( poc_state )
+        reporter->InternalError("poc_state of %s already initialized", obj_desc(this).c_str());
+
+    poc_state = std::move(poc_state_arg);
+}
+
 void TableVal::RemoveAll() {
     delete expire_iterator;
     expire_iterator = nullptr;
@@ -1847,7 +1856,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
     Modified();
 
-    if ( change_func || (broker_forward && ! broker_store.empty()) ) {
+    if ( change_func || poc_state || (broker_forward && ! broker_store.empty()) ) {
         auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
         if ( broker_forward && ! broker_store.empty() )
@@ -1856,6 +1865,12 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
         if ( change_func ) {
             const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
             CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
+        }
+
+        if ( poc_state ) {
+            auto change = old_entry_val ? BifEnum::TABLE_ELEMENT_CHANGED : BifEnum::TABLE_ELEMENT_NEW;
+            zeek::ValPtr previous_value = old_entry_val ? old_entry_val->GetVal() : nullptr;
+            poc_state->OnChange(change, *change_index, new_entry_val->GetVal(), previous_value);
         }
     }
 
@@ -2402,6 +2417,18 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
         CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
     }
 
+    if ( poc_state ) {
+        // This is a bit strange. The code above sets va to {NewRef{}, this}
+        // when the TableEntryVal didn't have a value. This should only happen
+        // for sets and there we actually want to use a nullptr for the value
+        // instead of the full remaining set.
+        auto va2 = va;
+        if ( GetType()->IsSet() )
+            va2 = nullptr;
+
+        poc_state->OnChange(BifEnum::TABLE_ELEMENT_REMOVED, index, va2, /*previous_value=*/nullptr);
+    }
+
     return va;
 }
 
@@ -2423,13 +2450,27 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
 
     Modified();
 
-    if ( va && (change_func || ! broker_store.empty()) ) {
+    if ( va && (change_func || ! broker_store.empty() || poc_state) ) {
         auto index = GetTableHash()->RecoverVals(k);
         if ( ! broker_store.empty() )
             SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 
         if ( change_func && va )
             CallChangeFunc(index, va, ELEMENT_REMOVED);
+
+        // Same as in the other Remove() implementation.
+        //
+        // This is a bit strange. The code above sets va to {NewRef{}, this}
+        // when the TableEntryVal didn't have a value. This should only happen
+        // for sets and there we actually want to use a nullptr for the value
+        // instead of the full remaining set.
+        if ( poc_state ) {
+            auto va2 = va;
+            if ( GetType()->IsSet() )
+                va2 = nullptr;
+
+            poc_state->OnChange(BifEnum::TABLE_ELEMENT_REMOVED, *index, va2, /*previous_value=*/nullptr);
+        }
     }
 
     return va;
@@ -2689,11 +2730,17 @@ void TableVal::DoExpire(double t) {
             }
 
             table_val->RemoveEntry(k.get());
-            if ( change_func ) {
+
+            if ( change_func || poc_state ) {
                 if ( ! idx )
                     idx = RecreateIndex(*k);
 
-                CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
+                if ( change_func )
+                    CallChangeFunc(idx, v->GetVal(), ELEMENT_EXPIRED);
+
+                if ( poc_state )
+                    poc_state->OnChange(BifEnum::TABLE_ELEMENT_EXPIRED, *idx, v->GetVal(),
+                                        /*previous_value=*/nullptr);
             }
 
             delete v;

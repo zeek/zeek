@@ -6138,6 +6138,90 @@ export {
 	##
 	## This currently has no effect for backend BROKER.
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
+
+	## Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
+	option default_table_publish_on_change_max_batch_size = 10;
+
+	## Default maximum delay size for the the :zeek:attr:`&publish_on_change` attribute.
+	option default_table_publish_on_change_max_batch_delay = 10msec;
+
+	## The record type used for the :zeek:attr:`&publish_on_change` attribute.
+	type PublishOnChangeAttr: record {
+		## Which changes to publish. Cannot be empty.
+		changes: set[TableChange];
+		## Either a string or a function returning a string with function parameters
+		## matching the index types of the :zeek:type:`table` or :zeek:type:`set`.
+		topic: any &optional;
+		## Maximum number of changes to queue into a batch before publishing.
+		## Setting this value to 0 disables batching behavior.
+		max_batch_size: count &default=default_table_publish_on_change_max_batch_size;
+		## Maximum interval to delay the publish.
+		## Setting this value to 0sec disables batching behavior.
+		max_batch_delay: interval &default=default_table_publish_on_change_max_batch_delay;
+	};
+
+	## Record encapsulating a single table change / modification for
+	## distribution to other Zeek processes in a cluster.
+	type TableChangeInfo: record {
+		## The type of change.
+		change: TableChange;
+		## The network time of this change.
+		ts: time;
+		## The index value. Internally tables and sets use ListVal
+		## instances, but for cluster communication we use vector
+		## of any.
+		index: vector of any;
+		## The new, updated or removed value of the new element.
+		## Unused for sets.
+		value: any &optional;
+		## The previous value in the table when the change field
+		## is :zeek:see:`TABLE_ELEMENT_CHANGED`. Unused for sets.
+		previous_value: any &optional;
+	};
+
+	## Vector of individual :zeek:see:`Cluster::TableChangeInfo` records.
+	type TableChangeInfos: vector of TableChangeInfo;
+
+	## Record passed as "header" into the :zeek:see:`Cluster::table_change_infos`
+	## event that holds common information applying to all of the individual
+	## :zeek:see:`Cluster::TableChangeInfo` records.
+	type TableChangeHeader: record {
+		## The script-layer identifier of this table.
+		id: string;
+		## The network timestamp when this event was published.
+		ts: time;
+		## The :zeek:see:`Cluster::node_id` value of the sending process.
+		node_id: string;
+	};
+
+	## Internal'ish event for propagating table changes via :zeek:see:`Cluster::publish`
+	## to other Zeek processes in a cluster.
+	##
+	## tcheader: Header with common information.
+	## tcinfos: Accumulated changes as a vector.
+	global table_change_infos: event(tcheader: TableChangeHeader, tcinfos: TableChangeInfos);
+
+	## Internal helper event used by worker processes to delegate publishing
+	## to the Zeek manager when running under Broker.
+	##
+	## If ``to`` is manager_topic or starts with /zeek/table/, the manager
+	## will also raise table_change_infos() locally for itself.
+	##
+	## tcheader: Header with common information.
+	## tcinfos: Accumulated changes as a vector.
+	## to_topic: The topic to publish the table_change_infos() event to.
+	global forward_table_change_infos: event(tcheader: TableChangeHeader, tcinfos: TableChangeInfos, to_topic: string);
+
+	## A hook for testing and intercepting changes to tables coming in
+	## via the &publish_on_change mechanism from other Zeek processes.
+	##
+	## Breaking from this hook discards the changes. I.e. they'll not
+	## be applied to the table or set identified by id.
+	##
+	## id: Script-level identifier of the table or set.
+	## ts: Network timestamp at the time of sending.
+	## table_change_infos: vector of changes as batched by the remote Zeek process.
+	global apply_table_change_infos_policy: hook(tcheader: TableChangeHeader, tcinfos: TableChangeInfos);
 }
 
 module Weird;

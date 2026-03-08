@@ -240,7 +240,12 @@ bool Raw::Execute() {
     CloseHandle(pi.hThread);
 
     // Write command (and any user stdin data) to bash, then close to signal EOF.
-    std::string cmd_input = fname + "\n";
+    // MSYS2's inotify emulation doesn't deliver events reliably when bash
+    // is spawned by a native Windows executable (as we do here).  Override
+    // the tail command to disable inotify so it falls back to stat-based
+    // polling.  The ---disable-inotify flag is a long-standing (since 2009)
+    // GNU coreutils testing knob that forces the portable polling path.
+    std::string cmd_input = "tail() { command tail ---disable-inotify -s 0.5 \"$@\"; }\n" + fname + "\n";
     DWORD written;
     WriteFile(hStdinWrite, cmd_input.c_str(), static_cast<DWORD>(cmd_input.size()), &written, nullptr);
 

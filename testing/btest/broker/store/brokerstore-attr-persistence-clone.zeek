@@ -1,5 +1,3 @@
-# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
-# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1

@@ -1,6 +1,4 @@
 # @TEST-DOC: Check that empty record types are ignored.
-# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
-# @TEST-REQUIRES: ! is-windows
 #
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff .stderr

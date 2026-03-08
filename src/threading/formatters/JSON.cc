@@ -13,10 +13,48 @@
 #include <cerrno>
 #include <cmath>
 #include <cstdint>
+#include <ctime>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
 #include "zeek/threading/formatters/detail/json.h"
+
+namespace {
+
+// Windows gmtime_r (via gmtime_s) rejects negative time_t values.
+// Work around this by adding full 400-year Gregorian cycles to make
+// the value non-negative, converting, then adjusting the year back.
+// 400 Gregorian years = 146097 days (accounts for leap-year rules).
+bool safe_gmtime(time_t ts, struct tm* result) {
+    if ( gmtime_r(&ts, result) )
+        return true;
+
+#ifdef _MSC_VER
+    if ( ts >= 0 )
+        return false;
+
+    constexpr int64_t kCycleYears = 400;
+    constexpr int64_t kCycleSeconds = 146097LL * 86400LL;
+
+    int cycles = 0;
+    auto adjusted = static_cast<int64_t>(ts);
+    while ( adjusted < 0 ) {
+        adjusted += kCycleSeconds;
+        ++cycles;
+    }
+
+    auto pos = static_cast<time_t>(adjusted);
+    if ( ! gmtime_r(&pos, result) )
+        return false;
+
+    result->tm_year -= static_cast<int>(cycles * kCycleYears);
+    return true;
+#else
+    return false;
+#endif
+}
+
+} // namespace
 
 namespace zeek::threading::formatter {
 
@@ -98,7 +136,7 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
                 time_t the_time = static_cast<time_t>(floor(val->val.double_val));
                 struct tm t;
 
-                if ( ! gmtime_r(&the_time, &t) || ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) ) {
+                if ( ! safe_gmtime(the_time, &t) || ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) ) {
                     GetThread()->Error(
                         GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
                     // This was a failure, doesn't really matter what gets put here

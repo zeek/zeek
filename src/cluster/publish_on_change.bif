@@ -1,0 +1,51 @@
+%%{
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
+#include "zeek/cluster/PublishOnChangeState.h"
+%%}
+
+module Cluster;
+
+# Broker-specific:
+#
+# Helper for Broker when workers need to publish their changes through the manager, they
+# set the forward topic to Cluster::manager_topic.
+function set_table_change_infos_forward_topic%(topic: string%)
+	%{
+	zeek::detail::PublishOnChangeState::SetTableChangeInfosForwardTopic(topic->ToStdString());
+	return nullptr;
+	%}
+
+function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_infos: TableChangeInfos%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	const auto* tcheader_rec = tcheader->AsRecordVal();
+
+	const auto& idstr = tcheader_rec->GetFieldAs<zeek::StringVal>(0);  // hard-coded offset, always first
+	const auto& idptr = zeek::detail::global_scope()->Find(idstr->ToStdStringView());
+
+	if ( ! idptr ) {
+		zeek::reporter->Warning("apply_table_change_infos: no such identifier %s", idstr->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
+
+	const auto& val = idptr->GetVal();
+
+	if ( val->GetType()->Tag() != TYPE_TABLE ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s not a table!", idstr->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
+
+	auto tval = zeek::cast_intrusive<zeek::TableVal>(val);
+	zeek::detail::PublishOnChangeState* poc_state = nullptr;
+	if ( ! poc_state ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
+		                        idstr->ToStdString().c_str(), tval.get());
+		return zeek::val_mgr->False();
+	}
+
+	poc_state->ApplyChanges(*tcheader->AsRecordVal(), *table_change_infos->AsVectorVal());
+	return zeek::val_mgr->True();
+	%}

@@ -683,6 +683,9 @@ reinventing the wheel.
   * - :zeek:see:`pattern`
     - regular expression
 
+  * - :zeek:see:`string`
+    - text or binary data
+
 Sets
 ~~~~
 

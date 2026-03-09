@@ -324,6 +324,9 @@ private:
 
     Config config;
     int stem_pid;
+#ifdef _MSC_VER
+    void* stem_thread_handle = nullptr;
+#endif
     std::atomic<int> last_signal = -1;
     std::unique_ptr<detail::PipePair> stem_pipe;
     detail::LineBufferedPipe stem_stdout;
@@ -357,6 +360,12 @@ struct SupervisorStemHandle {
      * The Stem's process ID.
      */
     int pid = 0;
+#ifdef _MSC_VER
+    /**
+     * On Windows, the stem runs as a thread. This is the thread HANDLE.
+     */
+    void* thread_handle = nullptr;
+#endif
 };
 
 /**
@@ -410,6 +419,13 @@ struct SupervisorNode {
      * Process ID of the node (positive/non-zero are valid/live PIDs).
      */
     int pid = 0;
+#ifdef _MSC_VER
+    /**
+     * On Windows, nodes are separate processes spawned via CreateProcess.
+     * This is the process HANDLE used for waiting and termination.
+     */
+    void* process_handle = nullptr;
+#endif
     /**
      * Whether the node is voluntarily marked for termination by the
      * Supervisor.

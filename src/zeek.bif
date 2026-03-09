@@ -631,7 +631,20 @@ static int do_system(const char* s)
 	PROCESS_INFORMATION pi = {};
 	char cmd[] = "bash";
 
-	if ( ! CreateProcessA(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) )
+	// Find bash.exe by searching PATH directories in order.
+	// CreateProcessA(NULL, "bash") searches System32 before PATH,
+	// which finds WSL's bash.exe instead of MSYS/Git Bash.
+	char bash_path[MAX_PATH] = {};
+	const char* app_name = NULL;
+	char path_env[32768];
+	DWORD plen = GetEnvironmentVariableA("PATH", path_env, sizeof(path_env));
+	if ( plen > 0 && plen < sizeof(path_env) )
+		{
+		if ( SearchPathA(path_env, "bash.exe", NULL, MAX_PATH, bash_path, NULL) )
+			app_name = bash_path;
+		}
+
+	if ( ! CreateProcessA(app_name, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) )
 		{
 		CloseHandle(hReadPipe);
 		CloseHandle(hWritePipe);
@@ -640,9 +653,23 @@ static int do_system(const char* s)
 
 	CloseHandle(hReadPipe);
 
-	std::string full_cmd = "(";
-	full_cmd += s;
-	full_cmd += ") 1>&2 &\n";
+	// On Windows, run the command in the foreground (no &) since
+	// WaitForSingleObject already blocks. MSYS bash backgrounding
+	// via pipe-based stdin is unreliable.
+	//
+	// MSYS bash's builtin kill() only works with MSYS PIDs, not Windows
+	// PIDs. Zeek's getpid() returns Windows PIDs. Prepend a preamble
+	// that translates any ZEEK_ARG_*PID env vars from Windows PID to
+	// MSYS PID space using /proc/*/winpid before running the command.
+	std::string preamble =
+	    "for _zv in $(env 2>/dev/null | sed -n "
+	    "'s/^\\(ZEEK_ARG_[^=]*PID\\)=.*/\\1/p'); do "
+	    "_wp=${!_zv}; "
+	    "for _zd in /proc/[0-9]*/winpid; do "
+	    "[ \"$(cat \"$_zd\" 2>/dev/null)\" = \"$_wp\" ] && "
+	    "{ _zm=${_zd%/winpid}; export \"$_zv=${_zm##*/}\"; break; }; "
+	    "done; done\n";
+	std::string full_cmd = preamble + "(" + s + ") 1>&2\n";
 
 	DWORD written;
 	WriteFile(hWritePipe, full_cmd.c_str(), static_cast<DWORD>(full_cmd.size()), &written, NULL);

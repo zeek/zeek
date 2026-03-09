@@ -22,6 +22,7 @@
 
 extern char** environ;
 
+#include "zeek/WinHandle.h"
 #include "zeek/input/Component.h"
 #include "zeek/input/InputFile.h"
 #include "zeek/input/readers/raw/Plugin.h"
@@ -36,16 +37,7 @@ using zeek::threading::Field;
 using zeek::threading::Value;
 
 #ifdef _MSC_VER
-namespace {
-struct WinHandleDeleter {
-    using pointer = HANDLE;
-    void operator()(HANDLE h) const noexcept {
-        if ( h && h != INVALID_HANDLE_VALUE )
-            CloseHandle(h);
-    }
-};
-using UniqueHandle = std::unique_ptr<void, WinHandleDeleter>;
-} // namespace
+using UniqueHandle = zeek::detail::UniqueWinHandle;
 #endif
 
 namespace zeek::input::reader::detail {

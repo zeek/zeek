@@ -24,8 +24,6 @@
 #include <process.h>
 #include <tlhelp32.h>
 #include <windows.h>
-
-using UniqueHandle = zeek::detail::UniqueWinHandle;
 #endif
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -289,7 +287,7 @@ void detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire) {
 #ifdef _MSC_VER
     // On Windows, getppid() is stubbed. Check if parent process is alive.
     auto parent_pid = Supervisor::ThisNode()->parent_pid;
-    UniqueHandle h(OpenProcess(SYNCHRONIZE, FALSE, parent_pid));
+    detail::UniqueWinHandle h(OpenProcess(SYNCHRONIZE, FALSE, parent_pid));
 
     if ( ! h ) {
         run_state::detail::zeek_terminate_loop("supervised node was orphaned");
@@ -1015,8 +1013,8 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node) {
         return false;
     }
 
-    UniqueHandle child_stdout_read(raw_stdout_read);
-    UniqueHandle child_stdout_write(raw_stdout_write);
+    detail::UniqueWinHandle child_stdout_read(raw_stdout_read);
+    detail::UniqueWinHandle child_stdout_write(raw_stdout_write);
     SetHandleInformation(child_stdout_read.get(), HANDLE_FLAG_INHERIT, 0);
 
     HANDLE raw_stderr_read, raw_stderr_write;
@@ -1026,8 +1024,8 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node) {
         return false;
     }
 
-    UniqueHandle child_stderr_read(raw_stderr_read);
-    UniqueHandle child_stderr_write(raw_stderr_write);
+    detail::UniqueWinHandle child_stderr_read(raw_stderr_read);
+    detail::UniqueWinHandle child_stderr_write(raw_stderr_write);
     SetHandleInformation(child_stderr_read.get(), HANDLE_FLAG_INHERIT, 0);
 
     STARTUPINFOA si = {};
@@ -1047,7 +1045,7 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node) {
     // Close child-side pipe handles in the parent.
     child_stdout_write.reset();
     child_stderr_write.reset();
-    UniqueHandle thread_handle(pi.hThread);
+    detail::UniqueWinHandle thread_handle(pi.hThread);
 
     // Transfer read handle ownership to _open_osfhandle (which takes over the handle).
     int stdout_fd = _open_osfhandle((intptr_t)child_stdout_read.release(), _O_RDONLY);
@@ -1499,7 +1497,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
         sn.parent_pid = static_cast<int>(GetCurrentProcessId());
 
         // Try to get the actual parent PID from the environment if available.
-        UniqueHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+        detail::UniqueWinHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 
         if ( snapshot.get() != INVALID_HANDLE_VALUE ) {
             PROCESSENTRY32 pe = {};
@@ -1575,7 +1573,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
     auto* data = new StemThreadData();
     data->state.pipe = std::move(stem_pipe);
     data->state.parent_pid = static_cast<int>(GetCurrentProcessId());
-    UniqueHandle ready_event(CreateEvent(nullptr, TRUE, FALSE, nullptr));
+    detail::UniqueWinHandle ready_event(CreateEvent(nullptr, TRUE, FALSE, nullptr));
     data->ready_event = ready_event.get();
 
     HANDLE thread_handle = (HANDLE)_beginthreadex(nullptr, 0, stem_thread_func, data, 0, nullptr);

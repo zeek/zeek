@@ -18,28 +18,11 @@
 #include "zeek/Options.h"
 #include "zeek/Pipe.h"
 #include "zeek/Timer.h"
+#include "zeek/WinHandle.h"
 #include "zeek/iosource/IOSource.h"
-
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
 
 namespace zeek {
 namespace detail {
-
-#ifdef _MSC_VER
-/**
- * RAII wrapper for Windows HANDLEs. Automatically calls CloseHandle on destruction.
- */
-struct WinHandleDeleter {
-    using pointer = HANDLE;
-    void operator()(HANDLE h) const noexcept {
-        if ( h && h != INVALID_HANDLE_VALUE )
-            CloseHandle(h);
-    }
-};
-using UniqueWinHandle = std::unique_ptr<void, WinHandleDeleter>;
-#endif
 
 struct SupervisorStemHandle;
 struct SupervisedNode;

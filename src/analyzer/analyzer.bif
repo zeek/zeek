@@ -7,7 +7,6 @@ module Analyzer;
 #include "zeek/analyzer/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
-#include "zeek/spicy/manager.h"
 %%}
 
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
@@ -98,18 +97,5 @@ function __implementation%(atype: AllAnalyzers::Tag%) : string
 	if ( ! component )
 		return zeek::make_intrusive<zeek::StringVal>("unknown");
 
-	std::string impl = "C++";
-	if ( zeek::spicy_mgr )
-		{
-		for ( const auto* c : zeek::spicy_mgr->Components() )
-			{
-			if ( c == component )
-				{
-				impl = "Spicy";
-				break;
-				}
-			}
-		}
-
-	return zeek::make_intrusive<zeek::StringVal>(impl);
+	return zeek::make_intrusive<zeek::StringVal>(component->Implementation());
 	%}

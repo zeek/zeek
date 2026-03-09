@@ -133,6 +133,13 @@ public:
     bool Enabled() const { return enabled; }
 
     /**
+     * Returns the implementation type of this component as a string.
+     * Currently returns "Spicy" for Spicy-based components and "C++"
+     * for all others.
+     */
+    std::string Implementation() const;
+
+    /**
      * Enables or disables this component. Derived classes may override this if
      * they need to initiate additional actions, but must then call the base
      * class version.

@@ -61,6 +61,15 @@ void SafeDirname::DoFunc(const std::string& path, bool error_aborts) {
     char* tmp = copy_string(path.c_str());
     CheckValid(dirname(tmp), tmp, error_aborts);
     delete[] tmp;
+
+#ifdef _MSC_VER
+    // Windows dirname() may leave a trailing separator; POSIX dirname does not.
+    while ( result.size() > 1 && (result.back() == '/' || result.back() == '\\') ) {
+        if ( result.size() == 3 && result[1] == ':' )
+            break; // preserve drive roots like "C:\"
+        result.pop_back();
+    }
+#endif
 }
 
 SafeBasename::SafeBasename(const char* path, bool error_aborts) : SafePathOp() {

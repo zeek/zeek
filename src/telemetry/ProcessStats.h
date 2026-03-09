@@ -16,7 +16,7 @@ struct process_stats {
     int64_t fds = 0;
 };
 
-#if defined(__APPLE__) || defined(HAVE_LINUX) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(HAVE_LINUX) || defined(__FreeBSD__) || defined(_WIN32)
 
 #define HAVE_PROCESS_STAT_METRICS
 process_stats get_process_stats();

@@ -21,6 +21,10 @@
 #include <vector>
 #include <paraglob/exceptions.h>
 
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
 #include "zeek/IPAddr.h"
@@ -605,13 +609,79 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 static int do_system(const char* s)
 	{
 #ifdef _MSC_VER
-	// Pipe the command to bash's stdin to avoid quoting issues with
-	// cmd.exe that system() uses on Windows.
-	FILE* f = popen("bash", "wb");
-	if ( ! f )
+	// Use CreateProcess with an explicit pipe instead of _popen.
+	// _popen internally uses _dup/_dup2 on the CRT file descriptor
+	// table which is not thread-safe and can corrupt FDs held by the
+	// log-writer thread (observed as "safe_write error: 9").
+	SECURITY_ATTRIBUTES sa = {sizeof(sa), NULL, TRUE};
+	HANDLE hReadPipe, hWritePipe;
+
+	if ( ! CreatePipe(&hReadPipe, &hWritePipe, &sa, 0) )
 		return -1;
-	fprintf(f, "(%s) 1>&2 &\n", s);
-	int status = pclose(f);
+
+	SetHandleInformation(hWritePipe, HANDLE_FLAG_INHERIT, 0);
+
+	STARTUPINFOA si = {};
+	si.cb = sizeof(si);
+	si.dwFlags = STARTF_USESTDHANDLES;
+	si.hStdInput = hReadPipe;
+	si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+
+	PROCESS_INFORMATION pi = {};
+	char cmd[] = "bash";
+
+	// Find bash.exe by searching PATH directories in order.
+	// CreateProcessA(NULL, "bash") searches System32 before PATH,
+	// which finds WSL's bash.exe instead of MSYS/Git Bash.
+	char bash_path[MAX_PATH] = {};
+	const char* app_name = NULL;
+	char path_env[32768];
+	DWORD plen = GetEnvironmentVariableA("PATH", path_env, sizeof(path_env));
+	if ( plen > 0 && plen < sizeof(path_env) )
+		{
+		if ( SearchPathA(path_env, "bash.exe", NULL, MAX_PATH, bash_path, NULL) )
+			app_name = bash_path;
+		}
+
+	if ( ! CreateProcessA(app_name, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) )
+		{
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+		return -1;
+		}
+
+	CloseHandle(hReadPipe);
+
+	// On Windows, run the command in the foreground (no &) since
+	// WaitForSingleObject already blocks. MSYS bash backgrounding
+	// via pipe-based stdin is unreliable.
+	//
+	// MSYS bash's builtin kill() only works with MSYS PIDs, not Windows
+	// PIDs. Zeek's getpid() returns Windows PIDs. Prepend a preamble
+	// that translates any ZEEK_ARG_*PID env vars from Windows PID to
+	// MSYS PID space using /proc/*/winpid before running the command.
+	std::string preamble =
+	    "for _zv in $(env 2>/dev/null | sed -n "
+	    "'s/^\\(ZEEK_ARG_[^=]*PID\\)=.*/\\1/p'); do "
+	    "_wp=${!_zv}; "
+	    "for _zd in /proc/[0-9]*/winpid; do "
+	    "[ \"$(cat \"$_zd\" 2>/dev/null)\" = \"$_wp\" ] && "
+	    "{ _zm=${_zd%/winpid}; export \"$_zv=${_zm##*/}\"; break; }; "
+	    "done; done\n";
+	std::string full_cmd = preamble + "(" + s + ") 1>&2\n";
+
+	DWORD written;
+	WriteFile(hWritePipe, full_cmd.c_str(), static_cast<DWORD>(full_cmd.size()), &written, NULL);
+	CloseHandle(hWritePipe);
+
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	DWORD exit_code;
+	GetExitCodeProcess(pi.hProcess, &exit_code);
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	int status = static_cast<int>(exit_code);
 #else
 	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
 	auto cmd_len = strlen(system_fmt) + strlen(s) + 1;

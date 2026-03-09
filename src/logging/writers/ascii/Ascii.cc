@@ -9,6 +9,10 @@
 #include <cerrno>
 #include <cstdio>
 #include <ctime>
+
+#ifdef _MSC_VER
+#include <io.h>
+#endif
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -479,7 +483,21 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
         }
     }
 
-    fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    int open_flags = O_WRONLY | O_CREAT | O_TRUNC;
+#ifdef _MSC_VER
+    // Gzip output is binary data; without O_BINARY Windows translates \n to \r\n, corrupting the stream.
+    if ( gzip_level > 0 )
+        open_flags |= O_BINARY;
+
+    // /dev/stdout and /dev/stderr don't exist on Windows; duplicate the
+    // corresponding standard FD so writers can close it normally.
+    if ( fname == "/dev/stdout" )
+        fd = _dup(_fileno(stdout));
+    else if ( fname == "/dev/stderr" )
+        fd = _dup(_fileno(stderr));
+    else
+#endif
+        fd = open(fname.c_str(), open_flags, 0666);
 
     if ( fd < 0 ) {
         Error(Fmt("cannot open %s: %s", fname.c_str(), Strerror(errno)));

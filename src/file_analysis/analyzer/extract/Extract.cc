@@ -156,7 +156,11 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len) {
         written += len;
     }
 
+#ifdef _MSC_VER
+    if ( _fseeki64(file_stream, len + offset, SEEK_SET) != 0 ) {
+#else
     if ( fseek(file_stream, len + offset, SEEK_SET) != 0 ) {
+#endif
         char buf[128];
         util::zeek_strerror_r(errno, buf, sizeof(buf));
         reporter->Error("failed to seek in extracted file %s: %s", filename.data(), buf);

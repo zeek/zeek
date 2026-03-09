@@ -218,4 +218,58 @@ process_stats get_process_stats() {
 
 } // namespace zeek::telemetry::detail
 
+#elif defined(_WIN32)
+
+// Force these includes into a specific order since psapi.h depends on
+// types defined in windows.h.
+// clang-format off
+#include <windows.h>
+#include <psapi.h>
+// clang-format on
+
+namespace zeek::telemetry::detail {
+
+process_stats get_process_stats() {
+    process_stats result;
+
+    auto proc = GetCurrentProcess();
+
+    // Fetch memory usage.
+    {
+        PROCESS_MEMORY_COUNTERS pmc;
+        if ( GetProcessMemoryInfo(proc, &pmc, sizeof(pmc)) ) {
+            result.rss = static_cast<int64_t>(pmc.WorkingSetSize);
+            result.vms = static_cast<int64_t>(pmc.PagefileUsage);
+        }
+    }
+
+    // Fetch CPU time.
+    {
+        FILETIME creation, exit, kernel, user;
+        if ( GetProcessTimes(proc, &creation, &exit, &kernel, &user) ) {
+            // FILETIME is in 100-nanosecond intervals.
+            auto ft_to_seconds = [](const FILETIME& ft) -> double {
+                ULARGE_INTEGER li;
+                li.LowPart = ft.dwLowDateTime;
+                li.HighPart = ft.dwHighDateTime;
+                return static_cast<double>(li.QuadPart) / 1e7;
+            };
+
+            result.cpu_user = ft_to_seconds(user);
+            result.cpu_system = ft_to_seconds(kernel);
+        }
+    }
+
+    // Fetch open handles (Windows equivalent of file descriptors).
+    {
+        DWORD handle_count = 0;
+        if ( GetProcessHandleCount(proc, &handle_count) )
+            result.fds = static_cast<int64_t>(handle_count);
+    }
+
+    return result;
+}
+
+} // namespace zeek::telemetry::detail
+
 #endif

@@ -3,11 +3,11 @@ node up
 sync, 1, tcp
 btest_connections_total, [tcp], 1.0
 sync, 2, udp
+btest_connections_total, [tcp], 1.0
 btest_connections_total, [udp], 1.0
-btest_connections_total, [tcp], 1.0
 sync, 3, udp
-btest_connections_total, [udp], 2.0
 btest_connections_total, [tcp], 1.0
+btest_connections_total, [udp], 2.0
 sync, 4, udp
-btest_connections_total, [udp], 2.0
 btest_connections_total, [tcp], 1.0
+btest_connections_total, [udp], 2.0

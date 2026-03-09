@@ -91,7 +91,15 @@ bool ScriptCoverageManager::WriteStats() {
 
     util::SafeDirname dirname{pf};
 
-    if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) ) {
+#ifdef _MSC_VER
+    // On Windows, dirname() may return an empty string for a bare filename
+    // instead of "." as POSIX specifies. Fall back to "." in that case.
+    const auto& dir = dirname.result.empty() ? "." : dirname.result;
+#else
+    const auto& dir = dirname.result;
+#endif
+
+    if ( ! util::detail::ensure_intermediate_dirs(dir.data()) ) {
         reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", pf);
         return false;
     }

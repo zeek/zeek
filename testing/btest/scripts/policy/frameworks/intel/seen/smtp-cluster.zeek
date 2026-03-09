@@ -1,6 +1,3 @@
-# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
-# @TEST-REQUIRES: ! is-windows
-#
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_WORKER1_PORT
 #

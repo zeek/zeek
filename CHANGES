@@ -1,3 +1,34 @@
+8.2.0-dev.293 | 2026-03-09 16:10:46 -0700
+
+  * extract winhandle into a shared header (Maor Hamami)
+
+  * use running_under_test instead of diff-sort (Maor Hamami)
+
+  * fix supervisor behavior on windows (Maor Hamami)
+
+    Points to: 9805dc25a96fd5542af90ba51bb5ccb1fb1bc667
+    (translate windows sigterm error code to 0)
+
+    Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+  * [windows] fix tail issue, gz binary flags, safe gmtime, and test adjustments (Maor Hamami)
+
+  * use file_into_t that can be translated to ino_t or uint64_t based on os (Maor Hamami)
+
+  * try to fix various tests and extract shared code (Maor Hamami)
+
+  * properly release file handles on config read (Maor Hamami)
+
+  * fix crlf issue on btests + use fseeki64 on windows (Maor Hamami)
+
+  * use python as python3 fallback (Maor Hamami)
+
+  * update cmake submodule + adjust zeek configs to support windows (Maor Hamami)
+
+  * update submodules and use diff-sort in few tests (Maor Hamami)
+
+  * [windows] enhance windows combatibility, fixing various btests (Maor Hamami)
+
 8.2.0-dev.273 | 2026-03-09 17:47:20 +0100
 
   * GH-5251: cluster/backend/zeromq: Set ipv6=F by default (Arne Welzel, Corelight)

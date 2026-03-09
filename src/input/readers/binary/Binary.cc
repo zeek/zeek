@@ -32,7 +32,7 @@ void Binary::DoClose() {
 }
 
 bool Binary::OpenInput() {
-    in = new ifstream(fname.c_str(), ios_base::in | ios_base::binary);
+    in = new InputFile(fname, ios_base::in | ios_base::binary);
 
     if ( in->fail() ) {
         Error(Fmt("Init: cannot open %s", fname.c_str()));
@@ -94,7 +94,7 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
     fname = info.source;
 
     // Handle path-prefixing. See similar logic in Ascii::OpenFile().
-    if ( fname.front() != '/' && ! path_prefix.empty() ) {
+    if ( ! is_absolute_path(fname) && ! path_prefix.empty() ) {
         std::size_t last = path_prefix.find_last_not_of('/');
 
         string path;

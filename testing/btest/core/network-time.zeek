@@ -1,5 +1,3 @@
-# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
-# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT > output
 # @TEST-EXEC: btest-diff output
 

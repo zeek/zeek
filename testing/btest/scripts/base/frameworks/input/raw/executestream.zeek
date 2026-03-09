@@ -1,10 +1,10 @@
 # @TEST-EXEC: cp input1.log input.log
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT 
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got1 15 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input2.log >> input.log
-# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got3 5 || (btest-bg-wait -k 1 && false)
+# @TEST-EXEC: $SCRIPTS/wait-for-file zeek/got3 15 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: cat input3.log >> input.log
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;

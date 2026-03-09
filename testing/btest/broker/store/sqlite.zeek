@@ -1,5 +1,3 @@
-# TODO: This test hangs indefinitely on Windows and is skipped for the time being.
-# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b %INPUT RUN=1 >out
 # @TEST-EXEC: zeek -b %INPUT RUN=2 >>out
 # @TEST-EXEC: btest-diff out

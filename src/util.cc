@@ -532,6 +532,11 @@ string flatten_script_name(const string& name, const string& prefix) {
     while ( (i = rval.find('/')) != string::npos )
         rval[i] = '.';
 
+#ifdef _MSC_VER
+    while ( (i = rval.find('\\')) != string::npos )
+        rval[i] = '.';
+#endif
+
     return rval;
 }
 
@@ -550,7 +555,7 @@ string normalize_path(std::string_view path) {
     // lexically_normal() strips a leading "./" but the POSIX implementation
     // preserves it.  Re-add when the original path started with "./" or ".\".
     bool had_dot_prefix = stringPath.starts_with("./") || stringPath.starts_with(".\\");
-    if ( had_dot_prefix && ! result.starts_with("./") && ! result.starts_with("../") )
+    if ( had_dot_prefix && result != "." && ! result.starts_with("./") && ! result.starts_with("../") )
         result = "./" + result;
 
     if ( result.size() > 1 && result.back() == '/' ) {
@@ -2155,6 +2160,10 @@ TEST_SUITE("util") {
         // Backslash variant of ".\" should also produce "./" prefix
         CHECK(detail::normalize_path(".\\pkg1.zeek") == "./pkg1.zeek");
         CHECK(detail::normalize_path(".\\foo\\bar") == "./foo/bar");
+
+        // "./." should collapse to "." (not "./."), matching POSIX behavior
+        CHECK(detail::normalize_path("./.") == ".");
+        CHECK(detail::normalize_path("/.") == "/");
 #else
         CHECK(detail::normalize_path("/1/2/3") == "/1/2/3");
         CHECK(detail::normalize_path("/1/./2/3") == "/1/2/3");

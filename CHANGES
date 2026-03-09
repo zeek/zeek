@@ -1,3 +1,9 @@
+8.2.0-dev.269 | 2026-03-09 16:42:39 +0100
+
+  * GH-5224: zeekctl: Default MetricsAddress to 127.0.0.1 (Arne Welzel, Corelight)
+
+    Closes #5224
+
 8.2.0-dev.267 | 2026-03-09 11:30:57 +0100
 
   * cmake: use absolute source paths in flex_target() calls to fix DWARF debug info (Doğukan Çağatay)

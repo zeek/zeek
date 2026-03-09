@@ -4,10 +4,12 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: zeek -b %INPUT >out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
+# @TEST-EXEC: btest-diff out
 
 
 @load base/frameworks/telemetry
+
+redef running_under_test = T;
 
 global connections_by_proto_cf = Telemetry::register_counter_family([
 	$prefix="btest",

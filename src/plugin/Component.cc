@@ -6,6 +6,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
+#include "zeek/spicy/manager.h"
 
 namespace zeek::plugin {
 
@@ -102,5 +103,16 @@ void Component::SetEnabled(bool arg_enabled) {
 }
 
 StringValPtr Component::CanonicalNameVal() const { return canon_name_val; }
+
+std::string Component::Implementation() const {
+    if ( zeek::spicy_mgr ) {
+        for ( const auto* c : zeek::spicy_mgr->Components() ) {
+            if ( c == this )
+                return "Spicy";
+        }
+    }
+
+    return "C++";
+}
 
 } // namespace zeek::plugin

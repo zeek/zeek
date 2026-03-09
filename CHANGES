@@ -1,3 +1,21 @@
+8.2.0-dev.297 | 2026-03-09 16:19:43 -0700
+
+  * nit: preferred output format (Mike Peters, Corelight)
+
+  * rationalize component implementation code (Mike Peters, Corelight)
+
+  * Add implementation and version fields to plugin/analyzer introspection (Mike Peters, Corelight)
+
+    Extend PluginComponent record with implementation (C++/Spicy) and
+    version fields. Restructure get_plugin_components() to iterate plugins
+    directly so each component can access its parent plugin's version.
+
+    Add Analyzer::implementation() BiF and wrapper to query an analyzer's
+    implementation type by tag, using the same three-manager lookup pattern
+    as Analyzer::name().
+
+    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
 8.2.0-dev.293 | 2026-03-09 16:10:46 -0700
 
   * extract winhandle into a shared header (Maor Hamami)

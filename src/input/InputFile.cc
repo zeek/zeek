@@ -63,9 +63,22 @@ UniqueHandle open_shared(const char* path, DWORD access) {
 // A streambuf backed by a Windows HANDLE opened with FILE_SHARE_DELETE,
 // allowing external renames while the file is open (matching POSIX semantics).
 class WinShareDeleteBuf : public std::streambuf {
-    UniqueHandle handle_;
-    static constexpr size_t BUF_SIZE = 8192;
-    char buffer_[BUF_SIZE];
+public:
+    bool open(const char* path) {
+        close();
+        handle_ = open_shared(path, GENERIC_READ);
+        if ( ! handle_ )
+            return false;
+        setg(buffer_, buffer_, buffer_);
+        return true;
+    }
+
+    void close() {
+        handle_.reset();
+        setg(buffer_, buffer_, buffer_);
+    }
+
+    bool is_open() const { return static_cast<bool>(handle_); }
 
 protected:
     int_type underflow() override {
@@ -91,22 +104,10 @@ protected:
         return 0;
     }
 
-public:
-    bool open(const char* path) {
-        close();
-        handle_ = open_shared(path, GENERIC_READ);
-        if ( ! handle_ )
-            return false;
-        setg(buffer_, buffer_, buffer_);
-        return true;
-    }
-
-    void close() {
-        handle_.reset();
-        setg(buffer_, buffer_, buffer_);
-    }
-
-    bool is_open() const { return static_cast<bool>(handle_); }
+private:
+    static constexpr size_t BUF_SIZE = 8192;
+    UniqueHandle handle_;
+    char buffer_[BUF_SIZE];
 };
 
 InputFile::InputFile() : std::istream(nullptr), buf_(std::make_unique<WinShareDeleteBuf>()) { rdbuf(buf_.get()); }

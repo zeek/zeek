@@ -522,11 +522,8 @@ string flatten_script_name(const string& name, const string& prefix) {
     if ( ! rval.empty() )
         rval.append(".");
 
-    if ( is_package_loader(name) ) {
-        string dir = SafeDirname(name).result;
-
-        rval.append(dir);
-    }
+    if ( is_package_loader(name) )
+        rval.append(SafeDirname(name).result);
     else
         rval.append(name);
 

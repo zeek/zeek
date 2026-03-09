@@ -35,6 +35,19 @@ extern "C" {
 using zeek::threading::Field;
 using zeek::threading::Value;
 
+#ifdef _MSC_VER
+namespace {
+struct WinHandleDeleter {
+    using pointer = HANDLE;
+    void operator()(HANDLE h) const noexcept {
+        if ( h && h != INVALID_HANDLE_VALUE )
+            CloseHandle(h);
+    }
+};
+using UniqueHandle = std::unique_ptr<void, WinHandleDeleter>;
+} // namespace
+#endif
+
 namespace zeek::input::reader::detail {
 
 const int Raw::block_size = 4096; // how big do we expect our chunks of data to be.
@@ -158,45 +171,45 @@ bool Raw::Execute() {
     sa.bInheritHandle = TRUE;
 
     // Create stdout pipe
-    HANDLE hStdoutRead, hStdoutWrite;
-    if ( ! CreatePipe(&hStdoutRead, &hStdoutWrite, &sa, 0) ) {
+    HANDLE hStdoutReadRaw, hStdoutWriteRaw;
+    if ( ! CreatePipe(&hStdoutReadRaw, &hStdoutWriteRaw, &sa, 0) ) {
         Error(Fmt("Failed to create stdout pipe: %lu", GetLastError()));
         return false;
     }
-    SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
+    UniqueHandle hStdoutRead(hStdoutReadRaw);
+    UniqueHandle hStdoutWrite(hStdoutWriteRaw);
+    SetHandleInformation(hStdoutRead.get(), HANDLE_FLAG_INHERIT, 0);
 
     // Create stderr pipe if needed
-    HANDLE hStderrRead = INVALID_HANDLE_VALUE, hStderrWrite = INVALID_HANDLE_VALUE;
+    UniqueHandle hStderrRead;
+    UniqueHandle hStderrWrite;
     if ( use_stderr ) {
-        if ( ! CreatePipe(&hStderrRead, &hStderrWrite, &sa, 0) ) {
+        HANDLE r, w;
+        if ( ! CreatePipe(&r, &w, &sa, 0) ) {
             Error(Fmt("Failed to create stderr pipe: %lu", GetLastError()));
-            CloseHandle(hStdoutRead);
-            CloseHandle(hStdoutWrite);
             return false;
         }
-        SetHandleInformation(hStderrRead, HANDLE_FLAG_INHERIT, 0);
+        hStderrRead.reset(r);
+        hStderrWrite.reset(w);
+        SetHandleInformation(hStderrRead.get(), HANDLE_FLAG_INHERIT, 0);
     }
 
     // Always create a stdin pipe so we can send the command to bash.
-    HANDLE hStdinRead, hStdinWrite;
-    if ( ! CreatePipe(&hStdinRead, &hStdinWrite, &sa, 0) ) {
+    HANDLE hStdinReadRaw, hStdinWriteRaw;
+    if ( ! CreatePipe(&hStdinReadRaw, &hStdinWriteRaw, &sa, 0) ) {
         Error(Fmt("Failed to create stdin pipe: %lu", GetLastError()));
-        CloseHandle(hStdoutRead);
-        CloseHandle(hStdoutWrite);
-        if ( use_stderr ) {
-            CloseHandle(hStderrRead);
-            CloseHandle(hStderrWrite);
-        }
         return false;
     }
-    SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
+    UniqueHandle hStdinRead(hStdinReadRaw);
+    UniqueHandle hStdinWrite(hStdinWriteRaw);
+    SetHandleInformation(hStdinWrite.get(), HANDLE_FLAG_INHERIT, 0);
 
     STARTUPINFOA si = {};
     si.cb = sizeof(si);
     si.dwFlags = STARTF_USESTDHANDLES;
-    si.hStdOutput = hStdoutWrite;
-    si.hStdError = use_stderr ? hStderrWrite : GetStdHandle(STD_ERROR_HANDLE);
-    si.hStdInput = hStdinRead;
+    si.hStdOutput = hStdoutWrite.get();
+    si.hStdError = use_stderr ? hStderrWrite.get() : GetStdHandle(STD_ERROR_HANDLE);
+    si.hStdInput = hStdinRead.get();
 
     // Launch bash with no arguments — commands come via stdin.
     // CreateProcessA may modify the command-line buffer in place,
@@ -208,36 +221,35 @@ bool Raw::Execute() {
                              nullptr, nullptr, &si, &pi);
 
     // Close child-side pipe ends regardless of success
-    CloseHandle(hStdoutWrite);
+    hStdoutWrite.reset();
     if ( use_stderr )
-        CloseHandle(hStderrWrite);
-    CloseHandle(hStdinRead);
+        hStderrWrite.reset();
+    hStdinRead.reset();
 
     if ( ! ok ) {
         Error(Fmt("Failed to create process: %lu", GetLastError()));
-        CloseHandle(hStdoutRead);
-        CloseHandle(hStdinWrite);
-        if ( use_stderr )
-            CloseHandle(hStderrRead);
         return false;
     }
 
+    UniqueHandle hProcess(pi.hProcess);
+    UniqueHandle hThread(pi.hThread);
+
     // Put the child in a Job Object so TerminateJobObject kills the
     // entire process tree (matching POSIX kill(-pid, SIGTERM) semantics).
-    HANDLE job = CreateJobObjectA(nullptr, nullptr);
+    UniqueHandle job(CreateJobObjectA(nullptr, nullptr));
     if ( job ) {
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = {};
         jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
-        AssignProcessToJobObject(job, pi.hProcess);
-        child_job_handle_ = job;
+        SetInformationJobObject(job.get(), JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
+        AssignProcessToJobObject(job.get(), hProcess.get());
+        child_job_handle_ = job.release();
     }
 
-    ResumeThread(pi.hThread);
+    ResumeThread(hThread.get());
+    hThread.reset();
 
     childpid = static_cast<int>(pi.dwProcessId);
-    child_process_handle_ = pi.hProcess;
-    CloseHandle(pi.hThread);
+    child_process_handle_ = hProcess.release();
 
     // Write command (and any user stdin data) to bash, then close to signal EOF.
     // MSYS2's inotify emulation doesn't deliver events reliably when bash
@@ -247,21 +259,22 @@ bool Raw::Execute() {
     // GNU coreutils testing knob that forces the portable polling path.
     std::string cmd_input = "tail() { command tail ---disable-inotify -s 0.5 \"$@\"; }\n" + fname + "\n";
     DWORD written;
-    WriteFile(hStdinWrite, cmd_input.c_str(), static_cast<DWORD>(cmd_input.size()), &written, nullptr);
+    WriteFile(hStdinWrite.get(), cmd_input.c_str(), static_cast<DWORD>(cmd_input.size()), &written, nullptr);
 
     if ( stdin_towrite ) {
-        WriteFile(hStdinWrite, stdin_string.c_str(), static_cast<DWORD>(stdin_string.size()), &written, nullptr);
+        WriteFile(hStdinWrite.get(), stdin_string.c_str(), static_cast<DWORD>(stdin_string.size()), &written, nullptr);
         stdin_towrite = 0;
     }
 
-    CloseHandle(hStdinWrite);
+    hStdinWrite.reset();
 
     // Convert stdout handle to FILE*
-    int stdout_fd = _open_osfhandle(reinterpret_cast<intptr_t>(hStdoutRead), _O_RDONLY);
+    int stdout_fd = _open_osfhandle(reinterpret_cast<intptr_t>(hStdoutRead.get()), _O_RDONLY);
     if ( stdout_fd == -1 ) {
         Error("Could not convert stdout handle to file descriptor");
         return false;
     }
+    hStdoutRead.release(); // fd now owns the handle
 
     file = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stdout_fd, "rb"), fclose);
     if ( ! file ) {
@@ -271,11 +284,12 @@ bool Raw::Execute() {
     }
 
     if ( use_stderr ) {
-        int stderr_fd = _open_osfhandle(reinterpret_cast<intptr_t>(hStderrRead), _O_RDONLY);
+        int stderr_fd = _open_osfhandle(reinterpret_cast<intptr_t>(hStderrRead.get()), _O_RDONLY);
         if ( stderr_fd == -1 ) {
             Error("Could not convert stderr handle to file descriptor");
             return false;
         }
+        hStderrRead.release(); // fd now owns the handle
 
         stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(_fdopen(stderr_fd, "rb"), fclose);
         if ( ! stderrfile ) {

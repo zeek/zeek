@@ -20,8 +20,26 @@
 #include "zeek/Timer.h"
 #include "zeek/iosource/IOSource.h"
 
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 namespace zeek {
 namespace detail {
+
+#ifdef _MSC_VER
+/**
+ * RAII wrapper for Windows HANDLEs. Automatically calls CloseHandle on destruction.
+ */
+struct WinHandleDeleter {
+    using pointer = HANDLE;
+    void operator()(HANDLE h) const noexcept {
+        if ( h && h != INVALID_HANDLE_VALUE )
+            CloseHandle(h);
+    }
+};
+using UniqueWinHandle = std::unique_ptr<void, WinHandleDeleter>;
+#endif
 
 struct SupervisorStemHandle;
 struct SupervisedNode;
@@ -325,7 +343,7 @@ private:
     Config config;
     int stem_pid;
 #ifdef _MSC_VER
-    void* stem_thread_handle = nullptr;
+    detail::UniqueWinHandle stem_thread_handle;
 #endif
     std::atomic<int> last_signal = -1;
     std::unique_ptr<detail::PipePair> stem_pipe;
@@ -364,7 +382,7 @@ struct SupervisorStemHandle {
     /**
      * On Windows, the stem runs as a thread. This is the thread HANDLE.
      */
-    void* thread_handle = nullptr;
+    UniqueWinHandle thread_handle;
 #endif
 };
 
@@ -424,7 +442,7 @@ struct SupervisorNode {
      * On Windows, nodes are separate processes spawned via CreateProcess.
      * This is the process HANDLE used for waiting and termination.
      */
-    void* process_handle = nullptr;
+    detail::UniqueWinHandle process_handle;
 #endif
     /**
      * Whether the node is voluntarily marked for termination by the

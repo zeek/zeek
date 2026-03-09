@@ -24,6 +24,8 @@
 #include <process.h>
 #include <tlhelp32.h>
 #include <windows.h>
+
+using UniqueHandle = zeek::detail::UniqueWinHandle;
 #endif
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -287,14 +289,13 @@ void detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire) {
 #ifdef _MSC_VER
     // On Windows, getppid() is stubbed. Check if parent process is alive.
     auto parent_pid = Supervisor::ThisNode()->parent_pid;
-    HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, parent_pid);
+    UniqueHandle h(OpenProcess(SYNCHRONIZE, FALSE, parent_pid));
 
     if ( ! h ) {
         run_state::detail::zeek_terminate_loop("supervised node was orphaned");
     }
     else {
-        DWORD result = WaitForSingleObject(h, 0);
-        CloseHandle(h);
+        DWORD result = WaitForSingleObject(h.get(), 0);
 
         if ( result != WAIT_TIMEOUT )
             run_state::detail::zeek_terminate_loop("supervised node was orphaned");
@@ -311,7 +312,7 @@ void detail::ParentProcessCheckTimer::Dispatch(double t, bool is_expire) {
 Supervisor::Supervisor(Supervisor::Config cfg, SupervisorStemHandle sh)
     : config(std::move(cfg)), stem_pid(sh.pid), stem_pipe(std::move(sh.pipe)) {
 #ifdef _MSC_VER
-    stem_thread_handle = sh.thread_handle;
+    stem_thread_handle = std::move(sh.thread_handle);
     DBG_LOG(DBG_SUPERVISOR, "started stem thread (pid %d)", stem_pid);
 #else
     stem_stdout.pipe = std::move(sh.stdout_pipe);
@@ -371,9 +372,8 @@ Supervisor::~Supervisor() {
     }
 
     if ( stem_thread_handle ) {
-        WaitForSingleObject((HANDLE)stem_thread_handle, 30000);
-        CloseHandle((HANDLE)stem_thread_handle);
-        stem_thread_handle = nullptr;
+        WaitForSingleObject(stem_thread_handle.get(), 30000);
+        stem_thread_handle.reset();
     }
 #else
     auto kill_res = kill(stem_pid, SIGTERM);
@@ -414,13 +414,12 @@ void Supervisor::ReapStem() {
         return;
 
     if ( stem_thread_handle ) {
-        DWORD result = WaitForSingleObject((HANDLE)stem_thread_handle, 0);
+        DWORD result = WaitForSingleObject(stem_thread_handle.get(), 0);
 
         if ( result == WAIT_OBJECT_0 ) {
             // Stem thread exited
             stem_pid = 0;
-            CloseHandle((HANDLE)stem_thread_handle);
-            stem_thread_handle = nullptr;
+            stem_thread_handle.reset();
             DBG_LOG(DBG_SUPERVISOR, "stem thread exited");
         }
     }
@@ -803,13 +802,13 @@ bool Stem::Wait(SupervisorNode* node, int options) const {
         return true;
 
     // All callers use WNOHANG (non-blocking). On Windows, always use 0ms wait.
-    DWORD result = WaitForSingleObject((HANDLE)node->process_handle, 0);
+    DWORD result = WaitForSingleObject(node->process_handle.get(), 0);
 
     if ( result == WAIT_TIMEOUT )
         return false;
 
     DWORD exit_code = 0;
-    GetExitCodeProcess((HANDLE)node->process_handle, &exit_code);
+    GetExitCodeProcess(node->process_handle.get(), &exit_code);
     node->exit_status = static_cast<int>(exit_code);
 
     DBG_STEM("node '%s' (PID %d) exited with status %d", node->Name().data(), node->pid, node->exit_status);
@@ -818,8 +817,7 @@ bool Stem::Wait(SupervisorNode* node, int options) const {
         LogError("Supervised node '%s' (PID %d) exited prematurely with status %d", node->Name().data(), node->pid,
                  node->exit_status);
 
-    CloseHandle((HANDLE)node->process_handle);
-    node->process_handle = nullptr;
+    node->process_handle.reset();
     node->pid = 0;
     node->stdout_pipe.Drain();
     node->stderr_pipe.Drain();
@@ -873,7 +871,7 @@ void Stem::KillNode(SupervisorNode* node, int signal) const {
     node->killed = true;
 #ifdef _MSC_VER
     if ( node->process_handle )
-        TerminateProcess((HANDLE)node->process_handle, 1);
+        TerminateProcess(node->process_handle.get(), 1);
 #else
     auto kill_res = kill(node->pid, signal);
 
@@ -1010,57 +1008,55 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node) {
     sa.nLength = sizeof(sa);
     sa.bInheritHandle = TRUE;
 
-    HANDLE child_stdout_read, child_stdout_write;
+    HANDLE raw_stdout_read, raw_stdout_write;
 
-    if ( ! CreatePipe(&child_stdout_read, &child_stdout_write, &sa, 0) ) {
+    if ( ! CreatePipe(&raw_stdout_read, &raw_stdout_write, &sa, 0) ) {
         LogError("failed to create stdout pipe for node '%s'", node->Name().data());
         return false;
     }
 
-    SetHandleInformation(child_stdout_read, HANDLE_FLAG_INHERIT, 0);
+    UniqueHandle child_stdout_read(raw_stdout_read);
+    UniqueHandle child_stdout_write(raw_stdout_write);
+    SetHandleInformation(child_stdout_read.get(), HANDLE_FLAG_INHERIT, 0);
 
-    HANDLE child_stderr_read, child_stderr_write;
+    HANDLE raw_stderr_read, raw_stderr_write;
 
-    if ( ! CreatePipe(&child_stderr_read, &child_stderr_write, &sa, 0) ) {
-        CloseHandle(child_stdout_read);
-        CloseHandle(child_stdout_write);
+    if ( ! CreatePipe(&raw_stderr_read, &raw_stderr_write, &sa, 0) ) {
         LogError("failed to create stderr pipe for node '%s'", node->Name().data());
         return false;
     }
 
-    SetHandleInformation(child_stderr_read, HANDLE_FLAG_INHERIT, 0);
+    UniqueHandle child_stderr_read(raw_stderr_read);
+    UniqueHandle child_stderr_write(raw_stderr_write);
+    SetHandleInformation(child_stderr_read.get(), HANDLE_FLAG_INHERIT, 0);
 
     STARTUPINFOA si = {};
     si.cb = sizeof(si);
-    si.hStdOutput = child_stdout_write;
-    si.hStdError = child_stderr_write;
+    si.hStdOutput = child_stdout_write.get();
+    si.hStdError = child_stderr_write.get();
     si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     si.dwFlags |= STARTF_USESTDHANDLES;
 
     PROCESS_INFORMATION pi = {};
 
     if ( ! CreateProcessA(nullptr, cmd_line.data(), nullptr, nullptr, TRUE, 0, env_block.data(), nullptr, &si, &pi) ) {
-        CloseHandle(child_stdout_read);
-        CloseHandle(child_stdout_write);
-        CloseHandle(child_stderr_read);
-        CloseHandle(child_stderr_write);
         LogError("failed to create process for node '%s': error %lu", node->Name().data(), GetLastError());
         return false;
     }
 
     // Close child-side pipe handles in the parent.
-    CloseHandle(child_stdout_write);
-    CloseHandle(child_stderr_write);
-    CloseHandle(pi.hThread);
+    child_stdout_write.reset();
+    child_stderr_write.reset();
+    UniqueHandle thread_handle(pi.hThread);
 
-    // Convert pipe read handles to CRT FDs for the existing reading code.
-    int stdout_fd = _open_osfhandle((intptr_t)child_stdout_read, _O_RDONLY);
-    int stderr_fd = _open_osfhandle((intptr_t)child_stderr_read, _O_RDONLY);
+    // Transfer read handle ownership to _open_osfhandle (which takes over the handle).
+    int stdout_fd = _open_osfhandle((intptr_t)child_stdout_read.release(), _O_RDONLY);
+    int stderr_fd = _open_osfhandle((intptr_t)child_stderr_read.release(), _O_RDONLY);
     int stdout_fds[2] = {stdout_fd, -1};
     int stderr_fds[2] = {stderr_fd, -1};
 
     node->pid = static_cast<int>(pi.dwProcessId);
-    node->process_handle = pi.hProcess;
+    node->process_handle.reset(pi.hProcess);
     auto prefix = util::fmt("[%s] ", node->Name().data());
     node->stdout_pipe.pipe = std::make_unique<detail::Pipe>(0, 0, 0, 0, stdout_fds);
     node->stdout_pipe.prefix = prefix;
@@ -1503,13 +1499,13 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
         sn.parent_pid = static_cast<int>(GetCurrentProcessId());
 
         // Try to get the actual parent PID from the environment if available.
-        HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        UniqueHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 
-        if ( snapshot != INVALID_HANDLE_VALUE ) {
+        if ( snapshot.get() != INVALID_HANDLE_VALUE ) {
             PROCESSENTRY32 pe = {};
             pe.dwSize = sizeof(pe);
 
-            if ( Process32First(snapshot, &pe) ) {
+            if ( Process32First(snapshot.get(), &pe) ) {
                 DWORD my_pid = GetCurrentProcessId();
 
                 do {
@@ -1517,10 +1513,8 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
                         sn.parent_pid = static_cast<int>(pe.th32ParentProcessID);
                         break;
                     }
-                } while ( Process32Next(snapshot, &pe) );
+                } while ( Process32Next(snapshot.get(), &pe) );
             }
-
-            CloseHandle(snapshot);
         }
 
         supervised_node = std::move(sn);
@@ -1581,25 +1575,24 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
     auto* data = new StemThreadData();
     data->state.pipe = std::move(stem_pipe);
     data->state.parent_pid = static_cast<int>(GetCurrentProcessId());
-    data->ready_event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    UniqueHandle ready_event(CreateEvent(nullptr, TRUE, FALSE, nullptr));
+    data->ready_event = ready_event.get();
 
     HANDLE thread_handle = (HANDLE)_beginthreadex(nullptr, 0, stem_thread_func, data, 0, nullptr);
 
     if ( ! thread_handle ) {
         fprintf(stderr, "failed to create Zeek supervisor stem thread\n");
-        CloseHandle(data->ready_event);
         delete data;
         exit(1);
     }
 
     // Wait for the stem thread to be initialized.
-    WaitForSingleObject(data->ready_event, INFINITE);
-    CloseHandle(data->ready_event);
+    WaitForSingleObject(ready_event.get(), INFINITE);
 
     SupervisorStemHandle sh;
     sh.pipe = std::move(pipe);
     sh.pid = static_cast<int>(GetCurrentProcessId());
-    sh.thread_handle = thread_handle;
+    sh.thread_handle.reset(thread_handle);
     return {std::move(sh)};
 #else
     Stem::State ss;

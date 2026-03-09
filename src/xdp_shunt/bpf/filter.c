@@ -48,20 +48,42 @@ static __always_inline int proto_is_vlan(__u16 h_proto) {
     return h_proto == bpf_htons(ETH_P_8021Q) || h_proto == bpf_htons(ETH_P_8021AD);
 }
 
+// We must use bpf_xdp_load_bytes for certain fragmented cases. However, it can be slow. This is a hybrid approach
+// which will use direct pointer accesses if it's within the first section, and bpf_xdp_load_bytes if not.
+//
+// This will point directly at the memory if it can, otherwise it will point to the loaded bytes in the buffer.
+static __always_inline void* get_buf(struct xdp_md* ctx, __u32 pos, void* buf, __u32 len) {
+    void* data = (void*)(long)ctx->data;
+    void* data_end = (void*)(long)ctx->data_end;
+    void* ptr;
+
+    if ( data + pos + len <= data_end )
+        ptr = data + pos;
+    else {
+        if ( bpf_xdp_load_bytes(ctx, pos, buf, len) < 0 )
+            return NULL;
+
+        ptr = buf;
+    }
+
+    return ptr;
+}
+
 // Mostly copied from xdp-tutorial:
 // https://github.com/xdp-project/xdp-tutorial/blob/main/packet-solutions/xdp_vlan01_kern.c
 static __always_inline int parse_ethhdr(struct hdr_cursor* nh, struct xdp_md* ctx, __u16* outer_vlan,
                                         __u16* inner_vlan) {
-    struct ethhdr eth;
-    int hdrsize = sizeof(eth);
-    int err = bpf_xdp_load_bytes(ctx, nh->pos, &eth, hdrsize);
-    if ( err < 0 )
+    struct ethhdr eth_buf;
+    int hdrsize = sizeof(eth_buf);
+    struct ethhdr* eth = get_buf(ctx, nh->pos, &eth_buf, hdrsize);
+    if ( ! eth )
         return -1;
 
-    __u16 h_proto = eth.h_proto;
+    __u16 h_proto = eth->h_proto;
     nh->pos += hdrsize;
 
-    struct vlan_hdr vlh;
+    struct vlan_hdr vlh_buf;
+    struct vlan_hdr* vlh;
 /* Use loop unrolling to avoid the verifier restriction on loops;
  * support up to VLAN_MAX_DEPTH layers of VLAN encapsulation.
  */
@@ -70,20 +92,20 @@ static __always_inline int parse_ethhdr(struct hdr_cursor* nh, struct xdp_md* ct
         if ( ! proto_is_vlan(h_proto) )
             break;
 
-        err = bpf_xdp_load_bytes(ctx, nh->pos, &vlh, sizeof(vlh));
-        if ( err < 0 )
+        vlh = get_buf(ctx, nh->pos, &vlh_buf, sizeof(vlh_buf));
+        if ( ! vlh )
             break;
 
-        nh->pos += sizeof(vlh);
+        nh->pos += sizeof(vlh_buf);
 
-        __u16 tci_host = bpf_ntohs(vlh.h_vlan_TCI);
+        __u16 tci_host = bpf_ntohs(vlh->h_vlan_TCI);
         // Only set inner vlan if outer is 0. This mimics Zeek's behavior.
         if ( *outer_vlan == 0 )
             *outer_vlan = tci_host & 0x0FFF;
         else
             *inner_vlan = tci_host & 0x0FFF;
 
-        h_proto = vlh.h_vlan_encapsulated_proto;
+        h_proto = vlh->h_vlan_encapsulated_proto;
     }
 
     return h_proto; /* network-byte-order */
@@ -135,38 +157,39 @@ int xdp_filter(struct xdp_md* ctx) {
 
     switch ( nh_type ) {
         case bpf_htons(ETH_P_IP): {
-            struct iphdr iph;
-            int err = bpf_xdp_load_bytes(ctx, nh.pos, &iph, sizeof(iph));
-            if ( err < 0 )
+            struct iphdr iph_buf;
+            struct iphdr* iph = get_buf(ctx, nh.pos, &iph_buf, sizeof(iph_buf));
+            if ( ! iph )
                 return XDP_PASS;
 
-            l4_protocol = iph.protocol;
+            l4_protocol = iph->protocol;
 
             src_ip.in6_u.u6_addr32[0] = 0;
             src_ip.in6_u.u6_addr32[1] = 0;
             src_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
-            src_ip.in6_u.u6_addr32[3] = iph.saddr;
+            src_ip.in6_u.u6_addr32[3] = iph->saddr;
 
             dest_ip.in6_u.u6_addr32[0] = 0;
             dest_ip.in6_u.u6_addr32[1] = 0;
             dest_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
-            dest_ip.in6_u.u6_addr32[3] = iph.daddr;
+            dest_ip.in6_u.u6_addr32[3] = iph->daddr;
 
-            nh.pos += iph.ihl * 4;
+            nh.pos += iph->ihl * 4;
 
             break;
         }
         case bpf_htons(ETH_P_IPV6): {
-            struct ipv6hdr ip6h;
-            int err = bpf_xdp_load_bytes(ctx, nh.pos, &ip6h, sizeof(ip6h));
-            if ( err < 0 )
+            struct ipv6hdr ip6h_buf;
+            struct ipv6hdr* ip6h = get_buf(ctx, nh.pos, &ip6h_buf, sizeof(ip6h_buf));
+            if ( ! ip6h )
                 return XDP_PASS;
 
-            l4_protocol = ip6h.nexthdr;
-            src_ip = ip6h.saddr;
-            dest_ip = ip6h.daddr;
+            l4_protocol = ip6h->nexthdr;
+            src_ip = ip6h->saddr;
+            dest_ip = ip6h->daddr;
 
-            nh.pos += sizeof(ip6h);
+            // TODO: IPv6 Extensions?
+            nh.pos += sizeof(ip6h_buf);
 
             break;
         }
@@ -186,27 +209,27 @@ int xdp_filter(struct xdp_md* ctx) {
     __u16 port_source;
     __u16 port_dest;
     if ( l4_protocol == IPPROTO_TCP ) {
-        struct tcphdr tcph;
-        int err = bpf_xdp_load_bytes(ctx, nh.pos, &tcph, sizeof(tcph));
-        if ( err < 0 )
+        struct tcphdr tcph_buf;
+        struct tcphdr* tcph = get_buf(ctx, nh.pos, &tcph_buf, sizeof(tcph_buf));
+        if ( ! tcph )
             return XDP_PASS;
 
-        port_source = bpf_ntohs(tcph.source);
-        port_dest = bpf_ntohs(tcph.dest);
+        port_source = bpf_ntohs(tcph->source);
+        port_dest = bpf_ntohs(tcph->dest);
     }
     else if ( l4_protocol == IPPROTO_UDP ) {
-        struct udphdr udph;
-        int err = bpf_xdp_load_bytes(ctx, nh.pos, &udph, sizeof(udph));
-        if ( err < 0 )
+        struct udphdr udph_buf;
+        struct udphdr* udph = get_buf(ctx, nh.pos, &udph_buf, sizeof(udph_buf));
+        if ( ! udph )
             return XDP_PASS;
 
-        port_source = bpf_ntohs(udph.source);
-        port_dest = bpf_ntohs(udph.dest);
+        port_source = bpf_ntohs(udph->source);
+        port_dest = bpf_ntohs(udph->dest);
     }
     else if ( l4_protocol == IPPROTO_ICMP ) {
-        struct icmphdr icmph;
-        int err = bpf_xdp_load_bytes(ctx, nh.pos, &icmph, sizeof(icmph));
-        if ( err < 0 )
+        struct icmphdr icmph_buf;
+        struct icmphdr* icmph = get_buf(ctx, nh.pos, &icmph_buf, sizeof(icmph_buf));
+        if ( ! icmph )
             return XDP_PASS;
 
         port_source = 0;

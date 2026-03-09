@@ -27,7 +27,7 @@ static uint16_t pcapng_extract_uint16(uint8_t* opt_data, uint16_t opt_length) {
         return 0;
 
     uint16_t val = opt_data[0];
-    val << 8;
+    val <<= 8;
     val |= opt_data[1];
     return val;
 }
@@ -37,7 +37,7 @@ static uint32_t pcapng_extract_uint32(uint8_t* opt_data, uint16_t opt_length) {
         return 0;
 
     uint32_t val = pcapng_extract_uint16(opt_data, opt_length);
-    val << 16;
+    val <<= 16;
     val |= pcapng_extract_uint16(opt_data + 2, opt_length);
     return val;
 }
@@ -47,7 +47,7 @@ static uint64_t pcapng_extract_uint64(uint8_t* opt_data, uint16_t opt_length) {
         return 0;
 
     uint64_t val = pcapng_extract_uint32(opt_data, opt_length);
-    val << 32;
+    val <<= 32;
     val |= pcapng_extract_uint32(opt_data + 4, opt_length);
     return val;
 }

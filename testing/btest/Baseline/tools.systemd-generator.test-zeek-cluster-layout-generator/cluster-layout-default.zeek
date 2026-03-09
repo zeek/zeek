@@ -14,5 +14,5 @@ redef Cluster::nodes += {
 };
 
 @load base/frameworks/telemetry/options
-redef Telemetry::metrics_address = "0.0.0.0";
+redef Telemetry::metrics_address = "127.0.0.1";
 redef Telemetry::metrics_port = Cluster::local_node_metrics_port();

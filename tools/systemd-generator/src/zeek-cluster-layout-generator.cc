@@ -32,7 +32,7 @@ struct ClusterLayoutOptions {
     int port = 27760;
     std::string address = "127.0.0.1";
     int metrics_port = 9991;
-    std::string metrics_address = "0.0.0.0";
+    std::string metrics_address = "127.0.0.1";
 
     std::string NextPort() {
         auto result = std::to_string(port) + "/tcp";

@@ -6118,9 +6118,7 @@ function get_plugin_components%(category: string%): plugin_component_vec
 		auto ver = plugin->Version();
 		std::string version_str;
 		if ( ver )
-			version_str = std::to_string(ver.major) + "." +
-			              std::to_string(ver.minor) + "." +
-			              std::to_string(ver.patch);
+			version_str = util::fmt("%d.%d.%d", ver.major, ver.minor, ver.patch);
 
 		for ( const auto* component : plugin->Components() )
 			{

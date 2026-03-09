@@ -5,6 +5,9 @@ module Analyzer;
 %%{
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/spicy/manager.h"
 %%}
 
 function Analyzer::__enable_analyzer%(id: Analyzer::Tag%) : bool
@@ -81,4 +84,32 @@ function __has_tag%(name: string%) : bool
 	%{
 	plugin::Component* component = component_for_name(name->CheckString());
 	return zeek::val_mgr->Bool(component != nullptr);
+	%}
+
+function __implementation%(atype: AllAnalyzers::Tag%) : string
+	%{
+	auto val = atype->AsEnumVal();
+
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val, false);
+	if ( ! component )
+		component = zeek::packet_mgr->Lookup(val, false);
+	if ( ! component )
+		component = zeek::file_mgr->Lookup(val, false);
+	if ( ! component )
+		return zeek::make_intrusive<zeek::StringVal>("unknown");
+
+	std::string impl = "C++";
+	if ( zeek::spicy_mgr )
+		{
+		for ( const auto* c : zeek::spicy_mgr->Components() )
+			{
+			if ( c == component )
+				{
+				impl = "Spicy";
+				break;
+				}
+			}
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(impl);
 	%}

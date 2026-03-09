@@ -227,14 +227,17 @@ export {
 	## for more details.
 	const log_rcvbuf: int = -1 &redef;
 
-	## Set ZMQ_IPV6 option.
+	## Sets the ZMQ_IPV6 option on ZeroMQ contexts created by Zeek.
 	##
-	## The ZeroMQ library has IPv6 support in ZeroMQ. For Zeek we enable it
-	## unconditionally such that listening or connecting  with IPv6 just works.
+	## By default, IPv6 support on the ZeroMQ context is disabled. If you're
+	## using IPv6 addresses for any of the endpoint options, or you're using
+	## Zeek in a dual-stack environment and want to listen on IPv6 and IPv4
+	## addresses at the same time, set this option to ``T``. If you're
+	## deploying Zeek using ZeekControl, this will happen automatically.
 	##
-	## See ZeroMQ's `ZMQ_IPV6 documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc23>`_
+	## See ZeroMQ's `ZMQ_IPV6 documentation <http://api.zeromq.org/4-2:zmq-ctx-set#toc9>`_
 	## for more details.
-	const ipv6 = T &redef;
+	const ipv6 = F &redef;
 
 	## Do not silently drop messages if high-water-mark is reached.
 	##

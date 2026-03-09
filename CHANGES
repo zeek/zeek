@@ -1,3 +1,14 @@
+8.2.0-dev.273 | 2026-03-09 17:47:20 +0100
+
+  * GH-5251: cluster/backend/zeromq: Set ipv6=F by default (Arne Welzel, Corelight)
+
+    On systems without support for dual-stack sockets, the default of ipv6=T
+    results in a broken default as binding the ZeroMQ XPUB/XSUB and PULL sockets
+    fails. The ZeekControl ZeroMQ plugin is adapted separately to set the option
+    true if any of the node addresses is an IPv6 address.
+
+    This was reported by @klemensn while testing on OpenBSD. Thanks!
+
 8.2.0-dev.271 | 2026-03-09 17:04:47 +0100
 
   * tools/systemd-generator: Use 127.0.0.1 for metrics address by default (Arne Welzel, Corelight)

@@ -20,8 +20,8 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -E 's/line [0-9]+/line xxx/g' | sed -E 's,^error: ZeroMQ: Failed to bind ([^ ]+) socket tcp://\[::1\]:[0-9]+:.*$,error: ZeroMQ: Failed to bind \1 socket...,g' | $SCRIPTS/diff-remove-abspath" btest-diff logger/.stderr
 
 # @TEST-START-FILE common.zeek
-@load frameworks/cluster/backend/zeromq
-# Explicitly disable ipv6 support to provoke errors.
-redef Cluster::Backend::ZeroMQ::ipv6 = F;
 @load ./zeromq-test-bootstrap
+
+# Explicitly disable IPv6 support to provoke errors.
+redef Cluster::Backend::ZeroMQ::ipv6 = F;
 # @TEST-END-FILE

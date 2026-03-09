@@ -1,3 +1,29 @@
+8.2.0-dev.267 | 2026-03-09 11:30:57 +0100
+
+  * cmake: use absolute source paths in flex_target() calls to fix DWARF debug info (Doğukan Çağatay)
+
+    The five flex_target() calls in src/CMakeLists.txt,
+    tools/bifcl/CMakeLists.txt, and tools/binpac/src/CMakeLists.txt previously
+    passed the .l/.ll input file as a bare filename. When CMake invokes flex
+    from an out-of-source build directory, flex writes '#line 1 "rule-scan.l"'
+    (a relative path) into the generated C++ output. GCC records this as
+    '<build-dir>/rule-scan.l' in DWARF debug information, a path that does not
+    exist in the source tree.
+
+    This silently breaks the zeek-debugsource RPM on Fedora/RHEL (and equivalent
+    dbgsym packages on Debian-based distributions): cpio cannot stat the
+    non-existent paths and omits the .l grammar files from the debugsource
+    package, making source-level debugging of scanner code impossible.
+
+    Changing the input to ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l (absolute
+    path) causes flex to emit the full path in #line directives. GCC records the
+    correct source path in DWARF, debugedit can rewrite it, and the debugsource
+    package is complete.
+
+    This change has no effect on the generated scanner logic, the Zeek API, or
+    build performance. It only affects the string written into #line directives
+    and the resulting DWARF debug info.
+
 8.2.0-dev.264 | 2026-03-06 16:38:59 -0700
 
   * remove unnecessary rlen variable in is_valid_base64 (Martin)

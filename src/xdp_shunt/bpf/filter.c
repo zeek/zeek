@@ -41,7 +41,7 @@ struct {
 volatile const uint8_t include_vlan = 0;
 
 struct hdr_cursor {
-    void* pos;
+    __u32 pos;
 };
 
 static __always_inline int proto_is_vlan(__u16 h_proto) {
@@ -50,20 +50,18 @@ static __always_inline int proto_is_vlan(__u16 h_proto) {
 
 // Mostly copied from xdp-tutorial:
 // https://github.com/xdp-project/xdp-tutorial/blob/main/packet-solutions/xdp_vlan01_kern.c
-static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, struct ethhdr** ethhdr,
-                                        __u16* outer_vlan, __u16* inner_vlan) {
-    struct ethhdr* eth = nh->pos;
-    int hdrsize = sizeof(*eth);
-    __u16 h_proto;
-
-    if ( nh->pos + hdrsize > data_end )
+static __always_inline int parse_ethhdr(struct hdr_cursor* nh, struct xdp_md* ctx, __u16* outer_vlan,
+                                        __u16* inner_vlan) {
+    struct ethhdr eth;
+    int hdrsize = sizeof(eth);
+    int err = bpf_xdp_load_bytes(ctx, nh->pos, &eth, hdrsize);
+    if ( err < 0 )
         return -1;
 
+    __u16 h_proto = eth.h_proto;
     nh->pos += hdrsize;
-    *ethhdr = eth;
-    struct vlan_hdr* vlh = nh->pos;
-    h_proto = eth->h_proto;
 
+    struct vlan_hdr vlh;
 /* Use loop unrolling to avoid the verifier restriction on loops;
  * support up to VLAN_MAX_DEPTH layers of VLAN encapsulation.
  */
@@ -72,22 +70,22 @@ static __always_inline int parse_ethhdr(struct hdr_cursor* nh, void* data_end, s
         if ( ! proto_is_vlan(h_proto) )
             break;
 
-        if ( (void*)vlh + sizeof(struct vlan_hdr) > data_end )
+        err = bpf_xdp_load_bytes(ctx, nh->pos, &vlh, sizeof(vlh));
+        if ( err < 0 )
             break;
 
+        nh->pos += sizeof(vlh);
 
-        __u16 tci_host = bpf_ntohs(vlh->h_vlan_TCI);
+        __u16 tci_host = bpf_ntohs(vlh.h_vlan_TCI);
         // Only set inner vlan if outer is 0. This mimics Zeek's behavior.
         if ( *outer_vlan == 0 )
             *outer_vlan = tci_host & 0x0FFF;
         else
             *inner_vlan = tci_host & 0x0FFF;
 
-        h_proto = vlh->h_vlan_encapsulated_proto;
-        vlh++;
+        h_proto = vlh.h_vlan_encapsulated_proto;
     }
 
-    nh->pos = vlh;
     return h_proto; /* network-byte-order */
 }
 
@@ -117,58 +115,59 @@ static __always_inline void update_value(struct shunt_val* val, struct xdp_md* c
     bpf_spin_unlock(&val->lock);
 }
 
-SEC("xdp")
+SEC("xdp.frags")
 int xdp_filter(struct xdp_md* ctx) {
     void* data_end = (void*)(long)ctx->data_end;
     void* data = (void*)(long)ctx->data;
 
     struct hdr_cursor nh;
-    nh.pos = data;
+    nh.pos = 0;
 
-    struct ethhdr* eth;
     __u16 outer_vlan = 0;
     __u16 inner_vlan = 0;
-    int nh_type = parse_ethhdr(&nh, data_end, &eth, &outer_vlan, &inner_vlan);
+    int nh_type = parse_ethhdr(&nh, ctx, &outer_vlan, &inner_vlan);
     if ( nh_type < 0 )
         return XDP_PASS;
 
-    void* l3_header;
     __u8 l4_protocol;
     struct in6_addr src_ip = {0};
     struct in6_addr dest_ip = {0};
-    int is_ipv4 = 0;
 
     switch ( nh_type ) {
         case bpf_htons(ETH_P_IP): {
-            is_ipv4 = 1;
-            struct iphdr* iph = nh.pos;
-            if ( (void*)iph + sizeof(*iph) > data_end )
+            struct iphdr iph;
+            int err = bpf_xdp_load_bytes(ctx, nh.pos, &iph, sizeof(iph));
+            if ( err < 0 )
                 return XDP_PASS;
 
-            l3_header = (void*)iph;
-            l4_protocol = iph->protocol;
+            l4_protocol = iph.protocol;
 
             src_ip.in6_u.u6_addr32[0] = 0;
             src_ip.in6_u.u6_addr32[1] = 0;
             src_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
-            src_ip.in6_u.u6_addr32[3] = iph->saddr;
+            src_ip.in6_u.u6_addr32[3] = iph.saddr;
 
             dest_ip.in6_u.u6_addr32[0] = 0;
             dest_ip.in6_u.u6_addr32[1] = 0;
             dest_ip.in6_u.u6_addr32[2] = bpf_htonl(0x0000FFFF);
-            dest_ip.in6_u.u6_addr32[3] = iph->daddr;
+            dest_ip.in6_u.u6_addr32[3] = iph.daddr;
+
+            nh.pos += iph.ihl * 4;
 
             break;
         }
         case bpf_htons(ETH_P_IPV6): {
-            struct ipv6hdr* ip6h = nh.pos;
-            if ( (void*)ip6h + sizeof(*ip6h) > data_end )
+            struct ipv6hdr ip6h;
+            int err = bpf_xdp_load_bytes(ctx, nh.pos, &ip6h, sizeof(ip6h));
+            if ( err < 0 )
                 return XDP_PASS;
 
-            l3_header = (void*)ip6h;
-            l4_protocol = ip6h->nexthdr;
-            src_ip = ip6h->saddr;
-            dest_ip = ip6h->daddr;
+            l4_protocol = ip6h.nexthdr;
+            src_ip = ip6h.saddr;
+            dest_ip = ip6h.daddr;
+
+            nh.pos += sizeof(ip6h);
+
             break;
         }
         default: return XDP_PASS;
@@ -184,36 +183,30 @@ int xdp_filter(struct xdp_md* ctx) {
 
     void* transport_header;
 
-    if ( is_ipv4 ) {
-        struct iphdr* iph = l3_header;
-        int ip_hdr_len = iph->ihl * 4;
-        transport_header = (void*)((unsigned char*)iph + ip_hdr_len);
-    }
-    else
-        // TODO: Walk through IPV6 extension headers?
-        transport_header = (void*)((struct ipv6hdr*)l3_header) + sizeof(struct ipv6hdr);
-
     __u16 port_source;
     __u16 port_dest;
     if ( l4_protocol == IPPROTO_TCP ) {
-        struct tcphdr* tcph = transport_header;
-        if ( (void*)tcph + sizeof(*tcph) > data_end )
+        struct tcphdr tcph;
+        int err = bpf_xdp_load_bytes(ctx, nh.pos, &tcph, sizeof(tcph));
+        if ( err < 0 )
             return XDP_PASS;
 
-        port_source = bpf_ntohs(tcph->source);
-        port_dest = bpf_ntohs(tcph->dest);
+        port_source = bpf_ntohs(tcph.source);
+        port_dest = bpf_ntohs(tcph.dest);
     }
     else if ( l4_protocol == IPPROTO_UDP ) {
-        struct udphdr* udph = transport_header;
-        if ( (void*)udph + sizeof(*udph) > data_end )
+        struct udphdr udph;
+        int err = bpf_xdp_load_bytes(ctx, nh.pos, &udph, sizeof(udph));
+        if ( err < 0 )
             return XDP_PASS;
 
-        port_source = bpf_ntohs(udph->source);
-        port_dest = bpf_ntohs(udph->dest);
+        port_source = bpf_ntohs(udph.source);
+        port_dest = bpf_ntohs(udph.dest);
     }
     else if ( l4_protocol == IPPROTO_ICMP ) {
-        struct icmphdr* icmph = transport_header;
-        if ( (void*)icmph + sizeof(*icmph) > data_end )
+        struct icmphdr icmph;
+        int err = bpf_xdp_load_bytes(ctx, nh.pos, &icmph, sizeof(icmph));
+        if ( err < 0 )
             return XDP_PASS;
 
         port_source = 0;

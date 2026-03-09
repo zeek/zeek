@@ -114,13 +114,11 @@ static __always_inline int parse_ethhdr(struct hdr_cursor* nh, struct xdp_md* ct
 // Returns the new combined number of fin/rst
 static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
     __u64 new_ts = bpf_ktime_get_ns(); // Call before getting lock
+    __u64 bytes = bpf_xdp_get_buff_len(ctx);
 
     bpf_spin_lock(&val->lock);
 
     // TODO: Consider swapping to PER_CPU
-    void* data_end = (void*)(long)ctx->data_end;
-    void* data = (void*)(long)ctx->data;
-    __u64 bytes = data_end - data;
     if ( from_ip1 ) {
         val->packets_from_1++;
         val->bytes_from_1 += bytes;

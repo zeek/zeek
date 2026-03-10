@@ -203,6 +203,14 @@ public:
      */
     static const StringValPtr& GetLocalNodeId();
 
+    /*
+     * InitPostScript() hook for &publish_on_change support.
+     *
+     * Find all global tables with an attached PublishOnChangeState and initialize
+     * a PublishOnChangeState instance via Instantiate().
+     */
+    static void InitPostScript();
+
 private:
     /**
      * Helper class to set in_apply_changes and unset when leaving a scope.

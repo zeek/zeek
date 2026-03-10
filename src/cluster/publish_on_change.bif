@@ -39,7 +39,7 @@ function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_inf
 	}
 
 	auto tval = zeek::cast_intrusive<zeek::TableVal>(val);
-	zeek::detail::PublishOnChangeState* poc_state = nullptr;
+	zeek::detail::PublishOnChangeState* poc_state = tval->GetPublishOnChangeState();
 	if ( ! poc_state ) {
 		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
 		                        idstr->ToStdString().c_str(), tval.get());

@@ -1,3 +1,7 @@
+8.2.0-dev.307 | 2026-03-10 08:56:33 -0700
+
+  * Fix line number in ZAM btest output for language.assert-hook (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.305 | 2026-03-10 08:56:14 -0700
 
   * Fix broken shift operations in pcapng iosource (Tim Wojtulewicz, Corelight)

@@ -8,6 +8,7 @@
 #include "zeek/Attr.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
+#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
@@ -708,5 +709,53 @@ void PublishOnChangeState::InitPostScript() {
         if ( poc_state )
             table_val->SetPublishOnChangeState(std::move(poc_state));
     }
+}
+
+bool cluster_publish_table(const std::string& topic, const TableVal& table_val, size_t batch_size) {
+    // Static type and field offsets.
+    static const auto helper = RecordBuilderHelper();
+
+    // The state isn't all that important for publishing. It's more important
+    // for receiving as we publish using Cluster::table_change_infos(), but it's
+    // easy way to to the table identifier.
+    const auto* poc_state = table_val.GetPublishOnChangeState();
+    if ( ! poc_state )
+        return false;
+
+    // Construct the header.
+    auto now = run_state::network_time;
+    auto tcheader =
+        helper.BuildTableChangeHeader(poc_state->GetIdentifier(), now, PublishOnChangeState::GetLocalNodeId());
+
+    // Number of elements published.
+    size_t published = 0;
+
+    const auto* dict = table_val.Get();
+
+    auto tcinfos = helper.BuildTableChangeInfos();
+    tcinfos->Reserve(std::min(dict->Length() - published, batch_size));
+
+    for ( const auto& tve : *dict ) {
+        ListValPtr index = table_val.RecreateIndex(*tve.GetHashKey());
+        auto tcinfo = helper.BuildChangeInfo(BifEnum::TABLE_ELEMENT_NEW, now, *index, tve.value->GetVal(),
+                                             /*previous_value=*/nullptr);
+
+        tcinfos->Append(std::move(tcinfo));
+
+        if ( tcinfos->Size() == batch_size ) {
+            poc_state->PublishQueuedChanges(now, topic, tcheader, tcinfos);
+            tcinfos = helper.BuildTableChangeInfos();
+            tcinfos->Reserve(std::min(dict->Length() - published, batch_size));
+        }
+
+        ++published;
+    }
+
+    // Publish any remaining entries.
+    if ( tcinfos->Size() > 0 )
+        poc_state->PublishQueuedChanges(now, topic, tcheader, tcinfos);
+
+
+    return true;
 }
 } // namespace zeek::detail

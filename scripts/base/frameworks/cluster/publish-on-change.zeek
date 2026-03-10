@@ -2,7 +2,34 @@
 
 module Cluster;
 
+export {
+
+	## Default number of :zeek:see:`Cluster::TableChangeInfo` records to use
+	## with :zeek:see:`Cluster::publish_table`.
+	const default_publish_table_batch_size = 10000 &redef;
+
+	## Publish the given table_val using multiple :zeek:see:`Cluster::table_change_infos`
+	## event to the given topic.
+	##
+	## topic: The topic to publish the :zeek:see:`Cluster::table_change_infos` event to.
+	##        Usually this is created with :zeek:see:`Cluster::node_topic` or
+	##        :zeek:see:`Cluster::nodeid_topic`.
+	## table_val: The table to publish. Must have a :zeek:attr:`&publish_on_change` attribute.
+	## batch_size: Number of :zeek:see:`Cluster::TableChangeInfo` records to use per event.
+	global publish_table: function(
+		topic: string,
+		table_val: any,
+		batch_size: count &default=default_publish_table_batch_size
+	): bool;
+
+}
+
 @load base/bif/publish_on_change.bif
+
+function publish_table(topic: string, table_val: any, batch_size: count): bool
+	{
+	return __publish_table(topic, table_val, batch_size);
+	}
 
 # Event for processing change events from other nodes.
 #

@@ -6182,27 +6182,18 @@ function get_plugin_components%(category: string%): plugin_component_vec
 		}
 
 	auto result = zeek::make_intrusive<zeek::VectorVal>(vec_type);
+	auto all_components = plugin_mgr->Components<plugin::Component>();
 
-	for ( const auto* plugin : plugin_mgr->ActivePlugins() )
+	for ( auto* component : all_components )
 		{
-		auto ver = plugin->Version();
-		std::string version_str;
-		if ( ver )
-			version_str = util::fmt("%d.%d.%d", ver.major, ver.minor, ver.patch);
-
-		for ( const auto* component : plugin->Components() )
+		if ( component->Type() == type )
 			{
-			if ( component->Type() != type )
-				continue;
-
 			auto rec = zeek::make_intrusive<zeek::RecordVal>(rec_type);
 
 			rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(component->Name()));
 			rec->Assign(1, zeek::make_intrusive<zeek::StringVal>(component->CanonicalName()));
 			rec->Assign(2, zeek::make_intrusive<zeek::StringVal>(cat + "_" + component->CanonicalName()));
 			rec->Assign(3, zeek::make_intrusive<zeek::BoolVal>(component->Enabled()));
-			rec->Assign(4, zeek::make_intrusive<zeek::StringVal>(component->Implementation()));
-			rec->Assign(5, zeek::make_intrusive<zeek::StringVal>(version_str));
 
 			result->Append(std::move(rec));
 			}

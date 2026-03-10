@@ -102,15 +102,6 @@ export {
 	## Returns: The analyzer kind corresponding to the tag.
 	global kind: function(tag: Analyzer::Tag) : string;
 
-	## Returns the implementation type of the analyzer.
-	##
-	## Possible values are "C++", "Spicy", or "unknown".
-	##
-	## tag: The analyzer tag.
-	##
-	## Returns: The implementation type corresponding to the tag.
-	global implementation: function(tag: AllAnalyzers::Tag) : string;
-
 	## Check whether the given analyzer name exists.
 	##
 	## This can be used before calling :zeek:see:`Analyzer::get_tag` to
@@ -306,17 +297,6 @@ function kind(atype: AllAnalyzers::Tag): string
 
 	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
 	return "unknown";
-	}
-
-function implementation(atype: AllAnalyzers::Tag): string
-	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) && ! is_file_analyzer(atype) )
-		{
-		Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
-		return "unknown";
-		}
-
-	return __implementation(atype);
 	}
 
 function has_tag(name: string): bool

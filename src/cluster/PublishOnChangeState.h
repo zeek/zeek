@@ -272,5 +272,20 @@ private:
     static StringValPtr local_node_id; // node_id value determined lazily via Cluster::node_id() on the first publish.
 };
 
+
+/**
+ * Function implementing the the Cluster::publish_table() builtin function.
+ *
+ * This sends table_val as multiple Cluster::table_change_infos() events to the
+ * given topic. More concretely, there'll be int(|table_val| / batch_size) + 1
+ * events published. That is, the whole table is published in batches. The receiver
+ * uses Cluster::apply_change_infos() to populate its version.
+ *
+ * @param topic The topic to publish to.
+ * @param table_val The table value to publish.
+ * @param batch_size Number of TableChangeInfo records to place in a single table_change_infos() at most.
+ */
+bool cluster_publish_table(const std::string& topic, const zeek::TableVal& table_val, size_t batch_size);
+
 } // namespace detail
 } // namespace zeek

@@ -49,3 +49,26 @@ function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_inf
 	poc_state->ApplyChanges(*tcheader->AsRecordVal(), *table_change_infos->AsVectorVal());
 	return zeek::val_mgr->True();
 	%}
+
+function __publish_table%(topic: string, table_val: any, batch_size: count%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	const auto& typ = table_val->GetType();
+	if ( typ->Tag() != TYPE_TABLE ) {
+		zeek::reporter->Error("__publish_table: %s not a table type",
+		                      zeek::obj_desc_short(typ).c_str());
+		return zeek::val_mgr->False();
+	}
+
+	const auto* tval = table_val->AsTableVal();
+	zeek::detail::PublishOnChangeState* poc_state = tval->GetPublishOnChangeState();
+	if ( ! poc_state ) {
+		zeek::reporter->Error("__publish_table: missing PublishOnChange state for table!");
+		return zeek::val_mgr->False();
+	}
+
+	auto result = zeek::detail::cluster_publish_table(topic->ToStdString(), *tval, batch_size);
+
+	return zeek::val_mgr->Bool(result);
+	%}

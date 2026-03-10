@@ -70,6 +70,7 @@
    base/packet-protocols/icmp/main.zeek </scripts/base/packet-protocols/icmp/main.zeek>
    base/packet-protocols/igmp/__load__.zeek </scripts/base/packet-protocols/igmp/__load__.zeek>
    base/packet-protocols/igmp/types.zeek </scripts/base/packet-protocols/igmp/types.zeek>
+   base/packet-protocols/igmp/spicy-events.zeek </scripts/base/packet-protocols/igmp/spicy-events.zeek>
    base/packet-protocols/igmp/main.zeek </scripts/base/packet-protocols/igmp/main.zeek>
    base/frameworks/logging/__load__.zeek </scripts/base/frameworks/logging/__load__.zeek>
    base/frameworks/logging/main.zeek </scripts/base/frameworks/logging/main.zeek>

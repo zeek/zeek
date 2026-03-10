@@ -4,6 +4,7 @@ base/packet-protocols/igmp/types.zeek
 =====================================
 .. zeek:namespace:: IGMP
 
+Types used by the IGMP packet analyzer plugin
 
 :Namespace: IGMP
 
@@ -16,8 +17,7 @@ Types
                                                   :rfc:`3376#section-4.2`
 :zeek:type:`IGMP::GroupType`: :zeek:type:`enum`   IGMP Version 3 Membership Report Group record types, as defined in
                                                   :rfc:`3376#section-4.2.12`
-:zeek:type:`IGMP::MessageType`: :zeek:type:`enum` Types used by the IGMP packet analyzer plugin
-                                                  IGMP message types, as defined in :rfc:`3376#section-4`.
+:zeek:type:`IGMP::MessageType`: :zeek:type:`enum` IGMP message types, as defined in :rfc:`3376#section-4`.
 ================================================= ==================================================================
 
 
@@ -48,7 +48,7 @@ Types
 
    .. zeek:field:: multicast_addr :zeek:type:`addr`
 
-      The multicase address to which this record pertains.
+      The multicast address to which this record pertains.
 
 
    .. zeek:field:: sources :zeek:type:`vector` of :zeek:type:`addr`
@@ -101,7 +101,6 @@ Types
 
       .. zeek:enum:: IGMP::MEMBERSHIP_REPORT_V3 IGMP::MessageType
 
-   Types used by the IGMP packet analyzer plugin
    IGMP message types, as defined in :rfc:`3376#section-4`.
 
 

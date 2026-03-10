@@ -6,7 +6,9 @@
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
+#ifdef HAVE_SPICY
 #include "zeek/spicy/manager.h"
+#endif
 
 namespace zeek::plugin {
 
@@ -105,12 +107,14 @@ void Component::SetEnabled(bool arg_enabled) {
 StringValPtr Component::CanonicalNameVal() const { return canon_name_val; }
 
 std::string Component::Implementation() const {
+#ifdef HAVE_SPICY
     if ( zeek::spicy_mgr ) {
         for ( const auto* c : zeek::spicy_mgr->Components() ) {
             if ( c == this )
                 return "Spicy";
         }
     }
+#endif
 
     return "C++";
 }

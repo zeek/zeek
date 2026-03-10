@@ -1,3 +1,7 @@
+8.2.0-dev.309 | 2026-03-10 08:57:16 -0700
+
+  * [windows] fix build (Maor Hamami)
+
 8.2.0-dev.307 | 2026-03-10 08:56:33 -0700
 
   * Fix line number in ZAM btest output for language.assert-hook (Tim Wojtulewicz, Corelight)

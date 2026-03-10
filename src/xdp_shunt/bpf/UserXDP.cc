@@ -60,31 +60,27 @@ std::optional<std::string> reconnect(struct filter** skel, xdp_options opts) {
 
     // Check each map...
     auto filter_map = opts.pin_path + std::string("/filter_map");
-    if ( ! std::filesystem::exists(filter_map) )
+    auto filter_map_fd = bpf_obj_get(filter_map.c_str());
+    if ( filter_map_fd < 0 )
         return "Pinned canonical ID map not found at " + filter_map;
 
     auto ip_pair_map = opts.pin_path + std::string("/ip_pair_map");
-    if ( ! std::filesystem::exists(ip_pair_map) )
+    auto ip_pair_map_fd = bpf_obj_get(filter_map.c_str());
+    if ( ip_pair_map_fd < 0 )
         return "Pinned IP pair map not found at " + ip_pair_map;
 
     struct bpf_object_open_opts open_opts = {
         .sz = sizeof(struct bpf_object_open_opts),
-        .pin_root_path = opts.pin_path,
     };
     *skel = filter::open(&open_opts);
-
-    bpf_map__set_max_entries(get_canonical_id_map(*skel), opts.conn_id_map_max_size);
-    bpf_map__set_max_entries(get_ip_pair_map(*skel), opts.ip_pair_map_max_size);
 
     if ( ! *skel )
         return "Failed to open BPF skeleton";
 
-    if ( auto err = filter::load(*skel) ) {
-        filter::destroy(*skel);
-        *skel = nullptr;
-        return "Failed to load BPF skeleton";
-    }
+    bpf_map__reuse_fd(get_canonical_id_map(*skel), filter_map_fd);
+    bpf_map__reuse_fd(get_ip_pair_map(*skel), ip_pair_map_fd);
 
+    // No need to load the program.
     return {};
 }
 

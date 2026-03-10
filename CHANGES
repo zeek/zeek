@@ -1,3 +1,9 @@
+8.2.0-dev.300 | 2026-03-09 21:53:01 -0700
+
+  * Update doc/redirects.yml to doc-redirects format [skip ci] (Christian Kreibich, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 8.2.0-dev.297 | 2026-03-09 16:19:43 -0700
 
   * nit: preferred output format (Mike Peters, Corelight)

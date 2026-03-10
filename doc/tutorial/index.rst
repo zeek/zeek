@@ -2,11 +2,6 @@
  Zeek Tutorial
 ###############
 
-.. note::
-
-   Parts of this tutorial are under construction. Some sections may have
-   missing parts, or be completely empty.
-
 Welcome to the Zeek tutorial! We will walk you through a basic Zeek setup
 and what you need to know in order to deploy Zeek. This will also cover
 how to customize Zeek, both via scripting and learning about various

@@ -661,4 +661,54 @@ const StringValPtr& PublishOnChangeState::GetLocalNodeId() {
 
     return local_node_id;
 }
+
+void PublishOnChangeState::InitPostScript() {
+    // The event handler that's used for publishing.
+    eh_table_change_infos = event_registry->Register("Cluster::table_change_infos");
+    if ( ! eh_table_change_infos.Ptr() )
+        reporter->InternalError("could not find Cluster::table_change_infos event for &publish_on_change");
+
+    eh_forward_table_change_infos = event_registry->Register("Cluster::forward_table_change_infos");
+    if ( ! eh_forward_table_change_infos.Ptr() )
+        reporter->InternalError("could not find Cluster::forward_table_change_infos event for &publish_on_change");
+
+    const auto poc_attr_rt = id::find_type<RecordType>("Cluster::PublishOnChangeAttr");
+
+    // Find all top-level global tables with the &publish_on_change attribute, create a record constructor
+    // expression from the attached expression and evaluate it.
+    //
+    // This is a bit different from other attributes: We want to at least have redef's of default values
+    // be in effect for the publish_on_change attribute. Something that doesn't work always with attributes,
+    // so here we special case it as it seems important enough.
+    for ( const auto& [name, id] : global_scope()->Vars() ) {
+        auto poc_attr = id->GetAttr(detail::ATTR_PUBLISH_ON_CHANGE);
+        if ( ! poc_attr )
+            continue;
+
+        if ( id->GetType()->Tag() != TYPE_TABLE )
+            reporter->InternalError("&publish_on_change attribute on non-table %s (%s)", id->Name(),
+                                    id->GetType() ? obj_desc_short(id->GetType()).c_str() : "???");
+
+        // The &publish_on_change attribute is a expression list to construct a
+        // PublishOnChangeAttr script-level type.
+        auto list_expr = poc_attr->GetExpr()->AsListExprPtr();
+        auto constructor = make_intrusive<detail::RecordConstructorExpr>(poc_attr_rt, list_expr);
+        if ( constructor->IsError() )
+            continue;
+
+        // The poc_val is the ValPtr produced by evaluating the PublishOnChangeAttr
+        // constructor. If there's an error, we expect a nullptr and assume something
+        // is logged through reporter error.
+        auto poc_val = constructor->Eval(nullptr);
+        if ( ! poc_val || poc_val->GetType() != poc_attr_rt )
+            continue;
+
+        auto table_val = cast_intrusive<TableVal>(id->GetVal());
+        auto poc_rec_val = with_location_of(cast_intrusive<RecordVal>(poc_val), table_val);
+
+        auto poc_state = PublishOnChangeState::Instantiate(name, table_val.get(), *poc_rec_val);
+        if ( poc_state )
+            table_val->SetPublishOnChangeState(std::move(poc_state));
+    }
+}
 } // namespace zeek::detail

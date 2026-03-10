@@ -25,7 +25,9 @@ esac
 
 cd $build_dir
 . zeek-path-dev.sh
+
 export ZEEK_SEED_FILE=$source_dir/testing/btest/random.seed
+export ZEEK_ENABLE_ZEEKYGEN_WARNINGS=1
 
 function run_zeek {
     ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen

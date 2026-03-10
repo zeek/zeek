@@ -1,3 +1,10 @@
+8.2.0-dev.310 | 2026-03-10 09:41:46 -0700
+
+  * Revert "Merge remote-tracking branch 'MP-Corelight/topic/mp-corelight/expand-plugin-info'" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 0c732d99f6f28fa52261744740f581135aefc54e, reversing
+    changes made to ba38f13cc4a415cac0f1ce9cbcbcff4790a5abe5.
+
 8.2.0-dev.309 | 2026-03-10 08:57:16 -0700
 
   * [windows] fix build (Maor Hamami)

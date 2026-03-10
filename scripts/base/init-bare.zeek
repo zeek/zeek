@@ -391,8 +391,6 @@ type PluginComponent: record {
 	canonical_name: string;
 	tag: string;
 	enabled: bool;
-	implementation: string;
-	version: string;
 };
 
 type plugin_component_vec : vector of PluginComponent;

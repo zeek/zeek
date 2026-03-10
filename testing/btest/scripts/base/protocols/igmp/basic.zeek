@@ -13,18 +13,18 @@ event IGMP::message(packet: raw_pkt_hdr, msg_type: IGMP::MessageType) {
 	print "IGMP::message", packet, msg_type;
 }
 
-event IGMP::membership_query(packet: raw_pkt_hdr, group_addr: addr) {
-	print "IGMP::membership_query", packet, group_addr;
+event IGMP::membership_query(source: addr, group_addr: addr) {
+	print "IGMP::membership_query", source, group_addr;
 }
 
-event IGMP::membership_report_v2(packet: raw_pkt_hdr, group_addr: addr) {
-	print "IGMP::membership_report_v2", packet, group_addr;
+event IGMP::membership_report_v2(source: addr, group_addr: addr) {
+	print "IGMP::membership_report_v2", source, group_addr;
 }
 
-event IGMP::leave_group(packet: raw_pkt_hdr, group_addr: addr) {
-	print "IGMP::leave_group", packet, group_addr;
+event IGMP::leave_group(source: addr, group_addr: addr) {
+	print "IGMP::leave_group", source, group_addr;
 }
 
-event IGMP::membership_report_v3(packet: raw_pkt_hdr, groups: vector of IGMP::Group) {
-	print "IGMP::membership_report_v3", packet, groups;
+event IGMP::membership_report_v3(source: addr, groups: vector of IGMP::Group) {
+	print "IGMP::membership_report_v3", source, groups;
 }

@@ -18,13 +18,14 @@ export {
 
 	## The record type which contains the column fields of the IGMP log.
 	type Info: record {
-		## Timestamp
-		timestamp: time &log;
-		## Source IP address
+		## The network time when the message was received.
+		ts: time &log;
+		## Source IP address of the message.
 		src:  addr &log;
-		## Destination IP address
+		## Destination group address, as per the
+		## `IANA Multicast Address Registry <https://www.iana.org/assignments/multicast-addresses/multicast-addresses.xhtml>`_
 		group:  addr &log;
-		## Message type
+		## IGMP action requested in the message.
 		action:  GroupAction &log;
 	};
 
@@ -32,12 +33,12 @@ export {
 	## to the logging framework.
 	global log_igmp: event(rec: Info);
 
-	## The number of repeats of the same action that are allowed before a log
-	## bypasses the rate limit.
+	## The number of repeats of the same action that are allowed before Zeek
+	## suppresses such messages.
 	const rate_limit_repeats = 10 &redef;
 
-	## The amount of time between the last two reports of the same action that
-	## is allowed before a log bypasses the rate limit.
+	## The amount of time for which repeat messages remain suppressed once
+	## rate-limiting applies.
 	const rate_limit_duration = 5min &redef;
 }
 
@@ -50,26 +51,27 @@ type State: record {
 };
 
 ## The currently active igmp actions. This is used to manage rate-limiting.
-global active_states: table[addr, addr] of State;
+global active_states: table[addr, addr] of State &create_expire=rate_limit_duration;
 
 function should_log(src: addr, group: addr, action: GroupAction) : bool {
 	local do_log: bool = F;
 
-	if ( [ src, group] in active_states ) {
+	if ( [ src, group ] in active_states ) {
 		local state: State = active_states[src, group];
 
 		state$repeats += 1;
 
 		if ( state$last_action != action ) {
-			do_log = T;
 			state$last_action = action;
 			state$repeats = 0;
+			do_log = T;
 		}
 		else if ( state$repeats > rate_limit_repeats ) {
 			state$repeats = 0;
 			do_log = T;
 		}
 		else if ( network_time() - state$last_seen > rate_limit_duration ) {
+			state$repeats = 0;
 			do_log = T;
 		}
 
@@ -96,42 +98,32 @@ event zeek_init() &priority=5
 	Log::create_stream(IGMP::LOG, [$columns=Info, $ev=log_igmp, $path="igmp", $policy=log_policy]);
 	}
 
-event IGMP::membership_report_v1(packet: raw_pkt_hdr, group_addr: addr) {
-	if ( should_log(packet$ip$src, group_addr, JOIN) ) {
+event IGMP::membership_report_v1(source: addr, group_addr: addr) {
+	if ( should_log(source, group_addr, JOIN) ) {
 		Log::write(IGMP::LOG, Info(
-			$timestamp = network_time(),
-			$src = packet$ip$src,
+			$ts = network_time(),
+			$src = source,
 			$group = group_addr,
 			$action = JOIN));
 	}
 }
 
-event IGMP::membership_report_v2(packet: raw_pkt_hdr, group_addr: addr) {
-	if ( should_log(packet$ip$src, group_addr, JOIN) ) {
+event IGMP::membership_report_v2(source: addr, group_addr: addr) {
+	if ( should_log(source, group_addr, JOIN) ) {
 		Log::write(IGMP::LOG, Info(
-			$timestamp = network_time(),
-			$src = packet$ip$src,
+			$ts = network_time(),
+			$src = source,
 			$group = group_addr,
 			$action = JOIN));
 	}
 }
 
-event IGMP::leave_group(packet: raw_pkt_hdr, group_addr: addr) {
-	if ( should_log(packet$ip$src, group_addr, LEAVE) ) {
-		Log::write(IGMP::LOG, Info(
-			$timestamp = network_time(),
-			$src = packet$ip$src,
-			$group = group_addr,
-			$action = LEAVE));
-	}
-}
-
-event IGMP::membership_report_v3(packet: raw_pkt_hdr, groups: vector of IGMP::Group) {
+event IGMP::membership_report_v3(source: addr, groups: vector of IGMP::Group) {
 	for ( _, g in groups ) {
 		local action: GroupAction;
-		if ( g$group_type == CHANGE_TO_EXCLUDE_MODE )
+		if ( g$group_type == IGMP::CHANGE_TO_EXCLUDE_MODE )
 			action = JOIN;
-		else if ( g$group_type == CHANGE_TO_INCLUDE_MODE )
+		else if ( g$group_type == IGMP::CHANGE_TO_INCLUDE_MODE )
 			action = LEAVE;
 		else
 			# TODO: Do the other types matter in terms of hosts
@@ -139,14 +131,35 @@ event IGMP::membership_report_v3(packet: raw_pkt_hdr, groups: vector of IGMP::Gr
 			# about existing states.
 			return;
 
-		for ( _, s in g$sources ) {
-			if ( should_log(s, g$multicast_addr, action) ) {
+		if ( g$num_sources == 0 ) {
+			if ( should_log(source, g$multicast_addr, action) ) {
 				Log::write(IGMP::LOG, Info(
-					$timestamp = network_time(),
-					$src = s,
+					$ts = network_time(),
+					$src = source,
 					$group = g$multicast_addr,
 					$action = action));
 			}
 		}
+		else {
+			for ( _, s in g$sources ) {
+				if ( should_log(s, g$multicast_addr, action) ) {
+					Log::write(IGMP::LOG, Info(
+						$ts = network_time(),
+						$src = s,
+						$group = g$multicast_addr,
+						$action = action));
+				}
+			}
+		}
+	}
+}
+
+event IGMP::leave_group(source: addr, group_addr: addr) {
+	if ( should_log(source, group_addr, LEAVE) ) {
+		Log::write(IGMP::LOG, Info(
+			$ts = network_time(),
+			$src = source,
+			$group = group_addr,
+			$action = LEAVE));
 	}
 }

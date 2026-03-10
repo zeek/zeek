@@ -11,35 +11,35 @@ global IGMP::message: event(packet: raw_pkt_hdr, msg_type: IGMP::MessageType);
 
 ## Generated for every IGMP Membership Query.
 ##
-## packet: raw packet header
+## source: The address of the source for this query.
 ##
 ## group_addr: Multicast group address
-global IGMP::membership_query: event(packet: raw_pkt_hdr, group_addr: addr);
+global IGMP::membership_query: event(source: addr, group_addr: addr);
 
 ## Generated for every IGMP Version 1 Membership Report.
 ##
-## packet: raw packet header
+## source: The address of the source for this report.
 ##
 ## group_addr: Multicast group address
-global IGMP::membership_report_v1: event(packet: raw_pkt_hdr, group_addr: addr);
+global IGMP::membership_report_v1: event(source: addr, group_addr: addr);
 
 ## Generated for every IGMP Version 2 Membership Report.
 ##
-## packet: raw packet header
+## source: The address of the source for this report.
 ##
 ## group_addr: Multicast group address
-global IGMP::membership_report_v2: event(packet: raw_pkt_hdr, group_addr: addr);
+global IGMP::membership_report_v2: event(source: addr, group_addr: addr);
 
 ## Generated for every IGMP Version 2 Leave Group Message.
 ##
-## packet: raw packet header
+## source: The address of the source for this report.
 ##
 ## group_addr: Multicast group address
-global IGMP::leave_group: event(packet: raw_pkt_hdr, group_addr: addr);
+global IGMP::leave_group: event(source: addr, group_addr: addr);
 
 ## Generated for every IGMP Version 3 Membership Report.
 ##
-## packet: raw packet header
+## source: The address of the source for this report.
 ##
 ## groups: vector of Multicast groups
-global IGMP::membership_report_v3: event(packet: raw_pkt_hdr, groups: vector of IGMP::Group);
+global IGMP::membership_report_v3: event(source: addr, groups: vector of IGMP::Group);

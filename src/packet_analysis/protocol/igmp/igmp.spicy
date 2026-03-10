@@ -9,6 +9,8 @@ module IGMP;
 
 import zeek;
 
+global ignore_checksums: bool = zeek::get_bool("ignore_checksums");
+
 # ICMP message types
 type Type = enum {
     MEMBERSHIP_QUERY = 0x11,
@@ -37,6 +39,12 @@ type Group = unit {
     sources: (addr &ipv4)[self.num_sources];
     aux_data: bytes &eod;
 };
+
+public function get_source_addr(): addr {
+    local pkt = zeek::as_record(zeek::current_packet());
+    local ip = zeek::as_record(zeek::record_field(pkt, "ip"));
+    return zeek::as_address(zeek::record_field(ip, "src"));
+}
 
 # Generic IGMP message
 public type Message = unit {
@@ -69,7 +77,7 @@ public type Message = unit {
     on remaining_bytes {
         # Compare checksum values
         self.computed_checksum = ~cast<uint16>(self.computed_checksum);
-        if (self.transmitted_checksum != self.computed_checksum)
+        if (!ignore_checksums && self.transmitted_checksum != self.computed_checksum)
             zeek::weird("igmp_invalid_checksum");
 
         # Backtrack to beginning of message

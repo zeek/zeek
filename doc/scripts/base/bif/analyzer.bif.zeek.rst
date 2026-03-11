@@ -18,7 +18,6 @@ Functions
 :zeek:id:`Analyzer::__disable_analyzer`: :zeek:type:`function`
 :zeek:id:`Analyzer::__enable_analyzer`: :zeek:type:`function`
 :zeek:id:`Analyzer::__has_tag`: :zeek:type:`function`
-:zeek:id:`Analyzer::__implementation`: :zeek:type:`function`
 :zeek:id:`Analyzer::__name`: :zeek:type:`function`
 :zeek:id:`Analyzer::__register_for_port`: :zeek:type:`function`
 :zeek:id:`Analyzer::__schedule_analyzer`: :zeek:type:`function`
@@ -52,12 +51,6 @@ Functions
    :source-code: base/bif/analyzer.bif.zeek 34 34
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`bool`
-
-
-.. zeek:id:: Analyzer::__implementation
-   :source-code: base/bif/analyzer.bif.zeek 37 37
-
-   :Type: :zeek:type:`function` (atype: :zeek:type:`AllAnalyzers::Tag`) : :zeek:type:`string`
 
 
 .. zeek:id:: Analyzer::__name

@@ -156,6 +156,9 @@ void Manager::SearchDynamicPlugins(const std::string& dir) {
 }
 
 zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::string& path) {
+#ifdef _MSC_VER
+    return zeek::unexpected<std::string>("dynamic plugin loading is not supported on Windows");
+#else
     DBG_LOG(DBG_PLUGINS, "Loading plugin %s", path.c_str());
 
     current_plugin = nullptr;
@@ -218,6 +221,7 @@ zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::strin
     DBG_LOG(DBG_PLUGINS, "  Loaded %s", path.c_str());
 
     return plugin;
+#endif // !_MSC_VER
 }
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,

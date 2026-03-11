@@ -12,7 +12,8 @@
 
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/types.bif.netvar_h"
+
+#include "types.bif.netvar_h"
 
 namespace zeek {
 

@@ -24,7 +24,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/broker/Data.h" // for data_to_val()
 #include "zeek/cluster/Backend.h"
-#include "zeek/types.bif.netvar_h"
 
 namespace {
 

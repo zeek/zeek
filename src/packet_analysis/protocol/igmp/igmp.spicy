@@ -37,7 +37,7 @@ type Group = unit {
     num_sources: uint16;
     multicast_addr: addr &ipv4;
     sources: (addr &ipv4)[self.num_sources];
-    aux_data: bytes &eod;
+    aux_data: bytes &size=self.aux_data_len;
 };
 
 public function get_source_addr(): addr {
@@ -49,42 +49,16 @@ public function get_source_addr(): addr {
 # Generic IGMP message
 public type Message = unit {
 
-    # Iterator, to parse message after checksum has been verified
+    # Save the start point of the data so we can reset back to it after verifying
+    # the checksum.
     var start: iterator<stream>;
     on %init {
         self.start = self.input();
     }
 
-    ### FIRST STEP: verify message checksum
-
-    var computed_checksum: uint32 = uint32(0); # Checksum verification accumulator
-    first_2_bytes: uint16 {
-        self.computed_checksum = self.first_2_bytes;
-    } # Add first 2 bytes to accumulator
-    transmitted_checksum: uint16; # Transmitted checksum value
-    remaining_bytes: uint16[] &eod; # All remaining bytes until the end, grouped by 2 bytes
-
-    # Add remaining bytes to accumulator
-    on remaining_bytes foreach {
-        self.computed_checksum += $$;
-        if (self.computed_checksum >= uint32(0x10000)) {
-            # If accumulator exceeds 0x10000, subtract 0xffff
-            self.computed_checksum -= uint32(0xffff);
-        }
-    }
-
-    # First pass finished
-    on remaining_bytes {
-        # Compare checksum values
-        self.computed_checksum = ~cast<uint16>(self.computed_checksum);
-        if (!ignore_checksums && self.transmitted_checksum != self.computed_checksum)
-            zeek::weird("igmp_invalid_checksum");
-
-        # Backtrack to beginning of message
-        self.set_input(self.start);
-    }
-
-    ### SECOND STEP: Parse message if checksum verification passed
+    # FIRST STEP: Parse all of the IGMP data and store the offset of where we
+    # finished parsing. It'd be nice to use fixed values here, but v3 reports are
+    # variable-length so it's not possible to know beforehand.
 
     msg_type: uint8 &convert=Type($$);
 
@@ -97,7 +71,34 @@ public type Message = unit {
         Type::MEMBERSHIP_REPORT_V3 -> mrv3: MembershipReportV3;
     };
 
-    #on %done { print self; }
+    var end_of_igmp_offset: uint64;
+    : void {
+        self.end_of_igmp_offset = self.offset();
+        self.set_input(self.start);
+    }
+
+    # SECOND STEP: verify message checksum. The checksum is included in the calculation
+    # which allows the computed value to be zero at the end. Use the offset to determine
+    # how much data to parse for the computation.
+
+    # All remaining bytes until the end, grouped by 2 bytes.
+    var computed_checksum: uint32 = uint32(0);
+    remaining_bytes: uint16[] &eod &size=self.end_of_igmp_offset;
+
+    # Add remaining bytes to accumulator, clamping as we go.
+    on remaining_bytes foreach {
+        self.computed_checksum += $$;
+        if (self.computed_checksum > uint32(0xFFFF)) {
+            self.computed_checksum -= uint32(0xFFFF);
+        }
+    }
+
+    on remaining_bytes {
+        # Compare checksum values
+        self.computed_checksum = ~cast<uint16>(self.computed_checksum);
+        if ((!ignore_checksums) && (self.computed_checksum != 0))
+            zeek::weird("igmp_invalid_checksum");
+    }
 };
 
 # Generic IGMPv2 message

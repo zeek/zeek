@@ -72,6 +72,10 @@ New Functionality
   a shunted connection, it needs special handling to keep the connection alive while
   shunted.
 
+- Added a new storage backend for PostgreSQL. It is configured similarly to the existing
+  SQLite and Redis bacends. See the documentation for the
+  ``Storage::Backend::PostgreSQL::Options`` record for the available options.
+
 Changed Functionality
 ---------------------
 

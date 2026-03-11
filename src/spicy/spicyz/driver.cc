@@ -96,20 +96,32 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
         options.library_paths.push_back(std::move(lib_path));
     } catch ( const hilti::rt::filesystem::filesystem_error& e ) {
         ::hilti::logger().warning(
-            hilti::util::fmt("invalid plugin base directory %s: %s", lib_path.native(), e.what()));
+            hilti::util::fmt("invalid plugin base directory %s: %s", lib_path.string(), e.what()));
     }
 
+#ifdef _WIN32
+    for ( const auto& i : hilti::util::split(configuration::CxxZeekIncludesDirectories(), ";") ) {
+#else
     for ( const auto& i : hilti::util::split(configuration::CxxZeekIncludesDirectories(), ":") ) {
+#endif
         if ( i.size() )
             options.cxx_include_paths.emplace_back(i);
     }
+
+#ifdef _WIN32
+    // On Windows, JIT-compiled DLLs need to link against the host
+    // executable's import library to resolve runtime symbols at load time.
+    auto zeek_lib = configuration::ZeekExeImportLib();
+    if ( hilti::rt::filesystem::exists(zeek_lib) )
+        options.cxx_link.push_back(zeek_lib.string());
+#endif
 
 #ifdef DEBUG
     SPICY_DEBUG("Search paths:");
 
     auto hilti_options = hiltiOptions();
     for ( const auto& x : hilti_options.library_paths ) {
-        SPICY_DEBUG(hilti::rt::fmt("  %s", x.native()));
+        SPICY_DEBUG(hilti::rt::fmt("  %s", x.string()));
     }
 #endif
 

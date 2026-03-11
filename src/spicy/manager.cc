@@ -484,15 +484,28 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
         // around as string. To pass them to Zeek, we need to unsplit the
         // strings into file name and line number. Zeek also won't clean up
         // the file names, so we need to track them ourselves.
-        auto x = hilti::rt::split(s, ":");
-        if ( x[0].empty() )
+
+        // Use string_view for uniform handling (the lambda may be called
+        // with std::string or const char*).
+        std::string_view sv(s);
+
+        // Find the last ':' that separates filename from line number.
+        // Using rfind avoids misinterpreting the colon in Windows drive
+        // letters (e.g. "C:/path/file.evt:5").
+        auto colon = sv.rfind(':');
+        if ( colon == std::string_view::npos || colon == 0 )
+            return nullptr;
+
+        auto filename = sv.substr(0, colon);
+        auto linespec = sv.substr(colon + 1);
+        if ( filename.empty() )
             return nullptr;
 
         auto loc = std::make_unique<detail::Location>();
-        loc->SetFile(filenames.insert(std::string(x[0])).first->c_str()); // we retain ownership
+        loc->SetFile(filenames.insert(std::string(filename)).first->c_str()); // we retain ownership
 
-        if ( x.size() >= 2 ) {
-            auto y = hilti::rt::split(x[1], "-");
+        if ( ! linespec.empty() ) {
+            auto y = hilti::rt::split(linespec, "-");
             if ( y.size() >= 2 )
                 loc->SetLines(std::stoi(std::string(y[0])), std::stoi(std::string(y[1])));
             else if ( y[0].size() )
@@ -789,16 +802,17 @@ void Manager::loadModule(const hilti::rt::filesystem::path& path) {
         if ( ec )
             hilti::rt::fatalError(hilti::rt::fmt("could not compute canonical path for %s: %s", path, ec.message()));
 
-        if ( auto [library, inserted] = _libraries.insert({canonical_path, hilti::rt::Library(canonical_path)});
+        auto canonical_path_str = canonical_path.generic_string();
+        if ( auto [library, inserted] = _libraries.insert({canonical_path_str, hilti::rt::Library(canonical_path)});
              inserted ) {
-            SPICY_DEBUG(hilti::rt::fmt("Loading %s", canonical_path.native()));
+            SPICY_DEBUG(hilti::rt::fmt("Loading %s", canonical_path.string()));
             set_location(detail::no_location); // make sure IDs get installed without stale location info
             if ( auto load = library->second.open(); ! load )
                 hilti::rt::fatalError(
                     hilti::rt::fmt("could not open library path %s: %s", canonical_path, load.error()));
         }
         else {
-            SPICY_DEBUG(hilti::rt::fmt("Ignoring duplicate loading request for %s", canonical_path.native()));
+            SPICY_DEBUG(hilti::rt::fmt("Ignoring duplicate loading request for %s", canonical_path.string()));
         }
     } catch ( const ::hilti::rt::UsageError& e ) {
         hilti::rt::fatalError(e.what());

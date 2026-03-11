@@ -308,8 +308,8 @@ template<>
 struct hash<zeek::spicy::glue::Event> {
     std::size_t operator()(const zeek::spicy::glue::Event& e) {
         // We only hash enough information here to unique identify the event.
-        return hilti::rt::hashCombine(std::hash<std::string>()(e.file), std::hash<std::string>()(e.name),
-                                      std::hash<std::string>()(e.path), std::hash<std::string>()(e.location));
+        return hilti::rt::hashCombine(std::hash<std::string>()(e.file.generic_string()), std::hash<hilti::ID>()(e.name),
+                                      std::hash<hilti::ID>()(e.path), std::hash<hilti::Location>()(e.location));
     }
 };
 } // namespace std

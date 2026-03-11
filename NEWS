@@ -3,6 +3,16 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.7
+==========
+
+We would like to thank @cccs-graeme on Slack for their contribution to this release.
+
+- The events ssl_extension_pre_shared_key_server_hello and
+  ssl_extension_pre_shared_key_client_hello can now be used independently. Previously,
+  both had to have a handler implemented for either of them to actually be invoked due to
+  some logic confusion in the analyzer.
+
 Zeek 8.0.6
 ==========
 

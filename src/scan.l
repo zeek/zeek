@@ -427,7 +427,7 @@ when	return TOK_WHEN;
 		if ( ec )
 			zeek::reporter->InternalError("current_path failed: %s", ec.message().c_str());
 		else
-			rval = (std::filesystem::path(cwd) / rval).string();
+			rval = (std::filesystem::path(std::move(cwd)) / rval).string();
 	}
 
 	RET_CONST(new zeek::StringVal(rval.c_str()));
@@ -1201,7 +1201,7 @@ int yywrap() {
 
 FileInfo::FileInfo(std::string arg_restore_module) {
     buffer_state = YY_CURRENT_BUFFER;
-    restore_module = arg_restore_module;
+    restore_module = std::move(arg_restore_module);
     name = ::filename;
     line = ::line_number;
 }

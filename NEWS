@@ -94,6 +94,10 @@ Changed Functionality
   Zeek would report a HTTP server when a client issued a HTTP request to an SSH servers,
   or SSL when a client sent a TLS Client Hello to a HTTP server.
 
+- The events ssl_extension_pre_shared_key_server_hello and ssl_extension_pre_shared_key_client_hello
+  can now be used independently. Previously, both had to have a handler implemented for
+  either of them to actually be invoked due to some logic confusion in the analyzer.
+
 Deprecated Functionality
 ------------------------
 

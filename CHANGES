@@ -1,3 +1,15 @@
+8.2.0-dev.314 | 2026-03-11 12:01:47 +0100
+
+  * ssl: Fix pre_shared_key logic in tls-handshake-analyzer (Arne Welzel, Corelight)
+
+    It seems there was some confusion about client and server. The
+    OfferedPsks are parsed from a ClientHello record, so seems reasonable
+    to rename from proc_pre_shared_key_server_hello to
+    proc_pre_shared_key_client_hello and vice-versa to align with the events
+    that are actually enqueued. Also add a test.
+
+    Reported by @cccs-graeme on Slack.
+
 8.2.0-dev.310 | 2026-03-10 09:41:46 -0700
 
   * Revert "Merge remote-tracking branch 'MP-Corelight/topic/mp-corelight/expand-plugin-info'" (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,9 @@
+8.2.0-dev.317 | 2026-03-11 18:02:04 +0100
+
+  * CI: Skip FreeBSD for PRs, too (Arne Welzel, Corelight)
+
+  * CI: Skip MacOS Sequoia for PRs (Arne Welzel, Corelight)
+
 8.2.0-dev.314 | 2026-03-11 12:01:47 +0100
 
   * ssl: Fix pre_shared_key logic in tls-handshake-analyzer (Arne Welzel, Corelight)

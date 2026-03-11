@@ -87,7 +87,7 @@ private:
 
     // This method is protected to make sure that everybody goes through
     // EventMgr::Dispatch().
-    void Dispatch(bool no_remote = false);
+    void Dispatch();
 
     EventHandlerPtr handler;
     zeek::Args args;

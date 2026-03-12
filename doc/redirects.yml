@@ -152,3 +152,5 @@
   to_url: /reference/zeekscript/event-semantics.html#tracing-events
 - from_url: /scripting/usage.html
   to_url: /advanced/scripting/usage.html
+- from_url: /troubleshooting.html
+  to_url: /advanced/troubleshooting.html

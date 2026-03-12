@@ -1,3 +1,7 @@
+8.2.0-dev.363 | 2026-03-11 17:22:06 -0700
+
+  * Docs revamp to introduce a Zeek tutorial for newcomers and simplify outline (Evan Typanski and Christian Kreibich, Corelight)
+
 8.2.0-dev.317 | 2026-03-11 18:02:04 +0100
 
   * CI: Skip FreeBSD for PRs, too (Arne Welzel, Corelight)

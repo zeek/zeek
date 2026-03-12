@@ -1,0 +1,10 @@
+--- 04.zeek	2025-11-06 10:57:34
++++ 05.zeek	2025-11-06 11:00:04
+@@ -5,6 +5,7 @@
+ 		/<body>/,
+ 		/301 Moved Permanently/,
+ 	} &redef;
++	option pattern_threshold = 5 &redef;
+ }
+ 
+ redef record HTTP::State += {

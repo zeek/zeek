@@ -1,0 +1,13 @@
+--- 06.zeek	2025-11-06 10:13:49
++++ 07.zeek	2025-11-06 10:18:31
+@@ -11,6 +11,10 @@
+ 	{
+ 	if ( c?$http_state )
+ 		{
++		local remaining_available = max_reassembled_entity_size - |c$http_state$entity|;
++		if ( remaining_available <= 0 )
++			return;
++
+ 		c$http_state$entity += data;
+ 		}
+ 	}

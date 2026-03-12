@@ -72,6 +72,13 @@ New Functionality
   a shunted connection, it needs special handling to keep the connection alive while
   shunted.
 
+- The Zeek documentation has received a major refresh. A new tutorial walks
+  newcomers through setup, basic Zeek invocations, the use of Zeek packages,
+  ZeekControl for cluster maintenance, the basics of Zeek's logs, as well as
+  scripting in Zeek's own language as well as JavaScript. A new reference
+  section houses the introduction to common logs, the Zeek scripting
+  language, Zeek's frameworks, and the scripting index.
+
 Changed Functionality
 ---------------------
 

@@ -1,0 +1,16 @@
+--- 02.zeek	2025-11-06 10:55:58
++++ 03.zeek	2025-11-06 10:56:05
+@@ -45,10 +45,10 @@
+ 
+ event http_end_entity(c: connection, is_orig: bool)
+ 	{
+-	if ( c?$http_state && |c$http_state$entity| > 0 )
++	if ( c?$http_state && c?$http && |c$http_state$entity| > 0 )
+ 		{
+-		print fmt("Found %d matches in the HTTP entity", num_entity_pattern_matches(
+-		    c$http_state));
++		local num_entity_matches = num_entity_pattern_matches(c$http_state);
++		c$http$num_entity_matches += num_entity_matches;
+ 		delete c$http_state$entity;
+ 		}
+ 	}

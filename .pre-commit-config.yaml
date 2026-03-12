@@ -56,4 +56,4 @@ repos:
   rev: v0.27.1
   hooks:
     - id: spicy-format
-      exclude: '^testing/.*|doc/devel/spicy/autogen/.*.spicy'
+      exclude: '^testing/.*|doc/advanced/devel/spicy/autogen/.*.spicy'

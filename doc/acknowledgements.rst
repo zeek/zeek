@@ -2,21 +2,35 @@
 Acknowledgements
 ================
 
-Thanks to everyone who contributed in making Zeek's documentation
-(alphabetically):
+Thanks to everyone who has contributed to Zeek's documentation:
 
-* Johanna Amann
-* Richard Bejtlich
-* Michael Dopheide
-* Amber Graner
-* Jan Grashöfer
+* Arne Welzel
+* Benjamin Bannier
+* Chris Mavrakis
 * Christian Kreibich
-* Terry Leach
-* Aashish Sharma
+* Daniel Thayer
+* Evan Typanski
+* Gregor Maier
+* Jeannette Dopheide
+* Johanna Amann
+* Jonathan Perkins
 * Jon Siwek
-* Stephen Smoot
+* Jon Zeolla
+* Justin Azoff
+* Matthias Vallentin
+* Mauro Palumbo
+* Michael Dopheide
+* Moshe Kaplan
+* Palumbo Mauro
+* Rafael Bonilla
+* Richard Beijtlich
 * Robin Sommer
-* Aaron Soto
-* Nick Turley
-* Fatema Bannat Wala
+* RyugaXhypeR
+* Scott Runnels
+* Seth Hall
 * Tim Wojtulewicz
+* Vern Paxson
+* Vicente Jimenez
+* Vlad Grigorescu
+* William Tom
+* Zeke Medley

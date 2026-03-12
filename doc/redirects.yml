@@ -60,21 +60,17 @@
   type: exact
 - from_url: /configuration/index.html
   to_url: /cluster-setup.html#cluster-configuration
-- from_url: /install/guidelines.html
-  to_url: /install.html
 - from_url: /install/NEWS.html
   to_url: https://github.com/zeek/zeek/blob/master/NEWS
 - from_url: /install/release-notes.html
   to_url: https://github.com/zeek/zeek/blob/master/NEWS
 - from_url: /install/changes.html
   to_url: https://github.com/zeek/zeek/blob/master/CHANGES
-- from_url: /install/install.html
-  to_url: /install.html
-- from_url: /install/upgrade.html
-  to_url: /install.html
 - from_url: /install/cross-compiling.html
   to_url: /building-from-source.html#cross-compiling
-- from_url: /install/index.html
+- from_url: /install/*
+  to_url: /install.html
+- from_url: /install
   to_url: /install.html
 - from_url: /examples/index.html
   to_url: /index.html
@@ -108,8 +104,6 @@
   to_url: /log-formats.html
 - from_url: /configuration
   to_url: /cluster-setup.html#cluster-configuration
-- from_url: /install
-  to_url: /install.html
 - from_url: /examples
   to_url: /index.html
 - from_url: /examples/ids

@@ -37,8 +37,6 @@
   type: exact
 - from_url: /scripts/base/bif/bro.bif.zeek.html
   to_url: /scripts/base/bif/zeek.bif.zeek.html
-- from_url: /devel/style_guide.html
-  to_url: /devel/contributors/coding-style.html
 - from_url: /projects/package-manager
   to_url: /projects/package-manager/en/stable
   type: exact
@@ -94,17 +92,15 @@
   to_url: /cluster-setup.html
 - from_url: /quickstart/index.html
   to_url: /quickstart.html
-- from_url: /devel/maintainers/index.html
+- from_url: /devel/maintainers/*
   to_url: /devel/maintainers.html
-- from_url: /devel/maintainers/release-process.html
+- from_url: /devel/maintainers
   to_url: /devel/maintainers.html
-- from_url: /devel/contributors/coding-style.html
+- from_url: /devel/style_guide.html
   to_url: /devel/contributors.html
-- from_url: /devel/contributors/index.html
+- from_url: /devel/contributors/*
   to_url: /devel/contributors.html
-- from_url: /devel/contributors/documentation-style.html
-  to_url: /devel/contributors.html
-- from_url: /devel/contributors/memory-checks.html
+- from_url: /devel/contributors
   to_url: /devel/contributors.html
 - from_url: /intro/index.html
   to_url: /about.html
@@ -128,9 +124,5 @@
   to_url: /cluster-setup.html
 - from_url: /quickstart
   to_url: /quickstart.html
-- from_url: /devel/maintainers
-  to_url: /devel/maintainers.html
-- from_url: /devel/contributors
-  to_url: /devel/contributors.html
 - from_url: /intro
   to_url: /about.html

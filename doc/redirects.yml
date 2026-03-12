@@ -81,7 +81,9 @@
 - from_url: /examples/scripting/index.html
   to_url: /scripting/index.html
 - from_url: /examples/httpmonitor/index.html
-  to_url: /logs/http.html
+  to_url: /reference/logs/http.html
+- from_url: /examples/httpmonitor
+  to_url: /reference/logs/http.html
 - from_url: /examples/logs/index.html
   to_url: /tutorial/logs.html
 - from_url: /cluster/index.html
@@ -100,6 +102,8 @@
   to_url: /advanced/devel/contributors.html
 - from_url: /devel/*
   to_url: /advanced/devel/:splat
+- from_url: /logs/*
+  to_url: /reference/logs/:splat
 - from_url: /intro/index.html
   to_url: /about/index.html
 - from_url: /examples/logs
@@ -114,8 +118,6 @@
   to_url: /scripting/index.html
 - from_url: /examples/scripting
   to_url: /scripting/index.html
-- from_url: /examples/httpmonitor
-  to_url: /logs/http.html
 - from_url: /cluster
   to_url: /cluster-setup.html
 - from_url: /quickstart

@@ -89,15 +89,17 @@
 - from_url: /quickstart/index.html
   to_url: /quickstart.html
 - from_url: /devel/maintainers/*
-  to_url: /devel/maintainers.html
+  to_url: /advanced/devel/maintainers.html
 - from_url: /devel/maintainers
-  to_url: /devel/maintainers.html
+  to_url: /advanced/devel/maintainers.html
 - from_url: /devel/style_guide.html
-  to_url: /devel/contributors.html
+  to_url: /advanced/devel/contributors.html
 - from_url: /devel/contributors/*
-  to_url: /devel/contributors.html
+  to_url: /advanced/devel/contributors.html
 - from_url: /devel/contributors
-  to_url: /devel/contributors.html
+  to_url: /advanced/devel/contributors.html
+- from_url: /devel/*
+  to_url: /advanced/devel/:splat
 - from_url: /intro/index.html
   to_url: /about/index.html
 - from_url: /examples/logs

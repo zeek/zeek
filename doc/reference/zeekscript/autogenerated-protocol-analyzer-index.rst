@@ -367,6 +367,8 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SPICY_WEBSOCKET AllAnalyzers::Tag
 
+      .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_IGMP AllAnalyzers::Tag
+
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SSH AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_DTLS AllAnalyzers::Tag
@@ -10328,6 +10330,274 @@ Events
       been ported. To still enable this event, one needs to
       register a port for it or add a DPD payload signature.
 
+.. _plugin-zeek-postgresql:
+
+Zeek::PostgreSQL
+----------------
+
+PostgreSQL analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`Analyzer::ANALYZER_POSTGRESQL`
+
+Events
+++++++
+
+.. zeek:id:: PostgreSQL::not_implemented
+   :source-code: base/protocols/postgresql/spicy-events.zeek 147 147
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, typ: :zeek:type:`string`, chunk: :zeek:type:`string`)
+
+   Event generated for not implemented messages.
+
+.. zeek:id:: PostgreSQL::authentication_request
+   :source-code: base/protocols/postgresql/main.zeek 190 203
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, identifier: :zeek:type:`count`, data: :zeek:type:`string`)
+
+   Event generated for backend authentication requests.
+
+
+   :param c: The connection.
+
+
+   :param identifier: The identifier in the request.
+
+
+   :param data: The request data, if any.
+
+   .. zeek:see:: PostgreSQL::authentication_response
+   .. zeek:see:: PostgreSQL::authentication_ok
+
+.. zeek:id:: PostgreSQL::authentication_ok
+   :source-code: base/protocols/postgresql/main.zeek 205 211
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Event generated for backend authentication requests indicating successful
+   authentication.
+
+
+   :param c: The connection.
+
+   .. zeek:see:: PostgreSQL::authentication_request
+   .. zeek:see:: PostgreSQL::authentication_response
+
+.. zeek:id:: PostgreSQL::authentication_response
+   :source-code: base/protocols/postgresql/spicy-events.zeek 44 44
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
+
+   Event generated for frontend authentication responses.
+
+
+   :param c: The connection.
+
+
+   :param data: The response data, if any.
+
+   .. zeek:see:: PostgreSQL::authentication_request
+   .. zeek:see:: PostgreSQL::authentication_ok
+
+.. zeek:id:: PostgreSQL::ssl_request
+   :source-code: base/protocols/postgresql/main.zeek 111 116
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Event generated for frontend SSLRequest messages.
+
+
+   :param c: The connection.
+
+.. zeek:id:: PostgreSQL::ssl_reply
+   :source-code: base/protocols/postgresql/main.zeek 118 127
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
+
+   Event generated for backend SSL reply.
+
+
+   :param c: The connection.
+
+
+   :param data: The server's reply: S for secure, N for unencrypted.
+
+.. zeek:id:: PostgreSQL::startup_parameter
+   :source-code: base/protocols/postgresql/main.zeek 129 139
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, value: :zeek:type:`string`)
+
+   Event generated for every parameter in a StartupMessage.
+
+
+   :param c: The connection.
+
+
+   :param name: The name of the parameter.
+
+
+   :param value: The value of the parameter.
+
+.. zeek:id:: PostgreSQL::startup_message
+   :source-code: base/protocols/postgresql/main.zeek 141 147
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major: :zeek:type:`count`, minor: :zeek:type:`count`)
+
+   Event generated for a StartupMessage.
+
+
+   :param c: The connection.
+
+
+   :param major: The major protocol version.
+
+
+   :param minor: The minor protocol version.
+
+.. zeek:id:: PostgreSQL::error_response_identified_field
+   :source-code: base/protocols/postgresql/main.zeek 149 155
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`string`, value: :zeek:type:`string`)
+
+   Event generated for identified field within an ErrorResponse.
+
+
+   :param c: The connection.
+
+
+   :param code: The code (https://www.postgresql.org/docs/current/protocol-error-fields.html)
+
+
+   :param value: The field value.
+
+   .. zeek:see:: PostgreSQL::error_response
+
+.. zeek:id:: PostgreSQL::error_response
+   :source-code: base/protocols/postgresql/main.zeek 168 188
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Event generated for a ErrorResponse.
+
+
+   :param c: The connection.
+
+   .. zeek:see:: PostgreSQL::error_response_identified_field
+
+.. zeek:id:: PostgreSQL::simple_query
+   :source-code: base/protocols/postgresql/main.zeek 223 233
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, query: :zeek:type:`string`)
+
+   Event generated for every frontend SimpleQuery message.
+
+
+   :param c: The connection.
+
+
+   :param query: The query string.
+
+.. zeek:id:: PostgreSQL::ready_for_query
+   :source-code: base/protocols/postgresql/main.zeek 245 262
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, transaction_status: :zeek:type:`string`)
+
+   Event generated for every backed ReadyForQuery message.
+
+
+   :param c: The connection.
+
+
+   :param transaction_status: I (idle), T (in transaction block), E (error).
+
+.. zeek:id:: PostgreSQL::notice_response_identified_field
+   :source-code: base/protocols/postgresql/main.zeek 157 166
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`string`, value: :zeek:type:`string`)
+
+   Event generated for identified field within a NoticeResponse.
+
+
+   :param c: The connection.
+
+
+   :param code: The code (https://www.postgresql.org/docs/current/protocol-error-fields.html)
+
+
+   :param value: The field value.
+
+   .. zeek:see:: PostgreSQL::notice_response
+
+.. zeek:id:: PostgreSQL::notice_response
+   :source-code: base/protocols/postgresql/spicy-events.zeek 113 113
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Event generated for a NoticeResponse.
+
+
+   :param c: The connection.
+
+   .. zeek:see:: PostgreSQL::notice_response_identified_field
+
+.. zeek:id:: PostgreSQL::terminate
+   :source-code: base/protocols/postgresql/main.zeek 213 221
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Event generated For a frontend Terminate message.
+
+
+   :param c: The connection.
+
+.. zeek:id:: PostgreSQL::data_row
+   :source-code: base/protocols/postgresql/main.zeek 235 243
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, column_values: :zeek:type:`count`)
+
+   Event generated for every backend DataRow message.
+
+
+   :param c: The connection.
+
+
+   :param column_values: The number of columns in this row.
+
+.. zeek:id:: PostgreSQL::parameter_status
+   :source-code: base/protocols/postgresql/spicy-events.zeek 130 130
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, value: :zeek:type:`string`)
+
+   Event generated for backend runtime parameter status reports.
+
+
+   :param c: The connection.
+
+
+   :param name: The name of the runtime parameter.
+
+
+   :param value: The current value of the parameter.
+
+
+.. zeek:id:: PostgreSQL::backend_key_data
+   :source-code: base/protocols/postgresql/spicy-events.zeek 139 139
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, process_id: :zeek:type:`count`, secret_key: :zeek:type:`count`)
+
+   Generated for a BackendKeyData message for cancellation.
+
+
+   :param c: The connection.
+
+
+   :param process_id: The process ID of the backend.
+
+
+   :param secret_key: The secret key of the backend.
+
 .. _plugin-zeek-quic:
 
 Zeek::QUIC
@@ -11124,6 +11394,255 @@ Events
 
 
    :param security_protocol: The security protocol being used for the session.
+
+.. _plugin-zeek-redis:
+
+Zeek::Redis
+-----------
+
+Redis analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`Analyzer::ANALYZER_REDIS`
+
+Types
++++++
+
+.. zeek:type:: Redis::RedisCommand
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: Redis::RedisCommand_APPEND Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_AUTH Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BITCOUNT Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BITFIELD Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BITFIELD_RO Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BITOP Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BITPOS Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BLMPOP Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BLPOP Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_BRPOP Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_CLIENT Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_COPY Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_DECR Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_DECRBY Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_DEL Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_DUMP Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_EXISTS Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_EXPIRE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_EXPIREAT Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_EXPIRETIME Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GETBIT Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GETDEL Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GETEX Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GETRANGE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_GETSET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_HDEL Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_HELLO Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_HGET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_HSET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_INCR Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_INCRBY Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_KEYS Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_MGET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_MOVE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_MSET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_PERSIST Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_PSUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_PUNSUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_QUIT Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_RENAME Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_RESET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_SET Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_STRLEN Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_SUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_SSUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_SUNSUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_TTL Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_TYPE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_UNSUBSCRIBE Redis::RedisCommand
+
+      .. zeek:enum:: Redis::RedisCommand_Undef Redis::RedisCommand
+
+
+.. zeek:type:: Redis::ReplyType
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: Redis::ReplyType_Reply Redis::ReplyType
+
+      .. zeek:enum:: Redis::ReplyType_Error Redis::ReplyType
+
+      .. zeek:enum:: Redis::ReplyType_Push Redis::ReplyType
+
+      .. zeek:enum:: Redis::ReplyType_Undef Redis::ReplyType
+
+
+Events
+++++++
+
+.. zeek:id:: Redis::set_command
+   :source-code: base/protocols/redis/spicy-events.zeek 77 77
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::SetCommand`)
+
+   Generated for Redis SET commands sent to the Redis server.
+
+
+   :param c: The connection.
+
+
+   :param command: The SET command sent to the server and its data.
+
+.. zeek:id:: Redis::get_command
+   :source-code: base/protocols/redis/spicy-events.zeek 84 84
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
+
+   Generated for Redis GET commands sent to the Redis server.
+
+
+   :param c: The connection.
+
+
+   :param command: The GET command sent to the server and its data.
+
+.. zeek:id:: Redis::auth_command
+   :source-code: base/protocols/redis/spicy-events.zeek 91 91
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::AuthCommand`)
+
+   Generated for Redis AUTH commands sent to the Redis server.
+
+
+   :param c: The connection.
+
+
+   :param command: The AUTH command sent to the server and its data.
+
+.. zeek:id:: Redis::hello_command
+   :source-code: base/protocols/redis/main.zeek 148 155
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::HelloCommand`)
+
+   Generated for Redis HELLO commands sent to the Redis server.
+
+
+   :param c: The connection.
+
+
+   :param command: The HELLO command sent to the server and its data.
+
+.. zeek:id:: Redis::command
+   :source-code: base/protocols/redis/main.zeek 157 236
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cmd: :zeek:type:`Redis::Command`)
+
+   Generated for every command sent by the client to the Redis server.
+
+
+   :param c: The connection.
+
+
+   :param cmd: The command sent to the server.
+
+.. zeek:id:: Redis::reply
+   :source-code: base/protocols/redis/main.zeek 292 321
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
+
+   Generated for every successful response sent by the Redis server to the
+   client. For RESP2, this includes "push" messages, which are out of band.
+   These will also raise a server_push event. RESP3 push messages will only
+   raise a server_push event.
+
+
+   :param c: The connection.
+
+
+   :param data: The server data sent to the client.
+
+   .. zeek:see:: Redis::server_push
+
+.. zeek:id:: Redis::error
+   :source-code: base/protocols/redis/main.zeek 323 335
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
+
+   Generated for every error response sent by the Redis server to the
+   client.
+
+
+   :param c: The connection.
+
+
+   :param data: The server data sent to the client.
+
+.. zeek:id:: Redis::server_push
+   :source-code: base/protocols/redis/spicy-events.zeek 133 133
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
+
+   Generated for out-of-band data, outside of the request-response
+   model.
+
+
+   :param c: The connection.
+
+
+   :param data: The server data sent to the client.
 
 .. _plugin-zeek-rfb:
 
@@ -16648,136 +17167,6 @@ Events
 
 
    :param code: The response code for the attempted login.
-
-.. _plugin-zeek-spicy:
-
-Zeek::Spicy
------------
-
-Support for Spicy parsers (.hlto)
-
-Types
-+++++
-
-.. zeek:type:: Redis::RedisCommand
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: Redis::RedisCommand_APPEND Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_AUTH Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITCOUNT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITFIELD Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITFIELD_RO Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BITPOS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BLMPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BLPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_BRPOP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_CLIENT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_COPY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DECR Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DECRBY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_DUMP Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXISTS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIRE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIREAT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_EXPIRETIME Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETBIT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETDEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETEX Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETRANGE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_GETSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HDEL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HELLO Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HGET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_HSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_INCR Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_INCRBY Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_KEYS Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MGET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MOVE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_MSET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PERSIST Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_PUNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_QUIT Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_RENAME Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_RESET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SET Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_STRLEN Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_SUNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_TTL Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_TYPE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_UNSUBSCRIBE Redis::RedisCommand
-
-      .. zeek:enum:: Redis::RedisCommand_Undef Redis::RedisCommand
-
-
-.. zeek:type:: Redis::ReplyType
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: Redis::ReplyType_Reply Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Error Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Push Redis::ReplyType
-
-      .. zeek:enum:: Redis::ReplyType_Undef Redis::ReplyType
-
 
 .. _plugin-zeek-ssh:
 

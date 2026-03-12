@@ -75,12 +75,19 @@ New Functionality
   a shunted connection, it needs special handling to keep the connection alive while
   shunted.
 
-- The Zeek documentation has received a major refresh. A new tutorial walks
-  newcomers through setup, basic Zeek invocations, the use of Zeek packages,
-  ZeekControl for cluster maintenance, the basics of Zeek's logs, as well as
-  scripting in Zeek's own language as well as JavaScript. A new reference
-  section houses the introduction to common logs, the Zeek scripting
-  language, Zeek's frameworks, and the scripting index.
+- The Zeek documentation has received a major refresh. A new tutorial walks newcomers
+  through setup, basic Zeek invocations, the use of Zeek packages, ZeekControl for cluster
+  maintenance, the basics of Zeek's logs, as well as scripting in Zeek's own language as
+  well as JavaScript. A new reference section houses the introduction to common logs, the
+  Zeek scripting language, Zeek's frameworks, and the scripting index.
+
+- A new analyzer for IGMP was imported from an external project, originally written by
+  François De Keersmaeker (@fdekeers). It adds a new ``igmp.log`` which currently logs
+  state changes for individual hosts joining and leaving multicast groups. These state
+  changes are rate-limited, similar to how weirds are. The rate-limiting is controlled by
+  two redefinable constants: ``rate_limit_repeats`` and ``rate_limit_duration``. See the
+  documentation for how those are used. We are considering this log experimental for the
+  time being, and it may change format in the future.
 
 Changed Functionality
 ---------------------

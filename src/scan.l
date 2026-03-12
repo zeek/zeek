@@ -389,6 +389,7 @@ when	return TOK_WHEN;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 &on_change	return TOK_ATTR_ON_CHANGE;
+&publish_on_change	return TOK_ATTR_PUBLISH_ON_CHANGE;
 &broker_store	return TOK_ATTR_BROKER_STORE;
 &broker_allow_complex_type	return TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX;
 &backend	return TOK_ATTR_BACKEND;

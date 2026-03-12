@@ -1,3 +1,7 @@
+8.2.0-dev.385 | 2026-03-12 19:57:07 +0100
+
+  * Bump zeekctl to fix test (Arne Welzel, Corelight)
+
 8.2.0-dev.383 | 2026-03-12 11:40:13 -0700
 
   * Doc redirects: updates to reflect the tutorial and outline revamp (Christian Kreibich, Corelight)

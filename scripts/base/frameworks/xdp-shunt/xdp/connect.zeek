@@ -25,6 +25,11 @@ export {
 	## is used to override the VLAN handling from loading the vlan conn key
 	## factory if necessary.
 	option force_no_vlans: bool = F;
+
+	## If we should load the XDP pins. By default, only load if it's in a
+	## cluster worker or not in a cluster.
+	option should_load: bool = Cluster::local_node_type() == Cluster::WORKER
+	    || Cluster::local_node_type() == Cluster::NONE;
 }
 
 function should_load_with_vlan(): bool
@@ -35,6 +40,9 @@ function should_load_with_vlan(): bool
 
 event zeek_init()
 	{
+	if ( ! should_load )
+		return;
+
 	vlans_included = ( ! force_no_vlans ) && should_load_with_vlan();
 
 	local opts: XDP::ShuntOptions = [ $attach_mode=attach_mode,

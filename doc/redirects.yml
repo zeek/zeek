@@ -35,11 +35,8 @@
 - from_url: /projects/package-manager/en/latest/bro-pkg.html
   to_url: /projects/package-manager/en/latest/zkg.html
   type: exact
-  http_status: 302
 - from_url: /scripts/base/bif/bro.bif.zeek.html
   to_url: /scripts/base/bif/zeek.bif.zeek.html
-- from_url: /devel/style_guide.html
-  to_url: /devel/contributors/coding-style.html
 - from_url: /projects/package-manager
   to_url: /projects/package-manager/en/stable
   type: exact
@@ -63,21 +60,17 @@
   type: exact
 - from_url: /configuration/index.html
   to_url: /cluster-setup.html#cluster-configuration
-- from_url: /install/guidelines.html
-  to_url: /install.html
 - from_url: /install/NEWS.html
   to_url: https://github.com/zeek/zeek/blob/master/NEWS
 - from_url: /install/release-notes.html
   to_url: https://github.com/zeek/zeek/blob/master/NEWS
 - from_url: /install/changes.html
   to_url: https://github.com/zeek/zeek/blob/master/CHANGES
-- from_url: /install/install.html
-  to_url: /install.html
-- from_url: /install/upgrade.html
-  to_url: /install.html
 - from_url: /install/cross-compiling.html
   to_url: /building-from-source.html#cross-compiling
-- from_url: /install/index.html
+- from_url: /install/*
+  to_url: /install.html
+- from_url: /install
   to_url: /install.html
 - from_url: /examples/index.html
   to_url: /index.html
@@ -87,35 +80,36 @@
   to_url: /scripting/index.html
 - from_url: /examples/scripting/index.html
   to_url: /scripting/index.html
-  http_status: 302
 - from_url: /examples/httpmonitor/index.html
-  to_url: /logs/http.html
+  to_url: /reference/logs/http.html
+- from_url: /examples/httpmonitor
+  to_url: /reference/logs/http.html
 - from_url: /examples/logs/index.html
-  to_url: /log-formats.html
+  to_url: /tutorial/logs.html
 - from_url: /cluster/index.html
   to_url: /cluster-setup.html
 - from_url: /quickstart/index.html
   to_url: /quickstart.html
-- from_url: /devel/maintainers/index.html
-  to_url: /devel/maintainers.html
-- from_url: /devel/maintainers/release-process.html
-  to_url: /devel/maintainers.html
-- from_url: /devel/contributors/coding-style.html
-  to_url: /devel/contributors.html
-- from_url: /devel/contributors/index.html
-  to_url: /devel/contributors.html
-- from_url: /devel/contributors/documentation-style.html
-  to_url: /devel/contributors.html
-- from_url: /devel/contributors/memory-checks.html
-  to_url: /devel/contributors.html
+- from_url: /devel/maintainers/*
+  to_url: /advanced/devel/maintainers.html
+- from_url: /devel/maintainers
+  to_url: /advanced/devel/maintainers.html
+- from_url: /devel/style_guide.html
+  to_url: /advanced/devel/contributors.html
+- from_url: /devel/contributors/*
+  to_url: /advanced/devel/contributors.html
+- from_url: /devel/contributors
+  to_url: /advanced/devel/contributors.html
+- from_url: /devel/*
+  to_url: /advanced/devel/:splat
+- from_url: /logs/*
+  to_url: /reference/logs/:splat
 - from_url: /intro/index.html
-  to_url: /about.html
+  to_url: /about/index.html
 - from_url: /examples/logs
-  to_url: /log-formats.html
+  to_url: /tutorial/logs.html
 - from_url: /configuration
   to_url: /cluster-setup.html#cluster-configuration
-- from_url: /install
-  to_url: /install.html
 - from_url: /examples
   to_url: /index.html
 - from_url: /examples/ids
@@ -124,15 +118,39 @@
   to_url: /scripting/index.html
 - from_url: /examples/scripting
   to_url: /scripting/index.html
-- from_url: /examples/httpmonitor
-  to_url: /logs/http.html
 - from_url: /cluster
   to_url: /cluster-setup.html
 - from_url: /quickstart
   to_url: /quickstart.html
-- from_url: /devel/maintainers
-  to_url: /devel/maintainers.html
-- from_url: /devel/contributors
-  to_url: /devel/contributors.html
 - from_url: /intro
-  to_url: /about.html
+  to_url: /about/index.html
+- from_url: /about.html
+  to_url: /about/index.html
+- from_url: /monitoring.html
+  to_url: /about/monitoring.html
+- from_url: /components/index.html
+  to_url: /advanced/subcomponents.html
+- from_url: /log-formats.html
+  to_url: /tutorial/logs.html#zeek-log-formats
+- from_url: /script-reference/scripts.html
+  to_url: /reference/zeekscript/included.html
+- from_url: /script-reference/*
+  to_url: /reference/zeekscript/:splat
+- from_url: /scripting/basics.html
+  to_url: /tutorial/scripting/basics.html
+- from_url: /scripting/conn-id-ctx.html
+  to_url: /advanced/scripting/conn-id-ctx.html
+- from_url: /scripting/event-groups.html
+  to_url: /reference/zeekscript/event-semantics.html#event-groups
+- from_url: /scripting/index.html
+  to_url: /tutorial/scripting/index.html
+- from_url: /scripting/javascript.html
+  to_url: /tutorial/scripting/javascript.html
+- from_url: /scripting/optimization.html
+  to_url: /advanced/scripting/optimization.html
+- from_url: /scripting/tracing-events.html
+  to_url: /reference/zeekscript/event-semantics.html#tracing-events
+- from_url: /scripting/usage.html
+  to_url: /advanced/scripting/usage.html
+- from_url: /troubleshooting.html
+  to_url: /advanced/troubleshooting.html

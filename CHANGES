@@ -1,3 +1,7 @@
+8.2.0-dev.383 | 2026-03-12 11:40:13 -0700
+
+  * Doc redirects: updates to reflect the tutorial and outline revamp (Christian Kreibich, Corelight)
+
 8.2.0-dev.371 | 2026-03-12 13:09:21 -0400
 
   * docs: Fix tabs in intel framework example (Evan Typanski)

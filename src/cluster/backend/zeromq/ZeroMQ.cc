@@ -1,12 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "ZeroMQ.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 
+#include <zmq.h>
 #include <array>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -26,6 +28,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/backend/zeromq/Plugin.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util-types.h"
 #include "zeek/util.h"
@@ -72,6 +75,18 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
     } while ( 0 )
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
+
+
+/**
+ * Enum for the values used for the opaque BackendMessage.
+ */
+enum class ZeroMQBackendMessageTag : uint8_t {
+    Unsubscription = 0,
+    Subscription = 1,
+    MonitoringEvent = 2,
+};
+
+constexpr bool operator==(int x, ZeroMQBackendMessageTag tag) { return x == static_cast<int>(tag); }
 
 ZeekProxyTelemetry::ZeekProxyTelemetry(zmq::socket_t&& arg_req) : req(std::move(arg_req)) {
     // Register telemetry metric callbacks with the manager. The callbacks run when someone
@@ -167,6 +182,31 @@ void ZeekProxyTelemetry::RefreshStatistics() {
     }
 }
 
+void CurveConfig::configureClientCurveSockOpts(zmq::socket_t& sock) const {
+    sock.set(zmq::sockopt::curve_serverkey, server_publickey);
+    sock.set(zmq::sockopt::curve_secretkey, client_secretkey);
+    sock.set(zmq::sockopt::curve_publickey, client_publickey);
+}
+
+void CurveConfig::configureServerCurveSockOpts(zmq::socket_t& sock) const {
+    sock.set(zmq::sockopt::curve_server, true);
+    sock.set(zmq::sockopt::curve_secretkey, server_secretkey);
+}
+
+void CurveConfig::initZap(zmq::context_t& ctx, ZapArgs& args) const {
+    args.zap_rep = zmq::socket_t(ctx, zmq::socket_type::rep);
+
+    // Prepare the allowed public key from the CurveConfig
+    if ( client_publickey.size() == 40 ) {
+        std::string raw_client_publickey(32, '\0');
+        zmq_z85_decode(reinterpret_cast<uint8_t*>(raw_client_publickey.data()), client_publickey.c_str());
+        args.allowed_publickeys.insert(raw_client_publickey);
+    }
+    else if ( ! client_publickey.empty() ) {
+        zeek::reporter->FatalError("ZeroMQ/ZAP: client public key has unexpected size %zu", client_publickey.size());
+    }
+}
+
 std::unique_ptr<Backend> ZeroMQBackend::Instantiate(std::unique_ptr<EventSerializer> es,
                                                     std::unique_ptr<LogSerializer> ls,
                                                     std::unique_ptr<detail::EventHandlingStrategy> ehs) {
@@ -234,6 +274,7 @@ void ZeroMQBackend::DoInitPostScript() {
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
+    event_monitoring_event = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::monitoring_event");
 
     // xpub/xsub hwm configuration
     xpub_sndhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndhwm")->AsInt());
@@ -248,6 +289,16 @@ void ZeroMQBackend::DoInitPostScript() {
     log_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndbuf")->AsInt());
     log_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvhwm")->AsInt());
     log_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvbuf")->AsInt());
+
+    // CURVE variables for encrypting ZeroMQ connections.
+    curve_config.client_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_publickey")->ToStdString();
+    curve_config.client_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_secretkey")->ToStdString();
+    curve_config.server_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_publickey")->ToStdString();
+    curve_config.server_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_secretkey")->ToStdString();
 }
 
 void ZeroMQBackend::DoTerminate() {
@@ -282,6 +333,11 @@ void ZeroMQBackend::DoTerminate() {
         proxy_thread->Shutdown();
         proxy_thread.reset();
     }
+
+    // The ZAP handler thread will have observed the ctx
+    // shutdown and terminate itself.
+    if ( zap_thread.joinable() )
+        zap_thread.join();
 
     // Shutdown REQ socket for proxy telemetry, this
     // needs to be done after shutting down the proxy
@@ -323,6 +379,50 @@ bool ZeroMQBackend::DoInit() {
     xsub.set(zmq::sockopt::rcvhwm, xsub_rcvhwm);
     xsub.set(zmq::sockopt::rcvbuf, xsub_rcvbuf);
 
+    if ( curve_config.isClientEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on client XPUB and XSUB sockets");
+        curve_config.configureClientCurveSockOpts(xpub);
+        curve_config.configureClientCurveSockOpts(xsub);
+    }
+
+    // Create monitoring sockets for xpub, xsub and log_push sockets. For now,
+    // there'll only be three client sockets.
+    constexpr int events_to_monitor = ZMQ_EVENT_ALL;
+
+    struct SocketMonitorParam {
+        zmq::socket_ref sock;
+        std::string addr;
+    };
+
+    std::array<SocketMonitorParam, 3> to_monitor = {
+        SocketMonitorParam{xpub, "inproc://monitor-xpub"},
+        SocketMonitorParam{xsub, "inproc://monitor-xsub"},
+        SocketMonitorParam{log_push, "inproc://monitor-log-push"},
+    };
+
+    assert(to_monitor.size() == monitoring_sockets.size());
+
+    for ( size_t i = 0; i < to_monitor.size(); i++ ) {
+        auto& [sock, addr] = to_monitor[i];
+
+        ZEROMQ_DEBUG("Creating zmq_socket_monitor for %s (%p)", addr.c_str(), sock.handle());
+        int r = zmq_socket_monitor(sock.handle(), addr.c_str(), events_to_monitor);
+        if ( r != 0 ) {
+            zeek::reporter->Error("ZeroMQ: Failed setup monitor socket for %s: %s", addr.c_str(),
+                                  zmq_strerror(zmq_errno()));
+            return false;
+        }
+
+        // Create and connect the other end of the PAIR socket for listening for the events.
+        monitoring_sockets[i] = zmq::socket_t(ctx, zmq::socket_type::pair);
+        try {
+            monitoring_sockets[i].connect(addr);
+        } catch ( zmq::error_t& err ) {
+            zeek::reporter->Error("ZeroMQ: Failed to connect monitor socket %s: %s", addr.c_str(), err.what());
+            return false;
+        }
+    }
+
     try {
         xsub.connect(connect_xsub_endpoint);
     } catch ( zmq::error_t& err ) {
@@ -347,9 +447,24 @@ bool ZeroMQBackend::DoInit() {
     log_push.set(zmq::sockopt::linger, linger_ms);
     log_push.set(zmq::sockopt::immediate, log_immediate);
 
+    if ( curve_config.isClientEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on client log PUSH socket");
+        curve_config.configureClientCurveSockOpts(log_push);
+    }
+
     log_pull.set(zmq::sockopt::rcvhwm, log_rcvhwm);
     log_pull.set(zmq::sockopt::rcvbuf, log_rcvbuf);
 
+    // Logger processes also become CURVE servers for the log PULL sockets
+    // if encryption is enabled.
+    if ( curve_config.isServerEnabled() ) {
+        ZEROMQ_DEBUG("Enabling encryption on server log PULL socket");
+        curve_config.configureServerCurveSockOpts(log_pull);
+
+        // Also launch a ZAP handler thread for the log_pull socket.
+        curve_config.initZap(ctx, zap_args);
+        zap_thread = std::thread(zeek::cluster::zeromq::zap_thread_fun, &zap_args);
+    }
 
     if ( ! listen_log_endpoint.empty() ) {
         ZEROMQ_DEBUG("Listening on log pull socket: %s", listen_log_endpoint.c_str());
@@ -430,7 +545,7 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
 
     proxy_telemetry = std::make_unique<ZeekProxyTelemetry>(std::move(req));
     proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, std::move(rep), ipv6,
-                                                 listen_xpub_nodrop, proxy_io_threads);
+                                                 listen_xpub_nodrop, proxy_io_threads, curve_config);
     return proxy_thread->Start();
 }
 
@@ -688,10 +803,10 @@ void ZeroMQBackend::HandleXPubMessages(const std::vector<MultipartMessage>& msgs
             auto* end = msg[0].data<std::byte>() + msg[0].size();
             byte_buffer topic(start, end);
             if ( first == 1 ) {
-                qm = BackendMessage{1, std::move(topic)};
+                qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::Subscription), std::move(topic)};
             }
             else if ( first == 0 ) {
-                qm = BackendMessage{0, std::move(topic)};
+                qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::Unsubscription), std::move(topic)};
             }
             else {
                 ZEROMQ_THREAD_PRINTF("xpub: error: unexpected first char: have '0x%02x'", first);
@@ -743,6 +858,27 @@ void ZeroMQBackend::HandleXSubMessages(const std::vector<MultipartMessage>& msgs
     }
 }
 
+void ZeroMQBackend::HandleMonitoringMessages(const std::vector<MultipartMessage>& msgs) {
+    for ( const auto& msg : msgs ) {
+        if ( msg.size() == 2 ) {
+            // Concatenate the frames of the monitoring event into a single string
+            // and copy its content into the BackendMessage payload. The DoProcessBackendMessage()
+            // implementation understands how to unpack this again.
+            std::string str = msg[0].to_string() + msg[1].to_string();
+            byte_buffer payload{reinterpret_cast<std::byte*>(str.data()),
+                                reinterpret_cast<std::byte*>(str.data()) + str.size()};
+
+            auto qm = BackendMessage{static_cast<int>(ZeroMQBackendMessageTag::MonitoringEvent), std::move(payload)};
+            OnLoop()->QueueForProcessing(std::move(qm), zeek::detail::QueueFlag::Force);
+        }
+        else {
+            ZEROMQ_THREAD_PRINTF("mon: error: expected 2 parts, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
+            continue;
+        }
+    }
+}
+
 void ZeroMQBackend::Run() {
     char name[4 + 2 + 16 + 1]{}; // zmq-0x<8byte pointer in hex><nul>
     snprintf(name, sizeof(name), "zmq-%p", this);
@@ -760,6 +896,15 @@ void ZeroMQBackend::Run() {
         {.socket = xpub, .name = "xpub", .handler = [this](const auto& msgs) { HandleXPubMessages(msgs); }},
         {.socket = xsub, .name = "xsub", .handler = [this](const auto& msgs) { HandleXSubMessages(msgs); }},
         {.socket = log_pull, .name = "log_pull", .handler = [this](const auto& msgs) { HandleLogMessages(msgs); }},
+        {.socket = monitoring_sockets[0],
+         .name = "mon-xpub",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
+        {.socket = monitoring_sockets[1],
+         .name = "mon-xsub",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
+        {.socket = monitoring_sockets[2],
+         .name = "mon-log-push",
+         .handler = [this](const auto& msgs) { HandleMonitoringMessages(msgs); }},
     };
 
     // Called when Run() terminates.
@@ -767,6 +912,10 @@ void ZeroMQBackend::Run() {
         xpub.close();
         xsub.close();
         log_pull.close();
+
+        for ( auto& s : monitoring_sockets )
+            s.close();
+
         ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread sockets closed (%p)\n", this);
     });
 
@@ -877,11 +1026,11 @@ void ZeroMQBackend::Run() {
 }
 
 bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
-    if ( tag == 0 || tag == 1 ) {
+    if ( tag == ZeroMQBackendMessageTag::Subscription || tag == ZeroMQBackendMessageTag::Unsubscription ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
         zeek::EventHandlerPtr eh;
 
-        if ( tag == 1 ) {
+        if ( tag == ZeroMQBackendMessageTag::Subscription ) {
             // If this is the first time the subscription was observed, raise
             // the ZeroMQ internal event.
             if ( ! xpub_subscriptions.contains(topic) ) {
@@ -897,7 +1046,7 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
                 subscription_callbacks.erase(cbit);
             }
         }
-        else if ( tag == 0 ) {
+        else if ( tag == ZeroMQBackendMessageTag::Unsubscription ) {
             eh = event_unsubscription;
             xpub_subscriptions.erase(topic);
         }
@@ -908,8 +1057,23 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
 
         return true;
     }
+    else if ( tag == ZeroMQBackendMessageTag::MonitoringEvent && payload.size() >= 6 ) {
+        // https://libzmq.readthedocs.io/en/latest/zmq_socket_monitor.html
+        uint16_t event_number = *reinterpret_cast<const uint16_t*>(payload.data());
+        uint32_t event_value = *reinterpret_cast<const uint32_t*>(payload.data() + 2);
+        const char* addr_ptr = reinterpret_cast<const char*>(payload.data() + 6);
+        std::string addr = {addr_ptr, payload.size() - 6};
+        ZEROMQ_DEBUG("BackendMessage: monitoring_event 0x%x with value value 0x%x for socket %s", event_number,
+                     event_value, addr.c_str());
+
+        if ( event_monitoring_event )
+            EnqueueEvent(event_monitoring_event, {val_mgr->Count(event_number), val_mgr->Count(event_value),
+                                                  zeek::make_intrusive<zeek::StringVal>(addr)});
+
+        return true;
+    }
     else {
-        zeek::reporter->Error("Ignoring bad BackendMessage tag=%d", tag);
+        zeek::reporter->Error("Ignoring bad BackendMessage with tag %d (payload size %zu)", tag, payload.size());
         return false;
     }
 }

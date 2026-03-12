@@ -1,8 +1,14 @@
 %%{
+#include <zmq.h>
+#
+#include "zeek/ID.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 %%}
 
-function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
+module Cluster::Backend::ZeroMQ;
+
+function spawn_zmq_proxy_thread%(%): bool
 	%{
 	// Spawn the ZeroMQ broker thread.
 	auto *zeromq_backend = dynamic_cast<zeek::cluster::zeromq::ZeroMQBackend*>(zeek::cluster::backend);
@@ -13,4 +19,21 @@ function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
 		}
 
 	return zeek::val_mgr->Bool(zeromq_backend->SpawnZmqProxyThread());
+	%}
+
+function generate_keypair%(%): string_vec
+	%{
+	char public_key[41];
+	char secret_key[41];
+	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+	if ( zmq_curve_keypair(public_key, secret_key) != 0 )
+		{
+		zeek::emit_builtin_error("zmq_curve_keypair() failed");
+		return result;
+		}
+
+	result->Append(zeek::make_intrusive<zeek::StringVal>(public_key));
+	result->Append(zeek::make_intrusive<zeek::StringVal>(secret_key));
+
+	return result;
 	%}

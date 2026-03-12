@@ -122,3 +122,5 @@
   to_url: /about/index.html
 - from_url: /about.html
   to_url: /about/index.html
+- from_url: /components/index.html
+  to_url: /advanced/subcomponents.html

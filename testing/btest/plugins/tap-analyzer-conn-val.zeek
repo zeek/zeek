@@ -5,10 +5,10 @@
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 #
 #
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.trace %INPUT >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.trace %INPUT http_skip_further_processing=T >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/wikipedia.trace %INPUT >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/wikipedia.trace %INPUT http_skip_further_processing=T >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.pcap %INPUT http_skip_further_processing=T >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/wikipedia.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/wikipedia.pcap %INPUT http_skip_further_processing=T >>output
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 

@@ -2,11 +2,11 @@
 #
 # @TEST-EXEC: spicyz -d -o ssh.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: echo === confirmation >>output
-# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace -s ./ssh.sig Zeek::Spicy base/frameworks/notice/weird ssh.hlto %INPUT ./extern.zeek | sort >>output
+# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.pcap -s ./ssh.sig Zeek::Spicy base/frameworks/notice/weird ssh.hlto %INPUT ./extern.zeek | sort >>output
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: echo === violation >>output
 # Note: The following removes the payload data from the violation log, as that's a recent addition that breaks older version. Can remove later.
-# @TEST-EXEC: zeek frameworks/analyzer/debug-logging.zeek -r ${TRACES}/http/post.trace -s ./ssh.sig Zeek::Spicy ssh.hlto  ./extern.zeek %INPUT | sed 's/ \[POST.*//g' | sort >>output
+# @TEST-EXEC: zeek frameworks/analyzer/debug-logging.zeek -r ${TRACES}/http/post.pcap -s ./ssh.sig Zeek::Spicy ssh.hlto  ./extern.zeek %INPUT | sed 's/ \[POST.*//g' | sort >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer_debug.log
 # @TEST-EXEC: test '!' -f reporter.log

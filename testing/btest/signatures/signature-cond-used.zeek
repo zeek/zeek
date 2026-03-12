@@ -1,5 +1,5 @@
 # @TEST-DOC: The function signature_cond used for eval in test.sig should not be reported as unused
-# @TEST-EXEC: zeek -b %INPUT -r $TRACES/http/get.trace
+# @TEST-EXEC: zeek -b %INPUT -r $TRACES/http/get.pcap
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: btest-diff .stdout
 module SignatureEvalTest;

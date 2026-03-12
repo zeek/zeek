@@ -1,6 +1,6 @@
 # Test truncation of the arg field in the ftp.log.
 #
-# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv4.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv4.pcap %INPUT
 # @TEST-EXEC: btest-diff ftp.log
 # @TEST-EXEC: btest-diff weird.log
 

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -Cr $TRACES/http/http-bad-request-with-version.trace %INPUT
+# @TEST-EXEC: zeek -b -Cr $TRACES/http/http-bad-request-with-version.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff weird.log
 

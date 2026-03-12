@@ -1,13 +1,13 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o text.hlto text.spicy ./text.evt
-# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace text.hlto %INPUT Spicy::enable_print=T | sort -k 3 >output
+# @TEST-EXEC: zeek -r ${TRACES}/http/post.pcap text.hlto %INPUT Spicy::enable_print=T | sort -k 3 >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat files.log | zeek-cut source analyzers filename mime_type >files
 # @TEST-EXEC: btest-diff files
 #
 # Check that exceeding max-file-depth leads to aborting and an event.
-# @TEST-EXEC: zeek -t /tmp/zeek.trace -r ${TRACES}/http/post.trace text.hlto %INPUT Spicy::max_file_depth=2 | sort -k 3 >output-max
+# @TEST-EXEC: zeek -t /tmp/zeek.pcap -r ${TRACES}/http/post.pcap text.hlto %INPUT Spicy::max_file_depth=2 | sort -k 3 >output-max
 # @TEST-EXEC: cat notice.log | zeek-cut note | grep -q "Spicy_Max_File_Depth_Exceeded"
 # @TEST-EXEC: btest-diff output-max
 

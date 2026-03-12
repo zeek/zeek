@@ -3,7 +3,7 @@
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace -b %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 

@@ -3,7 +3,7 @@
 # Can't use this test for -O gen-C++ because of multiple different Zeek runs.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 
-# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.trace common.zeek google-duplicate.zeek
+# @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.pcap common.zeek google-duplicate.zeek
 # @TEST-EXEC: cat $TRACES/tls/tls-fragmented-handshake.pcap.gz | gunzip | zeek -b -r - common.zeek fragmented.zeek
 # @TEST-EXEC: zeek -b -r $TRACES/rdp/rdp-to-ssl.pcap common.zeek rdp.zeek
 # @TEST-EXEC: btest-diff .stdout

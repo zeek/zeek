@@ -1,5 +1,5 @@
 #
-# @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >output
 # @TEST-EXEC: mv conn.log conn-first.log
 # @TEST-EXEC: cat weird.log >> weird-combined.log
 # @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus-eit.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >>output

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/icmp_nd_dnssl.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/icmp_nd_dnssl.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/conn

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT
 # @TEST-EXEC: btest-diff local.log
 # @TEST-EXEC: btest-diff remote.log
 #

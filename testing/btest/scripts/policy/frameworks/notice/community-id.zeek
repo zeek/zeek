@@ -3,7 +3,7 @@
 # without connection state and one with, and verifies that the latter
 # includes the Community ID value for it.
 
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: zeek-cut id.orig_h id.orig_p id.resp_h id.resp_p proto community_id note msg < notice.log > notice.log.cut
 # @TEST-EXEC: btest-diff notice.log.cut
 

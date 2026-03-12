@@ -2,13 +2,13 @@
 # some runs having complaints that there are no scripts.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 
-# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace base/protocols/http
+# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.pcap base/protocols/http
 # @TEST-EXEC: btest-diff http.log
-# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace base/protocols/http %INPUT >out-limited
+# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.pcap base/protocols/http %INPUT >out-limited
 # @TEST-EXEC: mv http.log http-limited.log
 # @TEST-EXEC: btest-diff http-limited.log
 # @TEST-EXEC: btest-diff out-limited
-# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace base/protocols/http %INPUT ignore_http_file_limit=T >out-limit-ignored
+# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.pcap base/protocols/http %INPUT ignore_http_file_limit=T >out-limit-ignored
 # @TEST-EXEC: mv http.log http-limit-ignored.log
 # @TEST-EXEC: btest-diff http-limit-ignored.log
 # @TEST-EXEC: btest-diff out-limit-ignored

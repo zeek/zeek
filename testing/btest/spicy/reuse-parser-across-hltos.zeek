@@ -2,13 +2,13 @@
 #
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt
 # @TEST-EXEC: spicyz -d -o bar.hlto bar.spicy bar.evt foo.spicy
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace foo.hlto %INPUT | sort >>output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap foo.hlto %INPUT | sort >>output
 # @TEST-EXEC: echo >>output
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace bar.hlto %INPUT | sort >>output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap bar.hlto %INPUT | sort >>output
 # @TEST-EXEC: echo >>output
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace foo.hlto bar.hlto %INPUT | sort >>output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap foo.hlto bar.hlto %INPUT | sort >>output
 # @TEST-EXEC: echo >>output
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace bar.hlto foo.hlto %INPUT | sort >>output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap bar.hlto foo.hlto %INPUT | sort >>output
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Check that HLTOs remain isolated from each other when reusing another's units.

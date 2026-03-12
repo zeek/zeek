@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/dhcp/dhcp_time_and_nameserver.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/dhcp/dhcp_time_and_nameserver.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/dhcp

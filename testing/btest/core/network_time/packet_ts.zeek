@@ -1,5 +1,5 @@
 # @TEST-DOC: Test get_current_packet_ts() in comparison with network_time().
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT > output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 
 event network_time_init()

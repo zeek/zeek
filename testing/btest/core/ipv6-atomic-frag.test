@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/ipv6-http-atomic-frag.trace %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/ipv6-http-atomic-frag.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/http

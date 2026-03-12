@@ -1,5 +1,5 @@
 # @TEST-DOC: Test that finishing reading an intel file resumes processing and network_time() isn't initialized until continue_processing() happens.
-# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT >output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.pcap %INPUT >output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 
 @load base/frameworks/intel

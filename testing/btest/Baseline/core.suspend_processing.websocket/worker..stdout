@@ -36,6 +36,6 @@
 1300475173.116749, new_connection, C8rquZ3DjgNW06JGLl, 32
 1300475173.117362, new_connection, CzrZOtXqhwwndQva3, 33
 1300475173.153679, new_connection, CaGCc13FffXe6RkQl9, 34
-1300475173.475401, Pcap::file_done, <...>/wikipedia.trace
+1300475173.475401, Pcap::file_done, <...>/wikipedia.pcap
 1300475173.475401: Cluster::websocket_client_lost: 1000, 
 1300475173.475401, zeek_done

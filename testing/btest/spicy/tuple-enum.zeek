@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -o test.hlto tupleenum.spicy ./tupleenum.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T | sort >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T | sort >output
 # @TEST-EXEC: btest-diff output
 
 type Foo: record {

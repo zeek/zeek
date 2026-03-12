@@ -1,5 +1,5 @@
 # @TEST-DOC: Show-case disable_analyzer() for ANALYZER_STREAM_EVENT after receiving a few events.
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 event zeek_init()

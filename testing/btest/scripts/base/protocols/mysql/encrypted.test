@@ -3,7 +3,7 @@
 # empty mysql.log file.
 
 # @TEST-EXEC: touch mysql.log
-# @TEST-EXEC: zeek -b -r $TRACES/mysql/encrypted.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/encrypted.pcap %INPUT >out
 # @TEST-EXEC: btest-diff mysql.log
 # @TEST-EXEC: btest-diff out
 #

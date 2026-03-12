@@ -6,7 +6,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/tls/client-certificate.pcap %INPUT > out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/certificate-request-failed.pcap %INPUT >> out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/webrtc-stun.pcap %INPUT >> out
-# @TEST-EXEC: zeek -C -b -r $TRACES/mysql/encrypted.trace %INPUT >> out
+# @TEST-EXEC: zeek -C -b -r $TRACES/mysql/encrypted.pcap %INPUT >> out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/ssl

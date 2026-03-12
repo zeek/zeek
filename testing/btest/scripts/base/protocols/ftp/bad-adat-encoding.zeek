@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/globus-url-copy-bad-encoding.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/globus-url-copy-bad-encoding.pcap %INPUT
 # @TEST-EXEC: btest-diff weird.log
 
 @load base/protocols/ftp

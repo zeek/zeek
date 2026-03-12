@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto dtest.spicy ./dtest.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT | sort >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Test special-casing the mapping of spicy::Protocol to Zeek's transport_proto.

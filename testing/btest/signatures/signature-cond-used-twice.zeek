@@ -1,5 +1,5 @@
 # @TEST-DOC: The function signature_cond is used in two eval's in test.sig should not fail...
-# @TEST-EXEC: unset ZEEK_ALLOW_INIT_ERRORS; zeek -b %INPUT -r $TRACES/http/get.trace
+# @TEST-EXEC: unset ZEEK_ALLOW_INIT_ERRORS; zeek -b %INPUT -r $TRACES/http/get.pcap
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: btest-diff .stdout
 module SignatureEvalTest;

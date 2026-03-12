@@ -31,6 +31,9 @@ Breaking Changes
   or run Zeek in a container environment, you'll now need to explicitly set MetricsAddress
   to 0.0.0.0 (or the appropriate listen address) in zeekctl.cfg.
 
+- The packet captures in the btest Traces library have standardized on .pcap and .pcapng
+  file suffixes. This may cause breakage in plugins that were using the old .trace suffix.
+
 New Functionality
 -----------------
 

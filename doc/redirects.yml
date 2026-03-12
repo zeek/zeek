@@ -132,3 +132,23 @@
   to_url: /advanced/subcomponents.html
 - from_url: /log-formats.html
   to_url: /tutorial/logs.html#zeek-log-formats
+- from_url: /script-reference/scripts.html
+  to_url: /reference/zeekscript/included.html
+- from_url: /script-reference/*
+  to_url: /reference/zeekscript/:splat
+- from_url: /scripting/basics.html
+  to_url: /tutorial/scripting/basics.html
+- from_url: /scripting/conn-id-ctx.html
+  to_url: /advanced/scripting/conn-id-ctx.html
+- from_url: /scripting/event-groups.html
+  to_url: /reference/zeekscript/event-semantics.html#event-groups
+- from_url: /scripting/index.html
+  to_url: /tutorial/scripting/index.html
+- from_url: /scripting/javascript.html
+  to_url: /tutorial/scripting/javascript.html
+- from_url: /scripting/optimization.html
+  to_url: /advanced/scripting/optimization.html
+- from_url: /scripting/tracing-events.html
+  to_url: /reference/zeekscript/event-semantics.html#tracing-events
+- from_url: /scripting/usage.html
+  to_url: /advanced/scripting/usage.html

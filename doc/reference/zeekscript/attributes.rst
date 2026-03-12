@@ -722,6 +722,8 @@ named ``ip``, ``srcp``, ``proto``, and ``msg``:
 &backend
 --------
 
+.. deprecated:: 8.1 This attribute is Broker specific, use :zeek:attr:`&publish_on_change` or the :ref:`Storage Framework <framework-storage>` instead.
+
 Used for persisting tables/sets and/or synchronizing them over a cluster.
 
 This attribute binds a table to a Broker store. Changes to the table
@@ -743,6 +745,8 @@ example, to bind a table to a memory-backed Broker store, use:
 
 &broker_store
 -------------
+
+.. deprecated:: 8.1 This attribute is Broker specific, use :zeek:attr:`&publish_on_change` or the :ref:`Storage Framework <framework-storage>` instead.
 
 This attribute is similar to :zeek:attr:`&backend` in allowing a Zeek table to
 bind to a Broker store. It differs from :zeek:attr:`&backend` as this attribute

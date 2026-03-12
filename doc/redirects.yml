@@ -35,7 +35,6 @@
 - from_url: /projects/package-manager/en/latest/bro-pkg.html
   to_url: /projects/package-manager/en/latest/zkg.html
   type: exact
-  http_status: 302
 - from_url: /scripts/base/bif/bro.bif.zeek.html
   to_url: /scripts/base/bif/zeek.bif.zeek.html
 - from_url: /devel/style_guide.html
@@ -87,7 +86,6 @@
   to_url: /scripting/index.html
 - from_url: /examples/scripting/index.html
   to_url: /scripting/index.html
-  http_status: 302
 - from_url: /examples/httpmonitor/index.html
   to_url: /logs/http.html
 - from_url: /examples/logs/index.html

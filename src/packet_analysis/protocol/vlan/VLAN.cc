@@ -17,18 +17,17 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     }
 
     uint16_t tci = (data[0] << 8u) + data[1];
-    auto vlan_id = tci & 0xfff;
-    auto vlan_pcp = (tci & 0xe000) >> 13;
+    uint16_t vlan_id = tci & 0xfff;
+    uint8_t vlan_pcp = (tci & 0xe000) >> 13;
     bool vlan_dei = (tci & 0x1000) != 0;
-    if ( packet->vlan == 0 ) {
-        packet->vlan = vlan_id;
-        packet->vlan_pcp = vlan_pcp;
-        packet->vlan_dei = vlan_dei;
-    }
+    if ( ! packet->GetVlanTag() )
+        packet->SetVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});
     else {
-        packet->inner_vlan = vlan_id;
-        packet->inner_vlan_pcp = vlan_pcp;
-        packet->inner_vlan_dei = vlan_dei;
+        if ( auto inner = packet->GetInnerVlanTag() )
+            Weird("triple_tagged_vlan_unsupported", packet,
+                  util::fmt("overwrote inner vlan ID of %d with %d", inner->id, vlan_id));
+
+        packet->SetInnerVlanTag({.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei});
     }
 
     // Get the protocol/length field from the last 2 bytes of the header.

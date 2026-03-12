@@ -1,3 +1,11 @@
+8.2.0-dev.369 | 2026-03-12 08:55:28 -0700
+
+  * Fix some std::move reports from Coverity (Tim Wojtulewicz, Corelight)
+
+  * Remove unused argument to Event::Dispatch (Tim Wojtulewicz, Corelight)
+
+    The variable was used in code that was removed in the 8.1 deprecations.
+
 8.2.0-dev.366 | 2026-03-12 08:55:01 -0700
 
   * Rename pcapng traces to .pcapng suffix (Tim Wojtulewicz, Corelight)

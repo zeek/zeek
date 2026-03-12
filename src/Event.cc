@@ -116,10 +116,7 @@ void Event::Describe(ODesc* d) const {
         d->Add("(");
 }
 
-void Event::Dispatch(bool no_remote) {
-    if ( src == util::detail::SOURCE_BROKER )
-        no_remote = true;
-
+void Event::Dispatch() {
     if ( handler->ErrorHandler() )
         reporter->BeginErrorHandler();
 

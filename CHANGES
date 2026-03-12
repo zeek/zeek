@@ -1,3 +1,7 @@
+8.2.0-dev.371 | 2026-03-12 13:09:21 -0400
+
+  * docs: Fix tabs in intel framework example (Evan Typanski)
+
 8.2.0-dev.369 | 2026-03-12 08:55:28 -0700
 
   * Fix some std::move reports from Coverity (Tim Wojtulewicz, Corelight)

@@ -83,7 +83,7 @@
 - from_url: /examples/httpmonitor/index.html
   to_url: /logs/http.html
 - from_url: /examples/logs/index.html
-  to_url: /log-formats.html
+  to_url: /tutorial/logs.html
 - from_url: /cluster/index.html
   to_url: /cluster-setup.html
 - from_url: /quickstart/index.html
@@ -103,7 +103,7 @@
 - from_url: /intro/index.html
   to_url: /about/index.html
 - from_url: /examples/logs
-  to_url: /log-formats.html
+  to_url: /tutorial/logs.html
 - from_url: /configuration
   to_url: /cluster-setup.html#cluster-configuration
 - from_url: /examples
@@ -126,3 +126,5 @@
   to_url: /about/index.html
 - from_url: /components/index.html
   to_url: /advanced/subcomponents.html
+- from_url: /log-formats.html
+  to_url: /tutorial/logs.html#zeek-log-formats

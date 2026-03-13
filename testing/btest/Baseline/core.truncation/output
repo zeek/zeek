@@ -78,5 +78,5 @@ XXXXXXXXXX.XXXXXX	-	-	-	-	-	internally_truncated_header	-	F	zeek	IP
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	invalid_IP_header_size_in_tunnel	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	b100:7265::6904:2aff	0	3bbf:ff00:40:21:ffff:ffff:fffd:f7ff	0	truncated_inner_IP	-	F	zeek	IPTUNNEL
 #close XXXX-XX-XX-XX-XX-XX

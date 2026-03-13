@@ -2,15 +2,19 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <vector>
 
+#ifdef HAVE_BROKER
 namespace zeek {
 class BrokerData;
 class BrokerDataView;
 } // namespace zeek
+#endif
 
 namespace zeek::probabilistic::detail {
 
@@ -91,8 +95,10 @@ public:
      */
     bool Merge(CardinalityCounter* c);
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> Serialize() const;
     static std::unique_ptr<CardinalityCounter> Unserialize(BrokerDataView data);
+#endif
 
 protected:
     /**

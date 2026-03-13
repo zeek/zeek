@@ -104,8 +104,10 @@ function Log::flush_all%(%): any
 	zeek::log_mgr->FlushAll();
 
 	// Account for broker implementing its own buffering logic
+#ifdef HAVE_BROKER
 	if ( zeek::cluster::backend == zeek::broker_mgr )
 		zeek::broker_mgr->FlushLogBuffers();
+#endif
 
 	return nullptr;
 	%}

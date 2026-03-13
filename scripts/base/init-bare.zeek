@@ -6242,7 +6242,7 @@ export {
 	## The event serializer to use by the cluster backend.
 	##
 	## This currently has no effect for backend BROKER.
-	const event_serializer = Cluster::EVENT_SERIALIZER_BROKER_BIN_V1 &redef;
+	const event_serializer = Cluster::EVENT_SERIALIZER_ZEEK_BIN_V1 &redef;
 
 	## The log serializer to use by the backend.
 	##
@@ -6826,6 +6826,10 @@ event net_done(t: time)
 # @run directive to the language whose sole purpose is parse-time code
 # execution would be another idea.
 @if ( __init_primary_bifs() )
+@endif
+
+@if ( have_broker() )
+redef Cluster::event_serializer = Cluster::EVENT_SERIALIZER_BROKER_BIN_V1;
 @endif
 
 @load base/packet-protocols

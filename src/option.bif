@@ -83,6 +83,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		return zeek::val_mgr->False();
 		}
 
+#ifdef HAVE_BROKER
 	if ( same_type(val->GetType(), zeek::Broker::detail::DataVal::ScriptDataType()) )
 		{
 		auto valptr = val->AsRecordVal()->GetField(0);
@@ -100,6 +101,7 @@ function Option::set%(ID: string, val: any, location: string &default=""%): bool
 		auto rval = call_option_handlers_and_set_value(ID, i, std::move(val_from_data), location);
 		return zeek::val_mgr->Bool(rval);
 		}
+#endif
 
 	if ( ! same_type(i->GetType(), val->GetType()) )
 		{

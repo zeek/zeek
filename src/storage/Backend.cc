@@ -4,7 +4,10 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Trigger.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/storage/Manager.h"
 #include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage-events.bif.h"
@@ -279,6 +282,7 @@ void Backend::IncExpiredEntriesMetric(size_t expired) { expired_entries_metric->
 zeek::OpaqueTypePtr detail::backend_opaque;
 IMPLEMENT_OPAQUE_VALUE(detail::BackendHandleVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> detail::BackendHandleVal::DoSerializeData() const {
     // Cannot serialize.
     return std::nullopt;
@@ -288,6 +292,7 @@ bool detail::BackendHandleVal::DoUnserializeData(BrokerDataView) {
     // Cannot unserialize.
     return false;
 }
+#endif
 
 namespace detail {
 

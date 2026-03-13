@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
+
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/store.hh>
@@ -139,3 +143,5 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 broker::backend_options to_backend_options(broker::backend backend, RecordVal* options);
 
 } // namespace zeek::Broker::detail
+
+#endif // HAVE_BROKER

@@ -6,7 +6,9 @@
 #include <limits>
 #include <memory>
 
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/probabilistic/BitVector.h"
 
 namespace zeek::probabilistic::detail {
@@ -138,6 +140,7 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y) {
 
 uint64_t CounterVector::Hash() const { return bits->Hash(); }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> CounterVector::Serialize() const {
     auto b = bits->Serialize();
     if ( ! b )
@@ -169,5 +172,6 @@ std::unique_ptr<CounterVector> CounterVector::Unserialize(BrokerDataView data) {
     cv->bits = bits.release();
     return cv;
 }
+#endif
 
 } // namespace zeek::probabilistic::detail

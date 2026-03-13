@@ -74,8 +74,10 @@ public:
     CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
 
 protected:
+#ifdef HAVE_BROKER
     // Methods related to sending lambdas via Broker.
     std::optional<BrokerData> SerializeCaptures() const override;
+#endif
     void SetCaptures(Frame* f) override;
 
     FuncPtr DoClone() override;

@@ -11,7 +11,7 @@
 # Give the node being started up it's peer name.
 redef peer_description = Cluster::node;
 
-@if ( Cluster::enable_round_robin_logging )
+@if ( Cluster::enable_round_robin_logging && have_broker() )
 redef Broker::log_topic = Cluster::rr_log_topic;
 @endif
 
@@ -60,9 +60,11 @@ redef Cluster::manager_is_logger = F;
 @load ./nodes/worker
 @endif
 
+@if ( have_broker() )
 @pragma push ignore-deprecations
 @load ./broker-stores.zeek
 @pragma pop ignore-deprecations
+@endif
 
 @endif
 @endif

@@ -158,6 +158,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 
 function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	%{
+#ifdef HAVE_BROKER
 	using namespace zeek::cluster::websocket::detail;
 
 	const auto& server_options_type = zeek::id::find_type<zeek::RecordType>("Cluster::WebSocketServerOptions");
@@ -238,6 +239,10 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 
 	auto result = zeek::cluster::manager->ListenWebSocket(server_options);
 	return zeek::val_mgr->Bool(result);
+#else
+	zeek::emit_builtin_error("WebSocket cluster listen requires Broker support");
+	return zeek::val_mgr->False();
+#endif
 	%}
 
 module Cluster::Backend;

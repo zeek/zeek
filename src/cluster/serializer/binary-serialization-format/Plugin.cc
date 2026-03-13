@@ -12,6 +12,9 @@ namespace zeek::plugin::Zeek_Binary_Serializer {
 Plugin plugin;
 
 zeek::plugin::Configuration Plugin::Configure() {
+    AddComponent(new EventSerializerComponent("ZEEK_BIN_V1", []() -> std::unique_ptr<EventSerializer> {
+        return std::make_unique<cluster::detail::BinarySerializationFormatEventSerializer>();
+    }));
     AddComponent(new LogSerializerComponent("ZEEK_BIN_V1", []() -> std::unique_ptr<LogSerializer> {
         return std::make_unique<cluster::detail::BinarySerializationFormatLogSerializer>();
     }));

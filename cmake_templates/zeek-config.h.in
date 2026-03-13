@@ -303,6 +303,9 @@
 	#define ZEEK_DISABLE_TSAN
 #endif
 
+/* Broker communication library support */
+#cmakedefine HAVE_BROKER
+
 /* compiled with Spicy support */
 #cmakedefine HAVE_SPICY
 

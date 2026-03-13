@@ -2,6 +2,8 @@
 
 #include "zeek/Stats.h"
 
+#include "zeek/zeek-config.h"
+
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -18,7 +20,9 @@
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/Trigger.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/input.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
@@ -204,6 +208,7 @@ void ProfileLogger::Log() {
                               s.queue_out_stats.num_writes));
     }
 
+#ifdef HAVE_BROKER
     auto cs = broker_mgr->GetStatistics();
 
     file->Write(
@@ -215,6 +220,7 @@ void ProfileLogger::Log() {
                   run_state::network_time, cs.num_peers, cs.num_stores, cs.num_pending_queries, cs.num_events_incoming,
                   cs.num_events_outgoing, cs.num_logs_incoming, cs.num_logs_outgoing, cs.num_ids_incoming,
                   cs.num_ids_outgoing));
+#endif
 
     if ( expensive ) {
         // Script-level state.

@@ -7,9 +7,13 @@
 #include <map>
 #include <memory>
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/cluster/Component.h"
 #include "zeek/cluster/Serializer.h"
+#ifdef HAVE_BROKER
 #include "zeek/cluster/websocket/WebSocket.h"
+#endif
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek::cluster {
@@ -96,6 +100,7 @@ public:
      */
     plugin::ComponentManager<LogSerializerComponent>& LogSerializers() { return log_serializers; };
 
+#ifdef HAVE_BROKER
     /**
      * Start a WebSocket server for the given address and port pair.
      *
@@ -104,18 +109,21 @@ public:
      * @return True on success, else false.
      */
     bool ListenWebSocket(const websocket::detail::ServerOptions& options);
+#endif
 
 private:
     plugin::ComponentManager<BackendComponent> backends;
     plugin::ComponentManager<EventSerializerComponent> event_serializers;
     plugin::ComponentManager<LogSerializerComponent> log_serializers;
 
+#ifdef HAVE_BROKER
     using WebSocketServerKey = std::pair<std::string, uint16_t>;
     struct WebSocketServerEntry {
         websocket::detail::ServerOptions options;
         std::unique_ptr<websocket::detail::WebSocketServer> server;
     };
     std::map<WebSocketServerKey, WebSocketServerEntry> websocket_servers;
+#endif
 };
 
 // This manager instance only exists for plugins to register components,

@@ -2,7 +2,9 @@
 
 #include "zeek/logging/Manager.h"
 
+#ifdef HAVE_BROKER
 #include <broker/endpoint_info.hh>
+#endif
 #include <functional>
 #include <optional>
 #include <utility>
@@ -18,7 +20,9 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/logging/WriterFrontend.h"
 #include "zeek/logging/logging.bif.h"
@@ -82,9 +86,11 @@ ValPtr LogDelayTokenVal::DoClone(CloneState* state) {
 }
 
 // Delay tokens are only valid on the same worker.
+#ifdef HAVE_BROKER
 std::optional<BrokerData> LogDelayTokenVal::DoSerializeData() const { return std::nullopt; }
 
 bool LogDelayTokenVal::DoUnserializeData(BrokerDataView) { return false; }
+#endif
 
 IMPLEMENT_OPAQUE_VALUE(LogDelayTokenVal)
 
@@ -1970,6 +1976,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
     return true;
 }
 
+#ifdef HAVE_BROKER
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei) {
     auto et = id::find_type("Log::Writer")->AsEnumType();
 
@@ -1990,6 +1997,7 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei) {
         }
     }
 }
+#endif
 
 bool Manager::SetBuf(EnumVal* id, bool enabled) {
     Stream* stream = FindStream(id);

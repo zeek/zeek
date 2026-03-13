@@ -2,15 +2,21 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
 #include <broker/expected.hh>
+#endif
 #include <memory>
 
 #include "zeek/Hash.h"
 
+#ifdef HAVE_BROKER
 namespace zeek {
 class BrokerData;
 class BrokerDataView;
 } // namespace zeek
+#endif
 
 namespace zeek::probabilistic::detail {
 
@@ -107,8 +113,10 @@ public:
      */
     seed_t Seed() const { return seed; }
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> Serialize() const;
     static std::unique_ptr<Hasher> Unserialize(BrokerDataView data);
+#endif
 
 protected:
     Hasher() = default;
@@ -180,8 +188,10 @@ public:
 
     friend bool operator!=(const UHF& x, const UHF& y) { return ! (x == y); }
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> Serialize() const;
     static UHF Unserialize(BrokerDataView data);
+#endif
 
 private:
     static size_t compute_seed(Hasher::seed_t seed);

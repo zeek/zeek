@@ -2,9 +2,11 @@
 
 #include "zeek/file_analysis/analyzer/x509/X509.h"
 
+#ifdef HAVE_BROKER
 #include <broker/data.hh>
 #include <broker/error.hh>
 #include <broker/expected.hh>
+#endif
 #include <openssl/asn1.h>
 #include <openssl/core_names.h>
 #include <openssl/err.h>
@@ -14,7 +16,9 @@
 #include <string>
 
 #include "zeek/Event.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/digest.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
@@ -459,6 +463,7 @@ ValPtr X509Val::DoClone(CloneState* state) {
 
 IMPLEMENT_OPAQUE_VALUE(X509Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> X509Val::DoSerializeData() const {
     unsigned char* buf = nullptr;
     int length = i2d_X509(certificate, &buf);
@@ -482,5 +487,6 @@ bool X509Val::DoUnserializeData(BrokerDataView data) {
     certificate = d2i_X509(nullptr, &opensslbuf, s.size());
     return certificate != nullptr;
 }
+#endif
 
 } // namespace zeek::file_analysis::detail

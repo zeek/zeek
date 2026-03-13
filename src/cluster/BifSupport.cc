@@ -12,7 +12,10 @@
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h" // For publishing to broker_mgr directly.
+#endif
 #include "zeek/cluster/Backend.h"
 
 namespace {
@@ -75,7 +78,9 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
 
 zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     static const auto& cluster_event_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
+#ifdef HAVE_BROKER
     static const auto& broker_event_type = zeek::id::find_type<zeek::RecordType>("Broker::Event");
+#endif
 
     if ( args.empty() ) {
         zeek::emit_builtin_error("no event arguments given");
@@ -104,6 +109,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
 
             return zeek::val_mgr->Bool(zeek::cluster::backend->PublishEvent(topic_str, *ev));
         }
+#ifdef HAVE_BROKER
         else if ( args[0]->GetType() == broker_event_type ) {
             // Handling Broker::Event record type created by Broker::make_event()
             // only works if the backend is broker_mgr!
@@ -118,6 +124,9 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
             return zeek::val_mgr->Bool(zeek::broker_mgr->PublishEvent(std::move(topic_str), args[0]->AsRecordVal()));
         }
         else {
+#else
+        else {
+#endif
             zeek::emit_builtin_error(zeek::util::fmt("Publish of unknown record type '%s'",
                                                      zeek::obj_desc_short(args[0]->GetType()).c_str()));
             return zeek::val_mgr->False();

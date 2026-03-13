@@ -19,6 +19,7 @@
 #include <set>
 
 #include "zeek/Attr.h"
+#include "zeek/OpaqueVal.h"
 #include "zeek/CompHash.h"
 #include "zeek/Conn.h"
 #include "zeek/DFA.h"
@@ -39,9 +40,11 @@
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/ZeekString.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
+#endif
 #include "zeek/cluster/PublishOnChangeState.h"
 #include "zeek/threading/formatters/detail/json.h"
 #include "zeek/val-convert.h"
@@ -1780,6 +1783,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
         change_func = cf->GetExpr();
 
     auto bs = attrs->Find(detail::ATTR_BROKER_STORE);
+#ifdef HAVE_BROKER
     if ( bs && broker_store.empty() ) {
         auto c = eval_in_isolation(bs->GetExpr());
         assert(c);
@@ -1787,6 +1791,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
         broker_store = c->AsStringVal()->AsString()->CheckString();
         broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
     }
+#endif
 }
 
 void TableVal::CheckExpireAttr(detail::AttrTag at) {
@@ -2304,6 +2309,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
 }
 
 void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType type) {
+#ifdef HAVE_BROKER
     if ( broker_store.empty() || ! index )
         return;
 
@@ -2385,6 +2391,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
             "&broker_store attribute of the set/table. Potentially the "
             "Broker::Store has not been initialized before being used.");
     }
+#endif
 }
 
 ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated) {
@@ -4002,6 +4009,17 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
     if ( same_type(v->GetType(), t) )
         return {NewRef{}, v};
 
+#ifdef HAVE_BROKER
+    if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
+        const auto& dv = v->AsRecordVal()->GetField(0);
+
+        if ( ! dv )
+            return nullptr;
+
+        return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
+    }
+#endif
+
     // Allow casting between sets and vectors if the yield types are the same.
     if ( v->GetType()->IsSet() && IsVector(t->Tag()) ) {
         auto set_type = v->GetType<TableType>();
@@ -4048,6 +4066,7 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
         return ret;
     }
 
+#ifdef HAVE_BROKER
     if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
         // Special hack for Broker communication.
         const auto& dv = v->AsRecordVal()->GetField(0);
@@ -4057,6 +4076,7 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
 
         return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
     }
+#endif
 
     // Basic type conversions.
     auto s_tag = v->GetType()->Tag();
@@ -4276,6 +4296,7 @@ bool can_cast_any_to_type(const Val* v, Type* t) {
         return true;
 
     // Allow Broker magic.
+#ifdef HAVE_BROKER
     if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
         const auto& dv = v->AsRecordVal()->GetField(0);
 
@@ -4284,6 +4305,7 @@ bool can_cast_any_to_type(const Val* v, Type* t) {
 
         return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
     }
+#endif
 
     return false;
 }
@@ -4304,11 +4326,13 @@ bool can_cast_type_to_type(const Type* s, Type* t) {
     if ( can_cast_basic_types(s, t) )
         return true;
 
+#ifdef HAVE_BROKER
     if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )
         // As Broker is dynamically typed, we don't know if we will be able
         // to convert the type as intended. We optimistically assume that we
         // will.
         return true;
+#endif
 
     return false;
 }

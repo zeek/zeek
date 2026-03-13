@@ -43,6 +43,7 @@ function Supervisor::node(): Supervisor::NodeConfig
 
 event zeek_init() &priority=10
 	{
+@if ( have_broker() )
 	if ( Supervisor::is_supervisor() && SupervisorControl::enable_listen )
 		{
 		# This may fail, possibly with scheduled retries. Any failures
@@ -52,6 +53,7 @@ event zeek_init() &priority=10
 		}
 
 	Cluster::subscribe(SupervisorControl::topic_prefix);
+@endif
 	}
 
 event SupervisorControl::stop_request()

@@ -17,4 +17,6 @@ zeek_add_subdir_library(
 
 add_subdirectory(backend)
 add_subdirectory(serializer)
-add_subdirectory(websocket)
+if (HAVE_BROKER)
+    add_subdirectory(websocket)
+endif ()

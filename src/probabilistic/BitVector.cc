@@ -7,7 +7,9 @@
 #include <cstring>
 #include <limits>
 
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
@@ -415,6 +417,7 @@ uint64_t BitVector::Hash() const {
     return digest;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> BitVector::Serialize() const {
     BrokerListBuilder builder;
     builder.Reserve(2 + bits.size());
@@ -456,6 +459,7 @@ std::unique_ptr<BitVector> BitVector::Unserialize(BrokerDataView data) {
 
     return bv;
 }
+#endif
 
 BitVector::size_type BitVector::lowest_bit(block_type block) {
     block_type x = block - (block & (block - 1));

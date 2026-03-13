@@ -220,7 +220,9 @@ function rr_log_topic(id: Log::ID, path: string): string
 	if ( rval != "" )
 		return rval;
 
+@if ( have_broker() )
 	rval = Broker::default_log_topic(id, path);
+@endif
 	return rval;
 	}
 

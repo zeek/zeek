@@ -8,7 +8,10 @@
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Options.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/zeek-setup.h"
@@ -90,7 +93,9 @@ namespace zeek::detail {
 
 void fuzzer_cleanup_one_input() {
     run_state::terminating = true;
+#ifdef HAVE_BROKER
     broker_mgr->ClearStores();
+#endif
     file_mgr->Terminate();
     timer_mgr->Expire();
 

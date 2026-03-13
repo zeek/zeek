@@ -6,7 +6,10 @@
 #include <prometheus/family.h>
 
 #include "zeek/OpaqueVal.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 
 namespace zeek {
 
@@ -33,8 +36,10 @@ protected:
     explicit TelemetryVal(const std::shared_ptr<telemetry::Histogram>&);
     explicit TelemetryVal(const std::shared_ptr<telemetry::HistogramFamily>&);
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> DoSerializeData() const override { return std::nullopt; }
     bool DoUnserializeData(BrokerDataView data) override { return false; }
+#endif
 };
 
 template<class Handle>

@@ -82,6 +82,7 @@ option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary." ON)
 option(ZEEK_ENABLE_FUZZERS "Build Zeek fuzzing targets." OFF)
+option(DISABLE_BROKER "Disable building the Broker library and all Broker-dependent components" OFF)
 
 # Enable the UDP packet source on FreeBSD and Linux by default.
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
@@ -559,15 +560,19 @@ endfunction ()
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
     ${PROJECT_SOURCE_DIR}/tools/binpac/lib
-    ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${PROJECT_SOURCE_DIR}/auxil/expected-lite/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/tools/binpac/lib
-    ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
     ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
+
+if (NOT DISABLE_BROKER)
+    add_zeek_dynamic_plugin_build_interface_include_directories(
+        ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
+        ${CMAKE_BINARY_DIR}/auxil/broker/libbroker)
+endif ()
 
 if (MSVC)
     add_zeek_dynamic_plugin_build_interface_include_directories(
@@ -1005,56 +1010,61 @@ if (MSVC)
 endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
-if (Broker_ROOT)
-    find_package(Broker REQUIRED CONFIG)
-    list(APPEND zeekdeps ${BROKER_LIBRARY})
-    set(broker_includes ${BROKER_INCLUDE_DIR})
-    set(ZEEK_HAS_EXTERNAL_BROKER ON)
-    set(ZEEK_HAS_STATIC_BROKER OFF)
-else ()
-    if (ZEEK_SANITIZERS)
-        set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
-    endif ()
-
-    set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-    if (MSVC)
-        set(BUILD_STATIC_BROKER true)
-    endif ()
-
-    if (BUILD_STATIC_BROKER)
-        set(ENABLE_STATIC_ONLY true)
-    endif ()
-
-    # Set linker flags so broker executables/shared libs get the ASan runtime.
-    if (_sanitizer_flags)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
-    endif ()
-
-    add_subdirectory(auxil/broker)
-    set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-    zeek_target_enable_sanitizers(broker)
-
-    if (BUILD_STATIC_BROKER)
-        list(APPEND zeekdeps broker_static)
-    else ()
-        list(APPEND zeekdeps broker)
-    endif ()
-
-    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/libbroker
-                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/libbroker)
-
-    if (BUILD_STATIC_BROKER)
-        set(ZEEK_HAS_STATIC_BROKER ON)
-    else ()
+if (NOT DISABLE_BROKER)
+    if (Broker_ROOT)
+        find_package(Broker REQUIRED CONFIG)
+        list(APPEND zeekdeps ${BROKER_LIBRARY})
+        set(broker_includes ${BROKER_INCLUDE_DIR})
+        set(ZEEK_HAS_EXTERNAL_BROKER ON)
         set(ZEEK_HAS_STATIC_BROKER OFF)
-    endif ()
-    set(ZEEK_HAS_EXTERNAL_BROKER OFF)
+    else ()
+        if (ZEEK_SANITIZERS)
+            set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+        endif ()
 
-    # Tell plugins where to find the Broker CMake package in the source tree. This
-    # variable is picked up in ZeekPluginConfig.cmake.in.
-    set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+        set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+        if (MSVC)
+            set(BUILD_STATIC_BROKER true)
+        endif ()
+
+        if (BUILD_STATIC_BROKER)
+            set(ENABLE_STATIC_ONLY true)
+        endif ()
+
+        # Set linker flags so broker executables/shared libs get the ASan runtime.
+        if (_sanitizer_flags)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
+        endif ()
+
+        add_subdirectory(auxil/broker)
+        set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+        zeek_target_enable_sanitizers(broker)
+
+        if (BUILD_STATIC_BROKER)
+            list(APPEND zeekdeps broker_static)
+        else ()
+            list(APPEND zeekdeps broker)
+        endif ()
+
+        set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/libbroker
+                            ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/libbroker)
+
+        if (BUILD_STATIC_BROKER)
+            set(ZEEK_HAS_STATIC_BROKER ON)
+        else ()
+            set(ZEEK_HAS_STATIC_BROKER OFF)
+        endif ()
+        set(ZEEK_HAS_EXTERNAL_BROKER OFF)
+
+        # Tell plugins where to find the Broker CMake package in the source tree. This
+        # variable is picked up in ZeekPluginConfig.cmake.in.
+        set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+    endif ()
+    set(HAVE_BROKER yes)
+else ()
+    set(HAVE_BROKER no)
 endif ()
 
 if (NOT DISABLE_SPICY)
@@ -1280,6 +1290,11 @@ include(FindCAres)
 include(FindKqueue)
 
 include(FindPrometheusCpp)
+if (DISABLE_BROKER)
+    # prometheus-cpp is normally brought in by broker's static link; link it
+    # directly when broker is disabled.
+    list(APPEND zeekdeps prometheus-cpp::core prometheus-cpp::pull)
+endif ()
 include_directories(BEFORE "auxil/out_ptr/include")
 include_directories(BEFORE "auxil/expected-lite/include")
 
@@ -1680,7 +1695,7 @@ output_summary_bool("jemalloc" ${ENABLE_JEMALLOC})
 message("")
 
 output_summary_line("Cluster backends")
-output_summary_bool("  - Broker" ON)
+output_summary_bool("  - Broker" ${HAVE_BROKER})
 output_summary_bool("  - ZeroMQ" ${ENABLE_CLUSTER_BACKEND_ZEROMQ})
 message("")
 

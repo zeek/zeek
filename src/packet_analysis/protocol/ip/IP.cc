@@ -223,6 +223,9 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     data = packet->ip_hdr->Payload();
     len -= ip_hdr_len;
 
+    if ( packet->ip_hdr->PayloadLen() != 0 && len > packet->ip_hdr->PayloadLen() )
+        len = packet->ip_hdr->PayloadLen();
+
     // Session analysis assumes that the header size stored in the packet does not include the IP
     // header size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the
     // IP header for reporting, and 2) The VXLAN analyzer uses the header position to create the

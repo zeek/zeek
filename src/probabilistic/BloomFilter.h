@@ -5,13 +5,23 @@
 #include <memory>
 #include <string>
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/probabilistic/Hasher.h"
+
+#ifdef HAVE_BROKER
+#include <broker/expected.hh>
+
+namespace broker {
+class data;
+}
 
 namespace zeek {
 class BrokerData;
 class BrokerDataView;
 } // namespace zeek
+#endif
 
 namespace zeek::probabilistic {
 
@@ -102,8 +112,10 @@ public:
      */
     virtual std::string InternalState() const = 0;
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> SerializeData() const;
     static std::unique_ptr<BloomFilter> UnserializeData(BrokerDataView data);
+#endif
 
 protected:
     /**
@@ -118,10 +130,12 @@ protected:
      */
     explicit BloomFilter(const detail::Hasher* hasher);
 
+#ifdef HAVE_BROKER
     virtual broker::expected<broker::data> DoSerialize() const;
     virtual bool DoUnserialize(const broker::data& data);
     virtual std::optional<BrokerData> DoSerializeData() const;
     virtual bool DoUnserializeData(BrokerDataView data);
+#endif
     virtual BloomFilterType Type() const = 0;
 
     const detail::Hasher* hasher;
@@ -200,8 +214,10 @@ protected:
     void Add(const zeek::detail::HashKey* key) override;
     bool Decrement(const zeek::detail::HashKey* key) override;
     size_t Count(const zeek::detail::HashKey* key) const override;
+#ifdef HAVE_BROKER
     std::optional<BrokerData> DoSerializeData() const override;
     bool DoUnserializeData(BrokerDataView data) override;
+#endif
     BloomFilterType Type() const override { return BloomFilterType::Basic; }
 
 private:
@@ -263,8 +279,10 @@ protected:
     void Add(const zeek::detail::HashKey* key) override;
     bool Decrement(const zeek::detail::HashKey* key) override;
     size_t Count(const zeek::detail::HashKey* key) const override;
+#ifdef HAVE_BROKER
     std::optional<BrokerData> DoSerializeData() const override;
     bool DoUnserializeData(BrokerDataView data) override;
+#endif
     BloomFilterType Type() const override { return BloomFilterType::Counting; }
 
 private:

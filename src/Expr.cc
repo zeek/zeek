@@ -20,7 +20,10 @@
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
 #include "zeek/Type.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/module_util.h"
 #include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"
@@ -4802,8 +4805,10 @@ ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error) {
     t->Describe(&d);
     d.Add("'");
 
+#ifdef HAVE_BROKER
     if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) && ! v->AsRecordVal()->HasField(0) )
         d.Add(" (nil $data field)");
+#endif
 
     error = d.Description();
     return nullptr;

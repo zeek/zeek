@@ -8,7 +8,9 @@
 #include <numbers>
 
 #include "zeek/Reporter.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/probabilistic/CounterVector.h"
 #include "zeek/util.h"
 
@@ -20,6 +22,7 @@ BloomFilter::BloomFilter(const detail::Hasher* arg_hasher) { hasher = arg_hasher
 
 BloomFilter::~BloomFilter() { delete hasher; }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> BloomFilter::SerializeData() const {
     auto h = hasher->Serialize();
 
@@ -85,6 +88,7 @@ std::optional<BrokerData> BloomFilter::DoSerializeData() const {
 bool BloomFilter::DoUnserializeData(BrokerDataView data) {
     return DoUnserialize(zeek::detail::BrokerDataAccess::Unbox(data));
 }
+#endif
 
 size_t BasicBloomFilter::M(double fp, size_t capacity) {
     double ln2 = std::numbers::ln2;
@@ -185,6 +189,7 @@ size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return 1;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> BasicBloomFilter::DoSerializeData() const { return bits->Serialize(); }
 
 bool BasicBloomFilter::DoUnserializeData(BrokerDataView data) {
@@ -195,6 +200,7 @@ bool BasicBloomFilter::DoUnserializeData(BrokerDataView data) {
     bits = b.release();
     return true;
 }
+#endif
 
 CountingBloomFilter::CountingBloomFilter() { cells = nullptr; }
 
@@ -299,6 +305,7 @@ size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return min;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> CountingBloomFilter::DoSerializeData() const { return cells->Serialize(); }
 
 bool CountingBloomFilter::DoUnserializeData(BrokerDataView data) {
@@ -309,5 +316,6 @@ bool CountingBloomFilter::DoUnserializeData(BrokerDataView data) {
     cells = c.release();
     return true;
 }
+#endif
 
 } // namespace zeek::probabilistic

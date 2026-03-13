@@ -2,12 +2,16 @@
 
 #include "zeek/probabilistic/Topk.h"
 
+#ifdef HAVE_BROKER
 #include <broker/error.hh>
+#endif
 
 #include "zeek/CompHash.h"
 #include "zeek/Dict.h"
 #include "zeek/Reporter.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 
 namespace zeek::probabilistic::detail {
 
@@ -359,6 +363,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count) {
 
 IMPLEMENT_OPAQUE_VALUE(TopkVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> TopkVal::DoSerializeData() const {
     BrokerListBuilder builder;
     builder.Reserve(8);
@@ -483,5 +488,6 @@ bool TopkVal::DoUnserializeData(BrokerDataView data) {
 
     return true;
 }
+#endif
 
 } // namespace zeek::probabilistic::detail

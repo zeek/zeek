@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
+
 #include <cassert>
 #include <concepts>
 #include <memory>
@@ -681,3 +685,5 @@ public:
 };
 
 } // namespace zeek::detail
+
+#endif // HAVE_BROKER

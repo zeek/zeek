@@ -4,6 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
+#ifdef HAVE_BROKER
+
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
@@ -514,3 +516,5 @@ private:
 ZEEK_EXTERN_DATA Broker::Manager* broker_mgr;
 
 } // namespace zeek
+
+#endif // HAVE_BROKER

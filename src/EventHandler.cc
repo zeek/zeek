@@ -2,14 +2,18 @@
 
 #include "zeek/EventHandler.h"
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Scope.h"
 #include "zeek/Var.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/telemetry/Manager.h"
 
 namespace zeek {

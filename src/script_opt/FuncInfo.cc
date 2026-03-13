@@ -329,6 +329,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"gsub", ATTR_FOLDABLE},
     {"has_event_group", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"has_module_events", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"have_broker", ATTR_IDEMPOTENT},
     {"have_spicy", ATTR_IDEMPOTENT},
     {"have_spicy_analyzers", ATTR_IDEMPOTENT},
     {"haversine_distance", ATTR_FOLDABLE},

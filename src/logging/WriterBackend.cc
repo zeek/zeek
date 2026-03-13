@@ -2,7 +2,10 @@
 
 #include "zeek/logging/WriterBackend.h"
 
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include <broker/data.hh>
+#endif
 #include <span>
 
 #include "zeek/logging/Manager.h"
@@ -59,6 +62,7 @@ public:
 
 // Backend methods.
 
+#ifdef HAVE_BROKER
 broker::data WriterBackend::WriterInfo::ToBroker() const {
     auto t = broker::table();
 
@@ -105,6 +109,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d) {
 
     return true;
 }
+#endif
 
 WriterBackend::WriterBackend(WriterFrontend* arg_frontend, bool arg_send_heartbeats) : MsgThread() {
     num_fields = 0;

@@ -2,10 +2,15 @@
 
 #include "zeek/Timer.h"
 
+#include "zeek/zeek-config.h"
+
+#include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
@@ -81,7 +86,9 @@ int TimerMgr::Advance(double arg_t, int max_expire) {
     last_timestamp = 0;
     num_expired = 0;
     last_advance = timer_mgr->Time();
+#ifdef HAVE_BROKER
     broker_mgr->AdvanceTime(arg_t);
+#endif
 
     return DoAdvance(t, max_expire);
 }

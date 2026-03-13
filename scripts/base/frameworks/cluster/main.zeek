@@ -16,7 +16,9 @@
 ##!     introduce circular loading issues.
 
 @load base/frameworks/control
+@if ( have_broker() )
 @load base/frameworks/broker
+@endif
 
 @load ./types
 
@@ -67,6 +69,7 @@ export {
 	## node".
 	const default_master_node = "" &redef;
 
+@if ( have_broker() )
 	## The type of data store backend that will be used for all data stores if
 	## no other has already been specified by the user in :zeek:see:`Cluster::stores`.
 	const default_backend = Broker::MEMORY &redef;
@@ -130,6 +133,7 @@ export {
 	##          be set until the node containing the master store has connected.
 	global create_store: function(name: string, persistent: bool &default=F): StoreInfo
 	&deprecated="Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated. To distribute state across cluster nodes, use the new &publish_on_change attribute for global sets/tables, or leverage explicit remote events with Cluster::publish(). For state persistence, use the storage framework.";
+@endif
 
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };
@@ -198,10 +202,14 @@ export {
 
 	## Function returning this node's identifier.
 	##
-	## By default this is :zeek:see:`Broker::node_id`, but can be
-	## redefined by other cluster backends. This identifier should be
+	## By default this is :zeek:see:`Broker::node_id` (if Broker is available),
+	## but can be redefined by other cluster backends. This identifier should be
 	## a short lived identifier that resets when a node is restarted.
+@if ( have_broker() )
 	global node_id: function(): string = Broker::node_id &redef;
+@else
+	global node_id: function(): string &redef;
+@endif
 
 	## Interval for retrying failed connections between cluster nodes.
 	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
@@ -276,7 +284,9 @@ export {
 }
 
 @load base/bif/cluster.bif
+@if ( have_broker() )
 @load base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
+@endif
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
@@ -428,6 +438,7 @@ event zeek_init() &priority=5
 	Log::create_stream(Cluster::LOG, Log::Stream($columns=Info, $path="cluster", $policy=log_policy));
 	}
 
+@if ( have_broker() )
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
 	{
 	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER && Cluster::backend != Cluster::CLUSTER_BACKEND_NONE )
@@ -511,6 +522,7 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 	Cluster::log(fmt("created clone store: %s", info$name));
 	return info;
 	}
+@endif
 
 function log(msg: string)
 	{
@@ -527,6 +539,7 @@ function listen_websocket(options: WebSocketServerOptions): bool
 	return Cluster::__listen_websocket(options);
 	}
 
+@if ( have_broker() )
 function format_endpoint_info(ei: EndpointInfo): string
 	{
 	local s = fmt("'%s' (%s:%d)", ei$id, ei$network$address, ei$network$bound_port);
@@ -549,6 +562,7 @@ event websocket_client_lost(endpoint: EndpointInfo, code: count, reason: string)
 	                |reason| > 0 ? fmt(" and reason '%s'", reason) : "");
 	Cluster::log(msg);
 	}
+@endif
 
 # If a backend reports an error, propagate it via a reporter error message.
 event Cluster::Backend::error(tag: string, message: string)

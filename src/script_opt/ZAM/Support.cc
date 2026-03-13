@@ -10,7 +10,10 @@
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/file_analysis.bif.h"
 #include "zeek/logging/Manager.h"
@@ -28,7 +31,11 @@ TypePtr any_base_type = base_type(TYPE_ANY);
 
 bool log_mgr_write(zeek::EnumVal* v, zeek::RecordVal* r) { return zeek::log_mgr->Write(v, r); }
 
+#ifdef HAVE_BROKER
 size_t broker_mgr_flush_log_buffers() { return zeek::broker_mgr->FlushLogBuffers(); }
+#else
+size_t broker_mgr_flush_log_buffers() { return 0; }
+#endif
 
 zeek::Connection* session_mgr_find_connection(zeek::Val* cid) { return zeek::session_mgr->FindConnection(cid); }
 

@@ -5,7 +5,10 @@
 #include <string_view>
 
 #include "zeek/Desc.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 
 namespace zeek::detail {
 
@@ -43,6 +46,7 @@ CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
     l_body = std::move(_l_body);
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> CPPLambdaFunc::SerializeCaptures() const {
     using namespace std::literals;
 
@@ -67,6 +71,7 @@ std::optional<BrokerData> CPPLambdaFunc::SerializeCaptures() const {
     builder.Add(std::move(body));
     return std::move(builder).Build();
 }
+#endif
 
 void CPPLambdaFunc::SetCaptures(Frame* f) { l_body->SetLambdaCaptures(f); }
 

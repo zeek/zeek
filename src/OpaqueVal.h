@@ -6,7 +6,11 @@
 #include <unistd.h>
 #endif
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
 #include <broker/expected.hh>
+#endif
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
 #include <optional>
@@ -16,6 +20,7 @@
 #include "zeek/Val.h"
 #include "zeek/digest.h"
 
+#ifdef HAVE_BROKER
 namespace broker {
 class data;
 }
@@ -25,6 +30,9 @@ namespace zeek {
 class BrokerData;
 class BrokerDataView;
 class BrokerListView;
+#else
+namespace zeek {
+#endif
 
 namespace probabilistic {
 class BloomFilter;
@@ -94,6 +102,7 @@ private:
  * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
  * DoSerializeData and DoUnserializeData.
  */
+#ifdef HAVE_BROKER
 #define DECLARE_OPAQUE_VALUE_DATA(T)                                                                                   \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
@@ -101,6 +110,13 @@ private:
     bool DoUnserializeData(zeek::BrokerDataView data) override;                                                        \
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+#else
+#define DECLARE_OPAQUE_VALUE_DATA(T)                                                                                   \
+    friend class zeek::OpaqueMgr::Register<T>;                                                                         \
+    friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
+    const char* OpaqueName() const override { return #T; }                                                             \
+    static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+#endif
 
 
 #define __OPAQUE_MERGE(a, b) a##b
@@ -120,6 +136,7 @@ class OpaqueVal : public Val {
 public:
     explicit OpaqueVal(OpaqueTypePtr t);
 
+#ifdef HAVE_BROKER
     /**
      * @copydoc Serialize
      */
@@ -134,11 +151,13 @@ public:
      * @copydoc Unserialize
      */
     static OpaqueValPtr UnserializeData(BrokerListView data);
+#endif
 
 protected:
     friend class Val;
     friend class OpaqueMgr;
 
+#ifdef HAVE_BROKER
     /**
      * Must be overridden to provide a serialized version of the derived
      * class' state.
@@ -155,6 +174,7 @@ protected:
      * @return true if successful.
      */
     virtual bool DoUnserializeData(BrokerDataView data);
+#endif
 
     /**
      * Internal helper for the serialization machinery. Automatically
@@ -170,6 +190,7 @@ protected:
      */
     ValPtr DoClone(CloneState* state) override;
 
+#ifdef HAVE_BROKER
     /**
      * Helper function for derived class that need to record a type
      * during serialization.
@@ -181,6 +202,7 @@ protected:
      * during unserialization. Returns the type at reference count +1.
      */
     static TypePtr UnserializeType(BrokerDataView data);
+#endif
 
     void ValDescribe(ODesc* d) const override;
     void ValDescribeReST(ODesc* d) const override;

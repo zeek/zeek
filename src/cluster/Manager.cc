@@ -9,17 +9,21 @@
 #include "zeek/Scope.h"
 #include "zeek/Traverse.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/cluster/websocket/WebSocket.h"
+#endif
 #include "zeek/util.h"
 
 using namespace zeek::cluster;
 
 void detail::report_non_functional_broker_tables(const zeek::EnumValPtr& cluster_backend_val) {
     auto none_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_NONE");
-    auto broker_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
-
     assert(cluster_backend_val != none_backend_val);
+#ifdef HAVE_BROKER
+    auto broker_backend_val = zeek::id::find_val<zeek::EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
     assert(cluster_backend_val != broker_backend_val);
+#endif
 
     const auto& globals = zeek::detail::global_scope()->Vars();
     std::string x509_known_log_certs_with_broker = "X509::known_log_certs_with_broker";
@@ -58,8 +62,10 @@ Manager::Manager()
 Manager::~Manager() = default;
 
 void Manager::Terminate() {
+#ifdef HAVE_BROKER
     for ( const auto& [_, entry] : websocket_servers )
         entry.server->Terminate();
+#endif
 }
 
 std::unique_ptr<Backend> Manager::InstantiateBackend(
@@ -82,6 +88,7 @@ std::unique_ptr<LogSerializer> Manager::InstantiateLogSerializer(const zeek::Enu
     return c ? c->Factory()() : nullptr;
 }
 
+#ifdef HAVE_BROKER
 bool Manager::ListenWebSocket(const websocket::detail::ServerOptions& options) {
     WebSocketServerKey key{options.host, options.port};
 
@@ -106,3 +113,4 @@ bool Manager::ListenWebSocket(const websocket::detail::ServerOptions& options) {
     websocket_servers.insert({key, WebSocketServerEntry{options, std::move(server)}});
     return true;
 }
+#endif

@@ -3,7 +3,9 @@
 # call BIFs for variable initializations, and that can't be done
 # until init-bare.zeek has been loaded completely (hence this separate file).
 @load base/frameworks/logging
+@if ( have_broker() )
 @load base/frameworks/broker
+@endif
 @load base/frameworks/supervisor
 @load base/frameworks/input
 @load base/frameworks/cluster

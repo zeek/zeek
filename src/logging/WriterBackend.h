@@ -4,15 +4,18 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
 #include <span>
 
 #include "zeek/logging/Component.h"
 #include "zeek/logging/Types.h"
 #include "zeek/threading/MsgThread.h"
 
+#ifdef HAVE_BROKER
 namespace broker {
 class data;
 }
+#endif
 
 namespace zeek::logging {
 
@@ -126,8 +129,10 @@ public:
 
         // Note, these need to be adapted when changing the struct's
         // fields. They serialize/deserialize the struct.
+#ifdef HAVE_BROKER
         broker::data ToBroker() const;
         bool FromBroker(broker::data d);
+#endif
 
         const WriterInfo& operator=(const WriterInfo& other) = delete;
     };

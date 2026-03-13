@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
+
 #include <broker/endpoint.hh>
 #include <broker/zeek.hh> // for ProcessMessage()
 #include <memory>
@@ -84,3 +88,5 @@ private:
 };
 
 } // namespace zeek::Broker
+
+#endif // HAVE_BROKER

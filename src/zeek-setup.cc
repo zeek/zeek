@@ -52,7 +52,9 @@
 #include "zeek/Trigger.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/Manager.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/PublishOnChangeState.h"
@@ -126,7 +128,9 @@ zeek::input::Manager* zeek::input_mgr = nullptr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
+#ifdef HAVE_BROKER
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
+#endif
 zeek::telemetry::Manager* zeek::telemetry_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
@@ -345,9 +349,13 @@ static void terminate_zeek() {
 
     thread_mgr->Terminate();
 
+#ifdef HAVE_BROKER
     broker_mgr->Terminate();
     if ( cluster::backend != broker_mgr )
         cluster::backend->Terminate();
+#else
+    cluster::backend->Terminate();
+#endif
 
     telemetry_mgr->Terminate();
 
@@ -667,10 +675,12 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     file_mgr->InitPreScript();
     zeekygen_mgr->InitPreScript();
 
+#ifdef HAVE_BROKER
     // Needs the "broker plugin" loaded during plugin_mgr->InitPreScript()
     // before Broker::Manager can be instantiated.
     auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
     broker_mgr = new Broker::Manager(broker_real_time);
+#endif
 
     // This has to happen before ActivateDynamicPlugin() below or the list of plugins in the
     // manager will be missing the plugins we want to try to add to the path.
@@ -710,15 +720,14 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     histogram_metric_family_type = make_intrusive<OpaqueType>("histogram_metric_family");
     log_delay_token_type = make_intrusive<OpaqueType>("LogDelayToken");
 
-    // After spinning up Broker, we have background threads running now. If
-    // we exit early, we need to shut down at least Broker to get a clean
-    // program exit. Otherwise, we may run into undefined behavior, e.g., if
-    // Broker is still accessing OpenSSL but OpenSSL has already cleaned up
-    // its state due to calling exit(). This needs to be defined here before
-    // potential USE_PERFTOOLS_DEBUG scope below or the definition gets lost
-    // when that variable is defined.
+    // After spinning up Broker (if enabled), we may have background threads
+    // running. If we exit early, we need to shut down cleanly.
+    // This needs to be defined here before potential USE_PERFTOOLS_DEBUG
+    // scope below or the definition gets lost when that variable is defined.
     auto early_shutdown = [] {
+#ifdef HAVE_BROKER
         broker_mgr->Terminate();
+#endif
         telemetry_mgr->Terminate();
         delete iosource_mgr;
         delete telemetry_mgr;
@@ -818,12 +827,14 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // implementation, instantiate it.
         const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
         const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
-        zeek_int_t cluster_backend_broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
         zeek_int_t cluster_backend_none_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_NONE");
+#ifdef HAVE_BROKER
+        zeek_int_t cluster_backend_broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
         if ( cluster_backend_broker_enum == cluster_backend_val->AsEnum() ) {
             cluster::backend = broker_mgr;
         }
         else {
+#endif
             const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
             auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
             if ( ! event_serializer ) {
@@ -853,10 +864,13 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             }
 
             cluster::backend = backend.release();
+#ifdef HAVE_BROKER
         }
+#endif
 
         cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
+#ifdef HAVE_BROKER
         broker_mgr->InitPostScript();
         if ( cluster::backend != broker_mgr ) {
             cluster::backend->InitPostScript();
@@ -868,6 +882,16 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
                 cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
             }
         }
+#else
+        cluster::backend->InitPostScript();
+
+        if ( cluster_backend_none_enum != cluster_backend_val->AsEnum() ) {
+            // We're running with a non-Broker and non-None backend,
+            // check for all global tables with &backend or &broker_store
+            // and report them as non-functional.
+            cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
+        }
+#endif
 
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();

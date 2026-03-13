@@ -8,8 +8,11 @@
 
 #include "zeek/OpaqueVal.h"
 
+#ifdef HAVE_BROKER
 #include <broker/data.hh>
 #include <broker/error.hh>
+#endif
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <paraglob/exceptions.h>
@@ -20,7 +23,9 @@
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Var.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/digest.h"
 #include "zeek/probabilistic/BloomFilter.h"
 #include "zeek/probabilistic/CardinalityCounter.h"
@@ -28,6 +33,7 @@
 
 namespace zeek {
 
+#ifdef HAVE_BROKER
 // Helper to retrieve a broker count out of a list at a specified index, and
 // casted to the expected destination type.
 template<typename V, typename D>
@@ -38,6 +44,7 @@ bool get_vector_idx_if_count(V& v, size_t i, D* dst) {
     *dst = static_cast<D>(v[i].ToCount());
     return true;
 }
+#endif
 
 OpaqueMgr* OpaqueMgr::mgr() {
     static OpaqueMgr mgr;
@@ -60,6 +67,7 @@ OpaqueValPtr OpaqueMgr::Instantiate(const std::string& id) const {
     return x != _types.end() ? (*x->second)() : nullptr;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> OpaqueVal::SerializeData() const {
     auto type = OpaqueMgr::mgr()->TypeID(this);
 
@@ -150,14 +158,19 @@ TypePtr OpaqueVal::UnserializeType(BrokerDataView data) {
 
     return base_type(static_cast<TypeTag>(v[1].ToCount()));
 }
+#endif
 
 ValPtr OpaqueVal::DoClone(CloneState* state) {
+#ifdef HAVE_BROKER
     auto d = OpaqueVal::SerializeData();
     if ( ! d )
         return nullptr;
 
     auto rval = OpaqueVal::UnserializeData(d->AsView());
     return state->NewClone(this, std::move(rval));
+#else
+    return nullptr;
+#endif
 }
 
 void OpaqueVal::ValDescribe(ODesc* d) const { d->Add(util::fmt("<opaque of %s>", OpaqueName())); }
@@ -410,6 +423,7 @@ StringValPtr MD5Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(MD5Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> MD5Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -449,6 +463,7 @@ bool MD5Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 SHA1Val::SHA1Val() : HashVal(sha1_type) {}
 
@@ -492,6 +507,7 @@ StringValPtr SHA1Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA1Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> SHA1Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -532,6 +548,7 @@ bool SHA1Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 SHA224Val::SHA224Val() : HashVal(sha224_type) {}
 
@@ -578,6 +595,7 @@ StringValPtr SHA224Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA224Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> SHA224Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -617,6 +635,7 @@ bool SHA224Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 SHA256Val::SHA256Val() : HashVal(sha256_type) {}
 
@@ -663,6 +682,7 @@ StringValPtr SHA256Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA256Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> SHA256Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -702,6 +722,7 @@ bool SHA256Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 SHA384Val::SHA384Val() : HashVal(sha384_type) {}
 
@@ -748,6 +769,7 @@ StringValPtr SHA384Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA384Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> SHA384Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -787,6 +809,7 @@ bool SHA384Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 SHA512Val::SHA512Val() : HashVal(sha512_type) {}
 
@@ -833,6 +856,7 @@ StringValPtr SHA512Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA512Val)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> SHA512Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -872,6 +896,7 @@ bool SHA512Val::DoUnserializeData(BrokerDataView data) {
     do_unserialize(ctx, s.data(), s.size());
     return true;
 }
+#endif
 
 EntropyVal::EntropyVal() : OpaqueVal(entropy_type) {}
 
@@ -887,6 +912,7 @@ bool EntropyVal::Get(double* r_ent, double* r_chisq, double* r_mean, double* r_m
 
 IMPLEMENT_OPAQUE_VALUE(EntropyVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> EntropyVal::DoSerializeData() const {
     constexpr size_t numMembers = 14; // RandTest has 14 non-array members.
 
@@ -966,6 +992,7 @@ bool EntropyVal::DoUnserializeData(BrokerDataView data) {
 
     return true;
 }
+#endif
 
 BloomFilterVal::BloomFilterVal() : OpaqueVal(bloomfilter_type) {
     hash = nullptr;
@@ -1095,6 +1122,7 @@ BloomFilterVal::~BloomFilterVal() {
 
 IMPLEMENT_OPAQUE_VALUE(BloomFilterVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> BloomFilterVal::DoSerializeData() const {
     BrokerListBuilder builder;
 
@@ -1139,6 +1167,7 @@ bool BloomFilterVal::DoUnserializeData(BrokerDataView data) {
     bloom_filter = bf.release();
     return true;
 }
+#endif
 
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type) {
     c = nullptr;
@@ -1179,6 +1208,7 @@ void CardinalityVal::Add(const Val* val) {
 
 IMPLEMENT_OPAQUE_VALUE(CardinalityVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> CardinalityVal::DoSerializeData() const {
     BrokerListBuilder builder;
     builder.Reserve(2);
@@ -1224,6 +1254,7 @@ bool CardinalityVal::DoUnserializeData(BrokerDataView data) {
     c = cu.release();
     return true;
 }
+#endif
 
 ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p) : OpaqueVal(paraglob_type) {
     this->internal_paraglob = std::move(p);
@@ -1246,6 +1277,7 @@ bool ParaglobVal::operator==(const ParaglobVal& other) const {
 
 IMPLEMENT_OPAQUE_VALUE(ParaglobVal)
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> ParaglobVal::DoSerializeData() const {
     std::unique_ptr<std::vector<uint8_t>> iv = this->internal_paraglob->serialize();
     BrokerListBuilder builder;
@@ -1281,6 +1313,7 @@ bool ParaglobVal::DoUnserializeData(BrokerDataView data) {
 
     return true;
 }
+#endif
 
 ValPtr ParaglobVal::DoClone(CloneState* state) {
     try {

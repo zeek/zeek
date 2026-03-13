@@ -145,9 +145,11 @@ export {
 	const default_max_total_container_elements = 1500 &redef;
 }
 
+@if ( have_broker() )
 @pragma push ignore-deprecations
 global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
 @pragma pop
+@endif
 
 redef record Files::Info += {
 	## Information about X509 certificates. This is used to keep
@@ -188,7 +190,7 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
 
-@if ( Cluster::is_enabled() )
+@if ( Cluster::is_enabled() && have_broker() )
 @pragma push ignore-deprecations
 	if ( known_log_certs_use_broker && ! known_log_certs_enable_publish )
 		known_log_certs = known_log_certs_with_broker;

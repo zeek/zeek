@@ -17,9 +17,11 @@
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/telemetry/Manager.h"
 
+#ifdef HAVE_BROKER
 namespace broker {
 struct endpoint_info;
 }
+#endif
 
 namespace zeek {
 
@@ -313,10 +315,12 @@ public:
      */
     bool WriteBatchFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records);
 
+#ifdef HAVE_BROKER
     /**
      * Announces all instantiated writers to a given Broker peer.
      */
     void SendAllWritersTo(const broker::endpoint_info& ei);
+#endif
 
     /**
      * Sets log streams buffering state. This adjusts all associated

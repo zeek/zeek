@@ -43,8 +43,12 @@ event table_change_infos(tcheader: TableChangeHeader, tcinfos: TableChangeInfos)
 	# should only be used with Broker.
 	if ( tcheader$node_id == Cluster::node_id() )
 		{
+@if ( have_broker() )
 		if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
 			Reporter::warning("Got table_change_infos() event from self");
+@else
+		Reporter::warning("Got table_change_infos() event from self");
+@endif
 
 		return;
 		}
@@ -80,8 +84,12 @@ hook Cluster::on_subscribe(topic: string)
 #      for Broker. If you find this is your bottleneck, consider trying ZeroMQ.
 event forward_table_change_infos(tcheader: TableChangeHeader, tcinfos: TableChangeInfos, to_topic: string)
 	{
+@if ( have_broker() )
 	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
 		Reporter::fatal(fmt("forward_table_change_infos unexpected for %s", Cluster::backend));
+@else
+	Reporter::fatal(fmt("forward_table_change_infos unexpected for %s", Cluster::backend));
+@endif
 
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		Reporter::fatal(fmt("%s got unexpected event forward_table_change_infos to=%s id=%s)",
@@ -108,7 +116,9 @@ event zeek_init()
 	local topic = join_string_vec(vector("zeek", "table", ""), topic_separator);
 	Cluster::subscribe(topic);
 
+@if ( have_broker() )
 	# If Broker is enabled and this is a worker, send changes through the manager.
 	if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER && Cluster::local_node_type() == Cluster::WORKER )
 		set_table_change_infos_forward_topic(Cluster::manager_topic);
+@endif
 	}

@@ -26,6 +26,18 @@ extern Plugin plugin;
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SERIALIZER_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Zeek_Binary_Serializer::plugin, __VA_ARGS__)
 
+bool detail::BinarySerializationFormatEventSerializer::SerializeEvent(byte_buffer& buf,
+                                                                      const cluster::Event& event) {
+    reporter->Error("BinarySerializationFormatEventSerializer: event serialization not implemented");
+    return false;
+}
+
+std::optional<zeek::cluster::Event> detail::BinarySerializationFormatEventSerializer::UnserializeEvent(
+    byte_buffer_span buf) {
+    reporter->Error("BinarySerializationFormatEventSerializer: event unserialization not implemented");
+    return std::nullopt;
+}
+
 bool detail::BinarySerializationFormatLogSerializer::SerializeLogWrite(byte_buffer& buf,
                                                                        const logging::detail::LogWriteHeader& header,
                                                                        std::span<logging::detail::LogRecord> records) {

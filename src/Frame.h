@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "zeek/zeek-config.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/Type.h"
@@ -18,8 +19,10 @@ namespace zeek {
 
 using ValPtr = IntrusivePtr<Val>;
 
+#ifdef HAVE_BROKER
 class BrokerListView;
 class BrokerData;
+#endif
 class Func;
 
 namespace detail {
@@ -171,6 +174,7 @@ public:
      * sequence of two-element vectors, the first element reflecting
      * the frame value, the second its type.
      */
+#ifdef HAVE_BROKER
     std::optional<BrokerData> Serialize();
 
     /**
@@ -181,6 +185,7 @@ public:
      * null if the serialization wasn't successful.
      */
     static std::pair<bool, FramePtr> Unserialize(BrokerListView data);
+#endif
 
     // If the frame is run in the context of a trigger condition evaluation,
     // the trigger needs to be registered.

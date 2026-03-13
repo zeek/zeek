@@ -4,7 +4,9 @@
 ##! That is, it may change in various incompatible ways without warning or
 ##! deprecation until the stable 4.0.0 release.
 
+@if ( have_broker() )
 @load base/frameworks/broker
+@endif
 @load ./api
 
 module SupervisorControl;

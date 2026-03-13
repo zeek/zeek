@@ -6007,6 +6007,16 @@ function has_module_events%(group: string%) : bool
 	return has_event_group(zeek::EventGroupKind::Module, group->CheckString());
 	%}
 
+## Returns true if Zeek was built with Broker support (the default).
+function have_broker%(%) : bool
+	%{
+#ifdef HAVE_BROKER
+	return true;
+#else
+	return false;
+#endif
+	%}
+
 ## Returns true if Zeek was built with support for using Spicy analyzers (which
 ## is the default).
 function have_spicy%(%) : bool

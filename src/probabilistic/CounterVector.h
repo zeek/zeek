@@ -2,15 +2,19 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
 
+#ifdef HAVE_BROKER
 namespace zeek {
 class BrokerData;
 class BrokerDataView;
 } // namespace zeek
+#endif
 
 namespace zeek::probabilistic::detail {
 
@@ -150,8 +154,10 @@ public:
      */
     uint64_t Hash() const;
 
+#ifdef HAVE_BROKER
     std::optional<BrokerData> Serialize() const;
     static std::unique_ptr<CounterVector> Unserialize(BrokerDataView data);
+#endif
 
 protected:
     friend CounterVector operator|(const CounterVector& x, const CounterVector& y);

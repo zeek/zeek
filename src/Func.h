@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "zeek/zeek-config.h"
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
 #include "zeek/StmtBase.h"
@@ -31,8 +32,10 @@ namespace zeek {
 
 class Val;
 class FuncType;
+#ifdef HAVE_BROKER
 class BrokerData;
 class BrokerListView;
+#endif
 
 namespace detail {
 
@@ -252,6 +255,7 @@ public:
      *
      * @return a serialized version of the function's capture frame.
      */
+#ifdef HAVE_BROKER
     virtual std::optional<BrokerData> SerializeCaptures() const;
 
     /**
@@ -260,6 +264,7 @@ public:
      * @param data a serialized frame
      */
     bool DeserializeCaptures(BrokerListView data);
+#endif
 
     using Func::AddBody;
 

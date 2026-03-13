@@ -436,6 +436,7 @@ function get_broker_stats%(%): BrokerStats
 	auto r = zeek::make_intrusive<zeek::RecordVal>(BrokerStats);
 	int n = 0;
 
+#ifdef HAVE_BROKER
 	auto cs = broker_mgr->GetStatistics();
 	r->Assign(n++, static_cast<uint64_t>(cs.num_peers));
 	r->Assign(n++, static_cast<uint64_t>(cs.num_stores));
@@ -446,6 +447,11 @@ function get_broker_stats%(%): BrokerStats
 	r->Assign(n++, static_cast<uint64_t>(cs.num_logs_outgoing));
 	r->Assign(n++, static_cast<uint64_t>(cs.num_ids_incoming));
 	r->Assign(n++, static_cast<uint64_t>(cs.num_ids_outgoing));
+#else
+	// Broker disabled: return all-zero stats
+	for ( int i = 0; i < 9; ++i )
+		r->Assign(n++, static_cast<uint64_t>(0));
+#endif
 
 	return std::move(r);
 	%}

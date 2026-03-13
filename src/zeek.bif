@@ -6045,6 +6045,16 @@ function has_module_events%(group: string%) : bool
 	                                           group->CheckString()));
 	%}
 
+## Returns true if Zeek was built with Broker support (the default).
+function have_broker%(%) : bool
+	%{
+#ifdef HAVE_BROKER
+	return zeek::val_mgr->Bool(true);
+#else
+	return zeek::val_mgr->Bool(false);
+#endif
+	%}
+
 ## Returns true if Zeek was built with support for using Spicy analyzers (which
 ## is the default).
 function have_spicy%(%) : bool

@@ -6,8 +6,11 @@
 #include <openssl/evp.h>
 #include <typeinfo>
 
+#include "zeek/Val.h"
 #include "zeek/Var.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 #include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
@@ -44,6 +47,7 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed) {
     seed = arg_seed;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> Hasher::Serialize() const {
     BrokerListBuilder builder;
     builder.Reserve(4);
@@ -79,6 +83,7 @@ std::unique_ptr<Hasher> Hasher::Unserialize(BrokerDataView data) {
 
     return hasher;
 }
+#endif
 
 UHF::UHF() { memset(&seed, 0, sizeof(seed)); }
 

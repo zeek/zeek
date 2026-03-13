@@ -9,7 +9,9 @@
 #include <utility>
 
 #include "zeek/Reporter.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 
 namespace zeek::probabilistic::detail {
 
@@ -179,6 +181,7 @@ const std::vector<uint8_t>& CardinalityCounter::GetBuckets() const { return buck
 
 uint64_t CardinalityCounter::GetM() const { return m; }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> CardinalityCounter::Serialize() const {
     BrokerListBuilder builder;
     builder.Reserve(3 + m);
@@ -222,6 +225,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(BrokerDataVi
 
     return cc;
 }
+#endif
 
 /**
  * The following function is copied from libc/string/flsll.c from the FreeBSD source

@@ -2,6 +2,8 @@
 //
 #include "zeek/cluster/PublishOnChangeState.h"
 
+#include "zeek/zeek-config.h"
+
 #include <cstdio>
 #include <optional>
 
@@ -22,7 +24,10 @@
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
+#ifdef HAVE_BROKER
+#include "zeek/OpaqueVal.h"
 #include "zeek/broker/Data.h" // for data_to_val()
+#endif
 #include "zeek/cluster/Backend.h"
 
 namespace {
@@ -64,7 +69,7 @@ zeek::VectorValPtr listval_to_anyvec(const zeek::ListVal& lv) {
 // Broker unserialization wraps any values into the opaque Broker::Data type. This helper
 // unwraps that and converts to the correct type t.
 zeek::ValPtr maybe_unwrap_broker_data(zeek::Type& t, zeek::Val* any) {
-    zeek::ValPtr ret;
+#ifdef HAVE_BROKER
     if ( any->GetType() == zeek::Broker::detail::DataVal::ScriptDataType() ) {
         auto ov = any->AsRecordVal()->GetField<zeek::OpaqueVal>(0);
         if ( ov->GetType() != zeek::Broker::detail::opaque_of_data_type ) {
@@ -83,6 +88,7 @@ zeek::ValPtr maybe_unwrap_broker_data(zeek::Type& t, zeek::Val* any) {
 
         return data_val->castTo(&t);
     }
+#endif
 
     return zeek::IntrusivePtr(zeek::NewRef{}, any);
 }

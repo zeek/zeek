@@ -5,7 +5,10 @@
 #include <span>
 
 #include "zeek/RunState.h"
+#include "zeek/zeek-config.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Manager.h"
+#endif
 #include "zeek/cluster/Backend.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterBackend.h"
@@ -153,7 +156,9 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
         header.fields.emplace_back(*arg_fields[i]);
 
     if ( remote ) {
+#ifdef HAVE_BROKER
         broker_mgr->PublishLogCreate(header.stream_id.get(), header.writer_id.get(), *info, arg_num_fields, arg_fields);
+#endif
     }
 
     if ( backend )
@@ -185,12 +190,17 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
     //
     // Other cluster backends leverage the write buffering logic in the
     // WriterFrontend. See FlushWriteBuffer().
+#ifdef HAVE_BROKER
     const bool broker_is_cluster_backend = zeek::cluster::backend == zeek::broker_mgr;
+#else
+    const bool broker_is_cluster_backend = false;
+#endif
 
     if ( remote ) {
         if ( broker_is_cluster_backend ) {
+#ifdef HAVE_BROKER
             zeek::broker_mgr->PublishLogWrite(header.stream_id.get(), header.writer_id.get(), info->path, vals);
-
+#endif
             if ( ! backend ) // nothing left do do if we do not log locally
                 return;
         }
@@ -223,7 +233,11 @@ void WriterFrontend::FlushWriteBuffer() {
 
     // We've already pushed to broker during Write(). If another backend
     // is used, push all the buffered log records to it now.
+#ifdef HAVE_BROKER
     const bool broker_is_cluster_backend = zeek::cluster::backend == zeek::broker_mgr;
+#else
+    const bool broker_is_cluster_backend = false;
+#endif
     if ( remote && ! broker_is_cluster_backend )
         zeek::cluster::backend->PublishLogWrites(header, std::span{records});
 

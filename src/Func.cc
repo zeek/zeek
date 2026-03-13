@@ -5,7 +5,9 @@
 
 #include "zeek/zeek-config.h"
 
+#ifdef HAVE_BROKER
 #include <broker/error.hh>
+#endif
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/param.h>
@@ -597,6 +599,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
         }
 }
 
+#ifdef HAVE_BROKER
 bool ScriptFunc::DeserializeCaptures(BrokerListView data) {
     auto result = Frame::Unserialize(data);
 
@@ -625,6 +628,7 @@ bool ScriptFunc::DeserializeCaptures(BrokerListView data) {
 
     return true;
 }
+#endif
 
 FuncPtr ScriptFunc::DoClone() {
     // ScriptFunc could hold a closure. In this case a clone of it must
@@ -660,6 +664,7 @@ FuncPtr ScriptFunc::DoClone() {
     return other;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
     if ( captures_vec ) {
         auto& cv = *captures_vec;
@@ -681,6 +686,7 @@ std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
     // No captures, return an empty vector.
     return BrokerListBuilder{}.Build();
 }
+#endif
 
 void ScriptFunc::Describe(ODesc* d) const {
     d->Add(GetName().c_str());

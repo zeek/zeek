@@ -83,6 +83,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-javascript   don't build Zeek's JavaScript support
     --disable-port-prealloc disable pre-allocating the PortVal array in ValManager
     --disable-python       don't try to build python bindings for Broker
+    --disable-broker       don't build Broker and its dependencies (CAF, prometheus-cpp)
     --disable-spicy        don't include Spicy
     --disable-zeek-client  don't install Zeek cluster management client
     --disable-zeekctl      don't install ZeekControl
@@ -342,6 +343,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS BOOL true
+            ;;
+        --disable-broker)
+            append_cache_entry DISABLE_BROKER BOOL true
             ;;
         --disable-spicy)
             append_cache_entry DISABLE_SPICY BOOL true

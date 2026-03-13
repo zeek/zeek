@@ -2,14 +2,21 @@
 
 #include "zeek/Frame.h"
 
+#include "zeek/zeek-config.h"
+
+#ifdef HAVE_BROKER
 #include <broker/error.hh>
+#endif
 
 #include "zeek/Desc.h"
+#include "zeek/Expr.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
+#ifdef HAVE_BROKER
 #include "zeek/broker/Data.h"
+#endif
 
 namespace zeek::detail {
 
@@ -119,6 +126,7 @@ static bool val_is_func(const ValPtr& v, ScriptFunc* func) {
     return v->AsFunc() == func;
 }
 
+#ifdef HAVE_BROKER
 std::optional<BrokerData> Frame::Serialize() {
     BrokerListBuilder body;
 
@@ -175,6 +183,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(BrokerListView data) {
 
     return std::make_pair(true, std::move(rf));
 }
+#endif
 
 const detail::Location* Frame::GetCallLocation() const {
     // This is currently trivial, but we keep it as an explicit

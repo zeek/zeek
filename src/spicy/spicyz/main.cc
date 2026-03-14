@@ -119,12 +119,12 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 break;
             }
 
-            case 'p': std::cout << configuration::InstallPrefix.native() << '\n'; return Nothing();
+            case 'p': std::cout << configuration::InstallPrefix.string() << '\n'; return Nothing();
 
             case 'P':
                 // For backwards compatibility with older plugins, print
                 // the path where the `cmake/` folder is located.
-                std::cout << configuration::DataPath().native() << '\n';
+                std::cout << configuration::DataPath().string() << '\n';
                 return Nothing();
 
             case 'x':
@@ -182,7 +182,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
 
             case 'L': compiler_options->library_paths.emplace_back(std::string(optarg)); break;
 
-            case 'M': std::cout << configuration::ModulePath().native() << '\n'; return Nothing();
+            case 'M': std::cout << configuration::ModulePath().string() << '\n'; return Nothing();
 
             case 'o': driver_options->output_path = std::string(optarg); break;
 
@@ -203,7 +203,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 if ( auto zcfg = getenv("ZEEK_CONFIG"); zcfg && *zcfg )
                     std::cout << zcfg << '\n';
                 else
-                    std::cout << configuration::InstallBinDir().native() << '\n';
+                    std::cout << configuration::InstallBinDir().string() << '\n';
 
                 return Nothing();
             }

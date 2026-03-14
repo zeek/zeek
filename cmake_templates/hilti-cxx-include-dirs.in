@@ -4,17 +4,35 @@
 # computed by this script can be injected into Spicy JIT via the environment
 # variable `HILTI_CXX_INCLUDE_DIRS`.
 
+# Use semicolon as path separator on Windows to avoid conflicts with drive
+# letter colons (e.g., C:/...).
+case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*)
+        SEP=";"
+        ;;
+    *)
+        SEP=":"
+        ;;
+esac
+
 # Paths to support compiling Spicy parsers in the build tree.
 PATHS=@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/runtime/include
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/runtime/include
-PATHS=$PATHS:@CMAKE_BINARY_DIR@/auxil/spicy/include
+PATHS=$PATHS${SEP}@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/runtime/include
+PATHS=$PATHS${SEP}@CMAKE_BINARY_DIR@/auxil/spicy/include
+
+# On Windows, add the libunistd compatibility headers for POSIX includes.
+case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*)
+        PATHS=$PATHS${SEP}@CMAKE_SOURCE_DIR@/auxil/spicy/3rdparty/libunistd/unistd
+        ;;
+esac
 
 # Paths to support compiling against a build tree Zeek.
-PATHS=$PATHS:@CMAKE_BINARY_DIR@
-PATHS=$PATHS:@CMAKE_BINARY_DIR@/src
-PATHS=$PATHS:@CMAKE_BINARY_DIR@/src/include
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/src
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/src/include
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/broker/libbroker
+PATHS=$PATHS${SEP}@CMAKE_BINARY_DIR@
+PATHS=$PATHS${SEP}@CMAKE_BINARY_DIR@/src
+PATHS=$PATHS${SEP}@CMAKE_BINARY_DIR@/src/include
+PATHS=$PATHS${SEP}@CMAKE_SOURCE_DIR@/src
+PATHS=$PATHS${SEP}@CMAKE_SOURCE_DIR@/src/include
+PATHS=$PATHS${SEP}@CMAKE_SOURCE_DIR@/auxil/broker/libbroker
 
 echo $PATHS

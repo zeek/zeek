@@ -519,6 +519,10 @@ extern ValPtr to_val(const hilti::rt::type_info::Value& value, const TypePtr& ta
 template<typename T>
 ValPtr to_val(const T& value, const hilti::rt::TypeInfo* type, const TypePtr& target) {
     return detail::to_val(hilti::rt::type_info::Value(&value, type), target);
+    // On Windows with MSVC, if detail::to_val() caught an exception it stored
+    // the error details in thread-local strings and returned nullptr.  The
+    // null propagates back to the caller; raise_event() checks the thread-
+    // locals and reports the error directly via analyzerError().
 }
 
 /**

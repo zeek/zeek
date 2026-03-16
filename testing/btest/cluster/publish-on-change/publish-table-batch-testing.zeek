@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test Cluster::publish_table() from worker-1 to worker-2 and a smallish default_publish_table_batch_size size. We delay the start of worker-2 until worker-1 has populated the table with 10 entries.
 #
 # @TEST-REQUIRES: have-zeromq

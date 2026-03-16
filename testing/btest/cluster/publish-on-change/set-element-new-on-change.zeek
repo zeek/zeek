@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test a &on_change handler on a set[addr, addr].
 #
 # @TEST-REQUIRES: have-zeromq

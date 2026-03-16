@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Regression test for unsubscriptions not actually unsubscribing because of "\x00" usage.
 #
 # @TEST-REQUIRES: have-zeromq

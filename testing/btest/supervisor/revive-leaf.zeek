@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # On Windows, MSYS bash's kill cannot target native Windows PIDs
 # returned by getpid(); see revive-leaf-windows.zeek.
 # @TEST-REQUIRES: ! is-windows

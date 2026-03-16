@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a ZeroMQ cluster using ::1 as address, but disable ZeroMQ's IPv6 support. Check the error messages. Relates to #4586.
 #
 # @TEST-REQUIRES: have-zeromq

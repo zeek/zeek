@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This doesn't work for ZAM due to inlining making the "foo" hook ineffectual.
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 #

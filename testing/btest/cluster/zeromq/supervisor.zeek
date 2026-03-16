@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Configure a ZeroMQ cluster with Zeek's supervisor.
 #
 # @TEST-REQUIRES: have-zeromq

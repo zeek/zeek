@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Cluster::on_subscribe and Cluster::on_unsubscribe hooks
 #
 # @TEST-EXEC: zeek --parse-only -b %INPUT

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: ZEEK_TLS_KEYLOG_FILE=keylogfile.log zeek -B dpd -C -r $TRACES/tls/tls-1.2-stream-keylog.pcap %INPUT
 
 # @TEST-START-FILE keylogfile.log

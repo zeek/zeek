@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure the enum from the .bif file is available right after @load-plugin in bare mode.
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo EnumBif
 # @TEST-EXEC: cp -r %DIR/enum-bif-plugin/* .

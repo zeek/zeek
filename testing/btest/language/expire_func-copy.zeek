@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test that expire_func is copied (the expiration behavior of existing elements 
 #
 # @TEST-EXEC: zeek -b -C -r $TRACES/var-services-std-ports.pcap %INPUT >output

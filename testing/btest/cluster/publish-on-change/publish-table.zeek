@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test Cluster::publish_table() from manager to worker. Start the manager. Fill the table, then spawn the worker. The manager sends the table using Cluster::publish_table()
 #
 # @TEST-REQUIRES: have-zeromq

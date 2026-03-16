@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a ZeroMQ cluster using ::1 as address. Regression test for #4586
 #
 # @TEST-REQUIRES: have-zeromq

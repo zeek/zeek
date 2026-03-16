@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: btest-bg-run master "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This test verifies basic agent-controller communication in the Management
 # framework. We launch agent and controller via the supervisor, add an extra
 # handler for the notify_agent_hello event that travels agent -> controller, and

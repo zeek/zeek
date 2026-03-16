@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Tests SQLite storage in a cluster environment
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Checks dot directories are not searched for `ZEEK_PLUGIN_PATH`.
 
 # @TEST-EXEC: mkdir 1

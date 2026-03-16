@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test set[addr, addr] that is only published to the worker_topic using $topic
 #
 # @TEST-REQUIRES: have-zeromq

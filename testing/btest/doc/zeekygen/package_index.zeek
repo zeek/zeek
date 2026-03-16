@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b -X zeekygen.config %INPUT Broker::default_port=$BROKER_PORT
 # @TEST-EXEC: btest-diff test.rst

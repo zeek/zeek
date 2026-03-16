@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure that worker-1 does not observe messages to worker-20 on its Cluster::node_topic()
 #
 # @TEST-REQUIRES: have-zeromq

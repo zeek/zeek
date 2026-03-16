@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Test in cluster mode, the manager produces the cluster.log
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

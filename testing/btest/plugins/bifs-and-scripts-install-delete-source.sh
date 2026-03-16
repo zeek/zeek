@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Create a plugin, build it, copy its tgz file, delete the source tree, install via the tgz. This ensures the tgz is self-contained and does not have anything pointing back to the source.
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u the-plugin Demo Foo
 # @TEST-EXEC: bash %INPUT

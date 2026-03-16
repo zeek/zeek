@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Same as two-nodes-encryption, but use environment variables for the manager instead of script variables.
 #
 # @TEST-REQUIRES: have-zeromq

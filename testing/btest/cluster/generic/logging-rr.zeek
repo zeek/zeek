@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Testing round-robin of Log::write() across two loggers.
 #
 # @TEST-REQUIRES: have-zeromq

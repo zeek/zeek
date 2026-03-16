@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Basic test of a plugin implmenting a backend for the storage framework
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Workers and proxy publish to the manager topic. They publish so fast that messages should be dropped a) on their end and b) on the manager's onloop queue as well. The manager tests in ping() if the sender dropped and also if its own onloop queue had dropped and only then starts sending finish() events to all nodes.
 #
 # @TEST-REQUIRES: have-zeromq

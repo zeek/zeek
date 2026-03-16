@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Populate a database, corrupt it then observe Zeek's behavior deleting the database and reopening it.
 # @TEST-REQUIRES: dd --version
 # @TEST-REQUIRES: sqlite3 --version

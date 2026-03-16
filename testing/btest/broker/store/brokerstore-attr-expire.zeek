@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # So - this test currently is not really that great. The goal was to test expiration after
 # syncing values with Broker. However, it turns out that the delays introduced by Broker seem
 # a bit random - and too high to really test this without the test taking forever.

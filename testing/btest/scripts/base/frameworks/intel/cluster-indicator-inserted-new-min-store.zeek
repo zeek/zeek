@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Verify behavior of Intel:indicator_inserted() and Intel::indicator_removed() when a worker node restarts.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

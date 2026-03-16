@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: A worker receiving an event without a handler implemented would produce a reporter error
 #
 # @TEST-REQUIRES: have-zeromq

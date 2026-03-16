@@ -1,3 +1,6 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
+# Required for websockets
+
 # @TEST-DOC: Regression test for #5798. Start Zeek with a websocket listener, start a raw reader inside it, kill -9 Zeek such that the raw reader continues to exist. Start a second Zeek process with a websocket listener again.
 #
 # @TEST-REQUIRES: have-zeromq

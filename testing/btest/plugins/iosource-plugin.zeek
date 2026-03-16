@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-REQUIRES: ! is-windows
 # Windows variant: iosource-plugin-windows.zeek — FdSource fires fewer
 # times on Windows due to select() platform differences with flare fds.

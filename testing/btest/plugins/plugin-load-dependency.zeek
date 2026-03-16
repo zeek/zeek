@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test cross-plugin symbol dependencies resolved via load ordering.
 # @TEST-REQUIRES: ! is-windows
 # Cross-plugin function calls (Plugin1 calling Plugin2_foo()) rely on

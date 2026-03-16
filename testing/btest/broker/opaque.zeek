@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-GROUP: broker
 #
 # @TEST-EXEC: zeek -b %INPUT >out

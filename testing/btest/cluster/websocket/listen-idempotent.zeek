@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Allow listening with the same tls_options on the same port, but fail for disagreeing tls_options.
 #
 # @TEST-EXEC: zeek -b %INPUT

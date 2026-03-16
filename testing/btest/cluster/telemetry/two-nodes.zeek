@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: All parties log their cluster metrics at zeek_done() time.
 #
 # @TEST-REQUIRES: have-zeromq

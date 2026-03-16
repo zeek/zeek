@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test that $topic=Cluster::worker_topic also works for Broker.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

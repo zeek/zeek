@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # A basic test of the known-hosts script's logging and asset_tracking options
 
 # Don't run for C++ scripts because there's no script to compile.

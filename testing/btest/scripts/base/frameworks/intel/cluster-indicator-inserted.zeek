@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Verify Intel::indicator_inserted() and Intel::indicator_removed() in a cluster setup with three different types of indicators.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

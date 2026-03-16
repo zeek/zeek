@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Run a cluster that includes a dedicated logger to verify cluster_started() and node_fully_connected() are generated.
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_LOGGER1_PORT

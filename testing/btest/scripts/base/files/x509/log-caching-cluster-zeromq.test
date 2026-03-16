@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test that certificate log deduplication works in clustered mode for ZeroMQ.
 #
 # @TEST-PORT: XPUB_PORT

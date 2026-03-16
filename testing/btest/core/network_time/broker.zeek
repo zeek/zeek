@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Disable network_time forward on a worker and let a manager completely drive its network_time.
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run manager "zeek -b ../manager.zeek"

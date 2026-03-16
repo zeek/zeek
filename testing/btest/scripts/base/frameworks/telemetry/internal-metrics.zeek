@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Query Broker's telemetry to verify it ends up in Zeek's registry.
 # Not compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.

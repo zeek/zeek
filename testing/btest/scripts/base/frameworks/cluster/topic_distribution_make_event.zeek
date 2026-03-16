@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Broker::make_event() together with Cluster::publish_hrw() and Cluster::publish_rr()
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_PROXY1_PORT

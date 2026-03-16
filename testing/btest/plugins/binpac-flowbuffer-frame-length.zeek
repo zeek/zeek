@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This test exercises a previous bug in binpac flowbuffer frame length
 # boundary checks:
 

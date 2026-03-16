@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Verify cluster_started() is not rebroadcasted if a worker restarts.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-REQUIRES: ! is-windows-ci

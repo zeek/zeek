@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test &publish_on_change with TABLE_ELEMENT_NEW. Worker waits for "x", manager inserts "x", manager waits for "y", worker inserts "y", worker waits for "z", manager inserts it. Same as table-element-new.zeek but for Broker.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

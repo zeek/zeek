@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Manager runs the proxy thread and has the curve_server_secretkey set to enable encryption.
 #
 # @TEST-REQUIRES: have-zeromq

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Manager runs the proxy thread and has the curve_server_secretkey set to enable encryption, but the connecting worker does not. We expect some output on stderr from the worker than indicates the handshake failed.
 #
 # @TEST-REQUIRES: have-zeromq

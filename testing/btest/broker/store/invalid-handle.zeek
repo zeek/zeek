@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This crashes with ZAM because it explicitly violates typing, which happens
 # to work in the interpreter, but isn't sound.
 #

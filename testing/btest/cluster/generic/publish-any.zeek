@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Send any values and observe behavior using zeromq.
 #
 # @TEST-REQUIRES: have-zeromq

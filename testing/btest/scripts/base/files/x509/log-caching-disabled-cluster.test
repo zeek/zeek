@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Test that certificate log deduplication can be disabled in clustered mode.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # A test case for when more than a single service is detected for a given
 # (addr, port) pair.
 

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: The worker uses different client keys than the manager knows. Expecting an authentication failure.
 #
 # @TEST-REQUIRES: have-zeromq

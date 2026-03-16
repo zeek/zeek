@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # On Windows the stem runs as a thread, not a separate process,
 # so it cannot be killed independently via system("kill ...").
 # @TEST-REQUIRES: ! is-windows

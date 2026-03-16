@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
 # @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek two.zeek > output2
 # @TEST-EXEC: btest-diff output1

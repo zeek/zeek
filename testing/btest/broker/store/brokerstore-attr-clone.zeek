@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Start master and two clones. One clone changes table and the change ends up in master + other clone.
 
 # @TEST-PORT: BROKER_PORT

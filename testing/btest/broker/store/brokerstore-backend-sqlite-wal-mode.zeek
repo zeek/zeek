@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Configure a broker store to be in WAL mode withou journal_mode NORMAL.
 # @TEST-REQUIRES: sqlite3 --version
 # @TEST-EXEC: zeek -b %INPUT 2>&1 | grep -v 'Remove in v9.1' > out

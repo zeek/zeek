@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Use Cluster::subscribe() and Cluster::publish() with Broker
 # @TEST-GROUP: cluster
 #

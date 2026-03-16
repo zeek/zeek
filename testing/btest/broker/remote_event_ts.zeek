@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Not compatible with -O C++ testing since includes two distinct scripts.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #

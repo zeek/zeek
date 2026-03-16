@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log

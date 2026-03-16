@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: mkdir fail.sqlite
 # @TEST-EXEC: btest-bg-run zeek "BROKER_FILE_VERBOSITY=error BROKER_CONSOLE_VERBOSITY=quiet zeek -b %INPUT >out 2>err"
 # @TEST-EXEC: btest-bg-wait 60

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: btest-bg-run master "zeek -b %INPUT >out"
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff master/out

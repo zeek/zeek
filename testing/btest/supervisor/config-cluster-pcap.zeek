@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test support for pcap_file on Supervisor::ClusterEndpoint and Supervisor::NodeConfig
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #

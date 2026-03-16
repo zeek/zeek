@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a ZeroMQ cluster by hand, testing basic logging and node_up and node_down events. This is the same as logging.zeek, but also enables encryption.
 #
 # @TEST-REQUIRES: have-zeromq

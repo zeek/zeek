@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test a Zeek cluster where the ZeroMQ proxy thread is spawned by the supervisor instead of the manager. The supervisor itself connects with the XPUB/XSUB sockets using Cluster::init() and receives and sends events without actually being a proper Cluster::node.
 #
 # @TEST-REQUIRES: have-zeromq

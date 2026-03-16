@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test that calling Broker::publish() with a Cluster::Event instance fails. Regression test for #4571.
 #
 # Can't use this test for -O gen-C++ because of multiple simultaneous

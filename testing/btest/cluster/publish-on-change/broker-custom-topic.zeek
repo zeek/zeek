@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure that a completely custom topic works with Broker. The manager also receives the changes.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

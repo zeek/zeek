@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-REQUIRES: ! have-spicy-ssl  # Decryption is not supported in Spicy SSL
 
 # @TEST-EXEC: zeek -B dpd -C -r $TRACES/tls/tls12-decryption.pcap %INPUT

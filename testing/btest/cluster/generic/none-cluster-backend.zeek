@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure an error happens if no cluster backend is selected but Cluster::node is set.
 #
 # @TEST-EXEC: zeek --parse-only -b %INPUT

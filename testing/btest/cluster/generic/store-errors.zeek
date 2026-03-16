@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test errors of store creation bifs
 #
 # @TEST-EXEC: zeek --parse-only -b %INPUT

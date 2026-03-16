@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-GROUP: broker
 #
 # @TEST-DOC: Limit the size of log lines that can be written.

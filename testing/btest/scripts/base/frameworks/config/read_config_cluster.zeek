@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Don't run the test for compiled scripts.  To work, they need separate
 # compilation of the manager and worker parts, and that also leads to
 # lines (and sets) being displayed in a different order due to different

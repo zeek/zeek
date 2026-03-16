@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This tests whether the script-layer can correctly query if a given Broker
 # peering originated from the local node or from another node that peered with it.
 #

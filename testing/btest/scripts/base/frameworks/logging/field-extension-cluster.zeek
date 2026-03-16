@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This test is flaky on Windows. Skip it temporarily.
 # @TEST-REQUIRES: ! is-windows-ci
 

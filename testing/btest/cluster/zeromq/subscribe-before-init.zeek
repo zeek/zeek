@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Regression test Cluster::subscribe() blocking if called in a high-priority zeek_init() handler
 #
 # @TEST-REQUIRES: have-zeromq

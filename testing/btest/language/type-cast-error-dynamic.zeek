@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b %INPUT >output 2>err
 # @TEST-EXEC: btest-diff-remove-abspath output
 # @TEST-EXEC: btest-diff-remove-abspath err

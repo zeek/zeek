@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/x509-generalizedtime.pcap %INPUT >>output 2>&1
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.pcap %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output

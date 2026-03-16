@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Attempt to send an event with holes. It should fail.
 #
 # @TEST-REQUIRES: have-zeromq

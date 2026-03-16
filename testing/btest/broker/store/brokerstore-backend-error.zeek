@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Tests for a regression when evaluating &backend attributes.
 # @TEST-EXEC-FAIL: zeek -b %INPUT >output 2>&1
 #

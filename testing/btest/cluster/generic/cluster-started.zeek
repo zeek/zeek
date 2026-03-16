@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test cluster_started with ZeroMQ (but should work with any non-Broker backend that has global pubsub visibility)
 #
 # @TEST-REQUIRES: have-zeromq

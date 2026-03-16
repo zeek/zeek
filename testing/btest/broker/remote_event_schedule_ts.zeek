@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Broker::publish() within a schedule event uses the intended timestamp, not the current network_time()
 #
 # Not compatible with -O C++ testing since includes two distinct scripts.

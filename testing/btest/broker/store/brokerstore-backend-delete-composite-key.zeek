@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test deletion of elements in a broker backed table with composite keys. Regression test for #3342.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Run a four worker cluster
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

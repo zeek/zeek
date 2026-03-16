@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Calling listen_websocket() with badly configured WebSocketTLSOptions.
 #
 # @TEST-EXEC: zeek -b %INPUT

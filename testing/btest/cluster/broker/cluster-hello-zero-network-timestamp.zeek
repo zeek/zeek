@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure Cluster::hello sent by a worker with a zero network time is observed with a zero network timestamp by the manager.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

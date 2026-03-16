@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 # @TEST-REQUIRES: have-spicy  # This test logs loaded scripts, so disable it if Spicy and the associated plugin are unavailable.
 # @TEST-REQUIRES: have-zeromq  # This test logs loaded scripts, so disable it if ZeroMQ isn't available.

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a Broker cluster by hand, testing basic logging and node_up and node_down events on the manager.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 
 # @TEST-PORT: SUPERVISOR_PORT
 # @TEST-PORT: LOGGER_PORT1

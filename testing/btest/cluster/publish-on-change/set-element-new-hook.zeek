@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Implements the apply_table_change_infos_policy() hook on the manager to observe incoming and removed entries.
 #
 # @TEST-REQUIRES: have-zeromq

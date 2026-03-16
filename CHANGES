@@ -1,3 +1,14 @@
+8.2.0-dev.388 | 2026-03-16 11:16:25 +0100
+
+  * generate-docs: Fix git add for new structure (Arne Welzel, Corelight)
+
+    Fixup generate-docs job after 5055195bc8d0f4b60c0d7820182ad0ccc6e35303 moved
+    script-reference to reference/zeekscript.
+
+  * Bump zeekctl to fix test, take two (Arne Welzel, Corelight)
+
+    Didn't actually point the submodule to master :-(
+
 8.2.0-dev.385 | 2026-03-12 19:57:07 +0100
 
   * Bump zeekctl to fix test (Arne Welzel, Corelight)

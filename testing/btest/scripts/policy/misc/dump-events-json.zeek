@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Same as dump-events.zeek, but for JSON output.
 # @TEST-REQUIRES: which jq
 #

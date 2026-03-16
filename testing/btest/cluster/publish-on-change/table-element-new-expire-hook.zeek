@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test &publish_on_change with TABLE_ELEMENT_NEW and TABLE_ELEMENT_EXPIRE and a short expiration time. The worker does not publish expired elements. This is a sharp tool.
 #
 # @TEST-REQUIRES: have-zeromq

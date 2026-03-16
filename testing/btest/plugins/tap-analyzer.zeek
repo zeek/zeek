@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: A plugin hooking HookSetupAnalyzerTree() to attach a TapAnalyzer to every connection.
 #
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo TapAnalyzer

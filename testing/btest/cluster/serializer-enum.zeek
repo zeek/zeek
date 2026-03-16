@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test cluster backend enum
 #
 # @TEST-EXEC: zeek -NN Zeek::Broker_Serializer >>out

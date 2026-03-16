@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Unprocessed_Packet
 # @TEST-EXEC: cp -r %DIR/unprocessed-packet-hook-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make

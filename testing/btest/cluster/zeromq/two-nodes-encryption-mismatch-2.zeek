@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Manager runs the proxy thread in plain mode, but the worker has keys configured. We expect some output on stderr from the worker than indicates the handshake failed.
 #
 # @TEST-REQUIRES: have-zeromq

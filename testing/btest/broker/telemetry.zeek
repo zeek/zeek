@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: run a mini two-node cluster and check that Broker's peering telemetry is available.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

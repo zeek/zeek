@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Workers and proxy publish to the manager topic. They publish so fast that messages would be dropped by sender and receiver, but the HWM settings are 0 so nothing is dropped at the expense of using more memory. This is verified via metrics and checking the recevied pings on the manager.
 #
 # @TEST-REQUIRES: have-zeromq

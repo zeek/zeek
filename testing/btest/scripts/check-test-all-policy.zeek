@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Makes sures test-all-policy.zeek (which loads *all* other policy scripts) compiles correctly.
 # 
 # @TEST-EXEC: zeek %INPUT >output

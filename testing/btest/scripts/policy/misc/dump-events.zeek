@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.pcap policy/misc/dump-events %INPUT >all-events.log
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.pcap policy/misc/dump-events %INPUT DumpEvents::include_args=F >all-events-no-args.log
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.pcap policy/misc/dump-events %INPUT DumpEvents::include=/smtp_/ >smtp-events.log

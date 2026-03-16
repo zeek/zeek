@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Stress test &publish_on_change by having all nodes insert 1000 individual entries, then have the manager clear it.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

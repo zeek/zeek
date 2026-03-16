@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-PORT: BROKER_PORT
 # @TEST-REQUIRES: ! is-windows-ci
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT

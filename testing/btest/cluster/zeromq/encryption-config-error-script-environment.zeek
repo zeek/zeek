@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Mixing environment variables and script configuration for encryption fails.
 #
 # @TEST-REQUIRES: have-zeromq

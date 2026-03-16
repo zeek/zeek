@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test Broker's backpressure mechanisms by overwhelming a slow endpoint
 #
 # This test brings up a manager, worker, and proxy with standard cluster

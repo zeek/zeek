@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This requires Zeek with unit test support. The following errors if disabled.
 # @TEST-REQUIRES: zeek --test -h >/dev/null
 

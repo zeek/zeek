@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC-FAIL: zeek -b %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "Remove in v9.1:" | $SCRIPTS/diff-remove-abspath' btest-diff .stderr
 

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This test verifies intel data propagation via a cluster. The manager and both
 # workers insert intel items, and both workers do lookups that we expect to hit.
 

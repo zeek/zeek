@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # This test verifies the functionality of the bare_mode flag in NodeConfig.
 # We launch two nodes, one regular, one in bare mode. Each outputs a different
 # string depending on mode, and exits. We verify the resulting outputs.

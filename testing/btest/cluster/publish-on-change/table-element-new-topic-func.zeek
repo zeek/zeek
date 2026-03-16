@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test a $topic_func to distribute state from manager to workers using Cluster::publish_hrw()
 #
 # @TEST-REQUIRES: have-zeromq

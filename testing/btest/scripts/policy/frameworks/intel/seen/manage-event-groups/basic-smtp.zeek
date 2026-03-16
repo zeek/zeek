@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Smoke test that the seen/smtp mime_end_entity() only runs when Intel::ADDR indicators are loaded and mime_end_entity() runs for a SMTP connection.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

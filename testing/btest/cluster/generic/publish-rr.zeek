@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Send ping/pong using publish_rr(), publish() and make_event()
 #
 # @TEST-REQUIRES: have-zeromq

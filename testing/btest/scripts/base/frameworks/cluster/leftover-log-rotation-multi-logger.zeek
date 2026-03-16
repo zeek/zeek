@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure that left-over log rotation tags the logger name on as well.
 
 # @TEST-EXEC: echo ".log" >> .shadow.conn.log

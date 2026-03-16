@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run controllee  ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT frameworks/control/controllee Broker::default_port=$BROKER_PORT

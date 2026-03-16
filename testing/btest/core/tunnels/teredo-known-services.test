@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -r $TRACES/tunnels/Teredo.pcap base/protocols/tunnels base/protocols/dns protocols/conn/known-services Tunnel::delay_teredo_confirmation=T "Site::local_nets+={192.168.2.0/24}"
 # @TEST-EXEC: btest-diff known_services.log
 

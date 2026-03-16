@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a manager running the ZeroMQ proxy thread and have a worker connect. The manager queries its own metrics once the worker is there to list the ZeroMQ proxy telemetry.
 #
 # @TEST-REQUIRES: have-zeromq

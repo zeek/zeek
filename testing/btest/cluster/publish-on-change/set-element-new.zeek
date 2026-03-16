@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test set[addr, addr] published from manager and entries added by workers are propagated back to manager and workers as well.
 #
 # @TEST-REQUIRES: have-zeromq

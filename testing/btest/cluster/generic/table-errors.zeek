@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: When running with ZeroMQ, table &backend=Broker::MEMORY or &broker_store="teststore" should fail hard because they will be non-functional.
 #
 # @TEST-REQUIRES: have-zeromq

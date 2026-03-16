@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Startup a ZeroMQ cluster without a logger, testing logging through the manager.
 #
 # @TEST-REQUIRES: have-zeromq

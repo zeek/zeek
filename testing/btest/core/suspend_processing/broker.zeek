@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Suspend pcap processing on a worker and wait for the manager to trigger continue processing via a broker message. Ensure network_time() is not initialized until continue_processing() is called.
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run manager "zeek -b ../manager.zeek"

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # On Windows the stem runs as a thread sharing the supervisor's
 # address space, so stem_stdout/stderr pipes are never created
 # and the stdout/stderr hooks are not invoked.

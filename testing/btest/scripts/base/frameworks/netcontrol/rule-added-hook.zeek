@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.
 # @TEST-EXEC: zeek -b -r $TRACES/tls/ecdhe.pcap %INPUT
 # @TEST-EXEC: btest-diff netcontrol.log
 

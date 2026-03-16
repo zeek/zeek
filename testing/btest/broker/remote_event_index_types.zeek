@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run recv "ZEEK_COMPILE_ALL=1 zeek -b ../recv.zeek >recv.out"

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: cat ssh.spicy ssh-1.spicy > ssh-test.spicy

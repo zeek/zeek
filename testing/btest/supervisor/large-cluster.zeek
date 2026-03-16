@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Run a cluster with 64 Zeek processes and an insanely large cluster
 # layout (which is sent over the supervisor <-> stem pipe for every
 # Supervisor::create() call. This previously triggered an instant-abort()

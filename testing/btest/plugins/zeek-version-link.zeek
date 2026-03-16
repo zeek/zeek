@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Poking at internals: Expect an undefined zeek_version_X_Y_Z_plugin symbol in the plugin's .so/.dynlib. If this test turns out to be brittle, remove it, but we lost the mechanism.
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: cp -r %DIR/pktsrc-plugin/* .

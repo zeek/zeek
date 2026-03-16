@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Reporter Hook
 # @TEST-EXEC: cp -r %DIR/reporter-hook-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make

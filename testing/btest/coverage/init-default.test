@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # Makes sure that all base/* scripts are loaded by default via
 # init-default.zeek; and that all scripts loaded there actually exist.
 #

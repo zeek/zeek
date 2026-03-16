@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test &publish_on_change with TABLE_ELEMENT_NEW and TABLE_ELEMENT_DELETE, deleting just one entry.
 #
 # @TEST-REQUIRES: have-zeromq

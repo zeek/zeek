@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Ensure an error happens when loading websocket/server with a clsuter-layout but no backend.
 #
 # @TEST-EXEC-FAIL: unset ZEEK_ALLOW_INIT_ERRORS; CLUSTER_NODE=worker-1 zeek -b %INPUT

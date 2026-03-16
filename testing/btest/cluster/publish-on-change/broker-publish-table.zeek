@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test that publish_table() on worker-1 to worker-2 works with Broker where we transparently send through the manager.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT

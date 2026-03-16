@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Test the max_batch_delay=0sec and look at the hook output on the worker to see if the manager published properly.
 #
 # @TEST-REQUIRES: have-zeromq

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: grep -q "#define HAVE_BROKER" $BUILD/zeek-config.h
 # @TEST-DOC: Testing round-robin of Log::write() across two loggers. Same as logging-rr.zeek, but using Log::set_buf(stream, F) to disable stream and wrtier buffering.
 #
 # @TEST-REQUIRES: have-zeromq

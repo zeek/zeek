@@ -117,7 +117,8 @@ jobs:
         if: github.event_name == 'schedule'
         run: |
           cd doc
-          git add scripts/ script-reference/
+          # Stage any changes to auto-generated files.
+          git add scripts/ reference/zeekscript/
           git status
           # git commit errors when there's nothing to commit, so guard it
           # with a check that detects whether there's anything staged.

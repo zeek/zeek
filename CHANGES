@@ -1,3 +1,7 @@
+8.2.0-dev.393 | 2026-03-18 11:04:15 +0100
+
+  * Add ML-KEM KEX support and related test files (Octave Charrin, Corelight)
+
 8.2.0-dev.391 | 2026-03-17 18:47:41 -0700
 
   * added new BiF to ZAM's tracking of BiF properties (Vern Paxson, Corelight)

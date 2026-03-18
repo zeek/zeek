@@ -1,3 +1,9 @@
+8.1.1-8 | 2026-04-13 09:15:30 -0700
+
+  * Add ML-KEM KEX support and related test files (Octave Charrin, Corelight)
+
+    (cherry picked from commit 7ec486942899c6904ed527d0a9d8f4c3648c2eac)
+
 8.1.1-7 | 2026-04-13 09:14:42 -0700
 
   * postgresql: Fix violation on empty ParameterStatus value (Arne Welzel, Corelight)

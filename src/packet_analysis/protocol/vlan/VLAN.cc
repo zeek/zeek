@@ -24,8 +24,7 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
         packet->vlan = {.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei};
     else {
         if ( packet->inner_vlan )
-            Weird("triple_tagged_vlan_unsupported", packet,
-                  util::fmt("overwrote inner vlan ID of %d with %d", packet->inner_vlan->id, vlan_id));
+            Weird("triple_tagged_vlan_unsupported", packet, "inner VLAN tag overwritten");
 
         packet->inner_vlan = {.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei};
     }

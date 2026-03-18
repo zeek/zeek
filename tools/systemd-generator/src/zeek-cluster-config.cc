@@ -489,7 +489,7 @@ std::string ZeekClusterConfig::ZeekPath() const {
 
 std::string ZeekClusterConfig::Path() const {
     std::string result;
-    if ( ! ext_zeek_path.empty() )
+    if ( ! ext_path.empty() )
         result += ext_path + ":";
 
     result += BinDir().string() + ":";

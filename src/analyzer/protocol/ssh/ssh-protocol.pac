@@ -526,6 +526,9 @@ refine connection SSH_Conn += {
 					if ( update_kex_state_if_startswith("sntrup761x25519-sha512", KEX_ECC) )
 						return true;
 
+					if ( update_kex_state_if_startswith("mlkem", KEX_ECC) )
+						return true;
+
 					zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
 					return true;
 

@@ -124,6 +124,8 @@ bool Unit::WriteDropIn() const {
 
         for ( const auto& [name, value] : env )
             ofs << "Environment=" << name << "=" << value << "\n";
+
+        return true;
     }
 
     return false;

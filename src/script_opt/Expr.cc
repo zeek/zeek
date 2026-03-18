@@ -473,7 +473,7 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! op->IsSingleton(c) )
         op = op->ReduceToSingleton(c, red_stmt);
 
-    auto op_val = op->FoldVal();
+    auto op_val = IsAggr(op->GetType()) ? nullptr : op->FoldVal();
     if ( op_val ) {
         auto fold = Fold(op_val.get());
         if ( fold->GetType()->Tag() != TYPE_OPAQUE )
@@ -516,7 +516,7 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
-    auto op1_fold_val = op1->FoldVal();
+    auto op1_fold_val = IsAggr(op1->GetType()) ? nullptr : op1->FoldVal();
 
     if ( ! op1_fold_val && op1->Tag() == EXPR_LIST && op1->AsListExpr()->HasConstantOps() )
         // We can turn the list into a ListVal.

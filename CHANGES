@@ -1,3 +1,9 @@
+8.2.0-dev.391 | 2026-03-17 18:47:41 -0700
+
+  * added new BiF to ZAM's tracking of BiF properties (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization of accessing record fields of "const" globals (Vern Paxson, Corelight)
+
 8.2.0-dev.388 | 2026-03-16 11:16:25 +0100
 
   * generate-docs: Fix git add for new structure (Arne Welzel, Corelight)

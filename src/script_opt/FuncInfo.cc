@@ -361,6 +361,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"is_v4_subnet", ATTR_FOLDABLE},
     {"is_v6_addr", ATTR_FOLDABLE},
     {"is_v6_subnet", ATTR_FOLDABLE},
+    {"is_valid_base64", ATTR_FOLDABLE},
     {"is_valid_ip", ATTR_FOLDABLE},
     {"is_valid_subnet", ATTR_FOLDABLE},
     {"join_string_set", ATTR_FOLDABLE},

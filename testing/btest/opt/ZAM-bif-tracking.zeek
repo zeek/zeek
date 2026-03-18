@@ -396,6 +396,7 @@ global known_BiFs = set(
 	"is_v4_subnet",
 	"is_v6_addr",
 	"is_v6_subnet",
+	"is_valid_base64",
 	"is_valid_ip",
 	"is_valid_subnet",
 	"join_string_set",

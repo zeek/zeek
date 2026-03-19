@@ -84,3 +84,7 @@ Trace Index/Sources:
 - ldap/gap-data-missing.pcapng
   Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
   for #5221. It's just an LDAP connection that contains a gap.
+- postgresql/greenhouse-app.pcap
+  Captured via tcpdump and port 5432 while running the greenhouse app
+  and inserting a user and a plant.
+  https://github.com/grafana/loki-fundamentals?tab=readme-ov-file#deploying-the-sample-application

@@ -67,3 +67,7 @@ Trace Index/Sources:
   fixing MIME entity behavior (port 64702 and port 80).
 - http/m57-long-49525-80.pcap http/m57-long-49600-80.pcap
   Extracted from m57-long test after observing http.log and files.log differences.
+- postgresql/greenhouse-app.pcap
+  Captured via tcpdump and port 5432 while running the greenhouse app
+  and inserting a user and a plant.
+  https://github.com/grafana/loki-fundamentals?tab=readme-ov-file#deploying-the-sample-application

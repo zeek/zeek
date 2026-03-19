@@ -1,3 +1,18 @@
+8.0.6-7 | 2026-03-25 14:08:20 +0100
+
+  * postgresql: Fix violation on empty ParameterStatus value (Arne Welzel, Corelight)
+
+    This was found while monitoring the PostgreSQL traffic produced by the
+    Greenhouse example app from the Loki fundamentals tutorial:
+
+    https://github.com/grafana/loki-fundamentals?tab=readme-ov-file#deploying-the-sample-application
+
+    The app uses an empty application name and that resulted in an analyzer violation:
+
+        error while parsing PostgreSQL: failed to match regular expression (<...>/protocol/postgresql/postgresql.spicy:278:12-278:25)
+
+    (cherry picked from commit 06b43274bf51759551d624bae119839a979b6b48)
+
 8.0.6-6 | 2026-03-25 14:03:53 +0100
 
   * ssl: Fix pre_shared_key logic in tls-handshake-analyzer (Arne Welzel, Corelight)

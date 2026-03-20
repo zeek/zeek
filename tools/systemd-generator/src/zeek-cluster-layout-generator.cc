@@ -11,6 +11,7 @@
 // -a <listen_address> -p <port> -m <metrics_port> [-o outfile]
 //
 #include <unistd.h>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -158,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     std::ofstream os(out, std::ios::trunc);
     if ( ! os.is_open() ) {
-        std::fprintf(stderr, "failed to open %s\n", out.c_str());
+        std::fprintf(stderr, "failed to open %s: %s\n", out.c_str(), std::strerror(errno));
         std::exit(1);
     }
 

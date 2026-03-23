@@ -12,7 +12,7 @@ export {
 
 	## Well-known ports for SSL.
 	const ssl_ports = {
-		443/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
+		443/tcp, 465/tcp, 563/tcp, 585/tcp, 614/tcp, 636/tcp,
 		989/tcp, 990/tcp, 992/tcp, 993/tcp, 995/tcp, 5223/tcp
 	} &redef;
 

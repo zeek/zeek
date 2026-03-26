@@ -293,7 +293,7 @@ export {
 	## rec: The weird columns about to be logged to the weird stream.
 	global log_weird: event(rec: Info);
 
-	global weird: function(w: Weird::Info);
+	global weird: function(w: Weird::Info) &deprecated="Remove in v9.1. Use Reporter::<granularity>_weird instead.";
 }
 
 # These actions result in the output being limited and further redundant
@@ -326,7 +326,7 @@ function flow_id_string(src: addr, dst: addr): string
 	return fmt("%s -> %s", src, dst);
 	}
 
-function weird(w: Weird::Info)
+function do_weird(w: Weird::Info)
 	{
 	local action = actions[w$name];
 
@@ -416,6 +416,12 @@ function weird(w: Weird::Info)
 	Log::write(Weird::LOG, w);
 	}
 
+# Old wrapped weird function until deprecation.
+function weird(w: Weird::Info)
+	{
+	do_weird(w);
+	}
+
 # The following events come from core generated weirds typically.
 event conn_weird(name: string, c: connection, addl: string, source: string)
 	{
@@ -426,7 +432,7 @@ event conn_weird(name: string, c: connection, addl: string, source: string)
 	if ( source != "" )
 		i$source = source;
 
-	weird(i);
+	do_weird(i);
 	}
 
 event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string, source: string)
@@ -440,7 +446,7 @@ event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string, s
 	if ( source != "" )
 		i$source = source;
 
-	weird(i);
+	do_weird(i);
 	}
 
 event flow_weird(name: string, src: addr, dst: addr, addl: string, source: string)
@@ -458,7 +464,7 @@ event flow_weird(name: string, src: addr, dst: addr, addl: string, source: strin
 	if ( source != "" )
 		i$source = source;
 
-	weird(i);
+	do_weird(i);
 	}
 
 event net_weird(name: string, addl: string, source: string)
@@ -471,7 +477,7 @@ event net_weird(name: string, addl: string, source: string)
 	if ( source != "" )
 		i$source = source;
 
-	weird(i);
+	do_weird(i);
 	}
 
 event file_weird(name: string, f: fa_file, addl: string, source: string)
@@ -484,5 +490,5 @@ event file_weird(name: string, f: fa_file, addl: string, source: string)
 	if ( source != "" )
 		i$source = source;
 
-	weird(i);
+	do_weird(i);
 	}

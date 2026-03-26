@@ -51,14 +51,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 
 	if ( ! c$smtp?$entity )
 		{
-		local weird = Weird::Info(
-			$ts=network_time(),
-			$name="missing_SMTP_entity",
-			$uid=c$uid,
-			$id=c$id,
-			$source="SMTP"
-		);
-		Weird::weird(weird);
+		Reporter::conn_weird("missing_SMTP_entity", c, "", "SMTP");
 		return;
 		}
 

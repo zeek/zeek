@@ -542,8 +542,7 @@ event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, 
 	if ( ! c$ssl?$version || c$ssl$established || content_type != APPLICATION_DATA )
 		return;
 
-	local wi = Weird::Info($ts=network_time(), $name="ssl_early_application_data", $uid=c$uid, $id=c$id);
-	Weird::weird(wi);
+	Reporter::conn_weird("ssl_early_application_data", c);
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5

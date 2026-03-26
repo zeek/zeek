@@ -1684,7 +1684,7 @@ const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 ## feature is enabled.
 ## Note that the ``-C`` command-line option overrides the setting of this
 ## variable.
-const ignore_checksums = F &redef;
+const ignore_checksums = T &redef;
 
 ## Checksums are ignored for all packets with a src address within this set of
 ## networks. Useful for cases where a host might be seeing packets collected

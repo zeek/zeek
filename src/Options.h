@@ -44,7 +44,7 @@ struct Options {
     std::vector<std::string> script_prefixes = {""}; // "" = "no prefix"
 
     int signature_re_level = 4;
-    bool ignore_checksums = false;
+    bool ignore_checksums = true;
     bool use_watchdog = false;
     double pseudo_realtime = 0;
     detail::DNS_MgrMode dns_mode = detail::DNS_DEFAULT;

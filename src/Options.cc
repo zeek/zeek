@@ -507,7 +507,7 @@ Options parse_cmdline(int argc, char** argv) {
 #endif
                 break;
 
-            case 'C': rval.ignore_checksums = true; break;
+            case 'C': rval.ignore_checksums = false; break;
             case 'D': rval.deterministic_mode = true; break;
             case 'E': rval.event_trace_file = optarg; break;
             case 'F':

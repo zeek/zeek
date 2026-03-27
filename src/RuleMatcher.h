@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "zeek/CCL.h"
 #include "zeek/RE.h"
 #include "zeek/Rule.h"
 #include "zeek/ScannedFile.h"

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <functional>
 
-#include "zeek/DFA.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/File.h"
 #include "zeek/ID.h"
@@ -1094,17 +1093,14 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
         hdr_test = root;
     }
 
-    DFA_State_Cache::Stats cstats;
+    RegexStats cstats;
 
     for ( const auto& pset_list : hdr_test->psets ) {
         for ( const auto& pset : pset_list ) {
             assert(pset->re);
 
             ++stats->matchers;
-            if ( auto* dfa = pset->re->DFA() )
-                dfa->Cache()->GetStats(&cstats);
-            else
-                cstats = {};
+            pset->re->GetStats(&cstats);
 
             stats->dfa_states += cstats.dfa_states;
             stats->computed += cstats.computed;
@@ -1141,7 +1137,7 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
             RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
             assert(set->re);
 
-            const auto dfa_states = set->re->DFA() ? set->re->DFA()->NumStates() : 0;
+            const auto dfa_states = set->re->NumStates();
 
             f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time, dfa_states,
                                Rule::TypeToString((Rule::PatternType)i), j));

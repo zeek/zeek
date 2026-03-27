@@ -5874,7 +5874,7 @@ function have_spicy_analyzers%(%) : bool
 	%}
 
 %%{
-#include "zeek/DFA.h"
+#include "zeek/RE.h"
 %%}
 
 ## Return MatcherStats for a table[pattern] or set[pattern] value.
@@ -5907,7 +5907,7 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 		return nullptr;
 		}
 
-	zeek::detail::DFA_State_Cache::Stats stats;
+	zeek::detail::RegexStats stats;
 	tbl->AsTableVal()->GetPatternMatcherStats(&stats);
 
 	auto result = zeek::make_intrusive<zeek::RecordVal>(matcher_stats_type);

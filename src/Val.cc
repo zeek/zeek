@@ -22,7 +22,6 @@
 #include "zeek/Attr.h"
 #include "zeek/CompHash.h"
 #include "zeek/Conn.h"
-#include "zeek/DFA.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
@@ -1587,11 +1586,11 @@ public:
     // Delegate to matcher->MatchAll().
     bool MatchAll(std::string_view sv);
 
-    void GetStats(detail::DFA_State_Cache_Stats* stats) const {
-        if ( matcher && matcher->DFA() )
-            matcher->DFA()->Cache()->GetStats(stats);
+    void GetStats(detail::RegexStats* stats) const {
+        if ( matcher )
+            matcher->GetStats(stats);
         else
-            *stats = {0};
+            *stats = {};
     };
 
 private:
@@ -2223,7 +2222,7 @@ bool TableVal::MatchPattern(const StringValPtr& s) {
     return pattern_matcher->MatchAll(s->ToStdStringView());
 }
 
-void TableVal::GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const {
+void TableVal::GetPatternMatcherStats(detail::RegexStats* stats) const {
     if ( ! pattern_matcher )
         reporter->InternalError("GetPatternMatcherStats called on wrong table type");
 

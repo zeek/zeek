@@ -59,18 +59,6 @@ flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
             COMPILE_FLAGS "-Prules_")
 set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
-# RE parser/scanner
-bison_target(
-    REParser re-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-                 # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
-    COMPILE_FLAGS "${BISON_FLAGS}")
-replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
-                         re_ RE_)
-flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc COMPILE_FLAGS "-Pre_")
-add_flex_bison_dependency(REScanner REParser)
-set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
-
 # Parser/Scanner
 bison_target(
     Parser parse.y ${CMAKE_CURRENT_BINARY_DIR}/p.cc
@@ -84,9 +72,6 @@ set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE
 
 set(zeek_bison_generated_files
     ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-    ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
     ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
     ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
     ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
@@ -316,11 +301,9 @@ set(MAIN_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    CCL.cc
     CompHash.cc
     Conn.cc
     ConnKey.h
-    DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc
     DbgWatch.cc
@@ -332,7 +315,6 @@ set(MAIN_SRCS
     Discard.cc
     DNS_Mapping.cc
     DNS_Mgr.cc
-    EquivClass.cc
     Event.cc
     EventHandler.cc
     EventLauncher.cc
@@ -352,7 +334,6 @@ set(MAIN_SRCS
     List.cc
     MMDB.cc
     Reporter.cc
-    NFA.cc
     NetVar.cc
     Notifier.cc
     Obj.cc
@@ -552,9 +533,6 @@ set(zeek_SRCS
     ${FLEX_RuleScanner_OUTPUTS}
     ${FLEX_RuleScanner_INPUT}
     ${BISON_RuleParser_INPUT}
-    ${FLEX_REScanner_OUTPUTS}
-    ${FLEX_REScanner_INPUT}
-    ${BISON_REParser_INPUT}
     ${FLEX_Scanner_OUTPUTS}
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}

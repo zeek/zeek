@@ -53,7 +53,7 @@ class PrefixTable;
 class HashKey;
 class TablePatternMatcher;
 
-struct DFA_State_Cache_Stats;
+struct RegexStats;
 
 class ValTrace;
 class ZBody;
@@ -910,8 +910,8 @@ public:
     bool MatchPattern(const StringValPtr& s);
 
     // For a table[pattern], fill stats with information about
-    // the DFA's state for introspection.
-    void GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const;
+    // the pattern matcher state for introspection.
+    void GetPatternMatcherStats(detail::RegexStats* stats) const;
 
     // Sets the timestamp for the given index to network time.
     // Returns false if index does not exist.

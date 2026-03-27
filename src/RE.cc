@@ -3,14 +3,10 @@
 #include "zeek/RE.h"
 
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <string_view>
 #include <utility>
 
-#include "zeek/CCL.h"
-#include "zeek/DFA.h"
-#include "zeek/EquivClass.h"
 #include "zeek/NetVar.h"
 #include "zeek/RegexBackend.h"
 #include "zeek/Reporter.h"
@@ -19,23 +15,8 @@
 
 #include "zeek/3rdparty/doctest.h"
 
-zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
-zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;
-zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
-bool zeek::detail::case_insensitive = false;
-bool zeek::detail::re_single_line = false;
-
-extern int RE_parse();
-extern void RE_set_input(const char* str);
-extern void RE_done_with_scan();
-
 namespace zeek {
 namespace detail {
-
-static bool rust_stream_matchers_enabled() {
-    static const bool enabled = std::getenv("ZEEK_DISABLE_RUST_STREAM_REGEX") == nullptr;
-    return enabled;
-}
 
 static bool is_octal_digit(char c) { return c >= '0' && c <= '7'; }
 
@@ -383,52 +364,9 @@ static std::string derive_rust_pattern_text(const char* exact_pat, const char* a
     return derive_rust_pattern_from_exact(exact_pat);
 }
 
-extern bool re_syntax_error;
+Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline) : mt(arg_mt), multiline(arg_multiline) {}
 
-Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
-    : mt(arg_mt), multiline(arg_multiline), equiv_class(NUM_SYM) {
-    any_ccl = nullptr;
-    single_line_ccl = nullptr;
-    dfa = nullptr;
-    ecs = nullptr;
-    accepted = new AcceptingSet();
-}
-
-Specific_RE_Matcher::~Specific_RE_Matcher() {
-    for ( int i = 0; i < ccl_list.length(); ++i )
-        delete ccl_list[i];
-
-    ClearRustMatchers();
-    Unref(dfa);
-    delete accepted;
-}
-
-CCL* Specific_RE_Matcher::AnyCCL(bool single_line_mode) {
-    if ( single_line_mode ) {
-        if ( ! single_line_ccl ) {
-            single_line_ccl = new CCL();
-            single_line_ccl->Negate();
-            EC()->CCL_Use(single_line_ccl);
-        }
-
-        return single_line_ccl;
-    }
-
-    if ( ! any_ccl ) {
-        any_ccl = new CCL();
-        if ( ! multiline )
-            any_ccl->Add('\n');
-        any_ccl->Negate();
-        EC()->CCL_Use(any_ccl);
-    }
-
-    return any_ccl;
-}
-
-void Specific_RE_Matcher::ConvertCCLs() {
-    for ( int i = 0; i < ccl_list.length(); ++i )
-        equiv_class.ConvertCCL(ccl_list[i]);
-}
+Specific_RE_Matcher::~Specific_RE_Matcher() { ClearRustMatchers(); }
 
 void Specific_RE_Matcher::AddPat(const char* new_pat) {
     ClearRustMatchers();
@@ -536,9 +474,6 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
         return false;
     }
 
-    Unref(dfa);
-    dfa = nullptr;
-    ecs = nullptr;
     return true;
 }
 
@@ -549,7 +484,6 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     if ( rust_set && (size_t)rust_set->length() != idx.size() )
         reporter->InternalError("compileset: lengths of Rust sets differ");
 
-    rem = this;
     rust_pattern_text.clear();
     ClearRustMatchers();
 
@@ -651,14 +585,6 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     return false;
 }
 
-std::string Specific_RE_Matcher::LookupDef(const std::string& def) {
-    const auto& iter = defs.find(def);
-    if ( iter != defs.end() )
-        return iter->second;
-
-    return {};
-}
-
 bool Specific_RE_Matcher::MatchAll(const char* s) { return MatchAll(std::string_view{s}); }
 
 bool Specific_RE_Matcher::MatchAll(const String* s) { return MatchAll(s->ToStdStringView()); }
@@ -704,84 +630,34 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptId
     if ( ! matches && rust_matcher )
         return RustRegexMatcherMatchAll(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n);
 
-    if ( ! dfa )
-        // An empty pattern matches "all" iff what's being
-        // matched is empty.
-        return n == 0;
-
-    DFA_State* d = dfa->StartState();
-    d = d->Xtion(ecs[SYM_BOL], dfa);
-
-    while ( d ) {
-        if ( --n < 0 )
-            break;
-
-        int ec = ecs[*(bv++)];
-        d = d->Xtion(ec, dfa);
-    }
-
-    if ( d )
-        d = d->Xtion(ecs[SYM_EOL], dfa);
-
-    if ( d && matches )
-        if ( const auto* a_set = d->Accept() )
-            for ( auto a : *a_set )
-                matches->push_back(a);
-
-    return d && d->Accept() != nullptr;
+    // Historically, a matcher with no compiled backend only matches the
+    // empty input exactly.
+    return n == 0;
 }
 
 int Specific_RE_Matcher::Match(const u_char* bv, int n) {
     if ( rust_matcher )
         return RustRegexMatcherFindEnd(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n);
 
-    if ( ! dfa )
-        // An empty pattern matches anything.
-        return 1;
-
-    DFA_State* d = dfa->StartState();
-
-    d = d->Xtion(ecs[SYM_BOL], dfa);
-    if ( ! d )
-        return 0;
-
-    for ( int i = 0; i < n; ++i ) {
-        int ec = ecs[bv[i]];
-        d = d->Xtion(ec, dfa);
-        if ( ! d )
-            break;
-
-        if ( d->Accept() )
-            return i + 1;
-    }
-
-    if ( d ) {
-        d = d->Xtion(ecs[SYM_EOL], dfa);
-        if ( d && d->Accept() )
-            return n > 0 ? n : 1; // we can't return 0 here for match...
-    }
-
-    return 0;
+    // Historically, a matcher with no compiled backend behaves like an empty
+    // pattern for "match anywhere" queries.
+    return 1;
 }
 
-void Specific_RE_Matcher::Dump(FILE* f) {
-    if ( dfa )
-        dfa->Dump(f);
+unsigned int Specific_RE_Matcher::NumStates() const { return 0; }
+
+void Specific_RE_Matcher::GetStats(RegexStats* stats) const {
+    if ( ! stats )
+        return;
+
+    *stats = {};
 }
 
-inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
-    using am_idx = std::pair<AcceptIdx, MatchPos>;
-
-    for ( const auto& entry : as )
-        accepted_matches.insert(am_idx(entry, position));
-}
+void Specific_RE_Matcher::Dump(FILE* /* f */) {}
 
 RE_Match_State::RE_Match_State(Specific_RE_Matcher* matcher) {
-    dfa = matcher->DFA() ? matcher->DFA() : nullptr;
-    ecs = dfa ? matcher->EC()->EquivClasses() : nullptr;
     current_pos = -1;
-    current_state = nullptr;
-    rust_stream_matcher = rust_stream_matchers_enabled() ? matcher->RustStreamMatcher() : nullptr;
+    rust_stream_matcher = matcher->RustStreamMatcher();
     rust_stream_state = rust_stream_matcher ? CreateRustRegexStreamState(rust_stream_matcher) : nullptr;
 }
 
@@ -789,7 +665,6 @@ RE_Match_State::~RE_Match_State() { FreeRustRegexStreamState(rust_stream_state);
 
 void RE_Match_State::Clear() {
     current_pos = -1;
-    current_state = nullptr;
     accepted_matches.clear();
 
     if ( rust_stream_matcher ) {
@@ -804,7 +679,6 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
             FreeRustRegexStreamState(rust_stream_state);
             rust_stream_state = CreateRustRegexStreamState(rust_stream_matcher);
             current_pos = -1;
-            current_state = nullptr;
         }
 
         if ( ! rust_stream_state )
@@ -821,104 +695,16 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
         return accepted_matches.size() != old_matches;
     }
 
-    if ( current_pos == -1 ) {
-        // First call to Match().
-        if ( ! dfa )
-            return false;
-
-        // Initialize state and copy the accepting states of the start
-        // state into the acceptance set.
-        current_pos = 0;
-        current_state = dfa->StartState();
-
-        const AcceptingSet* ac = current_state->Accept();
-
-        if ( ac )
-            AddMatches(*ac, 0);
-    }
-
-    else if ( clear ) {
-        current_pos = 0;
-        current_state = dfa->StartState();
-    }
-
-    if ( ! current_state )
-        return false;
-
-
-    size_t old_matches = accepted_matches.size();
-
-    int ec;
-    int m = bol ? n + 1 : n;
-    int e = eol ? -1 : 0;
-
-    while ( --m >= e ) {
-        if ( m == n )
-            ec = ecs[SYM_BOL];
-        else if ( m == -1 )
-            ec = ecs[SYM_EOL];
-        else
-            ec = ecs[*(bv++)];
-
-        DFA_State* next_state = current_state->Xtion(ec, dfa);
-
-        if ( ! next_state ) {
-            current_state = nullptr;
-            break;
-        }
-
-        const AcceptingSet* ac = next_state->Accept();
-
-        if ( ac )
-            AddMatches(*ac, current_pos);
-
-        ++current_pos;
-
-        current_state = next_state;
-    }
-
-    return accepted_matches.size() != old_matches;
+    return false;
 }
 
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n, bool bol, bool eol) {
     if ( rust_matcher )
         return RustRegexMatcherLongestPrefix(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n, bol, eol);
 
-    if ( ! dfa )
-        // An empty pattern matches anything.
-        return 0;
-
-    // Use -1 to indicate no match.
-    int last_accept = -1;
-    DFA_State* d = dfa->StartState();
-
-    if ( bol ) {
-        d = d->Xtion(ecs[SYM_BOL], dfa);
-        if ( ! d )
-            return -1;
-    }
-
-    if ( d->Accept() ) // initial state or bol match (e.g, / */ or /^ ?/)
-        last_accept = 0;
-
-    for ( int i = 0; i < n; ++i ) {
-        int ec = ecs[bv[i]];
-        d = d->Xtion(ec, dfa);
-
-        if ( ! d )
-            break;
-
-        if ( d->Accept() )
-            last_accept = i + 1;
-    }
-
-    if ( d && eol ) {
-        d = d->Xtion(ecs[SYM_EOL], dfa);
-        if ( d && d->Accept() )
-            return n;
-    }
-
-    return last_accept;
+    // Historically, a matcher with no compiled backend behaves like an empty
+    // pattern for longest-prefix queries.
+    return 0;
 }
 
 static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, const char* merge_op) {
@@ -1193,9 +979,6 @@ TEST_SUITE("re_matcher") {
         RE_Matcher match("foo");
         REQUIRE(match.Compile());
         CHECK(match.MatchExactly("foo"));
-
-        if ( detail::RustRegexBackendAvailable() )
-            CHECK(match.DFA() == nullptr);
     }
 
     TEST_CASE("rust-compatible exact match sets do not require a legacy dfa") {
@@ -1219,9 +1002,6 @@ TEST_SUITE("re_matcher") {
         std::vector<detail::AcceptIdx> matches;
         CHECK(set_matcher.MatchSet("foo", matches));
         CHECK(matches.size() == 2);
-
-        if ( detail::RustRegexBackendAvailable() )
-            CHECK(set_matcher.DFA() == nullptr);
     }
 
     TEST_CASE("exact match sets derive Rust patterns from Zeek wrapper text") {
@@ -1249,9 +1029,6 @@ TEST_SUITE("re_matcher") {
         CHECK(set_matcher.MatchSet("bar", matches));
         CHECK(matches.size() == 1);
         CHECK(matches[0] == 2);
-
-        if ( detail::RustRegexBackendAvailable() )
-            CHECK(set_matcher.DFA() == nullptr);
     }
 
     TEST_CASE("synerr causes Compile() to fail") {

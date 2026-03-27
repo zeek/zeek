@@ -2,6 +2,7 @@
 
 #include "zeek/RE.h"
 
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
@@ -35,8 +36,154 @@ static bool rust_stream_matchers_enabled() {
     return enabled;
 }
 
-static bool PatternUsesUnsupportedRustSyntax(const char* pat) {
-    return pat && std::strchr(pat, '"') != nullptr;
+static bool is_octal_digit(char c) { return c >= '0' && c <= '7'; }
+
+static bool is_hex_digit(char c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+static uint8_t parse_hex_digit(char c) {
+    if ( c >= '0' && c <= '9' )
+        return static_cast<uint8_t>(c - '0');
+
+    if ( c >= 'a' && c <= 'f' )
+        return static_cast<uint8_t>(10 + c - 'a');
+
+    return static_cast<uint8_t>(10 + c - 'A');
+}
+
+static void append_hex_escaped_byte(std::string* normalized, uint8_t byte) {
+    static constexpr char hex[] = "0123456789abcdef";
+
+    normalized->push_back('\\');
+    normalized->push_back('x');
+    normalized->push_back(hex[byte >> 4]);
+    normalized->push_back(hex[byte & 0x0f]);
+}
+
+static bool consume_quoted_zeek_escape(std::string_view pattern, size_t* pos, uint8_t* byte) {
+    if ( *pos + 1 >= pattern.size() || pattern[*pos + 1] == '\n' )
+        return false;
+
+    const auto next = pattern[*pos + 1];
+
+    if ( next == 'x' ) {
+        if ( *pos + 3 >= pattern.size() || ! is_hex_digit(pattern[*pos + 2]) || ! is_hex_digit(pattern[*pos + 3]) )
+            return false;
+
+        *byte = static_cast<uint8_t>((parse_hex_digit(pattern[*pos + 2]) << 4) | parse_hex_digit(pattern[*pos + 3]));
+        *pos += 4;
+        return true;
+    }
+
+    if ( is_octal_digit(next) ) {
+        size_t end = *pos + 1;
+
+        while ( end < pattern.size() && is_octal_digit(pattern[end]) )
+            ++end;
+
+        int value = 0;
+        size_t digits = end - (*pos + 1);
+
+        if ( digits > 3 )
+            digits = 3;
+
+        for ( size_t i = 0; i < digits; ++i )
+            value = (value << 3) | (pattern[*pos + 1 + i] - '0');
+
+        *byte = static_cast<uint8_t>(value);
+        *pos = end;
+        return true;
+    }
+
+    switch ( next ) {
+        case 'b': *byte = '\b'; break;
+        case 'f': *byte = '\f'; break;
+        case 'n': *byte = '\n'; break;
+        case 'r': *byte = '\r'; break;
+        case 't': *byte = '\t'; break;
+        case 'a': *byte = '\a'; break;
+        case 'v': *byte = '\v'; break;
+        default: *byte = static_cast<uint8_t>(next); break;
+    }
+
+    *pos += 2;
+    return true;
+}
+
+static bool normalize_zeek_pattern_for_rust(std::string_view pattern, std::string* normalized) {
+    normalized->clear();
+    normalized->reserve(pattern.size() + 16);
+
+    bool in_class = false;
+    bool in_quote = false;
+
+    // Zeek's quoted regex strings are frontend sugar for literal byte sequences
+    // that stay case-sensitive inside a larger /.../i expression.
+    for ( size_t pos = 0; pos < pattern.size(); ) {
+        const auto c = pattern[pos];
+
+        if ( in_quote ) {
+            if ( c == '"' ) {
+                normalized->push_back(')');
+                in_quote = false;
+                ++pos;
+                continue;
+            }
+
+            uint8_t byte = 0;
+
+            if ( c == '\\' ) {
+                if ( ! consume_quoted_zeek_escape(pattern, &pos, &byte) )
+                    return false;
+            }
+            else if ( c == '\n' )
+                return false;
+            else {
+                byte = static_cast<uint8_t>(c);
+                ++pos;
+            }
+
+            append_hex_escaped_byte(normalized, byte);
+            continue;
+        }
+
+        if ( c == '\\' ) {
+            if ( pos + 1 >= pattern.size() || pattern[pos + 1] == '\n' )
+                return false;
+
+            normalized->push_back(pattern[pos]);
+            normalized->push_back(pattern[pos + 1]);
+            pos += 2;
+            continue;
+        }
+
+        if ( c == '[' ) {
+            in_class = true;
+            normalized->push_back(c);
+            ++pos;
+            continue;
+        }
+
+        if ( c == ']' && in_class ) {
+            in_class = false;
+            normalized->push_back(c);
+            ++pos;
+            continue;
+        }
+
+        if ( c == '"' && ! in_class ) {
+            normalized->append("(?-i:");
+            in_quote = true;
+            ++pos;
+            continue;
+        }
+
+        normalized->push_back(c);
+        ++pos;
+    }
+
+    return ! in_quote;
 }
 
 static bool strip_wrapper(std::string_view text, std::string_view prefix, std::string_view suffix,
@@ -48,25 +195,117 @@ static bool strip_wrapper(std::string_view text, std::string_view prefix, std::s
     return true;
 }
 
-static std::string derive_rust_pattern_text(const char* exact_pat, const char* anywhere_pat) {
-    if ( ! exact_pat || ! anywhere_pat )
-        return {};
+static size_t find_matching_paren(std::string_view text, size_t start) {
+    if ( start >= text.size() || text[start] != '(' )
+        return std::string_view::npos;
 
-    std::string_view exact = exact_pat;
-    std::string_view anywhere = anywhere_pat;
+    size_t depth = 0;
+    bool escaped = false;
+    bool in_class = false;
+
+    for ( size_t i = start; i < text.size(); ++i ) {
+        const auto c = text[i];
+
+        if ( escaped ) {
+            escaped = false;
+            continue;
+        }
+
+        if ( c == '\\' ) {
+            escaped = true;
+            continue;
+        }
+
+        if ( in_class ) {
+            if ( c == ']' )
+                in_class = false;
+
+            continue;
+        }
+
+        if ( c == '[' ) {
+            in_class = true;
+            continue;
+        }
+
+        if ( c == '(' ) {
+            ++depth;
+            continue;
+        }
+
+        if ( c != ')' )
+            continue;
+
+        if ( depth == 0 )
+            return std::string_view::npos;
+
+        --depth;
+
+        if ( depth == 0 )
+            return i;
+    }
+
+    return std::string_view::npos;
+}
+
+static bool split_top_level_wrapped_operands(std::string_view text, std::vector<std::string_view>* parts, char* op) {
+    parts->clear();
+    *op = '\0';
+
+    size_t pos = 0;
+
+    while ( pos < text.size() ) {
+        if ( text[pos] != '(' )
+            return false;
+
+        const auto end = find_matching_paren(text, pos);
+
+        if ( end == std::string_view::npos )
+            return false;
+
+        parts->push_back(text.substr(pos + 1, end - pos - 1));
+        pos = end + 1;
+
+        if ( pos == text.size() )
+            return ! parts->empty();
+
+        if ( text[pos] == '|' ) {
+            if ( *op == '\0' )
+                *op = '|';
+            else if ( *op != '|' )
+                return false;
+
+            ++pos;
+            continue;
+        }
+
+        if ( text[pos] == '(' ) {
+            if ( *op == '\0' )
+                *op = '+';
+            else if ( *op != '+' )
+                return false;
+
+            continue;
+        }
+
+        return false;
+    }
+
+    return ! parts->empty();
+}
+
+static std::string derive_rust_pattern_from_exact(std::string_view exact) {
     std::vector<char> mode_wrappers;
 
     while ( true ) {
-        if ( exact.starts_with("(?i:") && exact.ends_with(")") && anywhere.starts_with("(?i:") && anywhere.ends_with(")") ) {
+        if ( exact.starts_with("(?i:") && exact.ends_with(")") ) {
             exact = exact.substr(4, exact.size() - 5);
-            anywhere = anywhere.substr(4, anywhere.size() - 5);
             mode_wrappers.push_back('i');
             continue;
         }
 
-        if ( exact.starts_with("(?s:") && exact.ends_with(")") && anywhere.starts_with("(?s:") && anywhere.ends_with(")") ) {
+        if ( exact.starts_with("(?s:") && exact.ends_with(")") ) {
             exact = exact.substr(4, exact.size() - 5);
-            anywhere = anywhere.substr(4, anywhere.size() - 5);
             mode_wrappers.push_back('s');
             continue;
         }
@@ -75,23 +314,57 @@ static std::string derive_rust_pattern_text(const char* exact_pat, const char* a
     }
 
     std::string_view exact_inner;
-    std::string_view anywhere_inner;
 
-    if ( ! strip_wrapper(exact, "^?(", ")$?", &exact_inner) )
+    std::string result;
+
+    if ( strip_wrapper(exact, "^?(", ")$?", &exact_inner) ) {
+        std::string normalized_exact_inner;
+
+        if ( ! normalize_zeek_pattern_for_rust(exact_inner, &normalized_exact_inner) )
+            return {};
+
+        result = util::fmt("(?:%s)", normalized_exact_inner.c_str());
+    }
+    else {
+        std::vector<std::string_view> parts;
+        char op = '\0';
+
+        if ( ! split_top_level_wrapped_operands(exact, &parts, &op) )
+            return {};
+
+        if ( parts.size() == 1 && op == '\0' )
+            result = derive_rust_pattern_from_exact(parts[0]);
+        else {
+            for ( size_t i = 0; i < parts.size(); ++i ) {
+                auto recovered = derive_rust_pattern_from_exact(parts[i]);
+
+                if ( recovered.empty() )
+                    return {};
+
+                if ( ! result.empty() && op == '|' )
+                    result += '|';
+
+                result += '(';
+                result += recovered;
+                result += ')';
+            }
+        }
+    }
+
+    if ( result.empty() )
         return {};
-
-    if ( ! strip_wrapper(anywhere, "^?(.|\\n)*(", ")", &anywhere_inner) )
-        return {};
-
-    if ( exact_inner != anywhere_inner || exact_inner.find('"') != std::string_view::npos )
-        return {};
-
-    std::string result = util::fmt("(?:%.*s)", static_cast<int>(exact_inner.size()), exact_inner.data());
 
     for ( auto it = mode_wrappers.rbegin(); it != mode_wrappers.rend(); ++it )
         result = util::fmt("(?%c:%s)", *it, result.c_str());
 
     return result;
+}
+
+static std::string derive_rust_pattern_text(const char* exact_pat, const char* anywhere_pat) {
+    if ( ! exact_pat || ! anywhere_pat )
+        return {};
+
+    return derive_rust_pattern_from_exact(exact_pat);
 }
 
 extern bool re_syntax_error;
@@ -168,16 +441,18 @@ void Specific_RE_Matcher::AddRustPat(const char* new_pat) {
     if ( ! rust_backend_compatible )
         return;
 
-    if ( PatternUsesUnsupportedRustSyntax(new_pat) ) {
+    std::string normalized_pat;
+
+    if ( ! normalize_zeek_pattern_for_rust(new_pat, &normalized_pat) ) {
         rust_backend_compatible = false;
         rust_pattern_text.clear();
         return;
     }
 
     if ( ! rust_pattern_text.empty() )
-        rust_pattern_text = util::fmt("(?:%s)|(?:%s)", rust_pattern_text.c_str(), new_pat);
+        rust_pattern_text = util::fmt("(?:%s)|(?:%s)", rust_pattern_text.c_str(), normalized_pat.c_str());
     else
-        rust_pattern_text = util::fmt("(?:%s)", new_pat);
+        rust_pattern_text = util::fmt("(?:%s)", normalized_pat.c_str());
 }
 
 void Specific_RE_Matcher::ClearRustMatchers() {
@@ -217,8 +492,8 @@ void Specific_RE_Matcher::SetPat(const char* pat) {
 }
 
 void Specific_RE_Matcher::SetRustPat(const char* pat) {
-    rust_backend_compatible = pat && ! PatternUsesUnsupportedRustSyntax(pat);
-    rust_pattern_text = rust_backend_compatible ? pat : "";
+    rust_backend_compatible = pat != nullptr;
+    rust_pattern_text = pat ? pat : "";
     ClearRustMatchers();
 }
 
@@ -277,21 +552,31 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     ClearRustMatchers();
 
     bool rust_set_compatible = true;
+    std::vector<std::string> normalized_rust_patterns;
+    normalized_rust_patterns.reserve(multiline ? set.length() : (rust_set ? rust_set->length() : 0));
 
     if ( multiline ) {
         loop_over_list(set, i) {
-            if ( PatternUsesUnsupportedRustSyntax(set[i]) ) {
+            std::string normalized_pattern;
+
+            if ( ! normalize_zeek_pattern_for_rust(set[i], &normalized_pattern) ) {
                 rust_set_compatible = false;
                 break;
             }
+
+            normalized_rust_patterns.push_back(std::move(normalized_pattern));
         }
     }
     else if ( rust_set ) {
         loop_over_list((*rust_set), i) {
-            if ( PatternUsesUnsupportedRustSyntax((*rust_set)[i]) ) {
+            std::string normalized_pattern;
+
+            if ( ! normalize_zeek_pattern_for_rust((*rust_set)[i], &normalized_pattern) ) {
                 rust_set_compatible = false;
                 break;
             }
+
+            normalized_rust_patterns.push_back(std::move(normalized_pattern));
         }
     }
     else
@@ -304,8 +589,11 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
         rust_ids.reserve(idx.size());
 
         if ( multiline ) {
-            loop_over_list(set, i) {
-                rust_patterns.push_back(set[i]);
+            for ( const auto& normalized_pattern : normalized_rust_patterns ) {
+                rust_patterns.push_back(normalized_pattern.c_str());
+            }
+
+            for ( size_t i = 0; i < idx.size(); ++i ) {
                 rust_ids.push_back(idx[i]);
             }
 
@@ -315,8 +603,11 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
                 return true;
         }
         else {
-            loop_over_list((*rust_set), i) {
-                rust_patterns.push_back((*rust_set)[i]);
+            for ( const auto& normalized_pattern : normalized_rust_patterns ) {
+                rust_patterns.push_back(normalized_pattern.c_str());
+            }
+
+            for ( size_t i = 0; i < idx.size(); ++i ) {
                 rust_ids.push_back(idx[i]);
             }
 
@@ -853,6 +1144,50 @@ TEST_SUITE("re_matcher") {
 
         CHECK(std::string(reconstructed.RustPatternText()) == "(?i:(?:foo))");
         CHECK(reconstructed.MatchExactly("FoO"));
+    }
+
+    TEST_CASE("reconstructed merged matchers derive Rust pattern text from Zeek wrappers") {
+        RE_Matcher match1("foo");
+        match1.MakeCaseInsensitive();
+        REQUIRE(match1.Compile());
+
+        RE_Matcher match2("bar");
+        REQUIRE(match2.Compile());
+
+        auto merged = detail::RE_Matcher_disjunction(&match1, &match2);
+        RE_Matcher reconstructed(merged->PatternText(), merged->AnywherePatternText());
+        REQUIRE(reconstructed.Compile());
+
+        CHECK_FALSE(std::string(reconstructed.RustPatternText()).empty());
+        CHECK(reconstructed.MatchExactly("FoO"));
+        CHECK(reconstructed.MatchExactly("bar"));
+
+        delete merged;
+    }
+
+    TEST_CASE("quoted regex strings stay case-sensitive inside /i") {
+        RE_Matcher match("\"fOO\"");
+        match.MakeCaseInsensitive();
+        REQUIRE(match.Compile());
+
+        CHECK(std::string(match.RustPatternText()).find("(?-i:") != std::string::npos);
+        CHECK(match.MatchExactly("fOO"));
+        CHECK_FALSE(match.MatchExactly("FoO"));
+        CHECK(match.MatchAnywhere("xfOObar") != 0);
+        CHECK(match.MatchAnywhere("xFoObar") == 0);
+    }
+
+    TEST_CASE("quoted regex strings reconstruct onto the Rust path") {
+        RE_Matcher original("\"fOO\"");
+        original.MakeCaseInsensitive();
+        REQUIRE(original.Compile());
+
+        RE_Matcher reconstructed(original.PatternText(), original.AnywherePatternText());
+        REQUIRE(reconstructed.Compile());
+
+        CHECK(std::string(reconstructed.RustPatternText()).find("(?-i:") != std::string::npos);
+        CHECK(reconstructed.MatchExactly("fOO"));
+        CHECK_FALSE(reconstructed.MatchExactly("FoO"));
     }
 
     TEST_CASE("rust-compatible matchers do not require a legacy dfa") {

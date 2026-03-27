@@ -1325,7 +1325,7 @@ signature file-magic-auto540 {
 # >>>>&0  ubequad&ffdfffdfffdfffff,=21955353131548765 (0x004e00470053005d), ["Windows setup INFormation "], swap_endian=0
 signature file-magic-auto541 {
 	file-mime "application/x-setupscript", 110
-	file-magic /(\`(\x0d\x0a|;|[[]|\xff\xfe))(.*)(\x5b)(\x00[\x53\x73]\x00[\x54\x74]\x00[\x52\x72]\x00[\x49\x69)(\x00[\x4e\x6e]\x00[\x47\x67]\x00[\x53\x73]\x00\x5d)/
+	file-magic /(\`(\x0d\x0a|;|[[]|\xff\xfe))(.*)(\x5b)(\x00[\x53\x73]\x00[\x54\x74]\x00[\x52\x72]\x00[\x49\x69])(\x00[\x4e\x6e]\x00[\x47\x67]\x00[\x53\x73]\x00\x5d)/
 }
 
 # >0  regex/s,=\`(\r\n|;|[[]|\377\376) (len=15), [""], swap_endian=0

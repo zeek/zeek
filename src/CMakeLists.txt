@@ -365,6 +365,8 @@ set(MAIN_SRCS
     PriorityQueue.cc
     RandTest.cc
     RE.cc
+    RegexBackend.cc
+    RegexBackend.h
     Reassem.cc
     Rule.cc
     RuleAction.cc

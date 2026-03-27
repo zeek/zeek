@@ -1,0 +1,3 @@
+[workspace]
+members = ["zeek-regex-backend"]
+resolver = "2"

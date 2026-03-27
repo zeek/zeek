@@ -4,8 +4,11 @@
 :: isn't in the environment so we have to hardcode the whole path.
 call "c:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
 
+where cargo.exe || (echo cargo.exe not found. Install the Rust toolchain before building Zeek. && exit /b 1)
+where rustc.exe || (echo rustc.exe not found. Install the Rust toolchain before building Zeek. && exit /b 1)
+
 mkdir build
 cd build
 
-cmake.exe .. -DCMAKE_BUILD_TYPE=release -DVCPKG_TARGET_TRIPLET="x64-windows-static" -DENABLE_ZEEK_UNIT_TESTS=yes -G Ninja
+cmake.exe .. -DCMAKE_BUILD_TYPE=release -DVCPKG_TARGET_TRIPLET="x64-windows-static" -DENABLE_ZEEK_UNIT_TESTS=yes -DCARGO_EXECUTABLE=cargo.exe -DRUSTC_EXECUTABLE=rustc.exe -G Ninja
 cmake.exe --build .

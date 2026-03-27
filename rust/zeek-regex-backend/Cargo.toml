@@ -1,0 +1,12 @@
+[package]
+name = "zeek-regex-backend"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+
+[dependencies]
+regex-automata = "0.4.14"
+
+[lib]
+name = "zeek_regex_backend"
+crate-type = ["staticlib"]

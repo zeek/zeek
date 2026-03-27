@@ -11,6 +11,7 @@
 #include "zeek/ID.h"
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
+#include "zeek/Conn.h"
 #include "zeek/IntSet.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
@@ -22,6 +23,7 @@
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/module_util.h"
 #include "zeek/plugin/Manager.h"
 
@@ -802,6 +804,8 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 #endif
 
     // Remember size of first non-null data.
+    const bool requested_bol = bol;
+
     if ( type == Rule::PAYLOAD ) {
         bol = state->payload_size < 0;
 
@@ -817,9 +821,17 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 
     size_t pre_match_pos = state->current_pos;
 
+    const bool rust_datagram_boundary =
+        type == Rule::PAYLOAD && requested_bol && data_len > 0 &&
+        state->GetAnalyzer()->Conn()->GetSessionAdapter() &&
+        state->GetAnalyzer()->Conn()->GetSessionAdapter()->IsAnalyzer("UDP");
+
     // Feed data into all relevant matchers.
     for ( const auto& m : state->matchers ) {
-        if ( m->type == type && m->state->Match((const u_char*)data, data_len, bol, eol, clear) )
+        const bool matcher_bol = rust_datagram_boundary && m->state->UsesRustStreamMatcher() ? true : bol;
+        const bool matcher_eol = rust_datagram_boundary && m->state->UsesRustStreamMatcher() ? true : eol;
+
+        if ( m->type == type && m->state->Match((const u_char*)data, data_len, matcher_bol, matcher_eol, clear) )
             newmatch = true;
     }
 

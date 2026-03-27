@@ -1,0 +1,1017 @@
+use std::collections::{BTreeSet, VecDeque};
+use std::ffi::CStr;
+use std::os::raw::c_char;
+use std::slice;
+
+use regex_automata::{
+    dfa::{dense, Automaton},
+    meta::Regex,
+    nfa::thompson,
+    util::{primitives::StateID, start, syntax},
+    Anchored, Input, MatchKind, PatternSet,
+};
+
+pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 2;
+pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
+
+pub struct ZeekRustRegexMatcher {
+    regex: Regex,
+}
+
+pub struct ZeekRustRegexSetMatcher {
+    regex: Regex,
+    ids: Vec<isize>,
+}
+
+pub struct ZeekRustRegexStreamMatcher {
+    dfas: Vec<dense::DFA<Vec<u32>>>,
+    boundary_match_states: Vec<BTreeSet<usize>>,
+    ids: Vec<isize>,
+}
+
+pub struct ZeekRustRegexStreamState {
+    current: Vec<Option<StateID>>,
+    current_pos: u64,
+    seen: Vec<bool>,
+    suppress_next_match: Vec<bool>,
+    active: Vec<bool>,
+    initialized: bool,
+}
+
+fn compute_boundary_match_states(dfa: &dense::DFA<Vec<u32>>) -> BTreeSet<usize> {
+    if dfa.has_empty() {
+        return BTreeSet::new();
+    }
+
+    let mut boundary_states = BTreeSet::new();
+    let mut visited = BTreeSet::new();
+    let mut queue = VecDeque::new();
+    let mut edges = Vec::new();
+
+    for config in [
+        start::Config::new().anchored(Anchored::Yes).look_behind(None),
+        start::Config::new().anchored(Anchored::Yes).look_behind(Some(0)),
+    ] {
+        let Ok(start) = dfa.start_state(&config) else {
+            continue;
+        };
+
+        if visited.insert(start.as_usize()) {
+            queue.push_back(start);
+        }
+    }
+
+    while let Some(current) = queue.pop_front() {
+        let mut successors = BTreeSet::new();
+        for byte in 0u8..=u8::MAX {
+            let next = dfa.next_state(current, byte);
+
+            if dfa.is_dead_state(next) || dfa.is_quit_state(next) {
+                continue;
+            }
+
+            successors.insert(next.as_usize());
+
+            if visited.insert(next.as_usize()) {
+                queue.push_back(next);
+            }
+        }
+
+        edges.push((current.as_usize(), successors));
+    }
+
+    let mut predecessors = std::collections::BTreeMap::<usize, BTreeSet<usize>>::new();
+    let mut can_reach_match = BTreeSet::new();
+    let mut reverse_queue = VecDeque::new();
+
+    for (current, successors) in &edges {
+        for successor in successors {
+            predecessors.entry(*successor).or_default().insert(*current);
+        }
+
+        let sid = StateID::new(*current).expect("reachable state id");
+        if dfa.is_match_state(sid) {
+            can_reach_match.insert(*current);
+            reverse_queue.push_back(*current);
+        }
+    }
+
+    while let Some(current) = reverse_queue.pop_front() {
+        let Some(prevs) = predecessors.get(&current) else {
+            continue;
+        };
+
+        for prev in prevs {
+            if can_reach_match.insert(*prev) {
+                reverse_queue.push_back(*prev);
+            }
+        }
+    }
+
+    for (current, successors) in edges {
+        let sid = StateID::new(current).expect("reachable boundary state id");
+        let eoi = dfa.next_eoi_state(sid);
+
+        if !dfa.is_match_state(eoi) {
+            continue;
+        }
+
+        if successors.iter().any(|next| can_reach_match.contains(next)) {
+            boundary_states.insert(current);
+        }
+    }
+
+    boundary_states
+}
+
+unsafe fn haystack_from_raw<'a>(data: *const u8, len: usize) -> Option<&'a [u8]> {
+    if data.is_null() {
+        if len == 0 {
+            Some(&[][..])
+        } else {
+            None
+        }
+    } else {
+        Some(slice::from_raw_parts(data, len))
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn zeek_rust_regex_backend_abi_version() -> u32 {
+    ZEEK_RUST_REGEX_BACKEND_ABI_VERSION
+}
+
+#[no_mangle]
+pub extern "C" fn zeek_rust_regex_backend_smoke_test() -> u32 {
+    ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
+    pattern: *const c_char,
+) -> *mut ZeekRustRegexMatcher {
+    if pattern.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let pattern = match CStr::from_ptr(pattern).to_str() {
+        Ok(pattern) => pattern,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let syntax = syntax::Config::new().unicode(false).utf8(false);
+    let regex = match Regex::builder().syntax(syntax).build(pattern) {
+        Ok(regex) => regex,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    Box::into_raw(Box::new(ZeekRustRegexMatcher { regex }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_free(matcher: *mut ZeekRustRegexMatcher) {
+    if !matcher.is_null() {
+        drop(Box::from_raw(matcher));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_match_all(
+    matcher: *const ZeekRustRegexMatcher,
+    data: *const u8,
+    len: usize,
+) -> i32 {
+    let Some(matcher) = matcher.as_ref() else {
+        return 0;
+    };
+
+    let Some(haystack) = haystack_from_raw(data, len) else {
+        return 0;
+    };
+
+    let input = Input::new(haystack).anchored(Anchored::Yes);
+    match matcher.regex.find(input) {
+        Some(found) if found.start() == 0 && found.end() == haystack.len() => 1,
+        _ => 0,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
+    matcher: *const ZeekRustRegexMatcher,
+    data: *const u8,
+    len: usize,
+) -> i32 {
+    let Some(matcher) = matcher.as_ref() else {
+        return 0;
+    };
+
+    let Some(haystack) = haystack_from_raw(data, len) else {
+        return 0;
+    };
+
+    let input = Input::new(haystack).earliest(true);
+    match matcher.regex.find(input) {
+        Some(found) if found.end() > found.start() => found.end() as i32,
+        Some(_) => 1,
+        None => 0,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_set_matcher_compile(
+    patterns: *const *const c_char,
+    ids: *const isize,
+    len: usize,
+) -> *mut ZeekRustRegexSetMatcher {
+    if patterns.is_null() || ids.is_null() || len == 0 {
+        return std::ptr::null_mut();
+    }
+
+    let pattern_ptrs = slice::from_raw_parts(patterns, len);
+    let pattern_ids = slice::from_raw_parts(ids, len);
+    let mut exact_patterns = Vec::with_capacity(len);
+
+    for pattern in pattern_ptrs {
+        if pattern.is_null() {
+            return std::ptr::null_mut();
+        }
+
+        let pattern = match CStr::from_ptr(*pattern).to_str() {
+            Ok(pattern) => pattern,
+            Err(_) => return std::ptr::null_mut(),
+        };
+
+        exact_patterns.push(format!(r"(?:{})\z", pattern));
+    }
+
+    let syntax = syntax::Config::new().unicode(false).utf8(false);
+    let regex = match Regex::builder()
+        .configure(Regex::config().match_kind(MatchKind::All))
+        .syntax(syntax)
+        .build_many(&exact_patterns)
+    {
+        Ok(regex) => regex,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    Box::into_raw(Box::new(ZeekRustRegexSetMatcher {
+        regex,
+        ids: pattern_ids.to_vec(),
+    }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_set_matcher_free(matcher: *mut ZeekRustRegexSetMatcher) {
+    if !matcher.is_null() {
+        drop(Box::from_raw(matcher));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_set_matcher_pattern_len(
+    matcher: *const ZeekRustRegexSetMatcher,
+) -> usize {
+    matcher.as_ref().map_or(0, |matcher| matcher.ids.len())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_set_matcher_matches(
+    matcher: *const ZeekRustRegexSetMatcher,
+    data: *const u8,
+    len: usize,
+    out_ids: *mut isize,
+    out_capacity: usize,
+) -> usize {
+    let Some(matcher) = matcher.as_ref() else {
+        return 0;
+    };
+
+    let Some(haystack) = haystack_from_raw(data, len) else {
+        return 0;
+    };
+
+    let input = Input::new(haystack).anchored(Anchored::Yes);
+    let mut patset = PatternSet::new(matcher.ids.len());
+    matcher.regex.which_overlapping_matches(&input, &mut patset);
+
+    let mut matched = 0;
+
+    for pattern_id in patset.iter() {
+        let index = pattern_id.as_usize();
+
+        if matched < out_capacity && !out_ids.is_null() {
+            *out_ids.add(matched) = matcher.ids[index];
+        }
+
+        matched += 1;
+    }
+
+    matched
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
+    patterns: *const *const c_char,
+    ids: *const isize,
+    len: usize,
+    dot_matches_new_line: i32,
+) -> *mut ZeekRustRegexStreamMatcher {
+    if patterns.is_null() || ids.is_null() || len == 0 {
+        return std::ptr::null_mut();
+    }
+
+    let pattern_ptrs = slice::from_raw_parts(patterns, len);
+    let pattern_ids = slice::from_raw_parts(ids, len);
+    let mut dfas = Vec::with_capacity(len);
+    let mut boundary_match_states = Vec::with_capacity(len);
+
+    for pattern in pattern_ptrs {
+        if pattern.is_null() {
+            return std::ptr::null_mut();
+        }
+
+        let pattern = match CStr::from_ptr(*pattern).to_str() {
+            Ok(pattern) => pattern,
+            Err(_) => return std::ptr::null_mut(),
+        };
+
+        let syntax = syntax::Config::new()
+            .unicode(false)
+            .utf8(false)
+            .dot_matches_new_line(dot_matches_new_line != 0);
+        let thompson = thompson::Config::new().utf8(false);
+        let mut builder = dense::Builder::new();
+        builder.configure(dense::Config::new().match_kind(MatchKind::LeftmostFirst));
+        builder.syntax(syntax);
+        builder.thompson(thompson);
+
+        let dfa = match builder.build(pattern) {
+            Ok(dfa) => dfa,
+            Err(_) => return std::ptr::null_mut(),
+        };
+
+        boundary_match_states.push(compute_boundary_match_states(&dfa));
+        dfas.push(dfa);
+    }
+
+    Box::into_raw(Box::new(ZeekRustRegexStreamMatcher {
+        dfas,
+        boundary_match_states,
+        ids: pattern_ids.to_vec(),
+    }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_free(
+    matcher: *mut ZeekRustRegexStreamMatcher,
+) {
+    if !matcher.is_null() {
+        drop(Box::from_raw(matcher));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_pattern_len(
+    matcher: *const ZeekRustRegexStreamMatcher,
+) -> usize {
+    matcher.as_ref().map_or(0, |matcher| matcher.ids.len())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_state_create(
+    matcher: *const ZeekRustRegexStreamMatcher,
+) -> *mut ZeekRustRegexStreamState {
+    let Some(matcher) = matcher.as_ref() else {
+        return std::ptr::null_mut();
+    };
+
+    Box::into_raw(Box::new(ZeekRustRegexStreamState {
+        current: vec![None; matcher.ids.len()],
+        current_pos: 0,
+        seen: vec![false; matcher.ids.len()],
+        suppress_next_match: vec![false; matcher.ids.len()],
+        active: vec![false; matcher.ids.len()],
+        initialized: false,
+    }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_state_free(state: *mut ZeekRustRegexStreamState) {
+    if !state.is_null() {
+        drop(Box::from_raw(state));
+    }
+}
+
+unsafe fn emit_stream_match(
+    matcher: &ZeekRustRegexStreamMatcher,
+    state: &mut ZeekRustRegexStreamState,
+    pattern_index: usize,
+    sid: StateID,
+    out_ids: *mut isize,
+    out_positions: *mut u64,
+    out_capacity: usize,
+    matched: &mut usize,
+) {
+    let dfa = &matcher.dfas[pattern_index];
+
+    if !dfa.is_match_state(sid) || state.seen[pattern_index] {
+        return;
+    }
+
+    if state.suppress_next_match[pattern_index] {
+        return;
+    }
+
+    let match_len = dfa.match_len(sid);
+
+    if match_len == 0 {
+        return;
+    }
+
+    state.seen[pattern_index] = true;
+
+    if *matched < out_capacity && !out_ids.is_null() && !out_positions.is_null() {
+        *out_ids.add(*matched) = matcher.ids[pattern_index];
+        *out_positions.add(*matched) = state.current_pos;
+    }
+
+    *matched += 1;
+}
+
+unsafe fn start_stream_state(
+    matcher: &ZeekRustRegexStreamMatcher,
+    state: &mut ZeekRustRegexStreamState,
+    bol: i32,
+    out_ids: *mut isize,
+    out_positions: *mut u64,
+    out_capacity: usize,
+    matched: &mut usize,
+) {
+    let config = start::Config::new()
+        .anchored(Anchored::Yes)
+        .look_behind(if bol != 0 { None } else { Some(0) });
+
+    for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
+        let sid = match dfa.start_state(&config) {
+            Ok(sid) => sid,
+            Err(_) => {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
+            }
+        };
+
+        state.current[pattern_index] = Some(sid);
+        state.active[pattern_index] = true;
+        emit_stream_match(
+            matcher,
+            state,
+            pattern_index,
+            sid,
+            out_ids,
+            out_positions,
+            out_capacity,
+            matched,
+        );
+    }
+
+    state.current_pos = 0;
+    state.initialized = true;
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
+    matcher: *const ZeekRustRegexStreamMatcher,
+    state: *mut ZeekRustRegexStreamState,
+    data: *const u8,
+    len: usize,
+    bol: i32,
+    eol: i32,
+    suppress_initial_empty_visible_match: i32,
+    out_ids: *mut isize,
+    out_positions: *mut u64,
+    out_capacity: usize,
+) -> usize {
+    let Some(matcher) = matcher.as_ref() else {
+        return 0;
+    };
+    let Some(state) = state.as_mut() else {
+        return 0;
+    };
+    let Some(haystack) = haystack_from_raw(data, len) else {
+        return 0;
+    };
+
+    let mut matched = 0;
+
+    if !state.initialized {
+        start_stream_state(
+            matcher,
+            state,
+            bol,
+            out_ids,
+            out_positions,
+            out_capacity,
+            &mut matched,
+        );
+
+        if suppress_initial_empty_visible_match != 0 && bol != 0 && eol == 0 && haystack.is_empty() {
+            for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
+                if dfa.has_empty() {
+                    state.suppress_next_match[pattern_index] = true;
+                }
+            }
+        }
+    }
+
+    for &byte in haystack {
+        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
+            if !state.active[pattern_index] {
+                continue;
+            }
+
+            let Some(current) = state.current[pattern_index] else {
+                state.active[pattern_index] = false;
+                continue;
+            };
+
+            let next = dfa.next_state(current, byte);
+
+            if dfa.is_dead_state(next) || dfa.is_quit_state(next) {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
+            }
+
+            state.current[pattern_index] = Some(next);
+            emit_stream_match(
+                matcher,
+                state,
+                pattern_index,
+                next,
+                out_ids,
+                out_positions,
+                out_capacity,
+                &mut matched,
+            );
+        }
+
+        state.current_pos += 1;
+    }
+
+    if eol == 0 && len > 0 {
+        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
+            if !state.active[pattern_index] || state.seen[pattern_index] {
+                continue;
+            }
+
+            let Some(current) = state.current[pattern_index] else {
+                state.active[pattern_index] = false;
+                continue;
+            };
+
+            if matcher.boundary_match_states[pattern_index].contains(&current.as_usize()) {
+                emit_stream_match(
+                    matcher,
+                    state,
+                    pattern_index,
+                    dfa.next_eoi_state(current),
+                    out_ids,
+                    out_positions,
+                    out_capacity,
+                    &mut matched,
+                );
+
+                if state.seen[pattern_index] {
+                    state.active[pattern_index] = false;
+                }
+            }
+        }
+    }
+
+    if eol != 0 {
+        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
+            if !state.active[pattern_index] {
+                continue;
+            }
+
+            let Some(current) = state.current[pattern_index] else {
+                state.active[pattern_index] = false;
+                continue;
+            };
+
+            let next = dfa.next_eoi_state(current);
+
+            if dfa.is_dead_state(next) || dfa.is_quit_state(next) {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
+            }
+
+            state.current[pattern_index] = Some(next);
+            emit_stream_match(
+                matcher,
+                state,
+                pattern_index,
+                next,
+                out_ids,
+                out_positions,
+                out_capacity,
+                &mut matched,
+            );
+        }
+
+        state.current_pos += 1;
+    }
+
+    if !haystack.is_empty() || eol != 0 {
+        for suppress in &mut state.suppress_next_match {
+            *suppress = false;
+        }
+    }
+
+    matched
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::CString;
+
+    fn compile_stream_matcher(patterns: &[&str]) -> *mut ZeekRustRegexStreamMatcher {
+        let patterns = patterns
+            .iter()
+            .map(|pattern| CString::new(*pattern).expect("pattern cstring"))
+            .collect::<Vec<_>>();
+        let pattern_ptrs = patterns.iter().map(|pattern| pattern.as_ptr()).collect::<Vec<_>>();
+        let ids = (1..=patterns.len()).map(|id| id as isize).collect::<Vec<_>>();
+
+        unsafe {
+            zeek_rust_regex_stream_matcher_compile(pattern_ptrs.as_ptr(), ids.as_ptr(), ids.len(), 1)
+        }
+    }
+
+    #[test]
+    fn stream_matcher_compiles_simple_pattern() {
+        let matcher = compile_stream_matcher(&["foo"]);
+        assert!(!matcher.is_null());
+
+        unsafe {
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_compiles_signature_like_pattern() {
+        let matcher =
+            compile_stream_matcher(&[".*portability.*", ".*portability.*", ".*portability.*"]);
+        assert!(!matcher.is_null());
+
+        unsafe {
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_matches_packetwise_payload() {
+        let matcher = compile_stream_matcher(&["XXXX", "^XXXX", ".*XXXX", "YYYY", "^YYYY", ".*YYYY"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let mut ids = [0isize; 8];
+        let mut positions = [0u64; 8];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                [].as_ptr(),
+                0,
+                1,
+                0,
+                1,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"XXXX".as_ptr(),
+                4,
+                1,
+                1,
+                1,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+
+        let got = ids[..matched].to_vec();
+        assert_eq!(got, vec![1, 2, 3]);
+        assert_eq!(positions[..matched].to_vec(), vec![4, 4, 4]);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_matches_empty_capable_patterns_on_nonempty_input() {
+        let matcher = compile_stream_matcher(&[".*"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let mut ids = [0isize; 4];
+        let mut positions = [0u64; 4];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"packet".as_ptr(),
+                6,
+                1,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 1);
+        assert_eq!(ids[0], 1);
+        assert_eq!(positions[0], 0);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_consumes_first_visible_empty_match_after_initial_bol() {
+        let matcher = compile_stream_matcher(&[".*"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let mut ids = [0isize; 4];
+        let mut positions = [0u64; 4];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                [].as_ptr(),
+                0,
+                1,
+                0,
+                1,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"packet".as_ptr(),
+                6,
+                1,
+                0,
+                1,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"next".as_ptr(),
+                4,
+                1,
+                0,
+                1,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 1);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_keeps_first_visible_empty_match_outside_bare_mode() {
+        let matcher = compile_stream_matcher(&[".*"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let mut ids = [0isize; 4];
+        let mut positions = [0u64; 4];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                [].as_ptr(),
+                0,
+                1,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"packet".as_ptr(),
+                6,
+                0,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 1);
+        assert_eq!(ids[0], 1);
+        assert_eq!(positions[0], 0);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_matches_split_anchored_prefix() {
+        let matcher = compile_stream_matcher(&["^AB"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let matcher_ref = unsafe { &*matcher };
+        let dfa = &matcher_ref.dfas[0];
+
+        let mut ids = [0isize; 4];
+        let mut positions = [0u64; 4];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"A".as_ptr(),
+                1,
+                1,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+        let current = unsafe { (&(*state).current)[0].expect("state after A") };
+        assert!(!dfa.is_match_state(current));
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"B".as_ptr(),
+                1,
+                0,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        let current = unsafe { (&(*state).current)[0].expect("state after B") };
+        assert!(
+            dfa.is_match_state(current) || dfa.is_match_state(dfa.next_eoi_state(current)),
+            "state after B should be a match or become one at EOI"
+        );
+        assert_eq!(matched, 1);
+        assert_eq!(ids[0], 1);
+        assert_eq!(positions[0], 2);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_matches_split_anchored_exact_on_eoi() {
+        let matcher = compile_stream_matcher(&["^AB$"]);
+        assert!(!matcher.is_null());
+
+        let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
+        assert!(!state.is_null());
+
+        let matcher_ref = unsafe { &*matcher };
+        let dfa = &matcher_ref.dfas[0];
+
+        let mut ids = [0isize; 4];
+        let mut positions = [0u64; 4];
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"A".as_ptr(),
+                1,
+                1,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let current = unsafe { (&(*state).current)[0].expect("state after A exact") };
+        assert!(!dfa.is_match_state(current));
+        assert!(!dfa.is_match_state(dfa.next_eoi_state(current)));
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                b"B".as_ptr(),
+                1,
+                0,
+                0,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 0);
+
+        let current = unsafe { (&(*state).current)[0].expect("state after B exact") };
+        assert!(!dfa.is_match_state(current));
+        assert!(dfa.is_match_state(dfa.next_eoi_state(current)));
+
+        let matched = unsafe {
+            zeek_rust_regex_stream_state_match(
+                matcher,
+                state,
+                [].as_ptr(),
+                0,
+                0,
+                1,
+                0,
+                ids.as_mut_ptr(),
+                positions.as_mut_ptr(),
+                ids.len(),
+            )
+        };
+        assert_eq!(matched, 1);
+        assert_eq!(ids[0], 1);
+        assert_eq!(positions[0], 2);
+
+        unsafe {
+            zeek_rust_regex_stream_state_free(state);
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+}

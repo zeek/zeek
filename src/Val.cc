@@ -1366,9 +1366,14 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const {
     }
 
     PatternVal* pv = v->AsPatternVal();
+    const auto* rhs = pv->AsPattern();
+    const char* rhs_pat = rhs->RustPatternText();
 
-    RE_Matcher* re = new RE_Matcher(re_val->PatternText());
-    re->AddPat(pv->AsPattern()->PatternText());
+    if ( ! rhs_pat || ! rhs_pat[0] )
+        rhs_pat = rhs->PatternText();
+
+    RE_Matcher* re = new RE_Matcher(re_val->PatternText(), re_val->AnywherePatternText(), re_val->RustPatternText());
+    re->AddPat(rhs_pat);
     re->Compile();
 
     pv->SetMatcher(re);
@@ -1395,7 +1400,7 @@ ValPtr PatternVal::DoClone(CloneState* state) {
     // We could likely treat this type as immutable and return a reference
     // instead of creating a new copy, but we first need to be careful and
     // audit whether anything internal actually does mutate it.
-    auto re = new RE_Matcher(re_val->PatternText(), re_val->AnywherePatternText());
+    auto re = new RE_Matcher(re_val->PatternText(), re_val->AnywherePatternText(), re_val->RustPatternText());
     re->Compile();
     return state->NewClone(this, make_intrusive<PatternVal>(re));
 }
@@ -1648,7 +1653,9 @@ void detail::TablePatternMatcher::Build() {
     auto& tbl_hash = *tbl->GetTableHash();
 
     zeek::detail::string_list pattern_list;
+    zeek::detail::string_list rust_pattern_list;
     zeek::detail::int_list index_list;
+    bool have_rust_patterns = true;
 
     // We need to hold on to recovered hash key values so they don't
     // get lost once a loop iteration goes out of scope.
@@ -1659,17 +1666,29 @@ void detail::TablePatternMatcher::Build() {
         auto v = iter.value;
         auto vl = tbl_hash.RecoverVals(*k);
 
-        char* pt = const_cast<char*>(vl->AsListVal()->Idx(0)->AsPattern()->PatternText());
+        const auto* pattern = vl->AsListVal()->Idx(0)->AsPattern();
+        char* pt = const_cast<char*>(pattern->PatternText());
         pattern_list.push_back(pt);
         index_list.push_back(pattern_list.size());
         matcher_yields.push_back(v->GetVal());
+
+        if ( have_rust_patterns ) {
+            const char* rust_pt = pattern->RustPatternText();
+
+            if ( rust_pt && rust_pt[0] )
+                rust_pattern_list.push_back(const_cast<char*>(rust_pt));
+            else {
+                rust_pattern_list.clear();
+                have_rust_patterns = false;
+            }
+        }
 
         hash_key_vals.push_back(std::move(vl));
     }
 
     matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
 
-    if ( ! matcher->CompileSet(pattern_list, index_list) )
+    if ( ! matcher->CompileSet(pattern_list, index_list, have_rust_patterns ? &rust_pattern_list : nullptr) )
         reporter->FatalError("failed compile set for disjunctive matching");
 }
 

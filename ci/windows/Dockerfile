@@ -21,10 +21,13 @@ RUN choco install -y --no-progress winflexbison3
 RUN choco install -y --no-progress msysgit
 RUN choco install -y --no-progress python
 RUN choco install -y --no-progress openssl --version=3.1.1
+RUN choco install -y --no-progress rustup.install
+RUN $env:Path += ';C:\Users\ContainerAdministrator\.cargo\bin'; rustup default stable-x86_64-pc-windows-msvc
 
 # Set working environment.
 SHELL [ "cmd", "/c" ]
 RUN setx /M PATH "%PATH%;C:\\Program Files\\Git\\bin"
+RUN setx /M PATH "%PATH%;C:\\Program Files\\Git\\bin;C:\\Users\\ContainerAdministrator\\.cargo\\bin"
 RUN setx /M CONAN_SKIP_BROKEN_SYMLINKS_CHECK 1
 RUN mkdir C:\build
 WORKDIR C:\build

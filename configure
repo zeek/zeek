@@ -93,6 +93,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-bison=PATH      path to bison executable
     --with-broker=PATH     path to Broker install root
                            (Zeek uses an embedded version by default)
+    --with-gen-zam=PATH    path to Gen-ZAM code generator
+                           (Zeek uses an embedded version by default)
+    --with-cargo=PATH      path to cargo executable
+    --with-rustc=PATH      path to rustc executable
     --with-flex=PATH       path to flex executable
     --with-libkqueue=PATH  path to libkqueue install root
                            (Zeek uses an embedded version by default)
@@ -370,6 +374,10 @@ while [ $# -ne 0 ]; do
         --with-broker=*)
             append_cache_entry BROKER_ROOT_DIR PATH $optarg
             ;;
+        --with-cargo=*)
+            CARGO_EXECUTABLE=$optarg
+            append_cache_entry CARGO_EXECUTABLE PATH $optarg
+            ;;
         --with-caf=*)
             append_cache_entry CAF_ROOT PATH $optarg
             ;;
@@ -407,6 +415,10 @@ while [ $# -ne 0 ]; do
             ;;
         --with-python-lib=*)
             append_cache_entry PYTHON_LIBRARY PATH $optarg
+            ;;
+        --with-rustc=*)
+            RUSTC_EXECUTABLE=$optarg
+            append_cache_entry RUSTC_EXECUTABLE PATH $optarg
             ;;
         --with-spicy=*)
             append_cache_entry SPICY_ROOT_DIR PATH $optarg
@@ -453,6 +465,30 @@ if [ -z "$CMakeCommand" ]; then
         echo "This package requires CMake, please install it first."
         echo "Then you may use this script to configure the CMake build."
         echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
+        exit 1
+    fi
+fi
+
+if [ -z "$CARGO_EXECUTABLE" ]; then
+    if command -v cargo >/dev/null 2>&1; then
+        CARGO_EXECUTABLE=$(command -v cargo)
+        append_cache_entry CARGO_EXECUTABLE PATH $CARGO_EXECUTABLE
+    else
+        echo "This package requires cargo, please install the Rust toolchain first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --with-cargo=PATH to use cargo in a non-standard location."
+        exit 1
+    fi
+fi
+
+if [ -z "$RUSTC_EXECUTABLE" ]; then
+    if command -v rustc >/dev/null 2>&1; then
+        RUSTC_EXECUTABLE=$(command -v rustc)
+        append_cache_entry RUSTC_EXECUTABLE PATH $RUSTC_EXECUTABLE
+    else
+        echo "This package requires rustc, please install the Rust toolchain first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --with-rustc=PATH to use rustc in a non-standard location."
         exit 1
     fi
 fi

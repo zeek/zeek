@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "zeek/CCL.h"
 #include "zeek/EquivClass.h"
@@ -62,7 +63,8 @@ public:
     void MakeCaseInsensitive();
     void MakeSingleLine();
 
-    void SetPat(const char* pat) { pattern_text = pat; }
+    void SetPat(const char* pat);
+    void SetRustPat(const char* pat);
 
     bool Compile(bool lazy = false);
 
@@ -96,7 +98,7 @@ public:
     // 'idx' contains indices associated with the expressions.
     // On matching, the set of indices is returned which correspond
     // to the matching expressions.  (idx must not contain zeros).
-    bool CompileSet(const string_list& set, const int_list& idx);
+    bool CompileSet(const string_list& set, const int_list& idx, const string_list* rust_set = nullptr);
 
     // For use with CompileSet() to collect indices of all matched
     // expressions into the matches vector. The matches vector is
@@ -126,6 +128,8 @@ public:
     EquivClass* EC() { return &equiv_class; }
 
     const char* PatternText() const { return pattern_text.c_str(); }
+    const char* RustPatternText() const { return rust_pattern_text.c_str(); }
+    void* RustStreamMatcher() const { return rust_stream_matcher; }
 
     DFA_Machine* DFA() const { return dfa; }
 
@@ -134,6 +138,8 @@ public:
 protected:
     void AddAnywherePat(const char* pat);
     void AddExactPat(const char* pat);
+    void AddRustPat(const char* pat);
+    void ClearRustMatchers();
 
     // Used by the above.  orig_fmt is the format to use when building
     // up a new pattern_text from the given pattern; app_fmt is for when
@@ -146,6 +152,8 @@ protected:
     bool multiline;
 
     std::string pattern_text;
+    std::string rust_pattern_text;
+    bool rust_backend_compatible = true;
 
     std::map<std::string, std::string> defs;
     std::map<std::string, CCL*> ccl_dict;
@@ -155,6 +163,9 @@ protected:
     int* ecs;
     DFA_Machine* dfa;
     AcceptingSet* accepted;
+    void* rust_matcher = nullptr;
+    void* rust_set_matcher = nullptr;
+    void* rust_stream_matcher = nullptr;
 
     CCL* any_ccl;
     CCL* single_line_ccl;
@@ -162,14 +173,11 @@ protected:
 
 class RE_Match_State {
 public:
-    explicit RE_Match_State(Specific_RE_Matcher* matcher) {
-        dfa = matcher->DFA() ? matcher->DFA() : nullptr;
-        ecs = matcher->EC()->EquivClasses();
-        current_pos = -1;
-        current_state = nullptr;
-    }
+    explicit RE_Match_State(Specific_RE_Matcher* matcher);
+    ~RE_Match_State();
 
     const AcceptingMatchSet& AcceptedMatches() const { return accepted_matches; }
+    bool UsesRustStreamMatcher() const { return rust_stream_matcher != nullptr; }
 
     // Returns the number of bytes fed into the matcher so far
     int Length() { return current_pos; }
@@ -178,17 +186,15 @@ public:
     // If clear is true, starts matching over.
     bool Match(const u_char* bv, int n, bool bol, bool eol, bool clear);
 
-    void Clear() {
-        current_pos = -1;
-        current_state = nullptr;
-        accepted_matches.clear();
-    }
+    void Clear();
 
     void AddMatches(const AcceptingSet& as, MatchPos position);
 
 protected:
     DFA_Machine* dfa;
     int* ecs;
+    void* rust_stream_matcher = nullptr;
+    void* rust_stream_state = nullptr;
 
     AcceptingMatchSet accepted_matches;
     DFA_State* current_state;
@@ -205,6 +211,7 @@ public:
     RE_Matcher();
     explicit RE_Matcher(const char* pat);
     RE_Matcher(const char* exact_pat, const char* anywhere_pat);
+    RE_Matcher(const char* exact_pat, const char* anywhere_pat, const char* rust_pat);
     ~RE_Matcher();
 
     void AddPat(const char* pat);
@@ -244,6 +251,7 @@ public:
 
     const char* PatternText() const { return re_exact->PatternText(); }
     const char* AnywherePatternText() const { return re_anywhere->PatternText(); }
+    const char* RustPatternText() const { return re_exact->RustPatternText(); }
 
     // Original text used to construct this matcher.  Empty unless
     // the main ("explicit") constructor was used.

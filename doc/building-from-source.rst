@@ -44,6 +44,7 @@ development headers for libraries:
     * Make
     * OpenSSL (https://www.openssl.org)
     * Python 3.9 or greater (https://www.python.org/)
+    * Rust toolchain with ``cargo`` and ``rustc`` 1.74 or greater
     * SWIG (https://www.swig.org)
     * ZeroMQ (https://zeromq.org)
     * Zlib (https://zlib.net/)
@@ -54,7 +55,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-     sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel swig zlib-devel
+     sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel rust cargo swig zlib-devel
 
   On pre-``dnf`` systems, use ``yum`` instead.  Additionally, on RHEL/CentOS 7,
   you can install and activate a devtoolset_ to get access to recent GCC
@@ -69,7 +70,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-     sudo apt-get install bison cmake cppzmq-dev gcc g++ flex libfl-dev libpcap-dev libssl-dev make python3 python3-dev swig zlib1g-dev
+     sudo apt-get install bison cmake cppzmq-dev gcc g++ flex libfl-dev libpcap-dev libssl-dev make python3 python3-dev rustc cargo swig zlib1g-dev
 
   If your platform doesn't offer ``cppzmq-dev``, try ``libzmq3-dev``
   instead. Zeek's build will fall back to an in-tree version of C++
@@ -82,7 +83,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-      sudo pkg install -y base64 bash bison cmake cppzmq git python3 swig
+      sudo pkg install -y base64 bash bison cmake cppzmq git python3 rust swig
       pyver=`python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")'`
       sudo pkg install -y $pyver-sqlite3
 
@@ -97,16 +98,16 @@ To install these, you can use:
   clicking "Install").
 
   macOS comes with all required dependencies except for CMake_, SWIG_,
-  Bison, Flex, and OpenSSL (OpenSSL headers were removed in macOS 10.11,
+  Bison, Flex, Rust, and OpenSSL (OpenSSL headers were removed in macOS 10.11,
   therefore OpenSSL must be installed manually for macOS versions 10.11
   or newer).
 
   Distributions of these dependencies can likely be obtained from your
   preferred macOS package management system (e.g. Homebrew_,
   MacPorts_, or Fink_). Specifically for Homebrew, the ``bison``, ``cmake``,
-  ``cppzmq``, ``flex``, ``swig``, and ``openssl`` packages
+  ``cppzmq``, ``flex``, ``rust``, ``swig``, and ``openssl`` packages
   provide the required dependencies.  For MacPorts, use the ``bison``, ``cmake``,
-  ``cppzmq``, ``flex``, ``swig``, ``swig-python``, and ``openssl`` packages.
+  ``cppzmq``, ``flex``, ``rust``, ``swig``, ``swig-python``, and ``openssl`` packages.
 
 * Windows
 
@@ -138,6 +139,7 @@ To install these, you can use:
      choco install -y --no-progress msysgit
      choco install -y --no-progress python
      choco install -y --no-progress openssl --version=3.1.1
+     choco install -y --no-progress rustup.install
 
   Once the dependencies are installed, you will need to add the Git installation
   to your PATH (``C:\Program Files\Git\bin`` by default). This is needed for the

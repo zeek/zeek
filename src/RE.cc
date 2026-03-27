@@ -3,12 +3,15 @@
 #include "zeek/RE.h"
 
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 #include "zeek/CCL.h"
 #include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
+#include "zeek/RegexBackend.h"
 #include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -26,6 +29,15 @@ extern void RE_done_with_scan();
 namespace zeek {
 namespace detail {
 
+static bool rust_stream_matchers_enabled() {
+    static const bool enabled = std::getenv("ZEEK_DISABLE_RUST_STREAM_REGEX") == nullptr;
+    return enabled;
+}
+
+static bool PatternUsesUnsupportedRustSyntax(const char* pat) {
+    return pat && std::strchr(pat, '"') != nullptr;
+}
+
 extern bool re_syntax_error;
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
@@ -41,6 +53,7 @@ Specific_RE_Matcher::~Specific_RE_Matcher() {
     for ( int i = 0; i < ccl_list.length(); ++i )
         delete ccl_list[i];
 
+    ClearRustMatchers();
     Unref(dfa);
     delete accepted;
 }
@@ -73,6 +86,9 @@ void Specific_RE_Matcher::ConvertCCLs() {
 }
 
 void Specific_RE_Matcher::AddPat(const char* new_pat) {
+    ClearRustMatchers();
+    AddRustPat(new_pat);
+
     if ( mt == MATCH_EXACTLY )
         AddExactPat(new_pat);
     else
@@ -92,14 +108,62 @@ void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, cons
         pattern_text = util::fmt(orig_fmt, new_pat);
 }
 
+void Specific_RE_Matcher::AddRustPat(const char* new_pat) {
+    if ( ! rust_backend_compatible )
+        return;
+
+    if ( PatternUsesUnsupportedRustSyntax(new_pat) ) {
+        rust_backend_compatible = false;
+        rust_pattern_text.clear();
+        return;
+    }
+
+    if ( ! rust_pattern_text.empty() )
+        rust_pattern_text = util::fmt("(?:%s)|(?:%s)", rust_pattern_text.c_str(), new_pat);
+    else
+        rust_pattern_text = util::fmt("(?:%s)", new_pat);
+}
+
+void Specific_RE_Matcher::ClearRustMatchers() {
+    FreeRustRegexMatcher(rust_matcher);
+    rust_matcher = nullptr;
+    FreeRustRegexSetMatcher(rust_set_matcher);
+    rust_set_matcher = nullptr;
+    FreeRustRegexStreamMatcher(rust_stream_matcher);
+    rust_stream_matcher = nullptr;
+}
+
 void Specific_RE_Matcher::MakeCaseInsensitive() {
     const char fmt[] = "(?i:%s)";
     pattern_text = util::fmt(fmt, pattern_text.c_str());
+
+    if ( rust_backend_compatible && ! rust_pattern_text.empty() )
+        rust_pattern_text = util::fmt(fmt, rust_pattern_text.c_str());
+
+    ClearRustMatchers();
 }
 
 void Specific_RE_Matcher::MakeSingleLine() {
     const char fmt[] = "(?s:%s)";
     pattern_text = util::fmt(fmt, pattern_text.c_str());
+
+    if ( rust_backend_compatible && ! rust_pattern_text.empty() )
+        rust_pattern_text = util::fmt(fmt, rust_pattern_text.c_str());
+
+    ClearRustMatchers();
+}
+
+void Specific_RE_Matcher::SetPat(const char* pat) {
+    pattern_text = pat;
+    rust_pattern_text.clear();
+    rust_backend_compatible = false;
+    ClearRustMatchers();
+}
+
+void Specific_RE_Matcher::SetRustPat(const char* pat) {
+    rust_backend_compatible = pat && ! PatternUsesUnsupportedRustSyntax(pat);
+    rust_pattern_text = rust_backend_compatible ? pat : "";
+    ClearRustMatchers();
 }
 
 bool Specific_RE_Matcher::Compile(bool lazy) {
@@ -130,14 +194,23 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
 
     ecs = EC()->EquivClasses();
 
+    ClearRustMatchers();
+    if ( ! rust_pattern_text.empty() && RustRegexBackendAvailable() )
+        rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
+
     return true;
 }
 
-bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx) {
+bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx, const string_list* rust_set) {
     if ( (size_t)set.length() != idx.size() )
         reporter->InternalError("compileset: lengths of sets differ");
 
+    if ( rust_set && (size_t)rust_set->length() != idx.size() )
+        reporter->InternalError("compileset: lengths of Rust sets differ");
+
     rem = this;
+    rust_pattern_text.clear();
+    ClearRustMatchers();
 
     NFA_Machine* set_nfa = nullptr;
 
@@ -177,6 +250,52 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     // dfa took ownership
     Unref(nfa);
     nfa = nullptr;
+
+    bool rust_set_compatible = true;
+
+    if ( multiline ) {
+        loop_over_list(set, i) {
+            if ( PatternUsesUnsupportedRustSyntax(set[i]) ) {
+                rust_set_compatible = false;
+                break;
+            }
+        }
+    }
+    else if ( rust_set ) {
+        loop_over_list((*rust_set), i) {
+            if ( PatternUsesUnsupportedRustSyntax((*rust_set)[i]) ) {
+                rust_set_compatible = false;
+                break;
+            }
+        }
+    }
+
+    if ( multiline && rust_set_compatible && RustRegexBackendAvailable() ) {
+        std::vector<const char*> rust_patterns;
+        std::vector<std::intptr_t> rust_ids;
+        rust_patterns.reserve(set.length());
+        rust_ids.reserve(idx.size());
+
+        loop_over_list(set, i) {
+            rust_patterns.push_back(set[i]);
+            rust_ids.push_back(idx[i]);
+        }
+
+        rust_stream_matcher = CompileRustRegexStreamMatcher(rust_patterns, rust_ids, true);
+    }
+    else if ( rust_set && rust_set_compatible && RustRegexBackendAvailable() ) {
+        std::vector<const char*> rust_patterns;
+        std::vector<std::intptr_t> rust_ids;
+        rust_patterns.reserve(rust_set->length());
+        rust_ids.reserve(idx.size());
+
+        loop_over_list((*rust_set), i) {
+            rust_patterns.push_back((*rust_set)[i]);
+            rust_ids.push_back(idx[i]);
+        }
+
+        rust_set_matcher = CompileRustRegexSetMatcher(rust_patterns, rust_ids);
+    }
 
     return true;
 }
@@ -222,6 +341,18 @@ int Specific_RE_Matcher::LongestMatch(std::string_view sv) {
 }
 
 bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches) {
+    if ( matches && rust_set_matcher ) {
+        const auto before = matches->size();
+        RustRegexSetMatcherAppendMatches(rust_set_matcher, reinterpret_cast<const uint8_t*>(bv), n, *matches);
+        return matches->size() != before;
+    }
+
+    if ( ! matches && rust_set_matcher )
+        return RustRegexSetMatcherMatchAny(rust_set_matcher, reinterpret_cast<const uint8_t*>(bv), n);
+
+    if ( ! matches && rust_matcher )
+        return RustRegexMatcherMatchAll(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n);
+
     if ( ! dfa )
         // An empty pattern matches "all" iff what's being
         // matched is empty.
@@ -250,6 +381,9 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptId
 }
 
 int Specific_RE_Matcher::Match(const u_char* bv, int n) {
+    if ( rust_matcher )
+        return RustRegexMatcherFindEnd(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n);
+
     if ( ! dfa )
         // An empty pattern matches anything.
         return 1;
@@ -288,7 +422,51 @@ inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position
         accepted_matches.insert(am_idx(entry, position));
 }
 
+RE_Match_State::RE_Match_State(Specific_RE_Matcher* matcher) {
+    dfa = matcher->DFA() ? matcher->DFA() : nullptr;
+    ecs = matcher->EC()->EquivClasses();
+    current_pos = -1;
+    current_state = nullptr;
+    rust_stream_matcher = rust_stream_matchers_enabled() ? matcher->RustStreamMatcher() : nullptr;
+    rust_stream_state = rust_stream_matcher ? CreateRustRegexStreamState(rust_stream_matcher) : nullptr;
+}
+
+RE_Match_State::~RE_Match_State() { FreeRustRegexStreamState(rust_stream_state); }
+
+void RE_Match_State::Clear() {
+    current_pos = -1;
+    current_state = nullptr;
+    accepted_matches.clear();
+
+    if ( rust_stream_matcher ) {
+        FreeRustRegexStreamState(rust_stream_state);
+        rust_stream_state = CreateRustRegexStreamState(rust_stream_matcher);
+    }
+}
+
 bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool clear) {
+    if ( rust_stream_matcher && rust_stream_state ) {
+        if ( clear ) {
+            FreeRustRegexStreamState(rust_stream_state);
+            rust_stream_state = CreateRustRegexStreamState(rust_stream_matcher);
+            current_pos = -1;
+            current_state = nullptr;
+        }
+
+        if ( ! rust_stream_state )
+            return false;
+
+        const auto old_matches = accepted_matches.size();
+        std::vector<std::pair<AcceptIdx, uint64_t>> matches;
+        RustRegexStreamStateAppendMatches(rust_stream_matcher, rust_stream_state, reinterpret_cast<const uint8_t*>(bv),
+                                          n, bol, eol, run_state::detail::bare_mode, matches);
+
+        for ( const auto& [accept_idx, position] : matches )
+            accepted_matches.emplace(accept_idx, position);
+
+        return accepted_matches.size() != old_matches;
+    }
+
     if ( current_pos == -1 ) {
         // First call to Match().
         if ( ! dfa )
@@ -420,11 +598,16 @@ RE_Matcher::RE_Matcher(const char* pat) : orig_text(pat) {
     AddPat(pat);
 }
 
-RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat) {
+RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
+    : RE_Matcher(exact_pat, anywhere_pat, nullptr) {}
+
+RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat, const char* rust_pat) {
     re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
     re_anywhere->SetPat(anywhere_pat);
+    re_anywhere->SetRustPat(rust_pat);
     re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
     re_exact->SetPat(exact_pat);
+    re_exact->SetRustPat(rust_pat);
 }
 
 RE_Matcher::~RE_Matcher() {

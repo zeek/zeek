@@ -1,3 +1,7 @@
+8.2.0-dev.399 | 2026-03-27 18:59:53 +0100
+
+  * fix: pin 5 unpinned action(s) to commit SHA (dagecko)
+
 8.2.0-dev.397 | 2026-03-24 09:47:15 +0100
 
   * GH-5273: Pass the payload length from IP analyzer if available (Tim Wojtulewicz, Corelight)

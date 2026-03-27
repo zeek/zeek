@@ -23,6 +23,8 @@ ZeekRustRegexMatcher* zeek_rust_regex_matcher_compile(const char* pattern);
 void zeek_rust_regex_matcher_free(ZeekRustRegexMatcher* matcher);
 int zeek_rust_regex_matcher_match_all(const ZeekRustRegexMatcher* matcher, const uint8_t* data, size_t len);
 int zeek_rust_regex_matcher_find_end(const ZeekRustRegexMatcher* matcher, const uint8_t* data, size_t len);
+int zeek_rust_regex_matcher_longest_prefix(const ZeekRustRegexMatcher* matcher, const uint8_t* data, size_t len,
+                                           int bol, int eol);
 ZeekRustRegexSetMatcher* zeek_rust_regex_set_matcher_compile(const char* const* patterns, const intptr_t* ids,
                                                              size_t len);
 void zeek_rust_regex_set_matcher_free(ZeekRustRegexSetMatcher* matcher);
@@ -45,7 +47,7 @@ size_t zeek_rust_regex_stream_state_match(const ZeekRustRegexStreamMatcher* matc
 
 namespace zeek::detail {
 
-inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_ABI_VERSION = 2;
+inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_ABI_VERSION = 3;
 inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN = 0x5A45'454B;
 
 uint32_t RustRegexBackendAbiVersion();
@@ -55,6 +57,7 @@ void* CompileRustRegexMatcher(const std::string& pattern);
 void FreeRustRegexMatcher(void* matcher);
 bool RustRegexMatcherMatchAll(const void* matcher, const uint8_t* data, size_t len);
 int RustRegexMatcherFindEnd(const void* matcher, const uint8_t* data, size_t len);
+int RustRegexMatcherLongestPrefix(const void* matcher, const uint8_t* data, size_t len, bool bol, bool eol);
 void* CompileRustRegexSetMatcher(const std::vector<const char*>& patterns, const std::vector<std::intptr_t>& ids);
 void FreeRustRegexSetMatcher(void* matcher);
 bool RustRegexSetMatcherMatchAny(const void* matcher, const uint8_t* data, size_t len);

@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 #include <utility>
 
 #include "zeek/CCL.h"
@@ -36,6 +37,61 @@ static bool rust_stream_matchers_enabled() {
 
 static bool PatternUsesUnsupportedRustSyntax(const char* pat) {
     return pat && std::strchr(pat, '"') != nullptr;
+}
+
+static bool strip_wrapper(std::string_view text, std::string_view prefix, std::string_view suffix,
+                          std::string_view* inner) {
+    if ( ! text.starts_with(prefix) || ! text.ends_with(suffix) )
+        return false;
+
+    *inner = text.substr(prefix.size(), text.size() - prefix.size() - suffix.size());
+    return true;
+}
+
+static std::string derive_rust_pattern_text(const char* exact_pat, const char* anywhere_pat) {
+    if ( ! exact_pat || ! anywhere_pat )
+        return {};
+
+    std::string_view exact = exact_pat;
+    std::string_view anywhere = anywhere_pat;
+    std::vector<char> mode_wrappers;
+
+    while ( true ) {
+        if ( exact.starts_with("(?i:") && exact.ends_with(")") && anywhere.starts_with("(?i:") && anywhere.ends_with(")") ) {
+            exact = exact.substr(4, exact.size() - 5);
+            anywhere = anywhere.substr(4, anywhere.size() - 5);
+            mode_wrappers.push_back('i');
+            continue;
+        }
+
+        if ( exact.starts_with("(?s:") && exact.ends_with(")") && anywhere.starts_with("(?s:") && anywhere.ends_with(")") ) {
+            exact = exact.substr(4, exact.size() - 5);
+            anywhere = anywhere.substr(4, anywhere.size() - 5);
+            mode_wrappers.push_back('s');
+            continue;
+        }
+
+        break;
+    }
+
+    std::string_view exact_inner;
+    std::string_view anywhere_inner;
+
+    if ( ! strip_wrapper(exact, "^?(", ")$?", &exact_inner) )
+        return {};
+
+    if ( ! strip_wrapper(anywhere, "^?(.|\\n)*(", ")", &anywhere_inner) )
+        return {};
+
+    if ( exact_inner != anywhere_inner || exact_inner.find('"') != std::string_view::npos )
+        return {};
+
+    std::string result = util::fmt("(?:%.*s)", static_cast<int>(exact_inner.size()), exact_inner.data());
+
+    for ( auto it = mode_wrappers.rbegin(); it != mode_wrappers.rend(); ++it )
+        result = util::fmt("(?%c:%s)", *it, result.c_str());
+
+    return result;
 }
 
 extern bool re_syntax_error;
@@ -527,6 +583,9 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
 }
 
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n, bool bol, bool eol) {
+    if ( rust_matcher )
+        return RustRegexMatcherLongestPrefix(rust_matcher, reinterpret_cast<const uint8_t*>(bv), n, bol, eol);
+
     if ( ! dfa )
         // An empty pattern matches anything.
         return 0;
@@ -608,12 +667,17 @@ RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
     : RE_Matcher(exact_pat, anywhere_pat, nullptr) {}
 
 RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat, const char* rust_pat) {
+    const auto derived_rust_pat =
+        (! rust_pat || ! rust_pat[0]) ? detail::derive_rust_pattern_text(exact_pat, anywhere_pat) : std::string{};
+    const char* effective_rust_pat = rust_pat && rust_pat[0] ? rust_pat :
+                                     (derived_rust_pat.empty() ? nullptr : derived_rust_pat.c_str());
+
     re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
     re_anywhere->SetPat(anywhere_pat);
-    re_anywhere->SetRustPat(rust_pat);
+    re_anywhere->SetRustPat(effective_rust_pat);
     re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
     re_exact->SetPat(exact_pat);
-    re_exact->SetRustPat(rust_pat);
+    re_exact->SetRustPat(effective_rust_pat);
 }
 
 RE_Matcher::~RE_Matcher() {
@@ -761,6 +825,18 @@ TEST_SUITE("re_matcher") {
         CHECK(std::string(cj->RustPatternText()) == "((?i:(?:foo)))((?:bar))");
         CHECK(cj->MatchExactly("FoObar"));
         delete cj;
+    }
+
+    TEST_CASE("reconstructed matchers derive Rust pattern text from Zeek wrappers") {
+        RE_Matcher original("foo");
+        original.MakeCaseInsensitive();
+        REQUIRE(original.Compile());
+
+        RE_Matcher reconstructed(original.PatternText(), original.AnywherePatternText());
+        REQUIRE(reconstructed.Compile());
+
+        CHECK(std::string(reconstructed.RustPatternText()) == "(?i:(?:foo))");
+        CHECK(reconstructed.MatchExactly("FoO"));
     }
 
     TEST_CASE("synerr causes Compile() to fail") {

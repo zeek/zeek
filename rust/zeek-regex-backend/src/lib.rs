@@ -6,16 +6,17 @@ use std::slice;
 use regex_automata::{
     dfa::{dense, Automaton},
     meta::Regex,
-    nfa::thompson,
+    nfa::thompson::{self, pikevm},
     util::{primitives::StateID, start, syntax},
     Anchored, Input, MatchKind, PatternSet,
 };
 
-pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 2;
+pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 3;
 pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
 
 pub struct ZeekRustRegexMatcher {
     regex: Regex,
+    prefix_vm: pikevm::PikeVM,
 }
 
 pub struct ZeekRustRegexSetMatcher {
@@ -136,6 +137,46 @@ unsafe fn haystack_from_raw<'a>(data: *const u8, len: usize) -> Option<&'a [u8]>
     }
 }
 
+fn longest_prefix_with_pikevm(
+    matcher: &ZeekRustRegexMatcher,
+    haystack: &[u8],
+    bol: bool,
+    eol: bool,
+) -> i32 {
+    let mut cache = matcher.prefix_vm.create_cache();
+    let find_prefix = |input: Input<'_>, cache: &mut pikevm::Cache| -> i32 {
+        match matcher.prefix_vm.find(cache, input.clone()) {
+            Some(found) if found.start() == input.start() => (found.end() - input.start()) as i32,
+            _ => -1,
+        }
+    };
+
+    if bol && eol {
+        return find_prefix(Input::new(haystack).anchored(Anchored::Yes), &mut cache);
+    }
+
+    let prefix_len = usize::from(!bol);
+    let suffix_len = usize::from(!eol);
+    let mut contextual = Vec::with_capacity(prefix_len + haystack.len() + suffix_len);
+
+    if !bol {
+        contextual.push(0);
+    }
+
+    contextual.extend_from_slice(haystack);
+
+    if !eol {
+        contextual.push(0);
+    }
+
+    find_prefix(
+        Input::new(&contextual)
+            .span(prefix_len..(prefix_len + haystack.len()))
+            .anchored(Anchored::Yes),
+        &mut cache,
+    )
+}
+
 #[no_mangle]
 pub extern "C" fn zeek_rust_regex_backend_abi_version() -> u32 {
     ZEEK_RUST_REGEX_BACKEND_ABI_VERSION
@@ -165,7 +206,18 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
         Err(_) => return std::ptr::null_mut(),
     };
 
-    Box::into_raw(Box::new(ZeekRustRegexMatcher { regex }))
+    let thompson = thompson::Config::new().utf8(false);
+    let mut prefix_builder = pikevm::Builder::new();
+    prefix_builder.configure(pikevm::Config::new().match_kind(MatchKind::All));
+    prefix_builder.syntax(syntax);
+    prefix_builder.thompson(thompson);
+
+    let prefix_vm = match prefix_builder.build(pattern) {
+        Ok(vm) => vm,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    Box::into_raw(Box::new(ZeekRustRegexMatcher { regex, prefix_vm }))
 }
 
 #[no_mangle]
@@ -216,6 +268,25 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
         Some(_) => 1,
         None => 0,
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_longest_prefix(
+    matcher: *const ZeekRustRegexMatcher,
+    data: *const u8,
+    len: usize,
+    bol: i32,
+    eol: i32,
+) -> i32 {
+    let Some(matcher) = matcher.as_ref() else {
+        return -1;
+    };
+
+    let Some(haystack) = haystack_from_raw(data, len) else {
+        return -1;
+    };
+
+    longest_prefix_with_pikevm(matcher, haystack, bol != 0, eol != 0)
 }
 
 #[no_mangle]
@@ -639,6 +710,11 @@ mod tests {
     use super::*;
     use std::ffi::CString;
 
+    fn compile_matcher(pattern: &str) -> *mut ZeekRustRegexMatcher {
+        let pattern = CString::new(pattern).expect("pattern cstring");
+        unsafe { zeek_rust_regex_matcher_compile(pattern.as_ptr()) }
+    }
+
     fn compile_stream_matcher(patterns: &[&str]) -> *mut ZeekRustRegexStreamMatcher {
         let patterns = patterns
             .iter()
@@ -722,6 +798,42 @@ mod tests {
         unsafe {
             zeek_rust_regex_stream_state_free(state);
             zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn matcher_longest_prefix_prefers_longer_accept() {
+        let matcher = compile_matcher("a|ab");
+        assert!(!matcher.is_null());
+
+        let matched =
+            unsafe { zeek_rust_regex_matcher_longest_prefix(matcher, b"abx".as_ptr(), 3, 1, 0) };
+        assert_eq!(matched, 2);
+
+        unsafe {
+            zeek_rust_regex_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn matcher_longest_prefix_honors_bol_and_eol() {
+        let anchored = compile_matcher("^ab$");
+        assert!(!anchored.is_null());
+
+        let no_eol =
+            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 1, 0) };
+        assert_eq!(no_eol, -1);
+
+        let with_eol =
+            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 1, 1) };
+        assert_eq!(with_eol, 2);
+
+        let no_bol =
+            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 0, 1) };
+        assert_eq!(no_bol, -1);
+
+        unsafe {
+            zeek_rust_regex_matcher_free(anchored);
         }
     }
 

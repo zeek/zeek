@@ -34,6 +34,11 @@ int RustRegexMatcherFindEnd(const void* matcher, const uint8_t* data, size_t len
     return zeek_rust_regex_matcher_find_end(reinterpret_cast<const ZeekRustRegexMatcher*>(matcher), data, len);
 }
 
+int RustRegexMatcherLongestPrefix(const void* matcher, const uint8_t* data, size_t len, bool bol, bool eol) {
+    return zeek_rust_regex_matcher_longest_prefix(reinterpret_cast<const ZeekRustRegexMatcher*>(matcher), data, len,
+                                                  bol, eol);
+}
+
 void* CompileRustRegexSetMatcher(const std::vector<const char*>& patterns, const std::vector<std::intptr_t>& ids) {
     if ( patterns.empty() || patterns.size() != ids.size() )
         return nullptr;

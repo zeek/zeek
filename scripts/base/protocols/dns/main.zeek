@@ -90,9 +90,6 @@ export {
 		saw_query: bool                &default=F;
 		## Whether the full DNS reply has been seen.
 		saw_reply: bool                &default=F;
-
-		## Zone Change NOTIFY (opcode is 4)
-                dns_notify: bool                &log  &default=F;
 	};
 
 	## An event that can be handled to access the :zeek:type:`DNS::Info`
@@ -378,12 +375,6 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 		# the request, which is not what we want to track.
 		return;
 
-        if( msg$opcode == DNS_OP_NOTIFY )
-                {
-                if ( ! c$dns?$dns_notify )
-                        c$dns$dns_notify = T;
-                }
-
 	if ( ans$answer_type != DNS_ANS &&
 	     ans$answer_type != DNS_PREREQUISITE &&
 	     ans$answer_type != DNS_UPDATE )
@@ -445,9 +436,6 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE && msg$opcode != DNS_OP_NOTIFY )
 		# Currently only standard queries and dynamic updates are tracked.
 		return;
-
-        if ( msg$opcode == DNS_OP_NOTIFY )
-                c$dns$dns_notify = T;
 
 	c$dns$RD          = msg$RD;
 	c$dns$TC          = msg$TC;

@@ -1101,7 +1101,10 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
             assert(pset->re);
 
             ++stats->matchers;
-            pset->re->DFA()->Cache()->GetStats(&cstats);
+            if ( auto* dfa = pset->re->DFA() )
+                dfa->Cache()->GetStats(&cstats);
+            else
+                cstats = {};
 
             stats->dfa_states += cstats.dfa_states;
             stats->computed += cstats.computed;
@@ -1138,8 +1141,10 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
             RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
             assert(set->re);
 
-            f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time,
-                               set->re->DFA()->NumStates(), Rule::TypeToString((Rule::PatternType)i), j));
+            const auto dfa_states = set->re->DFA() ? set->re->DFA()->NumStates() : 0;
+
+            f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time, dfa_states,
+                               Rule::TypeToString((Rule::PatternType)i), j));
 
             for ( const auto& id : set->ids ) {
                 Rule* r = Rule::rule_table[id - 1];

@@ -226,6 +226,18 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
     if ( pattern_text.empty() )
         return false;
 
+    ClearRustMatchers();
+    if ( ! rust_pattern_text.empty() && RustRegexBackendAvailable() ) {
+        rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
+
+        if ( rust_matcher ) {
+            Unref(dfa);
+            dfa = nullptr;
+            ecs = nullptr;
+            return true;
+        }
+    }
+
     rem = this;
     zeek::detail::re_syntax_error = false;
     RE_set_input(pattern_text.c_str());
@@ -250,10 +262,6 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
 
     ecs = EC()->EquivClasses();
 
-    ClearRustMatchers();
-    if ( ! rust_pattern_text.empty() && RustRegexBackendAvailable() )
-        rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
-
     return true;
 }
 
@@ -267,6 +275,57 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     rem = this;
     rust_pattern_text.clear();
     ClearRustMatchers();
+
+    bool rust_set_compatible = true;
+
+    if ( multiline ) {
+        loop_over_list(set, i) {
+            if ( PatternUsesUnsupportedRustSyntax(set[i]) ) {
+                rust_set_compatible = false;
+                break;
+            }
+        }
+    }
+    else if ( rust_set ) {
+        loop_over_list((*rust_set), i) {
+            if ( PatternUsesUnsupportedRustSyntax((*rust_set)[i]) ) {
+                rust_set_compatible = false;
+                break;
+            }
+        }
+    }
+    else
+        rust_set_compatible = false;
+
+    if ( rust_set_compatible && RustRegexBackendAvailable() ) {
+        std::vector<const char*> rust_patterns;
+        std::vector<std::intptr_t> rust_ids;
+        rust_patterns.reserve(multiline ? set.length() : rust_set->length());
+        rust_ids.reserve(idx.size());
+
+        if ( multiline ) {
+            loop_over_list(set, i) {
+                rust_patterns.push_back(set[i]);
+                rust_ids.push_back(idx[i]);
+            }
+
+            rust_stream_matcher = CompileRustRegexStreamMatcher(rust_patterns, rust_ids, true);
+
+            if ( rust_stream_matcher )
+                return true;
+        }
+        else {
+            loop_over_list((*rust_set), i) {
+                rust_patterns.push_back((*rust_set)[i]);
+                rust_ids.push_back(idx[i]);
+            }
+
+            rust_set_matcher = CompileRustRegexSetMatcher(rust_patterns, rust_ids);
+
+            if ( rust_set_matcher )
+                return true;
+        }
+    }
 
     NFA_Machine* set_nfa = nullptr;
 
@@ -306,52 +365,6 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     // dfa took ownership
     Unref(nfa);
     nfa = nullptr;
-
-    bool rust_set_compatible = true;
-
-    if ( multiline ) {
-        loop_over_list(set, i) {
-            if ( PatternUsesUnsupportedRustSyntax(set[i]) ) {
-                rust_set_compatible = false;
-                break;
-            }
-        }
-    }
-    else if ( rust_set ) {
-        loop_over_list((*rust_set), i) {
-            if ( PatternUsesUnsupportedRustSyntax((*rust_set)[i]) ) {
-                rust_set_compatible = false;
-                break;
-            }
-        }
-    }
-
-    if ( multiline && rust_set_compatible && RustRegexBackendAvailable() ) {
-        std::vector<const char*> rust_patterns;
-        std::vector<std::intptr_t> rust_ids;
-        rust_patterns.reserve(set.length());
-        rust_ids.reserve(idx.size());
-
-        loop_over_list(set, i) {
-            rust_patterns.push_back(set[i]);
-            rust_ids.push_back(idx[i]);
-        }
-
-        rust_stream_matcher = CompileRustRegexStreamMatcher(rust_patterns, rust_ids, true);
-    }
-    else if ( rust_set && rust_set_compatible && RustRegexBackendAvailable() ) {
-        std::vector<const char*> rust_patterns;
-        std::vector<std::intptr_t> rust_ids;
-        rust_patterns.reserve(rust_set->length());
-        rust_ids.reserve(idx.size());
-
-        loop_over_list((*rust_set), i) {
-            rust_patterns.push_back((*rust_set)[i]);
-            rust_ids.push_back(idx[i]);
-        }
-
-        rust_set_matcher = CompileRustRegexSetMatcher(rust_patterns, rust_ids);
-    }
 
     return true;
 }
@@ -469,7 +482,10 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n) {
     return 0;
 }
 
-void Specific_RE_Matcher::Dump(FILE* f) { dfa->Dump(f); }
+void Specific_RE_Matcher::Dump(FILE* f) {
+    if ( dfa )
+        dfa->Dump(f);
+}
 
 inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
     using am_idx = std::pair<AcceptIdx, MatchPos>;
@@ -480,7 +496,7 @@ inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position
 
 RE_Match_State::RE_Match_State(Specific_RE_Matcher* matcher) {
     dfa = matcher->DFA() ? matcher->DFA() : nullptr;
-    ecs = matcher->EC()->EquivClasses();
+    ecs = dfa ? matcher->EC()->EquivClasses() : nullptr;
     current_pos = -1;
     current_state = nullptr;
     rust_stream_matcher = rust_stream_matchers_enabled() ? matcher->RustStreamMatcher() : nullptr;
@@ -837,6 +853,41 @@ TEST_SUITE("re_matcher") {
 
         CHECK(std::string(reconstructed.RustPatternText()) == "(?i:(?:foo))");
         CHECK(reconstructed.MatchExactly("FoO"));
+    }
+
+    TEST_CASE("rust-compatible matchers do not require a legacy dfa") {
+        RE_Matcher match("foo");
+        REQUIRE(match.Compile());
+        CHECK(match.MatchExactly("foo"));
+
+        if ( detail::RustRegexBackendAvailable() )
+            CHECK(match.DFA() == nullptr);
+    }
+
+    TEST_CASE("rust-compatible exact match sets do not require a legacy dfa") {
+        RE_Matcher foo("foo");
+        RE_Matcher dots("f.o");
+        REQUIRE(foo.Compile());
+        REQUIRE(dots.Compile());
+
+        detail::string_list patterns;
+        detail::string_list rust_patterns;
+        detail::int_list ids = {1, 2};
+
+        patterns.push_back(const_cast<char*>(foo.PatternText()));
+        patterns.push_back(const_cast<char*>(dots.PatternText()));
+        rust_patterns.push_back(const_cast<char*>(foo.RustPatternText()));
+        rust_patterns.push_back(const_cast<char*>(dots.RustPatternText()));
+
+        detail::Specific_RE_Matcher set_matcher(detail::MATCH_EXACTLY);
+        REQUIRE(set_matcher.CompileSet(patterns, ids, &rust_patterns));
+
+        std::vector<detail::AcceptIdx> matches;
+        CHECK(set_matcher.MatchSet("foo", matches));
+        CHECK(matches.size() == 2);
+
+        if ( detail::RustRegexBackendAvailable() )
+            CHECK(set_matcher.DFA() == nullptr);
     }
 
     TEST_CASE("synerr causes Compile() to fail") {

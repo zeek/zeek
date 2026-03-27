@@ -573,6 +573,12 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, c
     std::string merge_text = util::fmt("(%s)%s(%s)", text1, merge_op, text2);
     RE_Matcher* merge = new RE_Matcher(merge_text.c_str());
 
+    const char* rust_text1 = re1->RustPatternText();
+    const char* rust_text2 = re2->RustPatternText();
+
+    if ( rust_text1 && rust_text1[0] && rust_text2 && rust_text2[0] )
+        merge->SetRustPat(util::fmt("(%s)%s(%s)", rust_text1, merge_op, rust_text2));
+
     merge->Compile();
 
     return merge;
@@ -618,6 +624,11 @@ RE_Matcher::~RE_Matcher() {
 void RE_Matcher::AddPat(const char* new_pat) {
     re_anywhere->AddPat(new_pat);
     re_exact->AddPat(new_pat);
+}
+
+void RE_Matcher::SetRustPat(const char* pat) {
+    re_anywhere->SetRustPat(pat);
+    re_exact->SetRustPat(pat);
 }
 
 void RE_Matcher::MakeCaseInsensitive() {
@@ -730,6 +741,26 @@ TEST_SUITE("re_matcher") {
         CHECK(dj->MatchExactly("a\nc"));
         CHECK(dj->MatchExactly("def"));
         delete dj;
+    }
+
+    TEST_CASE("matcher merge preserves Rust pattern text") {
+        RE_Matcher match1("foo");
+        match1.MakeCaseInsensitive();
+        REQUIRE(match1.Compile());
+
+        RE_Matcher match2("bar");
+        REQUIRE(match2.Compile());
+
+        auto dj = detail::RE_Matcher_disjunction(&match1, &match2);
+        CHECK(std::string(dj->RustPatternText()) == "((?i:(?:foo)))|((?:bar))");
+        CHECK(dj->MatchExactly("FoO"));
+        CHECK(dj->MatchExactly("bar"));
+        delete dj;
+
+        auto cj = detail::RE_Matcher_conjunction(&match1, &match2);
+        CHECK(std::string(cj->RustPatternText()) == "((?i:(?:foo)))((?:bar))");
+        CHECK(cj->MatchExactly("FoObar"));
+        delete cj;
     }
 
     TEST_CASE("synerr causes Compile() to fail") {

@@ -215,6 +215,7 @@ public:
     ~RE_Matcher();
 
     void AddPat(const char* pat);
+    void SetRustPat(const char* pat);
 
     // Makes the matcher as specified to date case-insensitive.
     void MakeCaseInsensitive();

@@ -70,11 +70,12 @@ void RustRegexSetMatcherAppendMatches(const void* matcher, const uint8_t* data, 
 }
 
 void* CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns, const std::vector<std::intptr_t>& ids,
-                                    bool dot_matches_new_line) {
+                                    bool dot_matches_new_line, size_t cache_capacity) {
     if ( patterns.empty() || patterns.size() != ids.size() )
         return nullptr;
 
-    return zeek_rust_regex_stream_matcher_compile(patterns.data(), ids.data(), patterns.size(), dot_matches_new_line);
+    return zeek_rust_regex_stream_matcher_compile(patterns.data(), ids.data(), patterns.size(), dot_matches_new_line,
+                                                  cache_capacity);
 }
 
 void FreeRustRegexStreamMatcher(void* matcher) {

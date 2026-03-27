@@ -32,7 +32,8 @@ size_t zeek_rust_regex_set_matcher_pattern_len(const ZeekRustRegexSetMatcher* ma
 size_t zeek_rust_regex_set_matcher_matches(const ZeekRustRegexSetMatcher* matcher, const uint8_t* data, size_t len,
                                            intptr_t* out_ids, size_t out_capacity);
 ZeekRustRegexStreamMatcher* zeek_rust_regex_stream_matcher_compile(const char* const* patterns, const intptr_t* ids,
-                                                                   size_t len, int dot_matches_new_line);
+                                                                   size_t len, int dot_matches_new_line,
+                                                                   size_t cache_capacity);
 void zeek_rust_regex_stream_matcher_free(ZeekRustRegexStreamMatcher* matcher);
 size_t zeek_rust_regex_stream_matcher_pattern_len(const ZeekRustRegexStreamMatcher* matcher);
 ZeekRustRegexStreamState* zeek_rust_regex_stream_state_create(const ZeekRustRegexStreamMatcher* matcher);
@@ -63,7 +64,7 @@ void FreeRustRegexSetMatcher(void* matcher);
 bool RustRegexSetMatcherMatchAny(const void* matcher, const uint8_t* data, size_t len);
 void RustRegexSetMatcherAppendMatches(const void* matcher, const uint8_t* data, size_t len, std::vector<int>& matches);
 void* CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns, const std::vector<std::intptr_t>& ids,
-                                    bool dot_matches_new_line);
+                                    bool dot_matches_new_line, size_t cache_capacity);
 void FreeRustRegexStreamMatcher(void* matcher);
 void* CreateRustRegexStreamState(const void* matcher);
 void FreeRustRegexStreamState(void* state);

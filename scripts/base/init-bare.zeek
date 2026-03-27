@@ -450,6 +450,14 @@ const packet_filter_default = F &redef;
 ## Maximum size of regular expression groups for signature matching.
 const sig_max_group_size = 50 &redef;
 
+## Shared lazy-DFA cache budget, in bytes, for each Rust-backed streaming
+## regex matcher used by signatures and other incremental matching. Larger
+## values preserve more matcher-global DFA state across flows at the cost of
+## memory. A value of 0 means "do not apply a practical cache cap" and instead
+## let process memory be the limiting factor, which most closely matches the
+## historical Zeek DFA behavior.
+const sig_rust_regex_cache_size = 0 &redef;
+
 ## Description transmitted to remote communication peers for identification.
 const peer_description = "zeek" &redef;
 

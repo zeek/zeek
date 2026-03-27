@@ -79,6 +79,7 @@ extern double pkt_profile_freq;
 extern int packet_filter_default;
 
 extern int sig_max_group_size;
+extern zeek_uint_t sig_rust_regex_cache_size;
 
 extern int dpd_reassemble_first_packets;
 extern int dpd_buffer_size;

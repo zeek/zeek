@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::slice;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 use regex_automata::{
     hybrid::{dfa as hybrid_dfa, LazyStateID},
@@ -14,7 +14,7 @@ use regex_automata::{
 
 pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 3;
 pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
-const STREAM_SHARED_CACHE_CAPACITY: usize = 64 * (1 << 20);
+const UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY: usize = usize::MAX / 2;
 
 pub struct ZeekRustRegexMatcher {
     regex: Regex,
@@ -42,7 +42,11 @@ pub struct ZeekRustRegexStreamState {
     initialized: bool,
 }
 
-fn build_stream_dfa(pattern: &str, dot_matches_new_line: bool) -> Option<hybrid_dfa::DFA> {
+fn build_stream_dfa(
+    pattern: &str,
+    dot_matches_new_line: bool,
+    cache_capacity: usize,
+) -> Option<hybrid_dfa::DFA> {
     let syntax = syntax::Config::new()
         .unicode(false)
         .utf8(false)
@@ -53,9 +57,10 @@ fn build_stream_dfa(pattern: &str, dot_matches_new_line: bool) -> Option<hybrid_
         hybrid_dfa::Config::new()
             .match_kind(MatchKind::LeftmostFirst)
             // We keep lazy state IDs in per-stream match state, so cache clearing
-            // would invalidate them. Keep the cache append-only and fail instead
-            // of clearing if it ever hits the configured cap.
-            .cache_capacity(STREAM_SHARED_CACHE_CAPACITY)
+            // would invalidate them. Keep the cache append-only and let actual
+            // process memory, not cache clearing, be the practical limit by
+            // default.
+            .cache_capacity(cache_capacity)
             .minimum_cache_clear_count(Some(0)),
     );
     builder.syntax(syntax);
@@ -126,6 +131,7 @@ fn can_reach_match_after_boundary(
 
 fn boundary_matchable(
     matcher: &ZeekRustRegexStreamMatcher,
+    cache: &mut hybrid_dfa::Cache,
     pattern_index: usize,
     current: LazyStateID,
 ) -> bool {
@@ -138,12 +144,7 @@ fn boundary_matchable(
         }
     }
 
-    let boundary_matchable = {
-        let mut cache = matcher.caches[pattern_index]
-            .lock()
-            .expect("shared stream cache poisoned");
-        can_reach_match_after_boundary(&matcher.dfas[pattern_index], &mut cache, current)
-    };
+    let boundary_matchable = can_reach_match_after_boundary(&matcher.dfas[pattern_index], cache, current);
 
     matcher.boundary_matches[pattern_index]
         .lock()
@@ -414,6 +415,7 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
     ids: *const isize,
     len: usize,
     dot_matches_new_line: i32,
+    cache_capacity: usize,
 ) -> *mut ZeekRustRegexStreamMatcher {
     if patterns.is_null() || ids.is_null() || len == 0 {
         return std::ptr::null_mut();
@@ -422,6 +424,12 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
     let pattern_ptrs = slice::from_raw_parts(patterns, len);
     let pattern_ids = slice::from_raw_parts(ids, len);
     let mut dfas = Vec::with_capacity(len);
+
+    let cache_capacity = if cache_capacity == 0 {
+        UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY
+    } else {
+        cache_capacity
+    };
 
     for pattern in pattern_ptrs {
         if pattern.is_null() {
@@ -433,7 +441,7 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
             Err(_) => return std::ptr::null_mut(),
         };
 
-        let Some(dfa) = build_stream_dfa(pattern, dot_matches_new_line != 0) else {
+        let Some(dfa) = build_stream_dfa(pattern, dot_matches_new_line != 0, cache_capacity) else {
             return std::ptr::null_mut();
         };
 
@@ -527,6 +535,7 @@ unsafe fn emit_stream_match(
 
 unsafe fn start_stream_state(
     matcher: &ZeekRustRegexStreamMatcher,
+    caches: &mut [MutexGuard<'_, hybrid_dfa::Cache>],
     state: &mut ZeekRustRegexStreamState,
     bol: i32,
     out_ids: *mut isize,
@@ -539,17 +548,12 @@ unsafe fn start_stream_state(
         .look_behind(if bol != 0 { None } else { Some(0) });
 
     for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-        let sid = {
-            let mut cache = matcher.caches[pattern_index]
-                .lock()
-                .expect("shared stream cache poisoned");
-            match dfa.start_state(&mut cache, &config) {
-                Ok(sid) => sid,
-                Err(_) => {
-                    state.current[pattern_index] = None;
-                    state.active[pattern_index] = false;
-                    continue;
-                }
+        let sid = match dfa.start_state(&mut caches[pattern_index], &config) {
+            Ok(sid) => sid,
+            Err(_) => {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
             }
         };
 
@@ -593,12 +597,18 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
     let Some(haystack) = haystack_from_raw(data, len) else {
         return 0;
     };
+    let mut caches = matcher
+        .caches
+        .iter()
+        .map(|cache| cache.lock().expect("shared stream cache poisoned"))
+        .collect::<Vec<_>>();
 
     let mut matched = 0;
 
     if !state.initialized {
         start_stream_state(
             matcher,
+            &mut caches,
             state,
             bol,
             out_ids,
@@ -627,17 +637,12 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
                 continue;
             };
 
-            let next = {
-                let mut cache = matcher.caches[pattern_index]
-                    .lock()
-                    .expect("shared stream cache poisoned");
-                match dfa.next_state(&mut cache, current, byte) {
-                    Ok(next) => next,
-                    Err(_) => {
-                        state.current[pattern_index] = None;
-                        state.active[pattern_index] = false;
-                        continue;
-                    }
+            let next = match dfa.next_state(&mut caches[pattern_index], current, byte) {
+                Ok(next) => next,
+                Err(_) => {
+                    state.current[pattern_index] = None;
+                    state.active[pattern_index] = false;
+                    continue;
                 }
             };
 
@@ -674,18 +679,13 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
                 continue;
             };
 
-            if boundary_matchable(matcher, pattern_index, current) {
-                let next = {
-                    let mut cache = matcher.caches[pattern_index]
-                        .lock()
-                        .expect("shared stream cache poisoned");
-                    match matcher.dfas[pattern_index].next_eoi_state(&mut cache, current) {
-                        Ok(next) => next,
-                        Err(_) => {
-                            state.current[pattern_index] = None;
-                            state.active[pattern_index] = false;
-                            continue;
-                        }
+            if boundary_matchable(matcher, &mut caches[pattern_index], pattern_index, current) {
+                let next = match matcher.dfas[pattern_index].next_eoi_state(&mut caches[pattern_index], current) {
+                    Ok(next) => next,
+                    Err(_) => {
+                        state.current[pattern_index] = None;
+                        state.active[pattern_index] = false;
+                        continue;
                     }
                 };
 
@@ -718,17 +718,12 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
                 continue;
             };
 
-            let next = {
-                let mut cache = matcher.caches[pattern_index]
-                    .lock()
-                    .expect("shared stream cache poisoned");
-                match dfa.next_eoi_state(&mut cache, current) {
-                    Ok(next) => next,
-                    Err(_) => {
-                        state.current[pattern_index] = None;
-                        state.active[pattern_index] = false;
-                        continue;
-                    }
+            let next = match dfa.next_eoi_state(&mut caches[pattern_index], current) {
+                Ok(next) => next,
+                Err(_) => {
+                    state.current[pattern_index] = None;
+                    state.active[pattern_index] = false;
+                    continue;
                 }
             };
 
@@ -782,7 +777,13 @@ mod tests {
         let ids = (1..=patterns.len()).map(|id| id as isize).collect::<Vec<_>>();
 
         unsafe {
-            zeek_rust_regex_stream_matcher_compile(pattern_ptrs.as_ptr(), ids.as_ptr(), ids.len(), 1)
+            zeek_rust_regex_stream_matcher_compile(
+                pattern_ptrs.as_ptr(),
+                ids.as_ptr(),
+                ids.len(),
+                1,
+                0,
+            )
         }
     }
 

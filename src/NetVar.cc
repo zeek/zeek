@@ -171,6 +171,7 @@ double pkt_profile_freq;
 int packet_filter_default;
 
 int sig_max_group_size;
+zeek_uint_t sig_rust_regex_cache_size = 0;
 
 int dpd_reassemble_first_packets;
 int dpd_buffer_size;
@@ -228,6 +229,7 @@ void init_general_global_var() {
     table_incremental_step = id::find_val("table_incremental_step")->AsCount();
     packet_filter_default = id::find_val("packet_filter_default")->AsBool();
     sig_max_group_size = id::find_val("sig_max_group_size")->AsCount();
+    sig_rust_regex_cache_size = id::find_val("sig_rust_regex_cache_size")->AsCount();
     record_all_packets = id::find_val("record_all_packets")->AsBool();
     bits_per_uid = id::find_val("bits_per_uid")->AsCount();
 }

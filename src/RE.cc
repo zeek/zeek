@@ -11,6 +11,7 @@
 #include "zeek/CCL.h"
 #include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
+#include "zeek/NetVar.h"
 #include "zeek/RegexBackend.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
@@ -61,7 +62,7 @@ static void append_hex_escaped_byte(std::string* normalized, uint8_t byte) {
     normalized->push_back(hex[byte & 0x0f]);
 }
 
-static bool consume_quoted_zeek_escape(std::string_view pattern, size_t* pos, uint8_t* byte) {
+static bool consume_zeek_escape(std::string_view pattern, size_t* pos, uint8_t* byte) {
     if ( *pos + 1 >= pattern.size() || pattern[*pos + 1] == '\n' )
         return false;
 
@@ -134,7 +135,7 @@ static bool normalize_zeek_pattern_for_rust(std::string_view pattern, std::strin
             uint8_t byte = 0;
 
             if ( c == '\\' ) {
-                if ( ! consume_quoted_zeek_escape(pattern, &pos, &byte) )
+                if ( ! consume_zeek_escape(pattern, &pos, &byte) )
                     return false;
             }
             else if ( c == '\n' )
@@ -149,12 +150,27 @@ static bool normalize_zeek_pattern_for_rust(std::string_view pattern, std::strin
         }
 
         if ( c == '\\' ) {
-            if ( pos + 1 >= pattern.size() || pattern[pos + 1] == '\n' )
+            uint8_t byte = 0;
+
+            // Zeek's regex scanner expands escapes into literal bytes rather
+            // than preserving them as regex operators, so we encode the byte
+            // value directly for the Rust backend.
+            if ( ! consume_zeek_escape(pattern, &pos, &byte) )
                 return false;
 
-            normalized->push_back(pattern[pos]);
-            normalized->push_back(pattern[pos + 1]);
-            pos += 2;
+            append_hex_escaped_byte(normalized, byte);
+            continue;
+        }
+
+        if ( c == '[' && pos + 2 < pattern.size() && pattern[pos + 1] == '[' && pattern[pos + 2] == ']' ) {
+            append_hex_escaped_byte(normalized, '[');
+            pos += 3;
+            continue;
+        }
+
+        if ( c == '[' && pos + 2 < pattern.size() && pattern[pos + 1] == ']' && pattern[pos + 2] == ']' ) {
+            append_hex_escaped_byte(normalized, ']');
+            pos += 3;
             continue;
         }
 
@@ -502,41 +518,27 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
         return false;
 
     ClearRustMatchers();
-    if ( ! rust_pattern_text.empty() && RustRegexBackendAvailable() ) {
-        rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
 
-        if ( rust_matcher ) {
-            Unref(dfa);
-            dfa = nullptr;
-            ecs = nullptr;
-            return true;
-        }
-    }
-
-    rem = this;
-    zeek::detail::re_syntax_error = false;
-    RE_set_input(pattern_text.c_str());
-
-    int parse_status = RE_parse();
-    RE_done_with_scan();
-
-    if ( parse_status || zeek::detail::re_syntax_error ) {
-        reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
-        Unref(nfa);
-        nfa = nullptr;
+    if ( ! RustRegexBackendAvailable() ) {
+        reporter->Error("Rust regex backend unavailable");
         return false;
     }
 
-    EC()->BuildECs();
-    ConvertCCLs();
+    if ( rust_pattern_text.empty() ) {
+        reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
+        return false;
+    }
 
-    dfa = new DFA_Machine(nfa, EC());
+    rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
 
-    Unref(nfa);
-    nfa = nullptr;
+    if ( ! rust_matcher ) {
+        reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
+        return false;
+    }
 
-    ecs = EC()->EquivClasses();
-
+    Unref(dfa);
+    dfa = nullptr;
+    ecs = nullptr;
     return true;
 }
 
@@ -551,113 +553,102 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     rust_pattern_text.clear();
     ClearRustMatchers();
 
-    bool rust_set_compatible = true;
     std::vector<std::string> normalized_rust_patterns;
     normalized_rust_patterns.reserve(multiline ? set.length() : (rust_set ? rust_set->length() : 0));
+    auto append_normalized_pattern = [&](std::string_view pattern, const char* report_pattern) -> bool {
+        std::string normalized_pattern;
+
+        if ( ! normalize_zeek_pattern_for_rust(pattern, &normalized_pattern) ) {
+            reporter->Error("error compiling pattern /%s/", report_pattern);
+            return false;
+        }
+
+        normalized_rust_patterns.push_back(std::move(normalized_pattern));
+        return true;
+    };
+
+    auto append_derived_exact_pattern = [&](const char* exact_pattern) -> bool {
+        auto derived_pattern = derive_rust_pattern_from_exact(exact_pattern);
+
+        if ( derived_pattern.empty() ) {
+            reporter->Error("error compiling pattern /%s/", exact_pattern);
+            return false;
+        }
+
+        normalized_rust_patterns.push_back(std::move(derived_pattern));
+        return true;
+    };
 
     if ( multiline ) {
         loop_over_list(set, i) {
-            std::string normalized_pattern;
-
-            if ( ! normalize_zeek_pattern_for_rust(set[i], &normalized_pattern) ) {
-                rust_set_compatible = false;
-                break;
-            }
-
-            normalized_rust_patterns.push_back(std::move(normalized_pattern));
+            if ( ! append_normalized_pattern(set[i], set[i]) )
+                return false;
         }
     }
     else if ( rust_set ) {
         loop_over_list((*rust_set), i) {
-            std::string normalized_pattern;
-
-            if ( ! normalize_zeek_pattern_for_rust((*rust_set)[i], &normalized_pattern) ) {
-                rust_set_compatible = false;
-                break;
-            }
-
-            normalized_rust_patterns.push_back(std::move(normalized_pattern));
+            if ( ! append_normalized_pattern((*rust_set)[i], set[i]) )
+                return false;
         }
     }
-    else
-        rust_set_compatible = false;
-
-    if ( rust_set_compatible && RustRegexBackendAvailable() ) {
-        std::vector<const char*> rust_patterns;
-        std::vector<std::intptr_t> rust_ids;
-        rust_patterns.reserve(multiline ? set.length() : rust_set->length());
-        rust_ids.reserve(idx.size());
-
-        if ( multiline ) {
-            for ( const auto& normalized_pattern : normalized_rust_patterns ) {
-                rust_patterns.push_back(normalized_pattern.c_str());
-            }
-
-            for ( size_t i = 0; i < idx.size(); ++i ) {
-                rust_ids.push_back(idx[i]);
-            }
-
-            rust_stream_matcher = CompileRustRegexStreamMatcher(rust_patterns, rust_ids, true);
-
-            if ( rust_stream_matcher )
-                return true;
-        }
-        else {
-            for ( const auto& normalized_pattern : normalized_rust_patterns ) {
-                rust_patterns.push_back(normalized_pattern.c_str());
-            }
-
-            for ( size_t i = 0; i < idx.size(); ++i ) {
-                rust_ids.push_back(idx[i]);
-            }
-
-            rust_set_matcher = CompileRustRegexSetMatcher(rust_patterns, rust_ids);
-
-            if ( rust_set_matcher )
-                return true;
+    else {
+        loop_over_list(set, i) {
+            if ( ! append_derived_exact_pattern(set[i]) )
+                return false;
         }
     }
 
-    NFA_Machine* set_nfa = nullptr;
+    if ( ! RustRegexBackendAvailable() ) {
+        reporter->Error("Rust regex backend unavailable");
+        return false;
+    }
 
-    loop_over_list(set, i) {
-        RE_set_input(set[i]);
-        int parse_status = RE_parse();
-        RE_done_with_scan();
+    std::vector<const char*> rust_patterns;
+    std::vector<std::intptr_t> rust_ids;
+    rust_patterns.reserve(normalized_rust_patterns.size());
+    rust_ids.reserve(idx.size());
 
-        if ( parse_status ) {
-            reporter->Error("error compiling pattern /%s/", set[i]);
+    for ( const auto& normalized_pattern : normalized_rust_patterns )
+        rust_patterns.push_back(normalized_pattern.c_str());
 
-            if ( set_nfa && set_nfa != nfa )
-                Unref(set_nfa);
+    for ( size_t i = 0; i < idx.size(); ++i )
+        rust_ids.push_back(idx[i]);
+
+    if ( multiline ) {
+        rust_stream_matcher = CompileRustRegexStreamMatcher(rust_patterns, rust_ids, true, sig_rust_regex_cache_size);
+
+        if ( rust_stream_matcher )
+            return true;
+    }
+    else {
+        rust_set_matcher = CompileRustRegexSetMatcher(rust_patterns, rust_ids);
+
+        if ( rust_set_matcher )
+            return true;
+    }
+
+    for ( size_t i = 0; i < rust_patterns.size(); ++i ) {
+        std::vector<const char*> single_pattern = {rust_patterns[i]};
+        std::vector<std::intptr_t> single_id = {rust_ids[i]};
+        void* matcher = multiline ? CompileRustRegexStreamMatcher(single_pattern, single_id, true,
+                                                                 sig_rust_regex_cache_size) :
+                                    CompileRustRegexSetMatcher(single_pattern, single_id);
+
+        if ( matcher ) {
+            if ( multiline )
+                FreeRustRegexStreamMatcher(matcher);
             else
-                Unref(nfa);
+                FreeRustRegexSetMatcher(matcher);
 
-            nfa = nullptr;
-            return false;
+            continue;
         }
 
-        nfa->FinalState()->SetAccept(idx[i]);
-        set_nfa = set_nfa ? make_alternate(nfa, set_nfa) : nfa;
+        reporter->Error("error compiling pattern /%s/", set[static_cast<int>(i)]);
+        return false;
     }
 
-    // Prefix the expression with a "^?".
-    nfa = new NFA_Machine(new NFA_State(SYM_BOL, rem->EC()));
-    nfa->MakeOptional();
-    if ( set_nfa )
-        nfa->AppendMachine(set_nfa);
-
-    EC()->BuildECs();
-    ConvertCCLs();
-
-    dfa = new DFA_Machine(nfa, EC());
-    ecs = EC()->EquivClasses();
-
-    // dfa took ownership
-    Unref(nfa);
-    nfa = nullptr;
-
-    return true;
+    reporter->Error("error compiling pattern /%s/", set.length() > 0 ? set[0] : "<empty>");
+    return false;
 }
 
 std::string Specific_RE_Matcher::LookupDef(const std::string& def) {
@@ -1190,6 +1181,14 @@ TEST_SUITE("re_matcher") {
         CHECK_FALSE(reconstructed.MatchExactly("FoO"));
     }
 
+    TEST_CASE("literal bracket character classes normalize onto the Rust path") {
+        RE_Matcher match("[[]");
+        REQUIRE(match.Compile());
+
+        CHECK(std::string(match.RustPatternText()).find("\\x5b") != std::string::npos);
+        CHECK(match.MatchExactly("["));
+    }
+
     TEST_CASE("rust-compatible matchers do not require a legacy dfa") {
         RE_Matcher match("foo");
         REQUIRE(match.Compile());
@@ -1220,6 +1219,36 @@ TEST_SUITE("re_matcher") {
         std::vector<detail::AcceptIdx> matches;
         CHECK(set_matcher.MatchSet("foo", matches));
         CHECK(matches.size() == 2);
+
+        if ( detail::RustRegexBackendAvailable() )
+            CHECK(set_matcher.DFA() == nullptr);
+    }
+
+    TEST_CASE("exact match sets derive Rust patterns from Zeek wrapper text") {
+        RE_Matcher foo("foo");
+        foo.MakeCaseInsensitive();
+        RE_Matcher bar("bar");
+        REQUIRE(foo.Compile());
+        REQUIRE(bar.Compile());
+
+        detail::string_list patterns;
+        detail::int_list ids = {1, 2};
+
+        patterns.push_back(const_cast<char*>(foo.PatternText()));
+        patterns.push_back(const_cast<char*>(bar.PatternText()));
+
+        detail::Specific_RE_Matcher set_matcher(detail::MATCH_EXACTLY);
+        REQUIRE(set_matcher.CompileSet(patterns, ids));
+
+        std::vector<detail::AcceptIdx> matches;
+        CHECK(set_matcher.MatchSet("FoO", matches));
+        CHECK(matches.size() == 1);
+        CHECK(matches[0] == 1);
+
+        matches.clear();
+        CHECK(set_matcher.MatchSet("bar", matches));
+        CHECK(matches.size() == 1);
+        CHECK(matches[0] == 2);
 
         if ( detail::RustRegexBackendAvailable() )
             CHECK(set_matcher.DFA() == nullptr);

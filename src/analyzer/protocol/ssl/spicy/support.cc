@@ -9,7 +9,8 @@
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/runtime-support.h"
 
-std::string ssl_get_certificate_fuid(const hilti::rt::Bool& is_client, const hilti::rt::integer::safe<uint32_t>& pos) {
+hilti::rt::String ssl_get_certificate_fuid(const hilti::rt::Bool& is_client,
+                                           const hilti::rt::integer::safe<uint32_t>& pos) {
     auto cookie = static_cast<zeek::spicy::rt::Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
 
@@ -25,10 +26,10 @@ std::string ssl_get_certificate_fuid(const hilti::rt::Bool& is_client, const hil
 
     file_handle.Add(pos.Ref());
     std::string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
-    return file_id;
+    return {std::string_view(file_id)};
 }
 
-std::string ssl_get_ocsp_fuid() {
+hilti::rt::String ssl_get_ocsp_fuid() {
     auto cookie = static_cast<zeek::spicy::rt::Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
 
@@ -43,7 +44,7 @@ std::string ssl_get_ocsp_fuid() {
     c->analyzer->Conn()->IDString(&file_handle);
     file_handle.Add("ocsp");
     std::string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
-    return file_id;
+    return {std::string_view(file_id)};
 }
 
 // TODO: it would make sense to make this available for all users of Spicy

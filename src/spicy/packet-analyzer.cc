@@ -17,7 +17,7 @@ using namespace zeek::spicy::rt;
 #endif
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
-void PacketState::debug(const std::string& msg) { spicy::rt::debug(_cookie, msg); }
+void PacketState::debug(const std::string& msg) { spicy::rt::debug(_cookie, hilti::rt::String(msg.c_str())); }
 
 static auto create_packet_state(PacketAnalyzer* analyzer) {
     cookie::PacketAnalyzer cookie;

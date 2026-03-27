@@ -53,11 +53,11 @@ class Analyzer;
 namespace spicy {
 
 // Backend to log debug messages.
-inline void log(const std::string& msg) {
-    DBG_LOG(DBG_SPICY, "%s", msg.c_str());
+inline void log(std::string_view msg) {
+    DBG_LOG(DBG_SPICY, "%s", std::string(msg).c_str());
 
     if ( hilti::rt::isInitialized() )
-        HILTI_RT_DEBUG("zeek", msg);
+        HILTI_RT_DEBUG("zeek", std::string(msg));
 }
 
 
@@ -77,7 +77,7 @@ public:
      * @param description textual description in reST that will be shown for
      * this module inside the Zeekygen documentation
      */
-    void registerSpicyModuleBegin(const std::string& name, const std::string& description);
+    void registerSpicyModuleBegin(const hilti::rt::String& name, const hilti::rt::String& description);
 
     /**
      * Runtime method to register a protocol analyzer with its Zeek-side
@@ -96,10 +96,11 @@ public:
      * @param linker_scope scope of current HLTO file, which will restrict visibility of the
      * registration
      */
-    void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
+    void registerProtocolAnalyzer(const hilti::rt::String& name, hilti::rt::Protocol proto,
                                   const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
-                                  const std::string& parser_orig, const std::string& parser_resp,
-                                  const std::string& replaces, const hilti::rt::integer::safe<uint64_t>& linker_scope);
+                                  const hilti::rt::String& parser_orig, const hilti::rt::String& parser_resp,
+                                  const hilti::rt::String& replaces,
+                                  const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
      * Runtime method to register a file analyzer with its Zeek-side
@@ -116,8 +117,8 @@ public:
      * @param linker_scope scope of current HLTO file, which will restrict visibility of the
      * registration
      */
-    void registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
-                              const std::string& parser, const std::string& replaces,
+    void registerFileAnalyzer(const hilti::rt::String& name, const hilti::rt::Vector<hilti::rt::String>& mime_types,
+                              const hilti::rt::String& parser, const hilti::rt::String& replaces,
                               const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
@@ -134,7 +135,8 @@ public:
      * @param linker_scope scope of current HLTO file, which will restrict visibility of the
      * registration
      */
-    void registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
+    void registerPacketAnalyzer(const hilti::rt::String& name, const hilti::rt::String& parser,
+                                const hilti::rt::String& replaces,
                                 const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
@@ -145,7 +147,7 @@ public:
      * @param id fully-qualified ID of the type
      * @return error if the type could not be registered
      */
-    hilti::rt::Result<hilti::rt::Nothing> registerType(const std::string& id);
+    hilti::rt::Result<hilti::rt::Nothing> registerType(const hilti::rt::String& id);
 
     /**
      * Runtime method to register an already converted Spicy-generated type
@@ -154,7 +156,7 @@ public:
      * @param id fully-qualified ID of the type
      * @param type Zeek-side type to register
      */
-    void registerType(const std::string& id, const TypePtr& type);
+    void registerType(const hilti::rt::String& id, const TypePtr& type);
 
     /**
      * Runtime method to end registration of a Spicy EVT module. The must
@@ -168,7 +170,7 @@ public:
      * @param id fully-qualified Zeek-side ID of the type
      * @return Zeek-side type, or null if not found
      */
-    TypePtr findType(const std::string& id) const;
+    TypePtr findType(std::string_view id) const;
 
     /**
      * Runtime method to register a Spicy-generated event. The installs the ID
@@ -177,7 +179,7 @@ public:
      *
      * @param name fully scoped name of the event
      */
-    void registerEvent(const std::string& name);
+    void registerEvent(const hilti::rt::String& name);
 
     /**
      * Runtime method to retrieve the Spicy parser for a given Zeek protocol analyzer tag.
@@ -286,13 +288,13 @@ public:
     bool toggleAnalyzer(EnumVal* tag, bool enable);
 
     /** Report an error and disable a protocol analyzer's input processing */
-    void analyzerError(analyzer::Analyzer* a, const std::string& msg, const std::string& location);
+    void analyzerError(analyzer::Analyzer* a, std::string_view msg, std::string_view location);
 
     /** Report an error and disable a file analyzer's input processing */
-    void analyzerError(file_analysis::Analyzer* a, const std::string& msg, const std::string& location);
+    void analyzerError(file_analysis::Analyzer* a, std::string_view msg, std::string_view location);
 
     /** Report an error and disable a packet analyzer's input processing. */
-    void analyzerError(packet_analysis::Analyzer* a, const std::string& msg, const std::string& location);
+    void analyzerError(packet_analysis::Analyzer* a, std::string_view msg, std::string_view location);
 
     /** Returns the number of errors recorded by the Zeek reporter. */
     int numberErrors();
@@ -321,10 +323,10 @@ private:
     void autoDiscoverModules();
 
     // Recursively search pre-compiled *.hlto in colon-separated paths.
-    void searchModules(const std::string& paths);
+    void searchModules(std::string_view paths);
 
     // Return a Zeek location object for the given file name that will stay valid.
-    detail::Location makeLocation(const std::string& fname);
+    detail::Location makeLocation(const hilti::rt::String& fname);
 
     // Disable any Zeek-side analyzers that are replaced by one of ours.
     void disableReplacedAnalyzers();
@@ -340,17 +342,17 @@ private:
     /** Captures a registered protocol analyzer. */
     struct ProtocolAnalyzerInfo {
         // Provided when registering the analyzer.
-        std::string name_analyzer;
-        std::string name_parser_orig;
-        std::string name_parser_resp;
-        std::string name_replaces;
+        hilti::rt::String name_analyzer;
+        hilti::rt::String name_parser_orig;
+        hilti::rt::String name_parser_resp;
+        hilti::rt::String name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
         std::vector<::zeek::spicy::rt::PortRange> ports; // we keep this sorted
         hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
-        std::string name_zeek;
-        std::string name_zeekygen;
+        hilti::rt::String name_zeek;
+        hilti::rt::String name_zeekygen;
         Tag tag;
         const ::spicy::rt::Parser* parser_orig;
         const ::spicy::rt::Parser* parser_resp;
@@ -368,15 +370,15 @@ private:
     /** Captures a registered file analyzer. */
     struct FileAnalyzerInfo {
         // Provided when registering the analyzer.
-        std::string name_analyzer;
-        std::string name_parser;
-        std::string name_replaces;
-        hilti::rt::Vector<std::string> mime_types;
+        hilti::rt::String name_analyzer;
+        hilti::rt::String name_parser;
+        hilti::rt::String name_replaces;
+        hilti::rt::Vector<hilti::rt::String> mime_types;
         hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
-        std::string name_zeek;
-        std::string name_zeekygen;
+        hilti::rt::String name_zeek;
+        hilti::rt::String name_zeekygen;
         Tag tag;
         const ::spicy::rt::Parser* parser;
         Tag replaces;
@@ -393,14 +395,14 @@ private:
     /** Captures a registered file analyzer. */
     struct PacketAnalyzerInfo {
         // Provided when registering the analyzer.
-        std::string name_analyzer;
-        std::string name_parser;
-        std::string name_replaces;
+        hilti::rt::String name_analyzer;
+        hilti::rt::String name_parser;
+        hilti::rt::String name_replaces;
         hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
-        std::string name_zeek;
-        std::string name_zeekygen;
+        hilti::rt::String name_zeek;
+        hilti::rt::String name_zeekygen;
         Tag tag;
         const ::spicy::rt::Parser* parser;
         Tag replaces;
@@ -414,7 +416,7 @@ private:
         bool operator!=(const PacketAnalyzerInfo& other) const { return ! (*this == other); }
     };
 
-    std::string _spicy_version;
+    hilti::rt::String _spicy_version;
 
     // Tracks information relevant for documenting the current EVT module
     // through Zeekygen.
@@ -425,10 +427,10 @@ private:
     std::vector<PacketAnalyzerInfo> _packet_analyzers_by_type;
     std::unordered_map<std::string, hilti::rt::Library> _libraries;
     std::set<std::string> _locations;
-    std::unordered_map<std::string, detail::IDPtr> _events;
+    std::unordered_map<hilti::rt::String, detail::IDPtr> _events;
 
     // Mapping of component names to tag types. We use this to ensure analyzer uniqueness.
-    std::unordered_map<std::string, int32_t> _analyzer_name_to_tag_type;
+    std::unordered_map<hilti::rt::String, int32_t> _analyzer_name_to_tag_type;
 };
 
 } // namespace spicy

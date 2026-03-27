@@ -97,7 +97,7 @@ Value::Value(const Value& other) {
         }
 
         case TYPE_PATTERN: {
-            val.pattern_text_val = util::copy_string(val.pattern_text_val);
+            val.pattern_text_val = util::copy_string(other.val.pattern_text_val);
             break;
         }
         case TYPE_TABLE: {

@@ -60,6 +60,13 @@ static bool serialized_as_vector(TypeTag tag) {
 
 static bool data_type_check(const broker::data& d, Type* t);
 
+static const std::string* broker_pattern_rust_text(const broker::vector& v) {
+    if ( v.size() < 3 )
+        return nullptr;
+
+    return get_if<std::string>(&v[2]);
+}
+
 TransportProto to_zeek_port_proto(broker::port::protocol tp) {
     switch ( tp ) {
         case broker::port::protocol::tcp: return TRANSPORT_TCP;
@@ -75,6 +82,46 @@ TEST_CASE("converting Broker to Zeek protocol constants") {
     CHECK_EQ(to_zeek_port_proto(broker::port::protocol::udp), TRANSPORT_UDP);
     CHECK_EQ(to_zeek_port_proto(broker::port::protocol::icmp), TRANSPORT_ICMP);
     CHECK_EQ(to_zeek_port_proto(broker::port::protocol::unknown), TRANSPORT_UNKNOWN);
+}
+
+TEST_CASE("Broker pattern roundtrip preserves Rust pattern text") {
+    auto* re = new RE_Matcher("foo|bar");
+    re->MakeCaseInsensitive();
+    REQUIRE(re->Compile());
+
+    auto pattern = make_intrusive<PatternVal>(re);
+    auto serialized = val_to_data(pattern.get());
+    REQUIRE(serialized.has_value());
+
+    auto* encoded = broker::get_if<broker::vector>(&*serialized);
+    REQUIRE(encoded != nullptr);
+    REQUIRE(encoded->size() == 3);
+
+    auto deserialized = *serialized;
+    auto roundtrip = data_to_val(deserialized, base_type(TYPE_PATTERN).get());
+    REQUIRE(roundtrip != nullptr);
+
+    auto* roundtrip_re = roundtrip->AsPattern();
+    REQUIRE(roundtrip_re != nullptr);
+    CHECK(std::string(roundtrip_re->RustPatternText()) == std::string(re->RustPatternText()));
+    CHECK(roundtrip_re->MatchExactly("FoO"));
+    CHECK(roundtrip_re->MatchAnywhere("zzzBARzzz") == 4);
+}
+
+TEST_CASE("Broker pattern decode accepts legacy two-field payloads") {
+    broker::vector serialized = {std::string("^?(foo)$?"), std::string("^?(.|\\n)*(foo)")};
+
+    REQUIRE(data_type_check(serialized, base_type(TYPE_PATTERN).get()));
+
+    broker::data deserialized{serialized};
+    auto roundtrip = data_to_val(deserialized, base_type(TYPE_PATTERN).get());
+    REQUIRE(roundtrip != nullptr);
+
+    auto* roundtrip_re = roundtrip->AsPattern();
+    REQUIRE(roundtrip_re != nullptr);
+    CHECK(std::string(roundtrip_re->RustPatternText()).empty());
+    CHECK(roundtrip_re->MatchExactly("foo"));
+    CHECK(roundtrip_re->MatchAnywhere("xxfoo") == 3);
 }
 
 struct val_converter {
@@ -398,16 +445,18 @@ struct val_converter {
             return rval;
         }
         else if ( type->Tag() == TYPE_PATTERN ) {
-            if ( a.size() != 2 )
+            if ( a.size() != 2 && a.size() != 3 )
                 return nullptr;
 
             auto exact_text = get_if<std::string>(&a[0]);
             auto anywhere_text = get_if<std::string>(&a[1]);
+            auto rust_text = broker_pattern_rust_text(a);
 
-            if ( ! exact_text || ! anywhere_text )
+            if ( ! exact_text || ! anywhere_text || (a.size() == 3 && ! rust_text) )
                 return nullptr;
 
-            auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str());
+            auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str(),
+                                      rust_text ? rust_text->c_str() : nullptr);
 
             if ( ! re->Compile() ) {
                 reporter->Error("failed compiling unserialized pattern: %s, %s", exact_text->c_str(),
@@ -672,16 +721,18 @@ struct type_checker {
             return true;
         }
         else if ( type->Tag() == TYPE_PATTERN ) {
-            if ( a.size() != 2 )
+            if ( a.size() != 2 && a.size() != 3 )
                 return false;
 
             auto exact_text = get_if<std::string>(&a[0]);
             auto anywhere_text = get_if<std::string>(&a[1]);
+            auto rust_text = broker_pattern_rust_text(a);
 
-            if ( ! exact_text || ! anywhere_text )
+            if ( ! exact_text || ! anywhere_text || (a.size() == 3 && ! rust_text) )
                 return false;
 
-            auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str());
+            auto* re = new RE_Matcher(exact_text->c_str(), anywhere_text->c_str(),
+                                      rust_text ? rust_text->c_str() : nullptr);
             auto compiled = re->Compile();
             delete re;
 
@@ -924,6 +975,10 @@ std::optional<broker::data> val_to_data(const Val* v, bool unwrap_broker_data) {
         case TYPE_PATTERN: {
             const RE_Matcher* p = v->AsPattern();
             broker::vector rval = {p->PatternText(), p->AnywherePatternText()};
+
+            if ( const auto* rust_text = p->RustPatternText(); rust_text && rust_text[0] )
+                rval.emplace_back(std::string(rust_text));
+
             return {std::move(rval)};
         }
         case TYPE_OPAQUE: {

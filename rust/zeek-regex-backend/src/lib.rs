@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::slice;
@@ -29,7 +29,8 @@ pub struct ZeekRustRegexSetMatcher {
 pub struct ZeekRustRegexStreamMatcher {
     dfas: Vec<hybrid_dfa::DFA>,
     caches: Vec<Mutex<hybrid_dfa::Cache>>,
-    boundary_matches: Vec<Mutex<BTreeMap<LazyStateID, bool>>>,
+    boundary_matches: Vec<Mutex<HashMap<LazyStateID, bool>>>,
+    boundary_representatives: Vec<Vec<u8>>,
     ids: Vec<isize>,
 }
 
@@ -70,6 +71,7 @@ fn build_stream_dfa(
 
 fn can_reach_match_after_boundary(
     dfa: &hybrid_dfa::DFA,
+    representatives: &[u8],
     cache: &mut hybrid_dfa::Cache,
     current: LazyStateID,
 ) -> bool {
@@ -85,10 +87,10 @@ fn can_reach_match_after_boundary(
         return false;
     }
 
-    let mut visited = BTreeSet::new();
+    let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
-    for byte in 0u8..=u8::MAX {
+    for &byte in representatives {
         let Ok(next) = dfa.next_state(cache, current, byte) else {
             continue;
         };
@@ -107,7 +109,7 @@ fn can_reach_match_after_boundary(
     }
 
     while let Some(state) = queue.pop_front() {
-        for byte in 0u8..=u8::MAX {
+        for &byte in representatives {
             let Ok(next) = dfa.next_state(cache, state, byte) else {
                 continue;
             };
@@ -144,7 +146,12 @@ fn boundary_matchable(
         }
     }
 
-    let boundary_matchable = can_reach_match_after_boundary(&matcher.dfas[pattern_index], cache, current);
+    let boundary_matchable = can_reach_match_after_boundary(
+        &matcher.dfas[pattern_index],
+        &matcher.boundary_representatives[pattern_index],
+        cache,
+        current,
+    );
 
     matcher.boundary_matches[pattern_index]
         .lock()
@@ -453,13 +460,23 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
         .map(|dfa| Mutex::new(dfa.create_cache()))
         .collect::<Vec<_>>();
     let boundary_matches = (0..dfas.len())
-        .map(|_| Mutex::new(BTreeMap::new()))
+        .map(|_| Mutex::new(HashMap::new()))
+        .collect::<Vec<_>>();
+    let boundary_representatives = dfas
+        .iter()
+        .map(|dfa| {
+            dfa.byte_classes()
+                .representatives(..=u8::MAX)
+                .filter_map(|unit| unit.as_u8())
+                .collect::<Vec<_>>()
+        })
         .collect::<Vec<_>>();
 
     Box::into_raw(Box::new(ZeekRustRegexStreamMatcher {
         dfas,
         caches,
         boundary_matches,
+        boundary_representatives,
         ids: pattern_ids.to_vec(),
     }))
 }

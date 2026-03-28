@@ -209,6 +209,7 @@ process_stats get_process_stats() {
         STAILQ_FOREACH(file, files, next)
         result.fds++;
 
+        procstat_freefiles(procstat, files);
         procstat_freeprocs(procstat, kp);
         procstat_close(procstat);
     }

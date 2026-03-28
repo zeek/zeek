@@ -20,4 +20,5 @@ transient, etc. compared to other documentation).
    maintainers
    cluster-backend-zeromq
    rust-regex-backend
+   rust-regex-backend-compat
    rust-regex-backend-plan

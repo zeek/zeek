@@ -12,6 +12,8 @@ with a Rust implementation.
 
 For the staged implementation checklist that accompanies this design, see
 :doc:`rust-regex-backend-plan`.
+For a compatibility inventory of preserved behavior and cleanup candidates, see
+:doc:`rust-regex-backend-compat`.
 
 The primary goals are:
 

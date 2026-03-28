@@ -18,6 +18,7 @@ const UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY: usize = usize::MAX / 2;
 
 pub struct ZeekRustRegexMatcher {
     regex: Regex,
+    exact_regex: Regex,
     prefix_vm: pikevm::PikeVM,
 }
 
@@ -240,6 +241,11 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
         Ok(regex) => regex,
         Err(_) => return std::ptr::null_mut(),
     };
+    let exact_pattern = format!(r"(?:{})\z", pattern);
+    let exact_regex = match Regex::builder().syntax(syntax).build(&exact_pattern) {
+        Ok(regex) => regex,
+        Err(_) => return std::ptr::null_mut(),
+    };
 
     let thompson = thompson::Config::new().utf8(false);
     let mut prefix_builder = pikevm::Builder::new();
@@ -252,7 +258,11 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
         Err(_) => return std::ptr::null_mut(),
     };
 
-    Box::into_raw(Box::new(ZeekRustRegexMatcher { regex, prefix_vm }))
+    Box::into_raw(Box::new(ZeekRustRegexMatcher {
+        regex,
+        exact_regex,
+        prefix_vm,
+    }))
 }
 
 #[no_mangle]
@@ -277,8 +287,8 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_match_all(
     };
 
     let input = Input::new(haystack).anchored(Anchored::Yes);
-    match matcher.regex.find(input) {
-        Some(found) if found.start() == 0 && found.end() == haystack.len() => 1,
+    match matcher.exact_regex.find(input) {
+        Some(found) if found.start() == 0 => 1,
         _ => 0,
     }
 }

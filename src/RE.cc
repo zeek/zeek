@@ -835,6 +835,17 @@ TEST_SUITE("re_matcher") {
         CHECK_FALSE(match.MatchExactly("abc123"));
     }
 
+    TEST_CASE("exact matches honor full-string alternations") {
+        RE_Matcher match("[0-9]{1}|[0-9]{2}|0[0-9]{2}|1[0-9]{2}|2[0-4][0-9]|25[0-5]");
+        REQUIRE(match.Compile());
+
+        CHECK(match.MatchExactly("9"));
+        CHECK(match.MatchExactly("99"));
+        CHECK(match.MatchExactly("192"));
+        CHECK(match.MatchExactly("255"));
+        CHECK_FALSE(match.MatchExactly("256"));
+    }
+
     TEST_CASE("modes_multi_pattern") {
         RE_Matcher match("[a-m]+");
         match.MakeCaseInsensitive();

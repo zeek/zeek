@@ -1,3 +1,7 @@
+8.2.0-dev.401 | 2026-03-30 11:06:46 -0700
+
+  * Bump versions of workflow actions (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.399 | 2026-03-27 18:59:53 +0100
 
   * fix: pin 5 unpinned action(s) to commit SHA (dagecko)

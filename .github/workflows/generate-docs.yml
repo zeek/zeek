@@ -66,7 +66,7 @@ jobs:
           pip3 install -r doc/requirements.txt
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2
+        uses: hendrikmuhs/ccache-action@33522472633dbd32578e909b315f5ee43ba878ce # v1.2.22
         with:
           key: 'docs-gen-${{ github.job }}'
           max-size: '2000M'
@@ -128,7 +128,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the GitHub UI.
         if: failure() && github.event_name == 'schedule'
-        uses: dawidd6/action-send-mail@6d98ae34d733f9a723a9e04e94f2f24ba05e1402 # v6
+        uses: dawidd6/action-send-mail@d38f3f7cd391cdebfe0d38efc3998b935e951c4f # v16
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

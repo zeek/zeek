@@ -1,3 +1,11 @@
+8.2.0-dev.403 | 2026-03-30 13:11:42 -0700
+
+  * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)
+
+    Found and reported by @anthonyalayo, thanks!
+
+    Closes #5301
+
 8.2.0-dev.401 | 2026-03-30 11:06:46 -0700
 
   * Bump versions of workflow actions (Tim Wojtulewicz, Corelight)

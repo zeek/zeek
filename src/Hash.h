@@ -273,7 +273,7 @@ public:
     void* TakeKey();
 
     const void* Key() const { return key; }
-    size_t Size() const { return size; }
+    size_t Size() const { return key_size; }
     hash_t Hash() const;
 
     static hash_t HashBytes(const void* bytes, size_t size);
@@ -344,7 +344,7 @@ public:
 
     void* KeyAtWrite() { return static_cast<void*>(key + write_size); }
     const void* KeyAtRead() const { return static_cast<void*>(key + read_size); }
-    const void* KeyEnd() const { return static_cast<void*>(key + size); }
+    const void* KeyEnd() const { return static_cast<void*>(key + key_size); }
 
     void Describe(ODesc* d) const;
 
@@ -385,7 +385,7 @@ protected:
 
     char* key = nullptr;
     mutable hash_t hash = 0;
-    size_t size = 0;
+    size_t key_size = 0;
     bool is_our_dynamic = false;
     size_t write_size = 0;
     mutable size_t read_size = 0;

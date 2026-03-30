@@ -51,7 +51,7 @@ using hash64_t = uint64_t;
 using hash128_t = uint64_t[2];
 using hash256_t = uint64_t[4];
 
-class KeyedHash {
+class KeyedHash final {
 public:
     /**
      * Generate a 64 bit digest hash.
@@ -231,7 +231,7 @@ enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
-class HashKey {
+class HashKey final {
 public:
     explicit HashKey() { key_u.u32 = 0; }
     explicit HashKey(bool b);
@@ -359,7 +359,7 @@ public:
     // Move operator. Takes ownership of the key.
     HashKey& operator=(HashKey&& other) noexcept;
 
-protected:
+private:
     char* CopyKey(const char* key, size_t size) const;
 
     // Payload setters for types stored directly in the key_u union. These

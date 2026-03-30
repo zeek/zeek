@@ -1,3 +1,11 @@
+8.0.6-9 | 2026-04-13 09:08:45 -0700
+
+  * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)
+
+    Found and reported by @anthonyalayo, thanks!
+
+    (cherry picked from commit 454e22099f25d390de2e5c61877f5c60ddad14ff)
+
 8.0.6-8 | 2026-03-25 14:26:55 +0100
 
   * Add ML-KEM KEX support and related test files (Octave Charrin, Corelight)

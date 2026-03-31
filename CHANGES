@@ -1,3 +1,9 @@
+8.2.0-dev.405 | 2026-03-31 08:20:27 -0400
+
+  * GH-5091: Rewrite `doc/` README in markdown (Evan Typanski, Corelight)
+
+    Closes #5091
+
 8.2.0-dev.403 | 2026-03-30 13:11:42 -0700
 
   * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)
@@ -2588,7 +2594,7 @@
   * Fix a few more random clang-tidy findings (Tim Wojtulewicz, Corelight)
 
   * Use std::numbers::pi instead of hard-coded value (Tim Wojtulewicz, Corelight)
-  
+
   * Use std::scoped_lock instead of std::lock_guard (Tim Wojtulewicz, Corelight)
 
   * Use .contains() instead of .find() or .count() (Tim Wojtulewicz, Corelight)

@@ -51,7 +51,7 @@ using hash64_t = uint64_t;
 using hash128_t = uint64_t[2];
 using hash256_t = uint64_t[4];
 
-class KeyedHash {
+class KeyedHash final {
 public:
     /**
      * Generate a 64 bit digest hash.
@@ -231,7 +231,7 @@ enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
-class HashKey {
+class HashKey final {
 public:
     explicit HashKey() { key_u.u32 = 0; }
     explicit HashKey(bool b);
@@ -273,7 +273,7 @@ public:
     void* TakeKey();
 
     const void* Key() const { return key; }
-    size_t Size() const { return size; }
+    size_t Size() const { return key_size; }
     hash_t Hash() const;
 
     static hash_t HashBytes(const void* bytes, size_t size);
@@ -344,7 +344,7 @@ public:
 
     void* KeyAtWrite() { return static_cast<void*>(key + write_size); }
     const void* KeyAtRead() const { return static_cast<void*>(key + read_size); }
-    const void* KeyEnd() const { return static_cast<void*>(key + size); }
+    const void* KeyEnd() const { return static_cast<void*>(key + key_size); }
 
     void Describe(ODesc* d) const;
 
@@ -359,7 +359,7 @@ public:
     // Move operator. Takes ownership of the key.
     HashKey& operator=(HashKey&& other) noexcept;
 
-protected:
+private:
     char* CopyKey(const char* key, size_t size) const;
 
     // Payload setters for types stored directly in the key_u union. These
@@ -385,7 +385,7 @@ protected:
 
     char* key = nullptr;
     mutable hash_t hash = 0;
-    size_t size = 0;
+    size_t key_size = 0;
     bool is_our_dynamic = false;
     size_t write_size = 0;
     mutable size_t read_size = 0;

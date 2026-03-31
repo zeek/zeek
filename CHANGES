@@ -1,3 +1,21 @@
+8.2.0-dev.417 | 2026-03-31 13:34:34 -0700
+
+  * Fix signed/unsigned comparison warnings with new doctest (Tim Wojtulewicz, Corelight)
+
+  * Make KeyedHash and HashKey final (Tim Wojtulewicz, Corelight)
+
+    There shouldn't be inheritance of these and there aren't any virtual
+    methods.
+
+  * Rename HashKey::size to HashKey::key_size (Tim Wojtulewicz, Corelight)
+
+    This fixes a warning from the new version of doctest where it confuses
+    size and Size() and size().
+
+  * Update sqlite3 to 3.51.3 (Tim Wojtulewicz, Corelight)
+
+  * Update doctest to 2.5.0 (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.411 | 2026-03-31 08:56:04 -0700
 
   * Update pygments dependency to newest version (Tim Wojtulewicz, Corelight)

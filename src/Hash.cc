@@ -134,7 +134,7 @@ HashKey::HashKey(zeek_uint_t bu) { Set(bu); }
 HashKey::HashKey(uint32_t u) { Set(u); }
 
 HashKey::HashKey(const uint32_t u[], size_t n) {
-    size = write_size = n * sizeof(u[0]);
+    key_size = write_size = n * sizeof(u[0]);
     key = const_cast<char*>(reinterpret_cast<const char*>(u));
 }
 
@@ -143,46 +143,46 @@ HashKey::HashKey(double d) { Set(d); }
 HashKey::HashKey(const void* p) { Set(p); }
 
 HashKey::HashKey(const char* s) {
-    size = write_size = strlen(s); // note - skip final \0
+    key_size = write_size = strlen(s); // note - skip final \0
     key = const_cast<char*>(reinterpret_cast<const char*>(s));
 }
 
 HashKey::HashKey(const String* s) {
-    size = write_size = s->Len();
+    key_size = write_size = s->Len();
     key = reinterpret_cast<char*>(s->Bytes());
 }
 
 HashKey::HashKey(const void* bytes, size_t arg_size) {
-    size = write_size = arg_size;
-    key = CopyKey(reinterpret_cast<const char*>(bytes), size);
+    key_size = write_size = arg_size;
+    key = CopyKey(reinterpret_cast<const char*>(bytes), key_size);
     is_our_dynamic = true;
 }
 
 HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash) {
-    size = write_size = arg_size;
+    key_size = write_size = arg_size;
     hash = arg_hash;
-    key = CopyKey(reinterpret_cast<const char*>(arg_key), size);
+    key = CopyKey(reinterpret_cast<const char*>(arg_key), key_size);
     is_our_dynamic = true;
 }
 
 HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash, bool /* dont_copy */) {
-    size = write_size = arg_size;
+    key_size = write_size = arg_size;
     hash = arg_hash;
     key = const_cast<char*>(reinterpret_cast<const char*>(arg_key));
 }
 
-HashKey::HashKey(const HashKey& other) : HashKey(other.key, other.size, other.hash) {}
+HashKey::HashKey(const HashKey& other) : HashKey(other.key, other.key_size, other.hash) {}
 
 HashKey::HashKey(HashKey&& other) noexcept {
     hash = other.hash;
-    size = other.size;
+    key_size = other.key_size;
     write_size = other.write_size;
     read_size = other.read_size;
 
     is_our_dynamic = other.is_our_dynamic;
     key = other.key;
 
-    other.size = 0;
+    other.key_size = 0;
     other.is_our_dynamic = false;
     other.key = nullptr;
 }
@@ -194,7 +194,7 @@ HashKey::~HashKey() {
 
 hash_t HashKey::Hash() const {
     if ( hash == 0 )
-        hash = HashBytes(key, size);
+        hash = HashBytes(key, key_size);
 #ifdef DEBUG
     if ( zeek::detail::debug_logger.IsEnabled(DBG_HASHKEY) ) {
         ODesc d;
@@ -211,7 +211,7 @@ void* HashKey::TakeKey() {
         return key;
     }
     else
-        return CopyKey(key, size);
+        return CopyKey(key, key_size);
 }
 
 void HashKey::Describe(ODesc* d) const {
@@ -220,10 +220,10 @@ void HashKey::Describe(ODesc* d) const {
     d->Add(buf);
     d->SP();
 
-    if ( size > 0 ) {
+    if ( key_size > 0 ) {
         d->Add(IsAllocated() ? "(" : "[");
 
-        for ( size_t i = 0; i < size; i++ ) {
+        for ( size_t i = 0; i < key_size; i++ ) {
             if ( i > 0 ) {
                 d->SP();
                 // Extra spacing every 8 bytes, for readability.
@@ -234,9 +234,9 @@ void HashKey::Describe(ODesc* d) const {
             // Don't display unwritten content, only say how much there is.
             if ( i > write_size ) {
                 d->Add("<+");
-                d->Add(static_cast<uint64_t>(size - write_size - 1));
+                d->Add(static_cast<uint64_t>(key_size - write_size - 1));
                 d->Add(" of ");
-                d->Add(static_cast<uint64_t>(size));
+                d->Add(static_cast<uint64_t>(key_size));
                 d->Add(" available>");
                 break;
             }
@@ -260,53 +260,53 @@ hash_t HashKey::HashBytes(const void* bytes, size_t size) { return KeyedHash::Ha
 void HashKey::Set(bool b) {
     key_u.b = b;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(b);
+    key_size = write_size = sizeof(b);
 }
 
 void HashKey::Set(int i) {
     key_u.i = i;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(i);
+    key_size = write_size = sizeof(i);
 }
 
 void HashKey::Set(zeek_int_t bi) {
     key_u.bi = bi;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(bi);
+    key_size = write_size = sizeof(bi);
 }
 
 void HashKey::Set(zeek_uint_t bu) {
     key_u.bu = static_cast<zeek_int_t>(bu);
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(bu);
+    key_size = write_size = sizeof(bu);
 }
 
 void HashKey::Set(uint32_t u) {
     key_u.u32 = u;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(u);
+    key_size = write_size = sizeof(u);
 }
 
 void HashKey::Set(double d) {
     key_u.d = d;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(d);
+    key_size = write_size = sizeof(d);
 }
 
 void HashKey::Set(const void* p) {
     key_u.p = p;
     key = reinterpret_cast<char*>(&key_u);
-    size = write_size = sizeof(p);
+    key_size = write_size = sizeof(p);
 }
 
 void HashKey::Reserve(const char* tag, size_t addl_size, size_t alignment) {
     ASSERT(! IsAllocated());
-    size_t s0 = size;
-    size_t s1 = util::memory_size_align(size, alignment);
-    size = s1 + addl_size;
+    size_t s0 = key_size;
+    size_t s1 = util::memory_size_align(key_size, alignment);
+    key_size = s1 + addl_size;
 
     DBG_LOG(DBG_HASHKEY, "HashKey %p reserving %lu/%lu: %lu -> %lu -> %lu [%s]", this, addl_size, alignment, s0, s1,
-            size, tag);
+            key_size, tag);
 }
 
 void HashKey::Allocate() {
@@ -316,7 +316,7 @@ void HashKey::Allocate() {
     }
 
     is_our_dynamic = true;
-    key = reinterpret_cast<char*>(new double[size / sizeof(double) + 1]);
+    key = reinterpret_cast<char*>(new double[key_size / sizeof(double) + 1]);
 
     read_size = 0;
     write_size = 0;
@@ -399,11 +399,11 @@ void HashKey::AlignWrite(size_t alignment) {
 
     write_size = util::memory_size_align(write_size, alignment);
 
-    if ( write_size > size )
+    if ( write_size > key_size )
         reporter->InternalError(
             "buffer overflow in HashKey::AlignWrite(): "
             "after alignment, %lu bytes used of %lu allocated",
-            write_size, size);
+            write_size, key_size);
 
     while ( old_size < write_size )
         key[old_size++] = '\0';
@@ -419,11 +419,11 @@ void HashKey::AlignRead(size_t alignment) const {
 
     read_size = util::memory_size_align(read_size, alignment);
 
-    if ( read_size > size )
+    if ( read_size > key_size )
         reporter->InternalError(
             "buffer overflow in HashKey::AlignRead(): "
             "after alignment, %lu bytes used of %lu allocated",
-            read_size, size);
+            read_size, key_size);
 }
 
 void HashKey::Read(const char* tag, bool& b) const { Read(tag, &b, sizeof(b), 0); }
@@ -477,11 +477,11 @@ void HashKey::EnsureWriteSpace(size_t n) const {
         reporter->InternalError(
             "usage error in HashKey::EnsureWriteSpace(): "
             "size-checking unreserved buffer");
-    if ( write_size + n > size )
+    if ( write_size + n > key_size )
         reporter->InternalError(
             "buffer overflow in HashKey::Write(): writing %lu "
             "bytes with %lu remaining",
-            n, size - write_size);
+            n, key_size - write_size);
 }
 
 void HashKey::EnsureReadSpace(size_t n) const {
@@ -492,11 +492,11 @@ void HashKey::EnsureReadSpace(size_t n) const {
         reporter->InternalError(
             "usage error in HashKey::EnsureReadSpace(): "
             "size-checking unreserved buffer");
-    if ( read_size + n > size )
+    if ( read_size + n > key_size )
         reporter->InternalError(
             "buffer overflow in HashKey::EnsureReadSpace(): reading %lu "
             "bytes with %lu remaining",
-            n, size - read_size);
+            n, key_size - read_size);
 }
 
 bool HashKey::operator==(const HashKey& other) const {
@@ -504,7 +504,7 @@ bool HashKey::operator==(const HashKey& other) const {
     if ( this == &other )
         return true;
 
-    return Equal(other.key, other.size, other.hash);
+    return Equal(other.key, other.key_size, other.hash);
 }
 
 bool HashKey::operator!=(const HashKey& other) const {
@@ -512,12 +512,12 @@ bool HashKey::operator!=(const HashKey& other) const {
     if ( this != &other )
         return true;
 
-    return ! Equal(other.key, other.size, other.hash);
+    return ! Equal(other.key, other.key_size, other.hash);
 }
 
 bool HashKey::Equal(const void* other_key, size_t other_size, hash_t other_hash) const {
     // If the key memory is the same just return true.
-    if ( key == other_key && size == other_size )
+    if ( key == other_key && key_size == other_size )
         return true;
 
     // If either key is nullptr, return false. If they were both nullptr, it
@@ -525,7 +525,7 @@ bool HashKey::Equal(const void* other_key, size_t other_size, hash_t other_hash)
     if ( key == nullptr || other_key == nullptr )
         return false;
 
-    return (hash == other_hash) && (size == other_size) && (memcmp(key, other_key, size) == 0);
+    return (hash == other_hash) && (key_size == other_size) && (memcmp(key, other_key, key_size) == 0);
 }
 
 HashKey& HashKey::operator=(const HashKey& other) {
@@ -536,12 +536,12 @@ HashKey& HashKey::operator=(const HashKey& other) {
         delete[] key;
 
     hash = other.hash;
-    size = other.size;
+    key_size = other.key_size;
     is_our_dynamic = true;
     write_size = other.write_size;
     read_size = other.read_size;
 
-    key = CopyKey(other.key, other.size);
+    key = CopyKey(other.key, other.key_size);
 
     return *this;
 }
@@ -551,7 +551,7 @@ HashKey& HashKey::operator=(HashKey&& other) noexcept {
         return *this;
 
     hash = other.hash;
-    size = other.size;
+    key_size = other.key_size;
     write_size = other.write_size;
     read_size = other.read_size;
 
@@ -561,7 +561,7 @@ HashKey& HashKey::operator=(HashKey&& other) noexcept {
     is_our_dynamic = other.is_our_dynamic;
     key = other.key;
 
-    other.size = 0;
+    other.key_size = 0;
     other.is_our_dynamic = false;
     other.key = nullptr;
 

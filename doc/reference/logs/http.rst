@@ -111,44 +111,47 @@ responder to the originator.
 
 .. code-block:: console
 
-  zeek@zeek:~/zeek-test$ tcpflow -r tm1t.pcap port 80
+  zeek@zeek:~/zeek-test$ tcpflow -r testmyids.pcap port 80
 
 Let’s first look at the data from the originator to the responder.
 
 .. code-block:: console
 
-  zeek@zeek:~/zeek-test$ cat 192.168.004.076.46378-031.003.245.133.00080
+  zeek@zeek:~/zeek-test$ cat 172.017.000.002.54162-217.160.000.187.00080
 
 ::
 
   GET / HTTP/1.1
   Host: testmyids.com
-  User-Agent: curl/7.47.0
+  User-Agent: curl/8.5.0
   Accept: */*
 
 Here is the data from the responder to the originator.
 
 .. code-block:: console
 
-  zeek@zeek:~/zeek-test$ cat 031.003.245.133.00080-192.168.004.076.46378
+  zeek@zeek:~/zeek-test$ cat 217.160.000.187.00080-172.017.000.002.54162
 
 ::
 
   HTTP/1.1 200 OK
-  Server: nginx/1.16.1
-  Date: Fri, 05 Jun 2020 14:40:07 GMT
-  Content-Type: text/html; charset=UTF-8
+  Content-Type: text/html
   Content-Length: 39
   Connection: keep-alive
-  Last-Modified: Fri, 10 Jan 2020 21:36:02 GMT
-  ETag: "27-59bcfe9932c32"
+  X-WS-Origin: available
+  X-WS-RateLimit-Limit: 1000
+  X-WS-RateLimit-Remaining: 999
+  Date: Mon, 30 Mar 2026 23:50:35 GMT
+  Server: Apache
+  Last-Modified: Mon, 15 Jan 2007 23:11:55 GMT
+  ETag: "27-4271c5f1ac4c0"
   Accept-Ranges: bytes
 
   uid=0(root) gid=0(root) groups=0(root)
 
 As you can see, there are elements, particularly in the response, that do not
 appear in the :file:`http.log`. For example, the Server type of
-``nginx/1.16.1`` is not logged. If an analyst or administrator decided that he
+``Apache`` is not logged. If an analyst or administrator decided that he
 or she wished to include that data in his or her :file:`http.log`, it is
 possible to make adjustments.
 

@@ -1,3 +1,7 @@
+8.2.0-dev.411 | 2026-03-31 08:56:04 -0700
+
+  * Update pygments dependency to newest version (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.409 | 2026-03-31 08:54:55 -0700
 
   * Replace tm1t.pcap in docs (Tim Wojtulewicz, Corelight)

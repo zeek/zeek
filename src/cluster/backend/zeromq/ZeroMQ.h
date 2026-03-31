@@ -81,7 +81,8 @@ private:
  */
 struct CurveConfig {
     // Loaded during InitPostScript() from Cluster::Backend::ZeroMQ module
-    // const redef variables.
+    // const redef variables or environment variables in the form of
+    // ZEEK_ZEROMQ_CURVE_(CLIENT|SERVER)_(PUBLIC|SECRET)KEY
     std::string client_publickey;
     std::string client_secretkey;
     std::string server_publickey;
@@ -95,7 +96,7 @@ struct CurveConfig {
     };
 
     /**
-     * @return true if enough keys are available to enable client side encryption.
+     * @return true if enough keys are available to enable a curve server.
      */
     bool IsServerEnabled() const { return ! server_secretkey.empty() && ! client_publickey.empty(); };
 
@@ -118,6 +119,13 @@ struct CurveConfig {
      */
     void InitZap(zmq::context_t& ctx, ZapArgs& args) const;
 };
+
+/**
+ * Create a CurveConfig object based on script variables and the environment.
+ *
+ * Results in a FatalError() in case of errors.
+ */
+struct CurveConfig load_curve_config();
 
 class ProxyThread;
 

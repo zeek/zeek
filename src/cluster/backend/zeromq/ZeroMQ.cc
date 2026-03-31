@@ -208,8 +208,54 @@ void CurveConfig::InitZap(zmq::context_t& ctx, ZapArgs& args) const {
         args.allowed_publickeys.insert(raw_client_publickey);
     }
     else if ( ! client_publickey.empty() ) {
-        zeek::reporter->FatalError("ZeroMQ/ZAP: client public key has unexpected size %zu", client_publickey.size());
+        zeek::reporter->FatalError("ZeroMQ/ZAP: client public key has unexpected size %zu '%s'",
+                                   client_publickey.size(), client_publickey.c_str());
     }
+}
+
+struct CurveConfig load_curve_config() {
+    CurveConfig curve_config_script = {};
+    CurveConfig curve_config_env = {};
+
+    curve_config_script.client_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_publickey")->ToStdString();
+    curve_config_script.client_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_secretkey")->ToStdString();
+    curve_config_script.server_publickey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_publickey")->ToStdString();
+    curve_config_script.server_secretkey =
+        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_secretkey")->ToStdString();
+
+    auto load_from_env = [](std::string what) -> std::string {
+        static const std::string prefix = "ZEEK_CLUSTER_BACKEND_ZEROMQ_CURVE_";
+        std::string key = prefix + what;
+        const auto* value = std::getenv(key.c_str());
+        return (value && *value) ? value : "";
+    };
+
+    curve_config_env.client_publickey = load_from_env("CLIENT_PUBLICKEY");
+    curve_config_env.client_secretkey = load_from_env("CLIENT_SECRETKEY");
+    curve_config_env.server_publickey = load_from_env("SERVER_PUBLICKEY");
+    curve_config_env.server_secretkey = load_from_env("SERVER_SECRETKEY");
+
+    // Do not allow mixing environment variables and script configuration for the encryption
+    // configuration. Due to the possibility to redef on the command-line there's no clear
+    // preference for which one to prefer (or it might be confusing), so simply disallow
+    // combining both approaches.
+    bool have_script = ! curve_config_script.client_publickey.empty() ||
+                       ! curve_config_script.client_secretkey.empty() ||
+                       ! curve_config_script.server_publickey.empty() || ! curve_config_script.server_secretkey.empty();
+    bool have_env = ! curve_config_env.client_publickey.empty() || ! curve_config_env.client_secretkey.empty() ||
+                    ! curve_config_env.server_publickey.empty() || ! curve_config_env.server_secretkey.empty();
+
+    if ( have_script && have_env )
+        zeek::reporter->FatalError(
+            "ZeroMQ CURVE configured via script variable redefinitions and environment variables at the same time.");
+
+    if ( curve_config_env.IsClientEnabled() || curve_config_env.IsServerEnabled() )
+        return curve_config_env;
+
+    return curve_config_script;
 }
 
 std::unique_ptr<Backend> ZeroMQBackend::Instantiate(std::unique_ptr<EventSerializer> es,
@@ -295,15 +341,8 @@ void ZeroMQBackend::DoInitPostScript() {
     log_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvhwm")->AsInt());
     log_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvbuf")->AsInt());
 
-    // CURVE variables for encrypting ZeroMQ connections.
-    curve_config.client_publickey =
-        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_publickey")->ToStdString();
-    curve_config.client_secretkey =
-        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_client_secretkey")->ToStdString();
-    curve_config.server_publickey =
-        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_publickey")->ToStdString();
-    curve_config.server_secretkey =
-        zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_secretkey")->ToStdString();
+    // load curve configuration from script and environment.
+    curve_config = load_curve_config();
 }
 
 void ZeroMQBackend::DoTerminate() {

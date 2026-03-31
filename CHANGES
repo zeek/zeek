@@ -1,3 +1,9 @@
+8.2.0-dev.407 | 2026-03-31 08:20:49 -0400
+
+  * GH-5162: Deprecate `Weird::weird` (Evan Typanski, Corelight)
+
+    Closes #5162
+
 8.2.0-dev.405 | 2026-03-31 08:20:27 -0400
 
   * GH-5091: Rewrite `doc/` README in markdown (Evan Typanski, Corelight)

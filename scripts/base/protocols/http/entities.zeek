@@ -86,14 +86,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 	{
 	if ( ! c$http?$current_entity )
 		{
-		local weird = Weird::Info(
-			$ts=network_time(),
-			$name="missing_HTTP_entity",
-			$uid=c$uid,
-			$id=c$id,
-			$source="HTTP"
-		);
-		Weird::weird(weird);
+		Reporter::conn_weird("missing_HTTP_entity", c, "", "HTTP");
 		return;
 		}
 

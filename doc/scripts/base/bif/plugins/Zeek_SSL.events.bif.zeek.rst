@@ -838,7 +838,7 @@ Events
       ssl_alert ssl_encrypted_data
 
 .. zeek:id:: ssl_plaintext_data
-   :source-code: base/protocols/ssl/main.zeek 538 547
+   :source-code: base/protocols/ssl/main.zeek 538 546
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, record_version: :zeek:type:`count`, content_type: :zeek:type:`count`, length: :zeek:type:`count`)
 

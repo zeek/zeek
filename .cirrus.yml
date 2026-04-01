@@ -368,10 +368,12 @@ opensuse_tumbleweed_task:
 
 weekly_current_gcc_task:
   container:
-    # Opensuse Tumbleweed has no EOL
-    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    # Debian Unstable has no EOL
+    dockerfile: ci/debian-unstable/Dockerfile
+    docker_arguments:
+        - DOCKERFILE_BUILD_ID: $CIRRUS_BUILD_ID
     << : *RESOURCES_TEMPLATE
-  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  prepare_script: ./ci/debian-unstable/prepare-weekly.sh
   << : *CI_TEMPLATE
   << : *ONLY_IF_WEEKLY
   env:
@@ -379,10 +381,12 @@ weekly_current_gcc_task:
 
 weekly_current_clang_task:
   container:
-    # Opensuse Tumbleweed has no EOL
-    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    # Debian Unstable has no EOL
+    dockerfile: ci/debian-unstable/Dockerfile
+    docker_arguments:
+        - DOCKERFILE_BUILD_ID: $CIRRUS_BUILD_ID
     << : *RESOURCES_TEMPLATE
-  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  prepare_script: ./ci/debian-unstable/prepare-weekly.sh
   << : *CI_TEMPLATE
   << : *ONLY_IF_WEEKLY
   env:

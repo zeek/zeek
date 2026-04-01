@@ -29,27 +29,36 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv) {
             abort();
     }
 
-    int zeek_args = 0;
-    char** zeek_argv = &((*argv)[*argc]);
+    // Check for "--" in argv. If there's one, consider everything before it
+    // as arguments to Zeek and everything after it as arguments to the fuzzer.
+    // This was the reverse previously, but a change in OSS-Fuzz now requires
+    // this (google/oss-fuzz@b047915cd976d7057cd74a6e9cee5b6836e17d99).
+    int fuzzer_argc = *argc;
+    char** fuzzer_argv = *argv;
 
-    // If the inputs given to the fuzzer executable contain "--", consider all
-    // following arguments to be part of Zeek's command-line and forward them to
-    // zeek::parse_cmdline().
-    //
-    // This allows to load more scripts and set or overwrite options without
-    // the need to recompile the fuzzer.
-    for ( int i = 0; i < *argc; i++ ) {
-        if ( ! strcmp((*argv)[i], "--") ) {
-            zeek_args = *argc - i;
-            (*argv)[i] = (*argv)[0]; // Fake argv[0] for parse_cmdline() with the original argv[0]
-            zeek_argv = &(*argv)[i];
+    // Always forward the command to parse_cmdline()
+    int zeek_argc = 1;
+    char** zeek_argv = *argv;
+
+    for ( int i = 1; i < *argc; i++ ) {
+        if ( strcmp((*argv)[i], "--") == 0 ) {
+            zeek_argc = i;
+
+            fuzzer_argc = *argc - i;
+
+            // Use the -- slot as argv[0] for the fuzzer and replace
+            // it with command in argv[0] so it stays stable.
+            fuzzer_argv = &(*argv)[i];
+            fuzzer_argv[0] = (*argv)[0];
+            break;
         }
     }
 
-    // Propagate change in argc upwards.
-    *argc = *argc - zeek_args;
+    // Propagate changes of argc and argv back upwards.
+    *argc = fuzzer_argc;
+    *argv = fuzzer_argv;
 
-    zeek::Options options = zeek_args > 0 ? zeek::parse_cmdline(zeek_args, zeek_argv) : zeek::Options{};
+    zeek::Options options = zeek::parse_cmdline(zeek_argc, zeek_argv);
 
     std::vector<std::string> default_script_options_to_set = {
         "Site::local_nets={10.0.0.0/8}",  "Log::default_writer=Log::WRITER_NONE", "Reporter::info_to_stderr=F",
@@ -65,7 +74,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv) {
     options.abort_on_scripting_errors = true;
     options.dns_mode = zeek::detail::DNS_MgrMode::DNS_FAKE;
 
-    if ( zeek::detail::setup(*argc, *argv, &options).code )
+    if ( zeek::detail::setup(zeek_argc, zeek_argv, &options).code )
         abort();
 
     // We have to trick the event handlers into returning true that they exist here

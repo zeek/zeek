@@ -84,6 +84,10 @@ private:
     // The most recently traversed statement.
     const Stmt* last_stmt_traversed = nullptr;
 
+    // > 0 when we're inside a table constructor. A counter rather than
+    // a boolean to support the possibility of nested constructors.
+    int in_table_constructor = 0;
+
     // Used to number Stmt objects found during AST traversal.
     int stmt_num;
 

@@ -6,6 +6,7 @@
 #include <thread>
 #include <zmq.hpp>
 
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 
 // Central XPUB/XSUB proxy.
@@ -61,6 +62,8 @@ private:
     zmq::context_t ctx;
     std::thread thread;
     Args args;
+    std::thread zap_thread;
+    ZapArgs zap_args;
     std::string xpub_endpoint;
     std::string xsub_endpoint;
     zmq::socket_t control;

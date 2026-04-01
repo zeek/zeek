@@ -116,3 +116,18 @@ types in a Zeek cluster looks something like the following.
 
 .. figure:: /images/cluster/backend/zeromq/zeromq-cluster.png
 
+
+Encryption
+==========
+
+.. versionadded:: 8.2
+
+When using ZeroMQ as a cluster backend, communication between Zeek nodes
+is unencrypted by default.
+Refer to the module documentation
+at :doc:`cluster/backend/zeromq/main.zeek </scripts/policy/frameworks/cluster/backend/zeromq/main.zeek>`
+for details and background how to setup encryption using the `CURVE mechanism <http://api.zeromq.org/4-2:zmq-curve>`_.
+
+:ref:`ZeekControl <cluster-configuration>` will automatically configure encryption
+and distribute the server and client keys when multiple physical systems (based on IP addresses)
+form a Zeek cluster. For single system setups, encryption is disabled by default.

@@ -10,6 +10,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/plugin/Plugin.h"
+#include "zeek/util-types.h"
 
 namespace zeek {
 
@@ -86,6 +87,28 @@ public:
      * can be given by separating them with zeek::util::path_list_separator.
      */
     void SearchDynamicPlugins(const std::string& dir);
+
+    /**
+     * Load a dynamic plugin located at \a path.
+     *
+     * This method dlopen()'s the given path, verifies that the static current_plugin
+     * variable is populated (usually done by the Plugin constructor) and calls
+     * the following members on it:
+     *
+     *   ->SetDynamic(true)
+     *   ->DoConfigure()
+     *   ->InitializeComponents()
+     *   ->InitPreScript()
+     *
+     * Note that ->SetPluginLocation() will be called with an empty base_dir,
+     * unless the Manager::current_dir variable was set, in which case the
+     * plugin's base_dir will be current_dir.
+     *
+     * @param path A concrete plugin to load, usually a .so file.
+     *
+     * @return A pointer to the loaded Plugin instance, or an error message if loading failed.
+     */
+    zeek::expected<Plugin*, std::string> LoadDynamicPlugin(const std::string& path);
 
     /**
      * Activates a plugin that SearchDynamicPlugins() has previously discovered.

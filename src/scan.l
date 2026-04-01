@@ -389,6 +389,7 @@ when	return TOK_WHEN;
 &redef		return TOK_ATTR_REDEF;
 &write_expire	return TOK_ATTR_EXPIRE_WRITE;
 &on_change	return TOK_ATTR_ON_CHANGE;
+&publish_on_change	return TOK_ATTR_PUBLISH_ON_CHANGE;
 &broker_store	return TOK_ATTR_BROKER_STORE;
 &broker_allow_complex_type	return TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX;
 &backend	return TOK_ATTR_BACKEND;
@@ -818,17 +819,32 @@ static int load_files(const char* orig_file) {
 
             if ( ! f )
                 zeek::reporter->FatalError("can't open %s", file_path.c_str());
-        }
 
-        zeek::detail::ScannedFile sf(file_stack.length(), file_path);
-        if ( sf.AlreadyScanned() ) {
-            if ( rc.first == -1 && f != stdin )
+            // open_file() / open_package() modify file_path, so can only
+            // do this check after opening the files.
+            zeek::detail::ScannedFile sf(file_stack.length(), file_path);
+            if ( sf.AlreadyScanned() ) {
                 fclose(f);
+                return 0;
+            }
 
-            return 0;
+            // Mark the just opened file as scanned.
+            zeek::detail::files_scanned.push_back(std::move(sf));
+
+            // If we get here, we've opened a FILE* pointing at an actual
+            // file, or a __load__.zeek file within a directory. Attempt
+            // to load any files ending with ".so" as plugin.
+            if ( file_path.ends_with(".so") ) {
+               // No need.
+               fclose(f);
+
+               auto result = zeek::plugin_mgr->LoadDynamicPlugin(file_path);
+               if ( ! result )
+                   zeek::reporter->FatalError("failed to load plugin %s: %s",
+                                              file_path.c_str(), result.error().c_str());
+               return 0;
+            }
         }
-
-        zeek::detail::files_scanned.push_back(std::move(sf));
     }
 
     if ( zeek::detail::g_policy_debug && ! file_path.empty() ) {

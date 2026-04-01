@@ -357,8 +357,8 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
-		# Currently only standard queries and dynamic updates are tracked.
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE && msg$opcode != DNS_OP_NOTIFY )
+		# Currently only standard queries and dynamic updates are tracked. Also DNS notify messages.
 		return;
 
 	hook set_session(c, msg, ! msg$QR);
@@ -366,8 +366,8 @@ event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &prior
 
 hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
 	{
-	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
-		# Currently only standard queries and dynamic updates are tracked.
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE && msg$opcode != DNS_OP_NOTIFY )
+		# Currently only standard queries and dynamic updates are tracked. Also DNS notify messages
 		return;
 
 	if ( ! msg$QR )
@@ -433,7 +433,7 @@ event dns_end(c: connection, msg: dns_msg) &priority=-5
 
 event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
 	{
-	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE )
+	if ( msg$opcode != DNS_OP_QUERY && msg$opcode != DNS_OP_DYNAMIC_UPDATE && msg$opcode != DNS_OP_NOTIFY )
 		# Currently only standard queries and dynamic updates are tracked.
 		return;
 

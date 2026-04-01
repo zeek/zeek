@@ -162,10 +162,10 @@ int compile(const char* filename) {
 
         out_h.println("#endif /* %s_h */", filename_id);
     } catch ( OutputException& e ) {
-        fprintf(stderr, "Error in compiling %s: %s\n", filename, e.errmsg());
+        fprintf(stderr, "Error in compiling %s: %s\n", filename, e.what());
         ret = 1;
     } catch ( Exception& e ) {
-        fprintf(stderr, "%s\n", e.msg());
+        fprintf(stderr, "%s\n", e.what());
         exit(1);
     }
 

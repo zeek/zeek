@@ -594,7 +594,7 @@ TEST_CASE("move assignment") {
     HashKey h3(12345);
 
     HashKey h4 = std::move(h2);
-    HashKey h5{h3};
+    HashKey h5{std::move(h3)};
 
     CHECK(h1 == h4);
     CHECK(h1 == h5);

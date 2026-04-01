@@ -22,5 +22,6 @@ within the Zeek source tree `here <doc_repo_>`_.
    contributors
    maintainers
    cluster/architectures
+   cluster/spawning
    cluster/backend/zeromq
    conn

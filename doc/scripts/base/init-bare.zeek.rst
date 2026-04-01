@@ -57,30 +57,32 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-===================================================================================== =============================================================================
-:zeek:id:`MQTT::max_payload_size`: :zeek:type:`count` :zeek:attr:`&redef`             The maximum payload size to allocate for the purpose of
-                                                                                      payload information in :zeek:see:`mqtt_publish` events (and the
-                                                                                      default MQTT logs generated from that).
-:zeek:id:`Weird::sampling_duration`: :zeek:type:`interval` :zeek:attr:`&redef`        How long a weird of a given type is allowed to keep state/counters in
-                                                                                      memory.
-:zeek:id:`Weird::sampling_global_list`: :zeek:type:`set` :zeek:attr:`&redef`          Rate-limits weird names in the table globally instead of per connection/flow.
-:zeek:id:`Weird::sampling_rate`: :zeek:type:`count` :zeek:attr:`&redef`               The rate-limiting sampling rate.
-:zeek:id:`Weird::sampling_threshold`: :zeek:type:`count` :zeek:attr:`&redef`          How many weirds of a given type to tolerate before sampling begins.
-:zeek:id:`Weird::sampling_whitelist`: :zeek:type:`set` :zeek:attr:`&redef`            Prevents rate-limiting sampling of any weirds named in the table.
-:zeek:id:`default_file_bof_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`       Default amount of bytes that file analysis will buffer in order to use
-                                                                                      for mime type matching.
-:zeek:id:`default_file_timeout_interval`: :zeek:type:`interval` :zeek:attr:`&redef`   Default amount of time a file can be inactive before the file analysis
-                                                                                      gives up and discards any internal state related to the file.
-:zeek:id:`ignore_checksums_nets`: :zeek:type:`set` :zeek:attr:`&redef`                Checksums are ignored for all packets with a src address within this set of
-                                                                                      networks.
-:zeek:id:`udp_content_delivery_ports_use_resp`: :zeek:type:`bool` :zeek:attr:`&redef` Whether ports given in :zeek:see:`udp_content_delivery_ports_orig`
-                                                                                      and :zeek:see:`udp_content_delivery_ports_resp` are in terms of
-                                                                                      UDP packet's destination port or the UDP connection's "responder"
-                                                                                      port.
-:zeek:id:`udp_content_ports`: :zeek:type:`set` :zeek:attr:`&redef`                    Defines UDP ports (source or destination) for which the contents of
-                                                                                      either originator or responder streams should be delivered via
-                                                                                      :zeek:see:`udp_contents`.
-===================================================================================== =============================================================================
+============================================================================================================== =================================================================================
+:zeek:id:`Cluster::default_table_publish_on_change_max_batch_delay`: :zeek:type:`interval` :zeek:attr:`&redef` Default maximum delay size for the the :zeek:attr:`&publish_on_change` attribute.
+:zeek:id:`Cluster::default_table_publish_on_change_max_batch_size`: :zeek:type:`count` :zeek:attr:`&redef`     Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
+:zeek:id:`MQTT::max_payload_size`: :zeek:type:`count` :zeek:attr:`&redef`                                      The maximum payload size to allocate for the purpose of
+                                                                                                               payload information in :zeek:see:`mqtt_publish` events (and the
+                                                                                                               default MQTT logs generated from that).
+:zeek:id:`Weird::sampling_duration`: :zeek:type:`interval` :zeek:attr:`&redef`                                 How long a weird of a given type is allowed to keep state/counters in
+                                                                                                               memory.
+:zeek:id:`Weird::sampling_global_list`: :zeek:type:`set` :zeek:attr:`&redef`                                   Rate-limits weird names in the table globally instead of per connection/flow.
+:zeek:id:`Weird::sampling_rate`: :zeek:type:`count` :zeek:attr:`&redef`                                        The rate-limiting sampling rate.
+:zeek:id:`Weird::sampling_threshold`: :zeek:type:`count` :zeek:attr:`&redef`                                   How many weirds of a given type to tolerate before sampling begins.
+:zeek:id:`Weird::sampling_whitelist`: :zeek:type:`set` :zeek:attr:`&redef`                                     Prevents rate-limiting sampling of any weirds named in the table.
+:zeek:id:`default_file_bof_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`                                Default amount of bytes that file analysis will buffer in order to use
+                                                                                                               for mime type matching.
+:zeek:id:`default_file_timeout_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                            Default amount of time a file can be inactive before the file analysis
+                                                                                                               gives up and discards any internal state related to the file.
+:zeek:id:`ignore_checksums_nets`: :zeek:type:`set` :zeek:attr:`&redef`                                         Checksums are ignored for all packets with a src address within this set of
+                                                                                                               networks.
+:zeek:id:`udp_content_delivery_ports_use_resp`: :zeek:type:`bool` :zeek:attr:`&redef`                          Whether ports given in :zeek:see:`udp_content_delivery_ports_orig`
+                                                                                                               and :zeek:see:`udp_content_delivery_ports_resp` are in terms of
+                                                                                                               UDP packet's destination port or the UDP connection's "responder"
+                                                                                                               port.
+:zeek:id:`udp_content_ports`: :zeek:type:`set` :zeek:attr:`&redef`                                             Defines UDP ports (source or destination) for which the contents of
+                                                                                                               either originator or responder streams should be delivered via
+                                                                                                               :zeek:see:`udp_contents`.
+============================================================================================================== =================================================================================
 
 Redefinable Options
 ###################
@@ -454,6 +456,13 @@ Types
 :zeek:type:`BrokerPeeringStatsTable`: :zeek:type:`table`
 :zeek:type:`BrokerStats`: :zeek:type:`record`                                    Statistics about Broker communication.
 :zeek:type:`Cluster::Pool`: :zeek:type:`record`                                  A pool used for distributing data/work among a set of cluster nodes.
+:zeek:type:`Cluster::PublishOnChangeAttr`: :zeek:type:`record`                   The record type used for the :zeek:attr:`&publish_on_change` attribute.
+:zeek:type:`Cluster::TableChangeHeader`: :zeek:type:`record`                     Record passed as "header" into the :zeek:see:`Cluster::table_change_infos`
+                                                                                 event that holds common information applying to all of the individual
+                                                                                 :zeek:see:`Cluster::TableChangeInfo` records.
+:zeek:type:`Cluster::TableChangeInfo`: :zeek:type:`record`                       Record encapsulating a single table change / modification for
+                                                                                 distribution to other Zeek processes in a cluster.
+:zeek:type:`Cluster::TableChangeInfos`: :zeek:type:`vector`                      Vector of individual :zeek:see:`Cluster::TableChangeInfo` records.
 :zeek:type:`ConnStats`: :zeek:type:`record`
 :zeek:type:`DHCP::Addrs`: :zeek:type:`vector`                                    A list of addresses offered by a DHCP server.
 :zeek:type:`DHCP::ClientFQDN`: :zeek:type:`record`                               DHCP Client FQDN Option information (Option 81)
@@ -843,11 +852,22 @@ Types
 :zeek:type:`ConnKey::Tag`: :zeek:type:`enum`
 ================================================================================ =======================================================================================================================
 
+Events
+######
+================================================================== =================================================================================
+:zeek:id:`Cluster::forward_table_change_infos`: :zeek:type:`event` Internal helper event used by worker processes to delegate publishing
+                                                                   to the Zeek manager when running under Broker.
+:zeek:id:`Cluster::table_change_infos`: :zeek:type:`event`         Internal'ish event for propagating table changes via :zeek:see:`Cluster::publish`
+                                                                   to other Zeek processes in a cluster.
+================================================================== =================================================================================
+
 Hooks
 #####
-============================================= ====================
-:zeek:id:`Telemetry::sync`: :zeek:type:`hook` Telemetry sync hook.
-============================================= ====================
+====================================================================== ===============================================================
+:zeek:id:`Cluster::apply_table_change_infos_policy`: :zeek:type:`hook` A hook for testing and intercepting changes to tables coming in
+                                                                       via the &publish_on_change mechanism from other Zeek processes.
+:zeek:id:`Telemetry::sync`: :zeek:type:`hook`                          Telemetry sync hook.
+====================================================================== ===============================================================
 
 Functions
 #########
@@ -872,6 +892,24 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
+.. zeek:id:: Cluster::default_table_publish_on_change_max_batch_delay
+   :source-code: base/init-bare.zeek 6146 6146
+
+   :Type: :zeek:type:`interval`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10.0 msecs``
+
+   Default maximum delay size for the the :zeek:attr:`&publish_on_change` attribute.
+
+.. zeek:id:: Cluster::default_table_publish_on_change_max_batch_size
+   :source-code: base/init-bare.zeek 6143 6143
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10``
+
+   Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
+
 .. zeek:id:: MQTT::max_payload_size
    :source-code: base/init-bare.zeek 6121 6121
 
@@ -884,7 +922,7 @@ Runtime Options
    default MQTT logs generated from that).
 
 .. zeek:id:: Weird::sampling_duration
-   :source-code: base/init-bare.zeek 6174 6174
+   :source-code: base/init-bare.zeek 6258 6258
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -903,7 +941,7 @@ Runtime Options
    threshold.
 
 .. zeek:id:: Weird::sampling_global_list
-   :source-code: base/init-bare.zeek 6150 6150
+   :source-code: base/init-bare.zeek 6234 6234
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -912,7 +950,7 @@ Runtime Options
    Rate-limits weird names in the table globally instead of per connection/flow.
 
 .. zeek:id:: Weird::sampling_rate
-   :source-code: base/init-bare.zeek 6161 6161
+   :source-code: base/init-bare.zeek 6245 6245
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -924,7 +962,7 @@ Runtime Options
    will disable all output of rate-limited weirds.
 
 .. zeek:id:: Weird::sampling_threshold
-   :source-code: base/init-bare.zeek 6155 6155
+   :source-code: base/init-bare.zeek 6239 6239
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -935,7 +973,7 @@ Runtime Options
    raise events for script-layer handling before being rate-limited.
 
 .. zeek:id:: Weird::sampling_whitelist
-   :source-code: base/init-bare.zeek 6147 6147
+   :source-code: base/init-bare.zeek 6231 6231
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -1105,7 +1143,7 @@ Redefinable Options
    Link type (default Ethernet).
 
 .. zeek:id:: BinPAC::flowbuffer_capacity_max
-   :source-code: base/init-bare.zeek 6205 6205
+   :source-code: base/init-bare.zeek 6289 6289
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1115,7 +1153,7 @@ Redefinable Options
    grow to for use with incremental parsing of a given connection/analyzer.
 
 .. zeek:id:: BinPAC::flowbuffer_capacity_min
-   :source-code: base/init-bare.zeek 6210 6210
+   :source-code: base/init-bare.zeek 6294 6294
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1126,7 +1164,7 @@ Redefinable Options
    later contracted, its capacity is also reduced to this size.
 
 .. zeek:id:: BinPAC::flowbuffer_contract_threshold
-   :source-code: base/init-bare.zeek 6218 6218
+   :source-code: base/init-bare.zeek 6302 6302
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1210,7 +1248,7 @@ Redefinable Options
    record to represent additional connection tuple members.
 
 .. zeek:id:: ConnThreshold::generic_packet_thresholds
-   :source-code: base/init-bare.zeek 6578 6578
+   :source-code: base/init-bare.zeek 6662 6662
 
    :Type: :zeek:type:`set` [:zeek:type:`count`]
    :Attributes: :zeek:attr:`&redef`
@@ -1305,7 +1343,7 @@ Redefinable Options
    uses dynamic protocol detection for the upgraded to protocol instead.
 
 .. zeek:id:: IP::protocol_names
-   :source-code: base/init-bare.zeek 6358 6358
+   :source-code: base/init-bare.zeek 6442 6442
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
@@ -1849,7 +1887,7 @@ Redefinable Options
    TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
 
 .. zeek:id:: Storage::expire_interval
-   :source-code: base/init-bare.zeek 6517 6517
+   :source-code: base/init-bare.zeek 6601 6601
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -1860,7 +1898,7 @@ Redefinable Options
    using expiration while reading pcap files.
 
 .. zeek:id:: Telemetry::callback_timeout
-   :source-code: base/init-bare.zeek 6348 6348
+   :source-code: base/init-bare.zeek 6432 6432
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -1870,7 +1908,7 @@ Redefinable Options
    wait for metric callbacks to complete on the IO loop.
 
 .. zeek:id:: Telemetry::civetweb_threads
-   :source-code: base/init-bare.zeek 6351 6351
+   :source-code: base/init-bare.zeek 6435 6435
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1962,7 +2000,7 @@ Redefinable Options
    may choose whether to perform the validation.
 
 .. zeek:id:: UnknownProtocol::first_bytes_count
-   :source-code: base/init-bare.zeek 6197 6197
+   :source-code: base/init-bare.zeek 6281 6281
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1972,7 +2010,7 @@ Redefinable Options
    first bytes field.
 
 .. zeek:id:: UnknownProtocol::sampling_duration
-   :source-code: base/init-bare.zeek 6193 6193
+   :source-code: base/init-bare.zeek 6277 6277
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -1983,7 +2021,7 @@ Redefinable Options
    before the rate-limiting for a pair expires and is reset.
 
 .. zeek:id:: UnknownProtocol::sampling_rate
-   :source-code: base/init-bare.zeek 6188 6188
+   :source-code: base/init-bare.zeek 6272 6272
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1995,7 +2033,7 @@ Redefinable Options
    will disable all output of rate-limited pairs.
 
 .. zeek:id:: UnknownProtocol::sampling_threshold
-   :source-code: base/init-bare.zeek 6182 6182
+   :source-code: base/init-bare.zeek 6266 6266
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -3808,7 +3846,7 @@ State Variables
    .. zeek:see:: dns_skip_all_auth dns_skip_addl
 
 .. zeek:id:: done_with_network
-   :source-code: base/init-bare.zeek 6585 6585
+   :source-code: base/init-bare.zeek 6669 6669
 
    :Type: :zeek:type:`bool`
    :Default: ``F``
@@ -4252,6 +4290,107 @@ Types
 
 
    A pool used for distributing data/work among a set of cluster nodes.
+
+.. zeek:type:: Cluster::PublishOnChangeAttr
+   :source-code: base/init-bare.zeek 6149 6161
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: changes :zeek:type:`set` [:zeek:type:`TableChange`]
+
+      Which changes to publish. Cannot be empty.
+
+
+   .. zeek:field:: topic :zeek:type:`any` :zeek:attr:`&optional`
+
+      Either a string or a function returning a string with function parameters
+      matching the index types of the :zeek:type:`table` or :zeek:type:`set`.
+
+
+   .. zeek:field:: max_batch_size :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Cluster::default_table_publish_on_change_max_batch_size` :zeek:attr:`&optional`
+
+      Maximum number of changes to queue into a batch before publishing.
+      Setting this value to 0 disables batching behavior.
+
+
+   .. zeek:field:: max_batch_delay :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Cluster::default_table_publish_on_change_max_batch_delay` :zeek:attr:`&optional`
+
+      Maximum interval to delay the publish.
+      Setting this value to 0sec disables batching behavior.
+
+
+   The record type used for the :zeek:attr:`&publish_on_change` attribute.
+
+.. zeek:type:: Cluster::TableChangeHeader
+   :source-code: base/init-bare.zeek 6188 6195
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: id :zeek:type:`string`
+
+      The script-layer identifier of this table.
+
+
+   .. zeek:field:: ts :zeek:type:`time`
+
+      The network timestamp when this event was published.
+
+
+   .. zeek:field:: node_id :zeek:type:`string`
+
+      The :zeek:see:`Cluster::node_id` value of the sending process.
+
+
+   Record passed as "header" into the :zeek:see:`Cluster::table_change_infos`
+   event that holds common information applying to all of the individual
+   :zeek:see:`Cluster::TableChangeInfo` records.
+
+.. zeek:type:: Cluster::TableChangeInfo
+   :source-code: base/init-bare.zeek 6165 6180
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: change :zeek:type:`TableChange`
+
+      The type of change.
+
+
+   .. zeek:field:: ts :zeek:type:`time`
+
+      The network time of this change.
+
+
+   .. zeek:field:: index :zeek:type:`vector` of :zeek:type:`any`
+
+      The index value. Internally tables and sets use ListVal
+      instances, but for cluster communication we use vector
+      of any.
+
+
+   .. zeek:field:: value :zeek:type:`any` :zeek:attr:`&optional`
+
+      The new, updated or removed value of the new element.
+      Unused for sets.
+
+
+   .. zeek:field:: previous_value :zeek:type:`any` :zeek:attr:`&optional`
+
+      The previous value in the table when the change field
+      is :zeek:see:`TABLE_ELEMENT_CHANGED`. Unused for sets.
+
+
+   Record encapsulating a single table change / modification for
+   distribution to other Zeek processes in a cluster.
+
+.. zeek:type:: Cluster::TableChangeInfos
+   :source-code: base/init-bare.zeek 6183 6183
+
+   :Type: :zeek:type:`vector` of :zeek:type:`Cluster::TableChangeInfo`
+
+   Vector of individual :zeek:see:`Cluster::TableChangeInfo` records.
 
 .. zeek:type:: ConnStats
    :source-code: base/init-bare.zeek 1152 1175
@@ -10023,7 +10162,7 @@ Types
    .. zeek:see:: connection_SYN_packet
 
 .. zeek:type:: Storage::OperationResult
-   :source-code: base/init-bare.zeek 6555 6566
+   :source-code: base/init-bare.zeek 6639 6650
 
    :Type: :zeek:type:`record`
 
@@ -10050,7 +10189,7 @@ Types
    Returned as the result of the various storage operations.
 
 .. zeek:type:: Storage::ReturnCode
-   :source-code: base/init-bare.zeek 6521 6553
+   :source-code: base/init-bare.zeek 6605 6637
 
    :Type: :zeek:type:`enum`
 
@@ -10212,7 +10351,7 @@ Types
    The full list of TCP option fields in a TCP header.
 
 .. zeek:type:: Telemetry::HistogramMetric
-   :source-code: base/init-bare.zeek 6302 6326
+   :source-code: base/init-bare.zeek 6386 6410
 
    :Type: :zeek:type:`record`
 
@@ -10256,13 +10395,13 @@ Types
    Histograms returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
 
 .. zeek:type:: Telemetry::HistogramMetricVector
-   :source-code: base/init-bare.zeek 6344 6344
+   :source-code: base/init-bare.zeek 6428 6428
 
    :Type: :zeek:type:`vector` of :zeek:type:`Telemetry::HistogramMetric`
 
 
 .. zeek:type:: Telemetry::Metric
-   :source-code: base/init-bare.zeek 6279 6299
+   :source-code: base/init-bare.zeek 6363 6383
 
    :Type: :zeek:type:`record`
 
@@ -10298,7 +10437,7 @@ Types
    Metrics returned by the :zeek:see:`Telemetry::collect_metrics` function.
 
 .. zeek:type:: Telemetry::MetricOpts
-   :source-code: base/init-bare.zeek 6228 6276
+   :source-code: base/init-bare.zeek 6312 6360
 
    :Type: :zeek:type:`record`
 
@@ -10370,7 +10509,7 @@ Types
    Type that captures options used to create metrics.
 
 .. zeek:type:: Telemetry::MetricVector
-   :source-code: base/init-bare.zeek 6343 6343
+   :source-code: base/init-bare.zeek 6427 6427
 
    :Type: :zeek:type:`vector` of :zeek:type:`Telemetry::Metric`
 
@@ -15350,10 +15489,61 @@ Types
       .. zeek:enum:: ConnKey::CONNKEY_VLAN_FIVETUPLE ConnKey::Tag
 
 
+Events
+######
+.. zeek:id:: Cluster::forward_table_change_infos
+   :source-code: base/frameworks/cluster/publish-on-change.zeek 81 100
+
+   :Type: :zeek:type:`event` (tcheader: :zeek:type:`Cluster::TableChangeHeader`, tcinfos: :zeek:type:`Cluster::TableChangeInfos`, to_topic: :zeek:type:`string`)
+
+   Internal helper event used by worker processes to delegate publishing
+   to the Zeek manager when running under Broker.
+
+   If ``to`` is manager_topic or starts with /zeek/table/, the manager
+   will also raise table_change_infos() locally for itself.
+
+
+   :param tcheader: Header with common information.
+
+   :param tcinfos: Accumulated changes as a vector.
+
+   :param to_topic: The topic to publish the table_change_infos() event to.
+
+.. zeek:id:: Cluster::table_change_infos
+   :source-code: base/frameworks/cluster/publish-on-change.zeek 39 59
+
+   :Type: :zeek:type:`event` (tcheader: :zeek:type:`Cluster::TableChangeHeader`, tcinfos: :zeek:type:`Cluster::TableChangeInfos`)
+
+   Internal'ish event for propagating table changes via :zeek:see:`Cluster::publish`
+   to other Zeek processes in a cluster.
+
+
+   :param tcheader: Header with common information.
+
+   :param tcinfos: Accumulated changes as a vector.
+
 Hooks
 #####
+.. zeek:id:: Cluster::apply_table_change_infos_policy
+   :source-code: base/init-bare.zeek 6224 6224
+
+   :Type: :zeek:type:`hook` (tcheader: :zeek:type:`Cluster::TableChangeHeader`, tcinfos: :zeek:type:`Cluster::TableChangeInfos`) : :zeek:type:`bool`
+
+   A hook for testing and intercepting changes to tables coming in
+   via the &publish_on_change mechanism from other Zeek processes.
+
+   Breaking from this hook discards the changes. I.e. they'll not
+   be applied to the table or set identified by id.
+
+
+   :param id: Script-level identifier of the table or set.
+
+   :param ts: Network timestamp at the time of sending.
+
+   :param table_change_infos: vector of changes as batched by the remote Zeek process.
+
 .. zeek:id:: Telemetry::sync
-   :source-code: base/init-bare.zeek 6341 6341
+   :source-code: base/init-bare.zeek 6425 6425
 
    :Type: :zeek:type:`hook` () : :zeek:type:`bool`
 

@@ -120,7 +120,11 @@ bool Gnutella_Analyzer::GnutellaOK(std::string_view header) {
     if ( ! header.starts_with("GNUTELLA") )
         return false;
 
-    int codepos = header.find(' ') + 1;
+    size_t codepos = header.find(' ');
+    if ( codepos == std::string::npos || codepos == header.size() - 1 )
+        return false;
+
+    codepos++;
     if ( strncmp("200", header.data() + codepos, 3) == 0 )
         return true;
 

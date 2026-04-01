@@ -48,6 +48,21 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Added a new attribute ``&publish_on_change`` for global tables and sets as an
+  alternative to the Broker-specific and deprecated ``&backend`` and ``&broker_store``
+  synchronization attributes. The ``&publish_on_change`` attribute allows efficient
+  publishing of selected table changes as remote events to a configurable cluster topic.
+  Other cluster nodes by default apply received changes to their local table instances.
+
+	# Publish any new entry as Cluster::table_change_infos() event to  /zeek/table/endpoints
+	global endpoints: set[addr, addr] &write_expire=5min &publish_on_change=[
+	    changes=set(TABLE_ELEMENT_NEW),
+	];
+
+  See the online documentation for a detailed description and further examples:
+
+	https://docs.zeek.org/en/master/reference/zeekscript/attributes.html#attr-&publish_on_change
+
 - Well-known ports of built-in analyzers can now be configured via redef. For example:
 
 	redef HTTP::ports += { 8181/tcp };
@@ -61,6 +76,9 @@ New Functionality
 
 	redef PacketAnalyzer::VXLAN::vxlan_ports += { 4711/udp };
 
+- The ``dns.log`` now also contains information about DNS notifications (RFC 1996).
+  The ``opcode`` is set to 4 and ``opcode_code`` name will be "notify".
+
 - The number of messages and bytes processed by the central ZeroMQ XPUB/XSUB
   cluster component is now exposed as metrics of the form:
 
@@ -69,6 +87,20 @@ New Functionality
   by the process running this component in a cluster. Note that Zeek uses multipart
   messages for events: Publishing a single event currently counts as four messages
   as we're simply exposing ZeroMQ's low-level ``zmq::proxy_steerable()`` statistics.
+
+- The ``@load`` directive now supports loading shared object files. This can
+  be leveraged to experiment with alternative package and plugin directory layouts
+  where a ``__load__.zeek`` file in a directory loads the required shared object
+  explicitly rather than the current "magic discovery" via ``ZEEK_PLUGIN_PATH``
+  and ``__zeek_plugin__`` files.
+
+  Files are expected to end with ``.so`` regardless of the platform and need to
+  be explicitly loaded with the suffix provided:
+
+	@load ./plugin.so
+
+  Such shared objects should instantiate a single zeek::plugin::Plugin instance at
+  load time. The zeek::plugin::Plugin() will register it accordingly.
 
 - ``bifcl`` now accepts missing return types in functions signatures, creating
   void functions rather than complaining. The C++ signature will continue
@@ -86,12 +118,15 @@ New Functionality
   a shunted connection, it needs special handling to keep the connection alive while
   shunted.
 
-- The Zeek documentation has received a major refresh. A new tutorial walks
-  newcomers through setup, basic Zeek invocations, the use of Zeek packages,
-  ZeekControl for cluster maintenance, the basics of Zeek's logs, as well as
-  scripting in Zeek's own language as well as JavaScript. A new reference
-  section houses the introduction to common logs, the Zeek scripting
-  language, Zeek's frameworks, and the scripting index.
+- The Zeek documentation has received a major refresh. A new tutorial walks newcomers
+  through setup, basic Zeek invocations, the use of Zeek packages, ZeekControl for cluster
+  maintenance, the basics of Zeek's logs, as well as scripting in Zeek's own language as
+  well as JavaScript. A new reference section houses the introduction to common logs, the
+  Zeek scripting language, Zeek's frameworks, and the scripting index.
+
+- A new analyzer for IGMP was imported from an external project, originally written by
+  François De Keersmaeker (@fdekeers). It adds new events for each of the types of IGMP
+  messages, but does not add a new log.
 
 Changed Functionality
 ---------------------

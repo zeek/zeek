@@ -59,8 +59,9 @@ enum TimerType : uint8_t {
     TIMER_LOG_DELAY_EXPIRE,
     TIMER_LOG_FLUSH_WRITE_BUFFER,
     TIMER_STORAGE_EXPIRE,
+    TIMER_TABLE_PUBLISH_QUEUED_CHANGES,
 };
-constexpr int NUM_TIMER_TYPES = static_cast<int>(TIMER_STORAGE_EXPIRE) + 1;
+constexpr int NUM_TIMER_TYPES = static_cast<int>(TIMER_TABLE_PUBLISH_QUEUED_CHANGES) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 

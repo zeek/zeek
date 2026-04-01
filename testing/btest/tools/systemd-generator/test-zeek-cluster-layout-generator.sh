@@ -2,7 +2,6 @@
 #
 # @TEST-REQUIRES: test -x ${BUILD}/tools/systemd-generator/zeek-cluster-layout-generator
 #
-# @TEST-EXEC: mkdir normal-dir
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-cluster-layout-generator -o cluster-layout-default.zeek
 # @TEST-EXEC: zeek ./cluster-layout-default.zeek
 # @TEST-EXEC: btest-diff cluster-layout-default.zeek

@@ -22,9 +22,13 @@ static inline void add_path(std::string& old_path, const path& new_path) {
         return;
 
     if ( ! old_path.empty() )
+#ifdef _WIN32
+        old_path += ";";
+#else
         old_path += ":";
+#endif
 
-    old_path += new_path.native();
+    old_path += new_path.string();
 }
 } // namespace
 
@@ -63,5 +67,14 @@ inline auto CxxZeekIncludesDirectories() {
 #cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
 
 inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");
+
+// Top-level zeek build directory, used to detect build-directory mode.
+inline const auto BuildDir = path("${CMAKE_BINARY_DIR}");
+
+#ifdef _WIN32
+// Path to zeek's import library, needed to link JIT DLLs against the host
+// executable so that runtime symbols can be resolved at load time.
+inline auto ZeekExeImportLib() { return path("${CMAKE_BINARY_DIR}") / "zeek_exe.lib"; }
+#endif
 
 } // namespace zeek::spicy::configuration

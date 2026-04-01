@@ -74,6 +74,10 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/tcp/main.zeek
     scripts/base/packet-protocols/icmp/__load__.zeek
       scripts/base/packet-protocols/icmp/main.zeek
+    scripts/base/packet-protocols/igmp/__load__.zeek
+      scripts/base/packet-protocols/igmp/types.zeek
+      scripts/base/packet-protocols/igmp/spicy-events.zeek
+      scripts/base/packet-protocols/igmp/main.zeek
     scripts/base/packet-protocols/llc/__load__.zeek
       scripts/base/packet-protocols/llc/main.zeek
     scripts/base/packet-protocols/novell_802_3/__load__.zeek
@@ -142,6 +146,8 @@ scripts/base/init-frameworks-and-bifs.zeek
       build/scripts/base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
     scripts/base/frameworks/cluster/pools.zeek
       scripts/base/utils/hash_hrw.zeek
+    scripts/base/frameworks/cluster/publish-on-change.zeek
+      build/scripts/base/bif/publish_on_change.bif.zeek
     scripts/base/frameworks/cluster/telemetry.zeek
   scripts/base/frameworks/config/__load__.zeek
     scripts/base/frameworks/config/main.zeek

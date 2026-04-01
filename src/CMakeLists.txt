@@ -581,7 +581,13 @@ zeek_target_link_libraries(zeek_objs)
 zeek_target_add_linters(zeek_objs)
 
 if (HAVE_SPICY)
-    target_link_libraries(zeek_objs PRIVATE hilti spicy)
+    # For bundled Spicy, top-level CMake wires Zeek executables/libraries to
+    # the right in-tree targets (or object libraries on Windows). Linking
+    # zeek_objs directly can pull in missing import libraries on MSVC.
+    if (SPICY_ROOT_DIR)
+        target_link_libraries(zeek_objs PRIVATE hilti spicy)
+    endif ()
+
     prefer_configured_spicy_include_dirs(zeek_objs)
 endif ()
 
@@ -604,7 +610,45 @@ if (TARGET zeek_exe)
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS TRUE)
 
     if (MSVC)
-        set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+        # WINDOWS_EXPORT_ALL_SYMBOLS exceeds the COFF 65535 symbol limit.
+        # Instead, generate a targeted DEF file exporting HILTI/Spicy runtime
+        # symbols plus transitive dependencies resolved from zeek_objs.
+        get_filename_component(_compiler_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+        set(_dumpbin "${_compiler_dir}/dumpbin.exe")
+        set(_def_file "${CMAKE_BINARY_DIR}/zeek_jit_exports.def")
+        set(_gen_script "${CMAKE_CURRENT_SOURCE_DIR}/generate-jit-export-def.py")
+
+        # Primary libs: all defined symbols are exported.
+        # Includes core Zeek .obj files whose APIs are called by inline
+        # functions in runtime-support.h when compiled into JIT DLLs.
+        set(_zeek_spicy_objs
+            "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/EventHandler.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Obj.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Val.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Type.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Scope.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/IPAddr.cc.obj"
+            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/util.cc.obj")
+
+        # Backing libs: only symbols referenced-but-undefined in primary libs
+        # are exported.  This resolves transitive deps (e.g. zeek::util::fmt
+        # called from inline runtime-support.h code) without exporting the
+        # entire 100K+ Zeek symbol table.
+        file(GLOB_RECURSE _zeek_objs_all "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/*.obj")
+
+        add_custom_command(
+            OUTPUT "${_def_file}"
+            COMMAND
+                "${Python_EXECUTABLE}" "${_gen_script}" "${_dumpbin}" "${_def_file}"
+                "$<TARGET_FILE:hilti-rt>" "$<TARGET_FILE:spicy-rt>" ${_zeek_spicy_objs} "--"
+                ${_zeek_objs_all}
+            DEPENDS hilti-rt spicy-rt zeek_spicy_obj zeek_objs "${_gen_script}"
+            COMMENT "Generating JIT export DEF file from HILTI/Spicy runtimes"
+            VERBATIM)
+        add_custom_target(zeek_jit_exports DEPENDS "${_def_file}")
+        add_dependencies(zeek_exe zeek_jit_exports)
+        target_link_options(zeek_exe PRIVATE "/DEF:${_def_file}")
     endif ()
 
 endif ()

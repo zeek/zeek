@@ -1,0 +1,141 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# Spicy grammar for the IGMP protocol.
+# Supports IGMPv1, v2 and v3.
+# See RFC 1112 (IGMPv1), RFC 2236 (IGMPv2) and RFC 3376 (IGMPv3)
+# for information about the IGMP protocol.
+
+module IGMP;
+
+import zeek;
+
+global ignore_checksums: bool = zeek::get_bool("ignore_checksums");
+
+# ICMP message types
+type Type = enum {
+    MEMBERSHIP_QUERY = 0x11,
+    MEMBERSHIP_REPORT_V1 = 0x12,
+    MEMBERSHIP_REPORT_V2 = 0x16,
+    LEAVE_GROUP = 0x17,
+    MEMBERSHIP_REPORT_V3 = 0x22,
+};
+
+# Version 3 Membership Report Group Record Types
+type GroupType = enum {
+    MODE_IS_INCLUDE = 1,
+    MODE_IS_EXCLUDE = 2,
+    CHANGE_TO_INCLUDE_MODE = 3,
+    CHANGE_TO_EXCLUDE_MODE = 4,
+    ALLOW_NEW_SOURCES = 5,
+    BLOCK_OLD_SOURCES = 6,
+};
+
+# Version 3 Membership Report Group Record
+type Group = unit {
+    group_type: uint8 &convert=GroupType($$);
+    aux_data_len: uint8;
+    num_sources: uint16;
+    multicast_addr: addr &ipv4;
+    sources: (addr &ipv4)[self.num_sources];
+    aux_data: bytes &size=self.aux_data_len;
+};
+
+public function get_source_addr(): addr {
+    local pkt = zeek::as_record(zeek::current_packet());
+    local ip = zeek::as_record(zeek::record_field(pkt, "ip"));
+    return zeek::as_address(zeek::record_field(ip, "src"));
+}
+
+# Generic IGMP message
+public type Message = unit {
+
+    # Save the start point of the data so we can reset back to it after verifying
+    # the checksum.
+    var start: iterator<stream>;
+    on %init {
+        self.start = self.input();
+    }
+
+    # FIRST STEP: Parse all of the IGMP data and store the offset of where we
+    # finished parsing. It'd be nice to use fixed values here, but v3 reports are
+    # variable-length so it's not possible to know beforehand.
+
+    msg_type: uint8 &convert=Type($$);
+
+    # Determine message type
+    switch (self.msg_type) {
+        Type::MEMBERSHIP_QUERY -> mq: MembershipQuery;
+        Type::MEMBERSHIP_REPORT_V1 -> mrv1: MembershipReportV1;
+        Type::MEMBERSHIP_REPORT_V2 -> mrv2: MessageV2(True);
+        Type::LEAVE_GROUP -> lg: MessageV2(False);
+        Type::MEMBERSHIP_REPORT_V3 -> mrv3: MembershipReportV3;
+    };
+
+    var end_of_igmp_offset: uint64;
+    : void {
+        self.end_of_igmp_offset = self.offset();
+        self.set_input(self.start);
+    }
+
+    # SECOND STEP: verify message checksum. The checksum is included in the calculation
+    # which allows the computed value to be zero at the end. Use the offset to determine
+    # how much data to parse for the computation.
+
+    # All remaining bytes until the end, grouped by 2 bytes.
+    var computed_checksum: uint32 = uint32(0);
+    remaining_bytes: uint16[] &eod &size=self.end_of_igmp_offset;
+
+    # Add remaining bytes to accumulator, clamping as we go.
+    on remaining_bytes foreach {
+        self.computed_checksum += $$;
+        if (self.computed_checksum > uint32(0xFFFF)) {
+            self.computed_checksum -= uint32(0xFFFF);
+        }
+    }
+
+    on remaining_bytes {
+        # Compare checksum values
+        self.computed_checksum = ~cast<uint16>(self.computed_checksum);
+        if ((!ignore_checksums) && (self.computed_checksum != 0))
+            zeek::weird("igmp_invalid_checksum");
+    }
+};
+
+# Generic IGMPv2 message
+type MessageV2 = unit(is_membership_report: bool) {
+    max_resp_time: uint8;
+    checksum: uint16;
+    group_addr: addr &ipv4;
+};
+
+# msg_type = 0x11: Membership Query
+type MembershipQuery = unit {
+    max_resp_code: uint8;
+    checksum: uint16;
+    group_addr: addr &ipv4;
+    flags: bitfield(8) {
+        resv: 0..3;
+        s: 4;
+        qrv: 5..7;
+    };
+    qqic: uint8;
+    num_sources: uint16;
+    sources: (addr &ipv4)[self.num_sources];
+    additional_data: bytes &eod;
+};
+
+# msg_type = 0x12: Version 1 Membership Report
+type MembershipReportV1 = unit {
+    : uint8; # Unused (1 byte)
+    checksum: uint16;
+    group_addr: addr &ipv4;
+};
+
+# msg_type = 0x22: Version 3 Membership Report
+type MembershipReportV3 = unit {
+    : skip bytes &size=1; # Reserved (1 byte)
+    checksum: uint16;
+    : skip bytes &size=2; # Reserved (2 bytes)
+    num_groups: uint16;
+    groups: Group[self.num_groups];
+};

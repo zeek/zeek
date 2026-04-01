@@ -300,15 +300,13 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e) {
 
         case EXPR_ASSIGN: {
             auto lhs = e->GetOp1();
-            auto op2 = e->GetOp2();
 
-            if ( lhs->Tag() == EXPR_LIST && op2->GetType()->Tag() != TYPE_ANY ) {
-                // This combination occurs only for assignments used
-                // to initialize table entries.  Treat it as references
-                // to both the lhs and the rhs, not as an assignment.
+            if ( lhs->Tag() == EXPR_LIST && in_table_constructor > 0 )
+                // This is the index portion of a table constructor, process as
+                // that rather than as a compound assignment to an "any" value.
                 return TC_CONTINUE;
-            }
 
+            auto op2 = e->GetOp2();
             op2->Traverse(this);
 
             if ( ! CheckLHS(lhs, op2) )
@@ -347,6 +345,8 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e) {
             return TC_ABORTSTMT;
         }
 
+        case EXPR_TABLE_CONSTRUCTOR: ++in_table_constructor; break;
+
         default: break;
     }
 
@@ -366,6 +366,8 @@ TraversalCode GenIDDefs::PostExpr(const Expr* e) {
         if ( ! IsAggr(op) )
             (void)CheckLHS(op);
     }
+    else if ( t == EXPR_TABLE_CONSTRUCTOR )
+        --in_table_constructor;
 
     return TC_CONTINUE;
 }

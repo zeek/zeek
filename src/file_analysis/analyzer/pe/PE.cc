@@ -25,7 +25,7 @@ bool PE::DeliverStream(const u_char* data, uint64_t len) {
     try {
         interp->NewData(data, data + len);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
         return false;
     }
 

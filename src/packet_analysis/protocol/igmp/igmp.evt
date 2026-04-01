@@ -1,0 +1,34 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# IGMP Spicy analyzer and events
+
+%doc-id = Zeek::IGMP;
+%doc-description = "IGMP analyzer";
+
+import IGMP;
+
+
+########## PACKET ANALYZER ##########
+packet analyzer IGMP:
+    parse with IGMP::Message;
+
+
+########## EVENTS ##########
+
+# Generated for every processed IGMP message.
+on IGMP::Message -> event IGMP::message($packet, self.msg_type);
+
+# Generated for every IGMP Membership Query.
+on IGMP::Message if ( self?.mq && self.computed_checksum == 0 ) -> event IGMP::membership_query(IGMP::get_source_addr(), self.mq.group_addr);
+
+# Generated for every IGMP Version 1 Membership Report.
+on IGMP::Message if ( self?.mrv1 && self.computed_checksum == 0 ) -> event IGMP::membership_report_v1(IGMP::get_source_addr(), self.mrv1.group_addr);
+
+# Generated for every IGMP Version 2 Membership Report.
+on IGMP::Message if ( self?.mrv2 && self.computed_checksum == 0 ) -> event IGMP::membership_report_v2(IGMP::get_source_addr(), self.mrv2.group_addr);
+
+# Generated for every IGMP Version 3 Membership Report.
+on IGMP::Message if ( self?.mrv3 && self.computed_checksum == 0 ) -> event IGMP::membership_report_v3(IGMP::get_source_addr(), self.mrv3.groups);
+
+# Generated for every IGMP Version 2 Leave Group Message.
+on IGMP::Message if ( self?.lg && self.computed_checksum == 0 ) -> event IGMP::leave_group(IGMP::get_source_addr(), self.lg.group_addr);

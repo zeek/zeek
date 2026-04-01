@@ -375,7 +375,7 @@ public:
 
     RobustDictIterator(const RobustDictIterator& other) : curr(nullptr), dict(nullptr) { *this = other; }
 
-    RobustDictIterator(RobustDictIterator&& other) noexcept : curr(nullptr), dict(nullptr) { *this = other; }
+    RobustDictIterator(RobustDictIterator&& other) noexcept : curr(nullptr), dict(nullptr) { *this = std::move(other); }
 
     ~RobustDictIterator() { Complete(); }
 

@@ -1,6 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #include "zeek/Expr.h"
 
+#include <exception>
+
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -27,10 +29,7 @@
 
 namespace zeek::detail {
 
-class IsolationException {
-public:
-    IsolationException() = default;
-};
+class IsolationException : public std::exception {};
 
 const char* expr_name(ExprTag t) {
     // Note that some of the names in the following have trailing spaces.

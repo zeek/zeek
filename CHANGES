@@ -1,3 +1,182 @@
+8.2.0-dev.503 | 2026-04-10 02:46:20 +0000
+
+  * Rework IGMP analyzer for inclusion in main Zeek tree (Tim Wojtulewicz, Corelight)
+
+    - Reformat code
+    - Remove igmp.log
+    - Rework how checksums are calculated to be more descriptive
+    - Report a weird for bad checksums instead of an event
+    - Add bests
+    - Regenerate documentation and add NEWS entry
+
+  * Import IGMP analyzer from zeek-plugins/igmp (François De Keersmaeker)
+
+  * Adding missing documentation tags to existing Spicy analyzers. (Robin Sommer, Corelight)
+
+8.2.0-dev.496 | 2026-04-08 10:46:25 -0700
+
+  * [windows] enable spicy and fix build errors (Maor Hamami)
+
+8.2.0-dev.494 | 2026-04-08 19:22:54 +0200
+
+  * cluster/PublishOnChange: clang-tidy follow-ups (Arne Welzel, Corelight)
+
+8.2.0-dev.492 | 2026-04-08 19:06:56 +0200
+
+  * Add DNS NOTIFY support (Fatema BW)
+
+8.2.0-dev.483 | 2026-04-08 18:41:37 +0200
+
+  * testing/btest/cluster: Lower HWMs on non-manager nodes (Arne Welzel, Corelight)
+
+    This should avoid the manager node reporting drops by keeping its HWMs
+    to the default values and only reducing them on workers and the proxy.
+
+8.2.0-dev.481 | 2026-04-08 09:00:58 -0700
+
+  * Fix auto-causes-copy warnings in script_opt (Tim Wojtulewicz, Corelight)
+
+  * Fix integer overflow in Gnutella analyzer (Tim Wojtulewicz, Corelight)
+
+  * Fix some copy-instead-of-move and auto-causes-copy warnings in spicy runtime-support (Tim Wojtulewicz, Corelight)
+
+  * Avoid recreating existing std::string in spicy manager (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary check of unsigned value in ZAM (Tim Wojtulewicz, Corelight)
+
+  * Add missing std::move in Gen-ZAM (Tim Wojtulewicz, Corelight)
+
+  * Use contains() instead of count() in Gen-ZAM (Tim Wojtulewicz, Corelight)
+
+  * Fix copy-instead-of-move in Hash.cc's unit tests (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.472 | 2026-04-08 09:00:35 -0700
+
+  * Disable shared-object plugin loading on Windows (Tim Wojtulewicz, Corelight)
+
+    Windows doesn't support dlopen() and friends. The code was previously
+    under an #ifdef block, but changes in #5312 exposed it.
+
+  * Use full include path for bif netvar headers (Tim Wojtulewicz, Corelight)
+
+    This fixes a conflict on Windows after #5270 was merged.
+
+8.2.0-dev.468 | 2026-04-07 20:01:51 +0200
+
+  * testing/btest/language: Add test showing directory ending in .so (Arne Welzel, Corelight)
+
+  * testing/btest/plugins: Add load-so-bif test (Arne Welzel, Corelight)
+
+    Minimal test demonstrating BuiltinFunc usage without bifcl.
+
+  * NEWS: Add entry shared object support for @load (Arne Welzel, Corelight)
+
+  * testing/btest: Test loading of .so files (Arne Welzel, Corelight)
+
+  * scan.l: Support loading of .so files (Arne Welzel, Corelight)
+
+  * scan.l: Shuffle around ScannedFile usage (Arne Welzel, Corelight)
+
+    The code was already in a branch with rc.first == -1 and so we can
+    do the AlreadyScanned() in the inner branch. Loading stdin twice is
+    okay, it'll just continue reading where it was.
+
+  * plugin/Manager: Extract LoadDynamicPlugin() helper (Arne Welzel, Corelight)
+
+8.2.0-dev.460 | 2026-04-07 10:27:12 +0200
+
+  * doc/attributes: Add &backend and &broker_store deprecation info (Arne Welzel, Corelight)
+
+  * doc/attributes: Add &publish_on_change documentation (Arne Welzel, Corelight)
+
+  * cluster: Add Cluster::publish_table() (Arne Welzel, Corelight)
+
+    This adds a helper to publish a table packaged up as Cluster::table_change_infos()
+    events. This won't be super efficient, but it provides the flexibility to
+    include more information like expiration times down the road if we wanted,
+    but that needs a few extensions to the better TableVal API that I'm reluctant
+    of adding right now.
+
+    By default this sends Cluster::table_change_infos() events
+    with 10000 table entries each.
+
+  * btest/cluster/publish-on-change: Add tests to verify functionality (Arne Welzel, Corelight)
+
+    Not super dont-repeat-yourself, but hey, they should cover the basics...
+
+  * zeek-setup: Run PublishOnChangeState::InitPostScript() (Arne Welzel, Corelight)
+
+    Now that all the pieces are in place, run the InitPostScript() implementation
+    from PublishOnChangeState to actually enable the functionality. Also update
+    a few btest/Baselines now.
+
+  * scan/parse: Add &publish_on_change support (Arne Welzel, Corelight)
+
+  * cluster/PublishOnChange: Add InitPostScript() hook, use GetPublishOnChangeState() (Arne Welzel, Corelight)
+
+  * TableVal: Hook-up poc_state for &publish_on_change functionality (Arne Welzel, Corelight)
+
+  * cluster: Introduce PublishOnChangeState class and script-level support (Arne Welzel, Corelight)
+
+    This class holds state for the &publish_on_change attribute for global
+    table and set variables. The provided scripts will automatically handle
+    the Cluster::table_change_infos() event from other nodes and apply the
+    contained changes to the local table or set instance.
+
+  * Timer: Add timer for &publish_on_change (Arne Welzel, Corelight)
+
+    This timer is used to delay table changes for batching purposes
+    locally before publishing them into the cluster.
+
+  * Attr: Add &publish_on_change (Arne Welzel, Corelight)
+
+8.2.0-dev.448 | 2026-04-07 10:17:27 +0200
+
+  * Fix a few deprecated c_msg usages in btests (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.446 | 2026-04-07 10:09:13 +0200
+
+  * tools/systemd-generator/zeek-cluster-layout-generator: Include errno string when open fails (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix WriteDropIn() return (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix ext_path handling (Arne Welzel, Corelight)
+
+    and add tests for ext_path and ext_zeek_path
+
+  * tools/systemd-generator: Drop extra CPUAffinity output (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Remove unused archiver_dir, fix comment (Arne Welzel, Corelight)
+
+8.2.0-dev.440 | 2026-04-06 20:07:34 +0000
+
+  * Disable clang-tidy checkers added in Clang 22 (Tim Wojtulewicz, Corelight)
+
+  * Make all custom exception types inherit from std::exception (Tim Wojtulewicz, Corelight)
+
+    This is reported by the bugprone-std-exception-baseclass clang-tidy
+    checker.
+
+8.2.0-dev.437 | 2026-04-06 20:02:09 +0000
+
+  * Fix a few std::move instances reported by clang-tidy-22 (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.435 | 2026-04-02 18:34:27 +0000
+
+  * Fix size used to calloc() prefix in patricia.c (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule to disable c2y warnings (which breaks clang-22) (Tim Wojtulewicz, Corelight)
+
+  * Switch to using debian-unstable for weekly edge compiler builds (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.431 | 2026-04-02 09:51:20 +0200
+
+  * devel/cluster: Add Spawning a Cluster section (Arne Welzel, Corelight)
+
+8.2.0-dev.429 | 2026-04-01 13:47:57 -0700
+
+  * fix for ZAM compilation of constructors for tables with "any" yield values (Vern Paxson, Corelight)
+
 8.2.0-dev.427 | 2026-04-01 14:48:58 -0400
 
   * GH-5236: Remove `util::fmt` call in triple VLAN tag (Evan Typanski, Corelight)

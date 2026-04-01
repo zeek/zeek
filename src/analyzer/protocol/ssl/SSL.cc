@@ -100,7 +100,7 @@ void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     try {
         interp->NewData(orig, data, data + len);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 
@@ -109,7 +109,7 @@ void SSL_Analyzer::SendHandshake(uint16_t raw_tls_version, const u_char* begin, 
     try {
         handshake_interp->NewData(orig, begin, end);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 

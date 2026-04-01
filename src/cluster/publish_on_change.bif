@@ -1,0 +1,74 @@
+%%{
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/Val.h"
+#include "zeek/cluster/PublishOnChangeState.h"
+%%}
+
+module Cluster;
+
+# Broker-specific:
+#
+# Helper for Broker when workers need to publish their changes through the manager, they
+# set the forward topic to Cluster::manager_topic.
+function set_table_change_infos_forward_topic%(topic: string%)
+	%{
+	zeek::detail::PublishOnChangeState::SetTableChangeInfosForwardTopic(topic->ToStdString());
+	return nullptr;
+	%}
+
+function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_infos: TableChangeInfos%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	const auto* tcheader_rec = tcheader->AsRecordVal();
+
+	const auto& idstr = tcheader_rec->GetFieldAs<zeek::StringVal>(0);  // hard-coded offset, always first
+	const auto& idptr = zeek::detail::global_scope()->Find(idstr->ToStdStringView());
+
+	if ( ! idptr ) {
+		zeek::reporter->Warning("apply_table_change_infos: no such identifier %s", idstr->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
+
+	const auto& val = idptr->GetVal();
+
+	if ( val->GetType()->Tag() != TYPE_TABLE ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s not a table!", idstr->ToStdString().c_str());
+		return zeek::val_mgr->False();
+	}
+
+	auto tval = zeek::cast_intrusive<zeek::TableVal>(val);
+	zeek::detail::PublishOnChangeState* poc_state = tval->GetPublishOnChangeState();
+	if ( ! poc_state ) {
+		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
+		                        idstr->ToStdString().c_str(), tval.get());
+		return zeek::val_mgr->False();
+	}
+
+	poc_state->ApplyChanges(*tcheader->AsRecordVal(), *table_change_infos->AsVectorVal());
+	return zeek::val_mgr->True();
+	%}
+
+function __publish_table%(topic: string, table_val: any, batch_size: count%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	const auto& typ = table_val->GetType();
+	if ( typ->Tag() != TYPE_TABLE ) {
+		zeek::reporter->Error("__publish_table: %s not a table type",
+		                      zeek::obj_desc_short(typ).c_str());
+		return zeek::val_mgr->False();
+	}
+
+	const auto* tval = table_val->AsTableVal();
+	zeek::detail::PublishOnChangeState* poc_state = tval->GetPublishOnChangeState();
+	if ( ! poc_state ) {
+		zeek::reporter->Error("__publish_table: missing PublishOnChange state for table!");
+		return zeek::val_mgr->False();
+	}
+
+	auto result = zeek::detail::cluster_publish_table(topic->ToStdString(), *tval, batch_size);
+
+	return zeek::val_mgr->Bool(result);
+	%}

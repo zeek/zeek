@@ -506,7 +506,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
                 if ( looking_at(*chunk, i, "from") ) {
                     eat_token(*chunk, &i, "from");
-                    scope = hilti::ID(extract_path(*chunk, &i).native());
+                    scope = hilti::ID(extract_path(*chunk, &i).string());
                     SPICY_DEBUG(hilti::util::fmt("  Got module %s to import from scope %s", module, scope));
                 }
                 else

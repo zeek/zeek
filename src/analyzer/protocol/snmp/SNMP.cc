@@ -19,7 +19,7 @@ void SNMP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64
     try {
         interp->NewData(orig, data, data + len);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 

@@ -70,9 +70,6 @@ std::string Unit::ToString() const {
         if ( ambient_capabilities.has_value() )
             ss << "AmbientCapabilities=" << ambient_capabilities.value() << "\n";
 
-        if ( cpu_affinity.has_value() )
-            ss << "CPUAffinity=" + cpu_affinity.value() << "\n";
-
         if ( numa_policy.has_value() )
             ss << "NUMAPolicy=" + numa_policy.value() << "\n";
 
@@ -127,6 +124,8 @@ bool Unit::WriteDropIn() const {
 
         for ( const auto& [name, value] : env )
             ofs << "Environment=" << name << "=" << value << "\n";
+
+        return true;
     }
 
     return false;

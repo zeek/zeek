@@ -34,6 +34,17 @@ Breaking Changes
 - The packet captures in the btest Traces library have standardized on .pcap and .pcapng
   file suffixes. This may cause breakage in plugins that were using the old .trace suffix.
 
+- The public ``vlan`` and ``inner_vlan`` members within C++ ``Packet`` has changed from
+  ``uint32_t`` to an optional VlanTag struct. The corresponding ``dei`` and ``pcp``
+  members have been removed and merged into the VlanTag struct. This does not change
+  scripts. In order to access the ID as before, check the optional first:
+
+    if ( packet.vlan )
+      my_vlan = packet.vlan->id;
+
+  This allows Zeek to properly handle VLAN IDs of 0, which before were handled as if
+  there was no VLAN.
+
 New Functionality
 -----------------
 
@@ -107,6 +118,8 @@ Changed Functionality
 - The events ssl_extension_pre_shared_key_server_hello and ssl_extension_pre_shared_key_client_hello
   can now be used independently. Previously, both had to have a handler implemented for
   either of them to actually be invoked due to some logic confusion in the analyzer.
+
+- Zeek new properly handles VLAN IDs of 0. Before, these were simply discarded.
 
 Deprecated Functionality
 ------------------------

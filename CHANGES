@@ -1,3 +1,30 @@
+8.2.0-dev.427 | 2026-04-01 14:48:58 -0400
+
+  * GH-5236: Remove `util::fmt` call in triple VLAN tag (Evan Typanski, Corelight)
+
+    It is potentially expensive and probably don't need the data, they can
+    find their own vlans and comment on the ticket to support it ;) #5236
+
+  * Add a weird for QinQinQ (triple-tagged VLAN) (Evan Typanski, Corelight)
+
+    This is definitely possible, in fact sometimes intentional! But, it might
+    warrant more discussion to actually support it, so for now, triple-tagged
+    VLANs are just a weird. You can still get the information you need from
+    the additional string.
+
+  * GH-5105: Allow VLAN of 0 (Evan Typanski, Corelight)
+
+    Fixes #5105
+
+    A VLAN of 0 is valid, but Zeek was essentially ignoring them. This means
+    that the PCP/DEI bits wouldn't get set, and you'd have no way to tell
+    that it has a VLAN of 0. This makes it so that Zeek under the hood can
+    differentiate VLAN of 0 from the absence of a VLAN.
+
+    Note that this only changes script behavior slightly since any VLAN
+    fields were optional. The only change is now it gets sent ahead with the
+    VLAN of 0.
+
 8.2.0-dev.422 | 2026-04-01 19:09:59 +0200
 
   * Spicy: Update integration for new HILTI string implementation. (Robin Sommer, Corelight)

@@ -1,3 +1,15 @@
+8.2.0-dev.420 | 2026-04-01 18:16:39 +0200
+
+  * GH-15269: fuzzer-setup: Switch order of Zeek and Fuzzer arguments around -- (Arne Welzel, Corelight)
+
+    Since commit google/oss-fuzz@b047915cd976d7057cd74a6e9cee5b6836e17d99,
+    OSS-Fuzz expects standalone fuzzers to use arguments after a -- as fuzzer
+    arguments. Previously, our own logic was the other way around:
+    Everything after -- was used as extra Zeek arguments. It doesn't really
+    matter so align to the OSS-Fuzz expectation.
+
+    Relates to google/oss-fuzz#15269
+
 8.2.0-dev.417 | 2026-03-31 13:34:34 -0700
 
   * Fix signed/unsigned comparison warnings with new doctest (Tim Wojtulewicz, Corelight)

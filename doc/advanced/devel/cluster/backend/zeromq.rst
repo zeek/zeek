@@ -47,8 +47,13 @@ nodes, avoiding the need for cluster topology awareness.
 
 .. note::
 
-   Scalability of the central broker in production setups, but for small
-   clusters on a single node, may be fast enough.
+   If you observe the central broker as a bottleneck in your setup, please
+   reach out with information about your environment and workload. We're generally
+   confident that ZeroMQ is fast enough for known and normal Zeek clusters sizes
+   and likely more performant than the previous cluster backend Broker. Specifically
+   for broadcast style worker-to-worker messaging patterns that previously had to
+   be routed through the manager node, ZeroMQ should reduce time spent in manager
+   script execution.
 
 On a cluster node, the XPUB socket provides notifications about subscriptions
 created by other nodes: For every subscription created by any node in

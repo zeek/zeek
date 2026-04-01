@@ -17,7 +17,7 @@ using namespace zeek::spicy::rt;
 #endif
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
-void EndpointState::debug(const std::string& msg) { spicy::rt::debug(_cookie, msg); }
+void EndpointState::debug(const std::string& msg) { spicy::rt::debug(_cookie, hilti::rt::String(msg.c_str())); }
 
 static auto create_endpoint(bool is_orig, analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type) {
     static uint64_t id_counter = 0;

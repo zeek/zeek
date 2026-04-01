@@ -1,3 +1,14 @@
+8.2.0-dev.422 | 2026-04-01 19:09:59 +0200
+
+  * Spicy: Update integration for new HILTI string implementation. (Robin Sommer, Corelight)
+
+    This is a bit messy due to the need to explicitly convert between
+    string types. General rule of thumb is to (1) use `hilti::rt::String`
+    inside `src/spicy/` wherever strings come in from HILTI, (2) convert
+    them to `std::string` at the places where we call Zeek-side APIs that
+    take strings, and (3) occasionally use `std::string_view` in `src/spicy`
+    where it's safe and makes passing parameters easier.
+
 8.2.0-dev.420 | 2026-04-01 18:16:39 +0200
 
   * GH-15269: fuzzer-setup: Switch order of Zeek and Fuzzer arguments around -- (Arne Welzel, Corelight)

@@ -79,6 +79,28 @@ New Functionality
 - The ``dns.log`` now also contains information about DNS notifications (RFC 1996).
   The ``opcode`` is set to 4 and ``opcode_code`` name will be "notify".
 
+- ZeroMQ cluster communication can now be encrypted using the CURVE mechanism built
+  into ZeroMQ. This requires a pair of keys, one for the server role and one for
+  the client role. The central XPUB/XSUB sockets and LOG pull sockets are configured
+  as CURVE servers, all other sockets (the connecting Zeek nodes) as CURVE clients.
+
+  You can generate Z85-encoded keypair as follows with Zeek:
+
+	$ zeek -e 'print to_json(Cluster::Backend::ZeroMQ::generate_keypair())' | jq
+	{
+	  "public": "}}6zuTySXq(C(6dF#D3Kvt@A5D}LcFlOgVav5{%)",
+	  "secret": "h.<[iyv]O#cWdO%2yuLiEJQ}6tC)@HxN6Hp?![td"
+	}
+
+  When using ZeekControl, keys are automatically generated and configured when a multi-node
+  cluster based on node IP addresses is detected. To force encryption to be always on, set
+  the following ZeroMQ specific setting in zeekctl.cfg (default is "auto"):
+
+	cluster_backend_zeromq.use_curve_encryption = 1
+
+  More details and background is available in the
+  ``policy/frameworks/cluster/backend/zeromq/main.zeek`` script documentation.
+
 - The number of messages and bytes processed by the central ZeroMQ XPUB/XSUB
   cluster component is now exposed as metrics of the form:
 

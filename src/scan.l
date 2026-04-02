@@ -819,17 +819,18 @@ static int load_files(const char* orig_file) {
 
             if ( ! f )
                 zeek::reporter->FatalError("can't open %s", file_path.c_str());
-        }
 
-        zeek::detail::ScannedFile sf(file_stack.length(), file_path);
-        if ( sf.AlreadyScanned() ) {
-            if ( rc.first == -1 && f != stdin )
+            // open_file() / open_package() modify file_path, so can only
+            // do this check after opening the files.
+            zeek::detail::ScannedFile sf(file_stack.length(), file_path);
+            if ( sf.AlreadyScanned() ) {
                 fclose(f);
+                return 0;
+            }
 
-            return 0;
+            // Mark the just opened file as scanned.
+            zeek::detail::files_scanned.push_back(std::move(sf));
         }
-
-        zeek::detail::files_scanned.push_back(std::move(sf));
     }
 
     if ( zeek::detail::g_policy_debug && ! file_path.empty() ) {

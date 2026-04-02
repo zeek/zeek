@@ -155,6 +155,71 @@ void Manager::SearchDynamicPlugins(const std::string& dir) {
     closedir(d);
 }
 
+zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::string& path) {
+    DBG_LOG(DBG_PLUGINS, "Loading plugin %s", path.c_str());
+
+    current_plugin = nullptr;
+    current_sopath = path.c_str();
+    void* hdl = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    current_sopath = nullptr;
+
+    if ( ! hdl ) {
+        const char* err = dlerror();
+        std::string error = util::fmt("cannot load plugin library %s: %s", path.c_str(), err ? err : "<unknown error>");
+        return zeek::unexpected<std::string>(std::move(error));
+    }
+
+    if ( ! current_plugin ) {
+        std::string error = util::fmt("load plugin library %s did not instantiate a plugin", path.c_str());
+        dlclose(hdl);
+        return zeek::unexpected<std::string>(std::move(error));
+    }
+
+
+    auto* plugin = current_plugin;
+    current_plugin = nullptr;
+
+    // This is a bit quirky: If we go through ActivateDynamicPluginInternal(),
+    // its logic sets current_dir to a classic plugin's top-level directory,
+    // also called base_dir. Concretely, Plugin::Plugin() -> Manager::RegisterPlugin()
+    // -> Plugin::SetPluginPath() populates the plugin's base_dir and sopath members.
+    //
+    // If a plugin is loaded via @load ./plugin.so, there's no classic base_dir.
+    // Manager::RegisterPlugin() will skip setting the paths on the plugin. We
+    // recognize this here and set only the sopath. A plugin loaded via
+    // @load ./plugin.so can be identified by an empty PluginDirectory(), but
+    // having a populated PluginPath(), though hopefully this never matters.
+    if ( plugin->PluginPath().empty() )
+        plugin->SetPluginLocation("", path);
+
+    plugin->SetDynamic(true);
+    plugin->DoConfigure();
+
+    // After Configure(), we'll have a name. Do not allow plugins with duplicate names:
+    // Just consider that a conflict and hard-exit: All bets are off. Note that
+    // the just loaded plugin is already part of ActivePluginsInternal().
+    std::string plugin_name = util::strtolower(plugin->Name());
+    for ( const auto* p : *Manager::ActivePluginsInternal() ) {
+        if ( util::strtolower(p->Name()) == plugin_name && p != plugin )
+            zeek::reporter->FatalError("plugin with name %s from %s conflicts with %s plugin %s",
+                                       plugin->Name().c_str(), path.c_str(),
+                                       p->DynamicPlugin() ? "dynamic" : "built-in", p->Name().c_str());
+    }
+
+
+    DBG_LOG(DBG_PLUGINS, "  InitializingComponents");
+    plugin->InitializeComponents();
+
+    // We execute the pre-script initialization here; this in
+    // fact could be *during* script initialization if we got
+    // triggered via @load-plugin or @load.
+    plugin->InitPreScript();
+
+    DBG_LOG(DBG_PLUGINS, "  Loaded %s", path.c_str());
+
+    return plugin;
+}
+
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
                                             std::vector<std::string>* errors) {
 // Loading dynamic plugins is not currently supported on Windows platform.
@@ -231,48 +296,25 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
         for ( size_t i = 0; i < gl.gl_pathc; i++ ) {
             const char* path = gl.gl_pathv[i];
 
-            current_plugin = nullptr;
             current_dir = dir.c_str();
-            current_sopath = path;
-            void* hdl = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
-            current_dir = nullptr;
-            current_sopath = nullptr;
+            auto result = LoadDynamicPlugin(path);
 
-            if ( ! hdl ) {
-                const char* err = dlerror();
-                errors->emplace_back(
-                    util::fmt("cannot load plugin library %s: %s", path, err ? err : "<unknown error>"));
+            if ( ! result ) {
+                errors->emplace_back(result.error());
                 continue;
             }
 
-            if ( ! current_plugin ) {
-                errors->emplace_back(util::fmt("load plugin library %s did not instantiate a plugin", path));
-                dlclose(hdl);
-                continue;
-            }
+            auto* loaded_plugin = *result;
 
-            current_plugin->SetDynamic(true);
-            current_plugin->DoConfigure();
-            DBG_LOG(DBG_PLUGINS, "  InitializingComponents");
-            current_plugin->InitializeComponents();
-
-            plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), current_plugin));
-
-            // We execute the pre-script initialization here; this in
-            // fact could be *during* script initialization if we got
-            // triggered via @load-plugin.
-            current_plugin->InitPreScript();
+            plugins_by_path.insert(std::make_pair(util::detail::normalize_path(dir), loaded_plugin));
 
             // Make sure the name the plugin reports is consistent with
             // what we expect from its magic file.
-            if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) ) {
+            if ( util::strtolower(loaded_plugin->Name()) != util::strtolower(name) ) {
                 errors->emplace_back(
-                    util::fmt("inconsistent plugin name: %s vs %s", current_plugin->Name().c_str(), name.c_str()));
+                    util::fmt("inconsistent plugin name: %s vs %s", loaded_plugin->Name().c_str(), name.c_str()));
                 continue;
             }
-
-            current_plugin = nullptr;
-            DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
         }
 
         globfree(&gl);

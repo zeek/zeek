@@ -29,6 +29,10 @@ void (*CPP_init_hook)() = nullptr;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
+// Tracks all of the compiled-to-ZAM bodies. Only populated if we're doing
+// profiling.
+static std::vector<IntrusivePtr<ZBody>> zam_bodies;
+
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
@@ -637,10 +641,14 @@ void clear_script_analysis() {
     for ( auto& g : global_scope()->OrderedVars() )
         g->ClearOptInfo();
 
-    // Keep the functions around if we're profiling, so we can loop
+    // If we're profiling ZAM, keep the bodies around so we can loop
     // over them to generate the profiles.
-    if ( ! analysis_options.profile_ZAM )
-        funcs.clear();
+    if ( analysis_options.profile_ZAM )
+        for ( auto& f : funcs )
+            if ( f.Body()->Tag() == STMT_ZAM )
+                zam_bodies.push_back(cast_intrusive<ZBody>(f.Body()));
+
+    funcs.clear();
 
     non_recursive_funcs.clear();
     lambdas.clear();
@@ -728,12 +736,8 @@ void profile_script_execution() {
 
         ProfMap module_prof;
 
-        for ( auto& f : funcs ) {
-            if ( f.Body()->Tag() == STMT_ZAM ) {
-                auto zb = cast_intrusive<ZBody>(f.Body());
-                zb->ReportExecutionProfile(module_prof);
-            }
-        }
+        for ( auto& zb : zam_bodies )
+            zb->ReportExecutionProfile(module_prof);
 
         for ( auto& mp : module_prof )
             if ( mp.second.num_samples > 0 )

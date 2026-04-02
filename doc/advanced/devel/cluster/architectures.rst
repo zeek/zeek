@@ -1,3 +1,5 @@
+.. _devel-cluster-architectures:
+
 =====================
 Cluster Architectures
 =====================

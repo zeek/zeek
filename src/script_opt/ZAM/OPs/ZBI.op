@@ -268,9 +268,10 @@ eval	CatNPre()
 	size_t max_size = 0;
 	for ( int i = 0; i < n; ++i )
 		max_size += ca[i]->MaxSize(aux->elems[i].ToDirectZVal(frame));
-	auto res = new char[max_size + /* slop */ n + 1];
+	auto res_size = max_size + /* slop */ n + 10 + 1;
+	auto res = new char[res_size];
 	auto res_p = res;
-    auto res_e = res + max_size + /* slop */ n + 1;
+	auto res_e = res + res_size;
 	for ( int i = 0; i < n; ++i )
 		ca[i]->RenderInto(aux->elems[i].ToDirectZVal(frame), res_p, res_e);
 	*res_p = '\0';
@@ -282,9 +283,10 @@ macro CatNPre()
 	auto& ca = aux->cat_args;
 
 macro CatNMid()
-	auto res = new char[max_size + /* slop */ 10];
+	auto res_size = max_size + /* slop */ 10 + 1;
+	auto res = new char[res_size];
 	auto res_p = res;
-    auto res_e = res + max_size + /* slop */ 10;
+	auto res_e = res + res_size;
 
 macro CatNPost(lhs)
 	*res_p = '\0';

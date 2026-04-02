@@ -1,3 +1,11 @@
+8.2.0-dev.435 | 2026-04-02 18:34:27 +0000
+
+  * Fix size used to calloc() prefix in patricia.c (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule to disable c2y warnings (which breaks clang-22) (Tim Wojtulewicz, Corelight)
+
+  * Switch to using debian-unstable for weekly edge compiler builds (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.431 | 2026-04-02 09:51:20 +0200
 
   * devel/cluster: Add Spawning a Cluster section (Arne Welzel, Corelight)

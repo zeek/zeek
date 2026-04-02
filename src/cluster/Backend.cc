@@ -328,8 +328,8 @@ TEST_CASE("add metadata") {
         CHECK_EQ(event.Timestamp(), -1.0);
         CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
         CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(43.0)));
-        CHECK_EQ(event.Timestamp(), 42.0);     // finds the first one
-        CHECK_EQ(event.Metadata()->size(), 2); // both are stored
+        CHECK_EQ(event.Timestamp(), 42.0);      // finds the first one
+        CHECK_EQ(event.Metadata()->size(), 2u); // both are stored
     }
 
     SUBCASE("invalid-value-type") {

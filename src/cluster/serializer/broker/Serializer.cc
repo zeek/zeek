@@ -233,9 +233,9 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->Args().size(), 2);
+        CHECK_EQ(result->Args().size(), 2u);
         REQUIRE(result->Metadata());
-        CHECK_EQ(result->Metadata()->size(), 1);
+        CHECK_EQ(result->Metadata()->size(), 1u);
     }
 
     SUBCASE("binary") {
@@ -258,9 +258,9 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->Args().size(), 2);
+        CHECK_EQ(result->Args().size(), 2u);
         REQUIRE(result->Metadata());
-        CHECK_EQ(result->Metadata()->size(), 1);
+        CHECK_EQ(result->Metadata()->size(), 1u);
     }
 }
 TEST_SUITE_END();

@@ -140,7 +140,7 @@ Events
       entities.
 
 .. zeek:id:: http_end_entity
-   :source-code: base/protocols/http/entities.zeek 214 218
+   :source-code: base/protocols/http/entities.zeek 207 211
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 

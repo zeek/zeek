@@ -20,7 +20,7 @@ See https://github.com/zeek/zeek/wiki/Coding-Style-and-Conventions
 General Documentation Structure/Process
 =======================================
 
-See the :doc:`README </README>` file of https://github.com/zeek/zeek-docs
+See the [`doc/README.md`](https://github.com/zeek/zeek/blob/master/doc/README) file of https://github.com/zeek/zeek
 
 Documentation Style and Conventions
 ===================================

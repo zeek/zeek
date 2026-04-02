@@ -191,8 +191,8 @@ TEST_CASE("roundtrip") {
     auto result = serializer.UnserializeLogWrite(buf);
     REQUIRE(result);
 
-    CHECK_EQ(result->header.fields.size(), 1);
-    CHECK_EQ(result->records.size(), 2);
+    CHECK_EQ(result->header.fields.size(), 1u);
+    CHECK_EQ(result->records.size(), 2u);
     CHECK_EQ(result->records[0][0].val.double_val, 1.0);
     CHECK_EQ(result->records[1][0].val.double_val, 2.0);
     CHECK_EQ("Log::UNKNOWN", result->header.stream_name);

@@ -88,3 +88,9 @@ Trace Index/Sources:
   Captured via tcpdump and port 5432 while running the greenhouse app
   and inserting a user and a plant.
   https://github.com/grafana/loki-fundamentals?tab=readme-ov-file#deploying-the-sample-application
+- dns/tm1t.pcap
+  Captured via tcpdump while making DNS requests on a docker instance. Requires
+  setting the bind address/port to make sure it uses a single connection. Used
+  for documentation samples.
+- http/testmyids.com
+  HTTP request to testmyids.com. Used for documentation samples.

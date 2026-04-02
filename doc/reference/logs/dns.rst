@@ -27,9 +27,9 @@ traffic. We use the :program:`jq` utility to review the contents.
 
 ::
 
-  {"ts":1591367999.306059,"uid":"CMdzit1AMNsmfAIiQc","id.orig_h":"192.168.4.76","id.orig_p":36844,"id.resp_h":"192.168.4.1","id.resp_p":53,"proto":"udp","trans_id":8555,"query":"testmyids.com","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":0,"rejected":false}
+  {"ts":1774911641.78917,"uid":"CHhAvVGS1DHFjwGM9","id.orig_h":"172.17.0.2","id.orig_p":36844,"id.resp_h":"1.1.1.1","id.resp_p":53,"proto":"udp","trans_id":54060,"query":"zeek.org","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":2,"rejected":false,"opcode":0,"opcode_name":"query"}
 
-  {"ts":1591367999.305988,"uid":"CMdzit1AMNsmfAIiQc","id.orig_h":"192.168.4.76","id.orig_p":36844,"id.resp_h":"192.168.4.1","id.resp_p":53,"proto":"udp","trans_id":19671,"rtt":0.06685185432434082,"query":"testmyids.com","qclass":1,"qclass_name":"C_INTERNET","qtype":1,"qtype_name":"A","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":true,"Z":0,"answers":["31.3.245.133"],"TTLs":[3600],"rejected":false}
+  {"ts":1774911641.803041,"uid":"CHhAvVGS1DHFjwGM9","id.orig_h":"172.17.0.2","id.orig_p":36844,"id.resp_h":"1.1.1.1","id.resp_p":53,"proto":"udp","trans_id":20661,"rtt":0.03837108612060547,"query":"zeek.org","qclass":1,"qclass_name":"C_INTERNET","qtype":1,"qtype_name":"A","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":true,"Z":2,"answers":["192.0.78.150","192.0.78.212"],"TTLs":[60.0,60.0],"rejected":false,"opcode":0,"opcode_name":"query"}
 
 As before, we could see each field printed on its own line:
 
@@ -40,15 +40,15 @@ As before, we could see each field printed on its own line:
 ::
 
   {
-    "ts": 1591367999.306059,
-    "uid": "CMdzit1AMNsmfAIiQc",
-    "id.orig_h": "192.168.4.76",
+    "ts": 1774911641.78917,
+    "uid": "CHhAvVGS1DHFjwGM9",
+    "id.orig_h": "172.17.0.2",
     "id.orig_p": 36844,
-    "id.resp_h": "192.168.4.1",
+    "id.resp_h": "1.1.1.1",
     "id.resp_p": 53,
     "proto": "udp",
-    "trans_id": 8555,
-    "query": "testmyids.com",
+    "trans_id": 54060,
+    "query": "zeek.org",
     "qclass": 1,
     "qclass_name": "C_INTERNET",
     "qtype": 28,
@@ -59,20 +59,22 @@ As before, we could see each field printed on its own line:
     "TC": false,
     "RD": true,
     "RA": false,
-    "Z": 0,
-    "rejected": false
+    "Z": 2,
+    "rejected": false,
+    "opcode": 0,
+    "opcode_name": "query"
   }
   {
-    "ts": 1591367999.305988,
-    "uid": "CMdzit1AMNsmfAIiQc",
-    "id.orig_h": "192.168.4.76",
+    "ts": 1774911641.803041,
+    "uid": "CHhAvVGS1DHFjwGM9",
+    "id.orig_h": "172.17.0.2",
     "id.orig_p": 36844,
-    "id.resp_h": "192.168.4.1",
+    "id.resp_h": "1.1.1.1",
     "id.resp_p": 53,
     "proto": "udp",
-    "trans_id": 19671,
-    "rtt": 0.06685185432434082,
-    "query": "testmyids.com",
+    "trans_id": 20661,
+    "rtt": 0.03837108612060547,
+    "query": "zeek.org",
     "qclass": 1,
     "qclass_name": "C_INTERNET",
     "qtype": 1,
@@ -83,14 +85,18 @@ As before, we could see each field printed on its own line:
     "TC": false,
     "RD": true,
     "RA": true,
-    "Z": 0,
+    "Z": 2,
     "answers": [
-      "31.3.245.133"
+      "192.0.78.150",
+      "192.0.78.212"
     ],
     "TTLs": [
-      3600
+      60.0,
+      60.0
     ],
-    "rejected": false
+    "rejected": false,
+    "opcode": 0,
+    "opcode_name": "query"
   }
 
 As emphasized in the :file:`conn.log` material, what an analyst derives from
@@ -118,16 +124,16 @@ second entry. For reference, that entry is the following:
 ::
 
   {
-    "ts": 1591367999.305988,
-    "uid": "CMdzit1AMNsmfAIiQc",
-    "id.orig_h": "192.168.4.76",
+    "ts": 1774911641.803041,
+    "uid": "CHhAvVGS1DHFjwGM9",
+    "id.orig_h": "172.17.0.2",
     "id.orig_p": 36844,
-    "id.resp_h": "192.168.4.1",
+    "id.resp_h": "1.1.1.1",
     "id.resp_p": 53,
     "proto": "udp",
-    "trans_id": 19671,
-    "rtt": 0.06685185432434082,
-    "query": "testmyids.com",
+    "trans_id": 20661,
+    "rtt": 0.03837108612060547,
+    "query": "zeek.org",
     "qclass": 1,
     "qclass_name": "C_INTERNET",
     "qtype": 1,
@@ -138,20 +144,24 @@ second entry. For reference, that entry is the following:
     "TC": false,
     "RD": true,
     "RA": true,
-    "Z": 0,
+    "Z": 2,
     "answers": [
-      "31.3.245.133"
+      "192.0.78.150",
+      "192.0.78.212"
     ],
     "TTLs": [
-      3600
+      60.0,
+      60.0
     ],
-    "rejected": false
+    "rejected": false,
+    "opcode": 0,
+    "opcode_name": "query"
   }
 
-According to this log entry, ``192.168.4.76`` asked ``192.168.4.1`` for the A
-record of the host ``testmyids.com``, and received the answer ``31.3.245.133``.
-There are more details in the log, but those are the key elements an analyst
-should be able to extract.
+According to this log entry, ``172.17.0.2`` asked ``1.1.1.1`` for the A
+record of the host ``zeek.org``, and received the answer ``192.0.78.212`` and
+``192.0.78.150``. There are more details in the log, but those are the key
+elements an analyst should be able to extract.
 
 Understanding the First :file:`dns.log` Entry
 =============================================
@@ -162,15 +172,15 @@ is the following:
 ::
 
   {
-    "ts": 1591367999.306059,
-    "uid": "CMdzit1AMNsmfAIiQc",
-    "id.orig_h": "192.168.4.76",
+    "ts": 1774911641.78917,
+    "uid": "CHhAvVGS1DHFjwGM9",
+    "id.orig_h": "172.17.0.2",
     "id.orig_p": 36844,
-    "id.resp_h": "192.168.4.1",
+    "id.resp_h": "1.1.1.1",
     "id.resp_p": 53,
     "proto": "udp",
-    "trans_id": 8555,
-    "query": "testmyids.com",
+    "trans_id": 54060,
+    "query": "zeek.org",
     "qclass": 1,
     "qclass_name": "C_INTERNET",
     "qtype": 28,
@@ -181,12 +191,14 @@ is the following:
     "TC": false,
     "RD": true,
     "RA": false,
-    "Z": 0,
-    "rejected": false
+    "Z": 2,
+    "rejected": false,
+    "opcode": 0,
+    "opcode_name": "query"
   }
 
-According to this log entry, ``192.168.4.76`` asked ``192.168.4.1`` for the
-AAAA record of the host ``testmyids.com``, and did not receive an answer.
+According to this log entry, ``172.17.0.2`` asked ``1.1.1.1`` for the
+AAAA record of the host ``zeek.org``, and did not receive an answer.
 
 This is technically true, but it is not the whole story. If we augment stock
 Zeek with an additional script available from the project, we get a bit more
@@ -209,11 +221,11 @@ The end result shows more information for the first :file:`dns.log` entry:
 
 .. literal-emph::
 
-  {"ts":1591367999.306059,"uid":"CQsafSKqmlOyqrgC6","id.orig_h":"192.168.4.76","id.orig_p":36844,"id.resp_h":"192.168.4.1","id.resp_p":53,"proto":"udp","trans_id":8555,"query":"testmyids.com","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":0,"rejected":false,**"auth":["ns59.1and1.co.uk"]**}
+  {"ts":1774911641.78917,"uid":"CHhAvVGS1DHFjwGM9","id.orig_h":"172.17.0.2","id.orig_p":36844,"id.resp_h":"1.1.1.1","id.resp_p":53,"proto":"udp","trans_id":54060,"query":"zeek.org","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":2,"rejected":false,"opcode":0,"opcode_name":"query","auth":["ns-1785.awsdns-31.co.uk"]}
 
-The bolded ``auth`` item in the log entry shows that ``ns59.1and1.co.uk`` is the
+The bolded ``auth`` item in the log entry shows that ``ns-1785.awsdns-31.co.uk`` is the
 authoritative name server that is designated to answer questions about the AAAA
-record for ``testmyids.com``.
+record for ``zeek.org``.
 
 There are more details in the log, but those are the key elements an analyst
 should be able to extract.
@@ -221,7 +233,7 @@ should be able to extract.
 The ``uid`` and Other Fields
 ============================
 
-Note the ``uid`` field in both log entries is ``CMdzit1AMNsmfAIiQc``. This is
+Note the ``uid`` field in both log entries is ``CHhAvVGS1DHFjwGM9``. This is
 the same UID value that appeared in the :file:`conn.log` entry for a DNS
 record. That means the DNS activity in the :file:`conn.log` and the DNS
 activity in this :file:`dns.log` entry are the same.
@@ -231,13 +243,12 @@ corresponding records in the :file:`dns.log` using this UID. For example:
 
 .. code-block:: console
 
-  zeek@zeek:~/zeek-test/json$ grep CMdzit1AMNsmfAIiQc dns.log
+  zeek@zeek:~/zeek-test/json$ grep CHhAvVGS1DHFjwGM9 dns.log
 
 ::
 
-  {"ts":1591367999.306059,"uid":"CMdzit1AMNsmfAIiQc","id.orig_h":"192.168.4.76","id.orig_p":36844,"id.resp_h":"192.168.4.1","id.resp_p":53,"proto":"udp","trans_id":8555,"query":"testmyids.com","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":0,"rejected":false}
-
-  {"ts":1591367999.305988,"uid":"CMdzit1AMNsmfAIiQc","id.orig_h":"192.168.4.76","id.orig_p":36844,"id.resp_h":"192.168.4.1","id.resp_p":53,"proto":"udp","trans_id":19671,"rtt":0.06685185432434082,"query":"testmyids.com","qclass":1,"qclass_name":"C_INTERNET","qtype":1,"qtype_name":"A","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":true,"Z":0,"answers":["31.3.245.133"],"TTLs":[3600.0],"rejected":false}
+  {"ts":1774911641.78917,"uid":"CHhAvVGS1DHFjwGM9","id.orig_h":"172.17.0.2","id.orig_p":36844,"id.resp_h":"1.1.1.1","id.resp_p":53,"proto":"udp","trans_id":54060,"query":"zeek.org","qclass":1,"qclass_name":"C_INTERNET","qtype":28,"qtype_name":"AAAA","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":false,"Z":2,"rejected":false,"opcode":0,"opcode_name":"query","auth":["ns-1785.awsdns-31.co.uk"]}
+  {"ts":1774911641.803041,"uid":"CHhAvVGS1DHFjwGM9","id.orig_h":"172.17.0.2","id.orig_p":36844,"id.resp_h":"1.1.1.1","id.resp_p":53,"proto":"udp","trans_id":20661,"rtt":0.03837108612060547,"query":"zeek.org","qclass":1,"qclass_name":"C_INTERNET","qtype":1,"qtype_name":"A","rcode":0,"rcode_name":"NOERROR","AA":false,"TC":false,"RD":true,"RA":true,"Z":2,"answers":["192.0.78.150","192.0.78.212"],"TTLs":[60.0,60.0],"rejected":false,"opcode":0,"opcode_name":"query"}
 
 Note the matching ``uid`` fields in the :file:`dns.log` entries. In this simple
 example, these are the only two entries in the :file:`dns.log`. Extrapolate
@@ -245,19 +256,19 @@ this technique to logs with billions of records and you will appreciate the
 value!
 
 Remember that a single :file:`conn.log` entry summarized all of the DNS traffic
-associate with the “connection” bearing UID ``CMdzit1AMNsmfAIiQc``. Zeek
+associate with the “connection” bearing UID ``CHhAvVGS1DHFjwGM9``. Zeek
 treated the 4 packets associated with this conversation as a connection because
 they shared the same source and destination IP addresses and ports, and
 occurred over the UDP protocol. The single :file:`conn.log` entry had the
-timestamp ``1591367999.305988``, which is also the timestamp of the first
+timestamp ``1774911641.78917``, which is also the timestamp of the first
 :file:`dns.log` entry.
 
 Zeek’s DNS protocol analyzer created two log entries because it recognized two
 different DNS exchanges. The first involved a query and response for
-IPv6-related information, i.e., a AAAA record for ``testmyids.com``. The second
+IPv6-related information, i.e., a AAAA record for ``zeek.org``. The second
 involved a query and response for IPv4-related information, i.e., an A record
-for ``testmyids.com``. It is interesting to note that the DNS resolver on the
-``192.168.4.76`` system requested IPv6 information first, and then IPv4.
+for ``zeek.org``. It is interesting to note that the DNS resolver on the
+``1.1.1.1`` system requested IPv6 information first, and then IPv4.
 
 Conclusion
 ==========

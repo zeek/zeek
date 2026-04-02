@@ -6,12 +6,13 @@
 #include "zeek/RunState.h"
 #include "zeek/packet_analysis/protocol/unknown_ip_transport/UnknownIPSessionAdapter.h"
 #include "zeek/session/Manager.h"
+#include "zeek/transports/Manager.h"
 
 using namespace zeek::packet_analysis::UnknownIPTransport;
 using namespace zeek::packet_analysis::IP;
 
 UnknownIPTransportAnalyzer::UnknownIPTransportAnalyzer()
-    : IPBasedAnalyzer("Unknown_IP_Transport", TRANSPORT_UNKNOWN, 0 /*mask*/, true) {}
+    : IPBasedAnalyzer("Unknown_IP_Transport", transports::manager->GetComponentTag("UNKNOWN"), 0 /*mask*/, true) {}
 
 bool UnknownIPTransportAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
     IPBasedAnalyzer::AnalyzePacket(len, data, packet);

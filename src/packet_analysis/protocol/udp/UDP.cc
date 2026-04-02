@@ -12,6 +12,7 @@
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
 #include "zeek/session/Manager.h"
+#include "zeek/transports/Manager.h"
 
 using namespace zeek::packet_analysis::UDP;
 using namespace zeek::packet_analysis::IP;
@@ -22,7 +23,8 @@ constexpr uint32_t HIST_ORIG_CORRUPT_PKT = 0x4;
 constexpr uint32_t HIST_RESP_CORRUPT_PKT = 0x8;
 // constexpr uint32_t HIST_UNKNOWN_PKT = 0x400;  (do not use - used in Session.h)
 
-UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false) {}
+UDPAnalyzer::UDPAnalyzer()
+    : IPBasedAnalyzer("UDP", transports::manager->GetComponentTag("UDP"), UDP_PORT_MASK, false) {}
 
 SessionAdapter* UDPAnalyzer::MakeSessionAdapter(Connection* conn) {
     auto* root = new UDPSessionAdapter(conn);

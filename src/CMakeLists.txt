@@ -457,6 +457,8 @@ set(MAIN_SRCS
     script_opt/ZAM/ZInst.cc
     script_opt/ZAM/ZInstAux.cc
     script_opt/ZAM/ZOp.cc
+    transports/Component.cc
+    transports/Manager.cc
     digest.h)
 
 set(THIRD_PARTY_SRCS

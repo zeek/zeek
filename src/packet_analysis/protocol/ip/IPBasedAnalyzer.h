@@ -88,7 +88,8 @@ protected:
      *
      * @param name The name for the type of analyzer. The name must match
      * the one the corresponding Component registers.
-     * @param proto The transport protocol implemented by this analyzer.
+     * @param tag A tag corresponding to the transport protocol implemented
+     * by this analyzer.
      * @param mask The mask used to determine if a port is a server port
      * for this protocol. This is used by IsLikelyServerPort().
      * @param report_unknown_protocols Flag for whether to report unknown
@@ -96,7 +97,7 @@ protected:
      * protocols since packets may go into the session analysis framework
      * as well.
      */
-    IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask, bool report_unknown_protocols);
+    IPBasedAnalyzer(const char* name, zeek::Tag transport, uint32_t mask, bool report_unknown_protocols);
 
     /**
      * Initialize the given ConnKey from the packet header & data.
@@ -195,7 +196,7 @@ private:
 
     void BuildSessionAnalyzerTree(Connection* conn);
 
-    TransportProto transport;
+    Tag transport;
     uint32_t server_port_mask;
     static TableValPtr ignore_checksums_nets_table;
 };

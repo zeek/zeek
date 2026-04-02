@@ -39,6 +39,7 @@ enum Type : uint8_t {
     STORAGE_BACKEND,    /// A backend for the storage framework.
     STORAGE_SERIALIZER, /// A serializer for the storage framework.
     CONNKEY,            /// A factory for connection keys.
+    TRANSPORT_PROTO,    /// A transport protocol, used for Tags.
 };
 
 } // namespace component

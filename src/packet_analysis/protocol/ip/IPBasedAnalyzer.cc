@@ -14,12 +14,15 @@
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
+#include "zeek/transports/Manager.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
 
-IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask, bool report_unknown_protocols)
-    : zeek::packet_analysis::Analyzer(name, report_unknown_protocols), transport(proto), server_port_mask(mask) {}
+IPBasedAnalyzer::IPBasedAnalyzer(const char* name, Tag transport, uint32_t mask, bool report_unknown_protocols)
+    : zeek::packet_analysis::Analyzer(name, report_unknown_protocols),
+      transport(std::move(transport)),
+      server_port_mask(mask) {}
 
 IPBasedAnalyzer::~IPBasedAnalyzer() {
     for ( const auto& mapping : analyzers_by_port )
@@ -234,7 +237,8 @@ bool IPBasedAnalyzer::RegisterAnalyzerForPort(const zeek::Tag& tag, uint32_t por
 
 #ifdef DEBUG
     const char* name = analyzer_mgr->GetComponentName(tag).c_str();
-    DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+    const std::string& transport_name = transports::manager->GetComponentName(transport);
+    DBG_LOG(DBG_ANALYZER, "Registering analyzer %s for port %" PRIu32 "/%s", name, port, transport_name.c_str());
 #endif
 
     l->insert(tag);
@@ -249,7 +253,8 @@ bool IPBasedAnalyzer::UnregisterAnalyzerForPort(const zeek::Tag& tag, uint32_t p
 
 #ifdef DEBUG
     const char* name = analyzer_mgr->GetComponentName(tag).c_str();
-    DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%d", name, port, transport);
+    const std::string& transport_name = transports::manager->GetComponentName(transport);
+    DBG_LOG(DBG_ANALYZER, "Unregistering analyzer %s for port %" PRIu32 "/%s", name, port, transport.c_str());
 #endif
 
     l->erase(tag);
@@ -277,7 +282,8 @@ void IPBasedAnalyzer::DumpPortDebug() {
         for ( const auto& tag : *(mapping.second) )
             s += std::string(analyzer_mgr->GetComponentName(tag)) + " ";
 
-        DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_proto_string(transport), s.c_str());
+        const std::string& transport_name = transports::manager->GetComponentName(transport);
+        DBG_LOG(DBG_ANALYZER, "    %d/%s: %s", mapping.first, transport_name.c_str(), s.c_str());
     }
 }
 

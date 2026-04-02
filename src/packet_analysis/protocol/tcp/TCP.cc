@@ -6,12 +6,14 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
+#include "zeek/transports/Manager.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::TCP;
 using namespace zeek::packet_analysis::IP;
 
-TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK, false) {}
+TCPAnalyzer::TCPAnalyzer()
+    : IPBasedAnalyzer("TCP", transports::manager->GetComponentTag("TCP"), TCP_PORT_MASK, false) {}
 
 void TCPAnalyzer::Initialize() {}
 

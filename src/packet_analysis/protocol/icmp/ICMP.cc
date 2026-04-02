@@ -15,11 +15,13 @@
 #include "zeek/packet_analysis/protocol/icmp/events.bif.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/session/Manager.h"
+#include "zeek/transports/Manager.h"
 
 using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 
-ICMPAnalyzer::ICMPAnalyzer() : IPBasedAnalyzer("ICMP", TRANSPORT_ICMP, ICMP_PORT_MASK, false) {}
+ICMPAnalyzer::ICMPAnalyzer()
+    : IPBasedAnalyzer("ICMP", transports::manager->GetComponentTag("ICMP"), ICMP_PORT_MASK, false) {}
 
 SessionAdapter* ICMPAnalyzer::MakeSessionAdapter(Connection* conn) {
     auto* root = new ICMPSessionAdapter(conn);

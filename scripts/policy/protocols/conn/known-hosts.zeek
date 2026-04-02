@@ -6,6 +6,10 @@
 @load base/utils/directions-and-hosts
 @load base/frameworks/cluster
 
+@load base/frameworks/storage/async
+@load base/frameworks/storage/sync
+@load policy/frameworks/storage/backend/sqlite
+
 module Known;
 
 export {
@@ -30,23 +34,48 @@ export {
 	## operation.
 	const use_host_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
 
+	## Switches to the version of this script that uses the storage
+	## framework instead of Broker stores.
+	const hosts_use_storage_framework = F &redef;
+
 	## The hosts whose existence should be logged and tracked.
 	## See :zeek:type:`Host` for possible choices.
 	option host_tracking = LOCAL_HOSTS;
 
 	## Holds the set of all known hosts.  Keys in the store are addresses
 	## and their associated value will always be the "true" boolean.
-	global host_store: Cluster::StoreInfo;
+	global host_broker_store: Cluster::StoreInfo;
 
-	## The Broker topic name to use for :zeek:see:`Known::host_store`.
+	## The Broker topic name to use for :zeek:see:`Known::host_broker_store`.
 	const host_store_name = "zeek/known/hosts" &redef;
 
-	## The expiry interval of new entries in :zeek:see:`Known::host_store`.
-	## This also changes the interval at which hosts get logged.
+	## This requires setting a configuration in local.zeek that sets the
+	## Known::hosts_use_storage_framework boolean to T, and optionally sets different
+	## values in the Known::host_store_backend_options record.
+
+	## Backend to use for storing known hosts data using the storage framework.
+	global host_store_backend: opaque of Storage::BackendHandle;
+
+	## The name to use for :zeek:see:`Known::host_store_backend`. This will be used
+	## by the backends to differentiate tables/keys. This should be alphanumeric so
+	## that it can be used as the table name for the storage framework.
+	const host_store_prefix = "zeekknownhosts" &redef;
+
+	## The type of storage backend to open.
+	const host_store_backend_type : Storage::Backend = Storage::STORAGE_BACKEND_SQLITE &redef;
+
+	## The options for the host store. This should be redef'd in local.zeek to set
+	## connection information for the backend. The options default to a memory store.
+	const host_store_backend_options : Storage::BackendOptions = [ $sqlite = [
+		$database_path=":memory:", $table_name=Known::host_store_name ]] &redef;
+
+	## The expiry interval of new entries in :zeek:see:`Known::host_broker_store` and
+	## :zeek:see:`Known::host_store_backend`. This also changes the interval at
+	## which hosts get logged.
 	const host_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::host_store`.
+	## :zeek:see:`Known::host_broker_store` and :zeek:see:`Known::host_store_backend`.
 	option host_store_timeout = 15sec;
 
 	## The set of all known addresses to store for preventing duplicate
@@ -69,8 +98,19 @@ event zeek_init()
 @pragma push ignore-deprecations
 	if ( ! Known::use_host_store )
 		return;
+@pragma pop ignore-deprecations
 
-	Known::host_store = Cluster::create_store(Known::host_store_name);
+	if ( Known::hosts_use_storage_framework )
+		{
+		local res = Storage::Sync::open_backend(Known::host_store_backend_type, Known::host_store_backend_options, addr, bool);
+		if ( res$code == Storage::SUCCESS )
+			Known::host_store_backend = res$value;
+		else
+			Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::host_store_prefix, res$error_str));
+		}
+	else
+@pragma push ignore-deprecations
+		Known::host_broker_store = Cluster::create_store(Known::host_store_name);
 @pragma pop ignore-deprecations
 	}
 
@@ -81,22 +121,41 @@ event Known::host_found(info: HostsInfo)
 		return;
 @pragma pop ignore-deprecations
 
-	when [info] ( local r = Broker::put_unique(Known::host_store$store, info$host,
-	                                    T, Known::host_store_expiry) )
+	if ( Known::hosts_use_storage_framework )
 		{
-		if ( r$status == Broker::SUCCESS )
+		when [info] ( local put_res = Storage::Async::put(Known::host_store_backend, [$key=info$host, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::host_store_expiry]) )
 			{
-			if ( r$result as bool )
+			if ( put_res$code == Storage::SUCCESS )
 				Log::write(Known::HOSTS_LOG, info);
+			else if ( put_res$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: data store put_unique failure: %s",
+				                    Known::host_store_name, put_res$error_str));
 			}
-		else
-			Reporter::error(fmt("%s: data store put_unique failure",
-			                    Known::host_store_name));
+		timeout Known::host_store_timeout
+			{
+			Log::write(Known::HOSTS_LOG, info);
+			}
 		}
-	timeout Known::host_store_timeout
+	else
 		{
-		# Can't really tell if master store ended up inserting a key.
-		Log::write(Known::HOSTS_LOG, info);
+		when [info] ( local r = Broker::put_unique(Known::host_broker_store$store, info$host,
+		                                    T, Known::host_store_expiry) )
+			{
+			if ( r$status == Broker::SUCCESS )
+				{
+				if ( r$result as bool )
+					Log::write(Known::HOSTS_LOG, info);
+				}
+			else
+				Reporter::error(fmt("%s: data store put_unique failure",
+				                    Known::host_store_name));
+			}
+		timeout Known::host_store_timeout
+			{
+			# Can't really tell if master store ended up inserting a key.
+			Log::write(Known::HOSTS_LOG, info);
+			}
 		}
 	}
 

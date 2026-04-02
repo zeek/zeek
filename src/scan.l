@@ -830,6 +830,20 @@ static int load_files(const char* orig_file) {
 
             // Mark the just opened file as scanned.
             zeek::detail::files_scanned.push_back(std::move(sf));
+
+            // If we get here, we've opened a FILE* pointing at an actual
+            // file, or a __load__.zeek file within a directory. Attempt
+            // to load any files ending with ".so" as plugin.
+            if ( file_path.ends_with(".so") ) {
+               // No need.
+               fclose(f);
+
+               auto result = zeek::plugin_mgr->LoadDynamicPlugin(file_path);
+               if ( ! result )
+                   zeek::reporter->FatalError("failed to load plugin %s: %s",
+                                              file_path.c_str(), result.error().c_str());
+               return 0;
+            }
         }
     }
 

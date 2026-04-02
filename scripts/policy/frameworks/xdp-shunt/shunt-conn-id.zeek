@@ -1,4 +1,15 @@
+##! Adds connection shunting. Most operations will use
+##! :zeek:see:`XDP::Shunt::ConnID::shunt` in order to shunt the
+##! remainder of the flow.
+##!
+##! You may also configure various knobs for shunting, such as how
+##! long a connection must be inactive before unshunting with
+##! :zeek:see:`XDP::Shunt::ConnID::shunted_inactivity_timeout`.
+
+@ifdef ( XDP::__load_and_attach )
 module XDP::Shunt::ConnID;
+
+@load ./main
 
 export {
 	## Retrieves the current values in the canonical ID map.
@@ -62,12 +73,12 @@ export {
 function get_map(time_since_last_packet: interval &default=0sec)
     : XDP::shunt_table
 	{
-	return _get_map(XDP::xdp_prog, time_since_last_packet);
+	return __get_map(XDP::xdp_prog, time_since_last_packet);
 	}
 
 function shunt(c: connection): bool
 	{
-	local result = _shunt(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
+	local result = __shunt(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
 	if ( result )
 		{
 		if ( shunt_timeout )
@@ -76,7 +87,7 @@ function shunt(c: connection): bool
 		if ( unshunt_on_connection_remove )
 			Conn::register_removal_hook(c, finalize_shunt);
 
-		event shunted_conn(c$id);
+		event connection_shunting_started(c);
 		}
 
 	return result;
@@ -84,12 +95,12 @@ function shunt(c: connection): bool
 
 function shunt_stats(c: connection): XDP::ShuntedStats
 	{
-	return _shunt_stats(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
+	return __shunt_stats(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
 	}
 
 function unshunt(c: connection): XDP::ShuntedStats
 	{
-	local stats = _unshunt(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
+	local stats = __unshunt(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
 	if ( stats$present )
 		event unshunted_conn(c$id, stats);
 
@@ -116,3 +127,5 @@ hook finalize_shunt(c: connection)
 	{
 	XDP::Shunt::ConnID::unshunt(c);
 	}
+
+@endif

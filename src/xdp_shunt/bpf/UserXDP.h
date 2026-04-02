@@ -1,6 +1,7 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 /* Common BPF/XDP functions used by userspace side programs */
-#ifndef __COMMON_USER_BPF_XDP_H
-#define __COMMON_USER_BPF_XDP_H
+#pragma once
 
 #include <net/if.h>
 #include <concepts>
@@ -8,9 +9,12 @@
 #include <optional>
 #include <string>
 
-#include "bpf/filter_common.h"
+#include "filter_common.h"
 
 struct filter;
+struct bpf_map;
+
+namespace zeek::plugin::detail::Zeek_XDP_Shunter {
 
 #ifndef __LIBXDP_LIBXDP_H
 enum xdp_action { // NOLINT(performance-enum-size)
@@ -48,20 +52,19 @@ template<typename T>
 concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_pair_key>;
 
 /**
- * Connects to an already-existing XDP shunter. The options must align
- * with how it was created, namely for the max sizes of the maps.
+ * Reuses the maps from an already-existing XDP shunter.
  *
  * This is the preferred way of connecting Zeek to the XDP program so that
  * the brittle Zeek process is not in charge of the health of the XDP
  * program.
  */
-std::optional<std::string> reconnect(struct filter**, xdp_options opts);
+std::optional<std::string> reuse_maps(struct filter**, xdp_options opts);
 
 /**
- * Disconnects this filter and invalidates it. This does NOT unload or
+ * Releases the maps from this program. This does NOT unload or
  * otherwise invalidate the XDP program or its maps.
  */
-void disconnect(struct filter**);
+void release_maps(struct filter**);
 
 /**
  * Loads and attaches to the XDP program. This will simply grab the file
@@ -81,17 +84,26 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
  */
 void detach_and_destroy_filter(struct filter* skel, int ifindex, xdp_options opts);
 
+/** Retrieve the canonical ID BPF map of shunted flows. */
 struct bpf_map* get_canonical_id_map(struct filter* skel);
+
+/** Retrieve the IP pair BPF map of shunted pairs. */
 struct bpf_map* get_ip_pair_map(struct filter* skel);
 
+/** Adds a key to the map. */
 template<SupportedBpfKey Key>
 std::optional<std::string> update_map(struct bpf_map* map, Key* key);
 
+/** Removes a key to the map. */
 template<SupportedBpfKey Key>
 std::optional<std::string> remove_from_map(struct bpf_map* map, const Key* key);
+
+/** Retrieves the keys and elements of a given map. */
 template<SupportedBpfKey Key>
 std::map<Key, struct shunt_val> get_map(struct bpf_map* map);
+
+/** Retrieves the value of a given key in a map, if any. */
 template<SupportedBpfKey Key>
 std::optional<shunt_val> get_val(struct bpf_map* map, Key* key);
 
-#endif /* __COMMON_USER_BPF_XDP_H */
+} // namespace zeek::plugin::detail::Zeek_XDP_Shunter

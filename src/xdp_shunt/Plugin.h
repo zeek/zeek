@@ -1,8 +1,10 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
-#include <zeek/plugin/Plugin.h>
+#include "zeek/plugin/Plugin.h"
 
-namespace xdp::shunter {
+namespace zeek::plugin::detail::Zeek_XDP_Shunter {
 
 class Plugin : public zeek::plugin::Plugin {
 protected:
@@ -13,4 +15,4 @@ protected:
 
 extern Plugin plugin;
 
-} // namespace xdp::shunter
+} // namespace zeek::plugin::detail::Zeek_XDP_Shunter

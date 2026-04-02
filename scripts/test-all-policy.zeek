@@ -89,6 +89,16 @@
 @load frameworks/software/vulnerable.zeek
 # @load frameworks/spicy/record-spicy-batch.zeek
 # @load frameworks/spicy/resource-usage.zeek
+
+@load frameworks/xdp-shunt/__load__.zeek
+@load frameworks/xdp-shunt/bulk.zeek
+@load frameworks/xdp-shunt/conn-id-logging.zeek
+@load frameworks/xdp-shunt/connect.zeek
+@load frameworks/xdp-shunt/main.zeek
+@load frameworks/xdp-shunt/shunt-conn-id.zeek
+@load frameworks/xdp-shunt/shunt-ip-pair.zeek
+@load frameworks/xdp-shunt/ssl.zeek
+
 @load frameworks/software/windows-version-detection.zeek
 @load frameworks/storage/backend/redis/__load__.zeek
 @load frameworks/storage/backend/redis/main.zeek

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef __FILTER_COMMON_H
 #define __FILTER_COMMON_H
 

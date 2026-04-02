@@ -70,6 +70,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-werror        build with -Werror
     --enable-ZAM-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --enable-spicy-ssl     build with spicy SSL/TLS analyzer (conflicts with --disable-spicy)
+    --enable-xdp-shunter   build with experimental XDP shunter (Linux only)
     --enable-iwyu          build with include-what-you-use enabled for the main Zeek target.
                            Requires include-what-you-use binary to be in the PATH.
     --enable-clang-tidy    build with clang-tidy enabled for the main Zeek target.
@@ -311,6 +312,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-spicy-ssl)
             append_cache_entry ENABLE_SPICY_SSL BOOL true
+            ;;
+        --enable-xdp-shunter)
+            append_cache_entry ENABLE_XDP_SHUNT BOOL true
             ;;
         --enable-iwyu)
             append_cache_entry ENABLE_IWYU BOOL true

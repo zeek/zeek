@@ -1575,6 +1575,7 @@ output_summary_line("CPP" "${CMAKE_CXX_COMPILER}")
 message("")
 
 output_summary_bool("AF_PACKET" ${ZEEK_HAVE_AF_PACKET})
+output_summary_bool("XDP Shunter" ${ENABLE_XDP_SHUNT})
 output_summary_bool("Aux. Tools" ${INSTALL_AUX_TOOLS})
 output_summary_bool("BTest" ${INSTALL_BTEST})
 output_summary_line("BTest tooling" ${_install_btest_tools_msg})

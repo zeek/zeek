@@ -1,7 +1,10 @@
-@load base/protocols/conn
-@load xdp/shunt/conn_id
+##! Adds logging to the connection shunter.
+
+@ifdef ( XDP::__load_and_attach )
 
 module XDP;
+
+@load ./main
 
 export {
 	redef enum Log::ID += { LOG };
@@ -38,3 +41,5 @@ event zeek_init()
 	{
 	Log::create_stream(XDP::LOG, [$columns=Info, $path="xdp_shunt"]);
 	}
+
+@endif

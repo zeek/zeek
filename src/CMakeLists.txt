@@ -202,6 +202,7 @@ add_subdirectory(logging)
 add_subdirectory(probabilistic)
 add_subdirectory(session)
 add_subdirectory(storage)
+add_subdirectory(xdp_shunt)
 
 if (HAVE_SPICY)
     add_subdirectory(spicy)

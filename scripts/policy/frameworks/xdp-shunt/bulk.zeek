@@ -1,7 +1,11 @@
 ##! Shunt large flows (aka elephant flows).
 
-@load base/protocols/conn
-@load xdp
+@ifdef ( XDP::__load_and_attach )
+
+@load base/protocols/conn/thresholds
+
+@load ./main
+@load ./shunt_conn_id
 
 module XDP::Shunt::Bulk;
 
@@ -32,3 +36,4 @@ event ConnThreshold::bytes_threshold_crossed(c: connection, threshold: count, is
 
 	XDP::Shunt::ConnID::shunt(c);
 	}
+@endif

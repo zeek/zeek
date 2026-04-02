@@ -1,4 +1,9 @@
+##! Shunting pairs of IP addresses. This form of shunting is more
+##! static, so no functionality is in place to unshunt the connections.
+@ifdef ( XDP::__load_and_attach )
 module XDP::Shunt::IPPair;
+
+@load ./main
 
 export {
 	## Event raised whenever a connection is shunted.
@@ -41,12 +46,12 @@ export {
 function get_map(time_since_last_packet: interval &default=0sec)
     : XDP::shunt_table
 	{
-	return _get_map(XDP::xdp_prog, time_since_last_packet);
+	return __get_map(XDP::xdp_prog, time_since_last_packet);
 	}
 
 function shunt(pair: XDP::ip_pair): bool
 	{
-	local result = _shunt(XDP::xdp_prog, pair);
+	local result = __shunt(XDP::xdp_prog, pair);
 	if ( result )
 		event shunted_pair(pair);
 
@@ -55,14 +60,16 @@ function shunt(pair: XDP::ip_pair): bool
 
 function shunt_stats(pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	return _shunt_stats(XDP::xdp_prog, pair);
+	return __shunt_stats(XDP::xdp_prog, pair);
 	}
 
 function unshunt(pair: XDP::ip_pair): XDP::ShuntedStats
 	{
-	local stats = _unshunt(XDP::xdp_prog, pair);
+	local stats = __unshunt(XDP::xdp_prog, pair);
 	if ( stats$present )
 		event unshunted_pair(pair, stats);
 
 	return stats;
 	}
+
+@endif

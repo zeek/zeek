@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // clang-format off
 #include "vmlinux.h"
 
@@ -38,7 +40,7 @@ struct {
 
 // Whether we should include the VLANs in the keys or 0 them out.
 // VLANs will still get parsed regardless.
-volatile const uint8_t include_vlan = 0;
+volatile const __u8 include_vlan = 0;
 
 struct hdr_cursor {
     __u32 pos;
@@ -118,7 +120,6 @@ static __always_inline void update_value(struct shunt_val* val, struct xdp_md* c
 
     bpf_spin_lock(&val->lock);
 
-    // TODO: Consider swapping to PER_CPU
     if ( from_ip1 ) {
         val->packets_from_1++;
         val->bytes_from_1 += bytes;

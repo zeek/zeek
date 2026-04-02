@@ -269,4 +269,18 @@ enum ChecksumMode %{
 	CHECKSUM_KERNEL,
 %}
 
+module XDP;
+
+enum AttachMode %{
+    UNSPEC = 0,
+    NATIVE = 1,
+    SKB = 2,
+    HW = 3,
+%}
+
+type ShuntOptions: record;
+type ShuntedStats: record;
+type canonical_id: record;
+type ip_pair: record;
+
 module GLOBAL;

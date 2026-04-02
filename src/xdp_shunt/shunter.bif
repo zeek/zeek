@@ -1,19 +1,20 @@
 ##! BIFs for shunting with XDP. This is the main private interface for XDP shunting.
 
 %%{
-#include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
+#include "zeek/xdp_shunt/ShuntUtil.h"
+#include "zeek/xdp_shunt/XDPProgram.h"
+#include "zeek/xdp_shunt/bpf/UserXDP.h"
 
-#include "bpf/UserXDP.h"
-#include "ShuntUtil.h"
-#include "XDPProgram.h"
+using namespace zeek::plugin::detail::Zeek_XDP_Shunter;
 %%}
 
 module XDP;
 
-function _reconnect_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
+function __reuse_maps%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
     auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
     auto ip_pair_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
@@ -21,8 +22,7 @@ function _reconnect_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program
     auto pin_path = options_val->GetFieldAs<zeek::StringVal>("pin_path")->CheckString();
     if ( conn_id_map_max_size == 0 || ip_pair_map_max_size == 0 ) {
         zeek::reporter->Error("Map max sizes must be >0");
-        // TODO: This is returning false, but should probably be another expected type
-        return zeek::val_mgr->Bool(false);
+        return zeek::make_intrusive<XDPProgramVal>();
     }
     auto opts = xdp_options{
         .mode = static_cast<xdp_attach_mode>(options_val->GetFieldAs<zeek::EnumVal>("attach_mode")),
@@ -33,26 +33,26 @@ function _reconnect_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program
     };
 
     struct filter* skel = nullptr;
-    auto err = reconnect(&skel, opts);
+    auto err = reuse_maps(&skel, opts);
     if ( err ) {
         zeek::reporter->Error("Failed to load BPF skeleton: %s", (*err).c_str());
-        return zeek::val_mgr->Bool(false);
+        return zeek::make_intrusive<XDPProgramVal>();
     }
 
-    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel, opts);
+    auto xdp_prog = zeek::make_intrusive<XDPProgramVal>(skel, opts);
     return xdp_prog;
 %}
 
-function _disconnect_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
-    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
-    if ( ! zeek_prog )
+function __release_maps%(xdp_prog: opaque of XDP::Program%) : bool %{
+    auto zeek_prog = XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog || ! (*zeek_prog)->is_set )
         return zeek::val_mgr->Bool(false);
 
-    disconnect(&(*zeek_prog)->prog);
+    release_maps(&(*zeek_prog)->prog);
     return zeek::val_mgr->Bool(true);
 %}
 
-function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
+function __load_and_attach%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
     auto conn_id_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("conn_id_map_max_size"));
     auto ip_pair_map_max_size = static_cast<__u32>(options_val->GetFieldAs<zeek::CountVal>("ip_pair_map_max_size"));
@@ -60,8 +60,7 @@ function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto pin_path = options_val->GetFieldAs<zeek::StringVal>("pin_path")->CheckString();
     if ( conn_id_map_max_size == 0 || ip_pair_map_max_size == 0 ) {
         zeek::reporter->Error("Map max sizes must be >0");
-        // TODO: This is returning false, but should probably be another expected type
-        return zeek::val_mgr->Bool(false);
+        return zeek::make_intrusive<XDPProgramVal>();
     }
     auto opts = xdp_options{
         .mode = static_cast<xdp_attach_mode>(options_val->GetFieldAs<zeek::EnumVal>("attach_mode")),
@@ -73,31 +72,35 @@ function _start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
-        // TODO: This is returning false, but should probably be another expected type
-        return zeek::val_mgr->Bool(false);
+        return zeek::make_intrusive<XDPProgramVal>();
     }
 
     auto ifindex = if_nametoindex(ps->Path().c_str());
     if ( ifindex == 0 ) {
-        zeek::reporter->Error("Invalid device");
-        return zeek::val_mgr->Bool(false);
+        zeek::reporter->Error("Invalid device %s", ps->Path().c_str());
+        return zeek::make_intrusive<XDPProgramVal>();
     }
 
     struct filter* skel = nullptr;
     auto err = load_and_attach(ifindex, opts, &skel);
     if ( err ) {
         zeek::reporter->Error("Failed to load BPF skeleton: %s", (*err).c_str());
-        return zeek::val_mgr->Bool(false);
+        return zeek::make_intrusive<XDPProgramVal>();
     }
 
-    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel, opts);
+    auto xdp_prog = zeek::make_intrusive<XDPProgramVal>(skel, opts);
     return xdp_prog;
 %}
 
-function _end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
-    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+function __detach%(xdp_prog: opaque of XDP::Program%) : bool %{
+    auto zeek_prog = XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error("%s", zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    if ( ! (*zeek_prog)->is_set ) {
+        zeek::reporter->Error("invalid XDP program; was it started properly?");
         return zeek::val_mgr->Bool(false);
     }
 
@@ -119,7 +122,7 @@ function _end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
     return zeek::val_mgr->Bool(true);
 %}
 
-function _conn_id_to_canonical%(cid: conn_id, vlans_included: bool%) : XDP::canonical_id %{
+function __conn_id_to_canonical%(cid: conn_id, vlans_included: bool%) : XDP::canonical_id %{
     // In a separate file for LSP support :)
     return connIDToCanonical(cid->AsRecordVal(), vlans_included);
 %}

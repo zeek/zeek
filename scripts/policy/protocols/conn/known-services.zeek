@@ -44,9 +44,8 @@ export {
 	const use_service_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
 
 	## Switches to the version of this script that uses the storage
-	## framework instead of Broker stores. This will default to ``T``
-	## in v8.1.
-	const use_storage_framework = F &redef;
+	## framework instead of Broker stores.
+	const services_use_storage_framework = F &redef;
 
 	## Require UDP server to respond before considering it an "active service".
 	option service_udp_requires_response = T;
@@ -74,7 +73,7 @@ export {
 	## Storage configuration for storage framework stores
 
 	## This requires setting a configuration in local.zeek that sets the
-	## Known::use_storage_framework boolean to T, and optionally sets different
+	## Known::services_use_storage_framework boolean to T, and optionally sets different
 	## values in the Known::service_store_backend_options record.
 
 	## Backend to use for storing known services data using the storage framework.
@@ -94,7 +93,7 @@ export {
 		$database_path=":memory:", $table_name=Known::service_store_name ]] &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::service_broker_store`
-	## and :zeek:see:`Known::service_store_backend`.  This also changes the interval
+	## and :zeek:see:`Known::service_store_backend`. This also changes the interval
 	## at which services get logged.
 	const service_store_expiry = 1day &redef;
 
@@ -146,7 +145,7 @@ event zeek_init()
 		return;
 @pragma pop ignore-deprecations
 
-	if ( Known::use_storage_framework )
+	if ( Known::services_use_storage_framework )
 		{
 		local res = Storage::Sync::open_backend(Known::service_store_backend_type, Known::service_store_backend_options, Known::AddrPortServTriplet, bool);
 		if ( res$code == Storage::SUCCESS )
@@ -175,8 +174,8 @@ event service_info_commit(info: ServicesInfo)
 		{
 		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-		if ( Known::use_storage_framework )
-		{
+		if ( Known::services_use_storage_framework )
+			{
 			when [info, s, key] ( local put_res = Storage::Async::put(Known::service_store_backend, [$key=key, $value=T, $overwrite=F,
 			                                                    $expire_time=Known::service_store_expiry]) )
 				{

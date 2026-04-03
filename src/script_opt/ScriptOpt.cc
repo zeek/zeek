@@ -543,16 +543,11 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
     }
 
     if ( analysis_options.profile_ZAM ) {
-#ifdef ENABLE_ZAM_PROFILE
         AST_blocks = std::make_unique<ASTBlockAnalyzer>(funcs);
         const auto prof_filename = "zprof.out";
         analysis_options.profile_file = fopen(prof_filename, "w");
         if ( ! analysis_options.profile_file )
             reporter->FatalError("cannot create ZAM profiling log %s", prof_filename);
-#else
-        fprintf(stderr, "warning: zeek was not built with --enable-ZAM-profiling\n");
-        analysis_options.profile_ZAM = false;
-#endif
     }
 
     bool report_recursive = analysis_options.report_recursive;

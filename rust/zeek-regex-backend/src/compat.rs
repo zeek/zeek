@@ -265,7 +265,7 @@ fn split_top_level_wrapped_operands(text: &[u8]) -> Option<(Vec<&[u8]>, u8)> {
     (!parts.is_empty()).then_some((parts, op))
 }
 
-fn strip_mode_wrappers<'a>(text: &mut &'a [u8]) -> Vec<u8> {
+fn strip_mode_wrappers(text: &mut &[u8]) -> Vec<u8> {
     let mut mode_wrappers = Vec::new();
 
     loop {

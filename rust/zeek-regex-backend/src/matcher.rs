@@ -86,11 +86,11 @@ pub(crate) fn match_all(matcher: &ZeekRustRegexMatcher, haystack: &[u8]) -> i32 
     }
 }
 
-pub(crate) fn find_end(matcher: &ZeekRustRegexMatcher, haystack: &[u8]) -> i32 {
+pub(crate) fn find_end(matcher: &ZeekRustRegexMatcher, haystack: &[u8]) -> usize {
     let input = Input::new(haystack).earliest(true);
 
     match matcher.regex.find(input) {
-        Some(found) if found.end() > found.start() => found.end() as i32,
+        Some(found) if found.end() > found.start() => found.end(),
         Some(_) => 1,
         None => 0,
     }
@@ -101,12 +101,12 @@ pub(crate) fn longest_prefix(
     haystack: &[u8],
     bol: bool,
     eol: bool,
-) -> i32 {
+) -> Option<usize> {
     let mut cache = matcher.prefix_vm.create_cache();
-    let find_prefix = |input: Input<'_>, cache: &mut pikevm::Cache| -> i32 {
+    let find_prefix = |input: Input<'_>, cache: &mut pikevm::Cache| -> Option<usize> {
         match matcher.prefix_vm.find(cache, input.clone()) {
-            Some(found) if found.start() == input.start() => (found.end() - input.start()) as i32,
-            _ => -1,
+            Some(found) if found.start() == input.start() => Some(found.end() - input.start()),
+            _ => None,
         }
     };
 

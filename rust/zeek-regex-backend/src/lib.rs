@@ -112,7 +112,7 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
     matcher: *const ZeekRustRegexMatcher,
     data: *const u8,
     len: usize,
-) -> i32 {
+) -> usize {
     let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return 0;
     };
@@ -141,6 +141,8 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_longest_prefix(
     };
 
     matcher::longest_prefix(matcher, haystack, bol != 0, eol != 0)
+        .and_then(|m| m.try_into().ok())
+        .unwrap_or(-1)
 }
 
 #[no_mangle]

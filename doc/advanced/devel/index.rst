@@ -25,3 +25,4 @@ within the Zeek source tree `here <doc_repo_>`_.
    cluster/spawning
    cluster/backend/zeromq
    conn
+   rust-regex-backend

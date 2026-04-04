@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <functional>
 
+#include "zeek/Conn.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/File.h"
 #include "zeek/ID.h"
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
-#include "zeek/Conn.h"
 #include "zeek/IntSet.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
@@ -22,8 +22,8 @@
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
-#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/module_util.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/plugin/Manager.h"
 
 using namespace std;
@@ -821,10 +821,9 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 
     size_t pre_match_pos = state->current_pos;
 
-    const bool rust_datagram_boundary =
-        type == Rule::PAYLOAD && requested_bol && data_len > 0 &&
-        state->GetAnalyzer()->Conn()->GetSessionAdapter() &&
-        state->GetAnalyzer()->Conn()->GetSessionAdapter()->IsAnalyzer("UDP");
+    const bool rust_datagram_boundary = type == Rule::PAYLOAD && requested_bol && data_len > 0 &&
+                                        state->GetAnalyzer()->Conn()->GetSessionAdapter() &&
+                                        state->GetAnalyzer()->Conn()->GetSessionAdapter()->IsAnalyzer("UDP");
 
     // Feed data into all relevant matchers.
     for ( const auto& m : state->matchers ) {

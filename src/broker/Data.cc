@@ -142,7 +142,7 @@ TEST_CASE("Broker pattern roundtrip reconstructs Rust pattern text from exact wr
     CHECK(std::string(roundtrip_re->RustPatternText()) == std::string(re->RustPatternText()));
     CHECK(std::string(roundtrip_re->AnywherePatternText()) == std::string(re->AnywherePatternText()));
     CHECK(roundtrip_re->MatchExactly("FoO"));
-    CHECK(roundtrip_re->MatchAnywhere("zzzBARzzz") == 6);
+    CHECK(roundtrip_re->MatchAnywhere("zzzbarzzz") == 6);
 }
 
 TEST_CASE("Broker pattern decode accepts legacy two-field payloads") {

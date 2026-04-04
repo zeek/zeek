@@ -72,10 +72,8 @@ flex_target(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/scan.l ${CMAKE_CURRENT_BINARY_DI
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 set(zeek_bison_generated_files
-    ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
-    ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/parse.cc ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
     ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
 
 set_source_files_properties(${zeek_bison_generated_files} PROPERTIES SKIP_LINTING ON)

@@ -102,9 +102,9 @@ void RustRegexStreamStateAppendMatches(const void* matcher, void* state, const u
 
     std::vector<std::intptr_t> ids(count);
     std::vector<uint64_t> positions(count);
-    const auto matched = zeek_rust_regex_stream_state_match(
-        rust_matcher, rust_state, data, len, bol, eol, suppress_initial_empty_visible_match, ids.data(),
-        positions.data(), ids.size());
+    const auto matched = zeek_rust_regex_stream_state_match(rust_matcher, rust_state, data, len, bol, eol,
+                                                            suppress_initial_empty_visible_match, ids.data(),
+                                                            positions.data(), ids.size());
 
     for ( size_t i = 0; i < std::min({matched, ids.size(), positions.size()}); ++i )
         matches.emplace_back(static_cast<int>(ids[i]), positions[i]);

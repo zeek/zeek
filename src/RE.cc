@@ -20,9 +20,7 @@ namespace detail {
 
 static bool is_octal_digit(char c) { return c >= '0' && c <= '7'; }
 
-static bool is_hex_digit(char c) {
-    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
-}
+static bool is_hex_digit(char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'); }
 
 static uint8_t parse_hex_digit(char c) {
     if ( c >= '0' && c <= '9' )
@@ -404,7 +402,8 @@ static std::string derive_anywhere_pattern_from_exact(std::string_view exact) {
     return reapply_mode_wrappers(std::move(result), mode_wrappers);
 }
 
-Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline) : mt(arg_mt), multiline(arg_multiline) {}
+Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
+    : mt(arg_mt), multiline(arg_multiline) {}
 
 Specific_RE_Matcher::~Specific_RE_Matcher() { ClearRustMatchers(); }
 
@@ -604,9 +603,9 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     for ( size_t i = 0; i < rust_patterns.size(); ++i ) {
         std::vector<const char*> single_pattern = {rust_patterns[i]};
         std::vector<std::intptr_t> single_id = {rust_ids[i]};
-        void* matcher = multiline ? CompileRustRegexStreamMatcher(single_pattern, single_id, true,
-                                                                 sig_rust_regex_cache_size) :
-                                    CompileRustRegexSetMatcher(single_pattern, single_id);
+        void* matcher = multiline ?
+                            CompileRustRegexStreamMatcher(single_pattern, single_id, true, sig_rust_regex_cache_size) :
+                            CompileRustRegexSetMatcher(single_pattern, single_id);
 
         if ( matcher ) {
             if ( multiline )
@@ -793,10 +792,10 @@ RE_Matcher* RE_Matcher::Reconstruct(const char* exact_pat, const char* rust_pat)
 
     auto* re = new RE_Matcher();
     const auto derived_anywhere_pat = detail::derive_anywhere_pattern_from_exact(exact_pat);
-    const auto derived_rust_pat = (! rust_pat || ! rust_pat[0]) ? detail::derive_rust_pattern_from_exact(exact_pat)
-                                                                 : std::string{};
-    const char* effective_rust_pat = rust_pat && rust_pat[0] ? rust_pat :
-                                     (derived_rust_pat.empty() ? nullptr : derived_rust_pat.c_str());
+    const auto derived_rust_pat =
+        (! rust_pat || ! rust_pat[0]) ? detail::derive_rust_pattern_from_exact(exact_pat) : std::string{};
+    const char* effective_rust_pat =
+        rust_pat && rust_pat[0] ? rust_pat : (derived_rust_pat.empty() ? nullptr : derived_rust_pat.c_str());
 
     re->re_anywhere->SetPat(derived_anywhere_pat.empty() ? exact_pat : derived_anywhere_pat.c_str());
     re->re_anywhere->SetRustPat(effective_rust_pat);
@@ -959,7 +958,7 @@ TEST_SUITE("re_matcher") {
 
         auto cj = detail::RE_Matcher_conjunction(&match1, &match2);
         CHECK(std::string(cj->RustPatternText()) == "((?i:(?:foo)))((?:bar))");
-        CHECK(cj->MatchExactly("FoObar"));
+        CHECK(cj->MatchExactly("fOObar"));
         delete cj;
     }
 

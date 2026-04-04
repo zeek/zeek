@@ -1252,7 +1252,9 @@ set(ZEEK_RUST_REGEX_LIB_PATH
     ${ZEEK_RUST_TARGET_DIR}/${_zeek_rust_cargo_profile_dir}/${_zeek_rust_regex_lib_name})
 
 file(
-    GLOB_RECURSE ZEEK_RUST_REGEX_INPUTS CONFIGURE_DEPENDS
+    GLOB_RECURSE
+    ZEEK_RUST_REGEX_INPUTS
+    CONFIGURE_DEPENDS
     ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.toml
     ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.lock
     ${ZEEK_RUST_REGEX_CRATE_DIR}/Cargo.toml
@@ -1260,19 +1262,20 @@ file(
 
 add_custom_command(
     OUTPUT ${ZEEK_RUST_REGEX_LIB_PATH}
-    COMMAND ${CARGO_EXECUTABLE} build --locked --manifest-path ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.toml
-            --package zeek-regex-backend --target-dir ${ZEEK_RUST_TARGET_DIR}
-            ${_zeek_rust_cargo_profile_arg}
+    COMMAND
+        ${CARGO_EXECUTABLE} build --locked --manifest-path ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.toml
+        --package zeek-regex-backend --target-dir ${ZEEK_RUST_TARGET_DIR}
+        ${_zeek_rust_cargo_profile_arg}
     WORKING_DIRECTORY ${ZEEK_RUST_WORKSPACE_DIR}
     DEPENDS ${ZEEK_RUST_REGEX_INPUTS}
     COMMENT "Building Rust regex backend with Cargo"
-    VERBATIM
-    USES_TERMINAL)
+    VERBATIM USES_TERMINAL)
 
 add_custom_target(zeek_rust_regex_backend_build DEPENDS ${ZEEK_RUST_REGEX_LIB_PATH})
 
 add_library(zeek_rust_regex_backend STATIC IMPORTED GLOBAL)
-set_target_properties(zeek_rust_regex_backend PROPERTIES IMPORTED_LOCATION ${ZEEK_RUST_REGEX_LIB_PATH})
+set_target_properties(zeek_rust_regex_backend PROPERTIES IMPORTED_LOCATION
+                                                         ${ZEEK_RUST_REGEX_LIB_PATH})
 add_dependencies(zeek_rust_regex_backend zeek_rust_regex_backend_build)
 
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${ZEEK_RUST_TARGET_DIR})

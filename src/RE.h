@@ -51,6 +51,7 @@ public:
     void MakeSingleLine();
 
     void SetPat(const char* pat);
+    void SetCompilePat(const char* pat);
     void SetRustPat(const char* pat);
 
     bool Compile(bool lazy = false);
@@ -102,13 +103,14 @@ public:
 protected:
     void AddAnywherePat(const char* pat);
     void AddExactPat(const char* pat);
+    void AddCompilePat(const char* pat);
     void AddRustPat(const char* pat);
     void ClearRustMatchers();
 
     // Used by the above.  orig_fmt is the format to use when building
-    // up a new pattern_text from the given pattern; app_fmt is for when
-    // appending to an existing pattern_text.
-    void AddPat(const char* pat, const char* orig_fmt, const char* app_fmt);
+    // up a new target string from the given pattern; app_fmt is for when
+    // appending to an existing target string.
+    void AppendPat(std::string* target, const char* pat, const char* orig_fmt, const char* app_fmt);
 
     bool MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches = nullptr);
 
@@ -116,6 +118,7 @@ protected:
     bool multiline;
 
     std::string pattern_text;
+    std::string compile_pattern_text;
     std::string rust_pattern_text;
     bool rust_backend_compatible = true;
 

@@ -1,217 +1,17 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::ffi::CStr;
+#![deny(unsafe_op_in_unsafe_fn)]
+
+mod compat;
+mod ffi;
+mod matcher;
+mod stream;
+
 use std::os::raw::c_char;
-use std::slice;
-use std::sync::{Mutex, MutexGuard};
+use std::ptr::null_mut;
 
-use regex_automata::{
-    hybrid::{dfa as hybrid_dfa, LazyStateID},
-    meta::Regex,
-    nfa::thompson::{self, pikevm},
-    util::{start, syntax},
-    Anchored, Input, MatchKind, PatternSet,
-};
-
-pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 3;
+pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 4;
 pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
-const UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY: usize = usize::MAX / 2;
-
-pub struct ZeekRustRegexMatcher {
-    regex: Regex,
-    exact_regex: Regex,
-    prefix_vm: pikevm::PikeVM,
-}
-
-pub struct ZeekRustRegexSetMatcher {
-    regex: Regex,
-    ids: Vec<isize>,
-}
-
-pub struct ZeekRustRegexStreamMatcher {
-    dfas: Vec<hybrid_dfa::DFA>,
-    caches: Vec<Mutex<hybrid_dfa::Cache>>,
-    boundary_matches: Vec<Mutex<HashMap<LazyStateID, bool>>>,
-    boundary_representatives: Vec<Vec<u8>>,
-    ids: Vec<isize>,
-}
-
-pub struct ZeekRustRegexStreamState {
-    current: Vec<Option<LazyStateID>>,
-    current_pos: u64,
-    seen: Vec<bool>,
-    suppress_next_match: Vec<bool>,
-    active: Vec<bool>,
-    initialized: bool,
-}
-
-fn build_stream_dfa(
-    pattern: &str,
-    dot_matches_new_line: bool,
-    cache_capacity: usize,
-) -> Option<hybrid_dfa::DFA> {
-    let syntax = syntax::Config::new()
-        .unicode(false)
-        .utf8(false)
-        .dot_matches_new_line(dot_matches_new_line);
-    let thompson = thompson::Config::new().utf8(false);
-    let mut builder = hybrid_dfa::Builder::new();
-    builder.configure(
-        hybrid_dfa::Config::new()
-            .match_kind(MatchKind::LeftmostFirst)
-            // We keep lazy state IDs in per-stream match state, so cache clearing
-            // would invalidate them. Keep the cache append-only and let actual
-            // process memory, not cache clearing, be the practical limit by
-            // default.
-            .cache_capacity(cache_capacity)
-            .minimum_cache_clear_count(Some(0)),
-    );
-    builder.syntax(syntax);
-    builder.thompson(thompson);
-    builder.build(pattern).ok()
-}
-
-fn can_reach_match_after_boundary(
-    dfa: &hybrid_dfa::DFA,
-    representatives: &[u8],
-    cache: &mut hybrid_dfa::Cache,
-    current: LazyStateID,
-) -> bool {
-    if dfa.get_nfa().has_empty() {
-        return false;
-    }
-
-    let Ok(eoi) = dfa.next_eoi_state(cache, current) else {
-        return false;
-    };
-
-    if !eoi.is_match() {
-        return false;
-    }
-
-    let mut visited = HashSet::new();
-    let mut queue = VecDeque::new();
-
-    for &byte in representatives {
-        let Ok(next) = dfa.next_state(cache, current, byte) else {
-            continue;
-        };
-
-        if next.is_dead() || next.is_quit() {
-            continue;
-        }
-
-        if next.is_match() {
-            return true;
-        }
-
-        if visited.insert(next) {
-            queue.push_back(next);
-        }
-    }
-
-    while let Some(state) = queue.pop_front() {
-        for &byte in representatives {
-            let Ok(next) = dfa.next_state(cache, state, byte) else {
-                continue;
-            };
-
-            if next.is_dead() || next.is_quit() {
-                continue;
-            }
-
-            if next.is_match() {
-                return true;
-            }
-
-            if visited.insert(next) {
-                queue.push_back(next);
-            }
-        }
-    }
-
-    false
-}
-
-fn boundary_matchable(
-    matcher: &ZeekRustRegexStreamMatcher,
-    cache: &mut hybrid_dfa::Cache,
-    pattern_index: usize,
-    current: LazyStateID,
-) -> bool {
-    {
-        let boundary_matches = matcher.boundary_matches[pattern_index]
-            .lock()
-            .expect("shared boundary memo poisoned");
-        if let Some(boundary_matchable) = boundary_matches.get(&current) {
-            return *boundary_matchable;
-        }
-    }
-
-    let boundary_matchable = can_reach_match_after_boundary(
-        &matcher.dfas[pattern_index],
-        &matcher.boundary_representatives[pattern_index],
-        cache,
-        current,
-    );
-
-    matcher.boundary_matches[pattern_index]
-        .lock()
-        .expect("shared boundary memo poisoned")
-        .insert(current, boundary_matchable);
-    boundary_matchable
-}
-
-unsafe fn haystack_from_raw<'a>(data: *const u8, len: usize) -> Option<&'a [u8]> {
-    if data.is_null() {
-        if len == 0 {
-            Some(&[][..])
-        } else {
-            None
-        }
-    } else {
-        Some(slice::from_raw_parts(data, len))
-    }
-}
-
-fn longest_prefix_with_pikevm(
-    matcher: &ZeekRustRegexMatcher,
-    haystack: &[u8],
-    bol: bool,
-    eol: bool,
-) -> i32 {
-    let mut cache = matcher.prefix_vm.create_cache();
-    let find_prefix = |input: Input<'_>, cache: &mut pikevm::Cache| -> i32 {
-        match matcher.prefix_vm.find(cache, input.clone()) {
-            Some(found) if found.start() == input.start() => (found.end() - input.start()) as i32,
-            _ => -1,
-        }
-    };
-
-    if bol && eol {
-        return find_prefix(Input::new(haystack).anchored(Anchored::Yes), &mut cache);
-    }
-
-    let prefix_len = usize::from(!bol);
-    let suffix_len = usize::from(!eol);
-    let mut contextual = Vec::with_capacity(prefix_len + haystack.len() + suffix_len);
-
-    if !bol {
-        contextual.push(0);
-    }
-
-    contextual.extend_from_slice(haystack);
-
-    if !eol {
-        contextual.push(0);
-    }
-
-    find_prefix(
-        Input::new(&contextual)
-            .span(prefix_len..(prefix_len + haystack.len()))
-            .anchored(Anchored::Yes),
-        &mut cache,
-    )
-}
+pub use matcher::{ZeekRustRegexMatcher, ZeekRustRegexSetMatcher};
+pub use stream::{ZeekRustRegexStreamMatcher, ZeekRustRegexStreamState};
 
 #[no_mangle]
 pub extern "C" fn zeek_rust_regex_backend_abi_version() -> u32 {
@@ -224,52 +24,78 @@ pub extern "C" fn zeek_rust_regex_backend_smoke_test() -> u32 {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_compat_normalize_pattern(
+    pattern: *const c_char,
+) -> *mut c_char {
+    let Some(pattern) = (unsafe { ffi::cstr_bytes_arg(pattern) }) else {
+        return null_mut();
+    };
+
+    compat::normalize_zeek_pattern_for_rust(pattern)
+        .map(ffi::into_c_string_ptr)
+        .unwrap_or(null_mut())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_compat_derive_rust_pattern_from_exact(
+    exact: *const c_char,
+) -> *mut c_char {
+    let Some(exact) = (unsafe { ffi::cstr_bytes_arg(exact) }) else {
+        return null_mut();
+    };
+
+    compat::derive_rust_pattern_from_exact(exact)
+        .map(ffi::into_c_string_ptr)
+        .unwrap_or(null_mut())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_compat_derive_anywhere_pattern_from_exact(
+    exact: *const c_char,
+) -> *mut c_char {
+    let Some(exact) = (unsafe { ffi::cstr_bytes_arg(exact) }) else {
+        return null_mut();
+    };
+
+    compat::derive_anywhere_pattern_from_exact(exact)
+        .map(ffi::into_c_string_ptr)
+        .unwrap_or(null_mut())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_string_free(text: *mut c_char) {
+    unsafe { ffi::free_c_string(text) };
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
     pattern: *const c_char,
 ) -> *mut ZeekRustRegexMatcher {
-    if pattern.is_null() {
-        return std::ptr::null_mut();
-    }
-
-    let pattern = match CStr::from_ptr(pattern).to_str() {
-        Ok(pattern) => pattern,
-        Err(_) => return std::ptr::null_mut(),
+    let Some(pattern) = (unsafe { ffi::cstr_arg(pattern) }) else {
+        return null_mut();
     };
 
-    let syntax = syntax::Config::new().unicode(false).utf8(false);
-    let regex = match Regex::builder().syntax(syntax).build(pattern) {
-        Ok(regex) => regex,
-        Err(_) => return std::ptr::null_mut(),
-    };
-    let exact_pattern = format!(r"(?:{})\z", pattern);
-    let exact_regex = match Regex::builder().syntax(syntax).build(&exact_pattern) {
-        Ok(regex) => regex,
-        Err(_) => return std::ptr::null_mut(),
-    };
+    matcher::compile_matcher(pattern)
+        .map(|matcher| Box::into_raw(Box::new(matcher)))
+        .unwrap_or(null_mut())
+}
 
-    let thompson = thompson::Config::new().utf8(false);
-    let mut prefix_builder = pikevm::Builder::new();
-    prefix_builder.configure(pikevm::Config::new().match_kind(MatchKind::All));
-    prefix_builder.syntax(syntax);
-    prefix_builder.thompson(thompson);
-
-    let prefix_vm = match prefix_builder.build(pattern) {
-        Ok(vm) => vm,
-        Err(_) => return std::ptr::null_mut(),
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_matcher_compile_from_zeek_exact(
+    exact: *const c_char,
+) -> *mut ZeekRustRegexMatcher {
+    let Some(exact) = (unsafe { ffi::cstr_bytes_arg(exact) }) else {
+        return null_mut();
     };
 
-    Box::into_raw(Box::new(ZeekRustRegexMatcher {
-        regex,
-        exact_regex,
-        prefix_vm,
-    }))
+    matcher::compile_matcher_from_zeek_exact(exact)
+        .map(|matcher| Box::into_raw(Box::new(matcher)))
+        .unwrap_or(null_mut())
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_matcher_free(matcher: *mut ZeekRustRegexMatcher) {
-    if !matcher.is_null() {
-        drop(Box::from_raw(matcher));
-    }
+    unsafe { ffi::free_boxed(matcher) };
 }
 
 #[no_mangle]
@@ -278,19 +104,15 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_match_all(
     data: *const u8,
     len: usize,
 ) -> i32 {
-    let Some(matcher) = matcher.as_ref() else {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return 0;
     };
 
-    let Some(haystack) = haystack_from_raw(data, len) else {
+    let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
 
-    let input = Input::new(haystack).anchored(Anchored::Yes);
-    match matcher.exact_regex.find(input) {
-        Some(found) if found.start() == 0 => 1,
-        _ => 0,
-    }
+    matcher::match_all(matcher, haystack)
 }
 
 #[no_mangle]
@@ -299,20 +121,15 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
     data: *const u8,
     len: usize,
 ) -> i32 {
-    let Some(matcher) = matcher.as_ref() else {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return 0;
     };
 
-    let Some(haystack) = haystack_from_raw(data, len) else {
+    let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
 
-    let input = Input::new(haystack).earliest(true);
-    match matcher.regex.find(input) {
-        Some(found) if found.end() > found.start() => found.end() as i32,
-        Some(_) => 1,
-        None => 0,
-    }
+    matcher::find_end(matcher, haystack)
 }
 
 #[no_mangle]
@@ -323,15 +140,15 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_longest_prefix(
     bol: i32,
     eol: i32,
 ) -> i32 {
-    let Some(matcher) = matcher.as_ref() else {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return -1;
     };
 
-    let Some(haystack) = haystack_from_raw(data, len) else {
+    let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return -1;
     };
 
-    longest_prefix_with_pikevm(matcher, haystack, bol != 0, eol != 0)
+    matcher::longest_prefix(matcher, haystack, bol != 0, eol != 0)
 }
 
 #[no_mangle]
@@ -340,55 +157,78 @@ pub unsafe extern "C" fn zeek_rust_regex_set_matcher_compile(
     ids: *const isize,
     len: usize,
 ) -> *mut ZeekRustRegexSetMatcher {
-    if patterns.is_null() || ids.is_null() || len == 0 {
-        return std::ptr::null_mut();
+    if len == 0 {
+        return null_mut();
     }
 
-    let pattern_ptrs = slice::from_raw_parts(patterns, len);
-    let pattern_ids = slice::from_raw_parts(ids, len);
-    let mut exact_patterns = Vec::with_capacity(len);
-
-    for pattern in pattern_ptrs {
-        if pattern.is_null() {
-            return std::ptr::null_mut();
-        }
-
-        let pattern = match CStr::from_ptr(*pattern).to_str() {
-            Ok(pattern) => pattern,
-            Err(_) => return std::ptr::null_mut(),
-        };
-
-        exact_patterns.push(format!(r"(?:{})\z", pattern));
-    }
-
-    let syntax = syntax::Config::new().unicode(false).utf8(false);
-    let regex = match Regex::builder()
-        .configure(Regex::config().match_kind(MatchKind::All))
-        .syntax(syntax)
-        .build_many(&exact_patterns)
-    {
-        Ok(regex) => regex,
-        Err(_) => return std::ptr::null_mut(),
+    let Some(pattern_ptrs) = (unsafe { ffi::slice_arg(patterns, len) }) else {
+        return null_mut();
+    };
+    let Some(pattern_ids) = (unsafe { ffi::slice_arg(ids, len) }) else {
+        return null_mut();
     };
 
-    Box::into_raw(Box::new(ZeekRustRegexSetMatcher {
-        regex,
-        ids: pattern_ids.to_vec(),
-    }))
+    let mut rust_patterns = Vec::with_capacity(len);
+
+    for pattern in pattern_ptrs {
+        let Some(pattern) = (unsafe { ffi::cstr_arg(*pattern) }) else {
+            return null_mut();
+        };
+
+        rust_patterns.push(pattern);
+    }
+
+    matcher::compile_set_matcher(&rust_patterns, pattern_ids)
+        .map(|matcher| Box::into_raw(Box::new(matcher)))
+        .unwrap_or(null_mut())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_set_matcher_compile_from_zeek_exact(
+    patterns: *const *const c_char,
+    ids: *const isize,
+    len: usize,
+) -> *mut ZeekRustRegexSetMatcher {
+    if len == 0 {
+        return null_mut();
+    }
+
+    let Some(pattern_ptrs) = (unsafe { ffi::slice_arg(patterns, len) }) else {
+        return null_mut();
+    };
+    let Some(pattern_ids) = (unsafe { ffi::slice_arg(ids, len) }) else {
+        return null_mut();
+    };
+
+    let mut zeek_patterns = Vec::with_capacity(len);
+
+    for pattern in pattern_ptrs {
+        let Some(pattern) = (unsafe { ffi::cstr_bytes_arg(*pattern) }) else {
+            return null_mut();
+        };
+
+        zeek_patterns.push(pattern);
+    }
+
+    matcher::compile_set_matcher_from_zeek_exact(&zeek_patterns, pattern_ids)
+        .map(|matcher| Box::into_raw(Box::new(matcher)))
+        .unwrap_or(null_mut())
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_set_matcher_free(matcher: *mut ZeekRustRegexSetMatcher) {
-    if !matcher.is_null() {
-        drop(Box::from_raw(matcher));
-    }
+    unsafe { ffi::free_boxed(matcher) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_set_matcher_pattern_len(
     matcher: *const ZeekRustRegexSetMatcher,
 ) -> usize {
-    matcher.as_ref().map_or(0, |matcher| matcher.ids.len())
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
+        return 0;
+    };
+
+    matcher::set_matcher_pattern_len(matcher)
 }
 
 #[no_mangle]
@@ -399,31 +239,24 @@ pub unsafe extern "C" fn zeek_rust_regex_set_matcher_matches(
     out_ids: *mut isize,
     out_capacity: usize,
 ) -> usize {
-    let Some(matcher) = matcher.as_ref() else {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return 0;
     };
 
-    let Some(haystack) = haystack_from_raw(data, len) else {
+    let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
 
-    let input = Input::new(haystack).anchored(Anchored::Yes);
-    let mut patset = PatternSet::new(matcher.ids.len());
-    matcher.regex.which_overlapping_matches(&input, &mut patset);
-
-    let mut matched = 0;
-
-    for pattern_id in patset.iter() {
-        let index = pattern_id.as_usize();
-
-        if matched < out_capacity && !out_ids.is_null() {
-            *out_ids.add(matched) = matcher.ids[index];
+    let out_ids = if out_capacity == 0 || out_ids.is_null() {
+        None
+    } else {
+        match unsafe { ffi::mut_slice_arg(out_ids, out_capacity) } {
+            Some(out_ids) => Some(out_ids),
+            None => return 0,
         }
+    };
 
-        matched += 1;
-    }
-
-    matched
+    matcher::write_set_matches(matcher, haystack, out_ids)
 }
 
 #[no_mangle]
@@ -434,172 +267,108 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
     dot_matches_new_line: i32,
     cache_capacity: usize,
 ) -> *mut ZeekRustRegexStreamMatcher {
-    if patterns.is_null() || ids.is_null() || len == 0 {
-        return std::ptr::null_mut();
+    if len == 0 {
+        return null_mut();
     }
 
-    let pattern_ptrs = slice::from_raw_parts(patterns, len);
-    let pattern_ids = slice::from_raw_parts(ids, len);
-    let mut dfas = Vec::with_capacity(len);
-
-    let cache_capacity = if cache_capacity == 0 {
-        UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY
-    } else {
-        cache_capacity
+    let Some(pattern_ptrs) = (unsafe { ffi::slice_arg(patterns, len) }) else {
+        return null_mut();
+    };
+    let Some(pattern_ids) = (unsafe { ffi::slice_arg(ids, len) }) else {
+        return null_mut();
     };
 
+    let mut rust_patterns = Vec::with_capacity(len);
+
     for pattern in pattern_ptrs {
-        if pattern.is_null() {
-            return std::ptr::null_mut();
-        }
-
-        let pattern = match CStr::from_ptr(*pattern).to_str() {
-            Ok(pattern) => pattern,
-            Err(_) => return std::ptr::null_mut(),
+        let Some(pattern) = (unsafe { ffi::cstr_arg(*pattern) }) else {
+            return null_mut();
         };
 
-        let Some(dfa) = build_stream_dfa(pattern, dot_matches_new_line != 0, cache_capacity) else {
-            return std::ptr::null_mut();
-        };
-
-        dfas.push(dfa);
+        rust_patterns.push(pattern);
     }
 
-    let caches = dfas
-        .iter()
-        .map(|dfa| Mutex::new(dfa.create_cache()))
-        .collect::<Vec<_>>();
-    let boundary_matches = (0..dfas.len())
-        .map(|_| Mutex::new(HashMap::new()))
-        .collect::<Vec<_>>();
-    let boundary_representatives = dfas
-        .iter()
-        .map(|dfa| {
-            dfa.byte_classes()
-                .representatives(..=u8::MAX)
-                .filter_map(|unit| unit.as_u8())
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
+    stream::compile_stream_matcher(
+        &rust_patterns,
+        pattern_ids,
+        dot_matches_new_line != 0,
+        cache_capacity,
+    )
+    .map(|matcher| Box::into_raw(Box::new(matcher)))
+    .unwrap_or(null_mut())
+}
 
-    Box::into_raw(Box::new(ZeekRustRegexStreamMatcher {
-        dfas,
-        caches,
-        boundary_matches,
-        boundary_representatives,
-        ids: pattern_ids.to_vec(),
-    }))
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile_from_zeek(
+    patterns: *const *const c_char,
+    ids: *const isize,
+    len: usize,
+    dot_matches_new_line: i32,
+    cache_capacity: usize,
+) -> *mut ZeekRustRegexStreamMatcher {
+    if len == 0 {
+        return null_mut();
+    }
+
+    let Some(pattern_ptrs) = (unsafe { ffi::slice_arg(patterns, len) }) else {
+        return null_mut();
+    };
+    let Some(pattern_ids) = (unsafe { ffi::slice_arg(ids, len) }) else {
+        return null_mut();
+    };
+
+    let mut zeek_patterns = Vec::with_capacity(len);
+
+    for pattern in pattern_ptrs {
+        let Some(pattern) = (unsafe { ffi::cstr_bytes_arg(*pattern) }) else {
+            return null_mut();
+        };
+
+        zeek_patterns.push(pattern);
+    }
+
+    stream::compile_stream_matcher_from_zeek_patterns(
+        &zeek_patterns,
+        pattern_ids,
+        dot_matches_new_line != 0,
+        cache_capacity,
+    )
+    .map(|matcher| Box::into_raw(Box::new(matcher)))
+    .unwrap_or(null_mut())
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_free(
     matcher: *mut ZeekRustRegexStreamMatcher,
 ) {
-    if !matcher.is_null() {
-        drop(Box::from_raw(matcher));
-    }
+    unsafe { ffi::free_boxed(matcher) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_pattern_len(
     matcher: *const ZeekRustRegexStreamMatcher,
 ) -> usize {
-    matcher.as_ref().map_or(0, |matcher| matcher.ids.len())
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
+        return 0;
+    };
+
+    stream::stream_matcher_pattern_len(matcher)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_stream_state_create(
     matcher: *const ZeekRustRegexStreamMatcher,
 ) -> *mut ZeekRustRegexStreamState {
-    let Some(matcher) = matcher.as_ref() else {
-        return std::ptr::null_mut();
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
+        return null_mut();
     };
 
-    Box::into_raw(Box::new(ZeekRustRegexStreamState {
-        current: vec![None; matcher.ids.len()],
-        current_pos: 0,
-        seen: vec![false; matcher.ids.len()],
-        suppress_next_match: vec![false; matcher.ids.len()],
-        active: vec![false; matcher.ids.len()],
-        initialized: false,
-    }))
+    Box::into_raw(Box::new(stream::create_stream_state(matcher)))
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_stream_state_free(state: *mut ZeekRustRegexStreamState) {
-    if !state.is_null() {
-        drop(Box::from_raw(state));
-    }
-}
-
-unsafe fn emit_stream_match(
-    matcher: &ZeekRustRegexStreamMatcher,
-    state: &mut ZeekRustRegexStreamState,
-    pattern_index: usize,
-    sid: LazyStateID,
-    out_ids: *mut isize,
-    out_positions: *mut u64,
-    out_capacity: usize,
-    matched: &mut usize,
-) {
-    if !sid.is_match() || state.seen[pattern_index] {
-        return;
-    }
-
-    if state.suppress_next_match[pattern_index] {
-        return;
-    }
-
-    state.seen[pattern_index] = true;
-
-    if *matched < out_capacity && !out_ids.is_null() && !out_positions.is_null() {
-        *out_ids.add(*matched) = matcher.ids[pattern_index];
-        *out_positions.add(*matched) = state.current_pos;
-    }
-
-    *matched += 1;
-}
-
-unsafe fn start_stream_state(
-    matcher: &ZeekRustRegexStreamMatcher,
-    caches: &mut [MutexGuard<'_, hybrid_dfa::Cache>],
-    state: &mut ZeekRustRegexStreamState,
-    bol: i32,
-    out_ids: *mut isize,
-    out_positions: *mut u64,
-    out_capacity: usize,
-    matched: &mut usize,
-) {
-    let config = start::Config::new()
-        .anchored(Anchored::Yes)
-        .look_behind(if bol != 0 { None } else { Some(0) });
-
-    for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-        let sid = match dfa.start_state(&mut caches[pattern_index], &config) {
-            Ok(sid) => sid,
-            Err(_) => {
-                state.current[pattern_index] = None;
-                state.active[pattern_index] = false;
-                continue;
-            }
-        };
-
-        state.current[pattern_index] = Some(sid);
-        state.active[pattern_index] = true;
-        emit_stream_match(
-            matcher,
-            state,
-            pattern_index,
-            sid,
-            out_ids,
-            out_positions,
-            out_capacity,
-            matched,
-        );
-    }
-
-    state.current_pos = 0;
-    state.initialized = true;
+    unsafe { ffi::free_boxed(state) };
 }
 
 #[no_mangle]
@@ -615,174 +384,41 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
     out_positions: *mut u64,
     out_capacity: usize,
 ) -> usize {
-    let Some(matcher) = matcher.as_ref() else {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
         return 0;
     };
-    let Some(state) = state.as_mut() else {
+    let Some(state) = (unsafe { ffi::handle_mut(state) }) else {
         return 0;
     };
-    let Some(haystack) = haystack_from_raw(data, len) else {
+    let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
-    let mut caches = matcher
-        .caches
-        .iter()
-        .map(|cache| cache.lock().expect("shared stream cache poisoned"))
-        .collect::<Vec<_>>();
 
-    let mut matched = 0;
-
-    if !state.initialized {
-        start_stream_state(
-            matcher,
-            &mut caches,
-            state,
-            bol,
-            out_ids,
-            out_positions,
-            out_capacity,
-            &mut matched,
-        );
-
-        if suppress_initial_empty_visible_match != 0 && bol != 0 && eol == 0 && haystack.is_empty() {
-            for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-                if dfa.get_nfa().has_empty() {
-                    state.suppress_next_match[pattern_index] = true;
-                }
-            }
-        }
-    }
-
-    for &byte in haystack {
-        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-            if !state.active[pattern_index] {
-                continue;
-            }
-
-            let Some(current) = state.current[pattern_index] else {
-                state.active[pattern_index] = false;
-                continue;
+    let (out_ids, out_positions) =
+        if out_capacity == 0 || out_ids.is_null() || out_positions.is_null() {
+            (None, None)
+        } else {
+            let Some(out_ids) = (unsafe { ffi::mut_slice_arg(out_ids, out_capacity) }) else {
+                return 0;
+            };
+            let Some(out_positions) = (unsafe { ffi::mut_slice_arg(out_positions, out_capacity) })
+            else {
+                return 0;
             };
 
-            let next = match dfa.next_state(&mut caches[pattern_index], current, byte) {
-                Ok(next) => next,
-                Err(_) => {
-                    state.current[pattern_index] = None;
-                    state.active[pattern_index] = false;
-                    continue;
-                }
-            };
+            (Some(out_ids), Some(out_positions))
+        };
 
-            if next.is_dead() || next.is_quit() {
-                state.current[pattern_index] = None;
-                state.active[pattern_index] = false;
-                continue;
-            }
-
-            state.current[pattern_index] = Some(next);
-            emit_stream_match(
-                matcher,
-                state,
-                pattern_index,
-                next,
-                out_ids,
-                out_positions,
-                out_capacity,
-                &mut matched,
-            );
-        }
-
-        state.current_pos += 1;
-    }
-
-    if eol == 0 && len > 0 {
-        for pattern_index in 0..matcher.dfas.len() {
-            if !state.active[pattern_index] || state.seen[pattern_index] {
-                continue;
-            }
-
-            let Some(current) = state.current[pattern_index] else {
-                state.active[pattern_index] = false;
-                continue;
-            };
-
-            if boundary_matchable(matcher, &mut caches[pattern_index], pattern_index, current) {
-                let next = match matcher.dfas[pattern_index].next_eoi_state(&mut caches[pattern_index], current) {
-                    Ok(next) => next,
-                    Err(_) => {
-                        state.current[pattern_index] = None;
-                        state.active[pattern_index] = false;
-                        continue;
-                    }
-                };
-
-                emit_stream_match(
-                    matcher,
-                    state,
-                    pattern_index,
-                    next,
-                    out_ids,
-                    out_positions,
-                    out_capacity,
-                    &mut matched,
-                );
-
-                if state.seen[pattern_index] {
-                    state.active[pattern_index] = false;
-                }
-            }
-        }
-    }
-
-    if eol != 0 {
-        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-            if !state.active[pattern_index] {
-                continue;
-            }
-
-            let Some(current) = state.current[pattern_index] else {
-                state.active[pattern_index] = false;
-                continue;
-            };
-
-            let next = match dfa.next_eoi_state(&mut caches[pattern_index], current) {
-                Ok(next) => next,
-                Err(_) => {
-                    state.current[pattern_index] = None;
-                    state.active[pattern_index] = false;
-                    continue;
-                }
-            };
-
-            if next.is_dead() || next.is_quit() {
-                state.current[pattern_index] = None;
-                state.active[pattern_index] = false;
-                continue;
-            }
-
-            state.current[pattern_index] = Some(next);
-            emit_stream_match(
-                matcher,
-                state,
-                pattern_index,
-                next,
-                out_ids,
-                out_positions,
-                out_capacity,
-                &mut matched,
-            );
-        }
-
-        state.current_pos += 1;
-    }
-
-    if !haystack.is_empty() || eol != 0 {
-        for suppress in &mut state.suppress_next_match {
-            *suppress = false;
-        }
-    }
-
-    matched
+    stream::match_stream_state(
+        matcher,
+        state,
+        haystack,
+        bol != 0,
+        eol != 0,
+        suppress_initial_empty_visible_match != 0,
+        out_ids,
+        out_positions,
+    )
 }
 
 #[cfg(test)]
@@ -795,16 +431,50 @@ mod tests {
         unsafe { zeek_rust_regex_matcher_compile(pattern.as_ptr()) }
     }
 
+    fn compile_matcher_from_zeek_exact(pattern: &str) -> *mut ZeekRustRegexMatcher {
+        let pattern = CString::new(pattern).expect("pattern cstring");
+        unsafe { zeek_rust_regex_matcher_compile_from_zeek_exact(pattern.as_ptr()) }
+    }
+
     fn compile_stream_matcher(patterns: &[&str]) -> *mut ZeekRustRegexStreamMatcher {
         let patterns = patterns
             .iter()
             .map(|pattern| CString::new(*pattern).expect("pattern cstring"))
             .collect::<Vec<_>>();
-        let pattern_ptrs = patterns.iter().map(|pattern| pattern.as_ptr()).collect::<Vec<_>>();
-        let ids = (1..=patterns.len()).map(|id| id as isize).collect::<Vec<_>>();
+        let pattern_ptrs = patterns
+            .iter()
+            .map(|pattern| pattern.as_ptr())
+            .collect::<Vec<_>>();
+        let ids = (1..=patterns.len())
+            .map(|id| id as isize)
+            .collect::<Vec<_>>();
 
         unsafe {
             zeek_rust_regex_stream_matcher_compile(
+                pattern_ptrs.as_ptr(),
+                ids.as_ptr(),
+                ids.len(),
+                1,
+                0,
+            )
+        }
+    }
+
+    fn compile_stream_matcher_from_zeek(patterns: &[&str]) -> *mut ZeekRustRegexStreamMatcher {
+        let patterns = patterns
+            .iter()
+            .map(|pattern| CString::new(*pattern).expect("pattern cstring"))
+            .collect::<Vec<_>>();
+        let pattern_ptrs = patterns
+            .iter()
+            .map(|pattern| pattern.as_ptr())
+            .collect::<Vec<_>>();
+        let ids = (1..=patterns.len())
+            .map(|id| id as isize)
+            .collect::<Vec<_>>();
+
+        unsafe {
+            zeek_rust_regex_stream_matcher_compile_from_zeek(
                 pattern_ptrs.as_ptr(),
                 ids.as_ptr(),
                 ids.len(),
@@ -828,6 +498,30 @@ mod tests {
     fn stream_matcher_compiles_signature_like_pattern() {
         let matcher =
             compile_stream_matcher(&[".*portability.*", ".*portability.*", ".*portability.*"]);
+        assert!(!matcher.is_null());
+
+        unsafe {
+            zeek_rust_regex_stream_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn matcher_compiles_from_zeek_exact_wrapper() {
+        let matcher = compile_matcher_from_zeek_exact("(?i:^?(foo)$?)");
+        assert!(!matcher.is_null());
+        assert_eq!(
+            unsafe { zeek_rust_regex_matcher_match_all(matcher, b"FoO".as_ptr(), 3) },
+            1
+        );
+
+        unsafe {
+            zeek_rust_regex_matcher_free(matcher);
+        }
+    }
+
+    #[test]
+    fn stream_matcher_compiles_from_zeek_patterns() {
+        let matcher = compile_stream_matcher_from_zeek(&["\"fOO\""]);
         assert!(!matcher.is_null());
 
         unsafe {
@@ -907,7 +601,8 @@ mod tests {
 
     #[test]
     fn stream_matcher_matches_packetwise_payload() {
-        let matcher = compile_stream_matcher(&["XXXX", "^XXXX", ".*XXXX", "YYYY", "^YYYY", ".*YYYY"]);
+        let matcher =
+            compile_stream_matcher(&["XXXX", "^XXXX", ".*XXXX", "YYYY", "^YYYY", ".*YYYY"]);
         assert!(!matcher.is_null());
 
         let state = unsafe { zeek_rust_regex_stream_state_create(matcher) };
@@ -1192,7 +887,9 @@ mod tests {
         };
         let current = unsafe { (&(*state).current)[0].expect("state after B") };
         let eoi = {
-            let mut cache = matcher_ref.caches[0].lock().expect("shared stream cache poisoned");
+            let mut cache = matcher_ref.caches[0]
+                .lock()
+                .expect("shared stream cache poisoned");
             dfa.next_eoi_state(&mut cache, current)
                 .expect("eoi transition after split prefix")
         };
@@ -1243,7 +940,9 @@ mod tests {
         let current = unsafe { (&(*state).current)[0].expect("state after A exact") };
         assert!(!current.is_match());
         let eoi = {
-            let mut cache = matcher_ref.caches[0].lock().expect("shared stream cache poisoned");
+            let mut cache = matcher_ref.caches[0]
+                .lock()
+                .expect("shared stream cache poisoned");
             dfa.next_eoi_state(&mut cache, current)
                 .expect("eoi transition after partial exact")
         };
@@ -1268,7 +967,9 @@ mod tests {
         let current = unsafe { (&(*state).current)[0].expect("state after B exact") };
         assert!(!current.is_match());
         let eoi = {
-            let mut cache = matcher_ref.caches[0].lock().expect("shared stream cache poisoned");
+            let mut cache = matcher_ref.caches[0]
+                .lock()
+                .expect("shared stream cache poisoned");
             dfa.next_eoi_state(&mut cache, current)
                 .expect("eoi transition after exact suffix")
         };

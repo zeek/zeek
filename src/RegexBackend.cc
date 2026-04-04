@@ -6,6 +6,15 @@
 
 namespace zeek::detail {
 
+static std::string take_rust_regex_string(char* text) {
+    if ( ! text )
+        return {};
+
+    std::string result = text;
+    zeek_rust_regex_string_free(text);
+    return result;
+}
+
 uint32_t RustRegexBackendAbiVersion() { return zeek_rust_regex_backend_abi_version(); }
 
 uint32_t RustRegexBackendSmokeTest() { return zeek_rust_regex_backend_smoke_test(); }
@@ -15,11 +24,45 @@ bool RustRegexBackendAvailable() {
            RustRegexBackendSmokeTest() == ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN;
 }
 
+bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized) {
+    if ( ! pattern || ! normalized )
+        return false;
+
+    auto* rust_text = zeek_rust_regex_compat_normalize_pattern(pattern);
+
+    if ( ! rust_text )
+        return false;
+
+    *normalized = take_rust_regex_string(rust_text);
+    return true;
+}
+
+std::string DeriveRustPatternFromExact(const char* exact) {
+    if ( ! exact )
+        return {};
+
+    return take_rust_regex_string(zeek_rust_regex_compat_derive_rust_pattern_from_exact(exact));
+}
+
+std::string DeriveAnywherePatternFromExact(const char* exact) {
+    if ( ! exact )
+        return {};
+
+    return take_rust_regex_string(zeek_rust_regex_compat_derive_anywhere_pattern_from_exact(exact));
+}
+
 void* CompileRustRegexMatcher(const std::string& pattern) {
     if ( pattern.empty() )
         return nullptr;
 
     return zeek_rust_regex_matcher_compile(pattern.c_str());
+}
+
+void* CompileRustRegexMatcherFromExact(const std::string& exact_pattern) {
+    if ( exact_pattern.empty() )
+        return nullptr;
+
+    return zeek_rust_regex_matcher_compile_from_zeek_exact(exact_pattern.c_str());
 }
 
 void FreeRustRegexMatcher(void* matcher) {
@@ -44,6 +87,15 @@ void* CompileRustRegexSetMatcher(const std::vector<const char*>& patterns, const
         return nullptr;
 
     return zeek_rust_regex_set_matcher_compile(patterns.data(), ids.data(), patterns.size());
+}
+
+void* CompileRustRegexSetMatcherFromExact(const std::vector<const char*>& exact_patterns,
+                                          const std::vector<std::intptr_t>& ids) {
+    if ( exact_patterns.empty() || exact_patterns.size() != ids.size() )
+        return nullptr;
+
+    return zeek_rust_regex_set_matcher_compile_from_zeek_exact(exact_patterns.data(), ids.data(),
+                                                               exact_patterns.size());
 }
 
 void FreeRustRegexSetMatcher(void* matcher) {
@@ -76,6 +128,16 @@ void* CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns, co
 
     return zeek_rust_regex_stream_matcher_compile(patterns.data(), ids.data(), patterns.size(), dot_matches_new_line,
                                                   cache_capacity);
+}
+
+void* CompileRustRegexStreamMatcherFromZeek(const std::vector<const char*>& patterns,
+                                            const std::vector<std::intptr_t>& ids, bool dot_matches_new_line,
+                                            size_t cache_capacity) {
+    if ( patterns.empty() || patterns.size() != ids.size() )
+        return nullptr;
+
+    return zeek_rust_regex_stream_matcher_compile_from_zeek(patterns.data(), ids.data(), patterns.size(),
+                                                            dot_matches_new_line, cache_capacity);
 }
 
 void FreeRustRegexStreamMatcher(void* matcher) {

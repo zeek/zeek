@@ -1351,20 +1351,7 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const {
 
     PatternVal* pv = v->AsPatternVal();
     const auto* target = pv->AsPattern();
-    const char* source_rust_pat = re_val->RustPatternText();
-    const char* target_rust_pat = target->RustPatternText();
-    std::string merged_rust_pattern;
-
-    if ( source_rust_pat && source_rust_pat[0] && target_rust_pat && target_rust_pat[0] )
-        merged_rust_pattern = util::fmt("(?:%s)|(?:%s)", source_rust_pat, target_rust_pat);
-
-    RE_Matcher* re = new RE_Matcher(re_val->PatternText());
-    re->AddPat(target->PatternText());
-
-    if ( ! merged_rust_pattern.empty() )
-        re->SetRustPat(merged_rust_pattern.c_str());
-
-    re->Compile();
+    RE_Matcher* re = detail::RE_Matcher_disjunction(re_val, target);
 
     pv->SetMatcher(re);
 

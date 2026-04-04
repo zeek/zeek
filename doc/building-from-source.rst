@@ -165,7 +165,7 @@ To install these, you can use:
 
      mkdir build
      cd build
-     cmake.exe .. -DCMAKE_BUILD_TYPE=release -DENABLE_ZEEK_UNIT_TESTS=yes -DENABLE_CLUSTER_BACKEND_ZEROMQ=no -DVCPKG_TARGET_TRIPLET="x64-windows-static" -G Ninja
+     cmake.exe .. -DCMAKE_BUILD_TYPE=release -DENABLE_ZEEK_UNIT_TESTS=yes -DENABLE_CLUSTER_BACKEND_ZEROMQ=no -DVCPKG_TARGET_TRIPLET="x64-windows-static" -DCARGO_EXECUTABLE=cargo.exe -DRUSTC_EXECUTABLE=rustc.exe -G Ninja
      cmake.exe --build .
 
   All of this is duplicated in the CI configuration for Windows which lives in
@@ -258,6 +258,12 @@ The typical way to build and install from source is as follows:
     ./configure
     make
     make install
+
+Zeek's regex backend requires the Rust toolchain at build time, so ``cargo``
+and ``rustc`` 1.74 or newer must be available during configuration and the
+build. If you have multiple Rust toolchains installed or those executables are
+not on your ``PATH``, point Zeek at the desired binaries with
+``./configure --with-cargo=/path/to/cargo --with-rustc=/path/to/rustc``.
 
 If the ``configure`` script fails, then it is most likely because it either
 couldn't find a required dependency or it couldn't find a sufficiently new

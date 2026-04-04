@@ -329,7 +329,11 @@ public:
 
         // # cache hits (sampled, multiply by MOVE_TO_FRONT_SAMPLE_SIZE)
         unsigned int hits;
-        unsigned int misses; // # cache misses
+        unsigned int misses;      // # cache misses
+        uint64_t patterns;        // # compiled patterns across all matchers
+        uint64_t stream_matchers; // # matchers using the streaming backend
+        uint64_t cache_bytes;     // # bytes currently used by regex execution caches
+        uint64_t cache_clears;    // # times streaming regex caches have been cleared
     };
 
     Val* BuildRuleStateValue(const Rule* rule, const RuleEndpointState* state) const;

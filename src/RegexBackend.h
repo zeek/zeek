@@ -48,6 +48,8 @@ ZeekRustRegexStreamMatcher* zeek_rust_regex_stream_matcher_compile_from_zeek(con
                                                                              size_t cache_capacity);
 void zeek_rust_regex_stream_matcher_free(ZeekRustRegexStreamMatcher* matcher);
 size_t zeek_rust_regex_stream_matcher_pattern_len(const ZeekRustRegexStreamMatcher* matcher);
+size_t zeek_rust_regex_stream_matcher_cache_bytes(const ZeekRustRegexStreamMatcher* matcher);
+size_t zeek_rust_regex_stream_matcher_cache_clears(const ZeekRustRegexStreamMatcher* matcher);
 ZeekRustRegexStreamState* zeek_rust_regex_stream_state_create(const ZeekRustRegexStreamMatcher* matcher);
 void zeek_rust_regex_stream_state_free(ZeekRustRegexStreamState* state);
 size_t zeek_rust_regex_stream_state_match(const ZeekRustRegexStreamMatcher* matcher, ZeekRustRegexStreamState* state,
@@ -60,7 +62,7 @@ size_t zeek_rust_regex_stream_state_match(const ZeekRustRegexStreamMatcher* matc
 
 namespace zeek::detail {
 
-inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_ABI_VERSION = 4;
+inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_ABI_VERSION = 5;
 inline constexpr uint32_t ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN = 0x5A45'454B;
 
 struct RustRegexMatcherDeleter {
@@ -101,6 +103,7 @@ RustRegexSetMatcherHandle CompileRustRegexSetMatcher(const std::vector<const cha
 RustRegexSetMatcherHandle CompileRustRegexSetMatcherFromExact(const std::vector<const char*>& exact_patterns,
                                                               const std::vector<std::intptr_t>& ids);
 bool RustRegexSetMatcherMatchAny(const RustRegexSetMatcherHandle& matcher, const uint8_t* data, size_t len);
+size_t RustRegexSetMatcherPatternLen(const RustRegexSetMatcherHandle& matcher);
 void RustRegexSetMatcherAppendMatches(const RustRegexSetMatcherHandle& matcher, const uint8_t* data, size_t len,
                                       std::vector<int>& matches);
 RustRegexStreamMatcherHandle CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns,
@@ -109,6 +112,9 @@ RustRegexStreamMatcherHandle CompileRustRegexStreamMatcher(const std::vector<con
 RustRegexStreamMatcherHandle CompileRustRegexStreamMatcherFromZeek(const std::vector<const char*>& patterns,
                                                                    const std::vector<std::intptr_t>& ids,
                                                                    bool dot_matches_new_line, size_t cache_capacity);
+size_t RustRegexStreamMatcherPatternLen(const RustRegexStreamMatcherHandle& matcher);
+size_t RustRegexStreamMatcherCacheBytes(const RustRegexStreamMatcherHandle& matcher);
+size_t RustRegexStreamMatcherCacheClears(const RustRegexStreamMatcherHandle& matcher);
 RustRegexStreamStateHandle CreateRustRegexStreamState(const RustRegexStreamMatcherHandle& matcher);
 void RustRegexStreamStateAppendMatches(const RustRegexStreamMatcherHandle& matcher, RustRegexStreamStateHandle& state,
                                        const uint8_t* data, size_t len, bool bol, bool eol,

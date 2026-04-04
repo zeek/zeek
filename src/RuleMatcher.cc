@@ -3,6 +3,7 @@
 #include "zeek/RuleMatcher.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <functional>
 
 #include "zeek/Conn.h"
@@ -1090,6 +1091,10 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
         stats->hits = 0;
         stats->misses = 0;
         stats->nfa_states = 0;
+        stats->patterns = 0;
+        stats->stream_matchers = 0;
+        stats->cache_bytes = 0;
+        stats->cache_clears = 0;
         hdr_test = root;
     }
 
@@ -1108,6 +1113,10 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
             stats->hits += cstats.hits;
             stats->misses += cstats.misses;
             stats->nfa_states += cstats.nfa_states;
+            stats->patterns += cstats.patterns;
+            stats->stream_matchers += cstats.stream_matchers;
+            stats->cache_bytes += cstats.cache_bytes;
+            stats->cache_clears += cstats.cache_clears;
         }
     }
 
@@ -1119,11 +1128,17 @@ void RuleMatcher::DumpStats(File* f) const {
     Stats stats;
     GetStats(&stats);
 
-    f->Write(
-        util::fmt("%.6f computed dfa states = %d; classes = ??; "
-                  "computed trans. = %d; matchers = %d; mem = %d\n",
-                  run_state::network_time, stats.dfa_states, stats.computed, stats.matchers, stats.mem));
-    f->Write(util::fmt("%.6f DFA cache hits = %d; misses = %d\n", run_state::network_time, stats.hits, stats.misses));
+    f->Write(util::fmt("%.6f regex matchers = %d; compiled patterns = %" PRIu64 "; stream matchers = %" PRIu64
+                       "; cache bytes = %" PRIu64 "; cache clears = %" PRIu64 "\n",
+                       run_state::network_time, stats.matchers, stats.patterns, stats.stream_matchers,
+                       stats.cache_bytes, stats.cache_clears));
+
+    if ( stats.dfa_states || stats.computed || stats.mem || stats.hits || stats.misses || stats.nfa_states )
+        f->Write(
+            util::fmt("%.6f legacy regex-engine stats: nfa_states = %d; dfa_states = %d; "
+                      "computed trans. = %d; mem = %d; hits = %d; misses = %d\n",
+                      run_state::network_time, stats.nfa_states, stats.dfa_states, stats.computed, stats.mem,
+                      stats.hits, stats.misses));
 
     DumpStateStats(f, root);
 }
@@ -1137,10 +1152,15 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
             RuleHdrTest::PatternSet* set = hdr_test->psets[i][j];
             assert(set->re);
 
-            const auto dfa_states = set->re->NumStates();
+            RegexStats stats;
+            set->re->GetStats(&stats);
 
-            f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time, dfa_states,
-                               Rule::TypeToString(static_cast<Rule::PatternType>(i)), j));
+            f->Write(
+                util::fmt("%.6f matcher group stats in %s group %d from sigs "
+                          "(patterns=%" PRIu64 ", stream_matchers=%" PRIu64 ", cache_bytes=%" PRIu64
+                          ", cache_clears=%" PRIu64 ") ",
+                          run_state::network_time, Rule::TypeToString(static_cast<Rule::PatternType>(i)), j,
+                          stats.patterns, stats.stream_matchers, stats.cache_bytes, stats.cache_clears));
 
             for ( const auto& id : set->ids ) {
                 Rule* r = Rule::rule_table[id - 1];

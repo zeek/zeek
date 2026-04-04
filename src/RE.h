@@ -44,6 +44,10 @@ struct RegexStats {
     unsigned int mem = 0;
     unsigned int hits = 0;
     unsigned int misses = 0;
+    uint64_t patterns = 0;
+    uint64_t stream_matchers = 0;
+    uint64_t cache_bytes = 0;
+    uint64_t cache_clears = 0;
 };
 
 enum match_type : uint8_t { MATCH_ANYWHERE, MATCH_EXACTLY };

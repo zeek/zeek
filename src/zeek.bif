@@ -6079,9 +6079,11 @@ function have_spicy_analyzers%(%) : bool
 
 ## Return MatcherStats for a table[pattern] or set[pattern] value.
 ##
-## This returns backend-neutral matcher statistics for the compiled matcher
-## used by such a table. Some backends may expose only a subset of these
-## counters, in which case the remaining fields stay at zero.
+## This returns matcher statistics for the compiled matcher used by such
+## a table. The ``matchers``, ``patterns``, ``stream_matchers``,
+## ``cache_bytes``, and ``cache_clears`` fields remain backend-neutral.
+## The remaining legacy DFA/NFA/cache counters on :zeek:see:`MatcherStats`
+## are deprecated and may remain zero under the Rust regex backend.
 ##
 ## Statistics reset whenever elements are added or removed to the table as
 ## these operations rebuild the underlying matcher.
@@ -6118,6 +6120,10 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 	result->Assign(n++, stats.mem);
 	result->Assign(n++, stats.hits);
 	result->Assign(n++, stats.misses);
+	result->Assign(n++, stats.patterns);
+	result->Assign(n++, stats.stream_matchers);
+	result->Assign(n++, stats.cache_bytes);
+	result->Assign(n++, stats.cache_clears);
 
 	return std::move(result);
 	%}

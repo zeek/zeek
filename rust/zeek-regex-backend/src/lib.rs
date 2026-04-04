@@ -8,7 +8,7 @@ mod stream;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 
-pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 4;
+pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 5;
 pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
 pub use matcher::{ZeekRustRegexMatcher, ZeekRustRegexSetMatcher};
 pub use stream::{ZeekRustRegexStreamMatcher, ZeekRustRegexStreamState};
@@ -353,6 +353,28 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_pattern_len(
     };
 
     stream::stream_matcher_pattern_len(matcher)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_cache_bytes(
+    matcher: *const ZeekRustRegexStreamMatcher,
+) -> usize {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
+        return 0;
+    };
+
+    stream::stream_matcher_cache_bytes(matcher)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_cache_clears(
+    matcher: *const ZeekRustRegexStreamMatcher,
+) -> usize {
+    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
+        return 0;
+    };
+
+    stream::stream_matcher_cache_clears(matcher)
 }
 
 #[no_mangle]

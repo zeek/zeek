@@ -124,6 +124,13 @@ Changed Functionality
 Deprecated Functionality
 ------------------------
 
+- The legacy engine-internal ``MatcherStats`` fields ``nfa_states``,
+  ``dfa_states``, ``computed``, ``mem``, ``hits``, and ``misses`` are now
+  deprecated. These counters were tied to Zeek's previous regex engine and are
+  no longer meaningful under the Rust backend. Use the backend-neutral
+  ``matchers``, ``patterns``, ``stream_matchers``, ``cache_bytes``, and
+  ``cache_clears`` fields instead.
+
 Zeek 8.1.0
 ==========
 

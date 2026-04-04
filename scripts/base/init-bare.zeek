@@ -1220,15 +1220,24 @@ type ReassemblerStats: record {
 
 ## Statistics of all regular expression matchers.
 ##
+## ``matchers``, ``patterns``, ``stream_matchers``, ``cache_bytes``, and
+## ``cache_clears`` remain backend-neutral metrics. The remaining legacy
+## engine-internal counters are deprecated and may remain zero under the
+## Rust regex backend.
+##
 ## .. zeek:see:: get_matcher_stats
 type MatcherStats: record {
 	matchers: count;    ##< Number of distinct RE matchers.
-	nfa_states: count;  ##< Number of NFA states across all matchers.
-	dfa_states: count;  ##< Number of DFA states across all matchers.
-	computed: count;    ##< Number of computed DFA state transitions.
-	mem: count;         ##< Number of bytes used by DFA states.
-	hits: count;        ##< Number of cache hits.
-	misses: count;      ##< Number of cache misses.
+	nfa_states: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";  ##< Legacy number of NFA states across all matchers.
+	dfa_states: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";  ##< Legacy number of DFA states across all matchers.
+	computed: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";    ##< Legacy number of computed DFA state transitions.
+	mem: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";         ##< Legacy number of bytes used by DFA states.
+	hits: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";        ##< Legacy number of cache hits.
+	misses: count &deprecated="Remove in v9.1. Legacy regex-engine internal counters are unavailable under the Rust backend.";      ##< Legacy number of cache misses.
+	patterns: count;    ##< Number of compiled regex patterns across all matchers.
+	stream_matchers: count; ##< Number of matchers using the streaming regex backend.
+	cache_bytes: count; ##< Number of bytes currently used by streaming regex caches.
+	cache_clears: count; ##< Number of times streaming regex caches have been cleared.
 };
 
 ## Statistics of timers.

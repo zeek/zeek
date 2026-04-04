@@ -161,11 +161,17 @@ void ProfileLogger::Log() {
         RuleMatcher::Stats stats;
         rule_matcher->GetStats(&stats);
 
-        file->Write(
-            util::fmt("%06f RuleMatcher: matchers=%d nfa_states=%d dfa_states=%d "
-                      "ncomputed=%d mem=%dK\n",
-                      run_state::network_time, stats.matchers, stats.nfa_states, stats.dfa_states, stats.computed,
-                      stats.mem / 1024));
+        file->Write(util::fmt("%06f RuleMatcher: matchers=%d patterns=%" PRIu64 " stream_matchers=%" PRIu64
+                              " cache_bytes=%" PRIu64 " cache_clears=%" PRIu64 "\n",
+                              run_state::network_time, stats.matchers, stats.patterns, stats.stream_matchers,
+                              stats.cache_bytes, stats.cache_clears));
+
+        if ( stats.nfa_states || stats.dfa_states || stats.computed || stats.mem || stats.hits || stats.misses )
+            file->Write(
+                util::fmt("%06f RuleMatcher legacy: nfa_states=%d dfa_states=%d "
+                          "ncomputed=%d mem=%dK hits=%d misses=%d\n",
+                          run_state::network_time, stats.nfa_states, stats.dfa_states, stats.computed, stats.mem / 1024,
+                          stats.hits, stats.misses));
     }
     file->Write(util::fmt("%.06f Timers: current=%zu max=%zu lag=%.2fs\n", run_state::network_time, timer_mgr->Size(),
                           timer_mgr->PeakSize(), run_state::network_time - timer_mgr->LastTimestamp()));

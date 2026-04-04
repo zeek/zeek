@@ -295,6 +295,22 @@ pub(crate) fn stream_matcher_pattern_len(matcher: &ZeekRustRegexStreamMatcher) -
     matcher.ids.len()
 }
 
+pub(crate) fn stream_matcher_cache_bytes(matcher: &ZeekRustRegexStreamMatcher) -> usize {
+    matcher
+        .caches
+        .iter()
+        .map(|cache| lock_or_recover(cache).memory_usage())
+        .sum()
+}
+
+pub(crate) fn stream_matcher_cache_clears(matcher: &ZeekRustRegexStreamMatcher) -> usize {
+    matcher
+        .caches
+        .iter()
+        .map(|cache| lock_or_recover(cache).clear_count())
+        .sum()
+}
+
 pub(crate) fn create_stream_state(
     matcher: &ZeekRustRegexStreamMatcher,
 ) -> ZeekRustRegexStreamState {

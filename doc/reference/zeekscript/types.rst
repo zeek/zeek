@@ -1871,16 +1871,16 @@ as ``/.*foo.*/``.
 
 .. note::
 
-   Internally, Zeek matches a table's patterns in parallel using a lazily
-   constructed deterministic finite automaton (DFA). This means that the nature
-   of patterns in the table *and* the strings looked up in it can lead to
-   varying degrees of runtime memory growth.
+   Internally, Zeek matches a table's patterns in parallel using a compiled
+   matcher. The exact implementation is backend-dependent.
 
-   Users are advised to test scripts using this feature with a wide range of
-   input data. Script developers can reset the DFA's state by removal or
-   addition of a single pattern. For observability, the
+   Script developers can force that matcher to rebuild by removing or adding a
+   single pattern. For observability, the
    :zeek:see:`table_pattern_matcher_stats` function returns a
-   :zeek:see:`MatcherStats` record with details about a table's DFA state.
+   :zeek:see:`MatcherStats` record. Under the Rust regex backend, the
+   ``matchers``, ``patterns``, ``stream_matchers``, ``cache_bytes``, and
+   ``cache_clears`` fields remain backend-neutral; the legacy
+   engine-internal fields are deprecated and may remain zero.
 
 
 Additional operations

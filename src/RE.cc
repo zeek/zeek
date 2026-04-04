@@ -303,6 +303,19 @@ void Specific_RE_Matcher::GetStats(RegexStats* stats) const {
         return;
 
     *stats = {};
+
+    if ( rust_matcher )
+        stats->patterns = 1;
+
+    if ( rust_set_matcher )
+        stats->patterns = RustRegexSetMatcherPatternLen(rust_set_matcher);
+
+    if ( rust_stream_matcher ) {
+        stats->patterns = RustRegexStreamMatcherPatternLen(rust_stream_matcher);
+        stats->stream_matchers = 1;
+        stats->cache_bytes = RustRegexStreamMatcherCacheBytes(rust_stream_matcher);
+        stats->cache_clears = RustRegexStreamMatcherCacheClears(rust_stream_matcher);
+    }
 }
 
 void Specific_RE_Matcher::Dump(FILE* /* f */) {}

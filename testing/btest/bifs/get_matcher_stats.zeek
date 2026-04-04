@@ -13,6 +13,6 @@ signature my_ftp_client {
 event zeek_init()
 	{
 	local a = get_matcher_stats();
-	if ( a$matchers == 0 )
+	if ( a$matchers == 0 || a$patterns == 0 || a$stream_matchers == 0 )
 		exit(1);
 	}

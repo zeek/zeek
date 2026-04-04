@@ -374,10 +374,12 @@ function get_gap_stats%(%): GapStats
 	return std::move(r);
 	%}
 
-## Returns statistics about the regular expression engine. Statistics include
-## the number of distinct matchers, DFA states, DFA state transitions, memory
-## usage of DFA states, cache hits/misses, and average number of NFA states
-## across all matchers.
+## Returns statistics about regular expression matchers.
+##
+## The ``matchers``, ``patterns``, ``stream_matchers``, ``cache_bytes``,
+## and ``cache_clears`` fields remain backend-neutral. The remaining
+## legacy DFA/NFA/cache counters on :zeek:see:`MatcherStats` are deprecated
+## and may remain zero under the Rust regex backend.
 ##
 ## Returns: A record with matcher statistics.
 ##
@@ -410,6 +412,10 @@ function get_matcher_stats%(%): MatcherStats
 	r->Assign(n++, s.mem);
 	r->Assign(n++, s.hits);
 	r->Assign(n++, s.misses);
+	r->Assign(n++, s.patterns);
+	r->Assign(n++, s.stream_matchers);
+	r->Assign(n++, s.cache_bytes);
+	r->Assign(n++, s.cache_clears);
 
 	return std::move(r);
 	%}

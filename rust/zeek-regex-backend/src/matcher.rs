@@ -54,7 +54,7 @@ fn bytes_to_pattern(bytes: Vec<u8>) -> Option<String> {
 pub(crate) fn compile_matcher(pattern: &str) -> Option<ZeekRustRegexMatcher> {
     let syntax = syntax_config();
     let regex = Regex::builder().syntax(syntax).build(pattern).ok()?;
-    let exact_pattern = format!(r"(?:{})\z", pattern);
+    let exact_pattern = format!(r"(?:{pattern})\z");
     let exact_regex = Regex::builder().syntax(syntax).build(&exact_pattern).ok()?;
 
     let thompson = thompson::Config::new().utf8(false);
@@ -146,7 +146,7 @@ pub(crate) fn compile_set_matcher(
 
     let exact_patterns = patterns
         .iter()
-        .map(|pattern| format!(r"(?:{})\z", pattern))
+        .map(|pattern| format!(r"(?:{pattern})\z"))
         .collect::<Vec<_>>();
 
     let regex = Regex::builder()

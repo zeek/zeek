@@ -32,9 +32,7 @@ pub unsafe extern "C" fn zeek_rust_regex_compat_normalize_pattern(
         return null_mut();
     };
 
-    compat::normalize_zeek_pattern_for_rust(pattern)
-        .map(ffi::into_c_string_ptr)
-        .unwrap_or(null_mut())
+    compat::normalize_zeek_pattern_for_rust(pattern).map_or(null_mut(), ffi::into_c_string_ptr)
 }
 
 #[no_mangle]
@@ -45,9 +43,7 @@ pub unsafe extern "C" fn zeek_rust_regex_compat_derive_rust_pattern_from_exact(
         return null_mut();
     };
 
-    compat::derive_rust_pattern_from_exact(exact)
-        .map(ffi::into_c_string_ptr)
-        .unwrap_or(null_mut())
+    compat::derive_rust_pattern_from_exact(exact).map_or(null_mut(), ffi::into_c_string_ptr)
 }
 
 #[no_mangle]
@@ -58,9 +54,7 @@ pub unsafe extern "C" fn zeek_rust_regex_compat_derive_anywhere_pattern_from_exa
         return null_mut();
     };
 
-    compat::derive_anywhere_pattern_from_exact(exact)
-        .map(ffi::into_c_string_ptr)
-        .unwrap_or(null_mut())
+    compat::derive_anywhere_pattern_from_exact(exact).map_or(null_mut(), ffi::into_c_string_ptr)
 }
 
 #[no_mangle]
@@ -76,9 +70,7 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_compile(
         return null_mut();
     };
 
-    matcher::compile_matcher(pattern)
-        .map(|matcher| Box::into_raw(Box::new(matcher)))
-        .unwrap_or(null_mut())
+    matcher::compile_matcher(pattern).map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]
@@ -90,8 +82,7 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_compile_from_zeek_exact(
     };
 
     matcher::compile_matcher_from_zeek_exact(exact)
-        .map(|matcher| Box::into_raw(Box::new(matcher)))
-        .unwrap_or(null_mut())
+        .map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]
@@ -180,8 +171,7 @@ pub unsafe extern "C" fn zeek_rust_regex_set_matcher_compile(
     }
 
     matcher::compile_set_matcher(&rust_patterns, pattern_ids)
-        .map(|matcher| Box::into_raw(Box::new(matcher)))
-        .unwrap_or(null_mut())
+        .map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]
@@ -212,8 +202,7 @@ pub unsafe extern "C" fn zeek_rust_regex_set_matcher_compile_from_zeek_exact(
     }
 
     matcher::compile_set_matcher_from_zeek_exact(&zeek_patterns, pattern_ids)
-        .map(|matcher| Box::into_raw(Box::new(matcher)))
-        .unwrap_or(null_mut())
+        .map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]
@@ -295,8 +284,7 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile(
         dot_matches_new_line != 0,
         cache_capacity,
     )
-    .map(|matcher| Box::into_raw(Box::new(matcher)))
-    .unwrap_or(null_mut())
+    .map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]
@@ -334,8 +322,7 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_compile_from_zeek(
         dot_matches_new_line != 0,
         cache_capacity,
     )
-    .map(|matcher| Box::into_raw(Box::new(matcher)))
-    .unwrap_or(null_mut())
+    .map_or(null_mut(), |matcher| Box::into_raw(Box::new(matcher)))
 }
 
 #[no_mangle]

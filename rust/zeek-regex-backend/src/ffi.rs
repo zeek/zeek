@@ -76,9 +76,7 @@ pub(crate) unsafe fn free_boxed<T>(ptr: *mut T) {
 }
 
 pub(crate) fn into_c_string_ptr(bytes: Vec<u8>) -> *mut c_char {
-    CString::new(bytes)
-        .map(CString::into_raw)
-        .unwrap_or_else(|_| null_mut())
+    CString::new(bytes).map_or_else(|_| null_mut(), CString::into_raw)
 }
 
 pub(crate) unsafe fn free_c_string(ptr: *mut c_char) {

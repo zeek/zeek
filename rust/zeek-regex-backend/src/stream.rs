@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Mutex;
 
+use regex_automata::util::alphabet::Unit;
 use regex_automata::{
     hybrid::{dfa as hybrid_dfa, LazyStateID},
     nfa::thompson::{self},
@@ -206,13 +207,10 @@ fn start_stream_state(
         .look_behind(if bol { None } else { Some(0) });
 
     for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
-        let sid = match dfa.start_state(&mut caches[pattern_index], &config) {
-            Ok(sid) => sid,
-            Err(_) => {
-                state.current[pattern_index] = None;
-                state.active[pattern_index] = false;
-                continue;
-            }
+        let Ok(sid) = dfa.start_state(&mut caches[pattern_index], &config) else {
+            state.current[pattern_index] = None;
+            state.active[pattern_index] = false;
+            continue;
         };
 
         state.current[pattern_index] = Some(sid);
@@ -259,7 +257,7 @@ pub(crate) fn compile_stream_matcher(
         .map(|dfa| {
             dfa.byte_classes()
                 .representatives(..=u8::MAX)
-                .filter_map(|unit| unit.as_u8())
+                .filter_map(Unit::as_u8)
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
@@ -324,7 +322,7 @@ pub(crate) fn create_stream_state(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub(crate) fn match_stream_state(
     matcher: &ZeekRustRegexStreamMatcher,
     state: &mut ZeekRustRegexStreamState,
@@ -365,13 +363,10 @@ pub(crate) fn match_stream_state(
                 continue;
             };
 
-            let next = match dfa.next_state(&mut caches[pattern_index], current, byte) {
-                Ok(next) => next,
-                Err(_) => {
-                    state.current[pattern_index] = None;
-                    state.active[pattern_index] = false;
-                    continue;
-                }
+            let Ok(next) = dfa.next_state(&mut caches[pattern_index], current, byte) else {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
             };
 
             if next.is_dead() || next.is_quit() {
@@ -399,13 +394,10 @@ pub(crate) fn match_stream_state(
             };
 
             if boundary_matchable(matcher, &mut caches[pattern_index], pattern_index, current) {
-                let next = match dfa.next_eoi_state(&mut caches[pattern_index], current) {
-                    Ok(next) => next,
-                    Err(_) => {
-                        state.current[pattern_index] = None;
-                        state.active[pattern_index] = false;
-                        continue;
-                    }
+                let Ok(next) = dfa.next_eoi_state(&mut caches[pattern_index], current) else {
+                    state.current[pattern_index] = None;
+                    state.active[pattern_index] = false;
+                    continue;
                 };
 
                 emit_stream_match(matcher, state, pattern_index, next, &mut outputs);
@@ -428,13 +420,10 @@ pub(crate) fn match_stream_state(
                 continue;
             };
 
-            let next = match dfa.next_eoi_state(&mut caches[pattern_index], current) {
-                Ok(next) => next,
-                Err(_) => {
-                    state.current[pattern_index] = None;
-                    state.active[pattern_index] = false;
-                    continue;
-                }
+            let Ok(next) = dfa.next_eoi_state(&mut caches[pattern_index], current) else {
+                state.current[pattern_index] = None;
+                state.active[pattern_index] = false;
+                continue;
             };
 
             if next.is_dead() || next.is_quit() {

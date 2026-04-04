@@ -8,7 +8,7 @@
 # @TEST-REQUIRES: TOPIC=/btest/connections python3 recv.py check
 #
 # @TEST-EXEC: TOPIC=/btest/connections btest-bg-run recv "python3 -u ../recv.py"
-# @TEST-EXEC: TOPIC=/btest/connections btest-bg-run send "zeek -f 'port 80' -b ../send.zeek -r $TRACES/wikipedia.trace"
+# @TEST-EXEC: TOPIC=/btest/connections btest-bg-run send "zeek -f 'port 80' -b ../send.zeek -r $TRACES/wikipedia.pcap"
 #
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff recv/.stdout

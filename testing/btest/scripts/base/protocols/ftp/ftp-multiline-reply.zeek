@@ -1,5 +1,5 @@
 # @TEST-DOC: Tests that c$ftp$reply_msg stays the same over a multiline reply.
-# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6-multiline-reply.trace %INPUT > out
+# @TEST-EXEC: zeek -b -r $TRACES/ftp/ipv6-multiline-reply.pcap %INPUT > out
 # @TEST-EXEC: btest-diff ftp.log
 # @TEST-EXEC: btest-diff out
 

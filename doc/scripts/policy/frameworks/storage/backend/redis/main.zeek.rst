@@ -27,10 +27,10 @@ Types
 Redefinitions
 #############
 ========================================================= =============================================================================
-:zeek:type:`Storage::BackendOptions`: :zeek:type:`record` 
-                                                          
+:zeek:type:`Storage::BackendOptions`: :zeek:type:`record`
+
                                                           :New Fields: :zeek:type:`Storage::BackendOptions`
-                                                          
+
                                                             redis: :zeek:type:`Storage::Backend::Redis::Options` :zeek:attr:`&optional`
 ========================================================= =============================================================================
 

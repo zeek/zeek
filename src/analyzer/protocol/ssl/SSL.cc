@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
+#include <concepts>
 #include <vector>
 
 #include "zeek/Reporter.h"
@@ -25,12 +26,12 @@ namespace zeek::analyzer::ssl {
 
 using byte_buffer = std::vector<u_char>;
 
-template<typename T>
+template<std::integral T>
 static inline T MSB(const T a) {
     return ((a >> 8) & 0xff);
 }
 
-template<typename T>
+template<std::integral T>
 static inline T LSB(const T a) {
     return (a & 0xff);
 }
@@ -162,8 +163,9 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
     // FIXME: sha384 should not be hardcoded
     // The const-cast is a bit ugly - but otherwise we have to copy the static string.
     *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, const_cast<char*>(SN_sha384), 0);
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET, (void*)secret.data(), secret.size());
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, (void*)seed.data(), seed.size());
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SECRET,
+                                             reinterpret_cast<void*>(const_cast<char*>(secret.data())), secret.size());
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, reinterpret_cast<void*>(seed.data()), seed.size());
     *p = OSSL_PARAM_construct_end();
 
     auto keybuf = std::vector<u_char>(requested_len);
@@ -218,7 +220,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
     }
 
     // Neither secret or key present: abort
-    if ( secret.size() == 0 && keys.size() == 0 ) {
+    if ( secret.empty() && keys.empty() ) {
         DBG_LOG(DBG_ANALYZER, "Could not decrypt packet due to missing keys/secret. Client_random: %s\n",
                 util::fmt_bytes(reinterpret_cast<const char*>(handshake_interp->client_random().data()),
                                 handshake_interp->client_random().length()));
@@ -229,10 +231,10 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
     }
 
     // Secret present, but no keys derived yet: derive keys
-    if ( secret.size() != 0 && keys.size() == 0 ) {
+    if ( ! secret.empty() && keys.empty() ) {
 #ifdef OPENSSL_HAVE_KDF_H
         DBG_LOG(DBG_ANALYZER, "Deriving TLS keys for connection");
-        uint32_t ts = htonl((uint32_t)handshake_interp->gmt_unix_time());
+        uint32_t ts = htonl(static_cast<uint32_t>(handshake_interp->gmt_unix_time()));
 
         auto c_rnd = handshake_interp->client_random();
         auto s_rnd = handshake_interp->server_random();

@@ -20,15 +20,9 @@ Types
 #####
 ================================================================ ================
 :zeek:type:`PacketAnalyzer::Geneve::Option`: :zeek:type:`record` A Geneve option.
-:zeek:type:`geneve_options_vec`: :zeek:type:`vector`             
-:zeek:type:`geneve_options_vec_vec`: :zeek:type:`vector`         
+:zeek:type:`geneve_options_vec`: :zeek:type:`vector`
+:zeek:type:`geneve_options_vec_vec`: :zeek:type:`vector`
 ================================================================ ================
-
-Redefinitions
-#############
-==================================================================== =
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =
 
 
 Detailed Interface
@@ -85,13 +79,13 @@ Types
    A Geneve option.
 
 .. zeek:type:: geneve_options_vec
-   :source-code: base/packet-protocols/geneve/main.zeek 43 43
+   :source-code: base/packet-protocols/geneve/main.zeek 41 41
 
    :Type: :zeek:type:`vector` of :zeek:type:`PacketAnalyzer::Geneve::Option`
 
 
 .. zeek:type:: geneve_options_vec_vec
-   :source-code: base/packet-protocols/geneve/main.zeek 44 44
+   :source-code: base/packet-protocols/geneve/main.zeek 42 42
 
    :Type: :zeek:type:`vector` of :zeek:type:`geneve_options_vec`
 

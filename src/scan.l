@@ -19,7 +19,6 @@
 #include <string>
 #include <algorithm>
 #include <sys/stat.h>
-#include <sys/param.h>
 #include <unistd.h>
 #include <libgen.h>
 
@@ -180,8 +179,8 @@ static void do_pragma(const std::string& pragma) {
         zeek::reporter->Warning("Ignoring unknown pragma: '%s'", pragma.c_str());
 
     // Cheap: Just walk the pragma_stack now to see if we should ignore deprecations.
-    bool ignore_deprecations = std::any_of(pragma_stack.cbegin(), pragma_stack.cend(),
-                                           [](const auto& s) { return s == "ignore-deprecations"; });
+    bool ignore_deprecations = std::ranges::any_of(pragma_stack,
+                                                   [](const auto& s) { return s == "ignore-deprecations"; });
     zeek::reporter->SetIgnoreDeprecations(ignore_deprecations);
 }
 
@@ -423,12 +422,12 @@ when	return TOK_WHEN;
 	std::string rval = zeek::util::SafeDirname(::filename).result;
 
 	if ( ! rval.empty() && rval[0] == '.' ) {
-		char path[MAXPATHLEN];
-
-		if ( ! getcwd(path, MAXPATHLEN) )
-			zeek::reporter->InternalError("getcwd failed: %s", strerror(errno));
+		std::error_code ec;
+		auto cwd = std::filesystem::current_path(ec);
+		if ( ec )
+			zeek::reporter->InternalError("current_path failed: %s", ec.message().c_str());
 		else
-			rval = std::string(path) + "/" + rval;
+			rval = (std::filesystem::path(std::move(cwd)) / rval).string();
 	}
 
 	RET_CONST(new zeek::StringVal(rval.c_str()));
@@ -923,7 +922,7 @@ void do_atif(zeek::detail::Expr* expr) {
     zeek::ValPtr val;
 
     if ( cb.local_names.empty() )
-        val = expr->Eval(nullptr);
+        val = eval_in_isolation(expr);
     else {
         for ( size_t i = 0; i < cb.local_names.size(); ++i )
             cb.local_names[i]->Error("referencing a local name in @if");
@@ -937,30 +936,23 @@ void do_atif(zeek::detail::Expr* expr) {
     set_ignoring(! val->AsBool(), "@if", zeek::obj_desc_short(expr));
 }
 
-void do_atifdef(const char* id) {
-    start_conditional();
-
+static bool id_exists(const char *id) {
     const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
+    if ( i )
+        return true;
 
     // If the ID didn't exist, look to see if this is a module name instead.
-    bool found = (i != nullptr);
-    if ( ! found )
-        found = (zeek::detail::module_names().count(id) != 0);
+    return zeek::detail::module_names().count(id) != 0;
+}
 
-    set_ignoring(! found, "@ifdef", id);
+void do_atifdef(const char* id) {
+    start_conditional();
+    set_ignoring(! id_exists(id), "@ifdef", id);
 }
 
 void do_atifndef(const char* id) {
     start_conditional();
-
-    const auto& i = zeek::detail::lookup_ID(id, zeek::detail::current_module.c_str());
-
-    // If the ID didn't exist, look to see if this is a module name instead.
-    bool found = (i != nullptr);
-    if ( ! found )
-        found = (zeek::detail::module_names().count(id) != 0);
-
-    set_ignoring(found, "@ifndef", id);
+    set_ignoring(id_exists(id), "@ifndef", id);
 }
 
 void do_atelse() {
@@ -1209,7 +1201,7 @@ int yywrap() {
 
 FileInfo::FileInfo(std::string arg_restore_module) {
     buffer_state = YY_CURRENT_BUFFER;
-    restore_module = arg_restore_module;
+    restore_module = std::move(arg_restore_module);
     name = ::filename;
     line = ::line_number;
 }

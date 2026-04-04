@@ -3,10 +3,12 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <fstream>
 #include <unordered_map>
 
 #include "zeek/ID.h"
+#include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/Formatter.h"
 
@@ -37,9 +39,9 @@ private:
     bool GetLine(std::string& str);
     bool OpenFile();
 
-    std::ifstream file;
+    InputFile file;
     time_t mtime;
-    ino_t ino;
+    file_ino_t ino;
 
     bool fail_on_file_problem;
 

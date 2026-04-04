@@ -9,7 +9,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/param.h>
-#include <unistd.h>
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
@@ -128,29 +127,38 @@ void Func::AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_
     if ( ! new_body )
         new_body = ingr.Body();
 
-    AddBody(new_body, ingr.Inits(), ingr.FrameSize(), ingr.Priority(), ingr.Groups());
+    std::forward_list<EventGroupPtr> groups;
+    for ( auto& g : ingr.Groups() )
+        groups.push_front(g);
+
+    AddBody(Func::Body{.stmts = std::move(new_body), .groups = std::move(groups), .priority = ingr.Priority()},
+            ingr.Inits(), ingr.FrameSize());
 }
 
+void Func::AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority) {
+    auto stmt = zeek::make_intrusive<detail::StdFunctionStmt>(std::move(body));
+    AddBody({.stmts = std::move(stmt), .priority = priority}, {}, 0);
+}
+
+void Func::AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) {
+    Internal("Func::AddBody called");
+}
+
+// Deprecated interfaces.
 void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                    int priority) {
-    std::set<EventGroupPtr> groups;
-    AddBody(std::move(new_body), new_inits, new_frame_size, priority, groups);
+    AddBody(Func::Body{.stmts = std::move(new_body), .priority = priority}, new_inits, new_frame_size);
 }
 
 void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size) {
     std::vector<detail::IDPtr> no_inits;
     std::set<EventGroupPtr> no_groups;
-    AddBody(std::move(new_body), no_inits, new_frame_size, 0, no_groups);
+    AddBody({.stmts = std::move(new_body)}, no_inits, new_frame_size);
 }
 
 void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDPtr>& /* new_inits */,
                    size_t /* new_frame_size */, int /* priority */, const std::set<EventGroupPtr>& /* groups */) {
     Internal("Func::AddBody called");
-}
-
-void Func::AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority) {
-    auto stmt = zeek::make_intrusive<detail::StdFunctionStmt>(std::move(body));
-    AddBody(stmt, {}, priority);
 }
 
 void Func::SetScope(detail::ScopePtr newscope) { scope = std::move(newscope); }
@@ -279,20 +287,11 @@ ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC) {
     frame_size = 0;
 }
 
-ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> bs, std::vector<int> priorities) {
+ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<Func::Body> _bodies) {
     name = std::move(_name);
     frame_size = ft->ParamList()->GetTypes().size();
     type = std::move(ft);
-
-    auto n = bs.size();
-    ASSERT(n == priorities.size());
-
-    for ( auto i = 0u; i < n; ++i ) {
-        Body b;
-        b.stmts = std::move(bs[i]);
-        b.priority = priorities[i];
-        bodies.push_back(std::move(b));
-    }
+    bodies = std::move(_bodies);
 
     std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
 
@@ -539,6 +538,25 @@ void ScriptFunc::SetCaptures(Frame* f) {
     }
 }
 
+void ScriptFunc::AddBody(Func::Body&& new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size) {
+    auto num_args = static_cast<size_t>(GetType()->Params()->NumFields());
+    frame_size = std::max({frame_size, new_frame_size, num_args});
+
+    new_body.stmts = AddInits(new_body.stmts, new_inits);
+
+    if ( Flavor() == FUNC_FLAVOR_FUNCTION ) {
+        // For functions, we replace the old body with the new one.
+        assert(bodies.size() <= 1);
+        bodies.clear();
+    }
+
+    current_body = std::move(new_body);
+
+    bodies.push_back(current_body);
+    std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
+}
+
+// Deprecated interface.
 void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size, int priority,
                          const std::set<EventGroupPtr>& groups) {
     if ( new_frame_size > frame_size )
@@ -760,7 +778,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call) {
         return true;
 
     const ExprPList& args = call->Args()->Exprs();
-    if ( args.length() == 0 ) {
+    if ( args.empty() ) {
         // Empty calls are allowed, since you can't just
         // use "print;" to get a blank line.
         return true;
@@ -772,7 +790,7 @@ bool check_built_in_call(BuiltinFunc* f, CallExpr* call) {
         return false;
     }
 
-    auto fmt_str_val = fmt_str_arg->Eval(nullptr);
+    auto fmt_str_val = eval_in_isolation(fmt_str_arg);
 
     if ( fmt_str_val ) {
         const char* fmt_str = fmt_str_val->AsStringVal()->CheckString();
@@ -818,7 +836,7 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs) {
             continue;
         }
 
-        auto v = a->GetExpr()->Eval(nullptr);
+        auto v = eval_in_isolation(a->GetExpr());
 
         if ( ! v ) {
             a->Error("cannot evaluate attribute expression");
@@ -846,7 +864,7 @@ static std::set<EventGroupPtr> get_func_groups(const std::vector<AttrPtr>& attrs
         if ( a->Tag() != ATTR_GROUP )
             continue;
 
-        auto v = a->GetExpr()->Eval(nullptr);
+        auto v = eval_in_isolation(a->GetExpr());
 
         if ( ! v ) {
             a->Error("cannot evaluate attribute expression");

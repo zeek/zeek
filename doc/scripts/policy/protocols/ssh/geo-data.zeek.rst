@@ -21,16 +21,16 @@ Runtime Options
 Redefinitions
 #############
 ============================================ =====================================================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSH::Watched_Country_Login`:
                                                If an SSH login is seen to or from a "watched" country based
                                                on the :zeek:id:`SSH::watched_countries` variable then this
                                                notice will be generated.
-:zeek:type:`SSH::Info`: :zeek:type:`record`  
-                                             
+:zeek:type:`SSH::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`SSH::Info`
-                                             
+
                                                remote_location: :zeek:type:`geo_location` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  Add geographic data related to the "remote" host of the
                                                  connection.

@@ -109,17 +109,17 @@ private:
 
     // Helper method that adds in an expression's use-defs (if any)
     // to an existing set of UDs.
-    void AddInExprUDs(UDs uds, const Expr* e);
+    void AddInExprUDs(const UDs& uds, const Expr* e);
 
     // Add an ID into an existing set of UDs.
-    void AddID(UDs uds, IDPtr id) const;
+    void AddID(const UDs& uds, IDPtr id) const;
 
     // Returns a new use-def corresponding to the given one, but
     // with the definition of "id" removed.
     UDs RemoveID(const IDPtr& id, const UDs& uds);
 
     // Similar, but updates the UDs in place.
-    void RemoveUDFrom(UDs uds, const IDPtr& id);
+    void RemoveUDFrom(const UDs& uds, const IDPtr& id);
 
     // Adds in the additional UDs to the main UDs.  Always creates
     // a new use_def and updates main_UDs to point to it.

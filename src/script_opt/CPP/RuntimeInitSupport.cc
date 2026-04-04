@@ -4,6 +4,7 @@
 
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/zeekygen/Manager.h"
 
 namespace zeek::detail {
 
@@ -34,7 +35,7 @@ static int flag_init_CPP() {
 static int dummy = flag_init_CPP();
 
 void register_type__CPP(TypePtr t, const string& name) {
-    if ( t->GetName().size() > 0 )
+    if ( ! t->GetName().empty() )
         // Already registered.
         return;
 
@@ -45,23 +46,77 @@ void register_type__CPP(TypePtr t, const string& name) {
     id->MakeType();
 }
 
-void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events, void (*finish_init)()) {
-    compiled_scripts[hash] = {std::move(body), priority, std::move(events), {}, {}, finish_init};
+void register_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
+                        void (*finish_init)()) {
+    compiled_scripts[hash] = {.zeek_name = std::move(zeek_name),
+                              .body = std::move(body),
+                              .priority = priority,
+                              .events = std::move(events),
+                              .module_group = {},
+                              .attr_groups = {},
+                              .finish_init_func = finish_init};
 }
 
 static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
+static unordered_map<std::string, std::vector<p_hash_type>> zeek_script_hashes;
 
-void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
-                                   std::string module_group, std::vector<std::string> attr_groups,
-                                   void (*finish_init)()) {
+void register_standalone_body__CPP(const std::string& zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                                   vector<string> events, const std::string& module_group,
+                                   std::vector<std::string> attr_groups, void (*finish_init)()) {
     // For standalone scripts we don't actually need finish_init, but
     // we keep it for symmetry with compiled_scripts.
-    compiled_standalone_scripts[hash] = {.body = std::move(body),
+    compiled_standalone_scripts[hash] = {.zeek_name = zeek_name,
+                                         .body = std::move(body),
                                          .priority = priority,
                                          .events = std::move(events),
-                                         .module_group = std::move(module_group),
+                                         .module_group = module_group,
                                          .attr_groups = std::move(attr_groups),
                                          .finish_init_func = finish_init};
+    auto full_name = zeek_name;
+    if ( ! module_group.empty() && module_group != GLOBAL_MODULE_NAME )
+        full_name = module_group + "::" + full_name;
+
+    auto zsh = zeek_script_hashes.find(full_name);
+    if ( zsh == zeek_script_hashes.end() )
+        zeek_script_hashes[full_name] = {hash};
+    else
+        zsh->second.push_back(hash);
+}
+
+// Register and return the event groups present in "cs".
+static std::forward_list<EventGroupPtr> get_event_groups(const CompiledScript& cs) {
+    std::forward_list<EventGroupPtr> e_g;
+
+    if ( ! cs.module_group.empty() ) {
+        auto e_r = event_registry->RegisterGroup(EventGroupKind::Module, cs.module_group);
+        e_g.push_front(std::move(e_r));
+    }
+
+    for ( const auto& g : cs.attr_groups ) {
+        auto e_r = event_registry->RegisterGroup(EventGroupKind::Attribute, g);
+        e_g.push_front(std::move(e_r));
+    }
+
+    return e_g;
+}
+
+void add_standalone_bodies(Func* f) {
+    auto fn = f->GetName();
+    auto zsh = zeek_script_hashes.find(fn);
+    if ( zsh == zeek_script_hashes.end() )
+        return;
+
+    int num_params = f->GetType()->AsFuncType()->Params()->NumFields();
+
+    for ( auto h : zsh->second ) {
+        auto csi = compiled_standalone_scripts.find(h);
+        ASSERT(csi != compiled_standalone_scripts.end());
+        auto cs = csi->second;
+
+        auto groups = get_event_groups(cs);
+        f->AddBody({.stmts = cs.body, .groups = std::move(groups), .priority = cs.priority}, {}, num_params);
+        added_bodies[fn].insert(h);
+    }
 }
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t, bool has_captures) {
@@ -84,7 +139,7 @@ void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, T
     if ( ! has_captures )
         // Note, no support for lambdas that themselves refer
         // to events.
-        register_body__CPP(body, 0, hash, {}, nullptr);
+        register_body__CPP(name, body, 0, hash, {}, nullptr);
 }
 
 void register_scripts__CPP(p_hash_type h, void (*callback)()) {
@@ -92,20 +147,8 @@ void register_scripts__CPP(p_hash_type h, void (*callback)()) {
     standalone_callbacks[h] = callback;
 }
 
-// Updates "groups" with the event groups present in "cs".
-static void update_event_groups(const CompiledScript& cs, unordered_set<EventGroupPtr> groups) {
-    if ( ! cs.module_group.empty() ) {
-        auto er = event_registry->RegisterGroup(EventGroupKind::Module, cs.module_group);
-        groups.insert(std::move(er));
-    }
-
-    for ( const auto& g : cs.attr_groups ) {
-        auto er = event_registry->RegisterGroup(EventGroupKind::Attribute, g);
-        groups.insert(std::move(er));
-    }
-}
-
-void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t, vector<p_hash_type> hashes) {
+void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
+                          const vector<p_hash_type>& hashes) {
     auto ft = cast_intrusive<FuncType>(t);
     auto fg = lookup_ID(fn, module, false, false, false);
 
@@ -125,47 +168,44 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 
     auto v = fg->GetVal();
     if ( ! v ) { // Create it.
-        vector<StmtPtr> no_bodies;
-        vector<int> no_priorities;
-        auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
-
+        auto sf = make_intrusive<ScriptFunc>(fn, ft, std::vector<Func::Body>{});
         v = make_intrusive<FuncVal>(std::move(sf));
         fg->SetVal(v);
     }
 
     auto f = cast_intrusive<ScriptFunc>(v->AsFuncVal()->AsFuncPtr());
+    auto full_name = f->GetName(); // differs from fn in that it includes module
 
     // Events we need to register.
     unordered_set<string> events;
 
     if ( ft->Flavor() == FUNC_FLAVOR_EVENT )
-        events.insert(fn);
-
-    // Groups we need to add f to.
-    unordered_set<EventGroupPtr> groups;
+        events.insert(full_name);
 
     vector<detail::IDPtr> no_inits; // empty initialization vector
     int num_params = ft->Params()->NumFields();
 
     for ( auto h : hashes ) {
-        // Add in the new body.
         auto csi = compiled_standalone_scripts.find(h);
         ASSERT(csi != compiled_standalone_scripts.end());
         auto cs = csi->second;
 
-        f->AddBody(cs.body, no_inits, num_params, cs.priority);
-        added_bodies[fn].insert(h);
+        if ( ! added_bodies[full_name].contains(h) ) {
+            // Add in the new body.
+
+            auto groups = get_event_groups(cs);
+            f->AddBody({.stmts = cs.body, .groups = std::move(groups), .priority = cs.priority}, {}, num_params);
+            added_bodies[full_name].insert(h);
+        }
 
         events.insert(cs.events.begin(), cs.events.end());
 
-        update_event_groups(cs, groups);
+        for ( auto& g : get_event_groups(cs) )
+            g->AddFunc(f);
     }
 
     for ( const auto& e : events )
         event_registry->Register(e);
-
-    for ( auto& g : groups )
-        g->AddFunc(f);
 }
 
 IDPtr lookup_global__CPP(const char* g, const TypePtr& t, const GlobalCharacteristics& gc) {
@@ -174,6 +214,7 @@ IDPtr lookup_global__CPP(const char* g, const TypePtr& t, const GlobalCharacteri
     if ( ! gl ) {
         gl = install_ID(g, GLOBAL_MODULE_NAME, true, gc.is_exported);
         gl->SetType(t);
+        zeekygen_mgr->Identifier(gl);
 
         if ( gc.is_const )
             gl->SetConst();
@@ -196,7 +237,7 @@ Func* lookup_bif__CPP(const char* bif) {
     return (b && b->GetVal()) ? b->GetVal()->AsFunc() : nullptr;
 }
 
-FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> hashes, const TypePtr& t) {
+FuncValPtr lookup_func__CPP(string name, int num_bodies, const vector<p_hash_type>& hashes, const TypePtr& t) {
     auto ft = cast_intrusive<FuncType>(t);
 
     if ( static_cast<int>(hashes.size()) < num_bodies ) {
@@ -217,7 +258,7 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         return cast_intrusive<FuncVal>(v);
     }
 
-    vector<StmtPtr> bodies;
+    vector<Func::Body> bodies;
     vector<int> priorities;
     unordered_set<EventGroupPtr> groups;
 
@@ -230,8 +271,6 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         }
 
         const auto& f = cs->second;
-        bodies.emplace_back(f.body);
-        priorities.push_back(f.priority);
 
         // This might register the same event more than once,
         // if it's used in multiple bodies, but that's okay as
@@ -239,10 +278,14 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         for ( auto& e : f.events )
             event_registry->Register(e);
 
-        update_event_groups(f, groups);
+        auto e_g = get_event_groups(f);
+        for ( auto& g : e_g )
+            groups.insert(g);
+
+        bodies.emplace_back(Func::Body{.stmts = f.body, .groups = std::move(e_g), .priority = f.priority});
     }
 
-    auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies), std::move(priorities));
+    auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies));
 
     for ( auto& g : groups )
         g->AddFunc(sf);

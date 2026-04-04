@@ -1,5 +1,5 @@
 # @TEST-DOC: Check optional end_of_match parameter for signature_match() and custom events.
-# @TEST-EXEC: zeek -b %INPUT -r $TRACES/http/get.trace
+# @TEST-EXEC: zeek -b %INPUT -r $TRACES/http/get.pcap
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 

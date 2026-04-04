@@ -13,10 +13,10 @@ Summary
 Redefinitions
 #############
 ============================================================= ====================================================
-:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                              
+:zeek:type:`fa_file`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                               :New Fields: :zeek:type:`fa_file`
-                                                              
+
                                                                 ftp: :zeek:type:`FTP::Info` :zeek:attr:`&optional`
 ============================================================= ====================================================
 

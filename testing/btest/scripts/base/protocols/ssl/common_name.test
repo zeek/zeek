@@ -1,6 +1,6 @@
 # This tests a normal SSL connection and the log it outputs.
 
-# @TEST-EXEC: zeek -b -r $TRACES/tls/tls-conn-with-extensions.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/tls-conn-with-extensions.pcap %INPUT
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/cert-no-cn.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 

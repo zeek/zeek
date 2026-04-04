@@ -1,5 +1,5 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=1 >get.out
-# @TEST-EXEC: zeek -b -r $TRACES/http/get-gzip.trace $SCRIPTS/file-analysis-test.zeek %INPUT c=2 >get-gzip.out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap $SCRIPTS/file-analysis-test.zeek %INPUT c=1 >get.out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get-gzip.pcap $SCRIPTS/file-analysis-test.zeek %INPUT c=2 >get-gzip.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: btest-diff get-gzip.out
 # @TEST-EXEC: btest-diff --binary 1-file

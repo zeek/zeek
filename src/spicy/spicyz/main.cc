@@ -119,12 +119,12 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 break;
             }
 
-            case 'p': std::cout << configuration::InstallPrefix.native() << std::endl; return Nothing();
+            case 'p': std::cout << configuration::InstallPrefix.native() << '\n'; return Nothing();
 
             case 'P':
                 // For backwards compatibility with older plugins, print
                 // the path where the `cmake/` folder is located.
-                std::cout << configuration::DataPath().native() << std::endl;
+                std::cout << configuration::DataPath().native() << '\n';
                 return Nothing();
 
             case 'x':
@@ -135,7 +135,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 compiler_options->cxx_namespace_extern =
                     hilti::util::fmt("hlt_%s", hilti::rt::filesystem::path(optarg).stem().string());
                 compiler_options->cxx_namespace_intern =
-                    hilti::util::fmt("__hlt_%s", hilti::rt::filesystem::path(optarg).stem().string());
+                    hilti::util::fmt("hlt_internal_%s", hilti::rt::filesystem::path(optarg).stem().string());
                 break;
 
             case 'X': {
@@ -182,28 +182,28 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
 
             case 'L': compiler_options->library_paths.emplace_back(std::string(optarg)); break;
 
-            case 'M': std::cout << configuration::ModulePath().native() << std::endl; return Nothing();
+            case 'M': std::cout << configuration::ModulePath().native() << '\n'; return Nothing();
 
             case 'o': driver_options->output_path = std::string(optarg); break;
 
             case 'R': driver_options->report_times = true; break;
 
-            case 'S': std::cout << "" << std::endl; return Nothing(); // No longer needed, but left for compatibility.
+            case 'S': std::cout << "" << '\n'; return Nothing(); // No longer needed, but left for compatibility.
 
             case 'T':
                 driver_options->keep_tmps = true;
                 compiler_options->keep_tmps = true;
                 break;
 
-            case 'v': std::cout << configuration::ZeekVersionString() << std::endl; return Nothing();
+            case 'v': std::cout << configuration::ZeekVersionString() << '\n'; return Nothing();
 
-            case 'V': std::cout << configuration::ZeekVersionNumber() << std::endl; return Nothing();
+            case 'V': std::cout << configuration::ZeekVersionNumber() << '\n'; return Nothing();
 
             case 'z': {
                 if ( auto zcfg = getenv("ZEEK_CONFIG"); zcfg && *zcfg )
-                    std::cout << zcfg << std::endl;
+                    std::cout << zcfg << '\n';
                 else
-                    std::cout << configuration::InstallBinDir().native() << std::endl;
+                    std::cout << configuration::InstallBinDir().native() << '\n';
 
                 return Nothing();
             }

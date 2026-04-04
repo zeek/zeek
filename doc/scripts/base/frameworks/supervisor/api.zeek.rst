@@ -235,12 +235,12 @@ Events
    A notification event the Supervisor generates when it receives a
    status message update from the stem, indicating node has
    (re-)started.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
          child process the stdout line is associated.
-   
+
 
    :param pid: the process ID the stem reported for this node.
 
@@ -254,7 +254,7 @@ Hooks
    Hooks into the stderr stream for all supervisor's child processes.
    If a hook terminates with ``break``, that will suppress output to the
    associated stream.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
@@ -262,7 +262,7 @@ Hooks
          A empty value is used to indicate the message
          came from the internal supervisor stem process.
          (this should typically never happen).
-   
+
 
    :param msg: line-buffered contents from the stderr of a child process.
 
@@ -274,7 +274,7 @@ Hooks
    Hooks into the stdout stream for all supervisor's child processes.
    If a hook terminates with ``break``, that will suppress output to the
    associated stream.
-   
+
 
    :param node: the name of a previously created node via
          :zeek:see:`Supervisor::create` indicating to which
@@ -282,43 +282,43 @@ Hooks
          An empty value is used to indicate the message
          came from the internal supervisor stem process
          (this should typically never happen).
-   
+
 
    :param msg: line-buffered contents from the stdout of a child process.
 
 Functions
 #########
 .. zeek:id:: Supervisor::create
-   :source-code: base/frameworks/supervisor/main.zeek 12 15
+   :source-code: base/frameworks/supervisor/main.zeek 14 17
 
    :Type: :zeek:type:`function` (node: :zeek:type:`Supervisor::NodeConfig`) : :zeek:type:`string`
 
    Create a new supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the desired configuration for the new supervised node process.
-   
+
 
    :returns: an empty string on success or description of the error/failure.
 
 .. zeek:id:: Supervisor::destroy
-   :source-code: base/frameworks/supervisor/main.zeek 17 20
+   :source-code: base/frameworks/supervisor/main.zeek 19 22
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Destroy and remove a supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to destroy or an empty string to mean
          "all nodes".
-   
+
 
    :returns: true on success.
 
 .. zeek:id:: Supervisor::is_supervised
-   :source-code: base/frameworks/supervisor/main.zeek 32 35
+   :source-code: base/frameworks/supervisor/main.zeek 34 37
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -326,7 +326,7 @@ Functions
    :returns: true if this is a supervised node process.
 
 .. zeek:id:: Supervisor::is_supervisor
-   :source-code: base/frameworks/supervisor/main.zeek 27 30
+   :source-code: base/frameworks/supervisor/main.zeek 29 32
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -334,7 +334,7 @@ Functions
    :returns: true if this is the Supervisor process.
 
 .. zeek:id:: Supervisor::node
-   :source-code: base/frameworks/supervisor/main.zeek 37 40
+   :source-code: base/frameworks/supervisor/main.zeek 39 42
 
    :Type: :zeek:type:`function` () : :zeek:type:`Supervisor::NodeConfig`
 
@@ -344,33 +344,33 @@ Functions
             a supervised one.
 
 .. zeek:id:: Supervisor::restart
-   :source-code: base/frameworks/supervisor/main.zeek 22 25
+   :source-code: base/frameworks/supervisor/main.zeek 24 27
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Restart a supervised node process by destroying (killing) and
    re-recreating it.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to restart or an empty string to mean
          "all nodes".
-   
+
 
    :returns: true on success.
 
 .. zeek:id:: Supervisor::status
-   :source-code: base/frameworks/supervisor/main.zeek 7 10
+   :source-code: base/frameworks/supervisor/main.zeek 9 12
 
    :Type: :zeek:type:`function` (node: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`Supervisor::Status`
 
    Retrieve current status of a supervised node process.
    It's an error to call this from a process other than a Supervisor.
-   
+
 
    :param node: the name of the node to get the status of or an empty string
          to mean "all nodes".
-   
+
 
    :returns: the current status of a set of nodes.
 

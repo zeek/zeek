@@ -1,8 +1,10 @@
 
 module XMPP;
 
-const ports = { 5222/tcp, 5269/tcp };
-redef likely_server_ports += { ports };
+export {
+	## Well-known ports for XMPP.
+	const ports = { 5222/tcp, 5269/tcp } &redef;
+}
 
 event zeek_init() &priority=5
 	{

@@ -3,7 +3,7 @@
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -NN Demo::Foo  >>output
 # @TEST-EXEC: echo === >>output
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/ipv4.trace %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/ipv4.pcap %INPUT >>output
 # @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.orig_p id.resp_h id.resp_p id.ctx.inits id.inits proto service orig_pkts resp_pkts < conn.log > conn.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut
 # @TEST-EXEC: btest-diff output

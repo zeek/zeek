@@ -20,39 +20,41 @@ Runtime Options
 Redefinable Options
 ###################
 ================================================================================== ==============================================================
+:zeek:id:`QUIC::doq_ports`: :zeek:type:`set` :zeek:attr:`&redef`                   Well-known ports for DNS-over-QUIC.
 :zeek:id:`QUIC::max_discarded_packet_events`: :zeek:type:`int` :zeek:attr:`&redef` Maximum number of QUIC::discarded packet() events to generate.
+:zeek:id:`QUIC::quic_ports`: :zeek:type:`set` :zeek:attr:`&redef`                  Well-known ports for QUIC.
 ================================================================================== ==============================================================
 
 Types
 #####
 ============================================ =
-:zeek:type:`QUIC::Info`: :zeek:type:`record` 
+:zeek:type:`QUIC::Info`: :zeek:type:`record`
 ============================================ =
 
 Redefinitions
 #############
 ============================================ ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`QUIC::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                quic: :zeek:type:`QUIC::Info` :zeek:attr:`&optional`
 ============================================ ======================================================
 
 Events
 ######
 ============================================= =
-:zeek:id:`QUIC::log_quic`: :zeek:type:`event` 
+:zeek:id:`QUIC::log_quic`: :zeek:type:`event`
 ============================================= =
 
 Hooks
 #####
 ============================================================== =
-:zeek:id:`QUIC::finalize_quic`: :zeek:type:`Conn::RemovalHook` 
-:zeek:id:`QUIC::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`QUIC::finalize_quic`: :zeek:type:`Conn::RemovalHook`
+:zeek:id:`QUIC::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =
 
 
@@ -61,7 +63,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: QUIC::max_history_length
-   :source-code: base/protocols/quic/main.zeek 80 80
+   :source-code: base/protocols/quic/main.zeek 101 101
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -71,8 +73,34 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: QUIC::doq_ports
+   :source-code: base/protocols/quic/main.zeek 28 28
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            784/udp,
+            853/udp
+         }
+
+
+   Well-known ports for DNS-over-QUIC.
+
+   Currently not added to likely_server_ports to avoid spurious
+   originator/responder changes in the private testing baseline.
+
+   You can always add these to likely_server_ports in your local.zeek
+   file for your environment if needed:
+
+   	redef likely_server_ports += { 853/udp, 784/udp };
+
+
 .. zeek:id:: QUIC::max_discarded_packet_events
-   :source-code: base/protocols/quic/main.zeek 84 84
+   :source-code: base/protocols/quic/main.zeek 105 105
 
    :Type: :zeek:type:`int`
    :Attributes: :zeek:attr:`&redef`
@@ -81,10 +109,26 @@ Redefinable Options
    Maximum number of QUIC::discarded packet() events to generate.
    Set to 0 for unlimited, -1 for disabled.
 
+.. zeek:id:: QUIC::quic_ports
+   :source-code: base/protocols/quic/main.zeek 14 14
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            443/udp
+         }
+
+
+   Well-known ports for QUIC.
+
 Types
 #####
 .. zeek:type:: QUIC::Info
-   :source-code: base/protocols/quic/main.zeek 13 71
+   :source-code: base/protocols/quic/main.zeek 33 92
 
    :Type: :zeek:type:`record`
 
@@ -145,10 +189,10 @@ Types
    .. zeek:field:: history :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
 
       QUIC history.
-      
+
       Letters have the following meaning with client-sent
       letters being capitalized:
-      
+
       ======  ====================================================
       Letter  Meaning
       ======  ====================================================
@@ -159,7 +203,8 @@ Types
       C       CONNECTION_CLOSE packet
       S       SSL Client/Server Hello
       U       Unfamiliar QUIC version
-      X       Discarded packet after successful decryption of INITIAL packets.
+      X       Discarded packet after successful decryption of INITIAL packets
+      O       Short header packets in binary logarithmic fashion
       ======  ====================================================
 
 
@@ -173,7 +218,7 @@ Types
 Events
 ######
 .. zeek:id:: QUIC::log_quic
-   :source-code: base/protocols/quic/main.zeek 73 73
+   :source-code: base/protocols/quic/main.zeek 94 94
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`QUIC::Info`)
 
@@ -181,13 +226,13 @@ Events
 Hooks
 #####
 .. zeek:id:: QUIC::finalize_quic
-   :source-code: base/protocols/quic/main.zeek 246 252
+   :source-code: base/protocols/quic/main.zeek 276 282
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
 
 .. zeek:id:: QUIC::log_policy
-   :source-code: base/protocols/quic/main.zeek 75 75
+   :source-code: base/protocols/quic/main.zeek 96 96
 
    :Type: :zeek:type:`Log::PolicyHook`
 

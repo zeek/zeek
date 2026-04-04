@@ -36,15 +36,15 @@ Types
 Redefinitions
 #############
 ======================================= =========================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`Intel::LOG`
 ======================================= =========================
 
 Events
 ######
 =============================================== ==================================================================
-:zeek:id:`Intel::log_intel`: :zeek:type:`event` 
+:zeek:id:`Intel::log_intel`: :zeek:type:`event`
 :zeek:id:`Intel::match`: :zeek:type:`event`     Event to represent a match in the intelligence data from data that
                                                 was seen.
 =============================================== ==================================================================
@@ -61,7 +61,7 @@ Hooks
 :zeek:id:`Intel::indicator_removed`: :zeek:type:`hook`     This hook is invoked when an indicator has been removed from
                                                            the min data store.
 :zeek:id:`Intel::item_expired`: :zeek:type:`hook`          This hook can be used to handle expiration of intelligence items.
-:zeek:id:`Intel::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Intel::log_policy`: :zeek:type:`Log::PolicyHook`
 :zeek:id:`Intel::seen_policy`: :zeek:type:`hook`           Hook to modify and intercept :zeek:see:`Intel::seen` behavior.
 ========================================================== =======================================================================
 
@@ -587,10 +587,10 @@ Events
    was seen. On clusters there is no assurance as to when this event
    will be generated so do not assume that arbitrary global state beyond
    the given data will be available.
-   
+
    This is the primary mechanism where a user may take actions based on
    data provided by the intelligence framework.
-   
+
    .. zeek::see:: Intel::seen_policy
 
 Hooks
@@ -603,16 +603,16 @@ Hooks
    This hook can be used to influence the logging of intelligence hits
    (e.g. by adding data to the Info record). The default information is
    added with a priority of 5.
-   
+
 
    :param info: The Info record that will be logged.
-   
+
 
    :param s: Information about the data seen.
-   
+
 
    :param items: The intel items that match the seen data.
-   
+
    In case the hook execution is terminated using break, the match will
    not be logged.
 
@@ -625,7 +625,7 @@ Hooks
    inserted into the internal data store. In case the hook execution is
    terminated using break, the item will not be (re)added to the internal
    data store.
-   
+
 
    :param item: The intel item that should be inserted.
 
@@ -636,19 +636,19 @@ Hooks
 
    This hook is invoked when a new indicator has been inserted into
    the min data store for the first time.
-   
+
    Calls to :zeek:see:`Intel::seen` with a matching indicator value
    and type will result in matches.
-   
+
    Subsequent inserts of the same indicator type and value do not
    invoke this hook. Breaking from this hook has no effect.
-   
+
 
    :param indicator: The indicator value.
-   
+
 
    :param indicator_type: The indicator type.
-   
+
    .. zeek::see:: Intel::indicator_removed
 
 .. zeek:id:: Intel::indicator_removed
@@ -658,16 +658,16 @@ Hooks
 
    This hook is invoked when an indicator has been removed from
    the min data store.
-   
+
    After this hooks runs, :zeek:see:`Intel::seen` for the indicator
    will not return any matches. Breaking from this hook has no effect.
-   
+
 
    :param indicator: The indicator value.
-   
+
 
    :param indicator_type: The indicator type.
-   
+
    .. zeek::see:: Intel::indicator_inserted
 
 .. zeek:id:: Intel::item_expired
@@ -676,16 +676,16 @@ Hooks
    :Type: :zeek:type:`hook` (indicator: :zeek:type:`string`, indicator_type: :zeek:type:`Intel::Type`, metas: :zeek:type:`set` [:zeek:type:`Intel::MetaData`]) : :zeek:type:`bool`
 
    This hook can be used to handle expiration of intelligence items.
-   
+
 
    :param indicator: The indicator of the expired item.
-   
+
 
    :param indicator_type: The indicator type of the expired item.
-   
+
 
    :param metas: The set of metadata describing the expired item.
-   
+
    If all hook handlers are executed, the expiration timeout will be reset.
    Otherwise, if one of the handlers terminates using break, the item will
    be removed.
@@ -702,25 +702,25 @@ Hooks
    :Type: :zeek:type:`hook` (s: :zeek:type:`Intel::Seen`, found: :zeek:type:`bool`) : :zeek:type:`bool`
 
    Hook to modify and intercept :zeek:see:`Intel::seen` behavior.
-   
+
    This hook is invoked after the Intel datastore was searched for
    a given :zeek:see:`Intel::Seen` instance. If a matching entry was
    found, the *found* argument is set to ``T``, else ``F``.
-   
+
    Breaking from this hook suppresses :zeek:see:`Intel::match`
    event generation and any subsequent logging.
-   
+
    Note that this hook only runs on the Zeek node where :zeek:see:`Intel::seen`
    is invoked. In a cluster configuration that is usually on the worker nodes.
    This is in contrast to :zeek:see:`Intel::match` that usually runs
    centrally on the the manager node instead.
-   
+
 
    :param s: The :zeek:see:`Intel::Seen` instance passed to the :zeek:see:`Intel::seen` function.
-   
+
 
    :param found: ``T`` if Intel datastore contained *s*, else ``F``.
-   
+
    .. zeek::see:: Intel::match
 
 Functions

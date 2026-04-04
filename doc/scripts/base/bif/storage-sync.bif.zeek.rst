@@ -14,11 +14,11 @@ Summary
 Functions
 #########
 ================================================================ =
-:zeek:id:`Storage::Sync::__close_backend`: :zeek:type:`function` 
-:zeek:id:`Storage::Sync::__erase`: :zeek:type:`function`         
-:zeek:id:`Storage::Sync::__get`: :zeek:type:`function`           
-:zeek:id:`Storage::Sync::__open_backend`: :zeek:type:`function`  
-:zeek:id:`Storage::Sync::__put`: :zeek:type:`function`           
+:zeek:id:`Storage::Sync::__close_backend`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__erase`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__get`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__open_backend`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__put`: :zeek:type:`function`
 ================================================================ =
 
 

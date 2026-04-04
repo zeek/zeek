@@ -1,6 +1,6 @@
 # @TEST-DOC: Calling Log::delay() during the post delay callback()
 #
-# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.trace test.zeek %INPUT
+# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

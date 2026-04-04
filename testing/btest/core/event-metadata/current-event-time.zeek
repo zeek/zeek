@@ -1,7 +1,7 @@
 # @TEST-DOC: Check current_event_time() produces the same as event metadata, or else -1.0
 #
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT EventMetadata::add_network_timestamp=T >> output 2>&1
-# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT EventMetadata::add_network_timestamp=F >> output 2>&1
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap %INPUT EventMetadata::add_network_timestamp=T >> output 2>&1
+# @TEST-EXEC: zeek -r $TRACES/http/get.pcap %INPUT EventMetadata::add_network_timestamp=F >> output 2>&1
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
 

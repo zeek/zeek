@@ -1,0 +1,2 @@
+#fields	indicator	indicator_type	meta.source
+www.reddit.com	Intel::DOMAIN	my_special_source

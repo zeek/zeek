@@ -27,26 +27,26 @@ Types
 Redefinitions
 #############
 =========================================================================================== ==============================================================================================================
-:zeek:type:`Management::Request::Request`: :zeek:type:`record`                              
-                                                                                            
+:zeek:type:`Management::Request::Request`: :zeek:type:`record`
+
                                                                                             :New Fields: :zeek:type:`Management::Request::Request`
-                                                                                            
+
                                                                                               supervisor_state_agent: :zeek:type:`Management::Agent::Runtime::SupervisorState` :zeek:attr:`&optional`
-                                                                                            
+
                                                                                               deploy_state_agent: :zeek:type:`Management::Agent::Runtime::DeployState` :zeek:attr:`&optional`
-                                                                                            
+
                                                                                               node_dispatch_state_agent: :zeek:type:`Management::Agent::Runtime::NodeDispatchState` :zeek:attr:`&optional`
-                                                                                            
+
                                                                                               restart_state_agent: :zeek:type:`Management::Agent::Runtime::RestartState` :zeek:attr:`&optional`
-:zeek:id:`Management::Request::timeout_interval`: :zeek:type:`interval` :zeek:attr:`&redef` 
-:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef`              
-:zeek:id:`table_expire_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                 
+:zeek:id:`Management::Request::timeout_interval`: :zeek:type:`interval` :zeek:attr:`&redef`
+:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef`
+:zeek:id:`table_expire_interval`: :zeek:type:`interval` :zeek:attr:`&redef`
 =========================================================================================== ==============================================================================================================
 
 Events
 ######
 =============================================================================== =
-:zeek:id:`Management::Agent::Runtime::trigger_log_archival`: :zeek:type:`event` 
+:zeek:id:`Management::Agent::Runtime::trigger_log_archival`: :zeek:type:`event`
 =============================================================================== =
 
 

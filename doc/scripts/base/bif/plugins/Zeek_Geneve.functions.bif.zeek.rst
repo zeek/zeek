@@ -27,10 +27,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`geneve_options_vec_vec`
 
    Returns all Geneve options from all layers of the current packet.
-   
+
    The last entry in the outer vector are the options of the most
    inner Geneve header.
-   
+
    Returns a vector of vector of :zeek:see:`PacketAnalyzer::Geneve::Option` records.
 
 

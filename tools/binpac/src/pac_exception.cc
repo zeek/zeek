@@ -6,7 +6,7 @@
 #include "pac_id.h"
 #include "pac_utils.h"
 
-Exception::Exception(const Object* o, string msg) {
+Exception::Exception(const Object* o, const string& msg) {
     if ( o ) {
         msg_ = o->Location();
         msg_ += ": error : ";
@@ -45,7 +45,7 @@ ExceptionCyclicDependence::ExceptionCyclicDependence(const ID* id) : Exception(i
     append(strfmt("cyclic dependence through `%s'", id_->Name()));
 }
 
-ExceptionPaddingError::ExceptionPaddingError(const Object* o, string msg) : Exception(o) { append(msg.c_str()); }
+ExceptionPaddingError::ExceptionPaddingError(const Object* o, const string& msg) : Exception(o) { append(msg); }
 
 ExceptionNonConstExpr::ExceptionNonConstExpr(const Expr* expr) : Exception(expr), expr(expr) {
     append(strfmt("Expression `%s' is not constant", expr->orig()));

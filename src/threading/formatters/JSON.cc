@@ -13,10 +13,48 @@
 #include <cerrno>
 #include <cmath>
 #include <cstdint>
+#include <ctime>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
 #include "zeek/threading/formatters/detail/json.h"
+
+namespace {
+
+// Windows gmtime_r (via gmtime_s) rejects negative time_t values.
+// Work around this by adding full 400-year Gregorian cycles to make
+// the value non-negative, converting, then adjusting the year back.
+// 400 Gregorian years = 146097 days (accounts for leap-year rules).
+bool safe_gmtime(time_t ts, struct tm* result) {
+    if ( gmtime_r(&ts, result) )
+        return true;
+
+#ifdef _MSC_VER
+    if ( ts >= 0 )
+        return false;
+
+    constexpr int64_t kCycleYears = 400;
+    constexpr int64_t kCycleSeconds = 146097LL * 86400LL;
+
+    int cycles = 0;
+    auto adjusted = static_cast<int64_t>(ts);
+    while ( adjusted < 0 ) {
+        adjusted += kCycleSeconds;
+        ++cycles;
+    }
+
+    auto pos = static_cast<time_t>(adjusted);
+    if ( ! gmtime_r(&pos, result) )
+        return false;
+
+    result->tm_year -= static_cast<int>(cycles * kCycleYears);
+    return true;
+#else
+    return false;
+#endif
+}
+
+} // namespace
 
 namespace zeek::threading::formatter {
 
@@ -95,10 +133,10 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
             if ( timestamps == TS_ISO8601 ) {
                 char buffer[40];
                 char buffer2[48];
-                time_t the_time = time_t(floor(val->val.double_val));
+                time_t the_time = static_cast<time_t>(floor(val->val.double_val));
                 struct tm t;
 
-                if ( ! gmtime_r(&the_time, &t) || ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) ) {
+                if ( ! safe_gmtime(the_time, &t) || ! strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &t) ) {
                     GetThread()->Error(
                         GetThread()->Fmt("json formatter: failure getting time: (%lf)", val->val.double_val));
                     // This was a failure, doesn't really matter what gets put here
@@ -122,7 +160,7 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
 
             else if ( timestamps == TS_MILLIS ) {
                 // ElasticSearch uses milliseconds for timestamps
-                writer.Int64((int64_t)(val->val.double_val * 1000));
+                writer.Int64(static_cast<int64_t>(val->val.double_val * 1000));
             }
             else if ( timestamps == TS_MILLIS_UNSIGNED ) {
                 // Without the cast through int64_t the resulting
@@ -144,7 +182,8 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
         case TYPE_STRING:
         case TYPE_FILE:
         case TYPE_FUNC: {
-            writer.String(util::json_escape_utf8(std::string(val->val.string_val.data, val->val.string_val.length)));
+            writer.String(util::escape_utf8({val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)},
+                                            util::ESCAPE_NONE));
             break;
         }
 

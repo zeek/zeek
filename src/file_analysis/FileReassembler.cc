@@ -123,29 +123,29 @@ TEST_CASE("file reassembler") {
         r->NewBlock(0.0, 0xfffffffffffffff3, 15, data);
 
         // 0xfffffffffffffff3 through 0xffffffffffffffff
-        CHECK_EQ(r->TotalSize(), 12);
+        CHECK_EQ(r->TotalSize(), 12u);
 
         // This previously hung with an endless loop.
         r->Flush();
         CHECK_FALSE(r->HasBlocks());
-        CHECK_EQ(r->TotalSize(), 0);
+        CHECK_EQ(r->TotalSize(), 0u);
     }
 
     SUBCASE("reject NewBlock() at 64 bit limit") {
         r->NewBlock(0.0, 0xffffffffffffffff, 4, data);
         CHECK_FALSE(r->HasBlocks());
-        CHECK_EQ(r->TotalSize(), 0);
+        CHECK_EQ(r->TotalSize(), 0u);
     }
 
     SUBCASE("truncate NewBlock() to upper 64 bit limit") {
         r->NewBlock(0.0, 0xfffffffffffffffa, 8, data);
         CHECK(r->HasBlocks());
-        CHECK_EQ(r->TotalSize(), 5);
+        CHECK_EQ(r->TotalSize(), 5u);
     }
 
     SUBCASE("no truncation") {
         r->NewBlock(0.0, 0xfffffffffffffff7, 8, data);
         CHECK(r->HasBlocks());
-        CHECK_EQ(r->TotalSize(), 8);
+        CHECK_EQ(r->TotalSize(), 8u);
     }
 }

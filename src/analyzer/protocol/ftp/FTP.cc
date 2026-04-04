@@ -176,7 +176,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             }
         }
 
-        if ( reply_code == 234 && auth_requested.size() > 0 && auth_requested == "TLS" ) {
+        if ( reply_code == 234 && ! auth_requested.empty() && auth_requested == "TLS" ) {
             EnqueueConnEvent(ftp_starttls, ConnVal());
             Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
             if ( ssl ) {
@@ -187,7 +187,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             }
         }
 
-        if ( reply_code == 334 && auth_requested.size() > 0 && auth_requested == "GSSAPI" ) {
+        if ( reply_code == 334 && ! auth_requested.empty() && auth_requested == "GSSAPI" ) {
             // Server wants to proceed with an ADAT exchange and we
             // know how to analyze the GSI mechanism, so attach analyzer
             // to look for that.

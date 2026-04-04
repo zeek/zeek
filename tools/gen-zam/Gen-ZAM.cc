@@ -11,9 +11,14 @@
 using namespace std;
 
 // Helper functions to convert dashes to underscores or vice versa.
-static char dash_to_under(char c) { return c == '-' ? '_' : c; }
+static char dash_to_under_func(char c) { return c == '-' ? '_' : c; }
+static char under_to_dash_func(char c) { return c == '_' ? '-' : c; }
 
-static char under_to_dash(char c) { return c == '_' ? '-' : c; }
+static void dash_to_under(string& s) { transform(s.begin(), s.end(), s.begin(), dash_to_under_func); }
+static void under_to_dash(string& s) { transform(s.begin(), s.end(), s.begin(), under_to_dash_func); }
+
+static void to_lower(string& s) { transform(s.begin(), s.end(), s.begin(), ::tolower); }
+static void to_upper(string& s) { transform(s.begin(), s.end(), s.begin(), ::toupper); }
 
 // Structure for binding together Zeek script types, internal names Gen-ZAM
 // uses to track them, mnemonics for referring to them in instruction names,
@@ -187,10 +192,10 @@ void ArgsManager::Differentiate() {
 
 ZAM_OpTemplate::ZAM_OpTemplate(ZAMGen* _g, string _base_name) : g(_g), base_name(std::move(_base_name)) {
     // Make the base name viable in a C++ name.
-    transform(base_name.begin(), base_name.end(), base_name.begin(), dash_to_under);
+    dash_to_under(base_name);
 
     cname = base_name;
-    transform(cname.begin(), cname.end(), cname.begin(), ::toupper);
+    to_upper(cname);
 }
 
 void ZAM_OpTemplate::Build() {
@@ -421,6 +426,12 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
             SetAssignVal(words[1]);
     }
 
+    else if ( attr == "inverse" ) {
+        num_args = 1;
+        if ( words.size() > 1 )
+            SetInverseOp(words[1]);
+    }
+
     else if ( attr == "eval" ) {
         AddEval(g->SkipWords(line, 1));
 
@@ -591,10 +602,10 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix, co
     auto decls = MethodDeclare(oc, zc);
 
     EmitTo(MethodDecl);
-    Emit("const ZAMStmt " + m + suffix + "(" + decls + ");");
+    Emit("ZAMStmt " + m + suffix + "(" + decls + ");");
 
     EmitTo(MethodDef);
-    Emit("const ZAMStmt ZAMCompiler::" + m + suffix + "(" + decls + ")");
+    Emit("ZAMStmt ZAMCompiler::" + m + suffix + "(" + decls + ")");
     BeginBlock();
 
     InstantiateMethodCore(oc, suffix, zc);
@@ -641,6 +652,55 @@ void ZAM_OpTemplate::InstantiateMethodCore(const OCVec& oc, const string& suffix
 
     ArgsManager args(oc, zc);
     BuildInstruction(oc, args.Params(), full_suffix, zc);
+
+    const static string cast = "cast_intrusive<RecordType>(";
+    const static vector<string> track_method = {"TrackRecordTypeForField", "TrackRecordTypesForFields"};
+
+    int nparam = args.NumParams();
+    string track; // if it remains empty, that means "no tracking needed"
+
+    if ( zc == ZIC_FIELD ) {
+        assert(nparam >= static_cast<int>(oc.size()));
+
+        bool is_multi = oc.size() >= 4 && oc[1] == ZAM_OC_RECORD_FIELD;
+        track = "z." + track_method[is_multi ? 1 : 0] + "(" + cast;
+        track += args.NthParam(0) + "->GetType()), ";
+
+        if ( is_multi ) {
+            track += args.NthParam(2) + ", " + cast;
+            track += args.NthParam(1) + "->GetType()), " + args.NthParam(3) + " /* type 1 */";
+        }
+        else
+            track += args.NthParam(nparam - 1) + " /* type 2 */";
+    }
+
+    else if ( oc[0] == ZAM_OC_ASSIGN_FIELD ) {
+        track = "z." + track_method[nparam == 3 ? 0 : 1] + "(" + cast;
+        track += args.NthParam(0) + "->GetType()), ";
+
+        if ( nparam == 3 )
+            track += args.NthParam(2) + " /* type 3 */";
+        else {
+            assert(nparam == 4 || nparam == 5);
+            // See the comment in ZAMCompiler::CompileFieldLHSAssignExpr()
+            // for why the parameters here are out-of-order.
+            track += args.NthParam(nparam - 1) + ", ";
+            track += cast + args.NthParam(1) + "->GetType()), ";
+            track += args.NthParam(nparam - 2) + " /* type " + to_string(nparam) + " */";
+        }
+    }
+
+    else if ( oc[0] == ZAM_OC_RECORD_FIELD || oc[0] == ZAM_OC_ASSIGN_FIELD ||
+              (oc.size() > 1 && oc[1] == ZAM_OC_RECORD_FIELD) ) {
+        assert(nparam == 3);
+        track = "z." + track_method[0] + "(" + cast;
+        track += args.NthParam(1) + "->GetType()), " + args.NthParam(2) + "/* type 5 */";
+    }
+
+    if ( ! track.empty() ) {
+        track += ");";
+        Emit(track);
+    }
 
     auto& tp = GetTypeParam();
     if ( tp )
@@ -795,7 +855,7 @@ string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<s
 
         else if ( ! op_types.empty() && oc[i] == ZAM_OC_INT ) {
             if ( op_types[i] == ZAM_TYPE_UINT )
-                op = "zeek_uint_t(" + op + ")";
+                op = "static_cast<zeek_uint_t>(" + op + ")";
         }
 
         string pat;
@@ -1269,11 +1329,7 @@ void ZAM_ExprOpTemplate::InstantiateC1(const OCVec& ocs, size_t arity) {
 
     else if ( arity > 1 ) {
         args += ", ";
-
-        if ( ocs[2] == ZAM_OC_RECORD_FIELD )
-            args += "rhs->AsFieldExpr()->Field()";
-        else
-            args += "r2->AsNameExpr()";
+        args += "r2->AsNameExpr()";
     }
 
     auto m = MethodName(ocs);
@@ -2222,14 +2278,12 @@ void ZAMGen::GenMacros() {
 string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, ZAM_InstClass zc) {
     auto op = "OP_" + op_templ->CanonicalName() + suffix;
 
-    static unordered_set<string> known_opcodes;
-
-    if ( known_opcodes.count(op) > 0 )
+    if ( generated_opcodes.count(op) > 0 )
         // We've already done this one, don't re-define its auxiliary
         // information.
         return op;
 
-    known_opcodes.insert(op);
+    generated_opcodes.insert(op);
 
     IndentUp();
 
@@ -2248,11 +2302,24 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, Z
 
     // ... and the switch case that maps the enum to a string
     // representation.
-    auto name = op_templ->BaseName();
-    transform(name.begin(), name.end(), name.begin(), ::tolower);
+    auto name = op_templ->CanonicalName();
+    to_lower(name);
     name += suffix;
-    transform(name.begin(), name.end(), name.begin(), under_to_dash);
+    under_to_dash(name);
     Emit(OpName, "case " + op + ":\treturn \"" + name + "\";");
+
+    // Track inverse mapping if specified and if we're doing a conditional.
+    if ( zc == ZIC_COND && op_templ->HasInverseOp() ) {
+        auto inverse_name = op_templ->InverseOp();
+        dash_to_under(inverse_name);
+
+        auto inv_t = name_to_template.find(inverse_name);
+        if ( inv_t != name_to_template.end() ) {
+            // Generate the inverse opcode name with the same suffix.
+            auto inverse_op = "OP_" + inv_t->second->CanonicalName() + suffix;
+            inverse_mappings[op] = inverse_op;
+        }
+    }
 
     IndentDown();
 
@@ -2314,6 +2381,7 @@ void ZAMGen::InitEmitTargets() {
         {Op1Flavor, "ZAM-Op1FlavorsDefs.h"},
         {OpDef, "ZAM-OpsDefs.h"},
         {OpDesc, "ZAM-OpDesc.h"},
+        {OpInverse, "ZAM-OpInverses.h"},
         {OpName, "ZAM-OpsNamesDefs.h"},
         {OpSideEffects, "ZAM-OpSideEffects.h"},
         {VDef, "ZAM-GenExprsDefsV.h"},
@@ -2361,6 +2429,7 @@ void ZAMGen::InitSwitch(EmitTarget et, string desc) {
 
 void ZAMGen::CloseEmitTargets() {
     FinishSwitches();
+    GenInverseMappings();
 
     Emit(OpName, "// NOLINTEND(bugprone-branch-clone)");
     Emit(Eval, "// NOLINTEND(bugprone-branch-clone)");
@@ -2383,6 +2452,71 @@ void ZAMGen::FinishSwitches() {
         Emit(et, "}");
         Emit(et, "}");
     }
+}
+
+void ZAMGen::ValidateInverseOps() {
+    for ( const auto& [name, tmpl] : name_to_template ) {
+        if ( ! tmpl->HasInverseOp() )
+            continue;
+
+        auto inverse_name = tmpl->InverseOp();
+        dash_to_under(inverse_name);
+
+        auto inv_tmpl_iter = name_to_template.find(inverse_name);
+
+        if ( inv_tmpl_iter == name_to_template.end() ) {
+            fprintf(stderr, "error: operation \"%s\" specifies inverse \"%s\", but \"%s\" does not exist\n",
+                    name.c_str(), inverse_name.c_str(), inverse_name.c_str());
+            exit(1);
+        }
+
+        auto inv_tmpl = inv_tmpl_iter->second;
+
+        if ( ! inv_tmpl->HasInverseOp() )
+            continue;
+
+        auto inv_inverse = inv_tmpl->InverseOp();
+        dash_to_under(inv_inverse);
+
+        if ( inv_inverse != name ) {
+            fprintf(stderr,
+                    "error: operation \"%s\" specifies inverse \"%s\", "
+                    "but \"%s\" specifies inverse \"%s\" (expected \"%s\")\n",
+                    name.c_str(), inverse_name.c_str(), inverse_name.c_str(), inv_inverse.c_str(), name.c_str());
+            exit(1);
+        }
+    }
+}
+
+void ZAMGen::GenInverseMappings() {
+    // Look for conditional branches that have inverses and add them to our
+    // mappings. These will be *NOT_* op codes (representing the conceptual
+    // inverse) and also have 'b' in the name (indicating that they branch).
+    for ( const auto& op : generated_opcodes ) {
+        if ( op.find('b') == string::npos )
+            continue;
+
+        auto not_offset = op.find("NOT_");
+        if ( not_offset != string::npos ) {
+            // This is a *NOT_* opcode. Its inverse is the same name with
+            // "NOT_" removed.
+            auto inverse_op = op.substr(0, not_offset) + op.substr(not_offset + 4);
+            if ( generated_opcodes.contains(inverse_op) ) {
+                inverse_mappings[op] = inverse_op;
+                inverse_mappings[inverse_op] = op; // also add reverse mapping
+            }
+        }
+    }
+
+    ValidateInverseOps();
+
+    // Generate the switch cases for the inverse mapping function.
+    // We need to filter out inverse mappings where the target opcode
+    // doesn't actually exist (e.g., OP_LT_VVV_T -> OP_GE_VVV_T, but
+    // OP_GE_VVV_T doesn't exist because GE doesn't support type T).
+    for ( const auto& [op, inv_op] : inverse_mappings )
+        if ( generated_opcodes.contains(inv_op) )
+            Emit(OpInverse, "case " + op + ": return " + inv_op + ";");
 }
 
 bool ZAMGen::ParseTemplate() {
@@ -2423,32 +2557,32 @@ bool ZAMGen::ParseTemplate() {
     else if ( words.size() != 2 )
         args_mismatch = "templates take 1 argument";
 
-    unique_ptr<ZAM_OpTemplate> t;
+    shared_ptr<ZAM_OpTemplate> t;
 
     if ( op == "op" )
-        t = make_unique<ZAM_OpTemplate>(this, op_name);
+        t = make_shared<ZAM_OpTemplate>(this, op_name);
     else if ( op == "unary-op" )
-        t = make_unique<ZAM_UnaryOpTemplate>(this, op_name);
+        t = make_shared<ZAM_UnaryOpTemplate>(this, op_name);
     else if ( op == "direct-unary-op" && ! args_mismatch )
-        t = make_unique<ZAM_DirectUnaryOpTemplate>(this, op_name, words[2]);
+        t = make_shared<ZAM_DirectUnaryOpTemplate>(this, op_name, words[2]);
     else if ( op == "assign-op" )
-        t = make_unique<ZAM_AssignOpTemplate>(this, op_name);
+        t = make_shared<ZAM_AssignOpTemplate>(this, op_name);
     else if ( op == "expr-op" )
-        t = make_unique<ZAM_ExprOpTemplate>(this, op_name);
+        t = make_shared<ZAM_ExprOpTemplate>(this, op_name);
     else if ( op == "unary-expr-op" )
-        t = make_unique<ZAM_UnaryExprOpTemplate>(this, op_name);
+        t = make_shared<ZAM_UnaryExprOpTemplate>(this, op_name);
     else if ( op == "binary-expr-op" )
-        t = make_unique<ZAM_BinaryExprOpTemplate>(this, op_name);
+        t = make_shared<ZAM_BinaryExprOpTemplate>(this, op_name);
     else if ( op == "rel-expr-op" )
-        t = make_unique<ZAM_RelationalExprOpTemplate>(this, op_name);
+        t = make_shared<ZAM_RelationalExprOpTemplate>(this, op_name);
     else if ( op == "internal-op" )
-        t = make_unique<ZAM_InternalOpTemplate>(this, op_name);
+        t = make_shared<ZAM_InternalOpTemplate>(this, op_name);
     else if ( op == "predicate-op" ) {
-        t = make_unique<ZAM_InternalOpTemplate>(this, op_name);
+        t = make_shared<ZAM_InternalOpTemplate>(this, op_name);
         t->SetIsPredicate();
     }
     else if ( op == "internal-assignment-op" )
-        t = make_unique<ZAM_InternalAssignOpTemplate>(this, op_name);
+        t = make_shared<ZAM_InternalAssignOpTemplate>(this, op_name);
 
     else
         Gripe("bad template name", op);
@@ -2457,7 +2591,8 @@ bool ZAMGen::ParseTemplate() {
         Gripe(args_mismatch, line);
 
     t->Build();
-    templates.emplace_back(std::move(t));
+    name_to_template[t->BaseName()] = t;
+    templates.emplace_back(t);
 
     return true;
 }

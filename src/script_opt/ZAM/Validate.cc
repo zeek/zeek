@@ -24,8 +24,9 @@ std::vector<std::pair<string, string>> zam_macro_desc = {
 // for now we keep this form because it provides flexibility for
 // accommodating other forms of accessors.
 static std::map<char, string> type_pats = {
-    {'A', "Addr"},    {'a', "Any"},    {'D', "Double"}, {'F', "Func"},  {'I', "Int"},  {'L', "List"},  {'N', "SubNet"},
-    {'P', "Pattern"}, {'R', "Record"}, {'S', "String"}, {'T', "Table"}, {'t', "Type"}, {'U', "Count"}, {'V', "Vector"},
+    {'A', "Addr"},   {'a', "Any"},    {'D', "Double"}, {'F', "Func"},    {'I', "Int"},
+    {'L', "List"},   {'N', "SubNet"}, {'O', "Opaque"}, {'P', "Pattern"}, {'R', "Record"},
+    {'S', "String"}, {'T', "Table"},  {'t', "Type"},   {'U', "Count"},   {'V', "Vector"},
 };
 
 static int num_valid = 0;
@@ -100,7 +101,7 @@ void validate_ZAM_insts() {
     // The following primes a data structure we access.
     (void)AssignmentFlavor(OP_NOP, TYPE_VOID, false);
 
-    for ( int i = 0; i < int(OP_NOP); ++i ) {
+    for ( int i = 0; i < static_cast<int>(OP_NOP); ++i ) {
         auto zop = ZOp(i);
         if ( ! zam_inst_desc.contains(zop) && ! assignment_flavor.contains(zop) )
             reporter->InternalError("op %s missing from description", ZOP_name(zop));

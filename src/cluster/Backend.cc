@@ -169,6 +169,7 @@ bool Backend::Unsubscribe(const std::string& topic_prefix) {
     return DoUnsubscribe(topic_prefix);
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
     Backend::ReadyCallbackInfo info{Backend::CallbackStatus::Success};
     cb(info);
@@ -327,8 +328,8 @@ TEST_CASE("add metadata") {
         CHECK_EQ(event.Timestamp(), -1.0);
         CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
         CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(43.0)));
-        CHECK_EQ(event.Timestamp(), 42.0);     // finds the first one
-        CHECK_EQ(event.Metadata()->size(), 2); // both are stored
+        CHECK_EQ(event.Timestamp(), 42.0);      // finds the first one
+        CHECK_EQ(event.Metadata()->size(), 2u); // both are stored
     }
 
     SUBCASE("invalid-value-type") {

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <sstream>
 
 #include "zeek/3rdparty/bsd-getopt-long.h"
@@ -641,14 +642,14 @@ Options parse_cmdline(int argc, char** argv) {
         }
 
         // Need to translate relative path to absolute.
-        char cwd[PATH_MAX];
-
-        if ( ! getcwd(cwd, sizeof(cwd)) ) {
-            fprintf(stderr, "failed to get current directory: %s\n", strerror(errno));
+        std::error_code ec;
+        auto cwd = std::filesystem::current_path(ec);
+        if ( ec ) {
+            fprintf(stderr, "failed to get current directory: %s\n", ec.message().c_str());
             exit(1);
         }
 
-        *path = std::string(cwd) + "/" + *path;
+        *path = (cwd / *path).string();
     };
 
     if ( rval.supervisor_mode ) {

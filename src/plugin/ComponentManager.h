@@ -62,7 +62,7 @@ public:
      * @param tag A component's tag.
      * @return The canonical component name.
      */
-    const std::string& GetComponentName(zeek::Tag tag) const;
+    const std::string& GetComponentName(const zeek::Tag& tag) const;
 
     /**
      * Get a component name from it's enum value.
@@ -219,6 +219,8 @@ ComponentManager<C>::ComponentManager(const std::string& module, const std::stri
             zeek::detail::add_type(id.get(), parent_tag_enum_type, nullptr);
             zeek::detail::zeekygen_mgr->Identifier(std::move(id));
         }
+
+        tag_enum_type->SetParentType(parent_tag_enum_type);
     }
 }
 
@@ -244,7 +246,7 @@ const EnumTypePtr& ComponentManager<C>::GetTagType() const {
 }
 
 template<class C>
-const std::string& ComponentManager<C>::GetComponentName(zeek::Tag tag) const {
+const std::string& ComponentManager<C>::GetComponentName(const zeek::Tag& tag) const {
     static const std::string error = "<error>";
 
     if ( ! tag )
@@ -379,12 +381,12 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 
     // Install an identifier for enum value
     std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
-    tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true, nullptr);
+    tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true, nullptr, true);
 
     if ( parent_tag_enum_type ) {
         std::string parent_id = util::fmt("%s_%s", util::strtoupper(module).c_str(), id.c_str());
         parent_tag_enum_type->AddName(parent_module, parent_id.c_str(), component->Tag().AsVal()->InternalInt(), true,
-                                      nullptr);
+                                      nullptr, true);
     }
 }
 

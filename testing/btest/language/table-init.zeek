@@ -20,4 +20,10 @@ event zeek_init()
 
     # Catch regression where this used to crash.
     print table() &default=record($crash=F);
+
+    # Catch regression where this used to crash.
+    print table([4] = vector("1"), [5] = vector());
+
+    # Catch regression where this used to generate an error.
+    print table([4] = set("1"), [5] = set());
     }

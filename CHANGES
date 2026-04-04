@@ -1,3 +1,1769 @@
+8.2.0-dev.435 | 2026-04-02 18:34:27 +0000
+
+  * Fix size used to calloc() prefix in patricia.c (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule to disable c2y warnings (which breaks clang-22) (Tim Wojtulewicz, Corelight)
+
+  * Switch to using debian-unstable for weekly edge compiler builds (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.431 | 2026-04-02 09:51:20 +0200
+
+  * devel/cluster: Add Spawning a Cluster section (Arne Welzel, Corelight)
+
+8.2.0-dev.429 | 2026-04-01 13:47:57 -0700
+
+  * fix for ZAM compilation of constructors for tables with "any" yield values (Vern Paxson, Corelight)
+
+8.2.0-dev.427 | 2026-04-01 14:48:58 -0400
+
+  * GH-5236: Remove `util::fmt` call in triple VLAN tag (Evan Typanski, Corelight)
+
+    It is potentially expensive and probably don't need the data, they can
+    find their own vlans and comment on the ticket to support it ;) #5236
+
+  * Add a weird for QinQinQ (triple-tagged VLAN) (Evan Typanski, Corelight)
+
+    This is definitely possible, in fact sometimes intentional! But, it might
+    warrant more discussion to actually support it, so for now, triple-tagged
+    VLANs are just a weird. You can still get the information you need from
+    the additional string.
+
+  * GH-5105: Allow VLAN of 0 (Evan Typanski, Corelight)
+
+    Fixes #5105
+
+    A VLAN of 0 is valid, but Zeek was essentially ignoring them. This means
+    that the PCP/DEI bits wouldn't get set, and you'd have no way to tell
+    that it has a VLAN of 0. This makes it so that Zeek under the hood can
+    differentiate VLAN of 0 from the absence of a VLAN.
+
+    Note that this only changes script behavior slightly since any VLAN
+    fields were optional. The only change is now it gets sent ahead with the
+    VLAN of 0.
+
+8.2.0-dev.422 | 2026-04-01 19:09:59 +0200
+
+  * Spicy: Update integration for new HILTI string implementation. (Robin Sommer, Corelight)
+
+    This is a bit messy due to the need to explicitly convert between
+    string types. General rule of thumb is to (1) use `hilti::rt::String`
+    inside `src/spicy/` wherever strings come in from HILTI, (2) convert
+    them to `std::string` at the places where we call Zeek-side APIs that
+    take strings, and (3) occasionally use `std::string_view` in `src/spicy`
+    where it's safe and makes passing parameters easier.
+
+8.2.0-dev.420 | 2026-04-01 18:16:39 +0200
+
+  * GH-15269: fuzzer-setup: Switch order of Zeek and Fuzzer arguments around -- (Arne Welzel, Corelight)
+
+    Since commit google/oss-fuzz@b047915cd976d7057cd74a6e9cee5b6836e17d99,
+    OSS-Fuzz expects standalone fuzzers to use arguments after a -- as fuzzer
+    arguments. Previously, our own logic was the other way around:
+    Everything after -- was used as extra Zeek arguments. It doesn't really
+    matter so align to the OSS-Fuzz expectation.
+
+    Relates to google/oss-fuzz#15269
+
+8.2.0-dev.417 | 2026-03-31 13:34:34 -0700
+
+  * Fix signed/unsigned comparison warnings with new doctest (Tim Wojtulewicz, Corelight)
+
+  * Make KeyedHash and HashKey final (Tim Wojtulewicz, Corelight)
+
+    There shouldn't be inheritance of these and there aren't any virtual
+    methods.
+
+  * Rename HashKey::size to HashKey::key_size (Tim Wojtulewicz, Corelight)
+
+    This fixes a warning from the new version of doctest where it confuses
+    size and Size() and size().
+
+  * Update sqlite3 to 3.51.3 (Tim Wojtulewicz, Corelight)
+
+  * Update doctest to 2.5.0 (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.411 | 2026-03-31 08:56:04 -0700
+
+  * Update pygments dependency to newest version (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.409 | 2026-03-31 08:54:55 -0700
+
+  * Replace tm1t.pcap in docs (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.407 | 2026-03-31 08:20:49 -0400
+
+  * GH-5162: Deprecate `Weird::weird` (Evan Typanski, Corelight)
+
+    Closes #5162
+
+8.2.0-dev.405 | 2026-03-31 08:20:27 -0400
+
+  * GH-5091: Rewrite `doc/` README in markdown (Evan Typanski, Corelight)
+
+    Closes #5091
+
+8.2.0-dev.403 | 2026-03-30 13:11:42 -0700
+
+  * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)
+
+    Found and reported by @anthonyalayo, thanks!
+
+    Closes #5301
+
+8.2.0-dev.401 | 2026-03-30 11:06:46 -0700
+
+  * Bump versions of workflow actions (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.399 | 2026-03-27 18:59:53 +0100
+
+  * fix: pin 5 unpinned action(s) to commit SHA (dagecko)
+
+8.2.0-dev.397 | 2026-03-24 09:47:15 +0100
+
+  * GH-5273: Pass the payload length from IP analyzer if available (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.395 | 2026-03-19 17:49:25 +0100
+
+  * postgresql: Fix violation on empty ParameterStatus value (Arne Welzel, Corelight)
+
+    This was found while monitoring the PostgreSQL traffic produced by the
+    Greenhouse example app from the Loki fundamentals tutorial:
+
+    https://github.com/grafana/loki-fundamentals?tab=readme-ov-file#deploying-the-sample-application
+
+    The app uses an empty application name and that resulted in an analyzer violation:
+
+        error while parsing PostgreSQL: failed to match regular expression (<...>/protocol/postgresql/postgresql.spicy:278:12-278:25)
+
+8.2.0-dev.393 | 2026-03-18 11:04:15 +0100
+
+  * Add ML-KEM KEX support and related test files (Octave Charrin, Corelight)
+
+8.2.0-dev.391 | 2026-03-17 18:47:41 -0700
+
+  * added new BiF to ZAM's tracking of BiF properties (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization of accessing record fields of "const" globals (Vern Paxson, Corelight)
+
+8.2.0-dev.388 | 2026-03-16 11:16:25 +0100
+
+  * generate-docs: Fix git add for new structure (Arne Welzel, Corelight)
+
+    Fixup generate-docs job after 5055195bc8d0f4b60c0d7820182ad0ccc6e35303 moved
+    script-reference to reference/zeekscript.
+
+  * Bump zeekctl to fix test, take two (Arne Welzel, Corelight)
+
+    Didn't actually point the submodule to master :-(
+
+8.2.0-dev.385 | 2026-03-12 19:57:07 +0100
+
+  * Bump zeekctl to fix test (Arne Welzel, Corelight)
+
+8.2.0-dev.383 | 2026-03-12 11:40:13 -0700
+
+  * Doc redirects: updates to reflect the tutorial and outline revamp (Christian Kreibich, Corelight)
+
+8.2.0-dev.371 | 2026-03-12 13:09:21 -0400
+
+  * docs: Fix tabs in intel framework example (Evan Typanski)
+
+8.2.0-dev.369 | 2026-03-12 08:55:28 -0700
+
+  * Fix some std::move reports from Coverity (Tim Wojtulewicz, Corelight)
+
+  * Remove unused argument to Event::Dispatch (Tim Wojtulewicz, Corelight)
+
+    The variable was used in code that was removed in the 8.1 deprecations.
+
+8.2.0-dev.366 | 2026-03-12 08:55:01 -0700
+
+  * Rename pcapng traces to .pcapng suffix (Tim Wojtulewicz, Corelight)
+
+  * Rename all .trace files to .pcap in our Traces library (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.363 | 2026-03-11 17:22:06 -0700
+
+  * Docs revamp to introduce a Zeek tutorial for newcomers and simplify outline (Evan Typanski and Christian Kreibich, Corelight)
+
+8.2.0-dev.317 | 2026-03-11 18:02:04 +0100
+
+  * CI: Skip FreeBSD for PRs, too (Arne Welzel, Corelight)
+
+  * CI: Skip MacOS Sequoia for PRs (Arne Welzel, Corelight)
+
+8.2.0-dev.314 | 2026-03-11 12:01:47 +0100
+
+  * ssl: Fix pre_shared_key logic in tls-handshake-analyzer (Arne Welzel, Corelight)
+
+    It seems there was some confusion about client and server. The
+    OfferedPsks are parsed from a ClientHello record, so seems reasonable
+    to rename from proc_pre_shared_key_server_hello to
+    proc_pre_shared_key_client_hello and vice-versa to align with the events
+    that are actually enqueued. Also add a test.
+
+    Reported by @cccs-graeme on Slack.
+
+8.2.0-dev.310 | 2026-03-10 09:41:46 -0700
+
+  * Revert "Merge remote-tracking branch 'MP-Corelight/topic/mp-corelight/expand-plugin-info'" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 0c732d99f6f28fa52261744740f581135aefc54e, reversing
+    changes made to ba38f13cc4a415cac0f1ce9cbcbcff4790a5abe5.
+
+8.2.0-dev.309 | 2026-03-10 08:57:16 -0700
+
+  * [windows] fix build (Maor Hamami)
+
+8.2.0-dev.307 | 2026-03-10 08:56:33 -0700
+
+  * Fix line number in ZAM btest output for language.assert-hook (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.305 | 2026-03-10 08:56:14 -0700
+
+  * Fix broken shift operations in pcapng iosource (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.303 | 2026-03-09 22:00:45 -0700
+
+  * Fix test: Remove zeekygen.config requirement (Peter Cullen, Corelight)
+
+  * Disable zeekygen warnings by default (Peter Cullen, Corelight)
+
+8.2.0-dev.300 | 2026-03-09 21:53:01 -0700
+
+  * Update doc/redirects.yml to doc-redirects format [skip ci] (Christian Kreibich, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
+8.2.0-dev.297 | 2026-03-09 16:19:43 -0700
+
+  * nit: preferred output format (Mike Peters, Corelight)
+
+  * rationalize component implementation code (Mike Peters, Corelight)
+
+  * Add implementation and version fields to plugin/analyzer introspection (Mike Peters, Corelight)
+
+    Extend PluginComponent record with implementation (C++/Spicy) and
+    version fields. Restructure get_plugin_components() to iterate plugins
+    directly so each component can access its parent plugin's version.
+
+    Add Analyzer::implementation() BiF and wrapper to query an analyzer's
+    implementation type by tag, using the same three-manager lookup pattern
+    as Analyzer::name().
+
+    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+8.2.0-dev.293 | 2026-03-09 16:10:46 -0700
+
+  * extract winhandle into a shared header (Maor Hamami)
+
+  * use running_under_test instead of diff-sort (Maor Hamami)
+
+  * fix supervisor behavior on windows (Maor Hamami)
+
+    Points to: 9805dc25a96fd5542af90ba51bb5ccb1fb1bc667
+    (translate windows sigterm error code to 0)
+
+    Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+  * [windows] fix tail issue, gz binary flags, safe gmtime, and test adjustments (Maor Hamami)
+
+  * use file_into_t that can be translated to ino_t or uint64_t based on os (Maor Hamami)
+
+  * try to fix various tests and extract shared code (Maor Hamami)
+
+  * properly release file handles on config read (Maor Hamami)
+
+  * fix crlf issue on btests + use fseeki64 on windows (Maor Hamami)
+
+  * use python as python3 fallback (Maor Hamami)
+
+  * update cmake submodule + adjust zeek configs to support windows (Maor Hamami)
+
+  * update submodules and use diff-sort in few tests (Maor Hamami)
+
+  * [windows] enhance windows combatibility, fixing various btests (Maor Hamami)
+
+8.2.0-dev.273 | 2026-03-09 17:47:20 +0100
+
+  * GH-5251: cluster/backend/zeromq: Set ipv6=F by default (Arne Welzel, Corelight)
+
+    On systems without support for dual-stack sockets, the default of ipv6=T
+    results in a broken default as binding the ZeroMQ XPUB/XSUB and PULL sockets
+    fails. The ZeekControl ZeroMQ plugin is adapted separately to set the option
+    true if any of the node addresses is an IPv6 address.
+
+    This was reported by @klemensn while testing on OpenBSD. Thanks!
+
+8.2.0-dev.271 | 2026-03-09 17:04:47 +0100
+
+  * tools/systemd-generator: Use 127.0.0.1 for metrics address by default (Arne Welzel, Corelight)
+
+    Same as for ZeekControl in #5260, but for zeek.conf, zeek-systemd-generator
+    and the zeek-cluster-layout-generator tools.
+
+8.2.0-dev.269 | 2026-03-09 16:42:39 +0100
+
+  * GH-5224: zeekctl: Default MetricsAddress to 127.0.0.1 (Arne Welzel, Corelight)
+
+    Closes #5224
+
+8.2.0-dev.267 | 2026-03-09 11:30:57 +0100
+
+  * cmake: use absolute source paths in flex_target() calls to fix DWARF debug info (Doğukan Çağatay)
+
+    The five flex_target() calls in src/CMakeLists.txt,
+    tools/bifcl/CMakeLists.txt, and tools/binpac/src/CMakeLists.txt previously
+    passed the .l/.ll input file as a bare filename. When CMake invokes flex
+    from an out-of-source build directory, flex writes '#line 1 "rule-scan.l"'
+    (a relative path) into the generated C++ output. GCC records this as
+    '<build-dir>/rule-scan.l' in DWARF debug information, a path that does not
+    exist in the source tree.
+
+    This silently breaks the zeek-debugsource RPM on Fedora/RHEL (and equivalent
+    dbgsym packages on Debian-based distributions): cpio cannot stat the
+    non-existent paths and omits the .l grammar files from the debugsource
+    package, making source-level debugging of scanner code impossible.
+
+    Changing the input to ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l (absolute
+    path) causes flex to emit the full path in #line directives. GCC records the
+    correct source path in DWARF, debugedit can rewrite it, and the debugsource
+    package is complete.
+
+    This change has no effect on the generated scanner logic, the Zeek API, or
+    build performance. It only affects the string written into #line directives
+    and the resulting DWARF debug info.
+
+8.2.0-dev.264 | 2026-03-06 16:38:59 -0700
+
+  * remove unnecessary rlen variable in is_valid_base64 (Martin)
+
+  * style: apply clang-format to Base64.cc (martincmr)
+
+  * Add is_valid_base64() BiF (martincmr)
+
+    Returns T/F instead of generating reporter errors.
+    Fixes #5242
+
+8.2.0-dev.260 | 2026-03-06 12:04:40 -0700
+
+  * Updates to TLS consts (Johanna Amann, Corelight)
+
+    Some new values, mostly comment updates due to changed standards
+
+8.2.0-dev.258 | 2026-03-05 12:15:52 -0700
+
+  * Fix a 'broken' link in docs (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.256 | 2026-03-04 13:05:20 -0700
+
+  * Avoid integer overflow (Benjamin Bannier, Corelight)
+
+    In 76044ce860 we replaced many C-style casts with proper ones. In the
+    review I suggested to rewrite one expression "for readability" so more
+    of a computation would be performed in `int` and only casted to
+    `uint32_t` later. I missed that that would introduce a potential bug
+    since signed integer overflow is UB while unsigned overflow (liked used
+    previously) is well-defined.
+
+    This patch reverts the expression to the previous types, but now using
+    proper casts.
+
+8.2.0-dev.254 | 2026-03-04 13:04:54 -0700
+
+  * fix for global initializations when compiling to standalone C++ (Vern Paxson, Corelight)
+
+  * fix for -O gen-standalone-C++ initializations of patterns (Vern Paxson, Corelight)
+
+  * fix for -O gen-standalone-C++ tracking lambdas instantiated during initialization (Vern Paxson, Corelight)
+
+8.2.0-dev.250 | 2026-03-04 10:13:15 -0700
+
+  * Spicy: Fix event parameter mismatches due to too aggressive optimizations. (Robin Sommer, Corelight)
+
+    We now declare units as exported not only when they are passed
+    directly as event parameters, but also if they are nested into other
+    aggregates (e.g., a vector of units).
+
+8.2.0-dev.247 | 2026-03-03 13:19:14 -0700
+
+  * Switch default check pragma for sqlite to quick_check (Tim Wojtulewicz, Corelight)
+
+  * Move storage tests into directories based on backend (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.244 | 2026-03-03 18:31:49 +0000
+
+  * Fix potential UB in HashKey (Tim Wojtulewicz, Corelight)
+
+  * Fix a couple other clang-tidy warnings (Tim Wojtulewicz, Corelight)
+
+  * Fixing findings from new clang-tidy modernize-avoid-c-style-cast checker (Tim Wojtulewicz, Corelight)
+
+  * Fix c-style casts in binpac/bifcl, including generated code (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.239 | 2026-03-03 14:15:06 +0100
+
+  * ci/freebsd: Bump 13.5 to 15.0, keep 14.3 (Arne Welzel, Corelight)
+
+  * ci/freebsd/prepare.sh: Use latest over quarterly ABI to fix missing dnsmasq package (Arne Welzel, Corelight)
+
+8.2.0-dev.236 | 2026-03-03 09:44:31 +0100
+
+  * GH-5221: spicy/protocol-analyzer: No analyzer violation for gaps (Arne Welzel, Corelight)
+
+    Previously, a MissingData exception raised from a Spicy parser would
+    result in an analyzer violation. In some sense, that "punished" the
+    parser unduly: There's nothing that the parser could've done except
+    for implementing recovery.
+
+    Add a test case for the LDAP parser where this occurred.
+
+8.2.0-dev.234 | 2026-03-02 18:41:09 -0700
+
+  * Update commit hash for zeek-testing-private (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.232 | 2026-03-02 17:43:51 -0700
+
+  * Adapt zeek-cut btests to running from zeek repo (Tim Wojtulewicz, Corelight)
+
+  * Add adaptations to make zeek-cut build on Windows (Tim Wojtulewicz, Corelight)
+
+  * Add version of zeek-cut from zeek-aux with no changes (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.228 | 2026-03-02 16:55:19 -0500
+
+  * Fix issue with timeouts rescheduling too much (Evan Typanski)
+
+8.2.0-dev.226 | 2026-03-02 13:18:15 -0700
+
+  * remove trailing slash in windows unless its a drive root (Maor Hamami)
+
+  * code review changes (Maor Hamami)
+
+  * [windows] use bash in a more safe way (Maor Hamami)
+
+  * fix sig_handler on windows (Maor Hamami)
+
+  * [btest] fix bifs.zeek_args in windows by removing the .exe suffix (Maor Hamami)
+
+  * val manager should use the same static const for windows - raised by bifs.to_count (Maor Hamami)
+
+  * [windows] handle rotate,sleep,system issues (Maor Hamami)
+
+  * [windows] piped_exec should use bash for consistent behavior (Maor Hamami)
+
+  * replace kill command with raise for windows compatibility (Maor Hamami)
+
+  * [windows] working on path resolving and file management (Maor Hamami)
+
+8.2.0-dev.215 | 2026-03-02 20:09:38 +0100
+
+  * GH-5232: ldap: Implement ModifyRequest handling (Arne Welzel, Corelight)
+
+    This uses the existing ASN1Message unit for parsing and manual poking at
+    the resulting structure to create a string representation for the log.
+
+8.2.0-dev.213 | 2026-02-27 12:57:57 -0700
+
+  * Update btest submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.211 | 2026-02-27 13:53:31 +0100
+
+  * doc/devel/cluster: Add overview for cluster architecture (Arne Welzel, Corelight)
+
+  * doc: Move ZeroMQ notes into devel/cluster/backend (Arne Welzel, Corelight)
+
+  * devel/websocket-api: Fix anchor (Arne Welzel, Corelight)
+
+8.2.0-dev.207 | 2026-02-26 09:59:39 -0700
+
+  * Remove trivial uses for unistd.h (Dominik Charousset)
+
+    - Replace `sleep` and `usleep` with `sleep_for`
+    - Replace `ssize_t` with `ptrdiff_t`
+    - Replace `pid_t` with `int`
+    - Replace uses of `cwd` & co with `std::filesystem`
+    - Remove `unistd.h` includes where they aren't actually needed
+
+  * make build pass on windows (Maor Hamami)
+
+8.2.0-dev.203 | 2026-02-24 17:16:06 +0100
+
+  * cluster/pf_ring: Update instructions to use 9.2.0 (Arne Welzel, Corelight)
+
+    ...and leave a note about the libkqueue/epoll fix that made it into
+    8.8.0. Seems PF_RING is well and alive, so would definitely keep this
+    section around.
+
+8.2.0-dev.200 | 2026-02-20 11:18:44 -0500
+
+  * Add a hook to prevent timeouts (Evan Typanski, Corelight)
+
+    For shunting, there is a problem when finding out how to unshunt. We
+    want to use timeouts, but then clusters have issues determining who
+    unshunts what. We do not want to stop the world to clean up the shunt
+    map.
+
+    Instead, this adds a new feature to Zeek: the ability to prevent a
+    timeout based on external criteria. Then, shunting can rely entirely on
+    Zeek's timeout timers, just hooking in to say "no don't timeout this
+    connection yet, the BPF map says it's still getting shunted packets."
+
+    This could be generally useful, like when sharing data between Zeek and
+    some other monitoring system. Those are theoretical, though.
+
+8.2.0-dev.198 | 2026-02-20 09:58:16 +0100
+
+  * Update Spicy integration for new struct field optimization. (Robin Sommer, Corelight)
+
+    Generally Spicy's new struct field optimization is safe in terms of
+    only removing fields that aren't used anywhere, including inside the
+    generated Zeek glue code. There's one exception however: when we pass
+    a struct instance to Zeek through `to_val()`, the Spicy optimizer
+    can't tell that all the fields are required on the receiving side
+    (because the Zeek-side layout is statically determined, either from
+    the Spicy-side type (if using EVT `export`), or by the Zeek user
+    creating the corresponding `record` manually). In other words, we need
+    to tell Spicy not to mess with structs that are passed wholesale
+    through `to_val()`. This change adds corresponding HILTI-side `export`
+    declarations for all types that go, directly or indirectly, through
+    `to_val()`. Internally that needs some care because we can determine
+    the relevant types only once our glue code has been created and fully
+    resolved.
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
+8.2.0-dev.195 | 2026-02-18 19:12:41 +0000
+
+  * Fix ZAM CI btest failure from previous Windows changes (Tim Wojtulewicz, Corelight)
+
+  * Disable an additional btest on Windows (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.192 | 2026-02-18 17:25:15 +0000
+
+  * Skip some tests on Windows that hang indefinitely (Tim Wojtulewicz, Corelight)
+
+  * Add note about running btests on Windows (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.189 | 2026-02-18 15:06:45 +0100
+
+  * GH-5204: analyzer/detect-protocols: Honor analyzer_failed() (Arne Welzel, Corelight)
+
+    The detect-protocols script tracks confirmed protocols analyzers for
+    connections and raises notices for detected protocols and servers. It
+    doesn't honor analyzer violation events, however, and so in the case
+    where a HTTP client connects to an SSH server, the HTTP request results
+    in an analyzer confirmation, but the SSH identification string from the
+    server tickles a violation. However, previously Zeek raised notices about
+    an HTTP server running on port 22 despite the analyzer clearly
+    indicating a violation.
+
+    Closes #5204
+
+8.2.0-dev.187 | 2026-02-11 11:41:57 +0100
+
+  * GH-5120: Avoid ABI-breaking use of `DEBUG` (Benjamin Bannier, Corelight)
+
+    Some public classes were depending on `NDEBUG` emit different members or
+    methods. This meant that classes had a different API and ABI depending
+    on whether the user code was built in debug mode or not, and even not
+    using the conditional fields could lead to random failures in user code.
+
+    The correct approach would have been to use a Zeek-specific preprocessor
+    variable so the Zeek ABI depends on the way Zeek itself was built, and
+    not how the user code was. It seems the affected fields were not really
+    used anymore, so this patch simply removes them. Since we now
+    unconditionally emit debug functions we also need to unconditionally
+    emit declarations used in the signatures of these types.
+
+    Closes #5120.
+
+8.2.0-dev.185 | 2026-02-10 11:41:38 +0100
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    We also fix a bug in how we declared the C++ enum for the `AnalyzerType`
+    HILTI enum, and expanded tests for its behavior.
+
+8.2.0-dev.183 | 2026-02-06 12:46:15 -0800
+
+  * Contributor update in NEWS (Christian Kreibich, Corelight)
+
+8.2.0-dev.181 | 2026-02-05 09:31:39 -0700
+
+  * Add better documentation for prefix anonymization (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.179 | 2026-02-05 09:30:35 -0700
+
+  * Remove install/caching of pre-commit in docs generation workflow (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.177 | 2026-02-05 09:30:10 -0700
+
+  * Move BifEnum to zeek namespace to match other bif namespaces (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.174 | 2026-02-03 21:50:16 +0100
+
+  * cluster/experimental: Add non-Broker backend support (Arne Welzel, Corelight)
+
+    There are users and packages (logschema) that rely on Experimental::cluster_started()
+    and will not function otherwise.
+    Implement support for ZeroMQ with semantics of all nodes have seen
+    Cluster::node_up() from all other nodes, report to the manager which
+    then broadcasts to all other nodes.
+
+    This switches to use a single cluster_started() specific topic rather than
+    going through broadcast_topics, because that's the better mechanism to
+    use with global pub/sub visibility (and it works for Broker, too).
+
+    Technically there's no connection between nodes for pub/sub in ZeroMQ anymore,
+    so the terminology is a bit off now.
+
+8.2.0-dev.172 | 2026-02-03 19:31:40 +0100
+
+  * src/CMakeLists: Exclude headers from auxil directories (Arne Welzel, Corelight)
+
+    It seems we included all headers within the auxil/ directories under
+    src/ into the zeek/include installation directory. That's not great.
+    The REGEX ... EXCLUDE prevents this, but it still creates empty
+    directories for auxil/cppzmq and auxil/IXWebSocket and
+    auxil/LightPcapNg.
+
+    Ignoring this for now. The relevant CMake issue is here which and
+    it seems there's no great solution right now:
+
+        https://gitlab.kitware.com/cmake/cmake/-/issues/19189
+
+    An alternative might be for us to be more explicit about headers,
+    rather than running FILES_MATCHING over the whole directory.
+
+  * pcpang/CMakeLists: Do not install the targets (Arne Welzel, Corelight)
+
+8.2.0-dev.169 | 2026-02-03 10:33:41 -0700
+
+  * Fix clang-tidy warning about needless parameter copies (Benjamin Bannier, Corelight)
+
+    Since not all overloads of the function might consume the passed
+    parameter clang-tidy correctly warns that the copy might be needless (it
+    is for the default implementation). Rewrite the code to a version which
+    performs no copy.
+
+8.2.0-dev.167 | 2026-02-03 10:32:48 -0700
+
+  * Check for __APPLE__ when checking if lsan should be enabled (Tim Wojtulewicz, Corelight)
+
+  * Disable clang-format for zeek-config.h.in (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.163 | 2026-02-02 13:11:33 -0500
+
+  * Enhancement: Add offset parameter to find_first/find_last (Rudra Mohapatro)
+
+8.2.0-dev.159 | 2026-02-02 13:11:03 -0500
+
+  * Make README a symlink to README.md (Evan Typanski, Corelight)
+
+    It's weird that we would maintain two different READMEs
+
+8.2.0-dev.157 | 2026-02-02 08:20:42 -0500
+
+  * docs: use HTTPS for try.zeek.org link in README (agent-connor)
+
+    The try.zeek.org site supports HTTPS. Updated the link to use the
+    secure protocol for better security and to follow modern best practices.
+
+8.2.0-dev.155 | 2026-01-31 08:16:55 -0700
+
+  * restore ZAM custom instruction for Files::__add_analyzer (Vern Paxson, Corelight)
+
+8.2.0-dev.153 | 2026-01-29 08:05:33 -0700
+
+  * external: Update zeek-testing baseline (Arne Welzel, Corelight)
+
+  * btest/http: Add test PCAPs from CTU-SME and m57-long external tests (Arne Welzel, Corelight)
+
+    Connections extracted that showed baseline diffs in http.log and
+    files.log after changing the handling on Transfer-Encoding and
+    Content-Length within Zeek's HTTP analyzer.
+
+    Previously there were spurious http.log entries and the resp_body_len
+    now reflects Content-Length if provided.
+
+  * btest/http: Regression tests for Transfer-Encoding and Content-Length in bodies (Arne Welzel, Corelight)
+
+    Previously Zeek would pick up on Transfer-Encoding and Content-Length
+    headers within a HTTP request body, potentially skipping requests
+    following within the same HTTP connection.
+
+  * btest/http/deeply-nested-mime: Remove spurious http.log entry (Arne Welzel, Corelight)
+
+    The PCAP only contains a single HTTP request and response, so
+    this is actually an improvement. This should be due to the fact
+    that the top-level Content-Length header is now respected.
+
+  * HTTP: Respect most outer Content-Length also for multipart and message (Arne Welzel, Corelight)
+
+    Previously, a nested Content-Length header would change the analyzers
+    behavior which could be exploited to hide subsequent HTTP requests
+    within the same connection from analysis.
+
+  * HTTP: Ignore Transfer-Encoding header of inner MIME entities (Arne Welzel, Corelight)
+
+    Processing the Transfer-Encoding header changes the analyzer behavior and we
+    only want to allow this for the most outer HTTP entity, not for any nested
+    MIME entities in the HTTP body.
+
+    Previously one could set a Transfer-Encoding header within a RFC822
+    message placed within the HTTP body, allowing to modify plain delivery
+    parameters of the analyzer, thereby hiding subsequent HTTP requests
+    within the same connection from analysis.
+
+  * HTTP: Make debug messages more useful (Arne Welzel, Corelight)
+
+    I'm not sure this is the right approach, but it's mind-twistingly hard to
+    debug this analyzer, so a bit more debug output can only be good.
+
+    When DEBUG_http is false, these should all be compiled out.
+
+    Maybe could switch to a plugin debug stream, too.
+
+8.2.0-dev.145 | 2026-01-29 15:42:33 +0100
+
+  * Val: Inline ListVal(TypeTag t) constructor (Arne Welzel, Corelight)
+
+  * Val: Use concrete TypePtr in ToListVal() (Arne Welzel, Corelight)
+
+    Previously, pure lists would only hold base type pointers. Now that
+    enum types are nominally typed and not compatible with base_type(TYPE_ENUM)
+    anymore, we need to pass the specific EnumTypePtr into the ListVal.
+
+    I was tempted to deprecate the ListVal(TypeTag) constructor, but
+    that involves a bunch of changes elsewhere that I'm not sure look
+    much better when going from ListVal(TYPE_ANY) to ListVal(Type::nil),
+    so keeping that constructor functional and delegating to the new one.
+
+  * TypeList::Append: More verbose internal error (Arne Welzel, Corelight)
+
+  * GH-1820: Type: Make enum type checking nominal (Arne Welzel, Corelight)
+
+    Zeek has allowed freely mixing of enum values of different enum types
+    previously. This change makes this invalid by switching to nominal typing,
+    comparing the types using their names instead. This keeps the
+    AllAnalyzers::Tag special case functional by checking the parent type
+    introduced earlier.
+
+  * plugin/ComponentManager: Set parent type of tag enums (Arne Welzel, Corelight)
+
+  * Type: Add "parent" API to EnumType (Arne Welzel, Corelight)
+
+    See the comment in the class. This is mostly dealing with reality
+    rather than re-designing enum behavior.
+
+8.2.0-dev.138 | 2026-01-28 17:01:22 -0500
+
+  * GH-5181: Describe `%` as remainder and add a note for `int` (Evan Typanski)
+
+    There was a public-facing section I missed that referred to `%` as
+    modulo (it is remainder). This also adds a note in the `int` section for
+    maximum clarity.
+
+    See #5181 and #5182
+
+8.2.0-dev.136 | 2026-01-28 09:21:03 -0500
+
+  * Add `modulo` bif (Evan Typanski)
+
+  * GH-5181: Change `%` in docs to be "remainder" (Evan Typanski)
+
+    Fixes #5181
+
+    Since our behavior for `%` is based on C++, it is indeed remainder and
+    not the modulo operator. This does not change anything internal, such
+    as the expression being `ModExpr`.
+
+8.2.0-dev.133 | 2026-01-27 09:25:06 +0100
+
+  * Attr: Allow va_args function for &on_change (Arne Welzel, Corelight)
+
+    This allows a generic bif to be used for &on_change. Look at
+    it with git log --patch -w
+
+  * tools/bifcl: Support void functions (Arne Welzel, Corelight)
+
+    This allows skipping the return type of builtin functions to allow
+    creating void typed builtin functions. This still requires to return
+    a nullptr from the BiF implementation, but the type checking in Zeek
+    script is more sensible.
+
+8.2.0-dev.130 | 2026-01-26 15:55:04 -0700
+
+  * Bump ZeekJS submodule (Tim Wojtulewicz, Corelight)
+
+  * Fixes for event grounds in standalone compilation (Vern Paxson, Corelight)
+    Streamlining of Func::AddBody interfaces
+
+8.2.0-dev.127 | 2026-01-26 13:54:35 -0500
+
+  * Fix memory leak in TableIterInfo::BeginLoop (Siavash Tahmureszadeh, Corelight)
+
+    Clear loop_vars vector before populating it to prevent unbounded
+    growth when TableIterInfo objects are reused during ZAM table
+    iterations.
+
+    Fixes memory leak where loop_vars vector accumulates elements
+    across multiple BeginLoop() calls, causing ~192MB+ growth in
+    production workloads with frequent table iterations.
+
+8.2.0-dev.123 | 2026-01-26 08:16:45 -0700
+
+  * Fix clang-tidy findings from recent merge (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.121 | 2026-01-23 14:24:25 -0800
+
+  * Docs: render the version on the index page (Christian Kreibich, Corelight)
+
+8.2.0-dev.119 | 2026-01-23 15:07:53 -0700
+
+  * Force building only static lightpcapng lib, fixes Windows builds (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.117 | 2026-01-23 15:03:06 -0700
+
+  * Regenerate spicy autogen docs based on recent spicy-tftp changes (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.115 | 2026-01-23 09:17:26 -0700
+
+  * Fix issues with paraglob size limtations (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.113 | 2026-01-23 09:11:22 -0700
+
+  * Performance for standalone compilation that initializes large aggregates (Vern Paxson, Corelight)
+
+8.2.0-dev.111 | 2026-01-22 15:56:05 +0100
+
+  * Bump zeekjs for cmake quoting fix (Arne Welzel, Corelight)
+
+8.2.0-dev.109 | 2026-01-22 09:19:45 +0100
+
+  * GH-5164: Correctly handle vector self assign-append (Benjamin Bannier, Corelight)
+
+    When iterating over the source vector during vector `+=` we previously
+    would not cache the size which lead to an infinite loop for self
+    assign-append. By now caching the size we only append the elements
+    originally present.
+
+    Closes #5164.
+
+8.2.0-dev.107 | 2026-01-20 04:18:43 +0000
+
+  * Fix minor documentation issues (Stefan Götz)
+
+8.2.0-dev.105 | 2026-01-16 16:11:54 -0700
+
+  * Make util::double_to_str take a buffer instead of returning a string (Tim Wojtulewicz, Corelight)
+
+  * Replace use of modp_dtoa2 method in ZAM code (Tim Wojtulewicz, Corelight)
+
+  * Replace uses of modp integer methods in ZAM code (Tim Wojtulewicz, Corelight)
+
+    This adds a new argument to the RenderInto methods for the end of
+    the data block passed in, since the to_chars methods require that
+    information.
+
+  * Replace uses of modp integer methods in ODesc::Add (Tim Wojtulewicz, Corelight)
+
+  * Remove uses of modp_* methods from threading::Formatter and IPPrefix (Tim Wojtulewicz, Corelight)
+
+  * Replace use of modp_dtoa2 in ODesc::Add with std::to_chars (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.98 | 2026-01-16 15:13:05 -0700
+
+  * Add missing #include (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.96 | 2026-01-16 12:48:31 -0700
+
+  * Add packet source that uses LightPcapNg to be able to read pcapng files (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.94 | 2026-01-15 14:52:03 +0100
+
+  * CI: Install ZeroMQ 4.3.5 from source on opensuse/leap 15.6 (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Require ZeroMQ 4.3.0 or later (Arne Welzel, Corelight)
+
+  * cluster/zeromq/cmake: Extract ZeroMQ_VERSION (Arne Welzel, Corelight)
+
+  * testing/btest: Update ZAM baseline for wstunnel-configure-break (Arne Welzel, Corelight)
+
+8.2.0-dev.89 | 2026-01-14 17:36:29 +0100
+
+  * testing/btest/zeromq: Add steerable proxy metrics test (Arne Welzel, Corelight)
+
+  * Renaming statistics. Resolving comment https://github.com/zeek/zeek/pull/5052#discussion_r2616958150 (kshitiz56)
+
+  * Using zmq::proxy_steerable to create proxy in order to gather statistics. (kshitiz56)
+
+    Also includes @awelzel provided rework and improvement changes.
+
+8.2.0-dev.85 | 2026-01-14 16:52:10 +0100
+
+  * testing/btest: Some btest-diff-cut examples (Arne Welzel, Corelight)
+
+  * testing/scripts: Add btest-diff-cut (Arne Welzel, Corelight)
+
+    This is a reimplementation of Benjamin's btest-diff-cut in a few
+    lines of bash instead of Python to include in the Zeek tree.
+
+8.2.0-dev.82 | 2026-01-14 16:26:02 +0100
+
+  * added debugging "dump" for ZAM instruction auxiliary information (Vern Paxson, Corelight)
+
+8.2.0-dev.79 | 2026-01-13 11:31:25 -0700
+
+  * Add extra state check to finalize_redis hook (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.77 | 2026-01-13 10:49:24 -0500
+
+  * Describe current as default docs version (Evan Typanski, Corelight)
+
+8.2.0-dev.75 | 2026-01-12 13:30:46 -0700
+
+  * Remove gcc-10.2 workaround from util::strsplit (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.73 | 2026-01-12 11:02:12 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
+8.2.0-dev.70 | 2026-01-09 19:45:59 +0100
+
+  * -O gen-standalone-C++ support for creating modules unique to compiled scripts (Vern Paxson, Corelight)
+
+  * minor factoring of logic for @ifdef conditionals (Vern Paxson, Corelight)
+
+8.2.0-dev.67 | 2026-01-09 06:41:13 -0700
+
+  * Update ZAM btest baseline that fails on CI (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.65 | 2026-01-08 17:03:17 -0700
+
+  * Add note to 8.1 NEWS about dns_msg [skip ci] (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.63 | 2026-01-08 13:39:53 -0700
+
+  * Restrict more templates using concepts (Dominik Charousset, Corelight)
+
+8.2.0-dev.61 | 2026-01-08 13:38:21 -0700
+
+  * fixes for -O gen-standalone-C++ working with empty Attributes (Vern Paxson, Corelight)
+
+8.2.0-dev.59 | 2026-01-08 14:00:55 -0500
+
+  * Fix trailing spaces in ODesc/Zeekygen for docs (Evan Typanski, Corelight)
+
+  * Remove trailing whitespace when visible in docs (Evan Typanski, Corelight)
+
+8.2.0-dev.56 | 2026-01-08 18:45:01 +0100
+
+  * NEWS: Add a note about ZeroMQ communication being unencrypted by default (Arne Welzel, Corelight)
+
+  * Update zeekctl submodule [nomail] (Arne Welzel, Corelight)
+
+  * btest/Baseline.zam: Remove to_subnet baselines (Arne Welzel, Corelight)
+
+    These were outdated after the changes for IPv6 subnet parsing. Instead
+    of updating, delete them as the original one appear to work these days.
+
+8.2.0-dev.52 | 2026-01-08 06:55:25 -0700
+
+  * CI: Disable running tests for clang-tidy tasks (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.50 | 2026-01-08 13:58:41 +0100
+
+  * GH-5118: IPAddr: Align IPPrefix::ConvertString() parsing to Zeek script semantics (Arne Welzel, Corelight)
+
+    If in Zeek script an IPv6 net is parsed, we pass len_is_v6_relative=true
+    into the IPPrefix constructor to account for that, do the same in
+    IPPrefix::ConvertString() to align its and to_subnet() with the behavior
+    of the script parser.
+
+8.2.0-dev.47 | 2026-01-07 16:40:02 -0500
+
+  * GH-5133: Fix tabs in input framework docs (Evan Typanski, Corelight)
+
+    Fixes #5133
+
+8.2.0-dev.45 | 2026-01-07 11:51:20 -0700
+
+  * Add policy script to disable the opcode and opcode_name fields from dns.log (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.43 | 2026-01-07 17:48:58 +0100
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+    Includes a fix for spicyz's internal name spacing, which was still using
+    the reserved double-underscore (which led to trouble now).
+
+8.2.0-dev.41 | 2026-01-05 15:39:08 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+8.2.0-dev.39 | 2026-01-05 18:51:39 +0100
+
+  * tools/systemd-generator: Remove {worker_name} substitution (Arne Welzel, Corelight)
+
+    This is easily replaced with `worker-{worker_index}` if really needed.
+    Also, thinking about multi-interface support, it might be nice to encode
+    the interface into the worker name and having {worker_name} support in
+    the interface name would introduce a chicken and egg problem.
+
+  * btest/tools/systemd-generator: Update baselines (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix for stopping extra workers (Arne Welzel, Corelight)
+
+    This drops the Requires=zeek-setup.service line, uses StopPropagatedFrom=zeek.target
+    and also drops PartOf=zeek.target for worker, proxy and logger processes.
+
+    This fixes Zeek processes continuing to exist and restarting them after running a
+    systemctl daemon-reload && systemctl restart sequence when reducing the number
+    of workers in zeek.conf. It's not obvious to me if there's a bug in systemd's
+    dependency and generator handling, but the new behavior is more expected than
+    what happens today.
+
+    Some more details upstream: systemd/systemd#40092
+
+  * tools/systemd-generator: Add zeek-setup.service to zeek.target.wants (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Add StopPropagatedFrom setter (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Add PartOf setter (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix README config paragraph (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix unused <vector> include (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix manager and archiver slice (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix defaulting to deprecated zeromq/connect script (Arne Welzel, Corelight)
+
+  * CI: Fix not building container images for RC tags (Arne Welzel, Corelight)
+
+    Rename ONLY_IF_PR_MASTER_RELEASE_NIGHTLY to ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
+    and include matching on CIRRUS_TAG.
+
+    Delete ONLY_IF_PR_RELEASE_AND_NIGHTLY, it was unused.
+
+    Fix ONLY_IF_RELEASE_TAG_NIGHTLY condition
+
+        $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$'
+
+    to use || as CIRRUS_BRANCH is the tag (e.g v8.1.0-rc1) when running for
+    on the tag push and the condition never evaluated to true.
+
+    Change ubuntu24_04_spicy_head_task to just run nightly, doesn't seem
+    like there's a need to run on release.
+
+    [1] https://cirrus-ci.com/build/5640891471233024
+
+  * GH-5119: CI: Use docker imagetools instead of docker manifest (Arne Welzel, Corelight)
+
+    The docker manifest command was marked as experimental and newer versions of
+    docker include a provenance manifest [1, 2]. Switch to docker imagetools
+    create for creating the multi-platform image instead of docker manifest
+    as suggested in some places [3].
+
+    [1] https://github.com/docker/build-push-action/issues/755
+    [2] https://github.com/docker/buildx/issues/1509
+    [3] https://stackoverflow.com/a/75742743
+
+    Fixes #5119
+
+8.2.0-dev.24 | 2026-01-04 20:21:39 -0700
+
+  * fixes for using unspecified vectors/tables in constructors (Vern Paxson, Corelight)
+
+8.2.0-dev.22 | 2026-01-04 19:56:46 -0700
+
+  * Bump zeekjs to v0.22.0 (Arne Welzel, Corelight)
+
+        5d30c74 version: 0.22.0
+        7706df3 Executor: Drop args completely
+        0d5c87d Nodejs: Fix args passed as copy for hook handler
+        98e65df tests: Add test from zeek/zeek#5106 to stress hook invocations
+        f329b94 Executor: Do not run task under lock
+
+8.2.0-dev.20 | 2026-01-04 19:55:48 -0700
+
+  * fix for ZAM optimizer crashing due to infinite recursion on self-assignment (Vern Paxson, Corelight)
+
+8.2.0-dev.18 | 2025-12-17 16:58:45 +0100
+
+  * support for ZAM optimization of certain conditional branches (Vern Paxson, Corelight)
+
+8.2.0-dev.16 | 2025-12-17 05:11:00 +0000
+
+  * CI: Skip image builds by checking label in cached images (Tim Wojtulewicz, Corelight)
+
+8.2.0-dev.13 | 2025-12-16 20:00:14 +0100
+
+  * NEWS: Add an entry about redef of analyzer ports (Arne Welzel, Corelight)
+
+  * quic: Exclude DoQ ports from likely_server_ports (Arne Welzel, Corelight)
+
+    There's one connection in the medium.trace private test suite on port
+    853 that's flipped due to 853/udp being a likely_server_port now. For
+    now, do not include them in server_ports, but instead register them
+    via non_server_ports to avoid the baseline churn.
+
+  * Move analyzer port variables into export (Arne Welzel, Corelight)
+
+  * Update btest (Jan Grashoefer, Corelight)
+
+  * Allow port redefs for built-in packet analyzers (Jan Grashoefer, Corelight)
+
+  * Allow port redefs for built-in analyzers (Jan Grashoefer, Corelight)
+
+8.2.0-dev.6 | 2025-12-16 17:46:59 +0000
+
+  * Fix tls-1.2-late-protocol-error test failure for Spicy SSL analyzer (Johanna Amann, Corelight)
+
+8.2.0-dev.4 | 2025-12-15 14:45:44 -0800
+
+  * update ZAM BTest for new BiF (sha256_hmac) (Vern Paxson, Corelight)
+
+  * fix state growth in building NFAs (Vern Paxson, Corelight)
+
+8.2.0-dev | 2025-12-15 11:35:02 -0700
+
+  * Start of v8.2.0 development (Tim Wojtulewicz, Corelight)
+
+  * Update docs [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1095 | 2025-12-15 11:13:36 -0700
+
+  * init-bare: Document stale connection and endpoint field behavior (Arne Welzel, Corelight)
+
+    As Jan suggested initially on #4214, lets at least document the
+    surprising behavior.
+
+    References #4214
+
+8.1.0-dev.1093 | 2025-12-15 09:07:41 -0700
+
+  * Update CT/CA lists (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1091 | 2025-12-12 15:22:25 -0700
+
+  * Minor wording/grammar/formatting fixes for 8.1 NEWS (Tim Wojtulewicz, Corelight)
+
+  * NEWS updates for 8.1 (Tim Wojtulewicz, Corelight)
+
+  * Use consistent line lengths (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1087 | 2025-12-12 10:11:29 -0700
+
+  * Update c-ares to v1.34.6 (Tim Wojtulewicz, Corelight)
+
+  * Update expected-lite submodule to latest release (Tim Wojtulewicz, Corelight)
+
+  * Update submodules to master versions [nomail] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1083 | 2025-12-11 11:42:38 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Update zeekctl submodule [nomail] (Arne Welzel, Corelight)
+
+8.1.0-dev.1080 | 2025-12-11 09:44:51 -0500
+
+  * Attempt to fix circular TOC dependency in docs (Evan Typanski, Corelight)
+
+8.1.0-dev.1077 | 2025-12-10 13:10:10 -0700
+
+  * Fix FuncInfo flag for ZAM for anonymize_addr BIF (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1075 | 2025-12-10 11:42:45 -0800
+
+  * Bump zeek-testing-cluster to pull in docker-compose modernization (Christian Kreibich, Corelight)
+
+  * Management framework: explicitly use Broker for now (Christian Kreibich, Corelight)
+
+8.1.0-dev.1072 | 2025-12-10 19:17:04 +0100
+
+  * cirrus: Try double star matching for changesIncludeOnly() (Arne Welzel, Corelight)
+
+    In the original discussion [1], they used 'doc/**', but the docs
+    now show 'doc/*'. Try the former and if it works I'll update their
+    documentation.
+
+    [1] https://github.com/cirruslabs/cirrus-ci-docs/issues/873#issuecomment-882889185
+
+8.1.0-dev.1070 | 2025-12-10 14:33:06 +0000
+
+  * Add SHA256 to hash-all-files policy script (Johanna Amann, Corelight)
+
+8.1.0-dev.1068 | 2025-12-10 10:47:09 +0000
+
+  * Fix ssl certificate logging when encountering protocol errors (Johanna Amann, Corelight)
+
+    This change fixes a problem with ssl certificate logging when a protocol
+    error is encountered after certificates are sent over a SSL/TLS
+    connection, but before the connection is logged. Currently, in these
+    cases, `ssl.log` will not contain the fingerprints of the certifiates
+    contained in the connection. This is due to the necessary hook not being
+    called. See GH-5078
+
+8.1.0-dev.1065 | 2025-12-09 13:47:02 -0700
+
+  * Deprecate MD5 IP anonymizers, add SHA256 versions (Tim Wojtulewicz, Corelight)
+    This necessitates changes addition of related BIFs.
+
+8.1.0-dev.1057 | 2025-12-09 20:32:18 +0100
+
+  * cluster/non-Broker: Report errors for &backend and &broker_store (Arne Welzel, Corelight)
+
+8.1.0-dev.1054 | 2025-12-09 11:38:14 +0100
+
+  * Attr: Deprecate &backend and &broker_store attributes (Arne Welzel, Corelight)
+
+    These use Broker specific underpinnings and can be replaced by explicit
+    state propagation via Cluster::publish() or using storage framework
+    functionality, depending on the use case they were leveraged in.
+
+8.1.0-dev.1052 | 2025-12-09 10:41:25 +0100
+
+  * Spicy: Disable expensive debug checks. (Robin Sommer, Corelight)
+
+8.1.0-dev.1049 | 2025-12-08 18:53:12 +0000
+
+  * Add OpenContainers labels to the docker images (Tim Wojtulewicz, Corelight)
+
+  * CI: Format scripts in docker_build_template the same (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1046 | 2025-12-08 11:03:16 -0700
+
+  * Pass sanitizer flags to external plugin builds (Tim Wojtulewicz, Corelight)
+
+  * Fix broken link in documentation (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1043 | 2025-12-08 12:51:29 +0100
+
+  * Bump zeekjs to v0.21.0 (Arne Welzel, Corelight)
+
+  * Build Javascript bindings in CI on macos (Benjamin Bannier, Corelight)
+
+8.1.0-dev.1040 | 2025-12-08 12:25:40 +0100
+
+  * testing/btest: Skip websocket/server tests when Python lib is missing (Arne Welzel, Corelight)
+
+8.1.0-dev.1038 | 2025-12-06 13:04:41 +0100
+
+  * testing/Baseline.zam: Fixup coverage baselines (Arne Welzel, Corelight)
+
+8.1.0-dev.1037 | 2025-12-05 09:22:47 -0500
+
+  * GH-5026: Make spicyz translate unit blocks->records, too (Evan Typanski, Corelight)
+
+    Fixes #5026
+
+8.1.0-dev.1035 | 2025-12-05 06:48:54 -0700
+
+  * Wait for file_state_remove to exit scripts/base/frameworks/file-analysis/logging-input-analysis btest (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.1032 | 2025-12-04 14:13:22 +0100
+
+  * cirrus: Try skipping tasks if only ./doc is modified (Arne Welzel, Corelight)
+
+    Won't work in this PR because we modify .cirrus.yml, but might
+    work in the future.
+
+  * doc/connkey-plugin: People will know it is cool (Arne Welzel, Corelight)
+
+  * doc/zeromq: Remove experimental marker (Arne Welzel, Corelight)
+
+8.1.0-dev.1028 | 2025-12-04 11:56:13 +0100
+
+  * btest/zam: Fix baselines (Arne Welzel, Corelight)
+
+  * testing/external: Force CLUSTER_BACKEND_NONE (Arne Welzel, Corelight)
+
+  * Bump zeekctl to ZeroMQ default revision and update NEWS (Arne Welzel, Corelight)
+
+  * btest/cluster: Canonify some line numbers (Arne Welzel, Corelight)
+
+  * frameworks/cluster: Add websocket/server.zeek (Arne Welzel, Corelight)
+
+    This adds a small script that can be loaded to easily start a WebSocket server for
+    testing in standalone or cluster mode. It respects the environment variables
+    ZEEK_WEBSOCKET_LISTEN_ ADDRESS and ZEEK_WEBSOCKET_LISTEN_PORT.
+
+  * cluster/main: Fatal error on missing backend (Arne Welzel, Corelight)
+
+  * cluster/backend/zeromq: Deprecate connect script (Arne Welzel, Corelight)
+
+    Oh well. It made it into a bunch of slides and presentations, but it
+    probably was never a good idea.
+
+  * supervisor: Switch from Broker:: to Cluster:: (Arne Welzel, Corelight)
+
+  * btest/broker: Fix logging tests (Arne Welzel, Corelight)
+
+    This is a bit annoying: The logging framework looks at Cluster::backend
+    to decide what should happen with log writes and only do the right thing
+    if it was switched to broker.
+
+  * btest: Use Broker for Broker specific tests (Arne Welzel, Corelight)
+
+    Now that Cluster::backend defaults to NONE by default, some tests won't
+    just work anymore for various reasons (mostly due to the logging
+    framework not sending log writes to broker anymore).
+
+    Load the new frameworks/cluster/backend/broker package for these to keep them
+    functional. Also add the @load to the common broker/cluster-layout.zeek file
+    to avoid changing all of the files that use that layout.
+
+  * init-bare: Default to CLUSTER_BACKEND_NONE (Arne Welzel, Corelight)
+
+  * cluster: Move more Broker specific scripts to policy/ (Arne Welzel, Corelight)
+
+  * cluster: Rename setup-connections to setup-subscriptions (Arne Welzel, Corelight)
+
+    Now that all the logic about establishing connections among nodes has
+    moved to the broker policy script, the setup-connections name seems
+    unfortunate, transition away from it.
+
+  * cluster: Move Broker connect logic into policy package (Arne Welzel, Corelight)
+
+    Place a package into policy/frameworks/cluster/backend/broker and move
+    Broker's connection specific logic there.
+
+  * cluster: Introduce pubsub.zeek and types.zeek (Arne Welzel, Corelight)
+
+    Allow access to the Cluster's subscribe(), unsubscribe(), publish(),
+    publish_hrw() and publish_rr() methods by loading only the
+    base/frameworks/cluster/pubsub, rather than everything that
+    __load__.zeek or also main.zeek pulls in.
+
+    This can be used by other scripts to use these functions without
+    relying or expecting the rest of the cluster framework to be loaded
+    already. Concretely, this is needed to move the Supervisor framework
+    from Broker to Cluster.
+
+  * cluster: Add None backend (Arne Welzel, Corelight)
+
+    Mostly so we have the CLUSTER_BACKEND_NONE enum value available, but
+    potentially useful for testing, too. The rough idea is that Zeek by
+    default has Cluster::backend set to CLUSTER_BACKEND_NONE, and script
+    packages in frameworks/cluster/backend redef it accordingly.
+
+  * btest/broker/remote_event_ts_compat: Replace 15 second sleep with wait-for-file (Arne Welzel, Corelight)
+
+    Just so the test runs faster when it can.
+
+  * btest/broker: Remove get_broker_stats() print (Arne Welzel, Corelight)
+
+    They seem mostly irrelevant for the tests and depending on what is
+    logged, the num_logs_outgoing changes, so just stop including them
+    in the baseline for now.
+
+  * btest/Files/zeromq/metrics: Add missing load for telemetry framework (Arne Welzel, Corelight)
+
+8.1.0-dev.1007 | 2025-12-03 15:03:08 -0800
+
+  * Reorder initializations in Packet::Init() to (mostly) match class layout (Christian Kreibich, Corelight)
+
+  * Add missing Packet member initializations to Packet::Init() (Christian Kreibich, Corelight)
+
+  * Add unit test for Packet::Init() (Christian Kreibich, Corelight)
+
+8.1.0-dev.1003 | 2025-12-03 14:50:16 -0700
+
+  * Use ranges versions of all_of, any_of, etc. (Dominik Charousset, Corelight)
+
+    Modernizing low-hanging fruits to use less-noisy C++20 versions. Not
+    pulling in `<ranges>` yet, only sticking to new overloads in the
+    `<algorithm>` header.
+
+8.1.0-dev.1001 | 2025-12-03 14:49:52 -0700
+
+  * Prevent crashes when evaluating expressions that access locals in isolation (Vern Paxson, Corelight)
+
+8.1.0-dev.999 | 2025-12-03 18:23:45 +0000
+
+  * Add blurb to NEWS about MD5 changes (Tim Wojtulewicz, Corelight)
+
+  * Update external baselines for MD5 changes (Tim Wojtulewicz, Corelight)
+
+  * Remove ssh/krb md5 fields by default, add policy scripts to restore them (Tim Wojtulewicz, Corelight)
+
+  * Add new event for SHA256 MIME content hashes (Tim Wojtulewicz, Corelight)
+
+  * Add column to ssh.log with sha256 host key fingerprint (Tim Wojtulewicz, Corelight)
+
+  * Add columns to kerberos.log with sha256 hashes (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.992 | 2025-12-02 19:19:41 -0700
+
+  * btest: Skip misc/dump-events-json with older jq versions (Arne Welzel, Corelight)
+
+8.1.0-dev.989 | 2025-12-02 21:55:31 +0100
+
+  * btest: Skip misc/dump-events-json with older jq versions (Arne Welzel, Corelight)
+
+8.1.0-dev.987 | 2025-12-02 09:00:12 -0500
+
+  * GH-5048: Fix error when table type cannot be determined (Evan Typanski, Corelight)
+
+    Fixes #5048
+
+8.1.0-dev.985 | 2025-12-02 11:29:48 +0100
+
+  * testing/external: Update baselines for is_orig fixes (Arne Welzel, Corelight)
+
+  * packet_analysis/tcp: Avoid forwarding the wrong is_orig (Arne Welzel, Corelight)
+
+    ...and add some documentation into doc/devel/conn about this
+
+  * packet_analysis/tcp: Also flip packet analyzers (Arne Welzel, Corelight)
+
+    The ConnSize_Analyzer has FlipRoles() implemented, but for TCP
+    connections certainly was never invoked.
+
+  * Docs: fix permanent redirect warning from link checker (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.979 | 2025-12-01 11:19:09 -0500
+
+  * Fix `:zeek:see:` in backtick in docs (Evan Typanski, Corelight)
+
+    The original change got reverted from auto-docs generation, so this
+    fixes it in the script file itself. Co-authoring for attribution.
+
+    Co-authored-by: RyugaXhypeR <ryugashyper@gmail.com>
+
+8.1.0-dev.977 | 2025-11-30 19:43:02 -0700
+
+  * Add flags for controlling utf8 escaping instead of bools (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.974 | 2025-11-29 08:43:35 -0700
+
+  * Docs: Fixed content linkage with `:zeek:see:` directive (RyugaXhypeR)
+
+8.1.0-dev.971 | 2025-11-26 18:39:27 +0100
+
+  * ci: Disable JavaScript for UBSAN/TSAN (Arne Welzel, Corelight)
+
+    The smoke tests within the repo do not run cleanly with UBSAN/TSAN. For
+    now disable these.
+
+    ZeekJS issue created here: https://github.com/corelight/zeekjs/issues/119
+
+  * ci: Disable JavaScript for clang_libcpp task (Arne Welzel, Corelight)
+
+  * ci: Add ZEEK_CI_CONFIGURE_FLAGS_EXTRA (Arne Welzel, Corelight)
+
+8.1.0-dev.967 | 2025-11-25 19:42:56 -0800
+
+  * Bugfix: don't use call_argument$value after determining it doesn't exist (Christian Kreibich, Corelight)
+
+  * Remove canonifiers from the scripts.policy.misc.dump-events test (Christian Kreibich, Corelight)
+
+  * Support JSON output in the dump-events policy script (Christian Kreibich, Corelight)
+
+8.1.0-dev.963 | 2025-11-25 11:47:44 -0700
+
+  * Move event drain during termination before threading/broker_mgr shutdowns (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.961 | 2025-11-25 11:46:29 -0700
+
+  * Remove unncessary shift operation in asn.1 analyzer (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.959 | 2025-11-25 19:28:31 +0100
+
+  * doc/javascript: Add a section about number conversions (Arne Welzel, Corelight)
+
+  * Bump zeekjs to v0.20.0 (Arne Welzel, Corelight)
+
+  * ci: Add libnode-dev to Ubuntu 24.04 for ASAN (Arne Welzel, Corelight)
+
+  * Use range views instead of Spicy range helpers (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Require at least gcc-12 on ubuntu-22.04 and centosstream-9 (Benjamin Bannier, Corelight)
+
+    This is a companion PR for https://github.com/zeek/spicy/pull/2206.
+
+8.1.0-dev.951 | 2025-11-25 08:41:02 -0700
+
+  * Add argument to escape other control characters to escape_utf8 (Tim Wojtulewicz, Corelight)
+
+  * Deprecate json_escape_utf8, replace with escape_utf8 with proper argument meaning (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.948 | 2025-11-25 07:04:08 -0700
+
+  * Fix RHEL/CentOS 9 docs to mention GCC 12 (Tim Wojtulewicz, Corelight)
+
+  * Switch note about C++ 17 to C++ 20 (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.945 | 2025-11-25 07:03:35 -0700
+
+  * Fix reference error in the DNS analyzer docs (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.943 | 2025-11-24 09:36:51 -0500
+
+  * Remove Spicy DNS from CI (Evan Typanski)
+
+8.1.0-dev.940 | 2025-11-20 11:12:20 -0700
+
+  * Update paraglob submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.938 | 2025-11-20 11:17:40 +0100
+
+  * websocket: Fix spurious if not (Arne Welzel, Corelight)
+
+8.1.0-dev.936 | 2025-11-20 11:00:17 +0100
+
+  * QUIC: Rename short_packet_threshold to short_header_packet_threshold (Arne Welzel, Corelight)
+
+    It isn't actually short QUIC packets. It's QUIC packets with a short
+    header. Rename the event and NEWS to avoid confusion.
+
+  * Update NEWS with entry for DNS dynamic update [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.932 | 2025-11-19 13:47:12 -0700
+
+  * Add script-level constants for DNS opcodes (Tim Wojtulewicz, Corelight)
+
+  * Add information from dynamic updates to regular DNS logs (Tim Wojtulewicz, Corelight)
+
+  * Add basic event for emitting DNS dynamic update data (Tim Wojtulewicz, Corelight)
+
+    This also changes the existing DU btest from checking to ensure a weird was
+    emitted to checking the output from the event.
+
+  * Support DNS Dynamic Update messages in DNS analyzer (Tim Wojtulewicz, Corelight)
+
+  * Add opcode/opcode_name to DNS log record (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.926 | 2025-11-19 13:10:19 -0700
+
+  * Fix ZAM test from VLAN merge (Evan Typanski, Corelight)
+
+    Didn't catch merging #5017 broke ZAM tests.
+
+8.1.0-dev.924 | 2025-11-19 09:43:54 -0500
+
+  * GH-2971: Add PCP/DEI to vlans in raw packet headers (Evan Typanski)
+
+    Fixes #2971
+
+  * Update `Packet.cc` comment for l2_hdr (Evan Typanski)
+
+8.1.0-dev.920 | 2025-11-18 11:34:28 -0700
+
+  * fixes for allowing combining -O use-C++ with -O ZAM (Vern Paxson, Corelight)
+
+  * treat enums introduced by plugins / Spicy analyzers as redef'ing (extending) the enum type (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for enum values that exceed 2^31 (Vern Paxson, Corelight)
+
+8.1.0-dev.916 | 2025-11-18 11:16:42 -0700
+
+  * Avoid unnecessary `dynamic_cast` when getting metric counter values (Benjamin Bannier, Corelight)
+
+8.1.0-dev.914 | 2025-11-18 11:16:21 -0700
+
+  * Fix clang-tidy findings in Spicy plugin (Benjamin Bannier, Corelight)
+
+8.1.0-dev.912 | 2025-11-18 17:09:55 +0100
+
+  * x509: Implement deduplication without Broker stores (Arne Welzel, Corelight)
+
+    This uses explicit Cluster::publish() through the manager and a
+    Cluster::node_up() handler to pre-seed a worker with anything that
+    the manager knows should be de-duplicated.
+
+8.1.0-dev.910 | 2025-11-18 16:52:27 +0100
+
+  * snmp: Fix crash with PCAP extracted from benchmarker (Arne Welzel, Corelight)
+
+8.1.0-dev.907 | 2025-11-17 20:15:00 +0100
+
+  * QUIC: Add short packets as oO in binary logarithmic fashion to history (Arne Welzel, Corelight)
+
+    This should allow to visually distinguish QUIC connections based on
+    upload/download or ping-pong characteristics. It also help to
+    understand if short packets happen early in the handshake phase.
+
+    Also, it ends up looking rather intriguing :-)
+
+8.1.0-dev.905 | 2025-11-17 09:23:01 -0700
+
+  * Consolidate zeek::util unit tests into one section, add TEST_SUITE('util') (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.903 | 2025-11-17 09:22:30 -0700
+
+  * Drop libunistd regex include path from CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * Mark Windows vcpkg dependencies as required in CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * Switch to using PCRE from vcpkg on Windows for regex.h (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.897 | 2025-11-14 11:53:14 -0700
+
+  * ZAM optimizer fix for tracking the BiFs called by functions (Vern Paxson, Corelight)
+
+  * for -O gen-standalone-C++, optimize &default's that are simple coercions (Vern Paxson, Corelight)
+
+  * simplify -O gen-C++ compilation by tracking lambda IDs via a member variable (Vern Paxson, Corelight)
+
+  * remove -O gen-standalone-C++ constraint that no longer applies (Vern Paxson, Corelight)
+
+  * for -O gen-standalone-C++, only compile attributes needed for standalone initialization (Vern Paxson, Corelight)
+
+8.1.0-dev.891 | 2025-11-14 11:43:31 -0700
+
+  * added a ZAM built-in for Telemetry::__counter_inc (Vern Paxson, Corelight)
+
+8.1.0-dev.889 | 2025-11-14 15:48:48 +0100
+
+  * SNMPv3: add parsing UserSecurityModel Security Parameters (Johanna Amann, Corelight)
+
+    This adds the security parameters to the header record.
+
+    Additionally, the username is added to snmp.log, taking the part of the
+    community string for SNMPv3.
+
+8.1.0-dev.886 | 2025-11-13 16:48:16 -0700
+
+  * abstract ZAM record field accesses to support remapping on reuse in later uses (Vern Paxson, Corelight)
+
+  * Updates for BTests tracking BiFs (Vern Paxson, Corelight)
+
+8.1.0-dev.883 | 2025-11-13 17:20:46 -0500
+
+  * Move AF_Packet closing logic to all use `Close()` (Evan Typanski)
+
+  * GH-4953: Add context to AF_Packet errors (Evan Typanski)
+
+    Fixes #4953
+
+    This simply modernizes the error numbers and includes what the plugin
+    was trying to do when it encounters the error.
+
+8.1.0-dev.880 | 2025-11-13 16:24:58 +0100
+
+  * postgresql: Switch to Allman indent style (Arne Welzel, Corelight)
+
+    This includes a priority=5 fix for zeek_init(), too, currently in-flight
+    in #5013, too.
+
+8.1.0-dev.878 | 2025-11-13 16:24:05 +0100
+
+  * websocket: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+  * postgresql: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+  * quic: Set zeek_init() with Log::create_stream() call to priority=5 (Arne Welzel, Corelight)
+
+    Reported by Zach Robinette on Slack. Oversight by me following
+    the common priority rules for Log::create_stream()
+
+8.1.0-dev.874 | 2025-11-12 10:39:28 -0700
+
+  * Docs: Switch RFC urls to the :rfc: tag for sphinx (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.872 | 2025-11-11 16:27:05 -0700
+
+  * Fix a few other random one-off clang-tidy findings (Tim Wojtulewicz, Corelight)
+
+  * Fix a few instances of performance-unnecessary-value-param (Tim Wojtulewicz, Corelight)
+
+  * Fix a couple instances of readability-container-contains (Tim Wojtulewicz, Corelight)
+
+  * Fix or silence findings of bugprone-derived-method-shadowing-base-method (Tim Wojtulewicz, Corelight)
+
+  * Wrap includes of cc files in generated BIF files to check bugprone-suspicious-include (Tim Wojtulewicz, Corelight)
+
+  * Disable a few new checkers from later versions of clang-tidy (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove unnecessary extra only_if condition (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.864 | 2025-11-11 12:08:41 -0700
+
+  * CI: Make cluster_test and amd64_container_image have the same conditions (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.862 | 2025-11-11 11:59:33 -0700
+
+  * BTest updates for -O gen-C++ (Vern Paxson, Corelight)
+
+  * fixes for standalone compilation - mainly for compiled functions called during initializations (Vern Paxson, Corelight)
+
+8.1.0-dev.859 | 2025-11-11 11:18:41 -0700
+
+  * Fix a couple of error messages (Tim Wojtulewicz, Corelight)
+
+  * Enable clang-tidy performance-unnecessary-value-param checker (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.856 | 2025-11-11 09:03:03 -0700
+
+  * Enable clang-tidy readability-const-return-type checker, fix findings (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.854 | 2025-11-10 15:15:49 -0700
+
+  * Update zeek-aux submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.852 | 2025-11-10 18:44:48 +0100
+
+  * GH-4961: ci: Force open files limit to 256 (Arne Welzel, Corelight)
+
+    References #4961.
+
+8.1.0-dev.850 | 2025-11-10 10:21:30 -0700
+
+  * Remove hard dependency on OpenSSL/Broker from ZeekConfig.cmake (Tim Wojtulewicz, Corelight)
+
+  * Move cmake templates from src dir to live with others (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.847 | 2025-11-10 09:54:41 -0700
+
+  * Restore clang-tidy modernize-type-traits checker (Tim Wojtulewicz, Corelight)
+
+  * Enable bugprone-undefined-memory-manipulation and bugprone-suspicious-include (Tim Wojtulewicz, Corelight)
+
+    Neither of these checkers result in any warnings. There's no reason for them
+    to be explicitly disabled.
+
+8.1.0-dev.844 | 2025-11-06 12:37:49 -0700
+
+  * Revert "Add skip conditions for container builder tasks" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 016a9986a4396d4d5d2749f4bbc880542f285aeb.
+
+8.1.0-dev.842 | 2025-11-06 09:07:36 -0700
+
+  * gssapi: Handle case where kerberos data isn't prepended by OID (Tim Wojtulewicz, Corelight)
+
+  * Split ASN.1 token into components in ASN1EncodingMeta (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.839 | 2025-11-05 18:30:13 +0000
+
+  * Reverse a few if/else conditions for readability (Tim Wojtulewicz, Corelight)
+
+  * Fix some missing instances of cppcoreguidelines-pro-type-cstyle-cast (Tim Wojtulewicz, Corelight)
+
+  * Enable clang-tidy readability-container-size-empty checker, fix findings (Tim Wojtulewicz, Corelight)
+
+8.1.0-dev.835 | 2025-11-05 14:11:09 +0100
+
+  * tools/systemd-generator: Add SyslogIdentifier (Arne Welzel, Corelight)
+
+    This prefixes the log output as visible with journalctl by zeek-worker-1,
+    zeek-logger-1, etc. etc. This allows to more easily distinguish the
+    individual Zeek processes in the log output. By default, systemd would
+    just show zeek[pid].
+
+8.1.0-dev.833 | 2025-11-04 22:07:15 +0100
+
+  * CI: Add Fedora 43, drop Fedora 41 (Arne Welzel, Corelight)
+
 8.1.0-dev.831 | 2025-11-04 09:18:22 +0100
 
   * Revert include change for bif types that was breaking Windows (Tim Wojtulewicz, Corelight)
@@ -926,7 +2692,7 @@
   * Fix a few more random clang-tidy findings (Tim Wojtulewicz, Corelight)
 
   * Use std::numbers::pi instead of hard-coded value (Tim Wojtulewicz, Corelight)
-  
+
   * Use std::scoped_lock instead of std::lock_guard (Tim Wojtulewicz, Corelight)
 
   * Use .contains() instead of .find() or .count() (Tim Wojtulewicz, Corelight)

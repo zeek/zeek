@@ -40,7 +40,7 @@ Redefinitions
 #############
 ======================================= =====================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The tunnel logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Tunnel::LOG`
 ======================================= =====================================
 
@@ -180,10 +180,10 @@ Functions
 
    Removes a single tunnel from the :zeek:id:`Tunnel::active` table
    and logs the closing/expiration of the tunnel.
-   
+
 
    :param tunnel: The tunnel which has closed or expired.
-   
+
 
    :param action: The specific reason for the tunnel ending.
 
@@ -195,13 +195,13 @@ Functions
    Logs a single tunnel "connection" with action
    :zeek:see:`Tunnel::EXPIRE` and removes it from the
    :zeek:id:`Tunnel::active` table.
-   
+
 
    :param t: A table of tunnels.
-   
+
 
    :param idx: The index of the tunnel table corresponding to the tunnel to expire.
-   
+
 
    :returns: 0secs, which when this function is used as an
             :zeek:attr:`&expire_func`, indicates to remove the element at

@@ -124,11 +124,11 @@ Functions
    defined in :zeek:id:`Log::sftp_destinations` and then deletes
    the local copy of the rotated log.  It's not active when
    reading from trace files.
-   
+
 
    :param info: A record holding meta-information about the log file to be
          postprocessed.
-   
+
 
    :returns: True if sftp system command was initiated or
             if no destination was configured for the log as described

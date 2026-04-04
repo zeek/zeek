@@ -352,7 +352,10 @@ void RuleMatcher::BuildRulesTree() {
         const auto& pats = rule->patterns;
 
         if ( ! has_non_file_magic_rule ) {
-            if ( pats.length() > 0 ) {
+            if ( pats.empty() ) {
+                has_non_file_magic_rule = true;
+            }
+            else {
                 for ( const auto& p : pats ) {
                     if ( p->type != Rule::FILE_MAGIC ) {
                         has_non_file_magic_rule = true;
@@ -360,8 +363,6 @@ void RuleMatcher::BuildRulesTree() {
                     }
                 }
             }
-            else
-                has_non_file_magic_rule = true;
         }
 
         rule->SortHdrTests();
@@ -384,13 +385,13 @@ void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int
 
     // All tests in tree already?
     if ( testnr >= r->hdr_tests.length() ) { // then insert it into the right list of the test
-        if ( r->patterns.length() ) {
-            r->next = dest->pattern_rules;
-            dest->pattern_rules = r;
-        }
-        else {
+        if ( r->patterns.empty() ) {
             r->next = dest->pure_rules;
             dest->pure_rules = r;
+        }
+        else {
+            r->next = dest->pattern_rules;
+            dest->pattern_rules = r;
         }
 
         dest->ruleset->Insert(r->Index());
@@ -425,7 +426,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // If we're above the RE_level, these patterns will form the regexprs.
     if ( hdr_test->level < RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 
@@ -448,7 +449,7 @@ void RuleMatcher::BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list
     // form the regexprs.
     if ( hdr_test->level == RE_level ) {
         for ( int i = 0; i < Rule::TYPES; ++i )
-            if ( exprs[i].length() )
+            if ( ! exprs[i].empty() )
                 BuildPatternSets(&hdr_test->psets[i], exprs[i], ids[i]);
     }
 
@@ -717,7 +718,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
 
                     auto* m = new RuleEndpointState::Matcher;
                     m->state = new RE_Match_State(set->re);
-                    m->type = (Rule::PatternType)i;
+                    m->type = static_cast<Rule::PatternType>(i);
                     state->matchers.push_back(m);
                 }
             }
@@ -830,7 +831,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
         const bool matcher_bol = rust_datagram_boundary && m->state->UsesRustStreamMatcher() ? true : bol;
         const bool matcher_eol = rust_datagram_boundary && m->state->UsesRustStreamMatcher() ? true : eol;
 
-        if ( m->type == type && m->state->Match((const u_char*)data, data_len, matcher_bol, matcher_eol, clear) )
+        if ( m->type == type && m->state->Match(data, data_len, matcher_bol, matcher_eol, clear) )
             newmatch = true;
     }
 
@@ -1060,7 +1061,7 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node) const {
             RuleHdrTest::PatternSet* set = node->psets[i][j];
 
             fprintf(stderr, "[%d patterns in %s group %d from %zu rules]\n", set->patterns.length(),
-                    Rule::TypeToString((Rule::PatternType)i), j, set->ids.size());
+                    Rule::TypeToString(static_cast<Rule::PatternType>(i)), j, set->ids.size());
         }
     }
 
@@ -1140,7 +1141,7 @@ void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
             const auto dfa_states = set->re->NumStates();
 
             f->Write(util::fmt("%.6f %d DFA states in %s group %d from sigs ", run_state::network_time, dfa_states,
-                               Rule::TypeToString((Rule::PatternType)i), j));
+                               Rule::TypeToString(static_cast<Rule::PatternType>(i)), j));
 
             for ( const auto& id : set->ids ) {
                 Rule* r = Rule::rule_table[id - 1];

@@ -213,7 +213,7 @@ static std::vector<const char*> to_cargs(const std::vector<std::string>& args) {
 static bool show_plugins(int level) {
     plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
-    if ( ! plugins.size() ) {
+    if ( plugins.empty() ) {
         printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
         return false;
     }
@@ -241,7 +241,7 @@ static bool show_plugins(int level) {
 
     plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
 
-    if ( inactives.size() && ! requested_plugins.size() ) {
+    if ( ! inactives.empty() && requested_plugins.empty() ) {
         printf("\nInactive dynamic plugins:\n");
 
         for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ ) {
@@ -339,6 +339,9 @@ static void terminate_zeek() {
     log_mgr->Terminate();
     input_mgr->Terminate();
     cluster::manager->Terminate();
+
+    event_mgr.Drain();
+
     thread_mgr->Terminate();
 
     broker_mgr->Terminate();
@@ -346,8 +349,6 @@ static void terminate_zeek() {
         cluster::backend->Terminate();
 
     telemetry_mgr->Terminate();
-
-    event_mgr.Drain();
 
     plugin_mgr->FinishPlugins();
 
@@ -388,6 +389,10 @@ static void terminate_zeek() {
 }
 
 RETSIGTYPE sig_handler(int signo) {
+    // Re-install handler to maintain BSD semantics on platforms where
+    // signal() has one-shot (SysV) behavior, e.g., Windows.
+    setsignal(signo, sig_handler);
+
     util::detail::set_processing_status("TERMINATING", "sig_handler");
     signal_val = signo;
 
@@ -811,8 +816,9 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // implementation, instantiate it.
         const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
         const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
-        zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
-        if ( broker_enum == cluster_backend_val->AsEnum() ) {
+        zeek_int_t cluster_backend_broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
+        zeek_int_t cluster_backend_none_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_NONE");
+        if ( cluster_backend_broker_enum == cluster_backend_val->AsEnum() ) {
             cluster::backend = broker_mgr;
         }
         else {
@@ -850,8 +856,16 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
         broker_mgr->InitPostScript();
-        if ( cluster::backend != broker_mgr )
+        if ( cluster::backend != broker_mgr ) {
             cluster::backend->InitPostScript();
+
+            if ( cluster_backend_none_enum != cluster_backend_val->AsEnum() ) {
+                // We're running with a non-Broker and non-None backend,
+                // check for all global tables with &backend or &broker_store
+                // and report them as non-functional.
+                cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
+            }
+        }
 
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();

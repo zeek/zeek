@@ -59,7 +59,8 @@ bool Field::Write(detail::SerializationFormat* fmt) const {
     else if ( ! fmt->Write(false, "have_2nd") )
         return false;
 
-    return (fmt->Write(name, "name") && fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype"),
+    return (fmt->Write(name, "name") && fmt->Write(static_cast<int>(type), "type") &&
+                fmt->Write(static_cast<int>(subtype), "subtype"),
             fmt->Write(optional, "optional"));
 }
 
@@ -263,12 +264,12 @@ bool Value::Read(detail::SerializationFormat* fmt) {
 
             switch ( family ) {
                 case 4:
-                    val.subnet_val.length = (uint8_t)length;
+                    val.subnet_val.length = static_cast<uint8_t>(length);
                     val.subnet_val.prefix.family = IPv4;
                     return fmt->Read(&val.subnet_val.prefix.in.in4, "subnet-in4");
 
                 case 6:
-                    val.subnet_val.length = (uint8_t)length;
+                    val.subnet_val.length = static_cast<uint8_t>(length);
                     val.subnet_val.prefix.family = IPv6;
                     return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
                 default: reporter->Warning("Unknown family type %d when reading subnet\n", family); break;
@@ -326,7 +327,8 @@ bool Value::Read(detail::SerializationFormat* fmt) {
 }
 
 bool Value::Write(detail::SerializationFormat* fmt) const {
-    if ( ! (fmt->Write((int)type, "type") && fmt->Write((int)subtype, "subtype") && fmt->Write(present, "present")) )
+    if ( ! (fmt->Write(static_cast<int>(type), "type") && fmt->Write(static_cast<int>(subtype), "subtype") &&
+            fmt->Write(present, "present")) )
         return false;
 
     if ( ! present )
@@ -342,9 +344,13 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
 
         case TYPE_ADDR: {
             switch ( val.addr_val.family ) {
-                case IPv4: return fmt->Write((char)4, "addr-family") && fmt->Write(val.addr_val.in.in4, "addr-in4");
+                case IPv4:
+                    return fmt->Write(static_cast<char>(4), "addr-family") &&
+                           fmt->Write(val.addr_val.in.in4, "addr-in4");
 
-                case IPv6: return fmt->Write((char)6, "addr-family") && fmt->Write(val.addr_val.in.in6, "addr-in6");
+                case IPv6:
+                    return fmt->Write(static_cast<char>(6), "addr-family") &&
+                           fmt->Write(val.addr_val.in.in6, "addr-in6");
             }
 
             // Can't be reached.
@@ -352,16 +358,16 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
         }
 
         case TYPE_SUBNET: {
-            if ( ! fmt->Write((char)val.subnet_val.length, "subnet-length") )
+            if ( ! fmt->Write(static_cast<char>(val.subnet_val.length), "subnet-length") )
                 return false;
 
             switch ( val.subnet_val.prefix.family ) {
                 case IPv4:
-                    return fmt->Write((char)4, "subnet-family") &&
+                    return fmt->Write(static_cast<char>(4), "subnet-family") &&
                            fmt->Write(val.subnet_val.prefix.in.in4, "subnet-in4");
 
                 case IPv6:
-                    return fmt->Write((char)6, "subnet-family") &&
+                    return fmt->Write(static_cast<char>(6), "subnet-family") &&
                            fmt->Write(val.subnet_val.prefix.in.in6, "subnet-in6");
             }
 

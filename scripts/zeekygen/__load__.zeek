@@ -8,6 +8,7 @@
 @load frameworks/cluster/backend/zeromq/connect.zeek
 @endif
 @load frameworks/cluster/nodes-experimental/manager.zeek
+@load frameworks/cluster/websocket/server.zeek
 @load frameworks/control/controllee.zeek
 @load frameworks/control/controller.zeek
 
@@ -20,6 +21,7 @@
 @load policy/misc/dump-events.zeek
 @load policy/misc/systemd-generator.zeek
 @load policy/protocols/conn/speculative-service.zeek
+@load policy/protocols/dns/disable-opcode-log-fields.zeek
 
 @if ( have_spicy() )
 # Loading this messes up documentation of some elements defined elsewhere.

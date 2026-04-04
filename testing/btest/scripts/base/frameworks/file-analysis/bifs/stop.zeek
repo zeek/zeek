@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace $SCRIPTS/file-analysis-test.zeek %INPUT >get.out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap $SCRIPTS/file-analysis-test.zeek %INPUT >get.out
 # @TEST-EXEC: btest-diff get.out
 # @TEST-EXEC: test ! -s Cx92a0ym5R8-file
 

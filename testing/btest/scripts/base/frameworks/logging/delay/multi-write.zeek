@@ -1,6 +1,6 @@
 # @TEST-DOC: Test the behavior when the same record is written twice. Each Log::write() is delayed independenly. In the test below, the second Log::write() is not delayed.
 
-# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.trace test.zeek %INPUT
+# @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

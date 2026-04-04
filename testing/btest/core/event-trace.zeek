@@ -4,7 +4,7 @@
 #
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 #
-# @TEST-EXEC: zeek --event-trace trace.zeek -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek --event-trace trace.zeek -b -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: mkdir pcap-logs
 # @TEST-EXEC: zeek-cut -m < http.log > pcap-logs/http.log
 # @TEST-EXEC: rm -v *.log

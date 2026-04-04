@@ -12,15 +12,9 @@ Summary
 Redefinable Options
 ###################
 ======================================================================================================== ============================================
-:zeek:id:`PacketAnalyzer::VXLAN::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef` 
+:zeek:id:`PacketAnalyzer::VXLAN::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef`
 :zeek:id:`PacketAnalyzer::VXLAN::vxlan_ports`: :zeek:type:`set` :zeek:attr:`&redef`                      The set of UDP ports used for VXLAN traffic.
 ======================================================================================================== ============================================
-
-Redefinitions
-#############
-==================================================================== =
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =
 
 
 Detailed Interface

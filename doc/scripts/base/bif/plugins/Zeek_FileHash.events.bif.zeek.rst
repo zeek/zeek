@@ -28,16 +28,16 @@ Events
 
    This event is generated each time file analysis generates a digest of the
    file contents.
-   
+
 
    :param f: The file.
-   
+
 
    :param kind: The type of digest algorithm.
-   
+
 
    :param hash: The result of the hashing.
-   
+
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_MD5
       Files::ANALYZER_SHA1 Files::ANALYZER_SHA224
       Files::ANALYZER_SHA256 Files::ANALYZER_SHA384

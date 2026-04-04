@@ -1,0 +1,3 @@
+#fields	indicator	indicator_type	meta.source	meta.desc	meta.url
+1.2.3.4	Intel::ADDR	source1	Sending phishing email	http://source1.com/badhosts/1.2.3.4
+a.b.com	Intel::DOMAIN	source2	Name used for data exfiltration	-

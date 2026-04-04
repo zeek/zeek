@@ -23,4 +23,3 @@ event zeek_init()
 	mt[1] = 1;
 	mt[2] = 2;
 	}
-

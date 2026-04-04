@@ -100,9 +100,8 @@ request and one with a ``WEIRD`` request. The ``WEIRD`` request was rightfully
 classified as a "weird" by Zeek.
 
 More information on the various logs and what they report can be found in the
-:doc:`logs/index` section. More information on working with logs can be found in
-the :doc:`log-formats` section.
-
+:doc:`/reference/logs/index` section. More information on working with logs can be found in
+the :ref:`log-inspection` section of the tutorial.
 
 .. note::
 
@@ -192,7 +191,7 @@ In another terminal, run the two ``curl`` commands from before:
 The terminal running Zeek will print each command as it gets processed.
 
 More information on how to use Zeek’s scripting language can be found in the
-:doc:`scripting/index` section. Experiment with Zeek scripting at
+:doc:`tutorial/scripting/index` section. Experiment with Zeek scripting at
 `try.zeek.org <https://try.zeek.org>`_.
 
 Managing Zeek
@@ -218,7 +217,7 @@ First, update the configuration’s network interface in
      interface=en0
 
 You can further configure the ``local.zeek`` script found in
-``$PREFIX/share/zeek/site/local.zeek``. ``zeekctl`` loads this script by 
+``$PREFIX/share/zeek/site/local.zeek``. ``zeekctl`` loads this script by
 default. It is not overwritten by Zeek upgrades.
 
 Run ``zeekctl`` in order to start an interactive prompt and manage your Zeek
@@ -263,7 +262,7 @@ And exit from ``zeekctl``:
 
 The logs from ZeekControl will not appear in your current directory. Instead,
 they will appear in ``$PREFIX/logs/current`` when running. Since the process was
-stopped, they will appear in a directory with the current date within 
+stopped, they will appear in a directory with the current date within
 ``$PREFIX/logs/`` - such as ``$PREFIX/logs/2025-01-01/``.
 
 These logs are compressed as ``.log.gz`` files from gzip_. You may decompress
@@ -290,7 +289,7 @@ contains many processes which analyze traffic together. For this example, all
 nodes will be local, but they may also be split among multiple hosts.
 
 First, return to the ``$PREFIX/etc/node.cfg`` configuration file. It currently
-contains one "standalone" node: 
+contains one "standalone" node:
 
 .. code-block:: console
 
@@ -393,9 +392,9 @@ considerations:
   `try.zeek.org <https://try.zeek.org>`_.
 * Read more of the documentation: the documentation can be read sequentially.
   Documentation for Zeek's out-of-the-box logs can be found in the
-  :doc:`logs/index` section.
+  :doc:`/reference/logs/index` section.
 * Browse scripts from :samp:`{$PREFIX}/share/zeek/policy` that may be useful to
-  load. Their documentation is found in the 
+  load. Their documentation is found in the
   :ref:`overview of script packages <script-packages>`.
 * Review the FAQ_.
 * Join the Zeek community :slacklink:`Slack workspace <>` or

@@ -17,17 +17,17 @@ Summary
 Redefinitions
 #############
 =================================================================== =======================================================================================
-:zeek:type:`DNS::Info`: :zeek:type:`record`                         
-                                                                    
+:zeek:type:`DNS::Info`: :zeek:type:`record`
+
                                                                     :New Fields: :zeek:type:`DNS::Info`
-                                                                    
+
                                                                       auth: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                         Authoritative responses for the query.
-                                                                    
+
                                                                       addl: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
                                                                         Additional responses for the query.
-:zeek:id:`dns_skip_all_addl`: :zeek:type:`bool` :zeek:attr:`&redef` 
-:zeek:id:`dns_skip_all_auth`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`dns_skip_all_addl`: :zeek:type:`bool` :zeek:attr:`&redef`
+:zeek:id:`dns_skip_all_auth`: :zeek:type:`bool` :zeek:attr:`&redef`
 =================================================================== =======================================================================================
 
 

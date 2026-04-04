@@ -37,13 +37,13 @@ Events
    Management agents send this event to every Zeek cluster node to run a
    "dispatch" -- a particular, pre-implemented action. This is the agent-node
    complement to :zeek:see:`Management::Agent::API::node_dispatch_request`.
-   
+
 
    :param reqid: a request identifier string, echoed in the response event.
-   
+
 
    :param action: the requested dispatch command, with any arguments.
-   
+
 
    :param nodes: the cluster node names this dispatch targets. An empty set,
        supplied by default, means it applies to all nodes. Since nodes
@@ -58,10 +58,10 @@ Events
    Response to a node_dispatch_request event. The nodes send this back
    to the agent. This is the agent-node equivalent of
    :zeek:see:`Management::Agent::API::node_dispatch_response`.
-   
+
 
    :param reqid: the request identifier used in the request event.
-   
+
 
    :param result: a :zeek:see:`Management::Result` record covering one Zeek
        cluster node managed by the agent. Upon success, the data field
@@ -77,9 +77,9 @@ Events
    with. It is an agent-level equivalent of :zeek:see:`Broker::peer_added`,
    and similar to :zeek:see:`Management::Agent::API::notify_agent_hello`
    for agents.
-   
+
 
    :param node: the name of the node, as given in :zeek:see:`Cluster::node`.
-   
+
 
 

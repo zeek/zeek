@@ -11,7 +11,6 @@
 #include <broker/time.hh>
 #include <broker/variant.hh>
 #include <broker/zeek.hh>
-#include <unistd.h>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -50,6 +49,17 @@
 using namespace std;
 
 namespace {
+
+// On Windows, colons in Zeek namespace-qualified names (e.g., "Module::var")
+// are invalid in filenames. Replace them with underscores for path use.
+string sanitize_store_filename(string name) {
+#ifdef _WIN32
+    for ( auto& c : name )
+        if ( c == ':' )
+            c = '_';
+#endif
+    return name;
+}
 
 broker::vector broker_vector_from(const broker::variant& arg) {
     auto tmp = arg.to_data();
@@ -438,9 +448,13 @@ struct scoped_reporter_location {
 #ifdef DEBUG
 namespace {
 
-std::string RenderMessage(const broker::variant& d) { return util::json_escape_utf8(broker::to_string(d)); }
+std::string RenderMessage(const broker::variant& d) {
+    return util::escape_utf8(broker::to_string(d), util::ESCAPE_UNPRINTABLE_CONTROLS);
+}
 
-std::string RenderMessage(const broker::variant_list& d) { return util::json_escape_utf8(broker::to_string(d)); }
+std::string RenderMessage(const broker::variant_list& d) {
+    return util::escape_utf8(broker::to_string(d), util::ESCAPE_UNPRINTABLE_CONTROLS);
+}
 
 std::string RenderMessage(const broker::store::response& x) {
     return util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
@@ -644,8 +658,12 @@ void Manager::InitializeBrokerStoreForwarding() {
     for ( const auto& global : globals ) {
         auto& id = global.second;
         if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) ) {
-            const auto& attr = id->GetAttr(zeek::detail::ATTR_BACKEND);
-            auto e = static_cast<BifEnum::Broker::BackendType>(attr->GetExpr()->Eval(nullptr)->AsEnum());
+            const auto& attr_e = id->GetAttr(zeek::detail::ATTR_BACKEND)->GetExpr();
+            auto be_type = eval_in_isolation(attr_e);
+            if ( ! be_type )
+                reporter->ExprRuntimeError(attr_e.get(), "bad &backend attribute");
+
+            auto e = static_cast<BifEnum::Broker::BackendType>(be_type->AsEnum());
             auto storename = std::string("___sync_store_") + global.first;
             id->GetVal()->AsTableVal()->SetBrokerStore(storename);
             AddForwardedStore(storename, cast_intrusive<TableVal>(id->GetVal()));
@@ -666,7 +684,7 @@ void Manager::InitializeBrokerStoreForwarding() {
                 default: break;
             }
 
-            auto path = zeek_table_db_directory + "/" + storename + suffix;
+            auto path = zeek_table_db_directory + "/" + sanitize_store_filename(storename) + suffix;
 
             MakeMaster(storename, backend, broker::backend_options{{"path", path}});
         }
@@ -845,7 +863,7 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     return true;
 }
 
-bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
+bool Manager::PublishEvent(string topic, const std::string& name, const broker::vector& args, double ts) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
@@ -895,7 +913,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     // explicitly triggered. Hence, the timestamp is set to the current event's time. This
     // also means that timestamping cannot be manipulated from script-land for now.
     auto ts = event_mgr.CurrentEventTime();
-    return PublishEvent(std::move(topic), event_name, std::move(xs), ts);
+    return PublishEvent(std::move(topic), event_name, xs, ts);
 }
 
 bool Manager::PublishIdentifier(std::string topic, std::string id) {
@@ -1047,7 +1065,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
 
     DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
-    if ( log_buffers.size() <= (unsigned int)stream_id_num )
+    if ( log_buffers.size() <= static_cast<unsigned int>(stream_id_num) )
         log_buffers.resize(stream_id_num + 1);
 
     auto& lb = log_buffers[stream_id_num];
@@ -1413,7 +1431,7 @@ void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std:
     table->Assign(zeek_key, zeek_value, false);
 }
 
-void Manager::ProcessStoreEvent(broker::data msg) {
+void Manager::ProcessStoreEvent(const broker::data& msg) {
     if ( auto insert = broker::store_event::insert::make(msg) ) {
         auto storehandle = broker_mgr->LookupStore(insert.store_id());
         if ( ! storehandle )
@@ -1923,7 +1941,7 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
             default: break;
         }
 
-        it->second = name + suffix;
+        it->second = sanitize_store_filename(name) + suffix;
     }
 
     auto result = bstate->endpoint.attach_master(name, type, std::move(opts));

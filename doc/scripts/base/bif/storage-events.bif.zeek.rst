@@ -32,18 +32,18 @@ Events
    May be generated when a backend connection is lost, both normally and
    unexpectedly. This event depends on the backends implementing handling for
    it, and is not generated automatically by the storage framework.
-   
+
 
    :param tag: A tag for one of the storage backends.
-   
+
 
    :param options: A copy of the configuration options passed to
             :zeek:see:`Storage::Async::open_backend` or
             :zeek:see:`Storage::Sync::open_backend` when the backend was initially opened.
-   
+
 
    :param reason: A string describing why the connection was lost.
-   
+
    .. zeek:see:: Storage::backend_opened
 
 .. zeek:id:: Storage::backend_opened
@@ -52,15 +52,15 @@ Events
    :Type: :zeek:type:`event` (tag: :zeek:type:`Storage::Backend`, options: :zeek:type:`any`)
 
    Generated automatically when a new backend connection is opened successfully.
-   
+
 
    :param tag: A tag for one of the storage backends.
-   
+
 
    :param options: A copy of the configuration options passed to
             :zeek:see:`Storage::Async::open_backend` or
             :zeek:see:`Storage::Sync::open_backend` when the backend was initially opened.
-   
+
    .. zeek:see:: Storage::backend_lost
 
 

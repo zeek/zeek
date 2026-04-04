@@ -11,7 +11,7 @@ jobs:
         run: cat "$GITHUB_EVENT_PATH" || true
 
       - name: Send CI Email Notification
-        uses: zeek/ci-email-action@master
+        uses: zeek/ci-email-action@ddb018559b0b814d005d72590afd83d9384f7c9d # master
         env:
           CI_APP_NAME: "Cirrus CI"
           BRANCH_REGEX: "master|release/.*"

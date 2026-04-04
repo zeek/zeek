@@ -4,6 +4,7 @@ error in <...>/init-mismatch.zeek, line 6: assignment of non-arithmetic value to
 error in <...>/init-mismatch.zeek, line 7: Initialization not preceded by =<...>/-= is not allowed. (4, 6)
 error in <...>/init-mismatch.zeek, line 13: different number of indices (list of count,count and list of count,count,count)
 error in <...>/init-mismatch.zeek, line 14: table constructor element lacks '=' structure (bar)
+error in <...>/init-mismatch.zeek, line 14: cannot determine type for table; ensure square brackets are around each key (table(foo = 3, bar))
 error in <...>/init-mismatch.zeek, line 17: empty list in untyped initialization ()
 error in <...>/init-mismatch.zeek, line 23: cannot expand constructor elements using a value that depends on local variables (subnets)
 error in <...>/init-mismatch.zeek, line 23: type clash in assignment (my_subnets = set(foo, subnets))

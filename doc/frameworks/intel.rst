@@ -23,10 +23,8 @@ First we need to define the intelligence data to match. Let's look for the
 domain ``www.reddit.com``. For the details of the file format see the
 :ref:`Loading Intelligence <loading-intelligence>` section below.
 
-::
-
-  #fields	indicator	indicator_type	meta.source
-  www.reddit.com	Intel::DOMAIN	my_special_source
+.. literalinclude:: intel/basic.txt
+   :caption: yourfile.txt
 
 Now we need to tell Zeek about the data. Add this line to your local.zeek to
 load an intelligence file:
@@ -103,11 +101,8 @@ depending on the loaded extensions. One example is the
 :doc:`/scripts/policy/frameworks/intel/do_notice.zeek` script as described
 below.
 
-::
-
-  #fields indicator       indicator_type  meta.source     meta.desc       meta.url
-  1.2.3.4 Intel::ADDR     source1 Sending phishing email  http://source1.com/badhosts/1.2.3.4
-  a.b.com Intel::DOMAIN   source2 Name used for data exfiltration -
+.. literalinclude:: intel/donotice.txt
+   :caption: donotice.txt
 
 For a list of all built-in ``indicator_type`` values, please refer to the
 documentation of :zeek:see:`Intel::Type`.

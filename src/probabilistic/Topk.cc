@@ -90,16 +90,15 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
             Element* e = *eit;
             // lookup if we already know this one...
             zeek::detail::HashKey* key = GetHash(e->value);
-            Element* olde = (Element*)elementDict->Lookup(key);
+            Element* olde = elementDict->Lookup(key);
 
             if ( olde == nullptr ) {
                 olde = new Element();
                 olde->epsilon = 0;
                 olde->value = e->value;
                 // insert at bucket position 0
-                if ( buckets.size() > 0 ) {
+                if ( ! buckets.empty() )
                     assert(buckets.front()->count > 0);
-                }
 
                 Bucket* newbucket = new Bucket();
                 newbucket->count = 0;
@@ -135,9 +134,9 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
 
     while ( numElements > size ) {
         pruned = true;
-        assert(buckets.size() > 0);
+        assert(! buckets.empty());
         Bucket* b = buckets.front();
-        assert(b->elements.size() > 0);
+        assert(! b->elements.empty());
 
         Element* e = b->elements.front();
         zeek::detail::HashKey* key = GetHash(e->value);
@@ -147,7 +146,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune) {
 
         b->elements.pop_front();
 
-        if ( b->elements.size() == 0 ) {
+        if ( b->elements.empty() ) {
             delete b;
             buckets.pop_front();
         }
@@ -199,7 +198,7 @@ VectorValPtr TopkVal::GetTopK(int k) const // returns vector
 
 uint64_t TopkVal::GetCount(Val* value) const {
     zeek::detail::HashKey* key = GetHash(value);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
     delete key;
 
     if ( e == nullptr ) {
@@ -212,7 +211,7 @@ uint64_t TopkVal::GetCount(Val* value) const {
 
 uint64_t TopkVal::GetEpsilon(Val* value) const {
     zeek::detail::HashKey* key = GetHash(value);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
     delete key;
 
     if ( e == nullptr ) {
@@ -253,7 +252,7 @@ void TopkVal::Encountered(ValPtr encountered) {
 
     // Step 1 - get the hash.
     zeek::detail::HashKey* key = GetHash(encountered);
-    Element* e = (Element*)elementDict->Lookup(key);
+    Element* e = elementDict->Lookup(key);
 
     if ( e == nullptr ) {
         e = new Element();
@@ -263,7 +262,7 @@ void TopkVal::Encountered(ValPtr encountered) {
         // well, we do not know this one yet...
         if ( numElements < size ) {
             // brilliant. just add it at position 1
-            if ( buckets.size() == 0 || (*buckets.begin())->count > 1 ) {
+            if ( buckets.empty() || (*buckets.begin())->count > 1 ) {
                 Bucket* b = new Bucket();
                 b->count = 1;
                 std::list<Bucket*>::iterator pos = buckets.insert(buckets.begin(), b);
@@ -290,10 +289,10 @@ void TopkVal::Encountered(ValPtr encountered) {
             Bucket* b = *buckets.begin(); // bucket with smallest elements
 
             // evict oldest element with least hits.
-            assert(b->elements.size() > 0);
+            assert(! b->elements.empty());
             zeek::detail::HashKey* deleteKey = GetHash((*(b->elements.begin()))->value);
             b->elements.erase(b->elements.begin());
-            Element* deleteElement = (Element*)elementDict->RemoveEntry(deleteKey);
+            Element* deleteElement = elementDict->RemoveEntry(deleteKey);
             assert(deleteElement); // there has to have been a minimal element...
             delete deleteElement;
             delete deleteKey;
@@ -351,7 +350,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count) {
     e->parent = nextBucket;
 
     // if currBucket is empty, we have to delete it now
-    if ( currBucket->elements.size() == 0 ) {
+    if ( currBucket->elements.empty() ) {
         buckets.remove(currBucket);
         delete currBucket;
         currBucket = nullptr;

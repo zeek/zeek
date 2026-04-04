@@ -12,7 +12,6 @@
 #include <rapidjson/error/en.h>
 #include <sys/param.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -50,11 +49,7 @@ using namespace std;
 
 namespace zeek {
 
-Val::~Val() {
-#ifdef DEBUG
-    delete[] bound_id;
-#endif
-}
+Val::~Val() = default;
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
@@ -298,15 +293,6 @@ void Val::ValDescribeReST(ODesc* d) const {
     }
 }
 
-#ifdef DEBUG
-detail::ID* Val::GetID() const { return bound_id ? detail::global_scope()->Find(bound_id).get() : nullptr; }
-
-void Val::SetID(detail::ID* id) {
-    delete[] bound_id;
-    bound_id = id ? util::copy_string(id->Name()) : nullptr;
-}
-#endif
-
 TableValPtr Val::GetRecordFields() {
     static auto record_field_table = id::find_type<TableType>("record_field_table");
     auto t = GetType().get();
@@ -431,7 +417,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             if ( tag == TYPE_FUNC )
                 desc = util::strstrip(desc);
 
-            writer.String(util::json_escape_utf8(desc));
+            writer.String(util::escape_utf8(desc, util::ESCAPE_UNPRINTABLE_CONTROLS));
             break;
         }
 
@@ -637,7 +623,7 @@ uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type) {
     return port_num;
 }
 
-PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), zeek_uint_t(p)) {}
+PortVal::PortVal(uint32_t p) : UnsignedValImplementation(base_type(TYPE_PORT), static_cast<zeek_uint_t>(p)) {}
 
 uint32_t PortVal::Port() const {
     uint32_t p = static_cast<uint32_t>(uint_val);
@@ -731,7 +717,7 @@ int SubNetVal::Width() const { return subnet_val->Length(); }
 
 ValPtr SubNetVal::SizeVal() const {
     int retained = 128 - subnet_val->LengthIPv6();
-    return make_intrusive<DoubleVal>(pow(2.0, double(retained)));
+    return make_intrusive<DoubleVal>(pow(2.0, static_cast<double>(retained)));
 }
 
 void SubNetVal::ValDescribe(ODesc* d) const { d->Add(string(*subnet_val).c_str()); }
@@ -1315,8 +1301,7 @@ ValPtr StringVal::DoClone(CloneState* state) {
     // We could likely treat this type as immutable and return a reference
     // instead of creating a new copy, but we first need to be careful and
     // audit whether anything internal actually does mutate it.
-    return state->NewClone(this, make_intrusive<StringVal>(
-                                     new String((u_char*)string_val->Bytes(), string_val->Len(), true)));
+    return state->NewClone(this, make_intrusive<StringVal>(new String(string_val->Bytes(), string_val->Len(), true)));
 }
 
 FuncVal::FuncVal(FuncPtr f) : Val(f->GetType()) { func_val = std::move(f); }
@@ -1413,7 +1398,13 @@ ValPtr PatternVal::DoClone(CloneState* state) {
     return state->NewClone(this, make_intrusive<PatternVal>(re));
 }
 
-ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t))) { tag = t; }
+// The TypeList constructor wants a nullptr arg for pure_type when dealing with
+// a heterogenous (non-pure) list, so check t's Tag for TYPE_ANY to fulfill
+// that API. Because t can be a nullptr, implying TYPE_ANY, we have the
+// ternary complications.
+ListVal::ListVal(TypePtr t) : Val(make_intrusive<TypeList>(t ? (t->Tag() == TYPE_ANY ? nullptr : t) : nullptr)) {
+    tag = t ? t->Tag() : TYPE_ANY;
+}
 
 ListVal::ListVal(TypeListPtr tl, std::vector<ValPtr> _vals) : Val(std::move(tl)) {
     tag = TYPE_ANY;
@@ -1807,7 +1798,7 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
 
     auto bs = attrs->Find(detail::ATTR_BROKER_STORE);
     if ( bs && broker_store.empty() ) {
-        auto c = bs->GetExpr()->Eval(nullptr);
+        auto c = eval_in_isolation(bs->GetExpr());
         assert(c);
         assert(c->GetType()->Tag() == TYPE_STRING);
         broker_store = c->AsStringVal()->AsString()->CheckString();
@@ -1853,7 +1844,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
                       bool* iterators_invalidated) {
     bool is_set = table_type->IsSet();
 
-    if ( is_set == (bool)new_val )
+    if ( is_set == static_cast<bool>(new_val) )
         InternalWarning("bad set/table in TableVal::Assign");
 
     TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
@@ -2045,11 +2036,11 @@ ValPtr TableVal::Default(const ValPtr& index) {
             auto rt = cast_intrusive<RecordType>(ytype);
             auto coerce = make_intrusive<detail::RecordCoerceExpr>(def_attr->GetExpr(), std::move(rt));
 
-            def_val = coerce->Eval(nullptr);
+            def_val = eval_in_isolation(coerce);
         }
 
         else
-            def_val = def_attr->GetExpr()->Eval(nullptr);
+            def_val = eval_in_isolation(def_attr->GetExpr());
     }
 
     if ( ! def_val ) {
@@ -2270,7 +2261,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
         return;
 
     try {
-        auto thefunc = change_func->Eval(nullptr);
+        auto thefunc = eval_in_isolation(change_func);
 
         if ( ! thefunc )
             return;
@@ -2471,14 +2462,16 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     return va;
 }
 
-ListValPtr TableVal::ToListVal(TypeTag t) const {
+ListValPtr TableVal::ToListVal(TypeTag t) const { return ToListVal(base_type(t)); }
+
+ListValPtr TableVal::ToListVal(TypePtr t) const {
     auto l = make_intrusive<ListVal>(t);
 
     for ( const auto& tble : *table_val ) {
         auto k = tble.GetHashKey();
         auto index = GetTableHash()->RecoverVals(*k);
 
-        if ( t == TYPE_ANY )
+        if ( ! t || t->Tag() == TYPE_ANY )
             l->Append(std::move(index));
         else {
             // We're expecting a pure list, flatten the ListVal.
@@ -2499,7 +2492,7 @@ ListValPtr TableVal::ToPureListVal() const {
         return nullptr;
     }
 
-    return ToListVal(tl[0]->Tag());
+    return ToListVal(tl[0]);
 }
 
 std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const {
@@ -2575,7 +2568,7 @@ void TableVal::Describe(ODesc* d) const {
         if ( table_type->IsSet() ) { // We're a set, not a table.
             if ( d->IsReadable() )
                 if ( dim != 1 )
-                    d_ptr->AddSP("]");
+                    d_ptr->Add("]");
         }
         else {
             if ( d->IsReadable() )
@@ -2754,7 +2747,7 @@ double TableVal::GetExpireTime() {
     double interval;
 
     try {
-        auto timeout = expire_time->Eval(nullptr);
+        auto timeout = eval_in_isolation(expire_time);
         interval = (timeout ? timeout->AsInterval() : -1);
     } catch ( InterpreterException& e ) {
         interval = -1;
@@ -2778,7 +2771,7 @@ double TableVal::CallExpireFunc(ListValPtr idx) {
     double secs = 0;
 
     try {
-        auto vf = expire_func->Eval(nullptr);
+        auto vf = eval_in_isolation(expire_func);
 
         if ( ! vf )
             // Will have been reported already.
@@ -3109,7 +3102,7 @@ RecordValPtr RecordVal::DoCoerceTo(RecordTypePtr t, bool allow_orphaning) const 
         if ( ft->Tag() == TYPE_RECORD && ! same_type(ft, v->GetType()) ) {
             auto rhs = make_intrusive<detail::ConstExpr>(v);
             auto e = make_intrusive<detail::RecordCoerceExpr>(std::move(rhs), cast_intrusive<RecordType>(ft));
-            aggr->Assign(t_i, e->Eval(nullptr));
+            aggr->Assign(t_i, eval_in_isolation(e));
             continue;
         }
 
@@ -3294,7 +3287,7 @@ VectorVal::~VectorVal() {
     }
 }
 
-ValPtr VectorVal::SizeVal() const { return val_mgr->Count(uint32_t(vector_val.size())); }
+ValPtr VectorVal::SizeVal() const { return val_mgr->Count(static_cast<uint32_t>(vector_val.size())); }
 
 bool VectorVal::CheckElementType(const ValPtr& element) {
     if ( ! element )
@@ -3469,7 +3462,9 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const {
 
     auto last_idx = v->Size();
 
-    for ( auto i = 0u; i < Size(); ++i )
+    const auto num_elements = Size();
+
+    for ( auto i = 0u; i < num_elements; ++i )
         if ( ! v->Assign(last_idx++, At(i)) )
             return false;
 

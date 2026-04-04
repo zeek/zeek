@@ -616,14 +616,20 @@ const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const {
         if ( e->Tag() != EXPR_NAME )
             return nullptr;
 
-        return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num);
+        auto stmt_num2 = e->GetOptInfo()->stmt_num;
+
+        if ( stmt_num2 == stmt_num )
+            // Self-assignment - weird! - but avoid infinite recursion.
+            return nullptr;
+
+        return CheckForConst(e->AsNameExpr()->IdPtr(), stmt_num2);
     }
 
     return nullptr;
 }
 
 ConstExprPtr Reducer::Fold(ExprPtr e) {
-    auto c = make_intrusive<ConstExpr>(e->Eval(nullptr));
+    auto c = make_intrusive<ConstExpr>(eval_in_isolation(e));
     FoldedTo(e, c);
     return c;
 }
@@ -770,7 +776,7 @@ IDPtr Reducer::GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id) {
     if ( Optimizing() )
         reporter->InternalError("Generating a new temporary while optimizing");
 
-    if ( omitted_stmts.size() > 0 )
+    if ( ! omitted_stmts.empty() )
         reporter->InternalError("Generating a new temporary while pruning statements");
 
     auto temp = std::make_shared<TempVar>(temps.size(), rhs);
@@ -810,7 +816,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
     if ( Optimizing() )
         reporter->InternalError("Generating a new local while optimizing");
 
-    if ( omitted_stmts.size() > 0 )
+    if ( ! omitted_stmts.empty() )
         reporter->InternalError("Generating a new local while pruning statements");
 
     // Make sure the identifier is not being re-re-mapped.

@@ -32,16 +32,16 @@ Events
    Generated for a connection that crossed a set byte threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
    :zeek:see:`ConnThreshold::bytes_threshold_crossed` instead.
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: true if the threshold was crossed by the originator of the connection
-   
+
    .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_packets_threshold_crossed
                  get_current_conn_bytes_threshold get_current_conn_packets_threshold conn_duration_threshold_crossed
                  set_current_conn_duration_threshold get_current_conn_duration_threshold
@@ -54,20 +54,20 @@ Events
    Generated for a connection that crossed a set duration threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
    :zeek:see:`ConnThreshold::duration_threshold_crossed` instead.
-   
+
    Note that this event is not raised at the exact moment that a duration threshold is crossed; instead
    it is raised when the next packet is seen after the threshold has been crossed. On a connection that is
    idle, this can be raised significantly later.
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: true if the threshold was crossed by the originator of the connection
-   
+
    .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
                  get_current_conn_bytes_threshold get_current_conn_packets_threshold
                  set_current_conn_duration_threshold get_current_conn_duration_threshold
@@ -80,10 +80,10 @@ Events
    Generated for any IP-based session once :zeek:id:`ConnThreshold::generic_packet_thresholds` packets have been
    observed. Only one endpoint sending traffic is sufficient to trigger the event. This allows to handle new
    connections, while short interactions, like scans consisting of only a few packets, are ignored.
-   
+
 
    :param c: the connection.
-   
+
 
    :param threshold: the threshold that was set
 
@@ -95,16 +95,16 @@ Events
    Generated for a connection that crossed a set packet threshold. Note that this
    is a low level event that should usually be avoided for user code. Use
    :zeek:see:`ConnThreshold::packets_threshold_crossed` instead.
-   
+
 
    :param c: the connection
-   
+
 
    :param threshold: the threshold that was set
-   
+
 
    :param is_orig: true if the threshold was crossed by the originator of the connection
-   
+
    .. zeek:see:: set_current_conn_packets_threshold set_current_conn_bytes_threshold conn_bytes_threshold_crossed
                  get_current_conn_bytes_threshold get_current_conn_packets_threshold conn_duration_threshold_crossed
                  set_current_conn_duration_threshold get_current_conn_duration_threshold

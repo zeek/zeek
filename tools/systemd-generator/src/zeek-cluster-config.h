@@ -256,7 +256,7 @@ private:
 
     // Metrics
     int metrics_port = 9991;
-    std::string metrics_address = "0.0.0.0";
+    std::string metrics_address = "127.0.0.1";
 
     int restart_interval_sec = 1;
 

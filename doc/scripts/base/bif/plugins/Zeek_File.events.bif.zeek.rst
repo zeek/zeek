@@ -28,16 +28,16 @@ Events
 
    Generated when a TCP connection associated w/ file data transfer is seen
    (e.g. as happens w/ FTP or IRC).
-   
+
 
    :param c: The connection over which file data is transferred.
-   
+
 
    :param prefix: Up to 1024 bytes of the file data.
-   
+
 
    :param descr: Deprecated/unused argument.
-   
+
 
    :param mime_type: MIME type of the file or "<unknown>" if no file magic signatures
               matched.

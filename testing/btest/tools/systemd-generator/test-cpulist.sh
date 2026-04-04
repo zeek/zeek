@@ -17,7 +17,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir2/zeek-worker@2.service.d/*conf
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir2/zeek-worker@7.service.d/*conf
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir2/zeek-worker@8.service.d/*conf
-# #
+#
 # @TEST-EXEC: mkdir dir3
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config3 dir3
 #

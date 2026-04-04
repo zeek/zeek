@@ -117,7 +117,7 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
 
     // Using the legacy IXWebsocketAPI API to acquire a shared_ptr to the ix::WebSocket instance.
     ix::WebSocketServer::OnConnectionCallback connection_callback =
-        [dispatcher = dispatcher.get()](std::weak_ptr<ix::WebSocket> websocket,
+        [dispatcher = dispatcher.get()](const std::weak_ptr<ix::WebSocket>& websocket,
                                         std::shared_ptr<ix::ConnectionState> cs) -> void {
         // Hold a shared_ptr to the WebSocket object until we see the close.
         std::shared_ptr<ix::WebSocket> ws = websocket.lock();

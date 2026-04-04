@@ -18,6 +18,7 @@ Runtime Options
 ========================================================================== ===========================================================
 :zeek:id:`DumpEvents::include`: :zeek:type:`pattern` :zeek:attr:`&redef`   Only include events matching the given pattern into output.
 :zeek:id:`DumpEvents::include_args`: :zeek:type:`bool` :zeek:attr:`&redef` If true, include event arguments in output.
+:zeek:id:`DumpEvents::use_json`: :zeek:type:`bool` :zeek:attr:`&redef`     Report in JSON format, with one event per line.
 ========================================================================== ===========================================================
 
 Redefinable Options
@@ -54,6 +55,15 @@ Runtime Options
    :Default: ``T``
 
    If true, include event arguments in output.
+
+.. zeek:id:: DumpEvents::use_json
+   :source-code: policy/misc/dump-events.zeek 21 21
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``F``
+
+   Report in JSON format, with one event per line.
 
 Redefinable Options
 ###################

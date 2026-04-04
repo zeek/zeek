@@ -12,15 +12,10 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-========================================================================================================= ================
+========================================================================================================= =============================================
 :zeek:id:`PacketAnalyzer::TEREDO::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef` Default analyzer
-========================================================================================================= ================
-
-Redefinitions
-#############
-==================================================================== =
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =
+:zeek:id:`PacketAnalyzer::TEREDO::teredo_ports`: :zeek:type:`set` :zeek:attr:`&redef`                     The set of UDP ports used for Teredo tunnels.
+========================================================================================================= =============================================
 
 
 Detailed Interface
@@ -35,5 +30,21 @@ Redefinable Options
    :Default: ``PacketAnalyzer::ANALYZER_IP``
 
    Default analyzer
+
+.. zeek:id:: PacketAnalyzer::TEREDO::teredo_ports
+   :source-code: base/packet-protocols/teredo/main.zeek 20 20
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            3544/udp
+         }
+
+
+   The set of UDP ports used for Teredo tunnels.
 
 

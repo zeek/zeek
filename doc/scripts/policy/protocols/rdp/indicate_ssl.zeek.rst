@@ -15,10 +15,10 @@ Summary
 Redefinitions
 #############
 =========================================== ===============================================================================================
-:zeek:type:`RDP::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`RDP::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`RDP::Info`
-                                            
+
                                               ssl: :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
                                                 Flag the connection if it was seen over SSL.
 =========================================== ===============================================================================================

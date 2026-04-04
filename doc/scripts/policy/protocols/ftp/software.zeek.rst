@@ -14,11 +14,11 @@ Summary
 Redefinitions
 #############
 ============================================== =======================================================
-:zeek:type:`Software::Type`: :zeek:type:`enum` 
-                                               
+:zeek:type:`Software::Type`: :zeek:type:`enum`
+
                                                * :zeek:enum:`FTP::CLIENT`:
                                                  Identifier for FTP clients in the software framework.
-                                               
+
                                                * :zeek:enum:`FTP::SERVER`:
                                                  Not currently implemented.
 ============================================== =======================================================

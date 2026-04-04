@@ -143,7 +143,7 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 				}
 
 <EC>"${"			return begin_pac_primitive(TOK_PAC_VAL);
-<EC>"$set{"			return begin_pac_primitive(TOK_PAC_SET); 
+<EC>"$set{"			return begin_pac_primitive(TOK_PAC_SET);
 <EC>"$type{"			return begin_pac_primitive(TOK_PAC_TYPE);
 <EC>"$typeof{"			return begin_pac_primitive(TOK_PAC_TYPEOF);
 <EC>"$const_def{"		return begin_pac_primitive(TOK_PAC_CONST_DEF);
@@ -325,8 +325,7 @@ void switch_to_file(const char* filename) {
         exit(1);
     }
 
-    IncludeState state = {YY_CURRENT_BUFFER, input_filename, line_number};
-    include_stack[include_stack_ptr++] = state;
+    include_stack[include_stack_ptr++] = {YY_CURRENT_BUFFER, input_filename, line_number};
 
     FILE* fp = fopen(filename, "r");
 

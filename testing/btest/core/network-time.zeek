@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace %INPUT > output
+# @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.pcap %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 redef exit_only_after_terminate = T;

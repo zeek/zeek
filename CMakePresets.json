@@ -1,0 +1,108 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "description": "Base preset",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_HOST_TRIPLET": "x64-windows-static",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg-triplets"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "x64-Debug",
+      "inherits": "base",
+      "displayName": "x64 Debug",
+      "description": "Sets debug build type and x64 arch",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "x64-Release",
+      "displayName": "x64 Release",
+      "description": "Sets release build type",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "x64-Debug-LibZeek",
+      "inherits": "x64-Debug",
+      "displayName": "x64 Debug (LibZeek)",
+      "description": "Sets debug build type with ZEEK_STANDALONE=OFF (libzeek)",
+      "cacheVariables": {
+        "ZEEK_STANDALONE": "OFF"
+      }
+    },
+    {
+      "name": "x64-Release-LibZeek",
+      "inherits": "x64-Release",
+      "displayName": "x64 Release (LibZeek)",
+      "description": "Sets release build type with ZEEK_STANDALONE=OFF (libzeek)",
+      "cacheVariables": {
+        "ZEEK_STANDALONE": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-debug-build",
+      "displayName": "Debug Build",
+      "configurePreset": "x64-Debug"
+    },
+    {
+      "name": "verbose-debug-build",
+      "displayName": "Verbose Debug Build",
+      "configurePreset": "x64-Debug",
+      "nativeToolOptions": [
+        "-v"
+      ]
+    },
+    {
+      "name": "default-release-build",
+      "displayName": "Release Build",
+      "configurePreset": "x64-Release"
+    },
+    {
+      "name": "verbose-release-build",
+      "displayName": "Verbose Release Build",
+      "configurePreset": "x64-Release",
+      "nativeToolOptions": [
+        "-v"
+      ]
+    },
+    {
+      "name": "default-debug-libzeek-build",
+      "displayName": "Debug Build (LibZeek)",
+      "configurePreset": "x64-Debug-LibZeek"
+    },
+    {
+      "name": "default-release-libzeek-build",
+      "displayName": "Release Build (LibZeek)",
+      "configurePreset": "x64-Release-LibZeek"
+    }
+  ],
+  "testPresets": []
+}

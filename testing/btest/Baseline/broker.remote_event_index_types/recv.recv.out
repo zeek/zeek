@@ -3,7 +3,7 @@ set1, {
 1
 }
 set2, {
-[2, two] 
+[2, two]
 }
 setvector, {
 [one, two]

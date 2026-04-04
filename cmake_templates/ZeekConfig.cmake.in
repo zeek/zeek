@@ -1,0 +1,35 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Note: ZeekPluginConfig only exists on the build interface to pull in
+#       additional variables and dependencies for building dynamic plugins.
+if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake" )
+    include("${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake")
+endif ()
+
+set(CMAKE_THREAD_PREFER_PTHREAD ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_dependency(Threads REQUIRED)
+
+# Find OpenSSL and Forward hints from Zeek's build config.
+set(ZeekOpenSSLHint "@ZeekOpenSSLHint@")
+if (ZeekOpenSSLHint AND NOT OPENSSL_ROOT_DIR)
+    set(OPENSSL_ROOT_DIR "${ZeekOpenSSLHint}" CACHE
+        PATH "Directory hint for finding OpenSSL" FORCE)
+endif ()
+
+# In our MSVC build, we have these extra dependencies from vcpkg.
+# Note: these are only needed for consumers that link against the full Zeek
+# library, not for dynamic plugins (which only use Zeek::DynamicPluginBase).
+if ( MSVC AND NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake" )
+    find_dependency(PCAP)
+    find_dependency(ZLIB)
+    find_dependency(c-ares)
+endif ()
+
+foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )
+  find_dependency(${dep} REQUIRED)
+endforeach (  )
+
+include("${CMAKE_CURRENT_LIST_DIR}/ZeekTargets.cmake")

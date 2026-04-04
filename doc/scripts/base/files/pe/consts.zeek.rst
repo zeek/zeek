@@ -12,14 +12,14 @@ Summary
 Constants
 #########
 ======================================================================================================== =
-:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
-:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     
-:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`    
-:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`           
-:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
-:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
-:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`           
-:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      
+:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
 ======================================================================================================== =
 
 

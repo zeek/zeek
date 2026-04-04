@@ -12,7 +12,7 @@ Summary
 Redefinable Options
 ###################
 =========================================================================================================== =
-:zeek:id:`PacketAnalyzer::IPTUNNEL::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef` 
+:zeek:id:`PacketAnalyzer::IPTUNNEL::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef`
 =========================================================================================================== =
 
 

@@ -13,8 +13,8 @@ double Histogram::Sum() const noexcept {
 }
 
 Histogram::Histogram(FamilyType* family, const prometheus::Labels& labels,
-                     prometheus::Histogram::BucketBoundaries bounds) noexcept
-    : handle(family->Add(labels, std::move(bounds))), labels(labels) {}
+                     const prometheus::Histogram::BucketBoundaries& bounds) noexcept
+    : handle(family->Add(labels, bounds)), labels(labels) {}
 
 std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(std::span<const LabelView> labels) {
     prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);

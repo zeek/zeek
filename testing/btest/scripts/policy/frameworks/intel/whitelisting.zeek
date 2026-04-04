@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 #@TEST-START-FILE intel.dat
@@ -38,4 +38,3 @@ event Input::end_of_data(name: string, source: string)
 		continue_processing();
 		}
 	}
-

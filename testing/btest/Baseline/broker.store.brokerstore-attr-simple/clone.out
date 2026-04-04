@@ -2,7 +2,7 @@
 Peer added
 [[key=a, val=3], [key=b, val=3], [key=whatever, val=5]]
 {
-[hi, there] 
+[hi, there]
 }
 [[key=a, val=[a=1, b=c, c={
 elem1,

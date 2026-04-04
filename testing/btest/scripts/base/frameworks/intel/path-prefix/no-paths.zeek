@@ -1,7 +1,7 @@
 # This test verifies that when setting neither InputAscii::path_prefix
 # nor Intel::path_prefix, Zeek correctly locates local intel files.
 #
-# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b %INPUT >output
+# @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$(cd "$TEST_BASE/scripts/base/frameworks/intel/path-prefix" && pwd) zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE test.data

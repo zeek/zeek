@@ -7,6 +7,10 @@ function generate_extraction_filename(prefix: string, c: connection, suffix: str
 	local conn_info = fmt("%s:%d-%s:%d", addr_to_uri(c$id$orig_h), c$id$orig_p,
 	                      addr_to_uri(c$id$resp_h), c$id$resp_p);
 
+	# Colons are invalid in Windows filenames; replace with hyphens.
+	if ( getenv("OS") == "Windows_NT" )
+		conn_info = subst_string(conn_info, ":", "-");
+
 	if ( prefix != "" )
 		conn_info = fmt("%s_%s", prefix, conn_info);
 	if ( suffix != "" )

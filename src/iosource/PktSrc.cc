@@ -39,7 +39,7 @@ const std::string& PktSrc::Path() const {
     return IsOpen() ? props.path : not_open;
 }
 
-const char* PktSrc::ErrorMsg() const { return errbuf.size() ? errbuf.c_str() : nullptr; }
+const char* PktSrc::ErrorMsg() const { return errbuf.empty() ? nullptr : errbuf.c_str(); }
 
 int PktSrc::LinkType() const { return IsOpen() ? props.link_type : -1; }
 

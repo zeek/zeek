@@ -17,7 +17,7 @@ using namespace zeek::spicy::rt;
 #endif
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
-void EndpointState::debug(const std::string& msg) { spicy::rt::debug(_cookie, msg); }
+void EndpointState::debug(const std::string& msg) { spicy::rt::debug(_cookie, hilti::rt::String(msg.c_str())); }
 
 static auto create_endpoint(bool is_orig, analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type) {
     static uint64_t id_counter = 0;
@@ -66,6 +66,11 @@ void ProtocolAnalyzer::Process(bool is_orig, int len, const u_char* data) {
     try {
         hilti::rt::context::CookieSetter _(endp->cookie());
         endp->process(len, reinterpret_cast<const char*>(data));
+    } catch ( const hilti::rt::MissingData& e ) {
+        STATE_DEBUG_MSG(is_orig, "gap encountered during parsing, stopping parsing");
+        originator().skipRemaining();
+        responder().skipRemaining();
+        endp->protocol().analyzer->SetSkip(true);
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(is_orig, hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForProtocolAnalyzer(endp->protocol().analyzer->GetAnalyzerTag());
@@ -88,6 +93,9 @@ void ProtocolAnalyzer::Finish(bool is_orig) {
     try {
         hilti::rt::context::CookieSetter _(endp->cookie());
         endp->finish();
+    } catch ( const hilti::rt::MissingData& e ) {
+        STATE_DEBUG_MSG(is_orig, "gap encountered during parsing, stopping parsing");
+        endp->skipRemaining();
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(is_orig, hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForProtocolAnalyzer(endp->protocol().analyzer->GetAnalyzerTag());

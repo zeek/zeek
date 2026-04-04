@@ -28,7 +28,7 @@ public:
      * protocols during packet forwarding. This should generally always be
      * set to true.
      */
-    explicit Analyzer(std::string name, bool report_unknown_protocols = true);
+    explicit Analyzer(const std::string& name, bool report_unknown_protocols = true);
 
     /**
      * Constructor.
@@ -55,7 +55,7 @@ public:
     /**
      * Returns the tag associated with the analyzer's type.
      */
-    const zeek::Tag GetAnalyzerTag() const;
+    zeek::Tag GetAnalyzerTag() const;
 
     /**
      * Returns a textual description of the analyzer's type. This is

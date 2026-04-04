@@ -18,7 +18,7 @@
 namespace zeek::plugin {
 
 const char* hook_name(HookType h) {
-    static constexpr const char* hook_names[int(NUM_HOOKS) + 1] = {
+    static constexpr const char* hook_names[static_cast<int>(NUM_HOOKS) + 1] = {
         // Order must match that of HookType.
         "LoadFile",
         "LoadFileExtended",
@@ -40,7 +40,7 @@ const char* hook_name(HookType h) {
         "<end>",
     };
 
-    return hook_names[int(h)];
+    return hook_names[static_cast<int>(h)];
 }
 
 BifItem::BifItem(const std::string& arg_id, Type arg_type) {
@@ -155,7 +155,7 @@ void HookArgument::Describe(ODesc* d) const {
             d->Add(",");
             d->Add(arg.winfo->rotation_base);
 
-            if ( arg.winfo->config.size() > 0 ) {
+            if ( ! arg.winfo->config.empty() ) {
                 bool first = true;
                 d->Add("config: {");
 
@@ -289,7 +289,7 @@ bool Plugin::LoadZeekFile(const std::string& file) {
 }
 
 void Plugin::AddBifItem(const std::string& name, BifItem::Type type) {
-    BifItem bi(name, (BifItem::Type)type);
+    BifItem bi(name, static_cast<BifItem::Type>(type));
     bif_items.push_back(bi);
 }
 
@@ -366,7 +366,7 @@ void Plugin::InitializeComponents() {
 void Plugin::Describe(ODesc* d) const {
     d->Add(config.name);
 
-    if ( config.description.size() ) {
+    if ( ! config.description.empty() ) {
         d->Add(" - ");
         d->Add(config.description);
     }

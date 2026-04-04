@@ -41,19 +41,19 @@ Types
 Redefinitions
 #############
 ======================================= ========================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`NetControl::CATCH_RELEASE`
 ======================================= ========================================
 
 Events
 ######
 ======================================================================= ===================================================================================
-:zeek:id:`NetControl::catch_release_add`: :zeek:type:`event`            
-:zeek:id:`NetControl::catch_release_block_delete`: :zeek:type:`event`   
-:zeek:id:`NetControl::catch_release_block_new`: :zeek:type:`event`      
-:zeek:id:`NetControl::catch_release_delete`: :zeek:type:`event`         
-:zeek:id:`NetControl::catch_release_encountered`: :zeek:type:`event`    
+:zeek:id:`NetControl::catch_release_add`: :zeek:type:`event`
+:zeek:id:`NetControl::catch_release_block_delete`: :zeek:type:`event`
+:zeek:id:`NetControl::catch_release_block_new`: :zeek:type:`event`
+:zeek:id:`NetControl::catch_release_delete`: :zeek:type:`event`
+:zeek:id:`NetControl::catch_release_encountered`: :zeek:type:`event`
 :zeek:id:`NetControl::catch_release_forgotten`: :zeek:type:`event`      Event is raised when catch and release cases management of an IP address because no
                                                                         activity was seen within the watch_until period.
 :zeek:id:`NetControl::log_netcontrol_catch_release`: :zeek:type:`event` Event that can be handled to access the :zeek:type:`NetControl::CatchReleaseInfo`
@@ -63,7 +63,7 @@ Events
 Hooks
 #####
 ============================================================================= =
-:zeek:id:`NetControl::log_policy_catch_release`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`NetControl::log_policy_catch_release`: :zeek:type:`Log::PolicyHook`
 ============================================================================= =
 
 Functions
@@ -305,10 +305,10 @@ Events
 
    Event is raised when catch and release cases management of an IP address because no
    activity was seen within the watch_until period.
-   
+
 
    :param a: The address that is no longer being managed.
-   
+
 
    :param bi: The :zeek:see:`NetControl::BlockInfo` record containing information about the block.
 
@@ -339,7 +339,7 @@ Functions
    an IP address was seen. If the respective IP address is currently monitored by catch and
    release and not blocked, the block will be reinstated. See the documentation of watch_new_connection
    which events the catch and release functionality usually monitors for activity.
-   
+
 
    :param a: The address that was seen and should be re-dropped if it is being watched.
 
@@ -352,20 +352,20 @@ Functions
    uses catch-and-release functionality, where the IP address is only dropped for
    a short amount of time that is incremented steadily when the IP is encountered
    again.
-   
+
    In cluster mode, this function works on workers as well as the manager. On managers,
    the returned :zeek:see:`NetControl::BlockInfo` record will not contain the block ID,
    which will be assigned on the manager.
-   
+
 
    :param a: The address to be dropped.
-   
+
 
    :param t: How long to drop it, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing where the drop was triggered.
-   
+
 
    :returns: The :zeek:see:`NetControl::BlockInfo` record containing information about
             the inserted block.
@@ -377,14 +377,14 @@ Functions
 
    Get the :zeek:see:`NetControl::BlockInfo` record for an address currently blocked by catch and release.
    If the address is unknown to catch and release, the watch_until time will be set to 0.
-   
+
    In cluster mode, this function works on the manager and workers. On workers, the data will
    lag slightly behind the manager; if you add a block, it will not be instantly available via
    this function.
-   
+
 
    :param a: The address to get information about.
-   
+
 
    :returns: The :zeek:see:`NetControl::BlockInfo` record containing information about
             the inserted block.
@@ -396,16 +396,16 @@ Functions
 
    Removes an address from being watched with catch and release. Returns true if the
    address was found and removed; returns false if it was unknown to catch and release.
-   
+
    If the address is currently blocked, and the block was inserted by catch and release,
    the block is removed.
-   
+
 
    :param a: The address to be unblocked.
-   
+
 
    :param reason: A reason for the unblock.
-   
+
 
    :returns: True if the address was unblocked.
 

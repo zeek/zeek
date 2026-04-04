@@ -1,10 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifdef DEBUG
-
 #include "zeek/DebugLogger.h"
 
-#include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
 
@@ -158,7 +155,7 @@ bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names) {
 }
 
 void DebugLogger::Log(DebugStream stream, const char* fmt, ...) {
-    Stream* g = &streams[int(stream)];
+    Stream* g = &streams[stream];
 
     if ( ! g->enabled )
         return;
@@ -196,12 +193,10 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
     fflush(file);
 }
 
-const std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
+std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
     std::string res{util::strreplace(plugin_name, "::", "-")};
     res = util::strreplace(res, "_", "-");
     return "plugin-" + util::strtolower(res);
 }
 
 } // namespace zeek::detail
-
-#endif

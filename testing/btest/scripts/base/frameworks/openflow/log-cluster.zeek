@@ -5,7 +5,7 @@
 # @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # @TEST-EXEC: btest-bg-run manager  "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek %INPUT"
-# @TEST-EXEC: btest-bg-run worker-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/smtp.trace %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek --pseudo-realtime -C -r $TRACES/smtp.pcap %INPUT"
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff manager/openflow.log
 

@@ -21,27 +21,27 @@ Redefinable Options
 Types
 #####
 ================================================== =
-:zeek:type:`WeirdStats::Info`: :zeek:type:`record` 
+:zeek:type:`WeirdStats::Info`: :zeek:type:`record`
 ================================================== =
 
 Redefinitions
 #############
 ======================================= ==============================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`WeirdStats::LOG`
 ======================================= ==============================
 
 Events
 ######
 ========================================================== =
-:zeek:id:`WeirdStats::log_weird_stats`: :zeek:type:`event` 
+:zeek:id:`WeirdStats::log_weird_stats`: :zeek:type:`event`
 ========================================================== =
 
 Hooks
 #####
 =============================================================== =
-:zeek:id:`WeirdStats::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`WeirdStats::log_policy`: :zeek:type:`Log::PolicyHook`
 =============================================================== =
 
 

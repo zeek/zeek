@@ -14,6 +14,7 @@ Summary
 Redefinable Options
 ###################
 ========================================================================================================== ========================================================
+:zeek:id:`SNMP::ports`: :zeek:type:`set` :zeek:attr:`&redef`                                               Well-known ports for SNMP.
 :zeek:id:`SNMP::version_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"`` Maps an SNMP version integer to a human readable string.
 ========================================================================================================== ========================================================
 
@@ -25,17 +26,16 @@ Types
 
 Redefinitions
 #############
-==================================================================== ======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`SNMP::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       snmp: :zeek:type:`SNMP::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ======================================================
+============================================ ======================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
+                                             * :zeek:enum:`SNMP::LOG`
+:zeek:type:`connection`: :zeek:type:`record`
+
+                                             :New Fields: :zeek:type:`connection`
+
+                                               snmp: :zeek:type:`SNMP::Info` :zeek:attr:`&optional`
+============================================ ======================================================
 
 Events
 ######
@@ -48,7 +48,7 @@ Hooks
 #####
 ============================================================== =======================
 :zeek:id:`SNMP::finalize_snmp`: :zeek:type:`Conn::RemovalHook` SNMP finalization hook.
-:zeek:id:`SNMP::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`SNMP::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 
@@ -56,8 +56,25 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
+.. zeek:id:: SNMP::ports
+   :source-code: base/protocols/snmp/main.zeek 11 11
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            162/udp,
+            161/udp
+         }
+
+
+   Well-known ports for SNMP.
+
 .. zeek:id:: SNMP::version_map
-   :source-code: base/protocols/snmp/main.zeek 52 52
+   :source-code: base/protocols/snmp/main.zeek 57 57
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = ``"unknown"``
@@ -77,7 +94,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: SNMP::Info
-   :source-code: base/protocols/snmp/main.zeek 13 49
+   :source-code: base/protocols/snmp/main.zeek 16 54
 
    :Type: :zeek:type:`record`
 
@@ -111,9 +128,11 @@ Types
 
    .. zeek:field:: community :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      The community string of the first SNMP packet associated with
-      the session.  This is used as part of SNMP's (v1 and v2c)
-      administrative/security framework.  See :rfc:`1157` or :rfc:`1901`.
+      v1/v2c: The community string (v1/v2c) of the first SNMP
+      packet associated with the session. This is used as part of SNMP's (v1 and v2c)
+      administrative/security framework.
+      v3: The username of the first SNMP packet containing a non-zero username.
+      See :rfc:`1157` (SNMP v1), :rfc:`1901` (SNMP v2), or :rfc:`2570` (SNMP v3).
 
 
    .. zeek:field:: get_requests :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
@@ -156,7 +175,7 @@ Types
 Events
 ######
 .. zeek:id:: SNMP::log_snmp
-   :source-code: base/protocols/snmp/main.zeek 60 60
+   :source-code: base/protocols/snmp/main.zeek 65 65
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SNMP::Info`)
 
@@ -166,14 +185,14 @@ Events
 Hooks
 #####
 .. zeek:id:: SNMP::finalize_snmp
-   :source-code: base/protocols/snmp/main.zeek 103 107
+   :source-code: base/protocols/snmp/main.zeek 107 111
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
    SNMP finalization hook.  Remaining SNMP info may get logged when it's called.
 
 .. zeek:id:: SNMP::log_policy
-   :source-code: base/protocols/snmp/main.zeek 10 10
+   :source-code: base/protocols/snmp/main.zeek 13 13
 
    :Type: :zeek:type:`Log::PolicyHook`
 

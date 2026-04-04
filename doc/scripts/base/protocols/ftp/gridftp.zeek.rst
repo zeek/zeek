@@ -44,10 +44,10 @@ Runtime Options
 Redefinitions
 #############
 =========================================== =================================================================
-:zeek:type:`FTP::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`FTP::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`FTP::Info`
-                                            
+
                                               last_auth_requested: :zeek:type:`string` :zeek:attr:`&optional`
 =========================================== =================================================================
 
@@ -108,7 +108,7 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Raised when a GridFTP data channel is detected.
-   
+
 
    :param c: The connection pertaining to the GridFTP data channel.
 
@@ -127,10 +127,10 @@ Functions
    and for a NULL bulk cipher.  One way in which this function could be
    redefined is to make it also consider client/server certificate
    issuer subjects.
-   
+
 
    :param c: The connection which may possibly be a GridFTP data channel.
-   
+
 
    :returns: true if the connection should be further polled for an
             exceeded :zeek:see:`GridFTP::size_threshold`, else false.

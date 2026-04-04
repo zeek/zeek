@@ -192,7 +192,7 @@ bool WebSocketClient::AllSubscriptionsActive() const {
     return true;
 }
 
-const std::vector<std::string> WebSocketClient::GetSubscriptions() const {
+std::vector<std::string> WebSocketClient::GetSubscriptions() const {
     std::vector<std::string> subs;
     subs.reserve(subscriptions_state.size());
 
@@ -216,7 +216,7 @@ public:
     bool OnFinish(double network_time) override { return true; }
 };
 
-WebSocketEventDispatcher::WebSocketEventDispatcher(std::string ident, size_t queue_size) {
+WebSocketEventDispatcher::WebSocketEventDispatcher(const std::string& ident, size_t queue_size) {
     onloop =
         new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this,
                                                                                   "WebSocketEventDispatcher:" + ident,

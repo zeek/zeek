@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <unistd.h>
 #include <cstdlib>
 
 #include "zeek/util-types.h" // for zeek_int_t
@@ -42,7 +41,8 @@ class Frame;
 
 namespace zeek::BifFunc {
 zeek::ValPtr md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-}
+zeek::ValPtr sha256_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+} // namespace zeek::BifFunc
 
 namespace zeek::detail {
 
@@ -51,7 +51,7 @@ using hash64_t = uint64_t;
 using hash128_t = uint64_t[2];
 using hash256_t = uint64_t[4];
 
-class KeyedHash {
+class KeyedHash final {
 public:
     /**
      * Generate a 64 bit digest hash.
@@ -184,6 +184,13 @@ public:
     static void InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data);
 
     /**
+     * Initialize the seed used for HMAC-MD5 operations. This happens lazily instead
+     * of at startup time. It uses the data that was passed into InitializeSeeds() at
+     * startup.
+     */
+    static void InitializeHmacMd5Seed();
+
+    /**
      * Returns true if the process-specific seeds have been initialized
      *
      * @return True if the seeds are initialized
@@ -207,17 +214,24 @@ private:
     alignas(16) static unsigned long long shared_siphash_key[2];
     // This key changes each start (unless a seed is specified)
     inline static uint8_t shared_hmac_md5_key[16];
+    // Key used for hmac_md5 operations.
+    inline static uint8_t shared_hmac_sha256_key[32];
+    // Copy of the seed data passed into InitializeSeeds().
+    inline static uint32_t seed_data[SEED_INIT_SIZE];
     inline static bool seeds_initialized = false;
+    inline static bool hmac_md5_seeds_initialized = false;
 
     friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
     friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
+    friend void util::detail::hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
+    friend ValPtr BifFunc::sha256_hmac_bif(zeek::detail::Frame* frame, const Args*);
 };
 
 enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
-class HashKey {
+class HashKey final {
 public:
     explicit HashKey() { key_u.u32 = 0; }
     explicit HashKey(bool b);
@@ -259,7 +273,7 @@ public:
     void* TakeKey();
 
     const void* Key() const { return key; }
-    size_t Size() const { return size; }
+    size_t Size() const { return key_size; }
     hash_t Hash() const;
 
     static hash_t HashBytes(const void* bytes, size_t size);
@@ -330,7 +344,7 @@ public:
 
     void* KeyAtWrite() { return static_cast<void*>(key + write_size); }
     const void* KeyAtRead() const { return static_cast<void*>(key + read_size); }
-    const void* KeyEnd() const { return static_cast<void*>(key + size); }
+    const void* KeyEnd() const { return static_cast<void*>(key + key_size); }
 
     void Describe(ODesc* d) const;
 
@@ -345,7 +359,7 @@ public:
     // Move operator. Takes ownership of the key.
     HashKey& operator=(HashKey&& other) noexcept;
 
-protected:
+private:
     char* CopyKey(const char* key, size_t size) const;
 
     // Payload setters for types stored directly in the key_u union. These
@@ -363,6 +377,7 @@ protected:
         bool b;
         int i;
         zeek_int_t bi;
+        zeek_uint_t bu;
         uint32_t u32;
         double d;
         const void* p;
@@ -370,7 +385,7 @@ protected:
 
     char* key = nullptr;
     mutable hash_t hash = 0;
-    size_t size = 0;
+    size_t key_size = 0;
     bool is_our_dynamic = false;
     size_t write_size = 0;
     mutable size_t read_size = 0;

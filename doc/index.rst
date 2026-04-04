@@ -2,6 +2,9 @@
 .. image:: /images/zeek-logo-text.png
    :align: center
 
+.. centered::
+   Version |release|
+
 ==================
 Zeek Documentation
 ==================
@@ -25,17 +28,11 @@ to connect with the community.
    :caption: Table of Contents
 
    get-started
-   about
-   monitoring
-   log-formats
-   logs/index
-   scripting/index
-   frameworks/index
+   about/index
+   tutorial/index
+   reference/index
    customizations
-   troubleshooting
-   script-reference/index
-   devel/index
-   components/index
+   advanced/index
    acknowledgements
 
 * :ref:`Index <genindex>`
@@ -47,24 +44,23 @@ Documentation Versioning
 
 .. attention::
 
-  The Zeek codebase has three primary branches of interest to users so this
-  document is also maintained as three different versions, one associated with
-  each branch of Zeek.  The default version of `docs.zeek.org
-  <https://docs.zeek.org>`_ tracks Zeek's latest Git development:
+  Zeek publishes both *feature* and *long-term support* releases. By default,
+  the Zeek documentation at `docs.zeek.org <https://docs.zeek.org>`_ points
+  to whichever release is the most recent (or *current*). In the current
+  documentation, you may also find a dropdown menu in the banner, which lets
+  you select the documentation version. For your convenience, the most used
+  versions are:
 
-    * Git *master* branch: https://docs.zeek.org/en/master
+    * Current release: `docs.zeek.org/en/current
+      <https://docs.zeek.org/en/current>`_
+    * Long-term support release: `docs.zeek.org/en/lts
+      <https://docs.zeek.org/en/lts>`_
+    * Ongoing development: `docs.zeek.org/en/master
+      <https://docs.zeek.org/en/master>`_
 
-  If you instead use a Zeek Long-Term Support (LTS) or Feature release these
-  are the appropriate starting points:
+  We typically keep the last version from each release cycle available.
+  The current release cycle(s) (LTS and/or feature) will have all versions
+  available, but some may be hidden in the UI dropdown menu.
 
-    * Long-Term Support Release: https://docs.zeek.org/en/lts
-    * Current Feature Release: https://docs.zeek.org/en/current
-
-  To help clarify which release you are using, the version numbering
-  scheme for the two release branches is described in the `Release
-  Cadence <https://github.com/zeek/zeek/wiki/Release-Cadence>`_ policy.
-
-  Documentation for older Zeek releases remains available for approximately one
-  full major-version release cycle, i.e., about a year. You can browse recent
-  versions via the fly-out menu in the bottom left, and find all available
-  versions on the `RTD website <https://app.readthedocs.org/projects/zeek-docs/versions/>`_.
+  Zeek's version numbering scheme is described in the `Release Cadence
+  <https://github.com/zeek/zeek/wiki/Release-Cadence>`_ policy.

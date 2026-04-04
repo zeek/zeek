@@ -413,7 +413,7 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
 
     // Default to the ZeroMQ backend if none is set.
     if ( config.cluster_backend_args.empty() )
-        config.cluster_backend_args = "frameworks/cluster/backend/zeromq/connect";
+        config.cluster_backend_args = "frameworks/cluster/backend/zeromq";
 
     if ( config.args.empty() )
         config.args = "local";

@@ -13,20 +13,20 @@ etc.
 :doc:`/scripts/base/frameworks/netcontrol/types.zeek`
 
    This file defines the types that are used by the NetControl framework.
-   
+
    The most important type defined in this file is :zeek:see:`NetControl::Rule`,
    which is used to describe all rules that can be expressed by the NetControl framework.
 
 :doc:`/scripts/base/frameworks/netcontrol/main.zeek`
 
    Zeek's NetControl framework.
-   
+
    This plugin-based framework allows to control the traffic that Zeek monitors
    as well as, if having access to the forwarding path, the traffic the network
    forwards. By default, the framework lets everything through, to both Zeek
    itself as well as on the network. Scripts can then add rules to impose
    restrictions on entities, such as specific connections or IP addresses.
-   
+
    This framework has two APIs: a high-level and low-level. The high-level API
    provides convenience functions for a set of common operations. The
    low-level API provides full flexibility.

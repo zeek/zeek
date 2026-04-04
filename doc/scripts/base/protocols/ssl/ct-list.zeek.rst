@@ -13,7 +13,7 @@ Summary
 Redefinitions
 #############
 =============================================================== =
-:zeek:id:`SSL::ct_logs`: :zeek:type:`table` :zeek:attr:`&redef` 
+:zeek:id:`SSL::ct_logs`: :zeek:type:`table` :zeek:attr:`&redef`
 =============================================================== =
 
 

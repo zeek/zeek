@@ -5,7 +5,6 @@
 #include "zeek/Reporter.h"
 
 #include <syslog.h>
-#include <unistd.h>
 
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
@@ -487,7 +486,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     if ( location ) {
         int loc_line = 0;
 
-        if ( locations.size() ) {
+        if ( ! locations.empty() ) {
             ODesc d;
 
             std::pair<const detail::Location*, const detail::Location*> locs = locations.back();
@@ -564,22 +563,23 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     bool raise_event = true;
 
     if ( via_events && ! in_error_handler ) {
-        if ( locations.size() ) {
+        if ( locations.empty() ) {
+            raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
+                                                  HookReporter(prefix, event, conn, addl, location, nullptr, nullptr,
+                                                               time, buffer),
+                                                  true);
+        }
+        else {
             auto locs = locations.back();
             raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
                                                   HookReporter(prefix, event, conn, addl, location, locs.first,
                                                                locs.second, time, buffer),
                                                   true);
         }
-        else
-            raise_event = PLUGIN_HOOK_WITH_RESULT(HOOK_REPORTER,
-                                                  HookReporter(prefix, event, conn, addl, location, nullptr, nullptr,
-                                                               time, buffer),
-                                                  true);
     }
 
     if ( raise_event && event && via_events && ! in_error_handler ) {
-        auto vl_size = 1 + (bool)time + (bool)location + (bool)conn + (addl ? addl->length() : 0);
+        size_t vl_size = 1 + time + location + static_cast<bool>(conn) + (addl ? addl->length() : 0);
 
         Args vl;
         vl.reserve(vl_size);
@@ -622,14 +622,14 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
         }
 
         if ( prefix && *prefix ) {
-            if ( loc_str != "" )
-                s += std::string(prefix) + " in " + loc_str + ": ";
-            else
+            if ( loc_str.empty() )
                 s += std::string(prefix) + ": ";
+            else
+                s += std::string(prefix) + " in " + loc_str + ": ";
         }
 
         else {
-            if ( loc_str != "" )
+            if ( ! loc_str.empty() )
                 s += loc_str + ": ";
         }
 

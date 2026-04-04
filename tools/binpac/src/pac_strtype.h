@@ -39,14 +39,14 @@ public:
     void ProcessAttr(Attr* a) override;
 
 protected:
-    void init();
+    void init_type();
 
     // Generate computation of size of the string and returns the string
     // representing a constant integer or name of the length variable.
     string GenStringSize(Output* out_cc, Env* env, const DataPtr& data);
 
     // Generate a string mismatch exception
-    void GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, string pattern);
+    void GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, const string& pattern);
 
     void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
 

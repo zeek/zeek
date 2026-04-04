@@ -14,11 +14,11 @@ Summary
 Functions
 #########
 ================================================================= =
-:zeek:id:`Input::__create_analysis_stream`: :zeek:type:`function` 
-:zeek:id:`Input::__create_event_stream`: :zeek:type:`function`    
-:zeek:id:`Input::__create_table_stream`: :zeek:type:`function`    
-:zeek:id:`Input::__force_update`: :zeek:type:`function`           
-:zeek:id:`Input::__remove_stream`: :zeek:type:`function`          
+:zeek:id:`Input::__create_analysis_stream`: :zeek:type:`function`
+:zeek:id:`Input::__create_event_stream`: :zeek:type:`function`
+:zeek:id:`Input::__create_table_stream`: :zeek:type:`function`
+:zeek:id:`Input::__force_update`: :zeek:type:`function`
+:zeek:id:`Input::__remove_stream`: :zeek:type:`function`
 ================================================================= =
 
 

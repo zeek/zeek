@@ -55,14 +55,14 @@ Functions
    :Type: :zeek:type:`function` (parent: :zeek:type:`PacketAnalyzer::Tag`, identifier: :zeek:type:`count`, child: :zeek:type:`PacketAnalyzer::Tag`) : :zeek:type:`bool`
 
    Add an entry to parent's dispatcher that maps a protocol/index to a next-stage child analyzer.
-   
+
 
    :param parent: The parent analyzer being modified
 
    :param identifier: The identifier for the protocol being registered
 
    :param child: The analyzer that will be called for the identifier
-   
+
 
 .. zeek:id:: PacketAnalyzer::register_protocol_detection
    :source-code: base/bif/packet_analysis.bif.zeek 37 37
@@ -71,7 +71,7 @@ Functions
 
    Registers a child analyzer with a parent analyzer to perform packet detection when determining whether
    to forward from parent to child.
-   
+
 
    :param parent: The parent analyzer being modified
 
@@ -84,13 +84,13 @@ Functions
 
    Attempts to add an entry to ``parent``'s dispatcher that maps a protocol/index to a next-stage ``child``
    analyzer. This may fail if either of the two names does not respond to a known analyzer.
-   
+
 
    :param parent: The parent analyzer being modified
 
    :param identifier: The identifier for the protocol being registered
 
    :param child: The analyzer that will be called for the identifier
-   
+
 
 

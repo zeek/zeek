@@ -66,12 +66,12 @@ zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const ZeekAnalyz
 				rv->Assign(10, asn1_integer_to_val(element->data()->nonce(), zeek::TYPE_COUNT));
 				break;
 			case 8:
-				if ( element->data()->etype()->data()->size() )
+				if ( ! element->data()->etype()->data()->empty() )
 					rv->Assign(11, proc_cipher_list(element->data()->etype()));
 
 				break;
 			case 9:
-				if ( element->data()->addrs()->addresses()->size() )
+				if ( ! element->data()->addrs()->addresses()->empty() )
 					rv->Assign(12, proc_host_address_list(zeek_analyzer, element->data()->addrs()));
 
 				break;
@@ -79,7 +79,7 @@ zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const ZeekAnalyz
 				// TODO
 				break;
 			case 11:
-				if ( element->data()->addl_tkts()->tickets()->size() )
+				if ( ! element->data()->addl_tkts()->tickets()->empty() )
 					rv->Assign(13, proc_tickets(element->data()->addl_tkts()));
 
 				break;

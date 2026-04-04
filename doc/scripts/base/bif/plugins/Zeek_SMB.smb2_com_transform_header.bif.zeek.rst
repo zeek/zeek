@@ -29,15 +29,15 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 3.x *transform_header*. This is used by the client or server when sending
    encrypted messages.
-   
+
    For more information, see MS-SMB2:2.2.41
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed transformed header message, which is starting with \xfdSMB and different from SMB1 and SMB2 headers.
-   
+
    .. zeek:see:: smb2_message
 
 

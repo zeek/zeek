@@ -2,14 +2,18 @@
 
 #include "zeek/input/readers/config/Config.h"
 
+#ifdef _MSC_VER
+#include <pcreposix.h>
+#else
 #include <regex.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <cerrno>
 #include <unordered_set>
 
 #include "zeek/Desc.h"
+#include "zeek/input/InputFile.h"
 #include "zeek/input/Manager.h"
 #include "zeek/input/readers/config/config.bif.h"
 #include "zeek/threading/SerialTypes.h"
@@ -83,7 +87,7 @@ bool Config::OpenFile() {
 
 bool Config::GetLine(std::string& str) {
     while ( getline(file, str) ) {
-        if ( ! str.size() )
+        if ( str.empty() )
             continue;
 
         if ( str.back() == '\r' ) // deal with \r\n by removing \r
@@ -112,9 +116,12 @@ bool Config::DoUpdate() {
                 return ! fail_on_file_problem;
             }
 
-            if ( sb.st_ino == ino && sb.st_mtime == mtime )
+            file_ino_t current_ino = reliable_inode(Info().source, sb.st_ino);
+
+            if ( current_ino == ino && sb.st_mtime == mtime ) {
                 // no change
                 return true;
+            }
 
             // Warn again in case of trouble if the file changes. The comparison to 0
             // is to suppress an extra warning that we'd otherwise get on the initial
@@ -123,7 +130,7 @@ bool Config::DoUpdate() {
                 StopWarningSuppression();
 
             mtime = sb.st_mtime;
-            ino = sb.st_ino;
+            ino = current_ino;
             // File changed. Fall through to re-read.
         }
 

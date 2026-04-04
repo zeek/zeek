@@ -91,8 +91,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, const st
     if ( pkt )
         ts = pkt->ts;
     else {
-        ts.tv_sec = (time_t)run_state::network_time;
-        ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
+        ts.tv_sec = static_cast<time_t>(run_state::network_time);
+        ts.tv_usec = static_cast<suseconds_t>((run_state::network_time - static_cast<double>(ts.tv_sec)) * 1000000);
     }
 
     const u_char* data = nullptr;
@@ -136,8 +136,8 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, uint32_t
     if ( pkt )
         ts = pkt->ts;
     else {
-        ts.tv_sec = (time_t)run_state::network_time;
-        ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
+        ts.tv_sec = static_cast<time_t>(run_state::network_time);
+        ts.tv_usec = static_cast<suseconds_t>((run_state::network_time - static_cast<double>(ts.tv_sec)) * 1000000);
     }
 
     auto outer = prev ? std::move(prev) : std::make_shared<EncapsulationStack>();
@@ -164,9 +164,9 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, uint32_t
 }
 
 std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
-                                           std::shared_ptr<EncapsulationStack> encap_stack, uint32_t inner_cap_len,
-                                           const u_char* data, int link_type, BifEnum::Tunnel::Type tunnel_type,
-                                           const Tag& analyzer_tag) {
+                                           const std::shared_ptr<EncapsulationStack>& encap_stack,
+                                           uint32_t inner_cap_len, const u_char* data, int link_type,
+                                           BifEnum::Tunnel::Type tunnel_type, const Tag& analyzer_tag) {
     assert(outer_pkt->cap_len >= inner_cap_len);
     assert(outer_pkt->len >= outer_pkt->cap_len - inner_cap_len);
 

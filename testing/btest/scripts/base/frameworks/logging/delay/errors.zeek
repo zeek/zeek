@@ -1,7 +1,7 @@
 # @TEST-DOC: Test some error cases
 
-# @TEST-EXEC: zeek  -b -r $TRACES/http/get.trace %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | sed -r "s/0x[0-9a-z]+/0x<...>/g"' btest-diff .stderr
+# @TEST-EXEC: zeek  -b -r $TRACES/http/get.pcap %INPUT
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | sed -r "s/0x[0-9a-z]+|[0-9A-F]{12,}/0x<...>/g"' btest-diff .stderr
 
 redef enum Log::ID += { LOG };
 

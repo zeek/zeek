@@ -12,8 +12,8 @@ Summary
 State Variables
 ###############
 ====================================================================================================================== =
-:zeek:id:`PostgreSQL::auth_ids`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`  
-:zeek:id:`PostgreSQL::error_ids`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef` 
+:zeek:id:`PostgreSQL::auth_ids`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
+:zeek:id:`PostgreSQL::error_ids`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
 ====================================================================================================================== =
 
 

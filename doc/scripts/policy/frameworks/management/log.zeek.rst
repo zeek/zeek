@@ -25,7 +25,7 @@ Redefinitions
 #############
 ======================================= ======================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` The cluster logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Management::Log::LOG`
 ======================================= ======================================
 
@@ -115,10 +115,10 @@ Functions
    :Type: :zeek:type:`function` (message: :zeek:type:`string`) : :zeek:type:`void`
 
    A debug-level log message writer.
-   
+
 
    :param message: the message to log.
-   
+
 
 .. zeek:id:: Management::Log::error
    :source-code: policy/frameworks/management/log.zeek 115 123
@@ -127,10 +127,10 @@ Functions
 
    An error-level log message writer. (This only logs a message, it does not
    terminate Zeek or have other runtime effects.)
-   
+
 
    :param message: the message to log.
-   
+
 
 .. zeek:id:: Management::Log::info
    :source-code: policy/frameworks/management/log.zeek 95 103
@@ -138,10 +138,10 @@ Functions
    :Type: :zeek:type:`function` (message: :zeek:type:`string`) : :zeek:type:`void`
 
    An info-level log message writer.
-   
+
 
    :param message: the message to log.
-   
+
 
 .. zeek:id:: Management::Log::warning
    :source-code: policy/frameworks/management/log.zeek 105 113
@@ -149,9 +149,9 @@ Functions
    :Type: :zeek:type:`function` (message: :zeek:type:`string`) : :zeek:type:`void`
 
    A warning-level log message writer.
-   
+
 
    :param message: the message to log.
-   
+
 
 

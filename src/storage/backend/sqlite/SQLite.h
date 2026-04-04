@@ -47,13 +47,13 @@ private:
      * Abstracts calls to sqlite3_step to properly create an OperationResult
      * structure based on the result.
      */
-    OperationResult Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma = false);
+    OperationResult Step(sqlite3_stmt* stmt, const StepResultParser& parser, bool is_pragma = false);
 
     /**
      * Helper utility for running pragmas on the database.
      */
     OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt,
-                              StepResultParser value_parser = nullptr);
+                              const StepResultParser& value_parser = nullptr);
 
     sqlite3* db = nullptr;
     sqlite3* expire_db = nullptr;

@@ -7,6 +7,9 @@ module SNMP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known ports for SNMP.
+	const ports = { 161/udp, 162/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## Information tracked per SNMP session.
@@ -23,9 +26,11 @@ export {
 		duration: interval &log &default=0secs;
 		## The version of SNMP being used.
 		version: string &log;
-		## The community string of the first SNMP packet associated with
-		## the session.  This is used as part of SNMP's (v1 and v2c)
-		## administrative/security framework.  See :rfc:`1157` or :rfc:`1901`.
+		## v1/v2c: The community string (v1/v2c) of the first SNMP
+		## packet associated with the session. This is used as part of SNMP's (v1 and v2c)
+		## administrative/security framework.
+		## v3: The username of the first SNMP packet containing a non-zero username.
+		## See :rfc:`1157` (SNMP v1), :rfc:`1901` (SNMP v2), or :rfc:`2570` (SNMP v3).
 		community: string &log &optional;
 
 		## The number of variable bindings in GetRequest/GetNextRequest PDUs
@@ -67,9 +72,6 @@ redef record connection += {
 	snmp: SNMP::Info &optional;
 };
 
-const ports = { 161/udp, 162/udp };
-redef likely_server_ports += { ports };
-
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SNMP, ports);
@@ -94,6 +96,8 @@ function init_state(c: connection, h: SNMP::Header): Info
 			s$community = h$v1$community;
 		else if ( h?$v2 )
 			s$community = h$v2$community;
+		else if ( h?$v3 && h$v3?$user_security_parameters && |h$v3$user_security_parameters$UserName| > 0 )
+			s$community = h$v3$user_security_parameters$UserName;
 		}
 
 	s$duration = network_time() - s$ts;

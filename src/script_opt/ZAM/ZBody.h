@@ -62,14 +62,11 @@ public:
 
     const std::string& FuncName() const { return func_name; }
 
-private:
-    friend class CPPCompile;
-
     // Helper run-time function for looking up a field in a record, checking
     // that it exists and complaining if it does not. A member here rather than
     // a standalone run-time function because ZBody is a "friend" of RecordVal
     // and can use its low-level record field accessors.
-    ZVal CheckAndLookupField(RecordVal* r, int f, const std::shared_ptr<ZAMLocInfo>& loc) {
+    static ZVal CheckAndLookupField(RecordVal* r, int f, const std::shared_ptr<ZAMLocInfo>& loc) {
         auto opt_zv = r->RawOptField(f);
         if ( ! opt_zv ) {
             auto fn = r->GetType<RecordType>()->FieldName(f);
@@ -79,6 +76,9 @@ private:
         return *opt_zv;
     }
 
+private:
+    friend class CPPCompile;
+
     auto Instructions() const { return insts; }
     auto NumInsts() const { return end_pc; }
 
@@ -87,7 +87,7 @@ private:
     std::shared_ptr<ProfVec> BuildProfVec() const;
 
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
-                       std::set<std::string> caller_modules) const;
+                       const std::set<std::string>& caller_modules) const;
 
     StmtPtr Duplicate() override { return {NewRef{}, this}; }
 
@@ -139,11 +139,11 @@ private:
 
 extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);
 
-extern VectorVal* vec_coerce_DI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
-extern VectorVal* vec_coerce_DU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
-extern VectorVal* vec_coerce_ID(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
-extern VectorVal* vec_coerce_IU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
-extern VectorVal* vec_coerce_UD(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
-extern VectorVal* vec_coerce_UI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_DI(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+extern VectorVal* vec_coerce_DU(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+extern VectorVal* vec_coerce_ID(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+extern VectorVal* vec_coerce_IU(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+extern VectorVal* vec_coerce_UD(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+extern VectorVal* vec_coerce_UI(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
 
 } // namespace zeek::detail

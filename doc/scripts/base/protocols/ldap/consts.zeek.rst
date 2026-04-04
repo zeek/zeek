@@ -12,20 +12,20 @@ Summary
 Redefinable Options
 ###################
 ================================================================================================================ =
-:zeek:id:`LDAP::EXTENDED_REQUESTS`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&redef` 
+:zeek:id:`LDAP::EXTENDED_REQUESTS`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&redef`
 ================================================================================================================ =
 
 Constants
 #########
 =============================================================================================== =
-:zeek:id:`LDAP::BIND_SASL`: :zeek:type:`string`                                                 
-:zeek:id:`LDAP::BIND_SICILY_NEGOTIATE`: :zeek:type:`string`                                     
-:zeek:id:`LDAP::BIND_SICILY_RESPONSE`: :zeek:type:`string`                                      
-:zeek:id:`LDAP::BIND_SIMPLE`: :zeek:type:`string`                                               
-:zeek:id:`LDAP::PROTOCOL_OPCODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``     
-:zeek:id:`LDAP::RESULT_CODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``         
-:zeek:id:`LDAP::SEARCH_DEREF_ALIASES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"`` 
-:zeek:id:`LDAP::SEARCH_SCOPES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``        
+:zeek:id:`LDAP::BIND_SASL`: :zeek:type:`string`
+:zeek:id:`LDAP::BIND_SICILY_NEGOTIATE`: :zeek:type:`string`
+:zeek:id:`LDAP::BIND_SICILY_RESPONSE`: :zeek:type:`string`
+:zeek:id:`LDAP::BIND_SIMPLE`: :zeek:type:`string`
+:zeek:id:`LDAP::PROTOCOL_OPCODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
+:zeek:id:`LDAP::RESULT_CODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
+:zeek:id:`LDAP::SEARCH_DEREF_ALIASES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
+:zeek:id:`LDAP::SEARCH_SCOPES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
 =============================================================================================== =
 
 

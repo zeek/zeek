@@ -37,9 +37,9 @@ a given configuration, invoke it with a single testing directory:
     $ mkdir test-directory
     $ <PREFIX>/bin/zeek-systemd-generator test-directory
 
-``zeek-systemd-generator`` will attempt to read configuration files at
-``<PREFIX>/etc/zeek/zeek.conf`` and ``/etc/zeek/zeek.conf``. It's possible
-to use ``--config`` to override the configuration file lookup for testing.
+``zeek-systemd-generator`` will attempt to read the configuration file at
+``<PREFIX>/etc/zeek/zeek.conf``. It's possible to use ``--config`` to
+override the configuration file lookup for testing.
 
 ## Monitoring
 

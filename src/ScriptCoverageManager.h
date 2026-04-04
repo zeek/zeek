@@ -132,7 +132,7 @@ private:
     /**
      * Reports a single coverage instance.
      */
-    void Report(FILE* f, uint64_t cnt, std::string loc, std::string desc);
+    void Report(FILE* f, uint64_t cnt, std::string_view loc, std::string_view desc);
 };
 
 extern ScriptCoverageManager script_coverage_mgr;

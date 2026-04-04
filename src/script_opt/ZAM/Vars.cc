@@ -50,7 +50,7 @@ void ZAMCompiler::LoadParam(const IDPtr& id) {
     (void)AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::LoadGlobal(const IDPtr& id) {
+ZAMStmt ZAMCompiler::LoadGlobal(const IDPtr& id) {
     ZOp op;
 
     if ( id->IsType() )
@@ -73,7 +73,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const IDPtr& id) {
     return AddInst(z, true);
 }
 
-const ZAMStmt ZAMCompiler::LoadCapture(const IDPtr& id) {
+ZAMStmt ZAMCompiler::LoadCapture(const IDPtr& id) {
     ZOp op;
 
     if ( ZVal::IsManagedType(id->GetType()) )

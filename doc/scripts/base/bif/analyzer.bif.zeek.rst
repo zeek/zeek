@@ -14,14 +14,14 @@ Summary
 Functions
 #########
 =================================================================== =
-:zeek:id:`Analyzer::__disable_all_analyzers`: :zeek:type:`function` 
-:zeek:id:`Analyzer::__disable_analyzer`: :zeek:type:`function`      
-:zeek:id:`Analyzer::__enable_analyzer`: :zeek:type:`function`       
-:zeek:id:`Analyzer::__has_tag`: :zeek:type:`function`               
-:zeek:id:`Analyzer::__name`: :zeek:type:`function`                  
-:zeek:id:`Analyzer::__register_for_port`: :zeek:type:`function`     
-:zeek:id:`Analyzer::__schedule_analyzer`: :zeek:type:`function`     
-:zeek:id:`Analyzer::__tag`: :zeek:type:`function`                   
+:zeek:id:`Analyzer::__disable_all_analyzers`: :zeek:type:`function`
+:zeek:id:`Analyzer::__disable_analyzer`: :zeek:type:`function`
+:zeek:id:`Analyzer::__enable_analyzer`: :zeek:type:`function`
+:zeek:id:`Analyzer::__has_tag`: :zeek:type:`function`
+:zeek:id:`Analyzer::__name`: :zeek:type:`function`
+:zeek:id:`Analyzer::__register_for_port`: :zeek:type:`function`
+:zeek:id:`Analyzer::__schedule_analyzer`: :zeek:type:`function`
+:zeek:id:`Analyzer::__tag`: :zeek:type:`function`
 =================================================================== =
 
 

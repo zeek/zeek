@@ -1,4 +1,4 @@
-# Test different kinds of errors of the input framework
+# @TEST-DOC: Test different kinds of errors of the input framework
 #
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr

@@ -2,12 +2,12 @@
 table of set
 {
 [5] = {
-[bah, 3] ,
-[baz, 4] 
+[bah, 3],
+[baz, 4]
 },
 [13] = {
-[bar, 2] ,
-[foo, 1] 
+[bar, 2],
+[foo, 1]
 }
 }
 

@@ -14,29 +14,29 @@ Summary
 Redefinitions
 #############
 ===================================================== ===================================================================================
-:zeek:type:`SumStats::Calculation`: :zeek:type:`enum` 
-                                                      
+:zeek:type:`SumStats::Calculation`: :zeek:type:`enum`
+
                                                       * :zeek:enum:`SumStats::VARIANCE`:
                                                         Calculate the variance of the values.
-:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
-                                                      
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::ResultVal`
-                                                      
+
                                                         variance: :zeek:type:`double` :zeek:attr:`&optional`
                                                           For numeric data, this is the variance.
-                                                      
+
                                                         prev_avg: :zeek:type:`double` :zeek:attr:`&optional`
-                                                      
+
                                                         var_s: :zeek:type:`double` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`
-:zeek:type:`SumStats::ResultVal`: :zeek:type:`record` 
-                                                      
+:zeek:type:`SumStats::ResultVal`: :zeek:type:`record`
+
                                                       :New Fields: :zeek:type:`SumStats::ResultVal`
-                                                      
+
                                                         variance: :zeek:type:`double` :zeek:attr:`&optional`
                                                           For numeric data, this is the variance.
-                                                      
+
                                                         prev_avg: :zeek:type:`double` :zeek:attr:`&optional`
-                                                      
+
                                                         var_s: :zeek:type:`double` :zeek:attr:`&default` = ``0.0`` :zeek:attr:`&optional`
 ===================================================== ===================================================================================
 

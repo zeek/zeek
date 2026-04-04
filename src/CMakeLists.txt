@@ -55,8 +55,8 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
                          ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc rules_ rules_)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
                          rules_ rules_)
-flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
-            COMPILE_FLAGS "-Prules_")
+flex_target(RuleScanner ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l
+            ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc COMPILE_FLAGS "-Prules_")
 set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # Parser/Scanner
@@ -67,7 +67,8 @@ bison_target(
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY_DIR}/parse.cc zeek
                          yy)
-flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc COMPILE_FLAGS "-Pzeek")
+flex_target(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
+            COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 set(zeek_bison_generated_files
@@ -436,6 +437,7 @@ set(MAIN_SRCS
     script_opt/ZAM/Vars.cc
     script_opt/ZAM/ZBody.cc
     script_opt/ZAM/ZInst.cc
+    script_opt/ZAM/ZInstAux.cc
     script_opt/ZAM/ZOp.cc
     digest.h)
 
@@ -644,6 +646,10 @@ install(
     PATTERN "*.h"
     PATTERN "*.pac"
     PATTERN "3rdparty/*" EXCLUDE
+    # Prevent installing header files from submodules.
+    PATTERN "cluster/backend/zeromq/auxil/*" EXCLUDE
+    PATTERN "cluster/websocket/auxil/*" EXCLUDE
+    PATTERN "iosource/pcapng/auxil/*" EXCLUDE
     # Headers used only during build
     PATTERN "threading/formatters/detail" EXCLUDE
     # The "zeek -> ." symlink isn't needed in the install-tree

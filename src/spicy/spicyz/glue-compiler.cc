@@ -333,7 +333,7 @@ void GlueCompiler::init(Driver* driver, int zeek_version) {
     _zeek_version = zeek_version;
 }
 
-GlueCompiler::~GlueCompiler() {}
+GlueCompiler::~GlueCompiler() = default;
 
 hilti::Result<std::string> GlueCompiler::getNextEvtBlock(std::istream& in, int* lineno) const {
     std::string chunk;
@@ -517,7 +517,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
             else if ( looking_at(*chunk, 0, "export") ) {
                 auto export_ = parseExport(*chunk);
-                if ( _exports.find(export_.zeek_id) != _exports.end() )
+                if ( _exports.contains(export_.zeek_id) )
                     throw ParseError(hilti::util::fmt("export of '%s' already defined", export_.zeek_id));
 
                 _exports[export_.zeek_id] = export_;
@@ -580,19 +580,19 @@ GlueCompiler::ExportedField GlueCompiler::exportForField(const hilti::ID& zeek_i
 
     if ( export_->with.empty() ) {
         // Include unless explicitly excluded.
-        if ( export_->without.find(field_id) != export_->without.end() )
+        if ( export_->without.contains(field_id) )
             field.skip = true;
     }
     else {
         // Exclude unless explicitly included.
-        if ( export_->with.find(field_id) == export_->with.end() )
+        if ( ! export_->with.contains(field_id) )
             field.skip = true;
     }
 
     if ( export_->log_all )
         field.log = true;
 
-    if ( export_->logs.find(field_id) != export_->logs.end() )
+    if ( export_->logs.contains(field_id) )
         field.log = true;
 
     return field;
@@ -834,7 +834,7 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
         if ( ! looking_at(chunk, i, ")") ) {
             while ( true ) {
                 auto param = extract_parameter(builder(), chunk, &i);
-                ev.parameters.push_back(param);
+                ev.parameters.emplace_back(param);
 
                 if ( looking_at(chunk, i, ")") )
                     break;
@@ -1015,13 +1015,11 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall("zeek_rt::register_protocol_analyzer",
                              {builder()->stringMutable(a.name.str()), builder()->id(protocol),
-                              builder()->vector(
-                                  hilti::util::transform(a.ports,
-                                                         [this](const auto& p) -> hilti::Expression* {
-                                                             return builder()->call("zeek_rt::make_port_range",
-                                                                                    {builder()->port(p.begin),
-                                                                                     builder()->port(p.end)});
-                                                         })),
+                              builder()->vector(hilti::util::toVector(
+                                  a.ports | std::views::transform([this](const auto& p) -> hilti::Expression* {
+                                      return builder()->call("zeek_rt::make_port_range",
+                                                             {builder()->port(p.begin), builder()->port(p.end)});
+                                  }))),
                               builder()->stringMutable(a.unit_name_orig.str()),
                               builder()->stringMutable(a.unit_name_resp.str()), builder()->stringMutable(a.replaces),
                               builder()->scope()});
@@ -1041,12 +1039,10 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall("zeek_rt::register_file_analyzer",
                              {builder()->stringMutable(a.name.str()),
-                              builder()->vector(hilti::util::transform(a.mime_types,
-                                                                       [&](const auto& m) {
-                                                                           return builder()
-                                                                               ->stringMutable(m)
-                                                                               ->template as<hilti::Expression>();
-                                                                       })),
+                              builder()->vector(hilti::util::toVector(
+                                  a.mime_types | std::views::transform([&](const auto& m) {
+                                      return builder()->stringMutable(m)->template as<hilti::Expression>();
+                                  }))),
                               builder()->stringMutable(a.unit_name.str()), builder()->stringMutable(a.replaces),
                               builder()->scope()});
     }
@@ -1096,8 +1092,8 @@ bool GlueCompiler::compile() {
         m->spicy_module->add(context(), import_);
 
         // Create a vector of unique parent paths from all EVTs files going into this module.
-        auto search_dirs = hilti::util::transform(m->evts, [](const auto& p) { return p.parent_path(); });
-        auto search_dirs_vec = std::vector<hilti::rt::filesystem::path>(search_dirs.begin(), search_dirs.end());
+        auto search_dirs_vec =
+            hilti::util::toVector(m->evts | std::views::transform([](const auto& p) { return p.parent_path(); }));
 
         // Import any dependencies.
         for ( const auto& [module, scope] : _imports ) {
@@ -1346,8 +1342,8 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 #else
     auto attrs = builder()->attributeSet({builder()->attribute("&priority", builder()->integer(ev->priority))});
 #endif
-    auto parameters = hilti::util::transform(ev->parameters, [](const auto& p) { return p.get(); });
-    auto unit_hook = builder()->declarationHook(parameters, body.block(), attrs, meta);
+    auto parameters = ev->parameters | std::views::transform([](const auto& p) { return p.get(); });
+    auto unit_hook = builder()->declarationHook(hilti::util::toVector(parameters), body.block(), attrs, meta);
     auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, std::move(meta));
     ev->spicy_module->spicy_module->add(context(), hook_decl);
 
@@ -1394,7 +1390,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                 SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
 
                 for ( const auto& f : fields )
-                    SPICY_DEBUG(hilti::util::fmt("  %s", f));
+                    SPICY_DEBUG(hilti::util::fmt("  %s", *f));
             }
             else
                 SPICY_DEBUG(hilti::util::fmt("Creating (empty) Zeek record type %s::%s", ns, local));
@@ -1430,7 +1426,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                 return x->second;
 
             // Avoid infinite recursion.
-            if ( zeek_types.count(id) )
+            if ( zeek_types.contains(id) )
                 return hilti::result::Error("type is self-recursive");
 
             zeek_types.insert(id);
@@ -1511,10 +1507,6 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
 
     void operator()(hilti::type::Enum* t) final {
         assert(id());
-
-        auto labels = hilti::rt::transform(t->labels(), [this](const auto& l) {
-            return builder->tuple({builder->stringLiteral(l->id().str()), builder->integer(l->value())});
-        });
 
         auto tmp = builder->addTmp(tmpName("labels", id()),
                                    builder->typeSet(
@@ -1677,7 +1669,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
     // NOTE: Align this logic with struct generation in Spicy's unit builder.
     std::vector<GlueCompiler::RecordField> fields;
 
-    void operator()(::spicy::type::unit::item::Field* n) {
+    void operator()(::spicy::type::unit::item::Field* n) override {
         if ( (n->isTransient() && ! n->isAnonymous()) || n->parseType()->type()->isA<hilti::type::Void>() )
             return;
 
@@ -1688,7 +1680,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Variable* b) {
+    void operator()(::spicy::type::unit::item::Variable* b) override {
         auto field = GlueCompiler::RecordField{.id = b->id(),
                                                .type = b->itemType(),
                                                .is_optional = b->isOptional(),
@@ -1696,14 +1688,147 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
         fields.emplace_back(std::move(field));
     }
 
-    void operator()(::spicy::type::unit::item::Switch* n) {
-        for ( const auto& c : n->cases() ) {
-            for ( const auto& i : c->block()->items() )
-                dispatch(i);
-        }
+    void operator()(::spicy::type::unit::item::Switch* n) override {
+        for ( const auto& c : n->cases() )
+            dispatch(c->block());
+    }
+
+    void operator()(::spicy::type::unit::item::Block* n) override {
+        for ( const auto& i : n->items() )
+            dispatch(i);
     }
 };
 } // namespace
+
+namespace {
+
+// Helper for main collector that unpacks aggregate types (maps, sets, vectors,
+// tuples) to find any unit and struct types that need to be exported. When
+// finding a unit/struct, this visitor stops there and doesn't further unpack
+// its fields because we will later use HILTI's already computed type
+// dependency information to determine all the types that any units/structs we
+// find here depend on. Doing it this way keeps the logic simpler (cycles!) and
+// aligned with HILTI.
+struct VisitorExportsCollectUnpackTypes : public spicy::visitor::PreOrder {
+    VisitorExportsCollectUnpackTypes(
+        hilti::declaration::Module* current_module,
+        std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>>* exports)
+        : current_module(current_module), exports(exports) {}
+
+    hilti::declaration::Module* current_module;
+    std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>>* exports;
+
+    void operator()(hilti::type::Map* t) final {
+        dispatch(t->keyType());
+        dispatch(t->valueType());
+    }
+
+    void operator()(hilti::type::Optional* t) final { dispatch(t->dereferencedType()); }
+
+    void operator()(hilti::QualifiedType* t) final { dispatch(t->type()); }
+
+    void operator()(hilti::type::Set* t) final { dispatch(t->elementType()); }
+
+    void operator()(hilti::type::Struct* t) final {
+        auto* decl = t->typeDeclaration();
+        assert(decl);
+        exports->emplace_back(current_module, decl);
+    }
+
+    void operator()(hilti::type::Tuple* t) final {
+        for ( const auto& e : t->elements() )
+            dispatch(e->type());
+    }
+
+    void operator()(::spicy::type::Unit* t) final {
+        auto* decl = t->typeDeclaration();
+        assert(decl);
+        exports->emplace_back(current_module, decl);
+    }
+
+    void operator()(hilti::type::Vector* t) final { dispatch(t->elementType()); }
+};
+
+// Main collector visitor that collects all unit and struct types that are
+// passed to Zeek through calls to `to_val()`.
+struct VisitorExportsCollect : public spicy::visitor::PreOrder {
+    hilti::declaration::Module* current_module = nullptr;
+    std::vector<std::pair<hilti::declaration::Module*, hilti::declaration::Type*>> exports;
+
+    void operator()(hilti::declaration::Module* n) final { current_module = n; }
+
+    void operator()(::hilti::operator_::function::Call* n) final {
+        assert(current_module);
+
+        if ( n->op0()->as<hilti::expression::Name>()->id() == "zeek_rt::to_val" ) {
+            const auto& arg_type = n->op1()
+                                       ->as<hilti::expression::Ctor>()
+                                       ->ctor()
+                                       ->as<hilti::ctor::Tuple>()
+                                       ->value()
+                                       .front()
+                                       ->type()
+                                       ->type();
+            assert(arg_type->isResolved());
+            VisitorExportsCollectUnpackTypes(current_module, &exports).dispatch(arg_type);
+        }
+    }
+};
+
+// Adds HILT-side `export` statements for all unit and struct types that were
+// either collected directly by `VisitorExportsCollect`, or are transitively
+// reachable from those through their fields.
+struct VisitorExportsMutate : public spicy::visitor::PreOrder {
+    VisitorExportsMutate(Builder* builder) : builder(builder) {}
+
+    void setModule(hilti::declaration::Module* m) { module = m; }
+
+    hilti::Builder* builder;
+    hilti::declaration::Module* module;
+
+    std::set<std::pair<hilti::ID, hilti::ID>> exported;
+
+    void addExport(hilti::declaration::Type* decl) {
+        assert(module);
+        assert(decl->type()->isResolved());
+
+        if ( exported.contains({module->id(), decl->fullyQualifiedID()}) )
+            return;
+
+        if ( auto* t = decl->type()->type(); ! t->isA<::spicy::type::Unit>() && ! t->isA<hilti::type::Struct>() )
+            return;
+
+        SPICY_DEBUG(hilti::util::fmt("Adding Spicy export for type '%s' to module '%s'", decl->fullyQualifiedID(),
+                                     module->id()));
+        module->add(builder->context(), builder->export_(decl->fullyQualifiedID(), decl->meta()));
+        exported.emplace(module->id(), decl->fullyQualifiedID());
+    }
+
+    void operator()(hilti::declaration::Type* n) final {
+        addExport(n);
+
+        for ( auto* dep : builder->context()->dependentDeclarations(n) ) {
+            if ( auto* t = dep->tryAs<hilti::declaration::Type>() )
+                addExport(t);
+        }
+    }
+};
+
+} // namespace
+
+bool GlueCompiler::createHILTIExports(hilti::ASTRoot* root) {
+    VisitorExportsCollect v1;
+    hilti::visitor::visit(v1, root);
+
+    VisitorExportsMutate v2(builder());
+
+    for ( const auto& [module, decl] : v1.exports ) {
+        v2.setModule(module);
+        hilti::visitor::visit(v2, decl);
+    }
+
+    return ! v2.exported.empty();
+}
 
 std::vector<GlueCompiler::RecordField> GlueCompiler::recordFields(const ::spicy::type::Unit* unit) {
     VisitorUnitFields unit_field_converter;

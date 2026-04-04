@@ -54,7 +54,7 @@ Redefinable Options
    Zeek will produce a free-form log (i.e., not one governed by Zeek's
    logging framework) in the node's working directory. If left empty, no
    such log results.
-   
+
    Note that cluster nodes also establish a "proper" management log via
    the :zeek:see:`Management::Log` module.
 

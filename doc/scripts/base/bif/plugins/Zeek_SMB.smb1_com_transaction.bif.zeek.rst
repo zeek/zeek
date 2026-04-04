@@ -32,28 +32,28 @@ Events
    version 1 requests of type *transaction*. This command serves as the transport for the
    Transaction Subprotocol Commands. These commands operate on mailslots and named pipes,
    which are interprocess communication endpoints within the CIFS file system.
-   
+
    For more information, see MS-CIFS:2.2.4.33.1
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
 
-   :param name: A name string that MAY identify the resource (a specific Mailslot or Named Pipe) 
+
+   :param name: A name string that MAY identify the resource (a specific Mailslot or Named Pipe)
          against which the operation is performed.
-   
+
 
    :param sub_cmd: The sub command, some may be parsed and have their own events.
-   
+
 
    :param parameters: content of the SMB_Data.Trans_Parameters field
-   
+
 
    :param data: content of the SMB_Data.Trans_Data field
-   
+
    .. zeek:see:: smb1_message smb1_transaction2_request
 
 .. zeek:id:: smb1_transaction_response
@@ -65,18 +65,18 @@ Events
    version 1 requests of type *transaction*. This command serves as the transport for the
    Transaction Subprotocol Commands. These commands operate on mailslots and named pipes,
    which are interprocess communication endpoints within the CIFS file system.
-   
+
    For more information, see MS-CIFS:2.2.4.33.2
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param parameters: content of the SMB_Data.Trans_Parameters field
-   
+
 
    :param data: content of the SMB_Data.Trans_Data field
 

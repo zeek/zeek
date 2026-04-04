@@ -17,8 +17,7 @@ public:
     /**
      * Constructor.
      */
-    Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path,
-         std::optional<std::string> part_of = {});
+    Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path);
 
     /**
      * Constructor for drop in units.
@@ -39,9 +38,13 @@ public:
      */
     std::string ToString() const;
 
+    void SetPartOf(std::string p) { part_of = std::move(p); };
+
     void AddAfter(std::string a) { after.emplace_back(std::move(a)); }
 
     void AddRequires(std::string r) { requires_.emplace_back(std::move(r)); }
+
+    void AddStopPropagatedFrom(std::string f) { stop_propagated_from.emplace_back(std::move(f)); }
 
     void AddExecStart(const std::string& cmd, std::initializer_list<std::string> args = {}) {
         std::string add;
@@ -66,6 +69,7 @@ public:
     void SetSlice(std::string s) { slice = std::move(s); }
     void SetRemainAfterExit(bool v) { remain_after_exit = v; }
 
+    void SetSyslogIdentifier(std::string si) { syslog_identifier = std::move(si); }
     void SetServiceType(std::string st) { service_type = std::move(st); }
     void AddWantedBy(std::string wb) { wanted_by.emplace_back(std::move(wb)); }
 
@@ -108,10 +112,12 @@ private:
     std::string description;
     std::vector<std::string> after;
     std::vector<std::string> requires_;
+    std::vector<std::string> stop_propagated_from;
     std::filesystem::path source_path;
     std::optional<std::string> part_of;
 
     // [Service]
+    std::optional<std::string> syslog_identifier;
     std::string service_type = "exec";
     std::string user;
     std::string group;

@@ -1,6 +1,6 @@
 # Fedora/RedHat have SHA1 disabled for certificate verification, re-enable it for testing by setting OPENSSL_ENABLE_SHA1_SIGNATURES=1
 #
-# @TEST-EXEC: OPENSSL_ENABLE_SHA1_SIGNATURES=1 zeek -b -r $TRACES/tls/tls-expired-cert.trace %INPUT >out
+# @TEST-EXEC: OPENSSL_ENABLE_SHA1_SIGNATURES=1 zeek -b -r $TRACES/tls/tls-expired-cert.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/ssl

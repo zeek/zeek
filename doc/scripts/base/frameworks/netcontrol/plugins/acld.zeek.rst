@@ -14,19 +14,19 @@ Summary
 Types
 #####
 ======================================================== =
-:zeek:type:`NetControl::AclRule`: :zeek:type:`record`    
-:zeek:type:`NetControl::AcldConfig`: :zeek:type:`record` 
+:zeek:type:`NetControl::AclRule`: :zeek:type:`record`
+:zeek:type:`NetControl::AcldConfig`: :zeek:type:`record`
 ======================================================== =
 
 Redefinitions
 #############
 ========================================================= =========================================================================
-:zeek:type:`NetControl::PluginState`: :zeek:type:`record` 
-                                                          
+:zeek:type:`NetControl::PluginState`: :zeek:type:`record`
+
                                                           :New Fields: :zeek:type:`NetControl::PluginState`
-                                                          
+
                                                             acld_config: :zeek:type:`NetControl::AcldConfig` :zeek:attr:`&optional`
-                                                          
+
                                                             acld_id: :zeek:type:`count` :zeek:attr:`&optional`
                                                               The ID of this acld instance - for the mapping to PluginStates.
 ========================================================= =========================================================================
@@ -35,11 +35,11 @@ Events
 ######
 ============================================================ =======================================
 :zeek:id:`NetControl::acld_add_rule`: :zeek:type:`event`     Events that are sent from us to Broker.
-:zeek:id:`NetControl::acld_remove_rule`: :zeek:type:`event`  
+:zeek:id:`NetControl::acld_remove_rule`: :zeek:type:`event`
 :zeek:id:`NetControl::acld_rule_added`: :zeek:type:`event`   Events that are sent from Broker to us.
-:zeek:id:`NetControl::acld_rule_error`: :zeek:type:`event`   
-:zeek:id:`NetControl::acld_rule_exists`: :zeek:type:`event`  
-:zeek:id:`NetControl::acld_rule_removed`: :zeek:type:`event` 
+:zeek:id:`NetControl::acld_rule_error`: :zeek:type:`event`
+:zeek:id:`NetControl::acld_rule_exists`: :zeek:type:`event`
+:zeek:id:`NetControl::acld_rule_removed`: :zeek:type:`event`
 ============================================================ =======================================
 
 Hooks
@@ -112,13 +112,13 @@ Types
    .. zeek:field:: check_pred :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, r: :zeek:type:`NetControl::Rule`) : :zeek:type:`bool` :zeek:attr:`&optional`
 
       Predicate that is called on rule insertion or removal.
-      
+
 
       :param p: Current plugin state.
-      
+
 
       :param r: The rule to be inserted or removed.
-      
+
 
       :returns: T if the rule can be handled by the current backend, F otherwise.
 
@@ -175,13 +175,13 @@ Hooks
    The hook may modify the rule before it is sent to acld.
    Setting the acld command to F will cause the rule to be rejected
    by the plugin.
-   
+
 
    :param p: Current plugin state.
-   
+
 
    :param r: The rule to be inserted or removed.
-   
+
 
    :param ar: The acld rule to be inserted or removed.
 

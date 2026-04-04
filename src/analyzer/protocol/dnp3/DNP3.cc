@@ -164,7 +164,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
             // DNP3 packets without transport and application
             // layers can happen, we ignore them.
-            if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == (char)PSEUDO_LINK_LAYER_LEN ) {
+            if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == static_cast<char>(PSEUDO_LINK_LAYER_LEN) ) {
                 ClearEndpointState(orig);
                 return true;
             }
@@ -173,7 +173,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             // received packet is a response.
             u_char ctrl = endp->buffer[PSEUDO_CONTROL_FIELD_INDEX];
 
-            if ( orig != (bool)(ctrl & 0x80) )
+            if ( orig != static_cast<bool>(ctrl & 0x80) )
                 analyzer->Weird("dnp3_unexpected_flow_direction");
 
             // Update state.

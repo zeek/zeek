@@ -79,20 +79,20 @@ Events
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, source: :zeek:type:`string`, id: :zeek:type:`string`, value: :zeek:type:`any`)
 
    Event that is called when a config option is added or changes.
-   
+
    Note - this does not track the reason for a change (new, changed),
    and also does not track removals. If you need this, combine the event
    with a table reader.
-   
+
 
    :param name: Name of the input stream.
-   
+
 
    :param source: Source of the input stream.
-   
+
 
    :param id: ID of the configuration option being set.
-   
+
 
    :param value: New value of the configuration option being set.
 

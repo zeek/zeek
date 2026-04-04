@@ -29,10 +29,7 @@ CPPStmt::CPPStmt(const char* _name, const char* filename, int line_num) : Stmt(S
     auto no_yield = base_type(TYPE_VOID);
     auto ft = make_intrusive<FuncType>(no_args, no_yield, FUNC_FLAVOR_FUNCTION);
 
-    vector<StmtPtr> no_bodies;
-    vector<int> no_priorities;
-
-    auto sf = make_intrusive<ScriptFunc>(name, ft, no_bodies, no_priorities);
+    auto sf = make_intrusive<ScriptFunc>(name, ft, std::vector<Func::Body>{});
     auto fv = make_intrusive<FuncVal>(sf);
     auto empty_args = make_intrusive<ListExpr>();
 
@@ -42,7 +39,7 @@ CPPStmt::CPPStmt(const char* _name, const char* filename, int line_num) : Stmt(S
 }
 
 CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
-    : ScriptFunc(std::move(_name), std::move(ft), {_l_body}, {0}) {
+    : ScriptFunc(std::move(_name), std::move(ft), {Func::Body{.stmts = _l_body}}) {
     l_body = std::move(_l_body);
 }
 

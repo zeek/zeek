@@ -9,6 +9,9 @@
 # @TEST-EXEC: zeek-cut ts uid id.orig_h id.resp_h history service < zeek/worker/conn.log.orig > zeek/worker/conn.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff zeek/worker/conn.log
 
+@load base/frameworks/cluster
+@load frameworks/cluster/backend/broker
+
 redef Log::default_rotation_interval = 0sec;
 
 @if ( Supervisor::is_supervisor() )
@@ -22,7 +25,7 @@ event zeek_init()
 		$p=to_port(getenv("MANAGER_PORT"))];
 	cluster["worker"] = [$role=Supervisor::WORKER, $host=127.0.0.1,
 		$p=to_port(getenv("WORKER_PORT")),
-		$pcap_file=(getenv("TRACES") + "/wikipedia.trace")];
+		$pcap_file=(getenv("TRACES") + "/wikipedia.pcap")];
 
 	for ( n, ep in cluster )
 		{

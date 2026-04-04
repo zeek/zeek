@@ -16,6 +16,7 @@
 
 #include <libgen.h>
 #include <unistd.h>
+#include <concepts>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -123,7 +124,12 @@ extern const char* fmt_access_time(double time);
 extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char* dirname);
 
+// The digest length here is equivalent to ZEEK_MD5_DIGEST_LENGTH.
+[[deprecated("Remove in v9.1. Use hmac_sha256.")]]
 extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
+
+// The digest length here is equivalent to ZEEK_SHA256_DIGEST_LENGTH.
+extern void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
 
 // Initializes RNGs for zeek::random_number() and hmac-md5/siphash/highwayhash usage.
 // If load_file is given, the seeds (both random & hashes) are loaded from that file.  This
@@ -327,7 +333,7 @@ extern void to_upper(char* s);
 extern std::string to_upper(const std::string& s);
 extern int decode_hex(char ch);
 extern unsigned char encode_hex(int h);
-template<class T>
+template<std::integral T>
 int atoi_n(int len, const char* s, const char** end, int base, T& result);
 extern char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix = nullptr);
 extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
@@ -410,7 +416,7 @@ namespace this_thread {
 inline double get_cpu_time() {
     struct timespec ts;
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-    return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+    return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) / 1e9;
 }
 } // namespace this_thread
 
@@ -528,22 +534,35 @@ std::string canonify_name(const std::string& name);
  */
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
 
-/**
- * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
- * by the JSON writer and BIF methods.
- * @param val the input string to be escaped
- * @return the escaped string
- */
-std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true);
+enum UTF8EscapingFlags : uint8_t {
+    ESCAPE_NONE = 0x00,
+    // Escape printable ASCII control characters (e.g. `\n` is converted to `\x0a`)
+    ESCAPE_PRINTABLE_CONTROLS = 0x01,
+    // Escape unprintable ASCII control characters
+    ESCAPE_UNPRINTABLE_CONTROLS = 0x02,
+};
 
 /**
  * Escapes bytes in a string that are not valid UTF8 characters with \xYY format. Used
  * by the JSON writer and BIF methods.
- * @param val the character data to be escaped
- * @param val_size the length of the character data
+ * @param val the character data to be escaped. this is a string_view, but it can hold
+ * null characters in the middle of the data.
+ * @param flags a combination of the values from UTF8EscapingFlags to control special
+ * casing. Set to ESCAPE_NONE to disable all special cases.
  * @return the escaped string
  */
-std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true);
+std::string escape_utf8(std::string_view val, int flags);
+
+[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
+inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
+    return escape_utf8(std::string_view{val, val_size},
+                       escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
+}
+
+[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
+inline std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true) {
+    return escape_utf8(val, escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
+}
 
 /**
  * Checks for values that are approximately equal.
@@ -625,6 +644,11 @@ inline std::vector<std::string_view> split(const char* s, const char* delim) {
 inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* delim) {
     return split(std::wstring_view(s), std::wstring_view(delim));
 }
+
+/**
+ * Returns a string version of a double value following all of the rules from the modp_dtoa methods.
+ */
+size_t double_to_str(double v, char* buf, size_t buf_size, int precision, bool no_exp);
 
 } // namespace util
 } // namespace zeek

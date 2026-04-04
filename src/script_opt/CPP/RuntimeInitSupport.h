@@ -43,13 +43,17 @@ extern void register_type__CPP(TypePtr t, const std::string& name);
 // given priority and hash.  "events" is a list of event handlers
 // relevant for the function body, which should be registered if the
 // function body is going to be used.
-extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, std::vector<std::string> events,
-                               void (*finish_init)());
+extern void register_body__CPP(std::string zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                               std::vector<std::string> events, void (*finish_init)());
 
 // Same but for standalone function bodies.
-extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
-                                          std::vector<std::string> events, std::string module_group,
+extern void register_standalone_body__CPP(const std::string& zeek_name, CPPStmtPtr body, int priority, p_hash_type hash,
+                                          std::vector<std::string> events, const std::string& module_group,
                                           std::vector<std::string> attr_groups, void (*finish_init)());
+
+// If the given function has bodies registered for them, adds them in.
+// Only germane for standalone execution.
+extern void add_standalone_bodies(Func* f);
 
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global
@@ -65,7 +69,7 @@ extern void register_scripts__CPP(p_hash_type h, void (*callback)());
 // given hashes.  Creates the identifier using the given module and
 // export setting if it doesn't already exist.
 extern void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t,
-                                 std::vector<p_hash_type> hashes);
+                                 const std::vector<p_hash_type>& hashes);
 
 // Looks for a global with the given name.  If not present, creates it with
 // the given type and characteristics.
@@ -78,7 +82,8 @@ extern Func* lookup_bif__CPP(const char* bif);
 // returns an associated FuncVal.  It's a fatal error for the hash
 // not to exist, because this function should only be called by compiled
 // code that has ensured its existence.
-extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, std::vector<p_hash_type> h, const TypePtr& t);
+extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, const std::vector<p_hash_type>& h,
+                                   const TypePtr& t);
 
 // Looks for a global with the given name, generating a run-time error
 // if not present.

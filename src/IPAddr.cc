@@ -2,11 +2,11 @@
 
 #include "zeek/IPAddr.h"
 
+#include <charconv>
 #include <cstdlib>
 #include <string>
 
 #include "zeek/3rdparty/zeek_inet_ntop.h"
-#include "zeek/Conn.h"
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
@@ -19,14 +19,14 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 IPAddr::IPAddr(const String& s) { Init(s.CheckString()); }
 
 std::unique_ptr<detail::HashKey> IPAddr::MakeHashKey() const {
-    return std::make_unique<detail::HashKey>((void*)in6.s6_addr, sizeof(in6.s6_addr));
+    return std::make_unique<detail::HashKey>(in6.s6_addr, sizeof(in6.s6_addr));
 }
 
 static inline uint32_t bit_mask32(int bottom_bits) {
     if ( bottom_bits >= 32 )
         return 0xffffffff;
 
-    return (((uint32_t)1) << bottom_bits) - 1;
+    return ((static_cast<uint32_t>(1)) << bottom_bits) - 1;
 }
 
 void IPAddr::Mask(int top_bits_to_keep) {
@@ -133,12 +133,11 @@ std::string IPAddr::AsHexString() const {
 
     if ( GetFamily() == IPv4 ) {
         const uint32_t* p = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
-        snprintf(buf, sizeof(buf), "%08x", (uint32_t)ntohl(*p));
+        snprintf(buf, sizeof(buf), "%08x", static_cast<uint32_t>(ntohl(*p)));
     }
     else {
         const uint32_t* p = reinterpret_cast<const uint32_t*>(in6.s6_addr);
-        snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", (uint32_t)ntohl(p[0]), (uint32_t)ntohl(p[1]),
-                 (uint32_t)ntohl(p[2]), (uint32_t)ntohl(p[3]));
+        snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", ntohl(p[0]), ntohl(p[1]), ntohl(p[2]), ntohl(p[3]));
     }
 
     return buf;
@@ -222,14 +221,24 @@ IPPrefix::IPPrefix(const IPAddr& addr, uint8_t length, bool len_is_v6_relative) 
 }
 
 std::string IPPrefix::AsString() const {
-    char l[16];
+    std::string str = prefix.AsString() + "/";
+    size_t prefix_len = str.size();
+    str.resize(prefix_len + 16);
 
+    // length should only need 3 digits
+    assert(length >= 0 && length <= 128);
+
+    char* start = str.data() + prefix_len;
+    std::to_chars_result res;
     if ( prefix.GetFamily() == IPv4 )
-        modp_uitoa10(length - 96, l);
+        res = std::to_chars(start, start + 16, length - 96);
     else
-        modp_uitoa10(length, l);
+        res = std::to_chars(start, start + 16, length);
 
-    return prefix.AsString() + "/" + l;
+    // The string comes back from to_chars without a null terminator, but res.ptr shows
+    // what character needs to be null.
+    str.resize(res.ptr - str.data());
+    return str;
 }
 
 std::unique_ptr<detail::HashKey> IPPrefix::MakeHashKey() const {
@@ -259,12 +268,16 @@ bool IPPrefix::ConvertString(const char* text, IPPrefix* result) {
     if ( ! IPAddr::ConvertString(ip_str.data(), &tmp) )
         return false;
 
+    // Set len_is_v6_relative=true if this looks like an IPv6 address to behave
+    // the same as when parsing subnet literals in the scripting language.
+    bool len_is_v6_relative = s.find(':') != std::string::npos;
+
     auto ip = IPAddr(tmp);
 
-    if ( ! ip.CheckPrefixLength(len) )
+    if ( ! ip.CheckPrefixLength(len, len_is_v6_relative) )
         return false;
 
-    *result = IPPrefix(ip, len);
+    *result = IPPrefix(ip, len, len_is_v6_relative);
     return true;
 }
 

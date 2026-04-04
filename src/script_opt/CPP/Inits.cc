@@ -25,7 +25,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterInitExpr(const ExprPtr& ep) {
     return gi;
 }
 
-void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init) {
+void CPPCompile::GenInitExpr(const std::shared_ptr<CallExprInitInfo>& ce_init) {
     NL();
 
     const auto& e = ce_init->GetExpr();
@@ -81,6 +81,9 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) {
         case EXPR_CONST:
         case EXPR_NAME: return true;
 
+        case EXPR_ARITH_COERCE:
+            return e->GetType()->Tag() == TYPE_INT && (e->GetOp1()->IsZero() || e->GetOp1()->IsOne());
+
         case EXPR_RECORD_COERCE: { // look for coercion of empty record
             auto op = e->GetOp1();
 
@@ -90,7 +93,7 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e) {
             auto rc = static_cast<const RecordConstructorExpr*>(op.get());
             const auto& exprs = rc->Op()->AsListExpr()->Exprs();
 
-            return exprs.length() == 0;
+            return exprs.empty();
         }
 
         default: return false;
@@ -107,17 +110,18 @@ void CPPCompile::InitializeFieldMappings() {
     for ( const auto& mapping : field_decls ) {
         auto rt_arg = Fmt(mapping.first);
         auto td = mapping.second;
+        auto tda = td->attrs;
 
         string type_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
         string attrs_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
 
-        if ( standalone ) {
+        if ( standalone && tda && ! tda->GetAttrs().empty() ) {
             // We can assess whether this field is one we need to generate
             // because if it is, it will have an &optional attribute that
             // is local to one of the compiled source files.
-            if ( td->attrs && obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD ) {
+            if ( obj_matches_opt_files(tda) == AnalyzeDecision::SHOULD ) {
                 type_arg = Fmt(TypeOffset(td->type));
-                attrs_arg = Fmt(AttributesOffset(td->attrs));
+                attrs_arg = Fmt(AttributesOffset(tda));
             }
         }
 
@@ -217,7 +221,7 @@ void CPPCompile::InitializeGlobal(const IDPtr& g) {
         }
 
         const auto& attrs = g->GetAttrs();
-        if ( attrs ) {
+        if ( attrs && ! attrs->GetAttrs().empty() ) {
             auto attrs_offset = AttributesOffset(attrs);
             auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
             Emit("%s->SetAttrs(%s);", globals[g->Name()], attrs_str);
@@ -254,6 +258,10 @@ void CPPCompile::GenStandaloneActivation() {
     Emit("finish_init__CPP();");
     NL();
 
+    for ( auto& m : standalone_modules )
+        Emit("add_module(\"%s\");", m);
+    NL();
+
     // For events and hooks, we need to add each compiled body *unless*
     // it's already there (which could be the case if the standalone
     // code wasn't run standalone but instead with the original scripts).
@@ -271,7 +279,7 @@ void CPPCompile::GenStandaloneActivation() {
         auto fname = BodyName(func);
         auto bname = Canonicalize(fname) + "_zf";
 
-        if ( ! compiled_funcs.contains(bname) )
+        if ( ! compiled_func_to_zeek_func.contains(bname) )
             // We didn't wind up compiling it.
             continue;
 
@@ -283,7 +291,7 @@ void CPPCompile::GenStandaloneActivation() {
     for ( auto& fb : func_bodies ) {
         string hashes;
         for ( auto h : fb.second ) {
-            if ( hashes.size() > 0 )
+            if ( ! hashes.empty() )
                 hashes += ", ";
 
             hashes += Fmt(h);

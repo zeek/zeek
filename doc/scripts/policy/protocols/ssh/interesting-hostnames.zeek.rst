@@ -24,8 +24,8 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ===============================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSH::Interesting_Hostname_Login`:
                                                Generated if a login originates or responds with a host where
                                                the reverse hostname lookup resolves to a name matched by the

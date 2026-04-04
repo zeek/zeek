@@ -7,7 +7,7 @@ namespace zeek::detail {
 using namespace std;
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& attrs) {
-    if ( ! attrs )
+    if ( ! attrs || attrs->GetAttrs().empty() )
         return nullptr;
 
     auto a = attrs.get();
@@ -44,7 +44,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr) {
         return pa->second;
 
     const auto& e = a->GetExpr();
-    if ( e && ! IsSimpleInitExpr(e) ) {
+    if ( e && ! IsSimpleInitExpr(e) && obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT ) {
         auto h = p_hash(e);
 
         // Include the type in the hash, otherwise expressions
@@ -64,12 +64,12 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr) {
 void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags, string& attr_vals) {
     if ( attrs ) {
         for ( const auto& a : attrs->GetAttrs() ) {
-            if ( attr_tags.size() > 0 ) {
+            if ( ! attr_tags.empty() ) {
                 attr_tags += ", ";
                 attr_vals += ", ";
             }
 
-            attr_tags += Fmt(int(a->Tag()));
+            attr_tags += Fmt(static_cast<int>(a->Tag()));
 
             const auto& e = a->GetExpr();
 

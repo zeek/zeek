@@ -22,7 +22,7 @@ using namespace std::chrono_literals;
 namespace zeek::storage::backend::sqlite {
 
 OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value,
-                                  StepResultParser value_parser) {
+                                  const StepResultParser& value_parser) {
     char* errorMsg = nullptr;
     std::chrono::milliseconds time_spent = 0ms;
 
@@ -596,7 +596,7 @@ OperationResult SQLite::CheckError(int code) {
     return {ReturnCode::SUCCESS};
 }
 
-OperationResult SQLite::Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma) {
+OperationResult SQLite::Step(sqlite3_stmt* stmt, const StepResultParser& parser, bool is_pragma) {
     OperationResult ret;
 
     int step_status = sqlite3_step(stmt);

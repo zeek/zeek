@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -o test.hlto conv.spicy ./conv.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.pcap test.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 
 event zeek_init() {
@@ -39,8 +39,8 @@ public type Test = unit {
 };
 
 type MyStruct = struct {
-    i: int64;
-    s: string &optional;
+    i: int64 &always-emit;
+    s: string &optional &always-emit;
 };
 
 # @TEST-END-FILE

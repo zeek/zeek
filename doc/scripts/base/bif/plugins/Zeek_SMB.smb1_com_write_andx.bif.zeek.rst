@@ -32,21 +32,21 @@ Events
    version 1 requests of type *write andx*. This is sent by the client to write bytes to a
    regular file, a named pipe, or a directly accessible I/O device such as a serial port (COM)
    or printer port (LPT).
-   
+
    For more information, see MS-CIFS:2.2.4.43
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param offset: The byte offset into the referenced file data is being written.
-   
+
 
    :param data: The data being written.
-   
+
    .. zeek:see:: smb1_message smb1_write_andx_response
 
 .. zeek:id:: smb1_write_andx_response
@@ -57,18 +57,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *write andx*. This is the server response to the *write andx*
    request.
-   
+
    For more information, see MS-CIFS:2.2.4.43
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param written_bytes: The number of bytes the server reported having actually written.
-   
+
    .. zeek:see:: smb1_message smb1_write_andx_request
 
 

@@ -59,13 +59,13 @@ Events
    Generated at the end of reassembled TCP connections. The TCP reassembler
    raised the event once for each endpoint of a connection when it finished
    reassembling the corresponding side of the communication.
-   
+
 
    :param c: The connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
    .. zeek:see::  connection_SYN_packet connection_attempt connection_established
       connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
@@ -81,22 +81,22 @@ Events
    Generated for a SYN packet. Zeek raises this event for every SYN packet seen
    by its TCP analyzer. This includes packets that have other flags set - like
    in the case of SYN-ACK packets.
-   
+
 
    :param c: The connection.
-   
+
 
    :param pkt: Information extracted from the SYN packet.
-   
+
    .. zeek:see:: connection_EOF  connection_attempt connection_established
       connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
-   
+
    .. note::
-   
+
       This event has quite low-level semantics and can potentially be expensive
       to generate. It should only be used if one really needs the specific
       information passed into the handler via the ``pkt`` argument. If not,
@@ -113,10 +113,10 @@ Events
    "Unsuccessful" is defined as at least :zeek:id:`tcp_attempt_delay` seconds
    having elapsed since the originator first sent a connection establishment
    packet to the destination without seeing a reply.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_established
       connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
@@ -136,10 +136,10 @@ Events
    or may not occur later, one way to tell is to check the *history* field of
    :zeek:type:`connection` to see if the originator sent an ACK, indicated by
    'A' in the history string.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_finished connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
@@ -154,10 +154,10 @@ Events
 
    Generated for a TCP connection that finished normally. The event is raised
    when a regular FIN handshake from both endpoints was observed.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_first_ACK
       connection_half_finished connection_partial_close connection_pending
@@ -172,19 +172,19 @@ Events
 
    Generated for the first ACK packet seen for a TCP connection from
    its *originator*.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_half_finished connection_partial_close connection_pending
       connection_rejected connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
-   
+
    .. note::
-   
+
       This event has quite low-level semantics and should be used only rarely.
 
 .. zeek:id:: connection_half_finished
@@ -195,10 +195,10 @@ Events
    Generated when one endpoint of a TCP connection attempted to gracefully close
    the connection, but the other endpoint is in the TCP_INACTIVE state. This can
    happen due to split routing, in which Zeek only sees one side of a connection.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK  connection_partial_close connection_pending
@@ -216,10 +216,10 @@ Events
    endpoint sent one of these packets, Zeek waits
    :zeek:id:`tcp_partial_close_delay` prior to generating the event, to give
    the other endpoint a chance to close the connection normally.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_pending
@@ -233,10 +233,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Generated for each still-open TCP connection when Zeek terminates.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -252,19 +252,19 @@ Events
    Generated for a rejected TCP connection. This event is raised when an
    originator attempted to setup a TCP connection but the responder replied
    with a RST packet denying it.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending  connection_reset connection_reused connection_state_remove
       connection_status_update connection_timeout scheduled_analyzer_applied
       new_connection new_connection_contents partial_connection
-   
+
    .. note::
-   
+
       If the responder does not respond at all, :zeek:id:`connection_attempt` is
       raised instead. If the responder initially accepts the connection but
       aborts it later, Zeek first generates :zeek:id:`connection_established`
@@ -278,10 +278,10 @@ Events
    Generated when an endpoint aborted a TCP connection. The event is raised
    when one endpoint of an established TCP connection aborted by sending a RST
    packet.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -296,16 +296,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`string`)
 
    Generated when failing to write contents of a TCP stream to a file.
-   
+
 
    :param c: The connection whose contents are being recorded.
-   
+
 
    :param is_orig: Which side of the connection encountered a failure to write.
-   
+
 
    :param msg: A reason or description for the failure.
-   
+
    .. zeek:see:: set_contents_file get_contents_file
 
 .. zeek:id:: new_connection_contents
@@ -316,10 +316,10 @@ Events
    Generated when reassembly starts for a TCP connection. This event is raised
    at the moment when Zeek's TCP analyzer enables stream reassembly for a
    connection.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
@@ -336,17 +336,17 @@ Events
    handshake. This event is raised when Zeek has observed traffic from each
    endpoint, but the activity did not begin with the usual connection
    establishment.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: connection_EOF connection_SYN_packet connection_attempt
       connection_established connection_finished
       connection_first_ACK connection_half_finished connection_partial_close
       connection_pending connection_rejected connection_reset connection_reused
       connection_state_remove connection_status_update connection_timeout
       scheduled_analyzer_applied new_connection new_connection_contents
-   
+
 
 .. zeek:id:: tcp_contents
    :source-code: base/bif/plugins/Zeek_TCP.events.bif.zeek 320 320
@@ -361,26 +361,26 @@ Events
    of in-order payload reconstructed from the packet stream. Note that this
    event is potentially expensive if many connections carry significant amounts
    of data as then all that data needs to be passed on to the scripting layer.
-   
+
 
    :param c: The connection the payload is part of.
-   
+
 
    :param is_orig: True if the packet was sent by the connection's originator.
-   
+
 
    :param seq: The sequence number corresponding to the first byte of the payload
         chunk.
-   
+
 
    :param contents: The raw payload, which will be non-empty.
-   
+
    .. zeek:see:: tcp_packet tcp_option tcp_rexmit
       tcp_content_delivery_ports_orig tcp_content_delivery_ports_resp
       tcp_content_deliver_all_resp tcp_content_deliver_all_orig
-   
+
    .. note::
-   
+
       The payload received by this event is the same that is also passed into
       application-layer protocol analyzers internally. Subsequent invocations of
       this event for the same connection receive non-overlapping in-order chunks
@@ -395,16 +395,16 @@ Events
 
    Generated if a TCP flow crosses a checksum-error threshold, per
    'C'/'c' history reporting.
-   
+
 
    :param c: The connection record for the TCP connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
 
    :param threshold: the threshold that was crossed
-   
+
    .. zeek:see::  udp_multiple_checksum_errors
       tcp_multiple_zero_windows tcp_multiple_retransmissions tcp_multiple_gap
 
@@ -415,16 +415,16 @@ Events
 
    Generated if a TCP flow crosses a gap threshold, per 'G'/'g' history
    reporting.
-   
+
 
    :param c: The connection record for the TCP connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
 
    :param threshold: the threshold that was crossed
-   
+
    .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_retransmissions
 
 .. zeek:id:: tcp_multiple_retransmissions
@@ -434,16 +434,16 @@ Events
 
    Generated if a TCP flow crosses a retransmission threshold, per
    'T'/'t' history reporting.
-   
+
 
    :param c: The connection record for the TCP connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
 
    :param threshold: the threshold that was crossed
-   
+
    .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_zero_windows tcp_multiple_gap
 
 .. zeek:id:: tcp_multiple_zero_windows
@@ -453,16 +453,16 @@ Events
 
    Generated if a TCP flow crosses a zero-window threshold, per
    'W'/'w' history reporting.
-   
+
 
    :param c: The connection record for the TCP connection.
-   
+
 
    :param is_orig: True if the event is raised for the originator side.
-   
+
 
    :param threshold: the threshold that was crossed
-   
+
    .. zeek:see::  tcp_multiple_checksum_errors tcp_multiple_retransmissions tcp_multiple_gap
 
 .. zeek:id:: tcp_option
@@ -473,21 +473,21 @@ Events
    Generated for each option found in a TCP header. Like many of the ``tcp_*``
    events, this is a very low-level event and potentially expensive as it may
    be raised very often.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param is_orig: True if the packet was sent by the connection's originator.
-   
+
 
    :param opt: The numerical option number, as found in the TCP header.
-   
+
 
    :param optlen: The length of the options value.
-   
+
    .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_options
-   
+
    .. note:: To inspect the actual option values, if any, use :zeek:see:`tcp_options`.
 
 .. zeek:id:: tcp_options
@@ -497,16 +497,16 @@ Events
 
    Generated for each TCP header that contains TCP options.  This is a very
    low-level event and potentially expensive as it may be raised very often.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param is_orig: True if the packet was sent by the connection's originator.
-   
+
 
    :param options: The list of options parsed out of the TCP header.
-   
+
    .. zeek:see:: tcp_packet tcp_contents tcp_rexmit tcp_option
 
 .. zeek:id:: tcp_packet
@@ -520,32 +520,32 @@ Events
    slightly better than :zeek:id:`new_packet` because it affects only TCP, but
    not much. That said, if you work from a trace and want to do some
    packet-level analysis, it may come in handy.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param is_orig: True if the packet was sent by the connection's originator.
-   
+
 
    :param flags: A string with the packet's TCP flags. In the string, each character
           corresponds to one set flag, as follows: ``S`` -> SYN; ``F`` -> FIN;
           ``R`` -> RST; ``A`` -> ACK; ``P`` -> PUSH; ``U`` -> URGENT.
-   
+
 
    :param seq: The packet's relative TCP sequence number.
-   
+
 
    :param ack: If the ACK flag is set for the packet, the packet's relative ACK
         number, else zero.
-   
+
 
    :param len: The length of the TCP payload, as specified in the packet header.
-   
+
 
    :param payload: The raw TCP payload. Note that this may be shorter than *len* if
             the packet was not fully captured.
-   
+
    .. zeek:see:: new_packet packet_contents tcp_option tcp_contents tcp_rexmit
 
 .. zeek:id:: tcp_rexmit
@@ -554,24 +554,24 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, seq: :zeek:type:`count`, len: :zeek:type:`count`, data_in_flight: :zeek:type:`count`, window: :zeek:type:`count`)
 
    Generated for each detected TCP segment retransmission.
-   
+
 
    :param c: The connection the packet is part of.
-   
+
 
    :param is_orig: True if the packet was sent by the connection's originator.
-   
+
 
    :param seq: The segment's relative TCP sequence number.
-   
+
 
    :param len: The length of the TCP segment, as specified in the packet header.
-   
+
 
    :param data_in_flight: The number of bytes corresponding to the difference between
                    the last sequence number and last acknowledgement number
                    we've seen for a given endpoint.
-   
+
 
    :param window: the TCP window size.
 

@@ -59,9 +59,9 @@ std::vector<std::string_view> to_label_names_vec(const LabelList& static_label_l
 
 } // namespace
 
-InfoTelemetry::InfoTelemetry(std::string_view name, LabelList static_labels, std::string_view prefix) {
+InfoTelemetry::InfoTelemetry(std::string_view name, const LabelList& static_labels, std::string_view prefix) {
     if ( name != "core" && name != "websocket" )
-        zeek::reporter->FatalError("name can only be backend or websocket, got '%s'", std::string(name).c_str());
+        zeek::reporter->FatalError("name can only be core or websocket, got '%s'", std::string(name).c_str());
 
     std::string out_name = util::fmt("cluster_%s_outgoing_events", std::string(name).c_str());
     std::string in_name = util::fmt("cluster_%s_incoming_events", std::string(name).c_str());
@@ -234,9 +234,9 @@ void DebugTelemetry::OnIncomingEvent(std::string_view topic, std::string_view ha
 
 // Reads Cluster::Telemetry consts, instantiates and appropriate Telemetry instance and configures
 // the given backend with it.
-void configure_backend_telemetry(Backend& backend, std::string_view name, LabelList static_labels) {
+void configure_backend_telemetry(Backend& backend, std::string_view name, const LabelList& static_labels) {
     if ( name != "core" && name != "websocket" )
-        zeek::reporter->FatalError("name can only be backend or websocket, got '%s'", std::string(name).c_str());
+        zeek::reporter->FatalError("name can only be core or websocket, got '%s'", std::string(name).c_str());
 
     static const auto& info = zeek::id::find_val<zeek::EnumVal>("Cluster::Telemetry::INFO");
     static const auto& verbose = zeek::id::find_val<zeek::EnumVal>("Cluster::Telemetry::VERBOSE");

@@ -856,6 +856,41 @@ type event_metadata_vec: vector of EventMetadata::Entry;
 
 ## Statistics about a :zeek:type:`connection` endpoint.
 ##
+## .. note::
+##
+##     As of version 8.1, Zeek does not reliably keep the state, num_pkts and
+##     num_bytes_ip fields of endpoint records up-to-date. This means that within
+##     early connection events, protocol analyzer events or scheduled events,
+##     these fields may be stale and not reflect the most recent values as stored
+##     within Zeek's core after processing a packet.
+##
+##     Most notably, the packet and byte counts in a ``new_connection()`` handler
+##     are zero, rather than non-zero for the originator endpoint of a connection.
+##     The same applies to protocol analyzer events: The packet counts may not
+##     include the packet that raised the event.
+##
+##     If you use packet or byte counts in event handlers, the workaround to
+##     get the most recent values on the endpoint records is to execute the
+##     ``lookup_connection()`` function within a handler which will refresh
+##     the script-layer records to what the core holds::
+##
+##         # Refresh dynamic fields on the connection and endpoint records
+##         event new_connection(c: connection) {
+##             print c$orig$num_pkts;  # Prints 0 - stale.
+##
+##             local _ = lookup_connection(c$id);
+##
+##             print c$orig$num_pkts;  # Prints 1.
+##         }
+##
+##     References to issues and PRs with a description, ideas and discussions:
+##
+##       * https://github.com/zeek/zeek/issues/4214
+##       * https://github.com/zeek/zeek/issues/4786
+##       * https://github.com/zeek/zeek/pull/4785
+##       * https://github.com/zeek/zeek/pull/4788
+##       * https://github.com/zeek/zeek/pull/4886
+##
 ## .. zeek:see:: connection
 type endpoint: record {
 	size: count;	##< Logical size of data sent (for TCP: derived from sequence numbers).
@@ -882,6 +917,37 @@ type endpoint: record {
 ## transport-layer information about the conversation. Note that Zeek uses a
 ## liberal interpretation of "connection" and associates instances of this type
 ## also with UDP and ICMP flows.
+##
+## .. note::
+##
+##     As of version 8.1, Zeek's core does not reliably keep the duration and
+##     history fields of connection records up-to-date. This means that within
+##     early connection events, protocol analyzer events or scheduled events,
+##     these fields may be stale and not reflect the most recent values as
+##     stored within Zeek's core after processing a packet.
+##
+##     If you use duration or history in such event handlers, the workaround to
+##     get the most recent values is to execute the ``lookup_connection()`` function
+##     within a handler which will refresh the script-layer records to what
+##     the core holds::
+##
+##         # Refresh dynamic fields on the connection and endpoint records
+##         event new_connection(c: connection) {
+##             print c$history;  # Prints "" - stale.
+##
+##             local _ = lookup_connection(c$id);
+##
+##             print c$history;  # Prints "S" for a TCP connection starting with a SYN packet.
+##         }
+##
+##     References to issues and PRs with a description, ideas and discussions:
+##
+##       * https://github.com/zeek/zeek/issues/4214
+##       * https://github.com/zeek/zeek/issues/4786
+##       * https://github.com/zeek/zeek/pull/4785
+##       * https://github.com/zeek/zeek/pull/4788
+##       * https://github.com/zeek/zeek/pull/4886
+##
 type connection: record {
 	id: conn_id;	##< The connection's identifying 4-tuple.
 	orig: endpoint;	##< Statistics about originator side.
@@ -1438,9 +1504,11 @@ type PcapFilterID: enum { None };
 type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
-	RANDOM_MD5,
 	PREFIX_PRESERVING_A50,
-	PREFIX_PRESERVING_MD5,
+	RANDOM_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
+	PREFIX_PRESERVING_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
+	RANDOM_SHA256,
+	PREFIX_PRESERVING_SHA256,
 };
 
 ## .. zeek:see:: anonymize_addr
@@ -1702,6 +1770,15 @@ const icmp_inactivity_timeout = 1 min &redef;
 ##
 ## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
 const unknown_ip_inactivity_timeout = 1 min &redef;
+
+## A hook that can be used to veto timing out a connection via :zeek:see:`break`.
+## The connection will then wait another inactivity interval until attempting
+## another timeout.
+##
+## c: The connection
+##
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
+type connection_timing_out: hook(c: connection);
 
 ## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within
@@ -2303,7 +2380,11 @@ type l2_hdr: record {
 	src: string &optional;	##< L2 source (if Ethernet).
 	dst: string &optional;	##< L2 destination (if Ethernet).
 	vlan: count &optional;	##< Outermost VLAN tag if any (and Ethernet).
+	vlan_pcp: count &optional;	##< Outermost VLAN PCP if vlan header is present.
+	vlan_dei: bool &optional;	##< Outermost VLAN DEI if vlan header is present.
 	inner_vlan: count &optional;	##< Innermost VLAN tag if any (and Ethernet).
+	inner_vlan_pcp: count &optional;	##< Innermost VLAN PCP if inner vlan header is present.
+	inner_vlan_dei: bool &optional;	##< Innermost VLAN DEI if inner vlan header is present.
 	eth_type: count &optional;	##< Innermost Ethertype (if Ethernet).
 	proto: layer3_proto;	##< L3 protocol.
 };
@@ -2880,7 +2961,7 @@ global pkt_profile_file: file &redef;
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
-##    dns_message dns_query_reply dns_rejected dns_request
+##    dns_message dns_query_reply dns_rejected dns_request dns_dynamic_update
 type dns_msg: record {
 	id: count;	##< Transaction ID.
 
@@ -2896,10 +2977,12 @@ type dns_msg: record {
 	AD: bool;	##< authentic data
 	CD: bool;	##< checking disabled
 
-	num_queries: count;	##< Number of query records.
-	num_answers: count;	##< Number of answer records.
-	num_auth: count;	##< Number of authoritative records.
+	num_queries: count;	##< Number of query records. For dynamic update messages, this is the number of zones.
+	num_answers: count;	##< Number of answer records. For dynamic update messages, this is the number of prerequisites.
+	num_auth: count;	##< Number of authoritative records. For dynamic update messages, this is the number of updates.
 	num_addl: count;	##< Number of additional records.
+
+	is_netbios: bool;	##< Whether this message came from NetBIOS.
 };
 
 ## A DNS SOA record.
@@ -3135,10 +3218,12 @@ type dns_naptr_rr: record {
 # .. zeek:see:: dns_answer
 #
 # todo:: use enum to make them autodoc'able
-const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
-const DNS_ANS = 1;	##< An answer record.
-const DNS_AUTH = 2;	##< An authoritative record.
-const DNS_ADDL = 3;	##< An additional record.
+const DNS_QUERY = 0;		##< A query. This shouldn't occur, just for completeness.
+const DNS_ANS = 1;		##< An answer record.
+const DNS_AUTH = 2;		##< An authoritative record.
+const DNS_ADDL = 3;		##< An additional record.
+const DNS_PREREQUISITE = 4; 	##< A prerequisite record for dynamic update.
+const DNS_UPDATE = 5;		##< A update record for dynamic update.
 
 ## The general part of a DNS reply.
 ##
@@ -5319,6 +5404,24 @@ export {
 		name:      string;
 	};
 
+	## The UserSecurityParaneters for SNMPv3 messages using the
+	## User-based Security Model. See :rfc:`3414`.
+	## Experimental: the format of this record can change till Zeek 9.
+	type SNMP::UserSecurityParameters: record {
+		## snmpEngineID of the authoritative SNMP engine.
+		AuthoritativeEngineID: string;
+		## snmpEngineBoots value of the authoritative SNMP engine.
+		AuthoritativeEngineBoots: int;
+		## snmpEngineTime value of the authoritative SNMP engine
+		AuthoritativeEngineTime: int;
+		## User on the behalf of which the message is exchanged.
+		UserName: string;
+		## raw msgAuthenticationParameters.
+		AuthenticationParameters: string;
+		## raw msgPrivacyParameters.
+		PrivacyParameters: string;
+	};
+
 	## The top-level message data structure of an SNMPv3 datagram, not
 	## including the PDU data.  See :rfc:`3412`.
 	type SNMP::HeaderV3: record {
@@ -5331,6 +5434,7 @@ export {
 		security_model:  count;
 		security_params: string;
 		pdu_context:     SNMP::ScopedPDU_Context &optional;
+		user_security_parameters: SNMP::UserSecurityParameters &optional;
 	};
 
 	## A generic SNMP header data structure that may include data from
@@ -6030,8 +6134,8 @@ module Cluster;
 export {
 	type Cluster::Pool: record {};
 
-	## Cluster backend to use. Default is the broker backend.
-	const backend = Cluster::CLUSTER_BACKEND_BROKER &redef;
+	## Cluster backend to use. Default is the None backend.
+	const backend = Cluster::CLUSTER_BACKEND_NONE &redef;
 
 	## The event serializer to use by the cluster backend.
 	##

@@ -30,18 +30,18 @@ Events
    version 1 requests of type *query information*. This is a deprecated command which
    has been replaced by the *trans2_query_path_information* subcommand. This is used by the
    client to obtain attribute information about a file.
-   
+
    For more information, see MS-CIFS:2.2.4.9
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param filename: The filename that the client is querying.
-   
+
    .. zeek:see:: smb1_message smb1_transaction2_request
 
 

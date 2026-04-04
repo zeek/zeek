@@ -28,7 +28,7 @@ Redefinitions
 #############
 ======================================= ===========================================
 :zeek:type:`Log::ID`: :zeek:type:`enum` Add the analyzer logging stream identifier.
-                                        
+
                                         * :zeek:enum:`Analyzer::Logging::LOG`
 ======================================= ===========================================
 

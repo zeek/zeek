@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/http/multipart.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: cat extract_files/http-item-* | sort > extractions
 

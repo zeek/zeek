@@ -61,8 +61,7 @@ RuleActionEvent::RuleActionEvent(const char* arg_msg, const char* event_name) {
                     continue;
 
                 std::vector<TypePtr> tplist;
-                std::for_each(p.args->Types()->begin(), p.args->Types()->end(),
-                              [&tplist](const auto* td) { tplist.push_back(td->type); });
+                std::ranges::for_each(*p.args->Types(), [&tplist](const auto* td) { tplist.push_back(td->type); });
 
                 (void)handler->GetType()->CheckArgs(tplist, true, true);
             }

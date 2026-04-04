@@ -17,10 +17,10 @@ Summary
 Redefinitions
 #############
 ============================================ =======================================================================================================================
-:zeek:type:`Conn::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`Conn::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`Conn::Info`
-                                             
+
                                                failed_service: :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional` :zeek:attr:`&ordered`
                                                  List of analyzers in a connection that raised violations
                                                  causing their removal.

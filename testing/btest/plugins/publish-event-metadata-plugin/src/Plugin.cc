@@ -86,6 +86,9 @@ bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string
             zeek::reporter->FatalError("Failed to add string metadata");
         }
     }
+    else if ( topic.starts_with("zeek/cluster") ) {
+        // Ignore publishes on zeek/cluster/
+    }
     else {
         zeek::reporter->FatalError("Unhandled topic %s", topic.c_str());
     }

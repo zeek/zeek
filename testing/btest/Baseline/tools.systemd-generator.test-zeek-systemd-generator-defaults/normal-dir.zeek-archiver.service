@@ -4,7 +4,6 @@
 Description=Zeek Archiver
 SourcePath=<...>/config1
 After=zeek-setup.service
-Requires=zeek-setup.service
 PartOf=zeek.target
 StartLimitIntervalSec=0
 
@@ -17,5 +16,6 @@ Group=zeek
 WorkingDirectory=
 ReadWritePaths=<...>/log-queue <...>/zeek 
 ExecStart=<...>/zeek-archiver  <...>/log-queue <...>/zeek
+Slice=zeek-archiver.slice
 Restart=always
 RestartSec=1

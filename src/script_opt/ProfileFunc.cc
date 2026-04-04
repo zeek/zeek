@@ -2,7 +2,6 @@
 
 #include "zeek/script_opt/ProfileFunc.h"
 
-#include <unistd.h>
 #include <cerrno>
 
 #include "zeek/Desc.h"
@@ -112,7 +111,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 TrackType(t);
 
                 auto attrs = id->GetAttrs();
-                if ( attrs )
+                if ( attrs && ! attrs->GetAttrs().empty() )
                     constructor_attrs[attrs.get()] = t;
 
                 if ( t->Tag() == TYPE_RECORD )
@@ -389,10 +388,12 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     script_calls.insert(sf);
                 }
 
-                // Track the BiF, though not if we know we're not going to
-                // compile the call to it.
-                else if ( obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT )
+                else { // Track the BiF.
                     BiF_globals.insert(func);
+                    if ( obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT )
+                        // We're going to call it.
+                        called_BiF_globals.insert(func);
+                }
             }
             else {
                 // We could complain, but for now we don't, because
@@ -452,7 +453,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto sc = static_cast<const SetConstructorExpr*>(e);
             const auto& attrs = sc->GetAttrs();
 
-            if ( attrs )
+            if ( attrs && ! attrs->GetAttrs().empty() )
                 constructor_attrs[attrs.get()] = sc->GetType();
         } break;
 
@@ -460,7 +461,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto tc = static_cast<const TableConstructorExpr*>(e);
             const auto& attrs = tc->GetAttrs();
 
-            if ( attrs )
+            if ( attrs && ! attrs->GetAttrs().empty() )
                 constructor_attrs[attrs.get()] = tc->GetType();
         } break;
 
@@ -557,14 +558,14 @@ void ProfileFunc::TrackAssignment(const IDPtr id) {
 
 void ProfileFunc::CheckRecordConstructor(TypePtr t) {
     auto rt = cast_intrusive<RecordType>(t);
-    for ( auto td : *rt->Types() )
-        if ( td->attrs ) {
+    for ( auto td : *rt->Types() ) {
+        auto attrs = td->attrs.get();
+        if ( attrs && ! attrs->GetAttrs().empty() ) {
             // In principle we could figure out whether this particular
             // constructor happens to explicitly specify &default fields, and
             // not include those attributes if it does since they won't come
             // into play. However that seems like added complexity for almost
             // surely no ultimate gain.
-            auto attrs = td->attrs.get();
             constructor_attrs[attrs] = rt;
 
             if ( ! rec_constructor_attrs.contains(rt.get()) )
@@ -572,6 +573,7 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
             else
                 rec_constructor_attrs[rt.get()].insert(attrs);
         }
+    }
 }
 
 ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes,
@@ -702,6 +704,12 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
         return true;
     }
 
+    const auto& bodies = func->GetBodies();
+    if ( bodies.size() == 1 && bodies[0].stmts->Tag() == STMT_CPP ) {
+        is_unknown = true;
+        return true;
+    }
+
     auto sf = static_cast<ScriptFunc*>(func);
     auto seo = GetCallSideEffects(sf);
     if ( ! seo )
@@ -751,6 +759,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
     main_types.insert(main_types.end(), pf->OrderedTypes().begin(), pf->OrderedTypes().end());
     script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
     BiF_globals.insert(pf->BiFGlobals().begin(), pf->BiFGlobals().end());
+    called_BiF_globals.insert(pf->CalledBiFGlobals().begin(), pf->CalledBiFGlobals().end());
     events.insert(pf->Events().begin(), pf->Events().end());
 
     for ( auto& i : pf->Lambdas() ) {
@@ -834,7 +843,7 @@ void ProfileFuncs::TraverseValue(const ValPtr& v) {
 }
 
 void ProfileFuncs::DrainPendingExprs() {
-    while ( pending_exprs.size() > 0 ) {
+    while ( ! pending_exprs.empty() ) {
         // Copy the pending expressions so we can loop over them
         // while accruing additions.
         auto pe = pending_exprs;
@@ -870,7 +879,7 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
             continue;
         auto pf = f.ProfilePtr();
         if ( compute_func_hashes || ! pf->HasHashVal() )
-            ComputeProfileHash(std::move(pf));
+            ComputeProfileHash(pf);
     }
 
     for ( auto& l : lambdas )
@@ -888,10 +897,10 @@ void ProfileFuncs::AnalyzeLambdaProfile(const LambdaExpr* l) {
     lambda_primaries[l->Name()] = l->PrimaryFunc().get();
 
     if ( compute_func_hashes || ! pf->HasHashVal() )
-        ComputeProfileHash(std::move(pf));
+        ComputeProfileHash(pf);
 }
 
-void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
+void ProfileFuncs::ComputeProfileHash(const std::shared_ptr<ProfileFunc>& pf) {
     p_hash_type h = 0;
 
     // We add markers between each class of hash component, to

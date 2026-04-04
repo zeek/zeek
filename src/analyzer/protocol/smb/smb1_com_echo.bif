@@ -9,7 +9,7 @@
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## echo_count: The number of times the server should echo the data back.
-## 
+##
 ## data: The data for the server to echo.
 ##
 ## .. zeek:see:: smb1_message smb1_echo_response
@@ -25,7 +25,7 @@ event smb1_echo_request%(c: connection, echo_count: count, data: string%);
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
 ## seq_num: The sequence number of this echo reply.
-## 
+##
 ## data: The data echoed back from the client.
 ##
 ## .. zeek:see:: smb1_message smb1_echo_request

@@ -33,7 +33,7 @@ std::shared_ptr<CPP_InitInfo> RegisterInitExpr(const ExprPtr& e);
 
 // Tracks a C++ string value needed for initialization.  Returns
 // an offset into the global vector that will hold these.
-int TrackString(std::string s) {
+int TrackString(const std::string& s) {
     auto ts = tracked_strings.find(s);
     if ( ts != tracked_strings.end() )
         return ts->second;
@@ -62,7 +62,7 @@ int TrackHash(p_hash_type h) {
 private:
 // Generates code for dynamically generating an expression associated with an
 // attribute, via a function call.
-void GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init);
+void GenInitExpr(const std::shared_ptr<CallExprInitInfo>& ce_init);
 
 // Returns the name of a function used to evaluate an initialization expression.
 std::string InitExprName(const ExprPtr& e);

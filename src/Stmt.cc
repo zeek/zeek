@@ -24,7 +24,7 @@
 namespace zeek::detail {
 
 const char* stmt_name(StmtTag t) {
-    static const char* stmt_names[int(NUM_STMTS)] = {
+    static const char* stmt_names[NUM_STMTS] = {
         "alarm", // Does no longer exist, but kept for keeping enums consistent.
         "print",
         "event",
@@ -51,7 +51,7 @@ const char* stmt_name(StmtTag t) {
         "std-function",
     };
 
-    return stmt_names[int(t)];
+    return stmt_names[t];
 }
 
 int Stmt::num_stmts = 0;
@@ -202,7 +202,7 @@ void Stmt::DecrBPCount() {
 
 void Stmt::AddTag(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(Tag());
     else
         d->Add(stmt_name(Tag()));
     d->SP();
@@ -310,7 +310,7 @@ void do_print_stmt(const std::vector<ValPtr>& vals) {
     File* f = print_stdout;
     int offset = 0;
 
-    if ( vals.size() > 0 && vals[0] && vals[0]->GetType()->Tag() == TYPE_FILE ) {
+    if ( ! vals.empty() && vals[0] && vals[0]->GetType()->Tag() == TYPE_FILE ) {
         f = (vals)[0]->AsFile();
         if ( ! f->IsOpen() )
             return;
@@ -675,21 +675,21 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
                             NegExpr* ne = static_cast<NegExpr*>(expr);
 
                             if ( ne->Op()->IsConst() )
-                                Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
+                                Unref(exprs.replace(j, new ConstExpr(eval_in_isolation(ne))));
                         } break;
 
                         case EXPR_POSITIVE: {
                             PosExpr* pe = static_cast<PosExpr*>(expr);
 
                             if ( pe->Op()->IsConst() )
-                                Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
+                                Unref(exprs.replace(j, new ConstExpr(eval_in_isolation(pe))));
                         } break;
 
                         case EXPR_NAME: {
                             NameExpr* ne = static_cast<NameExpr*>(expr);
 
                             if ( ne->Id()->IsConst() ) {
-                                auto v = ne->Eval(nullptr);
+                                auto v = eval_in_isolation(ne);
 
                                 if ( v )
                                     Unref(exprs.replace(j, new ConstExpr(std::move(v))));

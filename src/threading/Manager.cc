@@ -3,7 +3,6 @@
 #include "zeek/threading/Manager.h"
 
 #include <sys/socket.h>
-#include <unistd.h>
 #include <cstdint>
 #include <limits>
 
@@ -37,7 +36,7 @@ Manager::Manager() {
 }
 
 Manager::~Manager() {
-    if ( all_threads.size() )
+    if ( ! all_threads.empty() )
         Terminate();
 }
 

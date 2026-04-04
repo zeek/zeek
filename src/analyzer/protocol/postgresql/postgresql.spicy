@@ -275,7 +275,7 @@ type BackendMessage = unit {
 type ParameterStatus = unit {
     name: /[-_\/A-Za-z0-9]+/ &requires=(|$$| > 0);
     : uint8 &requires=($$ == 0);
-    value: /[\x20-\x7e]+/ &requires=(|$$| > 0);
+    value: /[\x20-\x7e]*/;
     : uint8 &requires=($$ == 0);
 };
 

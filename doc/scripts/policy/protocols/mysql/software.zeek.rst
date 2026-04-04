@@ -14,8 +14,8 @@ Summary
 Redefinitions
 #############
 ============================================== =========================================================
-:zeek:type:`Software::Type`: :zeek:type:`enum` 
-                                               
+:zeek:type:`Software::Type`: :zeek:type:`enum`
+
                                                * :zeek:enum:`MySQL::SERVER`:
                                                  Identifier for MySQL servers in the software framework.
 ============================================== =========================================================

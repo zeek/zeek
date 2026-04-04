@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT 2>err
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 

@@ -33,13 +33,13 @@ Events
    :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use rfb_authentication_result which has the correct value for result."*
 
    Generated for RFB event authentication result message
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param result: whether or not authentication was successful (false means success, true means failure)
-   
+
    .. zeek:see:: rfb_authentication_result
 
 .. zeek:id:: rfb_authentication_result
@@ -48,10 +48,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
 
    Generated for RFB event authentication result message
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param result: whether or not authentication was successful
 
@@ -61,10 +61,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authtype: :zeek:type:`count`)
 
    Generated for RFB event authentication mechanism selection
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param authtype: the value of the chosen authentication mechanism
 
@@ -74,10 +74,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_version: :zeek:type:`string`, minor_version: :zeek:type:`string`)
 
    Generated for RFB event client banner message
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param version: of the client's rfb library
 
@@ -87,16 +87,16 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
    Generated for RFB event server parameter message
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param name: name of the shared screen
-   
+
 
    :param width: width of the shared screen
-   
+
 
    :param height: height of the shared screen
 
@@ -106,10 +106,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_version: :zeek:type:`string`, minor_version: :zeek:type:`string`)
 
    Generated for RFB event server banner message
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param version: of the server's rfb library
 
@@ -119,10 +119,10 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, flag: :zeek:type:`bool`)
 
    Generated for RFB event share flag messages
-   
+
 
    :param c: The connection record for the underlying transport-layer session/flow.
-   
+
 
    :param flag: whether or not the share flag was set
 

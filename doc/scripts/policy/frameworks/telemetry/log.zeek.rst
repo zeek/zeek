@@ -31,10 +31,10 @@ Types
 Redefinitions
 #############
 ======================================= =======================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`Telemetry::LOG`
-                                        
+
                                         * :zeek:enum:`Telemetry::LOG_HISTOGRAM`
 ======================================= =======================================
 
@@ -85,7 +85,7 @@ Runtime Options
    :file:`telemetry.log` and :file:`telemetry_histogram.log` files
    by default. Setting this option to an empty set includes all
    prefixes.
-   
+
    For more fine-grained customization, setting this option to an
    empty set and implementing the :zeek:see:`Telemetry::log_policy`
    and :zeek:see:`Telemetry::log_policy_histogram` hooks to filter

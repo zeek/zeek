@@ -1,5 +1,5 @@
 # @TEST-DOC: Check that extend-email/hostnames.zeek does not run lookup_addr() for non email type notices.
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 @load base/frameworks/notice

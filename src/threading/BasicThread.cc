@@ -61,7 +61,7 @@ const char* BasicThread::Fmt(const char* format, ...) {
     int n = vsnprintf(buf, buf_len, format, al);
     va_end(al);
 
-    if ( (unsigned int)n >= buf_len ) { // Not enough room, grow the buffer.
+    if ( static_cast<unsigned int>(n) >= buf_len ) { // Not enough room, grow the buffer.
         buf_len = n + 32;
         buf = reinterpret_cast<char*>(util::safe_realloc(buf, buf_len));
 

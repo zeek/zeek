@@ -13,7 +13,7 @@ Summary
 Functions
 #########
 ================================================================================ =
-:zeek:id:`PacketAnalyzer::GTPV1::remove_gtpv1_connection`: :zeek:type:`function` 
+:zeek:id:`PacketAnalyzer::GTPV1::remove_gtpv1_connection`: :zeek:type:`function`
 ================================================================================ =
 
 

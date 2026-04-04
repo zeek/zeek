@@ -285,7 +285,7 @@ op DelField
 op1-read
 class Vi
 op-types R I
-eval	$1->Remove($2);
+eval	$1->Remove(RecordField($1, $2));
 
 
 internal-op Init-Record

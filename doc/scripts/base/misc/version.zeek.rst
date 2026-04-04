@@ -133,10 +133,10 @@ Functions
 
    Test if the current running version of Zeek is greater or equal to
    the given version string.
-   
+
 
    :param version_string: Version to check against the current running version.
-   
+
 
    :returns: True if running version greater or equal to the given version.
 
@@ -146,10 +146,10 @@ Functions
    :Type: :zeek:type:`function` (version_string: :zeek:type:`string`) : :zeek:type:`Version::VersionDescription`
 
    Parse a given version string.
-   
+
 
    :param version_string: Zeek version string.
-   
+
 
    :returns: :zeek:see:`Version::VersionDescription` record.
 

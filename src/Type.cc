@@ -33,7 +33,7 @@ Type::TypeAliasMap Type::type_aliases;
 
 // Note: This function must be thread-safe.
 const char* type_name(TypeTag t) {
-    static constexpr const char* type_names[int(NUM_TYPES)] = {
+    static constexpr const char* type_names[static_cast<int>(NUM_TYPES)] = {
         "void",     // 0
         "bool",     // 1
         "int",      // 2
@@ -59,10 +59,10 @@ const char* type_name(TypeTag t) {
         "error",    // 22
     };
 
-    if ( int(t) >= NUM_TYPES )
+    if ( static_cast<int>(t) >= NUM_TYPES )
         return "type_name(): not a type tag";
 
-    return type_names[int(t)];
+    return type_names[static_cast<int>(t)];
 }
 
 Type::Type(TypeTag t, bool arg_base_type)
@@ -227,7 +227,7 @@ void Type::Describe(ODesc* d) const {
 
 void Type::DoDescribe(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
     else {
         TypeTag t = Tag();
         if ( IsSet() )
@@ -266,7 +266,8 @@ bool TypeList::AllMatch(const Type* t, bool is_init) const {
 
 void TypeList::Append(TypePtr t) {
     if ( pure_type && ! same_type(t, pure_type) )
-        reporter->InternalError("pure type-list violation");
+        reporter->InternalError("pure type-list violation t=%s (%p) pure_type=%s (%p)", obj_desc_short(t).c_str(),
+                                t.get(), obj_desc_short(pure_type).c_str(), pure_type.get());
 
     types.emplace_back(std::move(t));
 }
@@ -282,7 +283,7 @@ void TypeList::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("list of");
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         d->Add(IsPure());
         if ( IsPure() )
             pure_type->Describe(d);
@@ -581,7 +582,7 @@ SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
             TypeList* tl_type = elements->GetType()->AsTypeList();
             const auto& tl = tl_type->GetTypes();
 
-            if ( tl.size() < 1 ) {
+            if ( tl.empty() ) {
                 Error("no type given for set");
                 SetError();
             }
@@ -732,7 +733,7 @@ void FuncType::DoDescribe(ODesc* d) const {
         }
     }
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         d->Add(flavor);
         d->Add(yield != nullptr);
         args->DescribeFields(d, true);
@@ -910,7 +911,7 @@ public:
     }
 
     ZVal Generate() const override {
-        auto v = init_expr->Eval(nullptr);
+        auto v = eval_in_isolation(init_expr);
         if ( ! v ) {
             reporter->Error("failed &default in record creation");
             return {};
@@ -1130,7 +1131,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
     if ( def_expr && ! IsErrorType(type->Tag()) ) {
         if ( def_expr->Tag() == detail::EXPR_CONST ) {
-            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            auto zv = ZVal(eval_in_isolation(def_expr), type);
 
             if ( ZVal::IsManagedType(type) )
                 init = std::make_shared<detail::DirectManagedFieldInit>(zv);
@@ -1140,7 +1141,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
         else if ( def_expr->Tag() == detail::EXPR_ARITH_COERCE &&
                   (def_expr->GetOp1()->IsZero() || def_expr->GetOp1()->IsOne()) ) {
-            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            auto zv = ZVal(eval_in_isolation(def_expr), type);
             init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
@@ -1187,7 +1188,7 @@ ValPtr RecordType::FieldDefault(int field) const {
         return nullptr;
 
     const auto& def_attr = td->attrs->Find(detail::ATTR_DEFAULT);
-    return def_attr ? def_attr->GetExpr()->Eval(nullptr) : nullptr;
+    return def_attr ? eval_in_isolation(def_attr->GetExpr()) : nullptr;
 }
 
 int RecordType::FieldOffset(const char* field) const {
@@ -1206,7 +1207,7 @@ void RecordType::DoDescribe(ODesc* d) const {
     d->PushType(this);
 
     if ( d->IsReadable() ) {
-        if ( d->IsShort() && GetName().size() )
+        if ( d->IsShort() && ! GetName().empty() )
             d->Add(GetName());
 
         else {
@@ -1218,7 +1219,7 @@ void RecordType::DoDescribe(ODesc* d) const {
     }
 
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         DescribeFields(d);
     }
 
@@ -1548,7 +1549,7 @@ void FileType::DoDescribe(ODesc* d) const {
         yield->Describe(d);
     }
     else {
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
         yield->Describe(d);
     }
 }
@@ -1570,7 +1571,7 @@ void OpaqueType::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("opaque of");
     else
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
 
     d->Add(name.c_str());
 }
@@ -1744,7 +1745,7 @@ void EnumType::DoDescribe(ODesc* d) const {
     auto t = Tag();
 
     if ( d->IsBinary() ) {
-        d->Add(int(t));
+        d->Add(static_cast<int>(t));
         if ( ! d->IsShort() )
             d->Add(GetName());
     }
@@ -1861,7 +1862,7 @@ void VectorType::DoDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("vector of");
     else
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
 
     yield_type->Describe(d);
 }
@@ -1948,12 +1949,42 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         case TYPE_ANY:
         case TYPE_ERROR: return true;
 
-        case TYPE_ENUM:
-            // We should probably check to see whether all of the
-            // enumerations are present and in the same location.
-            // FIXME: Yes, but perhaps we should better return
-            // true per default?
+        case TYPE_ENUM: {
+            // We have enum types with the same name, but different pointers.
+            // This comes from situations where the same enum is defined within
+            // a .bif file and a .zeek file. Supervisor::ClusterRole and
+            // Broker::BackendType are examples.
+            //
+            // It'd be nice if enum types were singletons instead.
+            if ( t1->GetName() == t2->GetName() )
+                return true;
+
+            // If an EnumType has a parent and the type to compare
+            // against is that parent, they are compatible...
+            const auto* t1p = t1->AsEnumType()->GetParentType().get();
+            const auto* t2p = t2->AsEnumType()->GetParentType().get();
+
+            if ( t1p && t1p == t2 )
+                return true;
+
+            if ( t2p && t2p == t1 )
+                return true;
+
+            // Remove in v9.1: Make enums nominally typed. Change trailing
+            // return to false.
+            //
+            // We only output warnings during parse time for the user to see
+            // when we return true for nominally different enum types. I'm a
+            // bit worried we may somehow get here at runtime and spill a lot
+            // of warnings unexpectedly.
+            if ( run_state::is_parsing )
+                reporter->Deprecation(
+                    util::fmt("Remove in v9.1. Mixing incompatible enum types %s and %s will become an error.",
+                              obj_desc_short(t1).c_str(), obj_desc_short(t2).c_str()));
+
+            // Remove in v9.1: Change to return false.
             return true;
+        }
 
         case TYPE_OPAQUE: {
             const OpaqueType* ot1 = static_cast<const OpaqueType*>(t1);
@@ -2205,7 +2236,7 @@ const Type* flatten_type(const Type* t) {
 
     const auto& types = tl->GetTypes();
 
-    if ( types.size() == 0 )
+    if ( types.empty() )
         reporter->InternalError("empty type list in flatten_type");
 
     const auto& ft = types[0];
@@ -2271,7 +2302,7 @@ TypeTag max_type(TypeTag t1, TypeTag t2) {
     }
 }
 
-TypePtr merge_enum_types(const Type* t1, const Type* t2) {
+static TypePtr merge_enum_types(const Type* t1, const Type* t2) {
     // Could compare pointers t1 == t2, but maybe there's someone out
     // there creating clones of the type, so safer to compare name.
     if ( t1->GetName() != t2->GetName() ) {
@@ -2302,12 +2333,20 @@ TypePtr merge_enum_types(const Type* t1, const Type* t2) {
     return nullptr;
 }
 
-TypePtr merge_table_types(const Type* t1, const Type* t2) {
-    const IndexType* it1 = static_cast<const IndexType*>(t1);
-    const IndexType* it2 = static_cast<const IndexType*>(t2);
+static TypePtr merge_table_types(const Type* t1, const Type* t2) {
+    auto it1 = t1->AsTableType();
+    auto it2 = t2->AsTableType();
 
     const auto& tl1 = it1->GetIndexTypes();
     const auto& tl2 = it2->GetIndexTypes();
+    const auto& y1 = it1->Yield();
+    const auto& y2 = it2->Yield();
+
+    if ( it1->IsUnspecifiedTable() )
+        return make_intrusive<TableType>(it2->GetIndices(), y2);
+    if ( it2->IsUnspecifiedTable() )
+        return make_intrusive<TableType>(it1->GetIndices(), y1);
+
     TypeListPtr tl3;
 
     if ( tl1.size() != tl2.size() ) {
@@ -2325,8 +2364,6 @@ TypePtr merge_table_types(const Type* t1, const Type* t2) {
         tl3->Append(std::move(tl3_i));
     }
 
-    const auto& y1 = t1->Yield();
-    const auto& y2 = t2->Yield();
     TypePtr y3;
 
     if ( y1 || y2 ) {
@@ -2343,7 +2380,7 @@ TypePtr merge_table_types(const Type* t1, const Type* t2) {
     return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 }
 
-TypePtr merge_func_types(const Type* t1, const Type* t2) {
+static TypePtr merge_func_types(const Type* t1, const Type* t2) {
     if ( ! same_type(t1, t2) ) {
         t1->Error("incompatible types", t2);
         return nullptr;
@@ -2357,7 +2394,7 @@ TypePtr merge_func_types(const Type* t1, const Type* t2) {
     return make_intrusive<FuncType>(std::move(args), std::move(yield), ft1->Flavor());
 }
 
-TypePtr merge_record_types(const Type* t1, const Type* t2) {
+static TypePtr merge_record_types(const Type* t1, const Type* t2) {
     const RecordType* rt1 = static_cast<const RecordType*>(t1);
     const RecordType* rt2 = static_cast<const RecordType*>(t2);
 
@@ -2422,7 +2459,27 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
     return make_intrusive<RecordType>(tdl3);
 }
 
-TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
+static TypePtr merge_vector_types(const Type* t1, const Type* t2) {
+    auto vt1 = t1->AsVectorType();
+    auto vt2 = t2->AsVectorType();
+
+    auto y1 = vt1->Yield();
+    auto y2 = vt2->Yield();
+
+    if ( vt1->IsUnspecifiedVector() )
+        return make_intrusive<VectorType>(y2);
+    if ( vt2->IsUnspecifiedVector() )
+        return make_intrusive<VectorType>(y1);
+
+    if ( ! same_type(y1, y2) ) {
+        t1->Error("incompatible types", t2);
+        return nullptr;
+    }
+
+    return make_intrusive<VectorType>(merge_types(y1, y2));
+}
+
+static TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const TypeList* tl1 = t1->AsTypeList();
     const TypeList* tl2 = t2->AsTypeList();
 
@@ -2434,8 +2491,8 @@ TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const auto& l1 = tl1->GetTypes();
     const auto& l2 = tl2->GetTypes();
 
-    if ( l1.size() == 0 || l2.size() == 0 ) {
-        if ( l1.size() == 0 )
+    if ( l1.empty() || l2.empty() ) {
+        if ( l1.empty() )
             tl1->Error("empty list");
         else
             tl2->Error("empty list");
@@ -2497,13 +2554,7 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2) {
 
         case TYPE_LIST: return merge_list_types(t1, t2);
 
-        case TYPE_VECTOR:
-            if ( ! same_type(t1->Yield(), t2->Yield()) ) {
-                t1->Error("incompatible types", t2);
-                return nullptr;
-            }
-
-            return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
+        case TYPE_VECTOR: return merge_vector_types(t1, t2);
 
         case TYPE_FILE:
             if ( ! same_type(t1->Yield(), t2->Yield()) ) {
@@ -2521,7 +2572,7 @@ TypePtr maximal_type(detail::ListExpr* elements) {
     TypeList* tl_type = elements->GetType()->AsTypeList();
     const auto& tl = tl_type->GetTypes();
 
-    if ( tl.size() < 1 ) {
+    if ( tl.empty() ) {
         reporter->Error("no type can be inferred for empty list");
         return nullptr;
     }
@@ -2656,7 +2707,7 @@ TypePtr init_type(const detail::ExprPtr& init) {
     auto init_list = init->AsListExpr();
     const auto& el = init_list->Exprs();
 
-    if ( el.length() == 0 ) {
+    if ( el.empty() ) {
         init->Error("empty list in untyped initialization");
         return nullptr;
     }

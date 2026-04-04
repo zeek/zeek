@@ -12,6 +12,20 @@
 
 namespace zeek::cluster {
 
+namespace detail {
+
+/**
+ * Iterate over all global variables and report these with
+ * &broker_store or &backend attributes as non functional.
+ *
+ * Only call this if Cluster::backend is not Broker and not None.
+ *
+ * Remove in v9.1: The &backend and &broker_store attributes should be gone.
+ */
+void report_non_functional_broker_tables(const zeek::EnumValPtr& cluster_backend_val);
+
+} // namespace detail
+
 /**
  * Manager to allow registration of cluster components.
  *

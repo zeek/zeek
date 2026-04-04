@@ -14,7 +14,7 @@ Summary
 Types
 #####
 ====================================================== =
-:zeek:type:`Broker::BrokerProtocol`: :zeek:type:`enum` 
+:zeek:type:`Broker::BrokerProtocol`: :zeek:type:`enum`
 ====================================================== =
 
 Events
@@ -35,14 +35,14 @@ Events
 Functions
 #########
 =============================================================== =
-:zeek:id:`Broker::__is_outbound_peering`: :zeek:type:`function` 
-:zeek:id:`Broker::__listen`: :zeek:type:`function`              
-:zeek:id:`Broker::__node_id`: :zeek:type:`function`             
-:zeek:id:`Broker::__peer`: :zeek:type:`function`                
-:zeek:id:`Broker::__peer_no_retry`: :zeek:type:`function`       
-:zeek:id:`Broker::__peering_stats`: :zeek:type:`function`       
-:zeek:id:`Broker::__peers`: :zeek:type:`function`               
-:zeek:id:`Broker::__unpeer`: :zeek:type:`function`              
+:zeek:id:`Broker::__is_outbound_peering`: :zeek:type:`function`
+:zeek:id:`Broker::__listen`: :zeek:type:`function`
+:zeek:id:`Broker::__node_id`: :zeek:type:`function`
+:zeek:id:`Broker::__peer`: :zeek:type:`function`
+:zeek:id:`Broker::__peer_no_retry`: :zeek:type:`function`
+:zeek:id:`Broker::__peering_stats`: :zeek:type:`function`
+:zeek:id:`Broker::__peers`: :zeek:type:`function`
+:zeek:id:`Broker::__unpeer`: :zeek:type:`function`
 =============================================================== =
 
 
@@ -84,13 +84,13 @@ Events
    Generated when an error occurs in the Broker sub-system. This event
    reports local errors in Broker, as indicated by the provided
    :zeek:type:`Broker::ErrorCode`.
-   
+
 
    :param code: the type of error that triggered this event.
-   
+
 
    :param msg: a message providing additional context.
-   
+
    .. zeek:see:: Broker::peer_added Broker::peer_removed Broker::peer_lost
       Broker::endpoint_discovered Broker::endpoint_unreachable Broker::status
 
@@ -100,13 +100,13 @@ Events
    :Type: :zeek:type:`event` (lvl: :zeek:type:`Broker::LogSeverityLevel`, id: :zeek:type:`string`, description: :zeek:type:`string`)
 
    Generated when Broker emits an internal logging event.
-   
+
 
    :param lvl: the severity of the event as reported by Broker.
-   
+
 
    :param id: an identifier for the event type.
-   
+
 
    :param description: a message providing additional context.
 
@@ -121,13 +121,13 @@ Events
    the address and port provided to :zeek:see:`Broker::peer`; for the listening
    endpoint it's the peer's TCP client's address and (likely ephemeral) TCP
    port.
-   
+
 
    :param endpoint: the added endpoint's Broker ID and connection information.
-   
+
 
    :param msg: a message providing additional context.
-   
+
    .. zeek:see:: Broker::peer_removed Broker::peer_lost
       Broker::endpoint_discovered Broker::endpoint_unreachable
       Broker::status Broker::error
@@ -141,13 +141,13 @@ Events
    endpoint. This event fires when the other endpoint stops or removes the
    peering for some other reason. This event is independent of the original
    directionality of connection establishment.
-   
+
 
    :param endpoint: the lost endpoint's Broker ID and connection information.
-   
+
 
    :param msg: a message providing additional context.
-   
+
    .. zeek:see:: Broker::peer_added Broker::peer_removed
       Broker::endpoint_discovered Broker::endpoint_unreachable
       Broker::status Broker::error
@@ -167,15 +167,15 @@ Events
    peering ends. These events are independent of the original directionality of
    TCP connection establishment and only reflect which endpoint terminates the
    peering.
-   
+
 
    :param endpoint: the removed endpoint's Broker ID and connection information.
-   
+
 
    :param msg: a message providing additional context. If backpressure overflow
         caused this unpeering, the message contains the string
         *caf::sec::backpressure_overflow*.
-   
+
    .. zeek:see:: Broker::peer_added Broker::peer_lost
       Broker::endpoint_discovered Broker::endpoint_unreachable
       Broker::status Broker::error
@@ -188,14 +188,14 @@ Events
    Generated when an unspecified change occurs in Broker. This event only fires
    when the status change isn't covered by more specific Broker events. The
    provided message string may be empty.
-   
+
 
    :param endpoint: the Broker ID and connection information, if available,
              of the endpoint the update relates to.
-   
+
 
    :param msg: a message providing additional context.
-   
+
    .. zeek:see:: Broker::peer_added Broker::peer_removed Broker::peer_lost
       Broker::endpoint_discovered Broker::endpoint_unreachable Broker::error
 

@@ -91,7 +91,15 @@ bool ScriptCoverageManager::WriteStats() {
 
     util::SafeDirname dirname{pf};
 
-    if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) ) {
+#ifdef _MSC_VER
+    // On Windows, dirname() may return an empty string for a bare filename
+    // instead of "." as POSIX specifies. Fall back to "." in that case.
+    const auto& dir = dirname.result.empty() ? "." : dirname.result;
+#else
+    const auto& dir = dirname.result;
+#endif
+
+    if ( ! util::detail::ensure_intermediate_dirs(dir.data()) ) {
         reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", pf);
         return false;
     }
@@ -164,8 +172,9 @@ void ScriptCoverageManager::TrackUsage(const Location* loc, std::string desc, ui
         usage_map[location_desc] = cnt;
 }
 
-void ScriptCoverageManager::Report(FILE* f, uint64_t cnt, std::string loc, std::string desc) {
-    fprintf(f, "%" PRIu64 "%c%s%c%s\n", cnt, delim, loc.c_str(), delim, desc.c_str());
+void ScriptCoverageManager::Report(FILE* f, uint64_t cnt, std::string_view loc, std::string_view desc) {
+    fprintf(f, "%" PRIu64 "%c%.*s%c%.*s\n", cnt, delim, static_cast<int>(loc.size()), loc.data(), delim,
+            static_cast<int>(desc.size()), desc.data());
 }
 
 } // namespace zeek::detail

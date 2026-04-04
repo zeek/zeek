@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #if defined(__OpenBSD__)
@@ -17,7 +18,6 @@ using pkt_timeval = struct timeval;
 #endif
 
 #include "zeek/IP.h"
-#include "zeek/NetVar.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/session/Session.h"
 
@@ -148,6 +148,16 @@ public:
      */
     static constexpr const u_char L2_EMPTY_ADDR[L2_ADDR_LEN] = {0};
 
+    struct VlanTag {
+        uint16_t id = 0;
+        // Priority Code Point
+        uint8_t pcp = 0;
+        // Drop Eligible Indicator
+        bool dei = false;
+
+        bool operator==(const VlanTag&) const = default;
+    };
+
     // These are passed in through the constructor.
     std::string tag;              /// Used in serialization
     double time;                  /// Timestamp reconstituted as float
@@ -163,14 +173,14 @@ public:
     uint32_t eth_type;
 
     /**
-     * (Outermost) VLAN tag if any, else 0.
+     * (Outermost) VLAN tag if present, otherwise empty
      */
-    uint32_t vlan = 0;
+    std::optional<VlanTag> vlan;
 
     /**
-     * (Innermost) VLAN tag if any, else 0.
+     * (Innermost) VLAN tag if present, otherwise empty
      */
-    uint32_t inner_vlan = 0;
+    std::optional<VlanTag> inner_vlan;
 
     /**
      * Layer 3 protocol identified (if any).

@@ -137,10 +137,10 @@ Functions
    identifier to associate with the current input to the file analysis
    framework.  Using an empty string for the handle signifies that the
    input will be ignored/discarded.
-   
+
 
    :param handle: A string that uniquely identifies a file.
-   
+
    .. zeek:see:: get_file_handle
 
 

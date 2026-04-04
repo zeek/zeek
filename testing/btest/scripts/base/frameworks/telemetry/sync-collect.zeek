@@ -9,6 +9,8 @@
 
 @load base/frameworks/telemetry
 
+redef running_under_test = T;
+
 global connections_by_proto_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="connections",

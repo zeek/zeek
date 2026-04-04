@@ -52,7 +52,17 @@ void analyze_lambda(LambdaExpr* l) {
 
 void analyze_when_lambda(LambdaExpr* l) { when_lambdas.insert(l->PrimaryFunc().get()); }
 
+static std::unordered_map<const Stmt*, const Stmt*> lambda_aliases;
+
+void register_lambda_alias(const StmtPtr& orig, const StmtPtr& alias) { lambda_aliases[alias.get()] = orig.get(); }
+
+extern const Stmt* look_up_lambda_alias(const Stmt* alias) {
+    auto lookup = lambda_aliases.find(alias);
+    return lookup == lambda_aliases.end() ? nullptr : lookup->second;
+}
+
 bool is_lambda(const ScriptFunc* f) { return lambdas.contains(f); }
+
 
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.contains(f); }
 
@@ -72,9 +82,8 @@ void analyze_global_stmts(Stmt* stmts) {
     id->SetType(func_t);
 
     auto sc = current_scope();
-    std::vector<IDPtr> empty_inits;
     global_stmts = make_intrusive<ScriptFunc>(id);
-    global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
+    global_stmts->AddBody({.stmts = stmts->ThisPtr()}, {}, sc->Length());
     global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();
@@ -203,7 +212,7 @@ static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std:
     return true;
 }
 
-static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs,
+static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, const std::shared_ptr<ProfileFuncs>& pfs,
                           ScopePtr scope, StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
@@ -486,13 +495,12 @@ static void use_CPP() {
 
             auto b = s->second.body;
 
-            // We may have already updated the body if
-            // we're using code compiled for standalone.
+            // We may have already updated the body if we're using code
+            // compiled for standalone.
             if ( f.Body()->Tag() != STMT_CPP ) {
                 auto func = f.Func();
                 if ( added_bodies[func->GetName()].contains(hash) )
-                    // We've already added the
-                    // replacement.  Delete orig.
+                    // We've already added the replacement.  Delete orig.
                     func->ReplaceBody(f.Body(), nullptr);
                 else
                     func->ReplaceBody(f.Body(), b);
@@ -522,7 +530,7 @@ static void generate_CPP(std::shared_ptr<ProfileFuncs> pfs) {
     CPPCompile cpp(funcs, std::move(pfs), gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
+static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
@@ -708,7 +716,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
-    analyze_scripts_for_ZAM(std::move(pfs));
+    analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

@@ -1,4 +1,4 @@
-# Test that certificate log deduplication works in clustered mode.
+# @TEST-DOC: Test that certificate log deduplication works in clustered mode.
 #
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_WORKER1_PORT
@@ -55,7 +55,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 event SSL::log_ssl(i: SSL::Info)
 	{
 	print "log_line";
-	schedule 2secs { terminate_me() };
+	schedule 0.1sec { terminate_me() };
 	}
 
 global peers_lost = 0;
@@ -66,5 +66,5 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	system("touch lost");
 
 	if ( peers_lost == 2 )
-		schedule 2sec { terminate_me() };
+		event terminate_me();
 	}

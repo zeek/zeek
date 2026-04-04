@@ -13,16 +13,16 @@ Summary
 Runtime Options
 ###############
 ============================================================================== =
-:zeek:id:`CommunityID::Notice::enabled`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`CommunityID::Notice::enabled`: :zeek:type:`bool` :zeek:attr:`&redef`
 ============================================================================== =
 
 Redefinitions
 #############
 ============================================== ============================================================================
-:zeek:type:`Notice::Info`: :zeek:type:`record` 
-                                               
+:zeek:type:`Notice::Info`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`Notice::Info`
-                                               
+
                                                  community_id: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
 ============================================== ============================================================================
 

@@ -91,7 +91,7 @@ class CPP_InitInfo;
 // items.
 class CPP_InitsInfo {
 public:
-    CPP_InitsInfo(std::string _tag, std::string type) : tag(std::move(_tag)) {
+    CPP_InitsInfo(std::string _tag, const std::string& type) : tag(std::move(_tag)) {
         base_name = std::string("CPP__") + tag + "__";
         CPP_type = tag + type;
     }
@@ -168,7 +168,7 @@ protected:
 
     // Given the initialization type and initializers for with a given
     // cohort element, build the associated table element.
-    virtual void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs);
+    virtual void BuildCohortElement(CPPCompile* c, const std::string& init_type, std::vector<std::string>& ivs);
 
     // Total number of initializers.
     int size = 0;
@@ -178,6 +178,10 @@ protected:
     // holds a vector of cohorts, indexed by the number of the cohort.
     // (Note, some cohorts may be empty.)
     std::vector<std::vector<std::shared_ptr<CPP_InitInfo>>> instances;
+
+    // Which initializations we've already processed, as otherwise sometimes
+    // it's hard to avoid adding the same one more than once.
+    std::unordered_set<std::shared_ptr<CPP_InitInfo>> processed_instances;
 
     // Each cohort has associated with it a vector of offsets, specifying
     // positions in the run-time vector of the items in the cohort.
@@ -211,7 +215,7 @@ protected:
 // global identifiers, or call expressions.
 class CPP_CustomInitsInfo : public CPP_InitsInfo {
 public:
-    CPP_CustomInitsInfo(std::string _tag, std::string _type) : CPP_InitsInfo(std::move(_tag), std::move(_type)) {
+    CPP_CustomInitsInfo(std::string _tag, const std::string& _type) : CPP_InitsInfo(std::move(_tag), _type) {
         BuildInitType();
     }
 
@@ -234,8 +238,8 @@ public:
     // In the following, if "c_type" is non-empty then it specifies the
     // C++ type used to directly represent the constant.  If empty, it
     // indicates that we instead use an index into a separate vector.
-    CPP_BasicConstInitsInfo(std::string _tag, std::string type, std::string c_type)
-        : CPP_CustomInitsInfo(std::move(_tag), std::move(type)) {
+    CPP_BasicConstInitsInfo(std::string _tag, const std::string& type, const std::string& c_type)
+        : CPP_CustomInitsInfo(std::move(_tag), type) {
         if ( c_type.empty() )
             inits_type = std::string("CPP_") + tag + "Consts";
         else
@@ -244,14 +248,14 @@ public:
 
     bool UsesCompoundVectors() const override { return false; }
 
-    void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
+    void BuildCohortElement(CPPCompile* c, const std::string& init_type, std::vector<std::string>& ivs) override;
 };
 
 // A class for a collection of initialization items that are defined using
 // other initialization items.
 class CPP_CompoundInitsInfo : public CPP_InitsInfo {
 public:
-    CPP_CompoundInitsInfo(std::string _tag, std::string type) : CPP_InitsInfo(std::move(_tag), std::move(type)) {
+    CPP_CompoundInitsInfo(std::string _tag, const std::string& type) : CPP_InitsInfo(std::move(_tag), type) {
         if ( tag == "Type" )
             // These need a refined version of CPP_IndexedInits
             // in order to build different types dynamically.
@@ -267,7 +271,7 @@ public:
     void GenerateInitializers(CPPCompile* c) override;
     void GenerateCohorts(CPPCompile* c) override;
 
-    void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
+    void BuildCohortElement(CPPCompile* c, const std::string& init_type, std::vector<std::string>& ivs) override;
 };
 
 // Abstract class for tracking information about a single initialization item.
@@ -290,7 +294,7 @@ public:
 
     // Returns the name that should be used for referring to this
     // value in the generated code.
-    std::string Name() const { return inits_collection->Name(offset); }
+    virtual std::string Name() const { return inits_collection->Name(offset); }
 
     // Returns this item's initialization cohort.
     int InitCohort() const { return init_cohort; }
@@ -394,16 +398,10 @@ class PatternConstInfo : public CPP_InitInfo {
 public:
     PatternConstInfo(CPPCompile* c, ValPtr v);
 
-    void InitializerVals(std::vector<std::string>& ivs) const override {
-        ivs.emplace_back(std::to_string(pattern));
-        ivs.emplace_back(std::to_string(is_case_insensitive));
-        ivs.emplace_back(std::to_string(is_single_line));
-    }
+    void InitializerVals(std::vector<std::string>& ivs) const override { ivs.emplace_back(std::to_string(pattern)); }
 
 private:
-    int pattern;             // index into string representation of pattern
-    int is_case_insensitive; // case-insensitivity flag, 0 or 1
-    int is_single_line;      // single-line flag, 0 or 1
+    int pattern; // string representation of canonical exact pattern
 };
 
 class PortConstInfo : public CPP_InitInfo {
@@ -547,7 +545,7 @@ public:
     // Accessors, since code to initialize these is generated separately
     // from that of most initialization collections.
     const ExprPtr& GetExpr() const { return e; }
-    const std::string& Name() const { return e_name; }
+    std::string Name() const override { return e_name; }
     const std::string& WrapperClass() const { return wrapper_class; }
 
 protected:

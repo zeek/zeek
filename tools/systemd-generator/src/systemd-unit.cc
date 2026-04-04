@@ -9,12 +9,8 @@
 
 namespace zeek::detail::systemd {
 
-Unit::Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path,
-           std::optional<std::string> part_of)
-    : file(std::move(file)),
-      description(std::move(description)),
-      source_path(std::move(source_path)),
-      part_of(std::move(part_of)) {}
+Unit::Unit(std::filesystem::path file, std::string description, std::filesystem::path source_path)
+    : file(std::move(file)), description(std::move(description)), source_path(std::move(source_path)) {}
 
 
 std::string Unit::ToString() const {
@@ -27,8 +23,12 @@ std::string Unit::ToString() const {
 
     for ( const auto& a : after )
         ss << "After=" << a << "\n";
+
     for ( const auto& r : requires_ )
         ss << "Requires=" << r << "\n";
+
+    for ( const auto& s : stop_propagated_from )
+        ss << "StopPropagatedFrom=" << s << "\n";
 
     if ( part_of.has_value() )
         ss << "PartOf=" << *part_of << "\n";
@@ -44,6 +44,8 @@ std::string Unit::ToString() const {
     if ( exec_start.size() > 0 || exec_start_pre.size() > 0 ) {
         ss << "\n";
         ss << "[Service]" << "\n";
+        if ( syslog_identifier.has_value() )
+            ss << "SyslogIdentifier=" << syslog_identifier.value() << "\n";
         ss << "Type=" << service_type << "\n";
         ss << "Nice=" << nice << "\n";
         ss << "MemoryMax=" << memory_max << "\n";

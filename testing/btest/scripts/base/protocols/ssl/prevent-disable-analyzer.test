@@ -1,5 +1,5 @@
 # @TEST-DOC: Implement disabling_analyzer hook to keep the SSL analyzer enabled for a bit longer.
-# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.trace %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls1.2.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/ssl

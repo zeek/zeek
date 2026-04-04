@@ -26,7 +26,7 @@ using namespace zeek::cluster;
 
 zeek::detail::EventMetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::zeek::Event& ev) {
     const auto& broker_meta = ev.metadata();
-    if ( broker_meta.size() == 0 )
+    if ( broker_meta.empty() )
         return nullptr;
 
     auto meta = std::make_unique<zeek::detail::EventMetadataVector>();
@@ -233,9 +233,9 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->Args().size(), 2);
+        CHECK_EQ(result->Args().size(), 2u);
         REQUIRE(result->Metadata());
-        CHECK_EQ(result->Metadata()->size(), 1);
+        CHECK_EQ(result->Metadata()->size(), 1u);
     }
 
     SUBCASE("binary") {
@@ -258,9 +258,9 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->Args().size(), 2);
+        CHECK_EQ(result->Args().size(), 2u);
         REQUIRE(result->Metadata());
-        CHECK_EQ(result->Metadata()->size(), 1);
+        CHECK_EQ(result->Metadata()->size(), 1u);
     }
 }
 TEST_SUITE_END();

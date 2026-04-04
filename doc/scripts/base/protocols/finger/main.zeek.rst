@@ -11,27 +11,22 @@ a log file, but just configure the analyzer.
 
 Summary
 ~~~~~~~
-Constants
-#########
-========================================== =
-:zeek:id:`Finger::ports`: :zeek:type:`set` 
-========================================== =
-
-Redefinitions
-#############
-==================================================================== =
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =
+Redefinable Options
+###################
+============================================================== ============================
+:zeek:id:`Finger::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for Finger.
+============================================================== ============================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: Finger::ports
-   :source-code: base/protocols/finger/main.zeek 7 7
+   :source-code: base/protocols/finger/main.zeek 8 8
 
    :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
    :Default:
 
       ::
@@ -41,5 +36,6 @@ Constants
          }
 
 
+   Well-known ports for Finger.
 
 

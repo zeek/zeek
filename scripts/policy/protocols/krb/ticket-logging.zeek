@@ -5,10 +5,10 @@
 module KRB;
 
 redef record Info += {
-	## Hash of ticket used to authorize request/transaction
-	auth_ticket: string &log &optional;
-	## Hash of ticket returned by the KDC
-	new_ticket:  string &log &optional;
+	## SHA256 hash of ticket used to authorize request/transaction
+	auth_ticket_sha256: string &log &optional;
+	## SHA256 hash of ticket returned by the KDC
+	new_ticket_sha256:  string &log &optional;
 };
 
 event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options)
@@ -17,17 +17,17 @@ event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options)
 	c$krb$request_type = "AP";
 
 	if ( ticket?$ciphertext )
-		c$krb$auth_ticket = md5_hash(ticket$ciphertext);
+		c$krb$auth_ticket_sha256 = sha256_hash(ticket$ciphertext);
 	}
 
 event krb_as_response(c: connection, msg: KDC_Response)
 	{
 	if ( msg$ticket?$ciphertext )
-		c$krb$new_ticket = md5_hash(msg$ticket$ciphertext);
+		c$krb$new_ticket_sha256 = sha256_hash(msg$ticket$ciphertext);
 	}
 
 event krb_tgs_response(c: connection, msg: KDC_Response)
 	{
 	if ( msg$ticket?$ciphertext )
-		c$krb$new_ticket = md5_hash(msg$ticket$ciphertext);
+		c$krb$new_ticket_sha256 = sha256_hash(msg$ticket$ciphertext);
 	}

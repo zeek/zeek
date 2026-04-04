@@ -14,27 +14,27 @@ Summary
 Functions
 #########
 ================================================================ =
-:zeek:id:`Broker::__append`: :zeek:type:`function`               
-:zeek:id:`Broker::__clear`: :zeek:type:`function`                
-:zeek:id:`Broker::__close`: :zeek:type:`function`                
-:zeek:id:`Broker::__create_clone`: :zeek:type:`function`         
-:zeek:id:`Broker::__create_master`: :zeek:type:`function`        
-:zeek:id:`Broker::__decrement`: :zeek:type:`function`            
-:zeek:id:`Broker::__erase`: :zeek:type:`function`                
-:zeek:id:`Broker::__exists`: :zeek:type:`function`               
-:zeek:id:`Broker::__get`: :zeek:type:`function`                  
-:zeek:id:`Broker::__get_index_from_value`: :zeek:type:`function` 
-:zeek:id:`Broker::__increment`: :zeek:type:`function`            
-:zeek:id:`Broker::__insert_into_set`: :zeek:type:`function`      
-:zeek:id:`Broker::__insert_into_table`: :zeek:type:`function`    
-:zeek:id:`Broker::__is_closed`: :zeek:type:`function`            
-:zeek:id:`Broker::__keys`: :zeek:type:`function`                 
-:zeek:id:`Broker::__pop`: :zeek:type:`function`                  
-:zeek:id:`Broker::__push`: :zeek:type:`function`                 
-:zeek:id:`Broker::__put`: :zeek:type:`function`                  
-:zeek:id:`Broker::__put_unique`: :zeek:type:`function`           
-:zeek:id:`Broker::__remove_from`: :zeek:type:`function`          
-:zeek:id:`Broker::__store_name`: :zeek:type:`function`           
+:zeek:id:`Broker::__append`: :zeek:type:`function`
+:zeek:id:`Broker::__clear`: :zeek:type:`function`
+:zeek:id:`Broker::__close`: :zeek:type:`function`
+:zeek:id:`Broker::__create_clone`: :zeek:type:`function`
+:zeek:id:`Broker::__create_master`: :zeek:type:`function`
+:zeek:id:`Broker::__decrement`: :zeek:type:`function`
+:zeek:id:`Broker::__erase`: :zeek:type:`function`
+:zeek:id:`Broker::__exists`: :zeek:type:`function`
+:zeek:id:`Broker::__get`: :zeek:type:`function`
+:zeek:id:`Broker::__get_index_from_value`: :zeek:type:`function`
+:zeek:id:`Broker::__increment`: :zeek:type:`function`
+:zeek:id:`Broker::__insert_into_set`: :zeek:type:`function`
+:zeek:id:`Broker::__insert_into_table`: :zeek:type:`function`
+:zeek:id:`Broker::__is_closed`: :zeek:type:`function`
+:zeek:id:`Broker::__keys`: :zeek:type:`function`
+:zeek:id:`Broker::__pop`: :zeek:type:`function`
+:zeek:id:`Broker::__push`: :zeek:type:`function`
+:zeek:id:`Broker::__put`: :zeek:type:`function`
+:zeek:id:`Broker::__put_unique`: :zeek:type:`function`
+:zeek:id:`Broker::__remove_from`: :zeek:type:`function`
+:zeek:id:`Broker::__store_name`: :zeek:type:`function`
 ================================================================ =
 
 

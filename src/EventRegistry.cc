@@ -212,7 +212,7 @@ bool EventRegistry::RegisterMetadata(EnumValPtr id, TypePtr type) {
     EventMetadataTypeRejector cb;
     type->Traverse(&cb);
 
-    if ( cb.rejected.size() > 0 )
+    if ( ! cb.rejected.empty() )
         return false;
 
     event_metadata_types.insert({id_uint, EventMetadataDescriptor{id_uint, std::move(id), std::move(type)}});

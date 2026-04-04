@@ -159,7 +159,7 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
     if ( ! has_default_case ) {
         out_cc->println("default:");
         out_cc->inc_indent();
-        out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", (int64)%s);", decl_id()->Name(),
+        out_cc->println("throw binpac::ExceptionInvalidCaseIndex(\"%s\", static_cast<int64>(%s));", decl_id()->Name(),
                         env->RValue(index_var_));
         out_cc->println("break;");
         out_cc->dec_indent();
@@ -287,7 +287,7 @@ void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_typ
             // cast into the type used by the switch statement since
             // some unsafe stuff is already checked above.
             if ( ! switch_type->IsBooleanType() )
-                out_cc->println("case ((%s)%d):", switch_type->DataTypeStr().c_str(), index_const);
+                out_cc->println("case (static_cast<%s>(%d)):", switch_type->DataTypeStr().c_str(), index_const);
             else
                 out_cc->println("case %s:", index_const == 0 ? "false" : "true");
         }
@@ -326,7 +326,7 @@ void CaseField::GenPubDecls(Output* out_h, Env* env) {
 
         out_h->println("default:");
         out_h->inc_indent();
-        out_h->println("throw binpac::ExceptionInvalidCase(\"%s\", (int64)%s, \"%s\");", id_->LocName(),
+        out_h->println("throw binpac::ExceptionInvalidCase(\"%s\", static_cast<int64>(%s), \"%s\");", id_->LocName(),
                        env->RValue(index_var_), OrigExprList(index_).c_str());
         out_h->println("break;");
         out_h->dec_indent();

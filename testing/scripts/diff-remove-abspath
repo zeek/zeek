@@ -6,5 +6,5 @@
 # https://github.com/stdlib-js/stdlib/blob/develop/lib/node_modules/%40stdlib/regexp/basename-windows/lib/regexp.js
 sed -E 's#/+#/#g' |
     sed -E 's#[^( ]*testing_btest#<___>testing_btest#' |
-    sed -E 's#/([^	 :/]{1,}/){1,}([^	 :/]{1,})#<...>/\2#g' |
-    sed -E 's#([a-zA-Z]:|[\\/]{2}[^\\/]+[\\/]+[^\\/]+)([\\/])([^	 :\\/]{1,}[\\/]){1,}([^	 :\\/]{1,})#<...>/\4#g'
+    sed -E 's#([a-zA-Z]:)?/([^	 :/]{1,}/){1,}([^	 :/]{1,})#<...>/\3#g' |
+    sed -E 's#([a-zA-Z]:|[\\/]{2}[^\\/]+[\\/]+[^\\/]+)([\\/]{1,2})([^	 :\\/]{1,}[\\/]{1,2}){1,}([^	 :\\/]{1,})#<...>/\4#g'

@@ -14,8 +14,8 @@ RUN apt-get update && apt-get -y install \
     cmake \
     curl \
     flex \
-    g++ \
-    gcc \
+    g++-12 \
+    gcc-12 \
     git \
     jq \
     lcov \
@@ -38,6 +38,9 @@ RUN apt-get update && apt-get -y install \
     zlib1g-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
+
+ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 0 \
+  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 0
 
 RUN pip3 install websockets junit2html
 RUN gem install coveralls-lcov

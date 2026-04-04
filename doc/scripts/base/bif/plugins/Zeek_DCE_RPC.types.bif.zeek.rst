@@ -13,8 +13,8 @@ Summary
 Types
 #####
 ============================================== =
-:zeek:type:`DCE_RPC::IfID`: :zeek:type:`enum`  
-:zeek:type:`DCE_RPC::PType`: :zeek:type:`enum` 
+:zeek:type:`DCE_RPC::IfID`: :zeek:type:`enum`
+:zeek:type:`DCE_RPC::PType`: :zeek:type:`enum`
 ============================================== =
 
 

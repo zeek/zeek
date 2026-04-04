@@ -17,7 +17,7 @@ public:
         // abort();
     }
 
-    void append(std::string m) { msg_ += m; }
+    void append(std::string_view m) { msg_ += m; }
     std::string msg() const { return msg_; }
     const char* c_msg() const { return msg_.c_str(); }
 

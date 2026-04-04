@@ -16,7 +16,7 @@ namespace zeek::threading::formatter {
 // escape the first character so that the output won't be ambiguous. If this
 // function returns true, it has added an escaped version of data to desc.
 static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data, int size) {
-    if ( size != (int)reserved.size() || memcmp(data, reserved.data(), size) != 0 )
+    if ( size != static_cast<int>(reserved.size()) || memcmp(data, reserved.data(), size) != 0 )
         return false;
 
     char hex[4] = {'\\', 'x', '0', '0'};
@@ -257,7 +257,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
             }
 
             string width_str = unescaped.substr(pos + 1);
-            uint8_t width = (uint8_t)strtol(width_str.c_str(), &end, 10);
+            uint8_t width = static_cast<uint8_t>(strtol(width_str.c_str(), &end, 10));
 
             if ( CheckNumberError(start, end) )
                 goto parse_error;
@@ -311,7 +311,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
                 unsigned int pos = 0;
                 bool error = false;
 
-                if ( separators.empty_field.size() > 0 && s.compare(separators.empty_field) == 0 )
+                if ( ! separators.empty_field.empty() && s.compare(separators.empty_field) == 0 )
                     length = 0;
 
                 if ( separators.empty_field.empty() && s.empty() )

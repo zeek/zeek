@@ -49,24 +49,24 @@ Redefinitions
 #############
 ============================================ =============================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`      The signature logging stream identifier.
-                                             
+
                                              * :zeek:enum:`Signatures::LOG`
 :zeek:type:`Notice::Type`: :zeek:type:`enum` Add various signature-related notice types.
-                                             
+
                                              * :zeek:enum:`Signatures::Count_Signature`:
                                                The same signature has triggered multiple times for a host.
-                                             
+
                                              * :zeek:enum:`Signatures::Multiple_Sig_Responders`:
                                                Host has triggered the same signature on multiple hosts as
                                                defined by the :zeek:id:`Signatures::horiz_scan_thresholds`
                                                variable.
-                                             
+
                                              * :zeek:enum:`Signatures::Multiple_Signatures`:
                                                Host has triggered many signatures on the same host.
-                                             
+
                                              * :zeek:enum:`Signatures::Sensitive_Signature`:
                                                Generic notice type for notice-worthy signature matches.
-                                             
+
                                              * :zeek:enum:`Signatures::Signature_Summary`:
                                                Summarize the number of times a host triggered a signature.
 ============================================ =============================================================
@@ -348,7 +348,7 @@ Events
 
    This event can be handled to access/alter data about to be logged
    to the signature logging stream.
-   
+
 
    :param rec: The record of signature data about to be logged.
 

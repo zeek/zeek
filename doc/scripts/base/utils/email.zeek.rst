@@ -27,10 +27,10 @@ Functions
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`set` [:zeek:type:`string`]
 
    Extract mail addresses out of address specifications conforming to RFC5322.
-   
+
 
    :param str: A string potentially containing email addresses.
-   
+
 
    :returns: A set of extracted email addresses.  An empty set is returned
             if no email addresses are discovered.
@@ -41,10 +41,10 @@ Functions
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`string_vec`
 
    Extract mail addresses out of address specifications conforming to RFC5322.
-   
+
 
    :param str: A string potentially containing email addresses.
-   
+
 
    :returns: A vector of extracted email addresses.  An empty vector is returned
             if no email addresses are discovered.
@@ -55,10 +55,10 @@ Functions
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`string`
 
    Extract the first email address from a string.
-   
+
 
    :param str: A string potentially containing email addresses.
-   
+
 
    :returns: An email address or empty string if none found.
 
@@ -72,10 +72,10 @@ Functions
    mail client.  Note that this currently does not account for MIME group
    addresses and won't handle them correctly.  The group name will show up
    as part of an email address.
-   
+
 
    :param str: The argument from a MIME header.
-   
+
 
    :returns: A set of addresses or empty string if none found.
 

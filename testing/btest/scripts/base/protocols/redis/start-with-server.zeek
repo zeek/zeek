@@ -1,7 +1,7 @@
 # @TEST-DOC: Test that Redis does not parse if it starts with the server data
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -r $TRACES/redis/start-with-server.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/start-with-server.pcapng %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/redis

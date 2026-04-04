@@ -15,10 +15,10 @@ Summary
 Redefinitions
 #############
 =========================================== ===============================================================================================================================
-:zeek:type:`SSL::Info`: :zeek:type:`record` 
-                                            
+:zeek:type:`SSL::Info`: :zeek:type:`record`
+
                                             :New Fields: :zeek:type:`SSL::Info`
-                                            
+
                                               requested_client_certificate_authorities: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
                                                 List of client certificate CAs accepted by the server
 =========================================== ===============================================================================================================================

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Under WSL, `uname -r` will have Microsoft in the name
+if uname -r | grep -q "Microsoft"; then
+    exit 0
+
+# Under git bash, uname will be MINGW
+elif uname | grep -q "MINGW"; then
+    exit 0
+fi
+
+exit 1

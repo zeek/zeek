@@ -36,26 +36,26 @@ Types
 Redefinitions
 #############
 ============================================================================ =====================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                                      
-                                                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                              * :zeek:enum:`Traceroute::LOG`
-:zeek:type:`Notice::Type`: :zeek:type:`enum`                                 
-                                                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                                                              * :zeek:enum:`Traceroute::Detected`:
                                                                                Indicates that a host was seen running traceroutes.
-:zeek:id:`Signatures::ignored_ids`: :zeek:type:`pattern` :zeek:attr:`&redef` 
+:zeek:id:`Signatures::ignored_ids`: :zeek:type:`pattern` :zeek:attr:`&redef`
 ============================================================================ =====================================================
 
 Events
 ######
 ========================================================= =
-:zeek:id:`Traceroute::log_traceroute`: :zeek:type:`event` 
+:zeek:id:`Traceroute::log_traceroute`: :zeek:type:`event`
 ========================================================= =
 
 Hooks
 #####
 =============================================================== =
-:zeek:id:`Traceroute::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Traceroute::log_policy`: :zeek:type:`Log::PolicyHook`
 =============================================================== =
 
 

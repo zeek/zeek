@@ -5,12 +5,12 @@
    :Type: :zeek:type:`function` (i: :zeek:type:`int`, j: :zeek:type:`int`) : :zeek:type:`string`
 
    This is a global function declaration.
-   
+
 
    :param i: First param.
 
    :param j: Second param.
-   
+
 
    :returns: A string.
 
@@ -23,12 +23,12 @@
    .. zeek:field:: field_func :zeek:type:`function` (i: :zeek:type:`int`, j: :zeek:type:`int`) : :zeek:type:`string`
 
       This is a record field function.
-      
+
 
       :param i: First param.
 
       :param j: Second param.
-      
+
 
       :returns: A string.
 

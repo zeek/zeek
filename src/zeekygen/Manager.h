@@ -224,9 +224,13 @@ private:
     using comment_buffer_t = std::vector<std::string>;
     using comment_buffer_map_t = std::map<std::string, comment_buffer_t>;
 
+    void DbgAndWarn(const char* msg) const;
+    void WarnMissingScript(const char* type, const zeek::detail::ID* id, const std::string& script) const;
+
     IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script, bool from_redef = false);
 
     bool disabled = false;
+    bool enable_warnings = false;
     comment_buffer_t comment_buffer;         // For whatever next identifier comes in.
     comment_buffer_map_t comment_buffer_map; // For a particular identifier.
     InfoMap<PackageInfo> packages;

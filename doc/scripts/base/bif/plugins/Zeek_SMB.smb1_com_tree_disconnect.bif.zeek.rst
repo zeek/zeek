@@ -29,18 +29,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *tree disconnect*. This is sent by the client to logically disconnect
    client access to a server resource.
-   
+
    For more information, see MS-CIFS:2.2.4.51
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param is_orig: True if the message was from the originator.
-   
+
    .. zeek:see:: smb1_message
 
 

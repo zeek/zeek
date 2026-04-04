@@ -22,7 +22,7 @@ Types
 #####
 ========================================================== ==============================================
 :zeek:type:`FTP::ExpectedDataChannel`: :zeek:type:`record` The expected endpoints of an FTP data channel.
-:zeek:type:`FTP::Info`: :zeek:type:`record`                
+:zeek:type:`FTP::Info`: :zeek:type:`record`
 ========================================================== ==============================================
 
 

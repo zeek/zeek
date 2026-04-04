@@ -5,4 +5,4 @@ Intel::indicator_inserted, 1.2.3.4, Intel::ADDR
 Intel::indicator_inserted, 192.168.0.0/16, Intel::SUBNET
 Intel::indicator_inserted, putty, Intel::SOFTWARE
 Intel::indicator_inserted, putty2, Intel::SOFTWARE
-Intel::new_min_data_store post, [host_data={\x0a\x091.2.3.5,\x0a\x091.2.3.4\x0a}, subnet_data={\x0a\x09192.168.0.0/16\x0a}, string_data={\x0a\x09[putty, Intel::SOFTWARE] ,\x0a\x09[putty2, Intel::SOFTWARE] \x0a}]
+Intel::new_min_data_store post, [host_data={\x0a\x091.2.3.5,\x0a\x091.2.3.4\x0a}, subnet_data={\x0a\x09192.168.0.0/16\x0a}, string_data={\x0a\x09[putty, Intel::SOFTWARE],\x0a\x09[putty2, Intel::SOFTWARE]\x0a}]

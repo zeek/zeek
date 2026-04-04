@@ -14,20 +14,20 @@ Summary
 Redefinitions
 #############
 ============================================== ===============================================================================
-:zeek:type:`DHCP::Info`: :zeek:type:`record`   
-                                               
+:zeek:type:`DHCP::Info`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`DHCP::Info`
-                                               
+
                                                  client_software: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                    Software reported by the client in the `vendor_class` option.
-                                               
+
                                                  server_software: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                    Software reported by the server in the `vendor_class` option.
-:zeek:type:`Software::Type`: :zeek:type:`enum` 
-                                               
+:zeek:type:`Software::Type`: :zeek:type:`enum`
+
                                                * :zeek:enum:`DHCP::CLIENT`:
                                                  Identifier for web browsers in the software framework.
-                                               
+
                                                * :zeek:enum:`DHCP::SERVER`:
                                                  Identifier for web servers in the software framework.
 ============================================== ===============================================================================

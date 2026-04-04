@@ -1,0 +1,241 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="352" class="svgbob">
+  <style>.svgbob line, .svgbob path, .svgbob circle, .svgbob rect, .svgbob polygon {
+  stroke: black;
+  stroke-width: 2;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+}
+
+.svgbob text {
+  white-space: pre;
+  fill: black;
+  font-family: Iosevka Fixed, monospace;
+  font-size: 14px;
+}
+
+.svgbob rect.backdrop {
+  stroke: none;
+  fill: white;
+}
+
+.svgbob .broken {
+  stroke-dasharray: 8;
+}
+
+.svgbob .filled {
+  fill: black;
+}
+
+.svgbob .bg_filled {
+  fill: white;
+  stroke-width: 1;
+}
+
+.svgbob .nofill {
+  fill: white;
+}
+
+.svgbob .end_marked_arrow {
+  marker-end: url(#arrow);
+}
+
+.svgbob .start_marked_arrow {
+  marker-start: url(#arrow);
+}
+
+.svgbob .end_marked_diamond {
+  marker-end: url(#diamond);
+}
+
+.svgbob .start_marked_diamond {
+  marker-start: url(#diamond);
+}
+
+.svgbob .end_marked_circle {
+  marker-end: url(#circle);
+}
+
+.svgbob .start_marked_circle {
+  marker-start: url(#circle);
+}
+
+.svgbob .end_marked_open_circle {
+  marker-end: url(#open_circle);
+}
+
+.svgbob .start_marked_open_circle {
+  marker-start: url(#open_circle);
+}
+
+.svgbob .end_marked_big_open_circle {
+  marker-end: url(#big_open_circle);
+}
+
+.svgbob .start_marked_big_open_circle {
+  marker-start: url(#big_open_circle);
+}
+
+</style>
+  <defs>
+    <marker id="arrow" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,0 0,4 4,2 0,0"></polygon>
+    </marker>
+    <marker id="diamond" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,2 2,0 4,2 2,4 0,2"></polygon>
+    </marker>
+    <marker id="circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="filled"></circle>
+    </marker>
+    <marker id="open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="bg_filled"></circle>
+    </marker>
+    <marker id="big_open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="3" class="bg_filled"></circle>
+    </marker>
+  </defs>
+  <rect class="backdrop" x="0" y="0" width="960" height="352"></rect>
+  <rect x="4" y="8" width="784" height="32" class="solid nofill" rx="0"></rect>
+  <text x="218" y="28" >topic</text>
+  <line x1="256" y1="24" x2="264" y2="24" class="solid"></line>
+  <text x="266" y="28" >based</text>
+  <text x="314" y="28" >publish</text>
+  <line x1="376" y1="16" x2="368" y2="32" class="solid"></line>
+  <text x="378" y="28" >subscribe</text>
+  <text x="458" y="28" >layer</text>
+  <rect x="4" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="18" y="124" >worker</text>
+  <line x1="64" y1="120" x2="72" y2="120" class="solid"></line>
+  <text x="74" y="124" >1</text>
+  <rect x="108" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="122" y="124" >worker</text>
+  <line x1="168" y1="120" x2="176" y2="120" class="solid"></line>
+  <text x="178" y="124" >2</text>
+  <rect x="212" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="226" y="124" >worker</text>
+  <line x1="272" y1="120" x2="280" y2="120" class="solid"></line>
+  <text x="282" y="124" >3</text>
+  <rect x="316" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="330" y="124" >worker</text>
+  <line x1="376" y1="120" x2="384" y2="120" class="solid"></line>
+  <text x="386" y="124" >4</text>
+  <rect x="420" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="434" y="124" >proxy</text>
+  <line x1="472" y1="120" x2="480" y2="120" class="solid"></line>
+  <text x="482" y="124" >1</text>
+  <rect x="524" y="104" width="88" height="32" class="solid nofill" rx="0"></rect>
+  <text x="538" y="124" >logger</text>
+  <line x1="584" y1="120" x2="592" y2="120" class="solid"></line>
+  <text x="594" y="124" >1</text>
+  <polygon points="48,60 52,48 56,60" class="filled"></polygon>
+  <line x1="52" y1="60" x2="52" y2="84" class="solid"></line>
+  <polygon points="48,84 56,84 52,96" class="filled"></polygon>
+  <polygon points="152,60 156,48 160,60" class="filled"></polygon>
+  <line x1="156" y1="60" x2="156" y2="84" class="solid"></line>
+  <polygon points="152,84 160,84 156,96" class="filled"></polygon>
+  <polygon points="256,60 260,48 264,60" class="filled"></polygon>
+  <line x1="260" y1="60" x2="260" y2="84" class="solid"></line>
+  <polygon points="256,84 264,84 260,96" class="filled"></polygon>
+  <polygon points="360,60 364,48 368,60" class="filled"></polygon>
+  <line x1="364" y1="60" x2="364" y2="84" class="solid"></line>
+  <polygon points="360,84 368,84 364,96" class="filled"></polygon>
+  <polygon points="464,60 468,48 472,60" class="filled"></polygon>
+  <line x1="468" y1="60" x2="468" y2="84" class="solid"></line>
+  <polygon points="464,84 472,84 468,96" class="filled"></polygon>
+  <polygon points="568,60 572,48 576,60" class="filled"></polygon>
+  <line x1="572" y1="60" x2="572" y2="84" class="solid"></line>
+  <polygon points="568,84 576,84 572,96" class="filled"></polygon>
+  <polygon points="672,60 676,48 680,60" class="filled"></polygon>
+  <line x1="676" y1="60" x2="676" y2="84" class="solid"></line>
+  <polygon points="736,60 740,48 744,60" class="filled"></polygon>
+  <line x1="740" y1="60" x2="740" y2="84" class="solid"></line>
+  <polygon points="768,60 772,48 776,60" class="filled"></polygon>
+  <line x1="772" y1="60" x2="772" y2="84" class="solid"></line>
+  <polygon points="672,84 680,84 676,96" class="filled"></polygon>
+  <polygon points="736,84 744,84 740,96" class="filled"></polygon>
+  <polygon points="768,84 776,84 772,96" class="filled"></polygon>
+  <text x="650" y="124" >manager</text>
+  <text x="730" y="124" >ws</text>
+  <line x1="744" y1="120" x2="752" y2="120" class="solid"></line>
+  <text x="754" y="124" >api</text>
+  <polygon points="736,156 740,144 744,156" class="filled"></polygon>
+  <polygon points="768,156 772,144 776,156" class="filled"></polygon>
+  <text x="786" y="172" >ws:</text>
+  <line x1="816" y1="160" x2="808" y2="176" class="solid"></line>
+  <line x1="824" y1="160" x2="816" y2="176" class="solid"></line>
+  <text x="826" y="172" >127.0.0.1:27759</text>
+  <polygon points="824,196 832,200 824,204" class="filled"></polygon>
+  <text x="850" y="204" >ws</text>
+  <line x1="864" y1="200" x2="872" y2="200" class="solid"></line>
+  <text x="874" y="204" >client</text>
+  <line x1="920" y1="200" x2="928" y2="200" class="solid"></line>
+  <text x="930" y="204" >1</text>
+  <polygon points="824,244 832,248 824,252" class="filled"></polygon>
+  <text x="850" y="252" >ws</text>
+  <line x1="864" y1="248" x2="872" y2="248" class="solid"></line>
+  <text x="874" y="252" >client</text>
+  <line x1="920" y1="248" x2="928" y2="248" class="solid"></line>
+  <text x="930" y="252" >2</text>
+  <polygon points="48,156 52,144 56,156" class="filled"></polygon>
+  <polygon points="152,156 156,144 160,156" class="filled"></polygon>
+  <polygon points="256,156 260,144 264,156" class="filled"></polygon>
+  <polygon points="360,156 364,144 368,156" class="filled"></polygon>
+  <text x="194" y="316" >NIC</text>
+  <text x="410" y="316" >packet</text>
+  <text x="466" y="316" >acquisition</text>
+  <text x="562" y="316" >and</text>
+  <text x="594" y="316" >flow</text>
+  <text x="634" y="316" >balancing</text>
+  <text x="554" y="252" >process</text>
+  <text x="618" y="252" >supervision</text>
+  <g>
+    <line x1="628" y1="104" x2="788" y2="104" class="solid"></line>
+    <line x1="628" y1="104" x2="628" y2="136" class="solid"></line>
+    <line x1="716" y1="104" x2="716" y2="136" class="solid"></line>
+    <line x1="788" y1="104" x2="788" y2="136" class="solid"></line>
+    <line x1="628" y1="136" x2="788" y2="136" class="solid"></line>
+  </g>
+  <g>
+    <line x1="740" y1="156" x2="740" y2="248" class="solid"></line>
+    <line x1="740" y1="248" x2="824" y2="248" class="solid"></line>
+  </g>
+  <g>
+    <line x1="772" y1="156" x2="772" y2="200" class="solid"></line>
+    <line x1="772" y1="200" x2="824" y2="200" class="solid"></line>
+  </g>
+  <g>
+    <line x1="836" y1="184" x2="948" y2="184" class="solid"></line>
+    <line x1="836" y1="184" x2="836" y2="264" class="solid"></line>
+    <line x1="948" y1="184" x2="948" y2="264" class="solid"></line>
+    <line x1="836" y1="216" x2="948" y2="216" class="solid"></line>
+    <line x1="836" y1="232" x2="948" y2="232" class="solid"></line>
+    <line x1="836" y1="264" x2="948" y2="264" class="solid"></line>
+  </g>
+  <g>
+    <line x1="52" y1="156" x2="52" y2="184" class="solid"></line>
+    <line x1="156" y1="156" x2="156" y2="184" class="solid"></line>
+    <line x1="260" y1="156" x2="260" y2="184" class="solid"></line>
+    <line x1="364" y1="156" x2="364" y2="184" class="solid"></line>
+    <line x1="52" y1="184" x2="364" y2="184" class="solid"></line>
+    <line x1="204" y1="184" x2="204" y2="288" class="solid"></line>
+  </g>
+  <g>
+    <line x1="4" y1="296" x2="716" y2="296" class="solid"></line>
+    <line x1="4" y1="296" x2="4" y2="328" class="solid"></line>
+    <line x1="148" y1="296" x2="148" y2="328" class="solid"></line>
+    <line x1="260" y1="296" x2="260" y2="328" class="solid"></line>
+    <line x1="716" y1="296" x2="716" y2="328" class="solid"></line>
+    <line x1="4" y1="328" x2="716" y2="328" class="solid"></line>
+  </g>
+  <g>
+    <line x1="4" y1="232" x2="192" y2="232" class="solid"></line>
+    <line x1="4" y1="232" x2="4" y2="264" class="solid"></line>
+    <line x1="4" y1="264" x2="192" y2="264" class="solid"></line>
+  </g>
+  <g>
+    <line x1="216" y1="232" x2="716" y2="232" class="solid"></line>
+    <line x1="716" y1="232" x2="716" y2="264" class="solid"></line>
+    <line x1="216" y1="264" x2="716" y2="264" class="solid"></line>
+  </g>
+</svg>

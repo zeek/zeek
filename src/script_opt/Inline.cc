@@ -135,7 +135,7 @@ void Inliner::Analyze() {
                 }
             }
 
-            if ( addls.size() > 0 ) {
+            if ( ! addls.empty() ) {
                 did_addition = true;
 
                 for ( auto& a : addls )
@@ -200,7 +200,7 @@ void Inliner::CoalesceEventHandlers() {
 
         const auto& body = f.Body();
 
-        if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 ) {
+        if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 && body->Tag() != STMT_CPP ) {
             ++event_handlers[func];
             ASSERT(! body_to_info.contains(body.get()));
             body_to_info[body.get()] = i;
@@ -284,7 +284,11 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
         merged_body->Stmts().emplace_back(std::move(ie_s));
     }
 
-    auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);
+    // The groups are empty here because CoalescedScriptFunc handles the
+    // case of groups turning elements on/off.
+    Func::Body new_body = {.stmts = merged_body};
+
+    auto inlined_func = make_intrusive<CoalescedScriptFunc>(new_body, new_scope, func);
     inlined_func->SetScope(new_scope);
 
     // Replace the function for that EventHandler with the delegating one.
@@ -379,6 +383,10 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
 
     // We're going to inline the body, unless it's too large.
     auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
+
+    if ( body->Tag() == STMT_CPP )
+        return c;
+
     auto scope = func_vf->GetScope();
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
 

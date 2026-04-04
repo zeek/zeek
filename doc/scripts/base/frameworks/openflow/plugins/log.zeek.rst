@@ -21,20 +21,20 @@ Types
 Redefinitions
 #############
 =============================================================================== =============================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                                         
-                                                                                
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                                 * :zeek:enum:`OpenFlow::LOG`
-:zeek:type:`OpenFlow::ControllerState`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                                                
+:zeek:type:`OpenFlow::ControllerState`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                                                 :New Fields: :zeek:type:`OpenFlow::ControllerState`
-                                                                                
+
                                                                                   log_dpid: :zeek:type:`count` :zeek:attr:`&optional`
                                                                                     OpenFlow switch datapath id.
-                                                                                
+
                                                                                   log_success_event: :zeek:type:`bool` :zeek:attr:`&optional`
                                                                                     Raise or do not raise success event.
-:zeek:type:`OpenFlow::Plugin`: :zeek:type:`enum`                                
-                                                                                
+:zeek:type:`OpenFlow::Plugin`: :zeek:type:`enum`
+
                                                                                 * :zeek:enum:`OpenFlow::OFLOG`
 =============================================================================== =============================================================
 
@@ -48,7 +48,7 @@ Events
 Hooks
 #####
 ============================================================= =
-:zeek:id:`OpenFlow::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`OpenFlow::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================= =
 
 Functions
@@ -116,13 +116,13 @@ Functions
    :Type: :zeek:type:`function` (dpid: :zeek:type:`count`, success_event: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`OpenFlow::Controller`
 
    Log controller constructor.
-   
+
 
    :param dpid: OpenFlow switch datapath id.
-   
+
 
    :param success_event: If true, flow_mod_success is raised for each logged line.
-   
+
 
    :returns: OpenFlow::Controller record.
 

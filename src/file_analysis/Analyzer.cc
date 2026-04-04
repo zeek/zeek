@@ -40,6 +40,7 @@ const char* Analyzer::GetAnalyzerName() const {
     return file_mgr->GetComponentName(tag).c_str();
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     if ( analyzer_confirmed )
         return;
@@ -59,6 +60,7 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag) {
     event_mgr.Enqueue(analyzer_confirmation_info, tval, info);
 }
 
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag) {
     ++analyzer_violations;
 

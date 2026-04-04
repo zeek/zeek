@@ -230,7 +230,7 @@ function edit%(arg_s: string, arg_edit_char: string%): string
 
 	new_s[ind] = '\0';
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(new_s), ind));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(new_s), ind));
 	%}
 
 ## Get a substring from a string, given a starting position and length.
@@ -307,7 +307,7 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 			n=0;
 			}
 
-		rval->Assign(num++, zeek::make_intrusive<zeek::StringVal>(offset, (const char*) s));
+		rval->Assign(num++, zeek::make_intrusive<zeek::StringVal>(offset, reinterpret_cast<const char*>(s)));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -315,7 +315,7 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 
 		if ( incl_sep )
 			{ // including the part that matches the pattern
-			rval->Assign(num++, zeek::make_intrusive<zeek::StringVal>(end_of_match, (const char*) s+offset));
+			rval->Assign(num++, zeek::make_intrusive<zeek::StringVal>(end_of_match, reinterpret_cast<const char*>(s+offset)));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -363,7 +363,7 @@ zeek::Val* do_split(zeek::StringVal* str_val, zeek::RE_Matcher* re, int incl_sep
 			}
 
 		auto ind = zeek::val_mgr->Count(++num);
-		a->Assign(std::move(ind), zeek::make_intrusive<zeek::StringVal>(offset, (const char*) s));
+		a->Assign(std::move(ind), zeek::make_intrusive<zeek::StringVal>(offset, reinterpret_cast<const char*>(s)));
 
 		// No more separators will be needed if this is the end of string.
 		if ( n <= 0 )
@@ -372,7 +372,7 @@ zeek::Val* do_split(zeek::StringVal* str_val, zeek::RE_Matcher* re, int incl_sep
 		if ( incl_sep )
 			{ // including the part that matches the pattern
 			ind = zeek::val_mgr->Count(++num);
-			a->Assign(std::move(ind), zeek::make_intrusive<zeek::StringVal>(end_of_match, (const char*) s+offset));
+			a->Assign(std::move(ind), zeek::make_intrusive<zeek::StringVal>(end_of_match, reinterpret_cast<const char*>(s+offset)));
 			}
 
 		if ( max_num_sep && num_sep >= max_num_sep )
@@ -569,12 +569,13 @@ function subst_string%(s: string, from: string, to: string%): string
 
 		if ( j > 0 )
 			{
-			dc.length = j; dc.data = (const char*) big;
+			dc.length = j;
+			dc.data = reinterpret_cast<const char*>(big);
 			vs.push_back(dc);
 			}
 
 		dc.length = to->Len();
-		dc.data = (const char*) (to->Bytes());
+		dc.data = reinterpret_cast<const char*>(to->Bytes());
 		vs.push_back(dc);
 
 		j += little_len;
@@ -584,7 +585,8 @@ function subst_string%(s: string, from: string, to: string%): string
 
 	if ( big_len > 0 )
 		{
-		dc.length = big_len; dc.data = (const char*) big;
+		dc.length = big_len;
+		dc.data = reinterpret_cast<const char*>(big);
 		vs.push_back(dc);
 		}
 
@@ -666,7 +668,7 @@ function to_upper%(str: string%): string
 function clean%(str: string%): string
 	%{
 	char* s = str->AsString()->Render();
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(s), strlen(s)));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(s), strlen(s)));
 	%}
 
 ## Replaces non-printable characters in a string with escaped sequences. The
@@ -684,7 +686,7 @@ function clean%(str: string%): string
 function to_string_literal%(str: string%): string
 	%{
 	char* s = str->AsString()->Render(zeek::String::ZEEK_STRING_LITERAL);
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(s), strlen(s)));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(s), strlen(s)));
 	%}
 
 ## Determines whether a given string contains only ASCII characters.
@@ -744,7 +746,7 @@ function string_to_ascii_hex%(s: string%): string
 	for ( size_t i = 0; i < length; ++i )
 		snprintf(&x[i*2], 3, "%02x", sp[i]);
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, (u_char*) x, s->Len() * 2));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<u_char*>(x), s->Len() * 2));
 	%}
 
 ## Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
@@ -933,7 +935,7 @@ function string_fill%(len: int, source: string%): string
 
 	dst[len - 1] = 0;
 
-	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, byte_vec(dst), len));
+	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(true, reinterpret_cast<byte_vec>(dst), len));
 	%}
 
 ## Takes a string and escapes characters that would allow execution of
@@ -1032,7 +1034,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
 			{
-			auto idx = zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+			auto idx = zeek::make_intrusive<zeek::StringVal>(n, reinterpret_cast<const char*>(t));
 			a->Assign(std::move(idx), nullptr);
 			t += n - 1;
 			}
@@ -1072,7 +1074,7 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
 			{
-			auto idx = zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+			auto idx = zeek::make_intrusive<zeek::StringVal>(n, reinterpret_cast<const char*>(t));
 			a->Assign(a->Size(), std::move(idx));
 			t += n - 1;
 			}
@@ -1089,20 +1091,26 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 ## str: The string to inspect.
 ##
 ## re: The pattern to look for in *str*.
+## 
+## offset: The character offset to start the search from. The search will be confined to the substring s[offset:].
 ##
 ## Returns: The last string in *str* that matches *re*, or the empty string.
 ##
 ## .. zeek:see: find_all find_all_ordered strstr find_first
-function find_last%(str: string, re: pattern%) : string
+function find_last%(str: string, re: pattern, offset: count &default=0%) : string
 	%{
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	for ( const u_char* t = e - 1; t >= s; --t )
+	if ( offset >= static_cast<zeek_uint_t>(str->Len()) )
+		return zeek::val_mgr->EmptyString();
+			
+	// Scans backwards from end of string, but stops at the offset.
+	for ( const u_char* t = e - 1; t >=  s + offset; --t )
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
-			return zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+			return zeek::make_intrusive<zeek::StringVal>(n, reinterpret_cast<const char*>(t));
 		}
 
 	return zeek::val_mgr->EmptyString();
@@ -1114,19 +1122,25 @@ function find_last%(str: string, re: pattern%) : string
 ##
 ## re: The pattern to look for in *str*.
 ##
+## offset: The character offset to start the search from.
+##
 ## Returns: The first string in *str* that matches *re*, or the empty string.
 ##
 ## .. zeek:see:: find_all find_all_ordered find_last strstr
-function find_first%(str: string, re: pattern%) : string
+function find_first%(str: string, re: pattern, offset: count &default=0%) : string
 	%{
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
-	for ( const u_char* t = s; t < e; ++t )
+	if ( offset >= static_cast<zeek_uint_t>(str->Len()) )
+		return zeek::val_mgr->EmptyString();
+
+	// Starts scanning from the offset
+	for ( const u_char* t = s + offset; t < e; ++t )
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )
-			return zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+			return zeek::make_intrusive<zeek::StringVal>(n, reinterpret_cast<const char*>(t));
 		}
 
 	return zeek::val_mgr->EmptyString();
@@ -1194,10 +1208,9 @@ function hexdump%(data_str: string%) : string
 			}
 
 		char hex_byte[3];
-		snprintf(hex_byte, sizeof(hex_byte),
-				"%.2x", (u_char) *data_ptr);
+		snprintf(hex_byte, sizeof(hex_byte), "%.2x", *data_ptr);
 
-		int val = (u_char) *data_ptr;
+		int val = *data_ptr;
 
 		u_char ascii_byte = val;
 
@@ -1236,7 +1249,7 @@ function hexdump%(data_str: string%) : string
 		*ascii_ptr++ = '\n';
 	*ascii_ptr = 0;
 
-	auto result = zeek::make_intrusive<zeek::StringVal>((const char*) hex_data);
+	auto result = zeek::make_intrusive<zeek::StringVal>(reinterpret_cast<const char*>(hex_data));
 	delete [] hex_data;
 
 	return std::move(result);
@@ -1252,7 +1265,7 @@ function reverse%(str: string%) : string
 	%{
 	string s = str->ToStdString();
 	std::ranges::reverse(s);
-	return zeek::make_intrusive<zeek::StringVal>(s.length(), (const char*)s.c_str());
+	return zeek::make_intrusive<zeek::StringVal>(s.length(), s.c_str());
 	%}
 
 ## Returns the number of times a substring occurs within a string

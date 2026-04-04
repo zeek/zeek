@@ -281,7 +281,7 @@ public:
 
     // True if (a) the expression has at least one operand, and (b) all
     // of its operands are constant.
-    bool HasConstantOps() const {
+    virtual bool HasConstantOps() const {
         return GetOp1() && GetOp1()->IsConst() &&
                (! GetOp2() || (GetOp2()->IsConst() && (! GetOp3() || GetOp3()->IsConst())));
     }
@@ -1551,7 +1551,7 @@ public:
     bool IsPure() const override;
 
     // True if the entire list represents constant values.
-    bool HasConstantOps() const;
+    bool HasConstantOps() const override;
 
     ValPtr Eval(Frame* f) const override;
 
@@ -1711,6 +1711,11 @@ extern bool check_and_promote_exprs_to_type(ListExpr* elements, TypePtr type);
 // Returns a ListExpr simplified down to a list a values, or nil
 // if they couldn't all be reduced.
 extern std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l);
+
+// Evaluates an expression in isolation (without a frame context).
+// Used for compile-time constant evaluation and attribute processing.
+extern ValPtr eval_in_isolation(const Expr* e);
+inline ValPtr eval_in_isolation(const ExprPtr& e) { return eval_in_isolation(e.get()); }
 
 // Returns true if e1 is "greater" than e2 - here "greater" is just
 // a heuristic, used with commutative operators to put them into

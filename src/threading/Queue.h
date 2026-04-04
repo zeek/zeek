@@ -186,9 +186,7 @@ template<typename T>
 inline bool Queue<T>::Ready() {
     auto lock = acquire_lock(mutex[read_ptr]);
 
-    bool ret = (messages[read_ptr].size());
-
-    return ret;
+    return ! messages[read_ptr].empty();
 }
 
 template<typename T>

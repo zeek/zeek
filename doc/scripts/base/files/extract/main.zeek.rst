@@ -28,29 +28,29 @@ Redefinable Options
 Redefinitions
 #############
 ========================================================================= ==========================================================================================================================================================
-:zeek:type:`Files::AnalyzerArgs`: :zeek:type:`record` :zeek:attr:`&redef` 
-                                                                          
+:zeek:type:`Files::AnalyzerArgs`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                                           :New Fields: :zeek:type:`Files::AnalyzerArgs`
-                                                                          
+
                                                                             extract_filename: :zeek:type:`string` :zeek:attr:`&optional`
                                                                               The local filename to which to write an extracted file.
-                                                                          
+
                                                                             extract_limit: :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`FileExtract::default_limit` :zeek:attr:`&optional`
                                                                               The maximum allowed file size in bytes of *extract_filename*.
-                                                                          
+
                                                                             extract_limit_includes_missing: :zeek:type:`bool` :zeek:attr:`&default` = :zeek:see:`FileExtract::default_limit_includes_missing` :zeek:attr:`&optional`
                                                                               By default, missing bytes in files count towards the extract file size.
-:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef`         
-                                                                          
+:zeek:type:`Files::Info`: :zeek:type:`record` :zeek:attr:`&redef`
+
                                                                           :New Fields: :zeek:type:`Files::Info`
-                                                                          
+
                                                                             extracted: :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`
                                                                               Local filename of extracted file.
-                                                                          
+
                                                                             extracted_cutoff: :zeek:type:`bool` :zeek:attr:`&optional` :zeek:attr:`&log`
                                                                               Set to true if the file being extracted was cut off
                                                                               so the whole file was not logged.
-                                                                          
+
                                                                             extracted_size: :zeek:type:`count` :zeek:attr:`&optional` :zeek:attr:`&log`
                                                                               The number of bytes extracted to disk.
 ========================================================================= ==========================================================================================================================================================
@@ -110,16 +110,16 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, args: :zeek:type:`Files::AnalyzerArgs`, n: :zeek:type:`count`) : :zeek:type:`bool`
 
    Sets the maximum allowed extracted file size.
-   
+
 
    :param f: A file that's being extracted.
-   
+
 
    :param args: Arguments that identify a file extraction analyzer.
-   
+
 
    :param n: Allowed number of bytes to be extracted.
-   
+
 
    :returns: false if a file extraction analyzer wasn't active for
             the file, else true.

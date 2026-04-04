@@ -35,8 +35,12 @@ PackageInfo::PackageInfo(string arg_name) : Info(), pkg_name(std::move(arg_name)
 string PackageInfo::DoReStructuredText(bool roles_only) const {
     string rval = util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(), pkg_name.c_str());
 
-    for ( const auto& r : readme )
-        rval += "   " + r + "\n";
+    for ( const auto& r : readme ) {
+        if ( is_all_whitespace(r) )
+            rval += "\n";
+        else
+            rval += "   " + r + "\n";
+    }
 
     return rval;
 }

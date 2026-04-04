@@ -158,7 +158,19 @@ void Manager::SearchDynamicPlugins(const std::string& dir) {
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
                                             std::vector<std::string>* errors) {
 // Loading dynamic plugins is not currently supported on Windows platform.
+// Still check for static built-in plugins, though.
 #ifdef _MSC_VER
+    if ( ok_if_not_found )
+        return true;
+
+    plugin_list* all_plugins_win = Manager::ActivePluginsInternal();
+
+    for ( const auto& p : *all_plugins_win ) {
+        if ( p->Name() == name )
+            return true;
+    }
+
+    errors->emplace_back(util::fmt("plugin %s is not available", name.c_str()));
     return false;
 #else
     errors->clear(); // caller should pass it in empty, but just to be sure
@@ -547,7 +559,7 @@ Plugin* Manager::LookupPluginByPath(std::string_view _path) {
     if ( util::is_file(path) )
         path = util::SafeDirname(path).result;
 
-    while ( path.size() ) {
+    while ( ! path.empty() ) {
         auto i = plugins_by_path.find(path);
 
         if ( i != plugins_by_path.end() )

@@ -1,6 +1,6 @@
 # @TEST-DOC: Example using lookup_addr()
 
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 # @TEST-EXEC: zeek-cut -m ts uid id.orig_h orig_name id.resp_h resp_name < conn.log > conn.cut

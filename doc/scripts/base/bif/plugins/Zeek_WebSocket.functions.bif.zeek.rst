@@ -27,22 +27,22 @@ Functions
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, aid: :zeek:type:`count`, config: :zeek:type:`WebSocket::AnalyzerConfig`) : :zeek:type:`bool`
 
    Configure the WebSocket analyzer.
-   
+
    Called during :zeek:see:`websocket_established` to configure
    the WebSocket analyzer given the selected protocol and extension
    as chosen by the server.
-   
+
 
    :param c: The WebSocket connection.
 
    :param aid: The identifier for the WebSocket analyzer as provided to :zeek:see:`websocket_established`.
-   
+
 
    :param server_protocol: The protocol as found in the server's Sec-WebSocket-Protocol HTTP header, or empty.
-   
+
 
    :param server_extensions: The extension as selected by the server via the Sec-WebSocket-Extensions HTTP Header.
-   
+
    .. zeek:see:: websocket_established
 
 

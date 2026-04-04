@@ -1,6 +1,6 @@
 # @TEST-DOC: Test file-hash event with the different hashing algorithms.#
 
-# @TEST-EXEC: zeek -b -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff .stdout
 
 @load base/protocols/http

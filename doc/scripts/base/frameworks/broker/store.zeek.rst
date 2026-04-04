@@ -332,21 +332,21 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, s: :zeek:type:`string`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Extends an existing string with another.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param s: the string to append.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -356,7 +356,7 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store) : :zeek:type:`bool`
 
    Deletes all of a store's content, it will be empty afterwards.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -366,10 +366,10 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store) : :zeek:type:`bool`
 
    Close a data store.
-   
+
 
    :param h: a data store handle.
-   
+
 
    :returns: true if store was valid and is now closed.  The handle can no
             longer be used for data store operations.
@@ -386,21 +386,21 @@ Functions
    automatically broadcasts the changes out to clones.  But queries may be
    made directly against the local cloned copy, which may be resolved
    quicker than reaching out to a remote master store.
-   
+
 
    :param name: the unique name which identifies the master data store.
-   
+
 
    :param resync_interval: the frequency at which a clone that is disconnected from
                     its master attempts to reconnect with it.
-   
+
 
    :param stale_interval: the duration after which a clone that is disconnected
                    from its master will begin to treat its local cache as
                    stale.  In this state, queries to the clone will timeout.
                    A negative value indicates that the local cache is never
                    treated as stale.
-   
+
 
    :param mutation_buffer_interval: the amount of time to buffer data store update
                              messages once a clone detects its master is
@@ -411,7 +411,7 @@ Functions
                              messages are fire-and-forget and not explicitly
                              acknowledged by the master.  A negative/zero
                              value indicates that commands never buffer.
-   
+
 
    :returns: a handle to the data store for which a subsequent call to
             :zeek:see:`Broker::is_closed` will return true if the store
@@ -423,16 +423,16 @@ Functions
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, b: :zeek:type:`Broker::BackendType` :zeek:attr:`&default` = ``Broker::MEMORY`` :zeek:attr:`&optional`, options: :zeek:type:`Broker::BackendOptions` :zeek:attr:`&default` = *[sqlite=[path=, synchronous=<uninitialized>, journal_mode=<uninitialized>, failure_mode=Broker::SQLITE_FAILURE_MODE_FAIL, integrity_check=F]]* :zeek:attr:`&optional`) : :zeek:type:`opaque` of Broker::Store
 
    Create a master data store which contains key-value pairs.
-   
+
 
    :param name: a unique name for the data store.
-   
+
 
    :param b: the storage backend to use.
-   
+
 
    :param options: tunes how some storage backends operate.
-   
+
 
    :returns: a handle to the data store for which a subsequent call to
             :zeek:see:`Broker::is_closed` will return true if the store
@@ -444,14 +444,14 @@ Functions
    :Type: :zeek:type:`function` (d: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
    Convert any Zeek value to communication data.
-   
+
    .. note:: Normally you won't need to use this function as data
       conversion happens implicitly when passing Zeek values into Broker
       functions.
-   
+
 
    :param d: any Zeek value to attempt to convert (not all types are supported).
-   
+
 
    :returns: the converted communication data.  If the supplied Zeek data
             type does not support conversion to communication data, the
@@ -463,10 +463,10 @@ Functions
    :Type: :zeek:type:`function` (d: :zeek:type:`Broker::Data`) : :zeek:type:`Broker::DataType`
 
    Retrieve the type of data associated with communication data.
-   
+
 
    :param d: the communication data.
-   
+
 
    :returns: The data type associated with the communication data.
             Note that Broker represents records in the same way as
@@ -479,21 +479,21 @@ Functions
 
    Decrements an existing value by a given amount. This is supported for all
    numerical types, as well as for timestamps.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param amount: the amount to decrement the value by.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the current
       expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -503,13 +503,13 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`) : :zeek:type:`bool`
 
    Remove a key-value pair from the store.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key to remove.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -519,13 +519,13 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`) : :zeek:type:`Broker::QueryResult`
 
    Check if a key exists in a data store.
-   
+
 
    :param h: the handle of the store to query.
-   
+
 
    :param k: the key to lookup.
-   
+
 
    :returns: True if the key exists in the data store.
 
@@ -535,13 +535,13 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`) : :zeek:type:`Broker::QueryResult`
 
    Lookup the value associated with a key in a data store.
-   
+
 
    :param h: the handle of the store to query.
-   
+
 
    :param k: the key to lookup.
-   
+
 
    :returns: the result of the query.
 
@@ -552,16 +552,16 @@ Functions
 
    Retrieve a specific index from an existing container value. This
    is supported for values of types set, table, and vector.
-   
+
 
    :param h: the handle of the store to query.
-   
+
 
    :param k: the key of the container value to lookup.
-   
+
 
    :param i: the index to retrieve from the container value.
-   
+
 
    :returns: For tables and vectors, the value at the given index, or
             failure if the index doesn't exist. For sets, a boolean
@@ -575,21 +575,21 @@ Functions
 
    Increments an existing value by a given amount. This is supported for all
    numerical types, as well as for timestamps.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param a: the amount to increment the value by.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -599,21 +599,21 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, i: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Inserts an element into an existing set.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param i: the index to insert into the set.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -623,24 +623,24 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, i: :zeek:type:`any`, v: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Inserts an element into an existing table.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param i: the index to insert into the table
-   
+
 
    :param v: the value to associate with the index.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -650,7 +650,7 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store) : :zeek:type:`bool`
 
    Check if a store is closed or not.
-   
+
 
    :returns: true if the store is closed.
 
@@ -663,7 +663,7 @@ Functions
    in time that may diverge from reality soon afterwards.   When accessing
    any of the element, it may no longer actually be there. The function is
    also expensive for large stores, as it copies the complete set.
-   
+
 
    :returns: a set with the keys.  If you expect the keys to be of
             non-uniform type, consider using
@@ -675,18 +675,18 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Removes the last element of an existing vector.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -696,21 +696,21 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, v: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Appends an element to an existing vector.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param b: the value to append to the vector.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -720,19 +720,19 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, v: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Insert a key-value pair into the store.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key to insert.
-   
+
 
    :param v: the value to insert.
-   
+
 
    :param e: the expiration interval of the key-value pair.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -743,19 +743,19 @@ Functions
 
    Insert a key-value pair into the store, but only if the key does not
    already exist.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key to insert.
-   
+
 
    :param v: the value to insert.
-   
+
 
    :param e: the expiration interval of the key-value pair.
-   
+
 
    :returns: the result of the query which is a boolean data value that is
             true if the insertion happened, or false if it was rejected
@@ -767,16 +767,16 @@ Functions
    :Type: :zeek:type:`function` (r: :zeek:type:`Broker::Data`, idx: :zeek:type:`count`, d: :zeek:type:`any`) : :zeek:type:`bool`
 
    Replace a field in a record at a particular position.
-   
+
 
    :param r: the record to modify.
-   
+
 
    :param d: the new field value to assign.
-   
+
 
    :param idx: the index to replace.
-   
+
 
    :returns: false if the index was larger than any valid index, else true.
 
@@ -786,10 +786,10 @@ Functions
    :Type: :zeek:type:`function` (sz: :zeek:type:`count`) : :zeek:type:`Broker::Data`
 
    Create communication data of type "record".
-   
+
 
    :param sz: the number of fields in the record.
-   
+
 
    :returns: record data, with all fields uninitialized.
 
@@ -800,10 +800,10 @@ Functions
 
    Create an iterator for a record.  Note that this makes a copy of the record
    internally to ensure the iterator is always valid.
-   
+
 
    :param r: the record to iterate over.
-   
+
 
    :returns: an iterator.
 
@@ -813,10 +813,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::RecordIterator) : :zeek:type:`bool`
 
    Check if there are no more elements to iterate over.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if there are no more elements to iterator over, i.e.
             the iterator is one-past-the-final-element.
@@ -827,10 +827,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::RecordIterator) : :zeek:type:`bool`
 
    Advance an iterator.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if the iterator, after advancing, still references an element
             in the collection.  False if the iterator, after advancing, is
@@ -842,10 +842,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::RecordIterator) : :zeek:type:`Broker::Data`
 
    Retrieve the data at an iterator's current position.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: element in the collection that the iterator currently references.
 
@@ -855,13 +855,13 @@ Functions
    :Type: :zeek:type:`function` (r: :zeek:type:`Broker::Data`, idx: :zeek:type:`count`) : :zeek:type:`Broker::Data`
 
    Lookup a field in a record at a particular position.
-   
+
 
    :param r: the record to query.
-   
+
 
    :param idx: the index to lookup.
-   
+
 
    :returns: the value at the index.  The optional field of the returned record
             may not be set if the field of the record has no value or if the
@@ -873,10 +873,10 @@ Functions
    :Type: :zeek:type:`function` (r: :zeek:type:`Broker::Data`) : :zeek:type:`count`
 
    Get the number of fields within a record.
-   
+
 
    :param r: the record to query.
-   
+
 
    :returns: the number of fields in the record.
 
@@ -886,21 +886,21 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store, k: :zeek:type:`any`, i: :zeek:type:`any`, e: :zeek:type:`interval` :zeek:attr:`&default` = ``0 secs`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Removes an element from an existing set or table.
-   
+
 
    :param h: the handle of the store to modify.
-   
+
 
    :param k: the key whose associated value is to be modified. The key must
       already exist.
-   
+
 
    :param i: the index to remove from the set or table.
-   
+
 
    :param e: the new expiration interval of the modified key. If null, the
       current expiration time isn't changed.
-   
+
 
    :returns: false if the store handle was not valid.
 
@@ -910,10 +910,10 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Broker::Data`) : :zeek:type:`bool`
 
    Remove all elements within a set.
-   
+
 
    :param s: the set to clear.
-   
+
 
    :returns: always true.
 
@@ -923,13 +923,13 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`bool`
 
    Check if a set contains a particular element.
-   
+
 
    :param s: the set to query.
-   
+
 
    :param key: the element to check for existence.
-   
+
 
    :returns: true if the key exists in the set.
 
@@ -946,13 +946,13 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`bool`
 
    Insert an element into a set.
-   
+
 
    :param s: the set to modify.
-   
+
 
    :param key: the element to insert.
-   
+
 
    :returns: true if the key was inserted, or false if it already existed.
 
@@ -963,10 +963,10 @@ Functions
 
    Create an iterator for a set.  Note that this makes a copy of the set
    internally to ensure the iterator is always valid.
-   
+
 
    :param s: the set to iterate over.
-   
+
 
    :returns: an iterator.
 
@@ -976,10 +976,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::SetIterator) : :zeek:type:`bool`
 
    Check if there are no more elements to iterate over.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if there are no more elements to iterator over, i.e.
             the iterator is one-past-the-final-element.
@@ -990,10 +990,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::SetIterator) : :zeek:type:`bool`
 
    Advance an iterator.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if the iterator, after advancing, still references an element
             in the collection.  False if the iterator, after advancing, is
@@ -1005,10 +1005,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::SetIterator) : :zeek:type:`Broker::Data`
 
    Retrieve the data at an iterator's current position.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: element in the collection that the iterator currently references.
 
@@ -1018,13 +1018,13 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`bool`
 
    Remove an element from a set.
-   
+
 
    :param s: the set to modify.
-   
+
 
    :param key: the element to remove.
-   
+
 
    :returns: true if the element existed in the set and is now removed.
 
@@ -1034,10 +1034,10 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`Broker::Data`) : :zeek:type:`count`
 
    Get the number of elements within a set.
-   
+
 
    :param s: the set to query.
-   
+
 
    :returns: the number of elements in the set.
 
@@ -1047,7 +1047,7 @@ Functions
    :Type: :zeek:type:`function` (h: :zeek:type:`opaque` of Broker::Store) : :zeek:type:`string`
 
    Get the name of a store.
-   
+
 
    :returns: the name of the store.
 
@@ -1057,10 +1057,10 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`) : :zeek:type:`bool`
 
    Remove all elements within a table.
-   
+
 
    :param t: the table to clear.
-   
+
 
    :returns: always true.
 
@@ -1070,13 +1070,13 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`bool`
 
    Check if a table contains a particular key.
-   
+
 
    :param t: the table to query.
-   
+
 
    :param key: the key to check for existence.
-   
+
 
    :returns: true if the key exists in the table.
 
@@ -1093,16 +1093,16 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`, key: :zeek:type:`any`, val: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
    Insert a key-value pair into a table.
-   
+
 
    :param t: the table to modify.
-   
+
 
    :param key: the key at which to insert the value.
-   
+
 
    :param val: the value to insert.
-   
+
 
    :returns: true if the key-value pair was inserted, or false if the key
             already existed in the table.
@@ -1114,10 +1114,10 @@ Functions
 
    Create an iterator for a table.  Note that this makes a copy of the table
    internally to ensure the iterator is always valid.
-   
+
 
    :param t: the table to iterate over.
-   
+
 
    :returns: an iterator.
 
@@ -1127,10 +1127,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::TableIterator) : :zeek:type:`bool`
 
    Check if there are no more elements to iterate over.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if there are no more elements to iterator over, i.e.
             the iterator is one-past-the-final-element.
@@ -1141,10 +1141,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::TableIterator) : :zeek:type:`bool`
 
    Advance an iterator.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if the iterator, after advancing, still references an element
             in the collection.  False if the iterator, after advancing, is
@@ -1156,10 +1156,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::TableIterator) : :zeek:type:`Broker::TableItem`
 
    Retrieve the data at an iterator's current position.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: element in the collection that the iterator currently references.
 
@@ -1169,13 +1169,13 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
    Retrieve a value from a table.
-   
+
 
    :param t: the table to query.
-   
+
 
    :param key: the key to lookup.
-   
+
 
    :returns: the value associated with the key.  If the key did not exist, then
             the optional field of the returned record is not set.
@@ -1186,13 +1186,13 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`, key: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
    Remove a key-value pair from a table.
-   
+
 
    :param t: the table to modify.
-   
+
 
    :param key: the key to remove from the table.
-   
+
 
    :returns: the value associated with the key.  If the key did not exist, then
             the optional field of the returned record is not set.
@@ -1203,10 +1203,10 @@ Functions
    :Type: :zeek:type:`function` (t: :zeek:type:`Broker::Data`) : :zeek:type:`count`
 
    Get the number of elements within a table.
-   
+
 
    :param t: the table to query.
-   
+
 
    :returns: the number of elements in the table.
 
@@ -1216,10 +1216,10 @@ Functions
    :Type: :zeek:type:`function` (v: :zeek:type:`Broker::Data`) : :zeek:type:`bool`
 
    Remove all elements within a vector.
-   
+
 
    :param v: the vector to clear.
-   
+
 
    :returns: always true.
 
@@ -1237,17 +1237,17 @@ Functions
 
    Insert an element into a vector at a particular position, possibly displacing
    existing elements (insertion always grows the size of the vector by one).
-   
+
 
    :param v: the vector to modify.
-   
+
 
    :param d: the element to insert.
-   
+
 
    :param idx: the index at which to insert the data.  If it is greater than the
         current size of the vector, the element is inserted at the end.
-   
+
 
    :returns: always true.
 
@@ -1258,10 +1258,10 @@ Functions
 
    Create an iterator for a vector.  Note that this makes a copy of the vector
    internally to ensure the iterator is always valid.
-   
+
 
    :param v: the vector to iterate over.
-   
+
 
    :returns: an iterator.
 
@@ -1271,10 +1271,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::VectorIterator) : :zeek:type:`bool`
 
    Check if there are no more elements to iterate over.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if there are no more elements to iterator over, i.e.
             the iterator is one-past-the-final-element.
@@ -1285,10 +1285,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::VectorIterator) : :zeek:type:`bool`
 
    Advance an iterator.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: true if the iterator, after advancing, still references an element
             in the collection.  False if the iterator, after advancing, is
@@ -1300,10 +1300,10 @@ Functions
    :Type: :zeek:type:`function` (it: :zeek:type:`opaque` of Broker::VectorIterator) : :zeek:type:`Broker::Data`
 
    Retrieve the data at an iterator's current position.
-   
+
 
    :param it: an iterator.
-   
+
 
    :returns: element in the collection that the iterator currently references.
 
@@ -1313,13 +1313,13 @@ Functions
    :Type: :zeek:type:`function` (v: :zeek:type:`Broker::Data`, idx: :zeek:type:`count`) : :zeek:type:`Broker::Data`
 
    Lookup an element in a vector at a particular position.
-   
+
 
    :param v: the vector to query.
-   
+
 
    :param idx: the index to lookup.
-   
+
 
    :returns: the value at the index.  If the index was larger than any
             valid index, the optional field of the returned record is not set.
@@ -1330,13 +1330,13 @@ Functions
    :Type: :zeek:type:`function` (v: :zeek:type:`Broker::Data`, idx: :zeek:type:`count`) : :zeek:type:`Broker::Data`
 
    Remove an element from a vector at a particular position.
-   
+
 
    :param v: the vector to modify.
-   
+
 
    :param idx: the index to remove.
-   
+
 
    :returns: the value that was just evicted.  If the index was larger than any
             valid index, the optional field of the returned record is not set.
@@ -1347,16 +1347,16 @@ Functions
    :Type: :zeek:type:`function` (v: :zeek:type:`Broker::Data`, idx: :zeek:type:`count`, d: :zeek:type:`any`) : :zeek:type:`Broker::Data`
 
    Replace an element in a vector at a particular position.
-   
+
 
    :param v: the vector to modify.
-   
+
 
    :param d: the element to insert.
-   
+
 
    :param idx: the index to replace.
-   
+
 
    :returns: the value that was just evicted.  If the index was larger than any
             valid index, the optional field of the returned record is not set.
@@ -1367,10 +1367,10 @@ Functions
    :Type: :zeek:type:`function` (v: :zeek:type:`Broker::Data`) : :zeek:type:`count`
 
    Get the number of elements within a vector.
-   
+
 
    :param v: the vector to query.
-   
+
 
    :returns: the number of elements in the vector.
 

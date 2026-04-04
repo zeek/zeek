@@ -32,18 +32,18 @@ Events
    version 1 requests of type *negotiate*. This is sent by the client to initiate an SMB
    connection between the client and the server. A *negotiate* exchange MUST be completed
    before any other SMB messages are sent to the server.
-   
+
    For more information, see MS-CIFS:2.2.4.52
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param dialects: The SMB dialects supported by the client.
-   
+
    .. zeek:see:: smb1_message smb1_negotiate_response
 
 .. zeek:id:: smb1_negotiate_response
@@ -54,18 +54,18 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *negotiate*. This is the server response to the *negotiate*
    request.
-   
+
    For more information, see MS-CIFS:2.2.4.52
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param response: A record structure containing more information from the response.
-   
+
    .. zeek:see:: smb1_message smb1_negotiate_request
 
 

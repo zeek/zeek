@@ -38,7 +38,7 @@ public:
     bool IsPointerType() const override { return true; }
 
 protected:
-    void init();
+    void init_type();
 
     void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
     void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;

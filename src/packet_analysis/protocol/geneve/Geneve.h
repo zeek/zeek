@@ -27,7 +27,7 @@ using Callback =
  * @param data The data span to treat as a Geneve header.
  * @param cb The callback to invoke with each parsed option.
  */
-void parse_options(std::span<const uint8_t> data, Callback cb);
+void parse_options(std::span<const uint8_t> data, const Callback& cb);
 
 } // namespace detail
 

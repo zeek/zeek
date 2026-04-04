@@ -28,3 +28,9 @@ redef Intel::manage_seen_event_groups = F;
 redef Analyzer::DebugLogging::ignore_analyzers += { Analyzer::ANALYZER_IMAP };
 redef Analyzer::DebugLogging::include_confirmations = F;
 redef Analyzer::DebugLogging::include_disabling = F;
+
+# The external tests are loading test-all-policy which in turn will load
+# policy scripts for a cluster backend. Redefine back to Cluster::CLUSTER_BACKEND_NONE
+# in order to skip initialization of cluster backend. Cluster backends may keep
+# the IO loop alive once registered due to registering IO sources.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;

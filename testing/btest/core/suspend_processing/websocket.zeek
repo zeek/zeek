@@ -8,12 +8,14 @@
 #
 # @TEST-EXEC: zeek --parse-only %INPUT
 #
-# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.pcap -b %INPUT"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 # @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff client/.stdout
+
+@load frameworks/cluster/backend/broker
 
 global my_new_connection: event(uid: string, c: count);
 

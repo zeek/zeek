@@ -15,6 +15,7 @@
 #include <hilti/rt/init.h>
 #include <hilti/rt/library.h>
 #include <hilti/rt/logging.h>
+#include <hilti/rt/types/string.h>
 #include <hilti/rt/types/vector.h>
 #include <hilti/rt/util.h>
 
@@ -39,16 +40,16 @@ using namespace zeek;
 using namespace zeek::spicy;
 
 // Split an potentially scoped ID into namespace and local part.
-static std::pair<std::string, std::string> parseID(const std::string& s) {
+static std::pair<std::string_view, std::string_view> parseID(std::string_view s) {
     if ( auto i = s.rfind("::"); i != std::string::npos )
         return std::make_pair(s.substr(0, i), s.substr(i + 2));
     else
         return std::make_pair("", s);
 }
 
-void Manager::registerSpicyModuleBegin(const std::string& name, const std::string& description) {
+void Manager::registerSpicyModuleBegin(const hilti::rt::String& name, const hilti::rt::String& description) {
     assert(! _module_info);
-    _module_info = std::make_unique<zeekygen::detail::SpicyModuleInfo>(name, description);
+    _module_info = std::make_unique<zeekygen::detail::SpicyModuleInfo>(std::string(name), std::string(description));
 }
 
 void Manager::registerSpicyModuleEnd() {
@@ -59,10 +60,10 @@ void Manager::registerSpicyModuleEnd() {
     // _module_info now back to null
 }
 
-void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
+void Manager::registerProtocolAnalyzer(const hilti::rt::String& name, hilti::rt::Protocol proto,
                                        const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
-                                       const std::string& parser_orig, const std::string& parser_resp,
-                                       const std::string& replaces,
+                                       const hilti::rt::String& parser_orig, const hilti::rt::String& parser_resp,
+                                       const hilti::rt::String& replaces,
                                        const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
@@ -71,7 +72,7 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
     info.name_parser_orig = parser_orig;
     info.name_parser_resp = parser_resp;
     info.name_replaces = replaces;
-    info.name_zeek = hilti::rt::replace(name, "::", "_");
+    info.name_zeek = hilti::rt::replace(std::string(name), "::", "_");
     info.name_zeekygen = hilti::rt::fmt("<Spicy-%s>", name);
     info.protocol = proto;
     info.linker_scope = linker_scope;
@@ -94,7 +95,7 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
         // If the infos don't match now, we have two separate definitions.
         if ( info != existing )
-            reporter->FatalError("redefinition of protocol analyzer %s", info.name_analyzer.c_str());
+            reporter->FatalError("redefinition of protocol analyzer %s", std::string(info.name_analyzer).c_str());
 
         return;
     }
@@ -107,7 +108,7 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
         default: reporter->Error("unsupported protocol in analyzer"); return;
     }
 
-    auto c = new ::zeek::analyzer::Component(info.name_zeek, factory, 0);
+    auto c = new ::zeek::analyzer::Component(std::string(info.name_zeek), factory, 0);
     AddComponent(c);
 
     if ( _module_info )
@@ -124,8 +125,9 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
     _protocol_analyzers_by_type[info.tag.Type()] = info;
 }
 
-void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
-                                   const std::string& parser, const std::string& replaces,
+void Manager::registerFileAnalyzer(const hilti::rt::String& name,
+                                   const hilti::rt::Vector<hilti::rt::String>& mime_types,
+                                   const hilti::rt::String& parser, const hilti::rt::String& replaces,
                                    const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy file analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
@@ -133,7 +135,7 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
     info.name_analyzer = name;
     info.name_parser = parser;
     info.name_replaces = replaces;
-    info.name_zeek = hilti::rt::replace(name, "::", "_");
+    info.name_zeek = hilti::rt::replace(std::string(name), "::", "_");
     info.name_zeekygen = hilti::rt::fmt("<Spicy-%s>", name);
     info.mime_types = mime_types;
     info.linker_scope = linker_scope;
@@ -148,12 +150,13 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
 
         // If the infos don't match now, we have two separate definitions.
         if ( info != existing )
-            reporter->FatalError("redefinition of file analyzer %s", info.name_analyzer.c_str());
+            reporter->FatalError("redefinition of file analyzer %s", std::string(info.name_analyzer).c_str());
 
         return;
     }
 
-    auto c = new ::zeek::file_analysis::Component(info.name_zeek, spicy::rt::FileAnalyzer::InstantiateAnalyzer, 0);
+    auto c = new ::zeek::file_analysis::Component(std::string(info.name_zeek),
+                                                  spicy::rt::FileAnalyzer::InstantiateAnalyzer, 0);
     AddComponent(c);
 
     if ( _module_info )
@@ -170,7 +173,8 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
     _file_analyzers_by_type[info.tag.Type()] = info;
 }
 
-void Manager::registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
+void Manager::registerPacketAnalyzer(const hilti::rt::String& name, const hilti::rt::String& parser,
+                                     const hilti::rt::String& replaces,
                                      const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy packet analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
@@ -178,7 +182,7 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
     info.name_analyzer = name;
     info.name_replaces = replaces;
     info.name_parser = parser;
-    info.name_zeek = hilti::rt::replace(name, "::", "_");
+    info.name_zeek = hilti::rt::replace(std::string(name), "::", "_");
     info.name_zeekygen = hilti::rt::fmt("<Spicy-%s>", info.name_zeek);
     info.linker_scope = linker_scope;
 
@@ -193,16 +197,16 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
 
         // If the infos don't match now, we have two separate definitions.
         if ( info != existing )
-            reporter->FatalError("redefinition of packet analyzer %s", info.name_analyzer.c_str());
+            reporter->FatalError("redefinition of packet analyzer %s", std::string(info.name_analyzer).c_str());
 
         return;
     }
 
     auto instantiate = [info]() -> packet_analysis::AnalyzerPtr {
-        return spicy::rt::PacketAnalyzer::Instantiate(info.name_zeek);
+        return spicy::rt::PacketAnalyzer::Instantiate(std::string(info.name_zeek));
     };
 
-    auto c = new ::zeek::packet_analysis::Component(info.name_zeek, instantiate, 0);
+    auto c = new ::zeek::packet_analysis::Component(std::string(info.name_zeek), instantiate, 0);
     AddComponent(c);
 
     if ( _module_info )
@@ -219,20 +223,22 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
     _packet_analyzers_by_type[info.tag.Type()] = info;
 }
 
-void Manager::registerType(const std::string& id, const TypePtr& type) {
+void Manager::registerType(const hilti::rt::String& id, const TypePtr& type) {
     auto [ns, local] = parseID(id);
 
-    if ( const auto& old = detail::lookup_ID(local.c_str(), ns.c_str(), true) ) {
+    if ( const auto& old = detail::lookup_ID(std::string(local).c_str(), std::string(ns).c_str(), true) ) {
         // This is most likely to trigger for IDs that other Spicy modules
         // register. If we two Spicy modules need the same type, that's ok as
         // long as they match.
         if ( ! old->IsType() ) {
-            reporter->Error("Zeek type registration failed for '%s': ID already exists, but is not a type", id.c_str());
+            reporter->Error("Zeek type registration failed for '%s': ID already exists, but is not a type",
+                            std::string(id).c_str());
             return;
         }
 
         if ( ! zeek::same_type(type, old->GetType()) ) {
-            reporter->Error("Zeek type registration failed for '%s': Type already exists, but differs", id.c_str());
+            reporter->Error("Zeek type registration failed for '%s': Type already exists, but differs",
+                            std::string(id).c_str());
         }
 
         SPICY_DEBUG(hilti::rt::fmt("Not re-registering Zeek type %s: identical type already exists", id));
@@ -240,22 +246,22 @@ void Manager::registerType(const std::string& id, const TypePtr& type) {
     }
 
     SPICY_DEBUG(hilti::rt::fmt("Registering Zeek type %s", id));
-    auto zeek_id = detail::install_ID(local.c_str(), ns.c_str(), true, true);
+    auto zeek_id = detail::install_ID(std::string(local).c_str(), std::string(ns).c_str(), true, true);
     zeek_id->SetType(type);
     zeek_id->MakeType();
 
     detail::zeekygen_mgr->Identifier(std::move(zeek_id));
 
     if ( _module_info )
-        _module_info->AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
+        _module_info->AddBifItem(std::string(id), ::zeek::plugin::BifItem::TYPE);
     else
-        AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
+        AddBifItem(std::string(id), ::zeek::plugin::BifItem::TYPE);
 }
 
-TypePtr Manager::findType(const std::string& id) const {
+TypePtr Manager::findType(std::string_view id) const {
     auto [ns, local] = parseID(id);
 
-    auto zid = detail::lookup_ID(local.c_str(), ns.c_str());
+    auto zid = detail::lookup_ID(std::string(local).c_str(), std::string(ns).c_str());
     if ( ! zid )
         return nullptr;
 
@@ -265,7 +271,7 @@ TypePtr Manager::findType(const std::string& id) const {
     return zid->GetType();
 }
 
-void Manager::registerEvent(const std::string& name) {
+void Manager::registerEvent(const hilti::rt::String& name) {
     // Create a Zeek handler for the event.
     event_registry->Register(name);
 
@@ -278,7 +284,7 @@ void Manager::registerEvent(const std::string& name) {
     else
         mod = detail::GLOBAL_MODULE_NAME;
 
-    if ( auto id = detail::lookup_ID(name.c_str(), mod.c_str(), false, false, false) ) {
+    if ( auto id = detail::lookup_ID(std::string(name).c_str(), std::string(mod).c_str(), false, false, false) ) {
         // Auto-export IDs that already exist.
         id->SetExport();
         _events[name] = std::move(id);
@@ -287,10 +293,10 @@ void Manager::registerEvent(const std::string& name) {
         // This installs & exports the ID, but it doesn't set its type yet.
         // That will happen as handlers get defined. If there are no handlers,
         // we set a dummy type in the plugin's InitPostScript
-        _events[name] = detail::install_ID(name.c_str(), mod.c_str(), false, true);
+        _events[name] = detail::install_ID(std::string(name).c_str(), std::string(mod).c_str(), false, true);
 
     if ( _module_info )
-        _module_info->AddBifItem(name, ::zeek::plugin::BifItem::EVENT);
+        _module_info->AddBifItem(std::string(name), ::zeek::plugin::BifItem::EVENT);
 }
 
 const ::spicy::rt::Parser* Manager::parserForProtocolAnalyzer(const Tag& tag, bool is_orig) {
@@ -476,7 +482,7 @@ bool Manager::toggleAnalyzer(EnumVal* tag, bool enable) {
     return false;
 }
 
-static std::unique_ptr<detail::Location> _makeLocation(const std::string& location) {
+static std::unique_ptr<detail::Location> _makeLocation(const hilti::rt::String& location) {
     static std::set<std::string> filenames; // see comment below in parse_location
 
     auto parse_location = [](const auto& s) -> std::unique_ptr<detail::Location> {
@@ -502,7 +508,7 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
         return loc;
     };
 
-    if ( location.size() )
+    if ( ! location.empty() )
         return parse_location(location);
     else if ( auto hilti_location = hilti::rt::debug::location() )
         return parse_location(hilti_location);
@@ -510,23 +516,23 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
         return nullptr;
 }
 
-void Manager::analyzerError(analyzer::Analyzer* a, const std::string& msg, const std::string& location) {
+void Manager::analyzerError(analyzer::Analyzer* a, std::string_view msg, std::string_view location) {
     auto zeek_location = _makeLocation(location);
     reporter->PushLocation(zeek_location.get());
-    reporter->AnalyzerError(a, "%s", msg.c_str());
+    reporter->AnalyzerError(a, "%s", std::string(msg).c_str());
     reporter->PopLocation();
 }
 
-void Manager::analyzerError(file_analysis::Analyzer* a, const std::string& msg, const std::string& location) {
+void Manager::analyzerError(file_analysis::Analyzer* a, std::string_view msg, std::string_view location) {
     auto zeek_location = _makeLocation(location);
     reporter->PushLocation(zeek_location.get());
 
     // We don't have an reporter error for file analyzers, so we log this as a
     // weird instead.
     if ( a && a->GetFile() )
-        reporter->Weird(a->GetFile(), "file_error", msg.c_str());
+        reporter->Weird(a->GetFile(), "file_error", std::string(msg).c_str());
     else
-        reporter->Weird("file_error", msg.c_str());
+        reporter->Weird("file_error", std::string(msg).c_str());
 
     reporter->PopLocation();
 
@@ -534,12 +540,12 @@ void Manager::analyzerError(file_analysis::Analyzer* a, const std::string& msg, 
         a->SetSkip(true); // Imitate what AnalyzerError() does for protocol analyzers.
 }
 
-void Manager::analyzerError(packet_analysis::Analyzer* a, const std::string& msg, const std::string& location) {
+void Manager::analyzerError(packet_analysis::Analyzer* a, std::string_view msg, std::string_view location) {
     auto zeek_location = _makeLocation(location);
     reporter->PushLocation(zeek_location.get());
     // We don't have an reporter error for packet analyzers, so we log
     // this as a weird instead.
-    reporter->Weird("packet_error", msg.c_str());
+    reporter->Weird("packet_error", std::string(msg).c_str());
     reporter->PopLocation();
 }
 
@@ -571,7 +577,7 @@ static ::TransportProto transport_protocol(const hilti::rt::Port port) {
         case hilti::rt::Protocol::ICMP: return ::TransportProto::TRANSPORT_ICMP;
         default:
             reporter->InternalError("unsupported transport protocol in port '%s' for Zeek conversion",
-                                    std::string(port).c_str());
+                                    to_string(port).c_str());
             return ::TransportProto::TRANSPORT_UNKNOWN;
     }
 }
@@ -651,18 +657,18 @@ void Manager::InitPostScript() {
     }
 
     // Fill in the parser information now that we derived from the ASTs.
-    auto find_parser = [](const std::string& analyzer, const std::string& parser,
+    auto find_parser = [](const hilti::rt::String& analyzer, const hilti::rt::String& parser,
                           const auto& linker_scope) -> const ::spicy::rt::Parser* {
         if ( parser.empty() )
             return nullptr;
 
         for ( auto p : ::spicy::rt::parsers() ) {
-            if ( p->name == parser && p->linker_scope == linker_scope )
+            if ( p->name == parser.str() && p->linker_scope == linker_scope )
                 return p;
         }
 
         reporter->InternalError("Unknown Spicy parser '%s' (scope 0x%" PRIx64 ") requested by analyzer '%s'",
-                                parser.c_str(), linker_scope.Ref(), analyzer.c_str());
+                                std::string(parser).c_str(), linker_scope.Ref(), std::string(analyzer).c_str());
 
         return nullptr; // cannot be reached
     };
@@ -679,9 +685,9 @@ void Manager::InitPostScript() {
         p.parser_resp = find_parser(p.name_analyzer, p.name_parser_resp, p.linker_scope);
 
         // Register analyzer for its well-known ports.
-        auto tag = analyzer_mgr->GetAnalyzerTag(p.name_zeek.c_str());
+        auto tag = analyzer_mgr->GetAnalyzerTag(std::string(p.name_zeek).c_str());
         if ( ! tag )
-            reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
+            reporter->InternalError("cannot get analyzer tag for '%s'", std::string(p.name_analyzer).c_str());
 
         auto register_analyzer_for_port = [&](const auto& tag, const hilti::rt::Port& port_) {
             SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
@@ -730,24 +736,24 @@ void Manager::InitPostScript() {
             // vector element not set
             continue;
 
-        SPICY_DEBUG(hilti::rt::fmt("Registering file analyzer %s (scope 0x%" PRIx64 ") with Zeek",
-                                   p.name_analyzer.c_str(), p.linker_scope.Ref()));
+        SPICY_DEBUG(hilti::rt::fmt("Registering file analyzer %s (scope 0x%" PRIx64 ") with Zeek", p.name_analyzer,
+                                   p.linker_scope.Ref()));
 
         p.parser = find_parser(p.name_analyzer, p.name_parser, p.linker_scope);
 
         // Register analyzer for its MIME types.
-        auto tag = file_mgr->GetComponentTag(p.name_zeek.c_str());
+        auto tag = file_mgr->GetComponentTag(std::string(p.name_zeek).c_str());
         if ( ! tag )
-            reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
+            reporter->InternalError("cannot get analyzer tag for '%s'", std::string(p.name_analyzer).c_str());
 
-        auto register_analyzer_for_mime_type = [&](const auto& tag, const std::string& mt) {
+        auto register_analyzer_for_mime_type = [&](const auto& tag, const hilti::rt::String& mt) {
             SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for MIME type %s", mt));
 
             // MIME types are registered in scriptland, so we'll raise an
             // event that will do it for us through a predefined handler.
             zeek::Args vals = Args();
             vals.emplace_back(tag.AsVal());
-            vals.emplace_back(make_intrusive<StringVal>(mt));
+            vals.emplace_back(make_intrusive<StringVal>(std::string(mt)));
             EventHandlerPtr handler = event_registry->Register("spicy_analyzer_for_mime_type");
             event_mgr.Enqueue(handler, std::move(vals));
         };
@@ -766,8 +772,8 @@ void Manager::InitPostScript() {
             // vector element not set
             continue;
 
-        SPICY_DEBUG(hilti::rt::fmt("Registering packet analyzer %s (scope 0x%" PRIx64 ") with Zeek",
-                                   p.name_analyzer.c_str(), p.linker_scope.Ref()));
+        SPICY_DEBUG(hilti::rt::fmt("Registering packet analyzer %s (scope 0x%" PRIx64 ") with Zeek", p.name_analyzer,
+                                   p.linker_scope.Ref()));
         p.parser = find_parser(p.name_analyzer, p.name_parser, p.linker_scope);
     }
 
@@ -814,12 +820,13 @@ int Manager::HookLoadFile(const LoadType type, const std::string& file, const st
     }
 
     if ( ext == ".spicy" || ext == ".evt" || ext == ".hlt" )
-        reporter->FatalError("cannot load '%s': analyzers need to be precompiled with 'spicyz' ", file.c_str());
+        reporter->FatalError("cannot load '%s': analyzers need to be precompiled with 'spicyz' ",
+                             std::string(file).c_str());
 
     return -1;
 }
 
-void Manager::searchModules(const std::string& paths) {
+void Manager::searchModules(std::string_view paths) {
     for ( const auto& dir : hilti::rt::split(paths, ":") ) {
         auto trimmed_dir = hilti::rt::trim(dir);
         if ( trimmed_dir.empty() )
@@ -861,8 +868,8 @@ void Manager::searchModules(const std::string& paths) {
     }
 };
 
-detail::Location Manager::makeLocation(const std::string& fname) {
-    auto x = _locations.insert(fname);
+detail::Location Manager::makeLocation(const hilti::rt::String& fname) {
+    auto x = _locations.insert(std::string(fname));
     return {x.first->c_str(), 0, 0};
 }
 
@@ -871,9 +878,9 @@ void Manager::autoDiscoverModules() {
     // them.
     searchModules(util::zeek_plugin_path());
 
-    if ( auto search_paths = hilti::rt::getenv("ZEEK_SPICY_MODULE_PATH"); search_paths && search_paths->size() )
+    if ( auto search_paths = hilti::rt::getenv("ZEEK_SPICY_MODULE_PATH"); search_paths && ! search_paths->empty() )
         // This overrides all other paths.
-        searchModules(*search_paths);
+        searchModules(search_paths->str());
     else
         searchModules(ZEEK_SPICY_MODULE_PATH);
 }
@@ -883,10 +890,10 @@ void Manager::disableReplacedAnalyzers() {
         if ( info.name_replaces.empty() )
             continue;
 
-        auto replaces = info.name_replaces.c_str();
+        auto replaces = std::string(info.name_replaces);
 
         if ( file_mgr->Lookup(replaces, false) || packet_mgr->Lookup(replaces, false) )
-            reporter->FatalError("cannot replace '%s' analyzer with a protocol analyzer", replaces);
+            reporter->FatalError("cannot replace '%s' analyzer with a protocol analyzer", replaces.c_str());
 
         auto component = analyzer_mgr->Lookup(replaces, false);
         if ( ! component ) {
@@ -901,7 +908,7 @@ void Manager::disableReplacedAnalyzers() {
             reporter->FatalError(
                 "%s: protocol analyzer %s is already mapped to a different analyzer; cannot replace an analyzer "
                 "multiple times",
-                info.name_analyzer.c_str(), component->Name().c_str());
+                std::string(info.name_analyzer).c_str(), std::string(component->Name()).c_str());
 
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing protocol analyzer %s", info.name_analyzer, replaces));
         info.replaces = tag;
@@ -913,10 +920,10 @@ void Manager::disableReplacedAnalyzers() {
         if ( info.name_replaces.empty() )
             continue;
 
-        auto replaces = info.name_replaces.c_str();
+        auto replaces = std::string(info.name_replaces);
 
         if ( analyzer_mgr->Lookup(replaces, false) || packet_mgr->Lookup(replaces, false) )
-            reporter->FatalError("cannot replace '%s' analyzer with a file analyzer", replaces);
+            reporter->FatalError("cannot replace '%s' analyzer with a file analyzer", replaces.c_str());
 
         auto component = file_mgr->Lookup(replaces, false);
         if ( ! component ) {
@@ -931,7 +938,7 @@ void Manager::disableReplacedAnalyzers() {
             reporter->FatalError(
                 "%s: file analyzer %s is already mapped to a different analyzer; cannot replace an analyzer multiple "
                 "times",
-                info.name_analyzer.c_str(), component->Name().c_str());
+                std::string(info.name_analyzer).c_str(), std::string(component->Name()).c_str());
 
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing file analyzer %s", info.name_analyzer, replaces));
         info.replaces = tag;
@@ -943,7 +950,7 @@ void Manager::disableReplacedAnalyzers() {
         if ( info.name_replaces.empty() )
             continue;
 
-        auto replaces = info.name_replaces.c_str();
+        auto replaces = std::string(info.name_replaces);
 
         auto component = packet_mgr->Lookup(replaces, false);
         if ( ! component ) {
@@ -958,7 +965,7 @@ void Manager::disableReplacedAnalyzers() {
             reporter->FatalError(
                 "%s: packet analyzer %s is already mapped to a different analyzer; cannot replace an analyzer multiple "
                 "times",
-                info.name_analyzer.c_str(), component->Name().c_str());
+                std::string(info.name_analyzer).c_str(), std::string(component->Name()).c_str());
 
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing packet analyzer %s", info.name_analyzer, replaces));
         info.replaces = tag;
@@ -968,7 +975,7 @@ void Manager::disableReplacedAnalyzers() {
 }
 
 void Manager::trackComponent(plugin::Component* c, int32_t tag_type) {
-    auto i = _analyzer_name_to_tag_type.insert({c->Name(), tag_type});
+    auto i = _analyzer_name_to_tag_type.insert({hilti::rt::String(c->Name()), tag_type});
     if ( ! i.second )
         // We enforce on our end that an analyzer name can appear only once
         // across all types of analyzers. Makes things easier and avoids

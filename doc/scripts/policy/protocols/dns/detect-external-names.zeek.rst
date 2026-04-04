@@ -23,8 +23,8 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ===========================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`DNS::External_Name`:
                                                Raised when a non-local name is found to be pointing at a
                                                local host.
@@ -45,8 +45,8 @@ Runtime Options
       ::
 
          {
-            [224.0.0.251, 5353/udp] ,
-            [ff02::fb, 5353/udp] 
+            [224.0.0.251, 5353/udp],
+            [ff02::fb, 5353/udp]
          }
 
 

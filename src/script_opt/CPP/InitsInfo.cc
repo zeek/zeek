@@ -26,6 +26,11 @@ void CPP_InitsInfo::GetCohortIDs(int c, std::vector<IDPtr>& ids) const {
 }
 
 void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g) {
+    if ( processed_instances.contains(g) )
+        return;
+
+    processed_instances.insert(g);
+
     auto final_init_cohort = g->FinalInitCohort();
 
     if ( static_cast<int>(instances.size()) <= final_init_cohort )
@@ -97,13 +102,21 @@ void CPP_InitsInfo::BuildOffsetSet(CPPCompile* c) {
 }
 
 static std::string describe_initializer(const Obj* o) {
-    auto od = obj_desc(o);
+    auto od = obj_desc_short(o);
+
+    const size_t max_useful_size = 200;
+    if ( od.size() > max_useful_size ) {
+        od = od.substr(0, max_useful_size) + "...";
+    }
 
     // Escape any embedded comment characters.
     od = regex_replace(od, std::regex("/\\*"), "<<SLASH-STAR>>");
     od = regex_replace(od, std::regex("\\*/"), "<<STAR-SLASH>>");
 
-    return od;
+    ODesc ldesc;
+    o->GetLocationInfo()->Describe(&ldesc);
+
+    return od + " " + ldesc.Description();
 }
 
 void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_InitInfo>>& cohort) {
@@ -118,7 +131,7 @@ void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_I
     }
 }
 
-void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     string full_init;
     bool did_one = false;
     for ( auto& iv : ivs ) {
@@ -152,7 +165,7 @@ void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
 
             vector<string> ivs;
             co->InitializerVals(ivs);
-            c->Emit(Fmt(int(ivs.size())) + ",");
+            c->Emit(Fmt(static_cast<int>(ivs.size())) + ",");
             BuildCohortElement(c, co->InitializerType(), ivs);
         }
 
@@ -171,7 +184,7 @@ void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
 
 void CPP_CompoundInitsInfo::GenerateCohorts(CPPCompile* c) { c->Emit("%s_init", tag); }
 
-void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     string init_line;
     for ( auto& iv : ivs )
         init_line += iv + ",";
@@ -179,7 +192,7 @@ void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, 
     c->Emit("%s", init_line);
 }
 
-void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
+void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, const string& init_type, vector<string>& ivs) {
     ASSERT(ivs.size() == 1);
     c->Emit(ivs[0] + ",");
 }
@@ -220,9 +233,7 @@ StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
 
 PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
     auto re = v->AsPatternVal()->Get();
-    pattern = c->TrackString(CPPEscape(re->OrigText()));
-    is_case_insensitive = re->IsCaseInsensitive();
-    is_single_line = re->IsSingleLine();
+    pattern = c->TrackString(CPPEscape(re->PatternText()));
 }
 
 CompoundItemInfo::CompoundItemInfo(CPPCompile* _c, ValPtr v) : CPP_InitInfo(v), c(_c) {
@@ -326,12 +337,19 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c) {
         if ( gi )
             init_cohort = max(init_cohort, gi->InitCohort() + 1);
 
-        if ( ! CPPCompile::IsSimpleInitExpr(a_e) ) {
-            gi = c->RegisterInitExpr(a_e);
-            init_cohort = max(init_cohort, gi->InitCohort() + 1);
+        bool is_simple_init = CPPCompile::IsSimpleInitExpr(a_e);
 
-            vals.emplace_back(Fmt(static_cast<int>(AE_CALL)));
-            vals.emplace_back(Fmt(gi->Offset()));
+        if ( a_e->Tag() == EXPR_ARITH_COERCE && is_simple_init )
+            a_e = make_intrusive<ConstExpr>(eval_in_isolation(a_e));
+
+        if ( ! is_simple_init ) {
+            if ( obj_matches_opt_files(a_e) != AnalyzeDecision::SHOULD_NOT ) {
+                gi = c->RegisterInitExpr(a_e);
+                init_cohort = max(init_cohort, gi->InitCohort() + 1);
+
+                vals.emplace_back(Fmt(static_cast<int>(AE_CALL)));
+                vals.emplace_back(Fmt(gi->Offset()));
+            }
         }
 
         else if ( a_e->Tag() == EXPR_CONST ) {
@@ -407,18 +425,22 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr _g, string _CPP_name)
     gc.is_enum_const = g->IsEnumConst();
     gc.is_type = g->IsType();
 
-    // We don't initialize the global directly because its initialization
-    // might be an expression rather than a simple constant. Instead we
-    // make sure that it can be generated per the use of GetCohortIDs()
-    // in CPPCompile::GenFinishInit().
-    val = ValElem(c, nullptr);
+    // Check whether the global has a constant initialization. If so then we
+    // can initialize it directly, which for (very) large aggregates can save
+    // a bunch of C++ compile time. If not then we'll make sure that it can be
+    // generated per the use of GetCohortIDs() in CPPCompile::GenFinishInit().
+    if ( c->HasFixedInit(g) )
+        val = ValElem(c, c->GenFixedInit(g));
+    else {
+        val = ValElem(c, nullptr);
 
-    // This code here parallels that of CPPCompile::InitializeGlobal().
-    const auto& oi = g->GetOptInfo();
-    for ( auto& init : oi->GetInitExprs() )
-        // We use GetOp2() because initialization expressions are
-        // capture in the form of some sort of assignment.
-        init_cohort = max(init_cohort, c->ReadyExpr(init->GetOp2()) + 1);
+        // This code here parallels that of CPPCompile::InitializeGlobal().
+        const auto& oi = g->GetOptInfo();
+        for ( auto& init : oi->GetInitExprs() )
+            // We use GetOp2() because initialization expressions are
+            // represented as some sort of assignment.
+            init_cohort = max(init_cohort, c->ReadyExpr(init->GetOp2()) + 1);
+    }
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
         // Be sure not to try to create BiFs. In addition, GetVal() can be
@@ -474,7 +496,7 @@ void EnumTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
 
     for ( const auto& name_pair : et->Names() ) {
         ivs.emplace_back(Fmt(c->TrackString(name_pair.first)));
-        ivs.emplace_back(Fmt(int(name_pair.second)));
+        ivs.emplace_back(Fmt(static_cast<int>(name_pair.second)));
     }
 }
 
@@ -564,12 +586,12 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
 
     auto gi = c->RegisterType(params);
     if ( gi )
-        init_cohort = gi->InitCohort();
+        init_cohort = gi->FinalInitCohort();
 
     if ( yield ) {
         auto gi = c->RegisterType(f->Yield());
         if ( gi )
-            init_cohort = max(init_cohort, gi->InitCohort());
+            init_cohort = max(init_cohort, gi->FinalInitCohort());
     }
 }
 
@@ -599,8 +621,10 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t, int _addl_fields)
 
         field_types.push_back(r_i->type);
 
-        if ( r_i->attrs && c->TargetingStandalone() && obj_matches_opt_files(r_i->attrs) == AnalyzeDecision::SHOULD ) {
-            gi = c->RegisterAttributes(r_i->attrs);
+        auto a = r_i->attrs;
+        if ( a && ! a->GetAttrs().empty() && c->TargetingStandalone() &&
+             obj_matches_opt_files(a) == AnalyzeDecision::SHOULD ) {
+            gi = c->RegisterAttributes(a);
             final_init_cohort = max(final_init_cohort, gi->InitCohort() + 1);
             field_attrs.push_back(gi->Offset());
         }
@@ -656,7 +680,7 @@ void IndicesManager::Generate(CPPCompile* c) {
             }
         }
 
-        if ( line.size() > 0 )
+        if ( ! line.empty() )
             c->Emit(line);
     }
 

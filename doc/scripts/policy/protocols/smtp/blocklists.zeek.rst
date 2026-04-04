@@ -14,17 +14,17 @@ Summary
 Runtime Options
 ###############
 =================================================================================== =
-:zeek:id:`SMTP::blocklist_error_messages`: :zeek:type:`pattern` :zeek:attr:`&redef` 
+:zeek:id:`SMTP::blocklist_error_messages`: :zeek:type:`pattern` :zeek:attr:`&redef`
 =================================================================================== =
 
 Redefinitions
 #############
 ============================================ ===================================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SMTP::Blocklist_Blocked_Host`:
                                                The originator's address is seen in the block list error message.
-                                             
+
                                              * :zeek:enum:`SMTP::Blocklist_Error_Message`:
                                                An SMTP server sent a reply mentioning an SMTP block list.
 ============================================ ===================================================================

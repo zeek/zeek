@@ -12,16 +12,16 @@ Summary
 Constants
 #########
 ==================================================================================================== =
-:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`             
-:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         
-:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`       
-:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  
-:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
-:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      
-:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  
-:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`          
-:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`            
-:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` 
+:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
 ==================================================================================================== =
 
 

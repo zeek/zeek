@@ -93,7 +93,7 @@ bool Gnutella_Analyzer::NextLine(const u_char* data, int len) {
     return false;
 }
 
-bool Gnutella_Analyzer::IsHTTP(std::string header) {
+bool Gnutella_Analyzer::IsHTTP(std::string_view header) {
     if ( header.find(" HTTP/1.") == std::string::npos )
         return false;
 
@@ -116,8 +116,8 @@ bool Gnutella_Analyzer::IsHTTP(std::string header) {
     return true;
 }
 
-bool Gnutella_Analyzer::GnutellaOK(std::string header) {
-    if ( strncmp("GNUTELLA", header.data(), 8) != 0 )
+bool Gnutella_Analyzer::GnutellaOK(std::string_view header) {
+    if ( ! header.starts_with("GNUTELLA") )
         return false;
 
     int codepos = header.find(' ') + 1;
@@ -132,18 +132,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
         return;
 
     while ( NextLine(data, len) ) {
-        if ( ms->buffer.length() ) {
-            if ( ms->headers.length() == 0 ) {
-                if ( IsHTTP(ms->buffer) )
-                    return;
-                if ( GnutellaOK(ms->buffer) )
-                    new_state |= orig ? ORIG_OK : RESP_OK;
-            }
-
-            ms->headers = ms->headers + "\r\n" + ms->buffer;
-            ms->buffer = "";
-        }
-        else {
+        if ( ms->buffer.empty() ) {
             if ( gnutella_text_msg )
                 EnqueueConnEvent(gnutella_text_msg, ConnVal(), val_mgr->Bool(orig),
                                  make_intrusive<StringVal>(ms->headers.data()));
@@ -156,6 +145,17 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
 
                 EnqueueConnEvent(gnutella_establish, ConnVal());
             }
+        }
+        else {
+            if ( ms->headers.empty() ) {
+                if ( IsHTTP(ms->buffer) )
+                    return;
+                if ( GnutellaOK(ms->buffer) )
+                    new_state |= orig ? ORIG_OK : RESP_OK;
+            }
+
+            ms->headers = ms->headers + "\r\n" + ms->buffer;
+            ms->buffer = "";
         }
     }
 }
@@ -179,7 +179,8 @@ void Gnutella_Analyzer::SendEvents(detail::GnutellaMsgState* p, bool is_orig) {
         EnqueueConnEvent(gnutella_binary_msg, ConnVal(), val_mgr->Bool(is_orig), val_mgr->Count(p->msg_type),
                          val_mgr->Count(p->msg_ttl), val_mgr->Count(p->msg_hops), val_mgr->Count(p->msg_len),
                          make_intrusive<StringVal>(p->payload), val_mgr->Count(p->payload_len),
-                         val_mgr->Bool((p->payload_len < std::min(p->msg_len, (unsigned int)GNUTELLA_MAX_PAYLOAD))),
+                         val_mgr->Bool(
+                             (p->payload_len < std::min(p->msg_len, static_cast<unsigned int>(GNUTELLA_MAX_PAYLOAD)))),
                          val_mgr->Bool((p->payload_left == 0)));
 }
 

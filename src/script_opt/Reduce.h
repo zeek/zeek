@@ -91,7 +91,7 @@ public:
 
     // A predicate that indicates whether a given reduction pass
     // is being made to prune unused statements.
-    bool IsPruning() const { return omitted_stmts.size() > 0; }
+    bool IsPruning() const { return ! omitted_stmts.empty(); }
 
     // A predicate that returns true if the given statement should
     // be removed due to AST optimization.

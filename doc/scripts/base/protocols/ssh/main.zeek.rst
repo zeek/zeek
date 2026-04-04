@@ -20,6 +20,12 @@ Runtime Options
                                                                                         to prevent continuing to process encrypted traffic.
 ======================================================================================= ====================================================================
 
+Redefinable Options
+###################
+=========================================================== =========================
+:zeek:id:`SSH::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SSH.
+=========================================================== =========================
+
 Types
 #####
 =========================================== =========================================================
@@ -28,27 +34,26 @@ Types
 
 Redefinitions
 #############
-==================================================================== ================================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              The SSH protocol logging stream identifier.
-                                                                     
-                                                                     * :zeek:enum:`SSH::LOG`
-:zeek:type:`SSH::Info`: :zeek:type:`record`                          
-                                                                     
-                                                                     :New Fields: :zeek:type:`SSH::Info`
-                                                                     
-                                                                       logged: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
-                                                                     
-                                                                       capabilities: :zeek:type:`SSH::Capabilities` :zeek:attr:`&optional`
-                                                                     
-                                                                       analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
-                                                                         Analyzer ID
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       ssh: :zeek:type:`SSH::Info` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== ================================================================================
+============================================ ================================================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`      The SSH protocol logging stream identifier.
+
+                                             * :zeek:enum:`SSH::LOG`
+:zeek:type:`SSH::Info`: :zeek:type:`record`
+
+                                             :New Fields: :zeek:type:`SSH::Info`
+
+                                               logged: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+
+                                               capabilities: :zeek:type:`SSH::Capabilities` :zeek:attr:`&optional`
+
+                                               analyzer_id: :zeek:type:`count` :zeek:attr:`&optional`
+                                                 Analyzer ID
+:zeek:type:`connection`: :zeek:type:`record`
+
+                                             :New Fields: :zeek:type:`connection`
+
+                                               ssh: :zeek:type:`SSH::Info` :zeek:attr:`&optional`
+============================================ ================================================================================
 
 Events
 ######
@@ -75,7 +80,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SSH::compression_algorithms
-   :source-code: base/protocols/ssh/main.zeek 61 61
+   :source-code: base/protocols/ssh/main.zeek 65 65
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -93,7 +98,7 @@ Runtime Options
    authentication success or failure when compression is enabled.
 
 .. zeek:id:: SSH::disable_analyzer_after_detection
-   :source-code: base/protocols/ssh/main.zeek 66 66
+   :source-code: base/protocols/ssh/main.zeek 70 70
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -103,10 +108,28 @@ Runtime Options
    to prevent continuing to process encrypted traffic. Helps with performance
    (especially with large file transfers).
 
+Redefinable Options
+###################
+.. zeek:id:: SSH::ports
+   :source-code: base/protocols/ssh/main.zeek 13 13
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            22/tcp
+         }
+
+
+   Well-known ports for SSH.
+
 Types
 #####
 .. zeek:type:: SSH::Info
-   :source-code: base/protocols/ssh/main.zeek 16 57
+   :source-code: base/protocols/ssh/main.zeek 19 61
 
    :Type: :zeek:type:`record`
 
@@ -190,9 +213,10 @@ Types
       The server host key's algorithm
 
 
-   .. zeek:field:: host_key :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+   .. zeek:field:: host_key_fingerprint :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      The server's key fingerprint
+      The server's key fingerprint, in the format that `ssh-keygen -l` would output.
+      For example, a sha256 fingerprint will look like `SHA256:<fingerprint>`.
 
 
    .. zeek:field:: logged :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
@@ -214,12 +238,19 @@ Types
       connection.
 
 
+   .. zeek:field:: host_key :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/ssh/md5-host-key-logging.zeek` is loaded)
+
+      The server's key fingerprint
+
+
    The record type which contains the fields of the SSH log.
 
 Events
 ######
 .. zeek:id:: SSH::log_ssh
-   :source-code: base/protocols/ssh/main.zeek 70 70
+   :source-code: base/protocols/ssh/main.zeek 74 74
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SSH::Info`)
 
@@ -227,7 +258,7 @@ Events
    to the logging framework.
 
 .. zeek:id:: ssh_auth_failed
-   :source-code: base/protocols/ssh/main.zeek 94 94
+   :source-code: base/protocols/ssh/main.zeek 98 98
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -236,13 +267,13 @@ Events
    determination is based on packet size analysis, and errs on the
    side of caution - that is, if there's any doubt about the
    authentication failure, this event is *not* raised.
-   
+
    This event is only raised once per connection.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_result ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -250,7 +281,7 @@ Events
       ssh2_gss_error ssh2_ecc_key
 
 .. zeek:id:: ssh_auth_result
-   :source-code: base/protocols/ssh/main.zeek 117 117
+   :source-code: base/protocols/ssh/main.zeek 121 121
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`, auth_attempts: :zeek:type:`count`)
 
@@ -259,20 +290,20 @@ Events
    connection. This determination is based on packet size analysis,
    and errs on the side of caution - that is, if there's any doubt
    about the result of the authentication, this event is *not* raised.
-   
+
    This event is only raised once per connection.
-   
+
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
       connection took place.
-   
+
 
    :param result: True if the authentication was successful, false if not.
-   
+
 
    :param auth_attempts: The number of authentication attempts that were
       observed.
-   
+
    .. zeek:see:: ssh_server_version ssh_client_version
       ssh_auth_successful ssh_auth_failed ssh_auth_attempted
       ssh_capabilities ssh2_server_host_key ssh1_server_host_key
@@ -282,14 +313,14 @@ Events
 Hooks
 #####
 .. zeek:id:: SSH::finalize_ssh
-   :source-code: base/protocols/ssh/main.zeek 312 336
+   :source-code: base/protocols/ssh/main.zeek 313 337
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
    SSH finalization hook.  Remaining SSH info may get logged when it's called.
 
 .. zeek:id:: SSH::log_policy
-   :source-code: base/protocols/ssh/main.zeek 13 13
+   :source-code: base/protocols/ssh/main.zeek 16 16
 
    :Type: :zeek:type:`Log::PolicyHook`
 

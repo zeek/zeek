@@ -104,7 +104,7 @@ bool String::operator==(std::string_view s) const {
         return false;
 
     if ( b == nullptr ) {
-        return s.size() == 0;
+        return s.empty();
     }
 
     return (memcmp(b, s.data(), n) == 0);
@@ -538,7 +538,7 @@ TEST_CASE("searching/modification") {
 
     indexes.insert(indexes.end(), {4, 7, 9, -1, 30});
     splits = s.Split(indexes);
-    CHECK_EQ(splits->size(), 4);
+    CHECK_EQ(splits->size(), 4u);
     CHECK_EQ(*(splits->at(0)), "this");
     CHECK_EQ(*(splits->at(1)), " is");
     CHECK_EQ(*(splits->at(2)), " a");
@@ -618,9 +618,9 @@ TEST_CASE("read") {
 
 TEST_CASE("misc") {
     std::vector<const zeek::String*> sv = {new zeek::String{}, new zeek::String{}};
-    CHECK_EQ(sv.size(), 2);
+    CHECK_EQ(sv.size(), 2u);
     zeek::delete_strings(sv);
-    CHECK_EQ(sv.size(), 0);
+    CHECK_EQ(sv.size(), 0u);
 
     std::vector<zeek::data_chunk_t> dv = {{5, "abcde"}, {6, "fghijk"}};
     auto* s = zeek::concatenate(dv);

@@ -75,13 +75,13 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     auto opcode = static_cast<uint16_t>((flags & 0x7800) >> 11);
 
     // NetBIOS registration and release messages look like regular DNS requests, so parse them as such
-    if ( opcode != DNS_OP_QUERY && ! is_netbios ) {
+    if ( opcode != DNS_OP_QUERY && opcode != DNS_OP_DYNAMIC_UPDATE && ! is_netbios ) {
         analyzer->Weird("DNS_unknown_opcode", util::fmt("%d", opcode));
         analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
         return;
     }
 
-    detail::DNS_MsgInfo msg(const_cast<detail::DNS_RawMsgHdr*>(hdr), is_query);
+    detail::DNS_MsgInfo msg(const_cast<DNS_RawMsgHdr*>(hdr), is_query, is_netbios);
 
     if ( first_message && msg.QR && is_query == 1 ) {
         is_query = 0;
@@ -99,7 +99,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
 
     // There is a great deal of non-DNS traffic that runs on port 53.
     // This should weed out most of it.
-    if ( zeek::detail::dns_max_queries > 0 && msg.qdcount > zeek::detail::dns_max_queries ) {
+    if ( zeek::detail::dns_max_queries > 0 && msg.qd_zo_count > zeek::detail::dns_max_queries ) {
         analyzer->AnalyzerViolation("DNS_Conn_count_too_large");
         analyzer->Weird("DNS_Conn_count_too_large");
         EndMessage(&msg);
@@ -111,26 +111,73 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     data += hdr_len;
     len -= hdr_len;
 
-    if ( ! ParseQuestions(&msg, data, len, msg_start) ) {
-        EndMessage(&msg);
-        return;
-    }
+    if ( msg.is_dynamic_update ) {
+        if ( msg.qd_zo_count != 1 ) {
+            // dynamic update events should only have a single zone in them.
+            analyzer->Weird("DNS_DU_invalid_zone_count", util::fmt("%d", msg.qd_zo_count));
+            EndMessage(&msg);
+            return;
+        }
 
-    if ( ! ParseAnswers(&msg, msg.ancount, detail::DNS_ANSWER, data, len, msg_start) ) {
-        EndMessage(&msg);
-        return;
+        // Dynamic update looks like this:
+        // 1. A single "zone" that is just the first three fields of an SOA RR. It's
+        //    required to be an SOA, so a weird is returned if not.
+        // 2. Zero or more "prerequisite" RRs that are required to be true in the zone
+        //    before updates take place.
+        // 3. Zero or more "update" RRs that are the updates to be made to the zone.
+        // 4. Zero or more "additional" RRs that are unrelated to the updates. These are
+        //    handled same to the other additional RRs with other op codes.
+        if ( ! ParseAnswerHeader(&msg, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
+
+        if ( msg.atype != detail::TYPE_SOA ) {
+            analyzer->Weird("DNS_DU_incorrect_zone_type");
+            return;
+        }
+
+        StringValPtr zname = msg.query_name;
+        msg.zclass = msg.aclass;
+
+        if ( ! ParseAnswers(&msg, msg.an_pr_count, detail::DNS_PREREQUISITES, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
+
+        if ( ! ParseAnswers(&msg, msg.ns_up_count, detail::DNS_UPDATES, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
+
+        // Send an event if the first three parts parsed correctly, since they're the
+        // actual update bits.
+        if ( dns_dynamic_update )
+            analyzer->EnqueueConnEvent(dns_dynamic_update, analyzer->ConnVal(), msg.BuildHdrVal(), zname,
+                                       val_mgr->Count(msg.zclass));
+    }
+    else {
+        if ( ! ParseQuestions(&msg, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
+
+        if ( ! ParseAnswers(&msg, msg.an_pr_count, detail::DNS_ANSWER, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
     }
 
     analyzer->AnalyzerConfirmation();
 
     bool skip_auth = (zeek::detail::dns_skip_all_auth != 0);
     bool skip_addl = (zeek::detail::dns_skip_all_addl != 0);
-    if ( msg.ancount > 0 ) { // We did an answer, so can potentially skip auth/addl.
+    if ( msg.an_pr_count > 0 ) { // We did an answer, so can potentially skip auth/addl.
         static auto dns_skip_auth = id::find_val<TableVal>("dns_skip_auth");
         static auto dns_skip_addl = id::find_val<TableVal>("dns_skip_addl");
         auto server = make_intrusive<AddrVal>(analyzer->Conn()->RespAddr());
 
-        skip_auth = skip_auth || msg.nscount == 0 || dns_skip_auth->FindOrDefault(server);
+        skip_auth = skip_auth || msg.ns_up_count == 0 || dns_skip_auth->FindOrDefault(server);
         skip_addl = skip_addl || msg.arcount == 0 || dns_skip_addl->FindOrDefault(server);
     }
 
@@ -140,10 +187,13 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
         return;
     }
 
-    msg.skip_event = skip_auth;
-    if ( ! ParseAnswers(&msg, msg.nscount, detail::DNS_AUTHORITY, data, len, msg_start) ) {
-        EndMessage(&msg);
-        return;
+    // Dynamic update doesn't have an authority section.
+    if ( ! msg.is_dynamic_update ) {
+        msg.skip_event = skip_auth;
+        if ( ! ParseAnswers(&msg, msg.ns_up_count, detail::DNS_AUTHORITY, data, len, msg_start) ) {
+            EndMessage(&msg);
+            return;
+        }
     }
 
     if ( skip_addl ) {
@@ -167,7 +217,7 @@ void DNS_Interpreter::EndMessage(detail::DNS_MsgInfo* msg) {
 }
 
 bool DNS_Interpreter::ParseQuestions(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* msg_start) {
-    int n = msg->qdcount;
+    int n = msg->qd_zo_count;
 
     while ( n > 0 && ParseQuestion(msg, data, len, msg_start) )
         --n;
@@ -192,7 +242,7 @@ bool DNS_Interpreter::ParseQuestion(detail::DNS_MsgInfo* msg, const u_char*& dat
     if ( ! name_end )
         return false;
 
-    if ( len < int(sizeof(short)) * 2 ) {
+    if ( len < static_cast<int>((sizeof(short))) * 2 ) {
         analyzer->Weird("DNS_truncated_quest_too_short");
         return false;
     }
@@ -202,7 +252,7 @@ bool DNS_Interpreter::ParseQuestion(detail::DNS_MsgInfo* msg, const u_char*& dat
     if ( msg->QR == 0 )
         dns_event = dns_request;
 
-    else if ( msg->QR == 1 && msg->ancount == 0 && msg->nscount == 0 && msg->arcount == 0 )
+    else if ( msg->QR == 1 && msg->an_pr_count == 0 && msg->ns_up_count == 0 && msg->arcount == 0 )
         // Service rejected in some fashion, and it won't be reported
         // via a returned RR because there aren't any.
         dns_event = dns_rejected;
@@ -230,7 +280,8 @@ bool DNS_Interpreter::ParseQuestion(detail::DNS_MsgInfo* msg, const u_char*& dat
     return true;
 }
 
-bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* msg_start) {
+bool DNS_Interpreter::ParseAnswerHeader(detail::DNS_MsgInfo* msg, const u_char*& data, int& len,
+                                        const u_char* msg_start) {
     u_char name[513];
     int name_len = sizeof(name) - 1;
 
@@ -239,7 +290,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
     if ( ! name_end )
         return false;
 
-    if ( len < int(sizeof(short)) * 2 ) {
+    if ( len < static_cast<int>((sizeof(short)) * 2) ) {
         analyzer->Weird("DNS_truncated_ans_too_short");
         return false;
     }
@@ -250,6 +301,14 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
     msg->query_name = make_intrusive<StringVal>(new String(name, name_end - name, true));
     msg->atype = static_cast<detail::RR_Type>(ExtractShort(data, len));
     msg->aclass = ExtractShort(data, len);
+
+    return true;
+}
+
+bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* msg_start) {
+    if ( ! ParseAnswerHeader(msg, data, len, msg_start) )
+        return false;
+
     msg->ttl = ExtractLong(data, len);
 
     auto rdlength = ExtractShort(data, len);
@@ -257,7 +316,66 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
         analyzer->Weird("DNS_truncated_RR_rdlength_lt_len");
         return false;
     }
-    else if ( rdlength == 0 && len > 0 ) {
+
+    if ( msg->is_dynamic_update ) {
+        if ( msg->answer_type == DNS_UPDATES ) {
+            // For Updates:
+            // 1. The class of a normal RR must be the same as the zone's class.
+            // 1. RRsets being deleted can have TTL and rdlength of zero and the class
+            //    must be ANY.
+            // 2. A name being cleansed of all RRsets must have a type of ANY, TTL of
+            //    zero, rdlength of zero, and a class of ANY.
+            // 3. An RR being deleted from an RRset must have a class of NONE and TTL of
+            //    zero. They're otherwise normal RRs.
+            if ( msg->aclass == DNS_CLASS_ANY && msg->ttl == 0 && rdlength == 0 ) {
+                if ( dns_dynamic_update_del && ! msg->skip_event )
+                    analyzer->EnqueueConnEvent(dns_dynamic_update_del, analyzer->ConnVal(), msg->BuildHdrVal(),
+                                               msg->BuildAnswerVal());
+
+                // emit a reply event with the limited info we have
+                return true;
+            }
+            else if ( ! ((msg->aclass == DNS_CLASS_NONE && msg->ttl == 0) || (msg->aclass == msg->zclass)) ) {
+                analyzer->Weird("DNS_dynamic_update_invalid_update");
+                return true;
+            }
+        }
+        else if ( msg->answer_type == DNS_PREREQUISITES ) {
+            // For prerequisites:
+            // 1. For an RRset that must exist (independent), the class is ANY, read
+            //    length is zero, ttl is zero.
+            // 2. For an RRSet that must exist (dependent), the class is that of the zone,
+            //    ttl is zero.
+            // 3. For an RRSet that must not exist, class is NONE, read length is zero,
+            //    ttl is zero.
+            // 4. For an RR that must exist with a specific name, class is ANY, read
+            //    length is zero, type is ANY, and ttl is zero.
+            // 5. For an RR that must not exist with a specific name, class is NONE, read
+            //    length is zero, type is ANY, and ttl is zero.
+            if ( msg->ttl != 0 ) {
+                // The ttl should always be zero for all prerequisites.
+                analyzer->Weird("DNS_dynamic_update_prereq_nonzero_ttl", util::fmt("%d", msg->ttl));
+                return true;
+            }
+            else if ( ((msg->aclass == DNS_CLASS_ANY || msg->aclass == DNS_CLASS_NONE) && rdlength == 0) ||
+                      (msg->aclass == msg->zclass) ) {
+                if ( dns_dynamic_update_pre && ! msg->skip_event )
+                    analyzer->EnqueueConnEvent(dns_dynamic_update_pre, analyzer->ConnVal(), msg->BuildHdrVal(),
+                                               msg->BuildAnswerVal());
+            }
+            else
+                analyzer->Weird("DNS_dynamic_update_invalid_prereq");
+
+            // We don't parse actual RRs out of prereq sections.
+            return true;
+        }
+    }
+
+    if ( rdlength == 0 && len > 0 ) {
+        if ( msg->is_dynamic_update )
+            // See above for when this isn't allowed.
+            return true;
+
         analyzer->Weird("DNS_zero_rdlength");
         return false;
     }
@@ -393,6 +511,7 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
         // Found terminating label.
         return false;
 
+    // If the label length is 0xc0, this is a pointer to another spot in the packet data.
     if ( (label_len & 0xc0) == 0xc0 ) {
         auto offset = (label_len & ~0xc0) << 8;
 
@@ -423,6 +542,7 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
         name_len -= name_end - name;
         name = name_end;
 
+        // Returning false here causes the loop in ExtractName to exit.
         return false;
     }
 
@@ -577,10 +697,10 @@ bool DNS_Interpreter::ParseRR_SOA(detail::DNS_MsgInfo* msg, const u_char*& data,
         r->Assign(0, new String(mname, mname_end - mname, true));
         r->Assign(1, new String(rname, rname_end - rname, true));
         r->Assign(2, serial);
-        r->AssignInterval(3, double(refresh));
-        r->AssignInterval(4, double(retry));
-        r->AssignInterval(5, double(expire));
-        r->AssignInterval(6, double(minimum));
+        r->AssignInterval(3, static_cast<double>(refresh));
+        r->AssignInterval(4, static_cast<double>(retry));
+        r->AssignInterval(5, static_cast<double>(expire));
+        r->AssignInterval(6, static_cast<double>(minimum));
 
         analyzer->EnqueueConnEvent(dns_SOA_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
                                    std::move(r));
@@ -963,7 +1083,7 @@ bool DNS_Interpreter::ParseRR_TKEY(detail::DNS_MsgInfo* msg, const u_char*& data
 
     if ( dns_TKEY ) {
         detail::TKEY_DATA tkey;
-        tkey.alg_name = new String(alg_name, int(alg_name_end - alg_name), true);
+        tkey.alg_name = new String(alg_name, static_cast<int>(alg_name_end - alg_name), true);
         tkey.inception = inception;
         tkey.expiration = expiration;
         tkey.mode = mode;
@@ -1790,7 +1910,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHand
                                val_mgr->Count(qtype), val_mgr->Count(qclass), make_intrusive<StringVal>(original_name));
 }
 
-DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool arg_is_query) : is_query(arg_is_query) {
+DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool arg_is_query, bool arg_is_netbios)
+    : is_query(arg_is_query), is_netbios(arg_is_netbios) {
     // ### Need to fix alignment if hdr is misaligned (not on a short boundary).
     uint16_t flags = ntohs(hdr->flags);
 
@@ -1805,12 +1926,13 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool arg_is_query) : is_query(arg_i
     CD = (flags & 0x0010) >> 4;
     rcode = (flags & 0x000f);
 
-    qdcount = ntohs(hdr->qdcount);
-    ancount = ntohs(hdr->ancount);
-    nscount = ntohs(hdr->nscount);
+    qd_zo_count = ntohs(hdr->qd_zo_count);
+    an_pr_count = ntohs(hdr->an_pr_count);
+    ns_up_count = ntohs(hdr->ns_up_count);
     arcount = ntohs(hdr->arcount);
 
     id = ntohs(hdr->id);
+    is_dynamic_update = (opcode == DNS_OP_DYNAMIC_UPDATE && ! is_netbios);
 }
 
 RecordValPtr DNS_MsgInfo::BuildHdrVal() {
@@ -1828,10 +1950,11 @@ RecordValPtr DNS_MsgInfo::BuildHdrVal() {
     r->Assign(8, Z);
     r->Assign(9, static_cast<bool>(AD));
     r->Assign(10, static_cast<bool>(CD));
-    r->Assign(11, qdcount);
-    r->Assign(12, ancount);
-    r->Assign(13, nscount);
+    r->Assign(11, qd_zo_count);
+    r->Assign(12, an_pr_count);
+    r->Assign(13, ns_up_count);
     r->Assign(14, arcount);
+    r->Assign(15, is_netbios);
 
     return r;
 }
@@ -1844,7 +1967,7 @@ RecordValPtr DNS_MsgInfo::BuildAnswerVal() {
     r->Assign(1, query_name);
     r->Assign(2, atype);
     r->Assign(3, aclass);
-    r->AssignInterval(4, double(ttl));
+    r->AssignInterval(4, static_cast<double>(ttl));
 
     return r;
 }
@@ -1878,7 +2001,7 @@ RecordValPtr DNS_MsgInfo::BuildEDNS_Val() {
     r->Assign(4, return_error);
     r->Assign(5, version);
     r->Assign(6, z);
-    r->AssignInterval(7, double(ttl));
+    r->AssignInterval(7, static_cast<double>(ttl));
     r->Assign(8, is_query);
 
     return r;
@@ -1946,7 +2069,7 @@ RecordValPtr DNS_MsgInfo::BuildTSIG_Val(struct TSIG_DATA* tsig) {
     r->Assign(2, tsig->alg_name);
     r->Assign(3, tsig->sig);
     r->AssignTime(4, rtime);
-    r->AssignTime(5, double(tsig->fudge));
+    r->AssignTime(5, static_cast<double>(tsig->fudge));
     r->Assign(6, tsig->orig_id);
     r->Assign(7, tsig->rr_error);
     r->Assign(8, is_query);
@@ -1963,9 +2086,9 @@ RecordValPtr DNS_MsgInfo::BuildRRSIG_Val(RRSIG_DATA* rrsig) {
     r->Assign(2, rrsig->type_covered);
     r->Assign(3, rrsig->algorithm);
     r->Assign(4, rrsig->labels);
-    r->AssignInterval(5, double(rrsig->orig_ttl));
-    r->AssignTime(6, double(rrsig->sig_exp));
-    r->AssignTime(7, double(rrsig->sig_incep));
+    r->AssignInterval(5, static_cast<double>(rrsig->orig_ttl));
+    r->AssignTime(6, static_cast<double>(rrsig->sig_exp));
+    r->AssignTime(7, static_cast<double>(rrsig->sig_incep));
     r->Assign(8, rrsig->key_tag);
     r->Assign(9, rrsig->signer_name);
     r->Assign(10, rrsig->signature);
@@ -2131,7 +2254,7 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         if ( msg_buf ) {
             if ( buf_len < msg_size ) {
                 buf_len = msg_size;
-                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc((void*)msg_buf, buf_len));
+                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc(reinterpret_cast<void*>(msg_buf), buf_len));
             }
         }
         else {

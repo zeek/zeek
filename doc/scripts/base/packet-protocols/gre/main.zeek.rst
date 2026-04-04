@@ -12,8 +12,8 @@ Summary
 Redefinable Options
 ###################
 ====================================================================================================== =
-:zeek:id:`PacketAnalyzer::GRE::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef` 
-:zeek:id:`PacketAnalyzer::GRE::gre_ports`: :zeek:type:`set` :zeek:attr:`&redef`                        
+:zeek:id:`PacketAnalyzer::GRE::default_analyzer`: :zeek:type:`PacketAnalyzer::Tag` :zeek:attr:`&redef`
+:zeek:id:`PacketAnalyzer::GRE::gre_ports`: :zeek:type:`set` :zeek:attr:`&redef`
 ====================================================================================================== =
 
 

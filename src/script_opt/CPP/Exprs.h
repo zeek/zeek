@@ -95,8 +95,8 @@ std::string GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs, const std::st
 std::string GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs);
 
 // Support for element-by-element vector operations.
-std::string GenVectorOp(const Expr* e, std::string op, const char* vec_op);
-std::string GenVectorOp(const Expr* e, std::string op1, std::string op2, const char* vec_op);
+std::string GenVectorOp(const Expr* e, const std::string& op, const char* vec_op);
+std::string GenVectorOp(const Expr* e, const std::string& op1, const std::string& op2, const char* vec_op);
 
 // If "all_deep" is true, it means make all of the captures deep copies,
 // not just the ones that were explicitly marked as deep copies.  That
@@ -121,6 +121,16 @@ std::string GenEnum(const TypePtr& et, const ValPtr& ev);
 // Returns the maximum cohort associated with these.
 friend class GlobalInitInfo;
 int ReadyExpr(const ExprPtr& e);
+
+// Creates all the initializations needed for the given profile.
+int ReadyProfile(const std::shared_ptr<ProfileFunc>& pf);
+
+// Tracks which globals we've readied and their associated init cohort.
+std::unordered_map<IDPtr, int> readied_globals;
+
+// Returns the mapping index to use for accessing the given field in
+// the given record, or -1 if no mapping is needed.
+int GetFieldMapping(const RecordType* rt, int field);
 
 // For record that are extended via redef's, maps fields beyond the original
 // definition to locations in the global (in the compiled code) "field_mapping"

@@ -244,6 +244,7 @@ public:
     ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg1, ExprPtr arg2 = nullptr);
     ScriptOptBuiltinExpr(SOBuiltInTag tag, CallExprPtr call);
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     auto Tag() const { return tag; }
 
     ExprPtr GetOp1() const final { return arg1; }

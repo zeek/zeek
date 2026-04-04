@@ -230,14 +230,14 @@
    Give more details about "a_function" here.
    Separating the documentation of the params/return values with
    empty comments is optional, but improves readability of script.
-   
+
 
    :param tag: Function arguments can be described
         like this.
-   
+
 
    :param msg: Another param.
-   
+
 
    :returns: Describe the return type here.
 
@@ -248,11 +248,11 @@
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
-   
+
    ZeekygenExample::a_function should not be confused as a parameter
    in the generated docs, but it also doesn't generate a cross-reference
    link.  Use the see role instead: :zeek:see:`ZeekygenExample::a_function`.
-   
+
 
    :param name: Describe the argument here.
 

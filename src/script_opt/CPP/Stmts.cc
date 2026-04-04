@@ -91,9 +91,17 @@ void CPPCompile::GenInitStmt(const InitStmt* init) {
 
         Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", aggr_name, type_name, type_type, type_ind);
 
-        const auto& attrs = aggr->GetAttrs();
+        auto attrs = aggr->GetAttrs();
         if ( ! attrs )
             continue;
+
+        // Remove attributes that aren't relevant given we don't actually
+        // create local (Zeek) variables.
+        attrs->RemoveAttr(ATTR_IS_USED);
+        attrs->RemoveAttr(ATTR_IS_ASSIGNED);
+
+        if ( attrs->GetAttrs().empty() )
+            return;
 
         auto attrs_offset = AttributesOffset(attrs);
         auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
@@ -162,10 +170,10 @@ void CPPCompile::GenEventStmt(const EventStmt* ev) {
 
     RegisterEvent(ev_n);
 
-    if ( ev_e->Args()->Exprs().length() > 0 )
-        Emit("event_mgr.Enqueue(%s_ev, %s);", globals[string(ev_n)], GenExpr(ev_e->Args(), GEN_VAL_PTR));
-    else
+    if ( ev_e->Args()->Exprs().empty() )
         Emit("event_mgr.Enqueue(%s_ev, Args{});", globals[string(ev_n)]);
+    else
+        Emit("event_mgr.Enqueue(%s_ev, %s);", globals[string(ev_n)], GenExpr(ev_e->Args(), GEN_VAL_PTR));
 }
 
 void CPPCompile::GenSwitchStmt(const SwitchStmt* sw) {
@@ -284,15 +292,15 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases) {
             const auto& c_e_s = c->ExprCases()->AsListExpr()->Exprs();
 
             for ( const auto& c_e : c_e_s ) {
-                auto c_v = c_e->Eval(nullptr);
+                auto c_v = eval_in_isolation(c_e);
                 ASSERT(c_v);
 
                 string c_v_rep;
 
                 if ( is_int )
-                    c_v_rep = Fmt(int(c_v->AsInt()));
+                    c_v_rep = Fmt(static_cast<int>(c_v->AsInt()));
                 else if ( is_uint )
-                    c_v_rep = Fmt(p_hash_type(c_v->AsCount()));
+                    c_v_rep = Fmt(static_cast<p_hash_type>(c_v->AsCount()));
                 else
                     c_v_rep = Fmt(p_hash(c_v));
 
@@ -323,11 +331,11 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
             local_aggrs.push_back(IDNameStr(l));
 
     auto when_lambda = GenExpr(wi->Lambda(), GEN_NATIVE);
-    GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), std::move(local_aggrs));
+    GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), local_aggrs);
 }
 
 void CPPCompile::GenWhenStmt(const WhenInfo* wi, const string& when_lambda, const Location* loc,
-                             vector<string> local_aggrs) {
+                             const vector<string>& local_aggrs) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
     const auto& timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";

@@ -1,6 +1,6 @@
 # This test exercises many of the Linux kinit options against a KDC
 
-# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.pcap %INPUT > output
 # @TEST-EXEC: btest-diff kerberos.log
 # @TEST-EXEC: btest-diff output
 
@@ -12,5 +12,3 @@ event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options)
 	print ticket;
 	print opts;
 	}
-
-

@@ -13,20 +13,20 @@ Summary
 Types
 #####
 ============================================ =
-:zeek:type:`NTLM::Info`: :zeek:type:`record` 
+:zeek:type:`NTLM::Info`: :zeek:type:`record`
 ============================================ =
 
 Redefinitions
 #############
 ======================================================================= ======================================================
-:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef` 
-:zeek:type:`Log::ID`: :zeek:type:`enum`                                 
-                                                                        
+:zeek:id:`DPD::ignore_violations`: :zeek:type:`set` :zeek:attr:`&redef`
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                         * :zeek:enum:`NTLM::LOG`
-:zeek:type:`connection`: :zeek:type:`record`                            
-                                                                        
+:zeek:type:`connection`: :zeek:type:`record`
+
                                                                         :New Fields: :zeek:type:`connection`
-                                                                        
+
                                                                           ntlm: :zeek:type:`NTLM::Info` :zeek:attr:`&optional`
 ======================================================================= ======================================================
 
@@ -34,7 +34,7 @@ Hooks
 #####
 ============================================================== =======================
 :zeek:id:`NTLM::finalize_ntlm`: :zeek:type:`Conn::RemovalHook` NTLM finalization hook.
-:zeek:id:`NTLM::log_policy`: :zeek:type:`Log::PolicyHook`      
+:zeek:id:`NTLM::log_policy`: :zeek:type:`Log::PolicyHook`
 ============================================================== =======================
 
 

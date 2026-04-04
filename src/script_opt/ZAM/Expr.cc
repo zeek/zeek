@@ -9,7 +9,7 @@
 
 namespace zeek::detail {
 
-const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
+ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
     switch ( e->Tag() ) {
         case EXPR_INCR:
         case EXPR_DECR: return CompileIncrExpr(static_cast<const IncrExpr*>(e));
@@ -57,7 +57,7 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
     }
 }
 
-const ZAMStmt ZAMCompiler::CompileIncrExpr(const IncrExpr* e) {
+ZAMStmt ZAMCompiler::CompileIncrExpr(const IncrExpr* e) {
     auto target = e->Op()->AsRefExpr()->GetOp1()->AsNameExpr();
 
     if ( target->GetType()->Tag() == TYPE_INT ) {
@@ -73,7 +73,7 @@ const ZAMStmt ZAMCompiler::CompileIncrExpr(const IncrExpr* e) {
         return DecrUV(target);
 }
 
-const ZAMStmt ZAMCompiler::CompileAppendToExpr(const AppendToExpr* e) {
+ZAMStmt ZAMCompiler::CompileAppendToExpr(const AppendToExpr* e) {
     auto n1 = e->GetOp1()->AsNameExpr();
     auto op2 = e->GetOp2();
     auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
@@ -85,7 +85,7 @@ const ZAMStmt ZAMCompiler::CompileAppendToExpr(const AppendToExpr* e) {
     return n2 ? AppendToVV(n1, n2) : AppendToVC(n1, cc);
 }
 
-const ZAMStmt ZAMCompiler::CompileAdd(const AggrAddExpr* e) {
+ZAMStmt ZAMCompiler::CompileAdd(const AggrAddExpr* e) {
     auto op = e->GetOp1();
     auto aggr = op->GetOp1()->AsNameExpr();
     auto index_list = op->GetOp2();
@@ -107,7 +107,7 @@ const ZAMStmt ZAMCompiler::CompileAdd(const AggrAddExpr* e) {
     return AddStmtVO(aggr, BuildVals(indices).get());
 }
 
-const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
+ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     auto op = e->GetOp1();
 
     if ( op->Tag() == EXPR_NAME ) {
@@ -122,8 +122,10 @@ const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     auto aggr = op->GetOp1()->AsNameExpr();
 
     if ( op->Tag() == EXPR_FIELD ) {
-        int field = op->AsFieldExpr()->Field();
-        return DelFieldVi(aggr, field);
+        int f = op->AsFieldExpr()->Field();
+        auto stmt = DelFieldVi(aggr, f);
+        last_added_inst->TrackRecordTypeForField(cast_intrusive<RecordType>(aggr->GetType()), f);
+        return stmt;
     }
 
     auto index_list = op->GetOp2();
@@ -135,7 +137,7 @@ const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     return DelTableVO(aggr, internal_ind.get());
 }
 
-const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
+ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
     auto op1 = e->GetOp1();
     auto t1 = op1->GetType()->Tag();
 
@@ -160,6 +162,7 @@ const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
         }
 
         z.SetType(n2 ? n2->GetType() : cc->GetType());
+        z.TrackRecordTypeForField(cast_intrusive<RecordType>(n1->GetType()), f);
 
         return AddInst(z);
     }
@@ -177,7 +180,7 @@ const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
     return n2 ? AddTableToTableVV(n1, n2) : AddTableToTableVC(n1, cc);
 }
 
-const ZAMStmt ZAMCompiler::CompileRemoveFromExpr(const RemoveFromExpr* e) {
+ZAMStmt ZAMCompiler::CompileRemoveFromExpr(const RemoveFromExpr* e) {
     auto n1 = e->GetOp1()->AsNameExpr();
     auto op2 = e->GetOp2();
 
@@ -187,7 +190,7 @@ const ZAMStmt ZAMCompiler::CompileRemoveFromExpr(const RemoveFromExpr* e) {
     return n2 ? RemoveTableFromTableVV(n1, n2) : RemoveTableFromTableVC(n1, cc);
 }
 
-const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
+ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
     auto op1 = e->GetOp1();
     auto op2 = e->GetOp2();
 
@@ -284,7 +287,7 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
 #include "ZAM-GenExprsDefsV.h"
 }
 
-const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* e) {
+ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* e) {
     auto rhs = e->GetOp2()->AsNameExpr();
 
     auto& rhs_map = e->RHSMap();
@@ -352,10 +355,13 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* 
     auto z = GenInst(op, lhs, rhs);
     z.aux = aux;
 
+    z.SetType(lhs->GetType());
+    z.SetType2(rhs->GetType());
+
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi) {
+ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi) {
     auto op1 = zbi->GetOp1();
     auto op2 = zbi->GetOp2();
 
@@ -420,7 +426,7 @@ const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOp
     }
 }
 
-const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs) {
+ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs) {
     auto aggr = rhs->GetOp1();
     auto const_aggr = aggr->Tag() == EXPR_CONST;
 
@@ -460,7 +466,7 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const Index
         return IndexVVL(lhs, n, indexes_expr);
 }
 
-const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e) {
+ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e) {
     auto lhs = e->Op1()->AsNameExpr();
     auto rhs = e->Op2();
     auto field = e->Field();
@@ -495,7 +501,7 @@ const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e
 #include "ZAM-GenFieldsDefsV.h"
 }
 
-const ZAMStmt ZAMCompiler::CompileScheduleExpr(const ScheduleExpr* e) {
+ZAMStmt ZAMCompiler::CompileScheduleExpr(const ScheduleExpr* e) {
     auto event = e->Event();
     auto when = e->When();
 
@@ -510,8 +516,8 @@ const ZAMStmt ZAMCompiler::CompileScheduleExpr(const ScheduleExpr* e) {
         return ScheduleCiHL(when->AsConstExpr(), is_interval, handler.Ptr(), event_args);
 }
 
-const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c, int is_interval, EventHandler* h,
-                                           const ListExpr* l) {
+ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c, int is_interval, EventHandler* h,
+                                     const ListExpr* l) {
     int len = l->Exprs().length();
     ZInstI z;
 
@@ -539,7 +545,7 @@ const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
+ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
     const auto& exprs = l->Exprs();
     unsigned int n = exprs.length();
 
@@ -614,8 +620,8 @@ const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c2,
-                                         const NameExpr* n3, const ConstExpr* c3) {
+ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c2, const NameExpr* n3,
+                                   const ConstExpr* c3) {
     const Expr* op2 = n2;
     const Expr* op3 = n3;
 
@@ -676,8 +682,7 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2,
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2,
-                                         const ConstExpr* c) {
+ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2, const ConstExpr* c) {
     auto& l_e = l->Exprs();
     int n = l_e.length();
 
@@ -752,7 +757,7 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
         return AddInst(z);
     }
 
-    auto aggr = n2 ? (Expr*)n2 : (Expr*)c;
+    auto aggr = n2 ? reinterpret_cast<const Expr*>(n2) : reinterpret_cast<const Expr*>(c);
 
     ASSERT(aggr->GetType()->Tag() != TYPE_VECTOR);
 
@@ -770,17 +775,17 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l, bool in_when) {
+ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l, bool in_when) {
     return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l, in_when);
 }
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l, bool in_when) {
+ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l, bool in_when) {
     auto tmp = TempForConst(c);
     return CompileIndex(n, tmp, c->GetType(), l, in_when);
 }
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2t, const ListExpr* l,
-                                        bool in_when) {
+ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2t, const ListExpr* l,
+                                  bool in_when) {
     ZInstI z;
 
     int n = l->Exprs().length();
@@ -935,11 +940,11 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, ExprPtr e) {
+ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, ExprPtr e) {
     return BuildLambda(Frame1Slot(n, OP1_WRITE), std::move(e));
 }
 
-const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
+ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
     auto lambda = cast_intrusive<LambdaExpr>(e);
     auto& captures = lambda->GetCaptures();
     int ncaptures = captures ? captures->size() : 0;
@@ -964,7 +969,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
+ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
     ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
     auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
@@ -1055,7 +1060,7 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
     return inst;
 }
 
-const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
+ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
     ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
     auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
@@ -1079,7 +1084,7 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
+ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
     auto c = cast_intrusive<CallExpr>(e->StmtExprPtr());
 
     if ( CheckForBuiltIn(c, c) )
@@ -1088,7 +1093,7 @@ const ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
     return DoCall(e->StmtExpr()->AsCallExpr(), nullptr);
 }
 
-const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e) {
+ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e) {
     auto assign = e->StmtExpr()->AsAssignExpr();
     auto call = cast_intrusive<CallExpr>(assign->GetOp2());
 
@@ -1113,7 +1118,7 @@ bool ZAMCompiler::CheckForBuiltIn(const ExprPtr& e, CallExprPtr c) {
     return true;
 }
 
-const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
+ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     auto func = c->Func()->AsNameExpr();
     auto func_id = func->IdPtr();
     auto func_val = func_id->GetVal();
@@ -1280,7 +1285,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto con = e->GetOp1()->AsListExpr();
     auto tt = cast_intrusive<TableType>(n->GetType());
     auto width = tt->GetIndices()->GetTypes().size();
@@ -1319,7 +1324,7 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto con = e->GetOp1()->AsListExpr();
     auto tt = n->GetType()->AsTableType();
     auto width = tt->GetIndices()->GetTypes().size();
@@ -1333,7 +1338,7 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_from_rec) {
+ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_from_rec) {
     auto rec_e = is_from_rec ? e->GetOp1().get() : e;
     ASSERT(rec_e->Tag() == EXPR_RECORD_CONSTRUCTOR);
     auto rc = static_cast<const RecordConstructorExpr*>(rec_e);
@@ -1414,6 +1419,8 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
     ZInstI z;
 
+    TypePtr rhs_t; // in case we're constructing from a record
+
     if ( is_from_rec ) {
         // Map non-from-rec operand to the from-rec equivalent.
         switch ( op ) {
@@ -1436,6 +1443,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
         auto cfr = static_cast<const ConstructFromRecordExpr*>(e);
         auto from_n = cfr->GetOp2()->AsNameExpr();
+
+        rhs_t = from_n->GetType();
+
         if ( network_time_index >= 0 )
             z = GenInst(op, n, from_n, network_time_index);
         else
@@ -1455,6 +1465,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
 
     z.aux = aux;
     z.SetType(rec_e->GetType());
+
+    if ( rhs_t )
+        z.SetType2(rhs_t);
 
     auto inst = AddInst(z);
 
@@ -1504,7 +1517,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ConstructVector(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::ConstructVector(const NameExpr* n, const Expr* e) {
     auto con = e->GetOp1()->AsListExpr();
 
     auto z = GenInst(OP_CONSTRUCT_VECTOR_V, n);
@@ -1514,7 +1527,7 @@ const ZAMStmt ZAMCompiler::ConstructVector(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
     const auto& nt = n->GetType();
     auto nt_is_vec = nt->Tag() == TYPE_VECTOR;
 
@@ -1575,7 +1588,7 @@ const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
     return AddInst(GenInst(a, n, op->AsNameExpr()));
 }
 
-const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
     ASSERT(e->Tag() == EXPR_RECORD_COERCE);
     auto r = static_cast<const RecordCoerceExpr*>(e);
     auto op = r->GetOp1()->AsNameExpr();
@@ -1604,7 +1617,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::TableCoerce(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::TableCoerce(const NameExpr* n, const Expr* e) {
     auto op = e->GetOp1()->AsNameExpr();
 
     int op_slot = FrameSlot(op);
@@ -1615,7 +1628,7 @@ const ZAMStmt ZAMCompiler::TableCoerce(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::VectorCoerce(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::VectorCoerce(const NameExpr* n, const Expr* e) {
     auto op = e->GetOp1()->AsNameExpr();
     int op_slot = FrameSlot(op);
 
@@ -1626,7 +1639,7 @@ const ZAMStmt ZAMCompiler::VectorCoerce(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::Is(const NameExpr* n, const Expr* e) {
+ZAMStmt ZAMCompiler::Is(const NameExpr* n, const Expr* e) {
     auto is = e->AsIsExpr();
     auto op = e->GetOp1()->AsNameExpr();
     int op_slot = FrameSlot(op);

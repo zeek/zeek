@@ -16,7 +16,7 @@ Support for postprocessors in the logging framework.
    rotation time intervals.  Generally, to use this functionality
    you must handle the :zeek:id:`zeek_init` event and do the following
    in your handler:
-   
+
    1) Create a new :zeek:type:`Log::Filter` record that defines a name/path,
       rotation interval, and set the ``postprocessor`` to
       :zeek:id:`Log::scp_postprocessor`.
@@ -33,7 +33,7 @@ Support for postprocessors in the logging framework.
    rotation time intervals.  Generally, to use this functionality
    you must handle the :zeek:id:`zeek_init` event and do the following
    in your handler:
-   
+
    1) Create a new :zeek:type:`Log::Filter` record that defines a name/path,
       rotation interval, and set the ``postprocessor`` to
       :zeek:id:`Log::sftp_postprocessor`.

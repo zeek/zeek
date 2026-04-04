@@ -360,7 +360,7 @@ Types
    :Attributes: :zeek:attr:`&log`
 
    Openflow match definition.
-   
+
    The openflow match record describes
    which packets match to a specific
    rule in a flow table.

@@ -25,8 +25,8 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ===============================================================
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`TeamCymruMalwareHashRegistry::Match`:
                                                The hash value of a file transferred over HTTP matched in the
                                                malware hash registry.

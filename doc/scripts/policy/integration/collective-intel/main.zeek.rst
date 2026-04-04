@@ -19,30 +19,30 @@ Types
 Redefinitions
 #############
 ================================================= ====================================================================================
-:zeek:type:`Intel::Info`: :zeek:type:`record`     
-                                                  
+:zeek:type:`Intel::Info`: :zeek:type:`record`
+
                                                   :New Fields: :zeek:type:`Intel::Info`
-                                                  
+
                                                     cif: :zeek:type:`Intel::CIF` :zeek:attr:`&log` :zeek:attr:`&optional`
 :zeek:type:`Intel::MetaData`: :zeek:type:`record` This file adds mapping between the Collective Intelligence Framework (CIF) and Zeek.
-                                                  
+
                                                   :New Fields: :zeek:type:`Intel::MetaData`
-                                                  
+
                                                     cif_tags: :zeek:type:`string` :zeek:attr:`&optional`
                                                       Maps to the 'tags' fields in CIF
-                                                  
+
                                                     cif_confidence: :zeek:type:`double` :zeek:attr:`&optional`
                                                       Maps to the 'confidence' field in CIF
-                                                  
+
                                                     cif_source: :zeek:type:`string` :zeek:attr:`&optional`
                                                       Maps to the 'source' field in CIF
-                                                  
+
                                                     cif_description: :zeek:type:`string` :zeek:attr:`&optional`
                                                       Maps to the 'description' field in CIF
-                                                  
+
                                                     cif_firstseen: :zeek:type:`string` :zeek:attr:`&optional`
                                                       Maps to the 'firstseen' field in CIF
-                                                  
+
                                                     cif_lastseen: :zeek:type:`string` :zeek:attr:`&optional`
                                                       Maps to the 'lastseen' field in CIF
 ================================================= ====================================================================================

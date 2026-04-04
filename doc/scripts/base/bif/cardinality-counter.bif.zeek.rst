@@ -32,16 +32,16 @@ Functions
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality, elem: :zeek:type:`any`) : :zeek:type:`bool`
 
    Adds an element to a HyperLogLog cardinality counter.
-   
+
 
    :param handle: the HLL handle.
-   
+
 
    :param elem: the element to add.
-   
+
 
    :returns: true on success.
-   
+
    .. zeek:see:: hll_cardinality_estimate hll_cardinality_merge_into
       hll_cardinality_init hll_cardinality_copy
 
@@ -51,13 +51,13 @@ Functions
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality) : :zeek:type:`opaque` of cardinality
 
    Copy a HLL cardinality counter.
-   
+
 
    :param handle: cardinality counter to copy.
-   
+
 
    :returns: copy of handle.
-   
+
    .. zeek:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
       hll_cardinality_init
 
@@ -67,13 +67,13 @@ Functions
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality) : :zeek:type:`double`
 
    Estimate the current cardinality of an HLL cardinality counter.
-   
+
 
    :param handle: the HLL handle.
-   
+
 
    :returns: the cardinality estimate. Returns -1.0 if the counter is empty.
-   
+
    .. zeek:see:: hll_cardinality_merge_into hll_cardinality_add
       hll_cardinality_init hll_cardinality_copy
 
@@ -84,16 +84,16 @@ Functions
 
    Initializes a probabilistic cardinality counter that uses the HyperLogLog
    algorithm.
-   
+
 
    :param err: the desired error rate (e.g. 0.01).
-   
+
 
    :param confidence: the desired confidence for the error rate (e.g., 0.95).
-   
+
 
    :returns: a HLL cardinality handle.
-   
+
    .. zeek:see:: hll_cardinality_estimate hll_cardinality_merge_into hll_cardinality_add
       hll_cardinality_copy
 
@@ -103,19 +103,19 @@ Functions
    :Type: :zeek:type:`function` (handle1: :zeek:type:`opaque` of cardinality, handle2: :zeek:type:`opaque` of cardinality) : :zeek:type:`bool`
 
    Merges a HLL cardinality counter into another.
-   
+
    .. note:: The same restrictions as for Bloom filter merging apply,
       see :zeek:id:`bloomfilter_merge`.
-   
+
 
    :param handle1: the first HLL handle, which will contain the merged result.
-   
+
 
    :param handle2: the second HLL handle, which will be merged into the first.
-   
+
 
    :returns: true on success.
-   
+
    .. zeek:see:: hll_cardinality_estimate  hll_cardinality_add
       hll_cardinality_init hll_cardinality_copy
 

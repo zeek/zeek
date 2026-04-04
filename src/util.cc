@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <filesystem>
 #include <iostream>
 #include <ranges>
@@ -76,12 +77,6 @@ const string zeek_path_list_separator(path_list_separator.begin(), path_list_sep
 namespace zeek::util {
 namespace detail {
 
-TEST_CASE("util extract_ip") {
-    CHECK(extract_ip("[1.2.3.4]") == "1.2.3.4");
-    CHECK(extract_ip("0x1.2.3.4") == "1.2.3.4");
-    CHECK(extract_ip("[]") == "");
-}
-
 /**
  * Return IP address without enclosing brackets and any leading 0x.  Also
  * trims leading/trailing whitespace.
@@ -89,7 +84,7 @@ TEST_CASE("util extract_ip") {
 std::string extract_ip(const std::string& i) {
     std::string s(strstrip(i));
 
-    if ( s.size() > 0 && s[0] == '[' )
+    if ( ! s.empty() && s[0] == '[' )
         s.erase(0, 1);
 
     if ( s.starts_with("0x") )
@@ -99,24 +94,6 @@ std::string extract_ip(const std::string& i) {
         s = s.substr(0, pos);
 
     return s;
-}
-
-TEST_CASE("util extract_ip_and_len") {
-    int len;
-    std::string out = extract_ip_and_len("[1.2.3.4/24]", &len);
-    CHECK(out == "1.2.3.4");
-    CHECK(len == 24);
-
-    out = extract_ip_and_len("0x1.2.3.4/32", &len);
-    CHECK(out == "1.2.3.4");
-    CHECK(len == 32);
-
-    out = extract_ip_and_len("[]/abcd", &len);
-    CHECK(out == "");
-    CHECK(len == 0);
-
-    out = extract_ip_and_len("[]/16", nullptr);
-    CHECK(out == "");
 }
 
 /**
@@ -229,7 +206,7 @@ int expand_escape(const char*& s) {
 
 const char* fmt_access_time(double t) {
     static char buf[256];
-    time_t time = (time_t)t;
+    time_t time = static_cast<time_t>(t);
     struct tm ts;
 
     if ( ! localtime_r(&time, &ts) ) {
@@ -286,15 +263,26 @@ bool ensure_dir(const char* dirname) {
 }
 
 void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]) {
-    if ( ! zeek::detail::KeyedHash::seeds_initialized )
-        reporter->InternalError("HMAC-MD5 invoked before the HMAC key is set");
+    zeek::detail::KeyedHash::InitializeHmacMd5Seed();
 
-    zeek::detail::internal_md5(bytes, size, digest);
+    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, bytes, size, digest);
 
     for ( int i = 0; i < 16; ++i )
         digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
 
-    zeek::detail::internal_md5(digest, 16, digest);
+    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, digest, 16, digest);
+}
+
+void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]) {
+    if ( ! zeek::detail::KeyedHash::seeds_initialized )
+        reporter->InternalError("hmac_sha256 invoked before the HMAC key is set");
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, bytes, size, digest);
+
+    for ( size_t i = 0; i < ZEEK_SHA256_DIGEST_LENGTH; ++i )
+        digest[i] ^= zeek::detail::KeyedHash::shared_hmac_sha256_key[i];
+
+    zeek::detail::calculate_digest(zeek::detail::Hash_SHA256, digest, ZEEK_SHA256_DIGEST_LENGTH, digest);
 }
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
@@ -500,11 +488,6 @@ long int random_number() {
     return zeek_rand_state;
 }
 
-TEST_CASE("util is_package_loader") {
-    CHECK(is_package_loader("/some/path/__load__.zeek") == true);
-    CHECK(is_package_loader("/some/path/notload.zeek") == false);
-}
-
 bool is_package_loader(const string& path) {
     string filename(std::move(SafeBasename(path).result));
     return (filename == "__load__.zeek");
@@ -533,17 +516,6 @@ FILE* open_package(string& path, const string& mode) {
     return nullptr;
 }
 
-TEST_CASE("util flatten_script_name") {
-    CHECK(flatten_script_name("script", "some/path") == "some.path.script");
-#ifndef _MSC_VER
-    // TODO: this test fails on Windows because the implementation of dirname() in libunistd
-    // returns a trailing slash on paths, even tho the POSIX implementation doesn't. Commenting
-    // this out until we can fix that.
-    CHECK(flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
-#endif
-    CHECK(flatten_script_name("path/to/script", "") == "path.to.script");
-}
-
 string flatten_script_name(const string& name, const string& prefix) {
     string rval = prefix;
 
@@ -560,37 +532,12 @@ string flatten_script_name(const string& name, const string& prefix) {
     while ( (i = rval.find('/')) != string::npos )
         rval[i] = '.';
 
-    return rval;
-}
-
-TEST_CASE("util normalize_path") {
 #ifdef _MSC_VER
-    // TODO: adapt these tests to Windows
-#else
-    CHECK(normalize_path("/1/2/3") == "/1/2/3");
-    CHECK(normalize_path("/1/./2/3") == "/1/2/3");
-    CHECK(normalize_path("/1/2/../3") == "/1/3");
-    CHECK(normalize_path("1/2/3/") == "1/2/3");
-    CHECK(normalize_path("1/2//3///") == "1/2/3");
-    CHECK(normalize_path("~/zeek/testing") == "~/zeek/testing");
-    CHECK(normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
-    CHECK(normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
-    CHECK(normalize_path("~/zeek/testing/../././.") == "~/zeek");
-    CHECK(normalize_path("./zeek") == "./zeek");
-    CHECK(normalize_path("../zeek") == "../zeek");
-    CHECK(normalize_path("../zeek/testing/..") == "../zeek");
-    CHECK(normalize_path("./zeek/..") == ".");
-    CHECK(normalize_path("./zeek/../..") == "..");
-    CHECK(normalize_path("./zeek/../../..") == "../..");
-    CHECK(normalize_path("./..") == "..");
-    CHECK(normalize_path("../..") == "../..");
-    CHECK(normalize_path("/..") == "/..");
-    CHECK(normalize_path("~/..") == "~/..");
-    CHECK(normalize_path("/../..") == "/../..");
-    CHECK(normalize_path("~/../..") == "~/../..");
-    CHECK(normalize_path("zeek/..") == "");
-    CHECK(normalize_path("zeek/../..") == "..");
+    while ( (i = rval.find('\\')) != string::npos )
+        rval[i] = '.';
 #endif
+
+    return rval;
 }
 
 string normalize_path(std::string_view path) {
@@ -603,7 +550,23 @@ string normalize_path(std::string_view path) {
     if ( stringPath.starts_with("//") ) {
         stringPath.erase(0, 2);
     }
-    return std::filesystem::path(stringPath).lexically_normal().string();
+    auto result = std::filesystem::path(stringPath).lexically_normal().generic_string();
+
+    // lexically_normal() strips a leading "./" but the POSIX implementation
+    // preserves it.  Re-add when the original path started with "./" or ".\".
+    bool had_dot_prefix = stringPath.starts_with("./") || stringPath.starts_with(".\\");
+    if ( had_dot_prefix && result != "." && ! result.starts_with("./") && ! result.starts_with("../") )
+        result = "./" + result;
+
+    if ( result.size() > 1 && result.back() == '/' ) {
+        bool is_drive_root = result.size() == 3 && std::isalpha(static_cast<unsigned char>(result[0])) &&
+                             result[1] == ':' && result[2] == '/';
+
+        if ( ! is_drive_root )
+            result.pop_back();
+    }
+
+    return result;
 #else
     if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos ) {
         // no need to normalize anything
@@ -624,7 +587,7 @@ string normalize_path(std::string_view path) {
     final_components.reserve(components.size());
 
     for ( auto it = components.begin(); it != components.end(); ++it ) {
-        if ( *it == "" )
+        if ( it->empty() )
             continue;
         if ( *it == "." && it != components.begin() )
             continue;
@@ -701,14 +664,13 @@ std::string get_exe_path(const std::string& invocation) {
 
     if ( invocation_path.is_relative() && invocation_path.has_parent_path() ) {
         // Relative path
-        char cwd[PATH_MAX];
-
-        if ( ! getcwd(cwd, sizeof(cwd)) ) {
-            fprintf(stderr, "failed to get current directory: %s\n", strerror(errno));
+        std::error_code ec;
+        auto cwd = std::filesystem::current_path(ec);
+        if ( ec ) {
+            fprintf(stderr, "failed to get current directory: %s\n", ec.message().c_str());
             exit(1);
         }
-
-        return (std::filesystem::path(cwd) / invocation_path).string();
+        return (cwd / invocation_path).string();
     }
 
     auto path = getenv("PATH");
@@ -742,6 +704,30 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info) {
 
     // Then move old file to "<name>.<pid>.<timestamp>" and make sure
     // it really gets created.
+#ifdef _MSC_VER
+    // Windows doesn't support hard links via link(). Use rename() instead.
+    if ( rename(name, newname) < 0 ) {
+        reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
+        fclose(newf);
+        unlink(tmpname);
+        return nullptr;
+    }
+
+    // Close tmpfile before renaming (Windows locks open files).
+    fclose(newf);
+
+    if ( rename(tmpname, name) < 0 ) {
+        reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
+        exit(1); // hard to fix, but shouldn't happen anyway...
+    }
+
+    // Reopen the file at its new location.
+    newf = fopen(name, "w");
+    if ( ! newf ) {
+        reporter->Error("rotate_file: can't reopen %s: %s", name, strerror(errno));
+        return nullptr;
+    }
+#else
     struct stat dummy;
     if ( link(name, newname) < 0 || stat(newname, &dummy) < 0 ) {
         reporter->Error("rotate_file: can't move %s to %s: %s", name, newname, strerror(errno));
@@ -756,6 +742,7 @@ FILE* rotate_file(const char* name, RecordVal* rotate_info) {
         reporter->Error("rotate_file: can't move %s to %s: %s", tmpname, name, strerror(errno));
         exit(1); // hard to fix, but shouldn't happen anyway...
     }
+#endif
 
     // Init rotate_info.
     if ( rotate_info ) {
@@ -794,7 +781,7 @@ double calc_next_rotate(double current, double interval, double base) {
     }
 
     // Calculate start of day.
-    time_t teatime = time_t(current);
+    time_t teatime = static_cast<time_t>(current);
 
     struct tm t;
     if ( ! localtime_r(&teatime, &t) ) {
@@ -819,7 +806,7 @@ double calc_next_rotate(double current, double interval, double base) {
 
 void terminate_processing() {
     if ( ! run_state::terminating )
-        kill(getpid(), SIGTERM);
+        raise(SIGTERM);
 }
 
 void set_processing_status(const char* status, const char* reason) {
@@ -899,19 +886,21 @@ int setvbuf(FILE* stream, char* buf, int type, size_t size) {
 #ifndef _MSC_VER
     return ::setvbuf(stream, buf, type, size);
 #else
-    // TODO: this turns off buffering altogether because Windows wants us to pass a valid
-    // buffer and length if we're going to pass one of the other modes. We need to
-    // investigate the performance ramifications of this.
-    return ::setvbuf(stream, NULL, _IONBF, 0);
+    // MSVC doesn't support _IOLBF (line buffering) and treats it as _IOFBF.
+    // Use _IONBF instead so data is flushed promptly on each write, which is
+    // closer to line-buffering semantics than full buffering.
+    if ( type == _IOLBF )
+        return ::setvbuf(stream, NULL, _IONBF, 0);
+
+    // For _IOFBF, allocate a default-sized buffer when none is provided.
+    if ( type == _IOFBF && buf == nullptr && size == 0 )
+        size = BUFSIZ;
+
+    return ::setvbuf(stream, buf, type, size);
 #endif
 }
 
 } // namespace detail
-
-TEST_CASE("util get_unescaped_string") {
-    CHECK(get_unescaped_string("abcde") == "abcde");
-    CHECK(get_unescaped_string("\\x41BCD\\x45") == "ABCDE");
-}
 
 /**
  * Takes a string, unescapes all characters that are escaped as hex codes
@@ -944,28 +933,6 @@ std::string get_unescaped_string(const std::string& arg_str) {
     delete[] buf;
 
     return outstring;
-}
-
-TEST_CASE("util get_escaped_string") {
-    SUBCASE("returned ODesc") {
-        ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
-        CHECK(strcmp(d->Description(), "a\\x20bcd\\x0a") == 0);
-        delete d;
-    }
-
-    SUBCASE("provided ODesc") {
-        ODesc d2;
-        get_escaped_string(&d2, "ab\\e", 4, true);
-        CHECK(strcmp(d2.Description(), "\\x61\\x62\\\\\\x65") == 0);
-    }
-
-    SUBCASE("std::string versions") {
-        std::string s = get_escaped_string("a b c", 5, false);
-        CHECK(s == "a\\x20b\\x20c");
-
-        s = get_escaped_string("d e", false);
-        CHECK(s == "d\\x20e");
-    }
 }
 
 /**
@@ -1028,11 +995,6 @@ char* copy_string(const char* s) {
     return c;
 }
 
-TEST_CASE("util streq") {
-    CHECK(streq("abcd", "abcd") == true);
-    CHECK(streq("abcd", "efgh") == false);
-}
-
 bool streq(const char* s1, const char* s2) { return strcmp(s1, s2) == 0; }
 
 bool starts_with(std::string_view s, std::string_view beginning) { return s.starts_with(beginning); }
@@ -1068,27 +1030,6 @@ char* skip_digits(char* s) {
     return s;
 }
 
-TEST_CASE("util get_word") {
-    char orig[10];
-    strcpy(orig, "two words");
-
-    SUBCASE("get first word") {
-        char* a = (char*)orig;
-        char* b = get_word(a);
-
-        CHECK(strcmp(a, "words") == 0);
-        CHECK(strcmp(b, "two") == 0);
-    }
-
-    SUBCASE("get length of first word") {
-        int len = strlen(orig);
-        int len2;
-        const char* b = nullptr;
-        get_word(len, orig, len2, b);
-        CHECK(len2 == 3);
-    }
-}
-
 char* get_word(char*& s) {
     char* w = s;
     while ( *s && ! isspace(*s) )
@@ -1102,19 +1043,6 @@ char* get_word(char*& s) {
     return w;
 }
 
-TEST_CASE("util get_word 2") {
-    char orig[10];
-    strcpy(orig, "two words");
-
-    char* a = (char*)orig;
-    const char* b;
-    int blen;
-
-    get_word(9, a, blen, b);
-    CHECK(blen == 3);
-    CHECK(a == b);
-}
-
 void get_word(int length, const char* s, int& pwlen, const char*& pw) {
     pw = s;
 
@@ -1125,16 +1053,6 @@ void get_word(int length, const char* s, int& pwlen, const char*& pw) {
     }
 
     pwlen = len;
-}
-
-TEST_CASE("util to_upper") {
-    char a[10];
-    strcpy(a, "aBcD");
-    to_upper(a);
-    CHECK(strcmp(a, "ABCD") == 0);
-
-    std::string b = "aBcD";
-    CHECK(to_upper(b) == "ABCD");
 }
 
 void to_upper(char* s) {
@@ -1175,15 +1093,6 @@ unsigned char encode_hex(int h) {
     return hex[h];
 }
 
-TEST_CASE("util strpbrk_n") {
-    const char* s = "abcdef";
-    const char* o = strpbrk_n(5, s, "gc");
-    CHECK(strcmp(o, "cdef") == 0);
-
-    const char* f = strpbrk_n(5, s, "xyz");
-    CHECK(f == nullptr);
-}
-
 // Same as strpbrk except that s is not NUL-terminated, but limited by
 // len. Note that '\0' is always implicitly contained in charset.
 const char* strpbrk_n(size_t len, const char* s, const char* charset) {
@@ -1219,36 +1128,9 @@ char* strcasestr(const char* s, const char* find) {
     return (char*)s;
 }
 
-TEST_CASE("util strcasestr") {
-    const char* s = "this is a string";
-    const char* out = strcasestr(s, "is a");
-    CHECK(strcmp(out, "is a string") == 0);
-
-    const char* out2 = strcasestr(s, "Is A");
-    CHECK(strcmp(out2, "is a string") == 0);
-
-    const char* out3 = strcasestr(s, "not there");
-    CHECK(out3 == nullptr);
-}
-
 #endif
 
-TEST_CASE("util atoi_n") {
-    const char* dec = "12345";
-    int val;
-
-    CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 1);
-    CHECK(val == 12345);
-
-    const char* hex = "12AB";
-    CHECK(atoi_n(strlen(hex), hex, nullptr, 16, val) == 1);
-    CHECK(val == 0x12AB);
-
-    const char* fail = "XYZ";
-    CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);
-}
-
-template<class T>
+template<std::integral T>
 int atoi_n(int len, const char* s, const char** end, int base, T& result) {
     T n = 0;
     int neg = 0;
@@ -1299,14 +1181,6 @@ template int atoi_n<uint32_t>(int len, const char* s, const char** end, int base
 template int atoi_n<int64_t>(int len, const char* s, const char** end, int base, int64_t& result);
 template int atoi_n<uint64_t>(int len, const char* s, const char** end, int base, uint64_t& result);
 
-TEST_CASE("util uitoa_n") {
-    int val = 12345;
-    char str[20];
-    const char* result = uitoa_n(val, str, 20, 10, "pref: ");
-    // TODO: i'm not sure this is the correct output. was it supposed to reverse the digits?
-    CHECK(strcmp(str, "pref: 54321") == 0);
-}
-
 char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix) {
     static constexpr char dig[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -1337,21 +1211,6 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix) {
     return str;
 }
 
-TEST_CASE("util strstr_n") {
-    const u_char* s = reinterpret_cast<const u_char*>("this is a string");
-    int out = strstr_n(16, s, 3, reinterpret_cast<const u_char*>("str"));
-    CHECK(out == 10);
-
-    out = strstr_n(16, s, 17, reinterpret_cast<const u_char*>("is"));
-    CHECK(out == -1);
-
-    out = strstr_n(16, s, 2, reinterpret_cast<const u_char*>("IS"));
-    CHECK(out == -1);
-
-    out = strstr_n(16, s, 9, reinterpret_cast<const u_char*>("not there"));
-    CHECK(out == -1);
-}
-
 int strstr_n(const int big_len, const u_char* big, const int little_len, const u_char* little) {
     if ( little_len > big_len )
         return -1;
@@ -1371,24 +1230,11 @@ int fputs(int len, const char* s, FILE* fp) {
     return 0;
 }
 
-TEST_CASE("util is_printable") {
-    CHECK(is_printable("abcd", 4) == true);
-    CHECK(is_printable("ab\0d", 4) == false);
-}
-
 bool is_printable(const char* s, int len) {
     while ( --len >= 0 )
         if ( ! isprint(*s++) )
             return false;
     return true;
-}
-
-TEST_CASE("util strtolower") {
-    const char* a = "aBcD";
-    CHECK(strtolower(a) == "abcd");
-
-    std::string b = "aBcD";
-    CHECK(strtolower(b) == "abcd");
 }
 
 std::string strtolower(const std::string& s) {
@@ -1397,45 +1243,24 @@ std::string strtolower(const std::string& s) {
     return t;
 }
 
-TEST_CASE("util strtoupper") {
-    const char* a = "aBcD";
-    CHECK(strtoupper(a) == "ABCD");
-
-    std::string b = "aBcD";
-    CHECK(strtoupper(b) == "ABCD");
-}
-
 std::string strtoupper(const std::string& s) {
     std::string t = s;
     std::ranges::transform(t, t.begin(), ::toupper);
     return t;
 }
 
-TEST_CASE("util fmt_bytes") {
-    const char* a = "abcd";
-    const char* af = fmt_bytes(a, 4);
-    CHECK(strcmp(a, af) == 0);
-
-    const char* b = "abc\0abc";
-    const char* bf = fmt_bytes(b, 7);
-    CHECK(strcmp(bf, "abc\\x00abc") == 0);
-
-    const char* cf = fmt_bytes(a, 3);
-    CHECK(strcmp(cf, "abc") == 0);
-}
-
 const char* fmt_bytes(const char* data, int len) {
     static char buf[1024];
     char* p = buf;
 
-    for ( int i = 0; i < len && p - buf < int(sizeof(buf)); ++i ) {
-        if ( isprint((unsigned char)(data[i])) )
+    for ( int i = 0; i < len && p - buf < static_cast<int>(sizeof(buf)); ++i ) {
+        if ( isprint(static_cast<unsigned char>(data[i])) )
             *p++ = data[i];
         else
-            p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", (unsigned char)data[i]);
+            p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", static_cast<unsigned char>(data[i]));
     }
 
-    if ( p - buf < int(sizeof(buf)) )
+    if ( p - buf < static_cast<int>(sizeof(buf)) )
         *p = '\0';
     else
         buf[sizeof(buf) - 1] = '\0';
@@ -1499,14 +1324,6 @@ bool is_file(const std::string& path) {
     return S_ISREG(st.st_mode);
 }
 
-TEST_CASE("util strreplace") {
-    string s = "this is not a string";
-    CHECK(strreplace(s, "not", "really") == "this is really a string");
-    CHECK(strreplace(s, "not ", "") == "this is a string");
-    CHECK(strreplace("\"abc\"", "\"", "\\\"") == "\\\"abc\\\"");
-    CHECK(strreplace("\\\"abc\\\"", "\\\"", "\"") == "\"abc\"");
-}
-
 string strreplace(const string& s, const string& o, const string& n) {
     string r = s;
 
@@ -1524,27 +1341,10 @@ string strreplace(const string& s, const string& o, const string& n) {
     return r;
 }
 
-TEST_CASE("util strstrip") {
-    string s = "  abcd";
-    CHECK(strstrip(s) == "abcd");
-
-    s = "abcd  ";
-    CHECK(strstrip(s) == "abcd");
-
-    s = "  abcd  ";
-    CHECK(strstrip(std::move(s)) == "abcd");
-}
-
 std::string strstrip(std::string s) {
     auto notspace = [](unsigned char c) { return ! std::isspace(c); };
     s.erase(s.begin(), std::ranges::find_if(s, notspace));
-
-    // We require `std::reverse_iterator::base` here which in e.g., gcc-10.2.1
-    // is not implemented for the range equivalent of the code
-    // (`borrowed_iterator_t` over a `reverse_view`). Stick to the non-ranges
-    // version for now.
-    // NOLINTNEXTLINE(modernize-use-ranges)
-    s.erase(std::find_if(s.rbegin(), s.rend(), notspace).base(), s.end());
+    s.erase(std::ranges::find_if(s | std::views::reverse, notspace).base(), s.end());
 
     return s;
 }
@@ -1619,15 +1419,6 @@ FILE* open_file(const string& path, const string& mode) {
     return rval;
 }
 
-TEST_CASE("util implode_string_vector") {
-    std::vector<std::string> v = {"a", "b", "c"};
-    CHECK(implode_string_vector(v, ",") == "a,b,c");
-    CHECK(implode_string_vector(v, "") == "abc");
-
-    v.clear();
-    CHECK(implode_string_vector(v, ",") == "");
-}
-
 string implode_string_vector(const std::vector<std::string>& v, const std::string& delim) {
     string rval;
 
@@ -1639,30 +1430,6 @@ string implode_string_vector(const std::vector<std::string>& v, const std::strin
     }
 
     return rval;
-}
-
-TEST_CASE("util tokenize_string") {
-    auto v = tokenize_string("/this/is/a/path", "/", nullptr);
-    CHECK(v->size() == 5);
-    CHECK(*v == vector<string>({"", "this", "is", "a", "path"}));
-    delete v;
-
-    std::vector<std::string> v2;
-    tokenize_string("/this/is/path/2", "/", &v2);
-    CHECK(v2.size() == 5);
-    CHECK(v2 == vector<string>({"", "this", "is", "path", "2"}));
-
-    v2.clear();
-    tokenize_string("/wrong/delim", ",", &v2);
-    CHECK(v2.size() == 1);
-
-    auto svs = tokenize_string("one,two,three,four,", ',');
-    std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
-    CHECK(svs == expect);
-
-    auto letters = tokenize_string("a--b--c--d", "--");
-    CHECK(*letters == vector<string>({"a", "b", "c", "d"}));
-    delete letters;
 }
 
 vector<string>* tokenize_string(std::string_view input, std::string_view delim, vector<string>* rval, int limit) {
@@ -1772,14 +1539,14 @@ double current_time(bool real) {
     struct timeval tv;
 #ifdef _MSC_VER
     auto now = std::chrono::system_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
-    tv.tv_sec = ms.count() / 1000;
-    tv.tv_usec = (ms.count() % 1000) * 1000;
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+    tv.tv_sec = static_cast<long>(us.count() / 1000000);
+    tv.tv_usec = static_cast<long>(us.count() % 1000000);
 #else
     if ( gettimeofday(&tv, nullptr) < 0 )
         reporter->InternalError("gettimeofday failed in current_time()");
 #endif
-    double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
+    double t = static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1e6;
 
     if ( ! run_state::pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
         return t;
@@ -1815,7 +1582,7 @@ int time_compare(struct timeval* tv_a, struct timeval* tv_b) {
 double curr_CPU_time() {
     struct timespec ts;
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    return double(ts.tv_sec) + double(ts.tv_nsec) / 1e9;
+    return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) / 1e9;
 }
 
 struct UIDEntry {
@@ -1864,7 +1631,7 @@ uint64_t calculate_unique_id(size_t pool) {
             gethostname(unique.hostname, 120);
             unique.hostname[sizeof(unique.hostname) - 1] = '\0';
             gettimeofday(&unique.time, nullptr);
-            unique.pool = (uint64_t)pool;
+            unique.pool = static_cast<uint64_t>(pool);
             unique.pid = getpid();
             unique.rnd = static_cast<int>(detail::random_number());
 
@@ -2000,27 +1767,6 @@ const void* memory_align(const void* ptr, size_t size) {
         return reinterpret_cast<const void*>(buf);
 }
 
-TEST_CASE("util memory_align") {
-    void* p1000 = reinterpret_cast<void*>(0x1000);
-    void* p1001 = reinterpret_cast<void*>(0x1001);
-    void* p1002 = reinterpret_cast<void*>(0x1002);
-    void* p1003 = reinterpret_cast<void*>(0x1003);
-    void* p1004 = reinterpret_cast<void*>(0x1004);
-
-    CHECK(memory_align(p1000, 0) == p1000);
-    CHECK(memory_align(p1000, 1) == p1000);
-    CHECK(memory_align(p1000, 2) == p1000);
-    CHECK(memory_align(p1000, 4) == p1000);
-
-    CHECK(memory_align(p1001, 0) == p1001);
-    CHECK(memory_align(p1001, 1) == p1001);
-    CHECK(memory_align(p1001, 2) == p1002);
-    CHECK(memory_align(p1001, 4) == p1004);
-
-    CHECK(memory_align(p1002, 4) == p1004);
-    CHECK(memory_align(p1003, 4) == p1004);
-}
-
 void* memory_align_and_pad(void* ptr, size_t size) {
     if ( ! size )
         return ptr;
@@ -2036,39 +1782,6 @@ void* memory_align_and_pad(void* ptr, size_t size) {
     return reinterpret_cast<void*>(buf);
 }
 
-TEST_CASE("util memory_align_and_pad") {
-    unsigned char mem[16];
-
-    memset(mem, 0xff, 16);
-
-    CHECK((mem[0] == 0xff && mem[1] == 0xff));
-
-    CHECK(memory_align_and_pad(mem, 0) == mem);
-    CHECK((mem[0] == 0xff && mem[1] == 0xff));
-
-    CHECK(memory_align_and_pad(mem, 2) == mem);
-    CHECK((mem[0] == 0xff && mem[1] == 0xff));
-
-    CHECK(memory_align_and_pad(mem + 1, 2) == mem + 2);
-    for ( int i = 1; i < 2; i++ )
-        CHECK(mem[i] == 0x00);
-    CHECK((mem[0] == 0xff && mem[2] == 0xff));
-
-    memset(mem, 0xff, 16);
-
-    CHECK(memory_align_and_pad(mem + 1, 4) == mem + 4);
-    for ( int i = 1; i < 3; i++ )
-        CHECK(mem[i] == 0x00);
-    CHECK((mem[0] == 0xff && mem[4] == 0xff));
-
-    memset(mem, 0xff, 16);
-
-    CHECK(memory_align_and_pad(mem + 1, 8) == mem + 8);
-    for ( int i = 1; i < 7; i++ )
-        CHECK(mem[i] == 0x00);
-    CHECK((mem[0] == 0xff && mem[8] == 0xff));
-}
-
 int memory_size_align(size_t offset, size_t size) {
     if ( ! size || ! offset )
         return offset;
@@ -2082,21 +1795,6 @@ int memory_size_align(size_t offset, size_t size) {
     }
 
     return offset;
-}
-
-TEST_CASE("util memory_size_align") {
-    CHECK(memory_size_align(0x1000, 0) == 0x1000);
-    CHECK(memory_size_align(0x1000, 1) == 0x1000);
-    CHECK(memory_size_align(0x1000, 2) == 0x1000);
-    CHECK(memory_size_align(0x1000, 4) == 0x1000);
-
-    CHECK(memory_size_align(0x1001, 0) == 0x1001);
-    CHECK(memory_size_align(0x1001, 1) == 0x1001);
-    CHECK(memory_size_align(0x1001, 2) == 0x1002);
-    CHECK(memory_size_align(0x1001, 4) == 0x1004);
-
-    CHECK(memory_size_align(0x1002, 4) == 0x1004);
-    CHECK(memory_size_align(0x1003, 4) == 0x1004);
 }
 
 void get_memory_usage(uint64_t* total, uint64_t* malloced) {
@@ -2201,8 +1899,6 @@ void operator delete[](void* v) {
 
 #endif
 
-TEST_CASE("util canonify_name") { CHECK(canonify_name("file name") == "FILE_NAME"); }
-
 std::string canonify_name(const std::string& name) {
     unsigned int len = name.size();
     std::string nname;
@@ -2248,73 +1944,6 @@ static string json_escape_byte(char c) {
     return result;
 }
 
-TEST_CASE("util json_escape_utf8") {
-    CHECK(json_escape_utf8("string") == "string");
-    CHECK(json_escape_utf8("string\n") == "string\n");
-    CHECK(json_escape_utf8("string\x82") == "string\\x82");
-    CHECK(json_escape_utf8("\x07\xd4\xb7o") == "\\x07\\xd4\\xb7o");
-
-    // These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
-
-    // Valid ASCII and valid ASCII control characters
-    CHECK(json_escape_utf8("a") == "a");
-    // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
-    CHECK(json_escape_utf8("\b\f\n\r\t\x00\x15") == "\b\f\n\r\t\x00\x15");
-
-    // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
-    // valid and invalid for the tests below
-
-    // Valid 2 Octet Sequence
-    CHECK(json_escape_utf8("\xc3\xb1") == "\xc3\xb1");
-
-    // Invalid 2 Octet Sequence
-    CHECK(json_escape_utf8("\xc3\x28") == "\\xc3(");
-    CHECK(json_escape_utf8("\xc0\x81") == "\\xc0\\x81");
-    CHECK(json_escape_utf8("\xc1\x81") == "\\xc1\\x81");
-    CHECK(json_escape_utf8("\xc2\xcf") == "\\xc2\\xcf");
-
-    // Invalid Sequence Identifier
-    CHECK(json_escape_utf8("\xa0\xa1") == "\\xa0\\xa1");
-
-    // Valid 3 Octet Sequence
-    CHECK(json_escape_utf8("\xe2\x82\xa1") == "\xe2\x82\xa1");
-    CHECK(json_escape_utf8("\xe0\xa3\xa1") == "\xe0\xa3\xa1");
-
-    // Invalid 3 Octet Sequence (in 2nd Octet)
-    CHECK(json_escape_utf8("\xe0\x80\xa1") == "\\xe0\\x80\\xa1");
-    CHECK(json_escape_utf8("\xe2\x28\xa1") == "\\xe2(\\xa1");
-    CHECK(json_escape_utf8("\xed\xa0\xa1") == "\\xed\\xa0\\xa1");
-
-    // Invalid 3 Octet Sequence (in 3rd Octet)
-    CHECK(json_escape_utf8("\xe2\x82\x28") == "\\xe2\\x82(");
-
-    // Valid 4 Octet Sequence
-    CHECK(json_escape_utf8("\xf0\x90\x8c\xbc") == "\xf0\x90\x8c\xbc");
-    CHECK(json_escape_utf8("\xf1\x80\x8c\xbc") == "\xf1\x80\x8c\xbc");
-    CHECK(json_escape_utf8("\xf4\x80\x8c\xbc") == "\xf4\x80\x8c\xbc");
-
-    // Invalid 4 Octet Sequence (in 2nd Octet)
-    CHECK(json_escape_utf8("\xf0\x80\x8c\xbc") == "\\xf0\\x80\\x8c\\xbc");
-    CHECK(json_escape_utf8("\xf2\x28\x8c\xbc") == "\\xf2(\\x8c\\xbc");
-    CHECK(json_escape_utf8("\xf4\x90\x8c\xbc") == "\\xf4\\x90\\x8c\\xbc");
-
-    // Invalid 4 Octet Sequence (in 3rd Octet)
-    CHECK(json_escape_utf8("\xf0\x90\x28\xbc") == "\\xf0\\x90(\\xbc");
-
-    // Invalid 4 Octet Sequence (in 4th Octet)
-    CHECK(json_escape_utf8("\xf0\x28\x8c\x28") == "\\xf0(\\x8c(");
-
-    // Invalid 4 Octet Sequence (too short)
-    CHECK(json_escape_utf8("\xf4\x80\x8c") == "\\xf4\\x80\\x8c");
-    CHECK(json_escape_utf8("\xf0") == "\\xf0");
-
-    // Private Use Area (E000-F8FF) are always invalid
-    CHECK(json_escape_utf8("\xee\x8b\xa0") == "\\xee\\x8b\\xa0");
-
-    // Valid UTF-8 character followed by an invalid one
-    CHECK(json_escape_utf8("\xc3\xb1\xc0\x81") == "\\xc3\\xb1\\xc0\\x81");
-}
-
 static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) {
     // There's certain blocks of UTF-8 that we don't want, but the easiest way to find
     // them is to convert to UTF-32 and then compare. This is annoying, but it also calls
@@ -2334,12 +1963,8 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) 
     return true;
 }
 
-string json_escape_utf8(const string& val, bool escape_printable_controls) {
-    return json_escape_utf8(val.c_str(), val.size(), escape_printable_controls);
-}
-
-string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls) {
-    auto val_data = reinterpret_cast<const unsigned char*>(val);
+string escape_utf8(string_view val, int flags) {
+    auto val_data = reinterpret_cast<const unsigned char*>(val.data());
 
     // Reserve at least the size of the existing string to avoid resizing the string in the
     // best-case scenario where we don't have any multi-byte characters. We keep two versions of
@@ -2348,19 +1973,23 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
     // fall back to the escaped version otherwise. This uses slightly more memory but it avoids
     // looping through all of the characters a second time in the case of a bad utf8 sequence.
     string utf_result;
-    utf_result.reserve(val_size);
+    utf_result.reserve(val.size());
     string escaped_result;
-    escaped_result.reserve(val_size);
+    escaped_result.reserve(val.size());
 
     bool found_bad = false;
     size_t idx = 0;
-    while ( idx < val_size ) {
-        const char ch = val[idx];
+
+    bool escape_printable_controls = (flags & ESCAPE_PRINTABLE_CONTROLS) == ESCAPE_PRINTABLE_CONTROLS;
+    bool escape_other_controls = (flags & ESCAPE_UNPRINTABLE_CONTROLS) == ESCAPE_UNPRINTABLE_CONTROLS;
+
+    while ( idx < val.size() ) {
+        const char ch = val_data[idx];
 
         // Normal ASCII characters plus a few of the control characters can be inserted directly.
         // The rest of the control characters should be escaped as regular bytes.
-        if ( (ch >= 32 && ch < 127) ||
-             (escape_printable_controls && (ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t')) ) {
+        if ( (ch >= 32 && ch < 127) || ((! escape_printable_controls) && (ch < 32) && std::isspace(ch)) ||
+             (! escape_other_controls && (ch < 32 || ch == 127) && ! std::isspace(ch)) ) {
             if ( ! found_bad )
                 utf_result.push_back(ch);
 
@@ -2385,7 +2014,7 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
 
             // If we don't have enough data for this character or it's an invalid sequence,
             // insert the one escaped byte into the string and go to the next character.
-            if ( idx + char_size > val_size || ! check_ok_utf8(val_data + idx, val_data + idx + char_size) ) {
+            if ( idx + char_size > val.size() || ! check_ok_utf8(val_data + idx, val_data + idx + char_size) ) {
                 found_bad = true;
                 escaped_result.append(json_escape_byte(ch));
                 ++idx;
@@ -2394,7 +2023,7 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
             else {
                 for ( unsigned int i = 0; i < char_size; i++ )
                     escaped_result.append(json_escape_byte(val[idx + i]));
-                utf_result.append(val + idx, char_size);
+                utf_result.append(val.data() + idx, char_size);
                 idx += char_size;
             }
         }
@@ -2406,93 +2035,629 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
         return utf_result;
 }
 
-TEST_CASE("util filesystem") {
-#ifdef _MSC_VER
-    // TODO: adapt these tests to Windows paths
-#else
-    std::filesystem::path path1("/a/b");
-    CHECK(path1.is_absolute());
-    CHECK(! path1.is_relative());
-    CHECK(path1.filename() == "b");
-    CHECK(path1.parent_path() == "/a");
-
-    std::filesystem::path path2("/a//b//conn.log");
-    CHECK(path2.lexically_normal() == "/a/b/conn.log");
-
-    std::filesystem::path path3("a//b//");
-    CHECK(path3.lexically_normal() == "a/b/");
-
-    auto info = std::filesystem::space(".");
-    CHECK(info.capacity > 0);
-#endif
-}
-
-TEST_CASE("util split") {
-    using str_vec = std::vector<std::string_view>;
-    using wstr_vec = std::vector<std::wstring_view>;
-
-    SUBCASE("w/ delim") {
-        CHECK_EQ(split("a:b:c", ""), str_vec({"a:b:c"}));
-        CHECK_EQ(split("", ""), str_vec({""}));
-        CHECK_EQ(split("a:b:c", ":"), str_vec({"a", "b", "c"}));
-        CHECK_EQ(split("a:b::c", ":"), str_vec({"a", "b", "", "c"}));
-        CHECK_EQ(split("a:b:::c", ":"), str_vec({"a", "b", "", "", "c"}));
-        CHECK_EQ(split(":a:b:c", ":"), str_vec({"", "a", "b", "c"}));
-        CHECK_EQ(split("::a:b:c", ":"), str_vec({"", "", "a", "b", "c"}));
-        CHECK_EQ(split("a:b:c:", ":"), str_vec({"a", "b", "c", ""}));
-        CHECK_EQ(split("a:b:c::", ":"), str_vec({"a", "b", "c", "", ""}));
-        CHECK_EQ(split("", ":"), str_vec({""}));
-
-        CHECK_EQ(split("12345", "1"), str_vec({"", "2345"}));
-        CHECK_EQ(split("12345", "23"), str_vec{"1", "45"});
-        CHECK_EQ(split("12345", "a"), str_vec{"12345"});
-        CHECK_EQ(split("12345", ""), str_vec{"12345"});
-    }
-
-    SUBCASE("wchar_t w/ delim") {
-        CHECK_EQ(split(L"a:b:c", L""), wstr_vec({L"a:b:c"}));
-        CHECK_EQ(split(L"", L""), wstr_vec({L""}));
-        CHECK_EQ(split(L"a:b:c", L":"), wstr_vec({L"a", L"b", L"c"}));
-        CHECK_EQ(split(L"a:b::c", L":"), wstr_vec({L"a", L"b", L"", L"c"}));
-        CHECK_EQ(split(L"a:b:::c", L":"), wstr_vec({L"a", L"b", L"", L"", L"c"}));
-        CHECK_EQ(split(L":a:b:c", L":"), wstr_vec({L"", L"a", L"b", L"c"}));
-        CHECK_EQ(split(L"::a:b:c", L":"), wstr_vec({L"", L"", L"a", L"b", L"c"}));
-        CHECK_EQ(split(L"a:b:c:", L":"), wstr_vec({L"a", L"b", L"c", L""}));
-        CHECK_EQ(split(L"a:b:c::", L":"), wstr_vec({L"a", L"b", L"c", L"", L""}));
-        CHECK_EQ(split(L"", L":"), wstr_vec({L""}));
-
-        CHECK_EQ(split(L"12345", L"1"), wstr_vec({L"", L"2345"}));
-        CHECK_EQ(split(L"12345", L"23"), wstr_vec{L"1", L"45"});
-        CHECK_EQ(split(L"12345", L"a"), wstr_vec{L"12345"});
-        CHECK_EQ(split(L"12345", L""), wstr_vec{L"12345"});
-    }
-}
-
-TEST_CASE("util approx_equal") {
-    CHECK(approx_equal(47.0, 47.0) == true);
-    CHECK(approx_equal(47.0, -47.0) == false);
-    CHECK(approx_equal(47.00001, 47.00002) == false);
-    CHECK(approx_equal(47.00001, 47.00002, 1e-5) == true);
-    CHECK(approx_equal(47.0, -47.0, 1e2) == true);
-    CHECK(approx_equal(47.0, -47.0, 94 + 1e-10) == true);
-    CHECK(approx_equal(47.0, -47.0, 94) == false);
-
-    constexpr auto inf = std::numeric_limits<double>::infinity();
-    CHECK_FALSE(approx_equal(inf, inf));
-    CHECK_FALSE(approx_equal(-inf, inf));
-    CHECK_FALSE(approx_equal(inf, -inf));
-    CHECK_FALSE(approx_equal(inf, inf, inf));
-
-    constexpr auto qnan = std::numeric_limits<double>::quiet_NaN(); // There's also `signaling_NaN`.
-    CHECK_FALSE(approx_equal(qnan, qnan));
-    CHECK_FALSE(approx_equal(-qnan, qnan));
-    CHECK_FALSE(approx_equal(qnan, -qnan));
-}
-
 /**
  * Returns whether two double values are approximately equal within some tolerance value.
  */
 bool approx_equal(double a, double b, double tolerance) { return std::abs(a - b) < std::abs(tolerance); }
+
+size_t double_to_str(double d, char* buf, size_t buf_size, int precision, bool no_exp) {
+    // Short-circuit check for NaN, which should always return the same string
+    if ( std::isnan(d) ) {
+        strcpy(buf, "nan");
+        buf[3] = '\0';
+        return 3;
+    }
+
+    char* start = buf;
+    char* end = buf + buf_size;
+
+    if ( d < 0 ) {
+        buf[0] = '-';
+        start += 1;
+        d = -d;
+    }
+    else if ( d == -0.0 )
+        d = 0.0;
+
+    std::to_chars_result result;
+    if ( ! no_exp && d > static_cast<double>(std::numeric_limits<int>::max()) ) {
+        result = std::to_chars(start, end, d, std::chars_format::scientific);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
+
+        *result.ptr = '\0';
+        return result.ptr - buf;
+    }
+    else if ( ! no_exp && d < pow(10.0, precision * -1.0) ) {
+        result = std::to_chars(start, end, d, std::chars_format::general, precision);
+        if ( result.ec == std::errc::value_too_large )
+            return 0;
+
+        *result.ptr = '\0';
+        return result.ptr - buf;
+    }
+
+    result = std::to_chars(start, end, d, std::chars_format::fixed, precision);
+    if ( result.ec == std::errc::value_too_large )
+        return 0;
+
+    char* last = result.ptr - 1;
+    while ( *last == '0' )
+        last--;
+    if ( *last != '.' )
+        last++;
+
+    *last = '\0';
+    return last - buf;
+}
+
+
+TEST_SUITE("util") {
+    TEST_CASE("extract_ip") {
+        CHECK(detail::extract_ip("[1.2.3.4]") == "1.2.3.4");
+        CHECK(detail::extract_ip("0x1.2.3.4") == "1.2.3.4");
+        CHECK(detail::extract_ip("[]") == "");
+    }
+
+    TEST_CASE("extract_ip_and_len") {
+        int len;
+        std::string out = detail::extract_ip_and_len("[1.2.3.4/24]", &len);
+        CHECK(out == "1.2.3.4");
+        CHECK(len == 24);
+
+        out = detail::extract_ip_and_len("0x1.2.3.4/32", &len);
+        CHECK(out == "1.2.3.4");
+        CHECK(len == 32);
+
+        out = detail::extract_ip_and_len("[]/abcd", &len);
+        CHECK(out == "");
+        CHECK(len == 0);
+
+        out = detail::extract_ip_and_len("[]/16", nullptr);
+        CHECK(out == "");
+    }
+
+    TEST_CASE("is_package_loader") {
+        CHECK(detail::is_package_loader("/some/path/__load__.zeek") == true);
+        CHECK(detail::is_package_loader("/some/path/notload.zeek") == false);
+    }
+
+    TEST_CASE("flatten_script_name") {
+        CHECK(detail::flatten_script_name("script", "some/path") == "some.path.script");
+#ifndef _MSC_VER
+        // TODO: this test fails on Windows because the implementation of dirname() in libunistd
+        // returns a trailing slash on paths, even tho the POSIX implementation doesn't. Commenting
+        // this out until we can fix that.
+        CHECK(detail::flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
+#endif
+        CHECK(detail::flatten_script_name("path/to/script", "") == "path.to.script");
+    }
+
+    TEST_CASE("normalize_path") {
+#ifdef _MSC_VER
+        // Cases matching the compress_path btest
+        CHECK(detail::normalize_path("./../foo") == "../foo");
+        CHECK(detail::normalize_path("././../foo") == "../foo");
+
+        // Basic normalization (forward slashes)
+        CHECK(detail::normalize_path("/1/2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/./2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/2/../3") == "/1/3");
+        CHECK(detail::normalize_path("../zeek") == "../zeek");
+        CHECK(detail::normalize_path("../zeek/testing/..") == "../zeek");
+
+        // Windows-style backslash paths should return forward slashes
+        CHECK(detail::normalize_path("foo\\bar") == "foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\bar") == "C:/foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\..\\bar") == "C:/bar");
+        CHECK(detail::normalize_path("C:/foo/./bar") == "C:/foo/bar");
+        CHECK(detail::normalize_path("C:\\foo\\.\\bar\\..\\baz") == "C:/foo/baz");
+
+        // Leading "./" must be preserved (matches POSIX behavior)
+        CHECK(detail::normalize_path("./zeek") == "./zeek");
+        CHECK(detail::normalize_path("./pkg1.zeek") == "./pkg1.zeek");
+        CHECK(detail::normalize_path("./foo/./bar") == "./foo/bar");
+        // Backslash variant of ".\" should also produce "./" prefix
+        CHECK(detail::normalize_path(".\\pkg1.zeek") == "./pkg1.zeek");
+        CHECK(detail::normalize_path(".\\foo\\bar") == "./foo/bar");
+
+        // "./." should collapse to "." (not "./."), matching POSIX behavior
+        CHECK(detail::normalize_path("./.") == ".");
+        CHECK(detail::normalize_path("/.") == "/");
+#else
+        CHECK(detail::normalize_path("/1/2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/./2/3") == "/1/2/3");
+        CHECK(detail::normalize_path("/1/2/../3") == "/1/3");
+        CHECK(detail::normalize_path("1/2/3/") == "1/2/3");
+        CHECK(detail::normalize_path("1/2//3///") == "1/2/3");
+        CHECK(detail::normalize_path("~/zeek/testing") == "~/zeek/testing");
+        CHECK(detail::normalize_path("~jon/zeek/testing") == "~jon/zeek/testing");
+        CHECK(detail::normalize_path("~jon/./zeek/testing") == "~jon/zeek/testing");
+        CHECK(detail::normalize_path("~/zeek/testing/../././.") == "~/zeek");
+        CHECK(detail::normalize_path("./zeek") == "./zeek");
+        CHECK(detail::normalize_path("../zeek") == "../zeek");
+        CHECK(detail::normalize_path("../zeek/testing/..") == "../zeek");
+        CHECK(detail::normalize_path("./zeek/..") == ".");
+        CHECK(detail::normalize_path("./zeek/../..") == "..");
+        CHECK(detail::normalize_path("./zeek/../../..") == "../..");
+        CHECK(detail::normalize_path("./..") == "..");
+        CHECK(detail::normalize_path("../..") == "../..");
+        CHECK(detail::normalize_path("/..") == "/..");
+        CHECK(detail::normalize_path("~/..") == "~/..");
+        CHECK(detail::normalize_path("/../..") == "/../..");
+        CHECK(detail::normalize_path("~/../..") == "~/../..");
+        CHECK(detail::normalize_path("zeek/..") == "");
+        CHECK(detail::normalize_path("zeek/../..") == "..");
+#endif
+    }
+
+    TEST_CASE("get_unescaped_string") {
+        CHECK(get_unescaped_string("abcde") == "abcde");
+        CHECK(get_unescaped_string("\\x41BCD\\x45") == "ABCDE");
+    }
+
+    TEST_CASE("get_escaped_string") {
+        SUBCASE("returned ODesc") {
+            ODesc* d = get_escaped_string(nullptr, "a bcd\n", 6, false);
+            CHECK(strcmp(d->Description(), "a\\x20bcd\\x0a") == 0);
+            delete d;
+        }
+
+        SUBCASE("provided ODesc") {
+            ODesc d2;
+            get_escaped_string(&d2, "ab\\e", 4, true);
+            CHECK(strcmp(d2.Description(), "\\x61\\x62\\\\\\x65") == 0);
+        }
+
+        SUBCASE("std::string versions") {
+            std::string s = get_escaped_string("a b c", 5, false);
+            CHECK(s == "a\\x20b\\x20c");
+
+            s = get_escaped_string("d e", false);
+            CHECK(s == "d\\x20e");
+        }
+    }
+
+    TEST_CASE("streq") {
+        CHECK(streq("abcd", "abcd") == true);
+        CHECK(streq("abcd", "efgh") == false);
+    }
+
+    TEST_CASE("get_word") {
+        char orig[10];
+        strcpy(orig, "two words");
+
+        SUBCASE("get first word") {
+            char* a = static_cast<char*>(orig);
+            char* b = get_word(a);
+
+            CHECK(strcmp(a, "words") == 0);
+            CHECK(strcmp(b, "two") == 0);
+        }
+
+        SUBCASE("get length of first word") {
+            int len = strlen(orig);
+            int len2;
+            const char* b = nullptr;
+            get_word(len, orig, len2, b);
+            CHECK(len2 == 3);
+        }
+    }
+
+    TEST_CASE("get_word 2") {
+        char orig[10];
+        strcpy(orig, "two words");
+
+        char* a = static_cast<char*>(orig);
+        const char* b;
+        int blen;
+
+        get_word(9, a, blen, b);
+        CHECK(blen == 3);
+        CHECK(a == b);
+    }
+
+    TEST_CASE("to_upper") {
+        char a[10];
+        strcpy(a, "aBcD");
+        to_upper(a);
+        CHECK(strcmp(a, "ABCD") == 0);
+
+        std::string b = "aBcD";
+        CHECK(to_upper(b) == "ABCD");
+    }
+
+    TEST_CASE("strpbrk_n") {
+        const char* s = "abcdef";
+        const char* o = strpbrk_n(5, s, "gc");
+        CHECK(strcmp(o, "cdef") == 0);
+
+        const char* f = strpbrk_n(5, s, "xyz");
+        CHECK(f == nullptr);
+    }
+
+#if ! defined(HAVE_STRCASESTR)
+
+    TEST_CASE("strcasestr") {
+        const char* s = "this is a string";
+        const char* out = strcasestr(s, "is a");
+        CHECK(strcmp(out, "is a string") == 0);
+
+        const char* out2 = strcasestr(s, "Is A");
+        CHECK(strcmp(out2, "is a string") == 0);
+
+        const char* out3 = strcasestr(s, "not there");
+        CHECK(out3 == nullptr);
+    }
+
+#endif
+
+    TEST_CASE("atoi_n") {
+        const char* dec = "12345";
+        int val;
+
+        CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 1);
+        CHECK(val == 12345);
+
+        const char* hex = "12AB";
+        CHECK(atoi_n(strlen(hex), hex, nullptr, 16, val) == 1);
+        CHECK(val == 0x12AB);
+
+        const char* fail = "XYZ";
+        CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);
+    }
+
+    TEST_CASE("uitoa_n") {
+        int val = 12345;
+        char str[20];
+        const char* result = uitoa_n(val, str, 20, 10, "pref: ");
+        // TODO: i'm not sure this is the correct output. was it supposed to reverse the digits?
+        CHECK(strcmp(str, "pref: 54321") == 0);
+    }
+
+    TEST_CASE("strstr_n") {
+        const u_char* s = reinterpret_cast<const u_char*>("this is a string");
+        int out = strstr_n(16, s, 3, reinterpret_cast<const u_char*>("str"));
+        CHECK(out == 10);
+
+        out = strstr_n(16, s, 17, reinterpret_cast<const u_char*>("is"));
+        CHECK(out == -1);
+
+        out = strstr_n(16, s, 2, reinterpret_cast<const u_char*>("IS"));
+        CHECK(out == -1);
+
+        out = strstr_n(16, s, 9, reinterpret_cast<const u_char*>("not there"));
+        CHECK(out == -1);
+    }
+
+    TEST_CASE("is_printable") {
+        CHECK(is_printable("abcd", 4) == true);
+        CHECK(is_printable("ab\0d", 4) == false);
+    }
+
+    TEST_CASE("strtolower") {
+        const char* a = "aBcD";
+        CHECK(strtolower(a) == "abcd");
+
+        std::string b = "aBcD";
+        CHECK(strtolower(b) == "abcd");
+    }
+
+    TEST_CASE("strtoupper") {
+        const char* a = "aBcD";
+        CHECK(strtoupper(a) == "ABCD");
+
+        std::string b = "aBcD";
+        CHECK(strtoupper(b) == "ABCD");
+    }
+
+    TEST_CASE("fmt_bytes") {
+        const char* a = "abcd";
+        const char* af = fmt_bytes(a, 4);
+        CHECK(strcmp(a, af) == 0);
+
+        const char* b = "abc\0abc";
+        const char* bf = fmt_bytes(b, 7);
+        CHECK(strcmp(bf, "abc\\x00abc") == 0);
+
+        const char* cf = fmt_bytes(a, 3);
+        CHECK(strcmp(cf, "abc") == 0);
+    }
+
+    TEST_CASE("strreplace") {
+        string s = "this is not a string";
+        CHECK(strreplace(s, "not", "really") == "this is really a string");
+        CHECK(strreplace(s, "not ", "") == "this is a string");
+        CHECK(strreplace("\"abc\"", "\"", "\\\"") == "\\\"abc\\\"");
+        CHECK(strreplace("\\\"abc\\\"", "\\\"", "\"") == "\"abc\"");
+    }
+
+    TEST_CASE("strstrip") {
+        string s = "  abcd";
+        CHECK(strstrip(s) == "abcd");
+
+        s = "abcd  ";
+        CHECK(strstrip(s) == "abcd");
+
+        s = "  abcd  ";
+        CHECK(strstrip(std::move(s)) == "abcd");
+    }
+
+    TEST_CASE("implode_string_vector") {
+        std::vector<std::string> v = {"a", "b", "c"};
+        CHECK(implode_string_vector(v, ",") == "a,b,c");
+        CHECK(implode_string_vector(v, "") == "abc");
+
+        v.clear();
+        CHECK(implode_string_vector(v, ",") == "");
+    }
+
+    TEST_CASE("tokenize_string") {
+        auto v = tokenize_string("/this/is/a/path", "/", nullptr);
+        CHECK(v->size() == 5);
+        CHECK(*v == vector<string>({"", "this", "is", "a", "path"}));
+        delete v;
+
+        std::vector<std::string> v2;
+        tokenize_string("/this/is/path/2", "/", &v2);
+        CHECK(v2.size() == 5);
+        CHECK(v2 == vector<string>({"", "this", "is", "path", "2"}));
+
+        v2.clear();
+        tokenize_string("/wrong/delim", ",", &v2);
+        CHECK(v2.size() == 1);
+
+        auto svs = tokenize_string("one,two,three,four,", ',');
+        std::vector<std::string_view> expect{"one", "two", "three", "four", ""};
+        CHECK(svs == expect);
+
+        auto letters = tokenize_string("a--b--c--d", "--");
+        CHECK(*letters == vector<string>({"a", "b", "c", "d"}));
+        delete letters;
+    }
+
+    TEST_CASE("memory_align") {
+        void* p1000 = reinterpret_cast<void*>(0x1000);
+        void* p1001 = reinterpret_cast<void*>(0x1001);
+        void* p1002 = reinterpret_cast<void*>(0x1002);
+        void* p1003 = reinterpret_cast<void*>(0x1003);
+        void* p1004 = reinterpret_cast<void*>(0x1004);
+
+        CHECK(memory_align(p1000, 0) == p1000);
+        CHECK(memory_align(p1000, 1) == p1000);
+        CHECK(memory_align(p1000, 2) == p1000);
+        CHECK(memory_align(p1000, 4) == p1000);
+
+        CHECK(memory_align(p1001, 0) == p1001);
+        CHECK(memory_align(p1001, 1) == p1001);
+        CHECK(memory_align(p1001, 2) == p1002);
+        CHECK(memory_align(p1001, 4) == p1004);
+
+        CHECK(memory_align(p1002, 4) == p1004);
+        CHECK(memory_align(p1003, 4) == p1004);
+    }
+
+    TEST_CASE("memory_align_and_pad") {
+        unsigned char mem[16];
+
+        memset(mem, 0xff, 16);
+
+        CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+        CHECK(memory_align_and_pad(mem, 0) == mem);
+        CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+        CHECK(memory_align_and_pad(mem, 2) == mem);
+        CHECK((mem[0] == 0xff && mem[1] == 0xff));
+
+        CHECK(memory_align_and_pad(mem + 1, 2) == mem + 2);
+        for ( int i = 1; i < 2; i++ )
+            CHECK(mem[i] == 0x00);
+        CHECK((mem[0] == 0xff && mem[2] == 0xff));
+
+        memset(mem, 0xff, 16);
+
+        CHECK(memory_align_and_pad(mem + 1, 4) == mem + 4);
+        for ( int i = 1; i < 3; i++ )
+            CHECK(mem[i] == 0x00);
+        CHECK((mem[0] == 0xff && mem[4] == 0xff));
+
+        memset(mem, 0xff, 16);
+
+        CHECK(memory_align_and_pad(mem + 1, 8) == mem + 8);
+        for ( int i = 1; i < 7; i++ )
+            CHECK(mem[i] == 0x00);
+        CHECK((mem[0] == 0xff && mem[8] == 0xff));
+    }
+
+    TEST_CASE("memory_size_align") {
+        CHECK(memory_size_align(0x1000, 0) == 0x1000);
+        CHECK(memory_size_align(0x1000, 1) == 0x1000);
+        CHECK(memory_size_align(0x1000, 2) == 0x1000);
+        CHECK(memory_size_align(0x1000, 4) == 0x1000);
+
+        CHECK(memory_size_align(0x1001, 0) == 0x1001);
+        CHECK(memory_size_align(0x1001, 1) == 0x1001);
+        CHECK(memory_size_align(0x1001, 2) == 0x1002);
+        CHECK(memory_size_align(0x1001, 4) == 0x1004);
+
+        CHECK(memory_size_align(0x1002, 4) == 0x1004);
+        CHECK(memory_size_align(0x1003, 4) == 0x1004);
+    }
+
+    TEST_CASE("canonify_name") { CHECK(canonify_name("file name") == "FILE_NAME"); }
+
+    TEST_CASE("json_escape_utf8") {
+        CHECK(escape_utf8(std::string{"\x07o"}, ESCAPE_NONE) == "\x07o");
+        CHECK(escape_utf8("string", ESCAPE_NONE) == "string");
+        CHECK(escape_utf8(std::string{"string\n"}, ESCAPE_NONE) == "string\n");
+        CHECK(escape_utf8(std::string{"string\n"}, ESCAPE_PRINTABLE_CONTROLS) == "string\\x0a");
+        CHECK(escape_utf8("string\x82", ESCAPE_NONE) == "string\\x82");
+
+        // \udab7 is a valid UTF-8 character, but \u0007 is a control character
+        // that isn't according to check_ok_utf8(). If we insert it, the rest of
+        // the string gets inserted as escaped data.
+        CHECK(escape_utf8("\x07\xd4\xb7o", ESCAPE_UNPRINTABLE_CONTROLS) == "\\x07\\xd4\\xb7o");
+
+        // In this case, we insert the UTF-8 character as the actual character
+        // because the control character isn't getting escaped.
+        CHECK(escape_utf8(std::string{"\x07\xd4\xb7o"}, ESCAPE_NONE) == "\x07\xd4\xb7o");
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+        CHECK(json_escape_utf8("string\n") == "string\n");
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
+        // These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
+
+        // Valid ASCII characters.
+        CHECK(escape_utf8("a", ESCAPE_NONE) == "a");
+
+        // Valid ASCII control characters, both printable and non-printable.
+        // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
+        CHECK(escape_utf8({"\f\n\r\t\x00\x15", 6}, ESCAPE_UNPRINTABLE_CONTROLS) == "\f\n\r\t\\x00\\x15");
+
+        // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
+        // valid and invalid for the tests below
+
+        // Valid 2 Octet Sequence
+        CHECK(escape_utf8("\xc3\xb1", ESCAPE_NONE) == "\xc3\xb1");
+
+        // Invalid 2 Octet Sequence
+        CHECK(escape_utf8("\xc3\x28", ESCAPE_NONE) == "\\xc3(");
+        CHECK(escape_utf8("\xc0\x81", ESCAPE_NONE) == "\\xc0\\x81");
+        CHECK(escape_utf8("\xc1\x81", ESCAPE_NONE) == "\\xc1\\x81");
+        CHECK(escape_utf8("\xc2\xcf", ESCAPE_NONE) == "\\xc2\\xcf");
+
+        // Invalid Sequence Identifier
+        CHECK(escape_utf8("\xa0\xa1", ESCAPE_NONE) == "\\xa0\\xa1");
+
+        // Valid 3 Octet Sequence
+        CHECK(escape_utf8("\xe2\x82\xa1", ESCAPE_NONE) == "\xe2\x82\xa1");
+        CHECK(escape_utf8("\xe0\xa3\xa1", ESCAPE_NONE) == "\xe0\xa3\xa1");
+
+        // Invalid 3 Octet Sequence (in 2nd Octet)
+        CHECK(escape_utf8("\xe0\x80\xa1", ESCAPE_NONE) == "\\xe0\\x80\\xa1");
+        CHECK(escape_utf8("\xe2\x28\xa1", ESCAPE_NONE) == "\\xe2(\\xa1");
+        CHECK(escape_utf8("\xed\xa0\xa1", ESCAPE_NONE) == "\\xed\\xa0\\xa1");
+
+        // Invalid 3 Octet Sequence (in 3rd Octet)
+        CHECK(escape_utf8("\xe2\x82\x28", ESCAPE_NONE) == "\\xe2\\x82(");
+
+        // Valid 4 Octet Sequence
+        CHECK(escape_utf8("\xf0\x90\x8c\xbc", ESCAPE_NONE) == "\xf0\x90\x8c\xbc");
+        CHECK(escape_utf8("\xf1\x80\x8c\xbc", ESCAPE_NONE) == "\xf1\x80\x8c\xbc");
+        CHECK(escape_utf8("\xf4\x80\x8c\xbc", ESCAPE_NONE) == "\xf4\x80\x8c\xbc");
+
+        // Invalid 4 Octet Sequence (in 2nd Octet)
+        CHECK(escape_utf8("\xf0\x80\x8c\xbc", ESCAPE_NONE) == "\\xf0\\x80\\x8c\\xbc");
+        CHECK(escape_utf8("\xf2\x28\x8c\xbc", ESCAPE_NONE) == "\\xf2(\\x8c\\xbc");
+        CHECK(escape_utf8("\xf4\x90\x8c\xbc", ESCAPE_NONE) == "\\xf4\\x90\\x8c\\xbc");
+
+        // Invalid 4 Octet Sequence (in 3rd Octet)
+        CHECK(escape_utf8("\xf0\x90\x28\xbc", ESCAPE_NONE) == "\\xf0\\x90(\\xbc");
+
+        // Invalid 4 Octet Sequence (in 4th Octet)
+        CHECK(escape_utf8("\xf0\x28\x8c\x28", ESCAPE_NONE) == "\\xf0(\\x8c(");
+
+        // Invalid 4 Octet Sequence (too short)
+        CHECK(escape_utf8("\xf4\x80\x8c", ESCAPE_NONE) == "\\xf4\\x80\\x8c");
+        CHECK(escape_utf8("\xf0", ESCAPE_NONE) == "\\xf0");
+
+        // Private Use Area (E000-F8FF) are always invalid
+        CHECK(escape_utf8("\xee\x8b\xa0", ESCAPE_NONE) == "\\xee\\x8b\\xa0");
+
+        // Valid UTF-8 character followed by an invalid one
+        CHECK(escape_utf8("\xc3\xb1\xc0\x81", ESCAPE_NONE) == "\\xc3\\xb1\\xc0\\x81");
+    }
+
+    TEST_CASE("filesystem") {
+#ifdef _MSC_VER
+        // TODO: adapt these tests to Windows paths
+#else
+        std::filesystem::path path1("/a/b");
+        CHECK(path1.is_absolute());
+        CHECK(! path1.is_relative());
+        CHECK(path1.filename() == "b");
+        CHECK(path1.parent_path() == "/a");
+
+        std::filesystem::path path2("/a//b//conn.log");
+        CHECK(path2.lexically_normal() == "/a/b/conn.log");
+
+        std::filesystem::path path3("a//b//");
+        CHECK(path3.lexically_normal() == "a/b/");
+
+        auto info = std::filesystem::space(".");
+        CHECK(info.capacity > 0);
+#endif
+    }
+
+    TEST_CASE("split") {
+        using str_vec = std::vector<std::string_view>;
+        using wstr_vec = std::vector<std::wstring_view>;
+
+        SUBCASE("w/ delim") {
+            CHECK_EQ(split("a:b:c", ""), str_vec({"a:b:c"}));
+            CHECK_EQ(split("", ""), str_vec({""}));
+            CHECK_EQ(split("a:b:c", ":"), str_vec({"a", "b", "c"}));
+            CHECK_EQ(split("a:b::c", ":"), str_vec({"a", "b", "", "c"}));
+            CHECK_EQ(split("a:b:::c", ":"), str_vec({"a", "b", "", "", "c"}));
+            CHECK_EQ(split(":a:b:c", ":"), str_vec({"", "a", "b", "c"}));
+            CHECK_EQ(split("::a:b:c", ":"), str_vec({"", "", "a", "b", "c"}));
+            CHECK_EQ(split("a:b:c:", ":"), str_vec({"a", "b", "c", ""}));
+            CHECK_EQ(split("a:b:c::", ":"), str_vec({"a", "b", "c", "", ""}));
+            CHECK_EQ(split("", ":"), str_vec({""}));
+
+            CHECK_EQ(split("12345", "1"), str_vec({"", "2345"}));
+            CHECK_EQ(split("12345", "23"), str_vec{"1", "45"});
+            CHECK_EQ(split("12345", "a"), str_vec{"12345"});
+            CHECK_EQ(split("12345", ""), str_vec{"12345"});
+        }
+
+        SUBCASE("wchar_t w/ delim") {
+            CHECK_EQ(split(L"a:b:c", L""), wstr_vec({L"a:b:c"}));
+            CHECK_EQ(split(L"", L""), wstr_vec({L""}));
+            CHECK_EQ(split(L"a:b:c", L":"), wstr_vec({L"a", L"b", L"c"}));
+            CHECK_EQ(split(L"a:b::c", L":"), wstr_vec({L"a", L"b", L"", L"c"}));
+            CHECK_EQ(split(L"a:b:::c", L":"), wstr_vec({L"a", L"b", L"", L"", L"c"}));
+            CHECK_EQ(split(L":a:b:c", L":"), wstr_vec({L"", L"a", L"b", L"c"}));
+            CHECK_EQ(split(L"::a:b:c", L":"), wstr_vec({L"", L"", L"a", L"b", L"c"}));
+            CHECK_EQ(split(L"a:b:c:", L":"), wstr_vec({L"a", L"b", L"c", L""}));
+            CHECK_EQ(split(L"a:b:c::", L":"), wstr_vec({L"a", L"b", L"c", L"", L""}));
+            CHECK_EQ(split(L"", L":"), wstr_vec({L""}));
+
+            CHECK_EQ(split(L"12345", L"1"), wstr_vec({L"", L"2345"}));
+            CHECK_EQ(split(L"12345", L"23"), wstr_vec{L"1", L"45"});
+            CHECK_EQ(split(L"12345", L"a"), wstr_vec{L"12345"});
+            CHECK_EQ(split(L"12345", L""), wstr_vec{L"12345"});
+        }
+    }
+
+    TEST_CASE("approx_equal") {
+        CHECK(approx_equal(47.0, 47.0) == true);
+        CHECK(approx_equal(47.0, -47.0) == false);
+        CHECK(approx_equal(47.00001, 47.00002) == false);
+        CHECK(approx_equal(47.00001, 47.00002, 1e-5) == true);
+        CHECK(approx_equal(47.0, -47.0, 1e2) == true);
+        CHECK(approx_equal(47.0, -47.0, 94 + 1e-10) == true);
+        CHECK(approx_equal(47.0, -47.0, 94) == false);
+
+        constexpr auto inf = std::numeric_limits<double>::infinity();
+        CHECK_FALSE(approx_equal(inf, inf));
+        CHECK_FALSE(approx_equal(-inf, inf));
+        CHECK_FALSE(approx_equal(inf, -inf));
+        CHECK_FALSE(approx_equal(inf, inf, inf));
+
+        constexpr auto qnan = std::numeric_limits<double>::quiet_NaN(); // There's also `signaling_NaN`.
+        CHECK_FALSE(approx_equal(qnan, qnan));
+        CHECK_FALSE(approx_equal(-qnan, qnan));
+        CHECK_FALSE(approx_equal(qnan, -qnan));
+    }
+}
 
 } // namespace zeek::util
 

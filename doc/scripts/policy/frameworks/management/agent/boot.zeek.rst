@@ -16,8 +16,8 @@ Summary
 Redefinitions
 #############
 ================================================================================== =
-:zeek:id:`Broker::default_listen_address`: :zeek:type:`string` :zeek:attr:`&redef` 
-:zeek:id:`SupervisorControl::enable_listen`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`Broker::default_listen_address`: :zeek:type:`string` :zeek:attr:`&redef`
+:zeek:id:`SupervisorControl::enable_listen`: :zeek:type:`bool` :zeek:attr:`&redef`
 ================================================================================== =
 
 

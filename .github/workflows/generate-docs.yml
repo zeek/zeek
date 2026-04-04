@@ -64,10 +64,9 @@ jobs:
           python3 -m venv ci-docs-venv
           source ci-docs-venv/bin/activate
           pip3 install -r doc/requirements.txt
-          pip3 install pre-commit
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@33522472633dbd32578e909b315f5ee43ba878ce # v1.2.22
         with:
           key: 'docs-gen-${{ github.job }}'
           max-size: '2000M'
@@ -92,12 +91,6 @@ jobs:
 
       - name: Check Spicy docs
         run: cd doc && make check-spicy-docs
-
-      # Cache pre-commit environment for reuse.
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: doc-pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('doc/.pre-commit-config.yaml') }}
 
       - name: Generate Docs
         run: |
@@ -124,7 +117,8 @@ jobs:
         if: github.event_name == 'schedule'
         run: |
           cd doc
-          git add scripts/ script-reference/
+          # Stage any changes to auto-generated files.
+          git add scripts/ reference/zeekscript/
           git status
           # git commit errors when there's nothing to commit, so guard it
           # with a check that detects whether there's anything staged.
@@ -134,7 +128,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the GitHub UI.
         if: failure() && github.event_name == 'schedule'
-        uses: dawidd6/action-send-mail@v6
+        uses: dawidd6/action-send-mail@d38f3f7cd391cdebfe0d38efc3998b935e951c4f # v16
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

@@ -16,11 +16,11 @@ Redefinable Options
 :zeek:id:`JavaScript::files`: :zeek:type:`vector` :zeek:attr:`&redef`                     Vector of filenames to compile/execute after the bootstrap file.
 :zeek:id:`JavaScript::initial_heap_size_in_bytes`: :zeek:type:`count` :zeek:attr:`&redef` Be very conservative.
 :zeek:id:`JavaScript::main_script_source`: :zeek:type:`string` :zeek:attr:`&redef`        The Javascript code executed for bootstrapping.
-:zeek:id:`JavaScript::maximum_heap_size_in_bytes`: :zeek:type:`count` :zeek:attr:`&redef` 
+:zeek:id:`JavaScript::maximum_heap_size_in_bytes`: :zeek:type:`count` :zeek:attr:`&redef`
 :zeek:id:`JavaScript::owns_node_inspector`: :zeek:type:`bool` :zeek:attr:`&redef`         If set to T, installs a SIGUSR1 handler and thread to
                                                                                           start the Node.js / V8 inspector.
 :zeek:id:`JavaScript::owns_process_state`: :zeek:type:`bool` :zeek:attr:`&redef`          Allows to change process state (uid, title, cwd, ...).
-:zeek:id:`JavaScript::thread_pool_size`: :zeek:type:`count` :zeek:attr:`&redef`           
+:zeek:id:`JavaScript::thread_pool_size`: :zeek:type:`count` :zeek:attr:`&redef`
 ========================================================================================= =====================================================================
 
 
@@ -38,7 +38,7 @@ Redefinable Options
    Node.js default behavior is to exit a process on uncaught exceptions.
    Specifically exceptions in timer callbacks are problematic as a throwing
    timer callback may break subsequently scheduled timers.
-   
+
    Set this to F in order to just keep going when errors happen. Note,
    if you see any Uncaught errors, this likely means the Javascript
    state is corrupt.
@@ -76,9 +76,9 @@ Redefinable Options
    The Javascript code executed for bootstrapping.
    This comes fairly straight from the embedding guide to support using
    require() with filesystem paths in the process working directory.
-   
+
    https://docs.w3cub.com/node~14_lts/embedding
-   
+
 
 .. zeek:id:: JavaScript::maximum_heap_size_in_bytes
    :source-code: builtin-plugins/Zeek_JavaScript/__load__.zeek 52 52
@@ -97,7 +97,7 @@ Redefinable Options
 
    If set to T, installs a SIGUSR1 handler and thread to
    start the Node.js / V8 inspector.
-   
+
    See Node.js EnvironmentFlags API documentation for details.
    https://github.com/nodejs/node/blob/v22.11.0/src/node.h#L631
 
@@ -109,7 +109,7 @@ Redefinable Options
    :Default: ``F``
 
    Allows to change process state (uid, title, cwd, ...).
-   
+
    See Node.js EnvironmentFlags API documentation for details.
    https://github.com/nodejs/node/blob/v22.11.0/src/node.h#L627
 

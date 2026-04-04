@@ -39,7 +39,7 @@ Redefinable Options
    Configuration files that will be read off disk. Files are reread
    every time they are updated so updates should be atomic with "mv"
    instead of writing the file in place.
-   
+
    If the same configuration option is defined in several files with
    different values, behavior is unspecified.
 

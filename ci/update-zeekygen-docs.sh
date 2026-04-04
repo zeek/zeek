@@ -25,7 +25,9 @@ esac
 
 cd $build_dir
 . zeek-path-dev.sh
+
 export ZEEK_SEED_FILE=$source_dir/testing/btest/random.seed
+export ZEEK_ENABLE_ZEEKYGEN_WARNINGS=1
 
 function run_zeek {
     ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen
@@ -42,7 +44,7 @@ printf "script\t*\t$scripts_output_dir/" >$conf_file
 echo "Generating $scripts_output_dir/"
 run_zeek
 
-script_ref_dir=$output_dir/script-reference
+script_ref_dir=$output_dir/reference/zeekscript
 mkdir -p $script_ref_dir
 
 function generate_index {

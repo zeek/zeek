@@ -31,21 +31,21 @@ Events
    to exceed the maximum permitted file size allowed by the
    *extract_limit* field of :zeek:see:`Files::AnalyzerArgs`.
    The analyzer is automatically removed from file *f*.
-   
+
 
    :param f: The file.
-   
+
 
    :param args: Arguments that identify a particular file extraction analyzer.
          This is only provided to be able to pass along to
          :zeek:see:`FileExtract::set_limit`.
-   
+
 
    :param limit: The limit, in bytes, the extracted file is about to breach.
-   
+
 
    :param len: The length of the file chunk about to be written.
-   
+
    .. zeek:see:: Files::add_analyzer Files::ANALYZER_EXTRACT
 
 

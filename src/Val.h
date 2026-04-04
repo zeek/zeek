@@ -228,14 +228,6 @@ public:
     // notification.
     virtual notifier::detail::Modifiable* Modifiable() { return nullptr; }
 
-#ifdef DEBUG
-    // For debugging, we keep a reference to the global ID to which a
-    // value has been bound *last*.
-    detail::ID* GetID() const;
-
-    void SetID(detail::ID* id);
-#endif
-
     TableValPtr GetRecordFields();
 
     /**
@@ -258,9 +250,8 @@ public:
     StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr, bool interval_as_double = false);
 
     template<typename T>
+        requires std::is_pointer_v<T>
     T As() {
-        // Since we're converting from "this", make sure the type requested is a pointer.
-        static_assert(std::is_pointer<T>());
         return static_cast<T>(this);
     }
 
@@ -309,26 +300,15 @@ protected:
     virtual ValPtr DoClone(CloneState* state);
 
     TypePtr type;
-
-#ifdef DEBUG
-    // For debugging, we keep the name of the ID to which a Val is bound.
-    const char* bound_id = nullptr;
-#endif
 };
 
 // Holds pre-allocated Val objects for those where it's more optimal to
 // re-use existing ones rather than allocate anew.
 class ValManager {
 public:
-#ifdef _MSC_VER
-    static constexpr zeek_uint_t PREALLOCATED_COUNTS = 1;
-    static constexpr zeek_uint_t PREALLOCATED_INTS = 1;
-    static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = 0;
-#else
     static constexpr zeek_uint_t PREALLOCATED_COUNTS = 4096;
     static constexpr zeek_uint_t PREALLOCATED_INTS = 512;
     static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = -255;
-#endif
     static constexpr zeek_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST + PREALLOCATED_INTS - 1;
 
     ValManager();
@@ -420,6 +400,7 @@ class BoolVal final : public detail::IntValImplementation {
 public:
     BoolVal(zeek_int_t v) : detail::IntValImplementation(base_type(TYPE_BOOL), v) {}
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool Get() const { return static_cast<bool>(int_val); }
 };
 
@@ -657,7 +638,12 @@ public:
     // Constructor used to build up a homogeneous list of values;
     // or, if 't' is TYPE_ANY, then a heterogeneous one whose type
     // is built up as values are appended.
-    explicit ListVal(TypeTag t);
+    explicit ListVal(TypeTag t) : ListVal(base_type(t)) {}
+
+    // Constructor used to build up a homogeneous list of values;
+    // or, if 't' is nil or base_type(TYPE_ANY), then a heterogeneous
+    // one whose type is built up as values are appended.
+    explicit ListVal(TypePtr t);
 
     // Constructor used to build the list in one shot, with the type
     // pre-computed.
@@ -714,7 +700,7 @@ protected:
 class TableEntryVal {
 public:
     explicit TableEntryVal(ValPtr v) : val(std::move(v)) {
-        expire_access_time = int(run_state::network_time - run_state::zeek_start_network_time);
+        expire_access_time = static_cast<int>(run_state::network_time - run_state::zeek_start_network_time);
     }
 
     TableEntryVal* Clone(Val::CloneState* state);
@@ -723,7 +709,9 @@ public:
 
     // Returns/sets time of last expiration relevant access to this value.
     double ExpireAccessTime() const { return run_state::zeek_start_network_time + expire_access_time; }
-    void SetExpireAccess(double time) { expire_access_time = int(time - run_state::zeek_start_network_time); }
+    void SetExpireAccess(double time) {
+        expire_access_time = static_cast<int>(time - run_state::zeek_start_network_time);
+    }
 
 protected:
     friend class TableVal;
@@ -946,7 +934,11 @@ public:
     ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
     // Returns a ListVal representation of the table (which must be a set).
-    ListValPtr ToListVal(TypeTag t = TYPE_ANY) const;
+    [[deprecated("Remove in v9.1. Pass a TypePtr instead, using Type::nil for TYPE_ANY")]]
+    ListValPtr ToListVal(TypeTag t) const;
+
+    // Returns a ListVal representation of the table (which must be a set).
+    ListValPtr ToListVal(TypePtr t = nullptr) const;
 
     // Returns a ListVal representation of the table (which must be a set
     // with non-composite index type).
@@ -1103,7 +1095,7 @@ private:
 // easier in the definitions of GetFieldAs().
 template<typename T>
 struct is_zeek_val {
-    static const bool value = std::disjunction_v<
+    static constexpr bool value = std::disjunction_v<
         std::is_same<AddrVal, T>, std::is_same<BoolVal, T>, std::is_same<CountVal, T>, std::is_same<DoubleVal, T>,
         std::is_same<EnumVal, T>, std::is_same<FileVal, T>, std::is_same<FuncVal, T>, std::is_same<IntVal, T>,
         std::is_same<IntervalVal, T>, std::is_same<ListVal, T>, std::is_same<OpaqueVal, T>, std::is_same<PatternVal, T>,
@@ -1323,6 +1315,7 @@ public:
      * type @c T.
      */
     template<class T, class... Ts>
+        requires std::is_constructible_v<T, Ts...>
     void Assign(int field, Ts&&... args) {
         Assign(field, make_intrusive<T>(std::forward<Ts>(args)...));
     }
@@ -1336,26 +1329,26 @@ public:
 
     // The following provide efficient record field assignments.
     void Assign(int field, bool new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
 
     // For int types, we provide both [u]int32_t and [u]int64_t versions for
     // convenience, since sometimes the caller has one rather than the other.
     void Assign(int field, int32_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, int64_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_int_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, uint32_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_uint_t>(new_val));
         AddedField(field);
     }
     void Assign(int field, uint64_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field] = ZVal(static_cast<zeek_uint_t>(new_val));
         AddedField(field);
     }
 
@@ -1596,7 +1589,7 @@ public:
     // The *allow_orphaning* parameter allows for a record to be demoted
     // down to a record type that contains less fields.
     RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false) const {
-        return DoCoerceTo(other, allow_orphaning);
+        return DoCoerceTo(std::move(other), allow_orphaning);
     }
     RecordValPtr CoerceTo(RecordTypePtr other, bool allow_orphaning = false);
 

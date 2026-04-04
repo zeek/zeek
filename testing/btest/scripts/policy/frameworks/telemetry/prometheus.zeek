@@ -55,6 +55,7 @@ for host in $(echo ${services_data} | jq -r '.[0].targets[]' | sort); do
 done
 # @TEST-END-FILE
 
+@load policy/frameworks/cluster/backend/broker
 @load policy/frameworks/cluster/experimental
 @load base/frameworks/telemetry
 

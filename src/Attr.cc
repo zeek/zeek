@@ -15,7 +15,7 @@ namespace zeek::detail {
 const char* attr_name(AttrTag t) {
     // Do not collapse the list.
     // clang-format off
-	static const char* attr_names[int(NUM_ATTRS)] = {
+	static const char* attr_names[NUM_ATTRS] = {
 		"&optional",
 		"&default",
 		"&default_insert",
@@ -46,8 +46,8 @@ const char* attr_name(AttrTag t) {
 	};
     // clang-format on
 
-    if ( int(t) >= 0 && int(t) < NUM_ATTRS )
-        return attr_names[int(t)];
+    if ( t >= 0 && t < NUM_ATTRS )
+        return attr_names[t];
     else
         return "<unknown>";
 }
@@ -135,9 +135,15 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const {
         }
 
         else {
-            ODesc dd;
-            expr->Eval(nullptr)->Describe(&dd);
-            std::string s = dd.Description();
+            std::string s;
+            auto v = eval_in_isolation(expr);
+            if ( v ) {
+                ODesc dd;
+                v->Describe(&dd);
+                s = dd.Description();
+            }
+            else
+                s = "<error-evaluating>";
 
             for ( auto& c : s )
                 if ( c == '\n' )
@@ -430,27 +436,41 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
 
             const auto& args = c_ft->ParamList()->GetTypes();
             const auto& t_indexes = the_table->GetIndexTypes();
-            if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() )
-                return AttrError("&on_change function has incorrect number of arguments");
 
-            if ( ! same_type(args[0], the_table->AsTableType()) )
-                return AttrError("&on_change: first argument must be of same type as table");
-
-            // can't check exact type here yet - the data structures don't exist yet.
-            if ( args[1]->Tag() != TYPE_ENUM )
-                return AttrError("&on_change: second argument must be a TableChange enum");
-
-            for ( size_t i = 0; i < t_indexes.size(); i++ ) {
-                if ( ! same_type(args[2 + i], t_indexes[i]) )
-                    return AttrError("&on_change: index types do not match table");
+            if ( args.size() == 1 && args[0]->Tag() == TYPE_ANY &&
+                 c_ft->Params()->FieldName(0) == std::string_view("va_args") ) {
+                // va_args functions get a free pass for &on_change: This allows
+                // to implement generic builtin functions that can work with
+                // tables or sets of any size and type.
             }
+            else {
+                if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() )
+                    return AttrError("&on_change function has incorrect number of arguments");
 
-            if ( ! type->IsSet() )
-                if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
-                    return AttrError("&on_change: value type does not match table");
+                if ( ! same_type(args[0], the_table->AsTableType()) )
+                    return AttrError("&on_change: first argument must be of same type as table");
+
+                // can't check exact type here yet - the data structures don't exist yet.
+                if ( args[1]->Tag() != TYPE_ENUM )
+                    return AttrError("&on_change: second argument must be a TableChange enum");
+
+                for ( size_t i = 0; i < t_indexes.size(); i++ ) {
+                    if ( ! same_type(args[2 + i], t_indexes[i]) )
+                        return AttrError("&on_change: index types do not match table");
+                }
+
+                if ( ! type->IsSet() )
+                    if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
+                        return AttrError("&on_change: value type does not match table");
+            }
         } break;
 
         case ATTR_BACKEND: {
+            zeek::reporter->Deprecation(
+                "Remove in v9.1: The Broker-specific &backend attribute on tables is deprecated. "
+                "Use explicit remote events via Cluster::publish() or the storage framework to "
+                "distribute or persist state.");
+
             if ( ! global_var || type->Tag() != TYPE_TABLE )
                 return AttrError("&backend only applicable to global sets/tables");
 
@@ -480,6 +500,11 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
         }
 
         case ATTR_BROKER_STORE: {
+            zeek::reporter->Deprecation(
+                "Remove in v9.1: The Broker-specific &broker_store attribute on tables is deprecated. "
+                "Use explicit remote events via Cluster::publish() or the storage framework to "
+                "distribute or persist state.");
+
             if ( type->Tag() != TYPE_TABLE )
                 return AttrError("&broker_store only applicable to sets/tables");
 

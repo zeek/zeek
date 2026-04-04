@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <condition_variable>
 #include <cstdint>
 #include <initializer_list>
@@ -219,8 +220,8 @@ public:
     void ProcessFd(int fd, int flags) override;
 
 protected:
-    template<class F>
-    static auto WithLabelNames(std::span<const LabelView> xs, F continuation) {
+    template<std::invocable<std::span<std::string_view>> F>
+    static auto WithLabelNames(std::span<const LabelView> xs, F&& continuation) {
         if ( xs.size() <= 10 ) {
             std::string_view buf[10];
             for ( size_t index = 0; index < xs.size(); ++index )

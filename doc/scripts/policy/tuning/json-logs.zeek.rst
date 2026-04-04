@@ -12,7 +12,7 @@ Summary
 Redefinitions
 #############
 ==================================================================== =
-:zeek:id:`LogAscii::use_json`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`LogAscii::use_json`: :zeek:type:`bool` :zeek:attr:`&redef`
 ==================================================================== =
 
 

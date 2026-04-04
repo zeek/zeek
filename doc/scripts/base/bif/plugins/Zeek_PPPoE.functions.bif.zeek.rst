@@ -27,10 +27,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
    Returns the PPPoE Session ID of the current packet, if present.
-   
+
    If no PPPoE Session ID is present, 0xFFFFFFFF is returned, which
    is out of range of the session ID.
-   
+
 
    :returns: The PPPoE session ID if present, 0xFFFFFFFF otherwise.
 

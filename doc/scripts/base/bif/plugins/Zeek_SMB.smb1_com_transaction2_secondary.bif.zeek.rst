@@ -28,22 +28,22 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *transaction2 secondary*.
-   
+
    For more information, see MS-CIFS:2.2.4.47.1
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)`
         version 1 message.
-   
+
 
    :param args: arguments of the message (SMB_Parameters.Words)
-   
+
 
    :param parameters: content of the SMB_Data.Trans_Parameters field
-   
+
 
    :param data: content of the SMB_Data.Trans_Data field
 

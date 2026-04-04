@@ -74,8 +74,8 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
             return zeek::make_intrusive<zeek::StringVal>("");
     }
 
-    hash_src_port = htons((uint16_t) orig_port->Port());
-    hash_dst_port = htons((uint16_t) resp_port->Port());
+    hash_src_port = htons(static_cast<uint16_t>(orig_port->Port()));
+    hash_dst_port = htons(static_cast<uint16_t>(resp_port->Port()));
 
     // XXX: resolve whether we should copy is_one_way into the
     // Connection instance at construction time, along with the other

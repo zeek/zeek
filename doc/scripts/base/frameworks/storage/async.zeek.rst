@@ -33,10 +33,10 @@ Functions
 
    Closes an existing backend connection asynchronously. This method must be
    called via a :zeek:see:`when` condition or an error will be returned.
-   
+
 
    :param backend: A handle to a backend connection.
-   
+
 
    :returns: A record containing the status of the operation and an optional error
             string for failures.
@@ -48,13 +48,13 @@ Functions
 
    Erases an entry from the backend asynchronously. This method must be called via
    a :zeek:see:`when` condition or an error will be returned.
-   
+
 
    :param backend: A handle to a backend connection.
-   
+
 
    :param key: The key to erase.
-   
+
 
    :returns: A record containing the status of the operation and an optional error
             string for failures.
@@ -66,13 +66,13 @@ Functions
 
    Gets an entry from the backend asynchronously. This method must be called via a
    :zeek:see:`when` condition or an error will be returned.
-   
+
 
    :param backend: A handle to a backend connection.
-   
+
 
    :param key: The key to look up.
-   
+
 
    :returns: A record containing the status of the operation, an optional error
             string for failures, and an optional value for success. The value
@@ -87,24 +87,24 @@ Functions
    Opens a new backend connection based on a configuration object asynchronously.
    This method must be called via a :zeek:see:`when` condition or an error will
    be returned.
-   
+
 
    :param btype: A tag indicating what type of backend should be opened. These are
           defined by the backend plugins loaded.
-   
+
 
    :param options: A record containing the configuration for the connection.
-   
+
 
    :param key_type: The script-level type of keys stored in the backend. Used for
              validation of keys passed to other framework methods.
-   
+
 
    :param val_type: The script-level type of keys stored in the backend. Used for
              validation of values passed to :zeek:see:`Storage::Async::put` as
              well as for type conversions for return values from
              :zeek:see:`Storage::Async::get`.
-   
+
 
    :returns: A record containing the status of the operation, and either an error
             string on failure or a value on success. The value returned here will
@@ -117,14 +117,14 @@ Functions
 
    Inserts a new entry into a backend asynchronously. This method must be called
    via a :zeek:see:`when` condition or an error will be returned.
-   
+
 
    :param backend: A handle to a backend connection.
-   
+
 
    :param args: A :zeek:see:`Storage::PutArgs` record containing the arguments for the
          operation.
-   
+
 
    :returns: A record containing the status of the operation and an optional error
             string for failures.

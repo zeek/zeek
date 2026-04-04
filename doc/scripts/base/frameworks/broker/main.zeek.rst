@@ -78,13 +78,13 @@ Types
 ======================================================== ====================================================================
 :zeek:type:`Broker::Data`: :zeek:type:`record`           Opaque communication data.
 :zeek:type:`Broker::DataVector`: :zeek:type:`vector`     Opaque communication data sequence.
-:zeek:type:`Broker::EndpointInfo`: :zeek:type:`record`   
+:zeek:type:`Broker::EndpointInfo`: :zeek:type:`record`
 :zeek:type:`Broker::ErrorCode`: :zeek:type:`enum`        Enumerates the possible error types.
 :zeek:type:`Broker::Event`: :zeek:type:`record`          Opaque event communication data.
 :zeek:type:`Broker::LogSeverityLevel`: :zeek:type:`enum` The possible log event severity levels for Broker.
-:zeek:type:`Broker::NetworkInfo`: :zeek:type:`record`    
-:zeek:type:`Broker::PeerInfo`: :zeek:type:`record`       
-:zeek:type:`Broker::PeerInfos`: :zeek:type:`vector`      
+:zeek:type:`Broker::NetworkInfo`: :zeek:type:`record`
+:zeek:type:`Broker::PeerInfo`: :zeek:type:`record`
+:zeek:type:`Broker::PeerInfos`: :zeek:type:`vector`
 :zeek:type:`Broker::PeerStatus`: :zeek:type:`enum`       The possible states of a peer endpoint.
 :zeek:type:`Broker::TableItem`: :zeek:type:`record`      Opaque communication data used as a convenient way to wrap key-value
                                                          pairs that comprise table entries.
@@ -191,7 +191,7 @@ Redefinable Options
 
 
    Default address on which to listen.
-   
+
    .. zeek:see:: Broker::listen
 
 .. zeek:id:: Broker::default_listen_address_websocket
@@ -202,7 +202,7 @@ Redefinable Options
    :Default: ``""``
 
    Default address on which to listen for WebSocket connections.
-   
+
    .. zeek:see:: Cluster::listen_websocket
 
 .. zeek:id:: Broker::default_listen_retry
@@ -247,7 +247,7 @@ Redefinable Options
    Default port for Broker WebSocket communication. Where not specified
    otherwise, this is the port to connect to and listen on for
    WebSocket connections.
-   
+
    See the Broker documentation for a specification of the message
    format over WebSocket connections.
 
@@ -788,12 +788,12 @@ Functions
    :zeek:see:`Broker::subscribe` except matching events are not raised
    on the receiver, just forwarded.  Use :zeek:see:`Broker::unsubscribe`
    with the same argument to undo this operation.
-   
+
 
    :param topic_prefix: a prefix to match against remote message topics.
                  e.g. an empty prefix matches everything and "a" matches
                  "alice" and "amy" but not "bob".
-   
+
 
    :returns: true if a new event forwarding/subscription is now registered.
 
@@ -804,13 +804,13 @@ Functions
 
    Whether the local node originally initiated the peering with the
    given endpoint.
-   
+
 
    :param a: the address used in previous successful call to :zeek:see:`Broker::peer`.
-   
+
 
    :param p: the port used in previous successful call to :zeek:see:`Broker::peer`.
-   
+
    Returns:: True if this node initiated the peering.
 
 .. zeek:id:: Broker::listen
@@ -819,24 +819,24 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`string` :zeek:attr:`&default` = :zeek:see:`Broker::default_listen_address` :zeek:attr:`&optional`, p: :zeek:type:`port` :zeek:attr:`&default` = :zeek:see:`Broker::default_port` :zeek:attr:`&optional`, retry: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Broker::default_listen_retry` :zeek:attr:`&optional`) : :zeek:type:`port`
 
    Listen for remote connections using the native Broker protocol.
-   
+
 
    :param a: an address string on which to accept connections, e.g.
       "127.0.0.1".  An empty string refers to INADDR_ANY.
-   
+
 
    :param p: the TCP port to listen on. The value 0 means that the OS should choose
       the next available free port.
-   
+
 
    :param retry: If non-zero, retries listening in regular intervals if the port cannot be
           acquired immediately. 0 disables retries.  If the
           ZEEK_DEFAULT_LISTEN_RETRY environment variable is set (as number
           of seconds), it overrides any value given here.
-   
+
 
    :returns: the bound port or 0/? on failure.
-   
+
    .. zeek:see:: Broker::status
 
 .. zeek:id:: Broker::log_topic
@@ -849,13 +849,13 @@ Functions
    broker topic string will be used for sending it to peers.  The
    default implementation will return a value based on
    :zeek:see:`Broker::default_log_topic_prefix`.
-   
+
 
    :param id: the ID associated with the log stream entry that will be sent.
-   
+
 
    :param path: the path to which the log stream entry will be output.
-   
+
 
    :returns: a string representing the broker topic to which the log
             will be sent.
@@ -866,7 +866,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`string`
 
    Get a unique identifier for the local broker endpoint.
-   
+
 
    :returns: a unique identifier for the local broker endpoint.
 
@@ -876,25 +876,25 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port` :zeek:attr:`&default` = :zeek:see:`Broker::default_port` :zeek:attr:`&optional`, retry: :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Broker::default_connect_retry` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Initiate a remote connection.
-   
+
 
    :param a: an address to connect to, e.g. "localhost" or "127.0.0.1".
-   
+
 
    :param p: the TCP port on which the remote side is listening.
-   
+
 
    :param retry: an interval at which to retry establishing the
           connection with the remote peer if it cannot be made initially, or
           if it ever becomes disconnected.  If the
           ZEEK_DEFAULT_CONNECT_RETRY environment variable is set (as number
           of seconds), it overrides any value given here.
-   
+
 
    :returns: true if it's possible to try connecting with the peer and
             it's a new peer. The actual connection may not be established
             until a later point in time.
-   
+
    .. zeek:see:: Broker::status
 
 .. zeek:id:: Broker::peering_stats
@@ -904,7 +904,7 @@ Functions
 
    Obtain each peering's send-buffer statistics. The keys are Broker
    endpoint IDs.
-   
+
 
    :returns: per-peering statistics.
 
@@ -914,7 +914,7 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`vector` of :zeek:type:`Broker::PeerInfo`
 
    Get a list of all peer connections.
-   
+
 
    :returns: a list of all peer connections.
 
@@ -925,13 +925,13 @@ Functions
 
    Publishes the value of an identifier to a given topic.  The subscribers
    will update their local value for that identifier on receipt.
-   
+
 
    :param topic: a topic associated with the message.
-   
+
 
    :param id: the identifier to publish.
-   
+
 
    :returns: true if the message is sent.
 
@@ -943,12 +943,12 @@ Functions
    Register interest in all peer event messages that use a certain topic
    prefix.  Note that subscriptions may not be altered immediately after
    calling (except during :zeek:see:`zeek_init`).
-   
+
 
    :param topic_prefix: a prefix to match against remote message topics.
                  e.g. an empty prefix matches everything and "a" matches
                  "alice" and "amy" but not "bob".
-   
+
 
    :returns: true if it's a new event subscription and it is now registered.
 
@@ -958,21 +958,21 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
 
    Remove a remote connection.
-   
+
    Note that this does not terminate the connection to the peer, it
    just means that we won't exchange any further information with it
    unless peering resumes later.
-   
+
 
    :param a: the address used in previous successful call to :zeek:see:`Broker::peer`.
-   
+
 
    :param p: the port used in previous successful call to :zeek:see:`Broker::peer`.
-   
+
 
    :returns: true if the arguments match a previously successful call to
             :zeek:see:`Broker::peer`.
-   
+
 
    :param TODO: We do not have a function yet to terminate a connection.
 
@@ -984,11 +984,11 @@ Functions
    Unregister interest in all peer event messages that use a topic prefix.
    Note that subscriptions may not be altered immediately after calling
    (except during :zeek:see:`zeek_init`).
-   
+
 
    :param topic_prefix: a prefix previously supplied to a successful call to
                  :zeek:see:`Broker::subscribe` or :zeek:see:`Broker::forward`.
-   
+
 
    :returns: true if interest in the topic prefix is no longer advertised.
 

@@ -19,6 +19,9 @@
 # @TEST-EXEC: btest-diff ./client/.stderr
 
 # @TEST-START-FILE manager.zeek
+
+@load frameworks/cluster/backend/broker
+
 redef exit_only_after_terminate = T;
 
 # Force dispatcher queue being full quickly!

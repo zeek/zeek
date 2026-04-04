@@ -141,7 +141,7 @@ public:
         // Don't clear offset, as we want to still support
         // subsequent calls to Len().
 
-        return byte_vec(t);
+        return reinterpret_cast<byte_vec>(const_cast<void*>(t));
     }
 
     size_t Size() const { return offset; }

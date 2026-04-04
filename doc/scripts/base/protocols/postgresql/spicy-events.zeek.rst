@@ -38,35 +38,35 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: PostgreSQL::authentication_ok
-   :source-code: base/protocols/postgresql/main.zeek 195 200
+   :source-code: base/protocols/postgresql/main.zeek 205 211
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated for backend authentication requests indicating successful
    authentication.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: PostgreSQL::authentication_request
    .. zeek:see:: PostgreSQL::authentication_response
 
 .. zeek:id:: PostgreSQL::authentication_request
-   :source-code: base/protocols/postgresql/main.zeek 181 193
+   :source-code: base/protocols/postgresql/main.zeek 190 203
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, identifier: :zeek:type:`count`, data: :zeek:type:`string`)
 
    Event generated for backend authentication requests.
-   
+
 
    :param c: The connection.
-   
+
 
    :param identifier: The identifier in the request.
-   
+
 
    :param data: The request data, if any.
-   
+
    .. zeek:see:: PostgreSQL::authentication_response
    .. zeek:see:: PostgreSQL::authentication_ok
 
@@ -76,13 +76,13 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
 
    Event generated for frontend authentication responses.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The response data, if any.
-   
+
    .. zeek:see:: PostgreSQL::authentication_request
    .. zeek:see:: PostgreSQL::authentication_ok
 
@@ -92,57 +92,57 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, process_id: :zeek:type:`count`, secret_key: :zeek:type:`count`)
 
    Generated for a BackendKeyData message for cancellation.
-   
+
 
    :param c: The connection.
-   
+
 
    :param process_id: The process ID of the backend.
-   
+
 
    :param secret_key: The secret key of the backend.
 
 .. zeek:id:: PostgreSQL::data_row
-   :source-code: base/protocols/postgresql/main.zeek 222 229
+   :source-code: base/protocols/postgresql/main.zeek 235 243
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, column_values: :zeek:type:`count`)
 
    Event generated for every backend DataRow message.
-   
+
 
    :param c: The connection.
-   
+
 
    :param column_values: The number of columns in this row.
 
 .. zeek:id:: PostgreSQL::error_response
-   :source-code: base/protocols/postgresql/main.zeek 160 179
+   :source-code: base/protocols/postgresql/main.zeek 168 188
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated for a ErrorResponse.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: PostgreSQL::error_response_identified_field
 
 .. zeek:id:: PostgreSQL::error_response_identified_field
-   :source-code: base/protocols/postgresql/main.zeek 143 148
+   :source-code: base/protocols/postgresql/main.zeek 149 155
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Event generated for identified field within an ErrorResponse.
-   
+
 
    :param c: The connection.
-   
+
 
    :param code: The code (https://www.postgresql.org/docs/current/protocol-error-fields.html)
-   
+
 
    :param value: The field value.
-   
+
    .. zeek:see:: PostgreSQL::error_response
 
 .. zeek:id:: PostgreSQL::not_implemented
@@ -158,28 +158,28 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated for a NoticeResponse.
-   
+
 
    :param c: The connection.
-   
+
    .. zeek:see:: PostgreSQL::notice_response_identified_field
 
 .. zeek:id:: PostgreSQL::notice_response_identified_field
-   :source-code: base/protocols/postgresql/main.zeek 150 158
+   :source-code: base/protocols/postgresql/main.zeek 157 166
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, code: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Event generated for identified field within a NoticeResponse.
-   
+
 
    :param c: The connection.
-   
+
 
    :param code: The code (https://www.postgresql.org/docs/current/protocol-error-fields.html)
-   
+
 
    :param value: The field value.
-   
+
    .. zeek:see:: PostgreSQL::notice_response
 
 .. zeek:id:: PostgreSQL::parameter_status
@@ -188,105 +188,105 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Event generated for backend runtime parameter status reports.
-   
+
 
    :param c: The connection.
-   
+
 
    :param name: The name of the runtime parameter.
-   
+
 
    :param value: The current value of the parameter.
-   
+
 
 .. zeek:id:: PostgreSQL::ready_for_query
-   :source-code: base/protocols/postgresql/main.zeek 231 246
+   :source-code: base/protocols/postgresql/main.zeek 245 262
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, transaction_status: :zeek:type:`string`)
 
    Event generated for every backed ReadyForQuery message.
-   
+
 
    :param c: The connection.
-   
+
 
    :param transaction_status: I (idle), T (in transaction block), E (error).
 
 .. zeek:id:: PostgreSQL::simple_query
-   :source-code: base/protocols/postgresql/main.zeek 211 220
+   :source-code: base/protocols/postgresql/main.zeek 223 233
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, query: :zeek:type:`string`)
 
    Event generated for every frontend SimpleQuery message.
-   
+
 
    :param c: The connection.
-   
+
 
    :param query: The query string.
 
 .. zeek:id:: PostgreSQL::ssl_reply
-   :source-code: base/protocols/postgresql/main.zeek 114 122
+   :source-code: base/protocols/postgresql/main.zeek 118 127
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
 
    Event generated for backend SSL reply.
-   
+
 
    :param c: The connection.
-   
+
 
    :param data: The server's reply: S for secure, N for unencrypted.
 
 .. zeek:id:: PostgreSQL::ssl_request
-   :source-code: base/protocols/postgresql/main.zeek 108 112
+   :source-code: base/protocols/postgresql/main.zeek 111 116
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated for frontend SSLRequest messages.
-   
+
 
    :param c: The connection.
 
 .. zeek:id:: PostgreSQL::startup_message
-   :source-code: base/protocols/postgresql/main.zeek 136 141
+   :source-code: base/protocols/postgresql/main.zeek 141 147
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major: :zeek:type:`count`, minor: :zeek:type:`count`)
 
    Event generated for a StartupMessage.
-   
+
 
    :param c: The connection.
-   
+
 
    :param major: The major protocol version.
-   
+
 
    :param minor: The minor protocol version.
 
 .. zeek:id:: PostgreSQL::startup_parameter
-   :source-code: base/protocols/postgresql/main.zeek 124 134
+   :source-code: base/protocols/postgresql/main.zeek 129 139
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
    Event generated for every parameter in a StartupMessage.
-   
+
 
    :param c: The connection.
-   
+
 
    :param name: The name of the parameter.
-   
+
 
    :param value: The value of the parameter.
 
 .. zeek:id:: PostgreSQL::terminate
-   :source-code: base/protocols/postgresql/main.zeek 202 209
+   :source-code: base/protocols/postgresql/main.zeek 213 221
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
    Event generated For a frontend Terminate message.
-   
+
 
    :param c: The connection.
 

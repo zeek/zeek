@@ -23,13 +23,13 @@ Runtime Options
 Redefinitions
 #############
 ============================================ ==========================================================================================================
-:zeek:type:`HTTP::Info`: :zeek:type:`record` 
-                                             
+:zeek:type:`HTTP::Info`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`HTTP::Info`
-                                             
+
                                                client_header_names: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  The vector of HTTP header names sent by the client.
-                                             
+
                                                server_header_names: :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                  The vector of HTTP header names sent by the server.
 ============================================ ==========================================================================================================

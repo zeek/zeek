@@ -21,15 +21,15 @@ Runtime Options
 Redefinitions
 #############
 ======================================= ===========================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`SMB::CMD_LOG`
 ======================================= ===========================
 
 Hooks
 #####
 ======================================================== =
-:zeek:id:`SMB::log_policy`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`SMB::log_policy`: :zeek:type:`Log::PolicyHook`
 ======================================================== =
 
 

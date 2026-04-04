@@ -12,6 +12,13 @@ module DHCP;
 export {
 	redef enum Log::ID += { LOG };
 
+	## Well-known server ports for DHCP.
+	# 67/udp is the server's port, 68/udp the client.
+	# 4011/udp seems to be some proxyDHCP thing.
+	const server_ports = { 67/udp, 4011/udp } &redef;
+	## Well-known client ports for DHCP.
+	const client_ports = { 68/udp } &redef;
+
 	global log_policy: Log::PolicyHook;
 
 	## The record type which contains the column fields of the DHCP log.
@@ -123,15 +130,10 @@ redef record Info += {
 	last_message_ts: time &optional;
 };
 
-# 67/udp is the server's port, 68/udp the client.
-# 4011/udp seems to be some proxyDHCP thing.
-const ports = { 67/udp, 68/udp, 4011/udp };
-redef likely_server_ports += { 67/udp };
-
 event zeek_init() &priority=5
 	{
 	Log::create_stream(DHCP::LOG, Log::Stream($columns=Info, $ev=log_dhcp, $path="dhcp", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, server_ports, client_ports);
 	}
 
 function join_data_expiration(t: table[count] of Info, idx: count): interval

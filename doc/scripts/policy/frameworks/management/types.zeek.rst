@@ -18,17 +18,17 @@ Types
 :zeek:type:`Management::Configuration`: :zeek:type:`record` Data structure capturing a cluster's complete configuration.
 :zeek:type:`Management::Instance`: :zeek:type:`record`      Configuration describing a Zeek instance running a Cluster
                                                             Agent.
-:zeek:type:`Management::InstanceVec`: :zeek:type:`vector`   
+:zeek:type:`Management::InstanceVec`: :zeek:type:`vector`
 :zeek:type:`Management::Node`: :zeek:type:`record`          Configuration describing a Cluster Node process.
 :zeek:type:`Management::NodeOutputs`: :zeek:type:`record`   In :zeek:see:`Management::Controller::API::deploy_response` events,
                                                             each :zeek:see:`Management::Result` indicates the outcome of a
                                                             launched cluster node.
 :zeek:type:`Management::NodeStatus`: :zeek:type:`record`    The status of a Supervisor-managed node, as reported to the client in
                                                             a get_nodes_request/get_nodes_response transaction.
-:zeek:type:`Management::NodeStatusVec`: :zeek:type:`vector` 
+:zeek:type:`Management::NodeStatusVec`: :zeek:type:`vector`
 :zeek:type:`Management::Option`: :zeek:type:`record`        A Zeek-side option with value.
 :zeek:type:`Management::Result`: :zeek:type:`record`        Return value for request-response API event pairs.
-:zeek:type:`Management::ResultVec`: :zeek:type:`vector`     
+:zeek:type:`Management::ResultVec`: :zeek:type:`vector`
 :zeek:type:`Management::Role`: :zeek:type:`enum`            Management infrastructure node type.
 :zeek:type:`Management::State`: :zeek:type:`enum`           State that a Cluster Node can be in.
 =========================================================== =====================================================================

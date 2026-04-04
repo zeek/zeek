@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <unistd.h>
+#include <unistd.h> // for __attribute__ on Windows
 #include <atomic>
 #include <cstdint>
 #include <thread>

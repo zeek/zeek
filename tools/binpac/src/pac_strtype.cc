@@ -19,17 +19,17 @@ const char* StringType::kConstStringTypeName = "const_bytestring";
 
 StringType::StringType(StringTypeEnum anystr) : Type(STRING), type_(ANYSTR), str_(nullptr), regex_(nullptr) {
     ASSERT(anystr == ANYSTR);
-    init();
+    init_type();
 }
 
-StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(nullptr) { init(); }
+StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(nullptr) { init_type(); }
 
 StringType::StringType(RegEx* regex) : Type(STRING), type_(REGEX), str_(nullptr), regex_(regex) {
     ASSERT(regex_);
-    init();
+    init_type();
 }
 
-void StringType::init() {
+void StringType::init_type() {
     string_length_var_field_ = nullptr;
     elem_datatype_ = new BuiltInType(BuiltInType::UINT8);
 }
@@ -220,7 +220,7 @@ void StringType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
     }
 }
 
-void StringType::GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, string pattern) {
+void StringType::GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, const string& pattern) {
     string tmp = strfmt("string(reinterpret_cast<const char*>(%s), reinterpret_cast<const char*>(%s)).c_str()",
                         data.ptr_expr(), env->RValue(end_of_data));
     out_cc->println("throw binpac::ExceptionStringMismatch(\"%s\", %s, %s);", Location(), pattern.c_str(), tmp.c_str());

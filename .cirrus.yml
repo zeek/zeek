@@ -58,23 +58,23 @@ only_if_pr_master_release: &ONLY_IF_PR_MASTER_RELEASE
       )
     )
 
-only_if_pr_master_release_nightly: &ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+only_if_pr_master_release_nightly: &ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   only_if: >
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
       ( $CIRRUS_PR != '' ||
         $CIRRUS_BRANCH == 'master' ||
         $CIRRUS_BRANCH =~ 'release/.*' ||
+        $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
 
-only_if_pr_release_and_nightly: &ONLY_IF_PR_RELEASE_AND_NIGHTLY
+only_if_release_tag_nightly: &ONLY_IF_RELEASE_TAG_NIGHTLY
   only_if: >
-    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
-      ( $CIRRUS_PR != '' ||
-        $CIRRUS_BRANCH =~ 'release/.*' ||
+      ( $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
@@ -84,15 +84,6 @@ only_if_pr_nightly: &ONLY_IF_PR_NIGHTLY
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       ( $CIRRUS_CRON != 'weekly' ) &&
       ( $CIRRUS_PR != '' ||
-        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
-      )
-    )
-
-only_if_release_tag_nightly: &ONLY_IF_RELEASE_TAG_NIGHTLY
-  only_if: >
-    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
-      ( $CIRRUS_CRON != 'weekly' ) &&
-      ( ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) ||
         ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
       )
     )
@@ -111,42 +102,51 @@ only_if_weekly: &ONLY_IF_WEEKLY
 
 skip_if_pr_skip_all: &SKIP_IF_PR_SKIP_ALL
   skip: >
-    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
+    )
+
 
 skip_if_pr_not_full_ci: &SKIP_IF_PR_NOT_FULL_CI
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: Full.*") ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 skip_if_pr_not_full_or_benchmark: &SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Benchmark).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 skip_if_pr_not_full_or_cluster_test: &SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Cluster Test).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 skip_if_pr_not_full_or_zam: &SKIP_IF_PR_NOT_FULL_OR_ZAM
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|ZAM).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 skip_if_pr_not_full_or_zeekctl: &SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Zeekctl).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 skip_if_pr_not_full_or_windows: &SKIP_IF_PR_NOT_FULL_OR_WINDOWS
   skip: >
     ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Windows).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
+      ( changesIncludeOnly('doc/**') )
     )
 
 ci_template: &CI_TEMPLATE
@@ -198,6 +198,7 @@ env:
   ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
   ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
   ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
+  ZEEK_CI_CONFIGURE_FLAGS_EXTRA:
   # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
   # the zeek-testing-private repository.
   ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[!dbdba93df9c166f926480cebff52dab303589257b3b3ee53aa392021aff2881ed9aafefef26aa9a1b71a49d663d1361c!]
@@ -235,13 +236,20 @@ env:
   # a solution for the mtime pruning above.
   ZEEK_CCACHE_EPOCH: 2
 
+  # Set ulimit open files limit when running ./ci/test.sh to this value.
+  # In November 2025, the default open files limit on Cirrus is 1 mio and
+  # the assumption here is that libkqueue's calloc optimization for large
+  # open file limits doesn't apply to ASAN runtimes, resulting in regular
+  # but sporadic OOM failures.
+  ZEEK_TEST_ULIMIT_OPEN_FILES: 256
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
-fedora42_task:
+fedora43_task:
   container:
-    # Fedora 42 EOL: Around May 2026
-    dockerfile: ci/fedora-42/Dockerfile
+    # Fedora 43 EOL: Around Nov 2026
+    dockerfile: ci/fedora-43/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
@@ -249,10 +257,10 @@ fedora42_task:
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
 
-fedora41_task:
+fedora42_task:
   container:
-    # Fedora 41 EOL: Around Nov 2025
-    dockerfile: ci/fedora-41/Dockerfile
+    # Fedora 42 EOL: Around May 2026
+    dockerfile: ci/fedora-42/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
@@ -360,10 +368,12 @@ opensuse_tumbleweed_task:
 
 weekly_current_gcc_task:
   container:
-    # Opensuse Tumbleweed has no EOL
-    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    # Debian Unstable has no EOL
+    dockerfile: ci/debian-unstable/Dockerfile
+    docker_arguments:
+        - DOCKERFILE_BUILD_ID: $CIRRUS_BUILD_ID
     << : *RESOURCES_TEMPLATE
-  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  prepare_script: ./ci/debian-unstable/prepare-weekly.sh
   << : *CI_TEMPLATE
   << : *ONLY_IF_WEEKLY
   env:
@@ -371,10 +381,12 @@ weekly_current_gcc_task:
 
 weekly_current_clang_task:
   container:
-    # Opensuse Tumbleweed has no EOL
-    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    # Debian Unstable has no EOL
+    dockerfile: ci/debian-unstable/Dockerfile
+    docker_arguments:
+        - DOCKERFILE_BUILD_ID: $CIRRUS_BUILD_ID
     << : *RESOURCES_TEMPLATE
-  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  prepare_script: ./ci/debian-unstable/prepare-weekly.sh
   << : *CI_TEMPLATE
   << : *ONLY_IF_WEEKLY
   env:
@@ -432,6 +444,9 @@ ubuntu24_04_clang_libcpp_task:
     CC: clang-19
     CXX: clang++-19
     CXXFLAGS: -stdlib=libc++
+    # The libnode package is linked with the system's libstdc++, making
+    # it incompatible with Zeek compiled using libc++.
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
 
 ubuntu24_04_clang_tidy_task:
   container:
@@ -441,6 +456,7 @@ ubuntu24_04_clang_tidy_task:
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
+  test_script: echo "Tests disabled for clang-tidy builds"
   env:
     CC: clang-19
     CXX: clang++-19
@@ -469,7 +485,7 @@ ubuntu24_04_spicy_head_task:
     dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *ONLY_IF_PR_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
@@ -516,14 +532,14 @@ macos_sequoia_task:
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_SKIP_ALL
+  << : *SKIP_IF_PR_NOT_FULL_CI
   << : *MACOS_ENVIRONMENT
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
-freebsd14_task:
+freebsd15_task:
   freebsd_instance:
-    # FreeBSD 14 EOL: Nov 30 2028
-    image_family: freebsd-14-3
+    # FreeBSD 15 EOL: Dec 29 2029
+    image_family: freebsd-15-0-amd64-zfs
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -532,10 +548,11 @@ freebsd14_task:
   << : *SKIP_IF_PR_SKIP_ALL
   << : *FREEBSD_ENVIRONMENT
 
-freebsd13_task:
+# FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
+freebsd14_task:
   freebsd_instance:
-    # FreeBSD 13 EOL: January 31, 2026
-    image_family: freebsd-13-5
+    # FreeBSD 14 EOL: Nov 30 2028
+    image_family: freebsd-14-3
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -595,6 +612,7 @@ ubsan_sanitizer_task:
     CXX: clang++-19
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
 
@@ -610,6 +628,7 @@ ubsan_sanitizer_zam_task:
     CC: clang-19
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
     ZEEK_CI_SKIP_UNIT_TESTS: 1
@@ -631,6 +650,7 @@ tsan_sanitizer_task:
     CC: clang-19
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
+    ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     # If this is defined directly in the environment, configure fails to find
     # OpenSSL. Instead we define it with a different name and then give it
@@ -675,6 +695,7 @@ windows_task:
 docker_build_template: &DOCKER_BUILD_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
+  version_script: docker version && docker buildx version
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
 
   env:
@@ -702,31 +723,81 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
 
   sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
 
-  prepare_builder_script:
-    - set -x
-    - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
-    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
-    - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
-    - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+  prepare_builder_script: |
+    set -x
+    mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then
+      zstd -d <${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load
+      LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null)
+    fi
+
+    if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then
+      zstd -d <${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load
+      LAST_FINAL_SHA=$(docker inspect -f '{{ index .Config.Labels "org.opencontainers.image.revision" }}' ${IMAGE_TAG} 2>/dev/null)
+    fi
+
+    (cd docker && docker build \
+                     --cache-from zeek-builder:latest \
+                     --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                     -t zeek-builder:latest \
+                     -f builder.Dockerfile .)
+
+    # Store off the image ID so we can check whether the image changes after we rebuild.
+    # This will happen even if the only thing that changes is the Git SHA.
+    NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
+
+    echo "Old Builder Image ID: ${LAST_BUILDER_IMAGE_ID}"
+    echo "New Builder Image ID: ${NEW_BUILDER_IMAGE_ID}"
+    echo "Old Final Image SHA: ${LAST_FINAL_SHA}"
+    echo "New SHA: ${CIRRUS_CHANGE_IN_REPO}"
+
+    # We only rebuild the image if the builder image changed in the `docker build` command
+    # above, or if the last final image has a different SHA in it. This will force the
+    # rest of the process to continue as well.
+    if [ "${LAST_BUILDER_IMAGE_ID}" != "${NEW_BUILDER_IMAGE_ID}" -o  "${LAST_FINAL_SHA}" != "${CIRRUS_CHANGE_IN_REPO}" ]; then
+      echo "BUILDER_IMAGE_REBUILT=1" >>$CIRRUS_ENV
+      docker save zeek-builder:latest | zstd >${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+    else
+      echo "Builder image not rebuilt, skipped caching old image"
+    fi
   build_zeek_script: |
     set -x
-    docker run --name zeek-builder-container \
-        -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
-        -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
-        -e CCACHE_DIR=/tmp/ccache \
-        -e CCACHE_NOSTATS=1 \
-        -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
-        bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+    if [ ${BUILDER_IMAGE_REBUILT:-0} -eq 1 ]; then
+      docker run --name zeek-builder-container \
+          -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+          -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+          -e CCACHE_DIR=/tmp/ccache \
+          -e CCACHE_NOSTATS=1 \
+          -v $(pwd):/src/zeek -v /tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
+          bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
 
-    # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
-    docker commit zeek-builder-container zeek-build
-  build_final_script:
-    - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
-    - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
-  test_script:
-    - docker tag ${IMAGE_TAG} zeek:latest
-    - make -C docker/btest
+      # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+      docker commit zeek-builder-container zeek-build
+    else
+      echo "Builder image didn't change, skipping step"
+    fi
+  build_final_script: |
+    set -x
+    if [ ${BUILDER_IMAGE_REBUILT:-0} -eq 1 ]; then
+      (cd docker && docker build \
+                           --cache-from ${IMAGE_TAG} \
+                           --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                           --build-arg GIT_COMMIT=${CIRRUS_CHANGE_IN_REPO} \
+                           --build-arg CREATED_DATE=${CREATED_DATE} \
+                           -t ${IMAGE_TAG} \
+                           -f final.Dockerfile .)
+      docker save ${IMAGE_TAG} | zstd >${ZEEK_IMAGE_CACHE_DIR}/final.zst
+    else
+      echo "Builder image didn't change, skipping step"
+    fi
+  test_script: |
+    set -x
+    if [ ${BUILDER_IMAGE_REBUILT:-0} -eq 1 ]; then
+      docker tag ${IMAGE_TAG} zeek:latest
+      make -C docker/btest
+    else
+      echo "Builder image didn't change, skipping step"
+    fi
 
 arm64_container_image_docker_builder:
   env:
@@ -738,18 +809,19 @@ amd64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 container_image_manifest_docker_builder:
   cpu: 1
   << : *ONLY_IF_RELEASE_TAG_NIGHTLY
-  skip: $CIRRUS_CHANGE_IN_REPO == $CIRRUS_LAST_GREEN_CHANGE
   env:
     DOCKER_USERNAME: ENCRYPTED[!505b3dee552a395730a7e79e6aab280ffbe1b84ec62ae7616774dfefe104e34f896d2e20ce3ad701f338987c13c33533!]
     DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
     AWS_ECR_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
     AWS_ECR_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+    BUILDKIT_PROGRESS: plain
+  version_script: docker version && docker buildx version
   login_script: |
     docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
     AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \
@@ -824,7 +896,6 @@ container_image_manifest_docker_builder:
 public_ecr_cleanup_docker_builder:
   cpu: 1
   << : *ONLY_IF_NIGHTLY
-  skip: $CIRRUS_CHANGE_IN_REPO == $CIRRUS_LAST_GREEN_CHANGE
   env:
     AWS_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
     AWS_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
@@ -837,10 +908,6 @@ public_ecr_cleanup_docker_builder:
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
-  only_if: >
-    ( $CIRRUS_CRON == '' ) &&
-    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
   install_deps_script:
@@ -864,7 +931,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *ONLY_IF_PR_RELEASE_AND_NIGHTLY
+  << : *ONLY_IF_PR_MASTER_RELEASE_TAG_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
 
 

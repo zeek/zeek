@@ -13,7 +13,7 @@
 #include "pac_varfield.h"
 
 ArrayType::ArrayType(Type* elemtype, Expr* length) : Type(ARRAY), elemtype_(elemtype), length_(length) {
-    init();
+    init_type();
 
     switch ( elemtype_->tot() ) {
         case BUILTIN:
@@ -30,7 +30,7 @@ ArrayType::ArrayType(Type* elemtype, Expr* length) : Type(ARRAY), elemtype_(elem
     }
 }
 
-void ArrayType::init() {
+void ArrayType::init_type() {
     arraylength_var_field_ = nullptr;
     elem_it_var_field_ = nullptr;
     elem_var_field_ = nullptr;

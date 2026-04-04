@@ -1,5 +1,4 @@
 // See the file "COPYING" in the main distribution directory for copyright.
-
 #include "zeek/Expr.h"
 
 #include "zeek/DebugLogger.h"
@@ -28,13 +27,18 @@
 
 namespace zeek::detail {
 
+class IsolationException {
+public:
+    IsolationException() = default;
+};
+
 const char* expr_name(ExprTag t) {
     // Note that some of the names in the following have trailing spaces.
     // These are for unary operations that (1) are identified by names
     // rather than symbols, and (2) don't have custom ExprDescribe printers.
     // Adding the spaces here lets them leverage the UnaryExpr::ExprDescribe
     // method without it having to know about such expressions.
-    static const char* expr_names[int(NUM_EXPRS)] = {
+    static const char* expr_names[static_cast<int>(NUM_EXPRS)] = {
         "name",
         "const",
         "(*)",
@@ -108,17 +112,17 @@ const char* expr_name(ExprTag t) {
         "nop", // don't add after this, it's used to compute NUM_EXPRS
     };
 
-    if ( int(t) >= NUM_EXPRS ) {
+    if ( static_cast<int>(t) >= NUM_EXPRS ) {
         static char errbuf[512];
 
         // This isn't quite right - we return a static buffer,
         // so multiple calls to expr_name() could lead to confusion
         // by overwriting the buffer.  But oh well.
-        snprintf(errbuf, sizeof(errbuf), "%d: not an expression tag", int(t));
+        snprintf(errbuf, sizeof(errbuf), "%d: not an expression tag", static_cast<int>(t));
         return errbuf;
     }
 
-    return expr_names[int(t)];
+    return expr_names[static_cast<int>(t)];
 }
 
 int Expr::num_exprs = 0;
@@ -373,7 +377,7 @@ void Expr::Describe(ODesc* d) const {
 
 void Expr::AddTag(ODesc* d) const {
     if ( d->IsBinary() )
-        d->Add(int(Tag()));
+        d->Add(static_cast<int>(Tag()));
     else
         d->AddSP(expr_name(Tag()));
 }
@@ -451,9 +455,10 @@ ValPtr NameExpr::Eval(Frame* f) const {
         v = f->GetElementByID(id);
 
     else
-        // No frame - evaluating for purposes of resolving a
-        // compile-time constant.
-        return nullptr;
+        // No frame - evaluating for purposes of resolving a compile-time
+        // constant. Prevent upstream errors due to dereferencing a null
+        // pointer.
+        throw IsolationException();
 
     if ( v )
         return v;
@@ -1117,7 +1122,7 @@ bool BinaryExpr::CheckForRHSList() {
     auto& rhs_exprs = rhs->Exprs();
 
     if ( lhs_t->Tag() == TYPE_TABLE ) {
-        if ( lhs_t->IsSet() && rhs_exprs.size() >= 1 && same_type(lhs_t, rhs_exprs[0]->GetType()) ) {
+        if ( lhs_t->IsSet() && ! rhs_exprs.empty() && same_type(lhs_t, rhs_exprs[0]->GetType()) ) {
             // This is potentially the idiom of "set1 += { set2 }"
             // or "set1 += { set2, set3, set4 }".
             op2 = {NewRef{}, rhs_exprs[0]};
@@ -2856,7 +2861,7 @@ ValPtr FieldExpr::Fold(Val* v) const {
     const Attr* def_attr = td ? td->GetAttr(ATTR_DEFAULT).get() : nullptr;
 
     if ( def_attr )
-        return def_attr->GetExpr()->Eval(nullptr);
+        return eval_in_isolation(def_attr->GetExpr());
     else {
         RuntimeError("field value missing");
         assert(false);
@@ -3046,16 +3051,16 @@ bool RecordConstructorExpr::IsPure() const { return op->IsPure(); }
 void RecordConstructorExpr::ExprDescribe(ODesc* d) const {
     auto& tn = type->GetName();
 
-    if ( tn.size() > 0 ) {
+    if ( tn.empty() ) {
+        d->Add("[");
+        op->Describe(d);
+        d->Add("]");
+    }
+    else {
         d->Add(tn);
         d->Add("(");
         op->Describe(d);
         d->Add(")");
-    }
-    else {
-        d->Add("[");
-        op->Describe(d);
-        d->Add("]");
     }
 }
 
@@ -3151,7 +3156,7 @@ static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t) {
 
     if ( set_offset >= 0 ) { // expand the set
         auto s_e = index_exprs[set_offset];
-        auto v = s_e->Eval(nullptr);
+        auto v = eval_in_isolation(s_e);
         if ( ! v ) {
             s_e->Error("cannot expand constructor elements using a value that depends on local variables");
             elems->SetError();
@@ -3224,7 +3229,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
             SetType(init_type(op));
 
             if ( ! type ) {
-                SetError();
+                SetError("cannot determine type for table; ensure square brackets are around each key");
                 return;
             }
 
@@ -3376,6 +3381,9 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list, std::unique
 
     else if ( type->Tag() != TYPE_TABLE || ! type->AsTableType()->IsSet() )
         SetError("values in set(...) constructor do not specify a set");
+
+    if ( type->Tag() == TYPE_ERROR )
+        return;
 
     if ( arg_attrs )
         SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
@@ -3731,7 +3739,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
                 const auto& def = rv_rt->FieldDecl(map[i])->GetAttr(ATTR_DEFAULT);
 
                 if ( def )
-                    rhs = def->GetExpr()->Eval(nullptr);
+                    rhs = eval_in_isolation(def->GetExpr());
             }
 
             assert(rhs || rt->FieldDecl(i)->GetAttr(ATTR_OPTIONAL));
@@ -3765,7 +3773,7 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
         }
         else {
             if ( const auto& def = rt->FieldDecl(i)->GetAttr(ATTR_DEFAULT) ) {
-                auto def_val = def->GetExpr()->Eval(nullptr);
+                auto def_val = eval_in_isolation(def->GetExpr());
                 const auto& def_type = def_val->GetType();
                 const auto& field_type = rt->GetFieldType(i);
 
@@ -4030,7 +4038,7 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
         if ( table_type->IsPatternIndex() && v1->GetType()->Tag() == TYPE_STRING )
             res = table_val->MatchPattern({NewRef{}, v1->AsStringVal()});
         else
-            res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+            res = static_cast<bool>(v2->AsTableVal()->Find({NewRef{}, v1}));
     }
 
     return val_mgr->Bool(res);
@@ -4103,7 +4111,7 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
              // The following is needed because fmt might not yet
              // be bound as a name.
              did_builtin_init ) {
-            func_val = func->Eval(nullptr);
+            func_val = eval_in_isolation(func);
             if ( func_val ) {
                 zeek::Func* f = func_val->AsFunc();
                 if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call(static_cast<BuiltinFunc*>(f), this) )
@@ -4152,7 +4160,7 @@ ValPtr CallExpr::Eval(Frame* f) const {
     // Check for that.
     if ( f ) {
         if ( trigger::Trigger* trigger = f->GetTrigger() ) {
-            if ( Val* v = trigger->Lookup((void*)this) ) {
+            if ( Val* v = trigger->Lookup(this) ) {
                 DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
                 return {NewRef{}, v};
             }
@@ -4286,7 +4294,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
     auto desc = when_parent ? "\"when\" statement" : "lambda";
 
     if ( ! captures ) {
-        if ( outer_ids.size() > 0 ) {
+        if ( ! outer_ids.empty() ) {
             reporter->Error("%s uses outer identifiers without [] captures: %s%s", desc,
                             outer_ids.size() > 1 ? "e.g., " : "", outer_ids[0]->Name());
             return false;
@@ -4399,15 +4407,19 @@ ValPtr LambdaExpr::Eval(Frame* f) const {
     lamb->SetFrameSize(primary_func->FrameSize());
     StmtPtr body = primary_func->GetBodies()[0].stmts;
 
-    if ( run_state::is_parsing )
+    if ( run_state::is_parsing ) {
         // We're evaluating this lambda at parse time, which happens
         // for initializations.  If we're doing script optimization
         // then the current version of the body might be left in an
         // inconsistent state (e.g., if it's replaced with ZAM code)
         // causing problems if we execute this lambda subsequently.
         // To avoid that problem, we duplicate the AST so it's
-        // distinct.
+        // distinct, and we inform script optimization so it can track
+        // the alias we're introducing.
+        auto orig_body = body;
         body = body->Duplicate();
+        register_lambda_alias(orig_body, body);
+    }
 
     lamb->AddBody(*ingredients, body);
     lamb->CreateCaptures(f);
@@ -5014,6 +5026,14 @@ std::optional<std::vector<ValPtr>> eval_list(Frame* f, const ListExpr* l) {
     }
 
     return rval;
+}
+
+ValPtr eval_in_isolation(const Expr* e) {
+    try {
+        return e->Eval(nullptr);
+    } catch ( IsolationException& ) {
+        return nullptr;
+    }
 }
 
 bool expr_greater(const Expr* e1, const Expr* e2) { return e1->Tag() > e2->Tag(); }

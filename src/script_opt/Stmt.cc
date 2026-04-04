@@ -400,7 +400,7 @@ bool SwitchStmt::IsReduced(Reducer* r) const {
     if ( ! e->IsReduced(r) )
         return NonReduced(e.get());
 
-    if ( cases->length() == 0 )
+    if ( cases->empty() )
         return false;
 
     for ( const auto& c : *cases ) {
@@ -418,7 +418,7 @@ bool SwitchStmt::IsReduced(Reducer* r) const {
 }
 
 StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
-    if ( cases->length() == 0 )
+    if ( cases->empty() )
         // Degenerate.
         return TransformMe(make_intrusive<NullStmt>(), rc);
 
@@ -476,8 +476,7 @@ bool SwitchStmt::NoFlowAfter(bool ignore_break) const {
         if ( ! c->Body()->NoFlowAfter(true) )
             return false;
 
-        if ( (! c->ExprCases() || c->ExprCases()->Exprs().length() == 0) &&
-             (! c->TypeCases() || c->TypeCases()->empty()) )
+        if ( (! c->ExprCases() || c->ExprCases()->Exprs().empty()) && (! c->TypeCases() || c->TypeCases()->empty()) )
             // We saw the default, and the test before this
             // one established that it has no flow after it.
             default_seen_with_no_flow_after = true;

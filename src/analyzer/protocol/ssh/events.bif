@@ -13,6 +13,7 @@
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
 ##    ssh2_gss_init ssh2_rsa_secret ssh_server_pre_banner_data
+##    ssh_server_host_key_fingerprint
 event ssh_server_version%(c: connection, version: string%);
 
 ## An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
@@ -29,7 +30,7 @@ event ssh_server_version%(c: connection, version: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_client_version%(c: connection, version: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -51,7 +52,7 @@ event ssh_client_version%(c: connection, version: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -82,7 +83,7 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_auth_attempted%(c: connection, authenticated: bool%);
 
 ## During the initial :abbr:`SSH (Secure Shell)` key exchange, each
@@ -105,7 +106,7 @@ event ssh_auth_attempted%(c: connection, authenticated: bool%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -123,7 +124,7 @@ event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabi
 ##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
 ##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
 ##    ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init ssh2_gss_init
-##    ssh2_rsa_secret
+##    ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_server_host_key%(c: connection, key: string%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -150,7 +151,7 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh1_server_host_key%(c: connection, modulus: string, exponent: string%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -179,8 +180,28 @@ event ssh1_server_host_key%(c: connection, modulus: string, exponent: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_server_host_key%(c: connection, hash: string%);
+
+## During the :abbr:`SSH (Secure Shell)` key exchange, the server
+## supplies its public host key. This event is generated when the
+## appropriate key exchange message is seen for SSH1 or SSH2 and provides
+## a fingerprint of the server's host key.
+##
+## c: The connection over which the :abbr:`SSH (Secure Shell)`
+##    connection took place.
+##
+## fingerprint: A fingerprint of the host key, generated in the same fashion as
+##              the ``ssh-keygen -l`` command would generate it, with the hash
+##              used followed by a base64-encoded version of the hash of the key.
+##
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key
+event ssh_server_host_key_fingerprint%(c: connection, fingerprint: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
 ## encrypted packet is seen. This event is not handled by default, but
@@ -202,7 +223,7 @@ event ssh_server_host_key%(c: connection, hash: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 
 ## Generated if the connection uses a Diffie-Hellman Group Exchange
@@ -221,7 +242,7 @@ event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 
 ## In the event of a GSS-API error on the server, the server MAY send
@@ -242,7 +263,7 @@ event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, err_msg: string%);
 
 ## The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
@@ -263,7 +284,7 @@ event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, e
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);
 
 ## The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
@@ -284,7 +305,7 @@ event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_ecc_init%(c: connection, is_orig: bool%);
 
 ## Generated if the connection uses a Diffie-Hellman Group Exchange
@@ -301,7 +322,7 @@ event ssh2_ecc_init%(c: connection, is_orig: bool%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_dh_gex_init%(c: connection, is_orig: bool%);
 
 ## In the event of a GSS-API key exchange, this event is raised on
@@ -317,7 +338,7 @@ event ssh2_dh_gex_init%(c: connection, is_orig: bool%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_gss_init%(c: connection, is_orig: bool%);
 
 ## In the event of a GSS-API key exchange, this event is raised on
@@ -334,7 +355,7 @@ event ssh2_gss_init%(c: connection, is_orig: bool%);
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 event ssh2_rsa_secret%(c: connection, is_orig: bool%);
 
 ## SSH servers can send textual data to the client before sending

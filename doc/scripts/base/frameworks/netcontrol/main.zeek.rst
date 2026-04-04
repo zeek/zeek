@@ -33,21 +33,21 @@ Redefinitions
 #############
 ================================================== ===================================================================================================================
 :zeek:type:`Log::ID`: :zeek:type:`enum`            The framework's logging stream identifier.
-                                                   
+
                                                    * :zeek:enum:`NetControl::LOG`
-:zeek:type:`NetControl::Rule`: :zeek:type:`record` 
-                                                   
+:zeek:type:`NetControl::Rule`: :zeek:type:`record`
+
                                                    :New Fields: :zeek:type:`NetControl::Rule`
-                                                   
+
                                                      _plugin_ids: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
                                                        Internally set to the plugins handling the rule.
-                                                   
+
                                                      _active_plugin_ids: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
                                                        Internally set to the plugins on which the rule is currently active.
-                                                   
+
                                                      _no_expire_plugins: :zeek:type:`set` [:zeek:type:`count`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
                                                        Internally set to plugins where the rule should not be removed upon timeout.
-                                                   
+
                                                      _added: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
                                                        Track if the rule was added successfully by all responsible plugins.
 ================================================== ===================================================================================================================
@@ -271,13 +271,13 @@ Events
    :Type: :zeek:type:`event` (r: :zeek:type:`NetControl::Rule`, p: :zeek:type:`NetControl::PluginState`, msg: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`)
 
    Confirms that a rule was put in place by a plugin.
-   
+
 
    :param r: The rule now in place.
-   
+
 
    :param p: The state for the plugin that put it into place.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -290,7 +290,7 @@ Events
    because it is no longer in use. This can be caused by the fact that a rule
    was removed by all plugins to which it was added, by the fact that it timed out
    or due to rule errors.
-   
+
    To get the cause of a rule remove, catch the rule_removed, rule_timeout and
    rule_error events.
 
@@ -300,13 +300,13 @@ Events
    :Type: :zeek:type:`event` (r: :zeek:type:`NetControl::Rule`, p: :zeek:type:`NetControl::PluginState`, msg: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`)
 
    Reports an error when operating on a rule.
-   
+
 
    :param r: The rule that encountered an error.
-   
+
 
    :param p: The state for the plugin that reported the error.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -320,13 +320,13 @@ Events
    continue to be tracked like normal, but no timeout calls will be sent
    to the specified plugins. Removal of the rule from the hardware can
    still be forced by manually issuing a remove_rule call.
-   
+
 
    :param r: The rule that was already in place.
-   
+
 
    :param p: The plugin that reported that the rule already was in place.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -338,7 +338,7 @@ Events
    This event is raised when a new rule is created by the NetControl framework
    due to a call to add_rule. From this moment, until the rule_destroyed event
    is raised, the rule is tracked internally by the NetControl framework.
-   
+
    Note that this event does not mean that a rule was successfully added by
    any backend; it just means that the rule has been accepted and addition
    to the specified backend is queued. To get information when rules are actually
@@ -352,14 +352,14 @@ Events
 
    Reports that a plugin reports a rule was removed due to a
    remove_rule function call.
-   
+
 
    :param r: The rule now removed.
-   
+
 
    :param p: The state for the plugin that had the rule in place and now
       removed it.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -369,17 +369,17 @@ Events
    :Type: :zeek:type:`event` (r: :zeek:type:`NetControl::Rule`, i: :zeek:type:`NetControl::FlowInfo`, p: :zeek:type:`NetControl::PluginState`)
 
    Reports that a rule was removed from a plugin due to a timeout.
-   
+
 
    :param r: The rule now removed.
-   
+
 
    :param i: Additional flow information, if supported by the protocol.
-   
+
 
    :param p: The state for the plugin that had the rule in place and now
       removed it.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -401,16 +401,16 @@ Hooks
    the plugins and have been added to the rules database. This allows low-level
    modification of the handling of rules like, e.g., changing rule expiration depending
    on context.
-   
+
 
    :param r: The rule now in place.
-   
+
 
    :param p: The state for the plugin that put it into place.
-   
+
 
    :param exists: If the adding plugin flagged the rule as already existing.
-   
+
 
    :param msg: An optional informational message by the plugin.
 
@@ -422,7 +422,7 @@ Hooks
    Hook that allows the modification of rules passed to add_rule before they
    are passed on to the plugins. If one of the hooks uses break, the rule is
    ignored and not passed on to any plugin.
-   
+
 
    :param r: The rule to be added.
 
@@ -434,10 +434,10 @@ Functions
    :Type: :zeek:type:`function` (p: :zeek:type:`NetControl::PluginState`, priority: :zeek:type:`int`) : :zeek:type:`void`
 
    Activates a plugin.
-   
+
 
    :param p: The plugin to activate.
-   
+
 
    :param priority: The higher the priority, the earlier this plugin will be checked
              whether it supports an operation, relative to other plugins.
@@ -448,10 +448,10 @@ Functions
    :Type: :zeek:type:`function` (r: :zeek:type:`NetControl::Rule`) : :zeek:type:`string`
 
    Installs a rule.
-   
+
 
    :param r: The rule to install.
-   
+
 
    :returns: If successful, returns an ID string unique to the rule that can
             later be used to refer to it. If unsuccessful, returns an empty
@@ -477,13 +477,13 @@ Functions
    added before. This means that no messages will be sent to the switches to which
    the rule has been added; if it is not removed from them by a separate mechanism,
    it will stay installed and not be removed later.
-   
+
 
    :param id: The rule to delete, specified as the ID returned by :zeek:see:`NetControl::add_rule`.
-   
+
 
    :param reason: Optional string argument giving information on why the rule was deleted.
-   
+
 
    :returns: True if removal is successful, or sent to manager.
             False if the rule could not be found.
@@ -494,14 +494,14 @@ Functions
    :Type: :zeek:type:`function` (ip: :zeek:type:`addr`) : :zeek:type:`vector` of :zeek:type:`NetControl::Rule`
 
    Searches all rules affecting a certain IP address.
-   
+
    This function works on both the manager and workers of a cluster. Note that on
    the worker, the internal rule variables (starting with _) will not reflect the
    current state.
-   
+
 
    :param ip: The ip address to search for.
-   
+
 
    :returns: vector of all rules affecting the IP address.
 
@@ -511,22 +511,22 @@ Functions
    :Type: :zeek:type:`function` (sn: :zeek:type:`subnet`) : :zeek:type:`vector` of :zeek:type:`NetControl::Rule`
 
    Searches all rules affecting a certain subnet.
-   
+
    A rule affects a subnet, if it covers the whole subnet. Note especially that
    this function will not reveal all rules that are covered by a subnet.
-   
+
    For example, a search for 192.168.17.0/8 will reveal a rule that exists for
    192.168.0.0/16, since this rule affects the subnet. However, it will not reveal
    a more specific rule for 192.168.17.1/32, which does not directly affect the whole
    subnet.
-   
+
    This function works on both the manager and workers of a cluster. Note that on
    the worker, the internal rule variables (starting with _) will not reflect the
    current state.
-   
+
 
    :param sn: The subnet to search for.
-   
+
 
    :returns: vector of all rules affecting the subnet.
 
@@ -550,19 +550,19 @@ Functions
    from the host to the network DNS server will be rewritten and will be sent to the quarantine server
    instead. Only http communication infected to quarantinehost is allowed. All other network communication
    is blocked.
-   
+
 
    :param infected: the host to quarantine.
-   
+
 
    :param dns: the network dns server.
-   
+
 
    :param quarantine: the quarantine server running a dns and a web server.
-   
+
 
    :param t: how long to leave the quarantine in place.
-   
+
 
    :returns: Vector of inserted rules on success, empty list on failure.
 
@@ -572,19 +572,19 @@ Functions
    :Type: :zeek:type:`function` (f: :zeek:type:`flow_id`, out_port: :zeek:type:`count`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Redirects a uni-directional flow to another port.
-   
+
 
    :param f: The flow to redirect.
-   
+
 
    :param out_port: Port to redirect the flow to.
-   
+
 
    :param t: How long to leave the redirect in place, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing where the redirect was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 
@@ -594,13 +594,13 @@ Functions
    :Type: :zeek:type:`function` (id: :zeek:type:`string`, reason: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
    Removes a rule.
-   
+
 
    :param id: The rule to remove, specified as the ID returned by :zeek:see:`NetControl::add_rule`.
-   
+
 
    :param reason: Optional string argument giving information on why the rule was removed.
-   
+
 
    :returns: True if successful, the relevant plugin indicated that it knew
             how to handle the removal. Note that again "success" means the
@@ -614,16 +614,16 @@ Functions
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Allows all traffic involving a specific IP address to be forwarded.
-   
+
 
    :param a: The address to be whitelisted.
-   
+
 
    :param t: How long to whitelist it, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing whitelist was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 
@@ -633,16 +633,16 @@ Functions
    :Type: :zeek:type:`function` (s: :zeek:type:`subnet`, t: :zeek:type:`interval`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`string`
 
    Allows all traffic involving a specific IP subnet to be forwarded.
-   
+
 
    :param s: The subnet to be whitelisted.
-   
+
 
    :param t: How long to whitelist it, with 0 being indefinitely.
-   
+
 
    :param location: An optional string describing whitelist was triggered.
-   
+
 
    :returns: The id of the inserted rule on success and zero on failure.
 

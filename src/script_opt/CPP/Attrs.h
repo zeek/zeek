@@ -10,8 +10,8 @@ public:
 // initialization dependencies and the generation of any
 // associated expressions.
 //
-// Returns the initialization info associated with the set of
-// attributes.
+// Returns the initialization info associated with the set of attributes.
+// Returns nil if the attributes are empty.
 std::shared_ptr<CPP_InitInfo> RegisterAttributes(const AttributesPtr& attrs);
 
 // Convenient access to the global offset associated with

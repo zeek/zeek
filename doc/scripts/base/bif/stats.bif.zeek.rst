@@ -39,10 +39,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`BrokerStats`
 
    Returns statistics about Broker communication.
-   
+
 
    :returns: A record with Broker statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -63,10 +63,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`ConnStats`
 
    Returns Zeek traffic statistics.
-   
+
 
    :returns: A record with connection and packet statistics.
-   
+
    .. zeek:see:: get_dns_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -86,10 +86,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`DNSStats`
 
    Returns statistics about DNS lookup activity.
-   
+
 
    :returns: A record with DNS lookup statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_event_stats
                 get_file_analysis_stats
@@ -109,10 +109,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`EventNameStats`
 
    Returns statistics about calls to event handlers.
-   
+
 
    :returns: A record with event call statistics.
-   
+
 
 .. zeek:id:: get_event_stats
    :source-code: base/bif/stats.bif.zeek 82 82
@@ -120,10 +120,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`EventStats`
 
    Returns statistics about the event engine.
-   
+
 
    :returns: A record with event engine statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_file_analysis_stats
@@ -143,10 +143,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`FileAnalysisStats`
 
    Returns statistics about file analysis.
-   
+
 
    :returns: A record with file analysis statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -166,10 +166,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`GapStats`
 
    Returns statistics about TCP gaps.
-   
+
 
    :returns: A record with TCP gap statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -192,10 +192,10 @@ Functions
    the number of distinct matchers, DFA states, DFA state transitions, memory
    usage of DFA states, cache hits/misses, and average number of NFA states
    across all matchers.
-   
+
 
    :returns: A record with matcher statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -217,10 +217,10 @@ Functions
    Returns packet capture statistics. Statistics include the number of
    packets *(i)* received by Zeek, *(ii)* dropped, and *(iii)* seen on the
    link (not always available).
-   
+
 
    :returns: A record of packet statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -240,10 +240,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`ProcStats`
 
    Returns Zeek process statistics.
-   
+
 
    :returns: A record with process statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -263,10 +263,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`ReassemblerStats`
 
    Returns statistics about reassembler usage.
-   
+
 
    :returns: A record with reassembler statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -288,10 +288,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`ReporterStats`
 
    Returns statistics about reporter messages and weirds.
-   
+
 
    :returns: A record with reporter statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -311,10 +311,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`ThreadStats`
 
    Returns statistics about thread usage.
-   
+
 
    :returns: A record with thread usage statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats
@@ -334,10 +334,10 @@ Functions
    :Type: :zeek:type:`function` () : :zeek:type:`TimerStats`
 
    Returns statistics about timer usage.
-   
+
 
    :returns: A record with timer usage statistics.
-   
+
    .. zeek:see:: get_conn_stats
                 get_dns_stats
                 get_event_stats

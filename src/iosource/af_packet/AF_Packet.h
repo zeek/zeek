@@ -3,7 +3,6 @@
 #pragma once
 
 extern "C" {
-#include <errno.h>            // errorno
 #include <linux/if.h>         // ifreq
 #include <linux/if_packet.h>  // AF_PACKET, etc.
 #include <linux/net_tstamp.h> // hwtstamp_config

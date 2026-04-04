@@ -473,7 +473,7 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! op->IsSingleton(c) )
         op = op->ReduceToSingleton(c, red_stmt);
 
-    auto op_val = op->FoldVal();
+    auto op_val = IsAggr(op->GetType()) ? nullptr : op->FoldVal();
     if ( op_val ) {
         auto fold = Fold(op_val.get());
         if ( fold->GetType()->Tag() != TYPE_OPAQUE )
@@ -516,11 +516,11 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
-    auto op1_fold_val = op1->FoldVal();
+    auto op1_fold_val = IsAggr(op1->GetType()) ? nullptr : op1->FoldVal();
 
     if ( ! op1_fold_val && op1->Tag() == EXPR_LIST && op1->AsListExpr()->HasConstantOps() )
         // We can turn the list into a ListVal.
-        op1_fold_val = op1->Eval(nullptr);
+        op1_fold_val = eval_in_isolation(op1);
 
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
@@ -1887,7 +1887,7 @@ ExprPtr TableConstructorExpr::Duplicate() {
     auto op_l = op->Duplicate()->AsListExprPtr();
 
     TypePtr t;
-    if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
+    if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
         t = type;
     else
         // Use a null type rather than the one inferred, to instruct
@@ -1971,7 +1971,7 @@ ExprPtr SetConstructorExpr::Duplicate() {
     auto op_l = op->Duplicate()->AsListExprPtr();
 
     TypePtr t;
-    if ( (type && type->GetName().size() > 0) || ! op->AsListExpr()->Exprs().empty() )
+    if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
         t = type;
     else
         // Use a null type rather than the one inferred, to instruct
@@ -2224,7 +2224,7 @@ bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && o
 
 ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
-        op2 = with_location_of(make_intrusive<ConstExpr>(op2->Eval(nullptr)), this);
+        op2 = with_location_of(make_intrusive<ConstExpr>(eval_in_isolation(op2)), this);
 
     return BinaryExpr::Reduce(c, red_stmt);
 }
@@ -2309,7 +2309,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     if ( IsFoldableBiF() ) {
-        auto res = Eval(nullptr);
+        auto res = eval_in_isolation(this);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
     }
@@ -3143,7 +3143,7 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
     auto rhs_const = make_intrusive<ConstExpr>(rhs_val);
 
     auto add_expr = make_intrusive<AddExpr>(lhs_const, rhs_const);
-    auto sum = add_expr->Eval(nullptr);
+    auto sum = eval_in_isolation(add_expr);
     ASSERT(sum);
 
     rv1->Assign(lhs_map[i], std::move(sum));
@@ -3251,7 +3251,7 @@ ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, CallExprPtr _call)
     const auto& args = call->Args()->Exprs();
     ASSERT(args.size() <= 2);
 
-    if ( args.size() > 0 ) {
+    if ( ! args.empty() ) {
         arg1 = args[0]->Duplicate();
         if ( args.size() > 1 ) {
             arg2 = args[1]->Duplicate();
@@ -3342,7 +3342,7 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         BuildEvalExpr();
 
     if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) ) {
-        auto res = eval_expr->Eval(nullptr);
+        auto res = eval_in_isolation(eval_expr);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
     }

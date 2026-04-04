@@ -93,11 +93,10 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<StringValPtr>& 
 template<class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<PatternValPtr>& ivec, int offset,
                                    ValElemVec& init_vals) {
-    auto re = new RE_Matcher(im->Strings(init_vals[0]));
-    if ( init_vals[1] )
-        re->MakeCaseInsensitive();
-    if ( init_vals[2] )
-        re->MakeSingleLine();
+    auto pattern = im->Strings(init_vals[0]);
+
+    auto re = RE_Matcher::Reconstruct(pattern);
+    assert(re);
 
     re->Compile();
 
@@ -488,7 +487,7 @@ TypePtr CPP_TypeInits::BuildRecordType(InitsManager* im, ValElemVec& init_vals, 
     return r;
 }
 
-int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
+zeek_int_t CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     auto r = im->Types(rec)->AsRecordType();
     auto fm_offset = r->FieldOffset(field_name.c_str());
 
@@ -516,7 +515,7 @@ int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     return fm_offset;
 }
 
-int CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
+zeek_int_t CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
     auto e = im->Types(e_type)->AsEnumType();
 
     auto em_offset = e->Lookup(e_name);
@@ -558,10 +557,7 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
             auto fn = global->Name();
             auto ft = cast_intrusive<FuncType>(t);
 
-            vector<StmtPtr> no_bodies;
-            vector<int> no_priorities;
-
-            auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
+            auto sf = make_intrusive<ScriptFunc>(fn, ft, std::vector<Func::Body>{});
 
             auto v = make_intrusive<FuncVal>(std::move(sf));
             global->SetVal(v);
@@ -571,8 +567,11 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
     if ( attrs >= 0 )
         global->SetAttrs(im->Attributes(attrs));
 
-    if ( t->Tag() == TYPE_FUNC )
+    if ( t->Tag() == TYPE_FUNC ) {
         global->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
+        if ( ! func_with_no_val )
+            add_standalone_bodies(global->GetVal()->AsFunc());
+    }
 }
 
 size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set) {

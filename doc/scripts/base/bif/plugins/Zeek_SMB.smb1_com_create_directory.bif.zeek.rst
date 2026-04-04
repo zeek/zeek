@@ -32,18 +32,18 @@ Events
    version 1 requests of type *create directory*. This is a deprecated command which
    has been replaced by the *trans2_create_directory* subcommand. This is used by the client to
    create a new directory on the server, relative to a connected share.
-   
+
    For more information, see MS-CIFS:2.2.4.1
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param directory_name: The name of the directory to create.
-   
+
    .. zeek:see:: smb1_message smb1_create_directory_response smb1_transaction2_request
 
 .. zeek:id:: smb1_create_directory_response
@@ -55,15 +55,15 @@ Events
    version 1 responses of type *create directory*. This is a deprecated command which
    has been replaced by the *trans2_create_directory* subcommand. This is the server response
    to the *create directory* request.
-   
+
    For more information, see MS-CIFS:2.2.4.1
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
    .. zeek:see:: smb1_message smb1_create_directory_request smb1_transaction2_request
 
 

@@ -1,9 +1,9 @@
 # Just two traces with MySQL running in Amazon RDS tls1.3 and tls1.2
 
-# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-12-amazon-rds.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-12-amazon-rds.pcap %INPUT >out
 # @TEST-EXEC: mkdir tls-12 && mv *log out tls-12
 #
-# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-13-amazon-rds.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-13-amazon-rds.pcap %INPUT >out
 # @TEST-EXEC: mkdir tls-13 && mv *log out tls-13
 #
 # @TEST-EXEC: btest-diff tls-12/out

@@ -380,8 +380,8 @@ opt_func_attrs:	attr_list opt_ws
 		{ $$ = ""; }
 	;
 
-event_def:	event_prefix opt_ws plain_head opt_func_attrs
-			{ fprintf(fp_zeek_init, "%s", $4); } end_of_head ';'
+event_def:	event_prefix opt_ws plain_head opt_ws opt_func_attrs
+			{ fprintf(fp_zeek_init, "%s", $5); } end_of_head ';'
 			{
 			if ( events.find(decl.zeek_fullname) == events.end() )
 				{
@@ -431,9 +431,9 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			// We don't support fully qualified names as enumerators. Use a module name
 			fprintf(fp_netvar_h, "// NOLINTNEXTLINE(performance-enum-size)\n");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
-				fprintf(fp_netvar_h, "namespace BifEnum::%s { ", decl.module_name.c_str());
+				fprintf(fp_netvar_h, "namespace zeek::BifEnum::%s { ", decl.module_name.c_str());
 			else
-				fprintf(fp_netvar_h, "namespace BifEnum { ");
+				fprintf(fp_netvar_h, "namespace zeek::BifEnum { ");
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
 	;
@@ -518,12 +518,15 @@ end_of_head:	/* nothing */
 			}
 	;
 
-typed_head:	plain_head return_type
+typed_head:	plain_head opt_ws return_type
+			{
+			}
+	|	plain_head opt_ws
 			{
 			}
 	;
 
-plain_head:	head_1 args arg_end opt_ws
+plain_head:	head_1 args arg_end
 			{
 			if ( var_arg )
 				fprintf(fp_zeek_init, "va_args: any");
@@ -538,9 +541,6 @@ plain_head:	head_1 args arg_end opt_ws
 				}
 
 			fprintf(fp_zeek_init, ")");
-
-			fprintf(fp_zeek_init, "%s", $4);
-			fprintf(fp_func_def, "%s", $4);
 			}
 	;
 
@@ -686,7 +686,9 @@ body_start:	TOK_LPB c_code_begin
 
 			if ( ! var_arg )
 				{
+				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
 				fprintf(fp_func_def, "\tif ( %s->size() != %d )\n", arg_list_name, argc);
+
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
 					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes exactly %d argument(s), got %%lu\", %s->size()));\n",
@@ -696,6 +698,7 @@ body_start:	TOK_LPB c_code_begin
 				}
 			else if ( argc > 0 )
 				{
+				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
 				fprintf(fp_func_def, "\tif ( %s->size() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,

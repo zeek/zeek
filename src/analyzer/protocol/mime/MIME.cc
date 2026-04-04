@@ -459,7 +459,7 @@ MIME_Entity::MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entit
         depth = parent->Depth() + 1;
     }
 
-    want_all_headers = (bool)mime_all_headers;
+    want_all_headers = static_cast<bool>(mime_all_headers);
 }
 
 void MIME_Entity::init() {
@@ -958,7 +958,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data) {
             DataOctet(data[i]);
 
         else {
-            IllegalEncoding(util::fmt("control characters in quoted-printable encoding: %d", (int)(data[i])));
+            IllegalEncoding(
+                util::fmt("control characters in quoted-printable encoding: %d", static_cast<int>(data[i])));
             DataOctet(data[i]);
         }
     }
@@ -1163,11 +1164,14 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
     data_buffer = new String(true, new u_char[length + 1], length);
 
     if ( mime_content_hash ) {
-        compute_content_hash = 1;
+        compute_content_hash = true;
         md5_hash = zeek::detail::hash_init(detail::Hash_MD5);
     }
-    else
-        compute_content_hash = 0;
+
+    if ( mime_content_hash_sha256 ) {
+        compute_content_hash_sha256 = true;
+        sha256_hash = zeek::detail::hash_init(detail::Hash_SHA256);
+    }
 
     content_hash_length = 0;
 
@@ -1181,12 +1185,21 @@ void MIME_Mail::Done() {
     SubmitAllData();
 
     if ( compute_content_hash && mime_content_hash ) {
-        u_char* digest = new u_char[16];
+        u_char* digest = new u_char[ZEEK_MD5_DIGEST_LENGTH];
         zeek::detail::hash_final(md5_hash, digest);
         md5_hash = nullptr;
 
         analyzer->EnqueueConnEvent(mime_content_hash, analyzer->ConnVal(), val_mgr->Count(content_hash_length),
-                                   make_intrusive<StringVal>(new String(true, digest, 16)));
+                                   make_intrusive<StringVal>(new String(true, digest, ZEEK_MD5_DIGEST_LENGTH)));
+    }
+
+    if ( compute_content_hash_sha256 && mime_content_hash_sha256 ) {
+        u_char* digest = new u_char[ZEEK_SHA256_DIGEST_LENGTH];
+        zeek::detail::hash_final(sha256_hash, digest);
+        sha256_hash = nullptr;
+
+        analyzer->EnqueueConnEvent(mime_content_hash_sha256, analyzer->ConnVal(), val_mgr->Count(content_hash_length),
+                                   make_intrusive<StringVal>(new String(true, digest, ZEEK_SHA256_DIGEST_LENGTH)));
     }
 
     MIME_Message::Done();
@@ -1197,6 +1210,8 @@ void MIME_Mail::Done() {
 MIME_Mail::~MIME_Mail() {
     if ( md5_hash )
         zeek::detail::hash_state_free(md5_hash);
+    if ( sha256_hash )
+        zeek::detail::hash_state_free(sha256_hash);
 
     delete_strings(all_content);
     delete data_buffer;
@@ -1211,7 +1226,7 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */) {
         analyzer->EnqueueConnEvent(mime_begin_entity, analyzer->ConnVal());
 
     buffer_start = data_start = 0;
-    ASSERT(entity_content.size() == 0);
+    ASSERT(entity_content.empty());
 }
 
 void MIME_Mail::EndEntity(MIME_Entity* /* entity */) {
@@ -1257,6 +1272,11 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
     if ( compute_content_hash ) {
         content_hash_length += len;
         zeek::detail::hash_update(md5_hash, reinterpret_cast<const u_char*>(buf), len);
+    }
+
+    if ( compute_content_hash_sha256 ) {
+        content_hash_length_sha256 += len;
+        zeek::detail::hash_update(sha256_hash, reinterpret_cast<const u_char*>(buf), len);
     }
 
     if ( mime_entity_data || mime_all_data ) {

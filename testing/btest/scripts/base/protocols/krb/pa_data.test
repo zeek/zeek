@@ -1,6 +1,6 @@
 # This test prints all pa_data in krb_as_request() handlers
 
-# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.trace %INPUT > output
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.pcap %INPUT > output
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/krb

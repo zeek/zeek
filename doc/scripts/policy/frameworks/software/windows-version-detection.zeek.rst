@@ -18,20 +18,20 @@ Summary
 Redefinable Options
 ###################
 ========================================================================= =
-:zeek:id:`OS::crypto_api_mapping`: :zeek:type:`table` :zeek:attr:`&redef` 
+:zeek:id:`OS::crypto_api_mapping`: :zeek:type:`table` :zeek:attr:`&redef`
 ========================================================================= =
 
 Types
 #####
 ============================================================ =
-:zeek:type:`Software::name_and_version`: :zeek:type:`record` 
+:zeek:type:`Software::name_and_version`: :zeek:type:`record`
 ============================================================ =
 
 Redefinitions
 #############
 ============================================== ==================================================
-:zeek:type:`Software::Type`: :zeek:type:`enum` 
-                                               
+:zeek:type:`Software::Type`: :zeek:type:`enum`
+
                                                * :zeek:enum:`OS::WINDOWS`:
                                                  Identifier for Windows operating system versions
 ============================================== ==================================================

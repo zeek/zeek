@@ -521,7 +521,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc() {
                         break;
 
                     case 'i':
-                        VIOLATION_IF(! benc_stack.size(), "BitTorrentTracker: not a bencoded directory (first char: i)")
+                        VIOLATION_IF(benc_stack.empty(), "BitTorrentTracker: not a bencoded directory (first char: i)")
                         VIOLATION_IF(benc_stack.back() == 'd' && ! (benc_count.back() % 2),
                                      "BitTorrentTracker: directory key is not a string but an int")
 
@@ -532,7 +532,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc() {
                         break;
 
                     case 'e':
-                        VIOLATION_IF(! benc_stack.size(), "BitTorrentTracker: not a bencoded directory (first char: e)")
+                        VIOLATION_IF(benc_stack.empty(), "BitTorrentTracker: not a bencoded directory (first char: e)")
                         VIOLATION_IF(benc_stack.back() == 'd' && benc_count.back() % 2,
                                      "BitTorrentTracker: directory has an odd count of members")
 
@@ -551,12 +551,13 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc() {
                         benc_stack.pop_back();
                         benc_count.pop_back();
 
-                        if ( benc_stack.size() )
-                            INC_COUNT();
-                        else { // benc parsing successful
+                        if ( benc_stack.empty() ) {
+                            // benc parsing successful
                             ++res_buf_pos;
                             return 0;
                         }
+                        else
+                            INC_COUNT();
                         break;
 
                     case '0':
@@ -569,7 +570,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc() {
                     case '7':
                     case '8':
                     case '9':
-                        VIOLATION_IF(! benc_stack.size(),
+                        VIOLATION_IF(benc_stack.empty(),
                                      "BitTorrentTracker: not a bencoded directory (first char: [0-9])")
 
                         if ( benc_raw_type != detail::BENC_TYPE_NONE )

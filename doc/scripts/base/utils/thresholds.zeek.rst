@@ -25,7 +25,7 @@ Redefinable Options
 Types
 #####
 ============================================ =
-:zeek:type:`TrackCount`: :zeek:type:`record` 
+:zeek:type:`TrackCount`: :zeek:type:`record`
 ============================================ =
 
 Functions
@@ -36,7 +36,7 @@ Functions
 :zeek:id:`default_check_threshold`: :zeek:type:`function` This will use the :zeek:id:`default_notice_thresholds` variable to
                                                           check a :zeek:type:`TrackCount` variable to see if it has crossed
                                                           another threshold.
-:zeek:id:`new_track_count`: :zeek:type:`function`         
+:zeek:id:`new_track_count`: :zeek:type:`function`
 ========================================================= =====================================================================
 
 
@@ -89,14 +89,14 @@ Functions
 
    This will check if a :zeek:type:`TrackCount` variable has crossed any
    thresholds in a given set.
-   
+
 
    :param v: a vector holding counts that represent thresholds.
-   
+
 
    :param tracker: the record being used to track event counter and currently
             monitored threshold value.
-   
+
 
    :returns: T if a threshold has been crossed, else F.
 

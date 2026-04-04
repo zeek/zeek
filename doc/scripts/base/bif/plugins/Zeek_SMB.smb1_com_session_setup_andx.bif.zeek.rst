@@ -30,18 +30,18 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 requests of type *setup andx*. This is sent by the client to configure an SMB session.
-   
+
    For more information, see MS-CIFS:2.2.4.53
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param request: The parsed request data of the SMB message. See init-bare for more details.
-   
+
    .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
 .. zeek:id:: smb1_session_setup_andx_response
@@ -51,18 +51,18 @@ Events
 
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 1 responses of type *setup andx*. This is the server response to the *setup andx* request.
-   
+
    For more information, see MS-CIFS:2.2.4.53
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
-   
+
 
    :param response: The parsed response data of the SMB message. See init-bare for more details.
-   
+
    .. zeek:see:: smb1_message smb1_session_setup_andx_request
 
 

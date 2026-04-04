@@ -22,7 +22,7 @@ public:
     using FamilyType = prometheus::Family<Handle>;
 
     explicit Histogram(FamilyType* family, const prometheus::Labels& labels,
-                       prometheus::Histogram::BucketBoundaries bounds) noexcept;
+                       const prometheus::Histogram::BucketBoundaries& bounds) noexcept;
 
     /**
      * Increments all buckets with an upper bound less than or equal to @p value

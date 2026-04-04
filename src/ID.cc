@@ -128,10 +128,6 @@ void ID::SetVal(ValPtr v) {
     val = std::move(v);
     Modified();
 
-#ifdef DEBUG
-    UpdateValID();
-#endif
-
     if ( type && val && type->Tag() == TYPE_FUNC && type->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ) {
         EventHandler* handler = event_registry->Lookup(name);
         auto func = val.get()->As<FuncVal*>()->AsFuncPtr();
@@ -305,7 +301,7 @@ void ID::EvalFunc(ExprPtr ef, ExprPtr ev) {
     args->Append(std::move(arg1));
     args->Append(std::move(ev));
     auto ce = make_intrusive<CallExpr>(std::move(ef), std::move(args));
-    SetVal(ce->Eval(nullptr));
+    SetVal(eval_in_isolation(ce));
 }
 
 TraversalCode ID::Traverse(TraversalCallback* cb) const {
@@ -575,13 +571,6 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
         }
     }
 }
-
-#ifdef DEBUG
-void ID::UpdateValID() {
-    if ( IsGlobal() && val && name && name[0] != '#' )
-        val->SetID(this);
-}
-#endif
 
 void ID::AddOptionHandler(FuncPtr callback, int priority) {
     option_handlers.emplace_front(priority, callback);

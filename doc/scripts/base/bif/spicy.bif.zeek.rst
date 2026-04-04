@@ -13,14 +13,14 @@ Summary
 Events
 ######
 ============================================================= =
-:zeek:id:`Spicy::max_file_depth_exceeded`: :zeek:type:`event` 
+:zeek:id:`Spicy::max_file_depth_exceeded`: :zeek:type:`event`
 ============================================================= =
 
 Functions
 #########
 ========================================================== =
-:zeek:id:`Spicy::__resource_usage`: :zeek:type:`function`  
-:zeek:id:`Spicy::__toggle_analyzer`: :zeek:type:`function` 
+:zeek:id:`Spicy::__resource_usage`: :zeek:type:`function`
+:zeek:id:`Spicy::__toggle_analyzer`: :zeek:type:`function`
 ========================================================== =
 
 

@@ -29,21 +29,21 @@ State Variables
 Types
 #####
 ======================================================= =====================================================================
-:zeek:type:`Modbus::MemmapInfo`: :zeek:type:`record`    
-:zeek:type:`Modbus::RegisterValue`: :zeek:type:`record` 
+:zeek:type:`Modbus::MemmapInfo`: :zeek:type:`record`
+:zeek:type:`Modbus::RegisterValue`: :zeek:type:`record`
 :zeek:type:`Modbus::Registers`: :zeek:type:`table`      Indexed on the device register value and yielding the register value.
 ======================================================= =====================================================================
 
 Redefinitions
 #############
 ============================================== ========================================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`        
-                                               
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                * :zeek:enum:`Modbus::REGISTER_CHANGE_LOG`
-:zeek:type:`Modbus::Info`: :zeek:type:`record` 
-                                               
+:zeek:type:`Modbus::Info`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`Modbus::Info`
-                                               
+
                                                  track_address: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
 ============================================== ========================================================================================
 
@@ -57,7 +57,7 @@ Events
 Hooks
 #####
 =========================================================================== =
-:zeek:id:`Modbus::log_policy_register_change`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Modbus::log_policy_register_change`: :zeek:type:`Log::PolicyHook`
 =========================================================================== =
 
 

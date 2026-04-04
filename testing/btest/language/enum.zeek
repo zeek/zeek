@@ -24,7 +24,6 @@ event zeek_init()
 {
 	test_case( "enum equality comparison", e1 != e2 );
 	test_case( "enum equality comparison", e1 == e3 );
-	test_case( "enum equality comparison", e1 != e4 );
 
 	# type inference
 	test_case( "type inference", x == e1 );

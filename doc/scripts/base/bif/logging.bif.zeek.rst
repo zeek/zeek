@@ -14,21 +14,21 @@ Summary
 Functions
 #########
 ================================================================= =
-:zeek:id:`Log::__add_filter`: :zeek:type:`function`               
-:zeek:id:`Log::__create_stream`: :zeek:type:`function`            
-:zeek:id:`Log::__delay`: :zeek:type:`function`                    
-:zeek:id:`Log::__delay_finish`: :zeek:type:`function`             
-:zeek:id:`Log::__disable_stream`: :zeek:type:`function`           
-:zeek:id:`Log::__enable_stream`: :zeek:type:`function`            
-:zeek:id:`Log::__flush`: :zeek:type:`function`                    
-:zeek:id:`Log::__get_delay_queue_size`: :zeek:type:`function`     
-:zeek:id:`Log::__remove_filter`: :zeek:type:`function`            
-:zeek:id:`Log::__remove_stream`: :zeek:type:`function`            
-:zeek:id:`Log::__set_buf`: :zeek:type:`function`                  
-:zeek:id:`Log::__set_max_delay_interval`: :zeek:type:`function`   
-:zeek:id:`Log::__set_max_delay_queue_size`: :zeek:type:`function` 
-:zeek:id:`Log::__write`: :zeek:type:`function`                    
-:zeek:id:`Log::flush_all`: :zeek:type:`function`                  
+:zeek:id:`Log::__add_filter`: :zeek:type:`function`
+:zeek:id:`Log::__create_stream`: :zeek:type:`function`
+:zeek:id:`Log::__delay`: :zeek:type:`function`
+:zeek:id:`Log::__delay_finish`: :zeek:type:`function`
+:zeek:id:`Log::__disable_stream`: :zeek:type:`function`
+:zeek:id:`Log::__enable_stream`: :zeek:type:`function`
+:zeek:id:`Log::__flush`: :zeek:type:`function`
+:zeek:id:`Log::__get_delay_queue_size`: :zeek:type:`function`
+:zeek:id:`Log::__remove_filter`: :zeek:type:`function`
+:zeek:id:`Log::__remove_stream`: :zeek:type:`function`
+:zeek:id:`Log::__set_buf`: :zeek:type:`function`
+:zeek:id:`Log::__set_max_delay_interval`: :zeek:type:`function`
+:zeek:id:`Log::__set_max_delay_queue_size`: :zeek:type:`function`
+:zeek:id:`Log::__write`: :zeek:type:`function`
+:zeek:id:`Log::flush_all`: :zeek:type:`function`
 ================================================================= =
 
 

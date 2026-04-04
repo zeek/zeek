@@ -28,24 +28,24 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, line: :zeek:type:`string`)
 
    Generated for Ident error replies.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param lport: The corresponding request's local port.
-   
+
 
    :param rport: The corresponding request's remote port.
-   
+
 
    :param line: The error description returned by the reply.
-   
+
    .. zeek:see:: ident_reply ident_request
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -57,27 +57,27 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`, user_id: :zeek:type:`string`, system: :zeek:type:`string`)
 
    Generated for Ident replies.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param lport: The corresponding request's local port.
-   
+
 
    :param rport: The corresponding request's remote port.
-   
+
 
    :param user_id: The user id returned by the reply.
-   
+
 
    :param system: The operating system returned by the reply.
-   
+
    .. zeek:see:: ident_error  ident_request
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to
@@ -89,21 +89,21 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, lport: :zeek:type:`port`, rport: :zeek:type:`port`)
 
    Generated for Ident requests.
-   
+
    See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
-   
+
 
    :param c: The connection.
-   
+
 
    :param lport: The request's local port.
-   
+
 
    :param rport: The request's remote port.
-   
+
    .. zeek:see:: ident_error ident_reply
-   
+
    .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to

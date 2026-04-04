@@ -173,7 +173,6 @@ public:
      */
     [[noreturn]] void InternalError(const char* msg);
 
-#ifdef DEBUG
     /**
      * Records a debug message for the given stream from the child
      * thread. The main thread will pass this to the DebugLogger once
@@ -184,7 +183,6 @@ public:
      * @param msg  The message. It will be prefixed with the thread's name.
      */
     void Debug(DebugStream stream, const char* msg);
-#endif
 
     /**
      * Statistics about inter-thread communication.

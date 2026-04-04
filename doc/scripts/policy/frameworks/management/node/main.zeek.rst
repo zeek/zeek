@@ -15,7 +15,7 @@ Summary
 Redefinitions
 #############
 ============================================================================== =
-:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef` 
+:zeek:id:`Management::role`: :zeek:type:`Management::Role` :zeek:attr:`&redef`
 ============================================================================== =
 
 

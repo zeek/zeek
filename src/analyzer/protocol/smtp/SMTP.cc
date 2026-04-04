@@ -434,7 +434,7 @@ void SMTP_Analyzer::NewReply(int reply_code, bool orig) {
     last_replied_cmd = first_cmd;
     first_cmd = -1;
 
-    if ( pipelining && pending_cmd_q.size() > 0 ) {
+    if ( pipelining && ! pending_cmd_q.empty() ) {
         first_cmd = pending_cmd_q.front();
         pending_cmd_q.pop_front();
     }
@@ -841,7 +841,7 @@ void SMTP_Analyzer::UnexpectedCommand(int cmd_code, int reply_code) {
     // ### Eventually, these should be turned into "weird" events.
     static char buf[512];
     int len = snprintf(buf, sizeof(buf), "%s reply = %d state = %d", SMTP_CMD_WORD(cmd_code), reply_code, state);
-    if ( len > (int)sizeof(buf) )
+    if ( len > static_cast<int>(sizeof(buf)) )
         len = sizeof(buf);
     Unexpected(true, "unexpected command", len, buf);
 }

@@ -177,7 +177,7 @@ void FlowDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
     if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT ) {
         out_cc->println("%s->DiscardData();", env_->LValue(flow_buffer_id));
     }
-    out_cc->println("throw e;");
+    out_cc->println("throw e; // NOLINT(bugprone-exception-copy-constructor-throws)");
     out_cc->dec_indent();
     out_cc->println("}");
 

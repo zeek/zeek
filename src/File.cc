@@ -30,7 +30,11 @@
 
 namespace zeek {
 
-std::list<std::pair<std::string, File*>> File::open_files;
+namespace {
+
+std::list<std::pair<std::string, File*>> open_files;
+
+} // namespace
 
 // Maximizes the number of open file descriptors.
 static void maximize_num_fds() {
@@ -253,6 +257,13 @@ RecordVal* File::Rotate() {
 
     static auto rotate_info = id::find_type<RecordType>("rotate_info");
     auto* info = new RecordVal(rotate_info);
+
+#ifdef _MSC_VER
+    // Windows can't rename open files. Close before rotating.
+    fclose(f);
+    f = nullptr;
+#endif
+
     FILE* newf = util::detail::rotate_file(name, info);
 
     if ( ! newf ) {
@@ -264,8 +275,10 @@ RecordVal* File::Rotate() {
 
     Unlink();
 
+#ifndef _MSC_VER
     fclose(f);
     f = nullptr;
+#endif
 
     Open(newf);
     return info;

@@ -27,32 +27,31 @@ Redefinable Options
 Types
 #####
 =================================================== =
-:zeek:type:`LDAP::MessageInfo`: :zeek:type:`record` 
-:zeek:type:`LDAP::SearchInfo`: :zeek:type:`record`  
-:zeek:type:`LDAP::State`: :zeek:type:`record`       
+:zeek:type:`LDAP::MessageInfo`: :zeek:type:`record`
+:zeek:type:`LDAP::SearchInfo`: :zeek:type:`record`
+:zeek:type:`LDAP::State`: :zeek:type:`record`
 =================================================== =
 
 Redefinitions
 #############
-==================================================================== =======================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                              
-                                                                     
-                                                                     * :zeek:enum:`LDAP::LDAP_LOG`
-                                                                     
-                                                                     * :zeek:enum:`LDAP::LDAP_SEARCH_LOG`
-:zeek:type:`connection`: :zeek:type:`record`                         
-                                                                     
-                                                                     :New Fields: :zeek:type:`connection`
-                                                                     
-                                                                       ldap: :zeek:type:`LDAP::State` :zeek:attr:`&optional`
-:zeek:id:`likely_server_ports`: :zeek:type:`set` :zeek:attr:`&redef` 
-==================================================================== =======================================================
+============================================ =======================================================
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
+                                             * :zeek:enum:`LDAP::LDAP_LOG`
+
+                                             * :zeek:enum:`LDAP::LDAP_SEARCH_LOG`
+:zeek:type:`connection`: :zeek:type:`record`
+
+                                             :New Fields: :zeek:type:`connection`
+
+                                               ldap: :zeek:type:`LDAP::State` :zeek:attr:`&optional`
+============================================ =======================================================
 
 Events
 ######
 ==================================================== =
-:zeek:id:`LDAP::log_ldap`: :zeek:type:`event`        
-:zeek:id:`LDAP::log_ldap_search`: :zeek:type:`event` 
+:zeek:id:`LDAP::log_ldap`: :zeek:type:`event`
+:zeek:id:`LDAP::log_ldap_search`: :zeek:type:`event`
 ==================================================== =
 
 Hooks
@@ -233,7 +232,7 @@ Events
 Hooks
 #####
 .. zeek:id:: LDAP::finalize_ldap
-   :source-code: base/protocols/ldap/main.zeek 400 419
+   :source-code: base/protocols/ldap/main.zeek 398 417
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

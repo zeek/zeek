@@ -15,6 +15,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
+#include "zeek/Var.h"
 #include "zeek/ZeekString.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/CPP/Func.h"

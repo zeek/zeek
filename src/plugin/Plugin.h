@@ -480,7 +480,7 @@ public:
      * Returns the value for a Zeek wrapped value argument.  The argument's type must
      * match accordingly.
      */
-    const std::pair<bool, Val*> AsFuncResult() const {
+    std::pair<bool, Val*> AsFuncResult() const {
         assert(type == FUNC_RESULT);
         return func_result;
     }
@@ -507,7 +507,7 @@ public:
      * Returns the value for a threading fields argument.  The argument's type must
      * match accordingly.
      */
-    const std::pair<int, const threading::Field* const*> AsThreadFields() const {
+    std::pair<int, const threading::Field* const*> AsThreadFields() const {
         assert(type == THREAD_FIELDS);
         return tfields;
     }

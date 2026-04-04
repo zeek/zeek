@@ -58,36 +58,36 @@ Types
 Redefinitions
 #############
 =============================================================== =====================================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`                         
-                                                                
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                                                 * :zeek:enum:`ZeekygenExample::LOG`
-:zeek:type:`Notice::Type`: :zeek:type:`enum`                    
-                                                                
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                                                 * :zeek:enum:`ZeekygenExample::Zeekygen_Four`:
                                                                   Omitting comments is fine, and so is mixing ``##`` and ``##<``, but
                                                                   it's probably best to use only one style consistently.
-                                                                
+
                                                                 * :zeek:enum:`ZeekygenExample::Zeekygen_One`:
                                                                   Any number of this type of comment
                                                                   will document "Zeekygen_One".
-                                                                
+
                                                                 * :zeek:enum:`ZeekygenExample::Zeekygen_Three`
-                                                                
+
                                                                 * :zeek:enum:`ZeekygenExample::Zeekygen_Two`:
                                                                   Any number of this type of comment
                                                                   will document "ZEEKYGEN_TWO".
 :zeek:type:`ZeekygenExample::SimpleEnum`: :zeek:type:`enum`     Document the "SimpleEnum" redef here with any special info regarding
                                                                 the *redef* itself.
-                                                                
+
                                                                 * :zeek:enum:`ZeekygenExample::FIVE`:
                                                                   Also "FIVE".
-                                                                
+
                                                                 * :zeek:enum:`ZeekygenExample::FOUR`:
                                                                   And some documentation for "FOUR".
 :zeek:type:`ZeekygenExample::SimpleRecord`: :zeek:type:`record` Document the record extension *redef* itself here.
-                                                                
+
                                                                 :New Fields: :zeek:type:`ZeekygenExample::SimpleRecord`
-                                                                
+
                                                                   field_ext: :zeek:type:`string` :zeek:attr:`&optional`
                                                                     Document the extending field like this.
 =============================================================== =====================================================================
@@ -273,11 +273,11 @@ Events
 
    Summarize "an_event" here.
    Give more details about "an_event" here.
-   
+
    ZeekygenExample::a_function should not be confused as a parameter
    in the generated docs, but it also doesn't generate a cross-reference
    link.  Use the see role instead: :zeek:see:`ZeekygenExample::a_function`.
-   
+
 
    :param name: Describe the argument here.
 
@@ -292,14 +292,14 @@ Functions
    Give more details about "a_function" here.
    Separating the documentation of the params/return values with
    empty comments is optional, but improves readability of script.
-   
+
 
    :param tag: Function arguments can be described
         like this.
-   
+
 
    :param msg: Another param.
-   
+
 
    :returns: Describe the return type here.
 

@@ -40,7 +40,7 @@ export {
 	const HEARTBEAT = 24;
 	const TLS12_CID = 25; # RFC 9146
 	const TLS13_ACK = 26; # RFC 9147
-	const RETURN_ROUTABILITY_CHECK = 26; # draft-ietf-tls-dtls-rrc-10
+	const RETURN_ROUTABILITY_CHECK = 26; # draft-ietf-tls-dtls-rrc-20
 	const V2_ERROR = 300;
 	const V2_CLIENT_HELLO = 301;
 	const V2_CLIENT_MASTER_KEY = 302;
@@ -142,9 +142,10 @@ export {
 		[113] = "bad_certificate_status_response",
 		[114] = "bad_certificate_hash_value",
 		[115] = "unknown_psk_identity",
-		[116] = "certificate_required", # RFC8446
+		[116] = "certificate_required", # RFC 8446
+		[117] = "general_error", # draft-ietf-tls-rfc8446bis-14
 		[120] = "no_application_protocol",
-		[121] = "ech_required", # draft-ietf-tls-esni-17
+		[121] = "ech_required", # RFC 9849
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	# Map SSL Extension values to consts for easier readability of code.
@@ -290,7 +291,7 @@ export {
 		[58] = "ticket_request", # RFC9149
 		[59] = "dnssec_chain", # RFC9102
 		[60] = "sequence_number_encryption_algorithms", # draft-pismenny-tls-dtls-plaintext-sequence-number-01
-		[61] = "rrc", # draft-ietf-tls-dtls-rrc-10
+		[61] = "rrc", # draft-ietf-tls-dtls-rrc-30
 		[62] = "tls_flags", # draft-ietf-tls-tlsflags-14
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
@@ -299,8 +300,8 @@ export {
 		[30031] = "channel_id",
 		[30032] = "channel_id_new",
 		[35655] = "padding",
-		[64768] = "ech_outer_extensions", # draft-ietf-tls-esni-17
-		[65037] = "encrypted_client_hello", # draft-ietf-tls-esni-17
+		[64768] = "ech_outer_extensions", # RFC 9849 - should only appear in encrypted inner client hello
+		[65037] = "encrypted_client_hello", # RFC 9849
 		[65281] = "renegotiation_info",
 		# GREASE values - rfc8701
 		[2570] = "grease_0x0A0A",
@@ -376,12 +377,13 @@ export {
 		[513] = "MLKEM768",
 		[514] = "MLKEM1024",
 		# draft-kwiatkowski-tls-ecdhe-mlkem-03
-		[4587] = "SecP256r1MLKEM768",
-		[4588] = "X25519MLKEM768",
-		[4589] = "SecP384r1MLKEM1024",
+		[4587] = "SecP256r1MLKEM768", # draft-ietf-tls-ecdhe-mlkem-04
+		[4588] = "X25519MLKEM768", # draft-ietf-tls-ecdhe-mlkem-04
+		[4589] = "SecP384r1MLKEM1024", # draft-ietf-tls-ecdhe-mlkem-04
+		[4590] = "curveSM2MLKEM768", # draft-yang-tls-hybrid-sm2-mlkem-03
 		[16696] = "CECPQ2", # https://boringssl.googlesource.com/boringssl/+/4ae4fb76c809bfc48a5ab100670395ce404244ce%5E%21/#F4
-		[25497] = "X25519Kyber768Draft00", # draft-tls-westerbaan-xyber768d00-02
-		[25498] = "SecP256r1Kyber768Draft00", # draft-kwiatkowski-tls-ecdhe-kyber-01
+		[25497] = "X25519Kyber768Draft00", # draft-tls-westerbaan-xyber768d00-02 - obsolete
+		[25498] = "SecP256r1Kyber768Draft00", # draft-kwiatkowski-tls-ecdhe-kyber-01 - obsolete
 		[0xFF01] = "arbitrary_explicit_prime_curves",
 		[0xFF02] = "arbitrary_explicit_char2_curves",
 		# GREASE values - rfc8701

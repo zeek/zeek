@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/protocol/ip/IP.h"
 
 #include <netinet/in.h>
+#include <algorithm>
 
 #include "zeek/Discard.h"
 #include "zeek/Event.h"
@@ -223,6 +224,9 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     data = packet->ip_hdr->Payload();
     len -= ip_hdr_len;
 
+    if ( packet->ip_hdr->PayloadLen() != 0 )
+        len = std::min(len, static_cast<size_t>(packet->ip_hdr->PayloadLen()));
+
     // Session analysis assumes that the header size stored in the packet does not include the IP
     // header size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the
     // IP header for reporting, and 2) The VXLAN analyzer uses the header position to create the
@@ -275,7 +279,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
 ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
                                                    std::shared_ptr<zeek::IP_Hdr>& inner) {
     if ( proto == IPPROTO_IPV6 ) {
-        if ( caplen < (int)sizeof(struct ip6_hdr) )
+        if ( caplen < static_cast<int>(sizeof(struct ip6_hdr)) )
             return ParseResult::CAPLEN_TOO_SMALL;
 
         const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(pkt);
@@ -285,7 +289,7 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
     }
 
     else if ( proto == IPPROTO_IPV4 ) {
-        if ( caplen < (int)sizeof(struct ip) )
+        if ( caplen < static_cast<int>(sizeof(struct ip)) )
             return ParseResult::BAD_PROTOCOL;
 
         const struct ip* ip4 = reinterpret_cast<const struct ip*>(pkt);
@@ -297,8 +301,9 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
         return ParseResult::BAD_PROTOCOL;
     }
 
-    if ( (uint32_t)caplen != inner->TotalLen() )
-        return (uint32_t)caplen < inner->TotalLen() ? ParseResult::CAPLEN_TOO_SMALL : ParseResult::CAPLEN_TOO_LARGE;
+    if ( static_cast<uint32_t>(caplen) != inner->TotalLen() )
+        return static_cast<uint32_t>(caplen) < inner->TotalLen() ? ParseResult::CAPLEN_TOO_SMALL :
+                                                                   ParseResult::CAPLEN_TOO_LARGE;
 
     return ParseResult::OK;
 }

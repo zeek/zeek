@@ -31,13 +31,13 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the client to logically disconnect
    client access to a server resource.
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
    .. zeek:see:: smb2_message
 
 .. zeek:id:: smb2_tree_disconnect_response
@@ -48,13 +48,13 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 requests of type *tree disconnect*. This is sent by the server to logically disconnect
    client access to a server resource.
-   
+
 
    :param c: The connection.
-   
+
 
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 2 message.
-   
+
    .. zeek:see:: smb2_message
 
 

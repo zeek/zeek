@@ -49,8 +49,8 @@ public:
 private:
     bool NextLine(const u_char* data, int len);
 
-    bool GnutellaOK(std::string header);
-    bool IsHTTP(std::string header);
+    bool GnutellaOK(std::string_view header);
+    bool IsHTTP(std::string_view header);
 
     bool Established() const { return state == (ORIG_OK | RESP_OK); }
 

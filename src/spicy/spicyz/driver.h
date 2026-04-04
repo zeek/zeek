@@ -24,6 +24,7 @@
 static const ::hilti::logging::DebugStream ZeekPlugin("zeek");
 
 // Macro helper to report debug messages.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SPICY_DEBUG(msg) HILTI_DEBUG(ZeekPlugin, std::string(msg));
 
 namespace zeek::spicy {
@@ -54,7 +55,7 @@ public:
            int zeek_version);
 
     /** Destructor. */
-    ~Driver();
+    ~Driver() override;
 
     /**
      * Schedules an *.spicy, *.evt, or *.hlt file for loading. Note that it
@@ -167,8 +168,11 @@ protected:
     std::unordered_map<hilti::ID, TypeInfo> _types; // map of Spicy type declarations encountered so far
     std::vector<TypeInfo> _public_enums;            // tracks Spicy enum types declared public, for automatic export
     bool _using_build_directory = false;            // true if we're running out of the plugin's build directory
-    bool _need_glue = true;                         // true if glue code has not yet been generated
     hilti::Result<hilti::Nothing> _error = hilti::Nothing(); // error encountered during compilation
+
+    // State machine for glue code generation, to do things in the right order.
+    enum class GluePhase : uint8_t { Create, ExportTypes, Done };
+    GluePhase _glue_phase = GluePhase::Create; // current phase of glue code generation
 };
 
 } // namespace zeek::spicy

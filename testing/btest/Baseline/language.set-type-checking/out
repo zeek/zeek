@@ -25,3 +25,5 @@ error in port and <...>/set-type-checking.zeek, line 44: arithmetic mixed with n
 error in <...>/set-type-checking.zeek, line 44 and port: type mismatch (1003 and port)
 error in <...>/set-type-checking.zeek, line 44: inconsistent type in set constructor (set(1003))
 error in <...>/set-type-checking.zeek, line 44: type clash in assignment (lea = set(1003))
+error in <...>/set-type-checking.zeek, line 51: index type containing 'any' is not supported (set[vector()] and vector())
+error in <...>/set-type-checking.zeek, line 51: values in set(...) constructor do not specify a set (set(vector()))

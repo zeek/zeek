@@ -216,7 +216,7 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
     const Func* func = id->GetVal()->AsFunc();
     const vector<Func::Body>& bodies = func->GetBodies();
 
-    if ( bodies.size() == 0 ) {
+    if ( bodies.empty() ) {
         debug_msg("Function %s is a built-in function\n", id->Name());
         plr.type = PLR_UNKNOWN;
         return;
@@ -262,7 +262,7 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
             }
 
             int option = atoi(input.c_str());
-            if ( option > 0 && option <= (int)bodies.size() ) {
+            if ( option > 0 && option <= static_cast<int>(bodies.size()) ) {
                 body = bodies[option - 1].stmts.get();
                 break;
             }
@@ -442,15 +442,15 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments) {
     char delim = '\0';
     const string str(cstr);
 
-    for ( int i = 0; i < (signed int)str.length(); ++i ) {
-        while ( isspace((unsigned char)str[i]) )
+    for ( size_t i = 0; i < str.length(); ++i ) {
+        while ( isspace(str[i]) )
             ++i;
 
-        int start = i;
+        size_t start = i;
 
         for ( ; str[i]; ++i ) {
             if ( str[i] == '\\' ) {
-                if ( i < (signed int)str.length() )
+                if ( i < str.length() )
                     ++i;
             }
 
@@ -543,7 +543,7 @@ int dbg_execute_command(const char* cmd) {
     DebugCmd cmd_code = dcInvalid;
     for ( int i = 0; i < num_debug_cmds(); ++i )
         if ( matching_cmds[i] ) {
-            cmd_code = (DebugCmd)i;
+            cmd_code = static_cast<DebugCmd>(i);
             break;
         }
 
@@ -556,13 +556,13 @@ int dbg_execute_command(const char* cmd) {
          * http://tiswww.case.edu/php/chet/readline/history.html
          * suggests that it's safe to assume it's really const char*.
          */
-        add_history((char*)cmd);
+        add_history(cmd);
         HISTORY_STATE* state = history_get_history_state();
-        state->entries[state->length - 1]->data = (histdata_t*)get_debug_cmd_info(cmd_code);
+        state->entries[state->length - 1]->data = get_debug_cmd_info(cmd_code);
     }
 #endif
 
-    if ( int(cmd_code) >= num_debug_cmds() )
+    if ( static_cast<int>(cmd_code) >= num_debug_cmds() )
         reporter->InternalError("Assertion failed: int(cmd_code) < num_debug_cmds()");
 
     // Dispatch to the op-specific handler (with args).

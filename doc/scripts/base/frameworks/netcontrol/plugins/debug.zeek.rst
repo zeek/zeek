@@ -32,11 +32,11 @@ Functions
 
    Instantiates a debug plugin for the NetControl framework. The debug
    plugin simply logs the operations it receives.
-   
+
 
    :param do_something: If true, the plugin will claim it supports all operations; if
                  false, it will indicate it doesn't support any.
-   
+
 
    :param name: Optional name that for the plugin.
 
@@ -47,7 +47,7 @@ Functions
 
    Instantiates a debug plugin for the NetControl framework. This variation
    of the plugin will return "error" to any rule operations.
-   
+
 
    :param name: Name of this plugin.
 
@@ -58,7 +58,7 @@ Functions
 
    Instantiates a debug plugin for the NetControl framework. This variation
    of the plugin will return "exists" to any rule operations.
-   
+
 
    :param name: Name of this plugin.
 

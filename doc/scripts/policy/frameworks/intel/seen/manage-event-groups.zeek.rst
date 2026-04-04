@@ -29,13 +29,13 @@ Redefinable Options
    :Default: ``T``
 
    Whether Intel event groups for the seen scripts are managed.
-   
+
    When loading this script, by default, all :zeek:see:`Intel::Type`
    event groups are disabled at startup and only enabled when indicators
    of corresponding types are loaded into the Intel framework's store.
    This allows to load the ``frameworks/intel/seen`` scripts without
    incurring event handling overhead when no Intel indicators are loaded.
-   
+
    One caveat is that the :zeek:see:`Intel::seen_policy` hook will not
    be invoked for indicator types that are not at all in the Intel
    framework's store. If you rely on :zeek:see:`Intel::seen_policy` to

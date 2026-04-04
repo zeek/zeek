@@ -82,10 +82,6 @@ void hash_copy(HashDigestState* out, const HashDigestState* in) {
     EVP_MD_CTX_copy_ex(to_native_ptr(out), to_native_ptr(in));
 }
 
-unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out) {
-    return calculate_digest(Hash_MD5, data, len, out);
-}
-
 unsigned char* calculate_digest(HashAlgorithm alg, const unsigned char* data, uint64_t len, unsigned char* out) {
     // maximum possible length for supported hashes
     static unsigned char static_out[SHA512_DIGEST_LENGTH];

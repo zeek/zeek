@@ -11,22 +11,28 @@ Implements base functionality for MySQL analysis. Generates the mysql.log file.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+============================================================= ===========================
+:zeek:id:`MySQL::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for MySQL.
+============================================================= ===========================
+
 Types
 #####
 ============================================= =
-:zeek:type:`MySQL::Info`: :zeek:type:`record` 
+:zeek:type:`MySQL::Info`: :zeek:type:`record`
 ============================================= =
 
 Redefinitions
 #############
 ============================================ ========================================================
-:zeek:type:`Log::ID`: :zeek:type:`enum`      
-                                             
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                              * :zeek:enum:`mysql::LOG`
-:zeek:type:`connection`: :zeek:type:`record` 
-                                             
+:zeek:type:`connection`: :zeek:type:`record`
+
                                              :New Fields: :zeek:type:`connection`
-                                             
+
                                                mysql: :zeek:type:`MySQL::Info` :zeek:attr:`&optional`
 ============================================ ========================================================
 
@@ -41,16 +47,35 @@ Hooks
 #####
 ================================================================ ========================
 :zeek:id:`MySQL::finalize_mysql`: :zeek:type:`Conn::RemovalHook` MySQL finalization hook.
-:zeek:id:`MySQL::log_policy`: :zeek:type:`Log::PolicyHook`       
+:zeek:id:`MySQL::log_policy`: :zeek:type:`Log::PolicyHook`
 ================================================================ ========================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: MySQL::ports
+   :source-code: base/protocols/mysql/main.zeek 12 12
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            1434/tcp,
+            3306/tcp
+         }
+
+
+   Well-known ports for MySQL.
+
 Types
 #####
 .. zeek:type:: MySQL::Info
-   :source-code: base/protocols/mysql/main.zeek 13 30
+   :source-code: base/protocols/mysql/main.zeek 16 33
 
    :Type: :zeek:type:`record`
 
@@ -99,7 +124,7 @@ Types
 Events
 ######
 .. zeek:id:: MySQL::log_mysql
-   :source-code: base/protocols/mysql/main.zeek 34 34
+   :source-code: base/protocols/mysql/main.zeek 37 37
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`MySQL::Info`)
 
@@ -109,14 +134,14 @@ Events
 Hooks
 #####
 .. zeek:id:: MySQL::finalize_mysql
-   :source-code: base/protocols/mysql/main.zeek 157 164
+   :source-code: base/protocols/mysql/main.zeek 158 165
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
    MySQL finalization hook.  Remaining MySQL info may get logged when it's called.
 
 .. zeek:id:: MySQL::log_policy
-   :source-code: base/protocols/mysql/main.zeek 11 11
+   :source-code: base/protocols/mysql/main.zeek 14 14
 
    :Type: :zeek:type:`Log::PolicyHook`
 

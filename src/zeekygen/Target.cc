@@ -5,7 +5,6 @@
 #include <fts.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <regex>
 
 #include "zeek/Reporter.h"
@@ -386,8 +385,12 @@ void PackageTarget::DoGenerate() const {
 
             vector<string> cmnts = info->GetComments();
 
-            for ( const auto& cmnt : cmnts )
-                fprintf(file.f, "   %s\n", cmnt.c_str());
+            for ( const auto& cmnt : cmnts ) {
+                if ( cmnt.empty() )
+                    fprintf(file.f, "\n");
+                else
+                    fprintf(file.f, "   %s\n", cmnt.c_str());
+            }
 
             fprintf(file.f, "\n");
         }

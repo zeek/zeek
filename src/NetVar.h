@@ -9,7 +9,7 @@
 
 namespace zeek::detail {
 
-extern int watchdog_interval;
+extern double watchdog_interval;
 
 extern int max_timer_expires;
 

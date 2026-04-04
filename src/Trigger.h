@@ -65,7 +65,7 @@ public:
     // in where the "timeout" parameter appears, and in making the "loc"
     // parameter optional. ("loc" is only used for internal logging when
     // debugging triggers.)
-    Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, double timeout,
+    Trigger(const std::shared_ptr<WhenInfo>& wi, const IDSet& globals, std::vector<ValPtr> local_aggrs, double timeout,
             Frame* f, const Location* loc = nullptr);
 
     ~Trigger() override;
@@ -125,7 +125,7 @@ public:
 private:
     friend class TriggerTimer;
 
-    void ReInit(std::vector<ValPtr> index_expr_results);
+    void ReInit(const std::vector<ValPtr>& index_expr_results);
 
     void Register(const ID* id);
     void Register(Val* val);

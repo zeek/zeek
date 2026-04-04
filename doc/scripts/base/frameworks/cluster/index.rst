@@ -6,6 +6,12 @@ Package: base/frameworks/cluster
 The cluster framework provides for establishing and controlling a cluster
 of Zeek instances.
 
+:doc:`/scripts/base/frameworks/cluster/pubsub.zeek`
+
+
+:doc:`/scripts/base/frameworks/cluster/types.zeek`
+
+
 :doc:`/scripts/base/frameworks/cluster/__load__.zeek`
 
 
@@ -18,13 +24,13 @@ of Zeek instances.
    The ``CLUSTER_NODE`` environment variable or :zeek:id:`Cluster::node`
    must also be sent and the cluster framework loaded as a package like
    ``@load base/frameworks/cluster``.
-   
+
    .. warning::
-   
+
        The file ``cluster-layout.zeek`` should only contain the definition
        of :zeek:id:`Cluster::nodes`. Specifically, avoid loading other Zeek
        scripts or using :zeek:see:`redef` for anything but :zeek:id:`Cluster::nodes`.
-   
+
        Due to ``cluster-layout.zeek`` being loaded very early, it is easy to
        introduce circular loading issues.
 
@@ -39,7 +45,7 @@ of Zeek instances.
 :doc:`/scripts/base/frameworks/cluster/nodes/logger.zeek`
 
    This is the core Zeek script to support the notion of a cluster logger.
-   
+
    The logger is passive (other Zeek instances connect to us), and once
    connected the logger receives logs from other Zeek instances.
    This script will be automatically loaded if necessary based on the

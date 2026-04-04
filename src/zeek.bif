@@ -12,12 +12,18 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
+#include <concepts>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <numbers>
 #include <string>
 #include <vector>
+#include <paraglob/exceptions.h>
+
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
@@ -154,7 +160,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 			break;
 			}
 
-		time_t time = time_t(v->InternalDouble());
+		time_t time = static_cast<time_t>(v->InternalDouble());
 		struct tm t;
 
 		bool is_time_fmt = *fmt == 'T';
@@ -215,7 +221,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 				if ( v->GetType()->Tag() == zeek::TYPE_PORT )
 					u = v->AsPortVal()->Port();
 				else
-					u = ntohl(uint32_t(u));
+					u = ntohl(static_cast<uint32_t>(u));
 				}
 
 			snprintf(fmt_buf, sizeof(fmt_buf), "%%%s%s", num_fmt,
@@ -267,7 +273,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 			d->Add(" ");
 		}
 
-	d->AddN((const char*)(s.Bytes()), s.Size());
+	d->AddN(reinterpret_cast<const char*>(s.Bytes()), s.Size());
 
 	// Right-padding with whitespace, if any.
 	if ( field_width > 0 && left_just )
@@ -317,9 +323,9 @@ zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
 	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
 
 	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
-	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>(static_cast<unsigned int>(0)));
 	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>(static_cast<unsigned int>(0)));
 	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	c->Assign(0, std::move(id_val));
 
@@ -602,6 +608,81 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 
 static int do_system(const char* s)
 	{
+#ifdef _MSC_VER
+	// Use CreateProcess with an explicit pipe instead of _popen.
+	// _popen internally uses _dup/_dup2 on the CRT file descriptor
+	// table which is not thread-safe and can corrupt FDs held by the
+	// log-writer thread (observed as "safe_write error: 9").
+	SECURITY_ATTRIBUTES sa = {sizeof(sa), NULL, TRUE};
+	HANDLE hReadPipe, hWritePipe;
+
+	if ( ! CreatePipe(&hReadPipe, &hWritePipe, &sa, 0) )
+		return -1;
+
+	SetHandleInformation(hWritePipe, HANDLE_FLAG_INHERIT, 0);
+
+	STARTUPINFOA si = {};
+	si.cb = sizeof(si);
+	si.dwFlags = STARTF_USESTDHANDLES;
+	si.hStdInput = hReadPipe;
+	si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+
+	PROCESS_INFORMATION pi = {};
+	char cmd[] = "bash";
+
+	// Find bash.exe by searching PATH directories in order.
+	// CreateProcessA(NULL, "bash") searches System32 before PATH,
+	// which finds WSL's bash.exe instead of MSYS/Git Bash.
+	char bash_path[MAX_PATH] = {};
+	const char* app_name = NULL;
+	char path_env[32768];
+	DWORD plen = GetEnvironmentVariableA("PATH", path_env, sizeof(path_env));
+	if ( plen > 0 && plen < sizeof(path_env) )
+		{
+		if ( SearchPathA(path_env, "bash.exe", NULL, MAX_PATH, bash_path, NULL) )
+			app_name = bash_path;
+		}
+
+	if ( ! CreateProcessA(app_name, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) )
+		{
+		CloseHandle(hReadPipe);
+		CloseHandle(hWritePipe);
+		return -1;
+		}
+
+	CloseHandle(hReadPipe);
+
+	// On Windows, run the command in the foreground (no &) since
+	// WaitForSingleObject already blocks. MSYS bash backgrounding
+	// via pipe-based stdin is unreliable.
+	//
+	// MSYS bash's builtin kill() only works with MSYS PIDs, not Windows
+	// PIDs. Zeek's getpid() returns Windows PIDs. Prepend a preamble
+	// that translates any ZEEK_ARG_*PID env vars from Windows PID to
+	// MSYS PID space using /proc/*/winpid before running the command.
+	std::string preamble =
+	    "for _zv in $(env 2>/dev/null | sed -n "
+	    "'s/^\\(ZEEK_ARG_[^=]*PID\\)=.*/\\1/p'); do "
+	    "_wp=${!_zv}; "
+	    "for _zd in /proc/[0-9]*/winpid; do "
+	    "[ \"$(cat \"$_zd\" 2>/dev/null)\" = \"$_wp\" ] && "
+	    "{ _zm=${_zd%/winpid}; export \"$_zv=${_zm##*/}\"; break; }; "
+	    "done; done\n";
+	std::string full_cmd = preamble + "(" + s + ") 1>&2\n";
+
+	DWORD written;
+	WriteFile(hWritePipe, full_cmd.c_str(), static_cast<DWORD>(full_cmd.size()), &written, NULL);
+	CloseHandle(hWritePipe);
+
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	DWORD exit_code;
+	GetExitCodeProcess(pi.hProcess, &exit_code);
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	int status = static_cast<int>(exit_code);
+#else
 	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
 	auto cmd_len = strlen(system_fmt) + strlen(s) + 1;
 	char* cmd = new char[cmd_len];
@@ -609,6 +690,7 @@ static int do_system(const char* s)
 	snprintf(cmd, cmd_len, system_fmt, s);
 	int status = system(cmd);
 	delete [] cmd;
+#endif
 
 	return status;
 	}
@@ -682,9 +764,40 @@ function piped_exec%(program: string, to_write: string%): bool
 	%{
 	const char* prog = program->CheckString();
 
+#ifdef _MSC_VER
+	// Write the program to a temp script to avoid quoting issues when
+	// _popen() passes through cmd.exe on Windows.
+	char* tmppath = _tempnam(nullptr, "zeek");
+	if ( ! tmppath )
+		{
+		zeek::reporter->Error("Failed to create temp file name for %s", prog);
+		return zeek::val_mgr->False();
+		}
+
+		{
+		FILE* tf = fopen(tmppath, "w");
+		if ( ! tf )
+			{
+			free(tmppath);
+			zeek::reporter->Error("Failed to create temp file for %s", prog);
+			return zeek::val_mgr->False();
+			}
+		fputs(prog, tf);
+		fputc('\n', tf);
+		fclose(tf);
+		}
+
+	std::string bash_cmd = std::string("bash \"") + tmppath + "\"";
+	FILE* f = popen(bash_cmd.c_str(), "wb");
+#else
 	FILE* f = popen(prog, "w");
+#endif
 	if ( ! f )
 		{
+#ifdef _MSC_VER
+		remove(tmppath);
+		free(tmppath);
+#endif
 		zeek::reporter->Error("Failed to popen %s", prog);
 		return zeek::val_mgr->False();
 		}
@@ -695,6 +808,11 @@ function piped_exec%(program: string, to_write: string%): bool
 	int bytes_written = fwrite(input_data, 1, input_data_len, f);
 
 	pclose(f);
+
+#ifdef _MSC_VER
+	remove(tmppath);
+	free(tmppath);
+#endif
 
 	if ( bytes_written != input_data_len )
 		{
@@ -878,11 +996,30 @@ function sha512_hash%(...%): string
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 ##    sha512_hash_init sha512_hash_update sha512_hash_finish
-function md5_hmac%(...%): string
+function md5_hmac%(...%): string &deprecated="Remove in v9.1. Use sha256_hmac()."
 	%{
+	detail::KeyedHash::InitializeHmacMd5Seed();
+
 	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
+	%}
+
+## Computes an HMAC-SHA256 hash value of the provided list of arguments. The HMAC
+## secret key is generated from available entropy when Zeek starts up, or it can
+## be specified for repeatability using the ``-K`` command line flag.
+##
+## Returns: The HMAC-SHA256 hash value of the concatenated arguments.
+##
+## .. zeek:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
+function sha256_hmac%(...%): string
+	%{
+	unsigned char hmac[ZEEK_SHA256_DIGEST_LENGTH];
+	SHA256Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_sha256_key, hmac);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(hmac));
 	%}
 
 ## Constructs an MD5 handle to enable incremental hash computation. You can
@@ -1289,16 +1426,22 @@ function paraglob_init%(v: any%) : opaque of paraglob
 		}
 
 	std::vector<std::string> patterns;
+	size_t tree_size = 0;
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto s = vv->StringAt(i);
 		patterns.emplace_back(reinterpret_cast<const char*>(s->Bytes()), s->Len());
+		tree_size += std::abs(s->Len());
 		}
+
+	// The libaca docs recommend adding one to the sum of the string lengths as the size
+	// of the tree.
+	tree_size += 1;
 
 	try
 		{
-		std::unique_ptr<paraglob::Paraglob> p (new paraglob::Paraglob(patterns));
+		auto p = std::make_unique<paraglob::Paraglob>(patterns, tree_size);
 		return zeek::make_intrusive<zeek::ParaglobVal>(std::move(p));
 		}
 	// Thrown if paraglob fails to add a pattern.
@@ -1340,7 +1483,7 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 	%}
 
 %%{
-template<typename IntType>
+template<std::integral IntType>
 IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 	zeek::ODesc desc(zeek::DESC_BINARY);
 
@@ -1349,8 +1492,9 @@ IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 
 	if (input->GetType()->Tag() == zeek::TYPE_STRING)
 		{
-		length = ((zeek::StringVal*) input)->Len();
-		bytes = ((zeek::StringVal*) input)->Bytes();
+		auto sv = static_cast<zeek::StringVal*>(input);
+		length = sv->Len();
+		bytes = sv->Bytes();
 		}
 	else
 		{
@@ -1443,7 +1587,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = zeek_uint_t(double(max) * double(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
+	auto result = static_cast<zeek_uint_t>(static_cast<double>(max) * static_cast<double>(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
 	return zeek::val_mgr->Count(result);
 	%}
 
@@ -2133,7 +2277,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 ## .. zeek:see:: cat cat_sep string_cat
 function fmt%(...%): string
 	%{
-	if ( @ARGC@ == 0 )
+	if ( @ARGS@->empty() )
 		return zeek::val_mgr->EmptyString();
 
 	Val* fmt_v = @ARG@[0].get();
@@ -2767,7 +2911,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.emplace_back(IPv4, (uint32_t*)ent->h_addr_list[len],
+			addrs.emplace_back(IPv4, reinterpret_cast<uint32_t*>(ent->h_addr_list[len]),
 			                   zeek::IPAddr::Network);
 		}
 
@@ -2776,7 +2920,7 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.emplace_back(IPv6, (uint32_t*)ent->h_addr_list[len],
+			addrs.emplace_back(IPv6, reinterpret_cast<uint32_t*>(ent->h_addr_list[len]),
 			                   zeek::IPAddr::Network);
 		}
 
@@ -2922,7 +3066,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 
 	while ( len > 0 )
 		{
-		zeek::IPAddr a(IPv6, (const uint32_t*) bytes, zeek::IPAddr::Network);
+		zeek::IPAddr a(IPv6, reinterpret_cast<const uint32_t*>(bytes), zeek::IPAddr::Network);
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::AddrVal>(a));
 		bytes += 16;
 		len -= 16;
@@ -3051,7 +3195,7 @@ function int_to_count%(n: int%): count
 ## .. zeek:see:: double_to_time
 function double_to_int%(d: double%): int
 	%{
-	return zeek::val_mgr->Int(zeek_int_t(rint(d)));
+	return zeek::val_mgr->Int(static_cast<zeek_int_t>(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -3066,7 +3210,7 @@ function double_to_count%(d: double%): count
 	if ( d < 0.0 )
 		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
 
-	return zeek::val_mgr->Count(zeek_uint_t(rint(d)));
+	return zeek::val_mgr->Count(static_cast<zeek_uint_t>(rint(d)));
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`. For values where
@@ -3192,7 +3336,7 @@ function port_to_count%(p: port%): count
 ## .. zeek:see:: port_to_count
 function count_to_port%(num: count, proto: transport_proto%): port
 	%{
-	return zeek::val_mgr->Port(num, (TransportProto)proto->AsEnum());
+	return zeek::val_mgr->Port(num, static_cast<TransportProto>(proto->AsEnum()));
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`addr`.
@@ -3337,10 +3481,10 @@ function count_to_v4_addr%(ip: count%): addr
 	if ( ip > 4294967295LU )
 		{
 		zeek::emit_builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
-		return zeek::make_intrusive<zeek::AddrVal>(uint32_t(0));
+		return zeek::make_intrusive<zeek::AddrVal>(0);
 		}
 
-	return zeek::make_intrusive<zeek::AddrVal>(htonl(uint32_t(ip)));
+	return zeek::make_intrusive<zeek::AddrVal>(htonl(static_cast<uint32_t>(ip)));
 	%}
 
 ## Converts a :zeek:type:`string` of bytes into an IPv4 address. In particular,
@@ -3485,9 +3629,9 @@ function bytestring_to_float%(s: string%): double
 function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 	%{
 #ifdef HOST_BIGENDIAN
-	static const bool host_bigendian = true;
+	static constexpr bool host_bigendian = true;
 #else
-	static const bool host_bigendian = false;
+	static constexpr bool host_bigendian = false;
 #endif
 	const u_char *p = s->Bytes();
 	size_t string_len = static_cast<size_t>(s->Len());
@@ -3749,7 +3893,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 ##
 ## Returns: The encoded version of *s*.
 ##
-## .. zeek:see:: decode_base64
+## .. zeek:see:: decode_base64 is_valid_base64
 function encode_base64%(s: string, a: string &default=""%): string
 	%{
 	String* t = zeek::detail::encode_base64(s->AsString(), a->AsString());
@@ -3771,7 +3915,7 @@ function encode_base64%(s: string, a: string &default=""%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. zeek:see:: decode_base64_conn encode_base64
+## .. zeek:see:: decode_base64_conn encode_base64 is_valid_base64
 function decode_base64%(s: string, a: string &default=""%): string
 	%{
 	String* t = zeek::detail::decode_base64(s->AsString(), a->AsString());
@@ -3782,6 +3926,21 @@ function decode_base64%(s: string, a: string &default=""%): string
 		zeek::reporter->Error("error in decoding string %s", s->CheckString());
 		return zeek::val_mgr->EmptyString();
 		}
+	%}
+
+## Returns whether *s* is a valid Base64-encoded string.
+##
+## s: The string to validate.
+##
+## a: An optional custom alphabet. The empty string indicates the default
+##    alphabet. If given, the string must consist of 64 unique characters.
+##
+## Returns: ``T`` if *s* is valid Base64, ``F`` otherwise.
+##
+## .. zeek:see:: decode_base64 decode_base64_conn encode_base64
+function is_valid_base64%(s: string, a: string &default=""%): bool
+	%{
+	return zeek::val_mgr->Bool(zeek::detail::is_valid_base64(s->AsString(), a->AsString()));
 	%}
 
 ## Decodes a Base64-encoded string that was derived from processing a connection.
@@ -3797,7 +3956,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 ##
 ## Returns: The decoded version of *s*.
 ##
-## .. zeek:see:: decode_base64
+## .. zeek:see:: decode_base64 is_valid_base64
 function decode_base64_conn%(cid: conn_id, s: string, a: string &default=""%): string
 	%{
 	Connection* conn = session_mgr->FindConnection(cid);
@@ -3841,9 +4000,9 @@ function uuid_to_string%(uuid: string%): string
 	if ( uuid->Len() != 16 )
 		return zeek::make_intrusive<zeek::StringVal>("<Invalid UUID>");
 
-	zeek_uuid_t* id = (zeek_uuid_t*) uuid->Bytes();
+	auto* id = reinterpret_cast<const zeek_uuid_t*>(uuid->Bytes());
 
-	static char s[1024];
+	static char s[64];
 	char* sp = s;
 
 	sp += snprintf(sp, s + sizeof(s) - sp,
@@ -3896,7 +4055,7 @@ char* to_pat_str(int sn, const char* ss)
 ##
 function convert_for_pattern%(s: string%): string
 	%{
-	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
+	char* t = to_pat_str(s->Len(), reinterpret_cast<const char*>(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
 	return std::move(ret);
@@ -3915,7 +4074,7 @@ function convert_for_pattern%(s: string%): string
 ## .. zeek:see:: convert_for_pattern
 function string_to_pattern%(s: string, convert: bool%): pattern
 	%{
-	const char* ss = (const char*) (s->Bytes());
+	const char* ss = reinterpret_cast<const char*>(s->Bytes());
 	int sn = s->Len();
 	char* pat;
 
@@ -3945,7 +4104,7 @@ function strftime%(fmt: string, d: time%) : string
 	%{
 	static char buffer[128];
 
-	time_t timeval = time_t(d);
+	time_t timeval = static_cast<time_t>(d);
 	struct tm t;
 
 	if ( ! localtime_r(&timeval, &t) ||
@@ -4554,81 +4713,112 @@ function haversine_distance%(lat1: double, long1: double, lat2: double, long2: d
 ##          ``rw[xsS]rw[xsS]rw[xtT]``.
 function file_mode%(mode: count%): string
 	%{
+#ifndef _WIN32
+	// On POSIX systems, use the standard library constants.
+	constexpr unsigned int PM_IRUSR = S_IRUSR;
+	constexpr unsigned int PM_IWUSR = S_IWUSR;
+	constexpr unsigned int PM_IXUSR = S_IXUSR;
+	constexpr unsigned int PM_IRGRP = S_IRGRP;
+	constexpr unsigned int PM_IWGRP = S_IWGRP;
+	constexpr unsigned int PM_IXGRP = S_IXGRP;
+	constexpr unsigned int PM_IROTH = S_IROTH;
+	constexpr unsigned int PM_IWOTH = S_IWOTH;
+	constexpr unsigned int PM_IXOTH = S_IXOTH;
+	constexpr unsigned int PM_ISUID = S_ISUID;
+	constexpr unsigned int PM_ISGID = S_ISGID;
+	constexpr unsigned int PM_ISVTX = S_ISVTX;
+#else
+	// On Windows the system defines map group/other bits to user bits,
+	// so use standard POSIX bit values directly.
+	constexpr unsigned int PM_IRUSR = 0400;
+	constexpr unsigned int PM_IWUSR = 0200;
+	constexpr unsigned int PM_IXUSR = 0100;
+	constexpr unsigned int PM_IRGRP = 0040;
+	constexpr unsigned int PM_IWGRP = 0020;
+	constexpr unsigned int PM_IXGRP = 0010;
+	constexpr unsigned int PM_IROTH = 0004;
+	constexpr unsigned int PM_IWOTH = 0002;
+	constexpr unsigned int PM_IXOTH = 0001;
+	constexpr unsigned int PM_ISUID = 04000;
+	constexpr unsigned int PM_ISGID = 02000;
+	constexpr unsigned int PM_ISVTX = 01000;
+#endif
+
 	char str[12];
 	char *p = str;
 
 	/* usr */
-	if (mode & S_IRUSR)
+	if (mode & PM_IRUSR)
 		*p++ = 'r';
 	else
 		*p++ = '-';
 
-	if (mode & S_IWUSR)
+	if (mode & PM_IWUSR)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXUSR | S_ISUID)) {
+	switch (mode & (PM_IXUSR | PM_ISUID)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXUSR:
+	case PM_IXUSR:
 		*p++ = 'x';
 		break;
-	case S_ISUID:
+	case PM_ISUID:
 		*p++ = 'S';
 		break;
-	case S_IXUSR | S_ISUID:
+	case PM_IXUSR | PM_ISUID:
 		*p++ = 's';
 		break;
 	}
 
 	/* group */
-	if (mode & S_IRGRP)
+	if (mode & PM_IRGRP)
 		*p++ = 'r';
 	else
 		*p++ = '-';
-	if (mode & S_IWGRP)
+	if (mode & PM_IWGRP)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXGRP | S_ISGID)) {
+	switch (mode & (PM_IXGRP | PM_ISGID)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXGRP:
+	case PM_IXGRP:
 		*p++ = 'x';
 		break;
-	case S_ISGID:
+	case PM_ISGID:
 		*p++ = 'S';
 		break;
-	case S_IXGRP | S_ISGID:
+	case PM_IXGRP | PM_ISGID:
 		*p++ = 's';
 		break;
 	}
 
 	/* other */
-	if (mode & S_IROTH)
+	if (mode & PM_IROTH)
 		*p++ = 'r';
 	else
 		*p++ = '-';
-	if (mode & S_IWOTH)
+	if (mode & PM_IWOTH)
 		*p++ = 'w';
 	else
 		*p++ = '-';
 
-	switch (mode & (S_IXOTH | S_ISVTX)) {
+	switch (mode & (PM_IXOTH | PM_ISVTX)) {
 	case 0:
 		*p++ = '-';
 		break;
-	case S_IXOTH:
+	case PM_IXOTH:
 		*p++ = 'x';
 		break;
-	case S_ISVTX:
+	case PM_ISVTX:
 		*p++ = 'T';
 		break;
-	case S_IXOTH | S_ISVTX:
+	case PM_IXOTH | PM_ISVTX:
 		*p++ = 't';
 		break;
 	}
@@ -4835,7 +5025,7 @@ function open%(f: string%): file
 	if ( zeek::util::streq(file, "-") )
 		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(stdout, "-", "w"));
 	else
-		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(file, "w"));
+		return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(file, "wb"));
 	%}
 
 ## Opens a file for writing or appending. If a file with the same name already
@@ -4850,7 +5040,7 @@ function open%(f: string%): file
 ##              rmdir unlink rename
 function open_for_append%(f: string%): file
 	%{
-	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(f->CheckString(), "a"));
+	return zeek::make_intrusive<zeek::FileVal>(zeek::make_intrusive<zeek::File>(f->CheckString(), "ab"));
 	%}
 
 ## Closes an open file and flushes any buffered content.
@@ -4883,7 +5073,7 @@ function write_file%(f: file, data: string%): bool
 	if ( ! f )
 		return zeek::val_mgr->False();
 
-	return zeek::val_mgr->Bool(f->Write((const char*) data->Bytes(), data->Len()));
+	return zeek::val_mgr->Bool(f->Write(reinterpret_cast<const char*>(data->Bytes()), data->Len()));
 	%}
 
 ## Alters the buffering behavior of a file.
@@ -5156,7 +5346,7 @@ function file_size%(f: string%) : double
 	if ( stat(f->CheckString(), &s) < 0 )
 		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
 
-	return zeek::make_intrusive<zeek::DoubleVal>(double(s.st_size));
+	return zeek::make_intrusive<zeek::DoubleVal>(static_cast<double>(s.st_size));
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
@@ -5438,7 +5628,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 	if ( ! zeek::detail::rule_matcher )
 		return zeek::val_mgr->False();
 
-	c->Match((zeek::detail::Rule::PatternType) pattern_type, s->Bytes(), s->Len(),
+	c->Match(static_cast<zeek::detail::Rule::PatternType>(pattern_type), s->Bytes(), s->Len(),
 	         from_orig, bol, eol, clear);
 
 	return zeek::val_mgr->True();
@@ -5482,6 +5672,7 @@ function is_event_handled%(event_name: string%) : bool
 
 %%{
 // Autogenerated from CMake bif_target()
+// NOLINTBEGIN(bugprone-suspicious-include)
 #include "__all__.bif.cc"
 #include "__all__.bif.register.cc"
 
@@ -5489,6 +5680,7 @@ static void init_secondary_bifs()
 	{
 	#include "__all__.bif.init.cc"
 	}
+// NOLINTEND(bugprone-suspicious-include)
 %%}
 
 ## An internal function that helps initialize BIFs.
@@ -5501,7 +5693,6 @@ function __init_secondary_bifs%(%): bool
 # ===========================================================================
 #
 #                            Anonymization Functions
-#                            (Not Fully Functional)
 #
 # ===========================================================================
 
@@ -5511,7 +5702,8 @@ function __init_secondary_bifs%(%): bool
 #include "zeek/Anon.h"
 %%}
 
-## Preserves the prefix of an IP address in anonymization.
+## Preserves the prefix of an IP address in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method.
 ##
 ## a: The address to preserve.
 ##
@@ -5519,11 +5711,9 @@ function __init_secondary_bifs%(%): bool
 ##
 ## .. zeek:see:: preserve_subnet anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_prefix%(a: addr, width: count%): any
 	%{
-	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
-	if ( ip_anon )
+	if ( auto* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50] )
 		{
 		if ( a->AsAddr().GetFamily() == IPv6 )
 			zeek::emit_builtin_error("preserve_prefix() not supported for IPv6 addresses");
@@ -5538,18 +5728,23 @@ function preserve_prefix%(a: addr, width: count%): any
 	return nullptr;
 	%}
 
-## Preserves the prefix of a subnet in anonymization.
+## Preserves the prefix of a subnet in anonymization. This only works with the
+## PREFIX_PRESERVING_A50 anonymizer method. When a subnet is passed in, the anonymizer
+## will attempt to keep each octet the same that matches the subnet. For example, if the
+## subnet provided is ``1.2.3.0/24``, the following addresses get anonymized as follows,
+## with X representing the octets that get replaced:
+##
+##   - 1.2.3.4 becomes 1.2.3.X
+##   - 1.2.4.5 becomes 1.2.X.X
+##   - 1.3.4.5 becomes 1.X.X.X
 ##
 ## a: The subnet to preserve.
 ##
 ## .. zeek:see:: preserve_prefix anonymize_addr
 ##
-## .. todo:: Currently dysfunctional.
 function preserve_subnet%(a: subnet%): any
 	%{
-	DEBUG_MSG("%s/%d\n", a->Prefix().AsString().c_str(), a->Width());
-	zeek::detail::AnonymizeIPAddr* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50];
-	if ( ip_anon )
+	if ( auto* ip_anon = zeek::detail::ip_anonymizer[zeek::detail::PREFIX_PRESERVING_A50] )
 		{
 		if ( a->AsSubNet().Prefix().GetFamily() == IPv6 )
 			zeek::emit_builtin_error("preserve_subnet() not supported for IPv6 addresses");
@@ -5570,17 +5765,22 @@ function preserve_subnet%(a: subnet%): any
 ##
 ## cl: The anonymization class, which can take on three different values:
 ##
-##     - ``ORIG_ADDR``: Tag *a* as an originator address.
+##     - ``ORIG_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``orig_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``RESP_ADDR``: Tag *a* as an responder address.
+##     - ``RESP_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``resp_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
-##     - ``OTHER_ADDR``: Tag *a* as an arbitrary address.
+##     - ``OTHER_ADDR``: Tag *a* as an originator address. This requires the global
+##       ``other_addr_anonymization`` variable to be set to one of the values from
+##       ``IPAddrAnonymization``.
 ##
 ## Returns: An anonymized version of *a*.
 ##
 ## .. zeek:see:: preserve_prefix preserve_subnet
 ##
-## .. todo:: Currently dysfunctional.
 function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 	%{
 	int anon_class = cl->InternalInt();
@@ -5999,4 +6199,18 @@ function get_plugin_components%(category: string%): plugin_component_vec
 		}
 
 	return result;
+	%}
+
+## Performs the modulo operator, resembling ``a % b``. This is different
+## from Zeek's ``%`` operator, which is for remainder. The result is never
+## negative, unlike for remainder.
+##
+## Returns: The modulo result of "a modulo b"
+function modulo%(a: int, b: int%): int
+	%{
+	if ( b == 0 ) {
+		zeek::reporter->Error("modulo by zero");
+		return nullptr;
+	}
+	return zeek::val_mgr->Int(((a % b) + b) % b);
 	%}

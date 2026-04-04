@@ -34,6 +34,6 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, facility: :zeek:type:`count`, severity: :zeek:type:`count`, msg: :zeek:type:`string`)
 
    Test event.
-   
+
    Really, just a test ...
 

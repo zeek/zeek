@@ -33,6 +33,14 @@ bool AddGlobal(const std::string& g, const char* suffix);
 // Tracks that the body we're currently compiling refers to the given event.
 void RegisterEvent(std::string ev_name);
 
+// True if the given global has a truly constant (aggregate) initialization
+// that will not change across runs.
+bool HasFixedInit(const IDPtr& g) const;
+
+// For a global with a fixed initialization, assigns the global to that value
+// and (for convenience) returns it.
+ValPtr GenFixedInit(IDPtr g) const;
+
 // The following match various forms of identifiers to the name used for
 // their C++ equivalent.
 const char* IDName(const IDPtr& id) { return IDNameStr(id).c_str(); }
@@ -68,6 +76,9 @@ std::unordered_set<std::string> accessed_events;
 
 // Maps global names (not identifiers) to the names we use for them.
 std::unordered_map<std::string, std::string> globals;
+
+// The module names that are unique to the compiled (standalone) scripts.
+std::set<std::string> standalone_modules;
 
 // Similar for locals, for the function currently being compiled.
 std::unordered_map<IDPtr, std::string> locals;

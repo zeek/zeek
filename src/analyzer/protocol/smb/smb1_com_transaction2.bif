@@ -45,7 +45,7 @@ event smb1_trans2_find_first2_request%(c: connection, hdr: SMB1::Header, args: S
 ##
 ## hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 ##
-## file_name: File name the request is in reference to. 
+## file_name: File name the request is in reference to.
 ##
 ## .. zeek:see:: smb1_message smb1_transaction2_request smb1_trans2_find_first2_request
 ##    smb1_trans2_get_dfs_referral_request

@@ -909,7 +909,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             else if ( ty == TYPE_PORT && rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN) ) {
                 // we have an annotation for the second column
 
-                c = rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr()->Eval(nullptr);
+                c = eval_in_isolation(rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN)->GetExpr());
 
                 assert(c);
                 assert(c->GetType()->Tag() == TYPE_STRING);
@@ -1430,7 +1430,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
             Unref(val);
     }
     else
-        SendEvent(stream->event, std::move(out_vals));
+        SendEvent(stream->event, out_vals);
 
     return stream->num_fields;
 }
@@ -1691,7 +1691,7 @@ void Manager::SendEvent(EventHandlerPtr ev, const int numvals, ...) const {
         event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
 }
 
-void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const {
+void Manager::SendEvent(EventHandlerPtr ev, const list<Val*>& events) const {
     zeek::Args vl;
     vl.reserve(events.size());
 
@@ -1860,18 +1860,20 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
     switch ( val->type ) {
         case TYPE_BOOL:
         case TYPE_INT:
-            memcpy(data + startpos, (const void*)&(val->val.int_val), sizeof(val->val.int_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.int_val)), sizeof(val->val.int_val));
             return sizeof(val->val.int_val);
 
         case TYPE_COUNT:
-            memcpy(data + startpos, (const void*)&(val->val.uint_val), sizeof(val->val.uint_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.uint_val)), sizeof(val->val.uint_val));
             return sizeof(val->val.uint_val);
 
         case TYPE_PORT: {
             int length = 0;
-            memcpy(data + startpos, (const void*)&(val->val.port_val.port), sizeof(val->val.port_val.port));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.port_val.port)),
+                   sizeof(val->val.port_val.port));
             length += sizeof(val->val.port_val.port);
-            memcpy(data + startpos + length, (const void*)&(val->val.port_val.proto), sizeof(val->val.port_val.proto));
+            memcpy(data + startpos + length, reinterpret_cast<const void*>(&(val->val.port_val.proto)),
+                   sizeof(val->val.port_val.proto));
             length += sizeof(val->val.port_val.proto);
             return length;
         }
@@ -1879,7 +1881,7 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
         case TYPE_DOUBLE:
         case TYPE_TIME:
         case TYPE_INTERVAL:
-            memcpy(data + startpos, (const void*)&(val->val.double_val), sizeof(val->val.double_val));
+            memcpy(data + startpos, reinterpret_cast<const void*>(&(val->val.double_val)), sizeof(val->val.double_val));
             return sizeof(val->val.double_val);
 
         case TYPE_STRING:

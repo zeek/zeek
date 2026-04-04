@@ -7,12 +7,6 @@
 #include "pac_output.h"
 #include "pac_type.h"
 
-namespace {
-
-void GenLetEval(const ID* id, Expr* expr, string prefix, Output* out, Env* env) {}
-
-} // namespace
-
 LetField::LetField(ID* id, Type* type, Expr* expr)
     : Field(LET_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type), expr_(expr) {
     ASSERT(expr_);

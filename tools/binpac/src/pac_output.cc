@@ -7,9 +7,9 @@
 #include <cstdio>
 #include <cstring>
 
-OutputException::OutputException(const char* arg_msg) : msg(arg_msg) {}
+OutputException::OutputException(std::string arg_msg) : msg(std::move(arg_msg)) {}
 
-Output::Output(string filename) {
+Output::Output(const string& filename) {
     fp = fopen(filename.c_str(), "w");
     if ( ! fp )
         throw OutputException(strerror(errno));

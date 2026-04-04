@@ -27,12 +27,12 @@ Redefinable Options
 Redefinitions
 #############
 ======================================================================================= ===========================================================
-:zeek:type:`SSL::Info`: :zeek:type:`record`                                             
-                                                                                        
+:zeek:type:`SSL::Info`: :zeek:type:`record`
+
                                                                                         :New Fields: :zeek:type:`SSL::Info`
-                                                                                        
+
                                                                                           client_random: :zeek:type:`string` :zeek:attr:`&optional`
-:zeek:id:`SSL::disable_analyzer_after_detection`: :zeek:type:`bool` :zeek:attr:`&redef` 
+:zeek:id:`SSL::disable_analyzer_after_detection`: :zeek:type:`bool` :zeek:attr:`&redef`
 ======================================================================================= ===========================================================
 
 Events
@@ -75,10 +75,10 @@ Events
    :Type: :zeek:type:`event` (client_random: :zeek:type:`string`, keys: :zeek:type:`string`)
 
    This event can be triggered, e.g., via Broker to add known keys to the TLS key database.
-   
+
 
    :param client_random: client random for which the key is set
-   
+
 
    :param keys: key material
 
@@ -88,10 +88,10 @@ Events
    :Type: :zeek:type:`event` (client_random: :zeek:type:`string`, secrets: :zeek:type:`string`)
 
    This event can be triggered, e.g., via Broker to add known secrets to the TLS secret database.
-   
+
 
    :param client_random: client random for which the secret is set
-   
+
 
    :param secrets: derived TLS secrets material
 

@@ -36,201 +36,201 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: snmp_encrypted_pdu
-   :source-code: base/protocols/snmp/main.zeek 182 185
+   :source-code: base/protocols/snmp/main.zeek 186 189
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`)
 
    An SNMPv3 encrypted PDU message.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
 
 .. zeek:id:: snmp_get_bulk_request
-   :source-code: base/protocols/snmp/main.zeek 115 119
+   :source-code: base/protocols/snmp/main.zeek 119 123
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::BulkPDU`)
 
    An SNMP ``GetBulkRequest-PDU`` message from :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_get_next_request
-   :source-code: base/protocols/snmp/main.zeek 121 125
+   :source-code: base/protocols/snmp/main.zeek 125 129
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetNextRequest-PDU`` message from either :rfc:`1157` or
    :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_get_request
-   :source-code: base/protocols/snmp/main.zeek 109 113
+   :source-code: base/protocols/snmp/main.zeek 113 117
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_inform_request
-   :source-code: base/protocols/snmp/main.zeek 157 160
+   :source-code: base/protocols/snmp/main.zeek 161 164
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``InformRequest-PDU`` message from :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_report
-   :source-code: base/protocols/snmp/main.zeek 167 170
+   :source-code: base/protocols/snmp/main.zeek 171 174
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``Report-PDU`` message from :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_response
-   :source-code: base/protocols/snmp/main.zeek 127 144
+   :source-code: base/protocols/snmp/main.zeek 131 148
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``GetResponse-PDU`` message from :rfc:`1157` or a
    ``Response-PDU`` from :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_set_request
-   :source-code: base/protocols/snmp/main.zeek 146 150
+   :source-code: base/protocols/snmp/main.zeek 150 154
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SetRequest-PDU`` message from either :rfc:`1157` or :rfc:`3416`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_trap
-   :source-code: base/protocols/snmp/main.zeek 152 155
+   :source-code: base/protocols/snmp/main.zeek 156 159
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::TrapPDU`)
 
    An SNMP ``Trap-PDU`` message from :rfc:`1157`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
 .. zeek:id:: snmp_trapV2
-   :source-code: base/protocols/snmp/main.zeek 162 165
+   :source-code: base/protocols/snmp/main.zeek 166 169
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, pdu: :zeek:type:`SNMP::PDU`)
 
    An SNMP ``SNMPv2-Trap-PDU`` message from :rfc:`1157`.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param pdu: An SNMP PDU data structure.
 
@@ -240,54 +240,54 @@ Events
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, version: :zeek:type:`count`)
 
    A datagram with an unknown SNMP version.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param version: The value of the unknown SNMP version.
 
 .. zeek:id:: snmp_unknown_pdu
-   :source-code: base/protocols/snmp/main.zeek 172 175
+   :source-code: base/protocols/snmp/main.zeek 176 179
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMP PDU message of unknown type.
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param tag: The tag of the unknown SNMP PDU.
 
 .. zeek:id:: snmp_unknown_scoped_pdu
-   :source-code: base/protocols/snmp/main.zeek 177 180
+   :source-code: base/protocols/snmp/main.zeek 181 184
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, header: :zeek:type:`SNMP::Header`, tag: :zeek:type:`count`)
 
    An SNMPv3 ``ScopedPDUData`` of unknown type (neither plaintext or
    an encrypted PDU was in the datagram).
-   
+
 
    :param c: The connection over which the SNMP datagram is sent.
-   
+
 
    :param is_orig: The endpoint which sent the SNMP datagram.
-   
+
 
    :param header: SNMP version-dependent data that precedes PDU data in the top-level
            SNMP message structure.
-   
+
 
    :param tag: The tag of the unknown SNMP PDU scope.
 

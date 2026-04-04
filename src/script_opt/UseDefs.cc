@@ -184,7 +184,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
                 const Stmt* succ;
 
-                if ( i == int(stmts.size()) - 1 ) { // Very last statement.
+                if ( i == static_cast<int>(stmts.size()) - 1 ) { // Very last statement.
                     succ = succ_stmt;
                     if ( successor2.contains(s) ) {
                         om.AddObj(s_i);
@@ -536,7 +536,7 @@ UDs UseDefs::ExprUDs(const Expr* e) {
     return uds;
 }
 
-void UseDefs::AddInExprUDs(UDs uds, const Expr* e) {
+void UseDefs::AddInExprUDs(const UDs& uds, const Expr* e) {
     switch ( e->Tag() ) {
         case EXPR_REF: AddInExprUDs(uds, e->GetOp1().get()); break;
 
@@ -582,7 +582,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e) {
     }
 }
 
-void UseDefs::AddID(UDs uds, IDPtr id) const { uds->Add(std::move(id)); }
+void UseDefs::AddID(const UDs& uds, IDPtr id) const { uds->Add(std::move(id)); }
 
 UDs UseDefs::RemoveID(const IDPtr& id, const UDs& uds) {
     if ( ! uds )
@@ -596,7 +596,7 @@ UDs UseDefs::RemoveID(const IDPtr& id, const UDs& uds) {
     return new_uds;
 }
 
-void UseDefs::RemoveUDFrom(UDs uds, const IDPtr& id) {
+void UseDefs::RemoveUDFrom(const UDs& uds, const IDPtr& id) {
     if ( uds )
         uds->Remove(id);
 }

@@ -5,8 +5,6 @@
 
 #pragma once
 
-#ifdef DEBUG
-
 #include <cstdint>
 #include <cstdio>
 #include <set>
@@ -15,6 +13,8 @@
 #ifdef _MSC_VER
 #include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
 #endif
+
+#ifdef DEBUG
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(stream, ...)                                                                                           \
@@ -28,6 +28,17 @@
 
 #define PLUGIN_DBG_LOG(plugin, ...) ::zeek::detail::debug_logger.Log(plugin, __VA_ARGS__)
 // NOLINTEND(cppcoreguidelines-macro-usage)
+
+#else
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define DBG_LOG(...)
+#define DBG_LOG_VERBOSE(...)
+#define DBG_PUSH(stream)
+#define DBG_POP(stream)
+#define PLUGIN_DBG_LOG(plugin, ...)
+// NOLINTEND(cppcoreguidelines-macro-usage)
+
+#endif
 
 namespace zeek {
 
@@ -78,11 +89,11 @@ public:
     void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
     void Log(const plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
 
-    void PushIndent(DebugStream stream) { ++streams[int(stream)].indent; }
-    void PopIndent(DebugStream stream) { --streams[int(stream)].indent; }
+    void PushIndent(DebugStream stream) { ++streams[stream].indent; }
+    void PopIndent(DebugStream stream) { --streams[stream].indent; }
 
-    void EnableStream(DebugStream stream) { streams[int(stream)].enabled = true; }
-    void DisableStream(DebugStream stream) { streams[int(stream)].enabled = false; }
+    void EnableStream(DebugStream stream) { streams[stream].enabled = true; }
+    void DisableStream(DebugStream stream) { streams[stream].enabled = false; }
 
     // Takes comma-separated list of stream prefixes.
     void EnableStreams(const char* streams);
@@ -90,7 +101,7 @@ public:
     // Check the enabled streams for invalid ones.
     bool CheckStreams(const std::set<std::string>& plugin_names);
 
-    bool IsEnabled(DebugStream stream) const { return streams[int(stream)].enabled; }
+    bool IsEnabled(DebugStream stream) const { return streams[stream].enabled; }
 
     // Are any streams enabled?
     bool HasEnabledStreams() const { return ! enabled_streams.empty(); }
@@ -117,20 +128,11 @@ private:
 
     // Canonical rendering of a plugin's name. This is lower-cased,
     // with "::" and "_" both becoming "-".
-    const std::string PluginStreamName(const std::string& plugin_name) const;
+    std::string PluginStreamName(const std::string& plugin_name) const;
 };
 
 extern DebugLogger debug_logger;
 
 } // namespace detail
-} // namespace zeek
 
-#else
-// NOLINTBEGIN(cppcoreguidelines-macro-usage)
-#define DBG_LOG(...)
-#define DBG_LOG_VERBOSE(...)
-#define DBG_PUSH(stream)
-#define DBG_POP(stream)
-#define PLUGIN_DBG_LOG(plugin, ...)
-// NOLINTEND(cppcoreguidelines-macro-usage)
-#endif
+} // namespace zeek

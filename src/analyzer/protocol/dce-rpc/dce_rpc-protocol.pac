@@ -215,7 +215,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 					connection()->zeek_analyzer()->SetSkip(true);
 					}
 
-				if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
+				if ( flowbuf->data_length() > static_cast<int>(zeek::BifConst::DCE_RPC::max_frag_data) )
 					{
 					connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
 					connection()->zeek_analyzer()->SetSkip(true);
@@ -230,7 +230,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			auto& flowbuf = it->second;
 			flowbuf->BufferData(frag.begin(), frag.end());
 
-			if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
+			if ( flowbuf->data_length() > static_cast<int>(zeek::BifConst::DCE_RPC::max_frag_data) )
 				{
 				connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
 				connection()->zeek_analyzer()->SetSkip(true);

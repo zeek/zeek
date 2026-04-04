@@ -61,7 +61,7 @@ Redefinable Options
 
    String to use for empty fields. This should be different from
    *unset_field* to make the output unambiguous.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::enable_leftover_log_rotation
@@ -79,7 +79,7 @@ Redefinable Options
 
    If true, detect log files that did not get properly rotated
    by a previous Zeek process (e.g. due to crash) and rotate them.
-   
+
    This requires a positive rotation interval to be configured
    to have an effect.  E.g. via :zeek:see:`Log::default_rotation_interval`
    or the *interv* field of a :zeek:see:`Log::Filter`.
@@ -93,7 +93,7 @@ Redefinable Options
 
    If true, valid UTF-8 sequences will pass through unescaped and be
    written into logs.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::gzip_file_extension
@@ -105,7 +105,7 @@ Redefinable Options
 
    Define the file extension used when compressing log files when
    they are created with the :zeek:see:`LogAscii::gzip_level` option.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::gzip_level
@@ -119,7 +119,7 @@ Redefinable Options
    compression is performed. Enabling compression also changes
    the log file name extension to include the value of
    :zeek:see:`LogAscii::gzip_file_extension`.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::include_meta
@@ -132,7 +132,7 @@ Redefinable Options
    If true, include lines with log meta information such as column names
    with types, the values of ASCII logging options that are in use, and
    the time when the file was opened and closed (the latter at the end).
-   
+
    If writing in JSON format, this is implicitly disabled.
 
 .. zeek:id:: LogAscii::json_include_unset_fields
@@ -156,7 +156,7 @@ Redefinable Options
    Format of timestamps when writing out JSON. By default, the JSON
    formatter will use double values for timestamps which represent the
    number of seconds from the UNIX epoch.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::meta_prefix
@@ -167,7 +167,7 @@ Redefinable Options
    :Default: ``"#"``
 
    Prefix for lines with meta information.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::output_to_stdout
@@ -179,7 +179,7 @@ Redefinable Options
 
    If true, output everything to stdout rather than
    into files. This is primarily for debugging purposes.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::separator
@@ -190,7 +190,7 @@ Redefinable Options
    :Default: ``"\x09"``
 
    Separator between fields.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::set_separator
@@ -201,7 +201,7 @@ Redefinable Options
    :Default: ``","``
 
    Separator between set elements.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::unset_field
@@ -212,7 +212,7 @@ Redefinable Options
    :Default: ``"-"``
 
    String to use for an unset &optional field.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 .. zeek:id:: LogAscii::use_json
@@ -229,7 +229,7 @@ Redefinable Options
 
 
    If true, the default will be to write logs in a JSON format.
-   
+
    This option is also available as a per-filter ``$config`` option.
 
 

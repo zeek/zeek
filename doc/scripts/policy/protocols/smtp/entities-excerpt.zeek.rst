@@ -22,10 +22,10 @@ Runtime Options
 Redefinitions
 #############
 ============================================== ======================================================================================================
-:zeek:type:`SMTP::Entity`: :zeek:type:`record` 
-                                               
+:zeek:type:`SMTP::Entity`: :zeek:type:`record`
+
                                                :New Fields: :zeek:type:`SMTP::Entity`
-                                               
+
                                                  excerpt: :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`
                                                    The entity body excerpt.
 ============================================== ======================================================================================================

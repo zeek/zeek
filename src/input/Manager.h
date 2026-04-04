@@ -206,7 +206,7 @@ private:
 
     // Send events
     void SendEvent(EventHandlerPtr ev, const int numvals, ...) const;
-    void SendEvent(EventHandlerPtr ev, std::list<Val*> events) const;
+    void SendEvent(EventHandlerPtr ev, const std::list<Val*>& events) const;
 
     // Implementation of SendEndOfData (send end_of_data event).
     void SendEndOfData(const Stream* i);

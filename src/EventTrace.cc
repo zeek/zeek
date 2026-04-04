@@ -379,7 +379,7 @@ void ValTrace::ComputeTableDelta(const ValTrace* prev, DeltaVector& deltas) cons
     auto& prev_elems2 = prev->elems2;
 
     auto n = elems.size();
-    auto is_set = elems2.size() == 0;
+    auto is_set = elems2.empty();
     auto prev_n = prev_elems.size();
 
     // We can't compare pointers for the indices because they're
@@ -601,7 +601,7 @@ std::string DeltaVectorCreate::Generate(ValTraceMgr* vtm) const {
     std::string vec;
 
     for ( auto& e : elems ) {
-        if ( vec.size() > 0 )
+        if ( ! vec.empty() )
             vec += ", ";
 
         vec += vtm->ValName(e->GetVal());
@@ -620,7 +620,7 @@ EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num) : ev
     name = ev_name + "_" + std::to_string(event_num) + "__et";
 }
 
-void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, std::string successor,
+void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, const std::string& successor,
                           int num_pre) const {
     int offset = 0;
     for ( auto& d : dvec ) {
@@ -695,7 +695,8 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, st
     fprintf(f, "\t}\n");
 }
 
-void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor, std::string successor) const {
+void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecessor,
+                          const std::string& successor) const {
     if ( predecessor ) {
         auto& pre_deltas = predecessor->post_deltas;
         int num_pre = pre_deltas.size();
@@ -708,7 +709,7 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecess
         }
     }
 
-    Generate(f, vtm, deltas, std::move(successor));
+    Generate(f, vtm, deltas, successor);
 }
 
 void ValTraceMgr::TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::Args* args) {

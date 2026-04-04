@@ -26,17 +26,17 @@ Redefinable Options
 Redefinitions
 #############
 ============================================ ============================================================
-:zeek:type:`Intel::Where`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Intel::Where`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSH::SUCCESSFUL_LOGIN`:
                                                An indicator of the login for the intel framework.
-:zeek:type:`Notice::Type`: :zeek:type:`enum` 
-                                             
+:zeek:type:`Notice::Type`: :zeek:type:`enum`
+
                                              * :zeek:enum:`SSH::Login_By_Password_Guesser`:
                                                Indicates that a host previously identified as a "password
                                                guesser" has now had a successful login
                                                attempt.
-                                             
+
                                              * :zeek:enum:`SSH::Password_Guessing`:
                                                Indicates that a host has been identified as crossing the
                                                :zeek:id:`SSH::password_guesses_limit` threshold with

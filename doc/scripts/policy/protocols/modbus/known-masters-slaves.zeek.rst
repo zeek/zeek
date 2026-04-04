@@ -24,15 +24,15 @@ State Variables
 Types
 #####
 ======================================================= =
-:zeek:type:`Known::ModbusDeviceType`: :zeek:type:`enum` 
-:zeek:type:`Known::ModbusInfo`: :zeek:type:`record`     
+:zeek:type:`Known::ModbusDeviceType`: :zeek:type:`enum`
+:zeek:type:`Known::ModbusInfo`: :zeek:type:`record`
 ======================================================= =
 
 Redefinitions
 #############
 ======================================= ================================
-:zeek:type:`Log::ID`: :zeek:type:`enum` 
-                                        
+:zeek:type:`Log::ID`: :zeek:type:`enum`
+
                                         * :zeek:enum:`Known::MODBUS_LOG`
 ======================================= ================================
 
@@ -46,7 +46,7 @@ Events
 Hooks
 #####
 ================================================================= =
-:zeek:id:`Known::log_policy_modbus`: :zeek:type:`Log::PolicyHook` 
+:zeek:id:`Known::log_policy_modbus`: :zeek:type:`Log::PolicyHook`
 ================================================================= =
 
 

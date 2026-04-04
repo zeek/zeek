@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b -Cr $TRACES/tls/ecdsa-cert.pcap %INPUT
 # @TEST-EXEC: cat intel.log > intel-all.log
-# @TEST-EXEC: zeek -b -r $TRACES/tls/ssl.v3.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/tls/ssl.v3.pcap %INPUT
 # @TEST-EXEC: cat intel.log >> intel-all.log
 # @TEST-EXEC: btest-diff intel-all.log
 
@@ -26,4 +26,3 @@ event Input::end_of_data(name: string, source: string)
 	{
 	continue_processing();
 	}
-

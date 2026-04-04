@@ -4,6 +4,8 @@ Checks: [-*,
          modernize-*,
          readability-isolate-declaration,
          readability-container-contains,
+         readability-container-size-empty,
+         readability-const-return-type,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.
@@ -16,7 +18,7 @@ Checks: [-*,
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
-         -performance-unnecessary-value-param,
+         -bugprone-unchecked-string-to-number-conversion,
          -modernize-use-integer-sign-comparison,
 
          # The following cause either lots of pointless or advisory warnings
@@ -28,17 +30,17 @@ Checks: [-*,
          # double-underscores in the name.
          -bugprone-reserved-identifier,
 
-         # bifcl generates almost every switch statement without a default case
-         # and so this one generates a lot of warnings.
+         # binpac generates switch statements without default cases if case
+         # blocks in the pac files don't have default statements. This one
+         # generates a lot of warnings.
          -bugprone-switch-missing-default-case,
 
          # These report warnings that are rather difficult to fix or are things
          # we simply don't want to fix.
-         -bugprone-undefined-memory-manipulation,
          -bugprone-pointer-arithmetic-on-polymorphic-object,
-         -bugprone-empty-catch,
          -bugprone-exception-escape,
-         -bugprone-suspicious-include,
+         -bugprone-command-processor,
+         -bugprone-throwing-static-initialization,
          -modernize-avoid-c-arrays,
          -modernize-concat-nested-namespaces,
          -modernize-raw-string-literal,
@@ -46,6 +48,16 @@ Checks: [-*,
          -modernize-use-nodiscard,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
+
+         # I'd like to enable this at some point, but it's going to warn on all
+         # of our fmt() and Reporter methods.
+         -modernize-avoid-variadic-functions,
+
+         # There are a lot of unhandled exceptions across the code base because
+         # one of the reporter handlers throws an exception. Reporter already
+         # reported the error, so the exception is just to exit the processing.
+         # We don't need to do anything more with those exceptions.
+         -bugprone-empty-catch,
 
          # This one returns a bunch of findings in DFA and the sqlite library.
          # We're unlikely to fix either of them.
@@ -72,4 +84,6 @@ SystemHeaders: false
 CheckOptions:
     - key: modernize-use-default-member-init.UseAssignment
       value: 'true'
+    - key: performance-unnecessary-value-param.AllowedTypes
+      value: zeek::.*Ptr;zeek::plugin::HookArgument
 WarningsAsErrors: '*'

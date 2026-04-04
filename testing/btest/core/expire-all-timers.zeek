@@ -1,7 +1,7 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/tcp/retransmit-timeout.pcap %INPUT
+# @TEST-EXEC: zeek -b -C -r $TRACES/tcp/retransmit-timeout.pcapng %INPUT
 # @TEST-EXEC: mv conn.log conn-limited.log
 
-# @TEST-EXEC: zeek -b -C -r $TRACES/tcp/retransmit-timeout.pcap %INPUT max_timer_expires=0
+# @TEST-EXEC: zeek -b -C -r $TRACES/tcp/retransmit-timeout.pcapng %INPUT max_timer_expires=0
 # @TEST-EXEC: mv conn.log conn-all.log
 
 

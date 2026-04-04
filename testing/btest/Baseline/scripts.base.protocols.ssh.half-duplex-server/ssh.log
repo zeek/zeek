@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ssh
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key_fingerprint
 #types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.79	51880	131.159.21.1	22	-	-	0	OUTBOUND	-	SSH-2.0-OpenSSH_5.8	-	-	-	-	-	-
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.2.1	57189	192.168.2.158	22	-	-	0	-	-	SSH-1.99-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2	-	-	-	-	-	-

@@ -103,7 +103,7 @@ public:
     /**
      * @return The client's subscriptions.
      */
-    const std::vector<std::string> GetSubscriptions() const;
+    std::vector<std::string> GetSubscriptions() const;
 
     /**
      * Store the client's subscriptions as "not active".
@@ -187,7 +187,7 @@ public:
      * @param ident A string identifying this dispatcher instance. Used in metrics.
      * @param queue_size Maximum queue size before events are stalled.
      */
-    WebSocketEventDispatcher(std::string ident, size_t queue_size);
+    WebSocketEventDispatcher(const std::string& ident, size_t queue_size);
 
     ~WebSocketEventDispatcher();
 

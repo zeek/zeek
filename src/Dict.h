@@ -17,13 +17,13 @@
 // Type for function to be called when deleting elements.
 using dict_delete_func = void (*)(void*);
 
-#if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
+#if defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o) o->AssertValid()
 #define ASSERT_EQUAL(a, b) ASSERT(a == b)
 #else
 #define ASSERT_VALID(o)
 #define ASSERT_EQUAL(a, b)
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
 namespace zeek {
 
@@ -81,7 +81,7 @@ constexpr uint16_t TOO_FAR_TO_REACH = 0xFFFF;
 template<typename T>
 class DictEntry {
 public:
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
     int bucket = 0;
 #endif
 
@@ -107,7 +107,7 @@ public:
 
     DictEntry(void* arg_key, uint32_t key_size = 0, hash_t hash = 0, T* value = nullptr, int16_t d = TOO_FAR_TO_REACH,
               bool copy_key = false)
-        : distance(d), key_size(key_size), hash((uint32_t)hash), value(value) {
+        : distance(d), key_size(key_size), hash(static_cast<uint32_t>(hash)), value(value) {
         if ( ! arg_key )
             return;
 
@@ -130,14 +130,14 @@ public:
     bool Empty() const { return distance == TOO_FAR_TO_REACH; }
     void SetEmpty() {
         distance = TOO_FAR_TO_REACH;
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
 
         hash = 0;
         key = nullptr;
         value = nullptr;
         key_size = 0;
         bucket = 0;
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
     }
 
     void Clear() {
@@ -415,10 +415,10 @@ public:
             visited = new std::vector<detail::DictEntry<T>>();
 
             if ( other.inserted )
-                std::copy(other.inserted->begin(), other.inserted->end(), std::back_inserter(*inserted));
+                std::ranges::copy(*other.inserted, std::back_inserter(*inserted));
 
             if ( other.visited )
-                std::copy(other.visited->begin(), other.visited->end(), std::back_inserter(*visited));
+                std::ranges::copy(*other.visited, std::back_inserter(*visited));
 
             dict = other.dict;
             dict->IncrIters();
@@ -601,7 +601,7 @@ public:
 
                     // Check if any of the inserted elements in this iterator point at the entry
                     // being replaced. Update those too.
-                    auto it = std::find(c->inserted->begin(), c->inserted->end(), table[position]);
+                    auto it = std::ranges::find(*c->inserted, table[position]);
                     if ( it != c->inserted->end() )
                         it->value = val;
                 }
@@ -858,7 +858,7 @@ public:
         printf(
             "cap %'7d ent %'7d %'-7d load %.2f max_dist %2d key/ent %3d lg "
             "%2d remaps %1d remap_end %4d ",
-            Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1), max_distance,
+            Capacity(), Length(), MaxLength(), static_cast<double>(Length()) / (table ? Capacity() : 1), max_distance,
             key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
         if ( Length() > 0 ) {
             for ( size_t i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
@@ -876,10 +876,10 @@ public:
                 if ( table[i].Empty() )
                     printf("%'10d \n", i);
                 else
-                    printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3d) %2d\n", i, (i <= remap_end ? "*" : ""),
-                           BucketByPosition(i), (int)table[i].distance, OffsetInClusterByPosition(i),
-                           uint(table[i].hash), FibHash(table[i].hash), (int)FibHash(table[i].hash) & 0xFF,
-                           (int)table[i].key_size);
+                    printf("%'10d %1s %'10d %4d %4d 0x%08x 0x%016" PRIx64 "(%3ld) %2d\n", i,
+                           (i <= remap_end ? "*" : ""), BucketByPosition(i), table[i].distance,
+                           OffsetInClusterByPosition(i), uint(table[i].hash), FibHash(table[i].hash),
+                           FibHash(table[i].hash) & 0xFF, table[i].key_size);
         }
     }
 
@@ -923,7 +923,7 @@ public:
 
         DistanceStats(max_distance);
         if ( binary ) {
-            char key = char(random() % 26) + 'A';
+            char key = static_cast<char>(random() % 26) + 'A';
             snprintf(key_file, 100, "%d.%d-%c.key", Length(), max_distance, key);
             std::ofstream f(key_file, std::ios::binary | std::ios::out | std::ios::trunc);
             for ( int idx = 0; idx < Capacity(); idx++ )
@@ -934,12 +934,12 @@ public:
                 }
         }
         else {
-            char key = char(random() % 26) + 'A';
+            char key = static_cast<char>(random() % 26) + 'A';
             snprintf(key_file, 100, "%d.%d-%d.ckey", Length(), max_distance, key);
             std::ofstream f(key_file, std::ios::out | std::ios::trunc);
             for ( int idx = 0; idx < Capacity(); idx++ )
                 if ( ! table[idx].Empty() ) {
-                    std::string s((char*)table[idx].GetKey(), table[idx].key_size);
+                    std::string s{table[idx].GetKey(), table[idx].key_size};
                     f << s << "\n";
                 }
             f << std::flush;
@@ -1122,7 +1122,7 @@ private:
 
     void Init() {
         ASSERT(! table);
-        table = (detail::DictEntry<T>*)malloc(sizeof(detail::DictEntry<T>) * ExpectedCapacity());
+        table = reinterpret_cast<detail::DictEntry<T>*>(malloc(sizeof(detail::DictEntry<T>) * ExpectedCapacity()));
         for ( int i = Capacity() - 1; i >= 0; i-- )
             table[i].SetEmpty();
     }
@@ -1212,9 +1212,9 @@ private:
     /// Insert entry, Adjust iterators when necessary.
     void InsertRelocateAndAdjust(detail::DictEntry<T>& entry, int insert_position) {
 /// e.distance is adjusted to be the one at insert_position.
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
         entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
         int last_affected_position = insert_position;
         InsertAndRelocate(entry, insert_position, &last_affected_position);
         space_distance_sum += last_affected_position - insert_position;
@@ -1395,9 +1395,9 @@ private:
             return false;
         detail::DictEntry<T> entry =
             RemoveAndRelocate(position); // no iteration cookies to adjust, no need for last_affected_position.
-#ifdef DEBUG
+#ifdef ZEEK_DICT_DEBUG
         entry.bucket = expected;
-#endif // DEBUG
+#endif // ZEEK_DICT_DEBUG
 
         // find insert position.
         int insert_position = EndOfClusterByBucket(expected);
@@ -1415,7 +1415,7 @@ private:
         SetLog2Buckets(log2_buckets + 1);
 
         int capacity = Capacity();
-        table = (detail::DictEntry<T>*)realloc(table, capacity * sizeof(detail::DictEntry<T>));
+        table = static_cast<detail::DictEntry<T>*>(realloc(table, capacity * sizeof(detail::DictEntry<T>)));
         for ( int i = prev_capacity; i < capacity; i++ )
             table[i].SetEmpty();
 
@@ -1518,7 +1518,7 @@ private:
             // Filter out visited entries.
             while ( iter->next < capacity ) {
                 ASSERT(! table[iter->next].Empty());
-                auto it = std::find(iter->visited->begin(), iter->visited->end(), table[iter->next]);
+                auto it = std::ranges::find(*iter->visited, table[iter->next]);
                 if ( it == iter->visited->end() )
                     break;
                 iter->visited->erase(it);

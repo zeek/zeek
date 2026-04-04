@@ -14,15 +14,15 @@ namespace zeek::detail {
 // Maps BiF names to their associated ZBI class.
 std::unordered_map<std::string, const ZAMBuiltIn*> builtins;
 
-ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {
+ZAMBuiltIn::ZAMBuiltIn(const std::string& name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {
     builtins[name] = this;
 }
 
-SimpleZBI::SimpleZBI(std::string name, ZOp _op, int _nargs, bool _ret_val_matters)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs) {}
+SimpleZBI::SimpleZBI(const std::string& name, ZOp _op, int _nargs, bool _ret_val_matters)
+    : ZAMBuiltIn(name, _ret_val_matters), op(_op), nargs(_nargs) {}
 
-SimpleZBI::SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_matters)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(1) {}
+SimpleZBI::SimpleZBI(const std::string& name, ZOp _const_op, ZOp _op, bool _ret_val_matters)
+    : ZAMBuiltIn(name, _ret_val_matters), op(_op), const_op(_const_op), nargs(1) {}
 
 bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
@@ -69,8 +69,8 @@ bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args
     return true;
 }
 
-CondZBI::CondZBI(std::string name, ZOp _op, ZOp _cond_op, int _nargs)
-    : SimpleZBI(std::move(name), _op, _nargs, true), cond_op(_cond_op) {}
+CondZBI::CondZBI(const std::string& name, ZOp _op, ZOp _cond_op, int _nargs)
+    : SimpleZBI(name, _op, _nargs, true), cond_op(_cond_op) {}
 
 bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
     if ( cond_op == OP_NOP )
@@ -112,8 +112,8 @@ bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) 
     return true;
 }
 
-OptAssignZBI::OptAssignZBI(std::string name, ZOp _op, ZOp _op2, int _nargs)
-    : SimpleZBI(std::move(name), _op, _nargs, false), op2(_op2) {
+OptAssignZBI::OptAssignZBI(const std::string& name, ZOp _op, ZOp _op2, int _nargs)
+    : SimpleZBI(name, _op, _nargs, false), op2(_op2) {
     have_both = true;
 }
 
@@ -285,11 +285,11 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
     return true;
 }
 
-MultiZBI::MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
+MultiZBI::MultiZBI(const std::string& name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg)
+    : ZAMBuiltIn(name, _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
-MultiZBI::MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg)
-    : MultiZBI(std::move(name), false, std::move(_args_info), _type_arg) {
+MultiZBI::MultiZBI(const std::string& name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg)
+    : MultiZBI(name, false, std::move(_args_info), _type_arg) {
     assign_args_info = std::move(_assign_args_info);
     have_both = true;
 }
@@ -455,6 +455,14 @@ OptAssignZBI bfl_ZBI{ "Broker::__flush_logs",
     0
 };
 
+MultiZBI faa_ZBI{ "Files::__add_analyzer",
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VCV, OP_VVC}}},
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VVCV, OP_VVVC}}},
+    1
+};
+
 MultiZBI fra_ZBI{ "Files::__remove_analyzer",
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_REMOVE_ANALYZER_VCV, OP_VVC}}},
@@ -468,6 +476,13 @@ MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_Vi, OP_VV_I2}}},
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVi, OP_VVV_I3}}}
+};
+
+MultiZBI tic_ZBI{ "Telemetry::__counter_inc",
+    {{{VV}, {OP_TELEMETRY_COUNTER_INC_VV, OP_VV}},
+     {{VC}, {OP_TELEMETRY_COUNTER_INC_VC, OP_VC}}},
+    {{{VV}, {OP_TELEMETRY_COUNTER_INC_VVV, OP_VVV}},
+     {{VC}, {OP_TELEMETRY_COUNTER_INC_VVC, OP_VVC}}}
 };
 
 MultiZBI lw_ZBI{ "Log::__write",

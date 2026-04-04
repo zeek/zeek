@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <sys/stat.h>
-#include <unistd.h>
 #include <cerrno>
+#include <filesystem>
 
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/IDOptInfo.h"
@@ -43,12 +43,18 @@ void CPPCompile::Compile(bool report_uncompilable) {
     bool had_to_skip = false;
 
     for ( auto& func : funcs )
-        if ( ! AnalyzeFuncBody(func, filenames_reported_as_skipped, rep_types, report_uncompilable) )
+        if ( AnalyzeFuncBody(func, filenames_reported_as_skipped, rep_types, report_uncompilable) )
+            body_profiles[func.Body()] = func.ProfilePtr();
+        else
             had_to_skip = true;
 
     if ( standalone ) {
         if ( had_to_skip )
             reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
+
+        // Used to find modules only present in the analyzed code.
+        unordered_set<string> analyzed_modules;
+        unordered_set<string> non_analyzed_modules;
 
         for ( auto& g : global_scope()->OrderedVars() ) {
             bool compiled_global = obj_matches_opt_files(g) == AnalyzeDecision::SHOULD;
@@ -60,8 +66,16 @@ void CPPCompile::Compile(bool report_uncompilable) {
                         break;
                     }
 
-            if ( ! compiled_global )
+            if ( ! compiled_global ) {
+                if ( g->GetLocationInfo()->FirstLine() != 0 )
+                    // Make sure we're dealing with a global actually used
+                    // elsewhere (for example, weed out some spicy events
+                    // that don't have matching Zeek script).
+                    non_analyzed_modules.insert(g->ModuleName());
                 continue;
+            }
+
+            analyzed_modules.insert(g->ModuleName());
 
             // We will need to generate this global's definition, including
             // its initialization. Make sure we're tracking it and its
@@ -92,7 +106,11 @@ void CPPCompile::Compile(bool report_uncompilable) {
             }
         }
 
-        for ( auto& g : pfs->BiFGlobals() )
+        for ( auto& m : analyzed_modules )
+            if ( ! non_analyzed_modules.contains(m) )
+                standalone_modules.insert(m);
+
+        for ( auto& g : pfs->CalledBiFGlobals() )
             all_accessed_globals.insert(g);
 
         for ( auto& t : pfs->MainTypes() )
@@ -195,8 +213,8 @@ void CPPCompile::Compile(bool report_uncompilable) {
     NL();
     Emit("std::vector<CPP_RegisterBody> CPP__bodies_to_register = {");
 
-    for ( const auto& f : compiled_funcs )
-        RegisterCompiledBody(f);
+    for ( const auto& f : compiled_func_to_zeek_func )
+        RegisterCompiledBody(f.first);
 
     Emit("};");
 
@@ -307,12 +325,14 @@ void CPPCompile::GenProlog() {
 
     // Get the working directory for annotating the output to help
     // with debugging.
-    char working_dir[8192];
-    if ( ! getcwd(working_dir, sizeof working_dir) )
-        reporter->FatalError("getcwd failed: %s", strerror(errno));
+    std::error_code ec;
+    auto cwd = std::filesystem::current_path(ec);
+    if ( ec )
+        reporter->FatalError("current_path failed: %s", ec.message().c_str());
+    std::string working_dir = cwd.string();
 
     Emit("namespace zeek::detail { //\n");
-    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), string(working_dir));
+    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir.c_str());
 
     // The following might-or-might-not wind up being populated/used.
     Emit("std::vector<zeek_int_t> field_mapping;");
@@ -417,8 +437,9 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
         attr_groups += " \"" + g + "\",";
     attr_groups += " }";
 
-    Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s), %s, %s),", f, f,
-         Fmt(type_signature), body_info, events, module_group, attr_groups);
+    string params = "std::vector<std::string>(" + events + "), " + module_group + ", " + attr_groups;
+    Emit("\tCPP_RegisterBody(\"%s\", \"%s\", (void*) %s, %s, %s, %s),", compiled_func_to_zeek_func[f], f, f,
+         Fmt(type_signature), body_info, params);
 }
 
 void CPPCompile::GenEpilog() {
@@ -573,7 +594,8 @@ void CPPCompile::GenFinishInit() {
             gi->GetCohortIDs(c, init_ids);
 
             for ( auto& ii : init_ids )
-                InitializeGlobal(ii);
+                if ( ! HasFixedInit(ii) )
+                    InitializeGlobal(ii);
         }
 
     NL();
@@ -595,10 +617,10 @@ void CPPCompile::GenRegisterBodies() {
 
     if ( standalone )
         Emit(
-            "register_standalone_body__CPP(f, b.priority, b.h, b.events, b.module_group, b.attr_groups, "
+            "register_standalone_body__CPP(b.zeek_name, f, b.priority, b.h, b.events, b.module_group, b.attr_groups, "
             "finish_init__CPP);");
     else
-        Emit("register_body__CPP(f, b.priority, b.h, b.events, finish_init__CPP);");
+        Emit("register_body__CPP(b.zeek_name, f, b.priority, b.h, b.events, finish_init__CPP);");
     EndBlock();
 
     EndBlock();

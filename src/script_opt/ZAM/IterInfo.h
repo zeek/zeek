@@ -46,6 +46,9 @@ public:
     void BeginLoop(TableValPtr _tv, ZVal* frame, ZInstAux* aux) {
         tv = std::move(_tv);
 
+        // Clear loop_vars to prevent unbounded growth when TableIterInfo is reused
+        loop_vars.clear();
+
         for ( auto lv : aux->loop_vars )
             if ( lv < 0 )
                 loop_vars.push_back(nullptr);

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "zeek/List.h"
+#include "zeek/RegexBackend.h"
 
 namespace zeek {
 
@@ -103,7 +104,7 @@ public:
 
     const char* PatternText() const;
     const char* RustPatternText() const;
-    void* RustStreamMatcher() const { return rust_stream_matcher; }
+    const RustRegexStreamMatcherHandle& RustStreamMatcher() const { return rust_stream_matcher; }
 
     unsigned int NumStates() const;
     void GetStats(RegexStats* stats) const;
@@ -127,9 +128,9 @@ protected:
 
     std::shared_ptr<MatcherPatternState> pattern_state;
 
-    void* rust_matcher = nullptr;
-    void* rust_set_matcher = nullptr;
-    void* rust_stream_matcher = nullptr;
+    RustRegexMatcherHandle rust_matcher;
+    RustRegexSetMatcherHandle rust_set_matcher;
+    RustRegexStreamMatcherHandle rust_stream_matcher;
 
     friend class ::zeek::RE_Matcher;
 };
@@ -140,7 +141,7 @@ public:
     ~RE_Match_State();
 
     const AcceptingMatchSet& AcceptedMatches() const { return accepted_matches; }
-    bool UsesRustStreamMatcher() const { return rust_stream_matcher != nullptr; }
+    bool UsesRustStreamMatcher() const { return rust_stream_matcher && *rust_stream_matcher; }
 
     // Returns the number of bytes fed into the matcher so far
     int Length() { return current_pos; }
@@ -152,8 +153,8 @@ public:
     void Clear();
 
 protected:
-    void* rust_stream_matcher = nullptr;
-    void* rust_stream_state = nullptr;
+    const RustRegexStreamMatcherHandle* rust_stream_matcher = nullptr;
+    RustRegexStreamStateHandle rust_stream_state;
 
     AcceptingMatchSet accepted_matches;
     int current_pos;

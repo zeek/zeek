@@ -58,12 +58,9 @@ void Specific_RE_Matcher::ClearDerivedTextCaches() {
 }
 
 void Specific_RE_Matcher::ClearRustMatchers() {
-    FreeRustRegexMatcher(rust_matcher);
-    rust_matcher = nullptr;
-    FreeRustRegexSetMatcher(rust_set_matcher);
-    rust_set_matcher = nullptr;
-    FreeRustRegexStreamMatcher(rust_stream_matcher);
-    rust_stream_matcher = nullptr;
+    rust_matcher.reset();
+    rust_set_matcher.reset();
+    rust_stream_matcher.reset();
 }
 
 const char* Specific_RE_Matcher::PatternText() const {
@@ -211,22 +208,25 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     for ( size_t i = 0; i < compile_patterns.size(); ++i ) {
         std::vector<const char*> single_pattern = {compile_patterns[i]};
         std::vector<std::intptr_t> single_id = {rust_ids[i]};
-        void* matcher = nullptr;
 
-        if ( multiline )
-            matcher = CompileRustRegexStreamMatcherFromZeek(single_pattern, single_id, true, sig_rust_regex_cache_size);
-        else if ( rust_set )
-            matcher = CompileRustRegexSetMatcher(single_pattern, single_id);
-        else
-            matcher = CompileRustRegexSetMatcherFromExact(single_pattern, single_id);
+        if ( multiline ) {
+            auto matcher =
+                CompileRustRegexStreamMatcherFromZeek(single_pattern, single_id, true, sig_rust_regex_cache_size);
 
-        if ( matcher ) {
-            if ( multiline )
-                FreeRustRegexStreamMatcher(matcher);
-            else
-                FreeRustRegexSetMatcher(matcher);
+            if ( matcher )
+                continue;
+        }
+        else if ( rust_set ) {
+            auto matcher = CompileRustRegexSetMatcher(single_pattern, single_id);
 
-            continue;
+            if ( matcher )
+                continue;
+        }
+        else {
+            auto matcher = CompileRustRegexSetMatcherFromExact(single_pattern, single_id);
+
+            if ( matcher )
+                continue;
         }
 
         reporter->Error("error compiling pattern /%s/", set[static_cast<int>(i)]);
@@ -307,29 +307,27 @@ void Specific_RE_Matcher::GetStats(RegexStats* stats) const {
 
 void Specific_RE_Matcher::Dump(FILE* /* f */) {}
 
-RE_Match_State::RE_Match_State(Specific_RE_Matcher* matcher) {
-    current_pos = -1;
-    rust_stream_matcher = matcher->RustStreamMatcher();
-    rust_stream_state = rust_stream_matcher ? CreateRustRegexStreamState(rust_stream_matcher) : nullptr;
+RE_Match_State::RE_Match_State(Specific_RE_Matcher* matcher) : current_pos(-1) {
+    const auto& stream_matcher = matcher->RustStreamMatcher();
+    rust_stream_matcher = stream_matcher ? &stream_matcher : nullptr;
+    rust_stream_state =
+        rust_stream_matcher ? CreateRustRegexStreamState(*rust_stream_matcher) : RustRegexStreamStateHandle{};
 }
 
-RE_Match_State::~RE_Match_State() { FreeRustRegexStreamState(rust_stream_state); }
+RE_Match_State::~RE_Match_State() = default;
 
 void RE_Match_State::Clear() {
     current_pos = -1;
     accepted_matches.clear();
 
-    if ( rust_stream_matcher ) {
-        FreeRustRegexStreamState(rust_stream_state);
-        rust_stream_state = CreateRustRegexStreamState(rust_stream_matcher);
-    }
+    if ( rust_stream_matcher )
+        rust_stream_state = CreateRustRegexStreamState(*rust_stream_matcher);
 }
 
 bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool clear) {
     if ( rust_stream_matcher && rust_stream_state ) {
         if ( clear ) {
-            FreeRustRegexStreamState(rust_stream_state);
-            rust_stream_state = CreateRustRegexStreamState(rust_stream_matcher);
+            rust_stream_state = CreateRustRegexStreamState(*rust_stream_matcher);
             current_pos = -1;
         }
 
@@ -338,7 +336,7 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
 
         const auto old_matches = accepted_matches.size();
         std::vector<std::pair<AcceptIdx, uint64_t>> matches;
-        RustRegexStreamStateAppendMatches(rust_stream_matcher, rust_stream_state, reinterpret_cast<const uint8_t*>(bv),
+        RustRegexStreamStateAppendMatches(*rust_stream_matcher, rust_stream_state, reinterpret_cast<const uint8_t*>(bv),
                                           n, bol, eol, run_state::detail::bare_mode, matches);
 
         for ( const auto& [accept_idx, position] : matches )

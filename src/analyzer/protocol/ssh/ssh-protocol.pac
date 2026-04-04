@@ -33,8 +33,7 @@ type SSH_Version_Switch(is_orig: bool) = case is_orig of {
 # SSH servers can have banners before their SSH version. Which... fun.
 type SSH_Version_Server = record {
 	version: RE/(SSH-.*)?/;
-	# Only accept bytes outside a small set of invalid UTF-8 lead ranges.
-	# This still isn't a complete UTF-8 validator, but it filters obvious junk.
+	# Only accept bytes outside a small set of invalid UTF-8 lead ranges; this still isn't a complete UTF-8 validator, but filters obvious junk.
 	nonversiondata: RE/[^\xC0-\xC1\xF5-\xFF]*/;
 } &let {
 	update_state   : bool = $context.connection.update_state(KEX_INIT, false) &if(sizeof(version) > 0);

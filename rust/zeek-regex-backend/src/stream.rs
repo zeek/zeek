@@ -388,7 +388,7 @@ pub(crate) fn match_stream_state(
     }
 
     if !eol && !haystack.is_empty() {
-        for pattern_index in 0..matcher.dfas.len() {
+        for (pattern_index, dfa) in matcher.dfas.iter().enumerate() {
             if !state.active[pattern_index] || state.seen[pattern_index] {
                 continue;
             }
@@ -399,9 +399,7 @@ pub(crate) fn match_stream_state(
             };
 
             if boundary_matchable(matcher, &mut caches[pattern_index], pattern_index, current) {
-                let next = match matcher.dfas[pattern_index]
-                    .next_eoi_state(&mut caches[pattern_index], current)
-                {
+                let next = match dfa.next_eoi_state(&mut caches[pattern_index], current) {
                     Ok(next) => next,
                     Err(_) => {
                         state.current[pattern_index] = None;

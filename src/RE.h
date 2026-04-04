@@ -158,8 +158,7 @@ class RE_Matcher final {
 public:
     RE_Matcher();
     explicit RE_Matcher(const char* pat);
-    RE_Matcher(const char* exact_pat, const char* anywhere_pat);
-    RE_Matcher(const char* exact_pat, const char* anywhere_pat, const char* rust_pat);
+    [[nodiscard]] static RE_Matcher* Reconstruct(const char* exact_pat, const char* rust_pat = nullptr);
     ~RE_Matcher();
 
     void AddPat(const char* pat);

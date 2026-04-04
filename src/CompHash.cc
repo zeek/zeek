@@ -241,23 +241,18 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                 } break;
 
                 case TYPE_PATTERN: {
-                    const char* texts[2] = {nullptr, nullptr};
-                    uint64_t lens[2] = {0, 0};
-
                     if ( ! singleton ) {
-                        hk.Read("pattern-len1", lens[0]);
-                        hk.Read("pattern-len2", lens[1]);
+                        uint64_t len = 0;
+                        hk.Read("pattern-len", len);
                     }
 
-                    texts[0] = static_cast<const char*>(hk.KeyAtRead());
-                    hk.SkipRead("pattern-string1", strlen(texts[0]) + 1);
-                    texts[1] = static_cast<const char*>(hk.KeyAtRead());
-                    hk.SkipRead("pattern-string2", strlen(texts[1]) + 1);
+                    const auto* text = static_cast<const char*>(hk.KeyAtRead());
+                    hk.SkipRead("pattern-text", strlen(text) + 1);
 
-                    RE_Matcher* re = new RE_Matcher(texts[0], texts[1]);
+                    RE_Matcher* re = RE_Matcher::Reconstruct(text);
 
-                    if ( ! re->Compile() )
-                        reporter->InternalError("failed compiling table/set key pattern: %s", re->PatternText());
+                    if ( ! re || ! re->Compile() )
+                        reporter->InternalError("failed compiling table/set key pattern: %s", text);
 
                     *pval = make_intrusive<PatternVal>(re);
                 } break;
@@ -477,20 +472,17 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
                 } break;
 
                 case TYPE_PATTERN: {
-                    const char* texts[2] = {v->AsPattern()->PatternText(), v->AsPattern()->AnywherePatternText()};
-                    uint64_t lens[2] = {strlen(texts[0]) + 1, strlen(texts[1]) + 1};
+                    const char* text = v->AsPattern()->PatternText();
+                    uint64_t len = strlen(text) + 1;
 
-                    if ( ! singleton ) {
-                        hk.Write("pattern-len1", lens[0]);
-                        hk.Write("pattern-len2", lens[1]);
-                    }
+                    if ( ! singleton )
+                        hk.Write("pattern-len", len);
                     else {
-                        hk.Reserve("pattern", lens[0] + lens[1]);
+                        hk.Reserve("pattern", len);
                         hk.Allocate();
                     }
 
-                    hk.Write("pattern-string1", static_cast<const void*>(texts[0]), lens[0]);
-                    hk.Write("pattern-string2", static_cast<const void*>(texts[1]), lens[1]);
+                    hk.Write("pattern-text", static_cast<const void*>(text), len);
                     break;
                 }
 
@@ -669,14 +661,11 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
                     if ( ! v )
                         return (optional && ! calc_static_size);
 
-                    if ( ! singleton ) {
-                        hk.ReserveType<uint64_t>("pattern-len1");
-                        hk.ReserveType<uint64_t>("pattern-len2");
-                    }
+                    if ( ! singleton )
+                        hk.ReserveType<uint64_t>("pattern-len");
 
                     // +1 in the following to include null terminators
-                    hk.Reserve("pattern-string1", strlen(v->AsPattern()->PatternText()) + 1, 0);
-                    hk.Reserve("pattern-string1", strlen(v->AsPattern()->AnywherePatternText()) + 1, 0);
+                    hk.Reserve("pattern-text", strlen(v->AsPattern()->PatternText()) + 1, 0);
                     break;
                 }
 

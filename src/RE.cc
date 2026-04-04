@@ -291,24 +291,35 @@ static bool split_top_level_wrapped_operands(std::string_view text, std::vector<
     return ! parts->empty();
 }
 
-static std::string derive_rust_pattern_from_exact(std::string_view exact) {
+static std::vector<char> strip_mode_wrappers(std::string_view* text) {
     std::vector<char> mode_wrappers;
 
     while ( true ) {
-        if ( exact.starts_with("(?i:") && exact.ends_with(")") ) {
-            exact = exact.substr(4, exact.size() - 5);
+        if ( text->starts_with("(?i:") && text->ends_with(")") ) {
+            *text = text->substr(4, text->size() - 5);
             mode_wrappers.push_back('i');
             continue;
         }
 
-        if ( exact.starts_with("(?s:") && exact.ends_with(")") ) {
-            exact = exact.substr(4, exact.size() - 5);
+        if ( text->starts_with("(?s:") && text->ends_with(")") ) {
+            *text = text->substr(4, text->size() - 5);
             mode_wrappers.push_back('s');
             continue;
         }
 
-        break;
+        return mode_wrappers;
     }
+}
+
+static std::string reapply_mode_wrappers(std::string pattern, const std::vector<char>& mode_wrappers) {
+    for ( auto it = mode_wrappers.rbegin(); it != mode_wrappers.rend(); ++it )
+        pattern = util::fmt("(?%c:%s)", *it, pattern.c_str());
+
+    return pattern;
+}
+
+static std::string derive_rust_pattern_from_exact(std::string_view exact) {
+    const auto mode_wrappers = strip_mode_wrappers(&exact);
 
     std::string_view exact_inner;
 
@@ -351,17 +362,46 @@ static std::string derive_rust_pattern_from_exact(std::string_view exact) {
     if ( result.empty() )
         return {};
 
-    for ( auto it = mode_wrappers.rbegin(); it != mode_wrappers.rend(); ++it )
-        result = util::fmt("(?%c:%s)", *it, result.c_str());
-
-    return result;
+    return reapply_mode_wrappers(std::move(result), mode_wrappers);
 }
 
-static std::string derive_rust_pattern_text(const char* exact_pat, const char* anywhere_pat) {
-    if ( ! exact_pat || ! anywhere_pat )
+static std::string derive_anywhere_pattern_from_exact(std::string_view exact) {
+    const auto mode_wrappers = strip_mode_wrappers(&exact);
+    std::string_view exact_inner;
+    std::string result;
+
+    if ( strip_wrapper(exact, "^?(", ")$?", &exact_inner) )
+        result = util::fmt("^?(.|\\n)*(%.*s)", static_cast<int>(exact_inner.size()), exact_inner.data());
+    else {
+        std::vector<std::string_view> parts;
+        char op = '\0';
+
+        if ( ! split_top_level_wrapped_operands(exact, &parts, &op) )
+            return {};
+
+        if ( parts.size() == 1 && op == '\0' )
+            result = derive_anywhere_pattern_from_exact(parts[0]);
+        else {
+            for ( size_t i = 0; i < parts.size(); ++i ) {
+                auto recovered = derive_anywhere_pattern_from_exact(parts[i]);
+
+                if ( recovered.empty() )
+                    return {};
+
+                if ( ! result.empty() && op == '|' )
+                    result += '|';
+
+                result += '(';
+                result += recovered;
+                result += ')';
+            }
+        }
+    }
+
+    if ( result.empty() )
         return {};
 
-    return derive_rust_pattern_from_exact(exact_pat);
+    return reapply_mode_wrappers(std::move(result), mode_wrappers);
 }
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline) : mt(arg_mt), multiline(arg_multiline) {}
@@ -747,21 +787,22 @@ RE_Matcher::RE_Matcher(const char* pat) : orig_text(pat) {
     AddPat(pat);
 }
 
-RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat)
-    : RE_Matcher(exact_pat, anywhere_pat, nullptr) {}
+RE_Matcher* RE_Matcher::Reconstruct(const char* exact_pat, const char* rust_pat) {
+    if ( ! exact_pat )
+        return nullptr;
 
-RE_Matcher::RE_Matcher(const char* exact_pat, const char* anywhere_pat, const char* rust_pat) {
-    const auto derived_rust_pat =
-        (! rust_pat || ! rust_pat[0]) ? detail::derive_rust_pattern_text(exact_pat, anywhere_pat) : std::string{};
+    auto* re = new RE_Matcher();
+    const auto derived_anywhere_pat = detail::derive_anywhere_pattern_from_exact(exact_pat);
+    const auto derived_rust_pat = (! rust_pat || ! rust_pat[0]) ? detail::derive_rust_pattern_from_exact(exact_pat)
+                                                                 : std::string{};
     const char* effective_rust_pat = rust_pat && rust_pat[0] ? rust_pat :
                                      (derived_rust_pat.empty() ? nullptr : derived_rust_pat.c_str());
 
-    re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
-    re_anywhere->SetPat(anywhere_pat);
-    re_anywhere->SetRustPat(effective_rust_pat);
-    re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
-    re_exact->SetPat(exact_pat);
-    re_exact->SetRustPat(effective_rust_pat);
+    re->re_anywhere->SetPat(derived_anywhere_pat.empty() ? exact_pat : derived_anywhere_pat.c_str());
+    re->re_anywhere->SetRustPat(effective_rust_pat);
+    re->re_exact->SetPat(exact_pat);
+    re->re_exact->SetRustPat(effective_rust_pat);
+    return re;
 }
 
 RE_Matcher::~RE_Matcher() {
@@ -927,11 +968,14 @@ TEST_SUITE("re_matcher") {
         original.MakeCaseInsensitive();
         REQUIRE(original.Compile());
 
-        RE_Matcher reconstructed(original.PatternText(), original.AnywherePatternText());
-        REQUIRE(reconstructed.Compile());
+        auto* reconstructed = RE_Matcher::Reconstruct(original.PatternText());
+        REQUIRE(reconstructed != nullptr);
+        REQUIRE(reconstructed->Compile());
 
-        CHECK(std::string(reconstructed.RustPatternText()) == "(?i:(?:foo))");
-        CHECK(reconstructed.MatchExactly("FoO"));
+        CHECK(strcmp(reconstructed->AnywherePatternText(), original.AnywherePatternText()) == 0);
+        CHECK(std::string(reconstructed->RustPatternText()) == "(?i:(?:foo))");
+        CHECK(reconstructed->MatchExactly("FoO"));
+        delete reconstructed;
     }
 
     TEST_CASE("reconstructed merged matchers derive Rust pattern text from Zeek wrappers") {
@@ -943,13 +987,16 @@ TEST_SUITE("re_matcher") {
         REQUIRE(match2.Compile());
 
         auto merged = detail::RE_Matcher_disjunction(&match1, &match2);
-        RE_Matcher reconstructed(merged->PatternText(), merged->AnywherePatternText());
-        REQUIRE(reconstructed.Compile());
+        auto* reconstructed = RE_Matcher::Reconstruct(merged->PatternText());
+        REQUIRE(reconstructed != nullptr);
+        REQUIRE(reconstructed->Compile());
 
-        CHECK_FALSE(std::string(reconstructed.RustPatternText()).empty());
-        CHECK(reconstructed.MatchExactly("FoO"));
-        CHECK(reconstructed.MatchExactly("bar"));
+        CHECK(strcmp(reconstructed->AnywherePatternText(), merged->AnywherePatternText()) == 0);
+        CHECK_FALSE(std::string(reconstructed->RustPatternText()).empty());
+        CHECK(reconstructed->MatchExactly("FoO"));
+        CHECK(reconstructed->MatchExactly("bar"));
 
+        delete reconstructed;
         delete merged;
     }
 
@@ -970,12 +1017,14 @@ TEST_SUITE("re_matcher") {
         original.MakeCaseInsensitive();
         REQUIRE(original.Compile());
 
-        RE_Matcher reconstructed(original.PatternText(), original.AnywherePatternText());
-        REQUIRE(reconstructed.Compile());
+        auto* reconstructed = RE_Matcher::Reconstruct(original.PatternText());
+        REQUIRE(reconstructed != nullptr);
+        REQUIRE(reconstructed->Compile());
 
-        CHECK(std::string(reconstructed.RustPatternText()).find("(?-i:") != std::string::npos);
-        CHECK(reconstructed.MatchExactly("fOO"));
-        CHECK_FALSE(reconstructed.MatchExactly("FoO"));
+        CHECK(std::string(reconstructed->RustPatternText()).find("(?-i:") != std::string::npos);
+        CHECK(reconstructed->MatchExactly("fOO"));
+        CHECK_FALSE(reconstructed->MatchExactly("FoO"));
+        delete reconstructed;
     }
 
     TEST_CASE("literal bracket character classes normalize onto the Rust path") {

@@ -1405,8 +1405,11 @@ ValPtr PatternVal::DoClone(CloneState* state) {
     // We could likely treat this type as immutable and return a reference
     // instead of creating a new copy, but we first need to be careful and
     // audit whether anything internal actually does mutate it.
-    auto re = new RE_Matcher(re_val->PatternText(), re_val->AnywherePatternText(), re_val->RustPatternText());
-    re->Compile();
+    auto re = RE_Matcher::Reconstruct(re_val->PatternText(), re_val->RustPatternText());
+
+    if ( ! re || ! re->Compile() )
+        reporter->InternalError("failed cloning pattern: %s", re_val->PatternText());
+
     return state->NewClone(this, make_intrusive<PatternVal>(re));
 }
 

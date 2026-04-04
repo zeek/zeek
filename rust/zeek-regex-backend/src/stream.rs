@@ -324,6 +324,7 @@ pub(crate) fn create_stream_state(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn match_stream_state(
     matcher: &ZeekRustRegexStreamMatcher,
     state: &mut ZeekRustRegexStreamState,

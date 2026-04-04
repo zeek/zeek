@@ -19,31 +19,24 @@ namespace zeek {
 namespace detail {
 
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
-    : mt(arg_mt), multiline(arg_multiline) {}
+    : Specific_RE_Matcher(arg_mt, arg_multiline, std::make_shared<MatcherPatternState>()) {}
+
+Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline,
+                                         std::shared_ptr<MatcherPatternState> arg_pattern_state)
+    : mt(arg_mt),
+      multiline(arg_multiline),
+      pattern_state(arg_pattern_state ? std::move(arg_pattern_state) : std::make_shared<MatcherPatternState>()) {}
 
 Specific_RE_Matcher::~Specific_RE_Matcher() { ClearRustMatchers(); }
 
 void Specific_RE_Matcher::AddPat(const char* new_pat) {
     ClearRustMatchers();
-    AddRustPat(new_pat);
-    AddCompilePat(new_pat);
-
-    if ( mt == MATCH_EXACTLY )
-        AddExactPat(new_pat);
-    else
-        AddAnywherePat(new_pat);
-}
-
-void Specific_RE_Matcher::AddAnywherePat(const char* new_pat) {
-    AppendPat(&pattern_text, new_pat, "^?(.|\\n)*(%s)", "(%s)|(^?(.|\\n)*(%s))");
+    AddExactPat(new_pat);
+    ClearDerivedTextCaches();
 }
 
 void Specific_RE_Matcher::AddExactPat(const char* new_pat) {
-    AppendPat(&pattern_text, new_pat, "^?(%s)$?", "(%s)|(^?(%s)$?)");
-}
-
-void Specific_RE_Matcher::AddCompilePat(const char* new_pat) {
-    AppendPat(&compile_pattern_text, new_pat, "^?(%s)$?", "(%s)|(^?(%s)$?)");
+    AppendPat(&pattern_state->exact_pattern_text, new_pat, "^?(%s)$?", "(%s)|(^?(%s)$?)");
 }
 
 void Specific_RE_Matcher::AppendPat(std::string* target, const char* new_pat, const char* orig_fmt,
@@ -57,22 +50,11 @@ void Specific_RE_Matcher::AppendPat(std::string* target, const char* new_pat, co
         *target = util::fmt(orig_fmt, new_pat);
 }
 
-void Specific_RE_Matcher::AddRustPat(const char* new_pat) {
-    if ( ! rust_backend_compatible )
-        return;
-
-    std::string normalized_pat;
-
-    if ( ! NormalizeZeekPatternForRust(new_pat, &normalized_pat) ) {
-        rust_backend_compatible = false;
-        rust_pattern_text.clear();
-        return;
-    }
-
-    if ( ! rust_pattern_text.empty() )
-        rust_pattern_text = util::fmt("(?:%s)|(?:%s)", rust_pattern_text.c_str(), normalized_pat.c_str());
-    else
-        rust_pattern_text = util::fmt("(?:%s)", normalized_pat.c_str());
+void Specific_RE_Matcher::ClearDerivedTextCaches() {
+    pattern_state->anywhere_pattern_text.clear();
+    pattern_state->rust_pattern_text.clear();
+    pattern_state->anywhere_pattern_text_cached = false;
+    pattern_state->rust_pattern_text_cached = false;
 }
 
 void Specific_RE_Matcher::ClearRustMatchers() {
@@ -84,53 +66,73 @@ void Specific_RE_Matcher::ClearRustMatchers() {
     rust_stream_matcher = nullptr;
 }
 
+const char* Specific_RE_Matcher::PatternText() const {
+    if ( mt == MATCH_EXACTLY )
+        return pattern_state->exact_pattern_text.c_str();
+
+    if ( pattern_state->anywhere_pattern_text_cached )
+        return pattern_state->anywhere_pattern_text.c_str();
+
+    pattern_state->anywhere_pattern_text =
+        pattern_state->exact_pattern_text.empty() ?
+            "" :
+            DeriveAnywherePatternFromExact(pattern_state->exact_pattern_text.c_str());
+
+    if ( pattern_state->anywhere_pattern_text.empty() && ! pattern_state->exact_pattern_text.empty() )
+        pattern_state->anywhere_pattern_text = pattern_state->exact_pattern_text;
+
+    pattern_state->anywhere_pattern_text_cached = true;
+    return pattern_state->anywhere_pattern_text.c_str();
+}
+
+const char* Specific_RE_Matcher::RustPatternText() const {
+    if ( pattern_state->rust_pattern_text_cached )
+        return pattern_state->rust_pattern_text.c_str();
+
+    pattern_state->rust_pattern_text.clear();
+
+    if ( ! pattern_state->exact_pattern_text.empty() )
+        pattern_state->rust_pattern_text = DeriveRustPatternFromExact(pattern_state->exact_pattern_text.c_str());
+
+    if ( pattern_state->rust_pattern_text.empty() )
+        pattern_state->rust_pattern_text = pattern_state->rust_pattern_fallback_text;
+
+    pattern_state->rust_pattern_text_cached = true;
+    return pattern_state->rust_pattern_text.c_str();
+}
+
 void Specific_RE_Matcher::MakeCaseInsensitive() {
     const char fmt[] = "(?i:%s)";
-    pattern_text = util::fmt(fmt, pattern_text.c_str());
+    pattern_state->exact_pattern_text = util::fmt(fmt, pattern_state->exact_pattern_text.c_str());
 
-    if ( ! compile_pattern_text.empty() )
-        compile_pattern_text = util::fmt(fmt, compile_pattern_text.c_str());
-
-    if ( rust_backend_compatible && ! rust_pattern_text.empty() )
-        rust_pattern_text = util::fmt(fmt, rust_pattern_text.c_str());
-
+    ClearDerivedTextCaches();
     ClearRustMatchers();
 }
 
 void Specific_RE_Matcher::MakeSingleLine() {
     const char fmt[] = "(?s:%s)";
-    pattern_text = util::fmt(fmt, pattern_text.c_str());
+    pattern_state->exact_pattern_text = util::fmt(fmt, pattern_state->exact_pattern_text.c_str());
 
-    if ( ! compile_pattern_text.empty() )
-        compile_pattern_text = util::fmt(fmt, compile_pattern_text.c_str());
-
-    if ( rust_backend_compatible && ! rust_pattern_text.empty() )
-        rust_pattern_text = util::fmt(fmt, rust_pattern_text.c_str());
-
+    ClearDerivedTextCaches();
     ClearRustMatchers();
 }
 
 void Specific_RE_Matcher::SetPat(const char* pat) {
-    pattern_text = pat ? pat : "";
-    compile_pattern_text = (mt == MATCH_EXACTLY && pat) ? pat : "";
-    rust_pattern_text.clear();
-    rust_backend_compatible = false;
-    ClearRustMatchers();
-}
-
-void Specific_RE_Matcher::SetCompilePat(const char* pat) {
-    compile_pattern_text = pat ? pat : "";
+    pattern_state->exact_pattern_text = pat ? pat : "";
+    pattern_state->rust_pattern_fallback_text.clear();
+    ClearDerivedTextCaches();
     ClearRustMatchers();
 }
 
 void Specific_RE_Matcher::SetRustPat(const char* pat) {
-    rust_backend_compatible = pat != nullptr;
-    rust_pattern_text = pat ? pat : "";
+    pattern_state->rust_pattern_fallback_text = pat ? pat : "";
+    pattern_state->rust_pattern_text.clear();
+    pattern_state->rust_pattern_text_cached = false;
     ClearRustMatchers();
 }
 
 bool Specific_RE_Matcher::Compile(bool lazy) {
-    if ( pattern_text.empty() )
+    if ( pattern_state->exact_pattern_text.empty() )
         return false;
 
     ClearRustMatchers();
@@ -140,14 +142,13 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
         return false;
     }
 
-    if ( ! compile_pattern_text.empty() )
-        rust_matcher = CompileRustRegexMatcherFromExact(compile_pattern_text);
+    rust_matcher = CompileRustRegexMatcherFromExact(pattern_state->exact_pattern_text);
 
-    if ( ! rust_matcher && ! rust_pattern_text.empty() )
-        rust_matcher = CompileRustRegexMatcher(rust_pattern_text);
+    if ( ! rust_matcher && ! pattern_state->rust_pattern_fallback_text.empty() )
+        rust_matcher = CompileRustRegexMatcher(pattern_state->rust_pattern_fallback_text);
 
     if ( ! rust_matcher ) {
-        reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
+        reporter->Error("error compiling pattern /%s/", PatternText());
         return false;
     }
 
@@ -161,7 +162,7 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     if ( rust_set && (size_t)rust_set->length() != idx.size() )
         reporter->InternalError("compileset: lengths of Rust sets differ");
 
-    rust_pattern_text.clear();
+    ClearDerivedTextCaches();
     ClearRustMatchers();
 
     if ( ! RustRegexBackendAvailable() ) {
@@ -393,13 +394,15 @@ RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2)
 } // namespace detail
 
 RE_Matcher::RE_Matcher() {
-    re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
-    re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
+    auto shared_pattern_state = std::make_shared<detail::MatcherPatternState>();
+    re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE, false, shared_pattern_state);
+    re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY, false, std::move(shared_pattern_state));
 }
 
 RE_Matcher::RE_Matcher(const char* pat) : orig_text(pat) {
-    re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE);
-    re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY);
+    auto shared_pattern_state = std::make_shared<detail::MatcherPatternState>();
+    re_anywhere = new detail::Specific_RE_Matcher(detail::MATCH_ANYWHERE, false, shared_pattern_state);
+    re_exact = new detail::Specific_RE_Matcher(detail::MATCH_EXACTLY, false, std::move(shared_pattern_state));
 
     AddPat(pat);
 }
@@ -409,17 +412,11 @@ RE_Matcher* RE_Matcher::Reconstruct(const char* exact_pat, const char* rust_pat)
         return nullptr;
 
     auto* re = new RE_Matcher();
-    const auto derived_anywhere_pat = detail::DeriveAnywherePatternFromExact(exact_pat);
-    const auto derived_rust_pat =
-        (! rust_pat || ! rust_pat[0]) ? detail::DeriveRustPatternFromExact(exact_pat) : std::string{};
-    const char* effective_rust_pat =
-        rust_pat && rust_pat[0] ? rust_pat : (derived_rust_pat.empty() ? nullptr : derived_rust_pat.c_str());
-
-    re->re_anywhere->SetPat(derived_anywhere_pat.empty() ? exact_pat : derived_anywhere_pat.c_str());
-    re->re_anywhere->SetCompilePat(exact_pat);
-    re->re_anywhere->SetRustPat(effective_rust_pat);
     re->re_exact->SetPat(exact_pat);
-    re->re_exact->SetRustPat(effective_rust_pat);
+
+    if ( rust_pat && rust_pat[0] )
+        re->re_exact->SetRustPat(rust_pat);
+
     return re;
 }
 
@@ -429,25 +426,25 @@ RE_Matcher::~RE_Matcher() {
 }
 
 void RE_Matcher::AddPat(const char* new_pat) {
-    re_anywhere->AddPat(new_pat);
     re_exact->AddPat(new_pat);
+    re_anywhere->ClearRustMatchers();
 }
 
 void RE_Matcher::SetRustPat(const char* pat) {
-    re_anywhere->SetRustPat(pat);
     re_exact->SetRustPat(pat);
+    re_anywhere->ClearRustMatchers();
 }
 
 void RE_Matcher::MakeCaseInsensitive() {
-    re_anywhere->MakeCaseInsensitive();
     re_exact->MakeCaseInsensitive();
+    re_anywhere->ClearRustMatchers();
 
     is_case_insensitive = true;
 }
 
 void RE_Matcher::MakeSingleLine() {
-    re_anywhere->MakeSingleLine();
     re_exact->MakeSingleLine();
+    re_anywhere->ClearRustMatchers();
 
     is_single_line = true;
 }

@@ -5,6 +5,7 @@
 #include <sys/types.h> // for u_char
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -19,6 +20,15 @@ class RE_Matcher;
 namespace detail {
 
 class Specific_RE_Matcher;
+
+struct MatcherPatternState {
+    std::string exact_pattern_text;
+    std::string rust_pattern_fallback_text;
+    mutable std::string anywhere_pattern_text;
+    mutable std::string rust_pattern_text;
+    mutable bool anywhere_pattern_text_cached = false;
+    mutable bool rust_pattern_text_cached = false;
+};
 
 using AcceptIdx = int;
 using int_list = std::vector<std::intptr_t>;
@@ -43,6 +53,7 @@ enum match_type : uint8_t { MATCH_ANYWHERE, MATCH_EXACTLY };
 class Specific_RE_Matcher {
 public:
     explicit Specific_RE_Matcher(match_type mt, bool multiline = false);
+    Specific_RE_Matcher(match_type mt, bool multiline, std::shared_ptr<MatcherPatternState> pattern_state);
     ~Specific_RE_Matcher();
 
     void AddPat(const char* pat);
@@ -51,7 +62,6 @@ public:
     void MakeSingleLine();
 
     void SetPat(const char* pat);
-    void SetCompilePat(const char* pat);
     void SetRustPat(const char* pat);
 
     bool Compile(bool lazy = false);
@@ -91,8 +101,8 @@ public:
     int LongestMatch(std::string_view sv);
     int LongestMatch(const u_char* bv, int n, bool bol = true, bool eol = true);
 
-    const char* PatternText() const { return pattern_text.c_str(); }
-    const char* RustPatternText() const { return rust_pattern_text.c_str(); }
+    const char* PatternText() const;
+    const char* RustPatternText() const;
     void* RustStreamMatcher() const { return rust_stream_matcher; }
 
     unsigned int NumStates() const;
@@ -101,11 +111,9 @@ public:
     void Dump(FILE* f);
 
 protected:
-    void AddAnywherePat(const char* pat);
     void AddExactPat(const char* pat);
-    void AddCompilePat(const char* pat);
-    void AddRustPat(const char* pat);
     void ClearRustMatchers();
+    void ClearDerivedTextCaches();
 
     // Used by the above.  orig_fmt is the format to use when building
     // up a new target string from the given pattern; app_fmt is for when
@@ -117,14 +125,13 @@ protected:
     match_type mt;
     bool multiline;
 
-    std::string pattern_text;
-    std::string compile_pattern_text;
-    std::string rust_pattern_text;
-    bool rust_backend_compatible = true;
+    std::shared_ptr<MatcherPatternState> pattern_state;
 
     void* rust_matcher = nullptr;
     void* rust_set_matcher = nullptr;
     void* rust_stream_matcher = nullptr;
+
+    friend class ::zeek::RE_Matcher;
 };
 
 class RE_Match_State {

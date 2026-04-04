@@ -5879,13 +5879,12 @@ function have_spicy_analyzers%(%) : bool
 
 ## Return MatcherStats for a table[pattern] or set[pattern] value.
 ##
-## This returns a MatcherStats objects that can be used for introspection
-## of the DFA used for such a table. Statistics reset whenever elements are
-## added or removed to the table as these operations result in the underlying
-## DFA being rebuilt.
+## This returns backend-neutral matcher statistics for the compiled matcher
+## used by such a table. Some backends may expose only a subset of these
+## counters, in which case the remaining fields stay at zero.
 ##
-## This function iterates over all states of the DFA. Calling it at a high
-## frequency is likely detrimental to performance.
+## Statistics reset whenever elements are added or removed to the table as
+## these operations rebuild the underlying matcher.
 ##
 ## tbl: The table to get stats for.
 ##

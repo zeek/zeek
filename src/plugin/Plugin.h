@@ -328,7 +328,7 @@ public:
      */
     explicit HookArgument(std::pair<bool, Val*> fresult) {
         type = FUNC_RESULT;
-        func_result = fresult;
+        func_result = std::move(fresult);
     }
 
     /**

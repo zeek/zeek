@@ -4228,7 +4228,7 @@ TEST_CASE("assignment") {
     element1 = element2;
     CHECK(v1->RefCnt() == 1); // element1 released reference to v1.
     CHECK(v2->RefCnt() == 3); // v2, element1 and element2 hold references
-    element2 = element1;
+    element2 = element1;      // NOLINT(performance-use-std-move)
     CHECK(v1->RefCnt() == 1); // Nothing should've changed - they were the same.
     CHECK(v2->RefCnt() == 3);
 }
@@ -4255,10 +4255,12 @@ TEST_CASE("copy constructor") {
     zeek::ZValElement element2 = element1;
     CHECK(v->RefCnt() == 3); // v, element1, element2
     zeek::ZValElement element3 = element2;
+    // NOLINTBEGIN(performance-use-std-move)
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
-    element2 = element3;     // squelch clang-tidy
+    element2 = element3;
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
-    element1 = element3;     // squelch clang-tidy
+    element1 = element3;
+    // NOLINTEND(performance-use-std-move)
 }
 
 TEST_SUITE_END();

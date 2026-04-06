@@ -1,6 +1,9 @@
 # TODO(bbannier): We usually vendor CMake dependencies.
 include(FetchContent)
 
+# `FetchContent_MakeAvailable` requires internet access which might be disabled. Explicitly allow it.
+set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
+
 FetchContent_Declare(
     Corrosion
     GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git

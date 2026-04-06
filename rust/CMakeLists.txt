@@ -9,3 +9,5 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Corrosion)
 
 corrosion_import_crate(MANIFEST_PATH zeek-regex-backend/Cargo.toml)
+
+corrosion_experimental_cbindgen(TARGET zeek_regex_backend HEADER_NAME zeek_regex_backend.h)

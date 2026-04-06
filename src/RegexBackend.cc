@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "rust/corrosion_generated/cbindgen/zeek_regex_backend/include/zeek_regex_backend.h"
+
 namespace zeek::detail {
 
 static std::string take_rust_regex_string(char* text) {

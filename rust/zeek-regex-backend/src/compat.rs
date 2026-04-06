@@ -2,12 +2,8 @@ fn is_octal_digit(byte: u8) -> bool {
     (b'0'..=b'7').contains(&byte)
 }
 
-fn parse_hex_digit(byte: u8) -> u8 {
-    match byte {
-        b'0'..=b'9' => byte - b'0',
-        b'a'..=b'f' => 10 + byte - b'a',
-        _ => 10 + byte - b'A',
-    }
+fn parse_hex_digit(byte: u8) -> Option<u8> {
+    char::from(byte).to_digit(16)?.try_into().ok()
 }
 
 fn append_hex_escaped_byte(normalized: &mut Vec<u8>, byte: u8) {
@@ -34,7 +30,7 @@ fn consume_zeek_escape(pattern: &[u8], pos: &mut usize) -> Option<u8> {
             return None;
         }
 
-        let byte = (parse_hex_digit(pattern[*pos + 2]) << 4) | parse_hex_digit(pattern[*pos + 3]);
+        let byte = (parse_hex_digit(pattern[*pos + 2])? << 4) | parse_hex_digit(pattern[*pos + 3])?;
         *pos += 4;
         return Some(byte);
     }
@@ -348,7 +344,18 @@ pub(crate) fn derive_pattern(mut pat: &[u8], normalize_inner: bool) -> Option<Ve
 
 #[cfg(test)]
 mod tests {
+    use crate::compat::parse_hex_digit;
+
     use super::{derive_pattern, normalize_zeek_pattern_for_rust};
+
+    #[test]
+    fn hexdigit_parse() {
+        assert_eq!(parse_hex_digit(b'0'), Some(0));
+        assert_eq!(parse_hex_digit(b'1'), Some(1));
+        assert_eq!(parse_hex_digit(b'a'), Some(10));
+        assert_eq!(parse_hex_digit(b'A'), Some(10));
+        assert_eq!(parse_hex_digit(b' '), None);
+    }
 
     #[test]
     fn normalize_preserves_quoted_case_sensitive_literals() {

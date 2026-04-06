@@ -53,18 +53,6 @@ pub(crate) unsafe fn mut_slice_arg<'a, T>(ptr: *mut T, len: usize) -> Option<&'a
     Some(unsafe { slice::from_raw_parts_mut(ptr, len) })
 }
 
-pub(crate) unsafe fn handle_ref<'a, T>(ptr: *const T) -> Option<&'a T> {
-    // SAFETY: The caller guarantees that `ptr`, if non-null, points to a valid
-    // instance for the duration of the returned borrow.
-    unsafe { ptr.as_ref() }
-}
-
-pub(crate) unsafe fn handle_mut<'a, T>(ptr: *mut T) -> Option<&'a mut T> {
-    // SAFETY: The caller guarantees that `ptr`, if non-null, points to a valid
-    // uniquely borrowed instance for the duration of the returned borrow.
-    unsafe { ptr.as_mut() }
-}
-
 pub(crate) unsafe fn free_boxed<T>(ptr: *mut T) {
     if ptr.is_null() {
         return;

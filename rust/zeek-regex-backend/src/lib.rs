@@ -68,14 +68,10 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_free(matcher: *mut ZeekRustRege
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_matcher_match_all(
-    matcher: *const ZeekRustRegexMatcher,
+    matcher: &ZeekRustRegexMatcher,
     data: *const u8,
     len: usize,
 ) -> i32 {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
@@ -181,28 +177,20 @@ pub unsafe extern "C" fn zeek_rust_regex_set_matcher_free(matcher: *mut ZeekRust
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_set_matcher_pattern_len(
-    matcher: *const ZeekRustRegexSetMatcher,
+pub extern "C" fn zeek_rust_regex_set_matcher_pattern_len(
+    matcher: &ZeekRustRegexSetMatcher,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     matcher::set_matcher_pattern_len(matcher)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_set_matcher_matches(
-    matcher: *const ZeekRustRegexSetMatcher,
+    matcher: &ZeekRustRegexSetMatcher,
     data: *const u8,
     len: usize,
     out_ids: *mut isize,
     out_capacity: usize,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
@@ -265,46 +253,30 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_free(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_pattern_len(
-    matcher: *const ZeekRustRegexStreamMatcher,
+pub extern "C" fn zeek_rust_regex_stream_matcher_pattern_len(
+    matcher: &ZeekRustRegexStreamMatcher,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     stream::stream_matcher_pattern_len(matcher)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_cache_bytes(
-    matcher: *const ZeekRustRegexStreamMatcher,
+pub extern "C" fn zeek_rust_regex_stream_matcher_cache_bytes(
+    matcher: &ZeekRustRegexStreamMatcher,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     stream::stream_matcher_cache_bytes(matcher)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_stream_matcher_cache_clears(
-    matcher: *const ZeekRustRegexStreamMatcher,
+pub extern "C" fn zeek_rust_regex_stream_matcher_cache_clears(
+    matcher: &ZeekRustRegexStreamMatcher,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     stream::stream_matcher_cache_clears(matcher)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_stream_state_create(
-    matcher: *const ZeekRustRegexStreamMatcher,
+pub extern "C" fn zeek_rust_regex_stream_state_create(
+    matcher: &ZeekRustRegexStreamMatcher,
 ) -> *mut ZeekRustRegexStreamState {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return null_mut();
-    };
-
     Box::into_raw(Box::new(stream::create_stream_state(matcher)))
 }
 
@@ -315,8 +287,8 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_free(state: *mut ZeekRustR
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
-    matcher: *const ZeekRustRegexStreamMatcher,
-    state: *mut ZeekRustRegexStreamState,
+    matcher: &ZeekRustRegexStreamMatcher,
+    state: &mut ZeekRustRegexStreamState,
     data: *const u8,
     len: usize,
     bol: i32,
@@ -326,12 +298,6 @@ pub unsafe extern "C" fn zeek_rust_regex_stream_state_match(
     out_positions: *mut u64,
     out_capacity: usize,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-    let Some(state) = (unsafe { ffi::handle_mut(state) }) else {
-        return 0;
-    };
     let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
@@ -406,14 +372,11 @@ mod tests {
     fn matcher_compiles_from_zeek_exact_wrapper() {
         let matcher = compile_matcher_from_zeek_exact("(?i:^?(foo)$?)");
         assert!(!matcher.is_null());
+        let matcher = unsafe { Box::from_raw(matcher) };
         assert_eq!(
-            unsafe { zeek_rust_regex_matcher_match_all(matcher, b"FoO".as_ptr(), 3) },
+            unsafe { zeek_rust_regex_matcher_match_all(&matcher, b"FoO".as_ptr(), 3,) },
             1
         );
-
-        unsafe {
-            zeek_rust_regex_matcher_free(matcher);
-        }
     }
 
     #[test]

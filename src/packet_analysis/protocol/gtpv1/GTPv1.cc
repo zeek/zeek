@@ -38,7 +38,7 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         cm_it->second->set_raw_packet(packet);
         cm_it->second->NewData(packet->is_orig, data, data + len);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()), packet->session);
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()), packet->session);
         return false;
     }
 

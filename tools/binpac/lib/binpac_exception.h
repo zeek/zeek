@@ -9,7 +9,7 @@
 
 namespace binpac {
 
-class Exception {
+class Exception : public std::exception {
 public:
     Exception(const char* m = nullptr) : msg_("binpac exception: ") {
         if ( m )
@@ -18,8 +18,15 @@ public:
     }
 
     void append(std::string_view m) { msg_ += m; }
-    std::string msg() const { return msg_; }
-    const char* c_msg() const { return msg_.c_str(); }
+    [[deprecated("Remove in v9.1. Use Exception::what().")]]
+    std::string msg() const {
+        return msg_;
+    }
+    [[deprecated("Remove in v9.1. Use Exception::what().")]]
+    const char* c_msg() const {
+        return msg_.c_str();
+    }
+    const char* what() const noexcept override { return msg_.c_str(); }
 
 protected:
     std::string msg_;

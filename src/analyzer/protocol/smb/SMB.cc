@@ -67,7 +67,7 @@ void SMB_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         if ( ++chunks == 3 )
             AnalyzerConfirmation();
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
         NeedResync();
     }
 }

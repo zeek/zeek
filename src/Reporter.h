@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdarg>
+#include <exception>
 #include <list>
 #include <map>
 #include <string>
@@ -47,7 +48,7 @@ class File;
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
 
-class ReporterException {
+class ReporterException : public std::exception {
 protected:
     friend class Reporter;
     ReporterException() = default;

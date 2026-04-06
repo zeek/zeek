@@ -3,16 +3,21 @@
 #ifndef pac_exception_h
 #define pac_exception_h
 
+#include <exception>
 #include <string>
 using namespace std;
 
 #include "pac_common.h"
 
-class Exception {
+class Exception : public std::exception {
 public:
     Exception(const Object* o, const string& msg = "");
 
-    const char* msg() const { return msg_.c_str(); }
+    [[deprecated("Remove in v9.1. Use what().")]]
+    const char* msg() const {
+        return msg_.c_str();
+    }
+    const char* what() const noexcept override { return msg_.c_str(); }
     void append(const string& s) { msg_ += s; }
 
 private:

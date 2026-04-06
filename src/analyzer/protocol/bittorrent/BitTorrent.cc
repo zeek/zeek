@@ -42,12 +42,12 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig) 
         interp->NewData(orig, data, data + len);
     } catch ( binpac::Exception const& e ) {
         const char except[] = "binpac exception: invalid handshake";
-        if ( ! strncmp(e.c_msg(), except, strlen(except)) )
+        if ( ! strncmp(e.what(), except, strlen(except)) )
             // Does not look like bittorrent - silently
             // drop the connection.
             Parent()->RemoveChildAnalyzer(this);
         else {
-            DeliverWeird(util::fmt("Stopping BitTorrent analysis: protocol violation (%s)", e.c_msg()), orig);
+            DeliverWeird(util::fmt("Stopping BitTorrent analysis: protocol violation (%s)", e.what()), orig);
             this_stop = true;
             if ( stop_orig && stop_resp )
                 AnalyzerViolation("BitTorrent: content gap and/or protocol violation");

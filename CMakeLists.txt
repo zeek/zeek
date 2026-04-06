@@ -862,56 +862,6 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-set(ZEEK_RUST_MIN 1.74.0)
-
-if (CARGO_EXECUTABLE)
-    if (NOT EXISTS "${CARGO_EXECUTABLE}")
-        message(FATAL_ERROR "Configured cargo executable does not exist: ${CARGO_EXECUTABLE}")
-    endif ()
-else ()
-    find_program(CARGO_EXECUTABLE cargo)
-    if (NOT CARGO_EXECUTABLE)
-        message(FATAL_ERROR "Could not find required dependency: cargo")
-    endif ()
-endif ()
-message(STATUS "Found cargo: ${CARGO_EXECUTABLE}")
-
-if (RUSTC_EXECUTABLE)
-    if (NOT EXISTS "${RUSTC_EXECUTABLE}")
-        message(FATAL_ERROR "Configured rustc executable does not exist: ${RUSTC_EXECUTABLE}")
-    endif ()
-else ()
-    find_program(RUSTC_EXECUTABLE rustc)
-    if (NOT RUSTC_EXECUTABLE)
-        message(FATAL_ERROR "Could not find required dependency: rustc")
-    endif ()
-endif ()
-
-execute_process(
-    COMMAND ${RUSTC_EXECUTABLE} --version
-    OUTPUT_VARIABLE ZEEK_RUSTC_VERSION_OUTPUT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE ZEEK_RUSTC_VERSION_STATUS)
-
-if (NOT ZEEK_RUSTC_VERSION_STATUS EQUAL 0)
-    message(FATAL_ERROR "Could not determine rustc version using ${RUSTC_EXECUTABLE}")
-endif ()
-
-string(REGEX MATCH "rustc ([0-9]+\\.[0-9]+\\.[0-9]+)" _zeek_rustc_version_match
-             "${ZEEK_RUSTC_VERSION_OUTPUT}")
-
-if (NOT CMAKE_MATCH_1)
-    message(FATAL_ERROR "Could not parse rustc version from: ${ZEEK_RUSTC_VERSION_OUTPUT}")
-endif ()
-
-set(ZEEK_RUSTC_VERSION "${CMAKE_MATCH_1}")
-
-if (ZEEK_RUSTC_VERSION VERSION_LESS ZEEK_RUST_MIN)
-    message(FATAL_ERROR "Rust ${ZEEK_RUST_MIN} or newer is required (found ${ZEEK_RUSTC_VERSION})")
-endif ()
-
-message(STATUS "Found rustc: ${RUSTC_EXECUTABLE} (${ZEEK_RUSTC_VERSION})")
-
 set(ZEEK_PYTHON_MIN 3.9.0)
 set(Python_FIND_UNVERSIONED_NAMES FIRST)
 find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
@@ -1230,56 +1180,8 @@ set(zeekdeps
     ${JEMALLOC_LIBRARIES}
     ${OPTLIBS})
 
-set(ZEEK_RUST_WORKSPACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rust)
-set(ZEEK_RUST_TARGET_DIR ${CMAKE_BINARY_DIR}/rust-target)
-set(ZEEK_RUST_REGEX_CRATE_DIR ${ZEEK_RUST_WORKSPACE_DIR}/zeek-regex-backend)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(_zeek_rust_cargo_profile_dir debug)
-    set(_zeek_rust_cargo_profile_arg "")
-else ()
-    set(_zeek_rust_cargo_profile_dir release)
-    set(_zeek_rust_cargo_profile_arg --release)
-endif ()
-
-if (WIN32)
-    set(_zeek_rust_regex_lib_name zeek_regex_backend.lib)
-else ()
-    set(_zeek_rust_regex_lib_name libzeek_regex_backend.a)
-endif ()
-
-set(ZEEK_RUST_REGEX_LIB_PATH
-    ${ZEEK_RUST_TARGET_DIR}/${_zeek_rust_cargo_profile_dir}/${_zeek_rust_regex_lib_name})
-
-file(
-    GLOB_RECURSE
-    ZEEK_RUST_REGEX_INPUTS
-    CONFIGURE_DEPENDS
-    ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.toml
-    ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.lock
-    ${ZEEK_RUST_REGEX_CRATE_DIR}/Cargo.toml
-    ${ZEEK_RUST_REGEX_CRATE_DIR}/src/*.rs)
-
-add_custom_command(
-    OUTPUT ${ZEEK_RUST_REGEX_LIB_PATH}
-    COMMAND
-        ${CARGO_EXECUTABLE} build --locked --manifest-path ${ZEEK_RUST_WORKSPACE_DIR}/Cargo.toml
-        --package zeek-regex-backend --target-dir ${ZEEK_RUST_TARGET_DIR}
-        ${_zeek_rust_cargo_profile_arg}
-    WORKING_DIRECTORY ${ZEEK_RUST_WORKSPACE_DIR}
-    DEPENDS ${ZEEK_RUST_REGEX_INPUTS}
-    COMMENT "Building Rust regex backend with Cargo"
-    VERBATIM USES_TERMINAL)
-
-add_custom_target(zeek_rust_regex_backend_build DEPENDS ${ZEEK_RUST_REGEX_LIB_PATH})
-
-add_library(zeek_rust_regex_backend STATIC IMPORTED GLOBAL)
-set_target_properties(zeek_rust_regex_backend PROPERTIES IMPORTED_LOCATION
-                                                         ${ZEEK_RUST_REGEX_LIB_PATH})
-add_dependencies(zeek_rust_regex_backend zeek_rust_regex_backend_build)
-
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${ZEEK_RUST_TARGET_DIR})
-list(APPEND zeekdeps zeek_rust_regex_backend)
+add_subdirectory(rust)
+list(APPEND zeekdeps zeek_regex_backend)
 
 # ##############################################################################
 # System Introspection

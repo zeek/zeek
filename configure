@@ -416,10 +416,6 @@ while [ $# -ne 0 ]; do
         --with-python-lib=*)
             append_cache_entry PYTHON_LIBRARY PATH $optarg
             ;;
-        --with-rustc=*)
-            RUSTC_EXECUTABLE=$optarg
-            append_cache_entry RUSTC_EXECUTABLE PATH $optarg
-            ;;
         --with-spicy=*)
             append_cache_entry SPICY_ROOT_DIR PATH $optarg
             ;;

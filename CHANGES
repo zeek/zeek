@@ -1,3 +1,7 @@
+8.2.0-dev.437 | 2026-04-06 20:02:09 +0000
+
+  * Fix a few std::move instances reported by clang-tidy-22 (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.435 | 2026-04-02 18:34:27 +0000
 
   * Fix size used to calloc() prefix in patricia.c (Tim Wojtulewicz, Corelight)

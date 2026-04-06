@@ -299,70 +299,34 @@ fn reapply_mode_wrappers(mut pattern: Vec<u8>, mode_wrappers: &[u8]) -> Vec<u8> 
     pattern
 }
 
-pub(crate) fn derive_rust_pattern_from_exact(exact: &[u8]) -> Option<Vec<u8>> {
-    let mut exact = exact;
-    let mode_wrappers = strip_mode_wrappers(&mut exact);
-    let mut result = if let Some(exact_inner) = strip_wrapper(exact, b"^?(", b")$?") {
-        let normalized = normalize_zeek_pattern_for_rust(exact_inner)?;
-        let mut result = Vec::with_capacity(normalized.len() + 4);
-        result.extend_from_slice(b"(?:");
-        result.extend_from_slice(&normalized);
-        result.push(b')');
-        result
-    } else {
-        let (parts, op) = split_top_level_wrapped_operands(exact)?;
-
-        if parts.len() == 1 && op == 0 {
-            derive_rust_pattern_from_exact(parts[0])?
+pub(crate) fn derive_pattern(mut pat: &[u8], normalize_inner: bool) -> Option<Vec<u8>> {
+    let mode_wrappers = strip_mode_wrappers(&mut pat);
+    let mut result = if let Some(exact_inner) = strip_wrapper(pat, b"^?(", b")$?") {
+        if normalize_inner {
+            let normalized = normalize_zeek_pattern_for_rust(exact_inner)?;
+            let mut result = Vec::with_capacity(normalized.len() + 4);
+            result.extend_from_slice(b"(?:");
+            result.extend_from_slice(&normalized);
+            result.push(b')');
+            result
         } else {
-            let mut result = Vec::new();
-
-            for recovered in parts
-                .iter()
-                .map(|part| derive_rust_pattern_from_exact(part))
-                .collect::<Option<Vec<_>>>()?
-            {
-                if !result.is_empty() && op == b'|' {
-                    result.push(b'|');
-                }
-
-                result.push(b'(');
-                result.extend_from_slice(&recovered);
-                result.push(b')');
-            }
-
+            let mut result = Vec::with_capacity(exact_inner.len() + 10);
+            result.extend_from_slice(b"^?(.|\\n)*(");
+            result.extend_from_slice(exact_inner);
+            result.push(b')');
             result
         }
-    };
-
-    if result.is_empty() {
-        return None;
-    }
-
-    result = reapply_mode_wrappers(result, &mode_wrappers);
-    Some(result)
-}
-
-pub(crate) fn derive_anywhere_pattern_from_exact(exact: &[u8]) -> Option<Vec<u8>> {
-    let mut exact = exact;
-    let mode_wrappers = strip_mode_wrappers(&mut exact);
-    let mut result = if let Some(exact_inner) = strip_wrapper(exact, b"^?(", b")$?") {
-        let mut result = Vec::with_capacity(exact_inner.len() + 10);
-        result.extend_from_slice(b"^?(.|\\n)*(");
-        result.extend_from_slice(exact_inner);
-        result.push(b')');
-        result
     } else {
-        let (parts, op) = split_top_level_wrapped_operands(exact)?;
+        let (parts, op) = split_top_level_wrapped_operands(pat)?;
 
         if parts.len() == 1 && op == 0 {
-            derive_anywhere_pattern_from_exact(parts[0])?
+            derive_pattern(parts[0], normalize_inner)?
         } else {
             let mut result = Vec::new();
 
             for recovered in parts
                 .iter()
-                .map(|part| derive_anywhere_pattern_from_exact(part))
+                .map(|part| derive_pattern(part, true))
                 .collect::<Option<Vec<_>>>()?
             {
                 if !result.is_empty() && op == b'|' {
@@ -388,10 +352,7 @@ pub(crate) fn derive_anywhere_pattern_from_exact(exact: &[u8]) -> Option<Vec<u8>
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        derive_anywhere_pattern_from_exact, derive_rust_pattern_from_exact,
-        normalize_zeek_pattern_for_rust,
-    };
+    use super::{derive_pattern, normalize_zeek_pattern_for_rust};
 
     #[test]
     fn normalize_preserves_quoted_case_sensitive_literals() {
@@ -407,20 +368,19 @@ mod tests {
 
     #[test]
     fn derive_rust_pattern_from_exact_rebuilds_mode_wrapped_exact_patterns() {
-        let derived = derive_rust_pattern_from_exact(br"(?i:^?(foo)$?)").expect("derived");
+        let derived = derive_pattern(br"(?i:^?(foo)$?)", true).expect("derived");
         assert_eq!(derived, br"(?i:(?:foo))");
     }
 
     #[test]
     fn derive_rust_pattern_from_exact_rebuilds_wrapped_disjunctions() {
-        let derived =
-            derive_rust_pattern_from_exact(br"((?i:^?(foo)$?))|(^?(bar)$?)").expect("derived");
+        let derived = derive_pattern(br"((?i:^?(foo)$?))|(^?(bar)$?)", true).expect("derived");
         assert_eq!(derived, br"((?i:(?:foo)))|((?:bar))");
     }
 
     #[test]
     fn derive_anywhere_pattern_from_exact_rebuilds_wrapped_exact_patterns() {
-        let derived = derive_anywhere_pattern_from_exact(br"(?s:^?(foo)$?)").expect("derived");
+        let derived = derive_pattern(br"(?s:^?(foo)$?)", false).expect("derived");
         assert_eq!(derived, br"(?s:^?(.|\n)*(foo))");
     }
 }

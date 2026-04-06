@@ -19,7 +19,7 @@ pub unsafe extern "C" fn zeek_rust_regex_compat_derive_rust_pattern_from_exact(
         return null_mut();
     };
 
-    compat::derive_rust_pattern_from_exact(exact).map_or(null_mut(), ffi::into_c_string_ptr)
+    compat::derive_pattern(exact, true).map_or(null_mut(), ffi::into_c_string_ptr)
 }
 
 #[no_mangle]
@@ -30,7 +30,7 @@ pub unsafe extern "C" fn zeek_rust_regex_compat_derive_anywhere_pattern_from_exa
         return null_mut();
     };
 
-    compat::derive_anywhere_pattern_from_exact(exact).map_or(null_mut(), ffi::into_c_string_ptr)
+    compat::derive_pattern(exact, false).map_or(null_mut(), ffi::into_c_string_ptr)
 }
 
 #[no_mangle]

@@ -73,7 +73,7 @@ pub(crate) fn compile_matcher(pattern: &str) -> Option<ZeekRustRegexMatcher> {
 }
 
 pub(crate) fn compile_matcher_from_zeek_exact(exact: &[u8]) -> Option<ZeekRustRegexMatcher> {
-    let pattern = bytes_to_pattern(compat::derive_rust_pattern_from_exact(exact)?)?;
+    let pattern = bytes_to_pattern(compat::derive_pattern(exact, true)?)?;
     compile_matcher(&pattern)
 }
 
@@ -171,7 +171,7 @@ pub(crate) fn compile_set_matcher_from_zeek_exact(
 
     let patterns = exact_patterns
         .iter()
-        .map(|pattern| compat::derive_rust_pattern_from_exact(pattern).and_then(bytes_to_pattern))
+        .map(|pattern| compat::derive_pattern(pattern, true).and_then(bytes_to_pattern))
         .collect::<Option<Vec<_>>>()?;
     let pattern_refs = patterns.iter().map(String::as_str).collect::<Vec<_>>();
     compile_set_matcher(&pattern_refs, ids)

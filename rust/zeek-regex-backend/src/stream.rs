@@ -11,8 +11,6 @@ use regex_automata::{
 
 use crate::{compat, ffi::lock_or_recover};
 
-const UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY: usize = usize::MAX / 2;
-
 pub struct ZeekRustRegexStreamMatcher {
     pub(crate) dfas: Vec<hybrid_dfa::DFA>,
     pub(crate) caches: Vec<Mutex<hybrid_dfa::Cache>>,
@@ -228,6 +226,8 @@ pub(crate) fn compile_stream_matcher(
     dot_matches_new_line: bool,
     cache_capacity: usize,
 ) -> Option<ZeekRustRegexStreamMatcher> {
+    const UNBOUNDED_STREAM_SHARED_CACHE_CAPACITY: usize = usize::MAX / 2;
+
     if patterns.is_empty() || patterns.len() != ids.len() {
         return None;
     }

@@ -8,20 +8,8 @@ mod stream;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 
-pub const ZEEK_RUST_REGEX_BACKEND_ABI_VERSION: u32 = 5;
-pub const ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN: u32 = 0x5A45_454B;
 pub use matcher::{ZeekRustRegexMatcher, ZeekRustRegexSetMatcher};
 pub use stream::{ZeekRustRegexStreamMatcher, ZeekRustRegexStreamState};
-
-#[no_mangle]
-pub extern "C" fn zeek_rust_regex_backend_abi_version() -> u32 {
-    ZEEK_RUST_REGEX_BACKEND_ABI_VERSION
-}
-
-#[no_mangle]
-pub extern "C" fn zeek_rust_regex_backend_smoke_test() -> u32 {
-    ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN
-}
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_compat_normalize_pattern(

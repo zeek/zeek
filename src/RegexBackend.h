@@ -39,9 +39,6 @@ using RustRegexSetMatcherHandle = std::unique_ptr<ZeekRustRegexSetMatcher, RustR
 using RustRegexStreamMatcherHandle = std::unique_ptr<ZeekRustRegexStreamMatcher, RustRegexStreamMatcherDeleter>;
 using RustRegexStreamStateHandle = std::unique_ptr<ZeekRustRegexStreamState, RustRegexStreamStateDeleter>;
 
-uint32_t RustRegexBackendAbiVersion();
-uint32_t RustRegexBackendSmokeTest();
-bool RustRegexBackendAvailable();
 bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized);
 std::string DeriveRustPatternFromExact(const char* exact);
 std::string DeriveAnywherePatternFromExact(const char* exact);

@@ -31,15 +31,6 @@ void RustRegexStreamStateDeleter::operator()(ZeekRustRegexStreamState* state) co
     zeek_rust_regex_stream_state_free(state);
 }
 
-uint32_t RustRegexBackendAbiVersion() { return zeek_rust_regex_backend_abi_version(); }
-
-uint32_t RustRegexBackendSmokeTest() { return zeek_rust_regex_backend_smoke_test(); }
-
-bool RustRegexBackendAvailable() {
-    return RustRegexBackendAbiVersion() == ZEEK_RUST_REGEX_BACKEND_ABI_VERSION &&
-           RustRegexBackendSmokeTest() == ZEEK_RUST_REGEX_BACKEND_SMOKE_TEST_TOKEN;
-}
-
 bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized) {
     if ( ! pattern || ! normalized )
         return false;

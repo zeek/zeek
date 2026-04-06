@@ -134,11 +134,6 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
 
     ClearRustMatchers();
 
-    if ( ! RustRegexBackendAvailable() ) {
-        reporter->Error("Rust regex backend unavailable");
-        return false;
-    }
-
     rust_matcher = CompileRustRegexMatcherFromExact(pattern_state->exact_pattern_text);
 
     if ( ! rust_matcher && ! pattern_state->rust_pattern_fallback_text.empty() )
@@ -161,11 +156,6 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
 
     ClearDerivedTextCaches();
     ClearRustMatchers();
-
-    if ( ! RustRegexBackendAvailable() ) {
-        reporter->Error("Rust regex backend unavailable");
-        return false;
-    }
 
     std::vector<const char*> compile_patterns;
     std::vector<std::intptr_t> rust_ids;

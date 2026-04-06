@@ -96,14 +96,10 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_match_all(
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
-    matcher: *const ZeekRustRegexMatcher,
+    matcher: &ZeekRustRegexMatcher,
     data: *const u8,
     len: usize,
 ) -> usize {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return 0;
-    };
-
     let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return 0;
     };
@@ -113,16 +109,12 @@ pub unsafe extern "C" fn zeek_rust_regex_matcher_find_end(
 
 #[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_matcher_longest_prefix(
-    matcher: *const ZeekRustRegexMatcher,
+    matcher: &ZeekRustRegexMatcher,
     data: *const u8,
     len: usize,
     bol: i32,
     eol: i32,
 ) -> i32 {
-    let Some(matcher) = (unsafe { ffi::handle_ref(matcher) }) else {
-        return -1;
-    };
-
     let Some(haystack) = (unsafe { ffi::slice_arg(data, len) }) else {
         return -1;
     };
@@ -657,7 +649,7 @@ mod tests {
         assert!(!matcher.is_null());
 
         let matched =
-            unsafe { zeek_rust_regex_matcher_longest_prefix(matcher, b"abx".as_ptr(), 3, 1, 0) };
+            unsafe { zeek_rust_regex_matcher_longest_prefix(&*matcher, b"abx".as_ptr(), 3, 1, 0) };
         assert_eq!(matched, 2);
 
         unsafe {
@@ -671,15 +663,15 @@ mod tests {
         assert!(!anchored.is_null());
 
         let no_eol =
-            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 1, 0) };
+            unsafe { zeek_rust_regex_matcher_longest_prefix(&*anchored, b"ab".as_ptr(), 2, 1, 0) };
         assert_eq!(no_eol, -1);
 
         let with_eol =
-            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 1, 1) };
+            unsafe { zeek_rust_regex_matcher_longest_prefix(&*anchored, b"ab".as_ptr(), 2, 1, 1) };
         assert_eq!(with_eol, 2);
 
         let no_bol =
-            unsafe { zeek_rust_regex_matcher_longest_prefix(anchored, b"ab".as_ptr(), 2, 0, 1) };
+            unsafe { zeek_rust_regex_matcher_longest_prefix(&*anchored, b"ab".as_ptr(), 2, 0, 1) };
         assert_eq!(no_bol, -1);
 
         unsafe {

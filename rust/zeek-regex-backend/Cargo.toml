@@ -11,6 +11,9 @@ regex-automata = "0.4.14"
 name = "zeek_regex_backend"
 crate-type = ["staticlib"]
 
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
 [lints.clippy]
 pedantic = { level = "deny", priority = -1 }
 unwrap_used = "deny"

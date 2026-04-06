@@ -100,17 +100,6 @@ void RustRegexSetMatcherAppendMatches(const RustRegexSetMatcherHandle& matcher, 
         matches.push_back(static_cast<int>(ids[i]));
 }
 
-RustRegexStreamMatcherHandle CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns,
-                                                           const std::vector<std::intptr_t>& ids,
-                                                           bool dot_matches_new_line, size_t cache_capacity) {
-    if ( patterns.empty() || patterns.size() != ids.size() )
-        return {};
-
-    return RustRegexStreamMatcherHandle{zeek_rust_regex_stream_matcher_compile(patterns.data(), ids.data(),
-                                                                               patterns.size(), dot_matches_new_line,
-                                                                               cache_capacity)};
-}
-
 RustRegexStreamMatcherHandle CompileRustRegexStreamMatcherFromZeek(const std::vector<const char*>& patterns,
                                                                    const std::vector<std::intptr_t>& ids,
                                                                    bool dot_matches_new_line, size_t cache_capacity) {

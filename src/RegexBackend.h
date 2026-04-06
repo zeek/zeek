@@ -50,9 +50,6 @@ bool RustRegexSetMatcherMatchAny(const RustRegexSetMatcherHandle& matcher, const
 size_t RustRegexSetMatcherPatternLen(const RustRegexSetMatcherHandle& matcher);
 void RustRegexSetMatcherAppendMatches(const RustRegexSetMatcherHandle& matcher, const uint8_t* data, size_t len,
                                       std::vector<int>& matches);
-RustRegexStreamMatcherHandle CompileRustRegexStreamMatcher(const std::vector<const char*>& patterns,
-                                                           const std::vector<std::intptr_t>& ids,
-                                                           bool dot_matches_new_line, size_t cache_capacity);
 RustRegexStreamMatcherHandle CompileRustRegexStreamMatcherFromZeek(const std::vector<const char*>& patterns,
                                                                    const std::vector<std::intptr_t>& ids,
                                                                    bool dot_matches_new_line, size_t cache_capacity);

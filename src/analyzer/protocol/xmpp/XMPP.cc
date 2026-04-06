@@ -47,7 +47,7 @@ void XMPP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     try {
         interp->NewData(orig, data, data + len);
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 

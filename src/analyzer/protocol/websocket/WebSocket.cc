@@ -103,7 +103,7 @@ void WebSocket_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         try {
             interp->NewData(orig, data, data + len);
         } catch ( const binpac::Exception& e ) {
-            AnalyzerViolation(e.c_msg(), reinterpret_cast<const char*>(data), len);
+            AnalyzerViolation(e.what(), reinterpret_cast<const char*>(data), len);
         }
     }
     else {

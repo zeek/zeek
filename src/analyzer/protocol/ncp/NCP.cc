@@ -24,7 +24,7 @@ void NCP_Session::Deliver(bool is_orig, int len, const u_char* data) {
 
         DeliverFrame(frame.ncp());
     } catch ( const binpac::Exception& e ) {
-        analyzer->AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        analyzer->AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 

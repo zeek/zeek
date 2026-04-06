@@ -2,16 +2,22 @@
 
 #include "pac_cstr.h"
 
+#include <exception>
+
 #include "pac_dbg.h"
 #include "pac_exception.h"
 
 namespace {
 
-class EscapeException {
+class EscapeException : public std::exception {
 public:
     explicit EscapeException(const string& s) { msg_ = s; }
 
-    const string& msg() const { return msg_; }
+    [[deprecated("Remove in v9.1. Use what().")]]
+    const string& msg() const {
+        return msg_;
+    }
+    const char* what() const noexcept override { return msg_.c_str(); }
 
 private:
     string msg_;
@@ -107,6 +113,6 @@ ConstString::ConstString(string s) : str_(std::move(s)) {
         delete[] new_s;
     } catch ( EscapeException const& e ) {
         // Throw again with the object
-        throw Exception(this, e.msg().c_str());
+        throw Exception(this, e.what());
     }
 }

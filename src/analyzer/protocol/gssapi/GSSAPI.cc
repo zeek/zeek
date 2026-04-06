@@ -32,7 +32,7 @@ void GSSAPI_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         interp->NewData(orig, data, data + len);
         AnalyzerConfirmation();
     } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+        AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
     }
 }
 

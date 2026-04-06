@@ -187,7 +187,7 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
         try {
             DeliverPacket(len, data, is_orig, seq, ip, caplen);
         } catch ( binpac::Exception const& e ) {
-            AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+            AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
         }
     }
 }
@@ -205,7 +205,7 @@ void Analyzer::NextStream(int len, const u_char* data, bool is_orig) {
         try {
             DeliverStream(len, data, is_orig);
         } catch ( binpac::Exception const& e ) {
-            AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+            AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
         }
     }
 }
@@ -223,7 +223,7 @@ void Analyzer::NextUndelivered(uint64_t seq, int len, bool is_orig) {
         try {
             Undelivered(seq, len, is_orig);
         } catch ( binpac::Exception const& e ) {
-            AnalyzerViolation(util::fmt("Binpac exception: %s", e.c_msg()));
+            AnalyzerViolation(util::fmt("Binpac exception: %s", e.what()));
         }
     }
 }

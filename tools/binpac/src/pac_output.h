@@ -5,15 +5,19 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <exception>
 #include <string>
 
 using namespace std;
 
-class OutputException {
+class OutputException : public std::exception {
 public:
     OutputException(string arg_msg);
-    ~OutputException() = default;
-    const char* errmsg() const { return msg.c_str(); }
+    [[deprecated("Remove in v9.1. Use what().")]]
+    const char* errmsg() const {
+        return msg.c_str();
+    }
+    const char* what() const noexcept override { return msg.c_str(); }
 
 protected:
     string msg;

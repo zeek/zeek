@@ -1383,6 +1383,11 @@ if (NOT DISABLE_SPICY)
     zeek_add_dependencies(spicyz)
 endif ()
 
+# Must come after src
+if (ZEEK_HAVE_XDP_SHUNT)
+    add_subdirectory(tools/zeek-xdp-loader)
+endif ()
+
 include(CheckOptionalBuildSources)
 
 checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)

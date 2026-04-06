@@ -1,0 +1,34 @@
+[package]
+name = "zeek-xdp-loader"
+version = "0.1.0"
+edition = "2024"
+license = "BSD-3-Clause"
+
+[dependencies]
+anyhow = { version = "1", default-features = false }
+aya = { git = "https://github.com/aya-rs/aya", default-features = false }
+aya-log = { git = "https://github.com/aya-rs/aya", default-features = false }
+chrono = "0.4.44"
+clap = { version = "4.6.0", features = ["derive"] }
+env_logger = { version = "0.11.5", default-features = false }
+libc = { version = "0.2.159", default-features = false }
+log = { version = "0.4.22", default-features = false }
+nix = { version = "0.31.2", features = ["time"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.40.0", features = [
+    "macros",
+    "rt",
+    "rt-multi-thread",
+    "net",
+    "signal",
+] }
+
+[build-dependencies]
+anyhow = { version = "1", default-features = false }
+aya-build = { git = "https://github.com/aya-rs/aya", default-features = false }
+cargo_metadata = { version = "0.23.0", default-features = false }
+
+[[bin]]
+name = "zeek-xdp-loader"
+path = "src/main.rs"

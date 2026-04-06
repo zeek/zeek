@@ -2,10 +2,6 @@ fn is_octal_digit(byte: u8) -> bool {
     (b'0'..=b'7').contains(&byte)
 }
 
-fn is_hex_digit(byte: u8) -> bool {
-    byte.is_ascii_hexdigit()
-}
-
 fn parse_hex_digit(byte: u8) -> u8 {
     match byte {
         b'0'..=b'9' => byte - b'0',
@@ -32,8 +28,8 @@ fn consume_zeek_escape(pattern: &[u8], pos: &mut usize) -> Option<u8> {
 
     if next == b'x' {
         if *pos + 3 >= pattern.len()
-            || !is_hex_digit(pattern[*pos + 2])
-            || !is_hex_digit(pattern[*pos + 3])
+            || !pattern[*pos + 2].is_ascii_hexdigit()
+            || !pattern[*pos + 3].is_ascii_hexdigit()
         {
             return None;
         }

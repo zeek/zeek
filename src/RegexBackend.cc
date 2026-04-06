@@ -17,20 +17,6 @@ static std::string take_rust_regex_string(char* text) {
     return result;
 }
 
-void RustRegexMatcherDeleter::operator()(ZeekRustRegexMatcher* matcher) const { zeek_rust_regex_matcher_free(matcher); }
-
-void RustRegexSetMatcherDeleter::operator()(ZeekRustRegexSetMatcher* matcher) const {
-    zeek_rust_regex_set_matcher_free(matcher);
-}
-
-void RustRegexStreamMatcherDeleter::operator()(ZeekRustRegexStreamMatcher* matcher) const {
-    zeek_rust_regex_stream_matcher_free(matcher);
-}
-
-void RustRegexStreamStateDeleter::operator()(ZeekRustRegexStreamState* state) const {
-    zeek_rust_regex_stream_state_free(state);
-}
-
 bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized) {
     if ( ! pattern || ! normalized )
         return false;

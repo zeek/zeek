@@ -14,30 +14,25 @@ struct ZeekRustRegexMatcher;
 struct ZeekRustRegexSetMatcher;
 struct ZeekRustRegexStreamMatcher;
 struct ZeekRustRegexStreamState;
+
+void zeek_rust_regex_matcher_free(ZeekRustRegexMatcher* matcher);
+void zeek_rust_regex_set_matcher_free(ZeekRustRegexSetMatcher* matcher);
+void zeek_rust_regex_stream_matcher_free(ZeekRustRegexStreamMatcher* matcher);
+void zeek_rust_regex_stream_state_free(ZeekRustRegexStreamState* state);
 }
 
 namespace zeek::detail {
 
-struct RustRegexMatcherDeleter {
-    void operator()(ZeekRustRegexMatcher* matcher) const;
+// RAII wrapper around backend types.
+template<typename T, void (*free_t)(T*)>
+struct RAII : std::unique_ptr<T, decltype(free_t)> {
+    RAII(T* value = nullptr) : std::unique_ptr<T, decltype(free_t)>(value, free_t) {}
 };
 
-struct RustRegexSetMatcherDeleter {
-    void operator()(ZeekRustRegexSetMatcher* matcher) const;
-};
-
-struct RustRegexStreamMatcherDeleter {
-    void operator()(ZeekRustRegexStreamMatcher* matcher) const;
-};
-
-struct RustRegexStreamStateDeleter {
-    void operator()(ZeekRustRegexStreamState* state) const;
-};
-
-using RustRegexMatcherHandle = std::unique_ptr<ZeekRustRegexMatcher, RustRegexMatcherDeleter>;
-using RustRegexSetMatcherHandle = std::unique_ptr<ZeekRustRegexSetMatcher, RustRegexSetMatcherDeleter>;
-using RustRegexStreamMatcherHandle = std::unique_ptr<ZeekRustRegexStreamMatcher, RustRegexStreamMatcherDeleter>;
-using RustRegexStreamStateHandle = std::unique_ptr<ZeekRustRegexStreamState, RustRegexStreamStateDeleter>;
+using RustRegexMatcherHandle = RAII<ZeekRustRegexMatcher, zeek_rust_regex_matcher_free>;
+using RustRegexSetMatcherHandle = RAII<ZeekRustRegexSetMatcher, zeek_rust_regex_set_matcher_free>;
+using RustRegexStreamMatcherHandle = RAII<ZeekRustRegexStreamMatcher, zeek_rust_regex_stream_matcher_free>;
+using RustRegexStreamStateHandle = RAII<ZeekRustRegexStreamState, zeek_rust_regex_stream_state_free>;
 
 bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized);
 std::string DeriveRustPatternFromExact(const char* exact);

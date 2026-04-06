@@ -17,19 +17,6 @@ static std::string take_rust_regex_string(char* text) {
     return result;
 }
 
-bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized) {
-    if ( ! pattern || ! normalized )
-        return false;
-
-    auto* rust_text = zeek_rust_regex_compat_normalize_pattern(pattern);
-
-    if ( ! rust_text )
-        return false;
-
-    *normalized = take_rust_regex_string(rust_text);
-    return true;
-}
-
 std::string DeriveRustPatternFromExact(const char* exact) {
     if ( ! exact )
         return {};

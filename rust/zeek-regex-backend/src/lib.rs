@@ -12,17 +12,6 @@ pub use matcher::{ZeekRustRegexMatcher, ZeekRustRegexSetMatcher};
 pub use stream::{ZeekRustRegexStreamMatcher, ZeekRustRegexStreamState};
 
 #[no_mangle]
-pub unsafe extern "C" fn zeek_rust_regex_compat_normalize_pattern(
-    pattern: *const c_char,
-) -> *mut c_char {
-    let Some(pattern) = (unsafe { ffi::cstr_bytes_arg(pattern) }) else {
-        return null_mut();
-    };
-
-    compat::normalize_zeek_pattern_for_rust(pattern).map_or(null_mut(), ffi::into_c_string_ptr)
-}
-
-#[no_mangle]
 pub unsafe extern "C" fn zeek_rust_regex_compat_derive_rust_pattern_from_exact(
     exact: *const c_char,
 ) -> *mut c_char {

@@ -34,7 +34,6 @@ using RustRegexSetMatcherHandle = RAII<ZeekRustRegexSetMatcher, zeek_rust_regex_
 using RustRegexStreamMatcherHandle = RAII<ZeekRustRegexStreamMatcher, zeek_rust_regex_stream_matcher_free>;
 using RustRegexStreamStateHandle = RAII<ZeekRustRegexStreamState, zeek_rust_regex_stream_state_free>;
 
-bool NormalizeZeekPatternForRust(const char* pattern, std::string* normalized);
 std::string DeriveRustPatternFromExact(const char* exact);
 std::string DeriveAnywherePatternFromExact(const char* exact);
 RustRegexMatcherHandle CompileRustRegexMatcher(const std::string& pattern);

@@ -2317,7 +2317,7 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, Z
         if ( inv_t != name_to_template.end() ) {
             // Generate the inverse opcode name with the same suffix.
             auto inverse_op = "OP_" + inv_t->second->CanonicalName() + suffix;
-            inverse_mappings[op] = inverse_op;
+            inverse_mappings[op] = std::move(inverse_op);
         }
     }
 

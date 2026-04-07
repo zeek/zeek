@@ -5,7 +5,9 @@ module LDAP;
 import ASN1;
 import spicy;
 
-# https://tools.ietf.org/html/rfc4511#
+const MAX_RECURSION_DEPTH = 20;
+
+# https://datatracker.ietf.org/doc/html/rfc4511#
 # https://ldap.com/ldapv3-wire-protocol-reference-asn1-ber/
 # https://lapo.it/asn1js
 
@@ -311,7 +313,7 @@ public type Message = unit(ctx: Ctx&) {
     }
 
     messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
-    : ASN1::ASN1Body(self.messageID_header, False) {
+    : ASN1::ASN1Body(self.messageID_header, False, 0) {
         self.messageID = $$.num_value;
     }
 
@@ -621,12 +623,12 @@ type AttributeValueAssertion = unit {
 };
 
 # An AND or OR search filter can consist of many sub-searchfilters, so we try to parse these
-type ParseNestedAndOr = unit {
-    searchfilters: SearchFilter[] &eod;
+type ParseNestedAndOr = unit(depth: uint8) {
+    searchfilters: SearchFilter(depth + 1)[] &eod;
 };
 
-type ParseNestedNot = unit {
-    searchfilter: SearchFilter;
+type ParseNestedNot = unit(depth: uint8) {
+    searchfilter: SearchFilter(depth + 1);
 };
 
 # Helper functions to properly format some custom data structures
@@ -884,7 +886,7 @@ type SubstringFilter = unit {
     }
 };
 
-type SearchFilter = unit {
+type SearchFilter = unit(depth: uint8 = 0) {
     var filterType: FilterType = FilterType::Undef;
     var filterBytes: bytes = b"";
     var filterLen: uint64 = 0;
@@ -903,9 +905,9 @@ type SearchFilter = unit {
     switch (self.filterType) {
 
         # FilterTypes that hold one or more SearchFilters inside them
-        FilterType::FILTER_AND -> FILTER_AND: ParseNestedAndOr() &parse-from=self.filterBytes;
-        FilterType::FILTER_OR -> FILTER_OR: ParseNestedAndOr() &parse-from=self.filterBytes;
-        FilterType::FILTER_NOT -> FILTER_NOT: ParseNestedNot() &parse-from=self.filterBytes;
+        FilterType::FILTER_AND -> FILTER_AND: ParseNestedAndOr(depth) &parse-from=self.filterBytes;
+        FilterType::FILTER_OR -> FILTER_OR: ParseNestedAndOr(depth) &parse-from=self.filterBytes;
+        FilterType::FILTER_NOT -> FILTER_NOT: ParseNestedNot(depth) &parse-from=self.filterBytes;
 
         # FilterTypes that we can actually convert to a string
         FilterType::FILTER_EQ -> FILTER_EQ: DecodedAttributeValue(FilterType::FILTER_EQ) &parse-from=self.filterBytes;
@@ -919,6 +921,11 @@ type SearchFilter = unit {
 
     # So when you're done with recursively parsing the filters, we can now leverage the tree structure to
     # recursively get the stringRepresentations for those leaves, which are SearchFilters
+
+    on %init {
+        if (depth > MAX_RECURSION_DEPTH)
+            throw "LDAP exceeded max filter recursion depth";
+    }
 
     on %done {
         self.stringRepresentation = string_representation(self);
@@ -940,7 +947,7 @@ public type SearchRequest = unit(inout message: Message) {
     sizeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
     timeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
     typesOnly: ASN1::ASN1Message(True) &convert=$$.body.bool_value &default=False;
-    filter: SearchFilter &convert=$$.stringRepresentation;
+    filter: SearchFilter(0) &convert=$$.stringRepresentation;
     attributes: AttributeSelection &convert=$$.attributes;
 };
 

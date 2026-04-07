@@ -241,8 +241,7 @@ bool ZAMCompiler::InvertConditionalsAroundGotos() {
         if ( goto_target )
             ++(goto_target->num_labels);
 
-        if ( target_ind >= 0 )
-            --(insts1[target_ind]->num_labels);
+        --(insts1[target_ind]->num_labels);
 
         KillInst(i1);
 

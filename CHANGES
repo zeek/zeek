@@ -1,3 +1,50 @@
+8.2.0-dev.460 | 2026-04-07 10:27:12 +0200
+
+  * doc/attributes: Add &backend and &broker_store deprecation info (Arne Welzel, Corelight)
+
+  * doc/attributes: Add &publish_on_change documentation (Arne Welzel, Corelight)
+
+  * cluster: Add Cluster::publish_table() (Arne Welzel, Corelight)
+
+    This adds a helper to publish a table packaged up as Cluster::table_change_infos()
+    events. This won't be super efficient, but it provides the flexibility to
+    include more information like expiration times down the road if we wanted,
+    but that needs a few extensions to the better TableVal API that I'm reluctant
+    of adding right now.
+
+    By default this sends Cluster::table_change_infos() events
+    with 10000 table entries each.
+
+  * btest/cluster/publish-on-change: Add tests to verify functionality (Arne Welzel, Corelight)
+
+    Not super dont-repeat-yourself, but hey, they should cover the basics...
+
+  * zeek-setup: Run PublishOnChangeState::InitPostScript() (Arne Welzel, Corelight)
+
+    Now that all the pieces are in place, run the InitPostScript() implementation
+    from PublishOnChangeState to actually enable the functionality. Also update
+    a few btest/Baselines now.
+
+  * scan/parse: Add &publish_on_change support (Arne Welzel, Corelight)
+
+  * cluster/PublishOnChange: Add InitPostScript() hook, use GetPublishOnChangeState() (Arne Welzel, Corelight)
+
+  * TableVal: Hook-up poc_state for &publish_on_change functionality (Arne Welzel, Corelight)
+
+  * cluster: Introduce PublishOnChangeState class and script-level support (Arne Welzel, Corelight)
+
+    This class holds state for the &publish_on_change attribute for global
+    table and set variables. The provided scripts will automatically handle
+    the Cluster::table_change_infos() event from other nodes and apply the
+    contained changes to the local table or set instance.
+
+  * Timer: Add timer for &publish_on_change (Arne Welzel, Corelight)
+
+    This timer is used to delay table changes for batching purposes
+    locally before publishing them into the cluster.
+
+  * Attr: Add &publish_on_change (Arne Welzel, Corelight)
+
 8.2.0-dev.448 | 2026-04-07 10:17:27 +0200
 
   * Fix a few deprecated c_msg usages in btests (Tim Wojtulewicz, Corelight)

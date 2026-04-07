@@ -48,6 +48,21 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Added a new attribute ``&publish_on_change`` for global tables and sets as an
+  alternative to the Broker-specific and deprecated ``&backend`` and ``&broker_store``
+  synchronization attributes. The ``&publish_on_change`` attribute allows efficient
+  publishing of selected table changes as remote events to a configurable cluster topic.
+  Other cluster nodes by default apply received changes to their local table instances.
+
+	# Publish any new entry as Cluster::table_change_infos() event to  /zeek/table/endpoints
+	global endpoints: set[addr, addr] &write_expire=5min &publish_on_change=[
+	    changes=set(TABLE_ELEMENT_NEW),
+	];
+
+  See the online documentation for a detailed description and further examples:
+
+	https://docs.zeek.org/en/master/reference/zeekscript/attributes.html#attr-&publish_on_change
+
 - Well-known ports of built-in analyzers can now be configured via redef. For example:
 
 	redef HTTP::ports += { 8181/tcp };

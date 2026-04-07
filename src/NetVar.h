@@ -102,11 +102,11 @@ extern void init_builtin_types();
 
 } // namespace zeek::detail
 
-#include "const.bif.netvar_h"
-#include "event.bif.netvar_h"
-#include "packet_analysis.bif.netvar_h"
-#include "reporter.bif.netvar_h"
-#include "supervisor.bif.netvar_h"
-#include "telemetry_consts.bif.netvar_h"
-#include "telemetry_types.bif.netvar_h"
-#include "types.bif.netvar_h"
+#include "zeek/const.bif.netvar_h"
+#include "zeek/event.bif.netvar_h"
+#include "zeek/packet_analysis.bif.netvar_h"
+#include "zeek/reporter.bif.netvar_h"
+#include "zeek/supervisor.bif.netvar_h"
+#include "zeek/telemetry_consts.bif.netvar_h"
+#include "zeek/telemetry_types.bif.netvar_h"
+#include "zeek/types.bif.netvar_h"

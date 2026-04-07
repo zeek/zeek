@@ -3157,6 +3157,10 @@ global dns_skip_all_addl = T &redef;
 ## traffic and do not process it.  Set to 0 to turn off this functionality.
 global dns_max_queries = 25 &redef;
 
+## The maximum depth of a compression chain in DNS. If this limit is reached, a weird is
+## reported and parsing of the chain is halted. See :rfc:`1035#section-4.1.4`.
+global dns_max_compression_chain_depth = 20 &redef;
+
 ## HTTP session statistics.
 ##
 ## .. zeek:see:: http_stats

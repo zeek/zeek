@@ -153,6 +153,7 @@ int truncate_http_URI;
 int dns_skip_all_auth;
 int dns_skip_all_addl;
 int dns_max_queries;
+int dns_max_compression_chain_depth;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -292,6 +293,7 @@ void init_net_var() {
     dns_skip_all_auth = id::find_val("dns_skip_all_auth")->AsBool();
     dns_skip_all_addl = id::find_val("dns_skip_all_addl")->AsBool();
     dns_max_queries = id::find_val("dns_max_queries")->AsCount();
+    dns_max_compression_chain_depth = id::find_val("dns_max_compression_chain_depth")->AsCount();
 
     orig_addr_anonymization = 0;
     if ( const auto& id = id::find("orig_addr_anonymization") )

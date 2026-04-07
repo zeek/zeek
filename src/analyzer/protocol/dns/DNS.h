@@ -350,8 +350,9 @@ protected:
     bool ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, const u_char* start);
 
     u_char* ExtractName(const u_char*& data, int& len, u_char* label, int label_len, const u_char* msg_start,
-                        bool downcase = true);
-    bool ExtractLabel(const u_char*& data, int& len, u_char*& label, int& label_len, const u_char* msg_start);
+                        bool downcase = true, int compression_depth = 0);
+    bool ExtractLabel(const u_char*& data, int& len, u_char*& label, int& label_len, const u_char* msg_start,
+                      int compression_depth = 0);
 
     uint16_t ExtractShort(const u_char*& data, int& len);
     uint32_t ExtractLong(const u_char*& data, int& len);

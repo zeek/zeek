@@ -1,3 +1,7 @@
+8.2.0-dev.448 | 2026-04-07 10:17:27 +0200
+
+  * Fix a few deprecated c_msg usages in btests (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.446 | 2026-04-07 10:09:13 +0200
 
   * tools/systemd-generator/zeek-cluster-layout-generator: Include errno string when open fails (Arne Welzel, Corelight)

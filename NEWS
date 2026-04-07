@@ -85,6 +85,20 @@ New Functionality
   messages for events: Publishing a single event currently counts as four messages
   as we're simply exposing ZeroMQ's low-level ``zmq::proxy_steerable()`` statistics.
 
+- The ``@load`` directive now supports loading shared object files. This can
+  be leveraged to experiment with alternative package and plugin directory layouts
+  where a ``__load__.zeek`` file in a directory loads the required shared object
+  explicitly rather than the current "magic discovery" via ``ZEEK_PLUGIN_PATH``
+  and ``__zeek_plugin__`` files.
+
+  Files are expected to end with ``.so`` regardless of the platform and need to
+  be explicitly loaded with the suffix provided:
+
+	@load ./plugin.so
+
+  Such shared objects should instantiate a single zeek::plugin::Plugin instance at
+  load time. The zeek::plugin::Plugin() will register it accordingly.
+
 - ``bifcl`` now accepts missing return types in functions signatures, creating
   void functions rather than complaining. The C++ signature will continue
   to have a ``ValPtr`` return type and the implementation should return a ``Val::nil``,

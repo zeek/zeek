@@ -1,3 +1,25 @@
+8.2.0-dev.468 | 2026-04-07 20:01:51 +0200
+
+  * testing/btest/language: Add test showing directory ending in .so (Arne Welzel, Corelight)
+
+  * testing/btest/plugins: Add load-so-bif test (Arne Welzel, Corelight)
+
+    Minimal test demonstrating BuiltinFunc usage without bifcl.
+
+  * NEWS: Add entry shared object support for @load (Arne Welzel, Corelight)
+
+  * testing/btest: Test loading of .so files (Arne Welzel, Corelight)
+
+  * scan.l: Support loading of .so files (Arne Welzel, Corelight)
+
+  * scan.l: Shuffle around ScannedFile usage (Arne Welzel, Corelight)
+
+    The code was already in a branch with rc.first == -1 and so we can
+    do the AlreadyScanned() in the inner branch. Loading stdin twice is
+    okay, it'll just continue reading where it was.
+
+  * plugin/Manager: Extract LoadDynamicPlugin() helper (Arne Welzel, Corelight)
+
 8.2.0-dev.460 | 2026-04-07 10:27:12 +0200
 
   * doc/attributes: Add &backend and &broker_store deprecation info (Arne Welzel, Corelight)

@@ -1,3 +1,17 @@
+8.2.0-dev.446 | 2026-04-07 10:09:13 +0200
+
+  * tools/systemd-generator/zeek-cluster-layout-generator: Include errno string when open fails (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix WriteDropIn() return (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Fix ext_path handling (Arne Welzel, Corelight)
+
+    and add tests for ext_path and ext_zeek_path
+
+  * tools/systemd-generator: Drop extra CPUAffinity output (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Remove unused archiver_dir, fix comment (Arne Welzel, Corelight)
+
 8.2.0-dev.440 | 2026-04-06 20:07:34 +0000
 
   * Disable clang-tidy checkers added in Clang 22 (Tim Wojtulewicz, Corelight)

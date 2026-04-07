@@ -147,7 +147,7 @@ void ArgsManager::Differentiate() {
     map<string, int> usage_count; // how often the name's been used so far
     for ( auto& arg : args ) {
         auto& name = arg.param_name;
-        if ( name_count.count(name) == 0 ) {
+        if ( ! name_count.contains(name) ) {
             name_count[name] = 1;
             usage_count[name] = 0;
         }
@@ -360,7 +360,7 @@ void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& 
                 g->Gripe("bad op-types argument", w_i);
 
             auto et_c = w_i.c_str()[0];
-            if ( type_names.count(et_c) == 0 )
+            if ( ! type_names.contains(et_c) )
                 g->Gripe("bad op-types argument", w_i);
 
             op_types.push_back(type_names[et_c]);
@@ -735,7 +735,7 @@ string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<s
             need_target = false;
         }
 
-        else if ( raw_int_oc.count(oc0) > 0 )
+        else if ( raw_int_oc.contains(oc0) )
             need_target = false;
     }
 
@@ -1205,7 +1205,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line, const Wor
                 g->Gripe("bad op-type argument", w_i);
 
             auto et_c = w_i.c_str()[0];
-            if ( type_names.count(et_c) == 0 )
+            if ( ! type_names.contains(et_c) )
                 g->Gripe("bad op-type argument", w_i);
 
             AddExprType(type_names[et_c]);
@@ -1228,12 +1228,12 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line, const Wor
             g->Gripe("bad eval-type type", type);
 
         auto type_c = type.c_str()[0];
-        if ( type_names.count(type_c) == 0 )
+        if ( ! type_names.contains(type_c) )
             g->Gripe("bad eval-type type", type);
 
         auto zt = type_names[type_c];
 
-        if ( expr_types.count(zt) == 0 )
+        if ( ! expr_types.contains(zt) )
             g->Gripe("eval-type type not present in eval-type", type);
 
         auto eval = g->SkipWords(line, 2);
@@ -1252,7 +1252,7 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line, const Wor
 
         auto type_c1 = type1.c_str()[0];
         auto type_c2 = type2.c_str()[0];
-        if ( type_names.count(type_c1) == 0 || type_names.count(type_c2) == 0 )
+        if ( ! type_names.contains(type_c1) || ! type_names.contains(type_c2) )
             g->Gripe("bad eval-mixed types", line);
 
         auto et1 = type_names[type_c1];
@@ -1469,7 +1469,7 @@ void ZAM_ExprOpTemplate::GenMethodTest(ZAM_Type et1, ZAM_Type et2, const string&
         {ZAM_TYPE_VECTOR, {"tag", "TYPE_VECTOR"}},
     };
 
-    if ( if_tests.count(et1) == 0 || if_tests.count(et2) == 0 )
+    if ( ! if_tests.contains(et1) || ! if_tests.contains(et2) )
         Gripe("bad op-type");
 
     const auto& [var, val] = if_tests[et1];
@@ -1626,7 +1626,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const OCVec& oc_orig, const string& suf
         if ( zt == ZAM_TYPE_NONE && GetEval().empty() )
             continue;
 
-        auto is_def = eval_set.count(zt) == 0;
+        auto is_def = ! eval_set.contains(zt);
         string eval = is_def ? GetEval() : eval_set[zt];
         auto lhs_et = IsConditionalOp() ? ZAM_TYPE_INT : zt;
         eval_instances.emplace_back(lhs_et, zt, zt, eval, is_def);
@@ -2278,7 +2278,7 @@ void ZAMGen::GenMacros() {
 string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, ZAM_InstClass zc) {
     auto op = "OP_" + op_templ->CanonicalName() + suffix;
 
-    if ( generated_opcodes.count(op) > 0 )
+    if ( generated_opcodes.contains(op) )
         // We've already done this one, don't re-define its auxiliary
         // information.
         return op;
@@ -2329,7 +2329,7 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, Z
 void ZAMGen::Emit(EmitTarget et, const string& s) {
     assert(et != None);
 
-    if ( gen_files.count(et) == 0 ) {
+    if ( ! gen_files.contains(et) ) {
         fprintf(stderr, "bad generation file type\n");
         exit(1);
     }

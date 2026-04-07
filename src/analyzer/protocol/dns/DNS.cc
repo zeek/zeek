@@ -467,10 +467,15 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 }
 
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name, int name_len, const u_char* msg_start,
-                                     bool downcase) {
+                                     bool downcase, int compression_depth) {
+    if ( compression_depth > zeek::detail::dns_max_compression_chain_depth ) {
+        analyzer->Weird("DNS_max_compression_chain_depth_exceeded");
+        return name;
+    }
+
     u_char* name_start = name;
 
-    while ( ExtractLabel(data, len, name, name_len, msg_start) )
+    while ( ExtractLabel(data, len, name, name_len, msg_start, compression_depth) )
         ;
 
     int n = name - name_start;
@@ -493,8 +498,8 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name
     return name;
 }
 
-bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name, int& name_len,
-                                   const u_char* msg_start) {
+bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name, int& name_len, const u_char* msg_start,
+                                   int compression_depth) {
     if ( len <= 0 )
         return false;
 
@@ -537,7 +542,8 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
         const u_char* recurse_data = msg_start + offset;
         int recurse_max_len = orig_data - recurse_data;
 
-        u_char* name_end = ExtractName(recurse_data, recurse_max_len, name, name_len, msg_start);
+        u_char* name_end =
+            ExtractName(recurse_data, recurse_max_len, name, name_len, msg_start, true, compression_depth + 1);
 
         name_len -= name_end - name;
         name = name_end;

@@ -60,6 +60,7 @@ extern int truncate_http_URI;
 extern int dns_skip_all_auth;
 extern int dns_skip_all_addl;
 extern int dns_max_queries;
+extern int dns_max_compression_chain_depth;
 
 extern double table_expire_interval;
 extern double table_expire_delay;

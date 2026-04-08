@@ -196,7 +196,7 @@ public:
      *
      * @param topic The topic to use for forwarding events to, usually Cluster::manager_topic.
      */
-    static void SetTableChangeInfosForwardTopic(std::string topic) { forward_topic = topic; }
+    static void SetTableChangeInfosForwardTopic(std::string topic) { forward_topic = std::move(topic); }
 
     /**
      * @return The Cluster::node_id() value.

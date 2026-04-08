@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <Val.h>
-#include <iosource/PktSrc.h>
+#include "zeek/Val.h"
+#include "zeek/iosource/PktSrc.h"
 
 namespace btest::plugin::Demo_Foo {
 

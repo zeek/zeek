@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Stmt.h"
-#include "analyzer/protocol/pia/PIA.h"
-#include "analyzer/protocol/tcp/TCP.h"
+#include "zeek/Stmt.h"
+#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace binpac {
 namespace Foo {

@@ -1,9 +1,10 @@
 
 #include "Plugin.h"
 
+#include "zeek/file_analysis/Component.h"
+#include "zeek/file_analysis/File.h"
+
 #include "Foo.h"
-#include "file_analysis/Component.h"
-#include "file_analysis/File.h"
 
 namespace btest::plugin::Demo_Foo {
 Plugin plugin;

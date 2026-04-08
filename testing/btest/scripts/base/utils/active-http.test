@@ -1,8 +1,8 @@
-# @TEST-REQUIRES: which python3
+# @TEST-REQUIRES: $PYTHON -c ""
 # @TEST-REQUIRES: which curl
 #
 # @TEST-PORT: MYPORT
-# @TEST-EXEC: btest-bg-run httpd python3 $SCRIPTS/httpd.py --max 2 --addr=127.0.0.1 --port=$(echo $MYPORT | cut -d'/' -f1)
+# @TEST-EXEC: btest-bg-run httpd $PYTHON $SCRIPTS/httpd.py --max 2 --addr=127.0.0.1 --port=$(echo $MYPORT | cut -d'/' -f1)
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15

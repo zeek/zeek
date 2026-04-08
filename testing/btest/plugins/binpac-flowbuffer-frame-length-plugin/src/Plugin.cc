@@ -1,7 +1,8 @@
-#include "plugin/Plugin.h"
+#include "zeek/plugin/Plugin.h"
+
+#include "zeek/analyzer/Component.h"
 
 #include "FOO.h"
-#include "analyzer/Component.h"
 
 namespace btest::plugin::Foo_FOO {
 

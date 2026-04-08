@@ -1,9 +1,8 @@
 # @TEST-DOC: Test loading of telemetry/log and smoke check the telemetry.log file
-# Non-Windows variant: hash table iteration order for telemetry metrics differs
+# Windows variant: hash table iteration order for telemetry metrics differs
 # between MSVC and GCC/Clang, producing different row ordering per timestamp.
-# See log-windows.zeek for the Windows variant.
-# @TEST-REQUIRES: ! is-windows
-# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT > out
+# @TEST-REQUIRES: is-windows
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT > out
 # @TEST-EXEC: grep -E 'zeek_(net|.*sessions)' telemetry.log > telemetry.log.filtered
 # @TEST-EXEC: grep 'zeek.*connection_duration' telemetry_histogram.log > telemetry_histogram.log.filtered
 

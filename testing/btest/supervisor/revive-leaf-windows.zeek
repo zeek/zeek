@@ -1,6 +1,11 @@
-# On Windows the stem runs as a thread, not a separate process,
-# so it cannot be killed independently via system("kill ...").
-# @TEST-REQUIRES: ! is-windows
+# Windows variant of supervisor/revive-leaf.zeek.
+#
+# On Unix the supervised node kills itself via system("kill ...") to
+# test that the supervisor framework revives it.  On Windows, MSYS
+# bash's kill cannot target native Windows PIDs, so this variant
+# uses terminate() for the self-kill which still triggers revival.
+
+# @TEST-REQUIRES: is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
@@ -14,6 +19,11 @@ global supervisor_output_file: file;
 global node_output_file: file;
 global topic = "test-topic";
 global peers_added = 0;
+
+event kill_self()
+	{
+	terminate();
+	}
 
 event zeek_init()
 	{
@@ -49,7 +59,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 		if ( peers_added == 3 )
 			terminate();
 		else
-			system(fmt("kill %s", Supervisor::__stem_pid()));
+			Broker::publish(topic, kill_self);
 		}
 	}
 

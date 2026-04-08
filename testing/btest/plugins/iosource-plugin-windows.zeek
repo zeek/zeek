@@ -1,13 +1,12 @@
-# @TEST-REQUIRES: ! is-windows
-# Windows variant: iosource-plugin-windows.zeek — FdSource fires fewer
-# times on Windows due to select() platform differences with flare fds.
+# @TEST-DOC: Windows variant of iosource-plugin test. FdSource fires fewer times due to select() platform differences with flare file descriptors.
+# @TEST-REQUIRES: is-windows
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Iosource
 # @TEST-EXEC: cp -r %DIR/iosource-plugin/* .
 
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 #
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -Bmain-loop -b %INPUT -r $TRACES/wikipedia.pcap > output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -Bmain-loop -b %INPUT -r $TRACES/wikipedia.trace > output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="grep -v FdSource" btest-diff output
 
 @load-plugin Demo::Iosource
 
@@ -15,7 +14,7 @@ global flushes = 0;
 global packets = 0;
 
 # Default is 100 for pcaps, but that only triggers a single Poll() when
-# reading wikipedia.pcap. Tune it down a bit so Process on the FdSources
+# reading wikipedia.trace. Tune it down a bit so Process on the FdSources
 # is called more often.
 redef io_poll_interval_default = 10;
 

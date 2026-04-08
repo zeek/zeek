@@ -1,7 +1,8 @@
 #include "Plugin.h"
 
+#include "zeek/packet_analysis/Component.h"
+
 #include "RawLayer.h"
-#include "packet_analysis/Component.h"
 
 namespace zeek::plugin::PacketDemo_Bar {
 

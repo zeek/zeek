@@ -1,16 +1,20 @@
-# On Windows the stem runs as a thread sharing the supervisor's
-# address space, so stem_stdout/stderr pipes are never created
-# and the stdout/stderr hooks are not invoked.
-# @TEST-REQUIRES: ! is-windows
+# Windows variant of supervisor/output-redirect.zeek.
+#
+# On Windows the stem runs as a thread, so stem_stdout/stderr pipes
+# are not created.  Node stdout/stderr still reaches the supervisor's
+# console but without the [supervisor:STDOUT/STDERR] prefix that the
+# pipe-based Linux path adds.
+
+# @TEST-REQUIRES: is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff zeek/supervisor.out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
+# @TEST-EXEC: btest-diff zeek/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-sort | grep -v 'while waiting for thread'" btest-diff zeek/.stderr
 
 # This test checks the default stdout/stderr redirection will get intercepted
-# by the supervisor process and sent through the hook mechanisms
+# by the supervisor process and prefixed with the associated node name.
 
 # So the supervised node doesn't terminate right away.
 redef exit_only_after_terminate=T;
@@ -23,17 +27,6 @@ event do_destroy()
 	{
 	print supervisor_output_file, "destroying node";
 	Supervisor::destroy("grault");
-	}
-
-hook Supervisor::stdout_hook(node: string, msg: string)
-	{
-	print fmt("hooked stdout of (%s): %s", node, msg);
-	break;
-	}
-
-hook Supervisor::stderr_hook(node: string, msg: string)
-	{
-	print fmt("hooked stderr of (%s): %s", node, msg);
 	}
 
 event zeek_init()

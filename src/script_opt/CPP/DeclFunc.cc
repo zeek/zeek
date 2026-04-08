@@ -70,7 +70,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     // make hook casts different, string-wise, without altering their
     // semantics.
     if ( in_hook )
-        cast += " ";
+        cast += ' ';
 
     func_index[fname] = cast;
 

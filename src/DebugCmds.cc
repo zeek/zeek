@@ -400,7 +400,7 @@ int dbg_cmd_break_condition(DebugCmd cmd, const vector<string>& args) {
     string expr;
     for ( size_t i = 1; i < args.size(); ++i ) {
         expr += args[i];
-        expr += " ";
+        expr += ' ';
     }
     bp->SetCondition(expr);
 
@@ -478,7 +478,7 @@ int dbg_cmd_print(DebugCmd cmd, const vector<string>& args) {
     for ( size_t i = 0; i < args.size(); ++i ) {
         expr += args[i];
         if ( i < args.size() - 1 )
-            expr += " ";
+            expr += ' ';
     }
 
     auto val = dbg_eval_expr(expr.c_str());

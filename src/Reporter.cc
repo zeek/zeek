@@ -647,7 +647,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
         }
         else {
 #endif
-            s += "\n";
+            s += '\n';
             fprintf(out, "%s", s.c_str());
 #ifdef ENABLE_ZEEK_UNIT_TESTS
         }

@@ -30,12 +30,12 @@ string ReStructuredTextTable::MakeBorder(const vector<size_t>& col_sizes, char b
 
     for ( size_t i = 0; i < col_sizes.size(); ++i ) {
         if ( i > 0 )
-            rval += " ";
+            rval += ' ';
 
         rval += string(col_sizes[i], border);
     }
 
-    rval += "\n";
+    rval += '\n';
     return rval;
 }
 
@@ -52,7 +52,7 @@ string ReStructuredTextTable::AsString(char border) const {
         }
 
         if ( row_is_empty ) {
-            rval += "\n";
+            rval += '\n';
             continue;
         }
 
@@ -73,7 +73,7 @@ string ReStructuredTextTable::AsString(char border) const {
         row_str.erase(std::ranges::find_if(std::ranges::reverse_view(row_str), notspace).base(), row_str.end());
 
         rval += row_str;
-        rval += "\n";
+        rval += '\n';
     }
 
     rval += MakeBorder(longest_row_in_column, border);

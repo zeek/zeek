@@ -37,7 +37,7 @@ string PackageInfo::DoReStructuredText(bool roles_only) const {
 
     for ( const auto& r : readme ) {
         if ( is_all_whitespace(r) )
-            rval += "\n";
+            rval += '\n';
         else
             rval += "   " + r + "\n";
     }

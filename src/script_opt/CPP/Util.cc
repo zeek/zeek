@@ -110,7 +110,7 @@ string CPPEscape(const char* b, int len) {
                 else {
                     char buf[8192];
                     snprintf(buf, sizeof buf, "%03o", c);
-                    res += "\\";
+                    res += '\\';
                     res += buf;
                 }
                 break;

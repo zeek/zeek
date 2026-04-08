@@ -230,7 +230,7 @@ bool ensure_intermediate_dirs(const char* dirname) {
 
     for ( size_t i = 0; i < path_components.size(); ++i ) {
         if ( i > 0 || absolute )
-            current_dir += "/";
+            current_dir += '/';
 
         current_dir += path_components[i];
 

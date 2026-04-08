@@ -4733,7 +4733,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
             else {
                 std::string s = "No such field '";
                 s += field_name;
-                s += "'";
+                s += '\'';
                 init_list->SetError(s.c_str());
             }
         }

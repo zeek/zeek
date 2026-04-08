@@ -75,9 +75,9 @@ std::string Field::TypeName() const {
         n = type_name(type);
 
     if ( (type == TYPE_TABLE) || (type == TYPE_VECTOR) ) {
-        n += "[";
+        n += '[';
         n += type_name(subtype);
-        n += "]";
+        n += ']';
     }
 
     return n;

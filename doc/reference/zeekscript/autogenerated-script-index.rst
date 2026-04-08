@@ -136,6 +136,8 @@
    base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek </scripts/base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek>
    base/frameworks/cluster/pools.zeek </scripts/base/frameworks/cluster/pools.zeek>
    base/utils/hash_hrw.zeek </scripts/base/utils/hash_hrw.zeek>
+   base/frameworks/cluster/publish-on-change.zeek </scripts/base/frameworks/cluster/publish-on-change.zeek>
+   base/bif/publish_on_change.bif.zeek </scripts/base/bif/publish_on_change.bif.zeek>
    base/frameworks/cluster/telemetry.zeek </scripts/base/frameworks/cluster/telemetry.zeek>
    base/frameworks/config/__load__.zeek </scripts/base/frameworks/config/__load__.zeek>
    base/frameworks/config/main.zeek </scripts/base/frameworks/config/main.zeek>

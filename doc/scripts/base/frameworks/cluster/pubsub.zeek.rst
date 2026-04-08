@@ -30,7 +30,7 @@ Detailed Interface
 Hooks
 #####
 .. zeek:id:: Cluster::on_subscribe
-   :source-code: base/frameworks/cluster/pubsub.zeek 27 27
+   :source-code: base/frameworks/cluster/publish-on-change.zeek 66 71
 
    :Type: :zeek:type:`hook` (topic: :zeek:type:`string`) : :zeek:type:`bool`
 

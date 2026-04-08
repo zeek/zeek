@@ -1,3 +1,7 @@
+8.2.0-dev.494 | 2026-04-08 19:22:54 +0200
+
+  * cluster/PublishOnChange: clang-tidy follow-ups (Arne Welzel, Corelight)
+
 8.2.0-dev.492 | 2026-04-08 19:06:56 +0200
 
   * Add DNS NOTIFY support (Fatema BW)

@@ -267,10 +267,14 @@ public:
 
 } // namespace
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define debug(fmt, ...)                                                                                                \
     do {                                                                                                               \
         DBG_LOG(DBG_CLUSTER, fmt, __VA_ARGS__);                                                                        \
     } while ( 0 )
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace zeek::detail {
 /**

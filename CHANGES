@@ -1,3 +1,10 @@
+8.2.0-dev.483 | 2026-04-08 18:41:37 +0200
+
+  * testing/btest/cluster: Lower HWMs on non-manager nodes (Arne Welzel, Corelight)
+
+    This should avoid the manager node reporting drops by keeping its HWMs
+    to the default values and only reducing them on workers and the proxy.
+
 8.2.0-dev.481 | 2026-04-08 09:00:58 -0700
 
   * Fix auto-causes-copy warnings in script_opt (Tim Wojtulewicz, Corelight)

@@ -222,9 +222,13 @@ ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2) {
 
         case OP_VAL_IS_IN_TABLE_COND_VVb: z->op = OP_NOT_VAL_IS_IN_TABLE_COND_VVb; break;
         case OP_NOT_VAL_IS_IN_TABLE_COND_VVb: z->op = OP_VAL_IS_IN_TABLE_COND_VVb; break;
+        case OP_VAL_IS_IN_PATTERN_TABLE_COND_VVb: z->op = OP_NOT_VAL_IS_IN_PATTERN_TABLE_COND_VVb; break;
+        case OP_NOT_VAL_IS_IN_PATTERN_TABLE_COND_VVb: z->op = OP_VAL_IS_IN_PATTERN_TABLE_COND_VVb; break;
 
         case OP_CONST_IS_IN_TABLE_COND_VCb: z->op = OP_NOT_CONST_IS_IN_TABLE_COND_VCb; break;
         case OP_NOT_CONST_IS_IN_TABLE_COND_VCb: z->op = OP_CONST_IS_IN_TABLE_COND_VCb; break;
+        case OP_CONST_IS_IN_PATTERN_TABLE_COND_VCb: z->op = OP_NOT_CONST_IS_IN_PATTERN_TABLE_COND_VCb; break;
+        case OP_NOT_CONST_IS_IN_PATTERN_TABLE_COND_VCb: z->op = OP_CONST_IS_IN_PATTERN_TABLE_COND_VCb; break;
 
         case OP_VAL2_IS_IN_TABLE_COND_VVVb: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVb; break;
         case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVb: z->op = OP_VAL2_IS_IN_TABLE_COND_VVVb; break;
@@ -257,8 +261,6 @@ ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
     }
 
     if ( e->Tag() == EXPR_IN ) {
-        auto op2 = e->GetOp2()->AsNameExpr();
-
         // First, deal with the easy cases: it's a single index.
         if ( op1->Tag() == EXPR_LIST ) {
             auto& ind = op1->AsListExpr()->Exprs();
@@ -266,15 +268,22 @@ ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
                 op1 = {NewRef{}, ind[0]};
         }
 
+        auto op2 = e->GetOp2()->AsNameExpr();
+        auto op2_t = op2->GetType()->AsTableType();
+        auto& ind_t = op2_t->GetIndexTypes();
+
+        auto pat_tbl = ind_t.size() == 1 && ind_t[0]->Tag() == TYPE_PATTERN;
         if ( op1->Tag() == EXPR_NAME ) {
-            auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVb, op1->AsNameExpr(), op2, 0);
+            auto op = pat_tbl ? OP_VAL_IS_IN_PATTERN_TABLE_COND_VVb : OP_VAL_IS_IN_TABLE_COND_VVb;
+            auto z = GenInst(op, op1->AsNameExpr(), op2, 0);
             z.SetType(op1->GetType());
             branch_v = 3;
             return AddInst(z);
         }
 
         if ( op1->Tag() == EXPR_CONST ) {
-            auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VCb, op2, op1->AsConstExpr(), 0);
+            auto op = pat_tbl ? OP_CONST_IS_IN_PATTERN_TABLE_COND_VCb : OP_CONST_IS_IN_TABLE_COND_VCb;
+            auto z = GenInst(op, op2, op1->AsConstExpr(), 0);
             z.SetType(op1->GetType());
             branch_v = 2;
             return AddInst(z);

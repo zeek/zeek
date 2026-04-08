@@ -117,6 +117,11 @@ class VV
 op-types X T
 eval	$2->Find($1.ToVal(Z_TYPE)) != nullptr
 
+predicate-op Val-Is-In-Pattern-Table
+class VV
+op-types X T
+eval	$2->LookupPattern(cast_intrusive<StringVal>($1.ToVal(Z_TYPE))) != nullptr
+
 # Variants for indexing two values, one of which might be a constant.
 # We set the instructions's *second* type to be that of the first variable
 # index.  We get the type of the second variable (if any) by digging it
@@ -201,6 +206,11 @@ predicate-op Const-Is-In-Table
 class VC
 op-types T X
 eval	$1->Find($2.ToVal(Z_TYPE)) != nullptr
+
+predicate-op Const-Is-In-Pattern-Table
+class VC
+op-types T X
+eval	$1->LookupPattern(cast_intrusive<StringVal>($2.ToVal(Z_TYPE))) != nullptr
 
 internal-op List-Is-In-Table
 classes VV VC

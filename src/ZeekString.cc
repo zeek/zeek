@@ -437,12 +437,9 @@ TEST_CASE("construction") {
     zeek::String s4{"abcdef"};
     CHECK_EQ(s4.Len(), 6);
 
-    zeek::String s5{std::string("abcdef")};
-    CHECK_EQ(s5.Len(), 6);
-
     // Test the copy constructor.
     // coverity[copy_instead_of_move]
-    zeek::String s6{s5};
+    zeek::String s6{s4};
     CHECK_EQ(s6.Len(), 6);
 
     zeek::String s7{true, text2, 6};
@@ -467,7 +464,7 @@ TEST_CASE("construction") {
     CHECK_EQ(s10.Bytes(), text5);
 
     // Test the move constructor.
-    zeek::String s11{std::move(s5)};
+    zeek::String s11{std::move(s4)};
     CHECK_EQ(s11.Len(), 6);
 }
 
@@ -477,9 +474,6 @@ TEST_CASE("set/assignment/comparison") {
 
     s.Set("def");
     CHECK_EQ(s, "def");
-
-    s.Set(std::string("ghi"));
-    CHECK_EQ(s, "ghi");
 
     zeek::String s2{"abc"};
     s.Set(s2);

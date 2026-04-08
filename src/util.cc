@@ -2494,10 +2494,10 @@ TEST_SUITE("util") {
     TEST_CASE("canonify_name") { CHECK(canonify_name("file name") == "FILE_NAME"); }
 
     TEST_CASE("json_escape_utf8") {
-        CHECK(escape_utf8(std::string{"\x07o"}, ESCAPE_NONE) == "\x07o");
+        CHECK(escape_utf8("\x07o", ESCAPE_NONE) == "\x07o");
         CHECK(escape_utf8("string", ESCAPE_NONE) == "string");
-        CHECK(escape_utf8(std::string{"string\n"}, ESCAPE_NONE) == "string\n");
-        CHECK(escape_utf8(std::string{"string\n"}, ESCAPE_PRINTABLE_CONTROLS) == "string\\x0a");
+        CHECK(escape_utf8("string\n", ESCAPE_NONE) == "string\n");
+        CHECK(escape_utf8("string\n", ESCAPE_PRINTABLE_CONTROLS) == "string\\x0a");
         CHECK(escape_utf8("string\x82", ESCAPE_NONE) == "string\\x82");
 
         // \udab7 is a valid UTF-8 character, but \u0007 is a control character
@@ -2507,7 +2507,7 @@ TEST_SUITE("util") {
 
         // In this case, we insert the UTF-8 character as the actual character
         // because the control character isn't getting escaped.
-        CHECK(escape_utf8(std::string{"\x07\xd4\xb7o"}, ESCAPE_NONE) == "\x07\xd4\xb7o");
+        CHECK(escape_utf8("\x07\xd4\xb7o", ESCAPE_NONE) == "\x07\xd4\xb7o");
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push

@@ -78,7 +78,6 @@ Checks: [-*,
          -modernize-use-std-print,
 
          # These are new in Clang 22, and we don't have fixes for them in place yet.
-         -performance-string-view-conversions,
          -modernize-use-string-view,
          -modernize-use-structured-binding,
 ]

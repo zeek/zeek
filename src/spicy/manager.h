@@ -57,7 +57,7 @@ inline void log(std::string_view msg) {
     DBG_LOG(DBG_SPICY, "%s", std::string(msg).c_str());
 
     if ( hilti::rt::isInitialized() )
-        HILTI_RT_DEBUG("zeek", std::string(msg));
+        HILTI_RT_DEBUG("zeek", msg);
 }
 
 

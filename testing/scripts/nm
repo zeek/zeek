@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# Shim for 'nm' on Windows where GNU nm is not available.
+# Delegates to dumpbin for MSVC-built binaries.
+#
+# This script is placed in testing/scripts/ which is on the btest PATH.
+# On Linux/macOS, the real 'nm' binary takes precedence.
+#
+
+undefined_only=false
+files=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -u | -U)
+            undefined_only=true
+            ;;
+        -*)
+            # Ignore other flags
+            ;;
+        *)
+            files+=("$1")
+            ;;
+    esac
+    shift
+done
+
+for file in "${files[@]}"; do
+    if [ "$undefined_only" = true ]; then
+        # List imported (undefined/external) symbols using dumpbin.
+        # Output lines containing symbol names so grep can find them.
+        dumpbin //IMPORTS "$file" 2>/dev/null
+    else
+        dumpbin //SYMBOLS "$file" 2>/dev/null
+    fi
+done

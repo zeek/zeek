@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# Shim for 'hexdump' on Windows where it is not available.
+# Uses Python to produce compatible output.
+#
+# This script is placed in testing/scripts/ which is on the btest PATH.
+# On Linux/macOS, the real 'hexdump' binary takes precedence.
+#
+
+# Parse args - we only need to support 'hexdump -C file'
+canonical=false
+files=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -C)
+            canonical=true
+            ;;
+        -*)
+            # Ignore other flags
+            ;;
+        *)
+            files+=("$1")
+            ;;
+    esac
+    shift
+done
+
+for file in "${files[@]}"; do
+    if [ "$canonical" = true ]; then
+        python -c "
+import sys
+with open(sys.argv[1], 'rb') as f:
+    offset = 0
+    prev_chunk = None
+    star_printed = False
+    while True:
+        chunk = f.read(16)
+        if not chunk:
+            break
+        if chunk == prev_chunk and len(chunk) == 16:
+            if not star_printed:
+                print('*')
+                star_printed = True
+            offset += len(chunk)
+            continue
+        star_printed = False
+        prev_chunk = chunk
+        hex_part = ' '.join(f'{b:02x}' for b in chunk)
+        if len(chunk) > 8:
+            hex_part = ' '.join(f'{b:02x}' for b in chunk[:8]) + '  ' + ' '.join(f'{b:02x}' for b in chunk[8:])
+        ascii_part = ''.join(chr(b) if 32 <= b < 127 else '.' for b in chunk)
+        print(f'{offset:08x}  {hex_part:<48s}  |{ascii_part}|')
+        offset += len(chunk)
+    print(f'{offset:08x}')
+" "$file"
+    else
+        python -c "
+import sys
+with open(sys.argv[1], 'rb') as f:
+    offset = 0
+    while True:
+        chunk = f.read(16)
+        if not chunk:
+            break
+        hex_part = ' '.join(f'{b:02x}' for b in chunk)
+        print(f'{offset:07x} {hex_part}')
+        offset += len(chunk)
+" "$file"
+    fi
+done

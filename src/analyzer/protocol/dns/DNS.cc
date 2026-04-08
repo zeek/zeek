@@ -1717,6 +1717,8 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
 
 VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int svc_params_len) {
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
+    static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
     // Each service parameter is at least four bytes, two for key and value length each.
@@ -1725,7 +1727,6 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
         // exceed it, otherwise the length accounting go out of sync.
         assert(svc_params_len <= len);
 
-        static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
 
         auto key = ExtractShort(data, len);

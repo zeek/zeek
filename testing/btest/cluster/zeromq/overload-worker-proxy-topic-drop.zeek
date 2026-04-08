@@ -40,10 +40,6 @@ const total_publishes = 100000;
 # How many events to publish per tick()
 const batch = 100;
 
-# Lower HWMs to provoke drops
-redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch/ 5;
-redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 5;
-
 global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 # @TEST-END-FILE
 
@@ -113,6 +109,11 @@ event zeek_done()
 
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
+
+# Lower HWMs to provoke drops
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch/ 5;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 5;
+
 global last_c: table[string] of count &default=0;
 global drop_c: table[string] of count &default=0;
 

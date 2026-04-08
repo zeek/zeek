@@ -1721,6 +1721,10 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
 
     // Each service parameter is at least four bytes, two for key and value length each.
     while ( svc_params_len >= 4 ) {
+        // len is modified during parsing and svc_params_len should never
+        // exceed it, otherwise the length accounting go out of sync.
+        assert(svc_params_len <= len);
+
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
 
@@ -1765,11 +1769,11 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                     item_len_parsed += 1;
 
                     if ( alpn_len == 0 || alpn_len > 255 || alpn_len + item_len_parsed > value_len ) {
-                        // Account for already consumed data first.
-                        value_len -= item_len_parsed;
                         analyzer->Weird("DNS_SVCB_alpn_length_invalid");
                         goto malformed;
                     }
+
+                    assert(alpn_len <= len);
 
                     alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
                     data += alpn_len;

@@ -1,3 +1,14 @@
+8.2.0-dev.472 | 2026-04-08 09:00:35 -0700
+
+  * Disable shared-object plugin loading on Windows (Tim Wojtulewicz, Corelight)
+
+    Windows doesn't support dlopen() and friends. The code was previously
+    under an #ifdef block, but changes in #5312 exposed it.
+
+  * Use full include path for bif netvar headers (Tim Wojtulewicz, Corelight)
+
+    This fixes a conflict on Windows after #5270 was merged.
+
 8.2.0-dev.468 | 2026-04-07 20:01:51 +0200
 
   * testing/btest/language: Add test showing directory ending in .so (Arne Welzel, Corelight)

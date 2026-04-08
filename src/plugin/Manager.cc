@@ -156,6 +156,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir) {
 }
 
 zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::string& path) {
+#ifndef _MSC_VER
     DBG_LOG(DBG_PLUGINS, "Loading plugin %s", path.c_str());
 
     current_plugin = nullptr;
@@ -218,6 +219,9 @@ zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::strin
     DBG_LOG(DBG_PLUGINS, "  Loaded %s", path.c_str());
 
     return plugin;
+#else
+    return zeek::unexpected<std::string>("Loading plugin shared objects is not supported on Windows");
+#endif
 }
 
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,

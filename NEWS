@@ -76,6 +76,9 @@ New Functionality
 
 	redef PacketAnalyzer::VXLAN::vxlan_ports += { 4711/udp };
 
+- The ``dns.log`` now also contains information about DNS notifications (RFC 1996).
+  The ``opcode`` is set to 4 and ``opcode_code`` name will be "notify".
+
 - The number of messages and bytes processed by the central ZeroMQ XPUB/XSUB
   cluster component is now exposed as metrics of the form:
 

@@ -316,7 +316,7 @@ void rt::debug(const Cookie& cookie, std::string_view msg) {
         SPICY_DEBUG(hilti::rt::fmt("[%s/%" PRIu32 "] %s", name, f->analyzer->GetID(), msg));
     }
     else if ( const auto f = cookie.packet ) {
-        auto name = packet_mgr->GetComponentName(f->analyzer->GetAnalyzerTag());
+        const auto& name = packet_mgr->GetComponentName(f->analyzer->GetAnalyzerTag());
         SPICY_DEBUG(hilti::rt::fmt("[%s] %s", name, msg));
     }
     else
@@ -1013,7 +1013,7 @@ hilti::rt::String rt::file_begin(const hilti::rt::Optional<hilti::rt::String>& m
     auto _ = hilti::rt::profiler::start("zeek/rt/file_begin");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto fuid_std = fuid ? hilti::rt::Optional<std::string>(std::string(*fuid)) : hilti::rt::Optional<std::string>();
-    auto* fstate = _file_state_stack(cookie)->push(fuid_std);
+    auto* fstate = _file_state_stack(cookie)->push(std::move(fuid_std));
     fstate->mime_type =
         mime_type ? hilti::rt::Optional<std::string>(std::string(*mime_type)) : hilti::rt::Optional<std::string>();
 
@@ -1055,7 +1055,7 @@ void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size,
     auto _ = hilti::rt::profiler::start("zeek/rt/file_set_size");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
-    auto* fstate = _file_state(cookie, fid_std);
+    auto* fstate = _file_state(cookie, std::move(fid_std));
 
     if ( auto c = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());
@@ -1067,14 +1067,16 @@ void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size,
 
 void rt::file_data_in(const hilti::rt::Bytes& data, const hilti::rt::Optional<hilti::rt::String>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_data_in");
-    auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
+    const auto& fid_std =
+        fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
     _data_in(data.data(), data.size(), {}, fid_std);
 }
 
 void rt::file_data_in_at_offset(const hilti::rt::Bytes& data, const hilti::rt::integer::safe<uint64_t>& offset,
                                 const hilti::rt::Optional<hilti::rt::String>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_data_in_at_offset");
-    auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
+    const auto& fid_std =
+        fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
     _data_in(data.data(), data.size(), offset, fid_std);
 }
 
@@ -1086,7 +1088,7 @@ void rt::file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti:
         throw spicy::rt::ValueUnavailable("file_gap() not available in the current context");
 
     auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
-    auto* fstate = _file_state(cookie, fid_std);
+    auto* fstate = _file_state(cookie, std::move(fid_std));
 
     if ( auto c = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());
@@ -1100,7 +1102,7 @@ void rt::file_end(const hilti::rt::Optional<hilti::rt::String>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_end");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
-    auto* fstate = _file_state(cookie, fid_std);
+    auto* fstate = _file_state(cookie, std::move(fid_std));
 
     file_mgr->EndOfFile(fstate->fid);
     _file_state_stack(cookie)->remove(fstate->fid);

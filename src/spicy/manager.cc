@@ -293,7 +293,7 @@ void Manager::registerEvent(const hilti::rt::String& name) {
         // This installs & exports the ID, but it doesn't set its type yet.
         // That will happen as handlers get defined. If there are no handlers,
         // we set a dummy type in the plugin's InitPostScript
-        _events[name] = detail::install_ID(std::string(name).c_str(), std::string(mod).c_str(), false, true);
+        _events[name] = detail::install_ID(std::string(name).c_str(), mod.c_str(), false, true);
 
     if ( _module_info )
         _module_info->AddBifItem(std::string(name), ::zeek::plugin::BifItem::EVENT);

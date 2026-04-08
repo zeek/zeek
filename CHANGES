@@ -1,3 +1,21 @@
+8.2.0-dev.481 | 2026-04-08 09:00:58 -0700
+
+  * Fix auto-causes-copy warnings in script_opt (Tim Wojtulewicz, Corelight)
+
+  * Fix integer overflow in Gnutella analyzer (Tim Wojtulewicz, Corelight)
+
+  * Fix some copy-instead-of-move and auto-causes-copy warnings in spicy runtime-support (Tim Wojtulewicz, Corelight)
+
+  * Avoid recreating existing std::string in spicy manager (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary check of unsigned value in ZAM (Tim Wojtulewicz, Corelight)
+
+  * Add missing std::move in Gen-ZAM (Tim Wojtulewicz, Corelight)
+
+  * Use contains() instead of count() in Gen-ZAM (Tim Wojtulewicz, Corelight)
+
+  * Fix copy-instead-of-move in Hash.cc's unit tests (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.472 | 2026-04-08 09:00:35 -0700
 
   * Disable shared-object plugin loading on Windows (Tim Wojtulewicz, Corelight)

@@ -101,7 +101,7 @@ static std::forward_list<EventGroupPtr> get_event_groups(const CompiledScript& c
 }
 
 void add_standalone_bodies(Func* f) {
-    auto fn = f->GetName();
+    const auto& fn = f->GetName();
     auto zsh = zeek_script_hashes.find(fn);
     if ( zsh == zeek_script_hashes.end() )
         return;
@@ -111,7 +111,7 @@ void add_standalone_bodies(Func* f) {
     for ( auto h : zsh->second ) {
         auto csi = compiled_standalone_scripts.find(h);
         ASSERT(csi != compiled_standalone_scripts.end());
-        auto cs = csi->second;
+        const auto& cs = csi->second;
 
         auto groups = get_event_groups(cs);
         f->AddBody({.stmts = cs.body, .groups = std::move(groups), .priority = cs.priority}, {}, num_params);
@@ -174,7 +174,7 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
     }
 
     auto f = cast_intrusive<ScriptFunc>(v->AsFuncVal()->AsFuncPtr());
-    auto full_name = f->GetName(); // differs from fn in that it includes module
+    const auto& full_name = f->GetName(); // differs from fn in that it includes module
 
     // Events we need to register.
     unordered_set<string> events;

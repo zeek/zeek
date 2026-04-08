@@ -220,7 +220,7 @@ zeek::expected<Plugin*, std::string> Manager::LoadDynamicPlugin(const std::strin
 
     return plugin;
 #else
-    return zeek::unexpected<std::string>("Loading plugin shared objects is not supported on Windows");
+    return zeek::unexpected<std::string>("Loading dynamic plugins is not supported on Windows");
 #endif
 }
 

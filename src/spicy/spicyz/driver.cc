@@ -12,6 +12,8 @@
 #include <spicy/rt/libspicy.h>
 
 #include <hilti/ast/declarations/type.h>
+#include <hilti/autogen/config.h>
+#include <hilti/base/util.h>
 #include <hilti/compiler/init.h>
 #include <hilti/compiler/plugin.h>
 
@@ -76,6 +78,26 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
     : ::spicy::Driver("<Spicy support for Zeek>"), _glue(std::move(glue)) {
     _glue->init(this, zeek_version);
 
+    // The parent constructor calls hilti::configuration().initLocation(false),
+    // which sets uses_build_directory=false. That's wrong when running from
+    // the zeek build tree: the default detection in the HILTI configuration
+    // compares argv0 against the spicy submodule's PROJECT_BINARY_DIR, which
+    // doesn't match because the zeek-integrated spicyz lives outside that
+    // subtree. Re-detect here using the top-level zeek build directory.
+    if ( argv0 && *argv0 ) {
+        try {
+            auto exec = hilti::rt::normalizePath(hilti::rt::filesystem::canonical(argv0)).generic_string();
+            auto build_prefix =
+                hilti::rt::normalizePath(hilti::rt::filesystem::canonical(configuration::BuildDir)).generic_string();
+            if ( hilti::util::startsWith(exec, build_prefix) ) {
+                hilti::configuration().initLocation(true);
+                _using_build_directory = true;
+            }
+        } catch ( const hilti::rt::filesystem::filesystem_error& ) {
+            // Fall through to default (install) mode.
+        }
+    }
+
     ::spicy::Configuration::extendHiltiConfiguration();
     auto options = hiltiOptions();
 
@@ -96,20 +118,32 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
         options.library_paths.push_back(std::move(lib_path));
     } catch ( const hilti::rt::filesystem::filesystem_error& e ) {
         ::hilti::logger().warning(
-            hilti::util::fmt("invalid plugin base directory %s: %s", lib_path.native(), e.what()));
+            hilti::util::fmt("invalid plugin base directory %s: %s", lib_path.string(), e.what()));
     }
 
+#ifdef _WIN32
+    for ( const auto& i : hilti::util::split(configuration::CxxZeekIncludesDirectories(), ";") ) {
+#else
     for ( const auto& i : hilti::util::split(configuration::CxxZeekIncludesDirectories(), ":") ) {
+#endif
         if ( i.size() )
             options.cxx_include_paths.emplace_back(i);
     }
+
+#ifdef _WIN32
+    // On Windows, JIT-compiled DLLs need to link against the host
+    // executable's import library to resolve runtime symbols at load time.
+    auto zeek_lib = configuration::ZeekExeImportLib();
+    if ( hilti::rt::filesystem::exists(zeek_lib) )
+        options.cxx_link.push_back(zeek_lib.string());
+#endif
 
 #ifdef DEBUG
     SPICY_DEBUG("Search paths:");
 
     auto hilti_options = hiltiOptions();
     for ( const auto& x : hilti_options.library_paths ) {
-        SPICY_DEBUG(hilti::rt::fmt("  %s", x.native()));
+        SPICY_DEBUG(hilti::rt::fmt("  %s", x.string()));
     }
 #endif
 

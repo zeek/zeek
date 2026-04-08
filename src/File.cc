@@ -26,7 +26,8 @@
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Type.h"
-#include "zeek/event.bif.netvar_h"
+
+#include "event.bif.netvar_h"
 
 namespace zeek {
 

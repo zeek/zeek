@@ -199,9 +199,6 @@ if (MSVC)
     set(BROKER_DISABLE_DOC_EXAMPLES true)
     add_definitions(-DDOCTEST_CONFIG_NO_MULTITHREADING)
 
-    # Disable Spicy as it is not yet supported in Windows.
-    set(DISABLE_SPICY true)
-
     if (BUILD_WITH_WERROR)
         # TODO: This is disabled for now because there a bunch of known
         # compiler warnings on Windows that we don't have good fixes for.
@@ -292,9 +289,6 @@ if (ZEEK_STANDALONE)
     install(TARGETS zeek_exe RUNTIME DESTINATION bin)
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS ON)
-    if (MSVC)
-        set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
 

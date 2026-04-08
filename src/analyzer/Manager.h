@@ -380,7 +380,11 @@ private:
 
 } // namespace analyzer
 
-extern analyzer::Manager* analyzer_mgr;
+extern
+#if defined(_MSC_VER) && defined(HILTI_JIT_DLL)
+    __declspec(dllimport)
+#endif
+    analyzer::Manager* analyzer_mgr;
 
 } // namespace zeek
 

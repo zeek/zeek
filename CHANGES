@@ -1,3 +1,7 @@
+8.2.0-dev.496 | 2026-04-08 10:46:25 -0700
+
+  * [windows] enable spicy and fix build errors (Maor Hamami)
+
 8.2.0-dev.494 | 2026-04-08 19:22:54 +0200
 
   * cluster/PublishOnChange: clang-tidy follow-ups (Arne Welzel, Corelight)

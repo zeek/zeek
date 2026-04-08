@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <list>
 #include <map>
 #include <utility>
@@ -208,6 +210,6 @@ private:
  * A singleton instance of the thread manager. All methods must only be
  * called from Zeek's main thread.
  */
-extern threading::Manager* thread_mgr;
+ZEEK_EXTERN_DATA threading::Manager* thread_mgr;
 
 } // namespace zeek

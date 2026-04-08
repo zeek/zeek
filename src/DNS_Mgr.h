@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <arpa/nameser.h>
 #include <netdb.h>
 #include <list>
@@ -380,6 +382,6 @@ protected:
     bool shutting_down = false;
 };
 
-extern DNS_Mgr* dns_mgr;
+ZEEK_EXTERN_DATA DNS_Mgr* dns_mgr;
 
 } // namespace zeek::detail

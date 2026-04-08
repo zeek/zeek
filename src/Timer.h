@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstdint>
 #include <memory>
 
@@ -171,6 +173,6 @@ private:
     std::unique_ptr<PriorityQueue> q;
 };
 
-extern TimerMgr* timer_mgr;
+ZEEK_EXTERN_DATA TimerMgr* timer_mgr;
 
 } // namespace zeek::detail

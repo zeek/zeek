@@ -2,20 +2,19 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <tuple>
 #include <type_traits>
 #include <vector>
 
+#include "zeek/RunState.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/util-types.h"
 
 namespace zeek {
-
-namespace run_state {
-extern double network_time;
-} // namespace run_state
 
 class EventMgr;
 
@@ -194,6 +193,6 @@ private:
     Event* tail = nullptr;
 };
 
-extern EventMgr event_mgr;
+ZEEK_EXTERN_DATA EventMgr event_mgr;
 
 } // namespace zeek

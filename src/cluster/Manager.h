@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <memory>
 
@@ -118,6 +120,6 @@ private:
 
 // This manager instance only exists for plugins to register components,
 // not for actual cluster functionality.
-extern Manager* manager;
+ZEEK_EXTERN_DATA Manager* manager;
 
 } // namespace zeek::cluster

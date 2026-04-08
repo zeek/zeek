@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -237,6 +239,6 @@ private:
 
 } // namespace iosource
 
-extern iosource::Manager* iosource_mgr;
+ZEEK_EXTERN_DATA iosource::Manager* iosource_mgr;
 
 } // namespace zeek

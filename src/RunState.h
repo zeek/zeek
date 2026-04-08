@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <optional>
 #include <string>
 
@@ -38,26 +40,26 @@ extern zeek::iosource::PktSrc* current_packet_source();
 
 extern double check_pseudo_time(const Packet* pkt);
 
-extern zeek::iosource::IOSource* current_iosrc;
-extern zeek::iosource::PktDumper* pkt_dumper; // where to save packets
+ZEEK_EXTERN_DATA zeek::iosource::IOSource* current_iosrc;
+ZEEK_EXTERN_DATA zeek::iosource::PktDumper* pkt_dumper; // where to save packets
 
 // True if we have timers scheduled for the future on which we need
 // to wait.  "Need to wait" here means that we're running live (though
 // perhaps not reading_live, but just running in real-time) as opposed
 // to reading a trace (in which case we don't want to wait in real-time
 // on future timers).
-extern bool have_pending_timers;
+ZEEK_EXTERN_DATA bool have_pending_timers;
 
-extern double first_wallclock;
+ZEEK_EXTERN_DATA double first_wallclock;
 
 // Only set in pseudo-realtime mode.
-extern double first_timestamp;
-extern double current_wallclock;
-extern double current_pseudo;
+ZEEK_EXTERN_DATA double first_timestamp;
+ZEEK_EXTERN_DATA double current_wallclock;
+ZEEK_EXTERN_DATA double current_pseudo;
 
-extern bool zeek_init_done;
+ZEEK_EXTERN_DATA bool zeek_init_done;
 
-extern bool bare_mode; // True if Zeek was started in bare mode.
+ZEEK_EXTERN_DATA bool bare_mode; // True if Zeek was started in bare mode.
 
 } // namespace detail
 
@@ -70,41 +72,41 @@ bool is_processing_suspended();
 extern double current_packet_wallclock();
 
 // Whether we're reading live traffic.
-extern bool reading_live;
+ZEEK_EXTERN_DATA bool reading_live;
 
 // Same but for reading from traces instead.  We have two separate
 // variables because it's possible that neither is true, and we're
 // instead just running timers (per the variable after this one).
-extern bool reading_traces;
+ZEEK_EXTERN_DATA bool reading_traces;
 
 // If > 0, we are reading from traces but trying to mimic real-time behavior.
 // (In this case, both reading_traces and reading_live are true.)  The value
 // is the speedup (1 = real-time, 0.5 = half real-time, etc.).
-extern double pseudo_realtime;
+ZEEK_EXTERN_DATA double pseudo_realtime;
 
 // When we started processing the current packet and corresponding event
 // queue.
-extern double processing_start_time;
+ZEEK_EXTERN_DATA double processing_start_time;
 
 // When the Zeek process was started.
-extern double zeek_start_time;
+ZEEK_EXTERN_DATA double zeek_start_time;
 
 // Time at which the Zeek process was started with respect to network time,
 // i.e. the timestamp of the first packet.
-extern double zeek_start_network_time;
+ZEEK_EXTERN_DATA double zeek_start_network_time;
 
 // Time according to last packet timestamp (or current time)
-extern double network_time;
+ZEEK_EXTERN_DATA double network_time;
 
 // True if we're a in the process of cleaning-up just before termination.
-extern bool terminating;
+ZEEK_EXTERN_DATA bool terminating;
 
 // True if Zeek is currently parsing scripts.
-extern bool is_parsing;
+ZEEK_EXTERN_DATA bool is_parsing;
 
-extern const zeek::Packet* current_pkt;
-extern int current_dispatched;
-extern double current_timestamp;
+ZEEK_EXTERN_DATA const zeek::Packet* current_pkt;
+ZEEK_EXTERN_DATA int current_dispatched;
+ZEEK_EXTERN_DATA double current_timestamp;
 
 } // namespace run_state
 } // namespace zeek

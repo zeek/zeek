@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/stat.h>
 #include <cerrno>
 #include <ctime>
@@ -274,7 +276,7 @@ bool Manager::IsUpToDate(const std::string& target_file, const std::vector<T*>& 
 
 namespace detail {
 
-extern zeekygen::detail::Manager* zeekygen_mgr;
+ZEEK_EXTERN_DATA zeekygen::detail::Manager* zeekygen_mgr;
 
 } // namespace detail
 } // namespace zeek

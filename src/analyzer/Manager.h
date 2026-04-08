@@ -20,6 +20,8 @@
  */
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <queue>
 #include <vector>
 
@@ -380,11 +382,7 @@ private:
 
 } // namespace analyzer
 
-extern
-#if defined(_MSC_VER) && defined(HILTI_JIT_DLL)
-    __declspec(dllimport)
-#endif
-    analyzer::Manager* analyzer_mgr;
+ZEEK_EXTERN_DATA analyzer::Manager* analyzer_mgr;
 
 } // namespace zeek
 

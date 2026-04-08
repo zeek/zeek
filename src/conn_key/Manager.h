@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Tag.h"
 #include "zeek/conn_key/Component.h"
 #include "zeek/conn_key/Factory.h"
@@ -51,7 +53,7 @@ private:
 
 } // namespace conn_key
 
-extern zeek::conn_key::Manager* conn_key_mgr;
+ZEEK_EXTERN_DATA zeek::conn_key::Manager* conn_key_mgr;
 
 
 } // namespace zeek

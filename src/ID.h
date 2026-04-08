@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <forward_list>
 #include <string>
 #include <string_view>
@@ -256,18 +258,18 @@ IntrusivePtr<T> find_const(std::string_view name) {
  */
 FuncPtr find_func(std::string_view name);
 
-extern RecordTypePtr conn_id;
-extern RecordTypePtr conn_id_ctx;
-extern RecordTypePtr endpoint;
-extern RecordTypePtr connection;
-extern RecordTypePtr fa_file;
-extern RecordTypePtr fa_metadata;
-extern EnumTypePtr transport_proto;
-extern TableTypePtr string_set;
-extern TableTypePtr string_array;
-extern TableTypePtr count_set;
-extern VectorTypePtr string_vec;
-extern VectorTypePtr index_vec;
+ZEEK_EXTERN_DATA RecordTypePtr conn_id;
+ZEEK_EXTERN_DATA RecordTypePtr conn_id_ctx;
+ZEEK_EXTERN_DATA RecordTypePtr endpoint;
+ZEEK_EXTERN_DATA RecordTypePtr connection;
+ZEEK_EXTERN_DATA RecordTypePtr fa_file;
+ZEEK_EXTERN_DATA RecordTypePtr fa_metadata;
+ZEEK_EXTERN_DATA EnumTypePtr transport_proto;
+ZEEK_EXTERN_DATA TableTypePtr string_set;
+ZEEK_EXTERN_DATA TableTypePtr string_array;
+ZEEK_EXTERN_DATA TableTypePtr count_set;
+ZEEK_EXTERN_DATA VectorTypePtr string_vec;
+ZEEK_EXTERN_DATA VectorTypePtr index_vec;
 
 namespace detail {
 

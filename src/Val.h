@@ -68,12 +68,11 @@ namespace logging {
 class Manager;
 }
 
-namespace run_state {
+} // namespace zeek
 
-extern double network_time;
-extern double zeek_start_network_time;
+#include "zeek/RunState.h"
 
-} // namespace run_state
+namespace zeek {
 
 using FuncPtr = IntrusivePtr<Func>;
 using FilePtr = IntrusivePtr<File>;
@@ -351,7 +350,7 @@ private:
     ValPtr b_false;
 };
 
-extern ValManager* val_mgr;
+ZEEK_EXTERN_DATA ValManager* val_mgr;
 
 namespace detail {
 

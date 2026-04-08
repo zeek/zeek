@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <memory>
 
 #include "zeek/OpaqueVal.h"
@@ -409,7 +411,7 @@ using BackendPtr = zeek::IntrusivePtr<Backend>;
 
 namespace detail {
 
-extern OpaqueTypePtr backend_opaque;
+ZEEK_EXTERN_DATA OpaqueTypePtr backend_opaque;
 
 /**
  * OpaqueVal interface for returning BackendHandle objects to script-land.

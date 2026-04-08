@@ -4,94 +4,96 @@
 
 // These includes are needed for the inclusion of the bif headers at the end
 // of this file.
+#include "zeek/zeek-config.h"
+
 #include "zeek/EventRegistry.h"
 #include "zeek/Val.h"
 
 namespace zeek::detail {
 
-extern double watchdog_interval;
+ZEEK_EXTERN_DATA double watchdog_interval;
 
-extern int max_timer_expires;
+ZEEK_EXTERN_DATA int max_timer_expires;
 
-extern int ignore_checksums;
-extern int partial_connection_ok;
-extern int tcp_SYN_ack_ok;
-extern int tcp_match_undelivered;
+ZEEK_EXTERN_DATA int ignore_checksums;
+ZEEK_EXTERN_DATA int partial_connection_ok;
+ZEEK_EXTERN_DATA int tcp_SYN_ack_ok;
+ZEEK_EXTERN_DATA int tcp_match_undelivered;
 
-extern double frag_timeout;
+ZEEK_EXTERN_DATA double frag_timeout;
 
-extern double tcp_SYN_timeout;
-extern double tcp_session_timer;
-extern double tcp_connection_linger;
-extern double tcp_attempt_delay;
-extern double tcp_close_delay;
-extern double tcp_partial_close_delay;
-extern double tcp_reset_delay;
+ZEEK_EXTERN_DATA double tcp_SYN_timeout;
+ZEEK_EXTERN_DATA double tcp_session_timer;
+ZEEK_EXTERN_DATA double tcp_connection_linger;
+ZEEK_EXTERN_DATA double tcp_attempt_delay;
+ZEEK_EXTERN_DATA double tcp_close_delay;
+ZEEK_EXTERN_DATA double tcp_partial_close_delay;
+ZEEK_EXTERN_DATA double tcp_reset_delay;
 
-extern int tcp_max_initial_window;
-extern int tcp_max_above_hole_without_any_acks;
-extern int tcp_excessive_data_without_further_acks;
-extern int tcp_max_old_segments;
+ZEEK_EXTERN_DATA int tcp_max_initial_window;
+ZEEK_EXTERN_DATA int tcp_max_above_hole_without_any_acks;
+ZEEK_EXTERN_DATA int tcp_excessive_data_without_further_acks;
+ZEEK_EXTERN_DATA int tcp_max_old_segments;
 
-extern double non_analyzed_lifetime;
-extern double tcp_inactivity_timeout;
-extern double udp_inactivity_timeout;
-extern double icmp_inactivity_timeout;
-extern double unknown_ip_inactivity_timeout;
+ZEEK_EXTERN_DATA double non_analyzed_lifetime;
+ZEEK_EXTERN_DATA double tcp_inactivity_timeout;
+ZEEK_EXTERN_DATA double udp_inactivity_timeout;
+ZEEK_EXTERN_DATA double icmp_inactivity_timeout;
+ZEEK_EXTERN_DATA double unknown_ip_inactivity_timeout;
 
-extern int tcp_storm_thresh;
-extern double tcp_storm_interarrival_thresh;
-extern bool tcp_content_deliver_all_orig;
-extern bool tcp_content_deliver_all_resp;
+ZEEK_EXTERN_DATA int tcp_storm_thresh;
+ZEEK_EXTERN_DATA double tcp_storm_interarrival_thresh;
+ZEEK_EXTERN_DATA bool tcp_content_deliver_all_orig;
+ZEEK_EXTERN_DATA bool tcp_content_deliver_all_resp;
 
-extern bool udp_content_deliver_all_orig;
-extern bool udp_content_deliver_all_resp;
-extern bool udp_content_delivery_ports_use_resp;
+ZEEK_EXTERN_DATA bool udp_content_deliver_all_orig;
+ZEEK_EXTERN_DATA bool udp_content_deliver_all_resp;
+ZEEK_EXTERN_DATA bool udp_content_delivery_ports_use_resp;
 
-extern double dns_session_timeout;
-extern double rpc_timeout;
+ZEEK_EXTERN_DATA double dns_session_timeout;
+ZEEK_EXTERN_DATA double rpc_timeout;
 
-extern int mime_segment_length;
-extern int mime_segment_overlap_length;
+ZEEK_EXTERN_DATA int mime_segment_length;
+ZEEK_EXTERN_DATA int mime_segment_overlap_length;
 
-extern int http_entity_data_delivery_size;
-extern int truncate_http_URI;
+ZEEK_EXTERN_DATA int http_entity_data_delivery_size;
+ZEEK_EXTERN_DATA int truncate_http_URI;
 
-extern int dns_skip_all_auth;
-extern int dns_skip_all_addl;
-extern int dns_max_queries;
+ZEEK_EXTERN_DATA int dns_skip_all_auth;
+ZEEK_EXTERN_DATA int dns_skip_all_addl;
+ZEEK_EXTERN_DATA int dns_max_queries;
 
-extern double table_expire_interval;
-extern double table_expire_delay;
-extern int table_incremental_step;
+ZEEK_EXTERN_DATA double table_expire_interval;
+ZEEK_EXTERN_DATA double table_expire_delay;
+ZEEK_EXTERN_DATA int table_incremental_step;
 
-extern int orig_addr_anonymization, resp_addr_anonymization;
-extern int other_addr_anonymization;
+ZEEK_EXTERN_DATA int orig_addr_anonymization, resp_addr_anonymization;
+ZEEK_EXTERN_DATA int other_addr_anonymization;
 
-extern double connection_status_update_interval;
+ZEEK_EXTERN_DATA double connection_status_update_interval;
 
-extern double profiling_interval;
-extern int expensive_profiling_multiple;
+ZEEK_EXTERN_DATA double profiling_interval;
+ZEEK_EXTERN_DATA int expensive_profiling_multiple;
 
-extern int pkt_profile_mode;
-extern double pkt_profile_freq;
+ZEEK_EXTERN_DATA int pkt_profile_mode;
+ZEEK_EXTERN_DATA double pkt_profile_freq;
 
-extern int packet_filter_default;
+ZEEK_EXTERN_DATA int packet_filter_default;
 
-extern int sig_max_group_size;
+ZEEK_EXTERN_DATA int sig_max_group_size;
 
-extern int dpd_reassemble_first_packets;
-extern int dpd_buffer_size;
-extern int dpd_max_packets;
-extern int dpd_match_only_beginning;
-extern int dpd_late_match_stop;
-extern int dpd_ignore_ports;
+ZEEK_EXTERN_DATA int dpd_reassemble_first_packets;
+ZEEK_EXTERN_DATA int dpd_buffer_size;
+ZEEK_EXTERN_DATA int dpd_max_packets;
+ZEEK_EXTERN_DATA int dpd_match_only_beginning;
+ZEEK_EXTERN_DATA int dpd_late_match_stop;
+ZEEK_EXTERN_DATA int dpd_ignore_ports;
 
-extern int record_all_packets;
+ZEEK_EXTERN_DATA int record_all_packets;
 
-extern zeek_uint_t bits_per_uid;
+ZEEK_EXTERN_DATA zeek_uint_t bits_per_uid;
 
-extern zeek_uint_t tunnel_max_changes_per_connection;
+ZEEK_EXTERN_DATA zeek_uint_t tunnel_max_changes_per_connection;
 
 // Initializes globals that don't pertain to network/event analysis.
 extern void init_general_global_var();

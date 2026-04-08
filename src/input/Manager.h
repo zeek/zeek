@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 
 #include "zeek/EventHandler.h"
@@ -265,6 +267,6 @@ private:
 
 } // namespace input
 
-extern input::Manager* input_mgr;
+ZEEK_EXTERN_DATA input::Manager* input_mgr;
 
 } // namespace zeek

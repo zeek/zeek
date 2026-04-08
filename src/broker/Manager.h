@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
@@ -515,6 +517,6 @@ private:
 
 } // namespace Broker
 
-extern Broker::Manager* broker_mgr;
+ZEEK_EXTERN_DATA Broker::Manager* broker_mgr;
 
 } // namespace zeek

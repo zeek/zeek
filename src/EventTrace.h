@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 
@@ -468,6 +470,6 @@ private:
 };
 
 // If non-nil then we're doing event tracing.
-extern std::unique_ptr<EventTraceMgr> event_trace_mgr;
+ZEEK_EXTERN_DATA std::unique_ptr<EventTraceMgr> event_trace_mgr;
 
 } // namespace zeek::detail

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <span>
 
 #include "zeek/PacketFilter.h"
@@ -258,6 +260,6 @@ private:
 
 } // namespace packet_analysis
 
-extern zeek::packet_analysis::Manager* packet_mgr;
+ZEEK_EXTERN_DATA zeek::packet_analysis::Manager* packet_mgr;
 
 } // namespace zeek

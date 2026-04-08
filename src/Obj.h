@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <climits>
 #include <string>
 
@@ -62,8 +64,8 @@ void SetCurrentLocation(YYLTYPE currloc);
 inline constexpr Location no_location("<no location>", 0, 0);
 
 // Current start/end location.
-extern Location start_location;
-extern Location end_location;
+ZEEK_EXTERN_DATA Location start_location;
+ZEEK_EXTERN_DATA Location end_location;
 
 // Used by parser to set the above.
 inline void set_location(const Location loc) { start_location = end_location = loc; }

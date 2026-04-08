@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <mutex>
 
 // Apple's clang has an implementation of std::jthread, but it's still marked
@@ -130,6 +132,6 @@ private:
 
 namespace zeek {
 
-extern storage::Manager* storage_mgr;
+ZEEK_EXTERN_DATA storage::Manager* storage_mgr;
 
 } // namespace zeek

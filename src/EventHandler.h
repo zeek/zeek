@@ -4,17 +4,16 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <string>
 #include <unordered_set>
 
+#include "zeek/RunState.h"
 #include "zeek/Type.h"
 #include "zeek/ZeekArgs.h"
 
 namespace zeek {
-
-namespace run_state {
-extern double network_time;
-} // namespace run_state
 
 namespace telemetry {
 class Counter;

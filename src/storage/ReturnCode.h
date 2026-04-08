@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include "zeek/IntrusivePtr.h"
 
 namespace zeek {
@@ -19,21 +21,21 @@ public:
     static void Initialize();
     static void Cleanup();
 
-    static EnumValPtr SUCCESS;
-    static EnumValPtr VAL_TYPE_MISMATCH;
-    static EnumValPtr KEY_TYPE_MISMATCH;
-    static EnumValPtr NOT_CONNECTED;
-    static EnumValPtr TIMEOUT;
-    static EnumValPtr CONNECTION_LOST;
-    static EnumValPtr OPERATION_FAILED;
-    static EnumValPtr KEY_NOT_FOUND;
-    static EnumValPtr KEY_EXISTS;
-    static EnumValPtr CONNECTION_FAILED;
-    static EnumValPtr DISCONNECTION_FAILED;
-    static EnumValPtr INITIALIZATION_FAILED;
-    static EnumValPtr IN_PROGRESS;
-    static EnumValPtr SERIALIZATION_FAILED;
-    static EnumValPtr UNSERIALIZATION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr SUCCESS;
+    ZEEK_IMPORT_DATA static EnumValPtr VAL_TYPE_MISMATCH;
+    ZEEK_IMPORT_DATA static EnumValPtr KEY_TYPE_MISMATCH;
+    ZEEK_IMPORT_DATA static EnumValPtr NOT_CONNECTED;
+    ZEEK_IMPORT_DATA static EnumValPtr TIMEOUT;
+    ZEEK_IMPORT_DATA static EnumValPtr CONNECTION_LOST;
+    ZEEK_IMPORT_DATA static EnumValPtr OPERATION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr KEY_NOT_FOUND;
+    ZEEK_IMPORT_DATA static EnumValPtr KEY_EXISTS;
+    ZEEK_IMPORT_DATA static EnumValPtr CONNECTION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr DISCONNECTION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr INITIALIZATION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr IN_PROGRESS;
+    ZEEK_IMPORT_DATA static EnumValPtr SERIALIZATION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr UNSERIALIZATION_FAILED;
 };
 
 } // namespace storage

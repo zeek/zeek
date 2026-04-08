@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h> // for u_char
 #include <unordered_map>
 
@@ -107,6 +109,6 @@ private:
 } // namespace session
 
 // Manager for the currently active sessions.
-extern session::Manager* session_mgr;
+ZEEK_EXTERN_DATA session::Manager* session_mgr;
 
 } // namespace zeek

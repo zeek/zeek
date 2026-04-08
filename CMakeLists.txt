@@ -381,9 +381,16 @@ find_package(Threads REQUIRED)
 # interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
 target_include_directories(
-    zeek_dynamic_plugin_base
-    INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+    zeek_dynamic_plugin_base INTERFACE $<INSTALL_INTERFACE:include>
+                                       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+# The legacy src/ include path provides un-prefixed headers (e.g. #include <Val.h>).
+# On MSVC this conflicts with src/include/zeek/ because #pragma once uses
+# path comparison instead of inode, causing double-include errors. Only add
+# the legacy path on non-MSVC platforms.
+if (NOT MSVC)
+    target_include_directories(zeek_dynamic_plugin_base
+                               INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+endif ()
 target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)
@@ -418,11 +425,22 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
 if (MSVC)
     add_zeek_dynamic_plugin_build_interface_include_directories(
         ${PROJECT_SOURCE_DIR}/auxil/libunistd/unistd)
+    # Add vcpkg include path for third-party headers (pcap, zlib, etc.)
+    # that Zeek headers transitively depend on.
+    if (VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+        add_zeek_dynamic_plugin_build_interface_include_directories(
+            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
+    endif ()
 endif ()
 
 target_include_directories(
     zeek_dynamic_plugin_base SYSTEM
     INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)
+
+if (MSVC)
+    target_include_directories(zeek_dynamic_plugin_base SYSTEM
+                               INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/libunistd>)
+endif ()
 
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
@@ -651,11 +669,9 @@ endif ()
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" ZEEK_VERSION_FULL LIMIT_COUNT 1)
 
-execute_process(
-    COMMAND grep "^constexpr int PLUGIN_API_VERSION"
-    INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
-    OUTPUT_VARIABLE API_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h _plugin_api_lines
+     REGEX "^constexpr int PLUGIN_API_VERSION")
+list(GET _plugin_api_lines 0 API_VERSION)
 
 string(REGEX MATCH "^constexpr int PLUGIN_API_VERSION = ([0-9]+);" API_VERSION "${API_VERSION}")
 set(API_VERSION "${CMAKE_MATCH_1}")
@@ -1089,6 +1105,19 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include/nonstd
         DESTINATION include/zeek/3rdparty/)
+
+if (MSVC)
+    install(
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/libunistd/unistd/
+        DESTINATION include/zeek/3rdparty/libunistd
+        FILES_MATCHING
+        PATTERN "*.h")
+    install(
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/libunistd/portable/
+        DESTINATION include/zeek/3rdparty/portable
+        FILES_MATCHING
+        PATTERN "*.h")
+endif ()
 
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
                         "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")

@@ -208,8 +208,20 @@ bool Raw::Execute() {
     // so use a buffer with extra space.
     char cmdline[MAX_PATH] = "bash";
 
+    // Find bash.exe by searching PATH directories in order.
+    // CreateProcessA(NULL, "bash") searches System32 before PATH,
+    // which finds WSL's bash.exe instead of MSYS/Git Bash.
+    char bash_path[MAX_PATH] = {};
+    const char* app_name = nullptr;
+    char path_env[32768];
+    DWORD plen = GetEnvironmentVariableA("PATH", path_env, sizeof(path_env));
+    if ( plen > 0 && plen < sizeof(path_env) ) {
+        if ( SearchPathA(path_env, "bash.exe", nullptr, MAX_PATH, bash_path, nullptr) )
+            app_name = bash_path;
+    }
+
     PROCESS_INFORMATION pi = {};
-    BOOL ok = CreateProcessA(nullptr, cmdline, nullptr, nullptr, TRUE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED,
+    BOOL ok = CreateProcessA(app_name, cmdline, nullptr, nullptr, TRUE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED,
                              nullptr, nullptr, &si, &pi);
 
     // Close child-side pipe ends regardless of success

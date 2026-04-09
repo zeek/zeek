@@ -1,11 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Shim for 'nm' on Windows where GNU nm is not available.
 # Delegates to dumpbin for MSVC-built binaries.
 #
 # This script is placed in testing/scripts/ which is on the btest PATH.
-# On Linux/macOS, the real 'nm' binary takes precedence.
+# On non-Windows platforms, delegate to the system nm.
 #
+
+# On non-Windows, find and exec the real nm.
+case "$(uname -s)" in
+    MINGW* | MSYS*) ;;
+    *)
+        for p in /usr/bin/nm /usr/local/bin/nm /opt/homebrew/bin/nm; do
+            [ -x "$p" ] && exec "$p" "$@"
+        done
+        echo "Error: could not find system 'nm'" >&2
+        exit 1
+        ;;
+esac
 
 undefined_only=false
 files=()

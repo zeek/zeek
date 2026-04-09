@@ -1,11 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Shim for 'hexdump' on Windows where it is not available.
 # Uses Python to produce compatible output.
 #
 # This script is placed in testing/scripts/ which is on the btest PATH.
-# On Linux/macOS, the real 'hexdump' binary takes precedence.
+# On non-Windows platforms, delegate to the system hexdump.
 #
+
+# On non-Windows, find and exec the real hexdump.
+case "$(uname -s)" in
+    MINGW* | MSYS*) ;;
+    *)
+        for p in /usr/bin/hexdump /usr/local/bin/hexdump /opt/homebrew/bin/hexdump; do
+            [ -x "$p" ] && exec "$p" "$@"
+        done
+        echo "Error: could not find system 'hexdump'" >&2
+        exit 1
+        ;;
+esac
 
 # Parse args - we only need to support 'hexdump -C file'
 canonical=false

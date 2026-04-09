@@ -1,12 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Shim for 'make' on Windows where GNU make is not available.
 # Delegates to cmake --build for plugin btest tests.
 #
 # This script is placed in testing/scripts/ which is on the btest PATH.
-# On Linux/macOS, the real 'make' binary takes precedence over this script
-# because /usr/bin appears earlier in PATH than testing/scripts/.
+# On non-Windows platforms, delegate to the system make.
 #
+
+# On non-Windows, find and exec the real make.
+case "$(uname -s)" in
+    MINGW* | MSYS*) ;;
+    *)
+        for p in /usr/bin/make /usr/local/bin/make /opt/homebrew/bin/make; do
+            [ -x "$p" ] && exec "$p" "$@"
+        done
+        echo "Error: could not find system 'make'" >&2
+        exit 1
+        ;;
+esac
 
 cmake_build_dir=build
 cmake_args=()

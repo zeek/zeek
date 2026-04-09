@@ -447,7 +447,7 @@ private:
     void ProcessFd(int fd, int flags) override;
     void Process() override;
     const char* Tag() override { return "Broker::Manager"; }
-    double GetNextTimeout() override { return -1; }
+    double GetNextTimeout() override;
 
 
     // Allow WebSocketShim access to MakeHub() and DestroyHub()

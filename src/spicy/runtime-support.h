@@ -601,6 +601,9 @@ inline double as_double(const ValPtr& v) {
 inline hilti::rt::String as_enum(const ValPtr& v) {
     detail::check_type(v, TYPE_ENUM, "enum");
     // Zeek returns the name as "<module>::<enum>", we just want the enum name.
+
+    // MSVC complains about an illegal conversion below, so silence the warning from clang-tidy
+    // NOLINTNEXTLINE(modernize-return-braced-init-list)
     return hilti::rt::String(hilti::rt::rsplit1(v->GetType()->AsEnumType()->Lookup(v->AsEnum()), "::").second);
 }
 

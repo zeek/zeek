@@ -514,7 +514,7 @@ static std::unique_ptr<detail::Location> _makeLocation(const hilti::rt::String& 
             auto y = hilti::rt::split(linespec, "-");
             if ( y.size() >= 2 )
                 loc->SetLines(std::stoi(std::string(y[0])), std::stoi(std::string(y[1])));
-            else if ( y[0].size() )
+            else if ( ! y[0].empty() )
                 loc->SetLine(std::stoi(std::string(y[0])));
         }
 

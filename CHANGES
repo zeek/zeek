@@ -1,3 +1,7 @@
+8.2.0-dev.511 | 2026-04-10 18:30:05 +0000
+
+  * Fix clang-tidy warnings from recent merges (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.509 | 2026-04-10 10:22:40 -0700
 
   * documenting ZAM's "predicate-op" (Vern Paxson, Corelight)

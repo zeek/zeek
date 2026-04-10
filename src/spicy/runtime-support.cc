@@ -432,6 +432,9 @@ hilti::rt::String rt::uid() {
         if ( auto c = cookie->protocol ) {
             // Retrieve the ConnVal() so that we ensure the UID has been set.
             c->analyzer->ConnVal();
+
+            // MSVC complains about an illegal conversion below, so silence the warning from clang-tidy
+            // NOLINTNEXTLINE(modernize-return-braced-init-list)
             return hilti::rt::String(c->analyzer->Conn()->GetUID().Base62("C"));
         }
     }
@@ -1030,6 +1033,8 @@ hilti::rt::String rt::fuid() {
     if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
         if ( auto f = cookie->file ) {
             if ( auto file = f->analyzer->GetFile() )
+                // MSVC complains about an illegal conversion below, so silence the warning from clang-tidy
+                // NOLINTNEXTLINE(modernize-return-braced-init-list)
                 return hilti::rt::String(file->GetID());
         }
     }
@@ -1076,6 +1081,9 @@ hilti::rt::String rt::file_begin(const hilti::rt::Optional<hilti::rt::String>& m
 
     // Double check everybody agrees on the file ID.
     assert(fstate->fid == file->GetID());
+
+    // MSVC complains about an illegal conversion below, so silence the warning from clang-tidy
+    // NOLINTNEXTLINE(modernize-return-braced-init-list)
     return hilti::rt::String(fstate->fid);
 }
 

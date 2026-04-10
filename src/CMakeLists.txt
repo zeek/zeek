@@ -622,6 +622,7 @@ if (TARGET zeek_exe)
         # Export all Zeek obj files comprehensively for dynamic plugin support.
         # Uses --scan-dir to find all zeek_* and plugin-* obj files to avoid
         # command-line length limits on Windows.
+        get_property(_obj_targets GLOBAL PROPERTY ZEEK_OBJ_TARGETS)
 
         add_custom_command(
             OUTPUT "${_def_file}"
@@ -631,7 +632,7 @@ if (TARGET zeek_exe)
                 "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
                 "${CMAKE_BINARY_DIR}/tools/binpac/lib/binpac.lib" --scan-dir
                 "${CMAKE_BINARY_DIR}/src"
-            DEPENDS hilti-rt spicy-rt zeek_spicy_obj zeek_objs "${_gen_script}"
+            DEPENDS hilti-rt spicy-rt zeek_spicy_obj ${_obj_targets} "${_gen_script}"
             COMMENT "Generating JIT export DEF file from Zeek symbols"
             VERBATIM)
         add_custom_target(zeek_jit_exports DEPENDS "${_def_file}")

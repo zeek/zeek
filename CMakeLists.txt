@@ -344,6 +344,9 @@ function (zeek_target_link_libraries lib_target)
             target_link_libraries(${name} ${${name}_access} ${lib_target})
         endif ()
     endforeach ()
+
+    # Track OBJECT targets so the DEF export generation can depend on them.
+    set_property(GLOBAL APPEND PROPERTY ZEEK_OBJ_TARGETS ${lib_target})
 endfunction ()
 
 function (zeek_target_add_linters lib_target)
@@ -383,14 +386,6 @@ add_library(zeek_dynamic_plugin_base INTERFACE)
 target_include_directories(
     zeek_dynamic_plugin_base INTERFACE $<INSTALL_INTERFACE:include>
                                        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
-# The legacy src/ include path provides un-prefixed headers (e.g. #include <Val.h>).
-# On MSVC this conflicts with src/include/zeek/ because #pragma once uses
-# path comparison instead of inode, causing double-include errors. Only add
-# the legacy path on non-MSVC platforms.
-if (NOT MSVC)
-    target_include_directories(zeek_dynamic_plugin_base
-                               INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
-endif ()
 target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)

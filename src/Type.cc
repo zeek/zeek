@@ -2506,8 +2506,13 @@ static TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
 
     auto tl3 = make_intrusive<TypeList>();
 
-    for ( auto i = 0u; i < l1.size(); ++i )
-        tl3->Append(merge_types(l1[i], l2[i]));
+    for ( auto i = 0u; i < l1.size(); ++i ) {
+        auto mt = merge_types(l1[i], l2[i]);
+        if ( ! mt )
+            return nullptr;
+
+        tl3->Append(std::move(mt));
+    }
 
     return tl3;
 }

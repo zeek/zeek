@@ -1,3 +1,9 @@
+8.2.0-dev.524 | 2026-04-10 11:34:10 -0700
+
+  * Update btest for added SMTP port (Jan Grashoefer, Corelight)
+
+  * Add SMTPS port to well-known ports (Jan Grashoefer, Corelight)
+
 8.2.0-dev.521 | 2026-04-10 11:31:55 -0700
 
   * Add Windows-specific btests and update baselines for plugin/supervisor support (Maor Hamami)

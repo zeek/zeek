@@ -1374,6 +1374,20 @@ void Manager::Process() {
     ProcessDataStores();
 }
 
+double Manager::GetNextTimeout() {
+    // When subscriber messages are already queued, return 0 so the
+    // I/O loop processes them immediately instead of waiting for the
+    // next fd-based wakeup.  This is essential on Windows where the
+    // kqueue emulation (libkqueue) may not reliably signal the
+    // subscriber's socket-pair flare, but it also benefits other
+    // platforms by reducing latency when the flare notification
+    // races with the poll interval (io_poll_interval_default).
+    if ( bstate && bstate->subscriber.available() > 0 )
+        return 0;
+
+    return -1;
+}
+
 void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,
                                             const broker::data& key, const broker::data& data,
                                             const broker::data& old_value, bool insert) {

@@ -319,7 +319,11 @@ void run_loop() {
         current_dispatched = 0;
         current_iosrc = nullptr;
 
-        if ( ::signal_val == SIGTERM || ::signal_val == SIGINT )
+        if ( ::signal_val == SIGTERM || ::signal_val == SIGINT
+#ifdef SIGBREAK
+             || ::signal_val == SIGBREAK
+#endif
+        )
             // We received a signal while processing the
             // current packet and its related events.
             // Should we put the signal handling into an IOSource?

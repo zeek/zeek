@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <Val.h>
-#include <file_analysis/Analyzer.h>
+#include "zeek/Val.h"
+#include "zeek/file_analysis/Analyzer.h"
 
 namespace btest::plugin::Demo_Foo {
 

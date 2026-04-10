@@ -1,3 +1,76 @@
+8.2.0-dev.521 | 2026-04-10 11:31:55 -0700
+
+  * Add Windows-specific btests and update baselines for plugin/supervisor support (Maor Hamami)
+
+    - Add iosource-plugin-windows.zeek btest for Windows plugin loading
+    - Add supervisor create/revive/output-redirect Windows btests
+    - Add telemetry log-windows.zeek btest
+    - Update existing plugin btests for cross-platform compatibility
+      (include guards, portable APIs, ZEEK_EXTERN_DATA)
+    - Add plugin-load-dependency.zeek test
+    - Update baselines for files.test and telemetry tests
+    - Fix postgresql and active-http test portability
+
+  * Testing: add Windows shims and portable test fixes (Maor Hamami)
+
+    - Add hexdump, make, and nm shims using Python/cmake/dumpbin
+      for btest on Windows where GNU tools are unavailable
+    - Update diff-remove-abspath to canonify .exe suffixes
+    - Fix coverage tests to use portable path resolution and
+      $PYTHON instead of hardcoded python3
+
+  * Windows compatibility fixes for path handling, bash lookup, and scripts (Maor Hamami)
+
+    - Fix normalize_path() to return empty string when path fully
+      collapses, matching POSIX behavior
+    - Search PATH for bash.exe in Raw reader to avoid picking up
+      WSL bash from System32
+    - Use portable temp directory in active-http.zeek
+    - Set stdout/stderr files directly on Windows in management
+      agent/controller boot scripts
+
+  * Supervisor: improve Windows process management and signal handling (Maor Hamami)
+
+    - Use CTRL_BREAK_EVENT for graceful node shutdown instead of
+      immediate TerminateProcess
+    - Use STARTUPINFOEX with PROC_THREAD_ATTRIBUTE_HANDLE_LIST to
+      prevent socket handle leaks into child processes
+    - Handle SIGBREAK in signal handler and run loop
+    - Guard Revive() during shutdown to prevent zombie restarts
+    - Fix Pipe destructor to guard against close(-1) on Windows
+    - Set Flare recvfd to non-blocking to prevent Extinguish() hangs
+    - Disable stdout buffering for correct plugin DLL output ordering
+    - Enable stem stdout/stderr hooks on Windows
+
+  * Enable dynamic plugin loading on Windows via LoadLibrary (Maor Hamami)
+
+    - Add Windows LoadLibrary/GetProcAddress path in plugin::Manager
+    - Expand generate-jit-export-def.py to scan all zeek obj directories
+      and export comprehensive symbol sets for plugin DLL linking
+    - Add --scan-dir mode to avoid command-line length limits on Windows
+
+  * CMake: support MSVC dynamic plugin building and linking (Maor Hamami)
+
+    - Fix include path conflicts on MSVC by excluding legacy src/ path
+    - Add vcpkg and libunistd include paths for plugin builds
+    - Install libunistd headers for external plugin compilation
+    - Link plugins against zeek.exe import library on MSVC
+    - Propagate build type and MSVC CRT settings to plugins
+    - Use file(STRINGS) instead of grep for cross-platform API version parsing
+    - Switch export DEF generation to --scan-dir for comprehensive symbol export
+
+  * Add ZEEK_EXTERN_DATA/ZEEK_IMPORT_DATA macros for cross-DLL symbol access (Maor Hamami)
+
+    On MSVC, data symbols imported across DLL boundaries need
+    __declspec(dllimport) for correct indirect access. Define
+    ZEEK_EXTERN_DATA and ZEEK_IMPORT_DATA macros in zeek-config.h and
+    annotate all global manager pointers and data symbols in public
+    headers.
+
+    Also replace forward-declared run_state::network_time with
+    #include "zeek/RunState.h" in Event.h, EventHandler.h, StmtBase.h,
+    and Val.h to avoid duplicate symbol issues.
+
 8.2.0-dev.511 | 2026-04-10 18:30:05 +0000
 
   * Fix clang-tidy warnings from recent merges (Tim Wojtulewicz, Corelight)

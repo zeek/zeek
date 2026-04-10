@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -235,6 +237,6 @@ private:
     std::unordered_set<detail::ScriptFuncPtr> funcs;
 };
 
-extern EventRegistry* event_registry;
+ZEEK_EXTERN_DATA EventRegistry* event_registry;
 
 } // namespace zeek

@@ -6,9 +6,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cerrno>
+#ifdef _MSC_VER
+#include <cstdlib>
+#define random() rand()
+#endif
 
-#include "threading/Manager.h"
-#include "threading/SerialTypes.h"
+#include "zeek/threading/Manager.h"
+#include "zeek/threading/SerialTypes.h"
 
 using namespace btest::input::reader;
 using zeek::threading::Field;

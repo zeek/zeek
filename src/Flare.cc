@@ -44,6 +44,11 @@ Flare::Flare()
     if ( sendfd == (int)INVALID_SOCKET )
         fatalError("WSASocket failure: %d", WSAGetLastError());
 
+    // Set recvfd to non-blocking so Extinguish() doesn't hang.
+    u_long nonblocking = 1;
+    if ( ioctlsocket(recvfd, FIONBIO, &nonblocking) == SOCKET_ERROR )
+        fatalError("ioctlsocket failure: %d", WSAGetLastError());
+
     sockaddr_in sa;
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;

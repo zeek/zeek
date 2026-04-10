@@ -1,3 +1,6 @@
+# @TEST-REQUIRES: ! is-windows
+# Windows variant: iosource-plugin-windows.zeek — FdSource fires fewer
+# times on Windows due to select() platform differences with flare fds.
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Iosource
 # @TEST-EXEC: cp -r %DIR/iosource-plugin/* .
 

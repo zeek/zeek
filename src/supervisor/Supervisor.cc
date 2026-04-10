@@ -607,10 +607,8 @@ void Supervisor::HandleChildSignal() {
 void Supervisor::InitPostScript() {
     node_status = event_registry->Register("Supervisor::node_status");
 
-#ifndef _MSC_VER
     stem_stdout.hook = id::find_func("Supervisor::stdout_hook");
     stem_stderr.hook = id::find_func("Supervisor::stderr_hook");
-#endif
 
     iosource_mgr->Register(this);
 
@@ -636,9 +634,11 @@ double Supervisor::GetNextTimeout() {
         return 0.0;
 
 #ifdef _MSC_VER
-    // On Windows, pipe FDs can't be polled via select(). Use periodic
-    // polling to check for stem messages.
-    return 0.1;
+    // On Windows, pipe FDs can't be registered with kqueue/select.
+    // Return 0 so the IOSource manager always considers us ready,
+    // ensuring Process() is called on every event loop iteration.
+    // During termination, return -1 so the event loop can exit.
+    return run_state::terminating ? -1 : 0.0;
 #else
     return -1;
 #endif
@@ -646,10 +646,8 @@ double Supervisor::GetNextTimeout() {
 
 void Supervisor::Process() {
     HandleChildSignal();
-#ifndef _MSC_VER
     stem_stdout.Process();
     stem_stderr.Process();
-#endif
     ProcessMessages();
 }
 
@@ -868,8 +866,18 @@ void Stem::KillNode(SupervisorNode* node, int signal) const {
 
     node->killed = true;
 #ifdef _MSC_VER
-    if ( node->process_handle )
-        TerminateProcess(node->process_handle.get(), 1);
+    if ( node->process_handle ) {
+        if ( signal == 0 ) {
+            // Graceful: send CTRL_BREAK_EVENT.  The node is in its own
+            // process group (CREATE_NEW_PROCESS_GROUP), so this signal
+            // targets only the node and allows zeek_done() to run.
+            GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, node->pid);
+        }
+        else {
+            // Forceful: TerminateProcess as last resort.
+            TerminateProcess(node->process_handle.get(), 1);
+        }
+    }
 #else
     auto kill_res = kill(node->pid, signal);
 
@@ -880,8 +888,8 @@ void Stem::KillNode(SupervisorNode* node, int signal) const {
 
 static int get_kill_signal(int attempts, int max_attempts) {
 #ifdef _MSC_VER
-    // On Windows, TerminateProcess is used directly; signal value is unused.
-    return 0;
+    // 0 = graceful (CTRL_BREAK_EVENT), non-zero = forceful (TerminateProcess).
+    return attempts < max_attempts ? 0 : 1;
 #else
     if ( getenv("ZEEK_SUPERVISOR_NO_SIGKILL") )
         return SIGTERM;
@@ -906,7 +914,14 @@ void Stem::Destroy(SupervisorNode* node) const {
     for ( ;; ) {
         auto sig = get_kill_signal(kill_attempts++, max_term_attempts);
         KillNode(node, sig);
+#ifdef _MSC_VER
+        // On Windows, TerminateProcess is asynchronous - the process
+        // needs a moment to fully terminate before WaitForSingleObject
+        // can detect it with a 0ms timeout.
+        Sleep(100);
+#else
         usleep(10);
+#endif
 
         if ( Wait(node, WNOHANG) ) {
             break;
@@ -1028,16 +1043,51 @@ std::variant<bool, SupervisedNode> Stem::Spawn(SupervisorNode* node) {
     detail::UniqueWinHandle child_stderr_write(raw_stderr_write);
     SetHandleInformation(child_stderr_read.get(), HANDLE_FLAG_INHERIT, 0);
 
-    STARTUPINFOA si = {};
-    si.cb = sizeof(si);
-    si.hStdOutput = child_stdout_write.get();
-    si.hStdError = child_stderr_write.get();
-    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    si.dwFlags |= STARTF_USESTDHANDLES;
+    // Use STARTUPINFOEX with PROC_THREAD_ATTRIBUTE_HANDLE_LIST so only the
+    // stdio pipe handles are inherited by the child. Without this, Broker
+    // listening sockets leak into every child process, preventing port
+    // reuse when a node is restarted via TerminateProcess.
+    HANDLE handles_to_inherit[3];
+    DWORD handle_count = 0;
+    handles_to_inherit[handle_count++] = child_stdout_write.get();
+    handles_to_inherit[handle_count++] = child_stderr_write.get();
+    HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+
+    if ( stdin_handle && stdin_handle != INVALID_HANDLE_VALUE )
+        handles_to_inherit[handle_count++] = stdin_handle;
+
+    SIZE_T attr_size = 0;
+    InitializeProcThreadAttributeList(nullptr, 1, 0, &attr_size);
+    auto attr_buf = std::make_unique<char[]>(attr_size);
+    auto* attr_list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attr_buf.get());
+
+    bool use_extended = InitializeProcThreadAttributeList(attr_list, 1, 0, &attr_size) &&
+                        UpdateProcThreadAttribute(attr_list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, handles_to_inherit,
+                                                  handle_count * sizeof(HANDLE), nullptr, nullptr);
+
+    STARTUPINFOEXA si = {};
+    si.StartupInfo.cb = use_extended ? sizeof(STARTUPINFOEXA) : sizeof(STARTUPINFOA);
+    si.StartupInfo.hStdOutput = child_stdout_write.get();
+    si.StartupInfo.hStdError = child_stderr_write.get();
+    si.StartupInfo.hStdInput = stdin_handle;
+    si.StartupInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+    if ( use_extended )
+        si.lpAttributeList = attr_list;
 
     PROCESS_INFORMATION pi = {};
+    DWORD create_flags = CREATE_NEW_PROCESS_GROUP;
 
-    if ( ! CreateProcessA(nullptr, cmd_line.data(), nullptr, nullptr, TRUE, 0, env_block.data(), nullptr, &si, &pi) ) {
+    if ( use_extended )
+        create_flags |= EXTENDED_STARTUPINFO_PRESENT;
+
+    BOOL ok = CreateProcessA(nullptr, cmd_line.data(), nullptr, nullptr, TRUE, create_flags, env_block.data(), nullptr,
+                             &si.StartupInfo, &pi);
+
+    if ( use_extended )
+        DeleteProcThreadAttributeList(attr_list);
+
+    if ( ! ok ) {
         LogError("failed to create process for node '%s': error %lu", node->Name().data(), GetLastError());
         return false;
     }
@@ -1127,7 +1177,11 @@ void Stem::Shutdown(int exit_code) {
         if ( ! nodes.empty() ) {
             KillNodes(sig);
             DBG_STEM("Stem killed nodes with signal %d", sig);
+#ifdef _MSC_VER
+            Sleep(100);
+#else
             usleep(10);
+#endif
             Reap();
         }
 
@@ -1223,7 +1277,9 @@ std::optional<SupervisedNode> Stem::Poll() {
 #ifdef _MSC_VER
     // On Windows, poll() only works with sockets. We use PeekNamedPipe for
     // pipe FDs and select() for the signal flare (which is a UDP socket).
-    int poll_timeout_ms = have_msgs(&msg_buffer, '\0') ? 0 : 1000;
+    // Use a short timeout so the stem responds quickly to supervisor messages
+    // and shutdown signals.
+    int poll_timeout_ms = have_msgs(&msg_buffer, '\0') ? 0 : 100;
 
     // Check signal flare (UDP socket) via select with short timeout
     bool flare_ready = false;
@@ -1284,10 +1340,13 @@ std::optional<SupervisedNode> Stem::Poll() {
 
     // Periodically reap/revive child processes (no SIGCHLD on Windows).
     Reap();
-    auto new_node = Revive();
 
-    if ( new_node )
-        return new_node;
+    if ( ! shutting_down ) {
+        auto new_node = Revive();
+
+        if ( new_node )
+            return new_node;
+    }
 
     if ( flare_ready ) {
         signal_flare->Extinguish();
@@ -1296,10 +1355,13 @@ std::optional<SupervisedNode> Stem::Poll() {
             Shutdown(0);
 
         Reap();
-        auto new_node2 = Revive();
 
-        if ( new_node2 )
-            return new_node2;
+        if ( ! shutting_down ) {
+            auto new_node2 = Revive();
+
+            if ( new_node2 )
+                return new_node2;
+        }
     }
 
     if ( ! pipe_ready && ! have_msgs(&msg_buffer, '\0') )

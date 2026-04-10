@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -r 's/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)/\1-\2/g'" btest-diff output
 
 @load base/protocols/http
 @load base/utils/files

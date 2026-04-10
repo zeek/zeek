@@ -1,3 +1,7 @@
+# On Windows the stem runs as a thread sharing the supervisor's
+# address space, so stem_stdout/stderr pipes are never created
+# and the stdout/stderr hooks are not invoked.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <list>
 #include <map>
 #include <vector>
@@ -195,7 +197,7 @@ private:
 
 } // namespace trigger
 
-extern trigger::Manager* trigger_mgr;
+ZEEK_EXTERN_DATA trigger::Manager* trigger_mgr;
 
 } // namespace detail
 } // namespace zeek

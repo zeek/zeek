@@ -619,32 +619,21 @@ if (TARGET zeek_exe)
         set(_gen_script "${CMAKE_CURRENT_SOURCE_DIR}/generate-jit-export-def.py")
 
         # Primary libs: all defined symbols are exported.
-        # Includes core Zeek .obj files whose APIs are called by inline
-        # functions in runtime-support.h when compiled into JIT DLLs.
-        set(_zeek_spicy_objs
-            "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/EventHandler.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Obj.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Val.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Type.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/Scope.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/IPAddr.cc.obj"
-            "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/util.cc.obj")
-
-        # Backing libs: only symbols referenced-but-undefined in primary libs
-        # are exported.  This resolves transitive deps (e.g. zeek::util::fmt
-        # called from inline runtime-support.h code) without exporting the
-        # entire 100K+ Zeek symbol table.
-        file(GLOB_RECURSE _zeek_objs_all "${CMAKE_BINARY_DIR}/src/CMakeFiles/zeek_objs.dir/*.obj")
+        # Export all Zeek obj files comprehensively for dynamic plugin support.
+        # Uses --scan-dir to find all zeek_* and plugin-* obj files to avoid
+        # command-line length limits on Windows.
+        get_property(_obj_targets GLOBAL PROPERTY ZEEK_OBJ_TARGETS)
 
         add_custom_command(
             OUTPUT "${_def_file}"
             COMMAND
                 "${Python_EXECUTABLE}" "${_gen_script}" "${_dumpbin}" "${_def_file}"
-                "$<TARGET_FILE:hilti-rt>" "$<TARGET_FILE:spicy-rt>" ${_zeek_spicy_objs} "--"
-                ${_zeek_objs_all}
-            DEPENDS hilti-rt spicy-rt zeek_spicy_obj zeek_objs "${_gen_script}"
-            COMMENT "Generating JIT export DEF file from HILTI/Spicy runtimes"
+                "$<TARGET_FILE:hilti-rt>" "$<TARGET_FILE:spicy-rt>"
+                "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
+                "${CMAKE_BINARY_DIR}/tools/binpac/lib/binpac.lib" --scan-dir
+                "${CMAKE_BINARY_DIR}/src"
+            DEPENDS hilti-rt spicy-rt zeek_spicy_obj ${_obj_targets} "${_gen_script}"
+            COMMENT "Generating JIT export DEF file from Zeek symbols"
             VERBATIM)
         add_custom_target(zeek_jit_exports DEPENDS "${_def_file}")
         add_dependencies(zeek_exe zeek_jit_exports)

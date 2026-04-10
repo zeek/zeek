@@ -1,3 +1,6 @@
+# On Windows the stem runs as a thread, not a separate process,
+# so it cannot be killed independently via system("kill ...").
+# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30

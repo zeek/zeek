@@ -48,6 +48,11 @@ int main(int argc, char** argv) {
     _setmode(_fileno(stdout), _O_BINARY);
     _setmode(_fileno(stderr), _O_BINARY);
 
+    // Disable stdout buffering so printf output from dynamically loaded
+    // plugin DLLs appears in the correct order relative to zeek's own
+    // output when stdout is redirected to a file.
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
     init_npcap_dll_path();
 #endif
 

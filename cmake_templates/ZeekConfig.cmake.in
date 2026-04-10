@@ -33,3 +33,14 @@ foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )
 endforeach (  )
 
 include("${CMAKE_CURRENT_LIST_DIR}/ZeekTargets.cmake")
+
+# On Windows/MSVC, dynamic plugins (DLLs) must link against the zeek
+# executable's import library to resolve symbols at link time.
+if (MSVC AND TARGET Zeek::DynamicPluginBase)
+    set(_zeek_import_lib "${CMAKE_CURRENT_LIST_DIR}/zeek_exe.lib")
+    if (EXISTS "${_zeek_import_lib}")
+        set_property(TARGET Zeek::DynamicPluginBase APPEND PROPERTY
+            INTERFACE_LINK_LIBRARIES "${_zeek_import_lib}")
+    endif ()
+    unset(_zeek_import_lib)
+endif ()

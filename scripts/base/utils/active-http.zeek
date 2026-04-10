@@ -91,7 +91,14 @@ function request(req: Request): ActiveHTTP::Response
 		return resp;
 		}
 
-	local tmpfile     = "/tmp/zeek-activehttp-" + unique_id("");
+	local tmp_dir = getenv("TEMP");
+	if ( tmp_dir == "" )
+		tmp_dir = getenv("TMPDIR");
+	if ( tmp_dir == "" )
+		tmp_dir = "/tmp";
+	tmp_dir = gsub(tmp_dir, /\\/, "/");
+
+	local tmpfile     = tmp_dir + "/zeek-activehttp-" + unique_id("");
 	local bodyfile    = fmt("%s_body", tmpfile);
 	local headersfile = fmt("%s_headers", tmpfile);
 

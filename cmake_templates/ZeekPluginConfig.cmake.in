@@ -5,6 +5,17 @@
 # Pull in some path magic that Zeek uses as well.
 include(MacDependencyPaths)
 
+# Propagate the build type so plugins match Zeek's configuration.
+if (NOT ZEEK_CMAKE_BUILD_TYPE)
+    set(ZEEK_CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@")
+endif ()
+
+# On MSVC, use static CRT (/MT) to match zeek.exe.
+if (MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        CACHE STRING "MSVC runtime library for plugins (must match Zeek)" FORCE)
+endif ()
+
 # For finding zeek-plugin-create-package.sh and zeek-plugin-install-package.sh.
 if ( NOT ZEEK_PLUGIN_SCRIPTS_PATH )
   set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@"

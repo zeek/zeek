@@ -4,8 +4,8 @@
 #include <fcntl.h>
 #include <cstdio>
 
-#include "RunState.h"
-#include "iosource/Packet.h"
+#include "zeek/RunState.h"
+#include "zeek/iosource/Packet.h"
 
 using namespace btest::plugin::Demo_Foo;
 

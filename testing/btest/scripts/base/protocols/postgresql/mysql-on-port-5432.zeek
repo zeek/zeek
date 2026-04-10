@@ -6,7 +6,7 @@
 # @TEST-EXEC: zeek-cut -m < analyzer_debug.log > analyzer.cut
 #
 # @TEST-EXEC: btest-diff conn.cut
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -r 's,(.*) \(/[^\)]+\),\1 (...),'" btest-diff analyzer.cut
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -r 's,(.*) \(([A-Za-z]:)?/[^\)]+\),\1 (...),'" btest-diff analyzer.cut
 # @TEST-EXEC: test ! -f postgresql.log
 
 @load frameworks/analyzer/debug-logging.zeek

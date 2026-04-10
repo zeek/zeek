@@ -1,8 +1,9 @@
 
 #include "Plugin.h"
 
+#include "zeek/iosource/Component.h"
+
 #include "Foo.h"
-#include "iosource/Component.h"
 
 namespace btest::plugin::Demo_Foo {
 Plugin plugin;

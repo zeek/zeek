@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <set>
 #include <string>
@@ -451,6 +453,6 @@ VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
 
 } // namespace file_analysis
 
-extern file_analysis::Manager* file_mgr;
+ZEEK_EXTERN_DATA file_analysis::Manager* file_mgr;
 
 } // namespace zeek

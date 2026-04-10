@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Desc.h"
-#include "logging/WriterBackend.h"
-#include "threading/formatters/Ascii.h"
+#include "zeek/Desc.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 namespace btest::logging::writer {
 

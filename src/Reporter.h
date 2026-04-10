@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstdarg>
 #include <exception>
 #include <list>
@@ -344,6 +346,6 @@ public:
     ~ScriptLocationScope();
 };
 
-extern Reporter* reporter;
+ZEEK_EXTERN_DATA Reporter* reporter;
 
 } // namespace zeek

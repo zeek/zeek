@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <forward_list>
 #include <memory>
 #include <string>
@@ -401,7 +403,7 @@ private:
 
 using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
-extern std::vector<CallInfo> call_stack;
+ZEEK_EXTERN_DATA std::vector<CallInfo> call_stack;
 
 /**
  * Create a single BacktraceElement record val.
@@ -423,8 +425,8 @@ zeek::RecordValPtr make_backtrace_element(std::string_view name, const VectorVal
 zeek::VectorValPtr get_current_script_backtrace();
 
 // This is set to true after the built-in functions have been initialized.
-extern bool did_builtin_init;
-extern std::vector<void (*)()> bif_initializers;
+ZEEK_EXTERN_DATA bool did_builtin_init;
+ZEEK_EXTERN_DATA std::vector<void (*)()> bif_initializers;
 extern void init_primary_bifs();
 
 inline void run_bif_initializers() {

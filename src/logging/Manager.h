@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <string_view>
 
 #include "zeek/EventHandler.h"
@@ -471,6 +473,6 @@ private:
 
 } // namespace logging
 
-extern logging::Manager* log_mgr;
+ZEEK_EXTERN_DATA logging::Manager* log_mgr;
 
 } // namespace zeek

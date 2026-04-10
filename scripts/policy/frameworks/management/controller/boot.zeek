@@ -37,6 +37,13 @@ event zeek_init()
 	# We don't set sn$stdout_file/stderr_file here because the Management
 	# framework's Supervisor shim manages those output files itself. See
 	# frameworks/management/supervisor/main.zeek for details.
+	# On Windows, the shim's hook-based output capture is not available
+	# (the stem is a thread, not a process), so set them directly.
+	if ( getenv("OS") == "Windows_NT" )
+		{
+		sn$stdout_file = Management::Controller::stdout_file;
+		sn$stderr_file = Management::Controller::stderr_file;
+		}
 
 	# This helps identify Management framework nodes reliably.
 	sn$env["ZEEK_MANAGEMENT_NODE"] = "CONTROLLER";

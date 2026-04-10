@@ -1,3 +1,6 @@
+# On Windows, MSYS bash's kill cannot target native Windows PIDs
+# returned by getpid(); see revive-leaf-windows.zeek.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30

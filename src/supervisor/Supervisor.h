@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h>
 #include <atomic>
 #include <chrono>
@@ -486,6 +488,6 @@ protected:
 };
 } // namespace detail
 
-extern Supervisor* supervisor_mgr;
+ZEEK_EXTERN_DATA Supervisor* supervisor_mgr;
 
 } // namespace zeek

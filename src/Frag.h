@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h> // for u_char
 #include <tuple>
 
@@ -88,7 +90,7 @@ private:
     size_t max_fragments = 0;
 };
 
-extern FragmentManager* fragment_mgr;
+ZEEK_EXTERN_DATA FragmentManager* fragment_mgr;
 
 class FragReassemblerTracker {
 public:

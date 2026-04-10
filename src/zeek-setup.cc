@@ -999,6 +999,11 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         (void)setsignal(SIGTERM, sig_handler);
         (void)setsignal(SIGINT, sig_handler);
         (void)setsignal(SIGPIPE, SIG_IGN);
+#ifdef SIGBREAK
+        // On Windows, CTRL_BREAK_EVENT (used by the supervisor for
+        // graceful node shutdown) raises SIGBREAK.
+        (void)setsignal(SIGBREAK, sig_handler);
+#endif
     }
 
     // Cooperate with nohup(1).

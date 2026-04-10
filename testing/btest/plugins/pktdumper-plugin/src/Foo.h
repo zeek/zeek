@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Val.h>
-#include <iosource/PktDumper.h>
+#include "zeek/Val.h"
+#include "zeek/iosource/PktDumper.h"
 
 namespace btest::plugin::Demo_Foo {
 

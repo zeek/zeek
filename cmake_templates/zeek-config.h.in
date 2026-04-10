@@ -309,6 +309,19 @@
 /* compiled with Spicy support */
 #cmakedefine HAVE_SPICY
 
+/* Macro for importing data symbols from zeek.exe into plugin DLLs.
+ * On MSVC, data imported across module boundaries needs __declspec(dllimport)
+ * for the compiler to generate the correct indirect access through __imp_.
+ * ZEEK_PLUGIN_SKIP_VERSION_CHECK is defined for code compiled into zeek.exe;
+ * external plugins do NOT define it, so they get __declspec(dllimport). */
+#if defined(_MSC_VER) && !defined(ZEEK_PLUGIN_SKIP_VERSION_CHECK)
+#define ZEEK_EXTERN_DATA extern __declspec(dllimport)
+#define ZEEK_IMPORT_DATA __declspec(dllimport)
+#else
+#define ZEEK_EXTERN_DATA extern
+#define ZEEK_IMPORT_DATA
+#endif
+
 // NOLINTEND(cppcoreguidelines-macro-usage)
 // NOLINTEND(modernize-macro-to-enum)
 

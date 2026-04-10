@@ -3,6 +3,9 @@
 # Supervisor::create() call. This previously triggered an instant-abort()
 # due to write() returning with EAGAIN when the pipe was filled.
 
+# On Windows, spawning 32 concurrent processes with Broker peering
+# exceeds the reliable process/handle limits in CI and hangs.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT

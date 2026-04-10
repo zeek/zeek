@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <cstdint>
 #include <cstdio>
 #include <set>
@@ -131,7 +133,7 @@ private:
     std::string PluginStreamName(const std::string& plugin_name) const;
 };
 
-extern DebugLogger debug_logger;
+ZEEK_EXTERN_DATA DebugLogger debug_logger;
 
 } // namespace detail
 

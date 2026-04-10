@@ -1,3 +1,7 @@
+# On Windows the stem runs as a thread, so stem_stdout/stderr
+# pipes are not created and the [supervisor:STDOUT/STDERR] prefix
+# is absent; see output-redirect-windows.zeek.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30

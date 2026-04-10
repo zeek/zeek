@@ -552,6 +552,12 @@ string normalize_path(std::string_view path) {
     }
     auto result = std::filesystem::path(stringPath).lexically_normal().generic_string();
 
+    // lexically_normal() returns "." for paths that fully collapse (e.g., "foo/bar/../.."),
+    // but the POSIX implementation returns "".  Match that behavior when the input
+    // path did not start with "." to begin with.
+    if ( result == "." && ! stringPath.starts_with(".") )
+        return "";
+
     // lexically_normal() strips a leading "./" but the POSIX implementation
     // preserves it.  Re-add when the original path started with "./" or ".\".
     bool had_dot_prefix = stringPath.starts_with("./") || stringPath.starts_with(".\\");

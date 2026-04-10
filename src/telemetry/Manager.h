@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <concepts>
 #include <condition_variable>
 #include <cstdint>
@@ -293,6 +295,6 @@ private:
 } // namespace zeek::telemetry
 
 namespace zeek {
-extern telemetry::Manager* telemetry_mgr;
+ZEEK_EXTERN_DATA telemetry::Manager* telemetry_mgr;
 
 } // namespace zeek

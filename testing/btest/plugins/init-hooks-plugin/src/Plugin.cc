@@ -1,6 +1,11 @@
 #include "Plugin.h"
 
 #include <cstdio>
+#ifndef _MSC_VER
+#define zeek_setlinebuf(f) setlinebuf(f)
+#else
+#define zeek_setlinebuf(f) setvbuf(f, nullptr, _IONBF, 0)
+#endif
 namespace btest::plugin::Demo_InitHooks {
 Plugin plugin;
 }
@@ -8,7 +13,7 @@ Plugin plugin;
 using namespace btest::plugin::Demo_InitHooks;
 
 zeek::plugin::Configuration Plugin::Configure() {
-    setlinebuf(stdout);
+    zeek_setlinebuf(stdout);
     std::fprintf(stdout, "Configure()\n");
     zeek::plugin::Configuration config;
     config.name = "Demo::InitHooks";

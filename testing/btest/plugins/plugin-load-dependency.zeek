@@ -1,3 +1,8 @@
+# @TEST-DOC: Test cross-plugin symbol dependencies resolved via load ordering.
+# @TEST-REQUIRES: ! is-windows
+# Cross-plugin function calls (Plugin1 calling Plugin2_foo()) rely on
+# dlopen(RTLD_GLOBAL) making symbols globally visible. Windows LoadLibrary
+# has no equivalent — each DLL can only import from explicitly linked modules.
 # @TEST-EXEC: mkdir 1
 # @TEST-EXEC: cd 1 && ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Testing Plugin1
 # @TEST-EXEC: cp -r %DIR/plugin-load-dependency/1 .

@@ -108,8 +108,15 @@ void Pipe::UnsetFlags(int arg_flags) {
 }
 
 Pipe::~Pipe() {
-    close(fds[0]);
-    close(fds[1]);
+    // Guard against close(-1): on Windows the CRT invalid parameter handler
+    // calls __fastfail, crashing the process.  Pipe may be constructed with
+    // fds[1] = -1 for one-directional pipes (e.g. via _open_osfhandle in the
+    // Supervisor).
+    if ( fds[0] >= 0 )
+        close(fds[0]);
+
+    if ( fds[1] >= 0 )
+        close(fds[1]);
 }
 
 Pipe::Pipe(const Pipe& other) {

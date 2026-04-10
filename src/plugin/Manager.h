@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <map>
 #include <set>
 #include <string_view>
@@ -595,6 +597,6 @@ public:
 } // namespace detail
 } // namespace plugin
 
-extern plugin::Manager* plugin_mgr;
+ZEEK_EXTERN_DATA plugin::Manager* plugin_mgr;
 
 } // namespace zeek

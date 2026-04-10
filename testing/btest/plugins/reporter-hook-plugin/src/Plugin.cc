@@ -1,11 +1,11 @@
 
 #include "Plugin.h"
 
-#include <Conn.h>
-#include <Desc.h>
-#include <Event.h>
-#include <Func.h>
-#include <threading/Formatter.h>
+#include "zeek/Conn.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/threading/Formatter.h"
 
 namespace btest::plugin::Reporter_Hook {
 Plugin plugin;

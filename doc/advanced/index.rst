@@ -12,4 +12,5 @@ user.
    troubleshooting
    scripting/index
    devel/index
+   xdp-shunt
    subcomponents 

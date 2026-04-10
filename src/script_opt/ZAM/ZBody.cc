@@ -376,12 +376,12 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     // later if that's the case, too. We zero-initialize here because
     // -Werror=maybe-uninitialized gets confused.
     double start_CPU_time = 0.0;
-    uint64_t start_mem;
+    uint64_t start_mem = 0;
 
     bool do_profile = false;
     // Similarly, these are only active if do_profile is true.
-    int profile_pc;
-    double profile_CPU;
+    int profile_pc = 0;
+    double profile_CPU = 0.0;
 
     if ( profiling_active ) {
         ++ncall;

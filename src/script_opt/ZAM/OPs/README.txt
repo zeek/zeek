@@ -75,6 +75,11 @@
 # 	assign-op       directly assigning either a ZVal or a record field
 # 			to either a frame slot or a record field
 #
+# 	predicate-op    an operation that produces a predicate; these generate
+# 			both assignment versions (setting a variable to the
+# 			boolean result) and versions that can be used in a
+# 			a conditional
+#
 # 	unary-op        an operation with one operand that requires special
 # 			treatment that doesn't fit with how unary-expr-op's
 # 			are expressed

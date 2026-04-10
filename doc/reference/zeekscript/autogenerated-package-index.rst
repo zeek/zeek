@@ -64,6 +64,9 @@
 :doc:`base/packet-protocols/icmp </scripts/base/packet-protocols/icmp/index>`
 
 
+:doc:`base/packet-protocols/igmp </scripts/base/packet-protocols/igmp/index>`
+
+
 :doc:`base/packet-protocols/llc </scripts/base/packet-protocols/llc/index>`
 
 

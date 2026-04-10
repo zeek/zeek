@@ -1,3 +1,18 @@
+8.2.0-dev.503 | 2026-04-10 02:46:20 +0000
+
+  * Rework IGMP analyzer for inclusion in main Zeek tree (Tim Wojtulewicz, Corelight)
+
+    - Reformat code
+    - Remove igmp.log
+    - Rework how checksums are calculated to be more descriptive
+    - Report a weird for bad checksums instead of an event
+    - Add bests
+    - Regenerate documentation and add NEWS entry
+
+  * Import IGMP analyzer from zeek-plugins/igmp (François De Keersmaeker)
+
+  * Adding missing documentation tags to existing Spicy analyzers. (Robin Sommer, Corelight)
+
 8.2.0-dev.496 | 2026-04-08 10:46:25 -0700
 
   * [windows] enable spicy and fix build errors (Maor Hamami)

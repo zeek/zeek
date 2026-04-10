@@ -68,6 +68,10 @@
    base/packet-protocols/tcp/main.zeek </scripts/base/packet-protocols/tcp/main.zeek>
    base/packet-protocols/icmp/__load__.zeek </scripts/base/packet-protocols/icmp/__load__.zeek>
    base/packet-protocols/icmp/main.zeek </scripts/base/packet-protocols/icmp/main.zeek>
+   base/packet-protocols/igmp/__load__.zeek </scripts/base/packet-protocols/igmp/__load__.zeek>
+   base/packet-protocols/igmp/types.zeek </scripts/base/packet-protocols/igmp/types.zeek>
+   base/packet-protocols/igmp/spicy-events.zeek </scripts/base/packet-protocols/igmp/spicy-events.zeek>
+   base/packet-protocols/igmp/main.zeek </scripts/base/packet-protocols/igmp/main.zeek>
    base/packet-protocols/llc/__load__.zeek </scripts/base/packet-protocols/llc/__load__.zeek>
    base/packet-protocols/llc/main.zeek </scripts/base/packet-protocols/llc/main.zeek>
    base/packet-protocols/novell_802_3/__load__.zeek </scripts/base/packet-protocols/novell_802_3/__load__.zeek>

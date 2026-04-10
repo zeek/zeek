@@ -57,6 +57,8 @@ Packet Analyzers
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_SNAP PacketAnalyzer::Tag
 
+      .. zeek:enum:: PacketAnalyzer::ANALYZER_IGMP PacketAnalyzer::Tag
+
       .. zeek:enum:: PacketAnalyzer::ANALYZER_TCP PacketAnalyzer::Tag
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_TEREDO PacketAnalyzer::Tag
@@ -464,6 +466,99 @@ Components
 ++++++++++
 
 :zeek:enum:`PacketAnalyzer::ANALYZER_IEEE802_11_RADIO`
+
+.. _plugin-zeek-igmp:
+
+Zeek::IGMP
+----------
+
+IGMP analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`PacketAnalyzer::ANALYZER_IGMP`
+
+Events
+++++++
+
+.. zeek:id:: IGMP::message
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 10 10
+
+   :Type: :zeek:type:`event` (packet: :zeek:type:`raw_pkt_hdr`, msg_type: :zeek:type:`IGMP::MessageType`)
+
+   Generated for every processed IGMP message.
+
+
+   :param packet: Raw packet header.
+
+
+   :param msg_type: The type of message received.
+
+.. zeek:id:: IGMP::membership_query
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 17 17
+
+   :Type: :zeek:type:`event` (source: :zeek:type:`addr`, group_addr: :zeek:type:`addr`)
+
+   Generated for every IGMP Membership Query.
+
+
+   :param source: The address of the source for this query.
+
+
+   :param group_addr: Multicast group address
+
+.. zeek:id:: IGMP::membership_report_v1
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 24 24
+
+   :Type: :zeek:type:`event` (source: :zeek:type:`addr`, group_addr: :zeek:type:`addr`)
+
+   Generated for every IGMP Version 1 Membership Report.
+
+
+   :param source: The address of the source for this report.
+
+
+   :param group_addr: Multicast group address
+
+.. zeek:id:: IGMP::membership_report_v2
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 31 31
+
+   :Type: :zeek:type:`event` (source: :zeek:type:`addr`, group_addr: :zeek:type:`addr`)
+
+   Generated for every IGMP Version 2 Membership Report.
+
+
+   :param source: The address of the source for this report.
+
+
+   :param group_addr: Multicast group address
+
+.. zeek:id:: IGMP::membership_report_v3
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 45 45
+
+   :Type: :zeek:type:`event` (source: :zeek:type:`addr`, groups: :zeek:type:`vector` of :zeek:type:`IGMP::Group`)
+
+   Generated for every IGMP Version 3 Membership Report.
+
+
+   :param source: The address of the source for this report.
+
+
+   :param groups: vector of Multicast groups
+
+.. zeek:id:: IGMP::leave_group
+   :source-code: base/packet-protocols/igmp/spicy-events.zeek 38 38
+
+   :Type: :zeek:type:`event` (source: :zeek:type:`addr`, group_addr: :zeek:type:`addr`)
+
+   Generated for every IGMP Version 2 Leave Group Message.
+
+
+   :param source: The address of the source for this report.
+
+
+   :param group_addr: Multicast group address
 
 .. _plugin-zeek-ip:
 

@@ -288,6 +288,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::try_register_packet_analyzer_by_name, <frame>, (IP, 2, IGMP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Site::update_local_nets_table, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,fec0::/10,::1/128,2002:ffff:ffff::/48,2002:cb00:7100::/40,2002:c633:6400::<...>/4,100::/64,2002:a00::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::<...>/8,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Site::update_local_nets_table, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Site::update_local_zones_regex, <frame>, (Site::local_zones, {})) -> <no result>
@@ -498,6 +499,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./scp, <...>/scp.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sftp, <...>/sftp.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./spicy-events, <...>/spicy-events.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek) -> -1
@@ -571,6 +573,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/icmp, <...>/icmp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/igmp, <...>/igmp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/init-bare, <...>/init-bare.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/init-framework, <...>/init-framework.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/input, <...>/input) -> -1
@@ -819,6 +822,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./sftp, <...>/sftp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek) -> (-1, <no content>)
@@ -892,6 +896,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/icmp, <...>/icmp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ieee802_11, <...>/ieee802_11) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/igmp, <...>/igmp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/init-bare, <...>/init-bare.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/init-framework, <...>/init-framework.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input, <...>/input) -> (-1, <no content>)
@@ -1254,6 +1259,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_protocol_detection, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::try_register_packet_analyzer_by_name, <frame>, (IP, 2, IGMP))
 0.000000   MetaHookPre   CallFunction(Site::update_local_nets_table, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,fec0::/10,::1/128,2002:ffff:ffff::/48,2002:cb00:7100::/40,2002:c633:6400::<...>/4,100::/64,2002:a00::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::<...>/8,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}))
 0.000000   MetaHookPre   CallFunction(Site::update_local_nets_table, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}))
 0.000000   MetaHookPre   CallFunction(Site::update_local_zones_regex, <frame>, (Site::local_zones, {}))
@@ -1464,6 +1470,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./scp, <...>/scp.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sftp, <...>/sftp.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek)
@@ -1537,6 +1544,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/icmp, <...>/icmp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11, <...>/ieee802_11)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio)
+0.000000   MetaHookPre   LoadFile(0, base<...>/igmp, <...>/igmp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/init-bare, <...>/init-bare.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/init-framework, <...>/init-framework.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/input, <...>/input)
@@ -1785,6 +1793,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./sftp, <...>/sftp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./storage-async.bif.zeek, <...>/storage-async.bif.zeek)
@@ -1858,6 +1867,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/icmp, <...>/icmp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ieee802_11, <...>/ieee802_11)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ieee802_11_radio, <...>/ieee802_11_radio)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/igmp, <...>/igmp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/init-bare, <...>/init-bare.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/init-framework, <...>/init-framework.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input, <...>/input)
@@ -2219,6 +2229,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VNTAG, 37120, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_protocol_detection(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA)
 0.000000 | HookCallFunction PacketAnalyzer::register_protocol_detection(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO)
+0.000000 | HookCallFunction PacketAnalyzer::try_register_packet_analyzer_by_name(IP, 2, IGMP)
 0.000000 | HookCallFunction Site::update_local_nets_table(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24})
 0.000000 | HookCallFunction Site::update_local_nets_table(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,fec0::/10,::1/128,2002:ffff:ffff::/48,2002:cb00:7100::/40,2002:c633:6400::<...>/4,100::/64,2002:a00::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::<...>/8,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24})
 0.000000 | HookCallFunction Site::update_local_zones_regex(Site::local_zones, {})
@@ -2441,6 +2452,7 @@
 0.000000 | HookLoadFile  ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFile  ./scp <...>/scp.zeek
 0.000000 | HookLoadFile  ./sftp <...>/sftp.zeek
+0.000000 | HookLoadFile  ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFile  ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFile  ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFile  ./storage-async.bif.zeek <...>/storage-async.bif.zeek
@@ -2515,6 +2527,7 @@
 0.000000 | HookLoadFile  base<...>/icmp <...>/icmp
 0.000000 | HookLoadFile  base<...>/ieee802_11 <...>/ieee802_11
 0.000000 | HookLoadFile  base<...>/ieee802_11_radio <...>/ieee802_11_radio
+0.000000 | HookLoadFile  base<...>/igmp <...>/igmp
 0.000000 | HookLoadFile  base<...>/init-bare <...>/init-bare.zeek
 0.000000 | HookLoadFile  base<...>/init-framework <...>/init-framework.zeek
 0.000000 | HookLoadFile  base<...>/input <...>/input
@@ -2762,6 +2775,7 @@
 0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFileExtended ./scp <...>/scp.zeek
 0.000000 | HookLoadFileExtended ./sftp <...>/sftp.zeek
+0.000000 | HookLoadFileExtended ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFileExtended ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFileExtended ./storage-async.bif.zeek <...>/storage-async.bif.zeek
@@ -2836,6 +2850,7 @@
 0.000000 | HookLoadFileExtended base<...>/icmp <...>/icmp
 0.000000 | HookLoadFileExtended base<...>/ieee802_11 <...>/ieee802_11
 0.000000 | HookLoadFileExtended base<...>/ieee802_11_radio <...>/ieee802_11_radio
+0.000000 | HookLoadFileExtended base<...>/igmp <...>/igmp
 0.000000 | HookLoadFileExtended base<...>/init-bare <...>/init-bare.zeek
 0.000000 | HookLoadFileExtended base<...>/init-framework <...>/init-framework.zeek
 0.000000 | HookLoadFileExtended base<...>/input <...>/input

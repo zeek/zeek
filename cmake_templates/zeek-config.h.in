@@ -246,9 +246,6 @@
 /* Spicy analyzers built in. */
 #cmakedefine01 USE_SPICY_ANALYZERS
 
-/* Enable/disable ZAM profiling capability */
-#cmakedefine ENABLE_ZAM_PROFILE
-
 /* Enable/disable the Spicy SSL analyzer */
 #cmakedefine ENABLE_SPICY_SSL
 

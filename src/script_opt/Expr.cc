@@ -106,15 +106,16 @@ bool Expr::IsReducedConditional(Reducer* c) const {
 
         case EXPR_IN: {
             auto op1 = GetOp1();
+            auto t1 = op1->Tag();
             auto op2 = GetOp2();
 
-            if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
+            if ( t1 != EXPR_NAME && t1 != EXPR_CONST && t1 != EXPR_LIST )
                 return NonReduced(this);
 
             if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsSingleton(c) )
                 return NonReduced(this);
 
-            if ( op1->Tag() == EXPR_LIST ) {
+            if ( t1 == EXPR_LIST ) {
                 if ( ! op1->IsReduced(c) )
                     return NonReduced(this);
 

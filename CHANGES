@@ -1,3 +1,15 @@
+8.2.0-dev.509 | 2026-04-10 10:22:40 -0700
+
+  * documenting ZAM's "predicate-op" (Vern Paxson, Corelight)
+
+  * ZAM support for pattern tables in conditionals (Vern Paxson, Corelight)
+
+  * remove --enable-ZAM-profiling option and make it always available (Vern Paxson, Corelight)
+
+  * switch ZAM profiling to directly track ZAM bodies rather than all of the functions (Vern Paxson, Corelight)
+
+  * (very) minor tidying of ZAM built-in operation specifiers (Vern Paxson, Corelight)
+
 8.2.0-dev.503 | 2026-04-10 02:46:20 +0000
 
   * Rework IGMP analyzer for inclusion in main Zeek tree (Tim Wojtulewicz, Corelight)

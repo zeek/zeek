@@ -78,8 +78,6 @@ void estimate_ZAM_profiling_overhead() {
     mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
 }
 
-#ifdef ENABLE_ZAM_PROFILE
-
 static std::vector<const ZAMLocInfo*> caller_locs;
 static bool profile_all = getenv("ZAM_PROFILE_ALL") != nullptr;
 
@@ -112,16 +110,6 @@ static bool profile_all = getenv("ZAM_PROFILE_ALL") != nullptr;
             continue;                                                                                                  \
         }                                                                                                              \
     }
-
-#else
-
-#define DO_ZAM_PROFILE
-#define ZAM_PROFILE_PRE_CALL
-#define ZAM_PROFILE_POST_CALL
-
-static bool profile_all = false;
-
-#endif
 
 using std::vector;
 
@@ -381,12 +369,19 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     // ListVal corresponding to INDEX_LIST.
     static auto zam_index_val_list = make_intrusive<ListVal>(TYPE_ANY);
 
-#ifdef ENABLE_ZAM_PROFILE
     static bool profiling_active = analysis_options.profile_ZAM;
     static int sampling_rate = analysis_options.profile_sampling_rate;
 
+    // These are initialized if profiling is active, and only accessed
+    // later if that's the case, too. We zero-initialize here because
+    // -Werror=maybe-uninitialized gets confused.
     double start_CPU_time = 0.0;
-    uint64_t start_mem = 0;
+    uint64_t start_mem;
+
+    bool do_profile = false;
+    // Similarly, these are only active if do_profile is true.
+    int profile_pc;
+    double profile_CPU;
 
     if ( profiling_active ) {
         ++ncall;
@@ -402,7 +397,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
             curr_prof_vec = pv->second.get();
         }
     }
-#endif
 
     ZBodyStateManager state_mgr(fixed_frame, frame_size, managed_slots, &table_iters);
     std::unique_ptr<TableIterVec> local_table_iters;
@@ -436,11 +430,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     while ( pc < end_pc && ! ZAM_error ) {
         auto& z = insts[pc];
 
-#ifdef ENABLE_ZAM_PROFILE
-        bool do_profile = false;
-        int profile_pc = 0;
-        double profile_CPU = 0.0;
-
         if ( profiling_active ) {
             static auto seed = util::detail::random_number();
             seed = util::detail::prng(seed);
@@ -454,7 +443,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
                 profile_CPU = zeek::util::this_thread::get_cpu_time();
             }
         }
-#endif
 
         switch ( z.op ) {
             case OP_NOP:
@@ -474,7 +462,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
         ++pc;
     }
 
-#ifdef ENABLE_ZAM_PROFILE
     if ( profiling_active ) {
         tot_CPU_time += zeek::util::this_thread::get_cpu_time() - start_CPU_time;
         uint64_t final_mem;
@@ -482,7 +469,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
         if ( final_mem > start_mem )
             tot_mem += final_mem - start_mem;
     }
-#endif
 
     return ret_type ? ret_u->ToVal(ret_type) : nullptr;
 }

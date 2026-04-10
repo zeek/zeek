@@ -68,7 +68,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-werror        build with -Werror
-    --enable-ZAM-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --enable-spicy-ssl     build with spicy SSL/TLS analyzer (conflicts with --disable-spicy)
     --enable-iwyu          build with include-what-you-use enabled for the main Zeek target.
                            Requires include-what-you-use binary to be in the PATH.
@@ -278,11 +277,9 @@ while [ $# -ne 0 ]; do
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE BOOL true
             append_cache_entry ENABLE_DEBUG BOOL true
-            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG BOOL true
-            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-fuzzers)
             append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
@@ -305,9 +302,6 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-werror)
             append_cache_entry BUILD_WITH_WERROR BOOL true
-            ;;
-        --enable-ZAM-profiling)
-            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-spicy-ssl)
             append_cache_entry ENABLE_SPICY_SSL BOOL true

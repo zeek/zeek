@@ -7,22 +7,33 @@ global prefixes: table[pattern] of string;
 
 event zeek_init()
 	{
-	local pat = string_to_pattern(convert_for_pattern("z/t/") + ".*", F);
+	local pat = string_to_pattern(convert_for_pattern("z/t/foo/") + ".*", F);
 	prefixes[pat] = "working OK";
 
 	# We test two paths, one where it's a variable we're checking/accessing,
 	# the other a constant.
-	local var = "z/t/morestuff";
+	local var = "z/t/foo/stuff";
+	local var2 = "z/t/bar/stuff";
 
 	# The following fakes out ZAM (since it refers to a global) into not
 	# optimizing "var" into constant propagation.
 	if ( |prefixes| == 0 )
+		{
 		var = "nope";
+		var2 = "nope";
+		}
 
 	if ( var in prefixes )
 		print prefixes[var];
 
 	# Now test the same but with a constant.
-	if ( "z/t/morestuff" in prefixes )
-		print prefixes["z/t/morestuff"];
+	if ( "z/t/foo/stuff" in prefixes )
+		print prefixes["z/t/foo/stuff"];
+
+	# Also test the negative case:
+	if ( var2 in prefixes )
+		print prefixes[var2];
+
+	if ( "z/t/bar/stuff" in prefixes )
+		print prefixes["z/t/bar/stuff"];
 	}

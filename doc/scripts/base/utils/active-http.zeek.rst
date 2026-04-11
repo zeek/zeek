@@ -124,7 +124,7 @@ Types
 Functions
 #########
 .. zeek:id:: ActiveHTTP::request
-   :source-code: base/utils/active-http.zeek 79 135
+   :source-code: base/utils/active-http.zeek 79 142
 
    :Type: :zeek:type:`function` (req: :zeek:type:`ActiveHTTP::Request`) : :zeek:type:`ActiveHTTP::Response`
 

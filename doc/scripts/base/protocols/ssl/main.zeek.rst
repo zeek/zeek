@@ -179,12 +179,13 @@ Redefinable Options
             585/tcp,
             443/tcp,
             5223/tcp,
-            992/tcp,
             636/tcp,
+            992/tcp,
             990/tcp,
             993/tcp,
             989/tcp,
-            614/tcp
+            614/tcp,
+            465/tcp
          }
 
 

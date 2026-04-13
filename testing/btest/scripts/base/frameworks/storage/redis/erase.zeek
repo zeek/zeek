@@ -4,6 +4,7 @@
 # @TEST-PORT: REDIS_PORT
 
 # @TEST-EXEC: btest-bg-run redis-server run-redis-server ${REDIS_PORT%/tcp}
+# @TEST-EXEC: sleep 2
 # @TEST-EXEC: zeek -b %INPUT | sed 's|=[0-9]*/tcp|=xxxx/tcp|g' > out
 # @TEST-EXEC: btest-bg-wait -k 0
 

@@ -3,6 +3,35 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.1.2
+==========
+
+We would like to thank Anthony Alayo (@anthonyalayo), @cccs-graeme on Slack, Klemens Nanni
+(@klemensn), and Octave Charrin (@OctaveCharrin) for their contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Support for non-Broker cluster backends was added to the cluster/experimental set of
+  scripts.
+
+- The SQLite storage backend now uses ``quick_check`` instead of ``integrity_check`` in
+  the default set of pragmas. This is a trade-off between a slightly fewer number of
+  checks and a signficiant savings in startup time.
+
+- The events ssl_extension_pre_shared_key_server_hello and
+  ssl_extension_pre_shared_key_client_hello can now be used independently. Previously,
+  both had to have a handler implemented for either of them to actually be invoked due to
+  some logic confusion in the analyzer.
+
+- The SSH analyzer now supports the ML-KEM family of key exchange algorithms.
+
+- A memory leak in the telemetry framework's process handling on FreeBSD was fixed.
+
+- The ZeroMQ cluster backend now disables ipv6 by default. This fixes an issue with
+  running on systems without dual-stack socket support.
+
 Zeek 8.1.1
 ==========
 

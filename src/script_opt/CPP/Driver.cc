@@ -415,9 +415,9 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
             if ( ! events.empty() )
                 events += ", ";
 
-            events += "\"";
+            events += '\"';
             events += e;
-            events += "\"";
+            events += '\"';
         }
 
     events = string("{") + events + "}";

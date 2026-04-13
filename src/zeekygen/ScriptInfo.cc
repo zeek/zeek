@@ -344,12 +344,12 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
     for ( const auto& usage : module_usages )
         rval += ".. zeek:namespace:: " + usage + "\n";
 
-    rval += "\n";
+    rval += '\n';
 
     for ( const auto& cmnt : comments )
         rval += cmnt + "\n";
 
-    rval += "\n";
+    rval += '\n';
 
     if ( ! module_usages.empty() ) {
         rval += module_usages.size() > 1 ? ":Namespaces: " : ":Namespace: ";
@@ -361,7 +361,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
             rval += *it;
         }
 
-        rval += "\n";
+        rval += '\n';
     }
 
     if ( ! dependencies.empty() ) {
@@ -381,11 +381,11 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
             rval += util::fmt(":doc:`%s </scripts/%s>`", it->c_str(), doc.c_str());
         }
 
-        rval += "\n";
+        rval += '\n';
     }
 
     // rval += util::fmt(":Source File: :download:`/scripts/%s`\n", name.c_str());
-    rval += "\n";
+    rval += '\n';
     rval += make_heading("Summary", '~');
     rval += make_summary("Runtime Options", '#', '=', options);
     rval += make_summary("Redefinable Options", '#', '=', redef_options);
@@ -396,7 +396,7 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
     rval += make_summary("Events", '#', '=', events);
     rval += make_summary("Hooks", '#', '=', hooks);
     rval += make_summary("Functions", '#', '=', functions);
-    rval += "\n";
+    rval += '\n';
     rval += make_heading("Detailed Interface", '~');
     rval += make_details("Runtime Options", '#', options);
     rval += make_details("Redefinable Options", '#', redef_options);

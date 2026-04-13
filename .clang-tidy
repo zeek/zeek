@@ -48,6 +48,7 @@ Checks: [-*,
          -modernize-use-nodiscard,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
+         -modernize-use-string-view,
 
          # I'd like to enable this at some point, but it's going to warn on all
          # of our fmt() and Reporter methods.
@@ -76,13 +77,6 @@ Checks: [-*,
          # access to yet.
          -modernize-use-std-format,
          -modernize-use-std-print,
-
-         # These are new in Clang 22, and we don't have fixes for them in place yet.
-         -performance-prefer-single-char-overloads,
-         -performance-faster-string-find,
-         -performance-string-view-conversions,
-         -modernize-use-string-view,
-         -modernize-use-structured-binding,
 ]
 
 HeaderFilterRegex: '.h'

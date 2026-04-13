@@ -440,7 +440,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
         std::string ext = "." + LogExt();
 
         if ( gzip_level > 0 ) {
-            ext += ".";
+            ext += '.';
             ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
         }
 
@@ -648,7 +648,7 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
     string nname = string(rotated_path) + "." + LogExt();
 
     if ( gzip_level > 0 ) {
-        nname += ".";
+        nname += '.';
         nname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
     }
 

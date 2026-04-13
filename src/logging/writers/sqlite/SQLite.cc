@@ -236,7 +236,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
             insert += ", ";
         }
 
-        insert += "?";
+        insert += '?';
 
         char* fieldname = sqlite3_mprintf("%Q", fields[i]->name);
         if ( fieldname == nullptr ) {

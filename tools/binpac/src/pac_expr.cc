@@ -148,7 +148,7 @@ Expr::Expr(Expr* index, CaseExprList* cases) : DataDepElement(EXPR) {
         CaseExpr* c = *i;
         orig_ += strfmt("%s => %s; ", OrigExprList(c->index()).c_str(), c->value()->orig());
     }
-    orig_ += "}";
+    orig_ += '}';
 }
 
 Expr::~Expr() {

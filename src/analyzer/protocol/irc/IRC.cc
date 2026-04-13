@@ -81,7 +81,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // IRCv3 can pass arbitrary tags at the start of each line. Commonly this is @time,
     // which is a timestamp for when the message was sent. They come as a semi-colon
     // separated list, and are separated from the rest of the line by a space.
-    if ( myline.starts_with("@") ) {
+    if ( myline.starts_with('@') ) {
         std::size_t first_space = myline.find(' ');
         // A set of tags doesn't necessarily need to be followed by a command. In this
         // case just return.
@@ -371,7 +371,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
                 string real_name = parts[0];
                 for ( size_t i = 1; i < parts.size(); ++i ) {
-                    real_name += " ";
+                    real_name += ' ';
                     real_name += parts[i];
                 }
 
@@ -645,7 +645,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         for ( size_t i = 3; i < parts.size(); i++ ) {
             realname += parts[i];
             if ( i > 3 )
-                realname += " ";
+                realname += ' ';
         }
 
         const char* name = realname.c_str();
@@ -822,10 +822,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     else if ( irc_quit_message && command == "QUIT" ) {
         string_view message{params};
-        if ( message.starts_with(":") )
+        if ( message.starts_with(':') )
             message = message.substr(1);
 
-        string nickname = "";
+        string nickname;
         if ( ! prefix.empty() ) {
             unsigned int pos = prefix.find('!');
             if ( pos < prefix.size() )

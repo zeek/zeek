@@ -1236,7 +1236,7 @@ void Stem::Log(std::string_view type, const char* format, va_list args) const {
     }
 
     std::string msg{type.data(), type.size()};
-    msg += " ";
+    msg += ' ';
     msg += raw_msg;
     write_msg(pipe, msg, &msg_buffer);
 }
@@ -1988,9 +1988,7 @@ RecordValPtr Supervisor::Status(std::string_view node_name) {
     rval->Assign(0, node_table_val);
 
     if ( node_name.empty() ) {
-        for ( const auto& n : nodes ) {
-            const auto& name = n.first;
-            const auto& node = n.second;
+        for ( const auto& [name, node] : nodes ) {
             auto key = make_intrusive<StringVal>(name);
             auto val = node.ToRecord();
             node_table_val->Assign(std::move(key), std::move(val));

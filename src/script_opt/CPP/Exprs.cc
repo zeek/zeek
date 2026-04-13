@@ -331,7 +331,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
     if ( is_async )
         invoker += ", (void*) &" + body_name;
 
-    invoker += ")";
+    invoker += ')';
 
     if ( top_level )
         // No need to use accessor.

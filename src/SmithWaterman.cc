@@ -118,10 +118,10 @@ char* Substring::VecToString(Vec* vec) {
 
     for ( const auto& ss : *vec ) {
         result += ss->CheckString();
-        result += ",";
+        result += ',';
     }
 
-    result += "]";
+    result += ']';
     return strdup(result.c_str());
 }
 

@@ -818,9 +818,7 @@ std::pair<int, IDPtr> SwitchStmt::FindCaseLabelMatch(const Val* v) const {
 ValPtr SwitchStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
     ValPtr rval;
 
-    auto m = FindCaseLabelMatch(v);
-    int matching_label_idx = m.first;
-    auto matching_id = m.second;
+    auto [matching_label_idx, matching_id] = FindCaseLabelMatch(v);
 
     if ( matching_label_idx == -1 )
         return nullptr;

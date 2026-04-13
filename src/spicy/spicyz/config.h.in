@@ -23,9 +23,9 @@ static inline void add_path(std::string& old_path, const path& new_path) {
 
     if ( ! old_path.empty() )
 #ifdef _WIN32
-        old_path += ";";
+        old_path += ';';
 #else
-        old_path += ":";
+        old_path += ':';
 #endif
 
     old_path += new_path.string();

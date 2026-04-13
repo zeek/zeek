@@ -1254,10 +1254,10 @@ static string container_type_name(const Type* ft) {
 
         for ( auto i = 0u; i < tl.size(); ++i ) {
             if ( i > 0 )
-                s += ",";
+                s += ',';
             s += container_type_name(tl[i].get());
         }
-        s += "]";
+        s += ']';
         if ( ft->Yield() ) {
             s += " of ";
             s += container_type_name(ft->Yield().get());

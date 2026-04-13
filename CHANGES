@@ -1,3 +1,11 @@
+8.2.0-dev.534 | 2026-04-13 09:06:07 -0700
+
+  * Fix clang-tidy modernize-use-structured-binding findings (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy performance-string-view-conversions findings (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy performance-prefer-single-char-overloads findings (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.530 | 2026-04-13 09:33:39 +0200
 
   * Fix for ZAM ops on pattern tables (Christian Kreibich, Corelight)

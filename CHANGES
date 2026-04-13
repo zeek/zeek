@@ -1,3 +1,12 @@
+8.2.0-dev.530 | 2026-04-13 09:33:39 +0200
+
+  * Fix for ZAM ops on pattern tables (Christian Kreibich, Corelight)
+
+    LookupPattern() returns a vector, so the nullptr comparison never failed.
+    This now uses MatchPattern(), as in the InExpr implementation.
+
+  * Expand opt.regress-pat-table-cond test to cover negative case (Christian Kreibich, Corelight)
+
 8.2.0-dev.526 | 2026-04-10 15:04:07 -0700
 
   * Additional zero-inits to avoid -Werror=maybe-uninitialized confusions (Christian Kreibich, Corelight)

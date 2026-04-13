@@ -2,7 +2,7 @@ name: Documentation Link Check
 
 on:
   schedule:
-    - cron: '3 15 * * 0'
+    - cron: '3 15 1 * *'
 
 defaults:
   run:
@@ -51,7 +51,7 @@ jobs:
           server_port: ${{secrets.SMTP_PORT}}
           username: ${{secrets.SMTP_USER}}
           password: ${{secrets.SMTP_PASS}}
-          subject: generate-docs GitHub Action failed!
+          subject: docs-link-check GitHub Action failed!
           body:  job of ${{github.repository}} Failed! See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.
           to: ${{secrets.MAIL_TO}}
           from: GitHub Actions <${{secrets.MAIL_FROM}}>

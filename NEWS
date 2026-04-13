@@ -29,6 +29,8 @@ This release fixes the following bugs:
 
 - A memory leak in the telemetry framework's process handling on FreeBSD was fixed.
 
+- ZeekJS was updated to v0.22.1.
+
 Zeek 8.0.6
 ==========
 

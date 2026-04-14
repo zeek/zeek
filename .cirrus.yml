@@ -940,7 +940,7 @@ cluster_testing_docker_builder:
 #
 # Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
 # through the Cirrus Web UI.
-zeekctl_debian12_task:
+zeekctl_debian13_task:
   cpu: *CPUS
   memory: *MEMORY
   << : *ONLY_IF_PR_MASTER_RELEASE
@@ -966,7 +966,7 @@ zeekctl_debian12_task:
     upload_zeekctl_testing_artifacts:
       path: "auxil/zeekctl/testing/.tmp/**"
 
-include_plugins_debian12_task:
+include_plugins_debian13_task:
   cpu: *CPUS
   memory: *MEMORY
   container:

@@ -1,3 +1,7 @@
+8.2.0-dev.560 | 2026-04-14 17:19:03 -0400
+
+  * Use Redis RCE for tutorial so Zeek maintains it (Evan Typanski, Corelight)
+
 8.2.0-dev.558 | 2026-04-14 12:16:47 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

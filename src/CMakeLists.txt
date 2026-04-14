@@ -571,6 +571,26 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
 target_compile_options(zeek_objs PRIVATE ${WERROR_FLAG})
+if (MSVC)
+    set_source_files_properties(
+        script_opt/ScriptOpt.cc
+        script_opt/CPP/Attrs.cc
+        script_opt/CPP/Consts.cc
+        script_opt/CPP/DeclFunc.cc
+        script_opt/CPP/Driver.cc
+        script_opt/CPP/Emit.cc
+        script_opt/CPP/Exprs.cc
+        script_opt/CPP/GenFunc.cc
+        script_opt/CPP/Inits.cc
+        script_opt/CPP/InitsInfo.cc
+        script_opt/CPP/RuntimeInits.cc
+        script_opt/CPP/RuntimeOps.cc
+        script_opt/CPP/RuntimeVec.cc
+        script_opt/CPP/Stmts.cc
+        script_opt/CPP/Types.cc
+        script_opt/CPP/Vars.cc
+        PROPERTIES COMPILE_FLAGS "/EHsc")
+endif ()
 set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)

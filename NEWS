@@ -186,8 +186,8 @@ Deprecated Functionality
   attribute on tables for distributing table entries, explicit ``Cluster::publish()`` calls
   with remote events, or using the storage framework for persistence.
 
-  When ZeroMQ is selected as cluster backend and usage of above functions is detected
-  statically, Zeek will now fail to start as these functions are not functional anymore.
+  When ZeroMQ is selected as cluster backend, calling any of the above functions
+  results in a fatal error as these are all Broker specific.
 
 Zeek 8.1.0
 ==========

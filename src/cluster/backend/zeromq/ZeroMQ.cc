@@ -226,7 +226,7 @@ struct CurveConfig load_curve_config() {
     curve_config_script.server_secretkey =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::curve_server_secretkey")->ToStdString();
 
-    auto load_from_env = [](std::string what) -> std::string {
+    auto load_from_env = [](const std::string& what) -> std::string {
         static const std::string prefix = "ZEEK_CLUSTER_BACKEND_ZEROMQ_CURVE_";
         std::string key = prefix + what;
         const auto* value = std::getenv(key.c_str());

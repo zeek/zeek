@@ -779,6 +779,9 @@ module Broker;
 function create_master(name: string, b: BackendType &default = MEMORY,
                        options: BackendOptions &default = BackendOptions()): opaque of Broker::Store
 	{
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER && Cluster::backend != Cluster::CLUSTER_BACKEND_NONE )
+		Reporter::fatal(fmt("Call to Broker::create_master() with non-Broker backend %s selected", Cluster::backend));
+
 @pragma push ignore-deprecations
 	return __create_master(name, b, options);
 @pragma pop
@@ -789,6 +792,9 @@ function create_clone(name: string,
                       stale_interval: interval &default = default_clone_stale_interval,
                       mutation_buffer_interval: interval &default = default_clone_mutation_buffer_interval): opaque of Broker::Store
 	{
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER && Cluster::backend != Cluster::CLUSTER_BACKEND_NONE )
+		Reporter::fatal(fmt("Call to Broker::create_clone() with non-Broker backend %s selected", Cluster::backend));
+
 @pragma push ignore-deprecations
 	return __create_clone(name, resync_interval, stale_interval,
 	                      mutation_buffer_interval);

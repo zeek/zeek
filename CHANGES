@@ -1,3 +1,9 @@
+8.2.0-dev.549 | 2026-04-14 09:36:35 -0700
+
+  * Only run link-checking on main zeek repo (Tim Wojtulewicz, Corelight)
+
+  * Switch docs link-check workflow to run monthly (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.546 | 2026-04-14 09:23:03 -0700
 
   * Propagate failure in merge_list_types upward (Tim Wojtulewicz, Corelight)

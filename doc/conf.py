@@ -338,6 +338,10 @@ linkcheck_ignore = [
     r"^https://www\.gnu\.org/software/bison/",
     # This gets reported as a 403 more often than not.
     r"^https://docutils.sourceforge.io/rst.html",
+    # Periodically reports a 403
+    r"^https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html",
+    # Periodically reports a 403
+    r"^https://developers.redhat.com/products/red-hat-developer-toolset/getting-started",
 ]
 
 linkcheck_allowed_redirects = {

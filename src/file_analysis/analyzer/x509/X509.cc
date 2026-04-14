@@ -223,6 +223,11 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
             pX509Cert->Assign(9, "ecdsa");
             pX509Cert->Assign(12, KeyCurve(pkey));
         }
+        else {
+            auto* type_name = EVP_PKEY_get0_type_name(pkey);
+            if ( type_name ) // nullptr if no name found
+                pX509Cert->Assign(9, type_name);
+        }
 #endif
 
         // set key algorithm back. We do not have to free the value that we created because (I

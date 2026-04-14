@@ -59,7 +59,7 @@ Here's a simple example:
 
 .. code-block:: console
 
-   $ zeek -r http/get.trace file_analysis_01.zeek
+   $ zeek -r http/get.pcap file_analysis_01.zeek
    file_state_remove
    FakNcS1Jfe01uljb3
    CHhAvVGS1DHFjwGM9
@@ -168,7 +168,7 @@ text files:
 
 .. code-block:: console
 
-   $ zeek -r http/get.trace file_analysis_02.zeek
+   $ zeek -r http/get.pcap file_analysis_02.zeek
    new file, FakNcS1Jfe01uljb3
    file_hash, FakNcS1Jfe01uljb3, md5, 397168fd09991a0e712254df7bc639ac
 

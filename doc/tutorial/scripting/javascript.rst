@@ -336,7 +336,7 @@ not change the set on the Zeek-side.
 
 .. code-block:: console
 
-   $ zeek -r ../../traces/get.trace  ./connection-service.js
+   $ zeek -r ../../traces/get.pcap  ./connection-service.js
    service-from-js,http
 
 .. note::

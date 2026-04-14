@@ -41,7 +41,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_service_store = F &redef;
+	const use_service_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
 
 	## Switches to the version of this script that uses the storage
 	## framework instead of Broker stores. This will default to ``T``
@@ -141,8 +141,10 @@ function check(info: ServicesInfo) : bool
 
 event zeek_init()
 	{
+@pragma push ignore-deprecations
 	if ( ! Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Known::use_storage_framework )
 		{
@@ -153,13 +155,19 @@ event zeek_init()
 			Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::service_store_prefix, res$error_str));
 		}
 	else
+		{
+@pragma push ignore-deprecations
 		Known::service_broker_store = Cluster::create_store(Known::service_store_name);
+@pragma pop ignore-deprecations
+		}
 	}
 
 event service_info_commit(info: ServicesInfo)
 	{
+@pragma push ignore-deprecations
 	if ( ! Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	local tempservs = info$service;
 
@@ -212,8 +220,10 @@ event service_info_commit(info: ServicesInfo)
 
 event known_service_add(info: ServicesInfo)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( check(info) )
 		return;
@@ -245,8 +255,10 @@ event known_service_add(info: ServicesInfo)
 
 event Cluster::node_up(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -257,8 +269,10 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -269,8 +283,10 @@ event Cluster::node_down(name: string, id: string)
 
 event service_info_commit(info: ServicesInfo)
 	{
+@pragma push ignore-deprecations
 	if ( Known::use_service_store )
 		return;
+@pragma pop ignore-deprecations
 
 	if ( check(info) )
 		return;

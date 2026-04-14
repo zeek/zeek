@@ -1,3 +1,22 @@
+8.2.0-dev.553 | 2026-04-14 19:35:30 +0200
+
+  * policy/known-*: Deprecate store usage (Arne Welzel, Corelight)
+
+    We probably should've done that at the time when these were defaulted
+    to F by commit f6d3ed2395c29b0fbf5e7647c32ef09d7e52c1f7 back in 2023.
+    The motivation back then was performance issues with the Broker store
+    model and nothing fundamentally has changed except for Broker stores
+    now being on the way out.
+
+  * Deprecate Broker store entry APIs (Arne Welzel, Corelight)
+
+    Also, error if the store API is used, but a non-Broker backend is used
+    using conditional AST traversal.
+
+  * Revert "Only run link-checking on main zeek repo" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit b143f5ea24d8e7819d704870abb6d78f29f58a17.
+
 8.2.0-dev.549 | 2026-04-14 09:36:35 -0700
 
   * Only run link-checking on main zeek repo (Tim Wojtulewicz, Corelight)

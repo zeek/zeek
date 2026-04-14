@@ -4,6 +4,8 @@
 # @TEST-PORT: BROKER_WORKER1_PORT
 # @TEST-PORT: BROKER_WORKER2_PORT
 #
+# @TEST-REQUIRES: ! is-windows-ci
+#
 # @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # Clean up directories in case of btest retry.

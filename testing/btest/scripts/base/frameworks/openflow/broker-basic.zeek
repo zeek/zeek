@@ -1,6 +1,7 @@
 # Can't use this test for -O gen-C++ because of multiple simultaneous
 # Zeek runs.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+# @TEST-REQUIRES: ! is-windows-ci
 #
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run recv "zeek -b ../recv.zeek >recv.out"

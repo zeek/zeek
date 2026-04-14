@@ -1,6 +1,7 @@
 
 # @TEST-PORT: SUPERVISOR_PORT
 # @TEST-PORT: LOGGER_PORT
+# @TEST-REQUIRES: ! is-windows-ci
 
 # Test default log rotation/archival behavior (rotate into log-queue dir)
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT

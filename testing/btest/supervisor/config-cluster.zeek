@@ -3,6 +3,7 @@
 # @TEST-PORT: LOGGER_PORT
 # @TEST-PORT: PROXY_PORT
 # @TEST-PORT: WORKER_PORT
+# @TEST-REQUIRES: ! is-windows-ci
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff zeek/supervisor.out

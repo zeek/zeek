@@ -45,7 +45,7 @@ the output is as follows.
 
 .. code:: console
 
-   $ zeek -r traces/get.trace  ./event_groups_attr_01.zeek
+   $ zeek -r traces/get.pcap  ./event_groups_attr_01.zeek
    HTTP request: GET /download/CHANGES.bro-aux.txt (141.142.228.5->192.150.187.43)
    HTTP header : User-Agent=Wget/1.14 (darwin12.2.0) (141.142.228.5->192.150.187.43)
    HTTP reply: 200/OK version 1.1 (192.150.187.43->141.142.228.5)

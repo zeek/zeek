@@ -45,7 +45,7 @@ scripts adds an additional ``community_id`` field to the
 
 .. code-block:: console
 
-   $ zeek -r ./traces/get.trace protocols/conn/community-id-logging LogAscii::use_json=T
+   $ zeek -r ./traces/get.pcap protocols/conn/community-id-logging LogAscii::use_json=T
    $ jq < conn.log
    {
      "ts": 1362692526.869344,
@@ -241,7 +241,7 @@ The following shows every FTP connection from hosts in Ohio, US:
 
 
 .. _log-writers:
- 
+
 Log Writers
 ===========
 

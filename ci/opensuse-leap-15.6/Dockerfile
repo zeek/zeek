@@ -20,6 +20,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.6
     jq \
     libopenssl-devel \
     libpcap-devel \
+    libsodium-devel \
     make \
     openssh \
     procps \
@@ -48,5 +49,5 @@ RUN cd /opt \
     && curl -L https://github.com/zeromq/libzmq/releases/download/v${ZEROMQ_VERSION}/zeromq-${ZEROMQ_VERSION}.tar.gz -o zeromq-${ZEROMQ_VERSION}.tar.gz \
     && echo "${ZEROMQ_SHA1} zeromq-${ZEROMQ_VERSION}.tar.gz" | sha1sum -c \
     && tar xf zeromq-${ZEROMQ_VERSION}.tar.gz \
-    && (cd ./zeromq-${ZEROMQ_VERSION} && ./configure --prefix=/usr/local && make -j && make install) \
+    && (cd ./zeromq-${ZEROMQ_VERSION} && ./configure --with-libsodium --prefix=/usr/local && make -j && make install) \
     && rm -rf zeromq-${ZEROMQ_VERSION}*

@@ -652,7 +652,8 @@ if (TARGET zeek_exe)
                 "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
                 "${CMAKE_BINARY_DIR}/tools/binpac/lib/binpac.lib" --scan-dir
                 "${CMAKE_BINARY_DIR}/src"
-            DEPENDS hilti-rt spicy-rt zeek_spicy_obj ${_obj_targets} "${_gen_script}"
+            DEPENDS hilti-rt spicy-rt zeek_spicy_obj ${BinPAC_LIBRARY} ${_obj_targets}
+                    "${_gen_script}"
             COMMENT "Generating JIT export DEF file from Zeek symbols"
             VERBATIM)
         add_custom_target(zeek_jit_exports DEPENDS "${_def_file}")

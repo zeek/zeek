@@ -430,6 +430,9 @@ event zeek_init() &priority=5
 
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
 	{
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER && Cluster::backend != Cluster::CLUSTER_BACKEND_NONE )
+		Reporter::fatal(fmt("Call to Cluster::create_store() with non-Broker backend %s selected", Cluster::backend));
+
 	local info = stores[name];
 	info$name = name;
 

@@ -1,0 +1,11 @@
+# This tests a normal SSL connection and the log it outputs.
+
+# If OpenSSL does not support ML-DSA, the logs will not contain all information
+# @TEST-REQUIRES: openssl list -signature-algorithms  | grep ML-DSA 2>&1 > /dev/null
+
+# Checksums disabled, as this is a Linux cooked-mode capture (SLL) trace. See GH-5343
+# @TEST-EXEC: zeek -C -r $TRACES/tls/ml-dsa-44-cert.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff x509.log
+# @TEST-EXEC: test ! -f analyzer.log
+# @TEST-EXEC: test ! -f files.log

@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   generate:
+    if: github.repository == "zeek/zeek"
     runs-on: ubuntu-24.04
 
     steps:

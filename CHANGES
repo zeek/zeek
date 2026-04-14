@@ -1,3 +1,14 @@
+8.2.0-dev.556 | 2026-04-14 21:12:52 +0200
+
+  * CI: Install libsodium-devel on opensuse-leap-15.6 (Arne Welzel, Corelight)
+
+    ...and compile ZeroMQ with --with-libsodium to enable CURVE support.
+
+  * CI: Install zeromq-devel on opensuse-leap-16.0 (Arne Welzel, Corelight)
+
+    The version is new enough and cppzmq is vendored through
+    src/cluster/backends/zeromq/auxil/cppzmq already.
+
 8.2.0-dev.553 | 2026-04-14 19:35:30 +0200
 
   * policy/known-*: Deprecate store usage (Arne Welzel, Corelight)

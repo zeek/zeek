@@ -3,8 +3,10 @@
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
 
 #include <zmq.hpp>
+#include <zmq_addon.hpp>
 
 #include "zeek/Reporter.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h"
 #include "zeek/util.h"
 
 
@@ -62,6 +64,21 @@ bool ProxyThread::Start() {
 
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
+    // Setup curve encryption on the two sockets if enabled. The central XPUB/XSUB
+    // sockets act as curve servers and connecting Zeek processe as curve clients.
+    //
+    // Additionally, start a separate thread with a REP socket in the same
+    // context bound to the well known zeromq.zap.01 address. While we do not
+    // use ZAP extensively at this point, this puts a bit of infrastructure
+    // in place if we ever wanted to.
+    if ( curve_config.IsServerEnabled() ) {
+        curve_config.ConfigureServerCurveSockOpts(xpub);
+        curve_config.ConfigureServerCurveSockOpts(xsub);
+
+        curve_config.InitZap(ctx, zap_args);
+        zap_thread = std::thread(zeek::cluster::zeromq::zap_thread_fun, &zap_args);
+    }
+
     try {
         xpub.bind(xpub_endpoint);
     } catch ( zmq::error_t& err ) {
@@ -90,6 +107,9 @@ void ProxyThread::Shutdown() {
 
     if ( thread.joinable() )
         thread.join();
+
+    if ( zap_thread.joinable() )
+        zap_thread.join();
 
     ctx.close();
 }

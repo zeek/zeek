@@ -47,8 +47,13 @@ nodes, avoiding the need for cluster topology awareness.
 
 .. note::
 
-   Scalability of the central broker in production setups, but for small
-   clusters on a single node, may be fast enough.
+   If you observe the central broker as a bottleneck in your setup, please
+   reach out with information about your environment and workload. We're generally
+   confident that ZeroMQ is fast enough for known and normal Zeek clusters sizes
+   and likely more performant than the previous cluster backend Broker. Specifically
+   for broadcast style worker-to-worker messaging patterns that previously had to
+   be routed through the manager node, ZeroMQ should reduce time spent in manager
+   script execution.
 
 On a cluster node, the XPUB socket provides notifications about subscriptions
 created by other nodes: For every subscription created by any node in
@@ -116,3 +121,18 @@ types in a Zeek cluster looks something like the following.
 
 .. figure:: /images/cluster/backend/zeromq/zeromq-cluster.png
 
+
+Encryption
+==========
+
+.. versionadded:: 8.2
+
+When using ZeroMQ as a cluster backend, communication between Zeek nodes
+is unencrypted by default.
+Refer to the module documentation
+at :doc:`cluster/backend/zeromq/main.zeek </scripts/policy/frameworks/cluster/backend/zeromq/main.zeek>`
+for details and background how to setup encryption using the `CURVE mechanism <http://api.zeromq.org/4-2:zmq-curve>`_.
+
+:ref:`ZeekControl <cluster-configuration>` will automatically configure encryption
+and distribute the server and client keys when multiple physical systems (based on IP addresses)
+form a Zeek cluster. For single system setups, encryption is disabled by default.

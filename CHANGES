@@ -1,3 +1,36 @@
+8.2.0-dev.544 | 2026-04-14 12:44:35 +0200
+
+  * NEWS: Add entry about ZeroMQ CURVE encryption (Arne Welzel, Corelight)
+
+  * doc/zeromq: Fix central proxy/broker scalability note (Arne Welzel, Corelight)
+
+  * doc/zeromq: Add a small note about encryption (Arne Welzel, Corelight)
+
+  * auxil/zeectl: Bump zeekctl submodule (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Allow CURVE keys via environment variables (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Add ZAP handler thread (Arne Welzel, Corelight)
+
+    The ZeroMQ Authentication Protocol (ZAP) allows to hook into the
+    authentication flow. This commit adds some very basic logic that
+    verifies that the client's public key is in the set of allowed
+    ones. In the end, it's simply the one in
+    Cluster::Backend::ZeroMQ::curve_client_publickey, but it could be
+    a separate set if we ever want to do that.
+
+  * cluster/zeromq: Implement monitoring_event() to check for handshake errors (Arne Welzel, Corelight)
+
+    Hook up zmq_socket_monitor() and pass all event to Zeek script land.
+    Handle the handshake failed events in order to detect encrypted vs
+    non-encrypted socket usage. That is, if a non-encrypted worker connects
+    to a central XPUB/XSUB, the worker will detect the handshake failure and
+    terminate with a Reporter::fatal() error.
+
+  * cluster/zeromq: Unmagicify tags used for BackendMessages (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Add CURVE encryption support (Arne Welzel, Corelight)
+
 8.2.0-dev.534 | 2026-04-13 09:06:07 -0700
 
   * Fix clang-tidy modernize-use-structured-binding findings (Tim Wojtulewicz, Corelight)

@@ -1,4 +1,4 @@
-.. _cve-2022-26809: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-26809
+.. _redis_rce: https://github.com/LoRexxar/redis-rogue-server
 .. _zeek package browser: https://packages.zeek.org/
 .. _zkg_docs: https://docs.zeek.org/projects/package-manager/en/stable/index.html
 
@@ -18,16 +18,16 @@ explain how to use ``zkg`` in order to get the packages you need.
  Finding and Installing Packages
 *********************************
 
-Say you're particularly worried about CVE-2022-26809_ (there is nothing
-special about this CVE, it's simply an exploit that we can use for
-demonstration). Zeek does not offer any detection for this
+Say you're particularly worried about `a Redis remote code execution
+<redis_rce_>`_ (there is nothing special about this exploit, it's simply
+for demonstration). Zeek does not offer any detection for this
 out-of-the-box. But, if you look on the `Zeek Package Browser`_, you can
-easily find a `package by Corelight
-<https://github.com/corelight/cve-2022-26809>`_. Let's install it.
+easily find a `Zeek package <https://github.com/zeek/redis-rce>`_. Let's
+install it.
 
 .. code:: console
 
-   # zkg install cve-2022-26809
+   # zkg install redis-rce
 
 The package manager knows where to find this package because it's listed in its
 default `"package source" <https://github.com/zeek/packages>`_, an index that
@@ -38,7 +38,7 @@ regardless of whether they're listed in a package source. For example:
 
 .. code:: console
 
-   # zkg install https://github.com/corelight/cve-2022-26809
+   # zkg install https://github.com/zeek/redis-rce
 
 Most packages include a set of tests to ensure the package executes correctly
 in your environment. During installation, ``zkg`` will run available tests.
@@ -49,33 +49,33 @@ the tutorial installation. Try running Zeek on a pcap from the package:
 
 .. code:: console
 
-   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap
+   # zeek -r redis-rce/tests/Traces/exploit.pcap
 
-This particular package creates notices when it detects traffic for the CVE,
+This particular package creates notices when it detects traffic for the exploit,
 but we seem to be missing a ``notice.log`` after running that command.
 That's because packages have to be loaded explicitly in order to run. You can
 do so by including its name on the command line:
 
 .. code:: console
 
-   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap cve-2022-26809
+   # zeek -r redis-rce/tests/Traces/exploit.pcap redis-rce/export/whitelist-commands
 
-Alternatively you can also load all installed packages by simply adding the
-``packages`` directory to your invocation:
+You can also load all installed packages by simply adding the ``packages``
+directory to your invocation. This package does not load anything by default, but you
+can load all packages alongside the RCE exploit detection:
 
 .. code:: console
 
-   # zeek -r cve-2022-26809/testing/Traces/cve-2022-26809-4.pcap packages
+   # zeek -r redis-rce/tests/Traces/exploit.pcap redis-rce/export/whitelist-commands packages
 
 Then check the ``notice.log``:
 
 .. code:: console
 
-   # cat notice.log | zeek-cut -m
-   ts      uid     id.orig_h       id.orig_p       id.resp_h       id.resp_p       fuid    file_mime_type      file_desc       proto   note    msg     sub     src     dst     p       n  peer_descr       actions email_dest      suppress_for    remote_location.country_code    remote_location.region      remote_location.city    remote_location.latitude        remote_location.longitude
-   1649954026.163197       -       -       -       -       -       -       -       -       -  CVE_2022_26809::ExploitAttempt   192.168.56.104 attempting exploit on 192.168.56.102     Using opnum 5       -       -       -       -       -       Notice::ACTION_LOG      (empty) 3600.000000 -       -       -       -       -
-   1649954026.275892       -       -       -       -       -       -       -       -       -  CVE_2022_26809::ExploitSuccess   192.168.56.102 exploited 192.168.56.104 Found via big_endian_specific (in dce_rpc_message)  -       -       -       -       -       Notice::ACTION_LOG (empty)  3600.000000     -       -       -       -       -
-   1649954026.275892       -       -       -       -       -       -       -       -       -  CVE_2022_26809::ExploitSuccess   192.168.56.102 exploited 192.168.56.104 Found via big_endian (in dce_rpc_message)   -       -       -       -       -       Notice::ACTION_LOG      (empty)     3600.000000     -       -       -       -       -
+   # cat notice.log | zeek-cut -m note msg
+   note    msg
+   Bad_Redis_Command       Disallowed Redis command: SLAVEOF
+   Bad_Redis_Command       Disallowed Redis command: system.exec
 
 Packages should be regularly maintained and updated. When doing so,
 users will want to fetch those updates. You can use ``zkg upgrade`` in

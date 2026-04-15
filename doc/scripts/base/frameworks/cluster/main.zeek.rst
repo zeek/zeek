@@ -115,27 +115,27 @@ Hooks
 
 Functions
 #########
-=========================================================================== =====================================================================
-:zeek:id:`Cluster::create_store`: :zeek:type:`function`                     Sets up a cluster-enabled data store.
-:zeek:id:`Cluster::get_active_node_count`: :zeek:type:`function`            Returns the number of nodes per type, the calling node is currently
-                                                                            connected to.
-:zeek:id:`Cluster::get_node_count`: :zeek:type:`function`                   Returns the number of nodes defined in the cluster layout for a given
-                                                                            node type.
-:zeek:id:`Cluster::init`: :zeek:type:`function`                             Initialize the cluster backend.
-:zeek:id:`Cluster::is_enabled`: :zeek:type:`function`                       This function can be called at any time to determine if the cluster
-                                                                            framework is being enabled for this run.
-:zeek:id:`Cluster::listen_websocket`: :zeek:type:`function`                 Start listening on a WebSocket address.
-:zeek:id:`Cluster::local_node_metrics_port`: :zeek:type:`function`          This function can be called at any time to determine the configured
-                                                                            metrics port for Prometheus being used by current Zeek instance.
-:zeek:id:`Cluster::local_node_type`: :zeek:type:`function`                  This function can be called at any time to determine what type of
-                                                                            cluster node the current Zeek instance is going to be acting as.
-:zeek:id:`Cluster::log`: :zeek:type:`function`                              Write a message to the cluster logging stream.
-:zeek:id:`Cluster::node_id`: :zeek:type:`function` :zeek:attr:`&redef`      Function returning this node's identifier.
-:zeek:id:`Cluster::node_topic`: :zeek:type:`function` :zeek:attr:`&redef`   Retrieve the topic associated with a specific node in the cluster.
-:zeek:id:`Cluster::nodeid_to_node`: :zeek:type:`function`                   Retrieve the cluster-level naming of a node based on its node ID,
-                                                                            a backend-specific identifier.
-:zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function` :zeek:attr:`&redef` Retrieve the topic associated with a specific node in the cluster.
-=========================================================================== =====================================================================
+======================================================================================== =====================================================================
+:zeek:id:`Cluster::create_store`: :zeek:type:`function` :zeek:attr:`&deprecated` = *...* Sets up a cluster-enabled data store.
+:zeek:id:`Cluster::get_active_node_count`: :zeek:type:`function`                         Returns the number of nodes per type, the calling node is currently
+                                                                                         connected to.
+:zeek:id:`Cluster::get_node_count`: :zeek:type:`function`                                Returns the number of nodes defined in the cluster layout for a given
+                                                                                         node type.
+:zeek:id:`Cluster::init`: :zeek:type:`function`                                          Initialize the cluster backend.
+:zeek:id:`Cluster::is_enabled`: :zeek:type:`function`                                    This function can be called at any time to determine if the cluster
+                                                                                         framework is being enabled for this run.
+:zeek:id:`Cluster::listen_websocket`: :zeek:type:`function`                              Start listening on a WebSocket address.
+:zeek:id:`Cluster::local_node_metrics_port`: :zeek:type:`function`                       This function can be called at any time to determine the configured
+                                                                                         metrics port for Prometheus being used by current Zeek instance.
+:zeek:id:`Cluster::local_node_type`: :zeek:type:`function`                               This function can be called at any time to determine what type of
+                                                                                         cluster node the current Zeek instance is going to be acting as.
+:zeek:id:`Cluster::log`: :zeek:type:`function`                                           Write a message to the cluster logging stream.
+:zeek:id:`Cluster::node_id`: :zeek:type:`function` :zeek:attr:`&redef`                   Function returning this node's identifier.
+:zeek:id:`Cluster::node_topic`: :zeek:type:`function` :zeek:attr:`&redef`                Retrieve the topic associated with a specific node in the cluster.
+:zeek:id:`Cluster::nodeid_to_node`: :zeek:type:`function`                                Retrieve the cluster-level naming of a node based on its node ID,
+                                                                                         a backend-specific identifier.
+:zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function` :zeek:attr:`&redef`              Retrieve the topic associated with a specific node in the cluster.
+======================================================================================== =====================================================================
 
 
 Detailed Interface
@@ -214,7 +214,7 @@ Redefinable Options
    logger nodes in a cluster.  Used with broker-enabled cluster communication.
 
 .. zeek:id:: Cluster::manager_is_logger
-   :source-code: base/frameworks/cluster/main.zeek 192 192
+   :source-code: base/frameworks/cluster/main.zeek 193 193
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -242,7 +242,7 @@ Redefinable Options
    manager nodes in a cluster.  Used with broker-enabled cluster communication.
 
 .. zeek:id:: Cluster::node
-   :source-code: base/frameworks/cluster/main.zeek 196 196
+   :source-code: base/frameworks/cluster/main.zeek 197 197
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -272,7 +272,7 @@ Redefinable Options
    a unique node in a cluster.  Used with broker-enabled cluster communication.
 
 .. zeek:id:: Cluster::nodes
-   :source-code: base/frameworks/cluster/main.zeek 177 177
+   :source-code: base/frameworks/cluster/main.zeek 178 178
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Cluster::Node`
    :Attributes: :zeek:attr:`&redef`
@@ -302,7 +302,7 @@ Redefinable Options
    proxy nodes in a cluster.  Used with broker-enabled cluster communication.
 
 .. zeek:id:: Cluster::retry_interval
-   :source-code: base/frameworks/cluster/main.zeek 208 208
+   :source-code: base/frameworks/cluster/main.zeek 209 209
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -371,7 +371,7 @@ State Variables
 Types
 #####
 .. zeek:type:: Cluster::Info
-   :source-code: base/frameworks/cluster/main.zeek 140 147
+   :source-code: base/frameworks/cluster/main.zeek 141 148
 
    :Type: :zeek:type:`record`
 
@@ -483,7 +483,7 @@ Types
 Events
 ######
 .. zeek:id:: Cluster::hello
-   :source-code: base/frameworks/cluster/main.zeek 368 393
+   :source-code: base/frameworks/cluster/main.zeek 369 394
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, id: :zeek:type:`string`)
 
@@ -493,7 +493,7 @@ Events
    if the node dies and has to reconnect later.
 
 .. zeek:id:: Cluster::node_down
-   :source-code: base/frameworks/cluster/main.zeek 222 222
+   :source-code: base/frameworks/cluster/main.zeek 223 223
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, id: :zeek:type:`string`)
 
@@ -501,7 +501,7 @@ Events
    locally whenever a connected cluster node becomes disconnected.
 
 .. zeek:id:: Cluster::node_up
-   :source-code: base/frameworks/cluster/main.zeek 218 218
+   :source-code: base/frameworks/cluster/main.zeek 219 219
 
    :Type: :zeek:type:`event` (name: :zeek:type:`string`, id: :zeek:type:`string`)
 
@@ -511,7 +511,7 @@ Events
 Hooks
 #####
 .. zeek:id:: Cluster::connect_node_hook
-   :source-code: base/frameworks/cluster/main.zeek 274 274
+   :source-code: base/frameworks/cluster/main.zeek 275 275
 
    :Type: :zeek:type:`hook` (connectee: :zeek:type:`Cluster::NamedNode`) : :zeek:type:`bool`
 
@@ -525,7 +525,7 @@ Hooks
    :param connectee: The node to connect to.
 
 .. zeek:id:: Cluster::log_policy
-   :source-code: base/frameworks/cluster/main.zeek 137 137
+   :source-code: base/frameworks/cluster/main.zeek 138 138
 
    :Type: :zeek:type:`Log::PolicyHook`
 
@@ -534,9 +534,10 @@ Hooks
 Functions
 #########
 .. zeek:id:: Cluster::create_store
-   :source-code: base/frameworks/cluster/main.zeek 430 505
+   :source-code: base/frameworks/cluster/main.zeek 431 513
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`, persistent: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`Cluster::StoreInfo`
+   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated. To distribute state across cluster nodes, use the new &publish_on_change attribute for global sets/tables, or leverage explicit remote events with Cluster::publish(). For state persistence, use the storage framework."*
 
    Sets up a cluster-enabled data store.  They will also still properly
    function for uses that are not operating a cluster.
@@ -553,7 +554,7 @@ Functions
             be set until the node containing the master store has connected.
 
 .. zeek:id:: Cluster::get_active_node_count
-   :source-code: base/frameworks/cluster/main.zeek 312 315
+   :source-code: base/frameworks/cluster/main.zeek 313 316
 
    :Type: :zeek:type:`function` (node_type: :zeek:type:`Cluster::NodeType`) : :zeek:type:`count`
 
@@ -562,7 +563,7 @@ Functions
    out how many nodes should be responding to requests.
 
 .. zeek:id:: Cluster::get_node_count
-   :source-code: base/frameworks/cluster/main.zeek 299 310
+   :source-code: base/frameworks/cluster/main.zeek 300 311
 
    :Type: :zeek:type:`function` (node_type: :zeek:type:`Cluster::NodeType`) : :zeek:type:`count`
 
@@ -570,7 +571,7 @@ Functions
    node type.
 
 .. zeek:id:: Cluster::init
-   :source-code: base/frameworks/cluster/main.zeek 512 515
+   :source-code: base/frameworks/cluster/main.zeek 520 523
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -582,7 +583,7 @@ Functions
    :returns: T on success, else F.
 
 .. zeek:id:: Cluster::is_enabled
-   :source-code: base/frameworks/cluster/main.zeek 317 320
+   :source-code: base/frameworks/cluster/main.zeek 318 321
 
    :Type: :zeek:type:`function` () : :zeek:type:`bool`
 
@@ -593,7 +594,7 @@ Functions
    :returns: True if :zeek:id:`Cluster::node` has been set.
 
 .. zeek:id:: Cluster::listen_websocket
-   :source-code: base/frameworks/cluster/main.zeek 517 520
+   :source-code: base/frameworks/cluster/main.zeek 525 528
 
    :Type: :zeek:type:`function` (options: :zeek:type:`Cluster::WebSocketServerOptions`) : :zeek:type:`bool`
 
@@ -606,7 +607,7 @@ Functions
    :returns: T on success, else F.
 
 .. zeek:id:: Cluster::local_node_metrics_port
-   :source-code: base/frameworks/cluster/main.zeek 333 345
+   :source-code: base/frameworks/cluster/main.zeek 334 346
 
    :Type: :zeek:type:`function` () : :zeek:type:`port`
 
@@ -619,7 +620,7 @@ Functions
    :returns: The metrics port used by the calling node.
 
 .. zeek:id:: Cluster::local_node_type
-   :source-code: base/frameworks/cluster/main.zeek 322 331
+   :source-code: base/frameworks/cluster/main.zeek 323 332
 
    :Type: :zeek:type:`function` () : :zeek:type:`Cluster::NodeType`
 
@@ -632,14 +633,14 @@ Functions
    :returns: The :zeek:type:`Cluster::NodeType` the calling node acts as.
 
 .. zeek:id:: Cluster::log
-   :source-code: base/frameworks/cluster/main.zeek 507 510
+   :source-code: base/frameworks/cluster/main.zeek 515 518
 
    :Type: :zeek:type:`function` (msg: :zeek:type:`string`) : :zeek:type:`void`
 
    Write a message to the cluster logging stream.
 
 .. zeek:id:: Cluster::node_id
-   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 358 360
+   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 448 450
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -651,7 +652,7 @@ Functions
    a short lived identifier that resets when a node is restarted.
 
 .. zeek:id:: Cluster::node_topic
-   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 343 345
+   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 433 435
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -666,7 +667,7 @@ Functions
             a given cluster node.
 
 .. zeek:id:: Cluster::nodeid_to_node
-   :source-code: base/frameworks/cluster/main.zeek 357 366
+   :source-code: base/frameworks/cluster/main.zeek 358 367
 
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`Cluster::NamedNode`
 
@@ -681,7 +682,7 @@ Functions
             known, otherwise a "null" instance with an empty name field.
 
 .. zeek:id:: Cluster::nodeid_topic
-   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 347 349
+   :source-code: policy/frameworks/cluster/backend/zeromq/main.zeek 437 439
 
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`

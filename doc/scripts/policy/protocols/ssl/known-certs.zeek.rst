@@ -23,10 +23,10 @@ Runtime Options
 
 Redefinable Options
 ###################
-========================================================================== ===============================================================
-:zeek:id:`Known::cert_store_name`: :zeek:type:`string` :zeek:attr:`&redef` The Broker topic name to use for :zeek:see:`Known::cert_store`.
-:zeek:id:`Known::use_cert_store`: :zeek:type:`bool` :zeek:attr:`&redef`    Toggles between different implementations of this script.
-========================================================================== ===============================================================
+======================================================================================================== ===============================================================
+:zeek:id:`Known::cert_store_name`: :zeek:type:`string` :zeek:attr:`&redef`                               The Broker topic name to use for :zeek:see:`Known::cert_store`.
+:zeek:id:`Known::use_cert_store`: :zeek:type:`bool` :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *...* Toggles between different implementations of this script.
+======================================================================================================== ===============================================================
 
 State Variables
 ###############
@@ -120,7 +120,7 @@ Redefinable Options
    :source-code: policy/protocols/ssl/known-certs.zeek 40 40
 
    :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *"Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance issues and will be removed."*
    :Default: ``F``
 
    Toggles between different implementations of this script.

@@ -46,6 +46,11 @@ export {
 	## Whether or not vlans should be included. This is necessary to
 	## construct the correct "canonical" tuple for the XDP program.
 	global vlans_included: bool;
+
+	## This hook is checked when shunting a connection in order to provide
+	## users a mechanism to veto a shunting decision. Simply break from the
+	## hook to prevent shunting a connection.
+	global shunting: hook(c: connection);
 }
 
 function reuse_maps(options: XDP::ShuntOptions): bool

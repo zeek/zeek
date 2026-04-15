@@ -78,6 +78,9 @@ function get_map(time_since_last_packet: interval &default=0sec)
 
 function shunt(c: connection): bool
 	{
+	if ( ! hook XDP::shunting(c) )
+		return F;
+
 	local result = __shunt(XDP::xdp_prog, XDP::conn_id_to_canonical(c$id));
 	if ( result )
 		{

@@ -1302,11 +1302,11 @@ type SignatureAndHashAlgorithm = unit {
 
 type SignatureAlgorithms = unit(sh: Share) {
     length: uint16;
-    supported_signature_algorithms: SignatureAndHashAlgorithm[] &size=self.length;
+    signature_scheme_list: uint16[self.length / 2];
     var supported_signature_algorithms_converted: vector<tuple<uint8, uint8>>;
 
-    on supported_signature_algorithms {
-        self.supported_signature_algorithms_converted = convert_signature_algorithms(self.supported_signature_algorithms);
+    on signature_scheme_list {
+        self.supported_signature_algorithms_converted = convert_signature_algorithms(self.signature_scheme_list);
     }
 };
 
@@ -1845,10 +1845,10 @@ public function convert_server_names(snl: vector<ServerName>): vector<bytes> {
     return out;
 }
 
-public function convert_signature_algorithms(sa: vector<SignatureAndHashAlgorithm>): vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
+public function convert_signature_algorithms(sa: vector<uint16>): vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
     local out: vector<tuple<uint8, uint8>>;
     for (i in sa)
-        out.push_back(tuple(i.hash, i.signature));
+        out.push_back(tuple(cast<uint8>(i >> 8), cast<uint8>(i & 0xFF)));
 
     return out;
 }

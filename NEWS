@@ -178,6 +178,13 @@ Changed Functionality
 
 - Zeek new properly handles VLAN IDs of 0. Before, these were simply discarded.
 
+- The SMTP analyzer now forwards the first gap encountered during RFC 822 message analysis
+  to the file object. This allows to determine if message analysis stopped due to a gap by
+  inspecting the ``missing_bytes`` field during ``file_state_remove()``, or in ``files.log``.
+
+  The SMTP analyzer tears down the active file upon encountering a gap, so the reported
+  bytes will always be only the gap length.
+
 Deprecated Functionality
 ------------------------
 

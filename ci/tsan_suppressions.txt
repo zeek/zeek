@@ -59,3 +59,27 @@ race:mg_stop
 #
 called_from_lib:libzmq.so.5
 called_from_lib:libzmq.so
+
+# After adding encryption support, TSAN reported a race originating here:
+#
+#    Previous write of size 6 at 0x72a40004b01a by thread T3:
+#      #0 memmove <null> (zeek+0x1c5e542) (BuildId: dd9dfefe43a60c58)
+#      #1 crypto_secretbox_open_detached <null> (libsodium.so.23+0x2b74b) (BuildId: e6c6c4e9f51d2fa8ee52c3e03acfa1e765f35c32)
+#
+# ...against a read of the message buffers from a successful zmq_msg_recv() call.
+#
+# crypto_secretbox_open_detached() is called from ZeroMQ's internal IO thread
+# for decryption purposes via the following callstack:
+#
+# zmq::curve_encoding_t::decode()            libzmq
+#  -> crypto_box_open_easy_afternm()         libsodium
+#    -> crypto_box_open_detached_afternm()   libsodium
+#      -> crypto_secretbox_open_detached()   libsodium
+#
+# We already ignore libzmq.so wholesale, but on a default build on Ubuntu 24.04
+# the stack doesn't contain libzmq.so and so TSAN doesn't pick up on the suppression.
+# The T3 thread above is/was a ZMQ IO thread.
+#
+# Ignore that one function surgically. If we ever use libsodium and this
+# function in particular in Zeek, should probably revisit this.
+race:crypto_secretbox_open_detached

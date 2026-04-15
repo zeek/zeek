@@ -1,3 +1,14 @@
+8.2.0-dev.572 | 2026-04-14 20:46:36 -0700
+
+  * ci/tsan_suppressions: Ignore crypto_secretbox_open_detached() (Arne Welzel, Corelight)
+
+    This function is called by libzmq an decrypts directly into a buffer
+    that is passed through via zmq_msg_recv() IIUC. We ignore libzmq by
+    TSAN already wholesale, so extend this by that one function.
+
+    Unfortunately, there's not a lot more stack available, else the
+    existing libzmq.so suppression would've probably kicked in.
+
 8.2.0-dev.569 | 2026-04-14 23:48:03 +0200
 
   * testing/btest: Update ZAM baseline line numbers (Arne Welzel, Corelight)

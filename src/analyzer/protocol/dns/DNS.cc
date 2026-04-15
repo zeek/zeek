@@ -815,16 +815,26 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
     if ( dns_EDNS_addl && ! msg->skip_event )
         analyzer->EnqueueConnEvent(dns_EDNS_addl, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildEDNS_Val());
 
-    // parse EDNS options. length has to be at least 4 to parse out the option
-    // code and length.
-    while ( len >= 4 ) {
-        auto option_code = ExtractShort(data, len);
-        int option_len = ExtractShort(data, len);
-        // check for invalid option length
-        if ( (option_len > len) ) {
-            break;
+    const u_char* rr_data = data;
+    int remaining = rdlength;
+
+    // Parse EDNS options. Each one starts with a 4-byte header.
+    while ( remaining >= 4 ) {
+        const u_char* option_hdr = rr_data;
+        int option_hdr_remaining = remaining;
+        auto option_code = ExtractShort(option_hdr, option_hdr_remaining);
+        int option_len = ExtractShort(option_hdr, option_hdr_remaining);
+
+        if ( option_len > remaining - 4 ) {
+            analyzer->Weird("EDNS_truncated_option");
+            return false;
         }
-        len -= option_len;
+
+        rr_data = option_hdr;
+        remaining -= 4;
+
+        const u_char* option_data = rr_data;
+        int option_remaining = option_len;
 
         // TODO: Implement additional option codes
         switch ( option_code ) {
@@ -832,13 +842,12 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                 // must be 4 bytes + variable number of octets for address
                 if ( option_len <= 4 ) {
                     analyzer->Weird("EDNS_ECS_invalid_option_len");
-                    data += option_len;
                     break;
                 }
 
                 detail::EDNS_ECS opt{};
-                auto ecs_family = ExtractShort(data, option_len);
-                auto source_scope = ExtractShort(data, option_len);
+                auto ecs_family = ExtractShort(option_data, option_remaining);
+                auto source_scope = ExtractShort(option_data, option_remaining);
                 opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
                 opt.ecs_scp_pfx_len = source_scope & 0xff;
 
@@ -850,14 +859,13 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     if ( opt.ecs_src_pfx_len > 32 ) {
                         analyzer->Weird("EDNS_ECS_invalid_addr_v4_prefix",
                                         util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
-                        data += option_len;
                         break;
                     }
 
-                    if ( opt.ecs_src_pfx_len > option_len * 8 ) {
+                    if ( opt.ecs_src_pfx_len > option_remaining * 8 ) {
                         analyzer->Weird("EDNS_ECS_invalid_addr_v4", util::fmt("need %" PRIu16 " bits, have %d bits",
-                                                                              opt.ecs_src_pfx_len, option_len * 8));
-                        data += option_len;
+                                                                              opt.ecs_src_pfx_len,
+                                                                              option_remaining * 8));
                         break;
                     }
 
@@ -867,10 +875,10 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int bits_left = opt.ecs_src_pfx_len;
 
                     while ( bits_left > 0 ) {
-                        addr |= data[0] << (shift_factor * 8);
-                        data++;
+                        addr |= option_data[0] << (shift_factor * 8);
+                        option_data++;
                         shift_factor--;
-                        option_len--;
+                        option_remaining--;
                         bits_left -= 8;
                     }
 
@@ -881,14 +889,13 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     if ( opt.ecs_src_pfx_len > 128 ) {
                         analyzer->Weird("EDNS_ECS_invalid_addr_v6_prefix",
                                         util::fmt("%" PRIu16 " bits", opt.ecs_src_pfx_len));
-                        data += option_len;
                         break;
                     }
 
-                    if ( opt.ecs_src_pfx_len > option_len * 8 ) {
+                    if ( opt.ecs_src_pfx_len > option_remaining * 8 ) {
                         analyzer->Weird("EDNS_ECS_invalid_addr_v6", util::fmt("need %" PRIu16 " bits, have %d bits",
-                                                                              opt.ecs_src_pfx_len, option_len * 8));
-                        data += option_len;
+                                                                              opt.ecs_src_pfx_len,
+                                                                              option_remaining * 8));
                         break;
                     }
 
@@ -899,11 +906,11 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int i = 0;
 
                     while ( bits_left > 0 ) {
-                        addr[i / 4] |= data[0] << ((shift_factor % 4) * 8);
-                        data++;
+                        addr[i / 4] |= option_data[0] << ((shift_factor % 4) * 8);
+                        option_data++;
                         i++;
                         shift_factor--;
-                        option_len--;
+                        option_remaining--;
                         bits_left -= 8;
                     }
 
@@ -914,13 +921,11 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
                 else {
                     // non ipv4/ipv6 family address
-                    data += option_len;
                     break;
                 }
 
                 analyzer->EnqueueConnEvent(dns_EDNS_ecs, analyzer->ConnVal(), msg->BuildHdrVal(),
                                            msg->BuildEDNS_ECS_Val(&opt));
-                data += option_len;
                 break;
             } // END EDNS ECS
 
@@ -930,7 +935,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     // 0 bytes is permitted by RFC 7828, showing that the timeout value is
                     // omitted.
                     if ( option_len == 2 ) {
-                        edns_tcp_keepalive.keepalive_timeout = ExtractShort(data, option_len);
+                        edns_tcp_keepalive.keepalive_timeout = ExtractShort(option_data, option_remaining);
                         edns_tcp_keepalive.keepalive_timeout_omitted = false;
                     }
 
@@ -945,10 +950,6 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     analyzer->EnqueueConnEvent(dns_EDNS_tcp_keepalive, analyzer->ConnVal(), msg->BuildHdrVal(),
                                                msg->BuildEDNS_TCP_KA_Val(&edns_tcp_keepalive));
                 }
-                else {
-                    // error. MUST BE 0 or 2 bytes. skip
-                    data += option_len;
-                }
                 break;
             } // END EDNS TCP KEEPALIVE
 
@@ -961,18 +962,17 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                      * between 16 bytes to 40 bytes (with an 8 bytes client and an 8 to 32 bytes
                      * server cookie)
                      */
-                    data += option_len;
                     break;
                 }
 
                 int client_cookie_len = 8;
                 int server_cookie_len = option_len - client_cookie_len;
 
-                cookie.client_cookie = ExtractStream(data, client_cookie_len, client_cookie_len);
+                cookie.client_cookie = ExtractStream(option_data, option_remaining, client_cookie_len);
                 cookie.server_cookie = nullptr;
 
                 if ( server_cookie_len >= 8 ) {
-                    cookie.server_cookie = ExtractStream(data, server_cookie_len, server_cookie_len);
+                    cookie.server_cookie = ExtractStream(option_data, option_remaining, server_cookie_len);
                 }
 
                 analyzer->EnqueueConnEvent(dns_EDNS_cookie, analyzer->ConnVal(), msg->BuildHdrVal(),
@@ -981,14 +981,17 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                 break;
             } // END EDNS COOKIE
 
-            default: {
-                data += option_len;
-                break;
-            }
+            default: break;
         }
+
+        rr_data += option_len;
+        remaining -= option_len;
     }
 
-    if ( len > 0 ) {
+    data += rdlength;
+    len -= rdlength;
+
+    if ( remaining != 0 ) {
         analyzer->Weird("EDNS_truncated_option");
         return false;
     }

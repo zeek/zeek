@@ -265,18 +265,6 @@ ZBody::~ZBody() {
     delete[] insts;
 }
 
-void ZBody::SetInsts(vector<ZInst*>& _insts) {
-    end_pc = _insts.size();
-    auto insts_copy = new ZInst[end_pc];
-
-    for ( auto i = 0U; i < end_pc; ++i )
-        insts_copy[i] = *_insts[i];
-
-    insts = insts_copy;
-
-    InitProfile();
-}
-
 void ZBody::SetInsts(vector<ZInstI*>& instsI) {
     end_pc = instsI.size();
     auto insts_copy = new ZInst[end_pc];

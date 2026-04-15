@@ -1510,28 +1510,39 @@ bool DNS_Interpreter::ParseRR_SSHFP(detail::DNS_MsgInfo* msg, const u_char*& dat
 
 bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
                                   const u_char* msg_start) {
+    if ( rdlength != 16 ) {
+        analyzer->Weird("dns_invalid_loc_length");
+        return false;
+    }
+
     if ( ! dns_LOC || msg->skip_event ) {
         data += rdlength;
         len -= rdlength;
         return true;
     }
 
-    if ( len < 15 )
-        return false;
+    const u_char* rr_data = data;
+    int remaining = rdlength;
 
     // split the two bytes for version and size extraction
-    auto ver_size = ExtractShort(data, len);
+    auto ver_size = ExtractShort(rr_data, remaining);
     auto version = (ver_size >> 8) & 0xff;
     auto size = ver_size & 0xff;
 
     // split the two bytes for horizontal and vertical precision extraction
-    auto horiz_vert = ExtractShort(data, len);
+    auto horiz_vert = ExtractShort(rr_data, remaining);
     auto horiz_pre = (horiz_vert >> 8) & 0xff;
     auto vert_pre = horiz_vert & 0xff;
 
-    auto latitude = ExtractLong(data, len);
-    auto longitude = ExtractLong(data, len);
-    auto altitude = ExtractLong(data, len);
+    auto latitude = ExtractLong(rr_data, remaining);
+    auto longitude = ExtractLong(rr_data, remaining);
+    auto altitude = ExtractLong(rr_data, remaining);
+
+    if ( remaining != 0 )
+        return false;
+
+    data = rr_data;
+    len -= rdlength;
 
     if ( version != 0 ) {
         analyzer->Weird("DNS_LOC_version_unrecognized", util::fmt("%d", version));

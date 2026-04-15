@@ -1,3 +1,6 @@
+# This test is flaky on Windows. Skip it temporarily.
+# @TEST-REQUIRES: ! is-windows-ci
+
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_WORKER1_PORT

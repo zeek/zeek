@@ -142,7 +142,12 @@ def _should_export(sym):
     # Check if the symbol belongs to a whitelisted namespace.
     if any(ns in sym for ns in whitelisted_ns):
         # Exclude ZAM/compiler internals even in zeek namespace.
-        if "ZInst" in sym or "ZBody" in sym or "ZAMCompiler" in sym:
+        if (
+            "ZInst" in sym
+            or "ZBody" in sym
+            or "ZAMCompiler" in sym
+            or "CPPCompile" in sym
+        ):
             return False
         # Exclude protocol analyzer internals that external plugins never need.
         # These are built-in analyzer implementations, not public API.

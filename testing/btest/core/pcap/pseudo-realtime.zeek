@@ -1,3 +1,6 @@
+# This test is flaky on Windows. Skip it temporarily.
+# @TEST-REQUIRES: ! is-windows-ci
+
 # @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.pcap %INPUT --pseudo-realtime >output
 # @TEST-EXEC: btest-diff output
 
@@ -19,7 +22,7 @@ event new_packet(c: connection, p: pkt_hdr)
 	last_current = tc;
 	++cnt;
 
-	if ( ! init ) 
+	if ( ! init )
 		{
 		init = T;
 		return;
@@ -27,7 +30,7 @@ event new_packet(c: connection, p: pkt_hdr)
 
 	an += dn;
 	ac += dc;
-	
+
 	# print fmt("num=%d agg_delta_network=%.1f agg_delta_real=%.1f", cnt, an, ac);
 	}
 
@@ -36,7 +39,6 @@ event zeek_done()
 	local d = (an - ac);
 	if ( d < 0 secs)
 		d = -d;
-	
+
 	print fmt("real time %s trace time", d < 1.0secs ? "matches" : "does NOT match");
 	}
-

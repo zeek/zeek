@@ -332,7 +332,7 @@ void CPPCompile::GenProlog() {
     std::string working_dir = cwd.string();
 
     Emit("namespace zeek::detail { //\n");
-    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir.c_str());
+    Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir);
 
     // The following might-or-might-not wind up being populated/used.
     Emit("std::vector<zeek_int_t> field_mapping;");

@@ -5,8 +5,14 @@
     "c-ares",
     "cppzmq",
     "libpcap",
+    "openssl",
     "pcre",
-    "zeromq",
+    {
+      "name": "zeromq",
+      "features": [
+        "sodium"
+      ]
+    },
     "zlib"
   ]
 }

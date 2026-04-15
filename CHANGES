@@ -1,3 +1,72 @@
+8.2.0-dev.590 | 2026-04-15 12:07:24 -0700
+
+  * Enable libsodium for ZeroMQ CURVE encryption support on Windows (Maor Hamami)
+
+    The zeromq vcpkg dependency was built without the sodium feature,
+    meaning libzmq had no CURVE encryption support. This caused the
+    ZeroMQ encryption btests to crash with exit code 127 when setting
+    CURVE socket options on Windows.
+
+    Enable the sodium feature in vcpkg.json so libzmq is built with
+    libsodium, providing CURVE support. On Linux, the system libzmq
+    typically includes libsodium by default, so this only affected
+    Windows builds.
+
+  * [windows] fix spicyz build failure after spicy latest changes (Maor Hamami)
+
+  * build : add openssl to vcpkg dependencies (Maor Hamami)
+
+  * ci: enable btests on Windows with retry logic (Maor Hamami)
+
+    Run btests as part of the Windows CI pipeline instead of only unit
+    tests. Add run-btests.sh with retry logic for flaky tests, artifact
+    collection, and JUnit XML results. Always run the Windows task on PRs
+    (remove the Windows-specific skip label gate) and upload btest
+    artifacts on failure.
+
+  * testing: skip flaky tests in Windows CI (Maor Hamami)
+
+    Add is-windows-ci helper script and use it to skip supervisor, broker,
+    and cluster tests that are not yet stable on Windows CI. The tests
+    remain runnable on developer machines.
+
+  * testing: clean up x509 cluster test directories before btest retry (Maor Hamami)
+
+    Remove manager/worker directories at test start so that leftover state
+    from a previous btest retry does not cause spurious failures.
+
+  * fix canonical path resolution fallback on Windows (Maor Hamami)
+
+    When std::filesystem::canonical() fails but the file is accessible
+    (e.g. via a virtual filesystem that hooks access() but not the Win32
+    APIs), fall back to lexically_normal() instead of crashing. Add a test
+    to verify non-existent scripts still produce an error.
+
+  * build: fix MSVC plugin linking and JIT export generation (Maor Hamami)
+
+    Add BinPAC_LIBRARY to the JIT export DEF dependencies so the .lib is
+    built before symbol scanning. Exclude CPPCompile symbols from the
+    export list as they are compiler internals not needed by plugins.
+
+  * build: enable MSVC exception handling for script_opt sources (Maor Hamami)
+
+    The script_opt/CPP sources use C++ exceptions internally. MSVC requires
+    the explicit /EHsc flag to generate correct unwind code for these
+    translation units.
+
+  * build: fix CPP code generation format string (Maor Hamami)
+
+    Pass working_dir directly to Emit() instead of via c_str(), matching
+    the expected format specifier. Add a basic gen-C++ test to verify the
+    generated file is valid.
+
+  * spicy: fix hlto_scope symbol name mismatch across translation units (Maor Hamami)
+
+    Update the spicy submodule to fix inconsistent hlto_scope symbol names
+    generated across translation units, which caused linker errors. Add a
+    test to verify the extern hlto_scope declarations match the linker
+    definition.
+
 8.2.0-dev.578 | 2026-04-15 19:32:42 +0200
 
   * Add test with a gap during an SMTP BDAT transaction (cccs-will)

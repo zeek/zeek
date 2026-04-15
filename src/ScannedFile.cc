@@ -5,6 +5,12 @@
 #include <cerrno>
 #include <filesystem>
 
+#ifdef _MSC_VER
+#include <io.h> // _access
+#else
+#include <unistd.h> // access
+#endif
+
 #include "zeek/DebugLogger.h"
 #include "zeek/Reporter.h"
 
@@ -24,10 +30,22 @@ ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_s
     else if ( ! arg_is_canonical ) {
         std::error_code ec;
         auto canon = std::filesystem::canonical(name, ec);
-        if ( ec )
-            zeek::reporter->FatalError("failed to get canonical path of %s: %s", name.data(), ec.message().c_str());
-
-        canonical_path = canon.string();
+        if ( ec ) {
+            // canonical() failed — check if the file is actually accessible
+            // (e.g. via a virtual/redirected filesystem that hooks access()
+            // but not the Win32 APIs used by std::filesystem::canonical).
+#ifdef _MSC_VER
+            auto accessible = _access(name.data(), 0) == 0;
+#else
+            auto accessible = access(name.data(), F_OK) == 0;
+#endif
+            if ( accessible )
+                canonical_path = std::filesystem::path(name).lexically_normal().string();
+            else
+                zeek::reporter->FatalError("failed to get canonical path of %s: %s", name.data(), ec.message().c_str());
+        }
+        else
+            canonical_path = canon.string();
     }
     else {
         canonical_path = name;

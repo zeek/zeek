@@ -7,7 +7,12 @@
     "libpcap",
     "openssl",
     "pcre",
-    "zeromq",
+    {
+      "name": "zeromq",
+      "features": [
+        "sodium"
+      ]
+    },
     "zlib"
   ]
 }

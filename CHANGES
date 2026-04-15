@@ -1,3 +1,17 @@
+8.1.1-16 | 2026-04-15 13:15:46 -0700
+
+  * Add test with a gap during an SMTP BDAT transaction (cccs-will)
+
+    (cherry picked from commit da5dbf3c8295f26505882b854f6b0bf1613b4128)
+
+  * Fix state comparison in SMTP_Analyzer::Undelivered (cccs-will)
+
+    The condition `state == detail::SMTP_IN_DATA || state == detail::SMTP_CMD_BDAT`
+    mistakenly compares `state` to `SMTP_Cmd::SMTP_CMD_BDAT` instead of
+    `SMTP_State::SMTP_IN_BDAT`.
+
+    (cherry picked from commit da5dbf3c8295f26505882b854f6b0bf1613b4128)
+
 8.1.1-15 | 2026-04-13 12:37:47 -0700
 
   * testing/btest: Update ZAM baseline for wstunnel-configure-break (Arne Welzel, Corelight)

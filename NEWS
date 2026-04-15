@@ -6,8 +6,9 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.1.2
 ==========
 
-We would like to thank Anthony Alayo (@anthonyalayo), @cccs-graeme on Slack, Klemens Nanni
-(@klemensn), and Octave Charrin (@OctaveCharrin) for their contributions to this release.
+We would like to thank Anthony Alayo (@anthonyalayo), @cccs-graeme on Slack, @cccs-will,
+Klemens Nanni (@klemensn), and Octave Charrin (@OctaveCharrin) for their contributions to
+this release.
 
 This release fixes the following security issues:
 
@@ -18,7 +19,7 @@ This release fixes the following bugs:
 
 - The SQLite storage backend now uses ``quick_check`` instead of ``integrity_check`` in
   the default set of pragmas. This is a trade-off between a slightly fewer number of
-  checks and a signficiant savings in startup time.
+  checks and a significant savings in startup time.
 
 - The events ssl_extension_pre_shared_key_server_hello and
   ssl_extension_pre_shared_key_client_hello can now be used independently. Previously,

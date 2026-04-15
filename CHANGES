@@ -1,3 +1,21 @@
+8.0.6-12 | 2026-04-15 13:13:52 -0700
+
+  * Add test with a gap during an SMTP BDAT transaction (cccs-will)
+
+    (cherry picked from commit da5dbf3c8295f26505882b854f6b0bf1613b4128)
+
+  * Fix state comparison in SMTP_Analyzer::Undelivered (cccs-will)
+
+    The condition `state == detail::SMTP_IN_DATA || state == detail::SMTP_CMD_BDAT`
+    mistakenly compares `state` to `SMTP_Cmd::SMTP_CMD_BDAT` instead of
+    `SMTP_State::SMTP_IN_BDAT`.
+
+    (cherry picked from commit da5dbf3c8295f26505882b854f6b0bf1613b4128)
+
+  * Update ZeekJS to v0.22.1 (Tim Wojtulewicz, Corelight)
+
+  * Preliminary NEWS changes for 8.0.7 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.6-9 | 2026-04-13 09:08:45 -0700
 
   * telemetry/ProcessStats: Fix missing procstat_freefiles() (Arne Welzel, Corelight)

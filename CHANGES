@@ -1,3 +1,7 @@
+8.2.0-dev.574 | 2026-04-15 08:45:53 +0100
+
+  * Update documentation of ssl_extension_signature_algorithm for TLS 1.3 (Johanna Amann, Corelight)
+
 8.2.0-dev.572 | 2026-04-14 20:46:36 -0700
 
   * ci/tsan_suppressions: Ignore crypto_secretbox_open_detached() (Arne Welzel, Corelight)

@@ -1994,8 +1994,10 @@ string escape_utf8(string_view val, int flags) {
 
         // Normal ASCII characters plus a few of the control characters can be inserted directly.
         // The rest of the control characters should be escaped as regular bytes.
-        if ( (ch >= 32 && ch < 127) || ((! escape_printable_controls) && (ch < 32) && std::isspace(ch)) ||
-             (! escape_other_controls && (ch < 32 || ch == 127) && ! std::isspace(ch)) ) {
+        if ( (ch >= 32 && ch < 127) ||
+             ((! escape_printable_controls) && (ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t')) ||
+             ((! escape_other_controls) && (ch < 32 || ch == 127) &&
+              (ch != '\b' && ch != '\f' && ch != '\n' && ch != '\r' && ch != '\t')) ) {
             if ( ! found_bad )
                 utf_result.push_back(ch);
 

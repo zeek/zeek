@@ -812,28 +812,25 @@ bool DNS_Interpreter::ParseRR_NAPTR(detail::DNS_MsgInfo* msg, const u_char*& dat
 
 bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
                                    const u_char* msg_start) {
+    (void)msg_start;
+
     if ( dns_EDNS_addl && ! msg->skip_event )
         analyzer->EnqueueConnEvent(dns_EDNS_addl, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildEDNS_Val());
 
-    const u_char* rr_data = data;
-    int remaining = rdlength;
+    int rr_remaining = rdlength;
 
     // Parse EDNS options. Each one starts with a 4-byte header.
-    while ( remaining >= 4 ) {
-        const u_char* option_hdr = rr_data;
-        int option_hdr_remaining = remaining;
-        auto option_code = ExtractShort(option_hdr, option_hdr_remaining);
-        int option_len = ExtractShort(option_hdr, option_hdr_remaining);
+    while ( rr_remaining >= 4 ) {
+        auto option_code = ExtractShort(data, len);
+        int option_len = ExtractShort(data, len);
+        rr_remaining -= 4;
 
-        if ( option_len > remaining - 4 ) {
+        if ( option_len > rr_remaining ) {
             analyzer->Weird("EDNS_truncated_option");
             return false;
         }
 
-        rr_data = option_hdr;
-        remaining -= 4;
-
-        const u_char* option_data = rr_data;
+        const u_char* option_data = data;
         int option_remaining = option_len;
 
         // TODO: Implement additional option codes
@@ -984,14 +981,12 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
             default: break;
         }
 
-        rr_data += option_len;
-        remaining -= option_len;
+        data += option_len;
+        len -= option_len;
+        rr_remaining -= option_len;
     }
 
-    data += rdlength;
-    len -= rdlength;
-
-    if ( remaining != 0 ) {
+    if ( rr_remaining != 0 ) {
         analyzer->Weird("EDNS_truncated_option");
         return false;
     }

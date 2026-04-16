@@ -77,7 +77,7 @@ Redefinable Options
    This comes fairly straight from the embedding guide to support using
    require() with filesystem paths in the process working directory.
 
-   https://docs.w3cub.com/node~14_lts/embedding
+   https://nodejs.org/api/embedding.html
 
 
 .. zeek:id:: JavaScript::maximum_heap_size_in_bytes

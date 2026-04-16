@@ -1,4 +1,5 @@
 # @TEST-DOC: Enable leftover log rotation and logdir. Note, files are rotated into the cwd.
+# @TEST-REQUIRES: ! is-windows-ci
 # @TEST-EXEC: mkdir logs
 # @TEST-EXEC: zeek -b -r ${TRACES}/rotation.pcap %INPUT >zeek.out 2>&1
 # @TEST-EXEC: grep "test" zeek.out | sort >out

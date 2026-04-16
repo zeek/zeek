@@ -223,6 +223,11 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
             pX509Cert->Assign(9, "ecdsa");
             pX509Cert->Assign(12, KeyCurve(pkey));
         }
+        else {
+            auto* type_name = EVP_PKEY_get0_type_name(pkey);
+            if ( type_name ) // nullptr if no name found
+                pX509Cert->Assign(9, type_name);
+        }
 #endif
 
         // set key algorithm back. We do not have to free the value that we created because (I
@@ -462,71 +467,12 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key) {
 unsigned int X509::KeyLength(EVP_PKEY* key) {
     assert(key != nullptr);
 
-    switch ( EVP_PKEY_base_id(key) ) {
-        case EVP_PKEY_RSA: {
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-            const BIGNUM* n = nullptr;
-            RSA_get0_key(EVP_PKEY_get0_RSA(key), &n, nullptr, nullptr);
-            return BN_num_bits(n);
-#else
-            BIGNUM* n = nullptr;
-            EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_RSA_N, &n);
-            auto num_bits = BN_num_bits(n);
-            BN_free(n);
-            return num_bits;
-#endif
-        }
+    int bits = EVP_PKEY_bits(key);
 
-        case EVP_PKEY_DSA: {
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-            const BIGNUM* p;
-            DSA_get0_pqg(EVP_PKEY_get0_DSA(key), &p, nullptr, nullptr);
-            return BN_num_bits(p);
-#else
-            BIGNUM* p = nullptr;
-            EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_FFC_P, &p);
-            auto num_bits = BN_num_bits(p);
-            BN_free(p);
-            return num_bits;
-#endif
-        }
+    if ( bits < 0 ) // error case
+        return 0;
 
-#ifndef OPENSSL_NO_EC
-
-        case EVP_PKEY_EC: {
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-            BIGNUM* ec_order = BN_new();
-            if ( ! ec_order )
-                // could not malloc bignum?
-                return 0;
-
-            const EC_GROUP* group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key));
-
-            if ( ! group ) {
-                // unknown ex-group
-                BN_free(ec_order);
-                return 0;
-            }
-
-            if ( ! EC_GROUP_get_order(group, ec_order, nullptr) ) {
-                // could not get ec-group-order
-                BN_free(ec_order);
-                return 0;
-            }
-#else
-            BIGNUM* ec_order = nullptr;
-            EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_EC_ORDER, &ec_order);
-#endif /* OPENSSL_VERSION_NUMBER */
-
-            unsigned int length = BN_num_bits(ec_order);
-            BN_free(ec_order);
-            return length;
-        }
-#endif                     /* OPENSSL_NO_EC */
-        default: return 0; // unknown public key type
-    }
-
-    reporter->InternalError("cannot be reached");
+    return bits;
 }
 
 X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type) { certificate = arg_certificate; }

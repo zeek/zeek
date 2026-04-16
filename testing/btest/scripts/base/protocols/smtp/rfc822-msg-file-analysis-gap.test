@@ -1,0 +1,39 @@
+# @TEST-DOC: Check for missing_bytes rfc822_msg_file_analysis when a gap occurs.
+#
+# @TEST-EXEC: zeek -C -b -r $TRACES/smtp/smtp-bdat-gap.pcap %INPUT >out
+# @TEST-EXEC: zeek-cut -m fuid uid mime_type seen_bytes missing_bytes < files.log > files.cut
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff files.cut
+# @TEST-EXEC: btest-diff --binary extract_files/mail
+
+@load base/files/hash
+@load base/files/extract
+@load base/protocols/smtp
+
+redef SMTP::enable_rfc822_msg_file_analysis = T;
+
+# Filter on the RFC 822 message.
+global rfc822_msg_fuid: string = "";
+
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
+	{
+	if ( f$id == c$smtp$rfc822_msg_fuid )
+		{
+		print "file_over_new_connection", f$id;
+		rfc822_msg_fuid = c$smtp$rfc822_msg_fuid;
+		Files::add_analyzer(f, Files::ANALYZER_SHA1);
+		Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename="mail"]);
+		}
+	}
+
+event file_gap(f: fa_file, offset: count, len: count)
+	{
+	if ( f$id == rfc822_msg_fuid )
+		print "file_gap", f$id, offset, len;
+	}
+
+event file_state_remove(f: fa_file)
+	{
+	if ( f$id == rfc822_msg_fuid )
+		print "file_state_remove", f$id, f$missing_bytes;
+	}

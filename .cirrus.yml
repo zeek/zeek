@@ -142,12 +142,6 @@ skip_if_pr_not_full_or_zeekctl: &SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
       ( changesIncludeOnly('doc/**') )
     )
 
-skip_if_pr_not_full_or_windows: &SKIP_IF_PR_NOT_FULL_OR_WINDOWS
-  skip: >
-    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Windows).*" ) ||
-      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" ) ||
-      ( changesIncludeOnly('doc/**') )
-    )
 
 ci_template: &CI_TEMPLATE
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
@@ -670,8 +664,16 @@ windows_task:
   prepare_script: ci/windows/prepare.cmd
   build_script: ci/windows/build.cmd
   test_script: ci/windows/test.cmd
+  on_failure:
+    upload_btest_tmp_dir_artifacts:
+      path: "testing/**/tmp.tar.gz"
+  always:
+    upload_btest_xml_results_artifacts:
+      path: "testing/**/btest-results.xml"
+      type: text/xml
+      format: junit
   << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_OR_WINDOWS
+  << : *SKIP_IF_PR_SKIP_ALL
   env:
     ZEEK_CI_CPUS: 8
     # Give verbose error output on a test failure.

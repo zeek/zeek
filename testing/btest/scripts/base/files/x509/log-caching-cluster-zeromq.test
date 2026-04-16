@@ -4,8 +4,13 @@
 # @TEST-PORT: XSUB_PORT
 # @TEST-PORT: LOG_PULL_PORT
 #
+# @TEST-REQUIRES: ! is-windows-ci
+#
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
+#
+# Clean up directories in case of btest retry.
+# @TEST-EXEC: rm -rf manager worker-1 worker-2
 #
 # @TEST-EXEC: btest-bg-run manager   "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek -b %INPUT"
 # @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"

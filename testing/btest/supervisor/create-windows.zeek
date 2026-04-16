@@ -8,6 +8,7 @@
 # Supervisor::destroy() + terminate().
 
 # @TEST-REQUIRES: is-windows
+# @TEST-REQUIRES: ! is-windows-ci
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30

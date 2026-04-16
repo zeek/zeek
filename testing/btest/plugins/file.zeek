@@ -1,3 +1,6 @@
+# This test is flaky on Windows. Skip it temporarily.
+# @TEST-REQUIRES: ! is-windows-ci
+
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: cp -r %DIR/file-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make

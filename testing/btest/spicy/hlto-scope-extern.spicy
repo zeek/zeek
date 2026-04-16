@@ -1,0 +1,21 @@
+# @TEST-DOC: Verify spicyz -c generates consistent hlto_scope symbol names across translation units.
+#
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -c ./test test.evt %INPUT
+#
+# Check that the extern hlto_scope declarations in TUs match the linker's definition.
+# @TEST-EXEC: grep -oh '[a-zA-Z_]*hlto_scope' test___linker__.cc | head -1 > expected_name.txt
+# @TEST-EXEC: grep -rh "extern.*hlto_scope" test_*.cc | grep -oh '[a-zA-Z_]*hlto_scope' | sort -u > extern_names.txt
+# @TEST-EXEC: diff expected_name.txt extern_names.txt
+
+module Test;
+
+public type Foo = unit {
+    data: bytes &eod;
+};
+
+# @TEST-START-FILE test.evt
+protocol analyzer spicy::Test over TCP:
+    parse originator with Test::Foo;
+# @TEST-END-FILE

@@ -2,6 +2,7 @@
 # @TEST-PORT: SUPERVISOR_PORT
 # @TEST-PORT: LOGGER_PORT1
 # @TEST-PORT: LOGGER_PORT2
+# @TEST-REQUIRES: ! is-windows-ci
 
 # Run multiple loggers with the supervisor and verify the generated log files
 # contain their node names as log_suffix metadata within the log-queue directory.

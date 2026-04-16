@@ -411,7 +411,7 @@ void GlueCompiler::preprocessEvtFile(hilti::rt::filesystem::path& path, std::ist
         lineno++;
 
         auto trimmed = hilti::util::trim(line);
-        _locations.emplace_back(path, lineno);
+        _locations.emplace_back(path.string(), lineno);
 
         if ( hilti::util::startsWith(trimmed, "@") ) {
             // Output empty line to keep line numbers the same
@@ -461,7 +461,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
         int lineno = 1;
 
         while ( true ) {
-            _locations.emplace_back(path, lineno);
+            _locations.emplace_back(path.string(), lineno);
             auto chunk = getNextEvtBlock(preprocessed, &lineno);
             if ( ! chunk )
                 throw ParseError(chunk.error());
@@ -470,7 +470,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
                 break; // end of input
 
             _locations.pop_back();
-            _locations.emplace_back(path, lineno);
+            _locations.emplace_back(path.string(), lineno);
 
             if ( looking_at(*chunk, 0, "protocol") ) {
                 auto a = parseProtocolAnalyzer(*chunk);

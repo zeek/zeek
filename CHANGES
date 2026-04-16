@@ -1,3 +1,9 @@
+8.2.0-dev.595 | 2026-04-16 08:39:44 +0100
+
+  * Log OpenSSL provided X509 key type for unknown primary keys. (Johanna Amann, Corelight)
+
+  * Replace custom KeyLength calculation using OpenSSL function (Johanna Amann, Corelight)
+
 8.2.0-dev.590 | 2026-04-15 12:07:24 -0700
 
   * Enable libsodium for ZeroMQ CURVE encryption support on Windows (Maor Hamami)

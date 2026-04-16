@@ -178,6 +178,11 @@ Changed Functionality
 
 - Zeek new properly handles VLAN IDs of 0. Before, these were simply discarded.
 
+- X.509 parsing now supports additional key types that were not handled previously. The
+  certificate key length field will now be filled for additional ciphers, if supported by
+  your OpenSSL version (like ML-DSA). Similarly, the key_type field will be filled out for
+  additional ciphers, if supported by OpenSSL.
+
 Deprecated Functionality
 ------------------------
 

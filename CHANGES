@@ -1,3 +1,7 @@
+8.2.0-dev.599 | 2026-04-16 17:31:07 +0100
+
+  * Add warning to SSL::hash_algorithms and signature_algorithms. (Johanna Amann, Corelight)
+
 8.2.0-dev.597 | 2026-04-16 09:44:01 +0200
 
   * SMTP: Forward Undelivered() as Gap() for rfc822_msg_file_analysis (Arne Welzel, Corelight)

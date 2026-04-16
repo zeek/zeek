@@ -860,9 +860,9 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     }
 
                     if ( opt.ecs_src_pfx_len > option_remaining * 8 ) {
-                        analyzer->Weird("EDNS_ECS_invalid_addr_v4", util::fmt("need %" PRIu16 " bits, have %d bits",
-                                                                              opt.ecs_src_pfx_len,
-                                                                              option_remaining * 8));
+                        analyzer->Weird("EDNS_ECS_invalid_addr_v4",
+                                        util::fmt("need %" PRIu16 " bits, have %d bits", opt.ecs_src_pfx_len,
+                                                  option_remaining * 8));
                         break;
                     }
 
@@ -890,9 +890,9 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     }
 
                     if ( opt.ecs_src_pfx_len > option_remaining * 8 ) {
-                        analyzer->Weird("EDNS_ECS_invalid_addr_v6", util::fmt("need %" PRIu16 " bits, have %d bits",
-                                                                              opt.ecs_src_pfx_len,
-                                                                              option_remaining * 8));
+                        analyzer->Weird("EDNS_ECS_invalid_addr_v6",
+                                        util::fmt("need %" PRIu16 " bits, have %d bits", opt.ecs_src_pfx_len,
+                                                  option_remaining * 8));
                         break;
                     }
 

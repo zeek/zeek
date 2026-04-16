@@ -45,6 +45,14 @@ Breaking Changes
   This allows Zeek to properly handle VLAN IDs of 0, which before were handled as if
   there was no VLAN.
 
+- Reverted the change that went into Zeek 8.1 where ASCII control characters < 32
+  were encoded as \u00XX in JSON strings to the prior \xXX style. The escaping style
+  will become configurable to allow for reliably representing the contained bytes
+  in strings with Zeek 9.0.
+
+  See the discussion at https://github.com/zeek/zeek/discussions/5240 for more background
+  and feel free the chime in with feedback.
+
 New Functionality
 -----------------
 

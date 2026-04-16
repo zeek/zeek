@@ -54,6 +54,9 @@ New Functionality
 - The ``script_id`` records returned by the ``global_ids()`` BiF now include information
   about the attributes attached to identifiers in the ``$attributes`` field.
 
+- The event ``ssl_extension_signature_algorithms_cert`` was added. It is raised for the
+  signature_algorithms_cert TLS extension.
+
 Changed Functionality
 ---------------------
 
@@ -65,6 +68,9 @@ Changed Functionality
   ``host_store_backend_options``. By default it uses an SQLite backend, with the file
   stored in a directory under ``Cluster::default_store_dir``. Similar options are
   available for certs and services as well.
+
+- The ``extension_signature_algorithm`` event previously was incorrectly raised when a
+  CertificateRequest message was encountered. It now is not raised for CertificateRequest messages.
 
 Deprecated Functionality
 ------------------------

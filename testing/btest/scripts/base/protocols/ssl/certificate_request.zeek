@@ -3,6 +3,9 @@
 # Does not work in spicy version, due to missing DTLS support
 # @TEST-REQUIRES: ! have-spicy-ssl
 
+# This also checks that the ssl_extension_signature_algorithm event is not incorrectly
+# raised.
+
 # @TEST-EXEC: zeek -b -r $TRACES/tls/client-certificate.pcap %INPUT > out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/certificate-request-failed.pcap %INPUT >> out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/webrtc-stun.pcap %INPUT >> out
@@ -22,4 +25,9 @@ event ssl_certificate_request(c: connection, is_client: bool, certificate_types:
 		print parse_distinguished_name(ca);
 		}
 	print "========";
+	}
+
+event ssl_extension_signature_algorithm(c: connection, is_client: bool, signature_algorithms: signature_and_hashalgorithm_vec)
+	{
+	print "extension_signature_algorithm", is_client, signature_algorithms;
 	}

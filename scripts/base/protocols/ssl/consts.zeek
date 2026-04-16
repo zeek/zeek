@@ -78,6 +78,11 @@ export {
 
 	## Mapping between numeric codes and human readable strings for hash
 	## algorithms.
+	##
+	## Use only for TLS 1.2 and below; starting with TLS 1.3
+	## the interpretation of these values changed; use
+	## `TLS SignatureScheme <https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-signaturescheme>`_
+	## for TLS 1.3.
 	const hash_algorithms: table[count] of string = {
 		[0] = "none",
 		[1] = "md5",
@@ -91,6 +96,11 @@ export {
 
 	## Mapping between numeric codes and human readable strings for signature
 	## algorithms.
+	##
+	## Use only for TLS 1.2 and below; starting with TLS 1.3
+	## the interpretation of these values changed; use
+	## `TLS SignatureScheme <https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-signaturescheme>`_
+	## for TLS 1.3.
 	const signature_algorithms: table[count] of string = {
 		[0] = "anonymous",
 		[1] = "rsa",

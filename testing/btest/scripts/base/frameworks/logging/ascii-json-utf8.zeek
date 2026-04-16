@@ -73,4 +73,22 @@ event zeek_init()
 	# Invalid 4 Octet Sequence (too short)
 	Log::write(SSH::LOG, [$s="\xf4\x80\x8c"]);
 	Log::write(SSH::LOG, [$s="\xf0"]);
+
+	Log::write(SSH::LOG, [$s="\\\\"]);
+	Log::write(SSH::LOG, [$s="\t\\t\t"]);
+	Log::write(SSH::LOG, [$s="\v\\v\v"]);
+	Log::write(SSH::LOG, [$s="\n\\n\n"]);
+	Log::write(SSH::LOG, [$s="\\x"]);
+	Log::write(SSH::LOG, [$s="\x00"]);
+	Log::write(SSH::LOG, [$s="\x01"]);
+	Log::write(SSH::LOG, [$s="\x09"]);  # \t
+	Log::write(SSH::LOG, [$s="\x0d"]);  # \r
+	Log::write(SSH::LOG, [$s="\x80"]);
+	Log::write(SSH::LOG, [$s="\xf9"]);
+	Log::write(SSH::LOG, [$s="\xff"]);
+	Log::write(SSH::LOG, [$s="\\\\x\\abc\\x.exe"]);
+	Log::write(SSH::LOG, [$s="\xf9\xf9"]);
+	Log::write(SSH::LOG, [$s="a rocket 🚀!\x00 NUL\x00"]);
+	Log::write(SSH::LOG, [$s="\a\b"]);
+	Log::write(SSH::LOG, [$s="\\a=\a \\b=\b \\t=\t \\n=\n"]);
 }

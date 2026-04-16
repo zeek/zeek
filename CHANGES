@@ -1,3 +1,13 @@
+8.2.0-dev.597 | 2026-04-16 09:44:01 +0200
+
+  * SMTP: Forward Undelivered() as Gap() for rfc822_msg_file_analysis (Arne Welzel, Corelight)
+
+    The added test shows 1000 missing bytes: These weren't reported
+    previously, so this is slightly better. Once there's a gap, we call
+    EndData() and tear down the file state, so the reported missing bytes
+    are always just those of the first Undelivered() call. Still, seems
+    better than before.
+
 8.2.0-dev.595 | 2026-04-16 08:39:44 +0100
 
   * Log OpenSSL provided X509 key type for unknown primary keys. (Johanna Amann, Corelight)

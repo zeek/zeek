@@ -183,6 +183,13 @@ Changed Functionality
   your OpenSSL version (like ML-DSA). Similarly, the key_type field will be filled out for
   additional ciphers, if supported by OpenSSL.
 
+- The SMTP analyzer now forwards the first gap encountered during RFC 822 message analysis
+  to the file object. This allows to determine if message analysis stopped due to a gap by
+  inspecting the ``missing_bytes`` field during ``file_state_remove()``, or in ``files.log``.
+
+  The SMTP analyzer tears down the active file upon encountering a gap, so the reported
+  missing bytes will the gap length only.
+
 Deprecated Functionality
 ------------------------
 

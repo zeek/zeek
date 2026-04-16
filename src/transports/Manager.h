@@ -20,6 +20,18 @@ public:
 
     void RegisterProtos(const Tag& tag, const std::set<uint8_t>& proto_numbers);
 
+    [[deprecated("")]]
+    TransportProto TagToLegacyProto(const Tag& tag) const {
+        auto name = GetComponentName(tag);
+        if ( name == "TCP" )
+            return TRANSPORT_TCP;
+        if ( name == "UDP" )
+            return TRANSPORT_UDP;
+        if ( name == "ICMP" )
+            return TRANSPORT_ICMP;
+        return TRANSPORT_UNKNOWN;
+    }
+
 private:
     // Fast lookup: IP proto number -> transport tag
     std::unordered_map<uint8_t, zeek::Tag> proto_to_tag;

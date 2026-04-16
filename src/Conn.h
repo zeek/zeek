@@ -116,17 +116,14 @@ public:
     analyzer::Analyzer* FindAnalyzer(const zeek::Tag& tag); // find first in tree.
     analyzer::Analyzer* FindAnalyzer(const char* name);     // find first in tree.
 
-    TransportProto ConnTransport() const { return proto; }
-    std::string TransportIdentifier() const override {
-        if ( proto == TRANSPORT_TCP )
-            return "tcp";
-        else if ( proto == TRANSPORT_UDP )
-            return "udp";
-        else if ( proto == TRANSPORT_ICMP )
-            return "icmp";
-        else
-            return "unknown";
+    const Tag& TransportTag() const { return transport_tag; }
+
+    [[deprecated("")]]
+    TransportProto ConnTransport() const {
+        return proto;
     }
+
+    std::string TransportIdentifier() const override;
 
     // Returns true if the packet reflects a reuse of this
     // connection (i.e., not a continuation but the beginning of
@@ -173,7 +170,7 @@ public:
     analyzer::pia::PIA* GetPrimaryPIA() { return primary_PIA; }
 
     // Sets the transport protocol in use.
-    void SetTransport(TransportProto arg_proto) { proto = arg_proto; }
+    void SetTransport(const Tag& tag);
 
     void SetUID(const UID& arg_uid) { uid = arg_uid; }
 
@@ -211,6 +208,8 @@ private:
     IPBasedConnKeyPtr key;
 
     TransportProto proto;
+    Tag transport_tag;
+
     uint8_t tunnel_changes = 0;
     bool weird;
     bool finished;

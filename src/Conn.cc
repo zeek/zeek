@@ -21,6 +21,7 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
+#include "zeek/transports/Manager.h"
 
 namespace zeek {
 
@@ -126,7 +127,7 @@ void Connection::Done() {
     finished = true;
 
     if ( adapter ) {
-        if ( ConnTransport() == TRANSPORT_TCP ) {
+        if ( transport_tag == transports::manager->GetComponentTag("TCP") ) {
             auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
             assert(ta->IsAnalyzer("TCP"));
             analyzer::tcp::TCP_Endpoint* to = ta->Orig();
@@ -410,5 +411,19 @@ bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate
 
     return detail::PermitWeird(*weird_state, name, threshold, rate, duration);
 }
+
+void Connection::SetTransport(const Tag& tag) {
+    transport_tag = tag;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    proto = transports::manager->TagToLegacyProto(tag);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+}
+
+std::string Connection::TransportIdentifier() const { return transports::manager->GetComponentName(transport_tag); }
 
 } // namespace zeek

@@ -1,0 +1,20 @@
+zeek_add_subdir_library(
+    ZAM
+    SOURCES
+    AM-Opt.cc
+    Branches.cc
+    BuiltIn.cc
+    BuiltInSupport.cc
+    Driver.cc
+    Expr.cc
+    Inst-Gen.cc
+    Low-Level.cc
+    Profile.cc
+    Stmt.cc
+    Support.cc
+    Validate.cc
+    Vars.cc
+    ZBody.cc
+    ZInst.cc
+    ZInstAux.cc
+    ZOp.cc)

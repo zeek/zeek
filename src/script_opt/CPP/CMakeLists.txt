@@ -1,0 +1,22 @@
+zeek_add_subdir_library(
+    CPP
+    SOURCES
+    Attrs.cc
+    Consts.cc
+    DeclFunc.cc
+    Driver.cc
+    Emit.cc
+    Exprs.cc
+    Func.cc
+    GenFunc.cc
+    Inits.cc
+    InitsInfo.cc
+    RuntimeInitSupport.cc
+    RuntimeInits.cc
+    RuntimeOps.cc
+    RuntimeVec.cc
+    Stmts.cc
+    Tracker.cc
+    Types.cc
+    Util.cc
+    Vars.cc)

@@ -144,7 +144,6 @@ To install these, you can use:
      choco install -y --no-progress winflexbison3
      choco install -y --no-progress msysgit
      choco install -y --no-progress python
-     choco install -y --no-progress openssl --version=3.1.1
 
   Once the dependencies are installed, you will need to add the Git installation
   to your PATH (``C:\Program Files\Git\bin`` by default). This is needed for the

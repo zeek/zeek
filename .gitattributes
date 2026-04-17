@@ -4,3 +4,4 @@
 *.l linguist-language=Lex
 testing/btest/Baseline/** linguist-detectable=false
 testing/btest/language/crlf-parsing.zeek text eol=crlf
+testing/btest/language/string-nul.zeek text diff

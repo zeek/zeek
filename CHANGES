@@ -1,3 +1,14 @@
+8.2.0-dev.614 | 2026-04-17 16:52:36 +0200
+
+  * GH-5302: scan.l: Reject strings with embedded NUL bytes (Arne Welzel, Corelight)
+
+    We didn't support this and would run into a InternalError(). Use yyleng
+    for iteration rather than strlen(), check for NUL bytes explicitly and
+    report them as errors.
+
+    Initial idea was to support this, but one cannot readily use such strings
+    with, for example, fmt(), so seems better to reject them for now.
+
 8.2.0-dev.612 | 2026-04-17 16:24:05 +0200
 
   * testing/btest/opt/gen-cpp-basic: Skip on -a zam runs (Arne Welzel, Corelight)

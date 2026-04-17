@@ -1,3 +1,14 @@
+8.1.1-19 | 2026-04-17 11:44:44 -0700
+
+  * bifs/to_port: Fix calling streq() past input string (Arne Welzel, Corelight)
+
+    Commit eb34c9e984889013e5ce15f3a94c3570c582246d exposed a buffer
+    overread in to_port(). If strtol() stopped on the final NUL character
+    of the input string, we'd previously compare some bytes behind it
+    against the proto.
+
+    (cherry picked from commit 5eb1c91a278bb30bbd13efc3622811bcb992a066)
+
 8.1.1-18 | 2026-04-17 10:24:49 -0700
 
   * GH-5366: broker/WebSocketShim: Do not throw on unhandled broker::zeek messages (Arne Welzel, Corelight)

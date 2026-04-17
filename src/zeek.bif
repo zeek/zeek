@@ -3438,7 +3438,7 @@ function to_port%(s: string%): port
         char* slash;
         errno = 0;
         port = strtol(s->CheckString(), &slash, 10);
-        if ( ! errno )
+        if ( ! errno && *slash )
             {
             ++slash;
             if ( zeek::util::streq(slash, "tcp") )

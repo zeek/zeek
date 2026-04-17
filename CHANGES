@@ -1,3 +1,24 @@
+8.2.0-dev.608 | 2026-04-17 10:32:26 +0200
+
+  * formatters/JSON: Enable unprintable control escaping (Arne Welzel, Corelight)
+
+    This hex escapes all chars < 32 unless they are \b, \f, \n, \r and \t as
+    done in Zeek 8.0 and before. This stops the \u00xx escaping until we
+    make it fully configurable.
+
+  * util/encode_utf8: Revert to explicit printable controls list (Arne Welzel, Corelight)
+
+    Commit 81c48f19bca37cb416691141c331b89832e71450 switched the explicit
+    printable_controls list to ((ch < 32) && std::isspache(ch)). This added
+    \v to the list, but \v is not representable in JSON via an escape
+    sequence. The original list supposedly was motivated by what's allowed
+    in JSON and it fits better for our use.
+
+    This commit switches again to the explicit list, such that the vertical
+    tab \v (\x0b) is again hex escaped rather than included as \u000b.
+
+  * testing/btest: Add a few more log writes to ascii-json-utf8 (Arne Welzel, Corelight)
+
 8.2.0-dev.604 | 2026-04-17 08:34:41 +0100
 
   * X509 certificate type parsing: fix build failure on Rocky Linux 8 (Johanna Amann, Corelight)

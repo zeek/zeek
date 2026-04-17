@@ -45,6 +45,14 @@ Breaking Changes
   This allows Zeek to properly handle VLAN IDs of 0, which before were handled as if
   there was no VLAN.
 
+- Reverted the change that went into Zeek 8.1 where ASCII control characters < 32
+  were encoded as \u00XX in JSON strings to the prior \xXX style. The escaping style
+  will become configurable to allow for reliably representing the contained bytes
+  in strings with Zeek 9.0.
+
+  See the discussion at https://github.com/zeek/zeek/discussions/5240 for more background
+  and feel free to chime in with feedback.
+
 New Functionality
 -----------------
 
@@ -149,6 +157,10 @@ New Functionality
 - A new analyzer for IGMP was imported from an external project, originally written by
   François De Keersmaeker (@fdekeers). It adds new events for each of the types of IGMP
   messages, but does not add a new log.
+
+- Windows support has been greatly improved, thanks to a raft of contributions from an
+  engineering team at Microsoft. The btest suite now runs on CI builds. The great majority
+  of btests pass, with a small number skipped for various documented reasons.
 
 Changed Functionality
 ---------------------

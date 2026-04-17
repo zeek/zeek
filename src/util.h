@@ -537,6 +537,8 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen);
 enum UTF8EscapingFlags : uint8_t {
     ESCAPE_NONE = 0x00,
     // Escape printable ASCII control characters (e.g. `\n` is converted to `\x0a`)
+    // This affects \b \f \n \r \t as these can be represented in JSON without
+    // extra escaping. Use this flag if you'd like them \xXX escaped.
     ESCAPE_PRINTABLE_CONTROLS = 0x01,
     // Escape unprintable ASCII control characters
     ESCAPE_UNPRINTABLE_CONTROLS = 0x02,

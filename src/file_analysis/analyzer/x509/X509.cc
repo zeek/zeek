@@ -223,6 +223,8 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
             pX509Cert->Assign(9, "ecdsa");
             pX509Cert->Assign(12, KeyCurve(pkey));
         }
+#endif
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
         else {
             auto* type_name = EVP_PKEY_get0_type_name(pkey);
             if ( type_name ) // nullptr if no name found

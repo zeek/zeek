@@ -1,3 +1,7 @@
+8.2.0-dev.618 | 2026-04-17 18:15:51 +0200
+
+  * GH-5114: Expr/RecordConstructorExpr: Concretize unspecified vectors only if field type is a vector (Arne Welzel, Corelight)
+
 8.2.0-dev.616 | 2026-04-17 18:15:31 +0200
 
   * GH-5366: broker/WebSocketShim: Do not throw on unhandled broker::zeek messages (Arne Welzel, Corelight)

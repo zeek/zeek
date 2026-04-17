@@ -3034,9 +3034,10 @@ ValPtr RecordConstructorExpr::Eval(Frame* f) const {
         auto v_i = exprs[i]->Eval(f);
         int ind = map ? (*map)[i] : i;
 
-        if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->GetType<VectorType>()->IsUnspecifiedVector() ) {
+        if ( v_i && IsVector(v_i->GetType()->Tag()) && v_i->GetType<VectorType>()->IsUnspecifiedVector() ) {
             const auto& t_ind = rt->GetFieldType(ind);
-            v_i->AsVectorVal()->Concretize(t_ind->Yield());
+            if ( IsVector(t_ind->Tag()) )
+                v_i->AsVectorVal()->Concretize(t_ind->Yield());
         }
 
         rv->Assign(ind, v_i);

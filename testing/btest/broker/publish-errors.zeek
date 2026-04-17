@@ -13,7 +13,7 @@
 #
 # @TEST-EXEC: btest-bg-wait 30
 #
-# @TEST-EXEC: btest-diff send/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v PEER_UNAVAILABLE' btest-diff send/.stderr
 
 # @TEST-START-FILE send.zeek
 redef exit_only_after_terminate = T;

@@ -1,3 +1,17 @@
+8.2.0-dev.612 | 2026-04-17 16:24:05 +0200
+
+  * testing/btest/opt/gen-cpp-basic: Skip on -a zam runs (Arne Welzel, Corelight)
+
+    Cannot use ZEEK_ZAM=1 and -O gen-C++ together.
+
+  * testing/btest/broker/publish-errors: Filter out PEER_UNAVAILALBE messages on stderr (Arne Welzel, Corelight)
+
+    These sometimes appear when the recv node isn't ready the first time the
+    send node connects to it. It's harmless and retried after a second, so
+    filter it out.
+
+  * testing/btest/dump-events-json: Update ZAM baseline (Arne Welzel, Corelight)
+
 8.2.0-dev.608 | 2026-04-17 10:32:26 +0200
 
   * formatters/JSON: Enable unprintable control escaping (Arne Welzel, Corelight)

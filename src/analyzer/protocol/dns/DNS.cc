@@ -470,8 +470,15 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name
                                      bool downcase) {
     u_char* name_start = name;
 
-    while ( ExtractLabel(data, len, name, name_len, msg_start) )
-        ;
+    while ( true ) {
+        auto status = ExtractLabel(data, len, name, name_len, msg_start);
+
+        if ( status == LabelParseState::ParseError )
+            return nullptr;
+
+        if ( status == LabelParseState::EndOfName )
+            break;
+    }
 
     int n = name - name_start;
 
@@ -493,10 +500,12 @@ u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name
     return name;
 }
 
-bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name, int& name_len,
-                                   const u_char* msg_start) {
-    if ( len <= 0 )
-        return false;
+DNS_Interpreter::LabelParseState DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
+                                                               int& name_len, const u_char* msg_start) {
+    if ( len <= 0 ) {
+        analyzer->Weird("dns_invalid_name");
+        return LabelParseState::ParseError;
+    }
 
     const u_char* orig_data = data;
     auto label_len = data[0];
@@ -504,15 +513,17 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
     ++data;
     --len;
 
-    if ( len <= 0 )
-        return false;
-
     if ( label_len == 0 )
         // Found terminating label.
-        return false;
+        return LabelParseState::EndOfName;
 
     // If the label length is 0xc0, this is a pointer to another spot in the packet data.
     if ( (label_len & 0xc0) == 0xc0 ) {
+        if ( len <= 0 ) {
+            analyzer->Weird("dns_invalid_name");
+            return LabelParseState::ParseError;
+        }
+
         auto offset = (label_len & ~0xc0) << 8;
 
         offset |= *data;
@@ -530,7 +541,7 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
             //  sometimes compression points to compression.)
 
             analyzer->Weird("DNS_label_forward_compress_offset");
-            return false;
+            return LabelParseState::ParseError;
         }
 
         // Recursively resolve name.
@@ -539,30 +550,32 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
 
         u_char* name_end = ExtractName(recurse_data, recurse_max_len, name, name_len, msg_start);
 
+        if ( ! name_end )
+            return LabelParseState::ParseError;
+
         name_len -= name_end - name;
         name = name_end;
 
-        // Returning false here causes the loop in ExtractName to exit.
-        return false;
+        return LabelParseState::EndOfName;
     }
 
     if ( label_len > len ) {
         analyzer->Weird("DNS_label_len_gt_pkt");
         data += len; // consume the rest of the packet
         len = 0;
-        return false;
+        return LabelParseState::ParseError;
     }
 
     if ( label_len > 63 &&
          // NetBIOS name service look ups can use longer labels.
          ntohs(analyzer->Conn()->RespPort()) != NETBIOS_PORT ) {
         analyzer->Weird("DNS_label_too_long");
-        return false;
+        return LabelParseState::ParseError;
     }
 
     if ( label_len >= name_len ) {
         analyzer->Weird("DNS_label_len_gt_name_len");
-        return false;
+        return LabelParseState::ParseError;
     }
 
     memcpy(name, data, label_len);
@@ -574,7 +587,7 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
     data += label_len;
     len -= label_len;
 
-    return true;
+    return LabelParseState::Continue;
 }
 
 uint8_t DNS_Interpreter::ExtractByte(const u_char*& data, int& len) {

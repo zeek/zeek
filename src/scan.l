@@ -672,22 +672,26 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 \"([^\\\r\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;
-	int len = strlen(text) + 1;
 	int i = 0;
 
-	char* s = new char[len];
+	// Allocate without the quotes but make room for the NUL terminator.
+	char* s = new char[yyleng - 1];
 
 	// Skip leading quote.
-	for ( ++text; *text; ++text ) {
+	for ( ++text; text < (yytext + yyleng); ++text ) {
+		if ( *text == '\0' )
+			zeek::reporter->FatalError("strings cannot contain NUL bytes - use a \\x00 escape sequence instead");
+
 		if ( *text == '\\' ) {
-			++text;	// skip '\'
+			++text; // skip '\'
 			s[i++] = zeek::util::detail::expand_escape(text);
-			--text;	// point to end of sequence
+			--text; // point to end of sequence
 		}
 		else {
-			s[i++] = *text;
-			if ( i >= len )
+			if ( i >= (yyleng - 1))
 				zeek::reporter->InternalError("bad string length computation");
+
+			s[i++] = *text;
 		}
 	}
 

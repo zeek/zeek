@@ -1,3 +1,19 @@
+8.1.1-18 | 2026-04-17 10:24:49 -0700
+
+  * GH-5366: broker/WebSocketShim: Do not throw on unhandled broker::zeek messages (Arne Welzel, Corelight)
+
+    When a WebSocket client subscribes to the match-all `""` topic and
+    Broker is used as a cluster backend, LogCreate, LogWrite and
+    IdentifierUpdate messages may be received. This was previously assumed
+    to not happen and threw a logic_error. It can indeed happen, so simply
+    ignore the messages.
+
+    The added test would raise SIGABRT on the manager without the fix.
+
+    (cherry picked from commit 2eb56e263e4e2ff97cac36f64c186a9dec2c27d7)
+
+  * Update NEWS with more 8.1.2 additions [nomail] (Tim Wojtulewicz, Corelight)
+
 8.1.1-16 | 2026-04-15 13:15:46 -0700
 
   * Add test with a gap during an SMTP BDAT transaction (cccs-will)

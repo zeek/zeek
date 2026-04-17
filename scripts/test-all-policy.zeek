@@ -137,6 +137,7 @@
 @load protocols/http/software.zeek
 @load protocols/http/var-extraction-cookies.zeek
 @load protocols/http/var-extraction-uri.zeek
+@load protocols/igmp/igmp-conn-log.zeek
 @load protocols/krb/ticket-logging.zeek
 @load protocols/krb/md5-ticket-logging.zeek
 @load protocols/modbus/known-masters-slaves.zeek

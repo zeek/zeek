@@ -1,3 +1,17 @@
+8.2.0-dev.616 | 2026-04-17 18:15:31 +0200
+
+  * GH-5366: broker/WebSocketShim: Do not throw on unhandled broker::zeek messages (Arne Welzel, Corelight)
+
+    When a WebSocket client subscribes to the match-all `""` topic and
+    Broker is used as a cluster backend, LogCreate, LogWrite and
+    IdentifierUpdate messages may be received. This was previously assumed
+    to not happen and threw a logic_error. It can indeed happen, so simply
+    ignore the messages.
+
+    The added test would raise SIGABRT on the manager without the fix.
+
+    Fixes #5366
+
 8.2.0-dev.614 | 2026-04-17 16:52:36 +0200
 
   * GH-5302: scan.l: Reject strings with embedded NUL bytes (Arne Welzel, Corelight)

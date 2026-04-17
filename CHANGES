@@ -1,3 +1,7 @@
+8.2.0-dev.604 | 2026-04-17 08:34:41 +0100
+
+  * X509 certificate type parsing: fix build failure on Rocky Linux 8 (Johanna Amann, Corelight)
+
 8.2.0-dev.601 | 2026-04-16 11:38:47 -0700
 
   * Add section about Windows improvements to 8.2 NEWS [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

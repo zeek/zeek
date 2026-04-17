@@ -7,5 +7,6 @@ Get Started
 
    install
    quickstart
+   security-considerations
    cluster-setup
    building-from-source

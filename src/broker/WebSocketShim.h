@@ -62,16 +62,19 @@ private:
     void ProcessMessage(std::string_view topic, broker::zeek::Event& ev);
     void ProcessMessage(std::string_view topic, broker::zeek::Invalid& invalid);
     void ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc) {
-        // WebSocket clients should not receive log create messages.
-        throw new std::logic_error("not implemented");
+        // WebSocket clients may receive log create messages spuriously if they
+        // subscribe to a wildcard topic or zeek/logs/, simply drop them on the
+        // ground as they cannot be converted to events.
     }
     void ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw) {
-        // WebSocket clients should not receive log writes.
-        throw new std::logic_error("not implemented");
+        // WebSocket clients may receive log write messages spuriously if they
+        // subscribe to a wildcard topic or zeek/logs/, simply drop them on the
+        // ground as they cannot be converted to events.
     }
     void ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu) {
-        // WebSocket clients should not receive identifier updates.
-        throw new std::logic_error("not implemented");
+        // WebSocket clients may receive dientifier update messages spuriously if they
+        // subscribe to a wildcard topic or zeek/logs/, simply drop them on the
+        // ground as they cannot be converted to events.
     }
 
     class IOSource;

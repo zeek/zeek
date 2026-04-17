@@ -1,3 +1,9 @@
+8.2.0-dev.625 | 2026-04-17 15:32:50 -0700
+
+  * Docs: openssl step no longer needed on Windows (Christian Kreibich, Corelight)
+
+  * Docs: touch up versions in install instructions (Christian Kreibich, Corelight)
+
 8.2.0-dev.622 | 2026-04-17 12:24:57 -0700
 
   * Docs: add security considerations (Christian Kreibich, Corelight)

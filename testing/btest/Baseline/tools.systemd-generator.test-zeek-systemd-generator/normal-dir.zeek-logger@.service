@@ -10,12 +10,12 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-logger-%i
 Type=exec
-Nice=-3
-MemoryMax=2001000K
 User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=<...>/logger-%i
 ReadWritePaths=<...>/logger-%i <...>/var 
+Nice=-3
+MemoryMax=2001000K
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=logger-%i

@@ -128,7 +128,7 @@ private:
     std::filesystem::path working_directory;
 
     std::string memory_max;
-    int nice = 0;
+    std::optional<int> nice;
 
     std::optional<std::string> capability_bounding_set;
     std::optional<std::string> ambient_capabilities;

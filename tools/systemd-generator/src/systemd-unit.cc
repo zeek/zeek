@@ -47,8 +47,6 @@ std::string Unit::ToString() const {
         if ( syslog_identifier.has_value() )
             ss << "SyslogIdentifier=" << syslog_identifier.value() << "\n";
         ss << "Type=" << service_type << "\n";
-        ss << "Nice=" << nice << "\n";
-        ss << "MemoryMax=" << memory_max << "\n";
         ss << "User=" << user << "\n";
         ss << "Group=" << group << "\n";
         ss << "WorkingDirectory=" << working_directory.string() << "\n";
@@ -63,6 +61,12 @@ std::string Unit::ToString() const {
 
         if ( cpu_affinity.has_value() )
             ss << "CPUAffinity=" << *cpu_affinity << "\n";
+
+        if ( nice.has_value() )
+            ss << "Nice=" << *nice << "\n";
+
+        if ( ! memory_max.empty() )
+            ss << "MemoryMax=" << memory_max << "\n";
 
         if ( capability_bounding_set.has_value() )
             ss << "CapabilityBoundingSet=" << capability_bounding_set.value() << "\n";
@@ -121,6 +125,12 @@ bool Unit::WriteDropIn() const {
 
         if ( cpu_affinity.has_value() )
             ofs << "CPUAffinity=" << *cpu_affinity << "\n";
+
+        if ( nice.has_value() )
+            ofs << "Nice=" << *nice << "\n";
+
+        if ( ! memory_max.empty() )
+            ofs << "MemoryMax=" << memory_max << "\n";
 
         for ( const auto& [name, value] : env )
             ofs << "Environment=" << name << "=" << value << "\n";

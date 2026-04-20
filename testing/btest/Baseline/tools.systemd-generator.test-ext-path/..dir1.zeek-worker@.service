@@ -13,8 +13,6 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-worker-%i
 Type=exec
-Nice=0
-MemoryMax=
 User=zeek
 Group=zeek
 WorkingDirectory=<...>/worker-%i

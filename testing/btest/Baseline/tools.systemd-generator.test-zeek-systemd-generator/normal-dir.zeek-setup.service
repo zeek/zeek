@@ -8,8 +8,6 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
-Nice=0
-MemoryMax=
 User=
 Group=
 WorkingDirectory=

@@ -1,3 +1,7 @@
+8.2.0-dev.629 | 2026-04-20 06:56:56 -0700
+
+  * Add maximum depth for recursive parsing of DNS compression chains (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.627 | 2026-04-20 07:10:36 -0400
 
   * Change `zeek` invocation behavior without args (Evan Typanski, Corelight)

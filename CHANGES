@@ -1,3 +1,7 @@
+8.2.0-dev.639 | 2026-04-20 19:37:12 +0000
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.2.0-dev.637 | 2026-04-20 19:32:15 +0000
 
   * Compile contributors for Zeek 8.2 in the NEWS file [skip ci] (Christian Kreibich, Corelight)

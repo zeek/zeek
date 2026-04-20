@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -65,6 +66,74 @@ private:
 };
 
 /**
+ * A single option.
+ */
+struct Option {
+    std::string key;
+    std::string value;
+    std::string orig; // The line from which key and value were extracted.
+};
+
+/**
+ * Hold info about an interface worker configuration.
+ *
+ * Essentially, this describes how many workers listen on a specific interface (which can be specified as template).
+ */
+class InterfaceWorkerConfig {
+public:
+    /**
+     * Instantiate a new interface worker config.
+     *
+     * @param index One-based index of this interface config in the configuration file.
+     * @param interface The interface string from the configuration.
+     */
+    InterfaceWorkerConfig(int index, std::string interface) : interface(std::move(interface)) {}
+
+    /**
+     * Instantiate a InterfaceWorkerConfig from a span of options.
+     *
+     * For backwards compat, this has a bit of special behavior.
+     *
+     * 1) The first option in options is expected to be an "interface".
+     * 2) It uses options up until the next "interface" Option in options
+     * 3) It errors on non worker option keys unless allow_non_worker_keys is true.
+     *    This is used for the first interface by the parser to continue support
+     *    single interface entries followed by non-worker options to allow the original
+     *    zeek.conf layout.
+     *
+     * @param index One-based index of the interface config.
+     * @param options The options to parse from
+     * @param allow_non_worker_keys If false, will return nullopt when encountering non worker options.
+     *
+     * @return An instantiated InterfaceWorkerConfig or or std::nullopt on error.
+     */
+    static std::optional<InterfaceWorkerConfig> from_options(int index, std::span<const Option> options,
+                                                             bool allow_non_worker_keys = false);
+
+    const std::string& Interface() const noexcept { return interface; }
+
+    int Workers() const noexcept { return workers; }
+
+    const std::string& MemoryMax() const noexcept { return memory_max; }
+
+    std::optional<int> Nice() const noexcept { return nice; }
+
+    std::string AffinityFor(unsigned int index) const { return cpu_list.AffinityFor(index); }
+
+    std::optional<const std::string> NumaPolicy() const { return numa_policy; }
+
+private:
+    int index = 0;
+    std::string interface;
+    int workers = 1;
+
+    std::optional<int> nice;
+    std::string memory_max;
+    CpuList cpu_list;
+    std::optional<std::string> numa_policy;
+};
+
+/**
  * A Zeek cluster configuration for a single node.
  */
 class ZeekClusterConfig {
@@ -80,7 +149,7 @@ public:
 
     bool IsValid() const noexcept { return errors.empty(); }
 
-    bool IsEnabled() const noexcept { return ! interface.empty(); }
+    bool IsEnabled() const noexcept { return ! interface_worker_configs.empty(); }
 
     void Error(std::string msg) { errors.emplace_back(std::move(msg)); }
 
@@ -137,19 +206,21 @@ public:
     int Proxies() const noexcept { return proxies; }
 
     /**
-     * @return The number of of workers to run.
+     * @return The total number of workers running on this system.
      */
-    int Workers() const noexcept { return workers; }
+    int Workers() const noexcept {
+        int result = 0;
+        for ( const auto& iwc : interface_worker_configs )
+            result += iwc.Workers();
+        return result;
+    }
+
+    const std::vector<InterfaceWorkerConfig>& InterfaceWorkerConfigs() const { return interface_worker_configs; }
 
     /**
      * @return Colon separated string for the ZEEKPATH variable to use.
      */
     std::string ZeekPath() const;
-
-    /**
-     * @return The interface string to use.
-     */
-    const std::string& Interface() const { return interface; }
 
     std::optional<int> NiceFor(const std::string& node) const;
 
@@ -174,10 +245,6 @@ public:
 
     const std::string& User() const { return user; }
     const std::string& Group() const { return group; }
-
-    const CpuList& WorkersCpuList() const { return workers_cpu_list; }
-
-    std::string WorkersNumaPolicy() const { return workers_numa_policy.value_or(""); }
 
     int RestartIntervalSec() const { return restart_interval_sec; }
 
@@ -217,9 +284,7 @@ private:
 
     int loggers = 1;
     int proxies = 1;
-    int workers = 1;
 
-    std::string interface;
     std::string args;
 
     std::string user = "zeek";
@@ -242,8 +307,7 @@ private:
     std::string memory_max_proxy;
     std::string memory_max_worker;
 
-    CpuList workers_cpu_list;
-    std::optional<std::string> workers_numa_policy;
+    std::vector<InterfaceWorkerConfig> interface_worker_configs;
 
     std::string restart = "always";
     int restart_sec = 1;

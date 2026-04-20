@@ -13,6 +13,8 @@
 
 namespace {
 
+using zeek::detail::Option;
+
 void ltrim(std::string& s) {
     s.erase(s.begin(), std::ranges::find_if(s.begin(), s.end(), [](unsigned char ch) { return ! std::isspace(ch); }));
 }
@@ -54,12 +56,6 @@ std::vector<std::string_view> split(std::string_view v, char delim) {
 
     return result;
 }
-
-struct Option {
-    std::string key;
-    std::string value;
-    std::string orig; // The line from which key and value were extracted.
-};
 
 /**
  * Split the configuration into a vector of options.
@@ -295,6 +291,70 @@ CpuList::CpuList(const std::string& list) {
     }
 }
 
+std::optional<InterfaceWorkerConfig> zeek::detail::InterfaceWorkerConfig::from_options(int index,
+                                                                                       std::span<const Option> entries,
+                                                                                       bool allow_non_worker_keys) {
+    if ( entries.empty() )
+        return std::nullopt;
+
+    if ( entries[0].key != "interface" )
+        return std::nullopt;
+
+    auto interface = entries[0].value;
+
+    InterfaceWorkerConfig iwc{index, interface};
+
+    for ( const auto& entry : entries.subspan(1) ) {
+        std::string key = entry.key;
+        tolower(key);
+
+        // When the next interface option is reached, stop interpreting any keys.
+        if ( key == "interface" )
+            break;
+
+        if ( key == "workers" ) {
+            if ( auto workers = parse_int(entry.value) )
+                iwc.workers = *workers;
+            else {
+                std::fprintf(stderr, "invalid workers '%s' for interface '%s'\n", entry.value.c_str(),
+                             interface.c_str());
+                return std::nullopt;
+            }
+        }
+        else if ( key == "workers_cpu_list" ) {
+            iwc.cpu_list = CpuList(entry.value);
+            if ( ! iwc.cpu_list.IsValid() ) {
+                std::fprintf(stderr, "invalid workers_cpu_list '%s' for interface '%s'\n", entry.value.c_str(),
+                             interface.c_str());
+                return std::nullopt;
+            }
+        }
+        else if ( key == "worker_numa_policy" || key == "workers_numa_policy" ) {
+            if ( key == "workers_numa_policy" )
+                fprintf(stderr, "Remove in v9.1: workers_numa_policy is deprecated, replace with worker_numa_policy\n");
+            if ( entry.value != "local" && entry.value != "default" ) {
+                std::fprintf(stderr, "invalid workers_numa_policy '%s'\n", entry.value.c_str());
+                std::exit(1);
+            }
+
+            iwc.numa_policy = entry.value;
+        }
+        else if ( key == "worker_nice" ) {
+            iwc.nice = validate_nice(entry);
+        }
+        else if ( key == "worker_memory_max" ) {
+            iwc.memory_max = validate_memory_max(entry);
+        }
+        else if ( ! allow_non_worker_keys ) {
+            // If this isn't the first interface section, bail on non-worker keys.
+            std::fprintf(stderr, "unexpected key '%s' after interface '%s'\n", entry.key.c_str(), interface.c_str());
+            return std::nullopt;
+        }
+    }
+
+    return iwc;
+}
+
 ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_dir,
                                const std::filesystem::path& source_path) {
     ZeekClusterConfig config(default_zeek_base_dir, source_path);
@@ -310,14 +370,13 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
     // Before we start building a generic configuration framework, we should consider
     // that the number of options we ever add here should be limited, so maybe that
     // horrid if-else thing isn't all that bad, and it's obvious what's going on.
-    for ( const auto& entry : entries ) {
+
+    for ( size_t i = 0; i < entries.size(); i++ ) {
+        const auto& entry = entries[i];
         std::string key = entry.key;
         tolower(key);
 
-        if ( key == "interface" ) {
-            config.interface = entry.value;
-        }
-        else if ( key == "args" ) {
+        if ( key == "args" ) {
             config.args = entry.value;
         }
         else if ( key == "user" ) {
@@ -325,9 +384,6 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         }
         else if ( key == "group" ) {
             config.group = entry.value;
-        }
-        else if ( key == "workers" ) {
-            config.workers = std::atoi(entry.value.c_str());
         }
         else if ( key == "proxies" ) {
             config.proxies = std::atoi(entry.value.c_str());
@@ -346,17 +402,6 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         }
         else if ( key == "ext_zeek_path" ) {
             config.ext_zeek_path = entry.value;
-        }
-        else if ( key == "workers_cpu_list" ) {
-            config.workers_cpu_list = CpuList(entry.value);
-        }
-        else if ( key == "workers_numa_policy" ) {
-            if ( entry.value != "local" && entry.value != "default" ) {
-                std::fprintf(stderr, "invalid workers_numa_policy '%s'", entry.value.c_str());
-                std::exit(1);
-            }
-
-            config.workers_numa_policy = entry.value;
         }
         else if ( key == "cluster_backend_args" ) {
             config.cluster_backend_args = entry.value;
@@ -388,9 +433,6 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         else if ( key == "proxy_nice" ) {
             config.nice_proxy = validate_nice(entry);
         }
-        else if ( key == "worker_nice" ) {
-            config.nice_worker = validate_nice(entry);
-        }
         else if ( key == "manager_memory_max" ) {
             config.memory_max_manager = validate_memory_max(entry);
         }
@@ -400,12 +442,35 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         else if ( key == "proxy_memory_max" ) {
             config.memory_max_proxy = validate_memory_max(entry);
         }
-        else if ( key == "worker_memory_max" ) {
-            config.memory_max_worker = validate_memory_max(entry);
-        }
         else if ( key == "restart_interval_sec" ) {
             config.restart_interval_sec = std::atoi(entry.value.c_str());
         }
+        // An interface key is the start of a InterfaceWorkerConfig. Use the
+        // InterfaceWorkerConfig::from_options() helper here.
+        else if ( key == "interface" ) {
+            bool allow_non_worker_keys = config.interface_worker_configs.empty();
+            auto options_tail = std::span{entries}.subspan(i);
+            auto iwc = InterfaceWorkerConfig::from_options(config.interface_worker_configs.size() + 1, options_tail,
+                                                           allow_non_worker_keys);
+            if ( iwc.has_value() ) {
+                config.interface_worker_configs.push_back(std::move(*iwc));
+            }
+            else {
+                std::fprintf(stderr, "failed to parse interface config for '%s'\n", entry.value.c_str());
+                std::exit(1);
+            }
+        }
+        else if ( key == "workers" || key == "workers_cpu_list" || key == "workers_numa_policy" ||
+                  key == "worker_numa_policy" || key == "worker_nice" || key == "worker_memory_max" )
+            if ( config.interface_worker_configs.empty() ) {
+                std::fprintf(stderr, "'%s' must come after interface key\n", key.c_str());
+                std::exit(1);
+            }
+            else {
+                continue;
+            }
+
+
         else {
             std::fprintf(stderr, "ignoring unknown key '%s' from line '%s'\n", key.c_str(), entry.orig.c_str());
         }
@@ -434,7 +499,7 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
         "-P",
         std::to_string(proxies),
         "-W",
-        std::to_string(workers),
+        std::to_string(Workers()),
         "-p",
         std::to_string(port),
         "-a",
@@ -504,8 +569,6 @@ std::optional<int> ZeekClusterConfig::NiceFor(const std::string& node) const {
         return nice_logger;
     else if ( node.starts_with("proxy") )
         return nice_proxy;
-    else if ( node.starts_with("worker") )
-        return nice_worker;
 
     std::fprintf(stderr, "invalid node '%s' in NiceFor()\n", node.c_str());
     return std::nullopt;

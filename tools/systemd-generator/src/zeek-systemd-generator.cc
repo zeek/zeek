@@ -149,41 +149,65 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
     }
 
-    // Workers
-    for ( int idx = 1; idx <= config.Workers(); idx++ ) {
-        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("worker", idx));
-        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("worker", idx));
+    // Workers - worker_index is the global worker index. For classic Zeekctl style naming,
+    // one could template with "worker-{interface_index}-{interface_worker_index}" or so."
+    int worker_index = 0;
+    int interface_index = 0; // global worker index, starts at 1
+    for ( const auto& iwc : config.InterfaceWorkerConfigs() ) {
+        ++interface_index;
 
-        auto name = systemd_unit_name("worker", idx);
-        ensure_symlink("../zeek-worker@.service", zeek_target_wants / name);
+        int interface_worker_index = 0;
 
-        // Create drop-in .d directories for worker instance to define their
-        // INTERFACE and CPUAffinity settings.
-        auto d_dir = dir / (name + ".d");
-        std::filesystem::create_directories(d_dir);
-        auto unit = Unit(d_dir / "10-zeek-systemd-generator.conf", config.SourcePath());
+        for ( int i = 0; i < iwc.Workers(); i++ ) {
+            ++worker_index;
+            ++interface_worker_index;
+
+            setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("worker", worker_index));
+            setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("worker", worker_index));
+
+            auto name = systemd_unit_name("worker", worker_index);
+            ensure_symlink("../zeek-worker@.service", zeek_target_wants / name);
+
+            // Create drop-in .d directories for worker instance to define their
+            // INTERFACE and CPUAffinity settings.
+            auto d_dir = dir / (name + ".d");
+            std::filesystem::create_directories(d_dir);
+            auto unit = Unit(d_dir / "10-zeek-systemd-generator.conf", config.SourcePath());
 
 
-        std::string cpu = config.WorkersCpuList().AffinityFor(idx);
+            std::string cpu = iwc.AffinityFor(worker_index);
 
-        // Setup templating variables.
-        std::map<std::string, std::string> vars = {
-            {"worker_index", std::to_string(idx)},
-            {"worker_index0", std::to_string(idx - 1)},
-            {"worker_cpu", cpu},
-        };
+            // Setup templating variables.
+            std::map<std::string, std::string> vars = {
+                {"worker_index", std::to_string(worker_index)},
+                {"worker_index0", std::to_string(worker_index - 1)},
+                {"interface_worker_index", std::to_string(interface_worker_index)},
+                {"interface_worker_index0", std::to_string(interface_worker_index - 1)},
+                {"worker_cpu", cpu},
+            };
 
-        auto interface = config.SubstituteVars(config.Interface(), vars);
-        if ( ! interface.has_value() ) {
-            std::fprintf(stderr, "interface substitution for '%s' failed\n", config.Interface().c_str());
-            std::exit(1);
+            auto interface = config.SubstituteVars(iwc.Interface(), vars);
+            if ( ! interface.has_value() ) {
+                std::fprintf(stderr, "interface substitution for '%s' failed\n", iwc.Interface().c_str());
+                std::exit(1);
+            }
+
+            unit.AddEnvironment("INTERFACE", *interface);
+
+            if ( ! cpu.empty() )
+                unit.SetCpuAffinity(std::move(cpu));
+
+            if ( auto nice = iwc.Nice(); nice )
+                unit.SetNice(*nice);
+
+            if ( auto memory_max = iwc.MemoryMax(); ! memory_max.empty() )
+                unit.SetMemoryMax(std::move(memory_max));
+
+            if ( auto numa_policy = iwc.NumaPolicy(); numa_policy )
+                unit.SetNumaPolicy(std::move(*numa_policy));
+
+            unit.WriteDropIn();
         }
-
-        unit.AddEnvironment("INTERFACE", *interface);
-        if ( ! cpu.empty() )
-            unit.SetCpuAffinity(std::move(cpu));
-
-        unit.WriteDropIn();
     }
 
     auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
@@ -219,11 +243,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
     worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
     worker_unit.SetSlice("zeek-workers.slice");
-    if ( auto nice = config.NiceFor("worker"); nice )
-        worker_unit.SetNice(*nice);
-
-    if ( auto numa_policy = config.WorkersNumaPolicy(); ! numa_policy.empty() )
-        worker_unit.SetNumaPolicy(std::move(numa_policy));
 
     target_unit.Write();
     setup_unit.Write();

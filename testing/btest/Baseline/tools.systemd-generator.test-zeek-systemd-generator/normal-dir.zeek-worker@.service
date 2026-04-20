@@ -17,8 +17,6 @@ User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=<...>/worker-%i
 ReadWritePaths=<...>/worker-%i 
-Nice=-19
-MemoryMax=1G
 CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin

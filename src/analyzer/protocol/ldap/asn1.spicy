@@ -18,6 +18,9 @@ module ASN1;
 
 import spicy;
 
+# Maximum ASN.1 nesting depth
+const MAX_ASN1_DEPTH: uint8 = 32;
+
 #- ASN.1 data types ----------------------------------------------------------
 # https://www.obj-sys.com/asn1tutorial/node124.html
 # https://www.obj-sys.com/asn1tutorial/node10.html
@@ -197,7 +200,7 @@ public type ASN1Header = unit {
 
 #- ASN.1 message body ---------------------------------------------------------
 
-public type ASN1Body = unit(head: ASN1Header, recursive: bool) {
+public type ASN1Body = unit(head: ASN1Header, recursive: bool, depth: uint8) {
     switch (head.tag.type_) {
         ASN1Type::Boolean -> bool_value: uint8 &convert=cast<bool>($$) &requires=head.len.len == 1;
         ASN1Type::Integer,
@@ -221,7 +224,7 @@ public type ASN1Body = unit(head: ASN1Header, recursive: bool) {
         ASN1Type::VisibleString,
         ASN1Type::UniversalString -> str_value: ASN1String(head.tag, head.len.len);
         ASN1Type::Sequence,
-        ASN1Type::Set -> seq: ASN1SubMessages(head.len.len) if(recursive);
+        ASN1Type::Set -> seq: ASN1SubMessages(head.len.len, depth) if(recursive);
 
         # TODO: ASN1Type values not handled yet
         ASN1Type::ObjectDescriptor,
@@ -237,8 +240,8 @@ public type ASN1Body = unit(head: ASN1Header, recursive: bool) {
 
 #- ASN.1 array of ASN.1 sequence/set sub-messages (up to msgLen bytes) --------
 
-public type ASN1SubMessages = unit(msgLen: uint64) {
-    submessages: ASN1Message(True)[] &eod;
+public type ASN1SubMessages = unit(msgLen: uint64, depth: uint8) {
+    submessages: ASN1Message(True, depth + 1)[] &eod;
 } &size=msgLen;
 
 #- ASN.1 message with header and body -----------------------------------------
@@ -246,16 +249,21 @@ public type ASN1SubMessages = unit(msgLen: uint64) {
 # - if Universal, body:ASN1Body is parsed
 # - else, application_data:bytes stores data array
 
-public type ASN1Message = unit(recursive: bool) {
+public type ASN1Message = unit(recursive: bool, depth: uint8 = 0) {
     var application_id: int32;
 
     head: ASN1Header;
     switch (self.head.tag.class) {
-        ASN1Class::Universal -> body: ASN1Body(self.head, recursive);
+        ASN1Class::Universal -> body: ASN1Body(self.head, recursive, depth);
         ASN1Class::Application,
         ASN1Class::ContextSpecific,
         ASN1Class::Private -> application_data: bytes &size=self.head.len.len {
             self.application_id = cast<int32>(self.head.tag.type_);
         }
     };
+
+    on %init {
+        if (depth > MAX_ASN1_DEPTH)
+            throw "ASN.1 exceeded max recursion depth";
+    }
 };

@@ -1,3 +1,23 @@
+8.2.0-dev.635 | 2026-04-20 06:57:46 -0700
+
+  * DNS/Parse_SvcParams: Move static initialization out of while loop (Arne Welzel, Corelight)
+
+  * DNS/Parse_SvcParams: Scope item_len_parsed to cases (Arne Welzel, Corelight)
+
+    The update of item_len_parsed when it doesn't have an effect is
+    confusing, clean it up by scoping to the variable to the cases
+    where it is actually used.
+
+  * DNS/Parse_SvcParams: Fix value_len accounting (Arne Welzel, Corelight)
+
+    The while loop over svc_params_len allows at most value_len bytes for individual
+    params before going to the next param. There isn't a reason to substract
+    from it as it de-syncs  the len accounting otherwise. Not sure about the
+    original motivation, might have been a left-over of a prior approach.
+
+    Add two asserts that the fuzzer would hopefully tickle more quickly if
+    they ever happen.
+
 8.2.0-dev.631 | 2026-04-20 06:57:18 -0700
 
   * Add limits to recursion in LDAP and ASN.1 parsers (Tim Wojtulewicz, Corelight)

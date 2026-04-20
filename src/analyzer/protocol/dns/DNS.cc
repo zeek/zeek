@@ -1717,16 +1717,20 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
 
 VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int svc_params_len) {
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
+    static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
     // Each service parameter is at least four bytes, two for key and value length each.
     while ( svc_params_len >= 4 ) {
-        static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+        // len is modified during parsing and svc_params_len should never
+        // exceed it, otherwise the length accounting go out of sync.
+        assert(svc_params_len <= len);
+
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
 
         auto key = ExtractShort(data, len);
         auto value_len = ExtractShort(data, len);
-        int item_len_parsed = 0;
         svc_params_len -= 4;
 
         if ( value_len > svc_params_len ) {
@@ -1747,6 +1751,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
 
                 auto mandatory = make_intrusive<VectorVal>(id::index_vec);
 
+                int item_len_parsed = 0;
                 while ( item_len_parsed + 2 <= value_len ) {
                     mandatory->Append(zeek::val_mgr->Count(ExtractShort(data, len)));
                     item_len_parsed += 2;
@@ -1760,16 +1765,17 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
             {
                 auto alpn = make_intrusive<VectorVal>(id::string_vec);
 
+                int item_len_parsed = 0;
                 while ( item_len_parsed + 2 < value_len ) {
                     auto alpn_len = ExtractByte(data, len);
                     item_len_parsed += 1;
 
                     if ( alpn_len == 0 || alpn_len > 255 || alpn_len + item_len_parsed > value_len ) {
-                        // Account for already consumed data first.
-                        value_len -= item_len_parsed;
                         analyzer->Weird("DNS_SVCB_alpn_length_invalid");
                         goto malformed;
                     }
+
+                    assert(alpn_len <= len);
 
                     alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
                     data += alpn_len;
@@ -1796,7 +1802,6 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 }
 
                 svc_param->Assign(3, zeek::val_mgr->Count(ExtractShort(data, len)));
-                item_len_parsed += 2;
                 break;
 
             case detail::ipv4hint: // list of IPs
@@ -1813,6 +1818,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 static auto addr_vec = id::find_type<VectorType>("addr_vec");
                 auto hint = make_intrusive<VectorVal>(addr_vec);
 
+                int item_len_parsed = 0;
                 while ( item_len_parsed + addr_len <= value_len ) {
                     const auto addr = zeek::IPAddr(is_ipv4 ? IPv4 : IPv6, reinterpret_cast<const uint32_t*>(data),
                                                    zeek::IPAddr::Network);
@@ -1831,7 +1837,6 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
             case detail::ech: // ECHConfigList
             {
                 const String* ech = ExtractStream(data, len, value_len);
-                item_len_parsed += value_len;
 
                 // Convert binary blob to presentation format.
                 String* b64 = zeek::detail::encode_base64(ech, nullptr, analyzer->Conn());
@@ -1845,7 +1850,6 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 analyzer->Weird("DNS_SVCB_key_reserved_or_invalid");
             malformed:
                 svc_param->Assign(6, zeek::make_intrusive<StringVal>(ExtractStream(data, len, value_len)));
-                item_len_parsed += value_len;
                 break;
         }
 

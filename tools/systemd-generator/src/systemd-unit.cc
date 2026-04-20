@@ -126,6 +126,9 @@ bool Unit::WriteDropIn() const {
         if ( cpu_affinity.has_value() )
             ofs << "CPUAffinity=" << *cpu_affinity << "\n";
 
+        if ( numa_policy.has_value() )
+            ofs << "NUMAPolicy=" << *numa_policy << "\n";
+
         if ( nice.has_value() )
             ofs << "Nice=" << *nice << "\n";
 

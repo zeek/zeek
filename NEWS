@@ -12,6 +12,30 @@ this release.
 
 This release fixes the following security issues:
 
+- A series of DNS messages containing long DNS compression chains can cause Zeek to spend
+  a long time processing packets and potentially crash. Due to the fact that these packets
+  can be received from remote hosts, this is a DoS risk. The fix included is to limit the
+  amount of recursion when extracting labels and names from these chains. A weird is
+  returned if the condition is met.
+
+- A specially-crafted LDAP search request can cause Zeek to spend a long time processing
+  the packet, resulting in Zeek silently dropping the LDAP analyzer for the
+  connection. Due to the fact that these packets can be received from remote hosts, this
+  is an evasion risk. The fix included is to limit the amount of recursion when processing
+  search requests. An analyzer violation is returned and logged when the condition is met.
+
+- A specially-crafted series of ASN.1 messages in LDAP packets can cause Zeek to spend a
+  long time processing the packets, resulting in Zeek silently dropping the LDAP analyzer
+  for the connection. Due to the fact that these packets can be received from remote
+  hosts, this is an evasion risk. The fix included is to limit the amount of recursion
+  when processing ASN.1 messages. An analyzer violation is returned and logged when the
+  condition is met.
+
+- A specially-crafted DNS packet containing HTTP SvcParam RRs can cause Zeek to reach a
+  buffer overflow and potentially crash. Due to the fact that these packets can be
+  received from remote hosts, this is a DoS risk. The fix included reworks the byte
+  accounting when processing these RRs to avoid the overflow.
+
 This release fixes the following bugs:
 
 - Support for non-Broker cluster backends was added to the cluster/experimental set of
@@ -21,8 +45,8 @@ This release fixes the following bugs:
   the default set of pragmas. This is a trade-off between a slightly fewer number of
   checks and a significant savings in startup time.
 
-- The events ssl_extension_pre_shared_key_server_hello and
-  ssl_extension_pre_shared_key_client_hello can now be used independently. Previously,
+- The events ``ssl_extension_pre_shared_key_server_hello`` and
+  ``ssl_extension_pre_shared_key_client_hello`` can now be used independently. Previously,
   both had to have a handler implemented for either of them to actually be invoked due to
   some logic confusion in the analyzer.
 

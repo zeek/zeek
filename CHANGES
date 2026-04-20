@@ -1,3 +1,17 @@
+8.0.7 | 2026-04-20 15:25:40 +0000
+
+  * Regenerate docs for 8.0.7 release [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 8.0.7 security patches [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Add limits to recursion in LDAP and ASN.1 parsers (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 9439a41cc6208182f542b03681c23c862960d883)
+
+  * Add maximum depth for recursive parsing of DNS compression chains (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 94ddba276a6fc65f454547b6f62793aaa720e457)
+
 8.0.6-15 | 2026-04-17 11:43:48 -0700
 
   * bifs/to_port: Fix calling streq() past input string (Arne Welzel, Corelight)

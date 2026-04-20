@@ -13,12 +13,12 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-worker-%i
 Type=exec
-Nice=-19
-MemoryMax=1G
 User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=<...>/worker-%i
 ReadWritePaths=<...>/worker-%i 
+Nice=-19
+MemoryMax=1G
 CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin

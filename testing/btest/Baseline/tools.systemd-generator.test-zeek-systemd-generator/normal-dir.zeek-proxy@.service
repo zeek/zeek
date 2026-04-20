@@ -11,12 +11,12 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-proxy-%i
 Type=exec
-Nice=-2
-MemoryMax=2000000000
 User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=<...>/proxy-%i
 ReadWritePaths=<...>/proxy-%i 
+Nice=-2
+MemoryMax=2000000000
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=proxy-%i

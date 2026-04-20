@@ -9,8 +9,6 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=exec
-Nice=0
-MemoryMax=
 User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=

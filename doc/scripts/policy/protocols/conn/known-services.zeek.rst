@@ -146,7 +146,7 @@ Redefinable Options
             forced_sync=F
             redis=<uninitialized>
             sqlite=[database_path=":memory:", table_name="zeek/known/services", busy_timeout=5.0 secs, pragma_commands={
-               ["integrity_check"] = "",
+               ["quick_check"] = "",
                ["journal_mode"] = "WAL",
                ["synchronous"] = "normal",
                ["temp_store"] = "memory"

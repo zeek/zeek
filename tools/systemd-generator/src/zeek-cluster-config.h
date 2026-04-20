@@ -151,7 +151,7 @@ public:
      */
     const std::string& Interface() const { return interface; }
 
-    int NiceFor(const std::string& node) const;
+    std::optional<int> NiceFor(const std::string& node) const;
 
     const std::string& MemoryMaxFor(const std::string& node) const;
 
@@ -232,10 +232,10 @@ private:
 
     int start_limit_interval_sec = 0;
 
-    int nice_manager = 0;
-    int nice_logger = 0;
-    int nice_proxy = 0;
-    int nice_worker = 0;
+    std::optional<int> nice_manager;
+    std::optional<int> nice_logger;
+    std::optional<int> nice_proxy;
+    std::optional<int> nice_worker;
 
     std::string memory_max_manager;
     std::string memory_max_logger;

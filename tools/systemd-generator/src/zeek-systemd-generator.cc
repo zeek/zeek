@@ -83,7 +83,6 @@ Unit systemd_add_node_unit(const path& file, const std::string& node, const std:
     unit.SetRestart("always");
     unit.SetRestartSec(config.RestartIntervalSec());
 
-    unit.SetNice(config.NiceFor(node));
     unit.SetMemoryMax(config.MemoryMaxFor(node));
 
     // Disable any start limit.
@@ -190,6 +189,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
     manager_unit.AddAfter("zeek-logger@.service");
     manager_unit.SetSlice("zeek-manager.slice");
+    if ( auto nice = config.NiceFor("manager"); nice )
+        manager_unit.SetNice(*nice);
 
     auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "logger-%i", "Zeek Logger %i", config);
     // This makes <PREFIX>/var read-writeable for the logger
@@ -199,10 +200,14 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     // We could also mark certain paths read-only if that's an issue.
     logger_unit.AddReadWritePath(config.ZeekBaseDir() / "var");
     logger_unit.SetSlice("zeek-loggers.slice");
+    if ( auto nice = config.NiceFor("logger"); nice )
+        logger_unit.SetNice(*nice);
 
     auto proxy_unit = systemd_add_node_unit(dir / "zeek-proxy@.service", "proxy-%i", "Zeek Proxy %i", config);
     proxy_unit.AddAfter("zeek-logger@.service");
     proxy_unit.SetSlice("zeek-proxies.slice");
+    if ( auto nice = config.NiceFor("proxy"); nice )
+        proxy_unit.SetNice(*nice);
 
     auto worker_unit = systemd_add_node_unit(dir / "zeek-worker@.service", "worker-%i", "Zeek Worker %i", config);
 
@@ -214,6 +219,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
     worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
     worker_unit.SetSlice("zeek-workers.slice");
+    if ( auto nice = config.NiceFor("worker"); nice )
+        worker_unit.SetNice(*nice);
 
     if ( auto numa_policy = config.WorkersNumaPolicy(); ! numa_policy.empty() )
         worker_unit.SetNumaPolicy(std::move(numa_policy));

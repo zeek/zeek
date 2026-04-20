@@ -497,18 +497,18 @@ std::string ZeekClusterConfig::Path() const {
     return result + path;
 }
 
-int ZeekClusterConfig::NiceFor(const std::string& node) const {
+std::optional<int> ZeekClusterConfig::NiceFor(const std::string& node) const {
     if ( node == "manager" )
         return nice_manager;
-    else if ( node.starts_with("logger-") )
+    else if ( node.starts_with("logger") )
         return nice_logger;
-    else if ( node.starts_with("proxy-") )
+    else if ( node.starts_with("proxy") )
         return nice_proxy;
-    else if ( node.starts_with("worker-") )
+    else if ( node.starts_with("worker") )
         return nice_worker;
 
     std::fprintf(stderr, "invalid node '%s' in NiceFor()\n", node.c_str());
-    abort();
+    return std::nullopt;
 }
 
 const std::string& ZeekClusterConfig::MemoryMaxFor(const std::string& node) const {

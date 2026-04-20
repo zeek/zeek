@@ -321,6 +321,9 @@ std::optional<InterfaceWorkerConfig> zeek::detail::InterfaceWorkerConfig::from_o
                 return std::nullopt;
             }
         }
+        else if ( key == "worker_args" ) {
+            iwc.args = entry.value;
+        }
         else if ( key == "workers_cpu_list" ) {
             iwc.cpu_list = CpuList(entry.value);
             if ( ! iwc.cpu_list.IsValid() ) {
@@ -460,8 +463,9 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
                 std::exit(1);
             }
         }
-        else if ( key == "workers" || key == "workers_cpu_list" || key == "workers_numa_policy" ||
-                  key == "worker_numa_policy" || key == "worker_nice" || key == "worker_memory_max" )
+        else if ( key == "workers" || key == "worker_args" || key == "workers_cpu_list" ||
+                  key == "workers_numa_policy" || key == "worker_numa_policy" || key == "worker_nice" ||
+                  key == "worker_memory_max" ) {
             if ( config.interface_worker_configs.empty() ) {
                 std::fprintf(stderr, "'%s' must come after interface key\n", key.c_str());
                 std::exit(1);
@@ -469,8 +473,7 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
             else {
                 continue;
             }
-
-
+        }
         else {
             std::fprintf(stderr, "ignoring unknown key '%s' from line '%s'\n", key.c_str(), entry.orig.c_str());
         }

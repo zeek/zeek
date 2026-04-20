@@ -149,6 +149,29 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
     }
 
+    auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
+    manager_unit.AddAfter("zeek-logger@.service");
+    manager_unit.SetSlice("zeek-manager.slice");
+    if ( auto nice = config.NiceFor("manager"); nice )
+        manager_unit.SetNice(*nice);
+
+    auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "logger-%i", "Zeek Logger %i", config);
+    // This makes <PREFIX>/var read-writeable for the logger
+    // process such that it can move logs from its working directory
+    // into <PREFIX>/var/logs/zeek. This currently means a logger
+    // has read-write access to individual node spool directories.
+    // We could also mark certain paths read-only if that's an issue.
+    logger_unit.AddReadWritePath(config.ZeekBaseDir() / "var");
+    logger_unit.SetSlice("zeek-loggers.slice");
+    if ( auto nice = config.NiceFor("logger"); nice )
+        logger_unit.SetNice(*nice);
+
+    auto proxy_unit = systemd_add_node_unit(dir / "zeek-proxy@.service", "proxy-%i", "Zeek Proxy %i", config);
+    proxy_unit.AddAfter("zeek-logger@.service");
+    proxy_unit.SetSlice("zeek-proxies.slice");
+    if ( auto nice = config.NiceFor("proxy"); nice )
+        proxy_unit.SetNice(*nice);
+
     // Workers - worker_index is the global worker index. For classic Zeekctl style naming,
     // one could template with "worker-{interface_index}-{interface_worker_index}" or so."
     int worker_index = 0;
@@ -158,6 +181,31 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         int interface_worker_index = 0;
 
+        // For every interface section, there's a separate zeek-worker-interface-%d@.service
+        // instantiated so that we can have per interface worker args and drop-in files
+        // that affect all workers of a single interface. The name is just using the index
+        // in the configuration file, because  the actual interface may be expanded or even
+        // duplicated, so don't want to use the name in the unit file.
+        //
+        // Maybe we could make this configurable by the user in the future,
+        // but for now just stringify the index.
+        std::string interface_identifier = std::to_string(interface_index);
+
+        std::string worker_unit_template = "zeek-interface-" + interface_identifier + "-worker@.service";
+
+        auto worker_unit = systemd_add_node_unit(dir / worker_unit_template, "worker-%i", "Zeek Worker %i", config);
+
+        worker_unit.SetExecStart(config.ZeekExe().string(), {"-i", "${INTERFACE}", systemd_generator_policy_scripts(),
+                                                             config.Args(), iwc.Args(), config.ClusterBackendArgs()});
+        worker_unit.SetSyslogIdentifier(std::string("zeek-interface-") + interface_identifier + "-worker-%i");
+        worker_unit.AddAfter(manager_unit.Name());
+        worker_unit.AddAfter(logger_unit.Name());
+        worker_unit.AddAfter(proxy_unit.Name());
+        worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
+        worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
+        worker_unit.SetSlice("zeek-workers.slice");
+        worker_unit.Write();
+
         for ( int i = 0; i < iwc.Workers(); i++ ) {
             ++worker_index;
             ++interface_worker_index;
@@ -165,8 +213,10 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("worker", worker_index));
             setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("worker", worker_index));
 
-            auto name = systemd_unit_name("worker", worker_index);
-            ensure_symlink("../zeek-worker@.service", zeek_target_wants / name);
+            // zeek-worker-1@1, zeek-worker-1@2, zeek-worker-2@1 ???
+            auto name = std::string("zeek-interface-") + interface_identifier + "-worker@" +
+                        std::to_string(worker_index) + ".service";
+            ensure_symlink("../" + worker_unit_template, zeek_target_wants / name);
 
             // Create drop-in .d directories for worker instance to define their
             // INTERFACE and CPUAffinity settings.
@@ -210,46 +260,11 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         }
     }
 
-    auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
-    manager_unit.AddAfter("zeek-logger@.service");
-    manager_unit.SetSlice("zeek-manager.slice");
-    if ( auto nice = config.NiceFor("manager"); nice )
-        manager_unit.SetNice(*nice);
-
-    auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "logger-%i", "Zeek Logger %i", config);
-    // This makes <PREFIX>/var read-writeable for the logger
-    // process such that it can move logs from its working directory
-    // into <PREFIX>/var/logs/zeek. This currently means a logger
-    // has read-write access to individual node spool directories.
-    // We could also mark certain paths read-only if that's an issue.
-    logger_unit.AddReadWritePath(config.ZeekBaseDir() / "var");
-    logger_unit.SetSlice("zeek-loggers.slice");
-    if ( auto nice = config.NiceFor("logger"); nice )
-        logger_unit.SetNice(*nice);
-
-    auto proxy_unit = systemd_add_node_unit(dir / "zeek-proxy@.service", "proxy-%i", "Zeek Proxy %i", config);
-    proxy_unit.AddAfter("zeek-logger@.service");
-    proxy_unit.SetSlice("zeek-proxies.slice");
-    if ( auto nice = config.NiceFor("proxy"); nice )
-        proxy_unit.SetNice(*nice);
-
-    auto worker_unit = systemd_add_node_unit(dir / "zeek-worker@.service", "worker-%i", "Zeek Worker %i", config);
-
-    worker_unit.SetExecStart(config.ZeekExe().string(), {"-i", "${INTERFACE}", systemd_generator_policy_scripts(),
-                                                         config.Args(), config.ClusterBackendArgs()});
-    worker_unit.AddAfter(manager_unit.Name());
-    worker_unit.AddAfter(logger_unit.Name());
-    worker_unit.AddAfter(proxy_unit.Name());
-    worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
-    worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
-    worker_unit.SetSlice("zeek-workers.slice");
-
     target_unit.Write();
     setup_unit.Write();
     manager_unit.Write();
     logger_unit.Write();
     proxy_unit.Write();
-    worker_unit.Write();
 
     if ( config.IsArchiverEnabled() ) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());

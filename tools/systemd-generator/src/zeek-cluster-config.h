@@ -114,6 +114,8 @@ public:
 
     int Workers() const noexcept { return workers; }
 
+    const std::string& Args() const noexcept { return args; }
+
     const std::string& MemoryMax() const noexcept { return memory_max; }
 
     std::optional<int> Nice() const noexcept { return nice; }
@@ -126,6 +128,8 @@ private:
     int index = 0;
     std::string interface;
     int workers = 1;
+
+    std::string args; // worker specific args to append
 
     std::optional<int> nice;
     std::string memory_max;

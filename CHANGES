@@ -1,3 +1,41 @@
+8.1.2 | 2026-04-20 15:39:17 +0000
+
+  * Regenerate docs for 8.1.2 release [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 8.1.2 security patches [nomail] (Tim Wojtulewicz, Corelight)
+
+  * DNS/Parse_SvcParams: Move static initialization out of while loop (Arne Welzel, Corelight)
+
+    (cherry picked from commit 9bd798944a5ddedc53cfdbb9a14233ca842441a2)
+
+  * DNS/Parse_SvcParams: Scope item_len_parsed to cases (Arne Welzel, Corelight)
+
+    The update of item_len_parsed when it doesn't have an effect is
+    confusing, clean it up by scoping to the variable to the cases
+    where it is actually used.
+
+    (cherry picked from commit c07096efaa8bbd49bb466c1dcde27827f99241ad)
+
+  * GH-236: DNS/Parse_SvcParams: Fix value_len accounting (Arne Welzel, Corelight)
+
+    The while loop over svc_params_len allows at most value_len bytes for individual
+    params before going to the next param. There isn't a reason to substract
+    from it as it de-syncs  the len accounting otherwise. Not sure about the
+    original motivation, might have been a left-over of a prior approach.
+
+    Add two asserts that the fuzzer would hopefully tickle more quickly if
+    they ever happen.
+
+    (cherry picked from commit 0f662c87bc9ddeb4d66d95892d9b669d374e2f19)
+
+  * Add limits to recursion in LDAP and ASN.1 parsers (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 9439a41cc6208182f542b03681c23c862960d883)
+
+  * Add maximum depth for recursive parsing of DNS compression chains (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 94ddba276a6fc65f454547b6f62793aaa720e457)
+
 8.1.1-19 | 2026-04-17 11:44:44 -0700
 
   * bifs/to_port: Fix calling streq() past input string (Arne Welzel, Corelight)

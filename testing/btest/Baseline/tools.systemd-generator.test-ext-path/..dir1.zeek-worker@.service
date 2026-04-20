@@ -13,18 +13,16 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-worker-%i
 Type=exec
-Nice=0
-MemoryMax=
 User=zeek
 Group=zeek
 WorkingDirectory=<...>/worker-%i
-ReadWritePaths=<...>/worker-%i 
+ReadWritePaths=<...>/worker-%i
 CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/mybin:<...>/mybin2:<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=worker-%i
-ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/systemd-generator local frameworks<...>/zeromq
+ExecStart=<...>/zeek -i ${INTERFACE} frameworks<...>/zeromq policy<...>/systemd-generator local
 Slice=zeek-workers.slice
 Restart=always
 RestartSec=1

@@ -39,30 +39,40 @@ std::string Unit::ToString() const {
     if ( start_limit_burst.has_value() )
         ss << "StartLimitBurst=" << start_limit_burst.value() << "\n";
 
-    // Make the [Service] section depending on availability of ExecStar or
-    // ExecStartPre for now.
+    // Create the [Service] section depending the existence of
+    // any ExecStart or ExecStartPre lines.
     if ( exec_start.size() > 0 || exec_start_pre.size() > 0 ) {
         ss << "\n";
         ss << "[Service]" << "\n";
         if ( syslog_identifier.has_value() )
             ss << "SyslogIdentifier=" << syslog_identifier.value() << "\n";
         ss << "Type=" << service_type << "\n";
-        ss << "Nice=" << nice << "\n";
-        ss << "MemoryMax=" << memory_max << "\n";
         ss << "User=" << user << "\n";
         ss << "Group=" << group << "\n";
         ss << "WorkingDirectory=" << working_directory.string() << "\n";
 
         if ( ! read_write_paths.empty() ) {
             ss << "ReadWritePaths=";
+            bool first = true;
             for ( const auto& rw : read_write_paths ) {
-                ss << rw.string() << " ";
+                if ( ! first )
+                    ss << " ";
+
+                first = false;
+                ss << rw.string();
             }
+
             ss << "\n";
         }
 
         if ( cpu_affinity.has_value() )
             ss << "CPUAffinity=" << *cpu_affinity << "\n";
+
+        if ( nice.has_value() )
+            ss << "Nice=" << *nice << "\n";
+
+        if ( ! memory_max.empty() )
+            ss << "MemoryMax=" << memory_max << "\n";
 
         if ( capability_bounding_set.has_value() )
             ss << "CapabilityBoundingSet=" << capability_bounding_set.value() << "\n";
@@ -103,6 +113,7 @@ std::string Unit::ToString() const {
 
     return ss.str();
 }
+
 bool Unit::Write() const {
     if ( std::ofstream ofs(file, std::ios::trunc); ofs ) {
         ofs << ToString();
@@ -121,6 +132,15 @@ bool Unit::WriteDropIn() const {
 
         if ( cpu_affinity.has_value() )
             ofs << "CPUAffinity=" << *cpu_affinity << "\n";
+
+        if ( numa_policy.has_value() )
+            ofs << "NUMAPolicy=" << *numa_policy << "\n";
+
+        if ( nice.has_value() )
+            ofs << "Nice=" << *nice << "\n";
+
+        if ( ! memory_max.empty() )
+            ofs << "MemoryMax=" << memory_max << "\n";
 
         for ( const auto& [name, value] : env )
             ofs << "Environment=" << name << "=" << value << "\n";

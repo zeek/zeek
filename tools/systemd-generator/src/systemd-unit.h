@@ -49,11 +49,15 @@ public:
     void AddExecStart(const std::string& cmd, std::initializer_list<std::string> args = {}) {
         std::string add;
         for ( const auto& a : args ) {
-            add += " ";
+            if ( ! add.empty() && ! a.empty() )
+                add += " ";
             add += a;
         }
 
-        exec_start.emplace_back(cmd + add);
+        if ( add.empty() )
+            exec_start.emplace_back(cmd);
+        else
+            exec_start.emplace_back(cmd + " " + add);
     }
 
     /**
@@ -128,7 +132,7 @@ private:
     std::filesystem::path working_directory;
 
     std::string memory_max;
-    int nice = 0;
+    std::optional<int> nice;
 
     std::optional<std::string> capability_bounding_set;
     std::optional<std::string> ambient_capabilities;

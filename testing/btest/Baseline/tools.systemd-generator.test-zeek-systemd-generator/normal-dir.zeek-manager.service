@@ -11,16 +11,16 @@ StartLimitIntervalSec=0
 [Service]
 SyslogIdentifier=zeek-manager
 Type=exec
-Nice=-1
-MemoryMax=2001M
 User=test-zeek-user
 Group=test-zeek-group
 WorkingDirectory=<...>/manager
-ReadWritePaths=<...>/manager 
+ReadWritePaths=<...>/manager
+Nice=-1
+MemoryMax=2001M
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=manager
-ExecStart=<...>/zeek policy<...>/systemd-generator ignore_checksums=T the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ
+ExecStart=<...>/zeek the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ policy<...>/systemd-generator ignore_checksums=T
 Slice=zeek-manager.slice
 Restart=always
 RestartSec=1

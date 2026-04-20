@@ -9,13 +9,11 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=exec
-Nice=0
-MemoryMax=
 User=zeek
 Group=zeek
 WorkingDirectory=
-ReadWritePaths=<...>/log-queue <...>/zeek 
-ExecStart=<...>/zeek-archiver  <...>/log-queue <...>/zeek
+ReadWritePaths=<...>/log-queue <...>/zeek
+ExecStart=<...>/zeek-archiver <...>/log-queue <...>/zeek
 Slice=zeek-archiver.slice
 Restart=always
 RestartSec=1

@@ -54,7 +54,7 @@ any packets with checksum errors---due to checksum offloading, this may
 be all packets in a particular direction!
 
 .. _providing_script_values:
- 
+
 *************************
  Providing Script Values
 *************************
@@ -90,6 +90,14 @@ segments:
    # zeek -e "print \"hello\"; print\"there\";"
    hello
    there
+
+Similarly, executing ``zeek`` without arguments causes it to read
+script code from standard input:
+
+.. code:: console
+
+   # echo "print \"Hello, world\!\";" | zeek
+   Hello, world!
 
 As you begin to make more complex adjustments, it quickly becomes
 easier to write your own Zeek scripts. More on this shortly!

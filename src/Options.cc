@@ -80,7 +80,7 @@ void usage(const char* prog) {
 
     printf("usage: %s [options] [file ...]\n", prog);
     printf("usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
-    printf("    <file>                          | Zeek script file, or read stdin\n");
+    printf("    <file>                          | Zeek script file, or read stdin (-)\n");
     printf("    -a|--parse-only                 | exit immediately after parsing scripts\n");
     printf("    -b|--bare-mode                  | don't load scripts from the base/ directory\n");
     printf("    -c|--capture-unprocessed <file> | write unprocessed packets to a tcpdump file\n");

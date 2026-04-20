@@ -1,3 +1,12 @@
+8.2.0-dev.627 | 2026-04-20 07:10:36 -0400
+
+  * Change `zeek` invocation behavior without args (Evan Typanski, Corelight)
+
+    Zeek would read from stdin without arguments, but that behavior is
+    unintuitive, especially because this is stated exactly no where (to my
+    knowledge). This documents that behavior, including that `-` can be
+    used to read from stdin.
+
 8.2.0-dev.625 | 2026-04-17 15:32:50 -0700
 
   * Docs: openssl step no longer needed on Windows (Christian Kreibich, Corelight)

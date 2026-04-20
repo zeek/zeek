@@ -1,3 +1,9 @@
+8.2.0-dev.637 | 2026-04-20 19:32:15 +0000
+
+  * Compile contributors for Zeek 8.2 in the NEWS file [skip ci] (Christian Kreibich, Corelight)
+
+    Co-authored-by: Tim Wojtulewicz <tim@corelight.com>
+
 8.2.0-dev.635 | 2026-04-20 06:57:46 -0700
 
   * DNS/Parse_SvcParams: Move static initialization out of while loop (Arne Welzel, Corelight)

@@ -6,7 +6,17 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.2.0
 ==========
 
-We'd like to thank ... for their contributions to this release.
+We'd like to thank Aaron J. Scantlin (@scantlina), Aashish Sharma (@initconf),
+AbdolRashid Forghani (@soorooghadim), Anthony Alayo (@anthonyalayo), Bauti
+Peirone (@bautipeirone), @Breppe, @cccs-graeme, @cccs-will, Connor
+(@agent-connor), Craig Leres (@leres), @dagecko, Doğukan Çağatay
+(@dogukancagatay), Fatema Bannat Wala (@fatemabw), François De Keersmaeker
+(@fdekeers), Jan Grashöfer (@J-Gras), Klemens Nanni (@klemensn), Maor Hamami
+(@mamaorha), Martin Camara (@martincmr), Michael Peters (@MP-Corelight), Mohan
+Dhawan (@Mohan-Dhawan), Octave Charrin (@OctaveCharrin), Peter Cullen
+(@pbcullen), @RageAgainstTheOrganic, @siavashta, Steve Smoot (@stevesmoot),
+Stefan Götz (@stefangotz), @timo-mue and Zach Robinette (@zrobinette12) for
+their contributions to this release.
 
 Breaking Changes
 ----------------

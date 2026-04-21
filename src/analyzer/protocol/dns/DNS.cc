@@ -1787,9 +1787,8 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
 
                     assert(alpn_len <= len);
 
-                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
-                    data += alpn_len;
-                    len -= alpn_len;
+                    auto* alpn_str = ExtractStream(data, len, alpn_len);
+                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_str));
                     item_len_parsed += alpn_len;
                 }
 

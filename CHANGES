@@ -1,3 +1,7 @@
+8.2.0-rc1 | 2026-04-20 22:37:52 +0000
+
+  * Regenerate docs before branching 8.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.641 | 2026-04-20 12:59:36 -0700
 
   * Update CT/CA lists to latest versions (Tim Wojtulewicz, Corelight)

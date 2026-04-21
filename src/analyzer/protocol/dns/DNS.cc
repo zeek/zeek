@@ -1808,7 +1808,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
             case detail::port: // port
                 if ( value_len != 2 ) {
                     analyzer->Weird("DNS_SVCB_port_length_invalid");
-                    break;
+                    goto malformed;
                 }
 
                 svc_param->Assign(3, zeek::val_mgr->Count(ExtractShort(data, len)));

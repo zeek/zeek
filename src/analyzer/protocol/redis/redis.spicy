@@ -6,6 +6,9 @@ module Redis;
 
 import RESP;
 
+# Max size we will stringify into. This can limit logs output size and copies.
+const MAX_BYTES_LEN = 250;
+
 public type RedisCommand = enum {
     APPEND,
     AUTH,
@@ -78,7 +81,7 @@ public function make_command(command: RESP::ClientData): Command {
 public function bulk_command(command: RESP::ClientData): Command {
     local v: vector<bytes>;
     for (ele in command.multibulk.elements) {
-        v.push_back(ele.content);
+        v.push_back(ele.content.sub(0, MAX_BYTES_LEN));
     }
     return parse_command(v);
 }
@@ -143,7 +146,8 @@ public function inline_command(command: RESP::ClientData): Command {
         } else
             break;
 
-        tokenized.push_back(command.inline.sub(start, it));
+        # Cap each element of the raw command at MAX_BYTES_LEN
+        tokenized.push_back(command.inline.sub(start, it).sub(0, MAX_BYTES_LEN));
     }
     return parse_command(tokenized);
 }
@@ -424,6 +428,22 @@ public function classify(server_data: RESP::ServerData): ReplyType {
     return ReplyType::Reply;
 }
 
+# Appends bytes to an inout param, not exceeding a given amount.
+# Returns whether more can be appended.
+function append(inout res: bytes, chunk: bytes): bool {
+    local current_len = |res|;
+    if (current_len >= MAX_BYTES_LEN)
+        return False;
+
+    if (current_len + |chunk| > MAX_BYTES_LEN) {
+        res += chunk.sub(0, MAX_BYTES_LEN - current_len);
+        return False;
+    } else
+        res += chunk;
+
+    return True;
+}
+
 function bulk_string_content(bulk: RESP::BulkString): bytes {
     if (bulk?.content)
         return bulk.content;
@@ -431,82 +451,103 @@ function bulk_string_content(bulk: RESP::BulkString): bytes {
         return b"";
 }
 
-function stringify_map(data: RESP::Map&): bytes {
-    local res = b"{";
+function stringify_map(inout res: bytes, data: RESP::Map&): bool {
+    append(res, b"{");
     local first = True;
     local i = 0;
     # num_elements refers to the number of map entries, each with 2 entries
     # in the raw data
     while (i < data.num_elements) {
+        local room_available = True;
         if (!first)
-            res += b", ";
-        res += stringify(data.raw_data[i * 2]);
-        res += b": ";
-        res += stringify(data.raw_data[(i * 2) + 1]);
+            room_available = append(res, b", ");
+
+        room_available = stringify(res, data.raw_data[i * 2]);
+        room_available = append(res, b": ");
+        room_available = stringify(res, data.raw_data[(i * 2) + 1]);
         i += 1;
         first = False;
+        if (!room_available)
+            return False;
     }
-    res += b"}";
-    return res;
+
+    return append(res, b"}");
 }
 
 # Returns the bytes string value of this, or Null if it cannot.
-function stringify(data: RESP::Data&): bytes {
+function stringify(inout res: bytes, data: RESP::Data&): bool {
     if (data?.simple_string)
-        return data.simple_string.content;
+        return append(res, data.simple_string.content);
     else if (data?.simple_error)
-        return data.simple_error.content;
+        return append(res, data.simple_error.content);
     else if (data?.integer)
-        return data.integer.val;
+        return append(res, data.integer.val);
     else if (data?.bulk_string)
-        return bulk_string_content(data.bulk_string);
+        return append(res, bulk_string_content(data.bulk_string));
     else if (data?.array) {
-        local res = b"[";
+        append(res, b"[");
         local first = True;
         for (ele in data.array.elements) {
+            local room_available = True;
             if (!first)
-                res += b", ";
-            res += stringify(ele);
+                room_available = append(res, b", ");
+
+            room_available = stringify(res, ele);
+
+            if (!room_available)
+                return False;
+
             first = False;
         }
-        res += b"]";
-        return res;
+        return append(res, b"]");
     } else if (data?.null)
-        return b"null";
+        return append(res, b"null");
     else if (data?.boolean)
-        return data.boolean.val ? b"T" : b"F";
+        return append(res, data.boolean.val ? b"T" : b"F");
     else if (data?.double)
-        return data.double.val;
+        return append(res, data.double.val);
     else if (data?.big_num)
-        return data.big_num.val;
+        return append(res, data.big_num.val);
     else if (data?.bulk_error)
-        return bulk_string_content(data.bulk_error);
+        return append(res, bulk_string_content(data.bulk_error));
     else if (data?.verbatim_string)
-        return bulk_string_content(data.verbatim_string);
+        return append(res, bulk_string_content(data.verbatim_string));
     else if (data?.map_) {
-        return stringify_map(data.map_);
+        return stringify_map(res, data.map_);
     } else if (data?.set_) {
-        local res = b"(";
+        append(res, b"(");
         local first = True;
         for (ele in data.set_.elements) {
+            local room_available = True;
             if (!first)
-                res += b", ";
-            res += stringify(ele);
+                room_available = append(res, b", ");
+
+            room_available = stringify(res, ele);
+
+            if (!room_available)
+                return False;
+
             first = False;
         }
-        res += b")";
-        return res;
+
+        return append(res, b")");
     } else if (data?.push) {
-        local res = b"[";
+        append(res, b"[");
         local first = True;
         for (ele in data.push.elements) {
+            local room_available = True;
             if (!first)
-                res += b", ";
-            res += stringify(ele);
+                room_available = append(res, b", ");
+
+            room_available = stringify(res, ele);
+
+            if (!room_available)
+                return False;
+
             first = False;
         }
-        res += b"]";
-        return res;
+
+        return append(res, b"]");
     }
 
     throw "unknown RESP type";
@@ -528,11 +569,15 @@ public function make_server_reply(data: RESP::ServerData): ReplyData {
         default: min_protocol_version = 2;
     }
 
-    local attributes: optional<bytes> = Null;
+    local opt_attributes: optional<bytes> = Null;
     if (data.data?.attributes) {
+        local attributes = b"";
         min_protocol_version = 3;
-        attributes = stringify_map(data.data.attributes);
+        stringify_map(attributes, data.data.attributes);
+        opt_attributes = attributes;
     }
 
-    return [$attributes = attributes, $value = stringify(data.data), $min_protocol_version = min_protocol_version];
+    local data_str = b"";
+    stringify(data_str, data.data);
+    return [$attributes = opt_attributes, $value = data_str, $min_protocol_version = min_protocol_version];
 }

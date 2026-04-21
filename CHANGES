@@ -1,3 +1,9 @@
+9.0.0-dev.5 | 2026-04-21 09:15:59 -0700
+
+  * shift script_opt to having its own CMakeLists.txt files (Vern Paxson, Corelight)
+
+  * remove vestigial method for restoring ZAM instructions saved to a file (Vern Paxson, Corelight)
+
 9.0.0-dev.2 | 2026-04-21 09:15:16 -0700
 
   * CI: Request 16GB of RAM for Windows builds (Tim Wojtulewicz, Corelight)

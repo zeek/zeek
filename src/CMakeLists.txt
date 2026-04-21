@@ -200,6 +200,7 @@ add_subdirectory(input)
 add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
+add_subdirectory(script_opt)
 add_subdirectory(session)
 add_subdirectory(storage)
 
@@ -407,56 +408,7 @@ set(MAIN_SRCS
     plugin/ComponentManager.h
     plugin/Manager.cc
     plugin/Plugin.cc
-    script_opt/CPP/Attrs.cc
-    script_opt/CPP/Consts.cc
-    script_opt/CPP/DeclFunc.cc
-    script_opt/CPP/Driver.cc
-    script_opt/CPP/Emit.cc
-    script_opt/CPP/Exprs.cc
-    script_opt/CPP/Func.cc
-    script_opt/CPP/GenFunc.cc
-    script_opt/CPP/Inits.cc
-    script_opt/CPP/InitsInfo.cc
-    script_opt/CPP/RuntimeInits.cc
-    script_opt/CPP/RuntimeInitSupport.cc
-    script_opt/CPP/RuntimeOps.cc
-    script_opt/CPP/RuntimeVec.cc
-    script_opt/CPP/Stmts.cc
-    script_opt/CPP/Tracker.cc
-    script_opt/CPP/Types.cc
-    script_opt/CPP/Util.cc
-    script_opt/CPP/Vars.cc
     ${_gen_zeek_script_cpp}
-    script_opt/CSE.cc
-    script_opt/Expr.cc
-    script_opt/FuncInfo.cc
-    script_opt/GenIDDefs.cc
-    script_opt/IDOptInfo.cc
-    script_opt/Inline.cc
-    script_opt/ProfileFunc.cc
-    script_opt/Reduce.cc
-    script_opt/ScriptOpt.cc
-    script_opt/Stmt.cc
-    script_opt/TempVar.cc
-    script_opt/UsageAnalyzer.cc
-    script_opt/UseDefs.cc
-    script_opt/ZAM/AM-Opt.cc
-    script_opt/ZAM/Branches.cc
-    script_opt/ZAM/BuiltIn.cc
-    script_opt/ZAM/BuiltInSupport.cc
-    script_opt/ZAM/Driver.cc
-    script_opt/ZAM/Expr.cc
-    script_opt/ZAM/Inst-Gen.cc
-    script_opt/ZAM/Low-Level.cc
-    script_opt/ZAM/Profile.cc
-    script_opt/ZAM/Stmt.cc
-    script_opt/ZAM/Support.cc
-    script_opt/ZAM/Validate.cc
-    script_opt/ZAM/Vars.cc
-    script_opt/ZAM/ZBody.cc
-    script_opt/ZAM/ZInst.cc
-    script_opt/ZAM/ZInstAux.cc
-    script_opt/ZAM/ZOp.cc
     digest.h)
 
 set(THIRD_PARTY_SRCS

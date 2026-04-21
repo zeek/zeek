@@ -1,0 +1,19 @@
+zeek_add_subdir_library(
+    script_opt
+    SOURCES
+    CSE.cc
+    Expr.cc
+    FuncInfo.cc
+    GenIDDefs.cc
+    IDOptInfo.cc
+    Inline.cc
+    ProfileFunc.cc
+    Reduce.cc
+    ScriptOpt.cc
+    Stmt.cc
+    TempVar.cc
+    UsageAnalyzer.cc
+    UseDefs.cc)
+
+add_subdirectory(CPP)
+add_subdirectory(ZAM)

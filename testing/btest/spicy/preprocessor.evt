@@ -9,7 +9,7 @@ protocol analyzer YES_1 over TCP: parse with X;
     protocol analyzer YES_2 over TCP: parse with X;
 @endif
 
-@if ZEEK_VERSION < 90000
+@if ZEEK_VERSION < 200000
     protocol analyzer YES_3 over TCP: parse with X;
 @endif
 
@@ -26,13 +26,13 @@ protocol analyzer YES_1 over TCP: parse with X;
 @endif
 
 @if ZEEK_VERSION >= 20000
-    @if ZEEK_VERSION >= 90000
+    @if ZEEK_VERSION >= 200000
         protocol analyzer NO_6 over TCP: parse with X;
     @else
         protocol analyzer YES_6 over TCP: parse with X;
     @endif
 @else
-    @if ZEEK_VERSION < 90000
+    @if ZEEK_VERSION < 200000
         protocol analyzer YES_7 over TCP: parse with X;
     @else
         protocol analyzer NO_7 over TCP: parse with X;

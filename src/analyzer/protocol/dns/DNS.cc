@@ -1772,6 +1772,16 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
 
                     if ( alpn_len == 0 || alpn_len > 255 || alpn_len + item_len_parsed > value_len ) {
                         analyzer->Weird("DNS_SVCB_alpn_length_invalid");
+
+                        // We've consumed item_len_parsed from len and data
+                        // already, but now hit an invalid inner alpn_len value.
+                        // At the malformed label, we want to extract the full
+                        // invalid value, so reset data and len accordingly
+                        // and free any extracted strings explicitly.
+                        data -= item_len_parsed;
+                        len += item_len_parsed;
+                        alpn = nullptr;
+
                         goto malformed;
                     }
 

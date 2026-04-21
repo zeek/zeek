@@ -659,7 +659,7 @@ windows_task:
     os_version: 2019
     cpu: 8
     # Not allowed to request less than 8GB for an 8 CPU Windows VM.
-    memory: 8GB
+    memory: 16GB
   sync_submodules_script: git submodule update --recursive --init
   prepare_script: ci/windows/prepare.cmd
   build_script: ci/windows/build.cmd

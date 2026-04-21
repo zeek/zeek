@@ -1,3 +1,11 @@
+9.0.0-dev.2 | 2026-04-21 09:15:16 -0700
+
+  * CI: Request 16GB of RAM for Windows builds (Tim Wojtulewicz, Corelight)
+
+  * Start of v9.0.0 development (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs before branching 8.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.2.0-dev.641 | 2026-04-20 12:59:36 -0700
 
   * Update CT/CA lists to latest versions (Tim Wojtulewicz, Corelight)

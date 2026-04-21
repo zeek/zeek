@@ -1,0 +1,202 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# TODO:
+#   - ZIP64 is not supported
+
+module ZIP;
+
+import filter;
+import spicy;
+
+%byte-order = spicy::ByteOrder::Little;
+
+# We define only the compression levels that we support for content analysis.
+public type CompressionMethod = enum {
+    Uncompressed = 0,
+    Deflate = 8,
+};
+
+public type Archive = unit {
+    : Record[];
+};
+
+type Record = unit {
+    switch {
+        -> : File;
+        -> : DirectoryHeader;
+        -> : EndOfDirectory;
+        -> : EndOfDirectory64;
+        -> : DataDescriptor; # not sure if this can actually appear on its own
+    };
+};
+
+type Flags = unit {
+    flags: bitfield(16) {
+        encrypted: 0 &convert=cast<bool>($$);
+        compression: 1..2;
+        has_descriptor: 3;
+        enhanced_deflation: 4;
+        compressed_patched: 5;
+        strong_encryption: 6;
+        efs: 11;
+        masked_headers: 13;
+    };
+} &convert=self.flags;
+
+type DirectoryHeader = unit {
+    : b"PK\x01\x02";
+    version_made: uint16;
+    version_needed: uint16;
+    flags: Flags;
+    compression: uint16 &convert=CompressionMethod($$);
+    time_: Time;
+    crc: uint32;
+    compressed_size: uint32;
+    uncompressed_size: uint32;
+    filename_length: uint16;
+    extra_field_length: uint16;
+    file_comment_length: uint16;
+    disk_number_start: uint16;
+    internal_attributes: uint16;
+    external_attributes: uint32;
+    offset_local_header: uint32;
+    filename: bytes &size=self.filename_length;
+    extra_field: bytes &size=self.extra_field_length;
+    file_comment: bytes &size=self.file_comment_length;
+};
+
+type EndOfDirectory = unit {
+    : b"PK\x05\x06";
+    disk_number: uint16;
+    disk_cd_start: uint16;
+    disk_cd_entries: uint16;
+    cd_entries: uint16;
+    cd_size: uint32;
+    cd_offset: uint32;
+    zip_comment_length: uint16;
+    zip_comment: bytes &size=self.zip_comment_length;
+};
+
+type EndOfDirectory64 = unit {
+    : b"PK\x06\x06" {
+        throw "ZIP64 not supported";
+    }
+};
+
+type DataDescriptor = unit {
+    : b"PK\x07\x08";
+    crc: uint32;
+    compressed_size: uint32;
+    uncompressed_size: uint32;
+};
+
+type Time = unit {
+    raw: bitfield(32) {
+        sec: 0..4;
+        min: 5..10;
+        hour: 11..15;
+        day: 16..20;
+        month: 21..24;
+        year: 25..31;
+    };
+} &byte-order=spicy::ByteOrder::Little &convert=spicy::mktime(self.raw.year + 1980, self.raw.month, self.raw.day, self.raw.hour, self.raw.min, self.raw.sec * 2);
+
+type File = unit {
+    : b"PK\x03\x04";
+    version: uint16;
+    flags: Flags;
+    compression: uint16 &convert=CompressionMethod($$);
+    time_: Time;
+    crc: uint32;
+    compressed_size: uint32 {
+        if ($$ == 0xffffffff)
+            throw "ZIP64 not supported";
+
+        if (self.compression.has_label() && !self.flags.encrypted) {
+            if (self.compression == CompressionMethod::Deflate)
+                self.content.connect_filter(new filter::Zlib(-15));
+
+            self.computed_crc = new CRC32;
+            self.content.connect_filter(self.computed_crc);
+        }
+    }
+
+    uncompressed_size: uint32;
+    filename_length: uint16;
+    extra_field_length: uint16;
+    filename: bytes &size=self.filename_length;
+    extra_field: bytes &size=self.extra_field_length;
+
+    switch (self.flags.has_descriptor) {
+        0 -> : bytes &size=self.compressed_size &chunked -> self.content;
+
+        # If we have a descriptor, the compressed size value will come only
+        # after the file content. We hence must use a heuristic to figure out where the
+        # file content ends: (1) we first scan for the magic string indicating the
+        # beginning of a descriptor; (2) we then parse the subsequent data as a
+        # descriptor; and finally (3) we check # if the CRC in that presumable
+        # descriptor matches the file content we got so far. If that succeeds, we can be
+        # pretty sure we identified the end of the file and can proceed. If not, we rewind
+        # and instead continue parsing what looked like a descriptor as file content.
+        #
+        # The one catch here is that according to the standard, a descriptor doesn't
+        # always need to start with the magic string. However, I've not seen that
+        # yet, and it seems other libraries rely on this as well.
+        1 -> : HeuristicContent(self)[] &while=(!$$.desc.crc_ok);
+    };
+
+    on %done {
+        if (self?.crc && self.computed_crc && self.crc != self.computed_crc.crc32)
+            throw "CRC mismatch";
+    }
+
+    sink content;
+    var computed_crc: CRC32&;
+
+    @if HAVE_ZEEK
+    var fid: string; # place to store Zeek file ID
+    @endif
+};
+
+type CRC32 = unit {
+    %filter;
+
+    on %init {
+        self.crc32 = spicy::crc32_init();
+    }
+
+    : bytes &eod &chunked {
+        self.crc32 = spicy::crc32_add(self.crc32, $$);
+        self.forward($$);
+    }
+
+    var crc32: uint64;
+};
+
+type HeuristicContent = unit(inout file_: File) {
+    : bytes &until=b"PK\x07\x08" &chunked -> file_.content;
+    desc: HeuristicDataDescriptor(file_);
+};
+
+type HeuristicDataDescriptor = unit(inout file_: File) {
+    crc: uint32;
+    compressed_size: uint32;
+    uncompressed_size: uint32;
+
+    var crc_ok: bool;
+
+    on %done {
+        self.crc_ok = (self.crc == file_.computed_crc.crc32);
+
+        if (self.crc_ok) {
+            # Copy the descriptor's values over into the main unit.
+            file_.compressed_size = self.compressed_size;
+            file_.uncompressed_size = self.uncompressed_size;
+            file_.crc = self.crc;
+        } else {
+            # Rewind to beginning to continue data parsing as file content.
+            self.set_input(self.input());
+            file_.content.write(b"PK\x07\x08");
+        }
+    }
+};

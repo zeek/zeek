@@ -1,0 +1,26 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module Zeek_ZIP;
+
+import ZIP;
+
+import zeek;
+import zeek_file;
+
+on ZIP::File::compressed_size priority=5 {
+    if (self.compression.has_label() && !self.flags.encrypted) {
+        local zfile = new zeek_file::File(Null, $$);
+        self.content.connect(zfile);
+        self.fid = zfile.fid;
+    }
+}
+
+type File = tuple<global_: bool, fid: optional<string>, filename: bytes, time_: time, comment: bytes, compression: ZIP::CompressionMethod, encrypted: bool>;
+
+public function make_file_from_local(f: ZIP::File): File {
+    return tuple(False, f.fid, f.filename, f.time_, b"", f.compression, f.flags.encrypted);
+}
+
+public function make_file_from_global(f: ZIP::DirectoryHeader): File {
+    return tuple(True, Null, f.filename, f.time_, f.file_comment, f.compression, f.flags.encrypted);
+}

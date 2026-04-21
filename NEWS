@@ -36,6 +36,17 @@ New Functionality
 
 	./configure -D ENABLE_PACKET_SOURCE_UDP=no
 
+- Imported the zeek/spicy-zip file analyzer into the main tree. This analyzer outputs
+  information about ZIP files found in other protocols, including information about the
+  contents of such archives. It will recursive search zip files, so there is the
+  possibility of long chains. The maximum depth can be controlled via the
+  ``Spicy::max_file_depth`` variable. To disable the analyzer in case of issues, use the
+  following snippet:
+
+        redef Analyzer::disabled_analyzers += {
+                Files::FILES_ANALYZER_ZIP
+        };
+
 Changed Functionality
 ---------------------
 

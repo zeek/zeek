@@ -393,6 +393,9 @@
 
    Support for extracting files with the file analysis framework.
 
+:doc:`base/files/zip </scripts/base/files/zip/index>`
+
+
 :doc:`builtin-plugins </scripts/builtin-plugins/index>`
 
 

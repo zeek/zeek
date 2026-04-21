@@ -30,6 +30,7 @@
 0.000000   MetaHookPost  CallFunction(Cluster::subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::subscribe, <frame>, (zeek<...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Config::config_option_changed, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_ZIP, application/zip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -317,6 +318,7 @@
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
+0.000000   MetaHookPost  CallFunction(spicy_analyzer_for_mime_type, <null>, (Files::ANALYZER_ZIP, application/zip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, (zeek\/supervisor.*, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, (zeek\<...>/.*, F)) -> <no result>
@@ -969,6 +971,7 @@
 0.000000   MetaHookPost  LoadFileExtended(1, ./python, <...>/python.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./video, <...>/video.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, s2, ./s2.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  QueueEvent(spicy_analyzer_for_mime_type(Files::ANALYZER_ZIP, application/zip)) -> false
 0.000000   MetaHookPost  QueueEvent(zeek_init()) -> false
 0.000000   MetaHookPre   CallFunction(Analyzer::__disable_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1001,6 +1004,7 @@
 0.000000   MetaHookPre   CallFunction(Cluster::subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Cluster::subscribe, <frame>, (zeek<...>/))
 0.000000   MetaHookPre   CallFunction(Config::config_option_changed, <null>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>))
+0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_ZIP, application/zip))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1288,6 +1292,7 @@
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
+0.000000   MetaHookPre   CallFunction(spicy_analyzer_for_mime_type, <null>, (Files::ANALYZER_ZIP, application/zip))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, (zeek\/supervisor.*, F))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, (zeek\<...>/.*, F))
@@ -1940,6 +1945,7 @@
 0.000000   MetaHookPre   LoadFileExtended(1, ./python, <...>/python.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./video, <...>/video.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, s2, ./s2.sig)
+0.000000   MetaHookPre   QueueEvent(spicy_analyzer_for_mime_type(Files::ANALYZER_ZIP, application/zip))
 0.000000   MetaHookPre   QueueEvent(zeek_init())
 0.000000 | HookCallFunction Analyzer::__disable_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -1971,6 +1977,7 @@
 0.000000 | HookCallFunction Cluster::subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Cluster::subscribe(zeek<...>/)
 0.000000 | HookCallFunction Config::config_option_changed(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,fec0::/10,2002:cb00:7100::/40,2002:c633:6400::<...>/4,2002:a00::/24,100::<...>/8,2001:2::<...>/12,2002:c000:200::/40,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::<...>/16,2002:c612::/31,2002::/24,fe80::/10,2001:db8::/32,2002:ef00::<...>/24,2002:e000::/40,2002:c0a8::<...>/24}, <skip-config-log>)
+0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_ZIP, application/zip)
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_HTTP, [get_file_handle=HTTP::get_file_handle: function(c:connection, is_orig:bool) : string{ if (!HTTP::c?$http) return ()if (HTTP::c$http$range_request && !HTTP::is_orig) { return (cat(Analyzer::ANALYZER_HTTP, HTTP::is_orig, HTTP::c$id$orig_h, HTTP::build_url(HTTP::c$http)))}else{ HTTP::mime_depth = HTTP::is_orig ? HTTP::c$http$orig_mime_depth : HTTP::c$http$resp_mime_depthreturn (cat(Analyzer::ANALYZER_HTTP, HTTP::c$start_time, HTTP::is_orig, HTTP::c$http$trans_depth, HTTP::mime_depth, id_string(HTTP::c$id)))}}, describe=HTTP::describe_file: function(f:fa_file) : string{ if (HTTP::f$source != HTTP) return ()for ([HTTP::_], HTTP::c in HTTP::f$conns) { if (HTTP::c?$http) return (HTTP::build_url_http(HTTP::c$http))}return ()}])
 0.000000 | HookCallFunction Log::__add_filter(Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<4692973652431675528>: function(path:string) : void, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -2258,6 +2265,7 @@
 0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
+0.000000 | HookCallFunction spicy_analyzer_for_mime_type(Files::ANALYZER_ZIP, application/zip)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction string_to_pattern(zeek\/supervisor.*, F)
 0.000000 | HookCallFunction string_to_pattern(zeek\<...>/.*, F)
@@ -2910,6 +2918,7 @@
 0.000000 | HookLoadFileExtended builtin-plugins/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended s1.sig ./s1.sig
 0.000000 | HookLoadFileExtended s2 ./s2.sig
+0.000000 | HookQueueEvent spicy_analyzer_for_mime_type(Files::ANALYZER_ZIP, application/zip)
 0.000000 | HookQueueEvent zeek_init()
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::__flush_logs, <frame>, ()) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::flush_logs, <frame>, ()) -> <no result>

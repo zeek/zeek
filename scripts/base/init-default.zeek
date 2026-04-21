@@ -90,6 +90,7 @@
 @load base/files/hash
 @load base/files/extract
 @load base/files/x509
+@load base/files/zip
 
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace

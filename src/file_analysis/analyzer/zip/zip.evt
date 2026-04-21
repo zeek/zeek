@@ -1,0 +1,11 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+file analyzer ZIP:
+    parse with ZIP::Archive,
+    mime-type application/zip;
+
+import Zeek_ZIP;
+
+on ZIP::File::extra_field   -> event ZIP::file($file, Zeek_ZIP::make_file_from_local(self));
+on ZIP::DirectoryHeader     -> event ZIP::file($file, Zeek_ZIP::make_file_from_global(self));
+on ZIP::EndOfDirectory      -> event ZIP::end_of_directory($file, self.zip_comment);

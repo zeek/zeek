@@ -80,8 +80,6 @@ private:
     auto Instructions() const { return insts; }
     auto NumInsts() const { return end_pc; }
 
-    // Initializes profiling information, if needed.
-    void InitProfile();
     std::shared_ptr<ProfVec> BuildProfVec() const;
 
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
@@ -125,13 +123,26 @@ private:
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
 
+    // Variables controlling the depth of profiling. The later (more in-depth)
+    // ones always imply the earlier ones.
+    bool profile_calls = false;    // CPU and memory for calls
+    bool profile_inst_cnt = false; // individual (sampled) instruction counts
+    bool profile_CPU_mem = false;  // sample CPU and memory per instruction
+
     // The following are only maintained if we're doing profiling.
+    int prof_sampling_rate = 0; // sample every N'th instruction
     int ninst = 0;
     int ncall = 0;
     double tot_CPU_time = 0.0;
     uint64_t tot_mem = 0;
+
+    // Profiling information associated with different call stacks.
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
+
+    // Profiling information for the common case of no nested ZAM calls.
     std::shared_ptr<ProfVec> default_prof_vec;
+
+    // Profiling information for the current call.
     ProfVec* curr_prof_vec;
 };
 

@@ -1766,7 +1766,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 auto alpn = make_intrusive<VectorVal>(id::string_vec);
 
                 int item_len_parsed = 0;
-                while ( item_len_parsed + 2 < value_len ) {
+                while ( item_len_parsed + 2 <= value_len ) {
                     auto alpn_len = ExtractByte(data, len);
                     item_len_parsed += 1;
 
@@ -1791,6 +1791,17 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                     data += alpn_len;
                     len -= alpn_len;
                     item_len_parsed += alpn_len;
+                }
+
+                // If we didn't end up consuming all of value, tickle
+                // a weird and treat the whole alpn list as malformed.
+                if ( value_len != item_len_parsed ) {
+                    analyzer->Weird("DNS_SVCB_alpn_length_invalid");
+                    data -= item_len_parsed;
+                    len += item_len_parsed;
+                    alpn = nullptr;
+
+                    goto malformed;
                 }
 
                 if ( alpn->Size() > 0 )

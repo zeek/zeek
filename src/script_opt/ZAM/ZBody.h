@@ -155,4 +155,9 @@ extern VectorVal* vec_coerce_IU(VectorVal* vec, const std::shared_ptr<ZAMLocInfo
 extern VectorVal* vec_coerce_UD(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
 extern VectorVal* vec_coerce_UI(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
 
+// Estimated overhead (in seconds) of a single CPU or memory measurement
+// when profiling.
+extern double CPU_prof_overhead;
+extern double mem_prof_overhead;
+
 } // namespace zeek::detail

@@ -29,8 +29,8 @@ extern bool terminating;
 
 namespace zeek::detail {
 
-static double CPU_prof_overhead = 0.0;
-static double mem_prof_overhead = 0.0;
+double CPU_prof_overhead = 0.0;
+double mem_prof_overhead = 0.0;
 
 // Estimates the minimum overhead for calling function "f", in seconds.
 // "n" specifies how many total calls to measure, and "navg" the number
@@ -63,7 +63,7 @@ static double est_min_overhead(void (*f)(), int n, int navg) {
         }
     }
 
-    return min_dt / navg;
+    return std::max(min_dt / navg, 0.0);
 }
 
 static void get_THREAD_time() { (void)zeek::util::this_thread::get_cpu_time(); }
@@ -74,8 +74,13 @@ static void get_mem_time() {
 }
 
 void estimate_ZAM_profiling_overhead() {
-    CPU_prof_overhead = est_min_overhead(get_THREAD_time, 1000000, 100);
-    mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
+    static bool did_est = false;
+    if ( ! did_est )
+	    {
+	    CPU_prof_overhead = est_min_overhead(get_THREAD_time, 1000000, 100);
+	    mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
+	    did_est = true;
+	    }
 }
 
 static std::vector<const ZAMLocInfo*> caller_locs;

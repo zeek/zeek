@@ -1360,7 +1360,7 @@ export {
 	type Config: record {
 		## Current profiling level. Can be changed dynamically,
 		## except no switching between `NO_ZAM` and other values.
-		profiling_level: Level;
+		profiling_level: ZAMProfLevel;
 
 		## Rate at which instructions are sampled. A setting of
 		## 10, for example, means that every 10th instruction is

@@ -37,6 +37,7 @@ static std::set<std::string> sanitized_functions = {
 static std::set<std::string> load_file_filter = {
     "Zeek_AF_Packet",
     "Zeek_JavaScript",
+    "Zeek_PacketSourceUDP",
 };
 
 static bool skip_load_file_logging_for(const std::string& s) {

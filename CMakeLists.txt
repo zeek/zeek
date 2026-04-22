@@ -1256,6 +1256,19 @@ if (NOT DISABLE_JAVASCRIPT)
     endif ()
 endif ()
 
+# Enable the UDP packet source on FreeBSD and Linux.
+set(_packet_source_udp_default ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME}
+                                                                           MATCHES "FreeBSD")))
+set(ENABLE_PACKET_SOURCE_UDP ${_packet_source_udp_default} CACHE INTERNAL
+                                                                 "Enable UDP packet source support")
+set(ZEEK_HAVE_PACKET_SOURCE_UDP no)
+
+if (ENABLE_PACKET_SOURCE_UDP)
+    set(ZEEK_PACKET_SOURCE_UDP_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-packet-source-udp)
+    list(APPEND ZEEK_INCLUDE_PLUGINS ${ZEEK_PACKET_SOURCE_UDP_PLUGIN_PATH})
+    set(ZEEK_HAVE_PACKET_SOURCE_UDP yes)
+endif ()
+
 set(ZEEK_HAVE_AF_PACKET no CACHE INTERNAL "Zeek has AF_PACKET support")
 set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
 

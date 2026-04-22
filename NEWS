@@ -14,6 +14,28 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The zeek-packet-source-udp (https://github.com/zeek/zeek-packet-source-udp)
+  plugin is now included and enabled by default on Linux and FreeBSD.
+
+  Instead of reading raw packets from a network interface, this packet source turns
+  Zeek into a UDP server to process UDP-based VXLAN or GENEVE mirror traffic directly:
+
+	zeek -i udp::0.0.0.0:4789:vxlan
+
+  The listening UDP socket is opened using the SO_REUSEPORT socket option. When
+  scaling the number of Zeek workers, the kernel will balance packets among the
+  individual UDP sockets based on the hash of the outermost UDP headers.
+
+  This packet source comes with a few ConnKey implementations to make connection
+  tracking aware of VXLAN VNI and GENEVE VNI. This feature needs to be explicitly
+  enabled by loading one of the corresponding policy scripts, for example:
+
+	zeek -i udp::0.0.0.0:4789:vxlan policy/frameworks/conn_key/packet_source/udp/vxlan_vni
+
+  To disable building the packet source, use:
+
+	./configure -D ENABLE_PACKET_SOURCE_UDP=no
+
 Changed Functionality
 ---------------------
 

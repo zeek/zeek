@@ -67,3 +67,6 @@
 [submodule "src/iosource/pcapng/auxil/LightPcapNg"]
 	path = src/iosource/pcapng/auxil/LightPcapNg
 	url = https://github.com/Technica-Engineering/LightPcapNg
+[submodule "auxil/zeek-packet-source-udp"]
+	path = auxil/zeek-packet-source-udp
+	url = https://github.com/zeek/zeek-packet-source-udp.git

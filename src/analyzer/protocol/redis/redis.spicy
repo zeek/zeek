@@ -7,7 +7,25 @@ module Redis;
 import RESP;
 
 # Max size we will stringify into. This can limit logs output size and copies.
-const MAX_BYTES_LEN = 250;
+# Allow configuring max size via Zeek, but don't include if building separate.
+@if HAVE_ZEEK
+import zeek;
+global _max_value_size: optional<uint64>; function max_value_size(): uint64 {
+    if (!_max_value_size) {
+        _max_value_size = zeek::get_count("Redis::max_value_size");
+        # If 0, cap at where the RESP parser would stop.
+        # While this can technically still cap it, that threshold should be high enough
+        # that it wouldn't happen with realistic input.
+        if (*_max_value_size == 0)
+            _max_value_size = RESP::MAX_SIZE;
+    }
+    return *_max_value_size;
+}
+@else
+function max_value_size(): uint64 {
+    return 250;
+}
+@endif
 
 public type RedisCommand = enum {
     APPEND,
@@ -81,7 +99,7 @@ public function make_command(command: RESP::ClientData): Command {
 public function bulk_command(command: RESP::ClientData): Command {
     local v: vector<bytes>;
     for (ele in command.multibulk.elements) {
-        v.push_back(ele.content.sub(0, MAX_BYTES_LEN));
+        v.push_back(ele.content.sub(0, max_value_size()));
     }
     return parse_command(v);
 }
@@ -146,8 +164,8 @@ public function inline_command(command: RESP::ClientData): Command {
         } else
             break;
 
-        # Cap each element of the raw command at MAX_BYTES_LEN
-        tokenized.push_back(command.inline.sub(start, it).sub(0, MAX_BYTES_LEN));
+        # Cap each element of the raw command at max_value_size()
+        tokenized.push_back(command.inline.sub(start, it).sub(0, max_value_size()));
     }
     return parse_command(tokenized);
 }
@@ -432,11 +450,11 @@ public function classify(server_data: RESP::ServerData): ReplyType {
 # Returns whether more can be appended.
 function append(inout res: bytes, chunk: bytes): bool {
     local current_len = |res|;
-    if (current_len >= MAX_BYTES_LEN)
+    if (current_len >= max_value_size())
         return False;
 
-    if (current_len + |chunk| > MAX_BYTES_LEN) {
-        res += chunk.sub(0, MAX_BYTES_LEN - current_len);
+    if (current_len + |chunk| > max_value_size()) {
+        res += chunk.sub(0, max_value_size() - current_len);
         return False;
     } else
         res += chunk;

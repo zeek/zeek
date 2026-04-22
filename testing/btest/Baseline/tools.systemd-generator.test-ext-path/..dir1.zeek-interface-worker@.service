@@ -11,7 +11,7 @@ StopPropagatedFrom=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
-SyslogIdentifier=zeek-worker-%i
+SyslogIdentifier=zeek-interface-worker-%i
 Type=exec
 User=zeek
 Group=zeek
@@ -22,7 +22,7 @@ AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/mybin:<...>/mybin2:<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=worker-%i
-ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/systemd-generator local frameworks<...>/zeromq
+ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/systemd-generator local  frameworks<...>/zeromq
 Slice=zeek-workers.slice
 Restart=always
 RestartSec=1

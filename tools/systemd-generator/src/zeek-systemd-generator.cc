@@ -149,43 +149,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
     }
 
-    // Workers
-    for ( int idx = 1; idx <= config.Workers(); idx++ ) {
-        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("worker", idx));
-        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("worker", idx));
-
-        auto name = systemd_unit_name("worker", idx);
-        ensure_symlink("../zeek-worker@.service", zeek_target_wants / name);
-
-        // Create drop-in .d directories for worker instance to define their
-        // INTERFACE and CPUAffinity settings.
-        auto d_dir = dir / (name + ".d");
-        std::filesystem::create_directories(d_dir);
-        auto unit = Unit(d_dir / "10-zeek-systemd-generator.conf", config.SourcePath());
-
-
-        std::string cpu = config.WorkersCpuList().AffinityFor(idx);
-
-        // Setup templating variables.
-        std::map<std::string, std::string> vars = {
-            {"worker_index", std::to_string(idx)},
-            {"worker_index0", std::to_string(idx - 1)},
-            {"worker_cpu", cpu},
-        };
-
-        auto interface = config.SubstituteVars(config.Interface(), vars);
-        if ( ! interface.has_value() ) {
-            std::fprintf(stderr, "interface substitution for '%s' failed\n", config.Interface().c_str());
-            std::exit(1);
-        }
-
-        unit.AddEnvironment("INTERFACE", *interface);
-        if ( ! cpu.empty() )
-            unit.SetCpuAffinity(std::move(cpu));
-
-        unit.WriteDropIn();
-    }
-
     auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "manager", "Zeek Manager", config);
     manager_unit.AddAfter("zeek-logger@.service");
     manager_unit.SetSlice("zeek-manager.slice");
@@ -209,29 +172,107 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     if ( auto nice = config.NiceFor("proxy"); nice )
         proxy_unit.SetNice(*nice);
 
-    auto worker_unit = systemd_add_node_unit(dir / "zeek-worker@.service", "worker-%i", "Zeek Worker %i", config);
+    // Global worker index.
+    int worker_index = 0;
+    for ( const auto& iwc : config.InterfaceWorkerConfigs() ) {
+        // For every interface section, there's a separate zeek-interface-{interface_tag}-worker@.service
+        // template unit created so that we can have per interface worker args and drop-in files that affect
+        // all workers of a single interface. In a sectionless configuration, the tag is empty and the name
+        // is reduced to zeek-interface-worker@.service.
+        std::string worker_unit_prefix = "zeek-interface";
+        std::string worker_unit_description = "Zeek Worker %i";
 
-    worker_unit.SetExecStart(config.ZeekExe().string(), {"-i", "${INTERFACE}", systemd_generator_policy_scripts(),
-                                                         config.Args(), config.ClusterBackendArgs()});
-    worker_unit.AddAfter(manager_unit.Name());
-    worker_unit.AddAfter(logger_unit.Name());
-    worker_unit.AddAfter(proxy_unit.Name());
-    worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
-    worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
-    worker_unit.SetSlice("zeek-workers.slice");
-    if ( auto nice = config.NiceFor("worker"); nice )
-        worker_unit.SetNice(*nice);
+        if ( ! iwc.Tag().empty() ) {
+            worker_unit_prefix = worker_unit_prefix + "-" + iwc.Tag();
+            worker_unit_description = worker_unit_description + " (" + iwc.Tag() + ")";
+        }
 
-    if ( auto numa_policy = config.WorkersNumaPolicy(); ! numa_policy.empty() )
-        worker_unit.SetNumaPolicy(std::move(numa_policy));
+        worker_unit_prefix = worker_unit_prefix + "-worker";
+
+        std::string worker_template_unit = worker_unit_prefix + "@.service";
+
+        // Create a template unit for all workers of this interface.
+        auto interface_worker_unit =
+            systemd_add_node_unit(dir / worker_template_unit, "worker-%i", std::move(worker_unit_description), config);
+
+        interface_worker_unit.SetExecStart(config.ZeekExe().string(),
+                                           {"-i", "${INTERFACE}", systemd_generator_policy_scripts(), config.Args(),
+                                            iwc.Args(), config.ClusterBackendArgs()});
+        interface_worker_unit.SetSyslogIdentifier(worker_unit_prefix + "-%i");
+        interface_worker_unit.AddAfter(manager_unit.Name());
+        interface_worker_unit.AddAfter(logger_unit.Name());
+        interface_worker_unit.AddAfter(proxy_unit.Name());
+        interface_worker_unit.SetAmbientCapabilities("CAP_NET_RAW");
+        interface_worker_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
+        interface_worker_unit.SetSlice("zeek-workers.slice");
+        if ( auto nice = iwc.Nice(); nice )
+            interface_worker_unit.SetNice(*nice);
+        if ( auto memory_max = iwc.MemoryMax(); ! memory_max.empty() )
+            interface_worker_unit.SetMemoryMax(std::move(memory_max));
+
+
+        interface_worker_unit.Write();
+
+        // The "local" index of a worker for templating. This resets for every interface,
+        // while worker_index counts over all workers.
+        int interface_worker_index = 0;
+        for ( int i = 0; i < iwc.Workers(); i++ ) {
+            ++worker_index;
+            ++interface_worker_index;
+
+            setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("worker", worker_index));
+            setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("worker", worker_index));
+
+            auto name = worker_unit_prefix + "@" + std::to_string(worker_index) + ".service";
+            ensure_symlink("../" + worker_unit_prefix, zeek_target_wants / name);
+
+            // Create drop-in .d directories for worker instance to define their
+            // INTERFACE and CPUAffinity settings.
+            auto d_dir = dir / (name + ".d");
+            std::filesystem::create_directories(d_dir);
+            auto unit = Unit(d_dir / "10-zeek-systemd-generator.conf", config.SourcePath());
+
+            // Setup templating variables for the interface.
+            std::map<std::string, std::string> vars = {
+                {"worker_index", std::to_string(worker_index)},
+                {"worker_index0", std::to_string(worker_index - 1)},
+                {"interface_worker_index", std::to_string(interface_worker_index)},
+                {"interface_worker_index0", std::to_string(interface_worker_index - 1)},
+            };
+
+            std::string cpu = iwc.AffinityFor(worker_index);
+
+            if ( ! cpu.empty() )
+                vars["worker_cpu"] = cpu;
+
+            if ( ! iwc.Tag().empty() )
+                vars["interface_tag"] = iwc.Tag();
+
+            auto interface = config.SubstituteVars(iwc.Interface(), vars);
+            if ( ! interface.has_value() ) {
+                std::fprintf(stderr, "interface substitution for '%s' failed\n", iwc.Interface().c_str());
+                std::exit(1);
+            }
+
+            unit.AddEnvironment("INTERFACE", *interface);
+
+            if ( ! cpu.empty() )
+                unit.SetCpuAffinity(std::move(cpu));
+
+            if ( auto numa_policy = iwc.NumaPolicy(); numa_policy )
+                unit.SetNumaPolicy(std::move(*numa_policy));
+
+            unit.WriteDropIn();
+        }
+    }
 
     target_unit.Write();
     setup_unit.Write();
     manager_unit.Write();
     logger_unit.Write();
     proxy_unit.Write();
-    worker_unit.Write();
 
+    // Optional archiver service.
     if ( config.IsArchiverEnabled() ) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());
         archiver_unit.SetPartOf("zeek.target");
@@ -299,6 +340,9 @@ int main(int argc, const char* argv[]) {
 
     if ( ! config.IsValid() ) {
         std::fprintf(stderr, "config %s is invalid\n", config_file.c_str());
+        for ( const auto& error : config.Errors() )
+            fprintf(stderr, "%s\n", error.c_str());
+
         return 1;
     }
 

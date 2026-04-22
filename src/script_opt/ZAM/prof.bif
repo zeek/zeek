@@ -1,0 +1,19 @@
+##! Functions to enable script-level control & querying of ZAM profiling.
+
+module ZAMProf;
+
+%%{
+#include "zeek/script_opt/ZAM/ZBody.h"
+%%}
+
+## Returns an estimate of the timing overhead of each CPU/memory measurement.
+## Can be used to attempt to remove bias in assessing those measurements.
+##
+## Returns: The estimate of the overhead, as a non-negative interval.
+##
+## .. zeek:see:: ZAMProf::get_total_CPU_mem ZAMProf::get_module_CPU_mem
+##    ZAMProf::get_func_CPU_mem
+function CPU_mem_meas_overhead%(%): interval
+	%{
+	return make_intrusive<IntervalVal>(3);
+	%}

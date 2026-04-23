@@ -90,7 +90,7 @@ else ()
     set(_packet_source_udp_default OFF)
 endif ()
 
-option(ENABLE_PACKET_SOURCE_UDP ${_packet_source_udp_default} "Enable UDP packet source support.")
+option(ENABLE_PACKET_SOURCE_UDP "Enable UDP packet source support." ${_packet_source_udp_default})
 
 # Non-boolean options.
 if (NOT WIN32)

@@ -1,4 +1,4 @@
-# @TEST-DOC: Test ext_path setting
+# @TEST-DOC: Test the most minimal zeek.conf file.
 #
 # @TEST-REQUIRES: test -x ${BUILD}/tools/systemd-generator/zeek-systemd-generator
 #
@@ -10,14 +10,11 @@
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-setup.service
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-manager.service
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-logger@.service
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-proxy@.service
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@.service
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@1.service.d/10-zeek-systemd-generator.conf
 
 # @TEST-START-FILE config1
 interface = eth0
-workers = 1
-proxies = 1
-loggers = 1
-ext_path = /opt/napatech/mybin:/usr/local/mybin2
-
-base_dir = /opt/zeek
 # @TEST-END-FILE

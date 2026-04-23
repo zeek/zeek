@@ -83,6 +83,15 @@ option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary." ON)
 option(ZEEK_ENABLE_FUZZERS "Build Zeek fuzzing targets." OFF)
 
+# Enable the UDP packet source on FreeBSD and Linux by default.
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
+    set(_packet_source_udp_default ON)
+else ()
+    set(_packet_source_udp_default OFF)
+endif ()
+
+option(ENABLE_PACKET_SOURCE_UDP ${_packet_source_udp_default} "Enable UDP packet source support.")
+
 # Non-boolean options.
 if (NOT WIN32)
     if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -1256,13 +1265,7 @@ if (NOT DISABLE_JAVASCRIPT)
     endif ()
 endif ()
 
-# Enable the UDP packet source on FreeBSD and Linux.
-set(_packet_source_udp_default ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME}
-                                                                           MATCHES "FreeBSD")))
-set(ENABLE_PACKET_SOURCE_UDP ${_packet_source_udp_default} CACHE INTERNAL
-                                                                 "Enable UDP packet source support")
 set(ZEEK_HAVE_PACKET_SOURCE_UDP no)
-
 if (ENABLE_PACKET_SOURCE_UDP)
     set(ZEEK_PACKET_SOURCE_UDP_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-packet-source-udp)
     list(APPEND ZEEK_INCLUDE_PLUGINS ${ZEEK_PACKET_SOURCE_UDP_PLUGIN_PATH})

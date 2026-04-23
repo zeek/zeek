@@ -1,0 +1,6 @@
+# Test loading a single Zeek script from a ZIP archive via --load-zip.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py scripts.zip test/hello.zeek "print \"hello from zip\";"
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd):$ZEEKPATH zeek -b --load-zip "scripts.zip:$WIN_PWD" -e "@load test/hello" >output
+# @TEST-EXEC: btest-diff output

@@ -30,6 +30,7 @@ RUN zypper refresh \
     which \
     zeromq-devel \
     zlib-devel \
+    libzip-devel \
   && rm -rf /var/cache/zypp
 
 RUN pip3 install websockets junit2html

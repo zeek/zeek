@@ -30,6 +30,7 @@ RUN apk add --no-cache \
   python3 \
   python3-dev \
   swig \
+  libzip-dev \
   zlib-dev
 
 RUN pip3 install --break-system-packages websockets junit2html

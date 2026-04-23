@@ -37,6 +37,7 @@ RUN zypper refresh \
     util-linux \
     which \
     zlib-devel \
+    libzip-devel \
   && rm -rf /var/cache/zypp
 
 RUN pip3 install --break-system-packages websockets junit2html

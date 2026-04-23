@@ -1,0 +1,7 @@
+# Test @unload of a script inside a ZIP archive.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py unload.zip dontload.zeek "print \"should not appear\";" loader.zeek "@unload dontload"
+# @TEST-EXEC: printf '@load loader\n@load dontload\n' > main.zeek
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd):$ZEEKPATH zeek -b --load-zip "unload.zip:$WIN_PWD" main.zeek >output
+# @TEST-EXEC: btest-diff output

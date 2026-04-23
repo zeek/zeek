@@ -5,6 +5,7 @@
     "c-ares",
     "cppzmq",
     "libpcap",
+    "libzip",
     "openssl",
     "pcre",
     {

@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include "zeek/ZipScriptProvider.h"
 #include "zeek/zeek-config-paths.h"
 
 #ifdef HAVE_DARWIN
@@ -69,7 +70,15 @@ using namespace std;
 
 extern const char* proc_status_file;
 
-static bool can_read(const string& path) { return access(path.c_str(), R_OK) == 0; }
+static bool can_read(const string& path) {
+    auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
+    if ( zsp ) {
+        auto normalized = zeek::util::ZipScriptProvider::NormalizePath(path);
+        if ( zsp->HasFile(normalized) || zsp->HasDir(normalized) )
+            return true;
+    }
+    return access(path.c_str(), R_OK) == 0;
+}
 
 static string zeek_path_value;
 const string zeek_path_list_separator(path_list_separator.begin(), path_list_separator.end());
@@ -1307,6 +1316,10 @@ const char* fmt(const char* format, ...) {
 }
 
 bool is_dir(const std::string& path) {
+    auto* zsp = ZipScriptProvider::GetInstance();
+    if ( zsp && zsp->HasDir(ZipScriptProvider::NormalizePath(path)) )
+        return true;
+
     struct stat st;
     if ( stat(path.c_str(), &st) < 0 ) {
         if ( errno != ENOENT )
@@ -1319,6 +1332,10 @@ bool is_dir(const std::string& path) {
 }
 
 bool is_file(const std::string& path) {
+    auto* zsp = ZipScriptProvider::GetInstance();
+    if ( zsp && zsp->HasFile(ZipScriptProvider::NormalizePath(path)) )
+        return true;
+
     struct stat st;
     if ( stat(path.c_str(), &st) < 0 ) {
         if ( errno != ENOENT )

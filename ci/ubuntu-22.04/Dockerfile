@@ -36,6 +36,7 @@ RUN apt-get update && apt-get -y install \
     unzip \
     wget \
     zlib1g-dev \
+    libzip-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 

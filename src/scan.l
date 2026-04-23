@@ -49,6 +49,8 @@
 
 #include "zeek/plugin/Manager.h"
 
+#include "zeek/ZipScriptProvider.h"
+
 #include "zeekparse.h"
 
 using namespace zeek::detail;
@@ -550,22 +552,35 @@ when	return TOK_WHEN;
 	// Skip "@unload".
 	const char* file = zeek::util::skip_whitespace(yytext + 7);
 	std::string path = find_relative_script_file(file);
+	auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
 
 	if ( ! path.empty() && zeek::util::is_dir(path.c_str()) ) {
-		// open_package() appends __load__.zeek to path and verifies existence
-		FILE *f = zeek::util::detail::open_package(path);
-		if (f)
-			fclose(f);
-		else
-			path = "";
+		// Check if the package exists in a ZIP archive first.
+		std::string normalized = zeek::util::ZipScriptProvider::NormalizePath(path);
+		if ( zsp && zsp->HasDir(normalized) ) {
+			std::string pkg_path = normalized + "/__load__.zeek";
+			if ( zsp->HasFile(pkg_path) )
+				path = pkg_path;
+			else
+				path = "";
+		}
+		else {
+			// open_package() appends __load__.zeek to path and verifies existence
+			FILE *f = zeek::util::detail::open_package(path);
+			if (f)
+				fclose(f);
+			else
+				path = "";
+		}
 	}
 
 	if ( path.empty() )
 		zeek::reporter->Error("failed find file associated with @unload %s", file);
 	else
 		{
-		// All we have to do is pretend we've already scanned it.
-		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
+		// Mark as canonical for ZIP paths (no filesystem::canonical needed).
+		bool is_zip = zsp && zsp->HasFile(zeek::util::ZipScriptProvider::NormalizePath(path));
+		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true, false, is_zip);
 		zeek::detail::files_scanned.push_back(std::move(sf));
 		}
 	}
@@ -774,6 +789,21 @@ static int switch_to(const char* file, YY_BUFFER_STATE buffer) {
 static int load_files(const char* orig_file) {
     std::string file_path = find_relative_script_file(orig_file);
 
+    // Pre-resolve package directories to __load__.zeek so that every
+    // downstream consumer (plugin hooks, switch_to, @DIR, @FILENAME)
+    // sees the actual script path rather than the bare directory.
+    if ( ! file_path.empty() && zeek::util::is_dir(file_path.c_str()) ) {
+        auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
+        if ( zsp ) {
+            std::string norm = zeek::util::ZipScriptProvider::NormalizePath(file_path);
+            if ( zsp->HasDir(norm) ) {
+                std::string pkg = norm + "/__load__.zeek";
+                if ( zsp->HasFile(pkg) )
+                    file_path = file_path + "/__load__.zeek";
+            }
+        }
+    }
+
     std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
     rc.first =
         PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::SCRIPT, orig_file, file_path), -1);
@@ -794,6 +824,18 @@ static int load_files(const char* orig_file) {
 
     if ( rc.first == 1 && ! rc.second )
         return 0; // A plugin took care of it, just skip.
+
+    // When a plugin provides script content, track the file for dedup
+    // and @unload support before proceeding to parse it.
+    if ( rc.first == 1 && rc.second ) {
+        // Virtual paths (e.g. from ZIP archives) don't exist on disk,
+        // so skip std::filesystem::canonical resolution.
+        bool skip_canonical = ! std::filesystem::exists(file_path);
+        zeek::detail::ScannedFile sf(file_stack.length(), file_path, false, false, skip_canonical);
+        if ( sf.AlreadyScanned() )
+            return 0;
+        zeek::detail::files_scanned.push_back(std::move(sf));
+    }
 
     FILE* f = nullptr;
 

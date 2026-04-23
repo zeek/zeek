@@ -13,7 +13,7 @@ env ASSUME_ALWAYS_YES=YES pkg bootstrap
 sed -i .bak 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf
 pkg update -f
 
-pkg install -y bash cppzmq git cmake-core swig bison python3 base64 flex ccache jq dnsmasq krb5
+pkg install -y bash cppzmq git cmake-core swig bison python3 base64 flex ccache jq dnsmasq krb5 libzip
 pkg upgrade -y curl
 pyver=$(python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")')
 pkg install -y $pyver-sqlite3

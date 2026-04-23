@@ -141,6 +141,7 @@ void usage(const char* prog) {
     printf("    -U|--status-file <file>         | Record process status in file\n");
     printf("    -W|--watchdog                   | activate watchdog timer\n");
     printf("    -X|--zeekygen <cfgfile>         | generate documentation based on config file; implies -a\n");
+    printf("    -Z|--load-zip <path[:root]>     | load scripts from ZIP archive (optional mount root)\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
     printf("    -m|--mem-leaks                  | show leaks  [perftools]\n");
@@ -417,13 +418,14 @@ Options parse_cmdline(int argc, char** argv) {
         {"no-unused-warnings", no_argument, &no_unused_warnings, 1},
         {"pseudo-realtime", optional_argument, nullptr, '~'},
         {"jobs", optional_argument, nullptr, 'j'},
+        {"load-zip", required_argument, nullptr, 'Z'},
         {"test", no_argument, nullptr, '#'},
 
         {nullptr, 0, nullptr, 0},
     };
 
     char opts[256];
-    util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuvV", sizeof(opts));
+    util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:Z:CDFMNPQSWabdhmuvV", sizeof(opts));
 
     int op;
     int long_optsind;
@@ -539,6 +541,7 @@ Options parse_cmdline(int argc, char** argv) {
             case 'U': rval.process_status_file = optarg; break;
             case 'W': rval.use_watchdog = true; break;
             case 'X': rval.zeekygen_config_file = optarg; break;
+            case 'Z': rval.zip_script_sources.emplace_back(optarg); break;
 
 #ifdef USE_PERFTOOLS_DEBUG
             case 'm': rval.perftools_check_leaks = 1; break;

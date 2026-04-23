@@ -1,0 +1,7 @@
+# Test ZIP with mount root — scripts resolved via ZEEKPATH prefix.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: mkdir -p mounted_scripts
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py rooted.zip hello.zeek "print \"mounted hello\";"
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd)/mounted_scripts:$ZEEKPATH zeek -b --load-zip "rooted.zip:$WIN_PWD/mounted_scripts" -e "@load hello" >output
+# @TEST-EXEC: btest-diff output

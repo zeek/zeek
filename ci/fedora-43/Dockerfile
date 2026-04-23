@@ -30,6 +30,7 @@ RUN dnf -y install \
     swig \
     which \
     zlib-devel \
+    libzip-devel \
     crypto-policies-scripts \
   && dnf clean all && rm -rf /var/cache/dnf
 

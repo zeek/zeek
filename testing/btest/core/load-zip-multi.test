@@ -1,0 +1,6 @@
+# Test loading multiple scripts from a single ZIP archive.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py multi.zip lib/a.zeek "print \"script a\";" lib/b.zeek "print \"script b\";" lib/__load__.zeek "@load ./a\n@load ./b"
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd):$ZEEKPATH zeek -b --load-zip "multi.zip:$WIN_PWD" -e "@load lib" >output
+# @TEST-EXEC: btest-diff output

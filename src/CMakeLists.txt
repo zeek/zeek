@@ -253,6 +253,24 @@ add_subdirectory(fuzzers)
 
 find_package(Threads)
 
+# libzip for ZIP-based script loading (ZipScriptProvider).
+# Prefer pkg-config: the libzip CMake config imports tool targets (zipcmp etc.)
+# that may not be installed, causing configure failures on some distros.
+find_package(PkgConfig QUIET)
+if (PkgConfig_FOUND)
+    pkg_check_modules(LIBZIP IMPORTED_TARGET libzip)
+endif ()
+if (NOT LIBZIP_FOUND)
+    find_package(libzip CONFIG QUIET)
+endif ()
+
+if (NOT libzip_FOUND AND NOT LIBZIP_FOUND)
+    message(
+        FATAL_ERROR
+            "libzip not found. Install libzip-dev (Debian/Ubuntu), libzip-devel (RPM), or libzip (FreeBSD/macOS)."
+    )
+endif ()
+
 # Avoid CMake warning about "3rdparty" looking like a number.
 
 cmake_policy(PUSH)
@@ -315,6 +333,8 @@ set(MAIN_SRCS
     module_util.cc
     zeek-affinity.cc
     zeek-setup.cc
+    ZipScriptProvider.cc
+    ZipScriptsPlugin.cc
     Anon.cc
     Attr.cc
     Base64.cc
@@ -596,6 +616,13 @@ target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
+
+# Link libzip for ZipScriptProvider.
+if (libzip_FOUND)
+    target_link_libraries(zeek_objs PRIVATE libzip::zip)
+elseif (LIBZIP_FOUND)
+    target_link_libraries(zeek_objs PRIVATE PkgConfig::LIBZIP)
+endif ()
 
 # Add IWYU and clang-tidy to the target if enabled.
 zeek_target_add_linters(zeek_objs)

@@ -1,0 +1,6 @@
+# Test package loading (__load__.zeek) from a ZIP archive.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py pkg.zip mypkg/__load__.zeek "@load ./impl" mypkg/impl.zeek "print \"package loaded\";"
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd):$ZEEKPATH zeek -b --load-zip "pkg.zip:$WIN_PWD" -e "@load mypkg" >output
+# @TEST-EXEC: btest-diff output

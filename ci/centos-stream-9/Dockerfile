@@ -41,6 +41,7 @@ RUN dnf -y --nobest install \
     tar \
     which \
     zlib-devel \
+    libzip-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Set the crypto policy to allow SHA-1 certificates - which we have in our tests

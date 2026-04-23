@@ -71,6 +71,7 @@
 #ifdef HAVE_SPICY
 #include "zeek/spicy/manager.h"
 #endif
+#include "zeek/ZipScriptProvider.h"
 #include "zeek/storage/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/telemetry/Manager.h"
@@ -622,6 +623,59 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     add_input_file("builtin-plugins/__load__.zeek");
 
     plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());
+
+    // Initialize ZIP script sources if any --load-zip options were given.
+    if ( ! options.zip_script_sources.empty() ) {
+        auto provider = std::make_unique<util::ZipScriptProvider>();
+
+        for ( const auto& spec : options.zip_script_sources ) {
+            // Format: "path[:mount_root]"
+            std::string zip_path;
+            std::string mount_root;
+
+            // Format: "path.zip:mount_root" or "path.zip"
+            // On Windows paths like "file.zip:C:\mount", rfind finds the
+            // drive-letter ':'. Walk backwards to skip single-alpha colons.
+            // Note: this heuristic assumes ZIP filenames have extensions
+            // (e.g. .zip, .ndr), so the separator colon is unambiguous.
+            auto colon = spec.rfind(':');
+            while ( colon != std::string::npos && colon >= 1 &&
+                    std::isalpha(static_cast<unsigned char>(spec[colon - 1])) &&
+                    (colon < 2 || ! std::isalpha(static_cast<unsigned char>(spec[colon - 2]))) )
+                colon = (colon >= 2) ? spec.rfind(':', colon - 2) : std::string::npos;
+
+            if ( colon != std::string::npos && colon > 0 ) {
+                zip_path = spec.substr(0, colon);
+                mount_root = spec.substr(colon + 1);
+            }
+            else {
+                zip_path = spec;
+            }
+
+            FILE* f = fopen(zip_path.c_str(), "rb");
+            if ( ! f ) {
+                reporter->FatalError("can't open ZIP script archive: %s", zip_path.c_str());
+                continue;
+            }
+
+            fseek(f, 0, SEEK_END);
+            auto size = ftell(f);
+            fseek(f, 0, SEEK_SET);
+
+            std::vector<uint8_t> data(size);
+            if ( fread(data.data(), 1, size, f) != static_cast<size_t>(size) ) {
+                fclose(f);
+                reporter->FatalError("can't read ZIP script archive: %s", zip_path.c_str());
+                continue;
+            }
+            fclose(f);
+
+            if ( ! provider->AddArchive(data.data(), data.size(), mount_root) )
+                reporter->FatalError("invalid ZIP script archive: %s", zip_path.c_str());
+        }
+
+        util::ZipScriptProvider::SetInstance(std::move(provider));
+    }
 
     if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() && options.script_options_to_set.empty() &&
          ! options.pcap_file && ! options.interface && ! options.identifier_to_print && ! command_line_policy &&

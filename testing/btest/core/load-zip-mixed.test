@@ -1,0 +1,8 @@
+# Test that ZIP loading does not interfere with filesystem scripts.
+#
+# @TEST-REQUIRES: $BUILD/src/zeek --help 2>&1 | grep -q load-zip
+# @TEST-EXEC: $PYTHON $FILES/create-zip.py partial.zip from_zip.zeek "print \"from zip\";"
+# @TEST-EXEC: echo 'print "from disk";' > from_disk.zeek
+# @TEST-EXEC: printf '@load from_zip\n@load from_disk\n' > main.zeek
+# @TEST-EXEC: WIN_PWD=$(pwd -W 2>/dev/null || pwd); ZEEKPATH=$(pwd):$ZEEKPATH zeek -b --load-zip "partial.zip:$WIN_PWD" main.zeek >output
+# @TEST-EXEC: btest-diff output

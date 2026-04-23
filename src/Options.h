@@ -79,6 +79,9 @@ struct Options {
     std::vector<std::string> scripts_to_load;
     std::vector<std::string> script_options_to_set;
 
+    // ZIP archive script sources: each entry is "path[:mount_root]".
+    std::vector<std::string> zip_script_sources;
+
     std::vector<std::string> script_args;
 
     // For script optimization:

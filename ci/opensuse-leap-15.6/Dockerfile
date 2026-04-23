@@ -31,6 +31,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.6
     tar \
     which \
     zlib-devel \
+    libzip-devel \
   && rm -rf /var/cache/zypp
 
 RUN update-alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.12 100

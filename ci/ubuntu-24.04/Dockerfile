@@ -43,6 +43,7 @@ RUN apt-get update && apt-get -y install \
     unzip \
     wget \
     zlib1g-dev \
+    libzip-dev \
     libc++-dev \
     libc++abi-dev \
   && apt autoclean \

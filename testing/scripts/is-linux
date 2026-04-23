@@ -1,0 +1,3 @@
+#!/bin/sh
+
+test "$(uname)" = "Linux"

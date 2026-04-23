@@ -20,9 +20,9 @@ on RESP::ClientData if ( Redis::is_hello(self) ) -> event Redis::hello_command($
 # All client data is a command
 on RESP::ClientData -> event Redis::command($conn, self.command);
 
-on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Reply ) -> 
+on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Reply ) ->
         event Redis::reply($conn, Redis::make_server_reply(self));
 on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Error ) ->
         event Redis::error($conn, Redis::make_server_reply(self));
-on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Push ) -> 
+on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Push ) ->
         event Redis::server_push($conn, Redis::make_server_reply(self));

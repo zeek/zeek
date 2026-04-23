@@ -1,3 +1,16 @@
+9.0.0-dev.19 | 2026-04-23 12:56:53 -0400
+
+  * Allow configuring max Redis parser size limit (Evan Typanski, Corelight)
+
+    I don't like the parser being tied to Zeek, so it's only configurable
+    with the HAVE_ZEEK identifier in Spicy.
+
+  * Cap all parsed Redis fields to 250 bytes (Evan Typanski, Corelight)
+
+    Some commands (like FULLRESYNC) will have huge outputs, we should not
+    output all of it. It's unfortunate this is not configurable, but it
+    limits copies and the size of output logs.
+
 9.0.0-dev.15 | 2026-04-23 09:49:57 -0700
 
   * Import zeek/spicy-zip analyzer for ZIP archives (Tim Wojtulewicz, Corelight)

@@ -8,7 +8,7 @@ import spicy;
 
 # Maximum size for parsing of certain fields. By restricting this we avoid
 # exhausting main memory.
-const MAX_SIZE = 1024 * 1024;
+public const MAX_SIZE = 1024 * 1024;
 const MAX_RECURSION_DEPTH = 20;
 
 public type ClientMessages = unit {

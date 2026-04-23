@@ -85,6 +85,10 @@ export {
 	    RedisCommand_PUNSUBSCRIBE, RedisCommand_SSUBSCRIBE,
 	    RedisCommand_SUBSCRIBE, RedisCommand_SUNSUBSCRIBE,
 	    RedisCommand_UNSUBSCRIBE];
+
+	## The maximum size of any string fields within the Redis analyzer. Does not affect
+	## how much data is parsed, only how much is provided to events via the analyzer.
+	const max_value_size: count = 250 &redef;
 }
 
 redef record connection += {

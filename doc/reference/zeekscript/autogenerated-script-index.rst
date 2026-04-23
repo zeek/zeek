@@ -513,6 +513,9 @@
    base/files/pe/main.zeek </scripts/base/files/pe/main.zeek>
    base/files/extract/__load__.zeek </scripts/base/files/extract/__load__.zeek>
    base/files/extract/main.zeek </scripts/base/files/extract/main.zeek>
+   base/files/zip/__load__.zeek </scripts/base/files/zip/__load__.zeek>
+   base/files/zip/main.zeek </scripts/base/files/zip/main.zeek>
+   base/files/zip/types.zeek </scripts/base/files/zip/types.zeek>
    base/misc/find-checksum-offloading.zeek </scripts/base/misc/find-checksum-offloading.zeek>
    base/misc/find-filtered-trace.zeek </scripts/base/misc/find-filtered-trace.zeek>
    base/misc/installation.zeek </scripts/base/misc/installation.zeek>

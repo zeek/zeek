@@ -369,6 +369,8 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_IGMP AllAnalyzers::Tag
 
+      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SPICY_ZIP AllAnalyzers::Tag
+
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SSH AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_DTLS AllAnalyzers::Tag

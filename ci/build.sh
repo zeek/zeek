@@ -6,6 +6,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 set -e
 set -x
 
+# Ensure libzip is available (required for ZipScriptProvider).
+# Once CI images are rebuilt with updated Dockerfiles, this is a no-op.
+if ! pkg-config --exists libzip 2>/dev/null; then
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update -qq && apt-get install -y -qq libzip-dev
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y libzip-devel
+    elif command -v zypper >/dev/null 2>&1; then
+        zypper install -y libzip-devel
+    elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache libzip-dev
+    elif command -v pkg >/dev/null 2>&1; then
+        pkg install -y libzip
+    elif command -v brew >/dev/null 2>&1; then
+        brew install libzip
+    fi
+fi
+
 if [[ "${CIRRUS_OS}" == "darwin" ]]; then
     # Starting with Monterey & Xcode 13.1 we need to help it find OpenSSL
     if [ -d /usr/local/opt/openssl@1.1/lib/pkgconfig ]; then

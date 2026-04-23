@@ -715,11 +715,11 @@ std::optional<int> ZeekClusterConfig::NiceFor(const std::string& node) const {
 const std::string& ZeekClusterConfig::MemoryMaxFor(const std::string& node) const {
     if ( node == "manager" )
         return memory_max_manager;
-    else if ( node.starts_with("logger-") )
+    else if ( node.starts_with("logger") )
         return memory_max_logger;
-    else if ( node.starts_with("proxy-") )
+    else if ( node.starts_with("proxy") )
         return memory_max_proxy;
-    else if ( node.starts_with("worker-") )
+    else if ( node.starts_with("worker") )
         return memory_max_worker;
 
     std::fprintf(stderr, "invalid node '%s' in MemoryMaxFor()\n", node.c_str());

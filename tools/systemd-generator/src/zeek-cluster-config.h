@@ -12,6 +12,7 @@
 #include <map>
 #include <optional>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -41,11 +42,9 @@ public:
     /**
      * Get the CPU affinity for index \a index (1-based).
      */
-    std::string AffinityFor(unsigned int index) const {
-        if ( index == 0 ) {
-            std::fprintf(stderr, "index starts at 1\n");
-            abort();
-        }
+    std::string AffinityFor(int index) const {
+        if ( index <= 0 )
+            throw std::logic_error("bad index: " + std::to_string(index));
 
         if ( cpus.empty() )
             return "";
@@ -123,19 +122,52 @@ public:
     static std::pair<InterfaceWorkerConfig, std::string> from_section(const Section& section,
                                                                       bool allow_unknown_options = false);
 
+    /**
+     * The tag is the tag from [interface <tag>] section.
+     */
     const std::string& Tag() const noexcept { return tag; }
 
     const std::string& Interface() const noexcept { return interface; }
 
     int Workers() const noexcept { return workers; }
 
+    /**
+     * The "full worker name" is worker-{Tag()}-{suffix}
+     * if the tag is set, else it is worker-{suffix} where
+     * suffix is usually the worker index.
+     */
+    std::string FullWorkerName(const std::string& suffix) const {
+        if ( ! Tag().empty() )
+            return "worker-" + Tag() + "-" + suffix;
+
+        return "worker-" + suffix;
+    }
+
+    /**
+     * @return worker-{tag}-{index} or worker-{index}, depending on whether tag is set or not.
+     */
+    std::string FullWorkerName(int index) const {
+        if ( index <= 0 || index > Workers() )
+            throw std::logic_error("bad index: " + std::to_string(index));
+
+        return FullWorkerName(std::to_string(index));
+    }
+
+    /**
+     * A worker's working directory.
+     */
+    std::filesystem::path MakeWorkingDirectory(const std::filesystem::path& spool_dir,
+                                               const std::string& suffix) const {
+        return spool_dir / FullWorkerName(suffix);
+    }
+
     const std::string& Args() const noexcept { return args; }
 
-    const std::string& MemoryMax() const noexcept { return memory_max; }
+    const std::string& WorkerMemoryMax() const noexcept { return memory_max; }
 
     std::optional<int> Nice() const noexcept { return nice; }
 
-    std::string AffinityFor(unsigned int index) const { return cpu_list.AffinityFor(index); }
+    std::string AffinityFor(int index) const { return cpu_list.AffinityFor(index); }
 
     std::optional<const std::string> NumaPolicy() const { return numa_policy; }
 
@@ -189,26 +221,20 @@ public:
 
     std::filesystem::path GeneratedScriptsDir() const { return SpoolDir() / "generated-scripts"; }
 
-    std::filesystem::path WorkingDirectory(const std::string& type, std::optional<unsigned int> index = {}) const {
-        if ( index == 0 ) {
-            std::fprintf(stderr, "index starts at 1\n");
-            abort();
-        }
-        return SpoolDir() / (type + (index.has_value() ? ("-" + std::to_string(*index)) : ""));
-    }
+    std::filesystem::path WorkingDirectory(const std::string& wdir) const { return SpoolDir() / wdir; }
 
     /**
-     * @return the mkdir command for the process's working directory.
+     * @return the mkdir command for a process's working directory.
      */
-    std::string MakeWorkingDirectoryCommand(const std::string& type, std::optional<unsigned int> index = {}) const {
-        return "mkdir -p " + WorkingDirectory(type, index).string();
+    std::string MakeWorkingDirectoryCommand(const std::string& wdir) const {
+        return "mkdir -p " + WorkingDirectory(wdir).string();
     }
 
     /**
      * @return the chown command for the process's working directory.
      */
-    std::string ChownWorkingDirectoryCommand(const std::string& type, std::optional<unsigned int> index = {}) const {
-        return "chown " + User() + ":" + Group() + " " + WorkingDirectory(type, index).string();
+    std::string ChownWorkingDirectoryCommand(const std::string& wdir) const {
+        return "chown " + User() + ":" + Group() + " " + WorkingDirectory(wdir).string();
     }
 
     /**

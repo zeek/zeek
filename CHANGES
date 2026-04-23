@@ -1,3 +1,7 @@
+9.0.0-dev.11 | 2026-04-23 17:22:10 +0200
+
+  * Bump zeek-packet-source-udp for CMakeLists fixes (Arne Welzel, Corelight)
+
 9.0.0-dev.9 | 2026-04-23 09:43:01 +0200
 
   * Include zeek-packet-source-udp as builtin plugin (Arne Welzel, Corelight)

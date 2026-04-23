@@ -1,3 +1,11 @@
+9.0.0-dev.9 | 2026-04-23 09:43:01 +0200
+
+  * Include zeek-packet-source-udp as builtin plugin (Arne Welzel, Corelight)
+
+    I chatted with Christian a while ago and he wasn't completely opposed.
+    The integration is straightforward and IMO this is a nice feature for
+    the cloudier environments.
+
 9.0.0-dev.7 | 2026-04-21 13:43:31 -0700
 
   * Fix spicy.preprocessor btest (Tim Wojtulewicz, Corelight)

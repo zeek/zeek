@@ -993,7 +993,18 @@ static void _data_in(const char* data, uint64_t len, const hilti::rt::Optional<u
         else
             file_mgr->DataIn(data_, len, tag, c->analyzer->Conn(), c->is_orig, fstate->fid, mime_type);
     }
-    else {
+    else if ( auto f = cookie->file ) {
+        // If we didn't have a protocol analyzer but we do have a file analyzer, look up
+        // the component name from the tag in cookie and pass it to the version of DataIn()
+        // that takes a source name directly.
+        auto source = file_mgr->GetComponentName(f->analyzer->Tag());
+
+        if ( offset )
+            file_mgr->DataIn(data_, len, *offset, fstate->fid, source, mime_type);
+        else
+            file_mgr->DataIn(data_, len, fstate->fid, source, mime_type);
+    }
+    else [[unlikely]] {
         if ( offset )
             file_mgr->DataIn(data_, len, *offset, Tag(), nullptr, false, fstate->fid, mime_type);
         else

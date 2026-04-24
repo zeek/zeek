@@ -1,25 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/ZipScriptProvider.h"
+#include "zeek/vfs/InMemoryZipVFS.h"
 
 #include <zip.h>
 #include <algorithm>
 #include <filesystem>
 
-namespace zeek::util {
+namespace zeek::vfs {
 
-std::unique_ptr<ZipScriptProvider> ZipScriptProvider::instance;
+InMemoryZipVFS::InMemoryZipVFS() = default;
 
-ZipScriptProvider::ZipScriptProvider() = default;
-
-ZipScriptProvider::~ZipScriptProvider() {
-    for ( auto& archive : archives ) {
+InMemoryZipVFS::~InMemoryZipVFS() {
+    for ( auto& archive : archives_ ) {
         if ( archive.handle )
             zip_close(archive.handle);
     }
 }
 
-bool ZipScriptProvider::AddArchive(const void* data, size_t size, const std::string& mount_root) {
+bool InMemoryZipVFS::AddArchive(const void* data, size_t size, const std::string& mount_root) {
     Archive archive;
     archive.data.assign(static_cast<const uint8_t*>(data), static_cast<const uint8_t*>(data) + size);
     archive.mount_root = NormalizePath(mount_root);
@@ -45,11 +43,11 @@ bool ZipScriptProvider::AddArchive(const void* data, size_t size, const std::str
     }
 
     zip_error_fini(&error);
-    archives.push_back(std::move(archive));
+    archives_.push_back(std::move(archive));
     return true;
 }
 
-std::string ZipScriptProvider::NormalizePath(const std::string& path) {
+std::string InMemoryZipVFS::NormalizePath(const std::string& path) {
     std::string result = path;
 
     // Convert backslashes to forward slashes.
@@ -72,33 +70,29 @@ std::string ZipScriptProvider::NormalizePath(const std::string& path) {
     return result;
 }
 
-bool ZipScriptProvider::HasFile(const std::string& path) const {
+std::string InMemoryZipVFS::StripMountRoot(const std::string& normalized, const Archive& archive) {
+    if ( ! archive.mount_root.empty() && normalized.size() > archive.mount_root.size() &&
+         normalized.compare(0, archive.mount_root.size(), archive.mount_root) == 0 )
+        return normalized.substr(archive.mount_root.size());
+    return normalized;
+}
+
+bool InMemoryZipVFS::HasFile(const std::string& path) const {
     std::string normalized = NormalizePath(path);
 
-    for ( const auto& archive : archives ) {
-        std::string zip_path = normalized;
-
-        // Strip mount root prefix if present.
-        if ( ! archive.mount_root.empty() && zip_path.size() > archive.mount_root.size() &&
-             zip_path.compare(0, archive.mount_root.size(), archive.mount_root) == 0 )
-            zip_path = zip_path.substr(archive.mount_root.size());
-
+    for ( const auto& archive : archives_ ) {
+        std::string zip_path = StripMountRoot(normalized, archive);
         if ( zip_name_locate(archive.handle, zip_path.c_str(), 0) >= 0 )
             return true;
     }
     return false;
 }
 
-bool ZipScriptProvider::HasDir(const std::string& path) const {
+bool InMemoryZipVFS::HasDir(const std::string& path) const {
     std::string normalized = NormalizePath(path);
 
-    for ( const auto& archive : archives ) {
-        std::string zip_path = normalized;
-
-        // Strip mount root prefix if present.
-        if ( ! archive.mount_root.empty() && zip_path.size() > archive.mount_root.size() &&
-             zip_path.compare(0, archive.mount_root.size(), archive.mount_root) == 0 )
-            zip_path = zip_path.substr(archive.mount_root.size());
+    for ( const auto& archive : archives_ ) {
+        std::string zip_path = StripMountRoot(normalized, archive);
 
         // Ensure trailing slash for directory lookup.
         std::string dirPath = zip_path;
@@ -124,16 +118,11 @@ bool ZipScriptProvider::HasDir(const std::string& path) const {
     return false;
 }
 
-std::optional<std::string> ZipScriptProvider::ReadFile(const std::string& path) const {
+std::optional<VFSResult> InMemoryZipVFS::ReadFile(const std::string& path) const {
     std::string normalized = NormalizePath(path);
 
-    for ( const auto& archive : archives ) {
-        std::string zip_path = normalized;
-
-        // Strip mount root prefix if present.
-        if ( ! archive.mount_root.empty() && zip_path.size() > archive.mount_root.size() &&
-             zip_path.compare(0, archive.mount_root.size(), archive.mount_root) == 0 )
-            zip_path = zip_path.substr(archive.mount_root.size());
+    for ( const auto& archive : archives_ ) {
+        std::string zip_path = StripMountRoot(normalized, archive);
 
         zip_int64_t idx = zip_name_locate(archive.handle, zip_path.c_str(), 0);
         if ( idx < 0 )
@@ -160,17 +149,15 @@ std::optional<std::string> ZipScriptProvider::ReadFile(const std::string& path) 
         if ( total != st.size )
             continue;
 
-        return content;
+        // Build a stable identifier for deduplication: "zip://<normalized-path>"
+        std::string identifier = "zip://" + normalized;
+        return VFSResult{std::move(content), std::move(identifier)};
     }
 
     return std::nullopt;
 }
 
-ZipScriptProvider* ZipScriptProvider::GetInstance() { return instance.get(); }
-
-void ZipScriptProvider::SetInstance(std::unique_ptr<ZipScriptProvider> provider) { instance = std::move(provider); }
-
-} // namespace zeek::util
+} // namespace zeek::vfs
 
 #include <cstring>
 
@@ -235,37 +222,37 @@ std::vector<uint8_t> create_test_zip(const std::vector<std::pair<std::string, st
 
 } // anonymous namespace
 
-TEST_SUITE("ZipScriptProvider") {
-    using zeek::util::ZipScriptProvider;
+TEST_SUITE("InMemoryZipVFS") {
+    using zeek::vfs::InMemoryZipVFS;
 
     TEST_CASE("NormalizePath basics") {
         // Forward slashes unchanged.
-        CHECK(ZipScriptProvider::NormalizePath("foo/bar") == "foo/bar");
-        CHECK(ZipScriptProvider::NormalizePath("ndr/main.zeek") == "ndr/main.zeek");
+        CHECK(InMemoryZipVFS::NormalizePath("foo/bar") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("ndr/main.zeek") == "ndr/main.zeek");
 
         // Backslash conversion.
-        CHECK(ZipScriptProvider::NormalizePath("foo\\bar") == "foo/bar");
-        CHECK(ZipScriptProvider::NormalizePath("foo\\bar\\baz.zeek") == "foo/bar/baz.zeek");
+        CHECK(InMemoryZipVFS::NormalizePath("foo\\bar") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("foo\\bar\\baz.zeek") == "foo/bar/baz.zeek");
 
         // Collapse . and ..
-        CHECK(ZipScriptProvider::NormalizePath("foo/./bar") == "foo/bar");
-        CHECK(ZipScriptProvider::NormalizePath("foo/baz/../bar") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("foo/./bar") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("foo/baz/../bar") == "foo/bar");
 
         // Strip leading ./
-        CHECK(ZipScriptProvider::NormalizePath("./foo/bar") == "foo/bar");
-        CHECK(ZipScriptProvider::NormalizePath("./foo") == "foo");
+        CHECK(InMemoryZipVFS::NormalizePath("./foo/bar") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("./foo") == "foo");
 
         // Strip trailing /
-        CHECK(ZipScriptProvider::NormalizePath("foo/bar/") == "foo/bar");
+        CHECK(InMemoryZipVFS::NormalizePath("foo/bar/") == "foo/bar");
 
         // Empty and root.
-        CHECK(ZipScriptProvider::NormalizePath("") == "");
-        CHECK(ZipScriptProvider::NormalizePath(".") == ".");
+        CHECK(InMemoryZipVFS::NormalizePath("") == "");
+        CHECK(InMemoryZipVFS::NormalizePath(".") == ".");
 
 #ifdef _MSC_VER
         // Windows absolute path.
-        CHECK(ZipScriptProvider::NormalizePath("C:\\scripts\\ndr\\main.zeek") == "C:/scripts/ndr/main.zeek");
-        CHECK(ZipScriptProvider::NormalizePath("C:\\scripts\\ndr\\..\\main.zeek") == "C:/scripts/main.zeek");
+        CHECK(InMemoryZipVFS::NormalizePath("C:\\scripts\\ndr\\main.zeek") == "C:/scripts/ndr/main.zeek");
+        CHECK(InMemoryZipVFS::NormalizePath("C:\\scripts\\ndr\\..\\main.zeek") == "C:/scripts/main.zeek");
 #endif
     }
 
@@ -276,23 +263,23 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        CHECK(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        CHECK(vfs.AddArchive(zip_data.data(), zip_data.size()));
     }
 
     TEST_CASE("AddArchive with invalid data") {
-        ZipScriptProvider provider;
+        InMemoryZipVFS vfs;
         const char* garbage = "this is not a zip file";
-        CHECK_FALSE(provider.AddArchive(garbage, strlen(garbage)));
+        CHECK_FALSE(vfs.AddArchive(garbage, strlen(garbage)));
     }
 
     TEST_CASE("AddArchive with empty buffer") {
-        ZipScriptProvider provider;
+        InMemoryZipVFS vfs;
         // libzip accepts a zero-size buffer as a valid empty archive.
         uint8_t empty = 0;
-        CHECK(provider.AddArchive(&empty, 0));
+        CHECK(vfs.AddArchive(&empty, 0));
         // But it has no files.
-        CHECK_FALSE(provider.HasFile("anything.zeek"));
+        CHECK_FALSE(vfs.HasFile("anything.zeek"));
     }
 
     TEST_CASE("HasFile") {
@@ -302,17 +289,17 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
-        CHECK(provider.HasFile("ndr/main.zeek"));
-        CHECK(provider.HasFile("ndr/protocols/http.zeek"));
-        CHECK_FALSE(provider.HasFile("ndr/nonexistent.zeek"));
-        CHECK_FALSE(provider.HasFile("other/file.zeek"));
+        CHECK(vfs.HasFile("ndr/main.zeek"));
+        CHECK(vfs.HasFile("ndr/protocols/http.zeek"));
+        CHECK_FALSE(vfs.HasFile("ndr/nonexistent.zeek"));
+        CHECK_FALSE(vfs.HasFile("other/file.zeek"));
 
         // Directories are not files.
-        CHECK_FALSE(provider.HasFile("ndr"));
-        CHECK_FALSE(provider.HasFile("ndr/"));
+        CHECK_FALSE(vfs.HasFile("ndr"));
+        CHECK_FALSE(vfs.HasFile("ndr/"));
     }
 
     TEST_CASE("HasDir with implicit directories") {
@@ -323,13 +310,13 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
-        CHECK(provider.HasDir("ndr"));
-        CHECK(provider.HasDir("ndr/protocols"));
-        CHECK_FALSE(provider.HasDir("other"));
-        CHECK_FALSE(provider.HasDir("ndr/main.zeek")); // file, not dir
+        CHECK(vfs.HasDir("ndr"));
+        CHECK(vfs.HasDir("ndr/protocols"));
+        CHECK_FALSE(vfs.HasDir("other"));
+        CHECK_FALSE(vfs.HasDir("ndr/main.zeek")); // file, not dir
     }
 
     TEST_CASE("ReadFile content") {
@@ -339,15 +326,16 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
-        auto result = provider.ReadFile("scripts/init.zeek");
+        auto result = vfs.ReadFile("scripts/init.zeek");
         REQUIRE(result.has_value());
-        CHECK(*result == content);
+        CHECK(result->content == content);
+        CHECK(result->identifier == "zip://scripts/init.zeek");
 
         // Nonexistent file returns nullopt.
-        CHECK_FALSE(provider.ReadFile("scripts/missing.zeek").has_value());
+        CHECK_FALSE(vfs.ReadFile("scripts/missing.zeek").has_value());
     }
 
     TEST_CASE("ReadFile empty file") {
@@ -356,12 +344,12 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
-        auto result = provider.ReadFile("empty.zeek");
+        auto result = vfs.ReadFile("empty.zeek");
         REQUIRE(result.has_value());
-        CHECK(result->empty());
+        CHECK(result->content.empty());
     }
 
     TEST_CASE("mount root stripping") {
@@ -371,18 +359,18 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size(), "C:/zeek/scripts"));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size(), "C:/zeek/scripts"));
 
         // Absolute paths with mount root should resolve.
-        CHECK(provider.HasFile("C:/zeek/scripts/ndr/main.zeek"));
-        CHECK(provider.HasDir("C:/zeek/scripts/ndr"));
-        auto result = provider.ReadFile("C:/zeek/scripts/ndr/main.zeek");
+        CHECK(vfs.HasFile("C:/zeek/scripts/ndr/main.zeek"));
+        CHECK(vfs.HasDir("C:/zeek/scripts/ndr"));
+        auto result = vfs.ReadFile("C:/zeek/scripts/ndr/main.zeek");
         REQUIRE(result.has_value());
-        CHECK(*result == "# main");
+        CHECK(result->content == "# main");
 
         // Raw ZIP-relative paths also work (mount root just doesn't strip).
-        CHECK(provider.HasFile("ndr/main.zeek"));
+        CHECK(vfs.HasFile("ndr/main.zeek"));
     }
 
     TEST_CASE("mount root boundary — similar prefixes") {
@@ -391,13 +379,13 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size(), "C:/scripts"));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size(), "C:/scripts"));
 
         // Should match.
-        CHECK(provider.HasFile("C:/scripts/test.zeek"));
+        CHECK(vfs.HasFile("C:/scripts/test.zeek"));
         // Should NOT match — "C:/scripts2" is not under "C:/scripts/".
-        CHECK_FALSE(provider.HasFile("C:/scripts2/test.zeek"));
+        CHECK_FALSE(vfs.HasFile("C:/scripts2/test.zeek"));
     }
 
     TEST_CASE("multiple archives — first wins") {
@@ -406,20 +394,20 @@ TEST_SUITE("ZipScriptProvider") {
         REQUIRE(! zip1.empty());
         REQUIRE(! zip2.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip1.data(), zip1.size()));
-        REQUIRE(provider.AddArchive(zip2.data(), zip2.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip1.data(), zip1.size()));
+        REQUIRE(vfs.AddArchive(zip2.data(), zip2.size()));
 
         // Duplicate entry: first archive wins.
-        auto result = provider.ReadFile("shared.zeek");
+        auto result = vfs.ReadFile("shared.zeek");
         REQUIRE(result.has_value());
-        CHECK(*result == "archive1");
+        CHECK(result->content == "archive1");
 
         // Entry only in second archive is still found.
-        CHECK(provider.HasFile("only2.zeek"));
-        auto result2 = provider.ReadFile("only2.zeek");
+        CHECK(vfs.HasFile("only2.zeek"));
+        auto result2 = vfs.ReadFile("only2.zeek");
         REQUIRE(result2.has_value());
-        CHECK(*result2 == "only in 2");
+        CHECK(result2->content == "only in 2");
     }
 
     TEST_CASE("package directory with __load__.zeek") {
@@ -429,14 +417,14 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
-        CHECK(provider.HasDir("pkg"));
-        CHECK(provider.HasFile("pkg/__load__.zeek"));
-        auto result = provider.ReadFile("pkg/__load__.zeek");
+        CHECK(vfs.HasDir("pkg"));
+        CHECK(vfs.HasFile("pkg/__load__.zeek"));
+        auto result = vfs.ReadFile("pkg/__load__.zeek");
         REQUIRE(result.has_value());
-        CHECK(*result == "@load ./impl");
+        CHECK(result->content == "@load ./impl");
     }
 
     TEST_CASE("path normalization in lookups") {
@@ -445,34 +433,14 @@ TEST_SUITE("ZipScriptProvider") {
         });
         REQUIRE(! zip_data.empty());
 
-        ZipScriptProvider provider;
-        REQUIRE(provider.AddArchive(zip_data.data(), zip_data.size()));
+        InMemoryZipVFS vfs;
+        REQUIRE(vfs.AddArchive(zip_data.data(), zip_data.size()));
 
         // HasFile/ReadFile normalize internally so callers can pass un-normalized paths.
-        CHECK(provider.HasFile("ndr/./main.zeek"));
-        CHECK(provider.HasFile("ndr/other/../main.zeek"));
+        CHECK(vfs.HasFile("ndr/./main.zeek"));
+        CHECK(vfs.HasFile("ndr/other/../main.zeek"));
 #ifdef _MSC_VER
-        CHECK(provider.HasFile("ndr\\main.zeek"));
+        CHECK(vfs.HasFile("ndr\\main.zeek"));
 #endif
-    }
-
-    TEST_CASE("singleton lifecycle") {
-        // Save and restore any pre-existing instance.
-        auto* prev = ZipScriptProvider::GetInstance();
-
-        auto provider = std::make_unique<ZipScriptProvider>();
-        auto* raw = provider.get();
-        ZipScriptProvider::SetInstance(std::move(provider));
-        CHECK(ZipScriptProvider::GetInstance() == raw);
-
-        // Clear.
-        ZipScriptProvider::SetInstance(nullptr);
-        CHECK(ZipScriptProvider::GetInstance() == nullptr);
-
-        // Restore previous state if there was one.
-        if ( prev ) {
-            // Can't restore unique_ptr ownership — just leave as null.
-            // Tests should not rely on global state anyway.
-        }
     }
 } // TEST_SUITE

@@ -49,7 +49,7 @@
 
 #include "zeek/plugin/Manager.h"
 
-#include "zeek/ZipScriptProvider.h"
+#include "zeek/vfs/Manager.h"
 
 #include "zeekparse.h"
 
@@ -552,18 +552,12 @@ when	return TOK_WHEN;
 	// Skip "@unload".
 	const char* file = zeek::util::skip_whitespace(yytext + 7);
 	std::string path = find_relative_script_file(file);
-	auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
 
 	if ( ! path.empty() && zeek::util::is_dir(path.c_str()) ) {
-		// Check if the package exists in a ZIP archive first.
-		std::string normalized = zeek::util::ZipScriptProvider::NormalizePath(path);
-		if ( zsp && zsp->HasDir(normalized) ) {
-			std::string pkg_path = normalized + "/__load__.zeek";
-			if ( zsp->HasFile(pkg_path) )
-				path = pkg_path;
-			else
-				path = "";
-		}
+		// Check if the package exists in a VFS provider first.
+		std::string pkg_path = path + "/__load__.zeek";
+		if ( zeek::vfs::vfs_mgr && zeek::vfs::vfs_mgr->HasFile(pkg_path) )
+			path = pkg_path;
 		else {
 			// open_package() appends __load__.zeek to path and verifies existence
 			FILE *f = zeek::util::detail::open_package(path);
@@ -578,9 +572,10 @@ when	return TOK_WHEN;
 		zeek::reporter->Error("failed find file associated with @unload %s", file);
 	else
 		{
-		// Mark as canonical for ZIP paths (no filesystem::canonical needed).
-		bool is_zip = zsp && zsp->HasFile(zeek::util::ZipScriptProvider::NormalizePath(path));
-		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true, false, is_zip);
+		// Mark as canonical for virtual paths (no filesystem::canonical needed).
+		bool is_virtual = zeek::vfs::vfs_mgr && zeek::vfs::vfs_mgr->HasFile(path)
+		                  && ! std::filesystem::exists(path);
+		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true, false, is_virtual);
 		zeek::detail::files_scanned.push_back(std::move(sf));
 		}
 	}
@@ -789,18 +784,16 @@ static int switch_to(const char* file, YY_BUFFER_STATE buffer) {
 static int load_files(const char* orig_file) {
     std::string file_path = find_relative_script_file(orig_file);
 
-    // Pre-resolve package directories to __load__.zeek so that every
-    // downstream consumer (plugin hooks, switch_to, @DIR, @FILENAME)
-    // sees the actual script path rather than the bare directory.
-    if ( ! file_path.empty() && zeek::util::is_dir(file_path.c_str()) ) {
-        auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
-        if ( zsp ) {
-            std::string norm = zeek::util::ZipScriptProvider::NormalizePath(file_path);
-            if ( zsp->HasDir(norm) ) {
-                std::string pkg = norm + "/__load__.zeek";
-                if ( zsp->HasFile(pkg) )
-                    file_path = file_path + "/__load__.zeek";
-            }
+    // Pre-resolve package directories to __load__.zeek when the directory
+    // lives inside a VFS provider (e.g. a ZIP archive) and does not exist
+    // on the real filesystem.  For on-disk directories the existing
+    // open_package() path handles the resolution, and changing file_path
+    // here would alter what the LoadFile plugin hook sees.
+    if ( ! file_path.empty() && ! std::filesystem::exists(file_path) && zeek::util::is_dir(file_path.c_str()) ) {
+        if ( zeek::vfs::vfs_mgr ) {
+            std::string pkg = file_path + "/__load__.zeek";
+            if ( zeek::vfs::vfs_mgr->HasFile(pkg) )
+                file_path = pkg;
         }
     }
 
@@ -854,37 +847,55 @@ static int load_files(const char* orig_file) {
             if ( file_path.empty() )
                 zeek::reporter->FatalError("can't find %s", orig_file);
 
-            if ( zeek::util::is_dir(file_path.c_str()) )
-                f = zeek::util::detail::open_package(file_path);
-            else
-                f = zeek::util::open_file(file_path);
+            // Try VFS for virtual files (e.g. ZIP archives) before fopen().
+            if ( zeek::vfs::vfs_mgr && ! std::filesystem::exists(file_path) ) {
+                auto vfs_result = zeek::vfs::vfs_mgr->ReadFile(file_path);
+                if ( vfs_result ) {
+                    // Use VFS identifier for dedup, content for parsing.
+                    rc.first = 1;
+                    rc.second = std::move(vfs_result->content);
 
-            if ( ! f )
-                zeek::reporter->FatalError("can't open %s", file_path.c_str());
-
-            // open_file() / open_package() modify file_path, so can only
-            // do this check after opening the files.
-            zeek::detail::ScannedFile sf(file_stack.length(), file_path);
-            if ( sf.AlreadyScanned() ) {
-                fclose(f);
-                return 0;
+                    zeek::detail::ScannedFile sf(file_stack.length(), file_path, false, false, true);
+                    if ( sf.AlreadyScanned() )
+                        return 0;
+                    zeek::detail::files_scanned.push_back(std::move(sf));
+                }
             }
 
-            // Mark the just opened file as scanned.
-            zeek::detail::files_scanned.push_back(std::move(sf));
+            // Fall back to filesystem if VFS didn't handle it.
+            if ( rc.first == -1 ) {
+                if ( zeek::util::is_dir(file_path.c_str()) )
+                    f = zeek::util::detail::open_package(file_path);
+                else
+                    f = zeek::util::open_file(file_path);
 
-            // If we get here, we've opened a FILE* pointing at an actual
-            // file, or a __load__.zeek file within a directory. Attempt
-            // to load any files ending with ".so" as plugin.
-            if ( file_path.ends_with(".so") ) {
-               // No need.
-               fclose(f);
+                if ( ! f )
+                    zeek::reporter->FatalError("can't open %s", file_path.c_str());
 
-               auto result = zeek::plugin_mgr->LoadDynamicPlugin(file_path);
-               if ( ! result )
-                   zeek::reporter->FatalError("failed to load plugin %s: %s",
-                                              file_path.c_str(), result.error().c_str());
-               return 0;
+                // open_file() / open_package() modify file_path, so can only
+                // do this check after opening the files.
+                zeek::detail::ScannedFile sf(file_stack.length(), file_path);
+                if ( sf.AlreadyScanned() ) {
+                    fclose(f);
+                    return 0;
+                }
+
+                // Mark the just opened file as scanned.
+                zeek::detail::files_scanned.push_back(std::move(sf));
+
+                // If we get here, we've opened a FILE* pointing at an actual
+                // file, or a __load__.zeek file within a directory. Attempt
+                // to load any files ending with ".so" as plugin.
+                if ( file_path.ends_with(".so") ) {
+                   // No need.
+                   fclose(f);
+
+                   auto result = zeek::plugin_mgr->LoadDynamicPlugin(file_path);
+                   if ( ! result )
+                       zeek::reporter->FatalError("failed to load plugin %s: %s",
+                                                  file_path.c_str(), result.error().c_str());
+                   return 0;
+                }
             }
         }
     }

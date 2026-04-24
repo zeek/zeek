@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include "zeek/ZipScriptProvider.h"
+#include "zeek/vfs/Manager.h"
 #include "zeek/zeek-config-paths.h"
 
 #ifdef HAVE_DARWIN
@@ -71,12 +71,8 @@ using namespace std;
 extern const char* proc_status_file;
 
 static bool can_read(const string& path) {
-    auto* zsp = zeek::util::ZipScriptProvider::GetInstance();
-    if ( zsp ) {
-        auto normalized = zeek::util::ZipScriptProvider::NormalizePath(path);
-        if ( zsp->HasFile(normalized) || zsp->HasDir(normalized) )
-            return true;
-    }
+    if ( zeek::vfs::vfs_mgr )
+        return zeek::vfs::vfs_mgr->CanRead(path);
     return access(path.c_str(), R_OK) == 0;
 }
 
@@ -1316,8 +1312,7 @@ const char* fmt(const char* format, ...) {
 }
 
 bool is_dir(const std::string& path) {
-    auto* zsp = ZipScriptProvider::GetInstance();
-    if ( zsp && zsp->HasDir(ZipScriptProvider::NormalizePath(path)) )
+    if ( vfs::vfs_mgr && vfs::vfs_mgr->HasDir(path) )
         return true;
 
     struct stat st;
@@ -1332,8 +1327,7 @@ bool is_dir(const std::string& path) {
 }
 
 bool is_file(const std::string& path) {
-    auto* zsp = ZipScriptProvider::GetInstance();
-    if ( zsp && zsp->HasFile(ZipScriptProvider::NormalizePath(path)) )
+    if ( vfs::vfs_mgr && vfs::vfs_mgr->HasFile(path) )
         return true;
 
     struct stat st;

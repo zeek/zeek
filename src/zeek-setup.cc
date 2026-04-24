@@ -71,11 +71,12 @@
 #ifdef HAVE_SPICY
 #include "zeek/spicy/manager.h"
 #endif
-#include "zeek/ZipScriptProvider.h"
 #include "zeek/storage/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
+#include "zeek/vfs/InMemoryZipVFS.h"
+#include "zeek/vfs/Manager.h"
 #include "zeek/zeekygen/Manager.h"
 
 extern "C" {
@@ -624,9 +625,13 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());
 
-    // Initialize ZIP script sources if any --load-zip options were given.
+    // Initialize the global VFS manager (provides filesystem access by default).
+    static auto vfs_manager_instance = std::make_unique<vfs::Manager>();
+    vfs::vfs_mgr = vfs_manager_instance.get();
+
+    // Register an InMemoryZipVFS provider if any --load-zip options were given.
     if ( ! options.zip_script_sources.empty() ) {
-        auto provider = std::make_unique<util::ZipScriptProvider>();
+        auto zip_vfs = std::make_unique<vfs::InMemoryZipVFS>();
 
         for ( const auto& spec : options.zip_script_sources ) {
             // Format: "path[:mount_root]"
@@ -670,11 +675,12 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             }
             fclose(f);
 
-            if ( ! provider->AddArchive(data.data(), data.size(), mount_root) )
+            if ( ! zip_vfs->AddArchive(data.data(), data.size(), mount_root) )
                 reporter->FatalError("invalid ZIP script archive: %s", zip_path.c_str());
         }
 
-        util::ZipScriptProvider::SetInstance(std::move(provider));
+        // Register with the VFS manager (priority 10 = before filesystem).
+        vfs::vfs_mgr->RegisterProvider(std::move(zip_vfs), 10);
     }
 
     if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() && options.script_options_to_set.empty() &&

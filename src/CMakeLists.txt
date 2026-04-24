@@ -253,7 +253,7 @@ add_subdirectory(fuzzers)
 
 find_package(Threads)
 
-# libzip for ZIP-based script loading (ZipScriptProvider).
+# libzip for ZIP-based script loading (InMemoryZipVFS).
 # Prefer pkg-config: the libzip CMake config imports tool targets (zipcmp etc.)
 # that may not be installed, causing configure failures on some distros.
 find_package(PkgConfig QUIET)
@@ -333,8 +333,9 @@ set(MAIN_SRCS
     module_util.cc
     zeek-affinity.cc
     zeek-setup.cc
-    ZipScriptProvider.cc
-    ZipScriptsPlugin.cc
+    vfs/FilesystemVFS.cc
+    vfs/Manager.cc
+    vfs/InMemoryZipVFS.cc
     Anon.cc
     Attr.cc
     Base64.cc
@@ -617,7 +618,7 @@ target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
 
-# Link libzip for ZipScriptProvider.
+# Link libzip for InMemoryZipVFS.
 if (libzip_FOUND)
     target_link_libraries(zeek_objs PRIVATE libzip::zip)
 elseif (LIBZIP_FOUND)

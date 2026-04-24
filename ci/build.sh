@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 set -e
 set -x
 
-# Ensure libzip is available (required for ZipScriptProvider).
+# Ensure libzip is available (required for InMemoryZipVFS).
 # Once CI images are rebuilt with updated Dockerfiles, this is a no-op.
 if ! pkg-config --exists libzip 2>/dev/null; then
     if command -v apt-get >/dev/null 2>&1; then

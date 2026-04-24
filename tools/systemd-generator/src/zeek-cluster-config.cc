@@ -9,6 +9,7 @@
 #include <optional>
 #include <regex>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -673,6 +674,29 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
 }
 
 std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
+    // First, construct the -W argument. Either it's a single number when
+    // there's only a single non-tagged interface, or it's in eth0:2,eth1:2,...
+    // form as to produce tagged worker names.
+    std::string worker_arg;
+    for ( const auto& iwc : interface_worker_configs ) {
+        // If there is an interface with an empty tag, there should only ver
+        // be a single interface and worker_arg not yet populated.
+        //
+        // If this throws, there must be some config validation error earlier.
+        if ( iwc.Tag().empty() ) {
+            if ( ! worker_arg.empty() || interface_worker_configs.size() != 1 )
+                throw std::logic_error("empty tag but worker_arg populated?");
+
+            worker_arg = std::to_string(iwc.Workers());
+            break;
+        }
+
+        if ( ! worker_arg.empty() )
+            worker_arg += ",";
+
+        worker_arg += (iwc.Tag() + ":" + std::to_string(iwc.Workers()));
+    }
+
     std::vector<std::string> cmd_args = {
         cluster_layout_generator.string(),
         "-L",
@@ -680,7 +704,7 @@ std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
         "-P",
         std::to_string(proxies),
         "-W",
-        std::to_string(Workers()),
+        worker_arg,
         "-p",
         std::to_string(port),
         "-a",

@@ -8,9 +8,6 @@ redef Cluster::nodes += {
     ["logger-1"] = [$node_type=Cluster::LOGGER, $ip=127.0.0.1, $p=27761/tcp, $manager="manager", $metrics_port=9992/tcp],
     ["proxy-1"] = [$node_type=Cluster::PROXY, $ip=127.0.0.1, $p=27762/tcp, $manager="manager", $metrics_port=9993/tcp],
     ["worker-1"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $manager="manager", $metrics_port=9994/tcp],
-    ["worker-2"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $manager="manager", $metrics_port=9995/tcp],
-    ["worker-3"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $manager="manager", $metrics_port=9996/tcp],
-    ["worker-4"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $manager="manager", $metrics_port=9997/tcp],
 };
 
 @load base/frameworks/telemetry/options

@@ -1,3 +1,11 @@
+9.0.0-dev.26 | 2026-04-24 16:10:24 -0700
+
+  * CI: Remove usage of FreeBSD latest ports tree (Tim Wojtulewicz, Corelight)
+
+    As of April 2026, the version of dnsmasq in both quarterly and latest are
+    the same again. On top of this, using latest is causing CI failures on
+    FreeBSD's side.
+
 9.0.0-dev.24 | 2026-04-24 16:09:57 -0700
 
   * Fix typos pre-commit failure (Tim Wojtulewicz, Corelight)

@@ -190,10 +190,12 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         // template unit created so that we can have per interface worker args and drop-in files
         // that affect all workers of a single interface. In a sectionless configuration, the tag
         // is empty and the name is reduced to zeek-worker@.service.
+        std::string worker_cluster_node = "worker";
         std::string worker_unit_prefix = "zeek-worker";
         std::string worker_unit_description = "Zeek Worker %i";
 
         if ( ! iwc.Tag().empty() ) {
+            worker_cluster_node = worker_cluster_node + "-" + iwc.Tag();
             worker_unit_prefix = worker_unit_prefix + "-" + iwc.Tag();
             worker_unit_description = worker_unit_description + " (" + iwc.Tag() + ")";
         }
@@ -207,6 +209,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         worker_interface_unit.SetExecStart(config.ZeekExe().string(),
                                            {"-i", "${INTERFACE}", systemd_generator_policy_scripts(), config.Args(),
                                             iwc.Args(), config.ClusterBackendArgs()});
+        worker_interface_unit.AddEnvironment("CLUSTER_NODE", worker_cluster_node + "-%i");
         worker_interface_unit.SetSyslogIdentifier(worker_unit_prefix + "-%i");
         worker_interface_unit.AddAfter(manager_unit.Name());
         worker_interface_unit.AddAfter(logger_unit.Name());
@@ -221,7 +224,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         // Overwrite the working directory
         worker_interface_unit.SetWorkingDirectory(iwc.MakeWorkingDirectory(config.SpoolDir(), "%i"));
         worker_interface_unit.AddReadWritePath(iwc.MakeWorkingDirectory(config.SpoolDir(), "%i"));
-
 
         worker_interface_unit.Write();
 
@@ -270,12 +272,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
             if ( auto numa_policy = iwc.NumaPolicy(); numa_policy )
                 unit.SetNumaPolicy(std::move(*numa_policy));
-
-            // For cluster node, we use the global_worker_index
-            // in the CLUSTER_NODE env because the cluster-layout-generator
-            // is not clever enough and I don't think it should as otherwise
-            // users might parse things out of the node name.
-            unit.AddEnvironment("CLUSTER_NODE", "worker-" + std::to_string(global_worker_index));
 
             // Write out all worker_env settings as Environment
             for ( const auto& env : iwc.Envs() ) {

@@ -11,6 +11,8 @@
 // -a <listen_address> -p <port> -m <metrics_port> [-o outfile]
 //
 #include <unistd.h>
+#include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -18,10 +20,23 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <regex>
 #include <string>
 #include <vector>
 
 namespace {
+
+int checked_strtoul(int opt, const char* v) {
+    const char* expected_end = v + std::strlen(v);
+    char* end;
+    auto r = std::strtoul(v, &end, 10);
+    if ( end != expected_end ) {
+        std::fprintf(stderr, "invalid numeric value for %c: %s\n", opt, v);
+        std::exit(1);
+    }
+
+    return r;
+}
 
 /**
  * Default is a small cluster for quick testing.
@@ -29,7 +44,7 @@ namespace {
 struct ClusterLayoutOptions {
     int loggers = 1;
     int proxies = 1;
-    int workers = 4;
+    std::string workers = "1";
     int port = 27760;
     std::string address = "127.0.0.1";
     int metrics_port = 9991;
@@ -56,16 +71,15 @@ public:
         lines.emplace_back("");
         lines.emplace_back("redef Cluster::nodes += {");
 
-        AddNode("manager", 0, "MANAGER", opts.address, opts.NextMetricsPort(), opts.NextPort());
+        AddNode("manager", "MANAGER", opts.address, opts.NextMetricsPort(), opts.NextPort());
 
         for ( int i = 1; i <= opts.loggers; i++ )
-            AddNode("logger", i, "LOGGER", opts.address, opts.NextMetricsPort(), opts.NextPort());
+            AddNode("logger-" + std::to_string(i), "LOGGER", opts.address, opts.NextMetricsPort(), opts.NextPort());
 
         for ( int i = 1; i <= opts.proxies; i++ )
-            AddNode("proxy", i, "PROXY", opts.address, opts.NextMetricsPort(), opts.NextPort());
+            AddNode("proxy-" + std::to_string(i), "PROXY", opts.address, opts.NextMetricsPort(), opts.NextPort());
 
-        for ( int i = 1; i <= opts.workers; i++ )
-            AddNode("worker", i, "WORKER", opts.address, opts.NextMetricsPort());
+        AddWorkers(opts);
 
         lines.emplace_back("};");
 
@@ -75,11 +89,8 @@ public:
         lines.emplace_back("redef Telemetry::metrics_port = Cluster::local_node_metrics_port();");
     }
 
-    void AddNode(const std::string& base_name, int node_idx, const std::string& type, const std::string& ip,
+    void AddNode(const std::string& name, const std::string& type, const std::string& ip,
                  const std::string& metrics_port = "", const std::string& port = "") {
-        std::string name = base_name;
-        if ( node_idx > 0 )
-            name += "-" + std::to_string(node_idx);
         auto s = "    [\"" + name + "\"] = [$node_type=Cluster::" + type + ", $ip=" + ip;
 
         if ( ! port.empty() )
@@ -93,6 +104,46 @@ public:
 
         s += "],";
         lines.push_back(std::move(s));
+    }
+
+    /**
+     * Workers is either just the number of workers, or a "tag1:worker1 tag2:workers2 tag3:workers3"
+     * that allows to have worker-{tag}-{index} style names.
+     */
+    void AddWorkers(ClusterLayoutOptions& opts) {
+        if ( std::ranges::all_of(opts.workers.begin(), opts.workers.end(), [](auto c) { return std::isdigit(c); }) ) {
+            int workers = checked_strtoul('W', opts.workers.c_str());
+            for ( int i = 1; i <= workers; i++ )
+                AddNode("worker-" + std::to_string(i), "WORKER", opts.address, opts.NextMetricsPort());
+        }
+        else {
+            // Iterate through the eth1:8,eth2:32,eth3:4 range
+            // of interface tag followed by number of workers and
+            // add workers for each of them.
+            std::string workers_optarg = opts.workers;
+
+            // Allow comma or space separated list.
+            std::replace(workers_optarg.begin(), workers_optarg.end(), ',', ' ');
+
+            std::cmatch cmatch;
+            std::regex re_tag_workers("\\s*([-_0-9a-z]+):([0-9]+)\\s*");
+            const char* p = workers_optarg.c_str();
+            while ( std::regex_search(p, cmatch, re_tag_workers) ) {
+                std::string tag = cmatch[1].str();
+                std::string nstr = cmatch[2].str();
+                int n = checked_strtoul('W', nstr.c_str());
+
+                for ( int i = 1; i <= n; i++ )
+                    AddNode("worker-" + tag + "-" + std::to_string(i), "WORKER", opts.address, opts.NextMetricsPort());
+
+                p += cmatch.length();
+            }
+
+            if ( *p ) {
+                std::fprintf(stderr, "-W invalid: '%s'\n", opts.workers.c_str());
+                std::exit(1);
+            }
+        }
     }
 
     void Print(std::ostream& out) {
@@ -111,18 +162,6 @@ void usage(const char* prog) {
             prog);
 }
 
-int checked_strtoul(int opt, const char* v) {
-    const char* expected_end = v + std::strlen(v);
-    char* end;
-    auto r = std::strtoul(v, &end, 10);
-    if ( end != expected_end ) {
-        std::fprintf(stderr, "invalid numeric value for %c: %s\n", opt, v);
-        std::exit(1);
-    }
-
-    return r;
-}
-
 } // namespace
 
 int main(int argc, char* argv[]) {
@@ -138,7 +177,7 @@ int main(int argc, char* argv[]) {
         switch ( c ) {
             case 'L': opts.loggers = checked_strtoul(c, optarg); break;
             case 'P': opts.proxies = checked_strtoul(c, optarg); break;
-            case 'W': opts.workers = checked_strtoul(c, optarg); break;
+            case 'W': opts.workers = optarg; break;
             case 'a': opts.address = optarg; break;
             case 'p': opts.port = checked_strtoul(c, optarg); break;
             case 'm': opts.metrics_port = checked_strtoul(c, optarg); break;

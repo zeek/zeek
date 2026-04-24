@@ -51,10 +51,10 @@ base_dir = /opt/zeek
 base_dir = /opt/zeek
 
 [interface eth1]
-interface = netmap::${interface_tag}}${interface_worker_index0}
+interface = netmap::eth1}${global_worker_index0}
 workers = 3
 
 [interface eth2]
-interface = netmap::${interface_tag}}${interface_worker_index0}
+interface = netmap::eth2}${global_worker_index0}
 workers = 3
 # @TEST-END-FILE

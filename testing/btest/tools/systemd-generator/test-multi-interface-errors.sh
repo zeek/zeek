@@ -97,7 +97,7 @@ workers = 2
 
 # @TEST-START-NEXT
 # Bad interface tag
-[interface eth-eth]
+[interface ETH]
 interface = eth0
 workers = 2
 

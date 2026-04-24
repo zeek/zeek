@@ -17,12 +17,14 @@
 [interface eth0]
 interface = eth0
 workers = 2
-worker_env = TEST_TEMPLATE=worker-${interface_tag}-${worker_index0}-${worker_index}
-worker_env = TEST_GLOBAL_WORKER_INDICES=${global_worker_index0}.${global_worker_index}
+worker_env = THIS_IS_OK=42
+  TEST_TEMPLATE=worker-${interface_tag}-${worker_index0}-${worker_index}
+  TEST_GLOBAL_WORKER_INDICES=${global_worker_index0}.${global_worker_index}
 
 [interface eth1]
 interface = eth1
 workers = 2
-worker_env = TEST_TEMPLATE=worker-${interface_tag}-${worker_index0}-${worker_index}
-worker_env = TEST_GLOBAL_WORKER_INDICES=${global_worker_index0}.${global_worker_index}
+worker_env =
+  TEST_TEMPLATE=worker-${interface_tag}-${worker_index0}-${worker_index}
+  TEST_GLOBAL_WORKER_INDICES=${global_worker_index0}.${global_worker_index}
 # @TEST-END-FILE

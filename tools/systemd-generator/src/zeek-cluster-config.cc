@@ -69,6 +69,14 @@ std::vector<std::string_view> split(std::string_view v, char delim) {
  * list of sections. Zeek's config format either requires all options to exist
  * in the unnamed section, or only in sections, but not mixed.
  *
+ * This parser supports multi-value options by recognizing continuation lines
+ * and inserting every line as a separate value to support things like environment
+ * variables.
+ *
+ * worker_env =
+ *   key1=val1
+ *   key2=val2
+ *
  * @param content The full content of zeek.conf as a string.
  *
  * @return Parsed sections and a vector of errors. If any errors occurred, do not work with the sections.
@@ -76,19 +84,21 @@ std::vector<std::string_view> split(std::string_view v, char delim) {
 std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const std::string& content) {
     std::vector<std::string> errors;
     std::set<std::string> section_names;
-    std::map<std::string, Option*> options;
+    std::set<std::string> option_names;
     std::vector<Section> sections;
 
     // Default unnamed section.
     Section current_section = Section();
+    Option* current_option = nullptr;
 
-    std::regex re_ignore("^(#.*|)$");       // commented or empty line
-    std::regex re_section("^\\[(.+)\\]$");  // [<section_name>]
-    std::regex re_option("^([^=]+)=(.*)$"); // key-value with = inbetween, value optional
+    std::regex re_ignore("^(#.*|)$");                // commented or empty line
+    std::regex re_section("^\\[(.+)\\]$");           // [<section_name>]
+    std::regex re_option("^([_0-9a-z][^=]*)=(.*)$"); // key-value with = inbetween, value optional
+    std::regex re_option_cont("^\\s+([^\\s]+.*)$");  // option continuation starts with space
 
     for ( const auto line_sv : split(content, '\n') ) {
         auto line = std::string(line_sv.data(), line_sv.size());
-        trim(line);
+        rtrim(line);
 
         std::smatch smatch;
 
@@ -109,7 +119,8 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
             }
 
             current_section = Section(std::move(section_name));
-            options.clear();
+            current_option = nullptr;
+            option_names.clear();
         }
         else if ( std::regex_search(line, smatch, re_option) ) {
             std::string key = smatch[1];
@@ -117,13 +128,30 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
             trim(key);
             trim(value);
 
-            if ( options.contains(key) ) {
-                options[key]->AddValue(value);
+            if ( option_names.contains(key) ) {
+                std::string message = "duplicate option '" + key + "'";
+                if ( ! current_section.Name().empty() )
+                    message = message + " in section '" + current_section.Name() + "'";
+
+                errors.push_back(std::move(message));
+                continue;
             }
             else {
-                Option* option = current_section.AddOption({std::move(key), std::move(value)});
-                options[key] = option;
+                option_names.insert(key);
+                current_option = current_section.AddOption({std::move(key), std::move(value)});
             }
+        }
+        else if ( std::regex_search(line, smatch, re_option_cont) ) {
+            if ( ! current_option ) {
+                std::string message = "unexpected continuation line '" + line + "'";
+                if ( ! current_section.Name().empty() )
+                    message = message + " in section '" + current_section.Name() + "'";
+
+                errors.push_back(std::move(message));
+                continue;
+            }
+
+            current_option->AddValue(smatch[1]);
         }
         else {
             std::string message = "invalid line '" + line + "'";
@@ -350,13 +378,13 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
     auto section_name = section.Name();
     InterfaceWorkerConfig iwc;
 
-    std::regex section_tag_re("interface ([_a-z0-9]+)$");
+    std::regex section_tag_re("interface ([-_a-z0-9]+)$");
 
     if ( section_name.starts_with("interface") ) {
         std::smatch smatch;
 
         if ( ! std::regex_search(section_name, smatch, section_tag_re) )
-            return {iwc, "invalid interface tag in '" + section_name + "' (must match /interface [_a-z0-9]+/)"};
+            return {iwc, "invalid interface tag in '" + section_name + "' (must match /interface [-_a-z0-9]+/)"};
 
         // Re-initialize iwc with the appropriate tag.
         iwc = InterfaceWorkerConfig(smatch[1]);
@@ -370,8 +398,10 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         std::string key = option.Key();
         tolower(key);
 
+        // Only worker_env support multi-value
         if ( key != "worker_env" && option.Values().size() > 1 )
-            return {iwc, "duplicate option '" + key + "' used"};
+            return {iwc, "multiple values for '" + key + "' given"};
+
 
         // When the next interface option is reached, stop interpreting any keys.
         if ( key == "interface" ) {
@@ -388,15 +418,19 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
             iwc.args = option.Value();
         }
         else if ( key == "worker_env" ) {
-            for ( const auto& env : option.Values() ) {
-                auto idx = option.Value().find('=');
+            // Split all worker_env lines into key-value pairs and store
+            // them in env.
+            for ( const auto& value : option.Values() ) {
+                if ( value.empty() )
+                    continue;
+
+                auto idx = value.find('=');
                 if ( idx == std::string::npos )
-                    return {iwc, "missing equals in worker_env '" + key + "' = '" + env + "'"};
+                    return {iwc, "missing equals in worker_env '" + key + "' = '" + value + "'"};
 
-                std::string name = option.Value().substr(0, idx);
-                std::string value = option.Value().substr(idx + 1);
-
-                iwc.envs.push_back({std::move(name), std::move(value)});
+                std::string k = value.substr(0, idx);
+                std::string v = value.substr(idx + 1);
+                iwc.envs.push_back({std::move(k), std::move(v)});
             }
         }
         else if ( key == "workers_cpu_list" ) {
@@ -467,8 +501,6 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
 
     // Read the whole config file into memory.
     auto content = std::string{std::istreambuf_iterator<char>(ifs), {}};
-
-    // Parse ini-like.
     auto [sections, errors] = parse_ini_like(content);
 
     if ( ! errors.empty() ) {

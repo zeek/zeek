@@ -67,8 +67,8 @@ private:
 /**
  * A single option.
  *
- * Most options have just a single value, but some have multiple
- * so we have accessors for either.
+ * Most options have just a single value, but options can span multiple
+ * lines via continuation. Every line is a dedicated value.
  */
 struct Option {
 public:

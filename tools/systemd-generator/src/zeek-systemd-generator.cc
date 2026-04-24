@@ -234,7 +234,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(iwc.FullWorkerName(index)));
 
             auto name = worker_unit_prefix + "@" + std::to_string(index) + ".service";
-            ensure_symlink("../" + worker_unit_prefix, zeek_target_wants / name);
+            ensure_symlink("../" + worker_template_unit, zeek_target_wants / name);
 
             // Create drop-in .d directories for worker instance to define their
             // INTERFACE and CPUAffinity settings.

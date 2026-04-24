@@ -29,7 +29,7 @@ proxies = 5
 base_dir = /opt/zeek
 
 [interface eth0]
-interface = netmap::eth0}${interface_worker_index0}
+interface = netmap::eth0}${worker_index0}
 workers = 2
 workers_cpu_list = 2,3
 worker_nice = -1

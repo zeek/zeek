@@ -1,3 +1,7 @@
+9.0.0-dev.24 | 2026-04-24 16:09:57 -0700
+
+  * Fix typos pre-commit failure (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.21 | 2026-04-23 13:48:36 -0700
 
   * Make LDAP recursion tests more robust (Benjamin Bannier, Corelight)

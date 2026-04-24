@@ -15,7 +15,8 @@ The generator is installed at ``<PREFIX>/bin/zeek-systemd-generator``.
 .. note::
 
    The ``zeek.conf`` file's focus is currently an opinionated single node multi-interface
-   Zeek deployment. Multi-node support is planned for the future.
+   Zeek deployment tailored for appliance or container use cases. It presents an
+   alternative to a :ref:`ZeekControl <cluster-configuration>` managed deployment.
 
 
 Installation
@@ -39,8 +40,9 @@ AF_PACKET for flow-balancing on Linux, the following configuration is sufficient
     interface = af_packet::eth1
     workers = 2
 
-This is also termed the section-less configuration style. See the :ref:`systemd_multiple_interfaces`
-section for the INI configuration style.
+This is termed section-less configuration style. See the :ref:`systemd_multiple_interfaces`
+section for a more verbose INI configuration style that you should use when
+your deployment is more complex.
 
 After running ``systemctl daemon-reload``, the resulting unit files are
 located in the ``/run/systemd/generator`` directory where they can be inspected:
@@ -159,6 +161,7 @@ Inspecting coredumps is then possible with ``coredumpctl list``, ``coredumpctl d
 
 .. _systemd_multiple_interfaces:
 
+
 Multiple Interfaces
 ===================
 
@@ -196,6 +199,16 @@ to pass an explicit ``AF_Packet::fanout_id`` setting via ``worker_args``.
 This configuration also pins workers sequentially onto CPUs 4 through 11
 and enables jemalloc profiling for all workers listening on eth2.
 
+You will find that the worker unit names include the "interface tags" when
+configured like this. I.e., instead of ``zeek-worker@1``, the first worker
+for each interface is ``zeek-worker-eth1@1`` and ``zeek-worker-eth2@2``.
+The ``CLUSTER_NODE`` and :zeek:see:`Cluster::node` values change accordingly:
+``worker-1`` is ``worker-eth1-1`` and ``worker-eth2-1``. You can see these
+values in the generated ``cluster-layout.zeek`` file.
+
+
+Interface Templating
+====================
 
 The ``interface`` option supports templating. For example, selecting a
 worker-specific Napatech stream for the interface looks as follows:
@@ -217,9 +230,10 @@ also be useful to select a specific NETMAP pipe per worker.
     interface = netmap::eth1{${worker_index0}
     workers = 32
 
+
 Summary
 =======
 
 This was a quick intro how to deploy Zeek using ``zeek.conf`` and systemd.
 The default ``zeek.conf`` file has extensive documentation and details about
-the options used here.
+the options available.

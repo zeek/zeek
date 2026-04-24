@@ -76,7 +76,7 @@ std::vector<std::string_view> split(std::string_view v, char delim) {
 std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const std::string& content) {
     std::vector<std::string> errors;
     std::set<std::string> section_names;
-    std::set<std::string> option_names;
+    std::map<std::string, Option*> options;
     std::vector<Section> sections;
 
     // Default unnamed section.
@@ -109,7 +109,7 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
             }
 
             current_section = Section(std::move(section_name));
-            option_names.clear();
+            options.clear();
         }
         else if ( std::regex_search(line, smatch, re_option) ) {
             std::string key = smatch[1];
@@ -117,17 +117,13 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
             trim(key);
             trim(value);
 
-            if ( option_names.contains(key) ) {
-                std::string message = "duplicate option '" + key + "'";
-                if ( ! current_section.Name().empty() )
-                    message = message + " in section '" + current_section.Name() + "'";
-
-                errors.push_back(std::move(message));
-                continue;
+            if ( options.contains(key) ) {
+                options[key]->AddValue(value);
             }
-
-            option_names.insert(key);
-            current_section.AddOption({std::move(key), std::move(value)});
+            else {
+                Option* option = current_section.AddOption({std::move(key), std::move(value)});
+                options[key] = option;
+            }
         }
         else {
             std::string message = "invalid line '" + line + "'";
@@ -374,6 +370,9 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         std::string key = option.Key();
         tolower(key);
 
+        if ( key != "worker_env" && option.Values().size() > 1 )
+            return {iwc, "duplicate option '" + key + "' used"};
+
         // When the next interface option is reached, stop interpreting any keys.
         if ( key == "interface" ) {
             iwc.interface = option.Value();
@@ -387,6 +386,18 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         }
         else if ( key == "worker_args" ) {
             iwc.args = option.Value();
+        }
+        else if ( key == "worker_env" ) {
+            for ( const auto& env : option.Values() ) {
+                auto idx = option.Value().find('=');
+                if ( idx == std::string::npos )
+                    return {iwc, "missing equals in worker_env '" + key + "' = '" + env + "'"};
+
+                std::string name = option.Value().substr(0, idx);
+                std::string value = option.Value().substr(idx + 1);
+
+                iwc.envs.push_back({std::move(name), std::move(value)});
+            }
         }
         else if ( key == "workers_cpu_list" ) {
             iwc.cpu_list = CpuList(option.Value());

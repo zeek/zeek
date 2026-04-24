@@ -244,14 +244,13 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
             // Setup templating variables for the interface.
             std::map<std::string, std::string> vars = {
-                {"worker_index", std::to_string(global_worker_index)},
-                {"worker_index0", std::to_string(global_worker_index - 1)},
-                {"interface_worker_index", std::to_string(index)},
-                {"interface_worker_index0", std::to_string(index - 1)},
+                {"worker_index", std::to_string(index)},
+                {"worker_index0", std::to_string(index - 1)},
+                {"global_worker_index", std::to_string(global_worker_index)},
+                {"global_worker_index0", std::to_string(global_worker_index - 1)},
             };
 
             std::string cpu = iwc.AffinityFor(global_worker_index);
-
             if ( ! cpu.empty() )
                 vars["worker_cpu"] = cpu;
 
@@ -277,6 +276,17 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             // is not clever enough and I don't think it should as otherwise
             // users might parse things out of the node name.
             unit.AddEnvironment("CLUSTER_NODE", "worker-" + std::to_string(global_worker_index));
+
+            // Write out all worker_env settings as Environment
+            for ( const auto& env : iwc.Envs() ) {
+                auto value = config.SubstituteVars(env.second, vars);
+                if ( ! value ) {
+                    std::fprintf(stderr, "worker_env substitution for '%s' failed of '%s'\n", env.second.c_str(),
+                                 env.first.c_str());
+                    std::exit(1);
+                }
+                unit.AddEnvironment(env.first, std::move(*value));
+            }
 
             unit.WriteDropIn();
         }

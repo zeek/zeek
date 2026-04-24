@@ -66,17 +66,24 @@ private:
 
 /**
  * A single option.
+ *
+ * Most options have just a single value, but some have multiple
+ * so we have accessors for either.
  */
 struct Option {
 public:
-    Option(std::string key, std::string value) : key(std::move(key)), value(std::move(value)) {}
+    Option(std::string key, std::string value) : key(std::move(key)) { values.push_back(std::move(value)); }
 
     const std::string& Key() const { return key; }
-    const std::string& Value() const { return value; }
+    const std::string& Value() const { return values[0]; }
+
+    void AddValue(std::string value) { values.push_back(std::move(value)); }
+
+    std::span<const std::string> Values() const { return values; }
 
 private:
     std::string key;
-    std::string value;
+    std::vector<std::string> values;
 };
 
 /**
@@ -90,7 +97,15 @@ public:
     const std::string& Name() const { return name; }
     std::span<const Option> Options() const { return {options.begin(), options.end()}; }
 
-    void AddOption(Option o) { options.push_back(std::move(o)); }
+    /**
+     * Add an option to this section.
+     *
+     * @return Pointer to the Option instance within the vector.
+     */
+    Option* AddOption(Option o) {
+        options.push_back(std::move(o));
+        return &(*std::prev(options.end()));
+    }
 
 private:
     std::string name;
@@ -171,12 +186,15 @@ public:
 
     std::optional<const std::string> NumaPolicy() const { return numa_policy; }
 
+    const std::span<const std::pair<const std::string, const std::string>> Envs() const { return envs; }
+
 private:
     std::string tag;
     std::string interface;
     int workers = 0;
 
     std::string args; // worker specific args to append
+    std::vector<std::pair<const std::string, const std::string>> envs;
 
     std::optional<int> nice;
     std::string memory_max;

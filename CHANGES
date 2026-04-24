@@ -1,3 +1,7 @@
+9.0.0-dev.27 | 2026-04-24 16:12:13 -0700
+
+  * Update zeek-testing commit hash to master commit (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.26 | 2026-04-24 16:10:24 -0700
 
   * CI: Remove usage of FreeBSD latest ports tree (Tim Wojtulewicz, Corelight)

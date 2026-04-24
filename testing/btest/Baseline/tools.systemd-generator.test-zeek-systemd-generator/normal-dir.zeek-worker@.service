@@ -23,6 +23,7 @@ CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
+Environment=CLUSTER_NODE=worker-%i
 ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/systemd-generator ignore_checksums=T  the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ
 Slice=zeek-workers.slice
 Restart=always

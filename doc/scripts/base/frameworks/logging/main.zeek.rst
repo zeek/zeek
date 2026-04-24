@@ -1023,6 +1023,11 @@ Types
          (present if :doc:`/scripts/policy/protocols/conn/known-services.zeek` is loaded)
 
 
+      .. zeek:enum:: Conn::MULTICAST_PARTICIPANTS_LOG Log::ID
+
+         (present if :doc:`/scripts/policy/protocols/conn/multicast-participants.zeek` is loaded)
+
+
       .. zeek:enum:: Known::MODBUS_LOG Log::ID
 
          (present if :doc:`/scripts/policy/protocols/modbus/known-masters-slaves.zeek` is loaded)

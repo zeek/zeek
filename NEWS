@@ -47,6 +47,10 @@ New Functionality
                 Files::FILES_ANALYZER_ZIP
         };
 
+- Added a policy script ``policy/protocols/conn/multicast-participants.zeek``. This script writes a
+  new ``multicast_participants.log`` that contains information about multicast connections with data
+  about the participating hosts collected from IGMP.
+
 Changed Functionality
 ---------------------
 

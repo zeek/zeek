@@ -11410,6 +11410,11 @@ Types
       (present if :doc:`/scripts/policy/protocols/conn/known-services.zeek` is loaded)
 
 
+   .. zeek:field:: multicast_srcs :zeek:type:`set` [:zeek:type:`addr`] :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/conn/multicast-participants.zeek` is loaded)
+
+
    .. zeek:field:: speculative_service :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/protocols/conn/speculative-service.zeek` is loaded)

@@ -374,13 +374,6 @@ Types
       The number of bytes extracted to disk.
 
 
-   .. zeek:field:: ftime :zeek:type:`time` :zeek:attr:`&optional` :zeek:attr:`&log`
-
-      (present if :doc:`/scripts/base/files/zip/main.zeek` is loaded)
-
-      File timestamp
-
-
    .. zeek:field:: entropy :zeek:type:`double` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/frameworks/files/entropy-test-all-files.zeek` is loaded)

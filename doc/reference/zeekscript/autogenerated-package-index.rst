@@ -402,6 +402,9 @@
 :doc:`builtin-plugins/Zeek_JavaScript </scripts/builtin-plugins/Zeek_JavaScript/index>`
 
 
+:doc:`builtin-plugins/Zeek_PacketSourceUDP </scripts/builtin-plugins/Zeek_PacketSourceUDP/index>`
+
+
 :doc:`zeekygen </scripts/zeekygen/index>`
 
    This package is loaded during the process which automatically generates

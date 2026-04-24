@@ -25,7 +25,7 @@ File Analyzers
 
       .. zeek:enum:: Files::ANALYZER_PE Files::Tag
 
-      .. zeek:enum:: Files::ANALYZER_SPICY_ZIP Files::Tag
+      .. zeek:enum:: Files::ANALYZER_ZIP Files::Tag
 
       .. zeek:enum:: Files::ANALYZER_OCSP_REPLY Files::Tag
 

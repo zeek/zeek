@@ -568,3 +568,6 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_JavaScript.zeekjs.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_PacketSourceUDP.packet_source_udp.bif.zeek`
+
+

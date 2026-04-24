@@ -369,7 +369,7 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_IGMP AllAnalyzers::Tag
 
-      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_SPICY_ZIP AllAnalyzers::Tag
+      .. zeek:enum:: AllAnalyzers::FILES_ANALYZER_ZIP AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SSH AllAnalyzers::Tag
 
@@ -11575,7 +11575,7 @@ Events
    :param command: The AUTH command sent to the server and its data.
 
 .. zeek:id:: Redis::hello_command
-   :source-code: base/protocols/redis/main.zeek 148 155
+   :source-code: base/protocols/redis/main.zeek 152 159
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::HelloCommand`)
 
@@ -11588,7 +11588,7 @@ Events
    :param command: The HELLO command sent to the server and its data.
 
 .. zeek:id:: Redis::command
-   :source-code: base/protocols/redis/main.zeek 157 236
+   :source-code: base/protocols/redis/main.zeek 161 240
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cmd: :zeek:type:`Redis::Command`)
 
@@ -11601,7 +11601,7 @@ Events
    :param cmd: The command sent to the server.
 
 .. zeek:id:: Redis::reply
-   :source-code: base/protocols/redis/main.zeek 292 321
+   :source-code: base/protocols/redis/main.zeek 296 325
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 
@@ -11619,7 +11619,7 @@ Events
    .. zeek:see:: Redis::server_push
 
 .. zeek:id:: Redis::error
-   :source-code: base/protocols/redis/main.zeek 323 335
+   :source-code: base/protocols/redis/main.zeek 327 339
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 

@@ -18,9 +18,10 @@ Runtime Options
 
 Redefinable Options
 ###################
-============================================================= ================================
-:zeek:id:`Redis::ports`: :zeek:type:`set` :zeek:attr:`&redef` The ports to register Redis for.
-============================================================= ================================
+======================================================================== ================================================================
+:zeek:id:`Redis::max_value_size`: :zeek:type:`count` :zeek:attr:`&redef` The maximum size of any string fields within the Redis analyzer.
+:zeek:id:`Redis::ports`: :zeek:type:`set` :zeek:attr:`&redef`            The ports to register Redis for.
+======================================================================== ================================================================
 
 State Variables
 ###############
@@ -76,6 +77,16 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: Redis::max_value_size
+   :source-code: base/protocols/redis/main.zeek 91 91
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``250``
+
+   The maximum size of any string fields within the Redis analyzer. Does not affect
+   how much data is parsed, only how much is provided to events via the analyzer.
+
 .. zeek:id:: Redis::ports
    :source-code: base/protocols/redis/main.zeek 13 13
 
@@ -264,7 +275,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Redis::finalize_redis
-   :source-code: base/protocols/redis/main.zeek 337 362
+   :source-code: base/protocols/redis/main.zeek 341 366
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

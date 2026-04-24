@@ -295,6 +295,7 @@
    base/bif/plugins/Zeek_NoneWriter.none.bif.zeek </scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek>
    base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek </scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek>
    base/bif/plugins/Zeek_JavaScript.zeekjs.bif.zeek </scripts/base/bif/plugins/Zeek_JavaScript.zeekjs.bif.zeek>
+   base/bif/plugins/Zeek_PacketSourceUDP.packet_source_udp.bif.zeek </scripts/base/bif/plugins/Zeek_PacketSourceUDP.packet_source_udp.bif.zeek>
    base/frameworks/spicy/init-framework.zeek </scripts/base/frameworks/spicy/init-framework.zeek>
    base/init-default.zeek </scripts/base/init-default.zeek>
    base/utils/active-http.zeek </scripts/base/utils/active-http.zeek>
@@ -521,6 +522,7 @@
    base/misc/installation.zeek </scripts/base/misc/installation.zeek>
    builtin-plugins/__load__.zeek </scripts/builtin-plugins/__load__.zeek>
    builtin-plugins/Zeek_JavaScript/__load__.zeek </scripts/builtin-plugins/Zeek_JavaScript/__load__.zeek>
+   builtin-plugins/Zeek_PacketSourceUDP/__load__.zeek </scripts/builtin-plugins/Zeek_PacketSourceUDP/__load__.zeek>
    zeekygen/__load__.zeek </scripts/zeekygen/__load__.zeek>
    test-all-policy.zeek </scripts/test-all-policy.zeek>
    policy/frameworks/analyzer/debug-logging.zeek </scripts/policy/frameworks/analyzer/debug-logging.zeek>

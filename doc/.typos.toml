@@ -22,6 +22,7 @@ extend-ignore-re = [
     "Smoot",
 
     "SIEM",
+    "oll_interval", # in Zeek udp packet source docs
 ]
 
 extend-ignore-identifiers-re = [

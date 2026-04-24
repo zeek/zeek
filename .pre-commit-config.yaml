@@ -33,6 +33,7 @@ repos:
   hooks:
     - id: shfmt
       args: ["-w", "-i", "4", "-ci"]
+      exclude: '^testing/btest/tools/systemd-generator/test-.*env.sh'
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.8

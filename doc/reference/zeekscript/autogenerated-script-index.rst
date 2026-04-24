@@ -612,6 +612,7 @@
    policy/protocols/conn/known-hosts.zeek </scripts/policy/protocols/conn/known-hosts.zeek>
    policy/protocols/conn/known-services.zeek </scripts/policy/protocols/conn/known-services.zeek>
    policy/protocols/conn/mac-logging.zeek </scripts/policy/protocols/conn/mac-logging.zeek>
+   policy/protocols/conn/multicast-participants.zeek </scripts/policy/protocols/conn/multicast-participants.zeek>
    policy/protocols/conn/vlan-logging.zeek </scripts/policy/protocols/conn/vlan-logging.zeek>
    policy/protocols/conn/pppoe-session-id-logging.zeek </scripts/policy/protocols/conn/pppoe-session-id-logging.zeek>
    policy/protocols/conn/weirds.zeek </scripts/policy/protocols/conn/weirds.zeek>

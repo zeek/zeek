@@ -13,7 +13,6 @@ dns
 files
 ftp
 http
-igmp_conn
 intel
 irc
 kerberos
@@ -29,6 +28,7 @@ modbus_register_change
 mqtt_connect
 mqtt_publish
 mqtt_subscribe
+multicast_participants
 mysql
 netcontrol
 netcontrol_catch_release

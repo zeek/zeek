@@ -1052,7 +1052,19 @@ hilti::rt::String rt::file_begin(const hilti::rt::Optional<hilti::rt::String>& m
         mime_type ? hilti::rt::Optional<std::string>(std::string(*mime_type)) : hilti::rt::Optional<std::string>();
 
     // Feed an empty chunk into the analysis to force creating the file state inside Zeek.
-    _data_in("", 0, {}, {});
+    // When running in a file analyzer context, use the string-based DataIn overload so that
+    // the file is created with the correct source name before the file_new event fires.
+    // Without this, the source defaults to "<error>" (from GetComponentName with an invalid
+    // tag), which contains characters illegal in Windows file paths and causes extraction to
+    // fail there.
+    if ( auto f = cookie->file ) {
+        auto source = file_mgr->GetComponentName(f->analyzer->Tag());
+        auto mime = fstate->mime_type ? *fstate->mime_type : std::string();
+        file_mgr->DataIn(reinterpret_cast<const u_char*>(""), static_cast<uint64_t>(0), fstate->fid, source, mime);
+    }
+    else {
+        _data_in("", 0, {}, {});
+    }
 
     auto file = file_mgr->LookupFile(fstate->fid);
     assert(file); // passing in empty data ensures that this is now available
@@ -1061,7 +1073,8 @@ hilti::rt::String rt::file_begin(const hilti::rt::Optional<hilti::rt::String>& m
         // We need to initialize some fa_info fields ourselves that would
         // normally be inferred from the connection.
 
-        // Set the source to the current file analyzer.
+        // Source is already set correctly via the string-based DataIn call above,
+        // but we keep this for robustness.
         file->SetSource(file_mgr->GetComponentName(f->analyzer->Tag()));
 
         // There are some fields inside the new fa_info record that we want to

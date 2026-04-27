@@ -289,6 +289,16 @@ bool detail::BackendHandleVal::DoUnserializeData(BrokerDataView) {
     return false;
 }
 
+ListValPtr detail::BackendHandleVal::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool detail::BackendHandleVal::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
+}
+
 namespace detail {
 
 zeek::expected<storage::detail::BackendHandleVal*, OperationResult> BackendHandleVal::CastFromAny(Val* handle) {

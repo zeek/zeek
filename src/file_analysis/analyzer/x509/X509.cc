@@ -511,6 +511,21 @@ std::optional<BrokerData> X509Val::DoSerializeData() const {
     return std::move(result);
 }
 
+ListValPtr X509Val::DoToListVal() const {
+    unsigned char* buf = nullptr;
+    int length = i2d_X509(certificate, &buf);
+
+    if ( length < 0 )
+        return nullptr;
+
+    auto sv = make_intrusive<StringVal>(length, reinterpret_cast<const char*>(buf));
+    auto lv = make_intrusive<ListVal>(TYPE_STRING);
+    lv->Append(std::move(sv));
+
+    OPENSSL_free(buf);
+    return lv;
+}
+
 bool X509Val::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsString() )
         return false;
@@ -519,6 +534,16 @@ bool X509Val::DoUnserializeData(BrokerDataView data) {
 
     auto opensslbuf = reinterpret_cast<const unsigned char*>(s.data());
     certificate = d2i_X509(nullptr, &opensslbuf, s.size());
+    return certificate != nullptr;
+}
+
+bool X509Val::DoFromListVal(const ListVal& lv) {
+    if ( lv.Length() != 1 && lv.Idx(0)->GetType()->Tag() != TYPE_STRING )
+        return false;
+
+    const auto* s = lv.Idx(0)->AsString();
+    auto opensslbuf = reinterpret_cast<const unsigned char*>(s->Bytes());
+    certificate = d2i_X509(nullptr, &opensslbuf, s->Len());
     return certificate != nullptr;
 }
 

@@ -86,6 +86,10 @@ std::optional<BrokerData> LogDelayTokenVal::DoSerializeData() const { return std
 
 bool LogDelayTokenVal::DoUnserializeData(BrokerDataView) { return false; }
 
+ListValPtr LogDelayTokenVal::DoToListVal() const { return nullptr; }
+
+bool LogDelayTokenVal::DoFromListVal(const zeek::ListVal& lv) { return false; }
+
 IMPLEMENT_OPAQUE_VALUE(LogDelayTokenVal)
 
 DelayTokenType to_internal_delay_token(const ValPtr& val) {

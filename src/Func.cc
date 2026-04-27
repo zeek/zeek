@@ -682,6 +682,31 @@ std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
     return BrokerListBuilder{}.Build();
 }
 
+detail::FramePtr ScriptFunc::CapturesToFrame() const {
+    detail::FramePtr temp_frame;
+
+    if ( captures_vec ) {
+        auto& cv = *captures_vec;
+        auto& captures = *type->GetCaptures();
+        int n = captures_vec->size();
+        temp_frame = make_intrusive<Frame>(n, this, nullptr);
+
+        for ( int i = 0; i < n; ++i ) {
+            auto c_i = cv[i].ToVal(captures[i].Id()->GetType());
+            temp_frame->SetElement(i, c_i);
+        }
+    }
+
+    else if ( captures_frame ) {
+        temp_frame = zeek::make_intrusive<detail::Frame>(captures_frame->FrameSize(), this, nullptr);
+
+        for ( int i = 0; i < captures_frame->FrameSize(); i++ )
+            temp_frame->SetElement(i, captures_frame->GetElement(i));
+    }
+
+    return temp_frame;
+}
+
 void ScriptFunc::Describe(ODesc* d) const {
     d->Add(GetName().c_str());
     d->AddSP(":");

@@ -37,15 +37,15 @@ export {
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	option cert_tracking = LOCAL_HOSTS;
 
+	## Use the storage framework to enable persistence of the stored
+	## certs between runs.
+	const enable_certs_persistence = F &redef;
+
 	## Toggles between different implementations of this script.
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_cert_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance issues and will be removed.";
-
-	## Switches to the version of this script that uses the storage
-	## framework instead of Broker stores.
-	const certs_use_storage_framework = F &redef;
 
 	type AddrCertHashPair: record {
 		host: addr;
@@ -65,7 +65,7 @@ export {
 	## Storage configuration for storage framework stores
 
 	## This requires setting a configuration in local.zeek that sets the
-	## Known::certs_use_storage_framework boolean to T, and optionally sets different
+	## Known::enable_certs_persistence boolean to T, and optionally setting different
 	## values in the Known::cert_store_backend_options record.
 
 	## Backend to use for storing known certs data using the storage framework.
@@ -80,9 +80,11 @@ export {
 	const cert_store_backend_type : Storage::Backend = Storage::STORAGE_BACKEND_SQLITE &redef;
 
 	## The options for the cert store. This should be redef'd in local.zeek to set
-	## connection information for the backend. The options default to a memory store.
+	## connection information for the backend. The options default to a central
+	## persistent sqlite database.
 	const cert_store_backend_options : Storage::BackendOptions = [ $sqlite = [
-		$database_path=":memory:", $table_name=Known::cert_store_name ]] &redef;
+		$database_path=fmt("%s/known/certs.sqlite", Cluster::default_store_dir),
+		$table_name=Known::cert_store_prefix ]] &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::cert_broker_store` and
 	## :zeek:see:`Known::cert_store_backend`. This also changes the interval at which
@@ -90,8 +92,7 @@ export {
 	option cert_store_expiry = 1day;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::cert_broker_store` and
-	## :zeek:see:`Known::cert_store_backend`. .
+	## :zeek:see:`Known::cert_broker_store` and :zeek:see:`Known::cert_store_backend`.
 	option cert_store_timeout = 15sec;
 
 	## The set of all known certificates to store for preventing duplicate
@@ -111,51 +112,40 @@ export {
 event zeek_init()
 	{
 @pragma push ignore-deprecations
-	if ( ! Known::use_cert_store )
+	if ( ! Known::use_cert_store && ! Known::enable_certs_persistence )
 		return;
-@pragma push ignore-deprecations
+@pragma pop ignore-deprecations
 
-	if ( Known::certs_use_storage_framework )
+@pragma push ignore-deprecations
+	if ( Known::use_cert_store )
 		{
+		Known::cert_broker_store = Cluster::create_store(Known::cert_store_name);
+@pragma pop ignore-deprecations
+		}
+	else
+		{
+		mkdir(fmt("%s/known", Cluster::default_store_dir));
 		local res = Storage::Sync::open_backend(Known::cert_store_backend_type, Known::cert_store_backend_options, Known::AddrCertHashPair, bool);
 		if ( res$code == Storage::SUCCESS )
 			Known::cert_store_backend = res$value;
 		else
 			Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::cert_store_prefix, res$error_str));
 		}
-	else
-@pragma push ignore-deprecations
-		Known::cert_broker_store = Cluster::create_store(Known::cert_store_name);
-@pragma push ignore-deprecations
 	}
 
 event Known::cert_found(info: CertsInfo, hash: string)
 	{
-	if ( ! Known::use_cert_store )
+@pragma push ignore-deprecations
+	if ( ! Known::use_cert_store && ! Known::enable_certs_persistence )
 		return;
 @pragma pop ignore-deprecations
 
 	local key = AddrCertHashPair($host = info$host, $hash = hash);
 
-	if ( Known::certs_use_storage_framework )
+@pragma push ignore-deprecations
+	if ( Known::use_cert_store )
 		{
-		when [info, key] ( local put_res = Storage::Async::put(Known::cert_store_backend, [$key=key, $value=T, $overwrite=F,
-		                                                    $expire_time=Known::cert_store_expiry]) )
-			{
-			print(put_res$code);
-			if ( put_res$code == Storage::SUCCESS )
-				Log::write(Known::CERTS_LOG, info);
-			else if ( put_res$code != Storage::KEY_EXISTS )
-				Reporter::error(fmt("%s: data store put_unique failure: %s",
-				                    Known::cert_store_name, put_res$error_str));
-			}
-		timeout Known::cert_store_timeout
-			{
-			Log::write(Known::CERTS_LOG, info);
-			}
-		}
-	else
-		{
+@pragma pop ignore-deprecations
 		when [info, key] ( local r = Broker::put_unique(Known::cert_broker_store$store, key,
 		                                    T, Known::cert_store_expiry) )
 			{
@@ -174,12 +164,28 @@ event Known::cert_found(info: CertsInfo, hash: string)
 			Log::write(Known::CERTS_LOG, info);
 			}
 		}
+	else
+		{
+		when [info, key] ( local put_res = Storage::Async::put(Known::cert_store_backend, [$key=key, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::cert_store_expiry]) )
+			{
+			if ( put_res$code == Storage::SUCCESS )
+				Log::write(Known::CERTS_LOG, info);
+			else if ( put_res$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: data store put_unique failure: %s",
+				                    Known::cert_store_name, put_res$error_str));
+			}
+		timeout Known::cert_store_timeout
+			{
+			Log::write(Known::CERTS_LOG, info);
+			}
+		}
 	}
 
 event known_cert_add(info: CertsInfo, hash: string)
 	{
 @pragma push ignore-deprecations
-	if ( Known::use_cert_store )
+	if ( Known::use_cert_store || Known::enable_certs_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -197,7 +203,7 @@ event known_cert_add(info: CertsInfo, hash: string)
 event Known::cert_found(info: CertsInfo, hash: string)
 	{
 @pragma push ignore-deprecations
-	if ( Known::use_cert_store )
+	if ( Known::use_cert_store || Known::enable_certs_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -212,7 +218,7 @@ event Known::cert_found(info: CertsInfo, hash: string)
 event Cluster::node_up(name: string, id: string)
 	{
 @pragma push ignore-deprecations
-	if ( Known::use_cert_store )
+	if ( Known::use_cert_store || Known::enable_certs_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -226,7 +232,7 @@ event Cluster::node_up(name: string, id: string)
 event Cluster::node_down(name: string, id: string)
 	{
 @pragma push ignore-deprecations
-	if ( Known::use_cert_store )
+	if ( Known::use_cert_store || Known::enable_certs_persistence )
 		return;
 @pragma pop ignore-deprecations
 

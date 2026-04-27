@@ -57,6 +57,15 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The ``known-certs``, ``known-hosts``, and ``known-services`` scripts had options added
+  to support using the storage framework instead of broker stores, which are slated to be
+  removed in v9.1. For example, a new option was added for the hosts script called
+  ``enable_hosts_persistence`` for enabling the storage framework. Options for controlling
+  the framework were also added: ``host_store_prefix``, ``host_store_backend_type``, and
+  ``host_store_backend_options``. By default it uses an SQLite backend, with the file
+  stored in a directory under ``Cluster::default_store_dir``. Similar options are
+  available for certs and services as well.
+
 Deprecated Functionality
 ------------------------
 

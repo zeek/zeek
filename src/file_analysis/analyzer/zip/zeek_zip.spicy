@@ -7,7 +7,7 @@ import ZIP;
 import zeek;
 import zeek_file;
 
-on ZIP::File::compressed_size priority=5 {
+on ZIP::File::uncompressed_size priority=5 {
     if (self.compression.has_label() && !self.flags.encrypted) {
         local zfile = new zeek_file::File(Null, $$);
         self.content.connect(zfile);

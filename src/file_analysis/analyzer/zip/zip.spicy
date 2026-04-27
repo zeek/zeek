@@ -121,7 +121,7 @@ type File = unit {
         }
     }
 
-    uncompressed_size: uint32;
+    uncompressed_size: uint32; # Hooked in zeek_zip.spicy
     filename_length: uint16;
     extra_field_length: uint16;
     filename: bytes &size=self.filename_length;

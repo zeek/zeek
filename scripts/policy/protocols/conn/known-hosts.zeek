@@ -28,15 +28,15 @@ export {
 		host:    addr &log;
 	};
 
+	## Use the storage framework to enable persistence of the stored
+	## hosts between runs.
+	const enable_hosts_persistence = F &redef;
+
 	## Toggles between different implementations of this script.
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
 	const use_host_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
-
-	## Switches to the version of this script that uses the storage
-	## framework instead of Broker stores.
-	const hosts_use_storage_framework = F &redef;
 
 	## The hosts whose existence should be logged and tracked.
 	## See :zeek:type:`Host` for possible choices.
@@ -50,7 +50,7 @@ export {
 	const host_store_name = "zeek/known/hosts" &redef;
 
 	## This requires setting a configuration in local.zeek that sets the
-	## Known::hosts_use_storage_framework boolean to T, and optionally sets different
+	## Known::enable_hosts_persistence boolean to T, and optionally setting different
 	## values in the Known::host_store_backend_options record.
 
 	## Backend to use for storing known hosts data using the storage framework.
@@ -67,7 +67,8 @@ export {
 	## The options for the host store. This should be redef'd in local.zeek to set
 	## connection information for the backend. The options default to a memory store.
 	const host_store_backend_options : Storage::BackendOptions = [ $sqlite = [
-		$database_path=":memory:", $table_name=Known::host_store_name ]] &redef;
+		$database_path=fmt("%s/known/hosts.sqlite", Cluster::default_store_dir),
+		$table_name=Known::host_store_name ]] &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::host_broker_store` and
 	## :zeek:see:`Known::host_store_backend`. This also changes the interval at
@@ -96,11 +97,17 @@ export {
 event zeek_init()
 	{
 @pragma push ignore-deprecations
-	if ( ! Known::use_host_store )
+	if ( ! Known::use_host_store && ! Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 
-	if ( Known::hosts_use_storage_framework )
+@pragma push ignore-deprecations
+	if ( Known::use_host_store )
+		{
+		Known::host_broker_store = Cluster::create_store(Known::host_store_name);
+@pragma pop ignore-deprecations
+		}
+	else
 		{
 		local res = Storage::Sync::open_backend(Known::host_store_backend_type, Known::host_store_backend_options, addr, bool);
 		if ( res$code == Storage::SUCCESS )
@@ -108,37 +115,19 @@ event zeek_init()
 		else
 			Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::host_store_prefix, res$error_str));
 		}
-	else
-@pragma push ignore-deprecations
-		Known::host_broker_store = Cluster::create_store(Known::host_store_name);
-@pragma pop ignore-deprecations
 	}
 
 event Known::host_found(info: HostsInfo)
 	{
 @pragma push ignore-deprecations
-	if ( ! Known::use_host_store )
+	if ( ! Known::use_host_store && ! Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 
-	if ( Known::hosts_use_storage_framework )
+@pragma push ignore-deprecations
+	if ( Known::use_host_store )
 		{
-		when [info] ( local put_res = Storage::Async::put(Known::host_store_backend, [$key=info$host, $value=T, $overwrite=F,
-		                                                    $expire_time=Known::host_store_expiry]) )
-			{
-			if ( put_res$code == Storage::SUCCESS )
-				Log::write(Known::HOSTS_LOG, info);
-			else if ( put_res$code != Storage::KEY_EXISTS )
-				Reporter::error(fmt("%s: data store put_unique failure: %s",
-				                    Known::host_store_name, put_res$error_str));
-			}
-		timeout Known::host_store_timeout
-			{
-			Log::write(Known::HOSTS_LOG, info);
-			}
-		}
-	else
-		{
+@pragma pop ignore-deprecations
 		when [info] ( local r = Broker::put_unique(Known::host_broker_store$store, info$host,
 		                                    T, Known::host_store_expiry) )
 			{
@@ -157,12 +146,28 @@ event Known::host_found(info: HostsInfo)
 			Log::write(Known::HOSTS_LOG, info);
 			}
 		}
+	else
+		{
+		when [info] ( local put_res = Storage::Async::put(Known::host_store_backend, [$key=info$host, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::host_store_expiry]) )
+			{
+			if ( put_res$code == Storage::SUCCESS )
+				Log::write(Known::HOSTS_LOG, info);
+			else if ( put_res$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: data store put_unique failure: %s",
+				                    Known::host_store_name, put_res$error_str));
+			}
+		timeout Known::host_store_timeout
+			{
+			Log::write(Known::HOSTS_LOG, info);
+			}
+		}
 	}
 
 event known_host_add(info: HostsInfo)
 	{
 @pragma push ignore-deprecations
-	if ( use_host_store )
+	if ( use_host_store || Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -180,7 +185,7 @@ event known_host_add(info: HostsInfo)
 event Cluster::node_up(name: string, id: string)
 	{
 @pragma push ignore-deprecations
-	if ( use_host_store )
+	if ( use_host_store || Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -194,7 +199,7 @@ event Cluster::node_up(name: string, id: string)
 event Cluster::node_down(name: string, id: string)
 	{
 @pragma push ignore-deprecations
-	if ( use_host_store )
+	if ( use_host_store || Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 
@@ -208,7 +213,7 @@ event Cluster::node_down(name: string, id: string)
 event Known::host_found(info: HostsInfo)
 	{
 @pragma push ignore-deprecations
-	if ( use_host_store )
+	if ( use_host_store || Known::enable_hosts_persistence )
 		return;
 @pragma pop ignore-deprecations
 

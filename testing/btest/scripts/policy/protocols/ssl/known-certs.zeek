@@ -23,7 +23,7 @@ redef Known::cert_tracking = ALL_HOSTS;
 # @TEST-START-FILE broker-store-config.zeek
 
 redef Known::use_cert_store=T;
-redef Known::certs_use_storage_framework=F;
+redef Known::enable_certs_persistence=F;
 
 # @TEST-END-FILE
 
@@ -32,7 +32,7 @@ redef Known::certs_use_storage_framework=F;
 @load policy/frameworks/storage/backend/sqlite
 
 redef Known::use_cert_store=T;
-redef Known::certs_use_storage_framework=T;
+redef Known::enable_certs_persistence=T;
 
 redef Known::cert_store_backend_type = Storage::STORAGE_BACKEND_SQLITE;
 redef Known::cert_store_backend_options = [ $sqlite = [

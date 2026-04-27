@@ -39,7 +39,7 @@ redef Site::local_nets += {141.142.0.0/16};
 # @TEST-START-FILE broker-store-config.zeek
 
 redef Known::use_host_store=T;
-redef Known::hosts_use_storage_framework=F;
+redef Known::enable_hosts_persistence=F;
 
 # @TEST-END-FILE
 
@@ -48,7 +48,7 @@ redef Known::hosts_use_storage_framework=F;
 @load policy/frameworks/storage/backend/sqlite
 
 redef Known::use_host_store=T;
-redef Known::hosts_use_storage_framework=T;
+redef Known::enable_hosts_persistence=T;
 
 redef Known::host_store_backend_type = Storage::STORAGE_BACKEND_SQLITE;
 redef Known::host_store_backend_options = [ $sqlite = [

@@ -1,3 +1,9 @@
+9.0.0-dev.44 | 2026-04-27 22:03:30 +0000
+
+  * Bump version of GitPython used by docs builds (Tim Wojtulewicz, Corelight)
+
+  * Fix CHANGES and VERSION wanting to use 8.2.0-rc1 versions (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.40 | 2026-04-27 14:37:36 -0700
 
   * Avoid 'device or resource busy' errors on Windows with .stdout (Maor Hamami)

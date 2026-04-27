@@ -5,7 +5,7 @@
 #unset_field	-
 #path	multicast_participants
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	cid	orig_h	multicast_addr	multicast_p	participants
+#fields	ts	cid	orig_h	group_addr	group_p	participants
 #types	time	string	addr	addr	port	set[addr]
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.0.10	224.0.0.251	5353	192.168.0.26,192.168.0.109
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	192.168.0.109	224.0.0.251	5353	192.168.0.26,192.168.0.109

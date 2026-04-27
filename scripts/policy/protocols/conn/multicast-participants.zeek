@@ -15,8 +15,8 @@ export {
 		ts: time &log;
 		cid: string &log;
 		orig_h: addr &log;
-		multicast_addr: addr &log;
-		multicast_p: port &log;
+		group_addr: addr &log;
+		group_p: port &log;
 		participants: set[addr] &log;
 	};
 
@@ -52,8 +52,8 @@ hook multicast_removal_hook(c: connection)
 		if ( c?$multicast_srcs && |c$multicast_srcs| > 0 )
 			Log::write(MULTICAST_PARTICIPANTS_LOG, MulticastParticipantsInfo(
 			    $ts=c$start_time, $cid=c$uid, $orig_h=c$id$orig_h,
-			    $multicast_addr=c$id$resp_h,
-			    $multicast_p=c$id$resp_p,
+			    $group_addr=c$id$resp_h,
+			    $group_p=c$id$resp_p,
 			    $participants=c$multicast_srcs));
 
 		delete multicast_conns[c$id$resp_h][c$id];

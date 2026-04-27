@@ -25,12 +25,11 @@ redef record fa_file += {
 };
 
 event ZIP::file(f: fa_file, meta: ZIP::File) {
-	f$zip_file = meta;
-}
-
-event file_state_remove(f: fa_file) {
-	if ( ! f?$zip_file )
-		return;
-
-	f$info$filename = f$zip_file$filename;
+	if ( meta?$fid ) {
+		print meta$filename;
+		local meta_f = Files::lookup_file(meta$fid);
+		if ( meta_f?$info ) {
+			meta_f$info$filename = meta$filename;
+		}
+	}
 }

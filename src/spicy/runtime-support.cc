@@ -993,7 +993,18 @@ static void _data_in(const char* data, uint64_t len, const hilti::rt::Optional<u
         else
             file_mgr->DataIn(data_, len, tag, c->analyzer->Conn(), c->is_orig, fstate->fid, mime_type);
     }
-    else {
+    else if ( auto f = cookie->file ) {
+        // If we didn't have a protocol analyzer but we do have a file analyzer, look up
+        // the component name from the tag in cookie and pass it to the version of DataIn()
+        // that takes a source name directly.
+        auto source = file_mgr->GetComponentName(f->analyzer->Tag());
+
+        if ( offset )
+            file_mgr->DataIn(data_, len, *offset, fstate->fid, source, mime_type);
+        else
+            file_mgr->DataIn(data_, len, fstate->fid, source, mime_type);
+    }
+    else [[unlikely]] {
         if ( offset )
             file_mgr->DataIn(data_, len, *offset, Tag(), nullptr, false, fstate->fid, mime_type);
         else
@@ -1094,12 +1105,14 @@ void rt::file_set_size(const hilti::rt::integer::safe<uint64_t>& size,
     auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
     auto* fstate = _file_state(cookie, std::move(fid_std));
 
-    if ( auto c = cookie->protocol ) {
-        auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());
-        file_mgr->SetSize(size, tag, c->analyzer->Conn(), c->is_orig, fstate->fid);
-    }
-    else
-        file_mgr->SetSize(size, Tag(), nullptr, false, fstate->fid);
+    // Look up the file directly rather than going through the Manager to avoid
+    // needing to provide tag/conn/is_orig parameters that may not be available.
+    auto* file = file_mgr->LookupFile(fstate->fid);
+    if ( ! file )
+        throw spicy::rt::ValueUnavailable(
+            hilti::rt::fmt("file_set_size: file %s not found (file_begin() must be called first)", fstate->fid));
+
+    file->SetTotalBytes(size);
 }
 
 void rt::file_data_in(const hilti::rt::Bytes& data, const hilti::rt::Optional<hilti::rt::String>& fid) {
@@ -1127,12 +1140,14 @@ void rt::file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti:
     auto fid_std = fid ? hilti::rt::Optional<std::string>(std::string(*fid)) : hilti::rt::Optional<std::string>();
     auto* fstate = _file_state(cookie, std::move(fid_std));
 
-    if ( auto c = cookie->protocol ) {
-        auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());
-        file_mgr->Gap(offset, len, tag, c->analyzer->Conn(), c->is_orig, fstate->fid);
-    }
-    else
-        file_mgr->Gap(offset, len, Tag(), nullptr, false, fstate->fid);
+    // Look up the file directly rather than going through the Manager to avoid
+    // needing to provide tag/conn/is_orig parameters that may not be available.
+    auto* file = file_mgr->LookupFile(fstate->fid);
+    if ( ! file )
+        throw spicy::rt::ValueUnavailable(
+            hilti::rt::fmt("file_gap: file %s not found (file_begin() must be called first)", fstate->fid));
+
+    file->Gap(offset, len);
 }
 
 void rt::file_end(const hilti::rt::Optional<hilti::rt::String>& fid) {

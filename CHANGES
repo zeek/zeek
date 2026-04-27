@@ -1,3 +1,7 @@
+8.2.0-rc1.2 | 2026-04-27 08:14:55 -0700
+
+  * Bump auxil/spicy to zeek/spicy#2334 (Benjamin Bannier, Corelight)
+
 8.2.0-rc1 | 2026-04-20 22:37:52 +0000
 
   * Regenerate docs before branching 8.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

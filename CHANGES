@@ -1,4 +1,4 @@
-8.2.0-rc1.40 | 2026-04-27 13:46:42 -0700
+9.0.0-dev.36 | 2026-04-27 13:46:42 -0700
 
   * Avoid 'device or resource busy' errors on Windows with .stdout (Maor Hamami)
 

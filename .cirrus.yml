@@ -661,6 +661,11 @@ windows_task:
     # Not allowed to request less than 8GB for an 8 CPU Windows VM.
     memory: 16GB
   sync_submodules_script: git submodule update --recursive --init
+  always:
+    ccache_cache:
+      folder: C:\tmp\ccache
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
   prepare_script: ci/windows/prepare.cmd
   build_script: ci/windows/build.cmd
   test_script: ci/windows/test.cmd
@@ -672,12 +677,19 @@ windows_task:
       path: "testing/**/btest-results.xml"
       type: text/xml
       format: junit
+    cache_statistics_script: ccache --show-stats
+    ccache_prune_script: ccache -c
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_SKIP_ALL
   env:
     ZEEK_CI_CPUS: 8
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
+    CCACHE_BASEDIR: C:\zeek
+    CCACHE_DIR: C:\tmp\ccache
+    CCACHE_COMPRESS: 1
+    CCACHE_MAXSIZE: 1000M
+    CCACHE_MAXFILES: 20000
 
 
 # Container images

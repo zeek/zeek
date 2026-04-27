@@ -5,7 +5,7 @@ SHELL [ "powershell" ]
 
 # A version field to invalidatea Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20250905
+ENV DOCKERFILE_VERSION=20260420
 
 RUN Set-ExecutionPolicy Unrestricted -Force
 
@@ -14,13 +14,14 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePoin
     iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install prerequisites
-RUN choco install -y --no-progress visualstudio2022buildtools --version=117.14.1
+RUN choco install -y --no-progress visualstudio2022buildtools --version=117.14.29
 RUN choco install -y --no-progress visualstudio2022-workload-vctools --version=1.0.0 --package-parameters '--add Microsoft.VisualStudio.Component.VC.ATLMFC'
 RUN choco install -y --no-progress sed
 RUN choco install -y --no-progress winflexbison3
 RUN choco install -y --no-progress msysgit
 RUN choco install -y --no-progress python
 RUN choco install -y --no-progress openssl --version=3.1.1
+RUN choco install -y --no-progress ccache
 
 # Set working environment.
 SHELL [ "cmd", "/c" ]

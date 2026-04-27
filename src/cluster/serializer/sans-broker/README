@@ -1,0 +1,2 @@
+An implementation of the Broker Binary V1 format but without using
+the Broker library.

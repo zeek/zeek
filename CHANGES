@@ -1,6 +1,8 @@
-8.2.0-rc1.2 | 2026-04-27 08:14:55 -0700
+8.2.0-rc1.5 | 2026-04-27 12:57:29 -0700
 
-  * Bump auxil/spicy to zeek/spicy#2334 (Benjamin Bannier, Corelight)
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Drop duplicate case in Redis analyzer (Benjamin Bannier, Corelight)
 
 8.2.0-rc1 | 2026-04-20 22:37:52 +0000
 

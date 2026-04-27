@@ -1,3 +1,21 @@
+8.2.0-rc1.11 | 2026-05-05 15:32:01 -0700
+
+  * Avoid 'device or resource busy' errors on Windows with .stdout (Maor Hamami)
+
+    (cherry picked from commit df87609f5ba9f70c1106ec194a3fbd9b540789d9)
+
+  * ZAM btest baseline updates for Spicy ZIP file analyzer usage (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit df87609f5ba9f70c1106ec194a3fbd9b540789d9)
+
+  * Lookup files from file state instead of passing tag from protocol analyzers (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit df87609f5ba9f70c1106ec194a3fbd9b540789d9)
+
+  * Pass spicy file analyzer component name as source directly (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit df87609f5ba9f70c1106ec194a3fbd9b540789d9)
+
 8.2.0-rc1.9 | 2026-05-04 17:02:01 -0700
 
   * spicy: Mix analyzer tag string into _analyzer_id (Arne Welzel, Corelight)

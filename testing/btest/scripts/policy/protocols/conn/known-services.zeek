@@ -39,7 +39,7 @@ redef Site::local_nets += {172.16.238.0/24};
 
 redef Known::service_tracking=ALL_HOSTS;
 redef Known::use_service_store=T;
-redef Known::use_storage_framework=F;
+redef Known::enable_services_persistence=F;
 
 # @TEST-END-FILE
 
@@ -49,7 +49,7 @@ redef Known::use_storage_framework=F;
 
 redef Known::service_tracking=ALL_HOSTS;
 redef Known::use_service_store=T;
-redef Known::use_storage_framework=T;
+redef Known::enable_services_persistence=T;
 
 redef Known::service_store_backend_type = Storage::STORAGE_BACKEND_SQLITE;
 redef Known::service_store_backend_options = [ $sqlite = [

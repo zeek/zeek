@@ -730,3 +730,5 @@ if (ENABLE_ZEEK_UNIT_TESTS)
         add_test(NAME "\"${test_case}\"" COMMAND zeek --test "--test-case=${test_case}")
     endforeach ()
 endif ()
+
+add_subdirectory(benchmarks)

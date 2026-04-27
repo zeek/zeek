@@ -1,3 +1,9 @@
+8.2.0-rc1.34 | 2026-04-27 08:14:27 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Drop duplicate case in Redis analyzer (Benjamin Bannier, Corelight)
+
 9.0.0-dev.30 | 2026-04-27 08:12:30 -0700
 
   * Fix http-11-request-then-cruft btest name (Jan Grashoefer, Corelight)

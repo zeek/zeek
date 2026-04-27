@@ -279,7 +279,6 @@ function command_from(cmd_bytes: bytes): optional<RedisCommand> {
         case b"expire": cmd = RedisCommand::EXPIRE;
         case b"expireat": cmd = RedisCommand::EXPIREAT;
         case b"expiretime": cmd = RedisCommand::EXPIRETIME;
-        case b"expiretime": cmd = RedisCommand::EXPIRETIME;
         case b"get": cmd = RedisCommand::GET;
         case b"getbit": cmd = RedisCommand::GETBIT;
         case b"getdel": cmd = RedisCommand::GETDEL;

@@ -6,6 +6,7 @@
 #include <prometheus/family.h>
 
 #include "zeek/OpaqueVal.h"
+#include "zeek/Val.h"
 #include "zeek/broker/Data.h"
 
 namespace zeek {
@@ -35,6 +36,9 @@ protected:
 
     std::optional<BrokerData> DoSerializeData() const override { return std::nullopt; }
     bool DoUnserializeData(BrokerDataView data) override { return false; }
+
+    zeek::ListValPtr DoToListVal() const override { return nullptr; }
+    bool DoFromListVal(const zeek::ListVal& lv) override { return false; }
 };
 
 template<class Handle>

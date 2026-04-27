@@ -1055,6 +1055,18 @@ bool DataVal::DoUnserializeData(BrokerDataView dv) {
     return true;
 }
 
+ListValPtr DataVal::DoToListVal() const {
+    // TODO
+    abort();
+    return nullptr;
+}
+
+bool DataVal::DoFromListVal(const zeek::ListVal& lv) {
+    // TODO
+    abort();
+    return false;
+}
+
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 
 std::optional<BrokerData> SetIterator::DoSerializeData() const {
@@ -1078,6 +1090,16 @@ bool SetIterator::DoUnserializeData(BrokerDataView data) {
     dat = *x;
     it = dat.find((*v)[1]);
     return true;
+}
+
+ListValPtr SetIterator::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool SetIterator::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
 }
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
@@ -1105,6 +1127,16 @@ bool TableIterator::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr TableIterator::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool TableIterator::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
+}
+
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 
 std::optional<BrokerData> VectorIterator::DoSerializeData() const {
@@ -1128,6 +1160,16 @@ bool VectorIterator::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr VectorIterator::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool VectorIterator::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
+}
+
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 
 std::optional<BrokerData> RecordIterator::DoSerializeData() const {
@@ -1149,6 +1191,16 @@ bool RecordIterator::DoUnserializeData(BrokerDataView data) {
     dat = *x;
     it = dat.begin() + *y;
     return true;
+}
+
+ListValPtr RecordIterator::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool RecordIterator::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
 }
 
 broker::data threading_field_to_data(const threading::Field* f) {

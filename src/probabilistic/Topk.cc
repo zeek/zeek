@@ -484,4 +484,17 @@ bool TopkVal::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr TopkVal::DoToListVal() const {
+    // TODO
+    abort();
+    return nullptr;
+}
+
+bool TopkVal::DoFromListVal(const zeek::ListVal& lv) {
+    // TODO
+    abort();
+    return false;
+}
+
+
 } // namespace zeek::probabilistic::detail

@@ -648,6 +648,25 @@ bool MD5Val::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr MD5Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+
+    return lv;
+}
+
+bool MD5Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 SHA1Val::SHA1Val() : HashVal(sha1_type) {}
 
 SHA1Val::~SHA1Val() { do_destroy(ctx); }
@@ -729,6 +748,24 @@ bool SHA1Val::DoUnserializeData(BrokerDataView data) {
     Init();
     do_unserialize(ctx, s.data(), s.size());
     return true;
+}
+
+ListValPtr SHA1Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+    return lv;
+}
+
+bool SHA1Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
 }
 
 SHA224Val::SHA224Val() : HashVal(sha224_type) {}
@@ -816,6 +853,24 @@ bool SHA224Val::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr SHA224Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+    return lv;
+}
+
+bool SHA224Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 SHA256Val::SHA256Val() : HashVal(sha256_type) {}
 
 SHA256Val::~SHA256Val() {
@@ -899,6 +954,24 @@ bool SHA256Val::DoUnserializeData(BrokerDataView data) {
     Init();
     do_unserialize(ctx, s.data(), s.size());
     return true;
+}
+
+ListValPtr SHA256Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+    return lv;
+}
+
+bool SHA256Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
 }
 
 SHA384Val::SHA384Val() : HashVal(sha384_type) {}
@@ -986,6 +1059,24 @@ bool SHA384Val::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr SHA384Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+    return lv;
+}
+
+bool SHA384Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 SHA512Val::SHA512Val() : HashVal(sha512_type) {}
 
 SHA512Val::~SHA512Val() {
@@ -1069,6 +1160,24 @@ bool SHA512Val::DoUnserializeData(BrokerDataView data) {
     Init();
     do_unserialize(ctx, s.data(), s.size());
     return true;
+}
+
+ListValPtr SHA512Val::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    if ( ! IsValid() ) {
+        lv->Append(zeek::val_mgr->False());
+        return lv;
+    }
+
+    lv->Append(zeek::val_mgr->True());
+    lv->Append(make_intrusive<StringVal>(do_serialize(ctx)));
+    return lv;
+}
+
+bool SHA512Val::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
 }
 
 EntropyVal::EntropyVal() : OpaqueVal(entropy_type) {}
@@ -1164,6 +1273,40 @@ bool EntropyVal::DoUnserializeData(BrokerDataView data) {
 
     return true;
 }
+
+ListValPtr EntropyVal::DoToListVal() const {
+    auto lv = make_intrusive<ListVal>(TYPE_COUNT);
+
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.totalc)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.mp)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.sccfirst)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.inmont)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.mcount)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.cexp)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.montex)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.montey)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.montepi)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.sccu0)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.scclast)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.scct1)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.scct2)));
+    lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(state.scct3)));
+
+    for ( auto bin : state.ccount )
+        lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(bin)));
+
+    for ( auto val : state.monte )
+        lv->Append(zeek::val_mgr->Count(static_cast<uint64_t>(val)));
+
+    return lv;
+}
+
+bool EntropyVal::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 
 BloomFilterVal::BloomFilterVal() : OpaqueVal(bloomfilter_type) {
     hash = nullptr;
@@ -1338,6 +1481,20 @@ bool BloomFilterVal::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr BloomFilterVal::DoToListVal() const {
+    // TODO
+    abort();
+
+    return nullptr;
+}
+
+bool BloomFilterVal::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
+
 CardinalityVal::CardinalityVal() : OpaqueVal(cardinality_type) {
     c = nullptr;
     hash = nullptr;
@@ -1423,6 +1580,18 @@ bool CardinalityVal::DoUnserializeData(BrokerDataView data) {
     return true;
 }
 
+ListValPtr CardinalityVal::DoToListVal() const {
+    // XXX
+    abort();
+    return nullptr;
+}
+
+bool CardinalityVal::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 ParaglobVal::ParaglobVal(std::unique_ptr<paraglob::Paraglob> p) : OpaqueVal(paraglob_type) {
     this->internal_paraglob = std::move(p);
 }
@@ -1479,6 +1648,19 @@ bool ParaglobVal::DoUnserializeData(BrokerDataView data) {
 
     return true;
 }
+
+ListValPtr ParaglobVal::DoToListVal() const {
+    // XXX
+    abort();
+    return nullptr;
+}
+
+bool ParaglobVal::DoFromListVal(const zeek::ListVal& lv) {
+    // XXX
+    abort();
+    return false;
+}
+
 
 ValPtr ParaglobVal::DoClone(CloneState* state) {
     try {

@@ -41,8 +41,9 @@ class Stmt;
 class CallExpr;
 class ID;
 class Frame;
-using ScopePtr = IntrusivePtr<Scope>;
+using FramePtr = IntrusivePtr<Frame>;
 using IDPtr = IntrusivePtr<ID>;
+using ScopePtr = IntrusivePtr<Scope>;
 using StmtPtr = IntrusivePtr<Stmt>;
 
 class ScriptFunc;
@@ -227,6 +228,12 @@ public:
         ASSERT(captures_vec);
         return *captures_vec;
     }
+
+    /**
+     * Returns a Frame containing the captures of this function, or
+     * nil if there's no captures.
+     */
+    detail::FramePtr CapturesToFrame() const;
 
     /**
      * Set the set of ZVal's used for captures.

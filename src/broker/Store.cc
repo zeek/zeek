@@ -52,6 +52,16 @@ bool StoreHandleVal::DoUnserializeData(BrokerDataView) {
     return false;
 }
 
+ListValPtr StoreHandleVal::DoToListVal() const {
+    // Cannot serialize.
+    return nullptr;
+}
+
+bool StoreHandleVal::DoFromListVal(const zeek::ListVal& lv) {
+    // Cannot unserialize.
+    return false;
+}
+
 broker::backend to_backend_type(BifEnum::Broker::BackendType type) {
     switch ( type ) {
         case BifEnum::Broker::MEMORY: return broker::backend::memory;

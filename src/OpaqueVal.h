@@ -99,6 +99,8 @@ private:
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
     std::optional<zeek::BrokerData> DoSerializeData() const override;                                                  \
     bool DoUnserializeData(zeek::BrokerDataView data) override;                                                        \
+    zeek::ListValPtr DoToListVal() const override;                                                                     \
+    bool DoFromListVal(const zeek::ListVal& lv) override;                                                              \
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
@@ -131,6 +133,18 @@ public:
     static OpaqueValPtr UnserializeData(BrokerDataView data);
 
     /**
+     * Convert this OpaqueVal to a ListVal for serialization.
+     *
+     * This replaced the previous SerializeData() API.
+     */
+    zeek::ListValPtr ToListVal() const { return DoToListVal(); }
+
+    /**
+     * Populate this OpaqueVal from a ListVal of primitives.
+     */
+    bool FromListVal(const zeek::ListVal& lv) { return DoFromListVal(lv); }
+
+    /**
      * @copydoc Unserialize
      */
     static OpaqueValPtr UnserializeData(BrokerListView data);
@@ -149,12 +163,26 @@ protected:
     virtual std::optional<BrokerData> DoSerializeData() const;
 
     /**
+     * Create a ListVal of this object for serialization purposes.
+     *
+     * Return a nullptr if this OpaqueVal is not meant to be serialized
+     * for transport over Zeek cluster.
+     */
+    virtual zeek::ListValPtr DoToListVal() const = 0;
+
+    /**
      * Must be overridden to recreate the derived class' state from a
      * serialization.
      *
      * @return true if successful.
      */
     virtual bool DoUnserializeData(BrokerDataView data);
+
+    /**
+     * Mirror method of DoToListVal(), populating a concrete OaqueVal
+     * from a ListVal received from other nodes in a cluster.
+     */
+    virtual bool DoFromListVal(const zeek::ListVal& lv) = 0;
 
     /**
      * Internal helper for the serialization machinery. Automatically

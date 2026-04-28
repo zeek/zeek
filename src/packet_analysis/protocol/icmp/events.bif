@@ -351,3 +351,39 @@ event icmp_neighbor_advertisement%(c: connection, info: icmp_info, router: bool,
 ## .. zeek:see:: icmp_router_solicitation icmp_router_advertisement
 ##    icmp_neighbor_solicitation icmp_neighbor_advertisement
 event icmp_redirect%(c: connection, info: icmp_info, tgt: addr, dest: addr, options: icmp6_nd_options%);
+
+## Generated for IPv6 Multicast Listener Discovery v1 Report messages.
+##
+## IPv6 MLD is passed via ICMPv6 messages. See :rfc:`2710` for more information about the
+## IPv6 MLD v1 protocol.
+##
+## c: The connection record for the corresponding ICMP flow.
+##
+## group_addr: The multicast group address.
+##
+## .. zeek:see:: icmpv6_mld_done_v1 icmpv6_mld_report_v2
+event icmpv6_mld_report_v1%(c: connection, group_addr: addr%);
+
+## Generated for IPv6 Multicast Listener Discovery v1 Done messages.
+##
+## IPv6 MLD is passed via ICMPv6 messages. See :rfc:`2710` for more information about the
+## IPv6 MLD v1 protocol.
+##
+## c: The connection record for the corresponding ICMP flow.
+##
+## group_addr: The multicast group address.
+##
+## .. zeek:see:: icmpv6_mld_report_v1 icmpv6_mld_report_v2
+event icmpv6_mld_done_v1%(c: connection, group_addr: addr%);
+
+## Generated for IPv6 Multicast Listener Discovery v2 Report messages.
+##
+## IPv6 MLD is passed via ICMPv6 messages. See :rfc:`3810` for more information about the
+## IPv6 MLD v2 protocol.
+##
+## c: The connection record for the corresponding ICMP flow.
+##
+## groups: A vector of ICMP6 MLD Multicast Address Records.
+##
+## .. zeek:see:: icmpv6_mld_report_v1 icmpv6_mld_done_v1
+event icmpv6_mld_report_v2%(c: connection, groups: icmp6_mldv2_mar_vector%);

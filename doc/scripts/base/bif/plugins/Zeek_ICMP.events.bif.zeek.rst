@@ -28,6 +28,9 @@ Events
 :zeek:id:`icmp_sent_payload`: :zeek:type:`event`           The same as :zeek:see:`icmp_sent` except containing the ICMP payload.
 :zeek:id:`icmp_time_exceeded`: :zeek:type:`event`          Generated for ICMP *time exceeded* messages.
 :zeek:id:`icmp_unreachable`: :zeek:type:`event`            Generated for ICMP *destination unreachable* messages.
+:zeek:id:`icmpv6_mld_done_v1`: :zeek:type:`event`          Generated for IPv6 Multicast Listener Discovery v1 Done messages.
+:zeek:id:`icmpv6_mld_report_v1`: :zeek:type:`event`        Generated for IPv6 Multicast Listener Discovery v1 Report messages.
+:zeek:id:`icmpv6_mld_report_v2`: :zeek:type:`event`        Generated for IPv6 Multicast Listener Discovery v2 Report messages.
 ========================================================== =====================================================================
 
 
@@ -525,5 +528,59 @@ Events
 
    .. zeek:see:: icmp_error_message icmp_packet_too_big
       icmp_time_exceeded icmp_parameter_problem
+
+.. zeek:id:: icmpv6_mld_done_v1
+   :source-code: base/bif/plugins/Zeek_ICMP.events.bif.zeek 395 395
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, group_addr: :zeek:type:`addr`)
+
+   Generated for IPv6 Multicast Listener Discovery v1 Done messages.
+
+   IPv6 MLD is passed via ICMPv6 messages. See :rfc:`2710` for more information about the
+   IPv6 MLD v1 protocol.
+
+
+   :param c: The connection record for the corresponding ICMP flow.
+
+
+   :param group_addr: The multicast group address.
+
+   .. zeek:see:: icmpv6_mld_report_v1 icmpv6_mld_report_v2
+
+.. zeek:id:: icmpv6_mld_report_v1
+   :source-code: base/bif/plugins/Zeek_ICMP.events.bif.zeek 382 382
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, group_addr: :zeek:type:`addr`)
+
+   Generated for IPv6 Multicast Listener Discovery v1 Report messages.
+
+   IPv6 MLD is passed via ICMPv6 messages. See :rfc:`2710` for more information about the
+   IPv6 MLD v1 protocol.
+
+
+   :param c: The connection record for the corresponding ICMP flow.
+
+
+   :param group_addr: The multicast group address.
+
+   .. zeek:see:: icmpv6_mld_done_v1 icmpv6_mld_report_v2
+
+.. zeek:id:: icmpv6_mld_report_v2
+   :source-code: base/bif/plugins/Zeek_ICMP.events.bif.zeek 408 408
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, groups: :zeek:type:`icmp6_mldv2_mar_vector`)
+
+   Generated for IPv6 Multicast Listener Discovery v2 Report messages.
+
+   IPv6 MLD is passed via ICMPv6 messages. See :rfc:`3810` for more information about the
+   IPv6 MLD v2 protocol.
+
+
+   :param c: The connection record for the corresponding ICMP flow.
+
+
+   :param groups: A vector of ICMP6 MLD Multicast Address Records.
+
+   .. zeek:see:: icmpv6_mld_report_v1 icmpv6_mld_done_v1
 
 

@@ -329,6 +329,36 @@ type icmp6_nd_option: record {
 ## A type alias for a vector of ICMPv6 neighbor discovery message options.
 type icmp6_nd_options: vector of icmp6_nd_option;
 
+## ICMPv6 MLD Version 2 Multicast Address Record types, as defined in
+## :rfc:`3810#section-5.2.12`
+type icmp6_mldv2_group_type: enum {
+	MLDV2_MODE_IS_INCLUDE        = 1,
+	MLDV2_MODE_IS_EXCLUDE        = 2,
+	MLDV2_CHANGE_TO_INCLUDE_MODE = 3,
+	MLDV2_CHANGE_TO_EXCLUDE_MODE = 4,
+	MLDV2_ALLOW_NEW_SOURCES      = 5,
+	MLDV2_BLOCK_OLD_SOURCES      = 6
+};
+
+## ICMPv6 MLD Version 2 Multicast Address Record, as defined in
+## :rfc:`3810#section-5.2`
+type icmp6_mldv2_mar: record {
+	## The type of the multicast record being reported.
+	group_type:     icmp6_mldv2_group_type;
+	## The length of the auxiliary data field in this group record, in bytes.
+	aux_data_len:   count;
+	## The number of source addresses.
+	num_sources:    count;
+	## The multicast address to which this record pertains.
+	multicast_addr: addr;
+	## A vector of source addresses.
+	sources:        addr_vec;
+	## Additional information pertaining to this record.
+	aux_data:       string &optional;
+};
+
+type icmp6_mldv2_mar_vector: vector of icmp6_mldv2_mar;
+
 # A DNS mapping between IP address and hostname resolved by Zeek's internal
 # resolver.
 #

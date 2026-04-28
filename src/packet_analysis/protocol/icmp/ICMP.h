@@ -54,6 +54,10 @@ private:
                          const IP_Hdr* ip_hdr, ICMPSessionAdapter* adapter);
     void RouterSolicit(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,
                        const IP_Hdr* ip_hdr, ICMPSessionAdapter* adapter);
+    void MLDReport(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
+                   ICMPSessionAdapter* adapter);
+    void MLDReportV2(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data, const IP_Hdr* ip_hdr,
+                     ICMPSessionAdapter* adapter);
 
     RecordValPtr BuildInfo(const struct icmp* icmpp, int len, bool icmpv6, const IP_Hdr* ip_hdr);
 

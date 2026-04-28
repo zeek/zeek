@@ -19,6 +19,15 @@
 using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 
+// These constants exist on macOS but not some versions of Linux
+#ifndef MLD_LISTENER_DONE
+constexpr int MLD_LISTENER_DONE = 132;
+#endif
+
+#ifndef MLDV2_LISTENER_REPORT
+constexpr int MLDV2_LISTENER_REPORT = 143;
+#endif
+
 ICMPAnalyzer::ICMPAnalyzer() : IPBasedAnalyzer("ICMP", TRANSPORT_ICMP, ICMP_PORT_MASK, false) {}
 
 SessionAdapter* ICMPAnalyzer::MakeSessionAdapter(Connection* conn) {
@@ -157,12 +166,13 @@ void ICMPAnalyzer::NextICMP6(double t, const struct icmp* icmpp, int len, int ca
         case ND_NEIGHBOR_SOLICIT: NeighborSolicit(t, icmpp, len, caplen, data, ip_hdr, adapter); break;
         case ND_ROUTER_SOLICIT: RouterSolicit(t, icmpp, len, caplen, data, ip_hdr, adapter); break;
         case ICMP6_ROUTER_RENUMBERING: ICMP_Sent(icmpp, len, caplen, 1, data, ip_hdr, adapter); break;
+        case MLD_LISTENER_REPORT:
+        case MLD_LISTENER_DONE: MLDReport(t, icmpp, len, caplen, data, ip_hdr, adapter); break;
+        case MLDV2_LISTENER_REPORT: MLDReportV2(t, icmpp, len, caplen, data, ip_hdr, adapter); break;
 
 #if 0
 		// Currently not specifically implemented.
 		case MLD_LISTENER_QUERY:
-		case MLD_LISTENER_REPORT:
-		case MLD_LISTENER_REDUCTION:
 #endif
         default:
             // Error messages (i.e., ICMPv6 type < 128) all have
@@ -519,6 +529,101 @@ void ICMPAnalyzer::RouterSolicit(double t, const struct icmp* icmpp, int len, in
 
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
                               BuildNDOptionsVal(caplen, data, adapter));
+}
+
+void ICMPAnalyzer::MLDReport(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,
+                             const IP_Hdr* ip_hdr, ICMPSessionAdapter* adapter) {
+    if ( caplen < 16 ) {
+        adapter->Weird("truncated_ICMPv6_MLDv1");
+        return;
+    }
+
+    EventHandlerPtr f = nullptr;
+
+    switch ( icmpp->icmp_type ) {
+        case MLD_LISTENER_REPORT: f = icmpv6_mld_report_v1; break;
+        case MLD_LISTENER_DONE: f = icmpv6_mld_done_v1; break;
+        default: break;
+    }
+
+    if ( ! f )
+        return;
+
+    IPAddr mc_addr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
+    adapter->EnqueueConnEvent(f, adapter->ConnVal(), make_intrusive<AddrVal>(mc_addr));
+}
+
+void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,
+                               const IP_Hdr* ip_hdr, ICMPSessionAdapter* adapter) {
+    static auto icmp6_mld_group_type_type = id::find_type<EnumType>("icmp6_mldv2_group_type");
+    static auto icmp6_mld_mar_type = id::find_type<RecordType>("icmp6_mldv2_mar");
+    static auto addr_vec_type = id::find_type<VectorType>("addr_vec");
+
+    // The ICMP header was already parsed and the data pointer starts at the beginning of
+    // the first record. We have to figure this counter out from the icmp header instead.
+    const struct icmp6_hdr* i6_hdr = reinterpret_cast<const struct icmp6_hdr*>(icmpp);
+    uint16_t num_multicast_records = ntohs(i6_hdr->icmp6_data16[1]);
+
+    // The minimum size of a Multicast Address Record is 20 if it doesn't include any
+    // sources. Check whether there's enough data to parse at least that size for each of
+    // the records above.
+    if ( caplen < static_cast<int>(num_multicast_records) * 20 ) {
+        adapter->Weird("truncated_ICMPv6_MLDv2");
+        return;
+    }
+
+    size_t remaining = caplen;
+    const uint8_t* record_ptr = data;
+
+    for ( uint16_t i = 0; i < num_multicast_records && remaining > 0; i++ ) {
+        if ( remaining < 4 ) {
+            adapter->Weird("truncated_ICMPv6_MLDv2_record");
+            break;
+        }
+
+        uint8_t record_type = *(reinterpret_cast<const uint8_t*>(record_ptr));
+        uint32_t aux_len = *(reinterpret_cast<const uint8_t*>(record_ptr + 1)) * 4;
+        uint16_t num_sources = ntohs(*(reinterpret_cast<const uint16_t*>(record_ptr + 2)));
+
+        record_ptr += 4;
+        remaining -= 4;
+
+        // The remaining data should be at least the size of the multicast address plus
+        // the number of multicast sources plus the length of the aux data.
+        if ( remaining < 16 + (num_sources * 16) + aux_len ) {
+            adapter->Weird("truncated_ICMPv6_MLDv2_record");
+            break;
+        }
+
+        IPAddr mc_addr = IPAddr(*reinterpret_cast<const in6_addr*>(record_ptr));
+        record_ptr += 16;
+        remaining -= 16;
+
+        auto source_vec = make_intrusive<VectorVal>(addr_vec_type);
+        source_vec->Reserve(num_sources);
+
+        for ( uint16_t src = 0; src < num_sources; src++ ) {
+            source_vec->Append(make_intrusive<AddrVal>(IPAddr(*reinterpret_cast<const in6_addr*>(record_ptr))));
+            record_ptr += 16;
+            remaining -= 16;
+        }
+
+        auto rv = make_intrusive<RecordVal>(icmp6_mld_mar_type);
+        rv->Assign(0, icmp6_mld_group_type_type->GetEnumVal(record_type));
+        rv->Assign(1, aux_len);
+        rv->Assign(2, num_sources);
+        rv->Assign(3, make_intrusive<AddrVal>(mc_addr));
+        rv->Assign(4, source_vec);
+
+        if ( aux_len > 0 ) {
+            rv->Assign(5, make_intrusive<StringVal>(aux_len, reinterpret_cast<const char*>(record_ptr)));
+            record_ptr += aux_len;
+            remaining -= aux_len;
+        }
+
+        if ( icmpv6_mld_report_v2 )
+            adapter->EnqueueConnEvent(icmpv6_mld_report_v2, adapter->ConnVal(), rv);
+    }
 }
 
 void ICMPAnalyzer::Context4(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,

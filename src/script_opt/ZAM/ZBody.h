@@ -144,6 +144,10 @@ private:
 
     // Profiling information for the current call.
     ProfVec* curr_prof_vec;
+
+    // Modules associated with this body. Used to selectively activate
+    // profiling.
+    std::set<std::string> modules;
 };
 
 extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);

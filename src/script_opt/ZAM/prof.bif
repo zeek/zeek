@@ -13,6 +13,8 @@ module ZAMProf;
 ##
 ##      If doing full profiling, then the number of CPU measurement calls
 ##      will be (number of profiled calls) + (number of profiled instructions).
+##      If just doing call profiling or instruction counts, then it will
+##      only be the former.
 ##
 ## Returns: The estimate of the overhead, as a non-negative interval.
 ##
@@ -30,7 +32,7 @@ function ZAMProf::CPU_meas_overhead%(%): interval
 ## .. note::
 ##
 ##      The number of memory measurement calls is always the number of
-##      profiled calls. Memory usage is not assess for profiling individual
+##      profiled calls. Memory usage is not assessed for profiling individual
 ##      instructions.
 ##
 ## Returns: The estimate of the overhead, as a non-negative interval.

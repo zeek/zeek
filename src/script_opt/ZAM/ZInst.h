@@ -74,6 +74,8 @@ public:
     void TrackRecordTypeForField(const RecordTypePtr& rt, int f);
     void TrackRecordTypesForFields(const RecordTypePtr& rt1, int f1, const RecordTypePtr& rt2, int f2);
 
+    std::shared_ptr<ZAMLocInfo> ZAMLoc() const { return loc; }
+
     // Returns a string describing the constant.
     std::string ConstDump() const;
 

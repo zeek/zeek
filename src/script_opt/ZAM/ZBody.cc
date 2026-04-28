@@ -75,12 +75,11 @@ static void get_mem_time() {
 
 void estimate_ZAM_profiling_overhead() {
     static bool did_est = false;
-    if ( ! did_est )
-	    {
-	    CPU_prof_overhead = est_min_overhead(get_THREAD_time, 1000000, 100);
-	    mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
-	    did_est = true;
-	    }
+    if ( ! did_est ) {
+        CPU_prof_overhead = est_min_overhead(get_THREAD_time, 1000000, 100);
+        mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
+        did_est = true;
+    }
 }
 
 static std::vector<const ZAMLocInfo*> caller_locs;
@@ -281,8 +280,12 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
     end_pc = instsI.size();
     auto insts_copy = new ZInst[end_pc];
 
+    modules.clear();
+
     for ( auto i = 0U; i < end_pc; ++i ) {
         auto& iI = *instsI[i];
+        auto& mi = iI.ZAMLoc()->GetModules();
+        modules.insert(mi.begin(), mi.end());
         insts_copy[i] = iI;
     }
 

@@ -732,3 +732,11 @@ if (ENABLE_ZEEK_UNIT_TESTS)
 endif ()
 
 add_subdirectory(benchmarks)
+
+# Add this late so that all other targets and variables are setup
+# and the fuzzer can link against whatever
+#
+#     get_target_property(zeek_exe LINK_LIBRARIES) returns.
+#
+# There's probably a cleaner way.
+add_subdirectory(cluster/serializer/sans-broker/fuzzer)

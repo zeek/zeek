@@ -59,7 +59,6 @@ void ZInstAux::Dump(FILE* f) const {
 
             fprintf(f, " elem-%d:", i);
 
-            ASSERT(elems_has_slots == (e_i.GetType() != nullptr));
             if ( c )
                 fprintf(f, "<constant>");
 

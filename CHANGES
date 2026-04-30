@@ -1,3 +1,9 @@
+8.0.7-1 | 2026-05-04 16:22:40 -0700
+
+  * Fix assignment typo in zeek::threading::Value's move constructor (Christian Kreibich, Corelight)
+
+    (cherry picked from commit efac5b8714532111f35adab07a976a18373244db)
+
 8.0.7 | 2026-04-20 15:49:21 +0000
 
   * Release 8.0.7.

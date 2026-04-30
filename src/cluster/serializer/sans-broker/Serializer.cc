@@ -32,6 +32,13 @@
 #include "zeek/net_util.h"
 #include "zeek/util-types.h"
 
+
+#define debug(...)                                                                                                     \
+    do {                                                                                                               \
+        std::fprintf(stderr, __VA_ARGS__);                                                                             \
+        std::fprintf(stderr, "\n");                                                                                    \
+    } while ( false )
+
 namespace zeek::cluster {
 
 // Not sure that namespace makes so much sense.
@@ -443,16 +450,16 @@ bool encode(const zeek::Val& val, std::back_insert_iterator<zeek::byte_buffer> o
 }
 
 
-/**
- * Does not move the span forward!
- */
-uint64_t read_untagged_uint64(zeek::byte_buffer_span s) {
-    assert(s.size() >= 8);
+static bool read_untagged_uint64(zeek::byte_buffer_span& s, uint64_t* res) {
+    if ( s.size() < 8 )
+        return false;
 
-    // memcpy() to avoid unaligned access.
+    // memcpy() into local variable to avoid unaligned access.
     uint64_t u64val;
     memcpy(&u64val, s.data(), sizeof(uint64_t));
-    return ntohll(u64val);
+    *res = ntohll(u64val);
+    s = s.subspan(8);
+    return true;
 }
 
 /**
@@ -538,18 +545,20 @@ static bool read_vector_start(zeek::byte_buffer_span& buffer_span, size_t* len) 
 
 namespace {
 zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypePtr& typ) {
-    variant_tag tag;
-    if ( ! read_tag(buffer_span, &tag) )
+    variant_tag vtag;
+    if ( ! read_tag(buffer_span, &vtag) )
         return nullptr;
 
-    auto zeek_tag = typ->Tag();
+    auto ztag = typ->Tag();
 
-    switch ( tag ) {
+    // debug("decode_inner variant_tag=%s zeek_tag=%s", variant_tag_name(vtag), zeek::type_name(ztag));
+
+    switch ( vtag ) {
         case variant_tag::none: {
             return nullptr;
         }
         case variant_tag::boolean: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_BOOL) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_BOOL) )
                 return nullptr;
 
             if ( buffer_span.empty() )
@@ -560,42 +569,44 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             return zeek::val_mgr->Bool(val);
         }
         case variant_tag::count: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_COUNT) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_COUNT) )
                 return nullptr;
 
-            if ( buffer_span.size() < 8 )
+            uint64_t val;
+            if ( ! read_untagged_uint64(buffer_span, &val) )
                 return nullptr;
 
-            auto val = read_untagged_uint64(buffer_span);
-            buffer_span = buffer_span.subspan(8);
             return zeek::val_mgr->Count(val);
         }
         case variant_tag::integer: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_INT) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_INT) ) {
+                return nullptr;
+            }
+
+            uint64_t val;
+            if ( ! read_untagged_uint64(buffer_span, &val) )
                 return nullptr;
 
-            if ( buffer_span.size() < 8 )
-                return nullptr;
-
-            auto val = static_cast<int64_t>(read_untagged_uint64(buffer_span));
-            buffer_span = buffer_span.subspan(8);
-            return zeek::val_mgr->Int(val);
+            return zeek::val_mgr->Int(static_cast<int64_t>(val));
         }
         case variant_tag::real: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_DOUBLE) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_DOUBLE) )
                 return nullptr;
 
             if ( buffer_span.size() < 8 )
                 return nullptr;
 
             // XXX: See comment about std::bit_cast<> above.
-            auto u64val = read_untagged_uint64(buffer_span);
+            uint64_t u64val;
+            if ( ! read_untagged_uint64(buffer_span, &u64val) )
+                return nullptr;
+
             auto val = std::bit_cast<double>(u64val);
             buffer_span = buffer_span.subspan(8);
             return zeek::make_intrusive<zeek::DoubleVal>(val);
         }
         case variant_tag::string: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_STRING) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_STRING) )
                 return nullptr;
 
             std::string_view sv;
@@ -605,7 +616,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             return zeek::make_intrusive<zeek::StringVal>(sv);
         }
         case variant_tag::address: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_ADDR) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_ADDR) )
                 return nullptr;
 
             // Need 16 bytes for addresses.
@@ -620,7 +631,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             return val;
         }
         case variant_tag::subnet: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_SUBNET) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_SUBNET) )
                 return nullptr;
 
             // Need 16 bytes for addresses and 1 byte for the mask.
@@ -637,7 +648,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             return val;
         }
         case variant_tag::port: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_PORT) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_PORT) )
                 return nullptr;
 
             // 3 bytes for ports.
@@ -654,33 +665,29 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             return val;
         }
         case variant_tag::timestamp: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_TIME) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_TIME) )
                 return nullptr;
 
-            if ( buffer_span.size() < 8 )
+            uint64_t nanos;
+            if ( ! read_untagged_uint64(buffer_span, &nanos) )
                 return nullptr;
 
-            uint64_t nanos = read_untagged_uint64(buffer_span);
             double ts = nanos / 1000000000.0;
-            auto val = zeek::make_intrusive<zeek::TimeVal>(ts);
-            buffer_span = buffer_span.subspan(8);
-            return val;
+            return zeek::make_intrusive<zeek::TimeVal>(ts);
         }
         case variant_tag::timespan: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_INTERVAL) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_INTERVAL) )
                 return nullptr;
 
-            if ( buffer_span.size() < 8 )
+            uint64_t nanos;
+            if ( ! read_untagged_uint64(buffer_span, &nanos) )
                 return nullptr;
 
-            uint64_t nanos = read_untagged_uint64(buffer_span);
             double td = nanos / 1000000000.0;
-            auto val = zeek::make_intrusive<zeek::IntervalVal>(td);
-            buffer_span = buffer_span.subspan(8);
-            return val;
+            return zeek::make_intrusive<zeek::IntervalVal>(td);
         }
         case variant_tag::enum_value: {
-            if ( (zeek_tag != TYPE_ANY && zeek_tag != TYPE_ENUM) )
+            if ( (ztag != TYPE_ANY && ztag != TYPE_ENUM) )
                 return nullptr;
 
             size_t len;
@@ -704,7 +711,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
         }
         case variant_tag::set:
         case variant_tag::table: {
-            if ( zeek_tag == TYPE_ANY ) {
+            if ( ztag == TYPE_ANY ) {
                 // This is a bit sad. Should we return some placeholder/stub?
                 //
                 // The format doesn't allow seeking, so we'd need to read through
@@ -714,7 +721,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 return nullptr;
             }
 
-            if ( zeek_tag != TYPE_TABLE )
+            if ( ztag != TYPE_TABLE )
                 return nullptr;
 
             auto tt = cast_intrusive<zeek::TableType>(typ);
@@ -722,7 +729,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             size_t nindices = tt->GetIndexTypes().size();
             bool is_table = tt->IsTable();
 
-            if ( tag == variant_tag::set && is_table )
+            if ( vtag == variant_tag::set && is_table )
                 return nullptr;
 
             size_t entries;
@@ -773,7 +780,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                     val = decode_inner(buffer_span, tt->Yield());
 
                 if ( ! tv->Assign(key, val) ) {
-                    zeek::reporter->InternalWarning("BrokerBinV1: could not assign during deserialization");
+                    // zeek::reporter->InternalWarning("BrokerBinV1: could not assign during deserialization");
                     return nullptr;
                 }
             }
@@ -786,7 +793,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             if ( ! read_varbyte(buffer_span, &length) )
                 return nullptr;
 
-            if ( zeek_tag == TYPE_ANY ) {
+            if ( ztag == TYPE_ANY ) {
                 // This is a bit sad. Should we return some placeholder/stub or just
                 // freestyle it?
                 //
@@ -797,7 +804,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 std::fprintf(stderr, "sad\n");
                 return nullptr;
             }
-            else if ( zeek_tag == TYPE_VECTOR ) {
+            else if ( ztag == TYPE_VECTOR ) {
                 auto vt = cast_intrusive<zeek::VectorType>(typ);
                 auto vv = zeek::make_intrusive<zeek::VectorVal>(vt);
                 vv->Reserve(length);
@@ -812,12 +819,12 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
 
                 return vv;
             }
-            else if ( zeek_tag == TYPE_LIST ) {
+            else if ( ztag == TYPE_LIST ) {
                 // XXX: Don't think we need to support this, there's no list type and no list values
-                zeek::reporter->Error("Unexpected TYPE_LIST type");
+                // zeek::reporter->Error("Unexpected TYPE_LIST type");
                 return nullptr;
             }
-            else if ( zeek_tag == TYPE_PATTERN ) {
+            else if ( ztag == TYPE_PATTERN ) {
                 if ( length != 2 ) // Error
                     return nullptr;
 
@@ -837,7 +844,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 auto re = std::make_unique<RE_Matcher>(exact.c_str(), anywhere.c_str());
                 return zeek::make_intrusive<zeek::PatternVal>(re.release());
             }
-            else if ( zeek_tag == TYPE_RECORD ) {
+            else if ( ztag == TYPE_RECORD ) {
                 auto rt = cast_intrusive<zeek::RecordType>(typ);
                 auto rv = zeek::make_intrusive<zeek::RecordVal>(rt);
                 if ( length != static_cast<size_t>(rt->NumFields()) )
@@ -865,7 +872,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
 
                 return rv;
             }
-            else if ( zeek_tag == TYPE_FUNC ) {
+            else if ( ztag == TYPE_FUNC ) {
                 if ( length < 0 ) // ERROR
                     return nullptr;
 
@@ -893,7 +900,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                     return nullptr;
                 }
             }
-            else if ( zeek_tag == TYPE_OPAQUE ) {
+            else if ( ztag == TYPE_OPAQUE ) {
                 if ( length != 2 ) // Error
                     return nullptr;
 
@@ -932,7 +939,8 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 return ov;
             }
             else {
-                zeek::reporter->Error("Unhandled vector. Have zeek_tag=%d (%s)", zeek_tag, obj_desc_short(typ).c_str());
+                // zeek::reporter->Error("Unhandled vector. Have zeek_tag=%d (%s)", zeek_tag,
+                // obj_desc_short(typ).c_str());
                 return nullptr;
             }
         }
@@ -950,6 +958,35 @@ ValPtr decode(zeek::byte_buffer_span& buffer_span, const zeek::TypePtr& typ) {
 
     return result;
 }
+
+/**
+ * Return the string representation of a given variant_tag.
+ */
+const char* variant_tag_name(variant_tag tag) {
+    static const char* names[] = {
+        "none",       // 0
+        "boolean",    // 1
+        "count",      // 2
+        "integer",    // 3
+        "real",       // 4
+        "string",     // 5
+        "address",    // 6
+        "subnet",     // 7
+        "port",       // 8
+        "timestamp",  // 9
+        "timespan",   // 10
+        "enum_value", // 11
+        "set",        // 12
+        "table",      // 13
+        "vector",     // 14
+    };
+
+    auto i = static_cast<size_t>(tag);
+    if ( i >= sizeof(names) )
+        return "<invalid>";
+
+    return names[i];
+};
 
 } // namespace format::broker::bin::v1
 
@@ -1010,6 +1047,9 @@ bool SansBrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const cluster:
     return true;
 }
 
+// Limits for fuzzing.
+constexpr size_t max_meta_reserve = 8;
+
 std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
     using zeek::cluster::format::broker::bin::v1::decode_inner;
     using zeek::cluster::format::broker::bin::v1::read_string;
@@ -1024,6 +1064,7 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
     if ( ! read_vector_start(buf, &len) )
         return std::nullopt;
 
+    // proto, message type, payload
     if ( len != 3 )
         return std::nullopt;
 
@@ -1034,7 +1075,8 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
 
     auto message_type = decode_inner(buf, count_type);
 
-    format::broker::bin::v1::variant_tag tag;
+    if ( ! message_type || message_type->AsCount() != 1 )
+        return std::nullopt;
 
     if ( ! read_vector_start(buf, &len) )
         return std::nullopt;
@@ -1048,11 +1090,19 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
 
     zeek::EventHandlerPtr handler = zeek::event_registry->Lookup(event_name);
     if ( handler == nullptr ) {
-        zeek::reporter->Error("Failed to lookup handler for '%s' for remote event", std::string(event_name).c_str());
+        // zeek::reporter->Error("Failed to lookup handler for '%s' for remote event",
+        // std::string(event_name).c_str());
         return std::nullopt;
     }
 
-    const auto& arg_types = handler->GetFunc()->GetType()->ParamList()->GetTypes();
+    // That is strange, but can happen when fuzzing in bare mode. Saw this
+    // when the fuzzer came up sending Spicy event handlers that might not
+    // have a proper type yet because fuzzing runs in bare mode
+    const auto& func_ptr = handler->GetFunc();
+    if ( ! func_ptr )
+        return std::nullopt;
+
+    const auto& arg_types = func_ptr->GetType()->ParamList()->GetTypes();
 
     // Parse args. Args are essentially a vector of any but we have typing information
     // from the event signature and so can use decode_inner() below.
@@ -1061,8 +1111,8 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
         return std::nullopt;
 
     if ( args_len != arg_types.size() ) {
-        zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%zu and args.size()=%zu",
-                              std::string(event_name).c_str(), arg_types.size(), args_len);
+        // zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%zu and args.size()=%zu",
+        // std::string(event_name).c_str(), arg_types.size(), args_len);
 
         return std::nullopt;
     }
@@ -1072,8 +1122,9 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
     for ( size_t i = 0; i < args_len; i++ ) {
         ValPtr arg = decode_inner(buf, arg_types[i]);
         if ( ! arg ) {
-            zeek::reporter->Error("Unserialize error for event '%s': arg %zu type %s failed",
-                                  std::string(event_name).c_str(), i, zeek::obj_desc_short(arg_types[i]).c_str());
+            // zeek::reporter->Error("Unserialize error for event '%s': arg %zu type %s failed",
+            //                                  std::string(event_name).c_str(), i,
+            //                                  zeek::obj_desc_short(arg_types[i]).c_str());
             return std::nullopt;
         }
 
@@ -1089,7 +1140,11 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
             return std::nullopt;
 
         meta = std::make_unique<zeek::detail::EventMetadataVector>();
-        meta->reserve(meta_len);
+
+        // Protect from allocating more than max_meta_reserve elements
+        // as the length might be tainted. Indeed, we should probably
+        // short-circuit if it's anything alrger than 1000 or so.
+        meta->reserve(std::min(meta_len, max_meta_reserve));
 
         // Every meta element is a vector of length two.
         for ( size_t i = 0; i < meta_len; i++ ) {
@@ -1103,13 +1158,13 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
 
             const auto* desc = zeek::event_registry->LookupMetadata(meta_id->AsCount());
             if ( ! desc ) {
-                std::fprintf(stderr, "unknown meta %zu\n", meta_id->AsCount());
+                // std::fprintf(stderr, "unknown meta %zu\n", meta_id->AsCount());
                 continue;
             }
 
             ValPtr meta_value = decode_inner(buf, desc->Type());
             if ( ! meta_value ) {
-                std::fprintf(stderr, "failure to parse meta %zu\n", meta_id->AsCount());
+                // std::fprintf(stderr, "failure to parse meta %zu\n", meta_id->AsCount());
                 continue;
             }
 

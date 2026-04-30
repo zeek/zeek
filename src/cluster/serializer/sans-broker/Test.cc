@@ -2,22 +2,23 @@
 
 #include <iterator>
 
+#include "zeek/Event.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/RE.h"
 #include "zeek/Val.h"
+#include "zeek/broker/Data.h"
 #include "zeek/cluster/Event.h"
 #include "zeek/cluster/serializer/sans-broker/Serializer.h"
 #include "zeek/net_util.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/telemetry/Opaques.h"
 #include "zeek/util-types.h"
+#include "zeek/util.h"
 
-#include "Event.h"
-#include "EventRegistry.h"
-#include "broker/Data.h"
 #include "broker/format/bin.hh"
-#include "telemetry/Manager.h"
 
 #include "zeek/3rdparty/doctest.h"
 
@@ -36,11 +37,70 @@ void print_hex(const char* what, const zeek::byte_buffer& b) {
     std::fprintf(stderr, "\n");
 }
 
+zeek::byte_buffer from_hex(std::string_view hex) {
+    zeek::byte_buffer result;
+
+    size_t idx = 0;
+    while ( idx < hex.size() ) {
+        if ( idx + 1 == hex.size() )
+            throw std::invalid_argument("invalid number of characters");
+
+        int c1 = zeek::util::decode_hex(hex[idx]);
+        int c2 = zeek::util::decode_hex(hex[idx + 1]);
+        if ( c1 < 0 || c2 < 0 )
+            throw std::invalid_argument("invalid hex char in string");
+
+        result.push_back(static_cast<std::byte>(c1 << 4 | c2));
+
+        if ( idx + 2 < hex.size() ) {
+            // If something follows after two hex chars, it must be a ':'
+            if ( hex[idx + 2] != ':' || idx + 3 == hex.size() )
+                throw std::invalid_argument("invalid hex string");
+        }
+
+        idx += 3;
+    }
+
+    return result;
+}
+
 } // namespace
 
 TEST_SUITE_BEGIN("cluster serializer compatible");
 
-TEST_CASE("compare") {
+TEST_CASE("from_hex self test") {
+    SUBCASE("empty") {
+        auto r = from_hex("");
+        CHECK(r.size() == 0);
+    }
+    SUBCASE("single byte") {
+        auto r = from_hex("aa");
+        REQUIRE(r.size() == 1);
+        CHECK_EQ(r[0], std::byte{0xaa});
+    }
+
+    SUBCASE("two bytes") {
+        auto r = from_hex("aa:bb");
+        REQUIRE(r.size() == 2);
+        CHECK_EQ(r[0], std::byte{0xaa});
+        CHECK_EQ(r[1], std::byte{0xbb});
+    }
+
+    SUBCASE("two bytes upper") {
+        auto r = from_hex("AA:BB");
+        REQUIRE(r.size() == 2);
+        CHECK_EQ(r[0], std::byte{0xaa});
+        CHECK_EQ(r[1], std::byte{0xbb});
+    }
+
+    SUBCASE("errors") {
+        CHECK_THROWS_AS(from_hex("aa:"), std::invalid_argument);
+        CHECK_THROWS_AS(from_hex(":"), std::invalid_argument);
+        CHECK_THROWS_AS(from_hex("zz"), std::invalid_argument);
+    }
+}
+
+TEST_CASE("compare implementations") {
     zeek::byte_buffer buf;
     zeek::byte_buffer broker_buf;
 
@@ -69,7 +129,7 @@ TEST_CASE("compare") {
         print_hex("true non-broker", buf);
         print_hex("true broker", broker_buf);
 
-        std::vector<std::byte> expected = {std::byte{0x01}, std::byte{0x01}};
+        auto expected = from_hex("01:01");
 
         CHECK_EQ(buf, expected);
         CHECK_EQ(buf, broker_buf);
@@ -84,7 +144,10 @@ TEST_CASE("compare") {
         print_hex("false non-broker", buf);
         print_hex("false broker", broker_buf);
 
+        auto expected = from_hex("01:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("count") {
@@ -96,7 +159,10 @@ TEST_CASE("compare") {
         print_hex("count non-broker", buf);
         print_hex("count broker", broker_buf);
 
+        auto expected = from_hex("02:00:00:00:00:00:00:00:2a");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("int") {
@@ -111,7 +177,10 @@ TEST_CASE("compare") {
         print_hex("int non-broker", buf);
         print_hex("int broker", broker_buf);
 
+        auto expected = from_hex("03:00:00:00:00:00:00:00:2a:03:ff:ff:ff:ff:ff:ff:ff:d6");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("string") {
@@ -123,7 +192,10 @@ TEST_CASE("compare") {
         print_hex("string non-broker", buf);
         print_hex("string broker", broker_buf);
 
+        auto expected = from_hex("05:09:66:6f:72:74:79:20:74:77:6f");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("long string") {
@@ -161,7 +233,12 @@ TEST_CASE("compare") {
         print_hex("ip non-broker", buf);
         print_hex("ip broker", broker_buf);
 
+        auto expected = from_hex(
+            "06:00:00:00:00:00:00:00:00:00:00:ff:ff:c0:a8:00:01:06:26:06:47:00:"
+            "47:00:00:00:00:00:00:00:00:00:11:11");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("subnet") {
@@ -179,7 +256,12 @@ TEST_CASE("compare") {
         print_hex("subnet non-broker", buf);
         print_hex("subnet broker", broker_buf);
 
+        auto expected = from_hex(
+            "07:00:00:00:00:00:00:00:00:00:00:ff:ff:c0:a8:00:00:70:07:26:06:47:"
+            "00:47:00:00:00:00:00:00:00:00:00:00:00:60");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("port") {
@@ -204,7 +286,10 @@ TEST_CASE("compare") {
         print_hex("port non-broker", buf);
         print_hex("port broker", broker_buf);
 
+        auto expected = from_hex("08:00:50:01:08:00:35:02:08:14:e9:02:08:00:2a:03:08:00:2a:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("time and interval") {
@@ -222,7 +307,10 @@ TEST_CASE("compare") {
         print_hex("ts/td non-broker", buf);
         print_hex("ts/td broker", broker_buf);
 
+        auto expected = from_hex("09:00:2b:dc:54:27:b3:8c:00:0a:00:00:00:09:c7:65:24:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("pattern") {
@@ -242,7 +330,12 @@ TEST_CASE("compare") {
         print_hex("pattern non-broker", buf);
         print_hex("pattern broker", broker_buf);
 
+        auto expected = from_hex(
+            "0e:02:05:04:61:62:2a:63:05:08:2e:2a:61:62:2a:63:2e:2a:0e:02:05:03:"
+            "61:62:63:05:07:2e:2a:61:62:63:2e:2a");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("empty vector") {
@@ -256,7 +349,10 @@ TEST_CASE("compare") {
         print_hex("empty vector non-broker", buf);
         print_hex("empty vector broker", broker_buf);
 
+        auto expected = from_hex("0e:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("count vector") {
@@ -273,7 +369,10 @@ TEST_CASE("compare") {
         print_hex("count vector non-broker", buf);
         print_hex("count vector broker", broker_buf);
 
+        auto expected = from_hex("0e:02:02:00:00:00:00:00:00:00:2a:02:00:00:00:00:00:00:12:67");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("mixed vector") {
@@ -298,7 +397,13 @@ TEST_CASE("compare") {
         print_hex("mixed vector non-broker", buf);
         print_hex("mixed vector broker", broker_buf);
 
+        auto expected = from_hex(
+            "0e:05:01:01:01:00:02:00:00:00:00:00:00:00:2a:0e:03:02:00:00:00:00:"
+            "00:00:00:2a:05:09:66:6f:72:74:79:20:74:77:6f:02:00:00:00:00:00:00:"
+            "00:2a:01:01");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("empty table") {
@@ -311,7 +416,10 @@ TEST_CASE("compare") {
         print_hex("empty table non-broker", buf);
         print_hex("empty table broker", broker_buf);
 
+        auto expected = from_hex("0d:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("table") {
@@ -329,10 +437,15 @@ TEST_CASE("compare") {
         auto bval = zeek::Broker::detail::val_to_data(tbl.get());
         broker::format::bin::v1::encode(*bval, std::back_inserter(broker_buf));
 
+        auto expected = from_hex(
+            "0d:02:05:04:6b:65:79:31:05:06:76:61:6c:75:65:31:05:04:6b:65:79:32:"
+            "05:06:76:61:6c:75:65:32");
+
         print_hex("table non-broker", buf);
         print_hex("table broker", broker_buf);
 
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("table composite") {
@@ -365,7 +478,13 @@ TEST_CASE("compare") {
         print_hex("table composite non-broker", buf);
         print_hex("table composite broker", broker_buf);
 
+        auto expected = from_hex(
+            "0d:02:0e:02:02:00:00:00:00:00:00:00:2a:05:04:6b:65:79:31:05:06:76:"
+            "61:6c:75:65:31:0e:02:02:00:00:00:00:00:00:10:92:05:04:6b:65:79:32:"
+            "05:06:76:61:6c:75:65:32");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("set") {
@@ -385,7 +504,12 @@ TEST_CASE("compare") {
         print_hex("set non-broker", buf);
         print_hex("set broker", broker_buf);
 
+        auto expected = from_hex(
+            "0c:02:07:00:00:00:00:00:00:00:00:00:00:ff:ff:0a:00:00:00:68:07:00:"
+            "00:00:00:00:00:00:00:00:00:ff:ff:c0:a8:00:00:70");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("set composite") {
@@ -416,7 +540,12 @@ TEST_CASE("compare") {
         print_hex("set composite non-broker", buf);
         print_hex("set composite broker", broker_buf);
 
+        auto expected = from_hex(
+            "0c:02:0e:02:02:00:00:00:00:00:00:00:2a:05:04:6b:65:79:31:0e:02:02:"
+            "00:00:00:00:00:00:10:92:05:04:6b:65:79:32");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("opaque sha256") {
@@ -432,7 +561,16 @@ TEST_CASE("compare") {
         print_hex("opaque sha256", buf);
         print_hex("opaque sha256", broker_buf);
 
+        auto expected = from_hex(
+            "0e:02:05:09:53:48:41:32:35:36:56:61:6c:0e:02:01:01:05:70:67:e6:09:"
+            "6a:85:ae:67:bb:72:f3:6e:3c:3a:f5:4f:a5:7f:52:0e:51:8c:68:05:9b:ab:"
+            "d9:83:1f:19:cd:e0:5b:20:00:00:00:00:00:00:00:41:41:41:41:00:00:00:"
+            "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:"
+            "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:"
+            "00:00:00:00:00:00:00:00:00:00:00:00:00:04:00:00:00:20:00:00:00");
+
         CHECK_EQ(buf, broker_buf);
+        CHECK_EQ(buf, expected);
     }
 
     SUBCASE("record") {
@@ -450,12 +588,7 @@ TEST_CASE("compare") {
         print_hex("record mime_match", buf);
         print_hex("record mime_match", broker_buf);
 
-        std::vector<std::byte> expected = {
-            std::byte{0x0e}, std::byte{0x02}, std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-            std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x2a}, std::byte{0x05},
-            std::byte{0x0a}, std::byte{0x74}, std::byte{0x65}, std::byte{0x78}, std::byte{0x74}, std::byte{0x2f},
-            std::byte{0x70}, std::byte{0x6c}, std::byte{0x61}, std::byte{0x69}, std::byte{0x6e},
-        };
+        auto expected = from_hex("0e:02:03:00:00:00:00:00:00:00:2a:05:0a:74:65:78:74:2f:70:6c:61:69:6e");
 
         CHECK_EQ(buf, broker_buf);
         CHECK_EQ(buf, expected);
@@ -477,14 +610,8 @@ TEST_CASE("compare") {
         print_hex("record endpoint", buf);
         print_hex("record endpoint", broker_buf);
 
-        std::vector<std::byte> expected = {
-            std::byte{0x0e}, std::byte{0x06}, std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-            std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x2a}, std::byte{0x02},
-            std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-            std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x02}, std::byte{0x00},
-            std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x12},
-            std::byte{0x67}, std::byte{0x00},
-        };
+        auto expected =
+            from_hex("0e:06:02:00:00:00:00:00:00:00:2a:02:00:00:00:00:00:00:00:00:00:00:02:00:00:00:00:00:00:12:67:00");
 
         CHECK_EQ(buf, broker_buf);
         CHECK_EQ(buf, expected);
@@ -514,6 +641,12 @@ TEST_CASE("compare") {
 }
 
 TEST_CASE("event roundtrip") {
+    auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
+    REQUIRE(nts);
+
+    bool registered = zeek::event_registry->RegisterMetadata(nts, zeek::base_type(zeek::TYPE_TIME));
+    REQUIRE(registered);
+
     auto node_up = zeek::event_registry->Lookup("Cluster::node_up");
     auto worker_name = zeek::make_intrusive<zeek::StringVal>("worker-42");
     auto worker_id = zeek::make_intrusive<zeek::StringVal>("ff8b006a-2df7-4161-9fc2-55a421fec9c7");

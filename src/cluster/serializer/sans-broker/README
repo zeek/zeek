@@ -1,2 +1,17 @@
 An implementation of the Broker Binary V1 format but without using
 the Broker library.
+
+
+The any Decoding Misery
+=======================
+
+The original Broker data format has vector, table and set as container data
+types. Everything else are atomic types.
+
+
+
+When deserializing without type information (that is, deserializing into type any),
+we'll need to deserialize into table[any] of any, set[any] or vector of any, every
+other variant tag can be mapped to a primitive Zeek type.
+
+The pattern, record, func, file are represented as vectors.

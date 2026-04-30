@@ -28,23 +28,25 @@ namespace format::broker::bin::v1 {
 enum class variant_tag : uint8_t {
     // Warning: the values *must* have the same order as `data_variant`, because
     // the integer value for this tag must be equal to `get_data().index()`.
-    none,
-    boolean,
-    count,
-    integer,
-    real,
-    string,     // 5
-    address,    // 6
-    subnet,     // 7
-    port,       // 8
-    timestamp,  // 9
-    timespan,   // 10
-    enum_value, // 11
-    set,
-    table,
+    none,          // 0
+    boolean,       // 1
+    count,         // 2
+    integer,       // 3
+    real,          // 4
+    string,        // 5
+    address,       // 6
+    subnet,        // 7
+    port,          // 8
+    timestamp,     // 9
+    timespan,      // 10
+    enum_value,    // 11
+    set,           // 12
+    table,         // 13
     list,          // 14
     vector = list, // alias for backward compatibility
 };
+
+const char* variant_tag_name(variant_tag tag);
 
 // An Event is a Message with Type=1
 // ProtocolVersion, Type, Content
@@ -75,7 +77,7 @@ class SansBrokerBinV1_Serializer : public EventSerializer {
 public:
     SansBrokerBinV1_Serializer() : EventSerializer("broker-bin-v1") {}
 
-    ~SansBrokerBinV1_Serializer() = default;
+    ~SansBrokerBinV1_Serializer() override = default;
 
     bool SerializeEvent(byte_buffer& buf, const cluster::Event& event) override;
 

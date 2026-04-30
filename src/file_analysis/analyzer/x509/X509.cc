@@ -155,7 +155,9 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     // if the string is longer than 255, that will be our null-termination,
     // otherwise i2t does null-terminate.
     ASN1_OBJECT* algorithm;
-    X509_PUBKEY_get0_param(&algorithm, nullptr, nullptr, nullptr, X509_get_X509_PUBKEY(ssl_cert));
+    const unsigned char* pub_key_bytes;
+    int pub_key_len;
+    X509_PUBKEY_get0_param(&algorithm, &pub_key_bytes, &pub_key_len, nullptr, X509_get_X509_PUBKEY(ssl_cert));
     if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
         buf[0] = 0;
 
@@ -168,29 +170,22 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     pX509Cert->Assign(13, make_intrusive<StringVal>(len, buf));
     BIO_free(bio);
 
-    // Special case for RDP server certificates. For some reason some (all?) RDP server
-    // certificates like to specify their key algorithm as md5WithRSAEncryption, which
-    // is wrong on so many levels. We catch this special case here and set it to what is
-    // actually should be (namely - rsaEncryption), so that OpenSSL will parse out the
-    // key later. Otherwise it will just fail to parse the certificate key.
-
-    if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption ) {
-        ASN1_OBJECT* copy = OBJ_dup(algorithm); // the next line will destroy the original algorithm.
-        X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, nullptr, nullptr, 0);
-        algorithm = copy;
-        // we do not have to worry about freeing algorithm in that case - since it will be
-        // re-assigned using set0_param and the cert will take ownership.
-    }
-    else
-        algorithm = nullptr;
-
     if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
         buf[0] = 0;
 
     pX509Cert->Assign(8, buf);
 
     // Things we can do when we have the key...
-    EVP_PKEY* pkey = X509_extract_key(ssl_cert);
+    EVP_PKEY* pkey = nullptr;
+    // Special case for RDP server certificates. For some reason some (all?) RDP server
+    // certificates like to specify their key algorithm as md5WithRSAEncryption, which
+    // is wrong on so many levels. We catch this special case here and decode the raw
+    // SubjectPublicKey bytes directly as RSA, bypassing the OID,
+    if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption )
+        pkey = d2i_PublicKey(EVP_PKEY_RSA, nullptr, &pub_key_bytes, pub_key_len);
+    else
+        pkey = X509_extract_key(ssl_cert);
+
     if ( pkey != nullptr ) {
         if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
             pX509Cert->Assign(9, "dsa");
@@ -231,11 +226,6 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
                 pX509Cert->Assign(9, type_name);
         }
 #endif
-
-        // set key algorithm back. We do not have to free the value that we created because (I
-        // think) it comes out of a static array from OpenSSL memory.
-        if ( algorithm )
-            X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), algorithm, 0, nullptr, nullptr, 0);
 
         unsigned int length = KeyLength(pkey);
         if ( length > 0 )

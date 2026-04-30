@@ -65,10 +65,12 @@ public:
 
     void append(int len, const char* data);
     String* get_concatenated_line();
+    zeek_uint_t get_total_bytes() { return total_bytes; }
 
 protected:
     std::vector<const String*> buffer;
     String* line;
+    std::size_t total_bytes;
 };
 
 class MIME_Header {

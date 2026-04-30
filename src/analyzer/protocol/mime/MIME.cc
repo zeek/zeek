@@ -371,14 +371,20 @@ String* MIME_decode_quoted_pairs(data_chunk_t buf) {
     return new String(true, (byte_vec)dest, j);
 }
 
-MIME_Multiline::MIME_Multiline() { line = nullptr; }
+MIME_Multiline::MIME_Multiline() {
+    line = nullptr;
+    total_bytes = 0;
+}
 
 MIME_Multiline::~MIME_Multiline() {
     delete line;
     delete_strings(buffer);
 }
 
-void MIME_Multiline::append(int len, const char* data) { buffer.push_back(new String((const u_char*)data, len, true)); }
+void MIME_Multiline::append(int len, const char* data) {
+    total_bytes += len;
+    buffer.push_back(new String(reinterpret_cast<const u_char*>(data), len, true));
+}
 
 String* MIME_Multiline::get_concatenated_line() {
     if ( buffer.empty() )
@@ -627,6 +633,16 @@ void MIME_Entity::ContHeader(int len, const char* data) {
         // shall we try it as a new header or simply ignore this line?
         int ws = MIME_count_leading_lws(len, data);
         NewHeader(len - ws, data + ws);
+        return;
+    }
+
+    if ( zeek::BifConst::MIME::max_header_bytes > 0 &&
+         current_header_line->get_total_bytes() >= zeek::BifConst::MIME::max_header_bytes ) {
+        if ( message->GetAnalyzer() ) {
+            const char* addl = zeek::util::fmt("%" PRIu64, current_header_line->get_total_bytes());
+            message->GetAnalyzer()->Weird("exceeded_mime_max_header_bytes", addl);
+        }
+
         return;
     }
 

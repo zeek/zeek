@@ -29,9 +29,13 @@ void (*CPP_init_hook)() = nullptr;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
-// Tracks all of the compiled-to-ZAM bodies. Only populated if we're doing
-// profiling.
-static std::vector<IntrusivePtr<ZBody>> zam_bodies;
+using ZBodyPtr = IntrusivePtr<ZBody>;
+
+// Tracks all of the compiled-to-ZAM bodies.
+static std::vector<ZBodyPtr> zam_bodies;
+
+// Maps a module name to all of the ZAM bodies relevant for it.
+static std::unordered_map<std::string, std::unordered_set<ZBodyPtr>> module_bodies;
 
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
@@ -636,12 +640,15 @@ void clear_script_analysis() {
     for ( auto& g : global_scope()->OrderedVars() )
         g->ClearOptInfo();
 
-    // If we're profiling ZAM, keep the bodies around so we can loop
-    // over them to generate the profiles.
-    if ( analysis_options.profile_ZAM )
-        for ( auto& f : funcs )
-            if ( f.Body()->Tag() == STMT_ZAM )
-                zam_bodies.push_back(cast_intrusive<ZBody>(f.Body()));
+    // Keep ZAM bodies around so we can loop over them for profiling.
+    for ( auto& f : funcs )
+        if ( f.Body()->Tag() == STMT_ZAM ) {
+            auto zb = cast_intrusive<ZBody>(f.Body());
+            zam_bodies.push_back(zb);
+
+            for ( const auto& m : zb->Modules() )
+                module_bodies[m].insert(zb);
+        }
 
     funcs.clear();
 
@@ -723,6 +730,61 @@ void analyze_scripts(bool no_unused_warnings) {
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");
+}
+
+zeek_uint_t measure_module(std::string mod, bool active) {
+    auto mb = module_bodies.find(mod);
+    if ( mb == module_bodies.end() )
+        return 0;
+
+    for ( auto& b : mb->second )
+        b->SetProfilingCalls(active);
+
+    return mb->second.size();
+}
+
+RecordValPtr get_module_profile(std::string mod) {
+    static auto prof_rec_t = id::find_type<zeek::RecordType>("ZAMProf::Profile");
+    auto prof_rec = make_intrusive<RecordVal>(prof_rec_t);
+
+    auto mb = module_bodies.find(mod);
+    if ( mb == module_bodies.end() )
+        return prof_rec;
+
+    auto& bodies = mb->second;
+    prof_rec->Assign(0, static_cast<uint64_t>(bodies.size()));
+
+    bool is_profiling = false;
+    uint64_t ncalls = 0;
+    uint64_t ninst = 0;
+    double CPU = 0.0;
+    uint64_t mem = 0;
+
+    for ( auto& b : bodies ) {
+        is_profiling = is_profiling || b->IsProfilingCalls();
+
+        ncalls += b->NumBodyCalls();
+
+        auto tot_inst = b->NumBodyInsts();
+        if ( tot_inst > 0 ) {
+            auto mod_inst = b->NumModuleInsts(mod);
+            double ratio = double(mod_inst) / double(tot_inst);
+
+            ninst += int(ratio * tot_inst + 0.5);
+            CPU += ratio * b->CPUTimeEst();
+            mem += uint64_t(ratio * b->MemoryEst());
+        }
+    }
+
+    prof_rec->Assign(1, ncalls);
+    prof_rec->Assign(2, ninst);
+
+    if ( is_profiling ) {
+        prof_rec->Assign(3, CPU);
+        prof_rec->Assign(4, mem);
+    }
+
+    return prof_rec;
 }
 
 void profile_script_execution() {

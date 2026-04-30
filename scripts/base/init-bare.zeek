@@ -1334,75 +1334,6 @@ type EventNameCounter: record {
 
 type EventNameStats: vector of EventNameCounter;
 
-export {
-	## Different levels of ZAM profiling.
-	type ZAMProfLevel: enum {
-		## ZAM is not active.
-		NO_ZAM,
-
-		## ZAM is active but no profiling is enabled.
-		NO_PROFILING,
-
-		## Gather CPU and memory estimates on a per-call basis.
-		PROFILE_CALLS,
-
-		## In addition, gather (sampled) instruction counts.
-		PROFILE_INST_COUNTS,
-
-		## In addition, gather (sampled) instruction CPU and
-		## memory estimates. ``-O profile-ZAM`` implies this level.
-		PROFILE_INST_CPU_MEM
-	};
-
-	## Record used to retrieve or set the ZAM instruction profiling
-	## configuration.
-
-	type Config: record {
-		## Current profiling level. Can be changed dynamically,
-		## except no switching between `NO_ZAM` and other values.
-		profiling_level: ZAMProfLevel;
-
-		## Rate at which instructions are sampled. A setting of
-		## 10, for example, means that every 10th instruction is
-		## sampled. Low values start adding execution overhead,
-		## especially for PROFILE_INST_CPU_MEM.
-		sampling_rate: count &default=100;
-
-		## An estimate of the overhead associated with one
-		## CPU timing measurement. Made available so if desired
-		## it can be used to attempt to remove bias from
-		## CPU measurements. Always non-negative.
-		CPU_meas_overhead: interval;
-
-		## An estimate of the overhead associated with one
-		## memory measurement. Made available so if desired
-		## it can be used to attempt to remove bias from
-		## memory measurements. Always non-negative.
-		mem_meas_overhead: interval;
-	};
-
-	## Returned by ZAM profiling calls. Such calls have granularities
-	## associated with them (module, file name, function name).
-	type Profile: record {
-		## How many total calls seen at the given granularity.
-		## Available for profiling levels of PROFILE_CALLS and higher.
-		num_calls: count &optional;
-
-		## How many *sampled* instructions executed. Available
-		## for profiling levels of PROFILE_INST_COUNTS or higher.
-		num_sampled_inst: count &optional;
-
-		## Estimate of total CPU time to date, in seconds. Available
-		## for the PROFILE_INST_CPU_MEM profiling level.
-		CPU: interval &optional;
-
-		## Estimate of total memory used to date, in bytes. The
-		## number is only a rough estimate. Available for the
-		## PROFILE_INST_CPU_MEM profiling level.
-		mem: count &optional;
-	};
-}
-
 ## Table type used to map variable names to their memory allocation.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions
@@ -6730,6 +6661,40 @@ export {
 	## .. zeek:see:: conn_generic_packet_threshold_crossed
 	const generic_packet_thresholds: set[count] = {} &redef;
 }
+
+module ZAMProf;
+
+## Summarizes ZAM profiling information for a given module.
+type Profile: record {
+	## How many compiled ZAM bodies are associated with the module.
+	## A value of 0 indicates either the module doesn't exist or ZAM
+	## itself was not activated.
+	num_bodies: count &default=0;
+
+	## Number of calls so far to ZAM bodies in the module.
+	num_calls: count &optional;
+
+	## How many ZAM instructions have executed so far on behalf of
+	## the module.
+	num_inst: count &default=0;
+
+	## The following two will only be present if a previous call
+	## to measure_module() set CPU/memory profiling for the module.
+
+	## Estimated total (user) CPU time so far. Some ZAM bodies include
+	## code for multiple modules. For those, the contribution to the
+	## estimate is based on the ratio of the number of instructions
+	## associated with the module executed vs. total number of
+	## instructions executed for the given shared body. Note: you can
+	## adjust (somewhat) for bias in the measurements by subtracting
+	## "ZAMProf::meas_overhead() * $num_calls".
+	CPU: interval &optional;
+
+	## Estimate of total memory used to date, in bytes. The number is
+	## only a rough estimate, and uses the same ratio for bodies shared
+	## across multiple modules as for CPU.
+	mem: count &optional;
+};
 
 module GLOBAL;
 

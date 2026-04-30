@@ -56,9 +56,24 @@ public:
 
     void Dump() const;
 
+    // Specify whether to measure CPU & memory for calls to the given body.
+    void SetProfilingCalls(bool active) {
+        profile_calls = active;
+        profiling_set_call = ncall;
+    }
+    bool IsProfilingCalls() const { return profile_calls; }
+
+    uint64_t NumBodyCalls() const { return ncall; }
+    uint64_t NumBodyInsts() const;
+    uint64_t NumModuleInsts(const std::string& mod) const;
+
+    double CPUTimeEst() const { return tot_CPU_time; }
+    uint64_t MemoryEst() const { return tot_mem; }
+
     void ReportExecutionProfile(ProfMap& pm);
 
     const std::string& FuncName() const { return func_name; }
+    const std::set<std::string>& Modules() const { return modules; }
 
     // Helper run-time function for looking up a field in a record, checking
     // that it exists and complaining if it does not. A member here rather than
@@ -123,16 +138,23 @@ private:
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
 
-    // Variables controlling the depth of profiling. The later (more in-depth)
-    // ones always imply the earlier ones.
-    bool profile_calls = false;    // CPU and memory for calls
-    bool profile_inst_cnt = false; // individual (sampled) instruction counts
-    bool profile_CPU_mem = false;  // sample CPU and memory per instruction
+    // Variables controlling the depth of profiling.
+    bool profile_calls = false;  // CPU and memory for calls
+    bool sample_CPU_mem = false; // sample per instruction
 
-    // The following are only maintained if we're doing profiling.
-    int prof_sampling_rate = 0; // sample every N'th instruction
-    int ninst = 0;
-    int ncall = 0;
+    // We remember whenever profile_calls has been adjusted. This is to
+    // avoid a miscomputation of CPU time when measure_module() is called
+    // from within the module being measured. See ZBody::DoExec() for more.
+    uint64_t profiling_set_call = 0;
+
+    // Indexed by program counter. Holds number of times the given instruction
+    // has executed. Always maintained.
+    uint64_t* inst_cnt = nullptr;
+
+    uint64_t ncall = 0; // number of calls to the ZBody; always maintained
+
+    int prof_sampling_rate = 0; // sample CPU/memory every N'th instruction
+    uint64_t num_sampled_inst = 0;
     double tot_CPU_time = 0.0;
     uint64_t tot_mem = 0;
 

@@ -31,10 +31,10 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
     char lBuffer[26];
     char* pBuffer = lBuffer;
 
-    const char* pString = reinterpret_cast<const char*>(atime->data);
-    unsigned int remaining = atime->length;
+    const char* pString = reinterpret_cast<const char*>(ASN1_STRING_get0_data(atime));
+    unsigned int remaining = ASN1_STRING_length(atime);
 
-    if ( atime->type == V_ASN1_UTCTIME ) {
+    if ( ASN1_STRING_type(atime) == V_ASN1_UTCTIME ) {
         if ( remaining < 11 || remaining > 17 ) {
             EmitWeird("x509_utc_length", f);
             return 0;
@@ -62,7 +62,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
         pString += 10;
         remaining -= 10;
     }
-    else if ( atime->type == V_ASN1_GENERALIZEDTIME ) {
+    else if ( ASN1_STRING_type(atime) == V_ASN1_GENERALIZEDTIME ) {
         // generalized time. We apparently ignore the YYYYMMDDHH case
         // for now and assume we always have minutes and seconds.
         // This should be ok because it is specified as a requirement in RFC 2459 4.1.2.5.2
@@ -166,22 +166,23 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
     return lResult;
 }
 
-void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext) {
+void X509Common::ParseSignedCertificateTimestamps(openssl_x509_ext_t* ext) {
     // Ok, signed certificate timestamps are a bit of an odd case out; we don't
     // want to use the (basically nonexistent) OpenSSL functionality to parse them.
     // Instead we have our own, self-written binpac parser to parse just them,
     // which we will initialize here and tear down immediately again.
 
-    ASN1_OCTET_STRING* ext_val = X509_EXTENSION_get_data(ext);
+    auto* ext_val = X509_EXTENSION_get_data(ext);
     // the octet string of the extension contains the octet string which in turn
     // contains the SCT. Obviously.
 
-    unsigned char* ext_val_copy = reinterpret_cast<unsigned char*>(OPENSSL_malloc(ext_val->length));
+    int ext_val_len = ASN1_STRING_length(ext_val);
+    unsigned char* ext_val_copy = reinterpret_cast<unsigned char*>(OPENSSL_malloc(ext_val_len));
     unsigned char* ext_val_second_pointer = ext_val_copy;
-    memcpy(ext_val_copy, ext_val->data, ext_val->length);
+    memcpy(ext_val_copy, ASN1_STRING_get0_data(ext_val), ext_val_len);
 
     ASN1_OCTET_STRING* inner =
-        d2i_ASN1_OCTET_STRING(nullptr, const_cast<const unsigned char**>(&ext_val_copy), ext_val->length);
+        d2i_ASN1_OCTET_STRING(nullptr, const_cast<const unsigned char**>(&ext_val_copy), ext_val_len);
     if ( ! inner ) {
         OPENSSL_free(ext_val_second_pointer);
         reporter->Error("X509::ParseSignedCertificateTimestamps could not parse inner octet string");
@@ -192,7 +193,8 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext) {
     binpac::X509Extension::SignedCertTimestampExt* interp = new binpac::X509Extension::SignedCertTimestampExt(conn);
 
     try {
-        interp->NewData(inner->data, inner->data + inner->length);
+        const unsigned char* inner_data = ASN1_STRING_get0_data(inner);
+        interp->NewData(inner_data, inner_data + ASN1_STRING_length(inner));
     } catch ( const binpac::Exception& e ) {
         // throw a warning or sth
         reporter->Error("X509::ParseSignedCertificateTimestamps could not parse SCT");
@@ -207,11 +209,11 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext) {
     delete conn;
 }
 
-void X509Common::ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global) {
+void X509Common::ParseExtension(openssl_x509_ext_t* ex, const EventHandlerPtr& h, bool global) {
     char name[256];
     char oid[256];
 
-    ASN1_OBJECT* ext_asn = X509_EXTENSION_get_object(ex);
+    auto* ext_asn = X509_EXTENSION_get_object(ex);
     const char* short_name = OBJ_nid2sn(OBJ_obj2nid(ext_asn));
 
     OBJ_obj2txt(name, 255, ext_asn, 0);

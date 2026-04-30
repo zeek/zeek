@@ -73,10 +73,10 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 									const_cast<X509_NAME*>(name));
 
 	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwise.
-	if ( key->length != SHA_DIGEST_LENGTH )
+	if ( ASN1_STRING_length(key) != SHA_DIGEST_LENGTH )
 		return nullptr;
 
-	unsigned char* key_hash = key->data;
+	const unsigned char* key_hash = ASN1_STRING_get0_data(key);
 
 	for ( int i = 0; i < sk_X509_num(certs); ++i )
 		{
@@ -481,9 +481,13 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// Well, we will do it manually.
 
 
-	if ( X509_cmp_time(thisUpdate, &vtime) > 0 )
+	if ( ASN1_TIME_cmp_time_t(thisUpdate, vtime) == -2 )
+		rval = x509_result_record(-1, "OCSP reply has invalid thisUpdate time");
+	else if ( ASN1_TIME_cmp_time_t(thisUpdate, vtime) > 0 )
 		rval = x509_result_record(-1, "OCSP reply specifies time in future");
-	else if ( X509_cmp_time(nextUpdate, &vtime) < 0 )
+	else if ( ASN1_TIME_cmp_time_t(nextUpdate, vtime) == -2 )
+		rval = x509_result_record(-1, "OCSP reply has invalid nextUpdate time");
+	else if ( ASN1_TIME_cmp_time_t(nextUpdate, vtime) < 0 )
 		rval = x509_result_record(-1, "OCSP reply expired");
 	else if ( type != V_OCSP_CERTSTATUS_GOOD )
 		rval = x509_result_record(-1, OCSP_cert_status_str(type));
@@ -813,8 +817,8 @@ zeek::StringValPtr x509_entity_hash(zeek::file_analysis::detail::X509Val *cert_h
 		return nullptr;
 		}
 
-	X509_NAME *subject_name = X509_get_subject_name(cert_x509);
-	X509_NAME *issuer_name = X509_get_issuer_name(cert_x509);
+	auto* subject_name = X509_get_subject_name(cert_x509);
+	auto* issuer_name = X509_get_issuer_name(cert_x509);
 	if ( subject_name == nullptr || issuer_name == nullptr )
 		{
 		zeek::emit_builtin_error("fail to get subject/issuer name from certificate");

@@ -499,7 +499,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
 
         num_ext = OCSP_SINGLERESP_get_ext_count(single_resp);
         for ( int k = 0; k < num_ext; ++k ) {
-            X509_EXTENSION* ex = OCSP_SINGLERESP_get_ext(single_resp, k);
+            auto* ex = OCSP_SINGLERESP_get_ext(single_resp, k);
             if ( ! ex )
                 continue;
 
@@ -537,7 +537,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     // ok, now that we are done with the actual certificate - let's parse extensions :)
     num_ext = OCSP_BASICRESP_get_ext_count(basic_resp);
     for ( int k = 0; k < num_ext; ++k ) {
-        X509_EXTENSION* ex = OCSP_BASICRESP_get_ext(basic_resp, k);
+        auto* ex = OCSP_BASICRESP_get_ext(basic_resp, k);
         if ( ! ex )
             continue;
 
@@ -550,7 +550,7 @@ clean_up:
     BIO_free(bio);
 }
 
-void OCSP::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid) {
+void OCSP::ParseExtensionsSpecific(openssl_x509_ext_t* ex, bool global, openssl_asn1_obj_t* ext_asn, const char* oid) {
     // In OpenSSL 1.0.2+, we can get the extension by using NID_ct_cert_scts.
     // In OpenSSL <= 1.0.1, this is not yet defined yet, so we have to manually
     // look it up by performing a string comparison on the oid.

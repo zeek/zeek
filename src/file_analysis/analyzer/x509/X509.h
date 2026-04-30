@@ -74,9 +74,9 @@ protected:
     X509(RecordValPtr args, file_analysis::File* file);
 
 private:
-    void ParseBasicConstraints(X509_EXTENSION* ex);
-    void ParseSAN(X509_EXTENSION* ex);
-    void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) override;
+    void ParseBasicConstraints(openssl_x509_ext_t* ex);
+    void ParseSAN(openssl_x509_ext_t* ex);
+    void ParseExtensionsSpecific(openssl_x509_ext_t* ex, bool, openssl_asn1_obj_t*, const char*) override;
 
     std::string cert_data;
 

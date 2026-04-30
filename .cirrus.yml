@@ -386,10 +386,10 @@ weekly_current_clang_task:
   env:
     ZEEK_CI_COMPILER: clang
 
-ubuntu25_04_task:
+ubuntu26_04_task:
   container:
-    # Ubuntu 25.04 EOL: 2026-01-31
-    dockerfile: ci/ubuntu-25.04/Dockerfile
+    # Ubuntu 26.04 EOL: 2031-06-01
+    dockerfile: ci/ubuntu-26.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE

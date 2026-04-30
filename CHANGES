@@ -1,3 +1,15 @@
+8.2.0-rc1.6 | 2026-05-04 16:27:58 -0700
+
+  * Fix assignment typo in zeek::threading::Value's move constructor (Christian Kreibich, Corelight)
+
+    (cherry picked from commit efac5b8714532111f35adab07a976a18373244db)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Drop duplicate case in Redis analyzer (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to zeek/spicy#2334 (Benjamin Bannier, Corelight)
+
 8.2.0-rc1 | 2026-04-20 22:37:52 +0000
 
   * Regenerate docs before branching 8.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

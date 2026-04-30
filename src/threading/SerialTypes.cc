@@ -124,7 +124,7 @@ Value::Value(const Value& other) {
 Value::Value(Value&& other) noexcept {
     present = other.present;
     type = other.type;
-    subtype = other.type;
+    subtype = other.subtype;
     line_number = other.line_number;
 
     val = other.val; // take ownership.

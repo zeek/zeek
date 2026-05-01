@@ -3995,7 +3995,8 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
 
         return ret;
     }
-    else if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
+
+    if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
         auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsTableType()};
         auto ret = make_intrusive<TableVal>(ret_type);
 
@@ -4009,7 +4010,8 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
 
         return ret;
     }
-    else if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
+
+    if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
         // Special hack for Broker communication.
         const auto& dv = v->AsRecordVal()->GetField(0);
 

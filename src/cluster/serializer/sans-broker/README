@@ -1,17 +1,54 @@
-An implementation of the Broker Binary V1 format but without using
-the Broker library.
+This directory contains an EventSerializer of the Broker Binary V1 format, but
+without using the broker::data model.
 
 
 The any Decoding Misery
 =======================
 
-The original Broker data format has vector, table and set as container data
-types. Everything else are atomic types.
+When sending events that contain either ``any`` parameters, or any nested record
+fields or tables that have ``any`` keys or values, it cannot be fully decoded to
+the expected type, because the expected type is ``any``.
 
+Previously, this was "solved" by parsing everything into the basic broker::data model
+which boils down to vector, table or sets of atomic types, or an atomic broker::data
+type directly, then wrapping this into the Broker::Data type.
 
+We can continue to do this, but instead of parsing into broker::data, we parse
+into vector of any, table[any] of any or set[any] if there's not enough type
+information available. It's not clear this needs an extra Broker::Data like wrap,
+but casting should still function.
 
-When deserializing without type information (that is, deserializing into type any),
-we'll need to deserialize into table[any] of any, set[any] or vector of any, every
-other variant tag can be mapped to a primitive Zeek type.
+So, e.g.
 
-The pattern, record, func, file are represented as vectors.
+type R: record {
+  a: count;
+  b: string;
+}
+
+local rv: vector of any;
+rv += 42;
+rv += "forty-two";
+
+# Can we do this? Take a vector of any and make it a record?
+ if ( rv ?as R )
+   local r = rv as R;
+
+# Neither of these work, which I think is good. But that also means
+# we cannot expose them.
+table[any] of any?
+set[any]
+
+# So if there is a set or table in the message, what are the options?
+#
+# Decode as a vector of pairs?
+# That's anyhow how it's encoded.
+# If there's nested tables, that's pretty crappy, but should work
+# recursively still.
+#
+# The nice part is we don't have to construct the table during parsing,
+# something that the broker implementation did.
+Cluster::Table
+  entries: vector of any = [[key, value], [key, value], ...]
+
+Cluster::Set
+  entries: vector of any = [key, key, ...]

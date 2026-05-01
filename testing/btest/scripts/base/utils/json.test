@@ -39,7 +39,7 @@ event zeek_init()
 	print to_json(d2);
 	print to_json(d3);
 
-	local t: time = double_to_time(1480788576.868945);
+	local t = 1480788576.868945 as time;
 	print to_json(t);
 
 	local ti: interval = -12hr;

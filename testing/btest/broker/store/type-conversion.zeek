@@ -22,7 +22,7 @@ event zeek_init()
 	print Broker::data_type(Broker::data(1.1.1.1));
 	print Broker::data_type(Broker::data(1.1.1.1/1));
 	print Broker::data_type(Broker::data(1/udp));
-	print Broker::data_type(Broker::data(double_to_time(1)));
+	print Broker::data_type(Broker::data(1 as time));
 	print Broker::data_type(Broker::data(1sec));
 	print Broker::data_type(Broker::data(Broker::BOOL));
 	print Broker::data_type(Broker::data(set("one", "two", "three")));
@@ -48,7 +48,7 @@ event zeek_init()
 	print (Broker::data(1.2.3.4) as addr);
 	print (Broker::data(192.168.1.1/16) as subnet);
 	print (Broker::data(22/tcp) as port);
-	print (Broker::data(double_to_time(42)) as time);
+	print (Broker::data(42 as time) as time);
 	print (Broker::data(3min) as interval);
 	print (Broker::data(Broker::BOOL) as Broker::DataType);
 	print (Broker::data(set("one", "two", "three")) as set[string]);

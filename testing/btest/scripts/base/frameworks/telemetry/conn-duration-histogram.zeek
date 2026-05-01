@@ -28,11 +28,11 @@ global connection_duration_h = Telemetry::histogram_with(connection_duration_hf)
 
 event connection_state_remove(c: connection)
 	{
-	Telemetry::histogram_observe(connection_duration_h, interval_to_double(c$duration));
+	Telemetry::histogram_observe(connection_duration_h, c$duration as double);
 	local proto = to_lower(cat(get_port_transport_proto(c$id$resp_p)));
 	Telemetry::histogram_family_observe(realistic_connection_duration_hf,
 	                                    vector(proto),
-	                                    interval_to_double(c$duration));
+	                                    c$duration as double);
 	}
 
 event zeek_done() &priority=-100

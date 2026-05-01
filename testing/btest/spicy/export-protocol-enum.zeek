@@ -7,7 +7,7 @@
 # @TEST-DOC: Test special-casing the mapping of spicy::Protocol to Zeek's transport_proto.
 
 event dtest_one(x: transport_proto) {
-    print x, enum_to_int(x);
+    print x, x as int;
 }
 
 event zeek_init() {

@@ -33,8 +33,8 @@ function make_key(i: count): Key {
     $c=i,
     $s1=cat(i),
     $s2=cat(2 * i),
-    $a1=count_to_v4_addr(1000000 + i),
-    $a2=count_to_v4_addr(2000000 + i)
+    $a1=(1000000 + i) as addr,
+    $a2=(2000000 + i) as addr
   );
 }
 

@@ -93,7 +93,7 @@ const set_: set[string] = set("foo", "bar");
 const string_: string = "xxx";
 const subnet_: subnet = 1.2.3.4/16;
 const table_: table[string] of string = table(["foo"] = "bar");
-const time_: time = double_to_time(42.0);
+const time_: time = 42.0 as time;
 const vector_: vector of count = vector(0, 1, 2);
 
 # @TEST-END-FILE

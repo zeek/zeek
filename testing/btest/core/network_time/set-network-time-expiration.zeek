@@ -12,7 +12,7 @@ event timer(s: string) {
 	if ( /first timer/ in s )
 		{
 		print network_time(), "updating network time to 3.5";
-		set_network_time(double_to_time(4.0));
+		set_network_time(4.0 as time);
 		}
 
 	if ( /second timer/ in s )
@@ -26,7 +26,7 @@ event zeek_init()
 	{
 	print network_time(), "zeek_init (1)";
 	schedule 1sec { timer("first timer 1.0") };
-	set_network_time(double_to_time(1.5));
+	set_network_time(1.5 as time);
 	}
 
 event zeek_init() &priority=-1
@@ -40,7 +40,7 @@ event zeek_init() &priority=-1
 	# This is expired after net_done() because it ends
 	# up at 4.5 seconds and time is not moved that far.
 	schedule 3sec { timer("third timer") };
-	set_network_time(double_to_time(2.5));
+	set_network_time(2.5 as time);
 	}
 
 event net_done(t: time)

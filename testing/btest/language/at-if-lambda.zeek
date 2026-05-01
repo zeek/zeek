@@ -21,7 +21,7 @@ event zeek_init()
 			};
 		};
 
-	local ts = double_to_time(1660671192.0);
+	local ts = 1660671192.0 as time;
 	local f = make_epoch_result("cookie");
 	local result = f(ts);
 	print type_name(make_epoch_result), type_name(f), type_name(result), result;
@@ -46,7 +46,7 @@ event zeek_init()
 			};
 		};
 
-	local ts = double_to_time(1660671192.0);
+	local ts = 1660671192.0 as time;
 	local f = make_epoch_result("cookie");
 	local result = f(ts);
 	print type_name(make_epoch_result), type_name(f), type_name(result), result;
@@ -73,7 +73,7 @@ event zeek_init()
 @if ( toggle )
 		c += offset;
 @endif
-		return double_to_time(c);
+		return c as time;
 		};
 
 	local result = f("1660671192.0");
@@ -99,7 +99,7 @@ event zeek_init()
 @if ( toggle )
 		c += offset;
 @endif
-		return double_to_time(c);
+		return c as time;
 		};
 
 	local result = f("1660671192.0");

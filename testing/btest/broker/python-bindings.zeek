@@ -70,9 +70,9 @@ event Pcap::file_done(path: string)
 	# termination.
 	print network_time(), "Pcap::file_done";
 
-	schedule double_to_interval(24 * 3600 - 1) { send_pcap_file_done(path) };
+	schedule 24 hr - 1 sec { send_pcap_file_done(path) };
 
-	set_network_time(network_time() + double_to_interval(24 * 3600));
+	set_network_time(network_time() + 24 hr);
 	}
 
 global events_from_python = 0;

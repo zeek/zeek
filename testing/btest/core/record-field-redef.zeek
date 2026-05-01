@@ -43,7 +43,7 @@ event zeek_init()
 	{
         print "Info record_fields\n", record_fields(Info);
         local rec = Info(
-		$ts=double_to_time(1660142487.54),
+		$ts=1660142487.54 as time,
 		$msg="msg",
 		$extra1="extra1 value",
 		$extra2="extra2 value",

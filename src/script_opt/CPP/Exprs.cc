@@ -652,7 +652,7 @@ string CPPCompile::GenLambdaExpr(const Expr* e, string capture_args) {
 
 string CPPCompile::GenIsExpr(const Expr* e, GenType gt) {
     auto ie = static_cast<const IsExpr*>(e);
-    auto gen = string("can_cast_value_to_type(") + GenExpr(ie->GetOp1(), GEN_VAL_PTR) + ".get(), " +
+    auto gen = string("can_cast_any_to_type(") + GenExpr(ie->GetOp1(), GEN_VAL_PTR) + ".get(), " +
                GenTypeName(ie->TestType()) + ".get())";
 
     return NativeToGT(gen, ie->GetType(), gt);

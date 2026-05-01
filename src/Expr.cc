@@ -4751,7 +4751,7 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(a
 
     SetType(std::move(t));
 
-    if ( ! can_cast_value_to_type(stype.get(), GetType().get()) )
+    if ( ! can_cast_type_to_type(stype.get(), GetType().get()) )
         ExprError("cast not supported");
 }
 
@@ -4800,7 +4800,7 @@ ValPtr IsExpr::Fold(Val* v) const {
     if ( IsError() )
         return nullptr;
 
-    return val_mgr->Bool(can_cast_value_to_type(v, t.get()));
+    return val_mgr->Bool(can_cast_any_to_type(v, t.get()));
 }
 
 void IsExpr::ExprDescribe(ODesc* d) const {

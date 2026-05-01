@@ -3961,7 +3961,7 @@ static bool is_index_vec(const Type* t) {
 
 ValPtr cast_value_to_type(Val* v, Type* t) {
     // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
 
     if ( ! v )
         return nullptr;
@@ -4240,9 +4240,9 @@ static bool can_cast_basic_types(const Type* s, const Type* t) {
     }
 }
 
-bool can_cast_value_to_type(const Val* v, Type* t) {
+bool can_cast_any_to_type(const Val* v, Type* t) {
     // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
 
     if ( ! v )
         return false;
@@ -4250,14 +4250,6 @@ bool can_cast_value_to_type(const Val* v, Type* t) {
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
     if ( same_type(v->GetType(), t) )
-        return true;
-
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( can_cast_set_and_vector(v->GetType().get(), t) )
-        return true;
-
-    // Allow basic type conversions.
-    if ( can_cast_basic_types(v->GetType().get(), t) )
         return true;
 
     // Allow Broker magic.
@@ -4273,9 +4265,9 @@ bool can_cast_value_to_type(const Val* v, Type* t) {
     return false;
 }
 
-bool can_cast_value_to_type(const Type* s, Type* t) {
+bool can_cast_type_to_type(const Type* s, Type* t) {
     // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
 
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
@@ -4283,10 +4275,12 @@ bool can_cast_value_to_type(const Type* s, Type* t) {
         return true;
 
     // Allow casting between sets and vectors if the yield types are the same.
+    // This is different than what can_cast_any_to_type() allows.
     if ( can_cast_set_and_vector(s, t) )
         return true;
 
-    // Allow basic type conversions.
+    // Allow basic type conversions. This is different than what
+    // can_cast_any_to_type() allows.
     if ( can_cast_basic_types(s, t) )
         return true;
 

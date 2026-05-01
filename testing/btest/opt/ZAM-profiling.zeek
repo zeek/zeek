@@ -34,10 +34,12 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 		# Note, in the following the instruction counts may change due
 		# to changes to ZAM code generation such as new optimizations,
 		# so we instead just make sure it's monotone increasing.
-		print fmt("bodies: %d, calls: %d, inst monotone: %s, CPU > 0: %s, memory > 500KB = %s",
+		#
+		# In addition, some OS's don't provide reliable memory stats,
+		# so don't try reporting anything about that.
+		print fmt("bodies: %d, calls: %d, inst monotone: %s, CPU > 0: %s",
 			prof$num_bodies, prof$num_calls,
-			prof$num_inst > last_num_inst,
-			prof$CPU > 0 sec, prof$mem > 500000);
+			prof$num_inst > last_num_inst, prof$CPU > 0 sec);
 
 		if ( n == 200 )
 			ZAMProf::measure_module("MyTest", F);

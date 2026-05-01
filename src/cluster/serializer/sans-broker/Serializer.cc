@@ -544,6 +544,10 @@ static bool read_vector_start(zeek::byte_buffer_span& buffer_span, size_t* len) 
 }
 
 namespace {
+
+// Limits for vector Reserve() calls to avoid OOMs when fuzzing.
+constexpr size_t max_vec_reserve = 32;
+
 zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypePtr& typ) {
     variant_tag vtag;
     if ( ! read_tag(buffer_span, &vtag) )
@@ -593,16 +597,12 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             if ( (ztag != TYPE_ANY && ztag != TYPE_DOUBLE) )
                 return nullptr;
 
-            if ( buffer_span.size() < 8 )
-                return nullptr;
-
             // XXX: See comment about std::bit_cast<> above.
             uint64_t u64val;
             if ( ! read_untagged_uint64(buffer_span, &u64val) )
                 return nullptr;
 
             auto val = std::bit_cast<double>(u64val);
-            buffer_span = buffer_span.subspan(8);
             return zeek::make_intrusive<zeek::DoubleVal>(val);
         }
         case variant_tag::string: {
@@ -660,6 +660,11 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             memcpy(&u16val, buffer_span.data(), sizeof(uint16_t));
             auto proto = static_cast<TransportProto>(buffer_span[2]);
 
+            // The port API doesn't bail on invalid ports, so check
+            // first if we'd pass non-reasonable values.
+            if ( proto > TRANSPORT_ICMP )
+                return nullptr;
+
             auto val = zeek::val_mgr->Port(ntohs(u16val), proto);
             buffer_span = buffer_span.subspan(3);
             return val;
@@ -690,18 +695,9 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             if ( (ztag != TYPE_ANY && ztag != TYPE_ENUM) )
                 return nullptr;
 
-            size_t len;
-            if ( ! read_varbyte(buffer_span, &len) )
+            std::string_view name;
+            if ( ! read_untagged_string(buffer_span, &name) )
                 return nullptr;
-
-            if ( buffer_span.size() < len )
-                return nullptr;
-
-            // This is the name of a fully qualified enum value. Create a string_view
-            // from it and try to look it up in the global scope.
-            auto name = std::string_view{reinterpret_cast<const char*>(buffer_span.data()), len};
-
-            buffer_span = buffer_span.subspan(len);
 
             auto id = zeek::id::find(name);
             if ( ! id || ! id->GetType() || id->GetType()->Tag() != TYPE_ENUM || ! id->GetVal() )
@@ -736,6 +732,19 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             if ( ! read_varbyte(buffer_span, &entries) )
                 return nullptr;
 
+
+            // If this is a composite index, every entry takes up at least
+            // nindices bytes for the variant tags and 2 bytes for the
+            // vector tag and its size.
+            size_t min_key_bytes = nindices == 1 ? 1 : (nindices + 2);
+
+            // If we don't have at least the number of bytes available in buffer_span
+            // to cover all entries, we can just bail. This is nicer to direct
+            // fuzzing, rather than starting to loop through entries, creating them,
+            // just to realize we never had enough bytes to parse anyhow.
+            if ( entries * (min_key_bytes + (is_table ? 1 : 0)) > buffer_span.size() )
+                return nullptr;
+
             auto tv = zeek::make_intrusive<zeek::TableVal>(tt);
 
             // Read key-value pairs.
@@ -745,15 +754,9 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
 
                 // Composite index is always encoded as vector.
                 if ( nindices > 1 ) {
-                    variant_tag vec_tag;
-                    if ( ! read_tag(buffer_span, &vec_tag) )
-                        return nullptr;
-
-                    if ( vec_tag != variant_tag::vector )
-                        return nullptr;
-
                     size_t vec_len;
-                    if ( ! read_varbyte(buffer_span, &vec_len) )
+
+                    if ( ! read_vector_start(buffer_span, &vec_len) )
                         return nullptr;
 
                     if ( vec_len != nindices )
@@ -768,8 +771,8 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                     }
                 }
                 else if ( nindices == 1 ) {
-                    // Key isn't expected to be wrapped, so just delegate using the
-                    // expected index type.
+                    // Key isn't expected to be wrapped, so just delegate using
+                    // the expected index type.
                     auto index = decode_inner(buffer_span, indices->GetTypes()[0]);
                     if ( ! index )
                         return nullptr;
@@ -807,7 +810,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             else if ( ztag == TYPE_VECTOR ) {
                 auto vt = cast_intrusive<zeek::VectorType>(typ);
                 auto vv = zeek::make_intrusive<zeek::VectorVal>(vt);
-                vv->Reserve(length);
+                vv->Reserve(std::min(max_vec_reserve, length));
 
                 for ( size_t i = 0; i < length; i++ ) {
                     auto ve = decode_inner(buffer_span, vt->Yield());
@@ -837,7 +840,9 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                     return nullptr;
 
                 // Need null terminated strings for RE_Matcher, so make
-                // the extra copy...
+                // the extra because the protocol doesn't hold null
+                // terminated strings. The annoying part is that RE_Matcher
+                // copies the string again.
                 std::string exact = std::string{exact_sv};
                 std::string anywhere = std::string{anywhere_sv};
 
@@ -847,6 +852,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
             else if ( ztag == TYPE_RECORD ) {
                 auto rt = cast_intrusive<zeek::RecordType>(typ);
                 auto rv = zeek::make_intrusive<zeek::RecordVal>(rt);
+
                 if ( length != static_cast<size_t>(rt->NumFields()) )
                     return nullptr;
 
@@ -873,7 +879,7 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 return rv;
             }
             else if ( ztag == TYPE_FUNC ) {
-                if ( length < 0 ) // ERROR
+                if ( length > 2 ) // single func name, or func_name + captures, more would be a bug.
                     return nullptr;
 
                 // Func name is a tagged string.
@@ -896,9 +902,11 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
 
                 if ( length > 1 ) {
                     // We have a captures frame here.
-                    std::fprintf(stderr, "TODO TODO captures frame todo!\n");
+                    // std::fprintf(stderr, "TODO TODO captures frame todo!\n");
                     return nullptr;
                 }
+
+                return func_val;
             }
             else if ( ztag == TYPE_OPAQUE ) {
                 if ( length != 2 ) // Error
@@ -908,17 +916,14 @@ zeek::ValPtr decode_inner(zeek::byte_buffer_span& buffer_span, const zeek::TypeP
                 if ( ! read_string(buffer_span, &opaque_name_sv) )
                     return nullptr;
 
-                variant_tag vec_tag;
-                if ( ! read_tag(buffer_span, &vec_tag) )
-                    return nullptr;
-
-                if ( vec_tag != variant_tag::vector )
-                    return nullptr;
-
                 size_t list_len;
-                if ( ! read_varbyte(buffer_span, &list_len) )
+                if ( ! read_vector_start(buffer_span, &list_len) )
                     return nullptr;
 
+                // Every contained element is at least one byte, bail
+                // if we don't have that many bytes available anyhow.
+                if ( list_len > buffer_span.size() )
+                    return nullptr;
 
                 // Should only expect atomic types for opaques.
                 zeek::ListVal lv(base_type(TYPE_ANY));
@@ -1047,7 +1052,7 @@ bool SansBrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const cluster:
     return true;
 }
 
-// Limits for fuzzing.
+// Limits for reserve() calls to avoid OOMs when fuzzing.
 constexpr size_t max_meta_reserve = 8;
 
 std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
@@ -1139,6 +1144,15 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
         if ( ! read_vector_start(buf, &meta_len) )
             return std::nullopt;
 
+        // Every meta element is a vector (2 bytes) of a count (9 bytes)
+        // plus at least 1 byte for the value, so can bail early if the
+        // buffer isn't that large to avoid partly parsing the metadata
+        // entries which can be slow for fuzzing.
+        size_t min_bytes = meta_len * (2 + 9 + 1);
+
+        if ( min_bytes > buf.size() )
+            return std::nullopt;
+
         meta = std::make_unique<zeek::detail::EventMetadataVector>();
 
         // Protect from allocating more than max_meta_reserve elements
@@ -1157,16 +1171,12 @@ std::optional<cluster::Event> SansBrokerBinV1_Serializer::UnserializeEvent(byte_
                 return std::nullopt;
 
             const auto* desc = zeek::event_registry->LookupMetadata(meta_id->AsCount());
-            if ( ! desc ) {
-                // std::fprintf(stderr, "unknown meta %zu\n", meta_id->AsCount());
+            if ( ! desc )
                 continue;
-            }
 
             ValPtr meta_value = decode_inner(buf, desc->Type());
-            if ( ! meta_value ) {
-                // std::fprintf(stderr, "failure to parse meta %zu\n", meta_id->AsCount());
+            if ( ! meta_value )
                 continue;
-            }
 
             meta->emplace_back(meta_id->AsCount(), meta_value);
         }

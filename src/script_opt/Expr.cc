@@ -2554,6 +2554,8 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
     return red_stmt;
 }
 
+ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Duplicate(), conversion_type)); }
+
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }

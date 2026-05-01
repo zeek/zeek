@@ -1612,6 +1612,20 @@ public:
     RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_list, bool is_init);
 };
 
+class CanConvertExpr final : public UnaryExpr {
+public:
+    CanConvertExpr(ExprPtr op, TypePtr t);
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+
+protected:
+    ValPtr Fold(Val* v) const override;
+    void ExprDescribe(ODesc* d) const override;
+
+    TypePtr conversion_type;
+};
+
 class CastExpr final : public UnaryExpr {
 public:
     CastExpr(ExprPtr op, TypePtr t);

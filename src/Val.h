@@ -1967,10 +1967,17 @@ extern void delete_vals(ValPList* vals);
 inline bool is_vector(Val* v) { return v->GetType()->Tag() == TYPE_VECTOR; }
 inline bool is_vector(const ValPtr& v) { return is_vector(v.get()); }
 
-// Returns v casted to type T if the type supports that. Returns null if not.
+// Returns v casted to type T if the type supports that. Returns null if not,
+// and emits an error.
 //
 // Note: This implements the script-level "as" operator.
 extern ValPtr cast_value_to_type(Val* v, Type* t);
+
+// Attempts to cast v to type T. Returns null if not, with the error populated
+// (if appropriate) but not reported.
+//
+// Note: This implements the script-level "?as" operator.
+extern ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err);
 
 // Returns true if any "any" value v can be casted to type T. If so,
 // check_and_cast() will succeed as well.

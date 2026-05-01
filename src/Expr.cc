@@ -4746,6 +4746,26 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
     }
 }
 
+CanConvertExpr::CanConvertExpr(ExprPtr arg_op, TypePtr t)
+    : UnaryExpr(EXPR_CAST, std::move(arg_op)), conversion_type(std::move(t)) {
+    auto stype = Op()->GetType();
+    SetType(base_type(TYPE_BOOL));
+}
+
+ValPtr CanConvertExpr::Fold(Val* v) const {
+    std::string err;
+    if ( attempt_to_cast_value_to_type(v, conversion_type.get(), err) )
+        return val_mgr->True();
+    else
+        return val_mgr->False();
+}
+
+void CanConvertExpr::ExprDescribe(ODesc* d) const {
+    Op()->Describe(d);
+    d->Add(" ?as ");
+    GetType()->Describe(d);
+}
+
 CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(arg_op)) {
     auto stype = Op()->GetType();
 

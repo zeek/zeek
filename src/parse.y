@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 235
+%expect 237
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY TOK_ASSERT
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -20,7 +20,7 @@
 %token TOK_REMOVE_FROM TOK_RETURN TOK_SCHEDULE TOK_SET
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
-%token TOK_WHILE TOK_AS TOK_IS
+%token TOK_WHILE TOK_AS TOK_IS TOK_CAN_CONVERT
 %token TOK_GLOBAL_ID
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_DEFAULT_INSERT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
@@ -53,7 +53,7 @@
 %left '*' '/' '%'
 %left TOK_INCR TOK_DECR
 %right '!' '~'
-%left '$' '[' ']' '(' ')' TOK_HAS_FIELD
+%left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_CAN_CONVERT
 %nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block opt_deep when_flavor
@@ -992,6 +992,12 @@ expr:
 			set_location(@1, @3);
 			ExprPtr e{AdoptRef{}, $2};
 			$$ = new SizeExpr(std::move(e));
+			}
+
+	|	expr TOK_CAN_CONVERT type
+			{
+			set_location(@1, @3);
+			$$ = new CanConvertExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr TOK_AS type

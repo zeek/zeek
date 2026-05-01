@@ -3960,9 +3960,16 @@ static bool is_index_vec(const Type* t) {
 }
 
 ValPtr cast_value_to_type(Val* v, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
+    std::string err;
+    auto result = attempt_to_cast_value_to_type(v, t, err);
 
+    if ( ! result && ! err.empty() )
+        emit_builtin_error(err.c_str(), v);
+
+    return result;
+}
+
+ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
     if ( ! v )
         return nullptr;
 
@@ -4024,7 +4031,6 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
     // Basic type conversions.
     auto s_tag = v->GetType()->Tag();
     auto t_tag = t->Tag();
-    std::string err;
     ValPtr result;
 
     switch ( s_tag ) {
@@ -4162,9 +4168,6 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
         default: break;
     }
 
-    if ( ! result && ! err.empty() )
-        emit_builtin_error(err.c_str(), v);
-
     return result;
 }
 
@@ -4245,9 +4248,6 @@ static bool can_cast_basic_types(const Type* s, const Type* t) {
 }
 
 bool can_cast_any_to_type(const Val* v, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
-
     if ( ! v )
         return false;
 
@@ -4270,9 +4270,6 @@ bool can_cast_any_to_type(const Val* v, Type* t) {
 }
 
 bool can_cast_type_to_type(const Type* s, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_any_to_type()/can_cast_type_to_type().
-
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
     if ( same_type(s, t) )

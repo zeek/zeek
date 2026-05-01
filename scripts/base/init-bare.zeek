@@ -6666,6 +6666,40 @@ export {
 	const generic_packet_thresholds: set[count] = {} &redef;
 }
 
+module ZAMProf;
+
+## Summarizes ZAM profiling information for a given module.
+type Profile: record {
+	## How many compiled ZAM bodies are associated with the module.
+	## A value of 0 indicates either the module doesn't exist or ZAM
+	## itself was not activated.
+	num_bodies: count &default=0;
+
+	## Number of calls so far to ZAM bodies in the module.
+	num_calls: count &optional;
+
+	## How many ZAM instructions have executed so far on behalf of
+	## the module.
+	num_inst: count &default=0;
+
+	## The following two will only be present if a previous call
+	## to measure_module() set CPU/memory profiling for the module.
+
+	## Estimated total (user) CPU time so far. Some ZAM bodies include
+	## code for multiple modules. For those, the contribution to the
+	## estimate is based on the ratio of the number of instructions
+	## associated with the module executed vs. total number of
+	## instructions executed for the given shared body. Note: you can
+	## adjust (somewhat) for bias in the measurements by subtracting
+	## "ZAMProf::meas_overhead() * $num_calls".
+	CPU: interval &optional;
+
+	## Estimate of total memory used to date, in bytes. The number is
+	## only a rough estimate, and uses the same ratio for bodies shared
+	## across multiple modules as for CPU.
+	mem: count &optional;
+};
+
 module GLOBAL;
 
 @load base/bif/event.bif

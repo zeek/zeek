@@ -292,6 +292,13 @@ extern void clear_script_analysis();
 // Called when Zeek is terminating.
 extern void finish_script_execution();
 
+// Activates or deactivates CPU/memory profiling for all compiled ZAM
+// bodies associated with the given module "mod".
+extern zeek_uint_t measure_module(std::string mod, bool active);
+
+// Returns the current profile for the given module "mod".
+extern RecordValPtr get_module_profile(std::string mod);
+
 // Returns true if the given profile indicates the presence of an AST
 // node not known to script optimization. The second argument specifies
 // whether we're doing ZAM optimization; if not, compile-to-C++ is assumed.

@@ -18,3 +18,5 @@ zeek_add_subdir_library(
     ZInst.cc
     ZInstAux.cc
     ZOp.cc)
+
+bif_target(prof.bif)

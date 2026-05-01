@@ -12,6 +12,8 @@ namespace zeek {
 // on failure.
 
 extern ValPtr convert_string_to_double(const StringVal* sv, std::string& err);
+extern ValPtr convert_string_to_time(const StringVal* sv, std::string& err);
+extern ValPtr convert_string_to_interval(const StringVal* sv, std::string& err);
 extern ValPtr convert_string_to_int(const StringVal* sv, std::string& err, int base = 10);
 extern ValPtr convert_string_to_count(const StringVal* sv, std::string& err, int base = 10);
 extern ValPtr convert_string_to_addr(const StringVal* sv, std::string& err);

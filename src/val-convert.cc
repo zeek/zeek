@@ -17,6 +17,22 @@ ValPtr convert_string_to_double(const StringVal* sv, std::string& err) {
     return make_intrusive<DoubleVal>(d);
 }
 
+ValPtr convert_string_to_time(const StringVal* sv, std::string& err) {
+    auto d = convert_string_to_double(sv, err);
+    if ( d )
+        return convert_double_to_time(d->AsDouble());
+    err = "bad conversion to double/time";
+    return nullptr;
+}
+
+ValPtr convert_string_to_interval(const StringVal* sv, std::string& err) {
+    auto d = convert_string_to_double(sv, err);
+    if ( d )
+        return convert_double_to_interval(d->AsDouble());
+    err = "bad conversion to double/interval";
+    return nullptr;
+}
+
 ValPtr convert_string_to_int(const StringVal* sv, std::string& err, int base) {
     const char* s = sv->CheckString();
     char* end_s;

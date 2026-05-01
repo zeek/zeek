@@ -4033,6 +4033,8 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
 
             switch ( t_tag ) {
                 case TYPE_DOUBLE: result = convert_string_to_double(sv, err); break;
+                case TYPE_TIME: result = convert_string_to_time(sv, err); break;
+                case TYPE_INTERVAL: result = convert_string_to_interval(sv, err); break;
 
                 case TYPE_INT: result = convert_string_to_int(sv, err); break;
 
@@ -4199,6 +4201,8 @@ static bool can_cast_basic_types(const Type* s, const Type* t) {
         case TYPE_STRING:
             switch ( t_tag ) {
                 case TYPE_DOUBLE:
+                case TYPE_TIME:
+                case TYPE_INTERVAL:
                 case TYPE_INT:
                 case TYPE_COUNT:
                 case TYPE_ADDR:

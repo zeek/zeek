@@ -461,7 +461,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 
     if ( profile_calls ) {
         // Avoid the situation where we're executing a body that itself
-        // calls measure_module() and sets profile_calls to true.
+        // calls set_module_profiling() and sets profile_calls to true.
         // In that situation, start_CPU_time will have its default value
         // of 0.0, and we'll attribute *all execution time to date* to
         // this call, leading to a huge exaggeration. (Similarly for memory.)

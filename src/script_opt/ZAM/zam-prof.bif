@@ -1,6 +1,6 @@
 ##! Functions to enable script-level control & querying of ZAM profiling.
 
-module ZAMProf;
+module ZAM::Prof;
 
 %%{
 #include "zeek/script_opt/ScriptOpt.h"
@@ -38,15 +38,17 @@ module ZAMProf;
 ##    any compiled bodies. This will always be the case if Zeek is not
 ##    running with some form of -O ZAM enabled.
 ##
-## .. zeek:see:: ZAMProf::get_module_profile
-function ZAMProf::measure_module%(mod: string, active: bool%): count
+## .. zeek:see:: ZAM::Prof::get_module_profile ZAM::Prof::estimated_profiling_overhead
+function ZAM::Prof::set_module_profiling%(mod: string, active: bool%): count
 	%{
-	auto nbodies = detail::measure_module(mod->ToStdString(), active);
+	auto nbodies = detail::set_module_profiling(mod->ToStdString(), active);
 	return val_mgr->Count(nbodies);
 	%}
 
 ## Returns the profile for the given module so far.
-function ZAMProf::get_module_profile%(mod: string%): ZAMProf::Profile
+##
+## .. zeek:see:: ZAM::Prof::set_module_profiling ZAM::Prof::estimated_profiling_overhead
+function ZAM::Prof::get_module_profile%(mod: string%): ZAM::Prof::Profile
 	%{
 	return detail::get_module_profile(mod->ToStdString());
 	%}
@@ -62,8 +64,8 @@ function ZAMProf::get_module_profile%(mod: string%): ZAMProf::Profile
 ##    This value is fixed per Zeek run. Repeated calls to it from within
 ##    that run will return the same value.
 ##
-## .. zeek:see:: ZAMProf::mem_meas_overhead ZAMProf::get_module_CPU_mem
-function ZAMProf::meas_overhead%(%): interval
+## .. zeek:see:: ZAM::Prof::set_module_profiling ZAM::Prof::get_module_profile
+function ZAM::Prof::estimated_profiling_overhead%(%): interval
 	%{
 	detail::estimate_ZAM_profiling_overhead();
 	auto tot = detail::CPU_prof_overhead + detail::mem_prof_overhead;

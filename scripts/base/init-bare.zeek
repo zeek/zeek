@@ -6666,7 +6666,7 @@ export {
 	const generic_packet_thresholds: set[count] = {} &redef;
 }
 
-module ZAMProf;
+module ZAM::Prof;
 
 ## Summarizes ZAM profiling information for a given module.
 type Profile: record {
@@ -6682,8 +6682,8 @@ type Profile: record {
 	## the module.
 	num_inst: count &default=0;
 
-	## The following two will only be present if a previous call
-	## to measure_module() set CPU/memory profiling for the module.
+	## The following two will only be present if a previous call to
+	## set_module_profiling() set CPU/memory profiling for the module.
 
 	## Estimated total (user) CPU time so far. Some ZAM bodies include
 	## code for multiple modules. For those, the contribution to the
@@ -6691,7 +6691,7 @@ type Profile: record {
 	## associated with the module executed vs. total number of
 	## instructions executed for the given shared body. Note: you can
 	## adjust (somewhat) for bias in the measurements by subtracting
-	## "ZAMProf::meas_overhead() * $num_calls".
+	## "ZAM::Prof::estimated_profiling_overhead() * $num_calls".
 	CPU: interval &optional;
 
 	## Estimate of total memory used to date, in bytes. The number is

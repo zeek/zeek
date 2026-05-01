@@ -143,7 +143,7 @@ private:
     bool sample_CPU_mem = false; // sample per instruction
 
     // We remember whenever profile_calls has been adjusted. This is to
-    // avoid a miscomputation of CPU time when measure_module() is called
+    // avoid a miscomputation of CPU time when set_module_profiling() is called
     // from within the module being measured. See ZBody::DoExec() for more.
     uint64_t profiling_set_call = 0;
 

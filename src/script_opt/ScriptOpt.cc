@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/ScriptOpt.h"
 
+#include <cmath>
+
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
@@ -732,7 +734,7 @@ void analyze_scripts(bool no_unused_warnings) {
         reporter->FatalError("Optimized script execution aborted due to errors");
 }
 
-zeek_uint_t measure_module(std::string mod, bool active) {
+zeek_uint_t set_module_profiling(std::string mod, bool active) {
     auto mb = module_bodies.find(mod);
     if ( mb == module_bodies.end() )
         return 0;
@@ -744,7 +746,7 @@ zeek_uint_t measure_module(std::string mod, bool active) {
 }
 
 RecordValPtr get_module_profile(std::string mod) {
-    static auto prof_rec_t = id::find_type<zeek::RecordType>("ZAMProf::Profile");
+    static auto prof_rec_t = id::find_type<zeek::RecordType>("ZAM::Prof::Profile");
     auto prof_rec = make_intrusive<RecordVal>(prof_rec_t);
 
     auto mb = module_bodies.find(mod);
@@ -770,7 +772,7 @@ RecordValPtr get_module_profile(std::string mod) {
             auto mod_inst = b->NumModuleInsts(mod);
             double ratio = double(mod_inst) / double(tot_inst);
 
-            ninst += int(ratio * tot_inst + 0.5);
+            ninst += lround(ratio * tot_inst);
             CPU += ratio * b->CPUTimeEst();
             mem += uint64_t(ratio * b->MemoryEst());
         }

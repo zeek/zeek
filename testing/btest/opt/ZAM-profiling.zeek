@@ -2,6 +2,10 @@
 #
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
+# Windows can return 0 for ZAM::Prof::estimated_profiling_overhead().
+#
+# @TEST-REQUIRES: ! is-windows
+#
 # @TEST-EXEC: zeek -O ZAM -r $TRACES/wikipedia.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
@@ -23,7 +27,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 
 	else if ( n % 100 == 0 )
 		{
-		local prof = ZAMProf::get_module_profile("MyTest");
+		local prof = ZAM::Prof::get_module_profile("MyTest");
 
 		if ( ! prof?$CPU )
 			{
@@ -42,7 +46,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			prof$num_inst > last_num_inst, prof$CPU > 0 sec);
 
 		if ( n == 200 )
-			ZAMProf::measure_module("MyTest", F);
+			ZAM::Prof::set_module_profiling("MyTest", F);
 
 		last_num_inst = prof$num_inst;
 		}
@@ -50,6 +54,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 
 event zeek_init()
 	{
-	print fmt("Measurement overhead > 0: %s", ZAMProf::meas_overhead() > 0 sec);
-	print fmt("Measuring %d bodies", ZAMProf::measure_module("MyTest", T));
+	print fmt("Measurement overhead > 0: %s",
+		ZAM::Prof::estimated_profiling_overhead() > 0 sec);
+	print fmt("Measuring %d bodies", ZAM::Prof::set_module_profiling("MyTest", T));
 	}

@@ -314,6 +314,7 @@ set(MAIN_SRCS
     util.cc
     util-types.cc
     module_util.cc
+    val-convert.cc
     zeek-affinity.cc
     zeek-setup.cc
     Anon.cc

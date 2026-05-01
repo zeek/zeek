@@ -144,7 +144,7 @@ global no_labels: vector of string;
 
 hook Telemetry::sync()
 	{
-	Telemetry::gauge_family_set(network_time_cf, no_labels, time_to_double(network_time()));
+	Telemetry::gauge_family_set(network_time_cf, no_labels, network_time() as double);
 	local net_stats = get_net_stats();
 	Telemetry::counter_family_set(bytes_received_cf, no_labels, net_stats$bytes_recvd);
 	Telemetry::counter_family_set(packets_received_cf, no_labels, net_stats$pkts_recvd);
@@ -158,7 +158,7 @@ hook Telemetry::sync()
 			Telemetry::counter_family_set(packets_filtered_cf, no_labels, net_stats$pkts_filtered);
 
 		Telemetry::gauge_family_set(packet_lag_gf, no_labels,
-		                            interval_to_double(current_time() - network_time()));
+		                            (current_time() - network_time()) as double);
 		}
 	}
 

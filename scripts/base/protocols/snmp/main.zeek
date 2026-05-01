@@ -142,7 +142,7 @@ event snmp_response(c: connection, is_orig: bool, header: SNMP::Header, pdu: SNM
 		else if ( binding$oid == "1.3.6.1.2.1.1.3.0" && binding$value?$unsigned )
 			{
 			local up_seconds = binding$value$unsigned / 100.0;
-			s$up_since = network_time() - double_to_interval(up_seconds);
+			s$up_since = network_time() - (up_seconds as interval);
 			}
 		}
 	}

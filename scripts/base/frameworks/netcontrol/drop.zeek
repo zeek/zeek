@@ -88,7 +88,7 @@ function drop_connection(c: conn_id, t: interval, location: string &default="") 
 
 function drop_address(a: addr, t: interval, location: string &default="") : string
 	{
-	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	local e = Entity($ty=ADDRESS, $ip=a as subnet);
 	local r = Rule($ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	if ( ! hook NetControl::drop_rule_policy(r) )

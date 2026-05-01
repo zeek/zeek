@@ -46,11 +46,11 @@ function do_mhr_lookup(hash: string, fi: Notice::FileInfo)
 
 		if ( |MHR_answer| == 2 )
 			{
-			local mhr_detect_rate = to_count(MHR_answer[1]);
+			local mhr_detect_rate = MHR_answer[1] as count;
 
 			if ( mhr_detect_rate >= notice_threshold )
 				{
-				local mhr_first_detected = double_to_time(to_double(MHR_answer[0]));
+				local mhr_first_detected = (MHR_answer[0] as double) as time;
 				local readable_first_detected = strftime("%Y-%m-%d %H:%M:%S", mhr_first_detected);
 				local message = fmt("Malware Hash Registry Detection rate: %d%%  Last seen: %s", mhr_detect_rate, readable_first_detected);
 				local virustotal_url = fmt(match_sub_url, hash);

@@ -124,7 +124,7 @@ function request(req: Request): ActiveHTTP::Response
 				if ( |response_line| != 3 )
 					return resp;
 
-				resp$code = response_line[1] as count;
+				resp$code = to_count(response_line[1]);
 				resp$msg = response_line[2];
 				resp$body = join_string_vec(result$files[bodyfile], "");
 				}

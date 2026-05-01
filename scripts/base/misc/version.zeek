@@ -69,13 +69,13 @@ function parse(version_string: string): VersionDescription
 	local localversion = "";
 
 	local parts = split_string1(vs, /\./);
-	local major = to_count(parts[0]);
+	local major = parts[0] as count;
 
 	vs = lstrip(vs, "1234567890");
 	vs = lstrip(vs, ".");
 
 	parts = split_string1(vs, /\.|-/);
-	local minor = to_count(parts[0]);
+	local minor = parts[0] as count;
 
 	vs = lstrip(vs, "1234567890");
 
@@ -86,7 +86,7 @@ function parse(version_string: string): VersionDescription
 			{
 			vs = lstrip(vs, ".");
 			parts = split_string1(vs, /\.|-/);
-			patchlevel = to_count(parts[0]);
+			patchlevel = parts[0] as count;
 			vs = lstrip(vs, "1234567890");
 			}
 
@@ -105,7 +105,7 @@ function parse(version_string: string): VersionDescription
 		vs = lstrip(vs, ".");
 
 		if ( |vs| > 0 )
-			commit = to_count(vs);
+			commit = vs as count;
 		}
 
 	local version_number = major * 10000 + minor * 100 + patchlevel;

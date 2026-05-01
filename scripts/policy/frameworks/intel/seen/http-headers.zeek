@@ -13,7 +13,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 		# Remove the occasional port value that shows up here.
 		local host = gsub(value, /:[[:digit:]]+$/, "");
 		if ( is_valid_ip(host) )
-			Intel::seen(Intel::Seen($host=to_addr(host),
+			Intel::seen(Intel::Seen($host=host as addr,
 			                        $indicator_type=Intel::ADDR,
 			                        $conn=c,
 			                        $where=HTTP::IN_HOST_HEADER));
@@ -25,7 +25,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 			local addrs = extract_ip_addresses(value);
 			for ( i in addrs )
 				{
-				Intel::seen(Intel::Seen($host=to_addr(addrs[i]),
+				Intel::seen(Intel::Seen($host=addrs[i] as addr,
 				                        $indicator_type=Intel::ADDR,
 				                        $conn=c,
 				                        $where=HTTP::IN_X_FORWARDED_FOR_HEADER));

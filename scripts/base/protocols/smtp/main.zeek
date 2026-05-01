@@ -351,7 +351,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		{
 		local addresses = extract_ip_addresses(h$value);
 		if ( 0 in addresses )
-			c$smtp$x_originating_ip = to_addr(addresses[0]);
+			c$smtp$x_originating_ip = addresses[0] as addr;
 		}
 
 	else if ( h$name == "X-MAILER" ||
@@ -374,7 +374,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 	local text_ip = find_address_in_smtp_header(h$value);
 	if ( text_ip == "" )
 		return;
-	local ip = to_addr(text_ip);
+	local ip = text_ip as addr;
 
 	if ( ! addr_matches_host(ip, mail_path_capture) &&
 	     ! Site::is_private_addr(ip) )

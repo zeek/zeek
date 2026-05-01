@@ -29,6 +29,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/IPAddr.h"
 #include "zeek/util.h"
+#include "zeek/val-convert.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/Packet.h"
@@ -3085,14 +3086,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
-	const uint32_t* bytes;
-	int len = a->AsAddr().GetBytes(&bytes);
-
-	for ( int i = 0; i < len; ++i )
-		rval->Assign(i, zeek::val_mgr->Count(ntohl(bytes[i])));
-
-	return std::move(rval);
+	return convert_addr_to_counts(a->AsAddr());
 	%}
 
 ## Converts an :zeek:type:`index_vec` to an :zeek:type:`addr`.
@@ -3106,25 +3100,16 @@ function addr_to_counts%(a: addr%): index_vec
 function counts_to_addr%(v: index_vec%): addr
 	%{
 	auto vv = v->As<zeek::VectorVal*>();
-
-	if ( vv->Size() == 1 )
+	std::string err;
+	auto result = convert_counts_to_addr(vv, err);
+	if ( ! result )
 		{
-		return zeek::make_intrusive<zeek::AddrVal>(htonl(vv->CountAt(0)));
-		}
-	else if ( vv->Size() == 4 )
-		{
-		uint32_t bytes[4];
-		for ( int i = 0; i < 4; ++i )
-			bytes[i] = htonl(vv->CountAt(i));
-		return zeek::make_intrusive<zeek::AddrVal>(bytes);
-		}
-	else
-		{
-		zeek::emit_builtin_error("invalid vector size", @ARG@[0]);
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
 		uint32_t bytes[4];
 		memset(bytes, 0, sizeof(bytes));
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
 		}
+	return result;
 	%}
 
 ## Converts an :zeek:type:`enum` to an :zeek:type:`int`.
@@ -3140,7 +3125,7 @@ function enum_to_int%(e: any%): int
 		return zeek::val_mgr->Int(-1);
 		}
 
-	return zeek::val_mgr->Int(e->AsEnum());
+	return convert_enum_to_int(e->AsEnum());
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`int`. For values where
@@ -3155,18 +3140,14 @@ function enum_to_int%(e: any%): int
 ## .. zeek:see:: to_addr to_port to_subnet
 function to_int%(str: string, base: count &default=10%): int
 	%{
-	const char* s = str->CheckString();
-	char* end_s;
-
-	zeek_int_t i = strtoll(s, &end_s, base);
-
-	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
-	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+	std::string err;
+	auto result = convert_string_to_int(str, err, base);
+	if ( ! result )
 		{
-		zeek::emit_builtin_error("bad conversion to integer", @ARG@[0]);
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		return zeek::val_mgr->Int(0);
 		}
-
-	return zeek::val_mgr->Int(i);
+	return result;
 	%}
 
 
@@ -3177,12 +3158,14 @@ function to_int%(str: string, base: count &default=10%): int
 ## Returns: The :zeek:type:`int` *n* as unsigned integer, or 0 if *n* < 0.
 function int_to_count%(n: int%): count
 	%{
-	if ( n < 0 )
+	std::string err;
+	auto result = convert_int_to_count(n, err);
+	if ( ! result )
 		{
-		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
-		n = 0;
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		return zeek::val_mgr->Count(0);
 		}
-	return zeek::val_mgr->Count(n);
+	return result;
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`int`.
@@ -3195,7 +3178,7 @@ function int_to_count%(n: int%): count
 ## .. zeek:see:: double_to_time
 function double_to_int%(d: double%): int
 	%{
-	return zeek::val_mgr->Int(static_cast<zeek_int_t>(rint(d)));
+	return convert_double_to_int(d);
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -3207,10 +3190,14 @@ function double_to_int%(d: double%): int
 ##          by rint().
 function double_to_count%(d: double%): count
 	%{
-	if ( d < 0.0 )
-		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
-
-	return zeek::val_mgr->Count(static_cast<zeek_uint_t>(rint(d)));
+	std::string err;
+	auto result = convert_double_to_count(d, err);
+	if ( ! result )
+		{
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		return zeek::val_mgr->Count(0);
+		}
+	return result;
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`. For values where
@@ -3226,19 +3213,14 @@ function double_to_count%(d: double%): count
 ## .. zeek:see:: to_addr to_int to_port to_subnet
 function to_count%(str: string, base: count &default=10%): count
 	%{
-	const char* s = str->CheckString();
-	char* end_s;
-
-	uint64_t u = static_cast<uint64_t>(strtoull(s, &end_s, base));
-
-	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
-	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+	std::string err;
+	auto result = convert_string_to_count(str, err, base);
+	if ( ! result )
 		{
-		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
-		u = 0;
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		return zeek::val_mgr->Count(0);
 		}
-
-	return zeek::val_mgr->Count(u);
+	return result;
 	%}
 
 ## Converts an :zeek:type:`interval` to a :zeek:type:`double`.
@@ -3250,7 +3232,7 @@ function to_count%(str: string, base: count &default=10%): count
 ## .. zeek:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(i);
+	return convert_interval_to_double(i);
 	%}
 
 ## Converts a :zeek:type:`count` to a :zeek:type:`double`.
@@ -3262,7 +3244,7 @@ function interval_to_double%(i: interval%): double
 ## .. zeek:see:: int_to_double double_to_count
 function count_to_double%(c: count%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(c);
+	return convert_count_to_double(c);
 	%}
 
 ## Converts an :zeek:type:`int` to a :zeek:type:`double`.
@@ -3274,7 +3256,7 @@ function count_to_double%(c: count%): double
 ## .. zeek:see:: count_to_double double_to_count
 function int_to_double%(i: int%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(i);
+	return convert_int_to_double(i);
 	%}
 
 ## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
@@ -3286,7 +3268,7 @@ function int_to_double%(i: int%): double
 ## .. zeek:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(t);
+	return convert_time_to_double(t);
 	%}
 
 ## Converts a :zeek:type:`double` value to a :zeek:type:`time`.
@@ -3298,7 +3280,7 @@ function time_to_double%(t: time%): double
 ## .. zeek:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(d);
+	return convert_double_to_time(d);
 	%}
 
 ## Converts a :zeek:type:`double` to an :zeek:type:`interval`.
@@ -3310,7 +3292,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return zeek::make_intrusive<zeek::IntervalVal>(d);
+	return convert_double_to_interval(d);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -3322,7 +3304,7 @@ function double_to_interval%(d: double%): interval
 ## .. zeek:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
-	return zeek::val_mgr->Count(p->Port());
+	return convert_port_to_count(p->Port());
 	%}
 
 ## Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
@@ -3350,20 +3332,14 @@ function count_to_port%(num: count, proto: transport_proto%): port
 ##    to_subnet
 function to_addr%(ip: string%): addr
 	%{
-	char* s = ip->AsString()->Render();
-	zeek::ValPtr ret;
-	in6_addr tmp;
-
-	if ( zeek::IPAddr::ConvertString(s, &tmp) )
-		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(tmp));
-	else
+	std::string err;
+	auto result = convert_string_to_addr(ip, err);
+	if ( ! result )
 		{
-		ret = zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
-		zeek::emit_builtin_error("failed converting string to IP address", ip);
+		zeek::emit_builtin_error(err.c_str(), ip);
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr());
 		}
-
-	delete [] s;
-	return ret;
+	return result;
 	%}
 
 ## Checks if a string is a valid IPv4 or IPv6 address.
@@ -3417,8 +3393,7 @@ function to_subnet%(sn: string%): subnet
 ## .. zeek:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
 	%{
-	int width = (a->AsAddr().GetFamily() == IPv4 ? 32 : 128);
-	return zeek::make_intrusive<zeek::SubNetVal>(a->AsAddr(), width);
+	return convert_addr_to_subnet(a->AsAddr());
 	%}
 
 ## Converts a :zeek:type:`subnet` to an :zeek:type:`addr` by
@@ -3431,7 +3406,7 @@ function addr_to_subnet%(a: addr%): subnet
 ## .. zeek:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
 	%{
-	return zeek::make_intrusive<zeek::AddrVal>(sn->Prefix());
+	return convert_subnet_to_addr(sn->AsSubNet());
 	%}
 
 ## Returns the width of a :zeek:type:`subnet`.
@@ -3455,18 +3430,14 @@ function subnet_width%(sn: subnet%): count
 ##
 function to_double%(str: string%): double
 	%{
-	const char* s = str->CheckString();
-	char* end_s;
-
-	double d = strtod(s, &end_s);
-
-	if ( s[0] == '\0' || end_s[0] != '\0' )
+	std::string err;
+	auto result = convert_string_to_double(str, err);
+	if ( ! result )
 		{
-		zeek::emit_builtin_error("bad conversion to double", @ARG@[0]);
-		d = 0;
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
 		}
-
-	return zeek::make_intrusive<zeek::DoubleVal>(d);
+	return result;
 	%}
 
 ## Converts a :zeek:type:`count` to an :zeek:type:`addr`.
@@ -3478,13 +3449,15 @@ function to_double%(str: string%): double
 ## .. zeek:see:: raw_bytes_to_v4_addr to_addr to_subnet raw_bytes_to_v6_addr
 function count_to_v4_addr%(ip: count%): addr
 	%{
-	if ( ip > 4294967295LU )
+	std::string err;
+	auto result = convert_count_to_v4_addr(ip, err);
+	if ( ! result )
 		{
-		zeek::emit_builtin_error("conversion of non-IPv4 count to addr", @ARG@[0]);
+		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
 		return zeek::make_intrusive<zeek::AddrVal>(0);
 		}
 
-	return zeek::make_intrusive<zeek::AddrVal>(htonl(static_cast<uint32_t>(ip)));
+	return result;
 	%}
 
 ## Converts a :zeek:type:`string` of bytes into an IPv4 address. In particular,

@@ -318,7 +318,7 @@ function config_assign_broker_ports(config: Management::Configuration)
 	# instances.
 	local start_port = Management::Controller::auto_assign_broker_start_port;
 
-	local p = port_to_count(start_port);
+	local p = start_port as count;
 
 	# A set that tracks the ports we've used so far. Helpful for avoiding
 	# collisions between manually specified and auto-enumerated ports.
@@ -330,7 +330,7 @@ function config_assign_broker_ports(config: Management::Configuration)
 	for ( inst in config$instances )
 		{
 		if ( inst?$listen_port )
-			add ports_set[port_to_count(inst$listen_port)];
+			add ports_set[inst$listen_port as count];
 		}
 
 	# Pre-populate nodes with pre-defined ports:
@@ -338,7 +338,7 @@ function config_assign_broker_ports(config: Management::Configuration)
 		{
 		if ( node?$p )
 			{
-			add ports_set[port_to_count(node$p)];
+			add ports_set[node$p as count];
 			add new_nodes[node];
 			}
 		}
@@ -409,10 +409,10 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		# build instance name -> addr lookup table
 		instance_addr_lookup[inst$name] = inst$host;
 
-		instance_metrics_start_port[inst$host] = port_to_count(Management::Controller::auto_assign_metrics_start_port);
+		instance_metrics_start_port[inst$host] = Management::Controller::auto_assign_metrics_start_port as count;
 		instance_ports_set[inst$host] = {};
 		if ( inst?$listen_port )
-			add instance_ports_set[inst$host][port_to_count(inst$listen_port)];
+			add instance_ports_set[inst$host][inst$listen_port as count];
 		}
 
 	# Pre-populate nodes with pre-defined metrics ports, as well
@@ -421,10 +421,10 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		node_addr = instance_addr_lookup[node$instance];
 		{
 		if ( node?$p )
-			add instance_ports_set[node_addr][port_to_count(node$p)];
+			add instance_ports_set[node_addr][node$p as count];
 		if ( node?$metrics_port )
 			{
-			add instance_ports_set[node_addr][port_to_count(node$metrics_port)];
+			add instance_ports_set[node_addr][node$metrics_port as count];
 			add new_nodes[node];
 			}
 		}
@@ -876,7 +876,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 
 		g_instances_by_id[id] = instance;
 		g_instances_known[instance] = Management::Instance(
-		    $name=instance, $host=to_addr(ei$network$address));
+		    $name=instance, $host=ei$network$address as addr);
 
 		if ( ! connecting )
 			{
@@ -1645,7 +1645,7 @@ event zeek_init()
 
 	if ( cni$bound_port != 0/unknown )
 		{
-		local ws_opts = Cluster::WebSocketServerOptions($listen_addr=to_addr(cni$address),
+		local ws_opts = Cluster::WebSocketServerOptions($listen_addr=cni$address as addr,
 		                                                $listen_port=cni$bound_port,
 		                                                $tls_options=Management::Controller::tls_options_websocket);
 		Cluster::listen_websocket(ws_opts);

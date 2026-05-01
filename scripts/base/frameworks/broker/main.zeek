@@ -456,7 +456,7 @@ function listen(a: string, p: port, retry: interval): port
 		local e = getenv("ZEEK_DEFAULT_LISTEN_RETRY");
 
 		if ( e != "" )
-			retry = double_to_interval(to_double(e));
+			retry = (e as double) as interval;
 
 		if ( retry != 0secs )
 			schedule retry { retry_listen(a, p, retry) };

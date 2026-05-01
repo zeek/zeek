@@ -46,7 +46,7 @@ function weird_epoch_finished(ts: time)
 
 		if ( num_seen > 0.0 )
 			Log::write(LOG, Info($ts = ts, $name = n,
-			                     $num_seen = double_to_count(num_seen)));
+			                     $num_seen = num_seen as count));
 		}
 
 	last_epoch_weirds = this_epoch_weirds;

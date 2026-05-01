@@ -222,13 +222,13 @@ function entity_to_match(p: PluginState, e: Entity): vector of OpenFlow::ofp_mat
 		if ( f?$src_p )
 			{
 			m$nw_proto = determine_proto(f$src_p);
-			m$tp_src = port_to_count(f$src_p);
+			m$tp_src = f$src_p as count;
 			}
 
 		if ( f?$dst_p )
 			{
 			m$nw_proto = determine_proto(f$dst_p);
-			m$tp_dst = port_to_count(f$dst_p);
+			m$tp_dst = f$dst_p as count;
 			}
 
 		v += m;
@@ -248,12 +248,12 @@ function openflow_rule_to_flow_mod(p: PluginState, r: Rule) : OpenFlow::ofp_flow
 		$cookie=OpenFlow::generate_cookie(r$cid*2), # leave one space for the cases in which we need two rules.
 		$command=OpenFlow::OFPFC_ADD,
 		$idle_timeout=c$idle_timeout,
-		$priority=int_to_count(r$priority + c$priority_offset),
+		$priority=(r$priority + c$priority_offset) as count,
 		$flags=OpenFlow::OFPFF_SEND_FLOW_REM # please notify us when flows are removed
 	);
 
 	if ( r?$expire )
-		flow_mod$hard_timeout = double_to_count(interval_to_double(r$expire));
+		flow_mod$hard_timeout = (r$expire as double) as count;
 	if ( c?$table_id )
 		flow_mod$table_id = c$table_id;
 

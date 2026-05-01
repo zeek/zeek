@@ -56,9 +56,24 @@ public:
 
     void Dump() const;
 
+    // Specify whether to measure CPU & memory for calls to the given body.
+    void SetProfilingCalls(bool active) {
+        profile_calls = active;
+        profiling_set_call = ncall;
+    }
+    bool IsProfilingCalls() const { return profile_calls; }
+
+    uint64_t NumBodyCalls() const { return ncall; }
+    uint64_t NumBodyInsts() const;
+    uint64_t NumModuleInsts(const std::string& mod) const;
+
+    double CPUTimeEst() const { return tot_CPU_time; }
+    uint64_t MemoryEst() const { return tot_mem; }
+
     void ReportExecutionProfile(ProfMap& pm);
 
     const std::string& FuncName() const { return func_name; }
+    const std::set<std::string>& Modules() const { return modules; }
 
     // Helper run-time function for looking up a field in a record, checking
     // that it exists and complaining if it does not. A member here rather than
@@ -80,8 +95,6 @@ private:
     auto Instructions() const { return insts; }
     auto NumInsts() const { return end_pc; }
 
-    // Initializes profiling information, if needed.
-    void InitProfile();
     std::shared_ptr<ProfVec> BuildProfVec() const;
 
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
@@ -125,14 +138,38 @@ private:
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
 
-    // The following are only maintained if we're doing profiling.
-    int ninst = 0;
-    int ncall = 0;
+    // Variables controlling the depth of profiling.
+    bool profile_calls = false;  // CPU and memory for calls
+    bool sample_CPU_mem = false; // sample per instruction
+
+    // We remember whenever profile_calls has been adjusted. This is to
+    // avoid a miscomputation of CPU time when measure_module() is called
+    // from within the module being measured. See ZBody::DoExec() for more.
+    uint64_t profiling_set_call = 0;
+
+    // Indexed by program counter. Holds number of times the given instruction
+    // has executed. Always maintained.
+    uint64_t* inst_cnt = nullptr;
+
+    uint64_t ncall = 0; // number of calls to the ZBody; always maintained
+
+    int prof_sampling_rate = 0; // sample CPU/memory every N'th instruction
+    uint64_t num_sampled_inst = 0;
     double tot_CPU_time = 0.0;
     uint64_t tot_mem = 0;
+
+    // Profiling information associated with different call stacks.
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
+
+    // Profiling information for the common case of no nested ZAM calls.
     std::shared_ptr<ProfVec> default_prof_vec;
+
+    // Profiling information for the current call.
     ProfVec* curr_prof_vec;
+
+    // Modules associated with this body. Used to selectively activate
+    // profiling.
+    std::set<std::string> modules;
 };
 
 extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);
@@ -143,5 +180,10 @@ extern VectorVal* vec_coerce_ID(VectorVal* vec, const std::shared_ptr<ZAMLocInfo
 extern VectorVal* vec_coerce_IU(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
 extern VectorVal* vec_coerce_UD(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
 extern VectorVal* vec_coerce_UI(VectorVal* vec, const std::shared_ptr<ZAMLocInfo>& z_loc);
+
+// Estimated overhead (in seconds) of a single CPU or memory measurement
+// when profiling.
+extern double CPU_prof_overhead;
+extern double mem_prof_overhead;
 
 } // namespace zeek::detail

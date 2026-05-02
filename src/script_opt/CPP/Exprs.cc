@@ -120,6 +120,16 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level) {
                   GenTypeName(e->GetType()) + ")";
             return GenericValPtrToGT(gen, e->GetType(), gt);
 
+        case EXPR_CAN_CONVERT: {
+            auto cc = e->AsCanConvertExpr();
+            auto cct = cc->ConversionType();
+
+            gen = "(" + string("attempt_to_cast_value_to_type(") + GenExpr(e->GetOp1(), GEN_VAL_PTR) + ".get(), " +
+                  GenTypeName(cct) + ".get()) != nullptr)";
+
+            return NativeToGT(gen, e->GetType(), gt);
+        }
+
         case EXPR_TO_ANY_COERCE: return GenExpr(e->GetOp1(), GEN_VAL_PTR);
 
         case EXPR_FROM_ANY_COERCE:

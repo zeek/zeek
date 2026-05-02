@@ -206,6 +206,16 @@ ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
     if ( rhs->Tag() == EXPR_INDEX && (r1->Tag() == EXPR_NAME || r1->Tag() == EXPR_CONST) )
         return CompileAssignToIndex(lhs, rhs->AsIndexExpr());
 
+    if ( rhs->Tag() == EXPR_CAN_CONVERT ) {
+        auto ccf = rhs->AsCanConvertExpr();
+        auto rhs_op = rhs->GetOp1();
+        auto z = GenInst(OP_CAN_CONVERT_VV, lhs->AsNameExpr(), rhs_op->AsNameExpr());
+        z.op_type = OP_VV;
+        z.SetType(rhs_op->GetType());
+        z.SetType2(ccf->ConversionType());
+        return AddInst(z);
+    }
+
     switch ( rhs->Tag() ) {
 #include "ZAM-DirectDefs.h"
 

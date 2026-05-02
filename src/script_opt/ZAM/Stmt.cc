@@ -190,6 +190,9 @@ ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2) {
         case OP_HAS_FIELD_COND_Vib: z->op = OP_NOT_HAS_FIELD_COND_Vib; break;
         case OP_NOT_HAS_FIELD_COND_Vib: z->op = OP_HAS_FIELD_COND_Vib; break;
 
+        case OP_CAN_CONVERT_COND_Vb: z->op = OP_NOT_CAN_CONVERT_COND_Vb; break;
+        case OP_NOT_CAN_CONVERT_COND_Vb: z->op = OP_CAN_CONVERT_COND_Vb; break;
+
         case OP_CONN_EXISTS_COND_Vb: z->op = OP_NOT_CONN_EXISTS_COND_Vb; break;
         case OP_NOT_CONN_EXISTS_COND_Vb: z->op = OP_CONN_EXISTS_COND_Vb; break;
 
@@ -257,6 +260,16 @@ ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         z.op_type = OP_VVV_I2_I3;
         z.TrackRecordTypeForField(cast_intrusive<RecordType>(op1->GetType()), f);
         branch_v = 3;
+        return AddInst(z);
+    }
+
+    if ( e->Tag() == EXPR_CAN_CONVERT ) {
+        auto ccf = e->AsCanConvertExpr();
+        auto z = GenInst(OP_CAN_CONVERT_COND_Vb, op1->AsNameExpr());
+        z.op_type = OP_VV_I2;
+        z.SetType(op1->GetType());
+        z.SetType2(ccf->ConversionType());
+        branch_v = 2;
         return AddInst(z);
     }
 

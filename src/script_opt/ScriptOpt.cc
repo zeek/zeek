@@ -850,6 +850,7 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
         EXPR_FROM_ANY_COERCE,
         EXPR_SIZE,
         EXPR_CAST,
+        EXPR_CAN_CONVERT,
         EXPR_IS,
         // EXPR_INDEX_SLICE_ASSIGN,
         EXPR_INLINE,
@@ -867,7 +868,7 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
 
     // This should be the total number of entries in the set above, including
     // the commented values.
-    constexpr int SCRIPT_OPT_NUM_EXPRS = 70;
+    constexpr int SCRIPT_OPT_NUM_EXPRS = 71;
 
     // clang-format on
 

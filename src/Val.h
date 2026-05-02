@@ -1979,6 +1979,12 @@ extern ValPtr cast_value_to_type(Val* v, Type* t);
 // Note: This implements the script-level "?as" operator.
 extern ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err);
 
+// Same, but allowing for calls that don't care about the error message.
+inline ValPtr attempt_to_cast_value_to_type(Val* v, Type* t) {
+    std::string err;
+    return attempt_to_cast_value_to_type(v, t, err);
+}
+
 // Returns true if any "any" value v can be casted to type T. If so,
 // check_and_cast() will succeed as well.
 //

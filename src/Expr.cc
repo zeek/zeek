@@ -95,6 +95,7 @@ const char* expr_name(ExprTag t) {
         "from_any_coerce ",
         "sizeof ",
         "cast",
+        "?as",
         "is",
         "[:]=",
         "inline()",
@@ -4747,14 +4748,13 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
 }
 
 CanConvertExpr::CanConvertExpr(ExprPtr arg_op, TypePtr t)
-    : UnaryExpr(EXPR_CAST, std::move(arg_op)), conversion_type(std::move(t)) {
+    : UnaryExpr(EXPR_CAN_CONVERT, std::move(arg_op)), conversion_type(std::move(t)) {
     auto stype = Op()->GetType();
     SetType(base_type(TYPE_BOOL));
 }
 
 ValPtr CanConvertExpr::Fold(Val* v) const {
-    std::string err;
-    if ( attempt_to_cast_value_to_type(v, conversion_type.get(), err) )
+    if ( attempt_to_cast_value_to_type(v, conversion_type.get()) )
         return val_mgr->True();
     else
         return val_mgr->False();
@@ -4763,7 +4763,7 @@ ValPtr CanConvertExpr::Fold(Val* v) const {
 void CanConvertExpr::ExprDescribe(ODesc* d) const {
     Op()->Describe(d);
     d->Add(" ?as ");
-    GetType()->Describe(d);
+    conversion_type->Describe(d);
 }
 
 CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(arg_op)) {
@@ -4771,7 +4771,7 @@ CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(a
 
     SetType(std::move(t));
 
-    if ( ! can_cast_type_to_type(stype.get(), GetType().get()) )
+    if ( ! IsError() && ! can_cast_type_to_type(stype.get(), GetType().get()) )
         ExprError("cast not supported");
 }
 

@@ -483,7 +483,7 @@ print 5 * g2;
 print 5 * g2;
 l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
-return (double_to_count(my_tbl[1.0, 3.0]));
+return (my_tbl[1.0, 3.0] as count);
 }, &optional;
 l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
@@ -505,7 +505,7 @@ print <internal>::#0;
 print <internal>::#1;
 l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
-return (double_to_count(my_tbl[1.0, 3.0]));
+return (my_tbl[1.0, 3.0] as count);
 }, &optional;
 l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
@@ -534,7 +534,7 @@ print <internal>::#0;
 print <internal>::#0;
 l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
-return (double_to_count(my_tbl[1.0, 3.0]));
+return (my_tbl[1.0, 3.0] as count);
 }, &optional;
 l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
@@ -559,7 +559,7 @@ print <internal>::#0;
 print <internal>::#0;
 l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
-return (double_to_count(my_tbl[1.0, 3.0]));
+return (my_tbl[1.0, 3.0] as count);
 }, &optional;
 l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);

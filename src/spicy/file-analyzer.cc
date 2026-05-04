@@ -30,9 +30,10 @@ static auto create_file_state(FileAnalyzer* analyzer) {
             depth = f->depth + 1;
     }
 
-    cookie::FileAnalyzer cookie{.analyzer = analyzer,
-                                .depth = depth,
-                                .fstate = cookie::FileStateStack(analyzer->GetFile()->GetID())};
+    auto id = hilti::rt::fmt("%s:%s", analyzer->GetID(), analyzer->GetFile()->GetID());
+
+    cookie::FileAnalyzer cookie{.analyzer = analyzer, .depth = depth, .fstate = cookie::FileStateStack(std::move(id))};
+
     return FileState(std::move(cookie));
 }
 

@@ -1055,7 +1055,16 @@ hilti::rt::String rt::file_begin(const hilti::rt::Optional<hilti::rt::String>& m
     _data_in("", 0, {}, {});
 
     auto file = file_mgr->LookupFile(fstate->fid);
-    assert(file); // passing in empty data ensures that this is now available
+    if ( ! file ) {
+        // Only feed an empty chunk into file analysis to force creating
+        // the file state inside Zeek when the file does not yet exist.
+        //
+        // If the file already exists, calling DataIn() for it can cause side
+        // effects including RemoveFile().
+        _data_in("", 0, {}, {});
+        file = file_mgr->LookupFile(fstate->fid);
+        assert(file); // passing in empty data ensures that this is now available
+    }
 
     if ( auto f = cookie->file ) {
         // We need to initialize some fa_info fields ourselves that would

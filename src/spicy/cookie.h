@@ -47,7 +47,7 @@ public:
     /**
      * Constructor.
      *
-     * @param analyzer_id unique ID string representing parent connection/file analyzer
+     * @param analyzer uid unique ID string representing parent connection/file uid
      */
     FileStateStack(std::string analyzer_id) : _analyzer_id(std::move(analyzer_id)) {}
 
@@ -87,7 +87,7 @@ public:
 
 private:
     std::vector<FileState> _stack; // stack of files in flight
-    std::string _analyzer_id;      // unique ID string of parent analyzer, as passed into ctor
+    std::string _analyzer_id;      // unique ID string to use for creating child file uids
     uint64_t _id_counter = 0;      // counter incremented for each file added to this stack
 };
 

@@ -659,12 +659,12 @@ ExprPtr Reducer::OptExpr(Expr* e) {
         reporter->InternalError("Generating new statements while optimizing");
 
     if ( opt_e->Tag() == EXPR_NAME )
-        return UpdateExpr(opt_e);
+        return UpdateExpr(opt_e, nullptr);
 
     return opt_e;
 }
 
-ExprPtr Reducer::UpdateExpr(ExprPtr e) {
+ExprPtr Reducer::GetExprUpdate(ExprPtr e) {
     if ( e->Tag() != EXPR_NAME )
         return OptExpr(e);
 
@@ -716,6 +716,13 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
     auto c = rhs->AsConstExpr();
     return with_location_of(make_intrusive<ConstExpr>(c->ValuePtr()), e);
+}
+
+ExprPtr Reducer::UpdateExpr(ExprPtr e, const Expr* parent) {
+    auto update = GetExprUpdate(e);
+    if ( parent && update->Tag() == EXPR_CONST && ! parent->IsSafeSubstitution(e, update->AsConstExpr()->ValuePtr()) )
+        return e;
+    return update;
 }
 
 StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt) {

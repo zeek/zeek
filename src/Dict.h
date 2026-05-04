@@ -13,6 +13,7 @@
 #include "zeek/Hash.h"
 #include "zeek/Obj.h"
 #include "zeek/Reporter.h"
+#include "zeek/util.h"
 
 // Type for function to be called when deleting elements.
 using dict_delete_func = void (*)(void*);
@@ -1415,7 +1416,7 @@ private:
         SetLog2Buckets(log2_buckets + 1);
 
         int capacity = Capacity();
-        table = static_cast<detail::DictEntry<T>*>(realloc(table, capacity * sizeof(detail::DictEntry<T>)));
+        table = static_cast<detail::DictEntry<T>*>(util::safe_realloc(table, capacity * sizeof(detail::DictEntry<T>)));
         for ( int i = prev_capacity; i < capacity; i++ )
             table[i].SetEmpty();
 

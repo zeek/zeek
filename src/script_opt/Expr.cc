@@ -7,6 +7,8 @@
 #include "zeek/Desc.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Overflow.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -548,6 +550,20 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return AssignToTemporary(c, red_stmt);
 }
 
+bool BinaryExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    // It's always safe if we still have a non-constant operand.
+    // If both operands are constant than we use our own version
+    // of IsSafeSubstitution to finalize.
+    if ( e == op1 )
+        return op2->IsConst() ? IsSafeSubstitution(v, op2->AsConstExpr()->ValuePtr()) : true;
+    if ( e == op2 )
+        return op1->IsConst() ? IsSafeSubstitution(op1->AsConstExpr()->ValuePtr(), v) : true;
+    // Weird - doesn't match either of our operands. In principle this
+    // might happen if we're substituting after doing some reduce logic;
+    // decline the substitution to be safe.
+    return false;
+}
+
 ExprPtr CloneExpr::Duplicate() {
     // oh the irony
     return SetSucc(new CloneExpr(op->Duplicate()));
@@ -958,10 +974,16 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
+bool DivideExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
+
 ExprPtr MaskExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new MaskExpr(op1_d, op2_d));
+}
+
+bool MaskExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
+    return GetMask(v2.get()) <= (v1->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 }
 
 ExprPtr ModExpr::Duplicate() {
@@ -969,6 +991,8 @@ ExprPtr ModExpr::Duplicate() {
     auto op2_d = op2->Duplicate();
     return SetSucc(new ModExpr(op1_d, op2_d));
 }
+
+bool ModExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
 
 // Helper functions used by BoolExpr.
 
@@ -1174,6 +1198,13 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     return BinaryExpr::Reduce(c, red_stmt);
+}
+
+bool BitExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
+    // The only such operation that can potentially have problems is
+    // left-shift. Rather than analyzing whether this particular instance
+    // is okay, we assume these are rare and just go by the tag.
+    return tag != EXPR_LSHIFT;
 }
 
 bool CmpExpr::WillTransform(Reducer* c) const {
@@ -2105,6 +2136,30 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return AssignToTemporary(c, red_stmt);
 }
 
+bool ArithCoerceExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    // We check for the issues assessed by check_and_promote() that are
+    // not due to type clashes.
+    const auto& vt = v->GetType();
+    TypeTag v_tag = vt->Tag();
+    TypeTag t_tag = type->Tag();
+
+    if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) && max_type(t_tag, v_tag) != t_tag )
+        return false;
+
+    InternalTypeTag it = type->InternalType();
+    InternalTypeTag vit = vt->InternalType();
+
+    if ( it == TYPE_INTERNAL_INT && (vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE) &&
+         detail::would_overflow(vt.get(), type.get(), v.get()) )
+        return false;
+
+    if ( it == TYPE_INTERNAL_UNSIGNED && (vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) &&
+         detail::would_overflow(vt.get(), type.get(), v.get()) )
+        return false;
+
+    return true;
+}
+
 ExprPtr RecordCoerceExpr::Duplicate() {
     auto op_dup = op->Duplicate();
     return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
@@ -2569,6 +2624,10 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
 ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Duplicate(), conversion_type)); }
 
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
+
+bool CastExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    return attempt_to_cast_value_to_type(v.get(), type.get()) != nullptr;
+}
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 

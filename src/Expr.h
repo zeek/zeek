@@ -310,6 +310,13 @@ public:
     // The same, but for the expression when used in a conditional context.
     virtual bool WillTransformInConditional(Reducer* c) const { return false; }
 
+    // True if substituting the given value for the given expression is
+    // "safe", i.e. will not lead to compile-time errors if the value is
+    // then used to fold the expression. The expression will be one of the
+    // this expression's operands. Used for the AST optimizer's constant
+    // propagation.
+    virtual bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const { return true; }
+
     // Returns the current expression transformed into "new_me".
     ExprPtr TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt);
 
@@ -551,6 +558,11 @@ public:
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
+    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
+
+    // A version of IsSafeSubstitution() where we now know both operands.
+    virtual bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return true; }
 
     ExprPtr GetOp1() const final { return op1; }
     ExprPtr GetOp2() const final { return op2; }
@@ -822,6 +834,7 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
     bool WillTransform(Reducer* c) const override;
+    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -831,9 +844,11 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
+    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
 
 protected:
     ValPtr AddrFold(Val* v1, Val* v2) const override;
+    uint32_t GetMask(const Val* v) const;
 };
 
 class ModExpr final : public BinaryExpr {
@@ -842,6 +857,7 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
+    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
 };
 
 class BoolExpr final : public BinaryExpr {
@@ -870,6 +886,7 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
     bool WillTransform(Reducer* c) const override;
+    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -1313,6 +1330,7 @@ public:
 
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
 
 protected:
     ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
@@ -1637,6 +1655,7 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
+    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
 
 protected:
     ValPtr Fold(Val* v) const override;

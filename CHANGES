@@ -1,3 +1,20 @@
+8.0.7-3 | 2026-05-04 16:26:41 -0700
+
+  * Gracefully handle when tables cannot grow anymore (Benjamin Bannier, Corelight)
+
+    In the current implementation tables hold all data in a single memory
+    allocation, and to add more entries it might need to `realloc` the
+    allocation. If the `realloc` call fails e.g., due to out of memory, a
+    nullptr is returned which we previously did not check for; instead we
+    would have dereferenced the the nullptr which ideally would have led to
+    a SEGFAULT.
+
+    This patch changes the call to instead use our safe wrapper around
+    `realloc` which makes sure that we do not keep running if the realloc
+    failed.
+
+    (cherry picked from commit 13509afd1c2430d232020e12e3cabdec64111c78)
+
 8.0.7-2 | 2026-05-04 16:25:19 -0700
 
   * Close the backend in storage btests to avoid memory leak warnings (Tim Wojtulewicz, Corelight)

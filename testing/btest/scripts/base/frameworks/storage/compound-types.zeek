@@ -72,4 +72,6 @@ event zeek_init() {
 
 	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
+
+	Storage::Sync::close_backend(b);
 }

@@ -1,3 +1,21 @@
+8.0.7-2 | 2026-05-04 16:25:19 -0700
+
+  * Close the backend in storage btests to avoid memory leak warnings (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 47f0a39c402c3059eb7ed1d41a6ecc4c79d20011)
+
+  * Add simple btest with multiple sqlite backends (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 47f0a39c402c3059eb7ed1d41a6ecc4c79d20011)
+
+  * Make sqlite3 prepared statements persistent (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 47f0a39c402c3059eb7ed1d41a6ecc4c79d20011)
+
+  * Remove static from sqlite3 prepared statements (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 47f0a39c402c3059eb7ed1d41a6ecc4c79d20011)
+
 8.0.7-1 | 2026-05-04 16:22:40 -0700
 
   * Fix assignment typo in zeek::threading::Value's move constructor (Christian Kreibich, Corelight)

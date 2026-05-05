@@ -1,3 +1,24 @@
+8.2.0-rc1.9 | 2026-05-04 17:02:01 -0700
+
+  * spicy: Mix analyzer tag string into _analyzer_id (Arne Welzel, Corelight)
+
+    This allows to create unique child file uids if different analyzer
+    types create child file objects for the same parent file.
+
+    (cherry picked from commit 045330ff33ca1a2e45f8e0b2c39d6f5af8d1169e)
+
+  * spicy/runtime-support: Fix file lifecycle (Arne Welzel, Corelight)
+
+    Feeding anything, including empty bytes, maybe cause an existing file to
+    be removed due to lifecycle operations being triggered via DataIn().
+    Protect by first looking up the file and skipping the DataIn() calls if
+    it already exists.
+
+    This was tickled when an outer ZIP archive is created twice with the
+    same fuid and the inner file outlives the outer archive.
+
+    (cherry picked from commit 045330ff33ca1a2e45f8e0b2c39d6f5af8d1169e)
+
 8.2.0-rc1.8 | 2026-05-04 16:29:59 -0700
 
   * Gracefully handle when tables cannot grow anymore (Benjamin Bannier, Corelight)

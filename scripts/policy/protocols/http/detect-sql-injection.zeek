@@ -84,7 +84,7 @@ event zeek_init() &priority=3
 		$threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 			{
 			local r = result["http.sqli.attacker"];
-			local dst = to_addr(r$samples[0]$str);
+			local dst = r$samples[0]$str as addr;
 			local uid = r$samples[0]$uid;
 			NOTICE(Notice::Info($note=SQL_Injection_Attacker,
 			                    $msg="An SQL injection attacker was discovered!",
@@ -107,7 +107,7 @@ event zeek_init() &priority=3
 		$threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 			{
 			local r = result["http.sqli.victim"];
-			local src = to_addr(r$samples[0]$str);
+			local src = r$samples[0]$str as addr;
 			local uid = r$samples[0]$uid;
 			NOTICE(Notice::Info($note=SQL_Injection_Victim,
 			                    $msg="An SQL injection victim was discovered!",

@@ -124,7 +124,7 @@ function decompose_uri(uri: string): URI
 		u$netlocation = gsub(s, /:[0-9]*$/, "");
 		local portstr = s[|u$netlocation| + 1:];
 		if ( portstr != "" )
-			u$portnum = to_count(portstr);
+			u$portnum = portstr as count;
 		}
 	else
 		{

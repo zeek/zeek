@@ -52,9 +52,9 @@ event ocsp_response_certificate(f: fa_file, hashAlgorithm: string, issuerNameHas
 
 	if ( revokereason != "" )
 		wr$revokereason = revokereason;
-	if ( time_to_double(revoketime) != 0 )
+	if ( revoketime as double != 0 )
 		wr$revoketime = revoketime;
-	if ( time_to_double(nextUpdate) != 0 )
+	if ( nextUpdate as double != 0 )
 		wr$nextUpdate = nextUpdate;
 
 	Log::write(LOG, wr);

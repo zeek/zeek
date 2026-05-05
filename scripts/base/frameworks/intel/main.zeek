@@ -335,10 +335,10 @@ function find(s: Seen): bool
 		{
 		if ( have_full_data )
 			return ((s$host in data_store$host_data) ||
-			        (|matching_subnets(addr_to_subnet(s$host), data_store$subnet_data)| > 0));
+			        (|matching_subnets(s$host as subnet, data_store$subnet_data)| > 0));
 		else
 			return ((s$host in min_data_store$host_data) ||
-			        (|matching_subnets(addr_to_subnet(s$host), min_data_store$subnet_data)| > 0));
+			        (|matching_subnets(s$host as subnet, min_data_store$subnet_data)| > 0));
 		}
 	else
 		{
@@ -376,7 +376,7 @@ function get_items(s: Seen): set[Item]
 			}
 		# See if the host is part of a known subnet, which has meta values
 		local nets: table[subnet] of MetaDataTable;
-		nets = filter_subnet_table(addr_to_subnet(s$host), data_store$subnet_data);
+		nets = filter_subnet_table(s$host as subnet, data_store$subnet_data);
 		for ( n, mt in nets )
 			{
 				for ( _, md in mt )
@@ -474,7 +474,7 @@ function insert_meta_data(item: Item): bool
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			local host = to_addr(item$indicator);
+			local host = item$indicator as addr;
 
 			if ( host !in data_store$host_data )
 				data_store$host_data[host] = table();
@@ -548,7 +548,7 @@ function _insert(item: Item, first_dispatch: bool &default = T)
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			local host = to_addr(item$indicator);
+			local host = item$indicator as addr;
 			if ( host !in min_data_store$host_data )
 				{
 				inserted = T;
@@ -608,8 +608,8 @@ function item_exists(item: Item): bool
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			return have_full_data ? to_addr(item$indicator) in data_store$host_data :
-			                        to_addr(item$indicator) in min_data_store$host_data;
+			return have_full_data ? item$indicator as addr in data_store$host_data :
+			                        item$indicator as addr in min_data_store$host_data;
 		case SUBNET:
 			return have_full_data ? to_subnet(item$indicator) in data_store$subnet_data :
 			                        to_subnet(item$indicator) in min_data_store$subnet_data;
@@ -633,7 +633,7 @@ function remove_meta_data(item: Item): bool
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			local host = to_addr(item$indicator);
+			local host = item$indicator as addr;
 			delete data_store$host_data[host][item$meta$source];
 			return (|data_store$host_data[host]| == 0);
 		case SUBNET:
@@ -671,7 +671,7 @@ function remove(item: Item, purge_indicator: bool)
 		switch ( item$indicator_type )
 			{
 			case ADDR:
-				local host = to_addr(item$indicator);
+				local host = item$indicator as addr;
 				delete data_store$host_data[host];
 				break;
 			case SUBNET:
@@ -696,7 +696,7 @@ event remove_indicator(item: Item)
 	switch ( item$indicator_type )
 		{
 		case ADDR:
-			local host = to_addr(item$indicator);
+			local host = item$indicator as addr;
 			if ( host in min_data_store$host_data )
 				{
 				removed = T;

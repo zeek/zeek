@@ -36,5 +36,5 @@ function cut_tail(s: string, tail_len: count): string
 	{
 	if ( tail_len > |s| )
 		tail_len = |s|;
-	return sub_bytes(s, 1, int_to_count(|s| - tail_len));
+	return sub_bytes(s, 1, (|s| - tail_len) as count);
 	}

@@ -48,7 +48,7 @@ hook register_observe_plugins()
 			}
 
 		hll_cardinality_add(rv$card, obs);
-		rv$hll_unique = double_to_count(hll_cardinality_estimate(rv$card));
+		rv$hll_unique = hll_cardinality_estimate(rv$card) as count;
 		});
 	}
 
@@ -74,5 +74,5 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 		hll_cardinality_merge_into(rhll, rv2$card);
 
 	result$card = rhll;
-	result$hll_unique = double_to_count(hll_cardinality_estimate(rhll));
+	result$hll_unique = hll_cardinality_estimate(rhll) as count;
 	}

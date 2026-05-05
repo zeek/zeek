@@ -187,7 +187,7 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 			else if ( is_udp_port(f$dst_p) && r$ty == WHITELIST)
 				command = "permitucpdsthostport";
 
-			arg = fmt("%s %d", subnet_to_addr(f$dst_h), f$dst_p);
+			arg = fmt("%s %d", f$dst_h as addr, f$dst_p);
 			}
 		else if ( f?$src_h && ( ! f?$src_p ) && f?$dst_h && ( ! f?$dst_p ) && ( ! f?$src_m ) && ( ! f?$dst_m ) )
 			{
@@ -195,7 +195,7 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 				command = "";
 			else if ( r$ty == DROP )
 				command = "blockhosthost";
-			arg = fmt("%s %s", subnet_to_addr(f$src_h), subnet_to_addr(f$dst_h));
+			arg = fmt("%s %s", f$src_h as addr, f$dst_h as addr);
 			}
 		else if ( ( ! f?$src_h ) && ( ! f?$src_p ) && ( ! f?$dst_h ) && f?$dst_p && ( ! f?$src_m ) && ( ! f?$dst_m ) )
 			{

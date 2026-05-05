@@ -56,7 +56,7 @@ redef Cluster::worker_pool_spec = Cluster::PoolSpec(
 @if ( Cluster::local_node_type() == Cluster::LOGGER || (Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER) )
 const my_node = Cluster::nodes[Cluster::node];
 @if ( my_node?$p )
-redef listen_log_endpoint = fmt("tcp://%s:%s", addr_to_uri(my_node$ip), port_to_count(my_node$p));
+redef listen_log_endpoint = fmt("tcp://%s:%s", addr_to_uri(my_node$ip), my_node$p as count);
 @endif
 @endif
 
@@ -79,13 +79,13 @@ event zeek_init() &priority=100
 		local endp: string;
 		if ( node$node_type == Cluster::LOGGER && node?$p )
 			{
-			endp = fmt("tcp://%s:%s", addr_to_uri(node$ip), port_to_count(node$p));
+			endp = fmt("tcp://%s:%s", addr_to_uri(node$ip), node$p as count);
 			connect_log_endpoints += endp;
 			}
 
 		if ( Cluster::manager_is_logger && node$node_type == Cluster::MANAGER && node?$p )
 			{
-			endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
+			endp = fmt("tcp://%s:%s", node$ip, node$p as count);
 			connect_log_endpoints += endp;
 			}
 		}

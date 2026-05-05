@@ -59,7 +59,7 @@ function build_url(rec: Info): string
 		return uri;
 
 	local host = rec?$host ? rec$host : addr_to_uri(rec$id$resp_h);
-	local resp_p = port_to_count(rec$id$resp_p);
+	local resp_p = rec$id$resp_p as count;
 	if ( resp_p != 80 )
 		host = fmt("%s:%d", host, resp_p);
 	return fmt("%s%s", host, uri);

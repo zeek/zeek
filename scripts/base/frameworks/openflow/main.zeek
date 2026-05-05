@@ -186,10 +186,10 @@ function match_conn(id: conn_id, reverse: bool &default=F): ofp_match
 		return ofp_match(
 			$dl_type=dl_type,
 			$nw_proto=proto,
-			$nw_src=addr_to_subnet(orig_h),
-			$tp_src=port_to_count(orig_p),
-			$nw_dst=addr_to_subnet(resp_h),
-			$tp_dst=port_to_count(resp_p)
+			$nw_src=orig_h as subnet,
+			$tp_src=orig_p as count,
+			$nw_dst=resp_h as subnet,
+			$tp_dst=resp_p as count
 		);
 	}
 

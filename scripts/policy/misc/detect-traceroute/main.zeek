@@ -77,8 +77,8 @@ event zeek_init() &priority=5
 		$threshold_crossed(key: SumStats::Key, result: SumStats::Result) =
 			{
 			local parts = split_string_n(key$str, /-/, F, 2);
-			local src = to_addr(parts[0]);
-			local dst = to_addr(parts[1]);
+			local src = parts[0] as addr;
+			local dst = parts[1] as addr;
 			local proto = parts[2];
 			Log::write(LOG, Info($ts=network_time(), $src=src, $dst=dst, $proto=proto));
 			NOTICE(Notice::Info($note=Traceroute::Detected,

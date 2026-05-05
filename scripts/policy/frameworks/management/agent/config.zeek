@@ -111,7 +111,7 @@ function instance(): Management::Instance
 	{
 	local epi = endpoint_info();
 	return Management::Instance($name=epi$id,
-	    $host=to_addr(epi$network$address),
+	    $host=epi$network$address as addr,
 	    $listen_port=epi$network$bound_port);
 	}
 

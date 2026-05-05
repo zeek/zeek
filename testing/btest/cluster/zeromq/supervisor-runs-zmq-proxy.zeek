@@ -25,11 +25,10 @@ redef Log::flush_interval = 0.01 sec;
 # To start the proxy thread, the supervisor needs to set the listen addresses
 # in the ZeroMQ module, because unfortunately, spawn_zmq_proxy_thread() doesn't
 # take them as arguments and instead reads the globals in the Cluster::Backend::ZeroMQ
-# module. Also switch to ZeroMQ as cluster backend becuase the options file doesn't
-# do that, it only declares the options.
+# module. Loading the options.zeek file also redefs Cluster::backend and some other
+# options, but does not connect with the XPUB/XSUB proxy or interact with any cluster
+# nodes.
 @load frameworks/cluster/backend/zeromq/options
-
-redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
 
 redef Cluster::Backend::ZeroMQ::listen_xpub_endpoint = fmt("tcp://127.0.0.1:%s", port_to_count(to_port(getenv("XPUB_PORT"))));
 redef Cluster::Backend::ZeroMQ::listen_xsub_endpoint = fmt("tcp://127.0.0.1:%s", port_to_count(to_port(getenv("XSUB_PORT"))));

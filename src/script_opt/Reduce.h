@@ -128,16 +128,17 @@ public:
         replaced_stmts.clear();
     }
 
-    // Given the LHS and RHS of an assignment, returns true if the RHS is
+    // Given the LHS and RHS of an assignment, checks whether the RHS is
     // a common subexpression (meaning that the current assignment statement
-    // should be deleted).  In that case, has the side effect of associating
-    // an alias for the LHS with the temporary variable that holds the
-    // equivalent RHS; or if the LHS is a local that has no other assignments,
-    // and the same for the RHS.
+    // is unneeded).  In that case, associates an alias for the LHS with
+    // the temporary variable that holds the equivalent RHS, or a constant
+    // if appropriate.
+    //
+    // This needs to be called to ensure that later instances of the LHS
+    // are replaced with the RHS (if safe to do, per IsSafeSubstitution()).
     //
     // Assumes reduction (including alias propagation) has already been applied.
-
-    bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
+    void CheckForCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
     // Returns a constant representing folding of the given expression
     // (which must have constant operands).

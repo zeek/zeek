@@ -26,7 +26,7 @@ event zeek_init()
 	{
 	# Set the manager's time to non-zero, the worker continues to be at 0.0.
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		set_network_time(double_to_time(1748256346));
+		set_network_time(1748256346 as time);
 	}
 
 event Cluster::hello(name: string, id: string)

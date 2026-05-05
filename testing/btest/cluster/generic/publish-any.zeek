@@ -54,7 +54,7 @@ event send_any()
 	else if ( i == 3 )
 		val = vector(1, 2, 3);
 	else if ( i == 4 )
-		val = double_to_time(42.0);
+		val = 42.0 as time;
 	else
 		val = R($c=42, $a=vector(R($c=42, $a="hello")));
 

@@ -64,8 +64,8 @@ event connection_established(c: connection)
 	local id = c$id;
 
 	local flow1 = NetControl::Flow(
-		$src_h=addr_to_subnet(c$id$orig_h),
-		$dst_h=addr_to_subnet(c$id$resp_h)
+		$src_h=c$id$orig_h as subnet,
+		$dst_h=c$id$resp_h as subnet
 	);
 	local e1: NetControl::Entity = [$ty=NetControl::FLOW, $flow=flow1];
 	local r1: NetControl::Rule = [$ty=NetControl::DROP, $target=NetControl::FORWARD, $entity=e1, $expire=10hrs, $location="here"];

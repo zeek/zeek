@@ -11,12 +11,12 @@ function xpub_drops(): count
 	{
 	local ms = Telemetry::collect_metrics("zeek", "cluster_zeromq_xpub_drops_total");
 	assert |ms| == 1, fmt("%s", |ms|);
-	return double_to_count(ms[0]$value);
+	return ms[0]$value as count;
 	}
 
 function onloop_drops(): count
 	{
 	local ms = Telemetry::collect_metrics("zeek", "cluster_zeromq_onloop_drops_total");
 	assert |ms| == 1, fmt("%s", |ms|);
-	return double_to_count(ms[0]$value);
+	return ms[0]$value as count;
 	}

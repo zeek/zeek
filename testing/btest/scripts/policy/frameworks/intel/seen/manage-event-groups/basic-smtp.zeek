@@ -38,7 +38,7 @@ function make_conn(): connection
 			              $resp_h=2.2.2.2, $resp_p=2/tcp, $proto=6),
 			$orig = endpoint($size=1, $state=4, $flow_label=0),
 			$resp = endpoint($size=1, $state=4, $flow_label=0),
-			$start_time=double_to_time(1747323991.0),
+			$start_time=1747323991.0 as time,
 			$duration=1sec,
 			$service=set("smtp"),
 			$history="ShAdDa",

@@ -26,5 +26,5 @@ global connection_duration_h = Telemetry::histogram_with(connection_duration_hf)
 
 event connection_state_remove(c: connection)
 	{
-	Telemetry::histogram_observe(connection_duration_h, interval_to_double(c$duration));
+	Telemetry::histogram_observe(connection_duration_h, c$duration as double);
 	}

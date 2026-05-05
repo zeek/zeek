@@ -7,13 +7,13 @@ redef allow_network_time_forward = F;
 event zeek_init()
 	{
 	print network_time(), "zeek_init (1)";
-	set_network_time(double_to_time(1.5));
+	set_network_time(1.5 as time);
 	}
 
 event zeek_init() &priority=-1
 	{
 	print network_time(), "zeek_init (2)";
-	set_network_time(double_to_time(2.5));
+	set_network_time(2.5 as time);
 	}
 
 event zeek_done()

@@ -69,7 +69,7 @@ done
 # Query the Prometheus endpoint using curl for testing, oh my.
 event run_test()
 	{
-	local services_url = fmt("http://localhost:%s/services.json", port_to_count(Telemetry::metrics_port));
+	local services_url = fmt("http://localhost:%s/services.json", Telemetry::metrics_port as count);
 	local req_cmd = fmt("sh ../request-services.sh %s %s", services_url, "services.out");
 
 	when [req_cmd] ( local result = Exec::run([$cmd=req_cmd]) )

@@ -30,5 +30,5 @@ event connection_state_remove(c: connection)
 	{
 	local proto = to_lower(cat(get_port_transport_proto(c$id$orig_p)));
 	Telemetry::counter_family_inc(connections_by_proto_cf, vector(proto));
-	Telemetry::histogram_observe(connection_duration_h, interval_to_double(c$duration));
+	Telemetry::histogram_observe(connection_duration_h, c$duration as double);
 	}

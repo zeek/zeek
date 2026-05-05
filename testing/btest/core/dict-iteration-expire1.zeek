@@ -35,7 +35,7 @@ event populate(round: count) {
     tbl[val_str] = vector(val);
 
     # Schedule an explicit delete at most a second away.
-    local random_cleanup_delay = double_to_interval(rand(100) / 100.0);
+    local random_cleanup_delay = (rand(100) / 100.0) as interval;
     schedule random_cleanup_delay { cleanup(val_str) };
   }
 

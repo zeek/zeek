@@ -44,11 +44,11 @@ event signature_match(state: signature_state, msg: string, data: string)
 event ftp_request(c: connection, command: string, arg: string)
 	{
 	print fmt("ftp_request %s:%s - %s %s", addr_to_uri(c$id$orig_h),
-	          port_to_count(c$id$orig_p), command, arg);
+	          c$id$orig_p as count, command, arg);
 	}
 
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool)
 	{
 	print fmt("ftp_reply %s:%s - %s %s", addr_to_uri(c$id$resp_h),
-	          port_to_count(c$id$resp_p), code, msg);
+	          c$id$resp_p as count, code, msg);
 	}

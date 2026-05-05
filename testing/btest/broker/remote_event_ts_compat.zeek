@@ -27,7 +27,7 @@ event zeek_init()
 	{
 	Broker::subscribe(getenv("TOPIC"));
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
-	set_network_time(double_to_time(42.0));
+	set_network_time(42.0 as time);
 
 	system("touch ready");
 	}

@@ -5,7 +5,7 @@
 
 function inform_me(s: table[string] of count, idx: string): interval
     {
-    print fmt("@%.2f expired %s", time_to_double(network_time()), idx);
+    print fmt("@%.2f expired %s", network_time() as double, idx);
     return 0secs;
     }
 

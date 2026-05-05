@@ -28,7 +28,7 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 
 	# delete directly, without notifying anything.
 	NetControl::delete_rule(r$id, "testing");
-	NetControl::catch_release_seen(subnet_to_addr(r$entity$ip));
+	NetControl::catch_release_seen(r$entity$ip as addr);
 	}
 
 # @TEST-START-NEXT
@@ -58,6 +58,6 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 
 	# delete directly, without notifying anything.
 	NetControl::delete_rule(r$id);
-	NetControl::catch_release_seen(subnet_to_addr(r$entity$ip));
+	NetControl::catch_release_seen(r$entity$ip as addr);
 	}
 

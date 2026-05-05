@@ -13,10 +13,10 @@ event zeek_init()
 	local i: count = 0;
 	while ( ++i < 170000 )
 		{
-		hll_cardinality_add(cp, count_to_v4_addr(base+i));
+		hll_cardinality_add(cp, (base+i) as addr);
 		}
 
-	local res: int = double_to_count(hll_cardinality_estimate(cp));
+	local res = hll_cardinality_estimate(cp) as int;
 	if ( |res - 170000| > 17000 )
 		print "Big error";
 	else

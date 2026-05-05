@@ -56,7 +56,7 @@ global pong: event(msg: string, c: count) &is_used;
 
 event zeek_init()
 	{
-	set_network_time(double_to_time(4711.0));
+	set_network_time(4711.0 as time);
 
 	Cluster::subscribe("/test/pings/");
 	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);

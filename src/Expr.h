@@ -92,6 +92,7 @@ enum ExprTag : int8_t {
     EXPR_FROM_ANY_COERCE,
     EXPR_SIZE,
     EXPR_CAST,
+    EXPR_CAN_CONVERT,
     EXPR_IS,
     EXPR_INDEX_SLICE_ASSIGN,
 
@@ -120,6 +121,7 @@ extern const char* expr_name(ExprTag t);
 class AddToExpr;
 class AssignExpr;
 class CallExpr;
+class CanConvertExpr;
 class ConstExpr;
 class EventExpr;
 class FieldAssignExpr;
@@ -242,6 +244,7 @@ public:
     ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
+    ZEEK_EXPR_ACCESSOR_DECLS(CanConvertExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(EventExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(FieldAssignExpr)
@@ -1610,6 +1613,22 @@ protected:
 class RecordAssignExpr final : public ListExpr {
 public:
     RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_list, bool is_init);
+};
+
+class CanConvertExpr final : public UnaryExpr {
+public:
+    CanConvertExpr(ExprPtr op, TypePtr t);
+
+    const TypePtr& ConversionType() const { return conversion_type; }
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+
+protected:
+    ValPtr Fold(Val* v) const override;
+    void ExprDescribe(ODesc* d) const override;
+
+    TypePtr conversion_type;
 };
 
 class CastExpr final : public UnaryExpr {

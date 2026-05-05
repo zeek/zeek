@@ -171,4 +171,4 @@ internal-op Is
 class VV
 op-types I X
 eval	auto rhs = $1.ToVal(Z_TYPE2).get();
-	$$ = can_cast_value_to_type(rhs, Z_TYPE.get());
+	$$ = can_cast_any_to_type(rhs, Z_TYPE.get());

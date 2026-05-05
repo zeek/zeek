@@ -54,6 +54,16 @@ const HasFieldExpr* Expr::AsHasFieldExpr() const {
     return static_cast<const HasFieldExpr*>(this);
 }
 
+CanConvertExpr* Expr::AsCanConvertExpr() {
+    CHECK_TAG(tag, EXPR_CAN_CONVERT, "ExprVal::AsCanConvertExpr", expr_name)
+    return static_cast<CanConvertExpr*>(this);
+}
+
+const CanConvertExpr* Expr::AsCanConvertExpr() const {
+    CHECK_TAG(tag, EXPR_CAN_CONVERT, "ExprVal::AsCanConvertExpr", expr_name)
+    return static_cast<const CanConvertExpr*>(this);
+}
+
 const IsExpr* Expr::AsIsExpr() const {
     CHECK_TAG(tag, EXPR_IS, "ExprVal::AsIsExpr", expr_name)
     return static_cast<const IsExpr*>(this);
@@ -137,6 +147,7 @@ bool Expr::IsReducedConditional(Reducer* c) const {
         case EXPR_GE:
         case EXPR_LT:
         case EXPR_GT:
+        case EXPR_CAN_CONVERT:
         case EXPR_HAS_FIELD: return HasReducedOps(c);
 
         default: return false;
@@ -328,6 +339,7 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
 
             return ThisPtr();
 
+        case EXPR_CAN_CONVERT:
         case EXPR_HAS_FIELD: red_stmt = ReduceToSingletons(c); return ThisPtr();
 
         default: return Reduce(c, red_stmt);
@@ -2553,6 +2565,8 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
 
     return red_stmt;
 }
+
+ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Duplicate(), conversion_type)); }
 
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
 

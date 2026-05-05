@@ -3951,10 +3951,25 @@ void delete_vals(ValPList* vals) {
     }
 }
 
-ValPtr cast_value_to_type(Val* v, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+static bool is_index_vec(const Type* t) {
+    if ( t->Tag() != TYPE_VECTOR )
+        return false;
 
+    auto vt = t->AsVectorType();
+    return vt->Yield()->Tag() == TYPE_COUNT;
+}
+
+ValPtr cast_value_to_type(Val* v, Type* t) {
+    std::string err;
+    auto result = attempt_to_cast_value_to_type(v, t, err);
+
+    if ( ! result && ! err.empty() )
+        emit_builtin_error(err.c_str(), v);
+
+    return result;
+}
+
+ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
     if ( ! v )
         return nullptr;
 
@@ -3962,15 +3977,6 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
     // to the actual type.
     if ( same_type(v->GetType(), t) )
         return {NewRef{}, v};
-
-    if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
-        const auto& dv = v->AsRecordVal()->GetField(0);
-
-        if ( ! dv )
-            return nullptr;
-
-        return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
-    }
 
     // Allow casting between sets and vectors if the yield types are the same.
     if ( v->GetType()->IsSet() && IsVector(t->Tag()) ) {
@@ -3996,7 +4002,8 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
 
         return ret;
     }
-    else if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
+
+    if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
         auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsTableType()};
         auto ret = make_intrusive<TableVal>(ret_type);
 
@@ -4011,7 +4018,157 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
         return ret;
     }
 
-    return nullptr;
+    if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
+        // Special hack for Broker communication.
+        const auto& dv = v->AsRecordVal()->GetField(0);
+
+        if ( ! dv )
+            return nullptr;
+
+        return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
+    }
+
+    // Basic type conversions.
+    auto s_tag = v->GetType()->Tag();
+    auto t_tag = t->Tag();
+    ValPtr result;
+
+    switch ( s_tag ) {
+        case TYPE_STRING: {
+            auto sv = v->AsStringVal();
+
+            switch ( t_tag ) {
+                case TYPE_DOUBLE: result = convert_string_to_double(sv, err); break;
+                case TYPE_TIME: result = convert_string_to_time(sv, err); break;
+                case TYPE_INTERVAL: result = convert_string_to_interval(sv, err); break;
+
+                case TYPE_INT: result = convert_string_to_int(sv, err); break;
+
+                case TYPE_COUNT: result = convert_string_to_count(sv, err); break;
+
+                case TYPE_ADDR: result = convert_string_to_addr(sv, err); break;
+
+                case TYPE_SUBNET: result = convert_string_to_subnet(sv); break;
+
+                case TYPE_PORT: result = convert_string_to_port(sv); break;
+
+                default: break;
+            }
+            break;
+        }
+
+        case TYPE_INT: {
+            auto iv = v->AsInt();
+
+            switch ( t_tag ) {
+                case TYPE_COUNT: result = convert_int_to_count(iv, err); break;
+
+                case TYPE_DOUBLE: result = convert_int_to_double(iv); break;
+
+                case TYPE_INTERVAL: result = cast_value_to_type(convert_int_to_double(iv).get(), t); break;
+
+                case TYPE_TIME: result = cast_value_to_type(convert_int_to_double(iv).get(), t); break;
+
+                default: break;
+            }
+            break;
+        }
+
+        case TYPE_DOUBLE: {
+            auto dv = v->AsDouble();
+
+            switch ( t_tag ) {
+                case TYPE_INT: result = convert_double_to_int(dv); break;
+
+                case TYPE_COUNT: result = convert_double_to_count(dv, err); break;
+
+                case TYPE_TIME: result = convert_double_to_time(dv); break;
+
+                case TYPE_INTERVAL: result = convert_double_to_interval(dv); break;
+
+                default: break;
+            }
+            break;
+        }
+
+        case TYPE_COUNT: {
+            auto cv = v->AsCount();
+
+            switch ( t_tag ) {
+                case TYPE_INT:
+                    if ( cv > INT64_MAX )
+                        err = "overflow converting count to int";
+                    else
+                        result = make_intrusive<IntVal>(zeek_int_t(cv));
+                    break;
+
+                case TYPE_DOUBLE: result = convert_count_to_double(cv); break;
+
+                case TYPE_INTERVAL: result = cast_value_to_type(convert_count_to_double(cv).get(), t); break;
+
+                case TYPE_TIME: result = cast_value_to_type(convert_count_to_double(cv).get(), t); break;
+
+                case TYPE_ADDR: result = convert_count_to_v4_addr(cv, err); break;
+
+                default: break;
+            }
+            break;
+        }
+
+        case TYPE_ENUM:
+            if ( t_tag == TYPE_COUNT )
+                result = convert_enum_to_count(v->AsEnum());
+            else if ( t_tag == TYPE_INT )
+                result = convert_enum_to_int(v->AsEnum());
+            break;
+
+        case TYPE_INTERVAL:
+            if ( t_tag == TYPE_DOUBLE )
+                result = convert_interval_to_double(v->AsInterval());
+            break;
+
+        case TYPE_TIME:
+            if ( t_tag == TYPE_DOUBLE )
+                result = convert_time_to_double(v->AsTime());
+            break;
+
+        case TYPE_ADDR: {
+            auto av = v->AsAddr();
+
+            if ( t_tag == TYPE_SUBNET )
+                result = convert_addr_to_subnet(av);
+            else if ( is_index_vec(t) )
+                result = convert_addr_to_counts(av);
+
+            break;
+        }
+
+        case TYPE_SUBNET: {
+            auto sn = v->AsSubNet();
+
+            if ( t_tag == TYPE_ADDR )
+                result = convert_subnet_to_addr(sn);
+            else if ( t_tag == TYPE_COUNT )
+                result = convert_subnet_to_count(sn);
+
+            break;
+        }
+
+        case TYPE_PORT:
+            if ( t_tag == TYPE_COUNT )
+                result = convert_port_to_count(v->AsPortVal()->Port());
+            break;
+
+        case TYPE_VECTOR:
+            // index_vec to addr
+            if ( is_index_vec(v->GetType().get()) && t_tag == TYPE_ADDR )
+                result = convert_counts_to_addr(v->AsVectorVal(), err);
+            break;
+
+        default: break;
+    }
+
+    return result;
 }
 
 static bool can_cast_set_and_vector(const Type* t1, const Type* t2) {
@@ -4038,10 +4195,59 @@ static bool can_cast_set_and_vector(const Type* t1, const Type* t2) {
     return false;
 }
 
-bool can_cast_value_to_type(const Val* v, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
+static bool can_cast_basic_types(const Type* s, const Type* t) {
+    auto s_tag = s->Tag();
+    auto t_tag = t->Tag();
+    auto it_tag = t->InternalType();
 
+    switch ( s_tag ) {
+        case TYPE_STRING:
+            switch ( t_tag ) {
+                case TYPE_DOUBLE:
+                case TYPE_TIME:
+                case TYPE_INTERVAL:
+                case TYPE_INT:
+                case TYPE_COUNT:
+                case TYPE_ADDR:
+                case TYPE_SUBNET:
+                case TYPE_PORT: return true;
+                default: return false;
+            }
+
+        case TYPE_INT: return t_tag == TYPE_COUNT || it_tag == TYPE_INTERNAL_DOUBLE;
+
+        case TYPE_DOUBLE:
+            switch ( t_tag ) {
+                case TYPE_INT:
+                case TYPE_COUNT:
+                case TYPE_TIME:
+                case TYPE_INTERVAL: return true;
+                default: return false;
+            }
+
+        case TYPE_COUNT: return t_tag == TYPE_INT || it_tag == TYPE_INTERNAL_DOUBLE || t_tag == TYPE_ADDR;
+
+        case TYPE_ENUM: return t_tag == TYPE_COUNT || t_tag == TYPE_INT;
+
+        case TYPE_INTERVAL: return t_tag == TYPE_DOUBLE;
+
+        case TYPE_TIME: return t_tag == TYPE_DOUBLE;
+
+        case TYPE_ADDR: return t_tag == TYPE_SUBNET || is_index_vec(t);
+
+        case TYPE_SUBNET: return t_tag == TYPE_ADDR || t_tag == TYPE_COUNT;
+
+        case TYPE_PORT: return t_tag == TYPE_COUNT;
+
+        case TYPE_VECTOR:
+            // index_vec to addr
+            return is_index_vec(s) && t_tag == TYPE_ADDR;
+
+        default: return false;
+    }
+}
+
+bool can_cast_any_to_type(const Val* v, Type* t) {
     if ( ! v )
         return false;
 
@@ -4050,6 +4256,7 @@ bool can_cast_value_to_type(const Val* v, Type* t) {
     if ( same_type(v->GetType(), t) )
         return true;
 
+    // Allow Broker magic.
     if ( same_type(v->GetType(), Broker::detail::DataVal::ScriptDataType()) ) {
         const auto& dv = v->AsRecordVal()->GetField(0);
 
@@ -4059,30 +4266,29 @@ bool can_cast_value_to_type(const Val* v, Type* t) {
         return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
     }
 
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( can_cast_set_and_vector(v->GetType().get(), t) )
-        return true;
-
     return false;
 }
 
-bool can_cast_value_to_type(const Type* s, Type* t) {
-    // Note: when changing this function, adapt all three of
-    // cast_value_to_type()/can_cast_value_to_type()/can_cast_value_to_type().
-
+bool can_cast_type_to_type(const Type* s, Type* t) {
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
     if ( same_type(s, t) )
+        return true;
+
+    // Allow casting between sets and vectors if the yield types are the same.
+    // This is different than what can_cast_any_to_type() allows.
+    if ( can_cast_set_and_vector(s, t) )
+        return true;
+
+    // Allow basic type conversions. This is different than what
+    // can_cast_any_to_type() allows.
+    if ( can_cast_basic_types(s, t) )
         return true;
 
     if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )
         // As Broker is dynamically typed, we don't know if we will be able
         // to convert the type as intended. We optimistically assume that we
         // will.
-        return true;
-
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( can_cast_set_and_vector(s, t) )
         return true;
 
     return false;

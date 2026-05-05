@@ -171,6 +171,16 @@ static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs) {
             return same_op(f1->GetOp1(), f2->GetOp1(), check_defs);
         }
 
+        case EXPR_CAN_CONVERT: {
+            auto cc1 = e1->AsCanConvertExpr();
+            auto cc2 = e2->AsCanConvertExpr();
+
+            if ( cc1->ConversionType() != cc2->ConversionType() )
+                return false;
+
+            return same_op(cc1->GetOp1(), cc2->GetOp1(), check_defs);
+        }
+
         case EXPR_LIST: {
             auto l1 = e1->AsListExpr()->Exprs();
             auto l2 = e2->AsListExpr()->Exprs();

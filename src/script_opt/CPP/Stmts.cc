@@ -209,7 +209,7 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases) {
 
     Emit("for ( auto CPP__st : CPP__switch_types )");
     StartBlock();
-    Emit("if ( can_cast_value_to_type(CPP__sw_val.get(), CPP__Type__[CPP__st].get()) )");
+    Emit("if ( can_cast_any_to_type(CPP__sw_val.get(), CPP__Type__[CPP__st].get()) )");
     Emit("\tbreak;");
     Emit("++CPP__sw_type_ind;");
     EndBlock();

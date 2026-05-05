@@ -42,6 +42,11 @@ class Vi
 op-types R I
 eval	$1->HasField(RecordField($1, $2))
 
+predicate-op Can-Convert
+class V
+op-types	X
+eval	attempt_to_cast_value_to_type($1.ToVal(Z_TYPE).get(), Z_TYPE2.get()) != nullptr
+
 predicate-op Table-Has-Elements
 class V
 op-types T

@@ -1,9 +1,14 @@
 #! /usr/bin/env bash
 
+set -x
+
+# NOTE: We do not use `nproc` since on some platforms it needs to be explicitly
+# installed while `getconf` is POSIX.
+ZEEK_CI_CPUS=${ZEEK_CI_CPUS:-$(getconf _NPROCESSORS_ONLN)}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 set -e
-set -x
 
 # TODO: Is this necessary anymore?
 if [[ "${ZEEK_CI_RUNNER_OS}" == "macos" ]]; then

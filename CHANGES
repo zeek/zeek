@@ -1,3 +1,7 @@
+9.0.0-dev.112 | 2026-05-06 15:58:42 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.110 | 2026-05-06 15:23:56 -0700
 
   * Require sqlite3 binary for scripts.base.frameworks.storage.sqlite.multi-backend btest (Tim Wojtulewicz)

@@ -1,3 +1,7 @@
+9.0.0-dev.108 | 2026-05-06 13:41:40 -0700
+
+  * Update pe.log baseline for CTU-SME external test (Tim Wojtulewicz)
+
 9.0.0-dev.106 | 2026-05-06 19:32:38 +0200
 
   * init-bare: Fix missing export section for ZAM::Prof (Arne Welzel, Corelight)

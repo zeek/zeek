@@ -1,3 +1,21 @@
+9.0.0-dev.105 | 2026-05-06 19:09:32 +0200
+
+  * renamed a number of functions and other identifiers associatd with ZAM profiling BiFs (Vern Paxson, Corelight)
+
+  * remove printing of memory from ZAM profiling BTest, it's not reliable across OS's (Vern Paxson, Corelight)
+
+  * update ZAM's BiF-tracking (Vern Paxson, Corelight)
+
+  * BTest baseline updates for tests that track distinct BiF source files (Vern Paxson, Corelight)
+
+  * BTest for new ZAM profiling BiFs (Vern Paxson, Corelight)
+
+  * added ZAM profiling BiFs: ZAMProf::{measure_module,get_module_profile,meas_overhead} (Vern Paxson, Corelight)
+
+  * updates ZAM internals to support real-time profiling (Vern Paxson, Corelight)
+
+  * remove an assert() that is incorrect for lambda's with condition variables (Vern Paxson, Corelight)
+
 9.0.0-dev.96 | 2026-05-06 10:05:31 -0700
 
   * Rework naming of option, move default store file location (Tim Wojtulewicz, Corelight)

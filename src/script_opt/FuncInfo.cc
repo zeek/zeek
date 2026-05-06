@@ -16,7 +16,7 @@ namespace zeek::detail {
 
 // BiF Functions that are not listed are assumed to have Unknown side effects.
 // (These are described in comments after the table definition.)  Script
-// functions that are not listed as assumed to not be "special", i.e. known
+// functions that are not listed are assumed to not be "special", i.e. known
 // to the event engine.
 
 // Does not change script-level state (though may change internal state).
@@ -75,10 +75,12 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::Backend::__init", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::__listen_websocket", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"Cluster::__publish_table", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::__subscribe", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::__unsubscribe", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::make_event", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::publish", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"Cluster::set_table_change_infos_forward_topic", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"EventMetadata::current", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"EventMetadata::current_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"EventMetadata::register", ATTR_NO_SCRIPT_SIDE_EFFECTS},
@@ -107,13 +109,13 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Log::__disable_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__enable_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__flush", ATTR_NO_SCRIPT_SIDE_EFFECTS},
-    {"Log::flush_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__get_delay_queue_size", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"Log::__remove_filter", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__remove_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__set_buf", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__set_max_delay_interval", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__set_max_delay_queue_size", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"Log::flush_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Option::any_set_to_any_vec", ATTR_FOLDABLE},
     {"Option::set_change_handler", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::GTPV1::remove_gtpv1_connection", ATTR_NO_SCRIPT_SIDE_EFFECTS},
@@ -189,6 +191,9 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Telemetry::__histogram_observe", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__histogram_sum", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"WebSocket::__configure_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"ZAM::Prof::get_module_profile", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"ZAM::Prof::estimated_profiling_overhead", ATTR_FOLDABLE},
+    {"ZAM::Prof::set_module_profiling", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"__init_primary_bifs", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"__init_secondary_bifs", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"active_file", ATTR_NO_ZEEK_SIDE_EFFECTS},
@@ -560,6 +565,9 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
 //
 // Broker::*
 //	These can manipulate unspecified (at script level) records.
+//
+// Cluster::apply_table_change_infos
+//	Alters internals of the given table.
 //
 // Cluster::publish_hrw
 // Cluster::publish_rr

@@ -522,6 +522,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./types.bif.zeek, <...>/types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./utils, <...>/utils.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./weird, <...>/weird.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./zam-prof.bif.zeek, <...>/zam-prof.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/ascii, <...>/ascii.zeek) -> -1
@@ -845,6 +846,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./types.bif.zeek, <...>/types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./utils, <...>/utils.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./weird, <...>/weird.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./zam-prof.bif.zeek, <...>/zam-prof.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/ascii, <...>/ascii.zeek) -> (-1, <no content>)
@@ -1496,6 +1498,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./types.bif.zeek, <...>/types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./utils, <...>/utils.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./weird, <...>/weird.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./zam-prof.bif.zeek, <...>/zam-prof.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/ascii, <...>/ascii.zeek)
@@ -1819,6 +1822,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./types.bif.zeek, <...>/types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./utils, <...>/utils.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./weird, <...>/weird.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./zam-prof.bif.zeek, <...>/zam-prof.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./zeek.bif.zeek, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./zeekygen.bif.zeek, <...>/zeekygen.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/ascii, <...>/ascii.zeek)
@@ -2482,6 +2486,7 @@
 0.000000 | HookLoadFile  ./utils <...>/utils.zeek
 0.000000 | HookLoadFile  ./video <...>/video.sig
 0.000000 | HookLoadFile  ./weird <...>/weird.zeek
+0.000000 | HookLoadFile  ./zam-prof.bif.zeek <...>/zam-prof.bif.zeek
 0.000000 | HookLoadFile  ./zeek.bif.zeek <...>/zeek.bif.zeek
 0.000000 | HookLoadFile  ./zeekygen.bif.zeek <...>/zeekygen.bif.zeek
 0.000000 | HookLoadFile  .<...>/ascii <...>/ascii.zeek
@@ -2805,6 +2810,7 @@
 0.000000 | HookLoadFileExtended ./utils <...>/utils.zeek
 0.000000 | HookLoadFileExtended ./video <...>/video.sig
 0.000000 | HookLoadFileExtended ./weird <...>/weird.zeek
+0.000000 | HookLoadFileExtended ./zam-prof.bif.zeek <...>/zam-prof.bif.zeek
 0.000000 | HookLoadFileExtended ./zeek.bif.zeek <...>/zeek.bif.zeek
 0.000000 | HookLoadFileExtended ./zeekygen.bif.zeek <...>/zeekygen.bif.zeek
 0.000000 | HookLoadFileExtended .<...>/ascii <...>/ascii.zeek

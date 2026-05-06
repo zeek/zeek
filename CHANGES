@@ -1,3 +1,20 @@
+9.0.0-dev.93 | 2026-05-06 12:17:16 +0100
+
+  * Fix parsing of X509 certificates in RDP (Johanna Amann, Corelight)
+
+    At least in some RDP connections, x509 certificates are encoded with an
+    invalid key type.
+
+    The parsing of this was fixed in
+    9441dc68ec51ef55fac12c5640c1f9abddf65735. This stopped working for
+    OpenSSL 1.1, but instead of fixing it, the test was essentially disabled
+    in 2e0edd741608ba73c5f0e6aca9b2bc4a2277ad17.
+
+    This commit replaces the fix with a more stable fix that should continue
+    working for the forseeable future. It also re-enables the test.
+
+    Fixes GH-5422
+
 9.0.0-dev.90 | 2026-05-05 11:27:27 +0200
 
   * Rename ZeroMQ scripts (Jan Grashoefer, Corelight)

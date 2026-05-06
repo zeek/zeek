@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+ZEEK_CI_CPUS=${ZEEK_CI_CPUS:-$(nproc)}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 . ${SCRIPT_DIR}/common.sh
 

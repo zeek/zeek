@@ -1,3 +1,9 @@
+9.0.0-dev.96 | 2026-05-06 10:05:31 -0700
+
+  * Rework naming of option, move default store file location (Tim Wojtulewicz, Corelight)
+
+  * Add storage-framework options to known-certs and known-hosts (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.93 | 2026-05-06 12:17:16 +0100
 
   * Fix parsing of X509 certificates in RDP (Johanna Amann, Corelight)

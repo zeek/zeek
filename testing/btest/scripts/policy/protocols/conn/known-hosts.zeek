@@ -18,6 +18,34 @@
 # @TEST-EXEC: zeek -b -r $TRACES/wikipedia.pcap %INPUT Known::host_tracking=NO_HOSTS
 # @TEST-EXEC: test '!' -e known_hosts.log
 
+# @TEST-EXEC: zeek -r $TRACES/wikipedia.pcap %INPUT broker-store-config.zeek
+# @TEST-EXEC: mv known_hosts.log knownhosts-broker-store.log
+# @TEST-EXEC: btest-diff knownhosts-broker-store.log
+
+# @TEST-EXEC: zeek -r $TRACES/wikipedia.pcap %INPUT storage-framework-config.zeek
+# @TEST-EXEC: mv known_hosts.log knownhosts-storage-framework.log
+# @TEST-EXEC: btest-diff knownhosts-storage-framework.log
+
+# @TEST-EXEC: cat knownhosts-broker-store.log | $SCRIPTS/diff-remove-timestamps > broker-store.log
+# @TEST-EXEC: cat knownhosts-storage-framework.log | $SCRIPTS/diff-remove-timestamps > storage-framework.log
+# @TEST-EXEC: diff -u broker-store.log storage-framework.log
+
+redef Cluster::default_store_dir = ".";
+
 @load protocols/conn/known-hosts
 
 redef Site::local_nets += {141.142.0.0/16};
+
+# @TEST-START-FILE broker-store-config.zeek
+
+redef Known::use_host_store=T;
+redef Known::enable_hosts_persistence=F;
+
+# @TEST-END-FILE
+
+# @TEST-START-FILE storage-framework-config.zeek
+
+redef Known::use_host_store=F;
+redef Known::enable_hosts_persistence=T;
+
+# @TEST-END-FILE

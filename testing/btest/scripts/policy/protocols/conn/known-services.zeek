@@ -28,8 +28,9 @@
 
 # @TEST-EXEC: cat knownservices-broker-store.log | $SCRIPTS/diff-remove-timestamps > broker-store.log
 # @TEST-EXEC: cat knownservices-storage-framework.log | $SCRIPTS/diff-remove-timestamps > storage-framework.log
-# @TEST-EXEC: diff broker-store.log storage-framework.log > logs-diff.txt
-# @TEST-EXEC: btest-diff logs-diff.txt
+# @TEST-EXEC: diff -u broker-store.log storage-framework.log
+
+redef Cluster::default_store_dir = ".";
 
 @load protocols/conn/known-services
 
@@ -39,20 +40,14 @@ redef Site::local_nets += {172.16.238.0/24};
 
 redef Known::service_tracking=ALL_HOSTS;
 redef Known::use_service_store=T;
-redef Known::use_storage_framework=F;
+redef Known::enable_services_persistence=F;
 
 # @TEST-END-FILE
 
 # @TEST-START-FILE storage-framework-config.zeek
 
-@load policy/frameworks/storage/backend/sqlite
-
 redef Known::service_tracking=ALL_HOSTS;
-redef Known::use_service_store=T;
-redef Known::use_storage_framework=T;
-
-redef Known::service_store_backend_type = Storage::STORAGE_BACKEND_SQLITE;
-redef Known::service_store_backend_options = [ $sqlite = [
-    $database_path="test.sqlite", $table_name=Known::service_store_prefix ]];
+redef Known::use_service_store=F;
+redef Known::enable_services_persistence=T;
 
 # @TEST-END-FILE

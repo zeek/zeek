@@ -1,5 +1,6 @@
 # @TEST-DOC: Opens multiple separate sqlite backends simultaneously to ensure data is written into the correct tables
 #
+# @TEST-REQUIRES: which sqlite3
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: sqlite3 test1.sqlite "select * from testing" > test1-testing.out
 # @TEST-EXEC: sqlite3 test2.sqlite "select * from testing1" > test2-testing1.out

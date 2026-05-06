@@ -240,10 +240,10 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
-fedora43_task:
+fedora44_task:
   container:
-    # Fedora 43 EOL: Around Nov 2026
-    dockerfile: ci/fedora-43/Dockerfile
+    # Fedora 44 EOL: Around Jun 2027
+    dockerfile: ci/fedora-44/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
@@ -251,10 +251,10 @@ fedora43_task:
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
 
-fedora42_task:
+fedora43_task:
   container:
-    # Fedora 42 EOL: Around May 2026
-    dockerfile: ci/fedora-42/Dockerfile
+    # Fedora 43 EOL: Around Nov 2026
+    dockerfile: ci/fedora-43/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE

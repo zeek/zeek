@@ -1,3 +1,7 @@
+8.0.7-5 | 2026-05-06 15:57:54 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.0.7-3 | 2026-05-04 16:26:41 -0700
 
   * Gracefully handle when tables cannot grow anymore (Benjamin Bannier, Corelight)

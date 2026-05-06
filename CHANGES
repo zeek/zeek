@@ -1,3 +1,9 @@
+9.0.0-dev.106 | 2026-05-06 19:32:38 +0200
+
+  * init-bare: Fix missing export section for ZAM::Prof (Arne Welzel, Corelight)
+
+    This caused the documentation build to fail, pushing directly.
+
 9.0.0-dev.105 | 2026-05-06 19:09:32 +0200
 
   * renamed a number of functions and other identifiers associatd with ZAM profiling BiFs (Vern Paxson, Corelight)

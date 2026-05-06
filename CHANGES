@@ -1,3 +1,9 @@
+8.2.0-rc1.12 | 2026-05-06 15:24:36 -0700
+
+  * Require sqlite3 binary for scripts.base.frameworks.storage.sqlite.multi-backend btest (Tim Wojtulewicz)
+
+    (cherry picked from commit 83bad53deb602403fa1476c0c835fb1d347d60a1)
+
 8.2.0-rc1.11 | 2026-05-05 15:32:01 -0700
 
   * Avoid 'device or resource busy' errors on Windows with .stdout (Maor Hamami)

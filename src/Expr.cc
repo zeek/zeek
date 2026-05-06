@@ -1745,13 +1745,7 @@ MaskExpr::MaskExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MASK, std
 }
 
 ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const {
-    uint32_t mask;
-
-    if ( v2->GetType()->Tag() == TYPE_COUNT )
-        mask = static_cast<uint32_t>(v2->InternalUnsigned());
-    else
-        mask = static_cast<uint32_t>(v2->InternalInt());
-
+    auto mask = GetMask(v2);
     auto& a = v1->AsAddr();
 
     if ( a.GetFamily() == IPv4 ) {
@@ -1764,6 +1758,13 @@ ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const {
     }
 
     return make_intrusive<SubNetVal>(a, mask);
+}
+
+uint32_t MaskExpr::GetMask(const Val* v) const {
+    if ( v->GetType()->Tag() == TYPE_COUNT )
+        return static_cast<uint32_t>(v->InternalUnsigned());
+    else
+        return static_cast<uint32_t>(v->InternalInt());
 }
 
 ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MOD, std::move(arg_op1), std::move(arg_op2)) {

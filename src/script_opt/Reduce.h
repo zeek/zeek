@@ -128,16 +128,17 @@ public:
         replaced_stmts.clear();
     }
 
-    // Given the LHS and RHS of an assignment, returns true if the RHS is
+    // Given the LHS and RHS of an assignment, checks whether the RHS is
     // a common subexpression (meaning that the current assignment statement
-    // should be deleted).  In that case, has the side effect of associating
-    // an alias for the LHS with the temporary variable that holds the
-    // equivalent RHS; or if the LHS is a local that has no other assignments,
-    // and the same for the RHS.
+    // is unneeded).  In that case, associates an alias for the LHS with
+    // the temporary variable that holds the equivalent RHS, or a constant
+    // if appropriate.
+    //
+    // This needs to be called to ensure that later instances of the LHS
+    // are replaced with the RHS (if safe to do, per IsSafeSubstitution()).
     //
     // Assumes reduction (including alias propagation) has already been applied.
-
-    bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
+    void CheckForCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
     // Returns a constant representing folding of the given expression
     // (which must have constant operands).
@@ -151,16 +152,18 @@ public:
     // otherwise, nil.
     StmtPtr MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt);
 
-    // Update expressions with optimized versions.  They are distinct
-    // because the first two (meant for calls in a Stmt reduction
-    // context) will also Reduce the expression, whereas the last
-    // one (meant for calls in an Expr context) does not, to avoid
-    // circularity.
+    // Update expressions with optimized versions.  OptExpr() (meant for
+    // calls in a Stmt reduction context) will also Reduce the expression,
+    // whereas UpdateExpr() (meant for calls in an Expr context) does not,
+    // to avoid circularity.
     ExprPtr OptExpr(Expr* e);
     ExprPtr OptExpr(const ExprPtr& e) { return OptExpr(e.get()); }
 
-    // This one for expressions appearing in an Expr context.
-    ExprPtr UpdateExpr(ExprPtr e);
+    // This one is for expressions appearing in an Expr context. The second
+    // argument provides, for subexpressions, the expression's parent, or
+    // is nil otherwise. This argument is a bare pointer because for callers
+    // it's pretty much always "this".
+    ExprPtr UpdateExpr(ExprPtr e, const Expr* parent);
 
 protected:
     // Track that the variable "var" will be a replacement for
@@ -178,6 +181,11 @@ protected:
     // whether we can skip that assignment because we already have the
     // exact same value available in a previously assigned temporary.
     IDPtr FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr<const TempVar>& lhs_tmp);
+
+    // Returns an update for the given expression (based on aliasing or
+    // constant propagation). If no update is available, just returns the
+    // expression.
+    ExprPtr GetExprUpdate(ExprPtr e);
 
     // Tests whether an expression computed at e1 (and assigned to "id")
     // remains valid for substitution at e2.

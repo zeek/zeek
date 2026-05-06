@@ -7,6 +7,8 @@
 #include "zeek/Desc.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
+#include "zeek/IPAddr.h"
+#include "zeek/Overflow.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -479,7 +481,7 @@ bool UnaryExpr::HasReducedOps(Reducer* c) const { return op->IsSingleton(c); }
 
 ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
-        op = c->UpdateExpr(op);
+        op = c->UpdateExpr(op, this);
 
     red_stmt = nullptr;
 
@@ -514,8 +516,8 @@ bool BinaryExpr::HasReducedOps(Reducer* c) const { return op1->IsSingleton(c) &&
 
 ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     red_stmt = nullptr;
@@ -548,6 +550,20 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return AssignToTemporary(c, red_stmt);
 }
 
+bool BinaryExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    // It's always safe if we still have a non-constant operand.
+    // If both operands are constant than we use our own version
+    // of IsSafeSubstitution to finalize.
+    if ( e == op1 )
+        return op2->IsConst() ? IsSafeSubstitution(v, op2->AsConstExpr()->ValuePtr()) : true;
+    if ( e == op2 )
+        return op1->IsConst() ? IsSafeSubstitution(op1->AsConstExpr()->ValuePtr(), v) : true;
+    // Weird - doesn't match either of our operands. In principle this
+    // might happen if we're substituting after doing some reduce logic;
+    // decline the substitution to be safe.
+    return false;
+}
+
 ExprPtr CloneExpr::Duplicate() {
     // oh the irony
     return SetSucc(new CloneExpr(op->Duplicate()));
@@ -576,7 +592,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     if ( target->Tag() == EXPR_NAME && IsIntegral(target->GetType()->Tag()) ) {
         if ( c->Optimizing() )
-            op = c->UpdateExpr(op);
+            op = c->UpdateExpr(op, this);
         else
             op = op->Reduce(c, red_stmt);
 
@@ -748,7 +764,7 @@ ExprPtr AggrAddDelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // if ( type )
     //     return UnaryExpr::Reduce(c, red_stmt);
     if ( c->Optimizing() )
-        op = c->UpdateExpr(op);
+        op = c->UpdateExpr(op, this);
 
     red_stmt = op->ReduceToSingletons(c);
     return ThisPtr();
@@ -782,7 +798,7 @@ bool AddToExpr::IsReduced(Reducer* c) const {
 
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
-        op2 = c->UpdateExpr(op2);
+        op2 = c->UpdateExpr(op2, this);
 
     auto tag = op1->GetType()->Tag();
 
@@ -855,8 +871,8 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     if ( c->Optimizing() ) { // Allow for alias expansion.
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     if ( type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE && op1->Tag() == EXPR_NAME &&
@@ -887,7 +903,7 @@ bool RemoveFromExpr::IsReduced(Reducer* c) const {
 
 ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
-        op2 = c->UpdateExpr(op2);
+        op2 = c->UpdateExpr(op2, this);
 
     if ( op1->GetType()->Tag() == TYPE_TABLE ) {
         StmtPtr red_stmt1;
@@ -958,10 +974,16 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
+bool DivideExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
+
 ExprPtr MaskExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new MaskExpr(op1_d, op2_d));
+}
+
+bool MaskExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
+    return GetMask(v2.get()) <= (v1->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 }
 
 ExprPtr ModExpr::Duplicate() {
@@ -969,6 +991,8 @@ ExprPtr ModExpr::Duplicate() {
     auto op2_d = op2->Duplicate();
     return SetSucc(new ModExpr(op1_d, op2_d));
 }
+
+bool ModExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
 
 // Helper functions used by BoolExpr.
 
@@ -1176,6 +1200,13 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
+bool BitExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
+    // The only such operation that can potentially have problems is
+    // left-shift. Rather than analyzing whether this particular instance
+    // is okay, we assume these are rare and just go by the tag.
+    return tag != EXPR_LSHIFT;
+}
+
 bool CmpExpr::WillTransform(Reducer* c) const {
     if ( IsHasElementsTest() )
         return true;
@@ -1348,9 +1379,9 @@ bool CondExpr::WillTransform(Reducer* c) const { return ! HasReducedOps(c); }
 
 ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
-        op3 = c->UpdateExpr(op3);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
+        op3 = c->UpdateExpr(op3, this);
     }
 
     while ( op1->Tag() == EXPR_NOT ) {
@@ -1592,7 +1623,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         // Don't update the LHS, it's already in reduced form
         // and it doesn't make sense to expand aliases or such.
         auto orig_op2 = op2;
-        op2 = c->UpdateExpr(op2);
+        op2 = c->UpdateExpr(op2, this);
 
         if ( op2 != orig_op2 && op2->Tag() == EXPR_CONST && op1->Tag() == EXPR_REF ) {
             auto lhs = op1->GetOp1();
@@ -1878,7 +1909,7 @@ StmtPtr RecordConstructorExpr::ReduceToSingletons(Reducer* c) {
         auto fa_i_rhs = e_i->GetOp1();
 
         if ( c->Optimizing() ) {
-            fa_i->SetOp1(c->UpdateExpr(fa_i_rhs));
+            fa_i->SetOp1(c->UpdateExpr(fa_i_rhs, this));
             continue;
         }
 
@@ -1959,8 +1990,8 @@ StmtPtr TableConstructorExpr::ReduceToSingletons(Reducer* c) {
             auto op2 = a->GetOp2();
 
             if ( c->Optimizing() ) {
-                a->SetOp1(c->UpdateExpr(op1));
-                a->SetOp2(c->UpdateExpr(op2));
+                a->SetOp1(c->UpdateExpr(op1, this));
+                a->SetOp2(c->UpdateExpr(op2, this));
                 continue;
             }
 
@@ -2029,7 +2060,7 @@ ExprPtr FieldAssignExpr::Duplicate() {
 
 ExprPtr FieldAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op = c->UpdateExpr(op);
+        op = c->UpdateExpr(op, this);
         return ThisPtr();
     }
 
@@ -2068,7 +2099,7 @@ bool ArithCoerceExpr::WillTransform(Reducer* c) const {
 
 ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
-        op = c->UpdateExpr(op);
+        op = c->UpdateExpr(op, this);
 
     red_stmt = nullptr;
 
@@ -2103,6 +2134,30 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return op;
 
     return AssignToTemporary(c, red_stmt);
+}
+
+bool ArithCoerceExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    // We check for the issues assessed by check_and_promote() that are
+    // not due to type clashes.
+    const auto& vt = v->GetType();
+    TypeTag v_tag = vt->Tag();
+    TypeTag t_tag = type->Tag();
+
+    if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) && max_type(t_tag, v_tag) != t_tag )
+        return false;
+
+    InternalTypeTag it = type->InternalType();
+    InternalTypeTag vit = vt->InternalType();
+
+    if ( it == TYPE_INTERNAL_INT && (vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE) &&
+         detail::would_overflow(vt.get(), type.get(), v.get()) )
+        return false;
+
+    if ( it == TYPE_INTERNAL_UNSIGNED && (vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) &&
+         detail::would_overflow(vt.get(), type.get(), v.get()) )
+        return false;
+
+    return true;
 }
 
 ExprPtr RecordCoerceExpr::Duplicate() {
@@ -2201,8 +2256,8 @@ bool ScheduleExpr::HasReducedOps(Reducer* c) const {
 
 ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        when = c->UpdateExpr(when);
-        auto e = c->UpdateExpr(event);
+        when = c->UpdateExpr(when, this);
+        auto e = c->UpdateExpr(event, this);
         event = e->AsEventExprPtr();
     }
 
@@ -2291,8 +2346,8 @@ bool CallExpr::HasReducedOps(Reducer* c) const {
 
 ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        func = c->UpdateExpr(func);
-        auto e = c->UpdateExpr(args);
+        func = c->UpdateExpr(func, this);
+        auto e = c->UpdateExpr(args, this);
         args = e->AsListExprPtr();
     }
 
@@ -2462,7 +2517,7 @@ bool EventExpr::IsReduced(Reducer* c) const { return Args()->IsReduced(c); }
 
 ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        auto e = c->UpdateExpr(args);
+        auto e = c->UpdateExpr(args, this);
         auto args = e->AsListExprPtr();
         return ThisPtr();
     }
@@ -2525,7 +2580,7 @@ ExprPtr ListExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     loop_over_list(exprs, i) {
         if ( c->Optimizing() ) {
-            auto e_i = c->UpdateExpr(exprs[i]->ThisPtr());
+            auto e_i = c->UpdateExpr(exprs[i]->ThisPtr(), this);
             auto old = exprs.replace(i, e_i.release());
             Unref(old);
             continue;
@@ -2569,6 +2624,10 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
 ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Duplicate(), conversion_type)); }
 
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
+
+bool CastExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
+    return attempt_to_cast_value_to_type(v.get(), type.get()) != nullptr;
+}
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 
@@ -2744,8 +2803,8 @@ bool AppendToExpr::IsReduced(Reducer* c) const {
 
 ExprPtr AppendToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     return ThisPtr();
@@ -2783,9 +2842,9 @@ bool IndexAssignExpr::HasReducedOps(Reducer* c) const { return true; }
 
 ExprPtr IndexAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
-        op3 = c->UpdateExpr(op3);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
+        op3 = c->UpdateExpr(op3, this);
     }
 
     return ThisPtr();
@@ -2885,8 +2944,8 @@ bool FieldLHSAssignExpr::HasReducedOps(Reducer* c) const { return true; }
 
 ExprPtr FieldLHSAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     return ThisPtr();
@@ -3008,8 +3067,8 @@ void RecordFieldUpdatesExpr::ExprDescribe(ODesc* d) const {
 
 ExprPtr RecordFieldUpdatesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     red_stmt = nullptr;
@@ -3119,8 +3178,8 @@ bool ConstructFromRecordExpr::HasReducedOps(Reducer* c) const { return IsReduced
 
 ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
-        op1 = c->UpdateExpr(op1);
-        op2 = c->UpdateExpr(op2);
+        op1 = c->UpdateExpr(op1, this);
+        op2 = c->UpdateExpr(op2, this);
     }
 
     red_stmt = nullptr;
@@ -3172,7 +3231,7 @@ bool CoerceToAnyExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
 
 ExprPtr CoerceToAnyExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
-        op = c->UpdateExpr(op);
+        op = c->UpdateExpr(op, this);
 
     red_stmt = nullptr;
 
@@ -3340,9 +3399,9 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto orig_arg2 = arg2;
 
     if ( c->Optimizing() ) {
-        arg1 = c->UpdateExpr(arg1);
+        arg1 = c->UpdateExpr(arg1, this);
         if ( arg2 )
-            arg2 = c->UpdateExpr(arg2);
+            arg2 = c->UpdateExpr(arg2, this);
     }
     else {
         arg1 = arg1->Reduce(c, red_stmt);

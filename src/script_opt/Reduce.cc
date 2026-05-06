@@ -558,9 +558,16 @@ void Reducer::CheckIDs(const ExprPtr& e, std::vector<IDPtr>& ids) const {
         ids.push_back(e->AsNameExpr()->IdPtr());
 }
 
-bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
+void Reducer::CheckForCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
     const auto& lhs_id = lhs->IdPtr();
-    auto lhs_tmp = FindTemporary(lhs_id); // nil if LHS not a temporary
+    if ( ! IsTemporary(lhs_id) || IsParamTemp(lhs_id) )
+        return;
+
+    auto lhs_tmp = FindTemporary(lhs_id);
+    if ( lhs_tmp->Const() || lhs_tmp->Alias() )
+        // We've already identified it as a CSE.
+        return;
+
     auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
     ExprPtr new_rhs;
@@ -569,30 +576,26 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
         rhs = new_rhs.get();
     }
 
-    if ( lhs_tmp ) {
-        if ( rhs->Tag() == EXPR_CONST ) { // mark temporary as just being a constant
-            lhs_tmp->SetConst(rhs->AsConstExpr());
-            return true;
-        }
-
-        if ( rhs->Tag() == EXPR_NAME ) {
-            const auto& rhs_id = rhs->AsNameExpr()->IdPtr();
-            auto rhs_tmp_var = FindTemporary(rhs_id);
-
-            if ( rhs_tmp_var ) {
-                if ( rhs_tmp_var->Const() )
-                    // temporary can be replaced with constant
-                    lhs_tmp->SetConst(rhs_tmp_var->Const());
-                else
-                    lhs_tmp->SetAlias(rhs_id);
-                return true;
-            }
-        }
-
-        expr_temps.emplace_back(lhs_tmp);
+    if ( rhs->Tag() == EXPR_CONST ) { // mark temporary as just being a constant
+        lhs_tmp->SetConst(rhs->AsConstExpr());
+        return;
     }
 
-    return false;
+    if ( rhs->Tag() == EXPR_NAME ) {
+        const auto& rhs_id = rhs->AsNameExpr()->IdPtr();
+        auto rhs_tmp_var = FindTemporary(rhs_id);
+
+        if ( rhs_tmp_var ) {
+            if ( rhs_tmp_var->Const() )
+                // temporary can be replaced with constant
+                lhs_tmp->SetConst(rhs_tmp_var->Const());
+            else
+                lhs_tmp->SetAlias(rhs_id);
+            return;
+        }
+    }
+
+    expr_temps.emplace_back(lhs_tmp);
 }
 
 const ConstExpr* Reducer::CheckForConst(const IDPtr& id, int stmt_num) const {
@@ -659,12 +662,12 @@ ExprPtr Reducer::OptExpr(Expr* e) {
         reporter->InternalError("Generating new statements while optimizing");
 
     if ( opt_e->Tag() == EXPR_NAME )
-        return UpdateExpr(opt_e);
+        return UpdateExpr(opt_e, nullptr);
 
     return opt_e;
 }
 
-ExprPtr Reducer::UpdateExpr(ExprPtr e) {
+ExprPtr Reducer::GetExprUpdate(ExprPtr e) {
     if ( e->Tag() != EXPR_NAME )
         return OptExpr(e);
 
@@ -716,6 +719,13 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
     auto c = rhs->AsConstExpr();
     return with_location_of(make_intrusive<ConstExpr>(c->ValuePtr()), e);
+}
+
+ExprPtr Reducer::UpdateExpr(ExprPtr e, const Expr* parent) {
+    auto update = GetExprUpdate(e);
+    if ( parent && update->Tag() == EXPR_CONST && ! parent->IsSafeSubstitution(e, update->AsConstExpr()->ValuePtr()) )
+        return e;
+    return update;
 }
 
 StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt) {

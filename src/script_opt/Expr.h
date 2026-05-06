@@ -68,6 +68,12 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
+    // The BinaryExpr version of IsSafeSubstitution() will return false for
+    // these objects when the passed `e` is not one of op1/op2 (in particular,
+    // when it is our op3). So we need to override that. Given there's no
+    // folding possible for this nodes, substitutions are always safe.
+    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override { return true; }
+
     ExprPtr GetOp3() const final { return op3; }
     void SetOp3(ExprPtr _op) final { op3 = std::move(_op); }
 

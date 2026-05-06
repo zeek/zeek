@@ -994,11 +994,10 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
             }
         }
 
-        if ( c->IsTemporary(var->IdPtr()) && ! c->IsParamTemp(var->IdPtr()) && c->IsCSE(a, var, rhs.get()) ) {
-            // printf("discarding %s as unnecessary\n", var->Id()->Name());
-            // Skip this now unnecessary statement.
-            return true;
-        }
+        // The following enables constant propagation for temporaries.
+        // The assignment itself will be trimmed by UseDefs::RemoveUnused()
+        // if we were able to replace all instances of the temporary.
+        c->CheckForCSE(a, var, rhs.get());
     }
 
     if ( stmt->Tag() == STMT_LIST ) { // inline the list

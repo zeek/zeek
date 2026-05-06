@@ -1,10 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// When using OpenSSL 3, we use deprecated APIs for MD5, SHA1 and SHA256. The reason is that, as of
-// OpenSSL 3.0, there is no API anymore that lets you store the internal state of hashing functions.
-// For more information, see https://github.com/zeek/zeek/issues/1379 and
-// https://github.com/openssl/openssl/issues/14222 Since I don't feel like getting warnings every
-// time we compile this file - let's silence them.
+// We use deprecated OpenSSL APIs for MD5, SHA1 and SHA256 because there is no API that lets you
+// store the internal state of hashing functions. For more information, see
+// https://github.com/zeek/zeek/issues/1379 and https://github.com/openssl/openssl/issues/14222
 
 #define OPENSSL_SUPPRESS_DEPRECATED
 
@@ -12,7 +10,6 @@
 
 #include <broker/data.hh>
 #include <broker/error.hh>
-#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <paraglob/exceptions.h>
@@ -28,9 +25,6 @@
 #include "zeek/probabilistic/BloomFilter.h"
 #include "zeek/probabilistic/CardinalityCounter.h"
 
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
-#include <openssl/md5.h>
-#endif
 
 namespace zeek {
 
@@ -228,196 +222,6 @@ constexpr size_t SHA384VAL_STATE_SIZE = sizeof(SHA512_CTX);
 
 constexpr size_t SHA512VAL_STATE_SIZE = sizeof(SHA512_CTX);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
-
-// -- MD5
-
-auto* to_native_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(MD5Val::StatePtr& ptr) { ptr = reinterpret_cast<MD5Val::StatePtr>(detail::hash_init(detail::Hash_MD5)); }
-
-void do_clone(MD5Val::StatePtr out, MD5Val::StatePtr in) { hash_copy(to_digest_ptr(out), to_digest_ptr(in)); }
-
-void do_feed(MD5Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(MD5Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(MD5Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(MD5_CTX)};
-}
-
-void do_unserialize(MD5Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(MD5Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-// -- SHA1
-
-auto* to_native_ptr(SHA1Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(SHA1Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(SHA1Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA1Val::StatePtr>(detail::hash_init(detail::Hash_SHA1));
-}
-
-void do_clone(SHA1Val::StatePtr out, SHA1Val::StatePtr in) { detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in)); }
-
-void do_feed(SHA1Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(SHA1Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(SHA1Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<SHA_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(SHA_CTX)};
-}
-
-void do_unserialize(SHA1Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<SHA_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(SHA1Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-// -- SHA224
-
-auto* to_native_ptr(SHA224Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(SHA224Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(SHA224Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA224Val::StatePtr>(detail::hash_init(detail::Hash_SHA224));
-}
-
-void do_clone(SHA224Val::StatePtr out, SHA224Val::StatePtr in) {
-    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
-}
-
-void do_feed(SHA224Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(SHA224Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(SHA224Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(SHA256_CTX)};
-}
-
-void do_unserialize(SHA224Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(SHA224Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-// -- SHA256
-
-auto* to_native_ptr(SHA256Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(SHA256Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(SHA256Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA256Val::StatePtr>(detail::hash_init(detail::Hash_SHA256));
-}
-
-void do_clone(SHA256Val::StatePtr out, SHA256Val::StatePtr in) {
-    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
-}
-
-void do_feed(SHA256Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(SHA256Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(SHA256Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(SHA256_CTX)};
-}
-
-void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(SHA256Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-// -- SHA384
-
-auto* to_native_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(SHA384Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(SHA384Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA384Val::StatePtr>(detail::hash_init(detail::Hash_SHA384));
-}
-
-void do_clone(SHA384Val::StatePtr out, SHA384Val::StatePtr in) {
-    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
-}
-
-void do_feed(SHA384Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(SHA384Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(SHA384Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(SHA512_CTX)};
-}
-
-void do_unserialize(SHA384Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(SHA384Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-// -- SHA512
-
-auto* to_native_ptr(SHA512Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
-
-auto* to_digest_ptr(SHA512Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
-
-void do_init(SHA512Val::StatePtr& ptr) {
-    ptr = reinterpret_cast<SHA512Val::StatePtr>(detail::hash_init(detail::Hash_SHA512));
-}
-
-void do_clone(SHA512Val::StatePtr out, SHA512Val::StatePtr in) {
-    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
-}
-
-void do_feed(SHA512Val::StatePtr ptr, const void* data, size_t size) {
-    detail::hash_update(to_digest_ptr(ptr), data, size);
-}
-
-void do_get(SHA512Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
-
-std::string do_serialize(SHA512Val::StatePtr ptr) {
-    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    return {reinterpret_cast<const char*>(md), sizeof(SHA512_CTX)};
-}
-
-void do_unserialize(SHA512Val::StatePtr ptr, const char* bytes, size_t len) {
-    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
-    memcpy(md, bytes, len);
-}
-
-void do_destroy(SHA512Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
-
-#else
-
 // -- MD5
 
 auto* to_native_ptr(MD5Val::StatePtr ptr) { return reinterpret_cast<MD5_CTX*>(ptr); }
@@ -549,8 +353,6 @@ std::string do_serialize(SHA512Val::StatePtr ptr) { return {reinterpret_cast<con
 void do_unserialize(SHA512Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(SHA512Val::StatePtr ptr) { delete to_native_ptr(ptr); }
-
-#endif
 
 } // namespace
 

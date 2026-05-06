@@ -882,7 +882,7 @@ find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
 find_package(FLEX REQUIRED)
 find_package(BISON 2.5 REQUIRED)
 find_package(PCAP REQUIRED)
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 3.0 REQUIRED)
 find_package(ZLIB REQUIRED)
 
 if (NOT BINARY_PACKAGING_MODE)
@@ -1235,13 +1235,6 @@ include(FindKqueue)
 include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
 include_directories(BEFORE "auxil/expected-lite/include")
-
-if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
-    set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
-endif ()
-if ((OPENSSL_VERSION VERSION_EQUAL "3.0.0") OR (OPENSSL_VERSION VERSION_GREATER "3.0.0"))
-    set(ZEEK_HAVE_OPENSSL_3_0 true CACHE INTERNAL "" FORCE)
-endif ()
 
 # Keep track of OpenSSL version to prevent allow checking if plugins use the same version
 # when compiling

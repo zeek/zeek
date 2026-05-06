@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <openssl/asn1.h>
 #include <openssl/opensslv.h>
 #include <openssl/x509.h>
@@ -26,12 +28,16 @@ class File;
 
 namespace detail {
 
+static_assert(ZEEK_OPENSSL_VERSION_MAJOR == OPENSSL_VERSION_MAJOR,
+              "OpenSSL major version mismatch: Zeek was configured with a different "
+              "OpenSSL major version than the headers being compiled against.");
+
 // X509_get_ext(), X509_EXTENSION_get_object() and related functions return const
 // pointers in OpenSSL 4.0+, but non-const in earlier versions. This is awkward, as
 // we have the signatures in some functions. We use type aliases in these cases now,
 // and adjust them to be the same as the OpenSSL API. Not pretty, but I don't have a
 // better idea.
-#if OPENSSL_VERSION_NUMBER >= 0x40000000L
+#if ZEEK_OPENSSL_VERSION_MAJOR >= 4
 using openssl_x509_ext_t = const X509_EXTENSION;
 using openssl_asn1_obj_t = const ASN1_OBJECT;
 #else

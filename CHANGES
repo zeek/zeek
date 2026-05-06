@@ -1,3 +1,7 @@
+9.0.0-dev.110 | 2026-05-06 15:23:56 -0700
+
+  * Require sqlite3 binary for scripts.base.frameworks.storage.sqlite.multi-backend btest (Tim Wojtulewicz)
+
 9.0.0-dev.108 | 2026-05-06 13:41:40 -0700
 
   * Update pe.log baseline for CTU-SME external test (Tim Wojtulewicz)

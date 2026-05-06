@@ -533,6 +533,7 @@
    policy/frameworks/cluster/backend/broker/backpressure.zeek </scripts/policy/frameworks/cluster/backend/broker/backpressure.zeek>
    policy/frameworks/cluster/backend/broker/telemetry.zeek </scripts/policy/frameworks/cluster/backend/broker/telemetry.zeek>
    policy/frameworks/cluster/backend/zeromq/__load__.zeek </scripts/policy/frameworks/cluster/backend/zeromq/__load__.zeek>
+   policy/frameworks/cluster/backend/zeromq/options.zeek </scripts/policy/frameworks/cluster/backend/zeromq/options.zeek>
    policy/frameworks/cluster/backend/zeromq/main.zeek </scripts/policy/frameworks/cluster/backend/zeromq/main.zeek>
    policy/frameworks/cluster/backend/zeromq/connect.zeek </scripts/policy/frameworks/cluster/backend/zeromq/connect.zeek>
    policy/frameworks/cluster/experimental.zeek </scripts/policy/frameworks/cluster/experimental.zeek>

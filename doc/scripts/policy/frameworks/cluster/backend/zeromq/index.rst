@@ -7,7 +7,7 @@ Package: policy/frameworks/cluster/backend/zeromq
 :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/__load__.zeek`
 
 
-:doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+:doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
    ZeroMQ cluster backend support.
 
@@ -131,6 +131,10 @@ Package: policy/frameworks/cluster/backend/zeromq
    only hosts the central XPUB/XSUB sockets, but also connects to them.
    It's not clear if anything more is really useful. Advanced authentication or
    authorization concepts should probably be added to the WebSocket API instead.
+
+:doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+
+   ZeroMQ cluster logic
 
 :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/connect.zeek`
 

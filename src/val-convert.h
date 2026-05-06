@@ -5,7 +5,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Val.h"
 
-namespace zeek {
+namespace zeek::detail {
 
 // Conversion helper functions used by both BiFs and cast_value_to_type().
 // Functions with an err parameter will set it to a non-empty error message
@@ -47,4 +47,4 @@ extern ValPtr convert_port_to_count(uint32_t port);
 
 extern ValPtr convert_counts_to_addr(const VectorVal* vv, std::string& err);
 
-} // namespace zeek
+} // namespace zeek::detail

@@ -3108,7 +3108,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 ## .. zeek:see:: counts_to_addr
 function addr_to_counts%(a: addr%): index_vec
 	%{
-	return convert_addr_to_counts(a->AsAddr());
+	return detail::convert_addr_to_counts(a->AsAddr());
 	%}
 
 ## Converts an :zeek:type:`index_vec` to an :zeek:type:`addr`.
@@ -3123,7 +3123,7 @@ function counts_to_addr%(v: index_vec%): addr
 	%{
 	auto vv = v->As<zeek::VectorVal*>();
 	std::string err;
-	auto result = convert_counts_to_addr(vv, err);
+	auto result = detail::convert_counts_to_addr(vv, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3147,7 +3147,7 @@ function enum_to_int%(e: any%): int
 		return zeek::val_mgr->Int(-1);
 		}
 
-	return convert_enum_to_int(e->AsEnum());
+	return detail::convert_enum_to_int(e->AsEnum());
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`int`. For values where
@@ -3163,7 +3163,7 @@ function enum_to_int%(e: any%): int
 function to_int%(str: string, base: count &default=10%): int
 	%{
 	std::string err;
-	auto result = convert_string_to_int(str, err, base);
+	auto result = detail::convert_string_to_int(str, err, base);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3181,7 +3181,7 @@ function to_int%(str: string, base: count &default=10%): int
 function int_to_count%(n: int%): count
 	%{
 	std::string err;
-	auto result = convert_int_to_count(n, err);
+	auto result = detail::convert_int_to_count(n, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3200,7 +3200,7 @@ function int_to_count%(n: int%): count
 ## .. zeek:see:: double_to_time
 function double_to_int%(d: double%): int
 	%{
-	return convert_double_to_int(d);
+	return detail::convert_double_to_int(d);
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -3213,7 +3213,7 @@ function double_to_int%(d: double%): int
 function double_to_count%(d: double%): count
 	%{
 	std::string err;
-	auto result = convert_double_to_count(d, err);
+	auto result = detail::convert_double_to_count(d, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3236,7 +3236,7 @@ function double_to_count%(d: double%): count
 function to_count%(str: string, base: count &default=10%): count
 	%{
 	std::string err;
-	auto result = convert_string_to_count(str, err, base);
+	auto result = detail::convert_string_to_count(str, err, base);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3254,7 +3254,7 @@ function to_count%(str: string, base: count &default=10%): count
 ## .. zeek:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
-	return convert_interval_to_double(i);
+	return detail::convert_interval_to_double(i);
 	%}
 
 ## Converts a :zeek:type:`count` to a :zeek:type:`double`.
@@ -3266,7 +3266,7 @@ function interval_to_double%(i: interval%): double
 ## .. zeek:see:: int_to_double double_to_count
 function count_to_double%(c: count%): double
 	%{
-	return convert_count_to_double(c);
+	return detail::convert_count_to_double(c);
 	%}
 
 ## Converts an :zeek:type:`int` to a :zeek:type:`double`.
@@ -3278,7 +3278,7 @@ function count_to_double%(c: count%): double
 ## .. zeek:see:: count_to_double double_to_count
 function int_to_double%(i: int%): double
 	%{
-	return convert_int_to_double(i);
+	return detail::convert_int_to_double(i);
 	%}
 
 ## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
@@ -3290,7 +3290,7 @@ function int_to_double%(i: int%): double
 ## .. zeek:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
-	return convert_time_to_double(t);
+	return detail::convert_time_to_double(t);
 	%}
 
 ## Converts a :zeek:type:`double` value to a :zeek:type:`time`.
@@ -3302,7 +3302,7 @@ function time_to_double%(t: time%): double
 ## .. zeek:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
-	return convert_double_to_time(d);
+	return detail::convert_double_to_time(d);
 	%}
 
 ## Converts a :zeek:type:`double` to an :zeek:type:`interval`.
@@ -3314,7 +3314,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return convert_double_to_interval(d);
+	return detail::convert_double_to_interval(d);
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -3326,7 +3326,7 @@ function double_to_interval%(d: double%): interval
 ## .. zeek:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
-	return convert_port_to_count(p->Port());
+	return detail::convert_port_to_count(p->Port());
 	%}
 
 ## Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
@@ -3355,7 +3355,7 @@ function count_to_port%(num: count, proto: transport_proto%): port
 function to_addr%(ip: string%): addr
 	%{
 	std::string err;
-	auto result = convert_string_to_addr(ip, err);
+	auto result = detail::convert_string_to_addr(ip, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), ip);
@@ -3415,7 +3415,7 @@ function to_subnet%(sn: string%): subnet
 ## .. zeek:see:: to_subnet
 function addr_to_subnet%(a: addr%): subnet
 	%{
-	return convert_addr_to_subnet(a->AsAddr());
+	return detail::convert_addr_to_subnet(a->AsAddr());
 	%}
 
 ## Converts a :zeek:type:`subnet` to an :zeek:type:`addr` by
@@ -3428,7 +3428,7 @@ function addr_to_subnet%(a: addr%): subnet
 ## .. zeek:see:: to_subnet
 function subnet_to_addr%(sn: subnet%): addr
 	%{
-	return convert_subnet_to_addr(sn->AsSubNet());
+	return detail::convert_subnet_to_addr(sn->AsSubNet());
 	%}
 
 ## Returns the width of a :zeek:type:`subnet`.
@@ -3453,7 +3453,7 @@ function subnet_width%(sn: subnet%): count
 function to_double%(str: string%): double
 	%{
 	std::string err;
-	auto result = convert_string_to_double(str, err);
+	auto result = detail::convert_string_to_double(str, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
@@ -3472,7 +3472,7 @@ function to_double%(str: string%): double
 function count_to_v4_addr%(ip: count%): addr
 	%{
 	std::string err;
-	auto result = convert_count_to_v4_addr(ip, err);
+	auto result = detail::convert_count_to_v4_addr(ip, err);
 	if ( ! result )
 		{
 		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);

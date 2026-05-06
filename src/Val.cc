@@ -4038,19 +4038,19 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
             auto sv = v->AsStringVal();
 
             switch ( t_tag ) {
-                case TYPE_DOUBLE: result = convert_string_to_double(sv, err); break;
-                case TYPE_TIME: result = convert_string_to_time(sv, err); break;
-                case TYPE_INTERVAL: result = convert_string_to_interval(sv, err); break;
+                case TYPE_DOUBLE: result = detail::convert_string_to_double(sv, err); break;
+                case TYPE_TIME: result = detail::convert_string_to_time(sv, err); break;
+                case TYPE_INTERVAL: result = detail::convert_string_to_interval(sv, err); break;
 
-                case TYPE_INT: result = convert_string_to_int(sv, err); break;
+                case TYPE_INT: result = detail::convert_string_to_int(sv, err); break;
 
-                case TYPE_COUNT: result = convert_string_to_count(sv, err); break;
+                case TYPE_COUNT: result = detail::convert_string_to_count(sv, err); break;
 
-                case TYPE_ADDR: result = convert_string_to_addr(sv, err); break;
+                case TYPE_ADDR: result = detail::convert_string_to_addr(sv, err); break;
 
-                case TYPE_SUBNET: result = convert_string_to_subnet(sv); break;
+                case TYPE_SUBNET: result = detail::convert_string_to_subnet(sv); break;
 
-                case TYPE_PORT: result = convert_string_to_port(sv); break;
+                case TYPE_PORT: result = detail::convert_string_to_port(sv); break;
 
                 default: break;
             }
@@ -4061,13 +4061,13 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
             auto iv = v->AsInt();
 
             switch ( t_tag ) {
-                case TYPE_COUNT: result = convert_int_to_count(iv, err); break;
+                case TYPE_COUNT: result = detail::convert_int_to_count(iv, err); break;
 
-                case TYPE_DOUBLE: result = convert_int_to_double(iv); break;
+                case TYPE_DOUBLE: result = detail::convert_int_to_double(iv); break;
 
-                case TYPE_INTERVAL: result = cast_value_to_type(convert_int_to_double(iv).get(), t); break;
+                case TYPE_INTERVAL: result = cast_value_to_type(detail::convert_int_to_double(iv).get(), t); break;
 
-                case TYPE_TIME: result = cast_value_to_type(convert_int_to_double(iv).get(), t); break;
+                case TYPE_TIME: result = cast_value_to_type(detail::convert_int_to_double(iv).get(), t); break;
 
                 default: break;
             }
@@ -4078,13 +4078,13 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
             auto dv = v->AsDouble();
 
             switch ( t_tag ) {
-                case TYPE_INT: result = convert_double_to_int(dv); break;
+                case TYPE_INT: result = detail::convert_double_to_int(dv); break;
 
-                case TYPE_COUNT: result = convert_double_to_count(dv, err); break;
+                case TYPE_COUNT: result = detail::convert_double_to_count(dv, err); break;
 
-                case TYPE_TIME: result = convert_double_to_time(dv); break;
+                case TYPE_TIME: result = detail::convert_double_to_time(dv); break;
 
-                case TYPE_INTERVAL: result = convert_double_to_interval(dv); break;
+                case TYPE_INTERVAL: result = detail::convert_double_to_interval(dv); break;
 
                 default: break;
             }
@@ -4102,13 +4102,13 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
                         result = make_intrusive<IntVal>(zeek_int_t(cv));
                     break;
 
-                case TYPE_DOUBLE: result = convert_count_to_double(cv); break;
+                case TYPE_DOUBLE: result = detail::convert_count_to_double(cv); break;
 
-                case TYPE_INTERVAL: result = cast_value_to_type(convert_count_to_double(cv).get(), t); break;
+                case TYPE_INTERVAL: result = cast_value_to_type(detail::convert_count_to_double(cv).get(), t); break;
 
-                case TYPE_TIME: result = cast_value_to_type(convert_count_to_double(cv).get(), t); break;
+                case TYPE_TIME: result = cast_value_to_type(detail::convert_count_to_double(cv).get(), t); break;
 
-                case TYPE_ADDR: result = convert_count_to_v4_addr(cv, err); break;
+                case TYPE_ADDR: result = detail::convert_count_to_v4_addr(cv, err); break;
 
                 default: break;
             }
@@ -4117,28 +4117,28 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
 
         case TYPE_ENUM:
             if ( t_tag == TYPE_COUNT )
-                result = convert_enum_to_count(v->AsEnum());
+                result = detail::convert_enum_to_count(v->AsEnum());
             else if ( t_tag == TYPE_INT )
-                result = convert_enum_to_int(v->AsEnum());
+                result = detail::convert_enum_to_int(v->AsEnum());
             break;
 
         case TYPE_INTERVAL:
             if ( t_tag == TYPE_DOUBLE )
-                result = convert_interval_to_double(v->AsInterval());
+                result = detail::convert_interval_to_double(v->AsInterval());
             break;
 
         case TYPE_TIME:
             if ( t_tag == TYPE_DOUBLE )
-                result = convert_time_to_double(v->AsTime());
+                result = detail::convert_time_to_double(v->AsTime());
             break;
 
         case TYPE_ADDR: {
             auto av = v->AsAddr();
 
             if ( t_tag == TYPE_SUBNET )
-                result = convert_addr_to_subnet(av);
+                result = detail::convert_addr_to_subnet(av);
             else if ( is_index_vec(t) )
-                result = convert_addr_to_counts(av);
+                result = detail::convert_addr_to_counts(av);
 
             break;
         }
@@ -4147,22 +4147,22 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
             auto sn = v->AsSubNet();
 
             if ( t_tag == TYPE_ADDR )
-                result = convert_subnet_to_addr(sn);
+                result = detail::convert_subnet_to_addr(sn);
             else if ( t_tag == TYPE_COUNT )
-                result = convert_subnet_to_count(sn);
+                result = detail::convert_subnet_to_count(sn);
 
             break;
         }
 
         case TYPE_PORT:
             if ( t_tag == TYPE_COUNT )
-                result = convert_port_to_count(v->AsPortVal()->Port());
+                result = detail::convert_port_to_count(v->AsPortVal()->Port());
             break;
 
         case TYPE_VECTOR:
             // index_vec to addr
             if ( is_index_vec(v->GetType().get()) && t_tag == TYPE_ADDR )
-                result = convert_counts_to_addr(v->AsVectorVal(), err);
+                result = detail::convert_counts_to_addr(v->AsVectorVal(), err);
             break;
 
         default: break;

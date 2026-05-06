@@ -2,9 +2,11 @@
 
 #include "zeek/val-convert.h"
 
+#include <algorithm>
+
 #include "zeek/ZeekString.h"
 
-namespace zeek {
+namespace zeek::detail {
 
 ValPtr convert_string_to_double(const StringVal* sv, std::string& err) {
     const char* s = sv->CheckString();
@@ -175,4 +177,4 @@ ValPtr convert_counts_to_addr(const VectorVal* vv, std::string& err) {
     return nullptr;
 }
 
-} // namespace zeek
+} // namespace zeek::detail

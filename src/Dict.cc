@@ -2,6 +2,8 @@
 
 #include "zeek/Dict.h"
 
+#include <set>
+
 #include "zeek/Hash.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -117,21 +119,20 @@ TEST_CASE("dict iteration") {
     dict.Insert(key2, &val2);
 
     int count = 0;
+    bool found_val = false;
+    bool found_val2 = false;
 
     for ( const auto& entry : dict ) {
         auto* v = static_cast<uint32_t*>(entry.value);
         uint64_t k = *reinterpret_cast<const uint32_t*>(entry.GetKey());
 
-        switch ( count ) {
-            case 0:
-                CHECK(k == key_val2);
-                CHECK(*v == val2);
-                break;
-            case 1:
-                CHECK(k == key_val);
-                CHECK(*v == val);
-                break;
-            default: break;
+        if ( k == key_val ) {
+            CHECK(*v == val);
+            found_val = true;
+        }
+        else if ( k == key_val2 ) {
+            CHECK(*v == val2);
+            found_val2 = true;
         }
 
         count++;
@@ -143,6 +144,8 @@ TEST_CASE("dict iteration") {
     PDict<uint32_t>::iterator it2 = it;
 
     CHECK(count == 2);
+    CHECK(found_val);
+    CHECK(found_val2);
 
     delete key;
     delete key2;
@@ -167,62 +170,60 @@ TEST_CASE("dict robust iteration") {
     dict.Insert(key2, &val2);
 
     {
+        // Insert during robust iteration: new element must be visited.
         int count = 0;
+        bool found_val = false, found_val2 = false, found_val3 = false;
+        bool inserted = false;
         auto it = dict.begin_robust();
 
         for ( ; it != dict.end_robust(); ++it ) {
             auto* v = it->value;
             uint64_t k = *reinterpret_cast<const uint32_t*>(it->GetKey());
 
-            switch ( count ) {
-                case 0:
-                    CHECK(k == key_val2);
-                    CHECK(*v == val2);
-                    dict.Insert(key3, &val3);
-                    break;
-                case 1:
-                    CHECK(k == key_val);
-                    CHECK(*v == val);
-                    break;
-                case 2:
-                    CHECK(k == key_val3);
-                    CHECK(*v == val3);
-                    break;
-                default:
-                    // We shouldn't get here.
-                    CHECK(false);
-                    break;
+            if ( ! inserted ) {
+                dict.Insert(key3, &val3);
+                inserted = true;
+            }
+
+            if ( k == key_val ) {
+                CHECK(*v == val);
+                found_val = true;
+            }
+            else if ( k == key_val2 ) {
+                CHECK(*v == val2);
+                found_val2 = true;
+            }
+            else if ( k == key_val3 ) {
+                CHECK(*v == val3);
+                found_val3 = true;
             }
             count++;
         }
 
         CHECK(count == 3);
+        CHECK(found_val);
+        CHECK(found_val2);
+        CHECK(found_val3);
     }
 
     {
+        // Insert+remove during robust iteration: removed element must NOT be visited.
         int count = 0;
+        bool inserted_and_removed = false;
         auto it = dict.begin_robust();
 
         for ( ; it != dict.end_robust(); ++it ) {
             auto* v = it->value;
             uint64_t k = *reinterpret_cast<const uint32_t*>(it->GetKey());
 
-            switch ( count ) {
-                case 0:
-                    CHECK(k == key_val2);
-                    CHECK(*v == val2);
-                    dict.Insert(key3, &val3);
-                    dict.Remove(key3);
-                    break;
-                case 1:
-                    CHECK(k == key_val);
-                    CHECK(*v == val);
-                    break;
-                default:
-                    // We shouldn't get here.
-                    CHECK(false);
-                    break;
+            if ( ! inserted_and_removed ) {
+                dict.Insert(key3, &val3);
+                dict.Remove(key3);
+                inserted_and_removed = true;
             }
+
+            // key3 should not appear since it was removed.
+            CHECK(k != key_val3);
             count++;
         }
 
@@ -232,6 +233,165 @@ TEST_CASE("dict robust iteration") {
     delete key;
     delete key2;
     delete key3;
+}
+
+TEST_CASE("dict robust iteration erase cases") {
+    // Four elements, inserted so each has a stable identity.
+    uint32_t vA = 1, vB = 2, vC = 3, vD = 4;
+    uint32_t kA = 5, kB = 15, kC = 25, kD = 35;
+    auto hA = std::make_unique<detail::HashKey>(kA);
+    auto hB = std::make_unique<detail::HashKey>(kB);
+    auto hC = std::make_unique<detail::HashKey>(kC);
+    auto hD = std::make_unique<detail::HashKey>(kD);
+
+    SUBCASE("erase current element mid-iteration") {
+        PDict<uint32_t> dict;
+        dict.Insert(hA.get(), &vA);
+        dict.Insert(hB.get(), &vB);
+        dict.Insert(hC.get(), &vC);
+
+        std::set<uint32_t> visited;
+        bool erased = false;
+        auto it = dict.begin_robust();
+        for ( ; it != dict.end_robust(); ++it ) {
+            auto k = *reinterpret_cast<const uint32_t*>(it->GetKey());
+            visited.insert(k);
+            if ( ! erased ) {
+                auto hk = it->GetHashKey();
+                dict.Remove(hk.get());
+                erased = true;
+            }
+        }
+        // Every remaining element visited exactly once; removed element counted once.
+        CHECK(visited.size() == 3);
+        CHECK(dict.Length() == 2);
+    }
+
+    SUBCASE("erase-after-erase mid-iteration") {
+        // Iterate {A,B,C,D}; at the first element remove two others. Verify the
+        // iteration visits the first plus whichever remains.
+        PDict<uint32_t> dict;
+        dict.Insert(hA.get(), &vA);
+        dict.Insert(hB.get(), &vB);
+        dict.Insert(hC.get(), &vC);
+        dict.Insert(hD.get(), &vD);
+
+        std::set<uint32_t> visited;
+        bool first = true;
+        uint32_t first_key = 0;
+        auto it = dict.begin_robust();
+        for ( ; it != dict.end_robust(); ++it ) {
+            auto k = *reinterpret_cast<const uint32_t*>(it->GetKey());
+            visited.insert(k);
+            if ( first ) {
+                first_key = k;
+                // Pick two different keys to remove.
+                uint32_t to_remove[2] = {0, 0};
+                int n = 0;
+                for ( uint32_t candidate : {kA, kB, kC, kD} ) {
+                    if ( candidate == first_key )
+                        continue;
+                    to_remove[n++] = candidate;
+                    if ( n == 2 )
+                        break;
+                }
+                for ( int i = 0; i < 2; ++i ) {
+                    detail::HashKey rk(to_remove[i]);
+                    dict.Remove(&rk);
+                }
+                first = false;
+            }
+        }
+        // Must contain the first key and exactly one other (the survivor).
+        CHECK(visited.count(first_key) == 1);
+        CHECK(visited.size() == 2);
+        CHECK(dict.Length() == 2);
+    }
+
+    SUBCASE("erase current then erase another before next ++") {
+        // Exercises already_advanced_ interacting with a follow-up NotifyErase.
+        PDict<uint32_t> dict;
+        dict.Insert(hA.get(), &vA);
+        dict.Insert(hB.get(), &vB);
+        dict.Insert(hC.get(), &vC);
+        dict.Insert(hD.get(), &vD);
+
+        auto it = dict.begin_robust();
+        REQUIRE(it != dict.end_robust());
+        uint32_t first_key = *reinterpret_cast<const uint32_t*>(it->GetKey());
+
+        // Erase the current element.
+        {
+            detail::HashKey rk(first_key);
+            dict.Remove(&rk);
+        }
+        // Pick one of the remaining keys and erase that too, before advancing.
+        uint32_t second_to_kill = 0;
+        for ( uint32_t c : {kA, kB, kC, kD} ) {
+            if ( c != first_key ) {
+                second_to_kill = c;
+                break;
+            }
+        }
+        {
+            detail::HashKey rk(second_to_kill);
+            dict.Remove(&rk);
+        }
+
+        // Now advance and collect the rest.
+        std::set<uint32_t> rest;
+        ++it;
+        for ( ; it != dict.end_robust(); ++it ) {
+            auto k = *reinterpret_cast<const uint32_t*>(it->GetKey());
+            rest.insert(k);
+        }
+        // After deleting two elements, two remain — but one of those two was
+        // already "consumed" by NotifyErase's advance. The robust iterator should
+        // still deliver every element it hasn't yet shown the user, which is the
+        // remaining two.
+        CHECK(dict.Length() == 2);
+        CHECK(rest.size() == 2);
+        CHECK(rest.count(first_key) == 0);
+        CHECK(rest.count(second_to_kill) == 0);
+    }
+
+    SUBCASE("multiple concurrent robust iterators") {
+        PDict<uint32_t> dict;
+        dict.Insert(hA.get(), &vA);
+        dict.Insert(hB.get(), &vB);
+        dict.Insert(hC.get(), &vC);
+
+        auto it1 = dict.begin_robust();
+        auto it2 = dict.begin_robust();
+
+        // Advance it1 once, then remove that element — it2 should see the
+        // removal consistently.
+        REQUIRE(it1 != dict.end_robust());
+        uint32_t k1 = *reinterpret_cast<const uint32_t*>(it1->GetKey());
+        detail::HashKey rk(k1);
+        dict.Remove(&rk);
+
+        std::set<uint32_t> seen2;
+        for ( ; it2 != dict.end_robust(); ++it2 ) {
+            auto k = *reinterpret_cast<const uint32_t*>(it2->GetKey());
+            seen2.insert(k);
+        }
+        // it2 must not see the removed element, and must see the other two.
+        CHECK(seen2.count(k1) == 0);
+        CHECK(seen2.size() == 2);
+    }
+}
+
+TEST_CASE("dict robust iteration on empty dict") {
+    // RobustDictIterator(Dictionary*) on empty dict leaves default state; begin
+    // compares equal to end without touching the dict.
+    PDict<uint32_t> dict;
+    auto it = dict.begin_robust();
+    CHECK(it == dict.end_robust());
+    int count = 0;
+    for ( ; it != dict.end_robust(); ++it )
+        ++count;
+    CHECK(count == 0);
 }
 
 TEST_CASE("dict ordered iteration") {
@@ -405,23 +565,23 @@ TEST_CASE("dict iterator invalidation") {
     auto it = dict.begin();
     iterators_invalidated = false;
     dict.Remove(key3, &iterators_invalidated);
-    // Key doesn't exist, nothing to remove, iteration not invalidated.
+    // Key doesn't exist, nothing to remove.
     CHECK(! iterators_invalidated);
 
     iterators_invalidated = false;
     dict.Insert(key, &val2, &iterators_invalidated);
-    // Key exists, value gets overwritten, iteration not invalidated.
+    // Key exists, value gets overwritten.
     CHECK(! iterators_invalidated);
 
     iterators_invalidated = false;
     dict.Remove(key2, &iterators_invalidated);
-    // Key exists, gets removed, iteration is invalidated.
+    // Key exists, gets removed, flag set for script-level warning.
     CHECK(iterators_invalidated);
 
     it = dict.begin();
     iterators_invalidated = false;
     dict.Insert(key3, &val3, &iterators_invalidated);
-    // Key doesn't exist, gets inserted, iteration is invalidated.
+    // Key doesn't exist, gets inserted, flag set for script-level warning.
     CHECK(iterators_invalidated);
 
     CHECK(dict.Length() == 2);

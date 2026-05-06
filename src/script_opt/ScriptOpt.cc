@@ -734,7 +734,7 @@ void analyze_scripts(bool no_unused_warnings) {
         reporter->FatalError("Optimized script execution aborted due to errors");
 }
 
-zeek_uint_t set_module_profiling(std::string mod, bool active) {
+zeek_uint_t set_module_profiling(const std::string& mod, bool active) {
     auto mb = module_bodies.find(mod);
     if ( mb == module_bodies.end() )
         return 0;
@@ -745,7 +745,7 @@ zeek_uint_t set_module_profiling(std::string mod, bool active) {
     return mb->second.size();
 }
 
-RecordValPtr get_module_profile(std::string mod) {
+RecordValPtr get_module_profile(const std::string& mod) {
     static auto prof_rec_t = id::find_type<zeek::RecordType>("ZAM::Prof::Profile");
     auto prof_rec = make_intrusive<RecordVal>(prof_rec_t);
 
@@ -770,11 +770,11 @@ RecordValPtr get_module_profile(std::string mod) {
         auto tot_inst = b->NumBodyInsts();
         if ( tot_inst > 0 ) {
             auto mod_inst = b->NumModuleInsts(mod);
-            double ratio = double(mod_inst) / double(tot_inst);
+            double ratio = static_cast<double>(mod_inst) / static_cast<double>(tot_inst);
 
             ninst += lround(ratio * tot_inst);
             CPU += ratio * b->CPUTimeEst();
-            mem += uint64_t(ratio * b->MemoryEst());
+            mem += static_cast<uint64_t>(ratio * b->MemoryEst());
         }
     }
 

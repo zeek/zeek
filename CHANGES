@@ -1,3 +1,7 @@
+9.0.0-dev.115 | 2026-05-06 17:44:38 -0700
+
+  * Fix recently-introduced clang-tidy findings (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.112 | 2026-05-06 15:58:42 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

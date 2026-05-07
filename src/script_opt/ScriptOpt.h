@@ -294,10 +294,10 @@ extern void finish_script_execution();
 
 // Activates or deactivates CPU/memory profiling for all compiled ZAM
 // bodies associated with the given module "mod".
-extern zeek_uint_t set_module_profiling(std::string mod, bool active);
+extern zeek_uint_t set_module_profiling(const std::string& mod, bool active);
 
 // Returns the current profile for the given module "mod".
-extern RecordValPtr get_module_profile(std::string mod);
+extern RecordValPtr get_module_profile(const std::string& mod);
 
 // Returns true if the given profile indicates the presence of an AST
 // node not known to script optimization. The second argument specifies

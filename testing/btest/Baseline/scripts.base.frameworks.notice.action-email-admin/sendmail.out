@@ -4,7 +4,7 @@
 ----------- stdin --------------
 From: Zeek <zeek@localhost>
 Subject: [Zeek] Test_Notice
-To: postmaster@the.cloud, cloudflare@example.net
+To: cloudflare@example.net, postmaster@the.cloud
 User-Agent: Zeek/$zeek_version()
 
 Message: test

@@ -14,8 +14,8 @@ mode_message:  tim2 +i
 mode_message: tim2!tim@10.0.0.7 tim2 :+i
 join_message: [nick=, channel=#testing, password=, usermode=]
 join_message: [nick=tim2, channel=#testing, password=*, usermode=]
-names_info: = #testing: tim1
 names_info: = #testing: tim2
+names_info: = #testing: tim1
 mode_message:  #testing
 who_message: #testing 0
 mode_message:  #testing b
@@ -119,8 +119,8 @@ whois_channel_line: tim_ :@#testing
 whois_operator_line: tim
 join_message: [nick=, channel=#testing, password=, usermode=]
 join_message: [nick=tim_, channel=#testing, password=, usermode=]
-names_info: = #testing: tim
 names_info: = #testing: tim_
+names_info: = #testing: tim
 join_message: [nick=tim_, channel=#testing, password=, usermode=]
 mode_message:  #testing
 who_message: #testing 0
@@ -136,8 +136,8 @@ invite_message:  tim_ #testing
 invite_message: tim!tim@netadmin.local tim_ #testing
 join_message: [nick=, channel=#testing, password=, usermode=]
 join_message: [nick=tim_, channel=#testing, password=, usermode=]
-names_info: = #testing: tim
 names_info: = #testing: tim_
+names_info: = #testing: tim
 join_message: [nick=tim_, channel=#testing, password=, usermode=]
 mode_message:  #testing
 who_message: #testing 0

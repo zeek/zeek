@@ -2,7 +2,7 @@
 open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value={
-[2] = b,
 [1] = a,
+[2] = b,
 [3] = c
 }]

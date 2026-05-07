@@ -33,18 +33,18 @@ Broker::VECTOR
 F
 T
 [c=123, r1=[s=xyz]]
-[one] = 1
+[one] = 1,
 [s=abc]
 [three] = 3,
-[two] = 2,
+[two] = 2
 [zero, one, two]
 hello
-one
+one,
 opaque of md5, T
 opaque of sha1, T
 opaque of sha256, T
 three,
-two,
+two
 {
 {
 }

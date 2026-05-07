@@ -6,7 +6,7 @@ orig=42/tcp (port) clone=42/tcp (port) equal=T same_object=T (ok)
 orig=127.0.0.0/24 (subnet) clone=127.0.0.0/24 (subnet) equal=T same_object=T (ok)
 orig=Foo (string) clone=Foo (string) equal=T same_object=F (ok)
 orig=/^?(.*PATTERN.*)$?/ (pattern) clone=/^?(.*PATTERN.*)$?/ (pattern) same_object=F
-orig=2,5,3,4,1 (set[count]) clone=2,5,3,4,1 (set[count]) equal=T same_object=F (ok)
+orig=1,2,3,4,5 (set[count]) clone=1,2,3,4,5 (set[count]) equal=T same_object=F (ok)
 orig=[1, 2, 3, 4, 5] (vector of count) clone=[1, 2, 3, 4, 5] (vector of count) equal=T same_object=F (ok)
 orig=a=va;b=vb (table[string] of string) clone=a=va;b=vb (table[string] of string) equal=T same_object=F (ok)
 orig=ENUMME (MyEnum) clone=ENUMME (MyEnum) equal=T same_object=T (ok)

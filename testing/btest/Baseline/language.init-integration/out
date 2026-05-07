@@ -10,17 +10,17 @@
 [3.0, 4]
 [9.0, 4]
 [[3, 2, 1], [1, 2, 3], [20, 21, 22, 23], [80, 81], [90, 91, 92]]
-[bar, 1.2.0.0/19],
-[bar, 5.6.0.0/21]
+[bar, 1.2.0.0/19]
+[bar, 5.6.0.0/21],
 [foo, 1.2.0.0/19],
 [foo, 5.6.0.0/21],
 [manager-1] = [node_type=Cluster::MANAGER, ip=127.0.0.1, p=3/tcp, manager=<uninitialized>],
 [manager-1] = [node_type=Cluster::MANAGER, ip=127.0.0.1, p=3/tcp, manager=<uninitialized>],
-[worker-1] = [node_type=Cluster::WORKER, ip=127.0.0.1, p=5/udp, manager=manager-1]
-[worker-1] = [node_type=Cluster::WORKER, ip=127.0.0.1, p=5/udp, manager=manager-1]
+[worker-1] = [node_type=Cluster::WORKER, ip=127.0.0.1, p=5/udp, manager=manager-1],
+[worker-1] = [node_type=Cluster::WORKER, ip=127.0.0.1, p=5/udp, manager=manager-1],
 [worker-2] = [node_type=Cluster::WORKER, ip=127.0.0.1, p=7/tcp, manager=manager-1],
-[worker-3] = [node_type=Cluster::WORKER, ip=1.2.3.4, p=9/udp, manager=<uninitialized>],
-[worker-3] = [node_type=Cluster::WORKER, ip=1.2.3.4, p=9/udp, manager=<uninitialized>],
+[worker-3] = [node_type=Cluster::WORKER, ip=1.2.3.4, p=9/udp, manager=<uninitialized>]
+[worker-3] = [node_type=Cluster::WORKER, ip=1.2.3.4, p=9/udp, manager=<uninitialized>]
 [worker-4] = [node_type=Cluster::WORKER, ip=2.3.4.5, zone_id=, p=13/udp, manager=<uninitialized>, id=<uninitialized>, metrics_port=<uninitialized>]
 [worker-4] = [node_type=Cluster::WORKER, ip=2.3.4.5, zone_id=, p=13/udp, manager=<uninitialized>, id=<uninitialized>, metrics_port=<uninitialized>],
 [worker-4] = [node_type=Cluster::WORKER, ip=2.3.4.5, zone_id=, p=13/udp, manager=<uninitialized>, id=<uninitialized>, metrics_port=<uninitialized>],

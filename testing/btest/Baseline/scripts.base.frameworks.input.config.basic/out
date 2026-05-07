@@ -12,9 +12,9 @@ testinterval, 1.0 min
 testtime, XXXXXXXXXX.XXXXXX
 test_set, {
 a,
-d,
 b,
 c,
+d,
 erdbeerschnitzel
 }
 test_vector, [1, 2, 3, 4, 5, 6]

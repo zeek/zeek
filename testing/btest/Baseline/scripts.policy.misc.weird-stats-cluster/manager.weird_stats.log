@@ -7,8 +7,8 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	name	num_seen
 #types	time	string	count
-XXXXXXXXXX.XXXXXX	weird1	2000
 XXXXXXXXXX.XXXXXX	weird3	1
 XXXXXXXXXX.XXXXXX	weird2	1000
+XXXXXXXXXX.XXXXXX	weird1	2000
 XXXXXXXXXX.XXXXXX	weird1	2
 #close XXXX-XX-XX-XX-XX-XX

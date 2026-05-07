@@ -1,3 +1,9 @@
+9.0.0-dev.118 | 2026-05-07 12:01:03 -0700
+
+  * CI: drop openSUSE Leap 15.6, EOL'd April 30 (Christian Kreibich, Corelight)
+
+  * CI: Drop Fedora 42 (EOL May 13), add Fedora 44 (Christian Kreibich, Corelight)
+
 9.0.0-dev.115 | 2026-05-06 17:44:38 -0700
 
   * Fix recently-introduced clang-tidy findings (Tim Wojtulewicz, Corelight)

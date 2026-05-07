@@ -2,27 +2,27 @@
 vector to set
 [1, 1, 1, 2, 2, 3, 3, 4]
 {
-4,
+1,
 2,
 3,
-1
+4
 }
 
 set to vector (count)
 {
-4,
+1,
 2,
 3,
-1
+4
 }
-[4, 2, 3, 1]
+[1, 2, 3, 4]
 
 set to vector (port)
 {
-23/tcp,
-21/tcp
+21/tcp,
+23/tcp
 }
-[23/tcp, 21/tcp]
+[21/tcp, 23/tcp]
 
 set to vector (record)
 {

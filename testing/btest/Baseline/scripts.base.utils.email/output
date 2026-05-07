@@ -2,28 +2,28 @@
 one@example.com
 [one@example.com, two@example.com, three@example.com, one@example.com]
 {
-three@example.com,
-two@example.com,
-one@example.com
-}
-one@example.com
-[one@example.com, two@example.com, three@example.com, one@example.com]
-{
-three@example.com,
-two@example.com,
-one@example.com
-}
-{
-three@example.com,
-two@example.com,
-one@example.com
-}
-one@example.com
-[one@example.com, two@example.com, three@example.com, one@example.com]
-{
-three@example.com,
 one@example.com,
-two@example.com
+two@example.com,
+three@example.com
+}
+one@example.com
+[one@example.com, two@example.com, three@example.com, one@example.com]
+{
+one@example.com,
+two@example.com,
+three@example.com
+}
+{
+one@example.com,
+two@example.com,
+three@example.com
+}
+one@example.com
+[one@example.com, two@example.com, three@example.com, one@example.com]
+{
+one@example.com,
+two@example.com,
+three@example.com
 }
 john.smith@email.com
 [john.smith@email.com, jane.doe@email.com]

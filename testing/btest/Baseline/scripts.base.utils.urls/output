@@ -12,10 +12,10 @@
 
 }]
 {
-https://example2.com,
-https://example1.com
+https://example1.com,
+https://example2.com
 }
 {
-https://example2.com/?test=2,
-https://example1.com/?test=1
+https://example1.com/?test=1,
+https://example2.com/?test=2
 }

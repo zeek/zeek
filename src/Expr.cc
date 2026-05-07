@@ -543,7 +543,7 @@ ValPtr UnaryExpr::Eval(Frame* f) const {
     if ( ! v )
         return nullptr;
 
-    if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST &&
+    if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST && tag != EXPR_CAN_CONVERT &&
          // The following allows passing vectors-by-reference to
          // functions that use vector-of-any for generic vector
          // manipulation ...

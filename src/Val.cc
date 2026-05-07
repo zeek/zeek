@@ -4045,8 +4045,6 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
 
             switch ( t_tag ) {
                 case TYPE_DOUBLE: result = detail::convert_string_to_double(sv, err); break;
-                case TYPE_TIME: result = detail::convert_string_to_time(sv, err); break;
-                case TYPE_INTERVAL: result = detail::convert_string_to_interval(sv, err); break;
 
                 case TYPE_INT: result = detail::convert_string_to_int(sv, err); break;
 
@@ -4105,7 +4103,7 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
                     if ( cv > INT64_MAX )
                         err = "overflow converting count to int";
                     else
-                        result = make_intrusive<IntVal>(zeek_int_t(cv));
+                        result = val_mgr->Int(static_cast<zeek_int_t>(cv));
                     break;
 
                 case TYPE_DOUBLE: result = detail::convert_count_to_double(cv); break;
@@ -4163,12 +4161,6 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
         case TYPE_PORT:
             if ( t_tag == TYPE_COUNT )
                 result = detail::convert_port_to_count(v->AsPortVal()->Port());
-            break;
-
-        case TYPE_VECTOR:
-            // index_vec to addr
-            if ( is_index_vec(v->GetType().get()) && t_tag == TYPE_ADDR )
-                result = detail::convert_counts_to_addr(v->AsVectorVal(), err);
             break;
 
         default: break;

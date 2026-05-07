@@ -343,16 +343,15 @@ Zeek supports the following type casts:
 - All values can be cast to their declared types (i.e., this is a no-op).
 - A value of declared type :zeek:type:`any` can be cast to its actual
   underlying type.
-- :zeek:type:`string` types can be cast to :zeek:type:`double`, :zeek:type:`time`, :zeek:type:`interval`, :zeek:type:`int`, :zeek:type:`count`, :zeek:type:`addr`, :zeek:type:`subnet`, or :zeek:type:`port`.
+- :zeek:type:`string` types can be cast to :zeek:type:`double`, :zeek:type:`int`, :zeek:type:`count`, :zeek:type:`addr`, :zeek:type:`subnet`, or :zeek:type:`port`.
 - :zeek:type:`int` can be cast to :zeek:type:`double` or :zeek:type:`count`.
 - :zeek:type:`count` can be cast to :zeek:type:`double`, :zeek:type:`int`, or :zeek:type:`addr`.
 - :zeek:type:`port` can be cast to :zeek:type:`count`.
-- :zeek:type:`double` can be cast to :zeek:type:`time`, :zeek:type:`interval`, :zeek:type:`int`, or :zeek:type:`count`.
+- :zeek:type:`double` can be cast to :zeek:type:`time`, :zeek:type:`interval`, :zeek:type:`int`, or :zeek:type:`count`. Note that the conversions to integral values use round-to-nearest (with ties broken using round-to-even), so ``42.7 as count`` evaluates to ``43``, ``42.5 as count`` evaluates to ``42``, and ``43.5 as count`` evaluates to ``44``.
 - :zeek:type:`enum` can be cast to :zeek:type:`int` or :zeek:type:`count`.
 - :zeek:type:`interval` and :zeek:type:`time` can be cast to :zeek:type:`double` (but not directly to each other).
 - :zeek:type:`addr` can be cast to :zeek:type:`subnet`.
 - :zeek:type:`subnet` can be cast to :zeek:type:`addr` or :zeek:type:`count` (for this last, see :zeek:id:`subnet_width`).
-- A ``vector of count`` can be cast to :zeek:type:`addr` (see :zeek:id:`counts_to_addr`).
 - :zeek:type:`set` and :zeek:type:`vector` values can be converted into each
   other, with the following limitations: (1) A :zeek:type:`set` being converted
   into a :zeek:type:`vector` can only have a single index type.  Converting a

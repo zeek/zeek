@@ -21,11 +21,10 @@ p_hash_type p_hash(const Obj* o) {
     return p_hash(d.Description());
 }
 
-ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields) {
+ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body) {
     profiled_func = func;
     profiled_scope = profiled_func->GetScope();
     profiled_body = body.get();
-    abs_rec_fields = _abs_rec_fields;
 
     profiled_func_t = cast_intrusive<FuncType>(func->GetType());
     auto& fcaps = profiled_func_t->GetCaptures();
@@ -56,16 +55,13 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
     }
 }
 
-ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
+ProfileFunc::ProfileFunc(const Stmt* s) {
     profiled_body = s;
-    abs_rec_fields = _abs_rec_fields;
     s->Traverse(this);
 }
 
-ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
+ProfileFunc::ProfileFunc(const Expr* e) {
     profiled_expr = e;
-
-    abs_rec_fields = _abs_rec_fields;
 
     if ( e->Tag() == EXPR_LAMBDA ) {
         auto func = e->AsLambdaExpr();
@@ -212,27 +208,17 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             break;
         }
 
-        case EXPR_FIELD:
-            if ( abs_rec_fields ) {
-                auto f = e->AsFieldExpr()->Field();
-                addl_hashes.push_back(p_hash(f));
-            }
-            else {
-                auto fn = e->AsFieldExpr()->FieldName();
-                addl_hashes.push_back(p_hash(fn));
-            }
+        case EXPR_FIELD: {
+            auto f = e->AsFieldExpr()->Field();
+            addl_hashes.push_back(p_hash(f));
             break;
+        }
 
-        case EXPR_HAS_FIELD:
-            if ( abs_rec_fields ) {
-                auto f = e->AsHasFieldExpr()->Field();
-                addl_hashes.push_back(std::hash<int>{}(f));
-            }
-            else {
-                auto fn = e->AsHasFieldExpr()->FieldName();
-                addl_hashes.push_back(std::hash<std::string>{}(fn));
-            }
+        case EXPR_HAS_FIELD: {
+            auto f = e->AsHasFieldExpr()->Field();
+            addl_hashes.push_back(std::hash<int>{}(f));
             break;
+        }
 
         case EXPR_INDEX: {
             auto lhs_t = e->GetOp1()->GetType();
@@ -440,7 +426,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // In general, we don't want to recurse into the body.
             // However, we still want to *profile* it so we can
             // identify calls within it.
-            auto pf = std::make_shared<ProfileFunc>(l->Ingredients()->Body().get(), false);
+            auto pf = std::make_shared<ProfileFunc>(l->Ingredients()->Body().get());
             script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
 
             return TC_ABORTSTMT;
@@ -576,13 +562,11 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
     }
 }
 
-ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes,
-                           bool _full_record_hashes) {
+ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes) {
     compute_func_hashes = _compute_func_hashes;
-    full_record_hashes = _full_record_hashes;
 
     for ( auto& f : funcs ) {
-        auto pf = std::make_shared<ProfileFunc>(f.Func(), f.Body(), full_record_hashes);
+        auto pf = std::make_shared<ProfileFunc>(f.Func(), f.Body());
 
         if ( ! pred || (*pred)(pf.get(), nullptr) )
             MergeInProfile(pf.get());
@@ -850,7 +834,7 @@ void ProfileFuncs::DrainPendingExprs() {
         pending_exprs.clear();
 
         for ( auto e : pe ) {
-            auto pf = std::make_shared<ProfileFunc>(e, full_record_hashes);
+            auto pf = std::make_shared<ProfileFunc>(e);
 
             expr_profs[e] = pf;
             MergeInProfile(pf.get());
@@ -908,10 +892,7 @@ void ProfileFuncs::ComputeProfileHash(const std::shared_ptr<ProfileFunc>& pf) {
     // (such as Stmt's or Expr's that are only represented by
     // the hash of their tag).
     h = merge_p_hashes(h, p_hash("params"));
-    auto& ov = pf->ProfiledScope()->OrderedVars();
-    int n = pf->NumParams();
-    for ( int i = 0; i < n; ++i )
-        h = merge_p_hashes(h, p_hash(ov[i]->Name()));
+    h = merge_p_hashes(h, HashType(pf->ProfiledFuncType()));
 
     h = merge_p_hashes(h, p_hash("stmts"));
     for ( auto& i : pf->Stmts() )
@@ -1008,34 +989,20 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
             auto orig_n = ft->NumOrigFields();
 
             h = merge_p_hashes(h, p_hash("record"));
+            h = merge_p_hashes(h, p_hash(orig_n));
 
-            if ( full_record_hashes )
-                h = merge_p_hashes(h, p_hash(n));
-            else
-                h = merge_p_hashes(h, p_hash(orig_n));
-
-            for ( auto i = 0; i < n; ++i ) {
-                bool do_hash = full_record_hashes;
-                if ( ! do_hash )
-                    do_hash = (i < orig_n);
-
+            for ( auto i = 0; i < orig_n; ++i ) {
                 const auto& f = ft->FieldDecl(i);
                 auto type_h = HashType(f->type);
 
-                if ( do_hash ) {
-                    h = merge_p_hashes(h, p_hash(f->id));
-                    h = merge_p_hashes(h, type_h);
-                }
-
                 h = merge_p_hashes(h, p_hash(f->id));
-                h = merge_p_hashes(h, HashType(f->type));
+                h = merge_p_hashes(h, type_h);
 
                 // We don't hash the field name, as in some contexts
                 // those are ignored.
 
                 if ( f->attrs ) {
-                    if ( do_hash )
-                        h = merge_p_hashes(h, HashAttrs(f->attrs));
+                    h = merge_p_hashes(h, HashAttrs(f->attrs));
                     AnalyzeAttrs(f->attrs.get(), ft);
                 }
             }

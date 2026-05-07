@@ -199,7 +199,7 @@ AnalyzeDecision obj_matches_opt_files(const Obj* obj) {
 
 static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
                          ScopePtr scope, StmtPtr& body) {
-    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
+    pf = std::make_shared<ProfileFunc>(f.get(), body);
 
     GenIDDefs ID_defs(pf, f, scope, body);
 
@@ -276,7 +276,7 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
     }
 
     // Profile the new body.
-    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
+    pf = std::make_shared<ProfileFunc>(f.get(), body);
 
     // Compute its reaching definitions.
     GenIDDefs ID_defs(pf, f, scope, body);
@@ -491,7 +491,7 @@ static void use_CPP() {
 
     int num_used = 0;
 
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true);
 
     for ( auto& f : funcs ) {
         if ( f.ShouldSkip() )
@@ -710,7 +710,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     if ( analysis_options.report_CPP ) {
-        auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
+        auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true);
         report_CPP();
         exit(0);
     }
@@ -722,12 +722,12 @@ void analyze_scripts(bool no_unused_warnings) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
-        auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
+        auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true);
         generate_CPP(std::move(pfs));
         exit(0);
     }
 
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
     analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )

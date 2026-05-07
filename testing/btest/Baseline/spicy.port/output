@@ -8,12 +8,12 @@ Analyzer::ANALYZER_SPICY_TEST, 31338/udp
 Analyzer::ANALYZER_SPICY_TEST, 31339/udp
 Analyzer::ANALYZER_SPICY_TEST, 31340/udp
 {
-31339/udp,
+11337/udp,
+11338/udp,
+11339/udp,
+11340/udp,
 31337/udp,
 31338/udp,
-11339/udp,
-11338/udp,
-11340/udp,
-31340/udp,
-11337/udp
+31339/udp,
+31340/udp
 }

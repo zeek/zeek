@@ -8,9 +8,9 @@
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	seen.indicator	seen.indicator_type	seen.where	seen.node	matched	sources	fuid	file_mime_type	file_desc
 #types	time	string	addr	port	addr	port	string	enum	enum	string	set[enum]	set[string]	string	string	string
 XXXXXXXXXX.XXXXXX	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1	-	-	-
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2,source1	-	-	-
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
 XXXXXXXXXX.XXXXXX	-	-	-	-	-	4.3.2.1	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2	-	-	-
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2,source1	-	-	-
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	1.2.3.4	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source1,source2	-	-	-
 XXXXXXXXXX.XXXXXX	-	-	-	-	-	4.3.2.1	Intel::ADDR	SOMEWHERE	zeek	Intel::ADDR	source2	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09

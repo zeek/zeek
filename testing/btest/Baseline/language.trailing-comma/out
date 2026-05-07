@@ -3,16 +3,16 @@ vec1, vector of count, [1, 2]
 vec2, vector of count, [1, 2]
 vec3, vector of count, [1, 2]
 set1, set[count], {
-2,
-1
+1,
+2
 }
 set2, set[count], {
-2,
-1
+1,
+2
 }
 set3, set[count], {
-2,
-1
+1,
+2
 }
 rec1, MyRecord, [a=a, b=<uninitialized>]
 rec2, MyRecord, [a=a, b=<uninitialized>]
@@ -40,17 +40,17 @@ tab6, table[string,string] of vector of count, {
 }
 tab7, table[string,string] of set[count], {
 [a, b] = {
-2,
-1
+1,
+2
 },
 [c, d] = {
-4,
-3
+3,
+4
 }
 }
 tab8, table[MyRecord] of count, {
-[[a=c, b=d]] = 43,
-[[a=a, b=b]] = 42
+[[a=a, b=b]] = 42,
+[[a=c, b=d]] = 43
 }
 tab9, table[MyRecord] of count, {
 [[a=abc, b=def]] = 42

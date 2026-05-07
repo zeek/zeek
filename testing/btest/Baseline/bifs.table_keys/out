@@ -4,8 +4,8 @@ http,
 https
 }
 {
-[a=<uninitialized>, b=7],
-[a=10, b=5]
+[a=10, b=5],
+[a=<uninitialized>, b=7]
 }
 {
 [1/tcp, test, T],

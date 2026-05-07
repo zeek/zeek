@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ss
 #types	set[string]
-\x2c,CC,\x2c\x2c,AA
+AA,\x2c,\x2c\x2c,CC
 #close XXXX-XX-XX-XX-XX-XX

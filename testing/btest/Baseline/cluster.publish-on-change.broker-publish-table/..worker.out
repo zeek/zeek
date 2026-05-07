@@ -8,6 +8,6 @@ apply_table_change_infos_policy, tbl1, 1
 table_change, tbl1, [change=TABLE_ELEMENT_NEW, ts=XXXXXXXXXX.XXXXXX, index=[[data=broker::data{z}]], value=[data=broker::data{from manager, take two!}], previous_value=<uninitialized>]
 tbl1 now contains z, too, {
 [x] = from manager,
-[z] = from manager, take two!,
-[y] = from worker
+[y] = from worker,
+[z] = from manager, take two!
 }

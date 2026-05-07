@@ -4454,8 +4454,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com"
+          "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com"
         ],
         "last_reply": "250 Ok",
         "path": [
@@ -4579,8 +4579,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com"
+          "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com"
         ],
         "last_reply": "250 Ok",
         "path": [
@@ -4702,8 +4702,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
           "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com",
           "davis_mark1@outlook.com"
         ],
         "last_reply": "250 Ok",
@@ -4828,8 +4828,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
           "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com",
           "davis_mark1@outlook.com"
         ],
         "last_reply": "250 Ok",
@@ -4952,8 +4952,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
           "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com",
           "davis_mark1@outlook.com"
         ],
         "last_reply": "250 Ok",
@@ -5079,8 +5079,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
           "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com",
           "davis_mark1@outlook.com"
         ],
         "date": "Sat, 25 Jul 2015 16:43:07 +0300",
@@ -5218,8 +5218,8 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
-          "felica4uu@hotmail.com",
           "ericlim220@yahoo.com",
+          "felica4uu@hotmail.com",
           "davis_mark1@outlook.com"
         ],
         "date": "Sat, 25 Jul 2015 16:43:07 +0300",

@@ -48,9 +48,10 @@ base/init-bare.zeek
 .. zeek:namespace:: WebSocket
 .. zeek:namespace:: Weird
 .. zeek:namespace:: X509
+.. zeek:namespace:: ZAM::Prof
 
 
-:Namespaces: AF_Packet, Analyzer, BinPAC, Cluster, ConnKey, ConnThreshold, DCE_RPC, DHCP, EventMetadata, FTP, GLOBAL, HTTP, IP, JSON, KRB, Log, MIME, MOUNT3, MQTT, NCP, NFS3, NTLM, NTP, PE, POP3, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SMTP, SNMP, SOCKS, SSH, SSL, Storage, TCP, Telemetry, Threading, Tunnel, UnknownProtocol, WebSocket, Weird, X509
+:Namespaces: AF_Packet, Analyzer, BinPAC, Cluster, ConnKey, ConnThreshold, DCE_RPC, DHCP, EventMetadata, FTP, GLOBAL, HTTP, IP, JSON, KRB, Log, MIME, MOUNT3, MQTT, NCP, NFS3, NTLM, NTP, PE, POP3, Pcap, RADIUS, RDP, Reporter, SMB, SMB1, SMB2, SMTP, SNMP, SOCKS, SSH, SSL, Storage, TCP, Telemetry, Threading, Tunnel, UnknownProtocol, WebSocket, Weird, X509, ZAM::Prof
 :Imports: :doc:`base/bif/CPP-load.bif.zeek </scripts/base/bif/CPP-load.bif.zeek>`, :doc:`base/bif/communityid.bif.zeek </scripts/base/bif/communityid.bif.zeek>`, :doc:`base/bif/const.bif.zeek </scripts/base/bif/const.bif.zeek>`, :doc:`base/bif/event.bif.zeek </scripts/base/bif/event.bif.zeek>`, :doc:`base/bif/mmdb.bif.zeek </scripts/base/bif/mmdb.bif.zeek>`, :doc:`base/bif/option.bif.zeek </scripts/base/bif/option.bif.zeek>`, :doc:`base/bif/packet_analysis.bif.zeek </scripts/base/bif/packet_analysis.bif.zeek>`, :doc:`base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>`, :doc:`base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>`, :doc:`base/bif/reporter.bif.zeek </scripts/base/bif/reporter.bif.zeek>`, :doc:`base/bif/stats.bif.zeek </scripts/base/bif/stats.bif.zeek>`, :doc:`base/bif/strings.bif.zeek </scripts/base/bif/strings.bif.zeek>`, :doc:`base/bif/supervisor.bif.zeek </scripts/base/bif/supervisor.bif.zeek>`, :doc:`base/bif/telemetry_functions.bif.zeek </scripts/base/bif/telemetry_functions.bif.zeek>`, :doc:`base/bif/telemetry_types.bif.zeek </scripts/base/bif/telemetry_types.bif.zeek>`, :doc:`base/bif/types.bif.zeek </scripts/base/bif/types.bif.zeek>`, :doc:`base/bif/zeek.bif.zeek </scripts/base/bif/zeek.bif.zeek>`, :doc:`base/frameworks/spicy/init-bare.zeek </scripts/base/frameworks/spicy/init-bare.zeek>`, :doc:`base/frameworks/supervisor/api.zeek </scripts/base/frameworks/supervisor/api.zeek>`, :doc:`base/packet-protocols </scripts/base/packet-protocols/index>`
 
 Summary
@@ -678,6 +679,7 @@ Types
 :zeek:type:`X509::Extension`: :zeek:type:`record`
 :zeek:type:`X509::Result`: :zeek:type:`record`                                   Result of an X509 certificate chain verification
 :zeek:type:`X509::SubjectAlternativeName`: :zeek:type:`record`
+:zeek:type:`ZAM::Prof::Profile`: :zeek:type:`record`                             Summarizes ZAM profiling information for a given module.
 :zeek:type:`addr_set`: :zeek:type:`set`                                          A set of addresses.
 :zeek:type:`addr_vec`: :zeek:type:`vector`                                       A vector of addresses.
 :zeek:type:`any_vec`: :zeek:type:`vector`                                        A vector of any, used by some builtin functions to store a list of varying
@@ -3859,7 +3861,7 @@ State Variables
    .. zeek:see:: dns_skip_all_auth dns_skip_addl
 
 .. zeek:id:: done_with_network
-   :source-code: base/init-bare.zeek 6682 6682
+   :source-code: base/init-bare.zeek 6718 6718
 
    :Type: :zeek:type:`bool`
    :Default: ``F``
@@ -10810,6 +10812,52 @@ Types
       True if the certificate contained other, not recognized or parsed name fields
 
 
+
+.. zeek:type:: ZAM::Prof::Profile
+   :source-code: base/init-bare.zeek 6682 6711
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: num_bodies :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
+
+      How many compiled ZAM bodies are associated with the module.
+      A value of 0 indicates either the module doesn't exist or ZAM
+      itself was not activated.
+
+
+   .. zeek:field:: num_calls :zeek:type:`count` :zeek:attr:`&optional`
+
+      Number of calls so far to ZAM bodies in the module.
+
+
+   .. zeek:field:: num_inst :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`
+
+      How many ZAM instructions have executed so far on behalf of
+      the module.
+
+
+   .. zeek:field:: CPU :zeek:type:`interval` :zeek:attr:`&optional`
+
+      The following two will only be present if a previous call to
+      set_module_profiling() set CPU/memory profiling for the module.
+      Estimated total (user) CPU time so far. Some ZAM bodies include
+      code for multiple modules. For those, the contribution to the
+      estimate is based on the ratio of the number of instructions
+      associated with the module executed vs. total number of
+      instructions executed for the given shared body. Note: you can
+      adjust (somewhat) for bias in the measurements by subtracting
+      "ZAM::Prof::estimated_profiling_overhead() * $num_calls".
+
+
+   .. zeek:field:: mem :zeek:type:`count` :zeek:attr:`&optional`
+
+      Estimate of total memory used to date, in bytes. The number is
+      only a rough estimate, and uses the same ratio for bodies shared
+      across multiple modules as for CPU.
+
+
+   Summarizes ZAM profiling information for a given module.
 
 .. zeek:type:: addr_set
    :source-code: base/init-bare.zeek 40 40

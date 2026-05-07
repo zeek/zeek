@@ -167,6 +167,10 @@ Package: base/bif
 
    Functions to probabilistically determine top-k elements.
 
+:doc:`/scripts/base/bif/zam-prof.bif.zeek`
+
+   Functions to enable script-level control & querying of ZAM profiling.
+
 :doc:`/scripts/base/bif/storage.bif.zeek`
 
    Functions related to general storage operations. These are not specific to async or sync.

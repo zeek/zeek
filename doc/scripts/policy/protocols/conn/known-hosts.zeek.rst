@@ -10,33 +10,42 @@ is output provides an easy way to determine a count of the IP addresses in
 use on a network per day.
 
 :Namespace: Known
-:Imports: :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`, :doc:`base/utils/directions-and-hosts.zeek </scripts/base/utils/directions-and-hosts.zeek>`
+:Imports: :doc:`base/frameworks/cluster </scripts/base/frameworks/cluster/index>`, :doc:`base/frameworks/storage/async.zeek </scripts/base/frameworks/storage/async.zeek>`, :doc:`base/frameworks/storage/sync.zeek </scripts/base/frameworks/storage/sync.zeek>`, :doc:`base/utils/directions-and-hosts.zeek </scripts/base/utils/directions-and-hosts.zeek>`, :doc:`policy/frameworks/storage/backend/sqlite </scripts/policy/frameworks/storage/backend/sqlite/index>`
 
 Summary
 ~~~~~~~
 Runtime Options
 ###############
-=============================================================================== =======================================================
+=============================================================================== ===============================================================================
 :zeek:id:`Known::host_store_timeout`: :zeek:type:`interval` :zeek:attr:`&redef` The timeout interval to use for operations against
-                                                                                :zeek:see:`Known::host_store`.
+                                                                                :zeek:see:`Known::host_broker_store` and :zeek:see:`Known::host_store_backend`.
 :zeek:id:`Known::host_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`          The hosts whose existence should be logged and tracked.
-=============================================================================== =======================================================
+=============================================================================== ===============================================================================
 
 Redefinable Options
 ###################
-======================================================================================================== ====================================================================
-:zeek:id:`Known::host_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef`                           The expiry interval of new entries in :zeek:see:`Known::host_store`.
-:zeek:id:`Known::host_store_name`: :zeek:type:`string` :zeek:attr:`&redef`                               The Broker topic name to use for :zeek:see:`Known::host_store`.
+======================================================================================================== ==============================================================================
+:zeek:id:`Known::enable_hosts_persistence`: :zeek:type:`bool` :zeek:attr:`&redef`                        Use the storage framework to enable persistence of the stored
+                                                                                                         hosts between runs.
+:zeek:id:`Known::host_store_backend_options`: :zeek:type:`Storage::BackendOptions` :zeek:attr:`&redef`   The options for the host store.
+:zeek:id:`Known::host_store_backend_type`: :zeek:type:`Storage::Backend` :zeek:attr:`&redef`             The type of storage backend to open.
+:zeek:id:`Known::host_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef`                           The expiry interval of new entries in :zeek:see:`Known::host_broker_store` and
+                                                                                                         :zeek:see:`Known::host_store_backend`.
+:zeek:id:`Known::host_store_name`: :zeek:type:`string` :zeek:attr:`&redef`                               The Broker topic name to use for :zeek:see:`Known::host_broker_store`.
+:zeek:id:`Known::host_store_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                             The name to use for :zeek:see:`Known::host_store_backend`.
 :zeek:id:`Known::use_host_store`: :zeek:type:`bool` :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *...* Toggles between different implementations of this script.
-======================================================================================================== ====================================================================
+======================================================================================================== ==============================================================================
 
 State Variables
 ###############
-======================================================================================================= ================================================================
-:zeek:id:`Known::host_store`: :zeek:type:`Cluster::StoreInfo`                                           Holds the set of all known hosts.
+======================================================================================================= ==============================================================================
+:zeek:id:`Known::host_broker_store`: :zeek:type:`Cluster::StoreInfo`                                    Holds the set of all known hosts.
+:zeek:id:`Known::host_store_backend`: :zeek:type:`opaque`                                               This requires setting a configuration in local.zeek that sets the
+                                                                                                        Known::enable_hosts_persistence boolean to T, and optionally setting different
+                                                                                                        values in the Known::host_store_backend_options record.
 :zeek:id:`Known::hosts`: :zeek:type:`set` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef` The set of all known addresses to store for preventing duplicate
                                                                                                         logging of addresses.
-======================================================================================================= ================================================================
+======================================================================================================= ==============================================================================
 
 Types
 #####
@@ -71,17 +80,17 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: Known::host_store_timeout
-   :source-code: policy/protocols/conn/known-hosts.zeek 50 50
+   :source-code: policy/protocols/conn/known-hosts.zeek 81 81
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 secs``
 
    The timeout interval to use for operations against
-   :zeek:see:`Known::host_store`.
+   :zeek:see:`Known::host_broker_store` and :zeek:see:`Known::host_store_backend`.
 
 .. zeek:id:: Known::host_tracking
-   :source-code: policy/protocols/conn/known-hosts.zeek 35 35
+   :source-code: policy/protocols/conn/known-hosts.zeek 43 43
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
@@ -98,27 +107,84 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: Known::enable_hosts_persistence
+   :source-code: policy/protocols/conn/known-hosts.zeek 33 33
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``F``
+
+   Use the storage framework to enable persistence of the stored
+   hosts between runs.
+
+.. zeek:id:: Known::host_store_backend_options
+   :source-code: policy/protocols/conn/known-hosts.zeek 70 70
+
+   :Type: :zeek:type:`Storage::BackendOptions`
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            serializer=Storage::STORAGE_SERIALIZER_JSON
+            forced_sync=F
+            redis=<uninitialized>
+            sqlite=[database_path="/known/hosts.sqlite", table_name="zeekknownhosts", busy_timeout=5.0 secs, pragma_commands={
+               ["quick_check"] = "",
+               ["journal_mode"] = "WAL",
+               ["synchronous"] = "normal",
+               ["temp_store"] = "memory"
+            }, pragma_timeout=500.0 msecs, pragma_wait_on_busy=5.0 msecs]
+         }
+
+
+   The options for the host store. This should be redef'd in local.zeek to set
+   connection information for the backend. The options default to a central
+   persistent sqlite database.
+
+.. zeek:id:: Known::host_store_backend_type
+   :source-code: policy/protocols/conn/known-hosts.zeek 65 65
+
+   :Type: :zeek:type:`Storage::Backend`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``Storage::STORAGE_BACKEND_SQLITE``
+
+   The type of storage backend to open.
+
 .. zeek:id:: Known::host_store_expiry
-   :source-code: policy/protocols/conn/known-hosts.zeek 46 46
+   :source-code: policy/protocols/conn/known-hosts.zeek 77 77
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 day``
 
-   The expiry interval of new entries in :zeek:see:`Known::host_store`.
-   This also changes the interval at which hosts get logged.
+   The expiry interval of new entries in :zeek:see:`Known::host_broker_store` and
+   :zeek:see:`Known::host_store_backend`. This also changes the interval at
+   which hosts get logged.
 
 .. zeek:id:: Known::host_store_name
-   :source-code: policy/protocols/conn/known-hosts.zeek 42 42
+   :source-code: policy/protocols/conn/known-hosts.zeek 50 50
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"zeek/known/hosts"``
 
-   The Broker topic name to use for :zeek:see:`Known::host_store`.
+   The Broker topic name to use for :zeek:see:`Known::host_broker_store`.
+
+.. zeek:id:: Known::host_store_prefix
+   :source-code: policy/protocols/conn/known-hosts.zeek 62 62
+
+   :Type: :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``"zeekknownhosts"``
+
+   The name to use for :zeek:see:`Known::host_store_backend`. This will be used
+   by the backends to differentiate tables/keys. This should be alphanumeric so
+   that it can be used as the table name for the storage framework.
 
 .. zeek:id:: Known::use_host_store
-   :source-code: policy/protocols/conn/known-hosts.zeek 31 31
+   :source-code: policy/protocols/conn/known-hosts.zeek 39 39
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *"Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed."*
@@ -131,8 +197,8 @@ Redefinable Options
 
 State Variables
 ###############
-.. zeek:id:: Known::host_store
-   :source-code: policy/protocols/conn/known-hosts.zeek 39 39
+.. zeek:id:: Known::host_broker_store
+   :source-code: policy/protocols/conn/known-hosts.zeek 47 47
 
    :Type: :zeek:type:`Cluster::StoreInfo`
    :Default:
@@ -155,8 +221,18 @@ State Variables
    Holds the set of all known hosts.  Keys in the store are addresses
    and their associated value will always be the "true" boolean.
 
+.. zeek:id:: Known::host_store_backend
+   :source-code: policy/protocols/conn/known-hosts.zeek 57 57
+
+   :Type: :zeek:type:`opaque` of Storage::BackendHandle
+
+   This requires setting a configuration in local.zeek that sets the
+   Known::enable_hosts_persistence boolean to T, and optionally setting different
+   values in the Known::host_store_backend_options record.
+   Backend to use for storing known hosts data using the storage framework.
+
 .. zeek:id:: Known::hosts
-   :source-code: policy/protocols/conn/known-hosts.zeek 60 60
+   :source-code: policy/protocols/conn/known-hosts.zeek 91 91
 
    :Type: :zeek:type:`set` [:zeek:type:`addr`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
@@ -174,7 +250,7 @@ State Variables
 Types
 #####
 .. zeek:type:: Known::HostsInfo
-   :source-code: policy/protocols/conn/known-hosts.zeek 19 25
+   :source-code: policy/protocols/conn/known-hosts.zeek 23 29
 
    :Type: :zeek:type:`record`
 
@@ -195,7 +271,7 @@ Types
 Events
 ######
 .. zeek:id:: Known::log_known_hosts
-   :source-code: policy/protocols/conn/known-hosts.zeek 64 64
+   :source-code: policy/protocols/conn/known-hosts.zeek 95 95
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Known::HostsInfo`)
 
@@ -205,7 +281,7 @@ Events
 Hooks
 #####
 .. zeek:id:: Known::log_policy_hosts
-   :source-code: policy/protocols/conn/known-hosts.zeek 16 16
+   :source-code: policy/protocols/conn/known-hosts.zeek 20 20
 
    :Type: :zeek:type:`Log::PolicyHook`
 

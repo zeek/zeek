@@ -30,6 +30,8 @@ Runtime Options
 Redefinable Options
 ###################
 =========================================================================================================== =============================================================================
+:zeek:id:`Known::enable_services_persistence`: :zeek:type:`bool` :zeek:attr:`&redef`                        Use the storage framework to enable persistence of the stored
+                                                                                                            services between runs.
 :zeek:id:`Known::service_store_backend_options`: :zeek:type:`Storage::BackendOptions` :zeek:attr:`&redef`   The options for the service store.
 :zeek:id:`Known::service_store_backend_type`: :zeek:type:`Storage::Backend` :zeek:attr:`&redef`             The type of storage backend to open.
 :zeek:id:`Known::service_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef`                           The expiry interval of new entries in :zeek:see:`Known::service_broker_store`
@@ -37,23 +39,21 @@ Redefinable Options
 :zeek:id:`Known::service_store_name`: :zeek:type:`string` :zeek:attr:`&redef`                               The Broker topic name to use for :zeek:see:`Known::service_broker_store`.
 :zeek:id:`Known::service_store_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                             The name to use for :zeek:see:`Known::service_store_backend`.
 :zeek:id:`Known::use_service_store`: :zeek:type:`bool` :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *...* Toggles between different implementations of this script.
-:zeek:id:`Known::use_storage_framework`: :zeek:type:`bool` :zeek:attr:`&redef`                              Switches to the version of this script that uses the storage
-                                                                                                            framework instead of Broker stores.
 =========================================================================================================== =============================================================================
 
 State Variables
 ###############
-======================================================================================== ========================================================================
+======================================================================================== ========================================================================================
 :zeek:id:`Known::service_broker_store`: :zeek:type:`Cluster::StoreInfo`                  Storage configuration for Broker stores
                                                                                          Holds the set of all known services.
 :zeek:id:`Known::service_store_backend`: :zeek:type:`opaque`                             Storage configuration for storage framework stores
                                                                                          This requires setting a configuration in local.zeek that sets the
-                                                                                         Known::use_storage_framework boolean to T, and optionally sets different
-                                                                                         values in the Known::service_store_backend_options record.
+                                                                                         Known::enable_services_persistence boolean to T, and optionally setting different values
+                                                                                         in the Known::service_store_backend_options record.
 :zeek:id:`Known::services`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day`` Tracks the set of daily-detected services for preventing the logging
                                                                                          of duplicates, but can also be inspected by other scripts for
                                                                                          different purposes.
-======================================================================================== ========================================================================
+======================================================================================== ========================================================================================
 
 Types
 #####
@@ -95,7 +95,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: Known::service_store_timeout
-   :source-code: policy/protocols/conn/known-services.zeek 104 104
+   :source-code: policy/protocols/conn/known-services.zeek 105 105
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -106,7 +106,7 @@ Runtime Options
    :zeek:see:`Known::service_store_backend`.
 
 .. zeek:id:: Known::service_tracking
-   :source-code: policy/protocols/conn/known-services.zeek 56 56
+   :source-code: policy/protocols/conn/known-services.zeek 55 55
 
    :Type: :zeek:type:`Host`
    :Attributes: :zeek:attr:`&redef`
@@ -122,7 +122,7 @@ Runtime Options
    See :zeek:type:`Host` for possible choices.
 
 .. zeek:id:: Known::service_udp_requires_response
-   :source-code: policy/protocols/conn/known-services.zeek 52 52
+   :source-code: policy/protocols/conn/known-services.zeek 51 51
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -132,6 +132,16 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: Known::enable_services_persistence
+   :source-code: policy/protocols/conn/known-services.zeek 42 42
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``F``
+
+   Use the storage framework to enable persistence of the stored
+   services between runs.
+
 .. zeek:id:: Known::service_store_backend_options
    :source-code: policy/protocols/conn/known-services.zeek 93 93
 
@@ -145,7 +155,7 @@ Redefinable Options
             serializer=Storage::STORAGE_SERIALIZER_JSON
             forced_sync=F
             redis=<uninitialized>
-            sqlite=[database_path=":memory:", table_name="zeek/known/services", busy_timeout=5.0 secs, pragma_commands={
+            sqlite=[database_path="/known/services.sqlite", table_name="zeekknownservices", busy_timeout=5.0 secs, pragma_commands={
                ["quick_check"] = "",
                ["journal_mode"] = "WAL",
                ["synchronous"] = "normal",
@@ -155,10 +165,11 @@ Redefinable Options
 
 
    The options for the service store. This should be redef'd in local.zeek to set
-   connection information for the backend. The options default to a memory store.
+   connection information for the backend. The options default to a central
+   persistent sqlite database.
 
 .. zeek:id:: Known::service_store_backend_type
-   :source-code: policy/protocols/conn/known-services.zeek 89 89
+   :source-code: policy/protocols/conn/known-services.zeek 88 88
 
    :Type: :zeek:type:`Storage::Backend`
    :Attributes: :zeek:attr:`&redef`
@@ -167,18 +178,18 @@ Redefinable Options
    The type of storage backend to open.
 
 .. zeek:id:: Known::service_store_expiry
-   :source-code: policy/protocols/conn/known-services.zeek 99 99
+   :source-code: policy/protocols/conn/known-services.zeek 100 100
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 day``
 
    The expiry interval of new entries in :zeek:see:`Known::service_broker_store`
-   and :zeek:see:`Known::service_store_backend`.  This also changes the interval
+   and :zeek:see:`Known::service_store_backend`. This also changes the interval
    at which services get logged.
 
 .. zeek:id:: Known::service_store_name
-   :source-code: policy/protocols/conn/known-services.zeek 72 72
+   :source-code: policy/protocols/conn/known-services.zeek 71 71
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -187,7 +198,7 @@ Redefinable Options
    The Broker topic name to use for :zeek:see:`Known::service_broker_store`.
 
 .. zeek:id:: Known::service_store_prefix
-   :source-code: policy/protocols/conn/known-services.zeek 86 86
+   :source-code: policy/protocols/conn/known-services.zeek 85 85
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -198,7 +209,7 @@ Redefinable Options
    that it can be used as the table name for the storage framework.
 
 .. zeek:id:: Known::use_service_store
-   :source-code: policy/protocols/conn/known-services.zeek 44 44
+   :source-code: policy/protocols/conn/known-services.zeek 48 48
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *"Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed."*
@@ -209,21 +220,10 @@ Redefinable Options
    with keys uniformly distributed over proxy nodes in cluster
    operation.
 
-.. zeek:id:: Known::use_storage_framework
-   :source-code: policy/protocols/conn/known-services.zeek 49 49
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``F``
-
-   Switches to the version of this script that uses the storage
-   framework instead of Broker stores. This will default to ``T``
-   in v8.1.
-
 State Variables
 ###############
 .. zeek:id:: Known::service_broker_store
-   :source-code: policy/protocols/conn/known-services.zeek 69 69
+   :source-code: policy/protocols/conn/known-services.zeek 68 68
 
    :Type: :zeek:type:`Cluster::StoreInfo`
    :Default:
@@ -249,18 +249,18 @@ State Variables
    always the boolean value of "true".
 
 .. zeek:id:: Known::service_store_backend
-   :source-code: policy/protocols/conn/known-services.zeek 81 81
+   :source-code: policy/protocols/conn/known-services.zeek 80 80
 
    :Type: :zeek:type:`opaque` of Storage::BackendHandle
 
    Storage configuration for storage framework stores
    This requires setting a configuration in local.zeek that sets the
-   Known::use_storage_framework boolean to T, and optionally sets different
-   values in the Known::service_store_backend_options record.
+   Known::enable_services_persistence boolean to T, and optionally setting different values
+   in the Known::service_store_backend_options record.
    Backend to use for storing known services data using the storage framework.
 
 .. zeek:id:: Known::services
-   :source-code: policy/protocols/conn/known-services.zeek 114 114
+   :source-code: policy/protocols/conn/known-services.zeek 115 115
 
    :Type: :zeek:type:`table` [:zeek:type:`addr`, :zeek:type:`port`] of :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day``
@@ -278,7 +278,7 @@ State Variables
 Types
 #####
 .. zeek:type:: Known::AddrPortServTriplet
-   :source-code: policy/protocols/conn/known-services.zeek 58 62
+   :source-code: policy/protocols/conn/known-services.zeek 57 61
 
    :Type: :zeek:type:`record`
 
@@ -330,7 +330,7 @@ Types
 Events
 ######
 .. zeek:id:: Known::log_known_services
-   :source-code: policy/protocols/conn/known-services.zeek 118 118
+   :source-code: policy/protocols/conn/known-services.zeek 119 119
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Known::ServicesInfo`)
 

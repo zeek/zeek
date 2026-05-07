@@ -163,6 +163,7 @@
    base/bif/bloom-filter.bif.zeek </scripts/base/bif/bloom-filter.bif.zeek>
    base/bif/cardinality-counter.bif.zeek </scripts/base/bif/cardinality-counter.bif.zeek>
    base/bif/top-k.bif.zeek </scripts/base/bif/top-k.bif.zeek>
+   base/bif/zam-prof.bif.zeek </scripts/base/bif/zam-prof.bif.zeek>
    base/bif/storage.bif.zeek </scripts/base/bif/storage.bif.zeek>
    base/bif/storage-async.bif.zeek </scripts/base/bif/storage-async.bif.zeek>
    base/bif/storage-events.bif.zeek </scripts/base/bif/storage-events.bif.zeek>

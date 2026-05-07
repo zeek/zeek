@@ -334,7 +334,7 @@ debian12_task:
 
 opensuse_leap_16_0_task:
   container:
-    # Opensuse Leap 15.6 EOL: 31 October 2026
+    # Opensuse Leap 16.0 EOL: Sun, Oct 31, 2027
     dockerfile: ci/opensuse-leap-16.0/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE

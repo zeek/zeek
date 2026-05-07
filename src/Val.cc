@@ -4004,6 +4004,12 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
     }
 
     if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
+        auto set_type = t->AsTableType();
+        auto indices = set_type->GetIndices();
+
+        if ( indices->GetTypes().size() > 1 )
+            return nullptr;
+
         auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsTableType()};
         auto ret = make_intrusive<TableVal>(ret_type);
 

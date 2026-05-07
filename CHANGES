@@ -1,3 +1,11 @@
+8.2.0-rc1.14 | 2026-05-07 12:01:03 -0700
+
+  * CI: drop openSUSE Leap 15.6, EOL'd April 30 (Christian Kreibich, Corelight)
+
+  * CI: Drop Fedora 42 (EOL May 13), add Fedora 44 (Christian Kreibich, Corelight)
+
+    (cherry picked from commit d70f34be5af46271f1ee650b8c7320d0f6cb7a9b
+
 8.2.0-rc1.13 | 2026-05-06 15:24:36 -0700
 
   * Add Ubuntu 26.04 to CI, remove 25.04 (Johanna Amann, Corelight)

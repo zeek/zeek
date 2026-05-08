@@ -1,3 +1,25 @@
+9.0.0-dev.121 | 2026-05-08 11:23:18 -0700
+
+  * Bump gitpython from 3.1.47 to 3.1.49 in /doc (dependabot[bot])
+
+    Bumps [gitpython](https://github.com/gitpython-developers/GitPython) from 3.1.47 to 3.1.49.
+    - [Release notes](https://github.com/gitpython-developers/GitPython/releases)
+    - [Changelog](https://github.com/gitpython-developers/GitPython/blob/main/CHANGES)
+    - [Commits](https://github.com/gitpython-developers/GitPython/compare/3.1.47...3.1.49)
+
+    ---
+    updated-dependencies:
+    - dependency-name: gitpython
+      dependency-version: 3.1.49
+      dependency-type: direct:production
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+  * CI: fix openSUSE Leap 16.0 EOL date in comment (Christian Kreibich, Corelight)
+
+    Per https://en.opensuse.org/openSUSE:Roadmap#Leap_16.0
+
 9.0.0-dev.118 | 2026-05-07 12:01:03 -0700
 
   * CI: drop openSUSE Leap 15.6, EOL'd April 30 (Christian Kreibich, Corelight)

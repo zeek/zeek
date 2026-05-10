@@ -390,6 +390,18 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
                 return AttrError(
                     "set/table can only have one of &read_expire, &write_expire, "
                     "&create_expire");
+
+            // Warn if the expiration expression is not a constant or global
+            // variable. Dynamic values such as function arguments are evaluated
+            // in isolation and will not reflect the intended runtime value,
+            // leading to silently incorrect expiration behavior.
+            if ( a->GetExpr() &&
+                 a->GetExpr()->Tag() != EXPR_CONST &&
+                 a->GetExpr()->Tag() != EXPR_NAME )
+                reporter->Warning(
+                    "expiration interval is not a constant or global variable; "
+                    "dynamic values such as function arguments will not have "
+                    "the intended effect");
         }
 
 #if 0

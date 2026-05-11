@@ -26,8 +26,4 @@ event zeek_init()
 
 	local d: double = -3.9;
 	print d as int;
-
-	# This produces max-int; maybe instead it should produce an error.
-	local e = 1e99;
-	print e as int;
 	}

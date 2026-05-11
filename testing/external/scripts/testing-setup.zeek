@@ -34,3 +34,6 @@ redef Analyzer::DebugLogging::include_disabling = F;
 # in order to skip initialization of cluster backend. Cluster backends may keep
 # the IO loop alive once registered due to registering IO sources.
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;
+
+# Register the ZIP analyzer to handle application/zip
+@load policy/files/zip/register

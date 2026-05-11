@@ -14,6 +14,7 @@
 # @TEST-EXEC: btest-diff extracted.log
 
 @load base/files/zip
+@load policy/files/zip/register
 
 event ZIP::file(f: fa_file, zip_file: ZIP::File)
 	{

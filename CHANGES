@@ -1,3 +1,15 @@
+9.0.0-dev.197 | 2026-05-21 16:00:54 +0000
+
+  * Update libunistd submodule for icmp6.h changes (Tim Wojtulewicz, Corelight)
+
+  * Switch core.icmp.icmp_sent btest to use a different pcap (Tim Wojtulewicz)
+
+    The original Traces/icmp/icmp_sent.pcap file is an MLD listener report packet. This
+    worked before because that type of ICMPv6 traffic wasn't handled. Now we're only not
+    handling MLD_LISTENER_QUERY, so the pcap here had to change to match.
+
+  * Add support for IPv6 Multicast Listener Discovery v1/v2 (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.194 | 2026-05-21 13:19:08 +0200
 
   * Consolidate duplicated switch cases as pointed out by `clang-tidy` (Benjamin Bannier, Corelight)

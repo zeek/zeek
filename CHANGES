@@ -1,3 +1,12 @@
+8.2.0-rc1.18 | 2026-05-11 11:20:31 -0700
+
+  * ci: fix macos build (Benjamin Bannier, Corelight)
+
+    zeekjs builds against neither node@25 or node@24 as shipped by Homebrew,
+    so this patch pins CI to build against node@24.
+
+    (cherry picked from commit d4b78a866548adb82d5ec84a6434889632b05d9a)
+
 8.2.0-rc1.17 | 2026-05-11 09:47:54 -0700
 
   * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)

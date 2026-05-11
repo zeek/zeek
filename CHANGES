@@ -1,3 +1,23 @@
+8.2.0-rc1.17 | 2026-05-11 09:47:54 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit acf47a9f46c52b7bf68261e863a932d9f4d8b729)
+
+  * CI: fix openSUSE Leap 16.0 EOL date in comment (Christian Kreibich, Corelight)
+
+    Per https://en.opensuse.org/openSUSE:Roadmap#Leap_16.0
+
+    (cherry picked from commit 518e192c4c72f7d5c63982d9538e972aa14ff31c)
+
+  * Merge branch 'topic/christian/ci-updates' (Christian Kreibich, Corelight)
+
+    * topic/christian/ci-updates:
+      CI: drop openSUSE Leap 15.6, EOL'd April 30
+      CI: Drop Fedora 42 (EOL May 13), add Fedora 44
+
+    (cherry picked from commit d70f34be5af46271f1ee650b8c7320d0f6cb7a9b)
+
 8.2.0-rc1.14 | 2026-05-07 12:01:03 -0700
 
   * CI: drop openSUSE Leap 15.6, EOL'd April 30 (Christian Kreibich, Corelight)

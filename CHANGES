@@ -1,3 +1,21 @@
+9.0.0-dev.125 | 2026-05-11 10:04:23 -0700
+
+  * Bump gitpython from 3.1.49 to 3.1.50 in /doc (dependabot[bot])
+
+    Bumps [gitpython](https://github.com/gitpython-developers/GitPython) from 3.1.49 to 3.1.50.
+    - [Release notes](https://github.com/gitpython-developers/GitPython/releases)
+    - [Changelog](https://github.com/gitpython-developers/GitPython/blob/main/CHANGES)
+    - [Commits](https://github.com/gitpython-developers/GitPython/compare/3.1.49...3.1.50)
+
+    ---
+    updated-dependencies:
+    - dependency-name: gitpython
+      dependency-version: 3.1.50
+      dependency-type: direct:production
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.0.0-dev.123 | 2026-05-11 09:45:16 -0700
 
   * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)

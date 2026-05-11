@@ -1,3 +1,7 @@
+9.0.0-dev.123 | 2026-05-11 09:45:16 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 9.0.0-dev.121 | 2026-05-08 11:23:18 -0700
 
   * Bump gitpython from 3.1.47 to 3.1.49 in /doc (dependabot[bot])

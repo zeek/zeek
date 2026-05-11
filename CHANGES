@@ -1,3 +1,10 @@
+9.0.0-dev.127 | 2026-05-11 11:14:59 -0700
+
+  * ci: fix macos build (Benjamin Bannier, Corelight)
+
+    zeekjs builds against neither node@25 or node@24 as shipped by Homebrew,
+    so this patch pins CI to build against node@24.
+
 9.0.0-dev.125 | 2026-05-11 10:04:23 -0700
 
   * Bump gitpython from 3.1.49 to 3.1.50 in /doc (dependabot[bot])

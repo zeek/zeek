@@ -30,6 +30,8 @@
 @load ./zeromq-test-bootstrap
 @load ./zeromq-metrics
 
+redef Log::default_rotation_interval = 0 secs;
+
 global tick: event() &is_used;
 global finish: event(name: string) &is_used;
 global ping: event(sender: string, c: count) &is_used;
@@ -37,11 +39,16 @@ global ping: event(sender: string, c: count) &is_used;
 # How many messages each node publishes in total.
 const total_publishes = 100000;
 # How many events to publish per tick()
-const batch = 100;
+const batch = 1000;
 
-# Lower HWMs to provoke drops
-redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch/ 5;
-redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 5;
+# Lower HWMs to provoke drops.
+#
+# Okay, so these numbers are just magically tuned until this test
+# seems to reliably pass with an ASAN build, nothing more. They
+# interact with the number of publishes and chosen batch. If this
+# becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
 
 global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 # @TEST-END-FILE
@@ -88,7 +95,11 @@ event Cluster::node_down(name: string, id: string)
 		terminate();
 	}
 
+# last_c tracks the last publish offset from other nodes.
 global last_c: table[string] of count &default=0;
+
+# drop_c is incremented whenever c from sender and last_c[sender]
+# have non-zero difference.
 global drop_c: table[string] of count &default=0;
 
 event ping(sender: string, c: count)
@@ -147,7 +158,7 @@ event tick()
 
 	# Relax publishing if we published enough so the manager
 	# isn't totally overloaded.
-	local s = publishes < total_publishes ? 0sec : 0.05sec;
+	local s = publishes < total_publishes ? 0.1msec : 10msec;
 	schedule s { tick() };
 	}
 

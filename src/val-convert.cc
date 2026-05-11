@@ -88,7 +88,7 @@ ValPtr convert_string_to_port(const StringVal* sv) {
         char* slash;
         errno = 0;
         port = strtol(s, &slash, 10);
-        if ( ! errno ) {
+        if ( ! errno && *slash ) {
             ++slash;
             if ( util::streq(slash, "tcp") )
                 return val_mgr->Port(port, TRANSPORT_TCP);

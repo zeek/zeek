@@ -3543,27 +3543,15 @@ function raw_bytes_to_v6_addr%(x: string%): addr
 ##
 ## .. zeek:see:: to_addr to_count to_int to_subnet
 function to_port%(s: string%): port
-    %{
-    int port = 0;
-    if ( s->Len() > 0 && s->Len() < 10 )
-        {
-        char* slash;
-        errno = 0;
-        port = strtol(s->CheckString(), &slash, 10);
-        if ( ! errno && *slash )
-            {
-            ++slash;
-            if ( zeek::util::streq(slash, "tcp") )
-                return zeek::val_mgr->Port(port, TRANSPORT_TCP);
-            else if ( zeek::util::streq(slash, "udp") )
-                return zeek::val_mgr->Port(port, TRANSPORT_UDP);
-            else if ( zeek::util::streq(slash, "icmp") )
-                return zeek::val_mgr->Port(port, TRANSPORT_ICMP);
-            }
-        }
+	%{
+	auto result = zeek::detail::convert_string_to_port(s);
+	if ( ! result )
+		{
+		zeek::emit_builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
+		result = zeek::val_mgr->Port(0, TRANSPORT_UNKNOWN);
+		}
 
-    zeek::emit_builtin_error("wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp)/");
-    return zeek::val_mgr->Port(port, TRANSPORT_UNKNOWN);
+	return result;
 	%}
 
 ## Converts a string of bytes representing a double value (in network byte order)

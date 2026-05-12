@@ -1,3 +1,7 @@
+9.0.0-dev.129 | 2026-05-12 16:40:05 +0200
+
+  * for script optimization of records, profiling hashes now always only cover the original fields (Vern Paxson, Corelight)
+
 9.0.0-dev.127 | 2026-05-11 11:14:59 -0700
 
   * ci: fix macos build (Benjamin Bannier, Corelight)

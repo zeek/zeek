@@ -202,7 +202,7 @@ inline TableValPtr table_remove_from__CPP(const TableValPtr& t1, const TableValP
     return t1;
 }
 
-// The same, for an empty record.
+// The same, for an empty vector.
 inline VectorValPtr vector_coerce__CPP(const ValPtr& v, const TypePtr& t) {
     VectorVal* vv = v->AsVectorVal();
 

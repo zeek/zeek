@@ -73,18 +73,19 @@ class ProfileFunc : public TraversalCallback {
 public:
     // Constructor used for the usual case of profiling a script
     // function and one of its bodies.
-    ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
+    ProfileFunc(const Func* func, const StmtPtr& body);
 
     // Constructors for profiling an AST statement expression.  These exist
     // to support (1) profiling lambda expressions and loop bodies, and
     // (2) traversing attribute expressions (such as &default=expr)
     // to discover what components they include.
-    ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
-    ProfileFunc(const Expr* func, bool abs_rec_fields = false);
+    ProfileFunc(const Stmt* body);
+    ProfileFunc(const Expr* func);
 
     // Returns the function, body, or expression profiled.  Each can be
     // null depending on the constructor used.
     const Func* ProfiledFunc() const { return profiled_func; }
+    const FuncTypePtr& ProfiledFuncType() const { return profiled_func_t; }
     const ScopePtr& ProfiledScope() const { return profiled_scope; }
     const Stmt* ProfiledBody() const { return profiled_body; }
     const Expr* ProfiledExpr() const { return profiled_expr; }
@@ -165,8 +166,8 @@ protected:
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
     const Func* profiled_func = nullptr;
-    ScopePtr profiled_scope;     // null when not in a full function context
-    FuncTypePtr profiled_func_t; // null when not in a full function context
+    ScopePtr profiled_scope;     // null when not in a function/lambda context
+    FuncTypePtr profiled_func_t; // null when not in a function/lambda context
     const Stmt* profiled_body = nullptr;
     const Expr* profiled_expr = nullptr;
 
@@ -301,10 +302,6 @@ protected:
     // track these individually, but to date all that's mattered is
     // whether a given body contains any.
     int num_when_stmts = 0;
-
-    // Whether we should treat record field accesses as absolute
-    // (integer offset) or relative (name-based).
-    bool abs_rec_fields;
 };
 
 // Describes an operation for which some forms of access can lead to state
@@ -364,11 +361,8 @@ public:
     // then it is called for each profile to see whether it's compilable,
     // and, if not, the FuncInfo is marked as ShouldSkip().
     // "compute_func_hashes" governs whether we compute hashes for the
-    // FuncInfo entries, or keep their existing ones.  "full_record_hashes"
-    // controls whether the hashes for extended records covers their final,
-    // full form, or should only their original fields.
-    ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool compute_func_hashes,
-                 bool full_record_hashes);
+    // FuncInfo entries, or keep their existing ones.
+    ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool compute_func_hashes);
 
     // Used to profile additional lambdas that (potentially) weren't part
     // of the overall function profiling.
@@ -643,10 +637,6 @@ protected:
     // Whether to compute new hashes for the FuncInfo entries. If the FuncInfo
     // doesn't have a hash, it will always be computed.
     bool compute_func_hashes;
-
-    // Whether the hashes for extended records should cover their final,
-    // full form, or only their original fields.
-    bool full_record_hashes;
 };
 
 // Updates the line numbers associated with an AST node to reflect its

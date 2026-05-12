@@ -309,7 +309,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
     Func::Body body{.stmts = merged_body};
     funcs.emplace_back(inlined_func, new_scope, std::move(body));
 
-    auto pf = std::make_shared<ProfileFunc>(inlined_func.get(), merged_body, true);
+    auto pf = std::make_shared<ProfileFunc>(inlined_func.get(), merged_body);
     funcs.back().SetProfile(std::move(pf));
 }
 

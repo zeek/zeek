@@ -3,6 +3,30 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.8
+==========
+
+Thank you to Michael Dickenson for their contribution to this release.
+
+This release fixes the following security issues:
+
+- A specially-crafted series of MIME headers sent via SMTP or HTTP could cause Zeek to use
+  large amounts of memory and potentially crash. Due to the fact that these packets can be
+  received from remote hosts, this considered a DoS risk and is a high-severity
+  vulnerability. The fix included is to add a new ``MIME::max_header_bytes`` script
+  variable that sets the maximum size of a MIME header. If the limit is reached, a new
+  ``exceeded_mime_max_header_bytes`` weird will be reported and the packet will not be
+  processed any further.
+
+This release fixes the following bugs:
+
+- Sqlite storage backends no longer potentially write data into a single database file
+  across multiple unrelated backend handles.
+
+- A crash in the table code was fixed if reallocation failed while resizing.
+
+- Spicy was updated to v1.14.1.
+
 Zeek 8.0.7
 ==========
 

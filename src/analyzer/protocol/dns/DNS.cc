@@ -1789,21 +1789,41 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 auto alpn = make_intrusive<VectorVal>(id::string_vec);
 
                 int item_len_parsed = 0;
-                while ( item_len_parsed + 2 < value_len ) {
+                while ( item_len_parsed + 2 <= value_len ) {
                     auto alpn_len = ExtractByte(data, len);
                     item_len_parsed += 1;
 
                     if ( alpn_len == 0 || alpn_len > 255 || alpn_len + item_len_parsed > value_len ) {
                         analyzer->Weird("DNS_SVCB_alpn_length_invalid");
+
+                        // We've consumed item_len_parsed from len and data
+                        // already, but now hit an invalid inner alpn_len value.
+                        // At the malformed label, we want to extract the full
+                        // invalid value, so reset data and len accordingly
+                        // and free any extracted strings explicitly.
+                        data -= item_len_parsed;
+                        len += item_len_parsed;
+                        alpn = nullptr;
+
                         goto malformed;
                     }
 
                     assert(alpn_len <= len);
 
-                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
-                    data += alpn_len;
-                    len -= alpn_len;
+                    auto* alpn_str = ExtractStream(data, len, alpn_len);
+                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_str));
                     item_len_parsed += alpn_len;
+                }
+
+                // If we didn't end up consuming all of value, tickle
+                // a weird and treat the whole alpn list as malformed.
+                if ( value_len != item_len_parsed ) {
+                    analyzer->Weird("DNS_SVCB_alpn_length_invalid");
+                    data -= item_len_parsed;
+                    len += item_len_parsed;
+                    alpn = nullptr;
+
+                    goto malformed;
                 }
 
                 if ( alpn->Size() > 0 )
@@ -1821,7 +1841,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
             case detail::port: // port
                 if ( value_len != 2 ) {
                     analyzer->Weird("DNS_SVCB_port_length_invalid");
-                    break;
+                    goto malformed;
                 }
 
                 svc_param->Assign(3, zeek::val_mgr->Count(ExtractShort(data, len)));

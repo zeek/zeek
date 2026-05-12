@@ -63,6 +63,10 @@ Breaking Changes
   See the discussion at https://github.com/zeek/zeek/discussions/5240 for more background
   and feel free to chime in with feedback.
 
+- FreeBSD is no longer an officially-supported platform. We will make our best efforts to
+  provide fixes to reported issues, like any other platform, but will not longer do
+  regular builds on our CI provider.
+
 New Functionality
 -----------------
 

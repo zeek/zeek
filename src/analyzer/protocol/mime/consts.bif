@@ -1,1 +1,2 @@
 const MIME::max_depth: count;
+const MIME::max_header_bytes: count;

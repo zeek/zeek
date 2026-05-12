@@ -1,3 +1,14 @@
+8.2.0-rc1.21 | 2026-05-12 09:37:44 -0700
+
+  * Add `x` for exceeded mime header length in history (Evan Typanski, Corelight)
+
+  * Add header size limit for MIME entities (Evan Typanski, Corelight)
+
+    Each header should not be very large, so a small cap should be
+    reasonable. We could consider other limits for other components, but
+    those seem like they have more potential to backfire. Abusing the
+    headers should not be possible regardless, though.
+
 8.2.0-rc1.18 | 2026-05-11 11:20:31 -0700
 
   * ci: fix macos build (Benjamin Bannier, Corelight)

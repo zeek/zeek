@@ -1,6 +1,7 @@
 # @TEST-DOC: Workers and proxy publish to the manager topic. They publish so fast that messages are dropped a) on their end and b) on the manager as well. The test checks that metrics are incremented and the manager also verifies that not all messages arrived.
 #
 # @TEST-REQUIRES: have-zeromq
+# @TEST-REQUIRES: ! is-windows-ci
 #
 # @TEST-GROUP: cluster-zeromq
 #

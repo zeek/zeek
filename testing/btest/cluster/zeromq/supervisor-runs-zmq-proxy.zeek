@@ -1,6 +1,7 @@
 # @TEST-DOC: Test a Zeek cluster where the ZeroMQ proxy thread is spawned by the supervisor instead of the manager.
 #
 # @TEST-REQUIRES: have-zeromq
+# @TEST-REQUIRES: ! is-windows-ci
 #
 # @TEST-GROUP: cluster-zeromq
 #

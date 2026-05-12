@@ -5,7 +5,10 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <openssl/asn1.h>
+#include <openssl/opensslv.h>
 #include <openssl/x509.h>
 
 #include "zeek/file_analysis/Analyzer.h"
@@ -24,6 +27,23 @@ namespace file_analysis {
 class File;
 
 namespace detail {
+
+static_assert(ZEEK_OPENSSL_VERSION_MAJOR == OPENSSL_VERSION_MAJOR,
+              "OpenSSL major version mismatch: Zeek was configured with a different "
+              "OpenSSL major version than the headers being compiled against.");
+
+// X509_get_ext(), X509_EXTENSION_get_object() and related functions return const
+// pointers in OpenSSL 4.0+, but non-const in earlier versions. This is awkward, as
+// we have the signatures in some functions. We use type aliases in these cases now,
+// and adjust them to be the same as the OpenSSL API. Not pretty, but I don't have a
+// better idea.
+#if ZEEK_OPENSSL_VERSION_MAJOR >= 4
+using openssl_x509_ext_t = const X509_EXTENSION;
+using openssl_asn1_obj_t = const ASN1_OBJECT;
+#else
+using openssl_x509_ext_t = X509_EXTENSION;
+using openssl_asn1_obj_t = ASN1_OBJECT;
+#endif
 
 class X509Common : public file_analysis::Analyzer {
 public:
@@ -45,9 +65,9 @@ public:
 protected:
     X509Common(const zeek::Tag& arg_tag, RecordValPtr arg_args, file_analysis::File* arg_file);
 
-    void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
-    void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
-    virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
+    void ParseExtension(openssl_x509_ext_t* ex, const EventHandlerPtr& h, bool global);
+    void ParseSignedCertificateTimestamps(openssl_x509_ext_t* ext);
+    virtual void ParseExtensionsSpecific(openssl_x509_ext_t* ex, bool, openssl_asn1_obj_t*, const char*) = 0;
 };
 
 } // namespace detail

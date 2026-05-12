@@ -1243,6 +1243,10 @@ if ((OPENSSL_VERSION VERSION_EQUAL "3.0.0") OR (OPENSSL_VERSION VERSION_GREATER 
     set(ZEEK_HAVE_OPENSSL_3_0 true CACHE INTERNAL "" FORCE)
 endif ()
 
+# Keep track of OpenSSL version to prevent allow checking if plugins use the same version
+# when compiling
+string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" ZEEK_OPENSSL_VERSION_MAJOR "${OPENSSL_VERSION}")
+
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 

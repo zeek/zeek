@@ -84,7 +84,7 @@ bool X509::EndOfFile() {
 
     int num_ext = X509_get_ext_count(ssl_cert);
     for ( int k = 0; k < num_ext; ++k ) {
-        X509_EXTENSION* ex = X509_get_ext(ssl_cert, k);
+        auto* ex = X509_get_ext(ssl_cert, k);
         if ( ! ex )
             continue;
 
@@ -124,7 +124,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     pX509Cert->Assign(2, make_intrusive<StringVal>(len, buf));
     BIO_reset(bio);
 
-    X509_NAME* subject_name = X509_get_subject_name(ssl_cert);
+    auto* subject_name = X509_get_subject_name(ssl_cert);
     // extract the most specific (last) common name from the subject
     int namepos = -1;
     for ( ;; ) {
@@ -273,7 +273,7 @@ void X509::FreeRootStore() {
         X509_STORE_free(e.second);
 }
 
-void X509::ParseBasicConstraints(X509_EXTENSION* ex) {
+void X509::ParseBasicConstraints(openssl_x509_ext_t* ex) {
     assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 
     BASIC_CONSTRAINTS* constr = reinterpret_cast<BASIC_CONSTRAINTS*>(X509V3_EXT_d2i(ex));
@@ -296,7 +296,7 @@ void X509::ParseBasicConstraints(X509_EXTENSION* ex) {
         reporter->Weird(GetFile(), "x509_invalid_basic_constraint");
 }
 
-void X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT* ext_asn, const char* oid) {
+void X509::ParseExtensionsSpecific(openssl_x509_ext_t* ex, bool global, openssl_asn1_obj_t* ext_asn, const char* oid) {
     // look if we have a specialized handler for this event...
     if ( OBJ_obj2nid(ext_asn) == NID_basic_constraints )
         ParseBasicConstraints(ex);
@@ -315,7 +315,7 @@ void X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT*
         ParseSignedCertificateTimestamps(ex);
 }
 
-void X509::ParseSAN(X509_EXTENSION* ext) {
+void X509::ParseSAN(openssl_x509_ext_t* ext) {
     assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
 
     GENERAL_NAMES* altname = reinterpret_cast<GENERAL_NAMES*>(X509V3_EXT_d2i(ext));
@@ -375,16 +375,17 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
             if ( ips == nullptr )
                 ips = make_intrusive<VectorVal>(id::find_type<VectorType>("addr_vec"));
 
-            uint32_t* addr = reinterpret_cast<uint32_t*>(gen->d.ip->data);
+            const uint32_t* addr = reinterpret_cast<const uint32_t*>(ASN1_STRING_get0_data(gen->d.ip));
+            int ip_len = ASN1_STRING_length(gen->d.ip);
 
-            if ( gen->d.ip->length == 4 )
+            if ( ip_len == 4 )
                 ips->Assign(ips->Size(), make_intrusive<AddrVal>(*addr));
 
-            else if ( gen->d.ip->length == 16 )
+            else if ( ip_len == 16 )
                 ips->Assign(ips->Size(), make_intrusive<AddrVal>(addr));
 
             else {
-                reporter->Weird(GetFile(), "x509_san_ip_length", util::fmt("%d", gen->d.ip->length));
+                reporter->Weird(GetFile(), "x509_san_ip_length", util::fmt("%d", ip_len));
                 continue;
             }
         }

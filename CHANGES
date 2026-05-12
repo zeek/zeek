@@ -1,3 +1,13 @@
+9.0.0-dev.132 | 2026-05-12 16:44:03 +0100
+
+  * Make Zeek compile against OpenSSL 4.0 (Johanna Amann, Corelight)
+
+    The bulk of the changes are function signature changes that move to more
+    const-ness. This is slightly annoying as we use these in our function
+    signatures too.
+
+    We also move away from the deprecated asn1 time comparison function.
+
 9.0.0-dev.129 | 2026-05-12 16:40:05 +0200
 
   * for script optimization of records, profiling hashes now always only cover the original fields (Vern Paxson, Corelight)

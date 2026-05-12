@@ -28,7 +28,7 @@ protected:
 private:
     void ParseResponse(OCSP_RESPONSE*);
     void ParseRequest(OCSP_REQUEST*);
-    void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) override;
+    void ParseExtensionsSpecific(openssl_x509_ext_t* ex, bool, openssl_asn1_obj_t*, const char*) override;
 
     std::string ocsp_data;
     bool request = false; // true if ocsp request, false if reply

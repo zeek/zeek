@@ -94,6 +94,9 @@
 /* d2i_x509 uses const char** */
 #cmakedefine OPENSSL_D2I_X509_USES_CONST_CHAR
 
+/* OpenSSL major version number detected at CMake configure time */
+#define ZEEK_OPENSSL_VERSION_MAJOR @ZEEK_OPENSSL_VERSION_MAJOR@
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE @RETSIGTYPE@
 

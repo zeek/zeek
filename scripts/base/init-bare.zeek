@@ -3771,6 +3771,9 @@ export {
 	## reached. Setting this value to 0 removes the limit.
 	const max_depth = 100 &redef;
 
+	## Stop analysis of MIME headers that exceed this byte limit.
+	## Setting this value to 0 removes the limit.
+	const max_header_bytes = 65536 &redef;
 }
 
 module MOUNT3;

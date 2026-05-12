@@ -1,3 +1,14 @@
+9.0.0-dev.141 | 2026-05-12 14:22:09 -0700
+
+  * Add `x` for exceeded mime header length in history (Evan Typanski, Corelight)
+
+  * Add header size limit for MIME entities (Evan Typanski, Corelight)
+
+    Each header should not be very large, so a small cap should be
+    reasonable. We could consider other limits for other components, but
+    those seem like they have more potential to backfire. Abusing the
+    headers should not be possible regardless, though.
+
 9.0.0-dev.138 | 2026-05-12 14:21:50 -0700
 
   * DNS: Use ExtractStream() for alpn string (Arne Welzel, Corelight)

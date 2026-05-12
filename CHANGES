@@ -1,3 +1,30 @@
+8.2.0-rc1.27 | 2026-05-12 09:38:01 -0700
+
+  * DNS: Use ExtractStream() for alpn string (Arne Welzel, Corelight)
+
+  * testing/btest/dns: Add scapy scripts and generated PCAPs for alpn/port parsing (Arne Welzel, Corelight)
+
+    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+  * DNS/Parse_SvcParams: Ensure alpn len matches value_len (Arne Welzel, Corelight)
+
+    Fix < to <= and validate that the final item_len_parsed aligns
+    with value_len. Otherwise treat as malformed. Also pointed out
+    by Claude.
+
+  * DNS/Parse_SvcParams: Jump to malformed for value_len != 2 (Arne Welzel, Corelight)
+
+    This was pointed out by Claude as an inconsistency and not advancing
+    data by value_len (and subtracting value_len from len).
+
+  * DNS/Parse_SvcParams: Fix value_len and len accounting, take two (Arne Welzel, Corelight)
+
+    After 0f662c87bc9ddeb4d66d95892d9b669d374e2f19, for invalid ALPN lists,
+    the full value_len bytes was extracted from (data, len) during the malformed
+    processing without resetting these to their original value first.
+
+    Fixes #247
+
 8.2.0-rc1.21 | 2026-05-12 09:37:44 -0700
 
   * Add `x` for exceeded mime header length in history (Evan Typanski, Corelight)

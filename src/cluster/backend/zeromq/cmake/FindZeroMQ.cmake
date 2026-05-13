@@ -38,7 +38,9 @@ set(AUXIL_CPPZMQ_DIR ${CMAKE_CURRENT_LIST_DIR}/../auxil/cppzmq)
 find_library(ZeroMQ_LIBRARY NAMES zmq HINTS ${ZeroMQ_ROOT_DIR}/lib)
 find_path(ZeroMQ_INCLUDE_DIR NAMES zmq.h HINTS ${ZeroMQ_ROOT_DIR}/include)
 
-set_zmq_version()
+if (ZeroMQ_INCLUDE_DIR)
+    set_zmq_version()
+endif ()
 
 find_path(ZeroMQ_CPP_INCLUDE_DIR NAMES zmq.hpp HINTS ${ZeroMQ_ROOT_DIR}/include)
 

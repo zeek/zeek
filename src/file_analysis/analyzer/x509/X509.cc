@@ -6,14 +6,12 @@
 #include <broker/error.hh>
 #include <broker/expected.hh>
 #include <openssl/asn1.h>
+#include <openssl/core_names.h>
 #include <openssl/err.h>
 #include <openssl/opensslconf.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <string>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/core_names.h>
-#endif
 
 #include "zeek/Event.h"
 #include "zeek/broker/Data.h"
@@ -193,20 +191,13 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
         else if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA ) {
             pX509Cert->Assign(9, "rsa");
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-            const BIGNUM* e = nullptr;
-            RSA_get0_key(EVP_PKEY_get0_RSA(pkey), nullptr, &e, nullptr);
-#else
             BIGNUM* e = nullptr;
             EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
-#endif
             char* exponent = BN_bn2dec(e);
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
             // the OpenSSL 3.0 API allocates a new bignum; earlier APIs give a direct pointer
             // to the internal data structure that should not be freed.
             BN_free(e);
             e = nullptr;
-#endif
             if ( exponent != nullptr ) {
                 pX509Cert->Assign(11, exponent);
                 OPENSSL_free(exponent);
@@ -219,13 +210,11 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
             pX509Cert->Assign(12, KeyCurve(pkey));
         }
 #endif
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
         else {
             auto* type_name = EVP_PKEY_get0_type_name(pkey);
             if ( type_name ) // nullptr if no name found
                 pX509Cert->Assign(9, type_name);
         }
-#endif
 
         unsigned int length = KeyLength(pkey);
         if ( length > 0 )
@@ -430,30 +419,11 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key) {
         return nullptr;
     }
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
-    const EC_GROUP* group;
-    int nid;
-    if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == nullptr )
-        // I guess we could not parse this
-        return nullptr;
-
-    nid = EC_GROUP_get_curve_name(group);
-    if ( nid == 0 )
-        // and an invalid nid...
-        return nullptr;
-
-    const char* curve_name = OBJ_nid2sn(nid);
-    if ( curve_name == nullptr )
-        return nullptr;
-
-    return make_intrusive<StringVal>(curve_name);
-#else
     static char buf[256];
     if ( ! EVP_PKEY_get_utf8_string_param(key, OSSL_PKEY_PARAM_GROUP_NAME, buf, 255, nullptr) )
         return nullptr;
 
     return make_intrusive<StringVal>(buf);
-#endif /* OPENSSL_VERSION_NUMBER */
 #endif /* OPENSSL_NO_EC */
 }
 

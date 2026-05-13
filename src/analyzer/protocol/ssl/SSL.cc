@@ -3,8 +3,9 @@
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
 #include <arpa/inet.h>
+#include <openssl/core_names.h>
 #include <openssl/evp.h>
-#include <openssl/opensslv.h>
+#include <openssl/kdf.h>
 #include <concepts>
 #include <vector>
 
@@ -13,14 +14,6 @@
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/util.h"
-
-#ifdef OPENSSL_HAVE_KDF_H
-#include <openssl/kdf.h>
-#endif
-
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
-#include <openssl/core_names.h>
-#endif
 
 namespace zeek::analyzer::ssl {
 
@@ -137,18 +130,12 @@ void SSL_Analyzer::SetKeys(std::vector<u_char> newkeys) { keys = std::move(newke
 std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label,
                                                            const std::string& rnd1, const std::string& rnd2,
                                                            size_t requested_len) {
-#ifdef OPENSSL_HAVE_KDF_H
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
     // alloc context + params
     EVP_KDF* kdf = EVP_KDF_fetch(nullptr, "TLS1-PRF", nullptr);
     EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
     OSSL_PARAM params[4];
     OSSL_PARAM* p = params;
     EVP_KDF_free(kdf);
-#else  /* OSSL 3 */
-    // alloc buffers
-    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, nullptr);
-#endif /* OSSL 3 */
 
     // prepare seed: seed = label + rnd1 + rnd2
     std::string seed{};
@@ -158,7 +145,6 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
     seed.append(rnd1);
     seed.append(rnd2);
 
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
     // setup OSSL_PARAM array: digest, secret, seed
     // FIXME: sha384 should not be hardcoded
     // The const-cast is a bit ugly - but otherwise we have to copy the static string.
@@ -182,30 +168,6 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
 
 abort:
     EVP_KDF_CTX_free(kctx);
-    return {};
-#else  /* OSSL 3 */
-    auto keybuf = std::vector<u_char>(requested_len);
-    if ( EVP_PKEY_derive_init(pctx) <= 0 )
-        goto abort; /* Error */
-    // setup PKEY params: digest, secret, seed
-    // FIXME: sha384 should not be hardcoded
-    if ( EVP_PKEY_CTX_set_tls1_prf_md(pctx, EVP_sha384()) <= 0 )
-        goto abort; /* Error */
-    if ( EVP_PKEY_CTX_set1_tls1_prf_secret(pctx, secret.data(), secret.size()) <= 0 )
-        goto abort; /* Error */
-    if ( EVP_PKEY_CTX_add1_tls1_prf_seed(pctx, seed.data(), seed.size()) <= 0 )
-        goto abort; /* Error */
-    if ( EVP_PKEY_derive(pctx, keybuf.data(), &requested_len) <= 0 )
-        goto abort; /* Error */
-
-    EVP_PKEY_CTX_free(pctx);
-    return keybuf;
-
-abort:
-    EVP_PKEY_CTX_free(pctx);
-#endif /* OSSL 3 */
-
-#endif /* HAVE_KDF */
     return {};
 }
 
@@ -232,7 +194,6 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
     // Secret present, but no keys derived yet: derive keys
     if ( ! secret.empty() && keys.empty() ) {
-#ifdef OPENSSL_HAVE_KDF_H
         DBG_LOG(DBG_ANALYZER, "Deriving TLS keys for connection");
         uint32_t ts = htonl(static_cast<uint32_t>(handshake_interp->gmt_unix_time()));
 
@@ -253,10 +214,6 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
         // save derived keys
         SetKeys(res.value());
-#else
-        DBG_LOG(DBG_ANALYZER, "Cannot derive TLS keys as Zeek was compiled without <openssl/kdf.h>");
-        return false;
-#endif
     }
 
     // Keys present: decrypt TLS application data

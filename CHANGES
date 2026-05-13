@@ -1,3 +1,20 @@
+9.0.0-dev.148 | 2026-05-13 16:30:54 +0100
+
+  * Mark SSL::hash_algorithms and SSL::signature_algorithms as deprecated (Johanna Amann, Corelight)
+
+    We don't use those tables in Zeek ourselves, and they are (kind of)
+    outdated with TLS 1.3. Users that need these values are probably better
+    served by creating their own tables and keeping them up to date.
+
+    Closes GH-5320
+
+  * Remove support for OpenSSL versions < 3.0 (Johanna Amann, Corelight)
+
+    All supported distributions have at least OpenSSL 3.0, which also is the
+    oldest supported LTS release of OpenSSL. Removing it allows us to get
+    rid of quite a bit of code that's no longer exercised by any of our ci
+    tests.
+
 9.0.0-dev.144 | 2026-05-13 12:51:30 +0200
 
   * GH-5454: doc: Mention Python websockets dependency (Arne Welzel, Corelight)

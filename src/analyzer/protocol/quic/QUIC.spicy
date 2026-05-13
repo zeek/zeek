@@ -360,7 +360,11 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto: Cr
             }
         }
         FrameType::CONNECTION_CLOSE1 -> : ConnectionClosePayload(header);
-        FrameType::PADDING -> : skip /\x00*/; # eat the padding
+
+        FrameType::PATH_CHALLENGE -> : PathChallengePayload(header);
+        FrameType::PATH_RESPONSE -> : PathResponsePayload(header);
+
+        FrameType::PADDING -> : skip /\x00*/;
         FrameType::PING -> : void;
         * -> : void {
             throw "unhandled frame type %s in %s" % (self.frame_type, header.first_byte.packet_type);
@@ -405,6 +409,16 @@ type ConnectionClosePayload = unit(header: LongHeaderPacket) {
     };
     reason_phrase_length: VariableLengthInteger;
     reason_phrase: bytes &size=self.reason_phrase_length.result_;
+};
+
+type PathChallengePayload = unit(header: LongHeaderPacket) {
+    var header: LongHeaderPacket = header;
+    data: bytes &size=8;
+};
+
+type PathResponsePayload = unit(header: LongHeaderPacket) {
+    var header: LongHeaderPacket = header;
+    data: bytes &size=8;
 };
 
 ##############

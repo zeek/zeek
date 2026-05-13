@@ -81,6 +81,8 @@ export {
 		## U       Unfamiliar QUIC version
 		## X       Discarded packet after successful decryption of INITIAL packets
 		## O       Short header packets in binary logarithmic fashion
+		## P       PATH_CHALLENGE frame
+		## A       PATH_RESPONSE frame
 		## ======  ====================================================
 		history: string &log &default="";
 
@@ -236,6 +238,22 @@ event QUIC::connection_close_frame(c: connection, is_orig: bool, version: count,
 	log_record(c$quic);
 
 	delete c$quic;
+	}
+
+event QUIC::path_challenge(c: connection, is_orig: bool, version: count, dcid: string, scid: string, data: string)
+	{
+	if ( ! c?$quic )
+		return;
+
+	add_to_history(c, is_orig, "P");
+	}
+
+event QUIC::path_response(c: connection, is_orig: bool, version: count, dcid: string, scid: string, data: string)
+	{
+	if ( ! c?$quic )
+		return;
+
+	add_to_history(c, is_orig, "A");
 	}
 
 event ssl_extension_server_name(c: connection, is_client: bool, names: string_vec) &priority=5

@@ -1,3 +1,9 @@
+9.0.0-dev.144 | 2026-05-13 12:51:30 +0200
+
+  * GH-5454: doc: Mention Python websockets dependency (Arne Welzel, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.0.0-dev.141 | 2026-05-12 14:22:09 -0700
 
   * Add `x` for exceeded mime header length in history (Evan Typanski, Corelight)

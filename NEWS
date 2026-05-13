@@ -69,6 +69,11 @@ Changed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``SSL::hash_algorithms`` and ``SSL::signature_algorithms`` tables have been deprecated.
+  They are outdated with TLS 1.3, and not used in Zeek. If you currently use these tables,
+  you should switch to your own copy of the IANA tables and consider also using the
+  TLS SignatureScheme IANA table.
+
 Zeek 8.2.0
 ==========
 

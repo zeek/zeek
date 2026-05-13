@@ -92,7 +92,7 @@ export {
 		[5] = "sha384",
 		[6] = "sha512",
 		[8] = "Intrinsic",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &default=function(i: count):string { return fmt("unknown-%d", i); } &deprecated="Remove in 9.1: The SSL::hash_algorithms table is not used by Zeek itself and outdated with TLS 1.3.";
 
 	## Mapping between numeric codes and human readable strings for signature
 	## algorithms.
@@ -116,7 +116,7 @@ export {
 		[11] = "rsa_pss_sha512",
 		[64] = "gostr34102012_256",
 		[65] = "gostr34102012_256",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &default=function(i: count):string { return fmt("unknown-%d", i); } &deprecated="Remove in 9.1: The SSL::signature_algorithms table is not used by Zeek itself and outdated with TLS 1.3.";
 
 	## Mapping between numeric codes and human readable strings for alert
 	## descriptions.

@@ -5,6 +5,34 @@
 
 @load base/protocols/ssl
 
+const hash_algorithms: table[count] of string = {
+	[0] = "none",
+	[1] = "md5",
+	[2] = "sha1",
+	[3] = "sha224",
+	[4] = "sha256",
+	[5] = "sha384",
+	[6] = "sha512",
+	[8] = "Intrinsic",
+} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
+const signature_algorithms: table[count] of string = {
+	[0] = "anonymous",
+	[1] = "rsa",
+	[2] = "dsa",
+	[3] = "ecdsa",
+	[4] = "rsa_pss_sha256",
+	[5] = "rsa_pss_sha384",
+	[6] = "rsa_pss_sha512",
+	[7] = "ed25519",
+	[8] = "ed448",
+	[9] = "rsa_pss_sha256",
+	[10] = "rsa_pss_sha384",
+	[11] = "rsa_pss_sha512",
+	[64] = "gostr34102012_256",
+	[65] = "gostr34102012_256",
+} &default=function(i: count):string { return fmt("unknown-%d", i); };
+
 event ssl_extension_elliptic_curves(c: connection, is_client: bool, curves: index_vec)
 	{
 	print "Curves", c$id$orig_h, c$id$resp_h;
@@ -29,12 +57,12 @@ event ssl_extension_server_name(c: connection, is_client: bool, names: string_ve
 	print "server_name", c$id$orig_h, c$id$resp_h, names;
 	}
 
-event ssl_extension_signature_algorithm(c: connection, is_client: bool, signature_algorithms: vector of SSL::SignatureAndHashAlgorithm)
+event ssl_extension_signature_algorithm(c: connection, is_client: bool, sigalgs: vector of SSL::SignatureAndHashAlgorithm)
 	{
 	print "signature_algorithm", c$id$orig_h, c$id$resp_h;
-	for ( i in signature_algorithms)
+	for ( i in sigalgs)
 		{
-		print SSL::hash_algorithms[signature_algorithms[i]$HashAlgorithm], SSL::signature_algorithms[signature_algorithms[i]$SignatureAlgorithm];
+		print hash_algorithms[sigalgs[i]$HashAlgorithm], signature_algorithms[sigalgs[i]$SignatureAlgorithm];
 		}
 	}
 

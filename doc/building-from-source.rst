@@ -7,6 +7,8 @@
 .. _Homebrew: https://brew.sh
 .. _downloads page: https://zeek.org/get-zeek
 .. _devtoolset: https://developers.redhat.com/products/red-hat-developer-toolset/getting-started
+.. _ZeekControl: https://github.com/zeek/zeekctl
+.. _websockets: https://websockets.readthedocs.io/en/latest/
 .. _zkg package manager: https://docs.zeek.org/projects/package-manager/en/stable/
 .. _crosstool-NG: https://crosstool-ng.github.io/
 .. _CMake toolchain: https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html
@@ -199,6 +201,11 @@ build time:
 Geolocation is probably the most interesting and can be installed on most
 platforms by following the instructions for :ref:`address geolocation and AS
 lookups <geolocation>`.
+
+The `ZeekControl`_ management shell has an optional dependency on the Python
+`websockets`_ package version 11.0 or later for interacting with Zeek nodes.
+This package is available on PyPI under the name ``websockets``. On Ubuntu
+and Fedora, the distribution package is called ``python3-websockets``.
 
 The `zkg package manager`_, included in the Zeek installation, requires
 two external Python modules:

@@ -3,3 +3,4 @@
 @load ./packetfilter
 @load ./broker
 @load ./acld
+@load ./pubsub

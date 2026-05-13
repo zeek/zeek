@@ -376,6 +376,7 @@ scripts/base/init-default.zeek
       scripts/base/frameworks/netcontrol/plugins/packetfilter.zeek
       scripts/base/frameworks/netcontrol/plugins/broker.zeek
       scripts/base/frameworks/netcontrol/plugins/acld.zeek
+      scripts/base/frameworks/netcontrol/plugins/pubsub.zeek
     scripts/base/frameworks/netcontrol/drop.zeek
     scripts/base/frameworks/netcontrol/shunt.zeek
     scripts/base/frameworks/netcontrol/non-cluster.zeek

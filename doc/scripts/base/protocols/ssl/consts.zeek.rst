@@ -11,7 +11,7 @@ Summary
 ~~~~~~~
 Constants
 #########
-====================================================================================================== =====================================================================================
+======================================================================================================================================= =====================================================================================
 :zeek:id:`SSL::ALERT`: :zeek:type:`count`
 :zeek:id:`SSL::APPLICATION_DATA`: :zeek:type:`count`
 :zeek:id:`SSL::CERTIFICATE`: :zeek:type:`count`
@@ -520,21 +520,21 @@ Constants
 :zeek:id:`SSL::V2_CLIENT_MASTER_KEY`: :zeek:type:`count`
 :zeek:id:`SSL::V2_ERROR`: :zeek:type:`count`
 :zeek:id:`SSL::V2_SERVER_HELLO`: :zeek:type:`count`
-:zeek:id:`SSL::alert_descriptions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   Mapping between numeric codes and human readable strings for alert
-                                                                                                       descriptions.
-:zeek:id:`SSL::alert_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         Mapping between numeric codes and human readable strings for alert
-                                                                                                       levels.
-:zeek:id:`SSL::cipher_desc`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`          This is a table of all known cipher specs.
-:zeek:id:`SSL::ec_curves`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`            Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
-:zeek:id:`SSL::ec_point_formats`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
-:zeek:id:`SSL::extensions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`           Mapping between numeric codes and human readable strings for SSL/TLS
-                                                                                                       extensions.
-:zeek:id:`SSL::hash_algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      Mapping between numeric codes and human readable strings for hash
-                                                                                                       algorithms.
-:zeek:id:`SSL::signature_algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Mapping between numeric codes and human readable strings for signature
-                                                                                                       algorithms.
-:zeek:id:`SSL::version_strings`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      Mapping between the constants and string values for SSL/TLS versions.
-====================================================================================================== =====================================================================================
+:zeek:id:`SSL::alert_descriptions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                    Mapping between numeric codes and human readable strings for alert
+                                                                                                                                        descriptions.
+:zeek:id:`SSL::alert_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                          Mapping between numeric codes and human readable strings for alert
+                                                                                                                                        levels.
+:zeek:id:`SSL::cipher_desc`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                           This is a table of all known cipher specs.
+:zeek:id:`SSL::ec_curves`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                             Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
+:zeek:id:`SSL::ec_point_formats`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                      Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
+:zeek:id:`SSL::extensions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                            Mapping between numeric codes and human readable strings for SSL/TLS
+                                                                                                                                        extensions.
+:zeek:id:`SSL::hash_algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&deprecated` = *...*      Mapping between numeric codes and human readable strings for hash
+                                                                                                                                        algorithms.
+:zeek:id:`SSL::signature_algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&deprecated` = *...* Mapping between numeric codes and human readable strings for signature
+                                                                                                                                        algorithms.
+:zeek:id:`SSL::version_strings`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                                       Mapping between the constants and string values for SSL/TLS versions.
+======================================================================================================================================= =====================================================================================
 
 
 Detailed Interface
@@ -4809,7 +4809,7 @@ Constants
    :source-code: base/protocols/ssl/consts.zeek 86 86
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&deprecated` = *"Remove in 9.1: The SSL::hash_algorithms table is not used by Zeek itself and outdated with TLS 1.3."*
    :Default:
 
       ::
@@ -4838,7 +4838,7 @@ Constants
    :source-code: base/protocols/ssl/consts.zeek 104 104
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&deprecated` = *"Remove in 9.1: The SSL::signature_algorithms table is not used by Zeek itself and outdated with TLS 1.3."*
    :Default:
 
       ::

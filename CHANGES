@@ -1,3 +1,9 @@
+9.0.0-dev.151 | 2026-05-14 14:26:00 -0700
+
+  * Update CONTRIBUTING.md (airshelley)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.0.0-dev.148 | 2026-05-13 16:30:54 +0100
 
   * Mark SSL::hash_algorithms and SSL::signature_algorithms as deprecated (Johanna Amann, Corelight)

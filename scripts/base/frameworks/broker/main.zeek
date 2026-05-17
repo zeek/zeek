@@ -7,14 +7,6 @@ export {
 	## otherwise, this is the port to connect to and listen on.
 	const default_port = 9999/tcp &redef;
 
-	## Default port for Broker WebSocket communication. Where not specified
-	## otherwise, this is the port to connect to and listen on for
-	## WebSocket connections.
-	##
-	## See the Broker documentation for a specification of the message
-	## format over WebSocket connections.
-	const default_port_websocket = 9997/tcp &redef;
-
 	## Default interval to retry listening on a port if it's currently in
 	## use already.  Use of the ZEEK_DEFAULT_LISTEN_RETRY environment variable
 	## (set as a number of seconds) will override this option and also
@@ -25,11 +17,6 @@ export {
 	##
 	## .. zeek:see:: Broker::listen
 	const default_listen_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
-
-	## Default address on which to listen for WebSocket connections.
-	##
-	## .. zeek:see:: Cluster::listen_websocket
-	const default_listen_address_websocket = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
 	## work initially, or if it ever becomes disconnected.  Use of the
@@ -92,12 +79,6 @@ export {
 	## - drop_newest: replace the newest message in the buffer
 	## - drop_oldest: removed the olsted message from the buffer, then append
 	const peer_overflow_policy = "drop_oldest" &redef;
-
-	## Same as :zeek:see:`Broker::peer_buffer_size` but for WebSocket clients.
-	const web_socket_buffer_size = 8192 &redef;
-
-	## Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
-	const web_socket_overflow_policy = "drop_oldest" &redef;
 
 	## How frequently Zeek resets some peering/client buffer statistics,
 	## such as ``max_queued_recently`` in :zeek:see:`BrokerPeeringStats`.
@@ -449,7 +430,7 @@ event retry_listen(a: string, p: port, retry: interval)
 
 function listen(a: string, p: port, retry: interval): port
 	{
-	local bound = __listen(a, p, Broker::NATIVE);
+	local bound = __listen(a, p);
 
 	if ( bound == 0/tcp )
 		{

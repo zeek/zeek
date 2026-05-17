@@ -72,7 +72,7 @@ private:
         // ground as they cannot be converted to events.
     }
     void ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu) {
-        // WebSocket clients may receive dientifier update messages spuriously if they
+        // WebSocket clients may receive identifier update messages spuriously if they
         // subscribe to a wildcard topic or zeek/logs/, simply drop them on the
         // ground as they cannot be converted to events.
     }

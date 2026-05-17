@@ -1,4 +1,4 @@
-# @TEST-DOC: Run a single node cluster (manager) with a websocket server that has TLS enabled without certs, similar to the Broker::listen_websocket() default.
+# @TEST-DOC: Run a single node cluster (manager) with a WebSocket server that has TLS enabled without certificates (encryption without authentication).
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.asyncio'
@@ -37,7 +37,7 @@ event zeek_init()
 
 	# Enable encryption, but don't require authentication (and not even certificates).
 	#
-	# This is the old Broker::listen_websocket() default behavior.
+	# TLS enabled without cert/key files (encryption without peer authentication).
 	local tls_options = Cluster::WebSocketTLSOptions(
 		$cert_file="",
 		$key_file="",

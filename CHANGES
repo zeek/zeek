@@ -1,3 +1,9 @@
+9.0.0-dev.154 | 2026-05-18 13:51:12 -0700
+
+  * Update btest baselines with ZIP analyzer disabled (Tim Wojtulewicz)
+
+  * Disable ZIP analyzer by default, add policy script (Tim Wojtulewicz)
+
 9.0.0-dev.151 | 2026-05-14 14:26:00 -0700
 
   * Update CONTRIBUTING.md (airshelley)

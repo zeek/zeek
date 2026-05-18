@@ -73,6 +73,16 @@ export {
 	## Choices are: LOCAL_HOSTS, REMOTE_HOSTS, ALL_HOSTS, NO_HOSTS.
 	option asset_tracking = LOCAL_HOSTS;
 
+	## The framework maintains per-node caches that map unparsed version
+	## strings to :zeek:type:`Software::Version` instances. This is its
+	## expiration interval.
+	const parse_cache_interval = 65secs &redef;
+
+	## The framework maintains a redundancy cache in each worker that
+	## deduplicates their version reporting in :zeek:see:`Software::found`.
+	## This is its expiration interval. Setting to 0secs disables this cache.
+	const found_cache_interval = 10mins &redef;
+
 	## Other scripts should call this function when they detect software.
 	##
 	## id: The connection id where the software was discovered.
@@ -123,11 +133,6 @@ export {
 	## tracking in :zeek:see:`Software::tracked`.
 	global register: event(info: Info);
 }
-
-event zeek_init() &priority=5
-	{
-	Log::create_stream(Software::LOG, Log::Stream($columns=Info, $ev=log_software, $path="software", $policy=log_policy));
-	}
 
 type Description: record {
 	name:             string;
@@ -240,9 +245,9 @@ function parse(unparsed_version: string): Description
 	}
 
 # A cache for the proxies that stores the result of parsing unparsed_version.
-global parse_cache: table[string] of Description &read_expire=65secs;
+global parse_cache: table[string] of Description;
 # A suppression cache for the workers to prevent sending the same information to the proxies multiple times.
-global found_cache: set[Info] &create_expire=10mins;
+global found_cache: set[Info];
 
 # Call parse, but cache results in the parse_cache table
 function parse_with_cache(unparsed_version: string): Description
@@ -527,9 +532,12 @@ function found(id: conn_id, info: Info): bool
 		return F;
 
 	# This assumes that callers do not fill in info$ts, none of the current callers do.
-	if ( info in found_cache )
-		return T;
-	add found_cache[info];
+	if ( found_cache_interval > 0secs )
+		{
+		if ( info in found_cache )
+			return T;
+		add found_cache[info];
+		}
 
 	if ( ! info?$ts )
 		info$ts = network_time();
@@ -555,4 +563,14 @@ function found(id: conn_id, info: Info): bool
 	@endif
 
 	return T;
+	}
+
+event zeek_init() &priority=5
+	{
+	parse_cache = table() &read_expire=parse_cache_interval;
+
+	if ( found_cache_interval > 0secs )
+		found_cache = set() &create_expire=found_cache_interval;
+
+	Log::create_stream(Software::LOG, Log::Stream($columns=Info, $ev=log_software, $path="software", $policy=log_policy));
 	}

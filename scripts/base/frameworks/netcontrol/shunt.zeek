@@ -46,9 +46,9 @@ event zeek_init() &priority=5
 function shunt_flow(f: flow_id, t: interval, location: string &default="") : string
 	{
 	local flow = NetControl::Flow(
-		$src_h=addr_to_subnet(f$src_h),
+		$src_h=f$src_h as subnet,
 		$src_p=f$src_p,
-		$dst_h=addr_to_subnet(f$dst_h),
+		$dst_h=f$dst_h as subnet,
 		$dst_p=f$dst_p
 	);
 	local e = Entity($ty=FLOW, $flow=flow);

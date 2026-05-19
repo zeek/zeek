@@ -47,8 +47,8 @@ event zeek_init()
 	f$a = ["1", "2", "3", "4"];
 	f$c1 = Blue;
 	f$p = 1500/tcp;
-	f$ti = double_to_time(1681652265.042767);
-	f$it = double_to_interval(2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001);
+	f$ti = 1681652265.042767 as time;
+	f$it = (2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001) as interval;
 	f$ad = 127.0.0.1;
 	f$s = 10.0.0.1/24;
 	f$re = /a/;
@@ -87,7 +87,7 @@ event zeek_init()
 #	print f$tbl == f2_v$tbl;
 
 	local io: IntervalOnly;
-	io$it = double_to_interval(2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001);
+	io$it = (2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001) as interval;
 
 	# Test round-trip conversion of intervals as doubles.
 	local io_json = to_json(io, F, /^_/, T);

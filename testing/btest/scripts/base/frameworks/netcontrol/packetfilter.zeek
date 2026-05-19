@@ -14,7 +14,7 @@ event NetControl::init()
 
 event connection_established(c: connection)
 	{
-	local e = NetControl::Entity($ty=NetControl::ADDRESS, $ip=addr_to_subnet(c$id$orig_h));
+	local e = NetControl::Entity($ty=NetControl::ADDRESS, $ip=c$id$orig_h as subnet);
 	local r = NetControl::Rule($ty=NetControl::DROP, $target=NetControl::MONITOR, $entity=e, $expire=10min);
 
 	NetControl::add_rule(r);

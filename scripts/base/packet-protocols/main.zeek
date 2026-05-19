@@ -69,7 +69,7 @@ function register_for_port(parent: PacketAnalyzer::Tag,
                            child: PacketAnalyzer::Tag,
                            p: port) : bool
 	{
-	register_packet_analyzer(parent, port_to_count(p), child);
+	register_packet_analyzer(parent, p as count, child);
 
 	if ( child !in Analyzer::ports )
 		Analyzer::ports[child] = set();

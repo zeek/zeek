@@ -339,6 +339,7 @@ while	return TOK_WHILE;
 function	return TOK_FUNCTION;
 global	return TOK_GLOBAL;
 "?$"	return TOK_HAS_FIELD;
+"?as"	return TOK_CAN_CONVERT;
 hook	return TOK_HOOK;
 if	return TOK_IF;
 in	return TOK_IN;

@@ -308,13 +308,6 @@
 0.000000   MetaHookPost  CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(join_string_vec, <frame>, ([zeek, table, ], /)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (4754/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (4789/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (5072/udp)) -> <no result>
-0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
@@ -1281,13 +1274,6 @@
 0.000000   MetaHookPre   CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(join_string_vec, <frame>, ([zeek, table, ], /))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (4754/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (4789/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (5072/udp))
-0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
@@ -2253,13 +2239,6 @@
 0.000000 | HookCallFunction is_file_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction join_string_vec([zeek, table, ], /)
-0.000000 | HookCallFunction port_to_count(2123/udp)
-0.000000 | HookCallFunction port_to_count(2152/udp)
-0.000000 | HookCallFunction port_to_count(3544/udp)
-0.000000 | HookCallFunction port_to_count(4754/udp)
-0.000000 | HookCallFunction port_to_count(4789/udp)
-0.000000 | HookCallFunction port_to_count(5072/udp)
-0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)

@@ -43,7 +43,7 @@ event send_any()
 	else if ( i == 3 )
 		val = vector(1, 2, 3);
 	else
-		val = double_to_time(42.0);
+		val = 42.0 as time;
 
 	print "sending pings", i, type_name(val), val;
 	Cluster::publish_hrw(Cluster::worker_pool, cat(i), ping, i, type_name(val), val);

@@ -210,7 +210,7 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$call_id = value;
 				break;
 			case "CONTENT-LENGTH", "L":
-				c$sip$request_body_len = to_count(value);
+				c$sip$request_body_len = value as count;
 				break;
 			case "CSEQ":
 				c$sip$seq = value;
@@ -249,7 +249,7 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		switch ( name )
 			{
 			case "CONTENT-LENGTH", "L":
-				c$sip$response_body_len = to_count(value);
+				c$sip$response_body_len = value as count;
 				break;
 			case "CONTENT-TYPE", "C":
 				c$sip$content_type = value;

@@ -180,7 +180,7 @@ eval	auto& aux = Z_AUX;
 		{
 		auto& el = aux->elems[i];
 		auto& et = el.GetType();
-		if ( can_cast_value_to_type($1, et.get()) )
+		if ( can_cast_any_to_type($1, et.get()) )
 			{
 			match = i;
 			if ( el.Slot() >= 0 )

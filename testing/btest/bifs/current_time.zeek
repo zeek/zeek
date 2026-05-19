@@ -4,6 +4,6 @@
 event zeek_init()
 	{
 	local a = current_time();
-	if ( a <= double_to_time(0) )
+	if ( a <= 0 as time )
 		exit(1);
 	}

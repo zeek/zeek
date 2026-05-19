@@ -95,6 +95,7 @@ const char* expr_name(ExprTag t) {
         "from_any_coerce ",
         "sizeof ",
         "cast",
+        "?as",
         "is",
         "[:]=",
         "inline()",
@@ -542,7 +543,7 @@ ValPtr UnaryExpr::Eval(Frame* f) const {
     if ( ! v )
         return nullptr;
 
-    if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST &&
+    if ( is_vector(v) && Tag() != EXPR_IS && Tag() != EXPR_CAST && tag != EXPR_CAN_CONVERT &&
          // The following allows passing vectors-by-reference to
          // functions that use vector-of-any for generic vector
          // manipulation ...
@@ -1744,13 +1745,7 @@ MaskExpr::MaskExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MASK, std
 }
 
 ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const {
-    uint32_t mask;
-
-    if ( v2->GetType()->Tag() == TYPE_COUNT )
-        mask = static_cast<uint32_t>(v2->InternalUnsigned());
-    else
-        mask = static_cast<uint32_t>(v2->InternalInt());
-
+    auto mask = GetMask(v2);
     auto& a = v1->AsAddr();
 
     if ( a.GetFamily() == IPv4 ) {
@@ -1763,6 +1758,13 @@ ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const {
     }
 
     return make_intrusive<SubNetVal>(a, mask);
+}
+
+uint32_t MaskExpr::GetMask(const Val* v) const {
+    if ( v->GetType()->Tag() == TYPE_COUNT )
+        return static_cast<uint32_t>(v->InternalUnsigned());
+    else
+        return static_cast<uint32_t>(v->InternalInt());
 }
 
 ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MOD, std::move(arg_op1), std::move(arg_op2)) {
@@ -4746,12 +4748,31 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
     }
 }
 
+CanConvertExpr::CanConvertExpr(ExprPtr arg_op, TypePtr t)
+    : UnaryExpr(EXPR_CAN_CONVERT, std::move(arg_op)), conversion_type(std::move(t)) {
+    auto stype = Op()->GetType();
+    SetType(base_type(TYPE_BOOL));
+}
+
+ValPtr CanConvertExpr::Fold(Val* v) const {
+    if ( attempt_to_cast_value_to_type(v, conversion_type.get()) )
+        return val_mgr->True();
+    else
+        return val_mgr->False();
+}
+
+void CanConvertExpr::ExprDescribe(ODesc* d) const {
+    Op()->Describe(d);
+    d->Add(" ?as ");
+    conversion_type->Describe(d);
+}
+
 CastExpr::CastExpr(ExprPtr arg_op, TypePtr t) : UnaryExpr(EXPR_CAST, std::move(arg_op)) {
     auto stype = Op()->GetType();
 
     SetType(std::move(t));
 
-    if ( ! can_cast_value_to_type(stype.get(), GetType().get()) )
+    if ( ! IsError() && ! can_cast_type_to_type(stype.get(), GetType().get()) )
         ExprError("cast not supported");
 }
 
@@ -4800,7 +4821,7 @@ ValPtr IsExpr::Fold(Val* v) const {
     if ( IsError() )
         return nullptr;
 
-    return val_mgr->Bool(can_cast_value_to_type(v, t.get()));
+    return val_mgr->Bool(can_cast_any_to_type(v, t.get()));
 }
 
 void IsExpr::ExprDescribe(ODesc* d) const {

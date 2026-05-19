@@ -310,8 +310,10 @@ In the table below, ``p`` is a pattern, and ``s`` is a string.
 Type casting
 ------------
 
-The ``as`` operator performs type casting and the ``is`` operator checks if a
-type cast is supported or not.  For both operators, the first operand is a
+The ``as`` operator performs type casting and the ``?as`` operator checks if a
+type cast is supported or not. In addition, you can check for the underlying
+type of a value of nominal type :zeek:type:`any` using the ``is`` operator.
+For all three operators, the first operand is a
 value and the second operand is the name of a Zeek script type (either built-in
 or user-defined).
 
@@ -329,24 +331,53 @@ or user-defined).
       is triggered.
 
   * - Check if a cast is supported
+    - ``v ?as t``
+    - Evaluates to :zeek:type:`bool`. If true,  then the conversion ``v as t`` will succeed.
+
+  * - Check the underlying type of an :zeek:type:`any` value:
     - ``v is t``
-    - Evaluates to :zeek:type:`bool`. If true,  then ``v as t`` would succeed.
+    - Evaluates to :zeek:type:`bool`. If true,  then ``v as t`` will always succeed.
 
-Only the following kinds of type casts are supported currently:
+Zeek supports the following type casts:
 
-- Broker values (i.e., :zeek:see:`Broker::Data` values returned from
-  functions such as :zeek:id:`Broker::data`) can be cast to their
-  corresponding Zeek script types.
+- All values can be cast to their declared types (i.e., this is a no-op).
 - A value of declared type :zeek:type:`any` can be cast to its actual
   underlying type.
-- All values can be cast to their declared types (i.e., this is a no-op).
+- :zeek:type:`string` types can be cast to :zeek:type:`double`, :zeek:type:`int`, :zeek:type:`count`, :zeek:type:`addr`, :zeek:type:`subnet`, or :zeek:type:`port`.
+- :zeek:type:`int` can be cast to :zeek:type:`double` or :zeek:type:`count`.
+- :zeek:type:`count` can be cast to :zeek:type:`double`, :zeek:type:`int`, or :zeek:type:`addr`.
+- :zeek:type:`port` can be cast to :zeek:type:`count`.
+- :zeek:type:`double` can be cast to :zeek:type:`time`, :zeek:type:`interval`, :zeek:type:`int`, or :zeek:type:`count`. Note that the conversions to integral values use round-to-nearest (with ties broken using round-to-even), so ``42.7 as count`` evaluates to ``43``, ``42.5 as count`` evaluates to ``42``, and ``43.5 as count`` evaluates to ``44``.
+- :zeek:type:`enum` can be cast to :zeek:type:`int` or :zeek:type:`count`.
+- :zeek:type:`interval` and :zeek:type:`time` can be cast to :zeek:type:`double` (but not directly to each other).
+- :zeek:type:`addr` can be cast to :zeek:type:`subnet`.
+- :zeek:type:`subnet` can be cast to :zeek:type:`addr` or :zeek:type:`count` (for this last, see :zeek:id:`subnet_width`).
 - :zeek:type:`set` and :zeek:type:`vector` values can be converted into each
   other, with the following limitations: (1) A :zeek:type:`set` being converted
   into a :zeek:type:`vector` can only have a single index type.  Converting a
   set with multiple index types will return an error. (2) The :zeek:type:`set`
   and :zeek:type:`vector` types must have the same internal type.
+- Broker values (i.e., :zeek:see:`Broker::Data` values returned from
+  functions such as :zeek:id:`Broker::data`) can be cast to their
+  corresponding Zeek script types.
 
-The function in this example tries to cast a value to a string:
+Some of the above conversions only succeed if the value is well-formed.
+For example, to convert a :zeek:type:`string` value to an :zeek:type:`addr`,
+the string must reflect a dotted-quad for an IPv4 address, or a
+hexadecimal-colon sequence for an IPv6 address.
+
+The function in this example converts a set to a vector:
+
+.. code-block:: zeek
+
+    function example()
+        {
+        local s = set(1, 2, 3);
+        local v = s as vector of count;
+        }
+
+The function in this example casts an :zeek:type:`any` value to its underlying
+string if that is indeed its underlying type:
 
 .. code-block:: zeek
 
@@ -355,17 +386,34 @@ The function in this example tries to cast a value to a string:
         local s: string;
 
         if ( a is string )
-            s = (a as string);
+            s = a as string;
         }
 
-The function in this example converts a set to a vector:
+This similar code block will convert the :zeek:type:`any` to an integer if
+its underlying value is a type (not necessarily an integer) that can be
+safely converted to an integer:
 
 .. code-block:: zeek
 
-    function example()
+    function example(a: any)
         {
-	local s: set[count] = { 1, 2, 3 };
-	local v = s as vector of count;
+        local i: int;
+
+        if ( a ?as int )
+            i = a as int;
+        }
+
+This final example will convert ``c`` to an integer providing ``c``'s value
+does not exceed the maximum value that an :zeek:type:`int` can hold:
+
+.. code-block:: zeek
+
+    function example(c: count)
+        {
+        local i: int;
+
+        if ( c ?as int )
+            i = c as int;
         }
 
 Other operators

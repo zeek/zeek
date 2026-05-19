@@ -73,7 +73,7 @@ event zeek_done()
 # ticks until the peer is gone again.
 global timer_tick: event(ts: time);
 
-global fake_network_time = double_to_time(42.0);
+global fake_network_time = 42.0 as time;
 
 event zeek_init()
 	{
@@ -85,7 +85,7 @@ event zeek_init()
 # Received from the worker once it has processed the tick.
 event timer_tock() &is_used
 	{
-	fake_network_time = fake_network_time + double_to_interval(0.25);
+	fake_network_time = fake_network_time + 250 msec;
 	Broker::publish("zeek/event/my_topic", timer_tick, fake_network_time);
 	}
 

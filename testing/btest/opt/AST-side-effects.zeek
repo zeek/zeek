@@ -360,7 +360,7 @@ event AST_opt_test_8()
 		&default = function(i1: count, i2: count): count
 			{
 			local my_tbl = table([1.0, 3.0] = 1e4);
-			return double_to_count(my_tbl[1.0, 3.0]);
+			return my_tbl[1.0, 3.0] as count;
 			};
 
 	local l2 = table([1.0, 3.0] = 4.0, [2.0, 5.0] = 6.0)

@@ -1,3 +1,49 @@
+9.0.0-dev.173 | 2026-05-19 13:57:28 +0200
+
+  * testing/btest/ntp: Fixup test to use intermediate double cast (Arne Welzel, Corelight)
+
+  * zeek.bif/to_port: Reuse convert_string_to_port(), pickup 362ba9974 fix (Arne Welzel, Corelight)
+
+    There was a fix in zeek.bif for *slash = 0 that didn't make it into
+    the val-convert.cc class. Pick it up, also reuse the new helper in
+    the to_port() bif.
+
+  * as_int: Remove 1e99 as int test (Arne Welzel, Corelight)
+
+    I concur with the "this should probably" be an error, but the
+    double_to_int() bif also returns a fairly undefined result:
+
+        $ zeek -e 'print double_to_int(1e99)'
+        -9223372036854775808
+
+  * trim back a few `as` type conversions to avoid surprising ones (Vern Paxson, Corelight)
+
+  * additional type checking for converting vectors to sets (Vern Paxson, Corelight)
+
+  * move val-convert conversion functions into detail:: (Vern Paxson, Corelight)
+
+  * documentation updates (Vern Paxson, Corelight)
+
+  * AST optimization fix for avoiding unsafe constant propagation (Vern Paxson, Corelight)
+
+  * migrate BTests to use expanded "as" operator, other than for conversion BiFs (Vern Paxson, Corelight)
+
+  * migrate standard scripts to use expanded "as" operator for type conversions (Vern Paxson, Corelight)
+
+  * BTests for updated "as" and new "?as" operators (Vern Paxson, Corelight)
+
+  * expand "as" operator to do general conversion (Vern Paxson, Corelight)
+    add "?as" operator to query whether conversion will succeed
+
+  * split out type conversion logic from BiFs (Vern Paxson, Corelight)
+
+  * cluster/zeromq: Fix CMake error when ZeroMQ_INCLUDE_DIR not found (Arne Welzel, Corelight)
+
+    In set_zmq_version() there's some FILE commands that fail if
+    ZeroMQ_INCLUDE_DIR isn't set that hide the better message:
+
+        Could NOT find ZeroMQ (missing: ZeroMQ_LIBRARY ZeroMQ_INCLUDE_DIR)
+
 9.0.0-dev.157 | 2026-05-19 09:25:58 +0200
 
   * GH-5450: Update dump-events test baselines in the ZAM environment (Christian Kreibich, Corelight)

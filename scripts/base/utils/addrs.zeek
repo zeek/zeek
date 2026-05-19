@@ -107,7 +107,7 @@ function has_valid_octets(octets: string_vec): bool
 	{
 	for ( i in octets )
 		{
-		local num = to_count(octets[i]);
+		local num = octets[i] as count;
 		if ( 255 < num )
 			return F;
 		}

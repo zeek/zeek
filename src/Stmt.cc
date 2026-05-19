@@ -714,8 +714,9 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
 
             for ( const auto& t : *tl ) {
                 const auto& ct = t->GetType();
+                const auto& et = e->GetType();
 
-                if ( ! can_cast_value_to_type(e->GetType().get(), ct.get()) ) {
+                if ( ! same_type(et.get(), ct.get()) ) {
                     c->Error("cannot cast switch expression to case type");
                     continue;
                 }
@@ -802,7 +803,7 @@ std::pair<int, IDPtr> SwitchStmt::FindCaseLabelMatch(const Val* v) const {
         auto id = i.first;
         const auto& type = id->GetType();
 
-        if ( can_cast_value_to_type(v, type.get()) ) {
+        if ( can_cast_any_to_type(v, type.get()) ) {
             label_idx = i.second;
             label_id = id;
             break;

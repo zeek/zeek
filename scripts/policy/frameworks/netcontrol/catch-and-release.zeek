@@ -233,7 +233,7 @@ function cr_check_rule(r: Rule): bool &is_used
 		local ip = r$entity$ip;
 		if ( ( is_v4_subnet(ip) && subnet_width(ip) == 32 ) || ( is_v6_subnet(ip) && subnet_width(ip) == 128 ) )
 			{
-			if ( subnet_to_addr(ip) in blocks )
+			if ( ip as addr in blocks )
 				return T;
 			}
 		}
@@ -248,7 +248,7 @@ event rule_added(r: Rule, p: PluginState, msg: string)
 	if ( !cr_check_rule(r) )
 		return;
 
-	local ip = subnet_to_addr(r$entity$ip);
+	local ip = r$entity$ip as addr;
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, DROPPED);
@@ -263,7 +263,7 @@ event rule_exists(r: Rule, p: PluginState, msg: string)
 	if ( !cr_check_rule(r) )
 		return;
 
-	local ip = subnet_to_addr(r$entity$ip);
+	local ip = r$entity$ip as addr;
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, INFO);
@@ -278,7 +278,7 @@ event rule_error(r: Rule, p: PluginState, msg: string)
 	if ( !cr_check_rule(r) )
 		return;
 
-	local ip = subnet_to_addr(r$entity$ip);
+	local ip = r$entity$ip as addr;
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, INFO);
@@ -292,7 +292,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 	if ( !cr_check_rule(r) )
 		return;
 
-	local ip = subnet_to_addr(r$entity$ip);
+	local ip = r$entity$ip as addr;
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, UNBLOCK);
@@ -300,7 +300,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 	if ( bi?$block_until )
 		{
 		local difference: interval = network_time() - bi$block_until;
-		if ( interval_to_double(difference) > 60 || interval_to_double(difference) < -60 )
+		if ( difference as double > 60 || difference as double < -60 )
 			log$message = fmt("Difference between network_time and block time excessive: %f", difference);
 		}
 
@@ -347,7 +347,7 @@ function get_catch_release_info(a: addr): BlockInfo
 	if ( a in blocks )
 		return blocks[a];
 
-	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
+	return BlockInfo($watch_until=0 as time, $current_interval=0, $current_block_id="");
 	}
 
 function drop_address_catch_release(a: addr, location: string &default=""): BlockInfo
@@ -364,7 +364,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		return blocks[a];
 		}
 
-	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	local e = Entity($ty=ADDRESS, $ip=a as subnet);
 	if ( [e,DROP] in rule_entities )
 		{
 		local r = rule_entities[e,DROP];
@@ -408,7 +408,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		return bi;
 		}
 	Reporter::error(fmt("Catch and release could not add block for %s; failing.", a));
-	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
+	return BlockInfo($watch_until=0 as time, $current_interval=0, $current_block_id="");
 @endif
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
@@ -451,7 +451,7 @@ function catch_release_seen(a: addr)
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 		local bi = blocks[a];
 		local log: CatchReleaseInfo;
-		local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+		local e = Entity($ty=ADDRESS, $ip=a as subnet);
 
 		if ( [e,DROP] in rule_entities )
 			{

@@ -151,7 +151,7 @@ event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: co
 	c$smb_state$current_cmd$referenced_file$size = file_size;
 
 	# I'm seeing negative data from IPC tree transfers
-	if ( time_to_double(times$modified) > 0.0 )
+	if ( times$modified as double > 0.0 )
 		c$smb_state$current_cmd$referenced_file$times = times;
 
 	# We can identify the file by its file id now so let's stick it

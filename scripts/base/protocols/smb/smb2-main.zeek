@@ -162,7 +162,7 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 		c$smb_state$current_file$path = c$smb_state$current_tree$path;
 
 	# I'm seeing negative data from IPC tree transfers
-	if ( time_to_double(response$times$modified) > 0.0 )
+	if ( response$times$modified as double > 0.0 )
 		c$smb_state$current_file$times = response$times;
 
 	# We can identify the file by its file id now so let's stick it

@@ -84,7 +84,7 @@ global r2s: table[Management::Role] of string = {
 
 function debug(message: string)
 	{
-	if ( enum_to_int(level) > enum_to_int(DEBUG) )
+	if ( level as int > DEBUG as int )
 		return;
 
 	local node = Supervisor::node();
@@ -94,7 +94,7 @@ function debug(message: string)
 
 function info(message: string)
 	{
-	if ( enum_to_int(level) > enum_to_int(INFO) )
+	if ( level as int > INFO as int )
 		return;
 
 	local node = Supervisor::node();
@@ -104,7 +104,7 @@ function info(message: string)
 
 function warning(message: string)
 	{
-	if ( enum_to_int(level) > enum_to_int(WARNING) )
+	if ( level as int > WARNING as int )
 		return;
 
 	local node = Supervisor::node();
@@ -114,7 +114,7 @@ function warning(message: string)
 
 function error(message: string)
 	{
-	if ( enum_to_int(level) > enum_to_int(ERROR) )
+	if ( level as int > ERROR as int )
 		return;
 
 	local node = Supervisor::node();

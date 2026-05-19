@@ -27,5 +27,5 @@ redef LogAscii::use_json=T;
 
 event zeek_init() {
     Log::create_stream(TEST::LOG, [$columns=TEST::Test, $path="test"]);
-    Log::write(TEST::LOG, [$ts=double_to_time(-315619200)]);
+    Log::write(TEST::LOG, [$ts=(-315619200) as time]);
 }

@@ -538,7 +538,7 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 
 function whitelist_address(a: addr, t: interval, location: string &default="") : string
 	{
-	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	local e = Entity($ty=ADDRESS, $ip=a as subnet);
 	local r = Rule($ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	return add_rule(r);
@@ -556,9 +556,9 @@ function whitelist_subnet(s: subnet, t: interval, location: string &default="") 
 function redirect_flow(f: flow_id, out_port: count, t: interval, location: string &default="") : string
 	{
 	local flow = NetControl::Flow(
-		$src_h=addr_to_subnet(f$src_h),
+		$src_h=f$src_h as subnet,
 		$src_p=f$src_p,
-		$dst_h=addr_to_subnet(f$dst_h),
+		$dst_h=f$dst_h as subnet,
 		$dst_p=f$dst_p
 	);
 	local e = Entity($ty=FLOW, $flow=flow);
@@ -570,19 +570,19 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string
 	{
 	local orules: vector of string = vector();
-	local edrop = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected)));
+	local edrop = Entity($ty=FLOW, $flow=Flow($src_h=infected as subnet));
 	local rdrop = Rule($ty=DROP, $target=FORWARD, $entity=edrop, $expire=t, $location=location);
 	orules += add_rule(rdrop);
 
-	local todnse = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(dns), $dst_p=53/udp));
+	local todnse = Entity($ty=FLOW, $flow=Flow($src_h=infected as subnet, $dst_h=dns as subnet, $dst_p=53/udp));
 	local todnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=todnse, $expire=t, $location=location, $mod=FlowMod($dst_h=quarantine), $priority=+5);
 	orules += add_rule(todnsr);
 
-	local fromdnse = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(dns), $src_p=53/udp, $dst_h=addr_to_subnet(infected)));
+	local fromdnse = Entity($ty=FLOW, $flow=Flow($src_h=dns as subnet, $src_p=53/udp, $dst_h=infected as subnet));
 	local fromdnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=fromdnse, $expire=t, $location=location, $mod=FlowMod($src_h=dns), $priority=+5);
 	orules += add_rule(fromdnsr);
 
-	local wle = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(quarantine), $dst_p=80/tcp));
+	local wle = Entity($ty=FLOW, $flow=Flow($src_h=infected as subnet, $dst_h=quarantine as subnet, $dst_p=80/tcp));
 	local wlr = Rule($ty=WHITELIST, $target=FORWARD, $entity=wle, $expire=t, $location=location, $priority=+5);
 	orules += add_rule(wlr);
 
@@ -692,8 +692,8 @@ function add_subnet_entry(rule: Rule)
 		}
 	else if ( e$ty == CONNECTION )
 		{
-		add_one_subnet_entry(addr_to_subnet(e$conn$orig_h), rule);
-		add_one_subnet_entry(addr_to_subnet(e$conn$resp_h), rule);
+		add_one_subnet_entry(e$conn$orig_h as subnet, rule);
+		add_one_subnet_entry(e$conn$resp_h as subnet, rule);
 		}
 	else if ( e$ty == FLOW )
 		{
@@ -726,8 +726,8 @@ function remove_subnet_entry(rule: Rule)
 		}
 	else if ( e$ty == CONNECTION )
 		{
-		remove_one_subnet_entry(addr_to_subnet(e$conn$orig_h), rule);
-		remove_one_subnet_entry(addr_to_subnet(e$conn$resp_h), rule);
+		remove_one_subnet_entry(e$conn$orig_h as subnet, rule);
+		remove_one_subnet_entry(e$conn$resp_h as subnet, rule);
 		}
 	else if ( e$ty == FLOW )
 		{
@@ -762,7 +762,7 @@ function find_rules_subnet(sn: subnet) : vector of Rule
 
 function find_rules_addr(ip: addr) : vector of Rule
 	{
-	return find_rules_subnet(addr_to_subnet(ip));
+	return find_rules_subnet(ip as subnet);
 	}
 
 function add_rule_impl(rule: Rule) : string

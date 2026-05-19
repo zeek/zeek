@@ -1967,22 +1967,37 @@ extern void delete_vals(ValPList* vals);
 inline bool is_vector(Val* v) { return v->GetType()->Tag() == TYPE_VECTOR; }
 inline bool is_vector(const ValPtr& v) { return is_vector(v.get()); }
 
-// Returns v casted to type T if the type supports that. Returns null if not.
+// Returns v casted to type T if the type supports that. Returns null if not,
+// and emits an error.
 //
-// Note: This implements the script-level cast operator.
+// Note: This implements the script-level "as" operator.
 extern ValPtr cast_value_to_type(Val* v, Type* t);
 
-// Returns true if v can be casted to type T. If so, check_and_cast() will
-// succeed as well.
+// Attempts to cast v to type T. Returns null if not, with the error populated
+// (if appropriate) but not reported.
 //
-// Note: This implements the script-level type comparison operator.
-extern bool can_cast_value_to_type(const Val* v, Type* t);
+// Note: This implements the script-level "?as" operator.
+extern ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err);
+
+// Same, but allowing for calls that don't care about the error message.
+inline ValPtr attempt_to_cast_value_to_type(Val* v, Type* t) {
+    std::string err;
+    return attempt_to_cast_value_to_type(v, t, err);
+}
+
+// Returns true if any "any" value v can be casted to type T. If so,
+// check_and_cast() will succeed as well.
+//
+// Note: This implements the script-level type "is" operator. While the
+// usual use is for "any" values (hence the name), for backwards compatibility
+// it also returns true for casting a value to its own type.
+extern bool can_cast_any_to_type(const Val* v, Type* t);
 
 // Returns true if values of type s may support casting to type t. This is
 // purely static check to weed out cases early on that will never succeed.
 // However, even this function returns true, casting may still fail for a
 // specific instance later.
-extern bool can_cast_value_to_type(const Type* s, Type* t);
+extern bool can_cast_type_to_type(const Type* s, Type* t);
 
 namespace detail {
 // Parses a JSON string into arbitrary Zeek data using std::variant to simulate functional exception

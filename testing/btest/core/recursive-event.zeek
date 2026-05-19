@@ -13,7 +13,7 @@ global unique_nt: set[double];
 event test()
         {
 	c += 1;
-	local nt = time_to_double(network_time());
+	local nt = network_time() as double;
 	if ( last_nt == 0.0 )
 		last_nt = nt;
 

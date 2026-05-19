@@ -1,3 +1,7 @@
+9.0.0-dev.175 | 2026-05-19 14:02:06 +0200
+
+  * dns: validate SVCB minimum RDATA size using rdlength (Urval Kheni)
+
 9.0.0-dev.173 | 2026-05-19 13:57:28 +0200
 
   * testing/btest/ntp: Fixup test to use intermediate double cast (Arne Welzel, Corelight)

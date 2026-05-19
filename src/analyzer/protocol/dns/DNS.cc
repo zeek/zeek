@@ -1911,7 +1911,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     const u_char* data_start = data;
     // the smallest SVCB/HTTPS rr is 3 bytes:
     // the first 2 bytes are for the svc priority, and the third byte is root (0x0)
-    if ( len < 3 ) {
+    if ( rdlength < 3 ) {
         analyzer->Weird("DNS_SVCB_wrong_length");
         return false;
     }

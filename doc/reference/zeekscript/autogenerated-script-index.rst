@@ -588,6 +588,7 @@
    policy/frameworks/notice/community-id.zeek </scripts/policy/frameworks/notice/community-id.zeek>
    policy/protocols/conn/community-id-logging.zeek </scripts/policy/protocols/conn/community-id-logging.zeek>
    policy/files/x509/disable-certificate-events-known-certs.zeek </scripts/policy/files/x509/disable-certificate-events-known-certs.zeek>
+   policy/files/zip/register.zeek </scripts/policy/files/zip/register.zeek>
    policy/frameworks/packet-filter/shunt.zeek </scripts/policy/frameworks/packet-filter/shunt.zeek>
    policy/frameworks/software/version-changes.zeek </scripts/policy/frameworks/software/version-changes.zeek>
    policy/frameworks/software/vulnerable.zeek </scripts/policy/frameworks/software/vulnerable.zeek>

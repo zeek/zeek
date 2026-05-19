@@ -1,3 +1,52 @@
+8.2.0-48 | 2026-06-30 10:40:01 -0700
+
+  * cluster/websocket: Bump ixwebsocket (Arne Welzel, Corelight)
+
+    Fixes the ASAN+IPV6 stack-overflow report from the websocket/one-ipv6.zeek
+    test. Also include send timeout modifications to detect backlogged
+    WebSocket clients. Otherwise, support for LibreSSL, which isn't super
+    interesting for us.
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * btest/telemetry: Avoid zero CPU reports by burning a bit (Arne Welzel, Corelight)
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * btest/logging: Skip rotate-pp-env on Windows (Arne Welzel, Corelight)
+
+    Similar to the changes in df7500149f8, this test shows up as flaky in CI.
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * GH-5377: btest/cluster: Skip more flaky cluster related tests on Windows (Arne Welzel, Corelight)
+
+    Commit df7500149f8 had already marked some cluster-related tests
+    to be skipped on windows. Continue that pattern for two more that
+    popped up while working on #5377.
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * btest/cluster: Stabilize subscribe-before-init.zeek a bit (Arne Welzel, Corelight)
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * btest/cluster: Stabilize ws-app.zeek test a bit (Arne Welzel, Corelight)
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
+  * GH-5377: btest/cluster: Attempt to stabilize overload drop tests (Arne Welzel, Corelight)
+
+    Increase high-water-mark (HWM) to avoid dropping events during normal
+    cluster setup before the actual publishing starts. During the test, publish
+    1000 events 100 times (100.000 events in total) and expect some of these
+    getting dropped by 1) the sender and 2) the receiver as the HWMs should
+    still be low enough (500 and 333) to not be able to buffer this.
+
+    Lets see.
+
+    (cherry picked from commit 0481f7aa4e55c65d52839119b0c35e4c5de6dbbc)
+
 8.2.0-47 | 2026-06-30 10:39:02 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

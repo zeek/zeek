@@ -18,11 +18,13 @@
 #
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/out
+# @TEST-EXEC: btest-diff ./worker/out
 
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
 
 global test: event(c: count) &is_used;
+global finish: event() &is_used;
 
 # @TEST-END-FILE
 
@@ -37,6 +39,9 @@ event zeek_init() &priority=1000000
 event test(c: count)
 	{
 	print "test()", c;
+
+	# When the manager got the test event, terminate the worker.
+	Cluster::publish(Cluster::worker_topic, finish);
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -49,7 +54,13 @@ event Cluster::node_down(name: string, id: string)
 @load ./common.zeek
 event Cluster::node_up(name: string, id: string)
 	{
+	print "node_up", name;
 	Cluster::publish("test.early", test, 42);
+	}
+
+event finish()
+	{
+	print "finish";
 	terminate();
 	}
 # @TEST-END-FILE

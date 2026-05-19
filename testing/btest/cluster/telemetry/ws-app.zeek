@@ -98,7 +98,7 @@ def run(ws_url):
             msg = f"ping {i}" + (i * 32 * "A")
             tc.send_json(wstest.build_event_v1(f"/test/pings/{i % 4}", "ping", [msg, i]))
             if i % 2 == 0:  # Wait for a reply for every other ping
-                tc.recv_json()
+                tc.recv_json(timeout=1.0)
 
 if __name__ == "__main__":
     wstest.main(run, wstest.WS4_URL_V1)

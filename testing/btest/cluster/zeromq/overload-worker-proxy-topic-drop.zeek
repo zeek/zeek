@@ -1,4 +1,4 @@
-# @TEST-DOC: Workers and proxy publish to the worker and proxy topics. They publish so fast that messages are dropped a) on their end and b) their own onloop queue as well. The test checks that metrics are incremented and there's no lockup. The manager only coordinates startup and shutdown.
+# @TEST-DOC: All workers and proxies publish their own publishing offsets to the worker and proxy topics. They publish so fast that messages are dropped a) on their end and b) their own onloop queue as well. The test checks that metrics are incremented and there's no lockup. The manager only coordinates startup and shutdown.
 #
 # @TEST-REQUIRES: have-zeromq
 #
@@ -30,6 +30,8 @@
 @load ./zeromq-test-bootstrap
 @load ./zeromq-metrics
 
+redef Log::default_rotation_interval = 0 secs;
+
 global tick: event() &is_used;
 global done: event(name: string) &is_used;
 global finish: event(name: string) &is_used;
@@ -38,7 +40,7 @@ global ping: event(sender: string, c: count) &is_used;
 # How many messages each node publishes in total.
 const total_publishes = 100000;
 # How many events to publish per tick()
-const batch = 100;
+const batch = 1000;
 
 # Lower HWMs to provoke drops
 redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch/ 5;
@@ -113,7 +115,21 @@ event zeek_done()
 
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
+
+# Lower HWMs to provoke drops.
+#
+# Okay, so these numbers are just magically tuned until this test
+# seems to reliably pass with an ASAN build, nothing more. They
+# interact with the number of publishes and chosen batch. If this
+# becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
+
+# last_c tracks the last publish offset from other nodes.
 global last_c: table[string] of count &default=0;
+
+# drop_c is incremented whenever c from sender and last_c[sender]
+# have non-zero difference.
 global drop_c: table[string] of count &default=0;
 
 event ping(sender: string, c: count)
@@ -160,7 +176,7 @@ event tick()
 	# Relax publishing if we published enough as to not
 	# continue to overload the cluster and have a better
 	# chance of termination events going through.
-	local s = publishes < total_publishes ? 0sec : 0.05sec;
+	local s = publishes < total_publishes ? 0.1msec : 10msec;
 	schedule s { tick() };
 	}
 

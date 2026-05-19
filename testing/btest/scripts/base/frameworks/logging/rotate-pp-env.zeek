@@ -1,6 +1,9 @@
 # @TEST-DOC: Using a custom environment for the postprocessor command.
 # @TEST-EXEC: ZEEK_ARG_EXTERNAL=external zeek -b -r ${TRACES}/rotation.trace %INPUT >out 2>&1
 # @TEST-EXEC: btest-diff out
+#
+# Flaky on Windows.
+# @TEST-REQUIRES: ! is-windows-ci
 
 module Test;
 

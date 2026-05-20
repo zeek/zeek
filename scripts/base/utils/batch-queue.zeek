@@ -38,10 +38,11 @@
 ##!     # Or call batch_queue_flush by hand:
 ##!     batch_queue_flush(bq);
 ##!
+##!
 ##! Related
 ##!
-##! In Spark Streaming this pattern is called "micro-batching". In Kafka it's
-##! called "buffered flush" or "batch accumulator".
+##! TCP Nagle. In Spark Streaming this pattern is called "micro-batching".
+##! In Kafka it's called "buffered flush" or "batch accumulator".
 module GLOBAL;
 
 type BatchQueue: record {

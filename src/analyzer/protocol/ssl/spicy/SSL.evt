@@ -42,7 +42,7 @@ on SSL::Extension -> event ssl_extension($conn, SSL::get_direction(sh), self.cod
 on SSL::Handshake_message -> event ssl_handshake_message($conn, SSL::get_direction(sh), self.msg_type, self.length);
 
 on SSL::SignatureAlgorithms if ( extension_code == 13 )-> event ssl_extension_signature_algorithm($conn, SSL::get_direction(sh), self.supported_signature_algorithms_converted);
-on SSL::SignatureAlgorithms if ( extension_code == 50 )-> event ssl_extension_signature_algorithms_cert($conn, SSL::get_direction(sh), vector<uint16>(self.signature_scheme_list,));
+on SSL::SignatureAlgorithms if ( extension_code == 50 )-> event ssl_extension_signature_algorithms_cert($conn, SSL::get_direction(sh), self.signature_scheme_list);
 
 on SSL::ServerHelloKeyShare -> event ssl_extension_key_share($conn, SSL::get_direction(sh), vector<uint16>(self.keyshare.namedgroup,));
 

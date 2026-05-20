@@ -461,7 +461,7 @@ type CertificateRequest(rec: HandshakeRecord) = record {
 	certificate_types_len: uint8;
 	certificate_types: uint8[certificate_types_len];
 	alg: case uses_signature_and_hashalgorithm of {
-		true -> supported_signature_algorithms: SignatureAlgorithm(rec);
+		true -> supported_signature_algorithms: SignatureAlgorithm(rec, 0);
 		false -> nothing: bytestring &length=0;
 	} &requires(uses_signature_and_hashalgorithm);
 	certificate_authorities_len: uint16;
@@ -813,7 +813,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == nullptr || $element != nullptr);
 #		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == nullptr || $element != nullptr);
 		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == nullptr || $element != nullptr);
-		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_SIGNATURE_ALGORITHMS, EXT_SIGNATURE_ALGORITHMS_CERT -> signature_algorithm: SignatureAlgorithm(rec, type)[] &until($element == nullptr || $element != nullptr);
 		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == nullptr || $element != nullptr);
 		EXT_KEY_SHARE -> key_share: KeyShare(rec, this)[] &until($element == nullptr || $element != nullptr);
 		EXT_KEY_SHARE_OLD -> key_share_old: KeyShare(rec, this)[] &until($element == nullptr || $element != nullptr);
@@ -964,9 +964,9 @@ type PreSharedKey(rec: HandshakeRecord) = case rec.msg_type of {
 	default -> other : bytestring &restofdata &transient;
 };
 
-type SignatureAlgorithm(rec: HandshakeRecord) = record {
+type SignatureAlgorithm(rec: HandshakeRecord, type: uint16) = record {
 	length: uint16;
-	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
+	supported_signature_algorithms: uint16[] &until($input.length() == 0);
 } &length=length+2;
 
 type EllipticCurves(rec: HandshakeRecord) = record {

@@ -246,25 +246,45 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_signature_algorithm(rec: HandshakeRecord, supported_signature_algorithms: SignatureAndHashAlgorithm[]) : bool
+	function proc_signature_algorithm(rec: HandshakeRecord, type: uint16, supported_signature_algorithms: uint16[]) : bool
 		%{
-		if ( ! ssl_extension_signature_algorithm )
-			return true;
-
-		auto slist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("signature_and_hashalgorithm_vec"));
-
-		if ( supported_signature_algorithms )
+		if ( type == EXT_SIGNATURE_ALGORITHMS )
 			{
-			for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
-				{
-				auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
-				el->Assign(0, (*supported_signature_algorithms)[i]->HashAlgorithm());
-				el->Assign(1, (*supported_signature_algorithms)[i]->SignatureAlgorithm());
-				slist->Assign(i, std::move(el));
-				}
-			}
+			if ( ! ssl_extension_signature_algorithm )
+				return true;
 
-		zeek::BifEvent::enqueue_ssl_extension_signature_algorithm(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(slist));
+			auto slist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("signature_and_hashalgorithm_vec"));
+
+			if ( supported_signature_algorithms )
+				{
+				slist->Reserve(supported_signature_algorithms->size());
+				for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
+					{
+					auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
+					el->Assign(0, ((*supported_signature_algorithms)[i] & 0xFF00) >> 8);
+					el->Assign(1, (*supported_signature_algorithms)[i] & 0x00FF);
+					slist->Assign(i, std::move(el));
+					}
+				}
+
+			zeek::BifEvent::enqueue_ssl_extension_signature_algorithm(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(slist));
+			}
+		else if ( type == EXT_SIGNATURE_ALGORITHMS_CERT )
+			{
+			if ( ! ssl_extension_signature_algorithms_cert )
+				return true;
+
+			auto slist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+
+			if ( supported_signature_algorithms )
+				{
+				slist->Reserve(supported_signature_algorithms->size());
+				for ( unsigned int i = 0; i < supported_signature_algorithms->size(); ++i )
+					slist->Assign(i, zeek::val_mgr->Count((*supported_signature_algorithms)[i]));
+				}
+
+			zeek::BifEvent::enqueue_ssl_extension_signature_algorithms_cert(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(slist));
+			}
 
 		return true;
 		%}
@@ -647,8 +667,8 @@ refine connection Handshake_Conn += {
 				for ( unsigned int i = 0; i < sigalgs->size(); ++i )
 					{
 					auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
-					el->Assign(0, (*sigalgs)[i]->HashAlgorithm());
-					el->Assign(1, (*sigalgs)[i]->SignatureAlgorithm());
+					el->Assign(0, ((*sigalgs)[i] & 0xFF00) >> 8);
+					el->Assign(1, (*sigalgs)[i] & 0x00FF);
 					slist->Assign(i, std::move(el));
 					}
 				}
@@ -737,7 +757,7 @@ refine typeattr ClientHelloKeyShare += &let {
 };
 
 refine typeattr SignatureAlgorithm += &let {
-	proc : bool = $context.connection.proc_signature_algorithm(rec, supported_signature_algorithms);
+	proc : bool = $context.connection.proc_signature_algorithm(rec, type, supported_signature_algorithms);
 }
 
 refine typeattr ApplicationLayerProtocolNegotiationExtension += &let {

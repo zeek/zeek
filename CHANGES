@@ -1,3 +1,25 @@
+9.0.0-dev.187 | 2026-05-20 08:09:08 +0100
+
+  * Add new ssl_extension_signature_algorithms_cert event (Johanna Amann, Corelight)
+
+    It is raised for the Signature Algorithms Cert extension
+    which can be used to signify which signature algorithms may be used
+    in certificates.
+
+    This also fixes a bug that caused the ssl_extension_signature_algorithm
+    to incorrectly be raised when encountering a CertificateRequest message
+
+    Fixes GH-5354
+
+  * Spicy TLS: prepare SignatureAlgorithm parsing for new extension (Johanna Amann, Corelight)
+
+    The definition of SignatureAlgorithms was changed in TLS 1.3, to be a
+    uint16 instead of a combination of uint8's. This is used in a couple of
+    extensions, like the (new) signature_algorithm_cert.
+
+    Prepare for a new additional event by changing parsing to uint16s, which
+    will let us pass uint16s to the new event.
+
 9.0.0-dev.183 | 2026-05-19 19:25:54 +0200
 
   * cluster/websocket: Bump ixwebsocket (Arne Welzel, Corelight)

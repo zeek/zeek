@@ -1,0 +1,10 @@
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls13-ech.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
+
+event ssl_extension_encrypted_client_hello(c: connection, is_client: bool, kdf_id: count, aead_id: count, config_id: count, enc: string, payload_length: count)
+	{
+	print "ssl_extension_encrypted_client_hello", c$id$orig_h, c$id$resp_h, kdf_id, aead_id, config_id, |enc|, payload_length;
+	}
+

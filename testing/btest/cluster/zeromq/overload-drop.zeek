@@ -48,8 +48,8 @@ const batch = 1000;
 # seems to reliably pass with an ASAN build, nothing more. They
 # interact with the number of publishes and chosen batch. If this
 # becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
-redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
-redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 100;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 20;
 
 global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 # @TEST-END-FILE

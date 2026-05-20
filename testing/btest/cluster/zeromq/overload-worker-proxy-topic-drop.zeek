@@ -119,7 +119,7 @@ event zeek_done()
 # seems to reliably pass with an ASAN build, nothing more. They
 # interact with the number of publishes and chosen batch. If this
 # becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
-redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 100;
 redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
 
 # last_c tracks the last publish offset from other nodes.

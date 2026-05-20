@@ -61,6 +61,9 @@ New Functionality
   to its righthand type. This change accompanies expanded support for the ``as`` casting
   operator, see below.
 
+- The event ``ssl_extension_encrypted_client_hello`` was added. It contains information about
+  the encrypted_client_hello TLS extension.
+
 Changed Functionality
 ---------------------
 

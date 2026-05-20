@@ -20,6 +20,7 @@ StopRequest = object()
 class PubSubRule:
     ty: str
     arg: str
+    comment: str
     rule_id: str
     rule: zeek_websocket.Value
 

@@ -15,9 +15,7 @@ export {
 		## The topic on which to expect replies.
 		reply_topic: string;
 
-		##
 		max_batch_size: count &default=100;
-		##
 		max_batch_delay: interval &default=10msec;
 	};
 
@@ -27,6 +25,7 @@ export {
 	type PubSubRule: record {
 		ty: RuleType;
 		arg: string;  # stringified address
+		comment: string &optional;
 		rule_id: string;
 		r: Rule;
 	};
@@ -91,6 +90,11 @@ global netcontrol_pubsub_reply_topics: set[string] = set();
 global netcontrol_pubsub_id: table[count] of PluginState = table();
 global netcontrol_pubsub_current_id: count = 0;
 
+### TODO: Should use a batched version to avoid sending one event per rule.
+### TODO: pubsub_rule_result(id: count, r: Rule: result: enum, msg: string)
+###      might also be a nicer API then having one event per outcome, would
+###      avoid a bunch of duplicated checks.
+###
 event NetControl::pubsub_rule_added(id: count, r: Rule, msg: string)
 	{
 	if ( id !in netcontrol_pubsub_id )
@@ -155,7 +159,11 @@ function pubsub_add_rule_fun(p: PluginState, r: Rule) : bool
 
 	# ip is actually a subnet, so this looks more like 10.0.0.1/32 (?)
 	local ip = cat(e$ip);
-	batch_queue_add(p$pubsub_batch_queue_add, PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r));
+	local psr = PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r);
+	if ( r?$location )  # Derived from acl.zeek remove_rule_fun(), not sure that's awesome.
+		psr$comment = r$location;
+
+	batch_queue_add(p$pubsub_batch_queue_add, psr);
 	return T;
 	}
 
@@ -171,6 +179,12 @@ function pubsub_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 
 	# ip is actually a subnet, so this looks more like 10.0.0.1/32 (?)
 	local ip = cat(e$ip);
+	local psr = PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r);
+	if ( r?$location )  # Derived from acl.zeek remove_rule_fun(), not sure that's awesome.
+		psr$comment = fmt("%s (%s)", reason, r$location);
+	else
+		psr$comment = reason;
+
 	batch_queue_add(p$pubsub_batch_queue_remove, PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r));
 	return T;
 	}

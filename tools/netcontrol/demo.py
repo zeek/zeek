@@ -3,6 +3,8 @@ import asyncio
 import dataclasses
 import json
 import logging
+import os
+import pathlib
 import queue
 import threading
 
@@ -34,31 +36,77 @@ class RemoveRules:
     rules: list[PubSubRule]
 
 
+@dataclasses.dataclass
+class PostResult:
+    results: list[dict]
+
+
 class NullRouteClient:
     def __init__(
         self,
         *,
         request_queue: queue.Queue,
-        response_queue: queue.Queue,
+        ws: websockets.ClientConnection,
+        api_key: str,
         queue_get_timeout: float,
         max_jobs: int = 10,
     ):
         self.request_queue = request_queue
+        self.ws = ws
+        self.api_key = api_key
         self.queue_get_timeout = queue_get_timeout
         self.max_jobs = max_jobs
         self.stopped = False
 
         self.logger = logging.getLogger("acld.nullroute_client")
 
+    def do_post(self, op: str, rules: list[PubSubRule]) -> PostResult:
+        """ """
+        assert op in ["add", "remove"]
+
+        # XXX: TODO: Do an actual POST request.
+        fake_results = [
+            {"status": ""},
+        ]
+        return PostResult(fake_results)
+
+    def publish_results(self, op: str, rules: list[PubSubRule], results: PostResult):
+        """
+        Merge results with the original input IPs and publish back to Zeek via the WebSocket client.
+
+        add:
+        "ok", -> event pubsub_rule_added
+
+        "already_present"
+        "whitelisted" -> event pubsub_rule_exists
+
+        remove:
+        "ok",
+        "not_found -> event pubsub_rule_removed
+
+                   -> event pubsub_rule_error
+        event_names = [
+            "NetControl::pubsub_rule_added",
+            "NetControl::pubsub_rule_removed",
+            "NetControl::pubsub_rule_exists",
+            "NetControl::pubsub_rule_error",
+        ]
+
+        """
+        assert op in ["add", "remove"]
+
     def process_jobs(self, jobs: list[AddRules | RemoveRules]):
         """
-        Do a POST request, put responses into the response queue (or send
-        events directly via WebSocket client, not sure).
+        Given a list of mixed jobs (adding and removing), split them
+        up into separate lists and do two requests to the acld server.
+
+        The resulting events are published directly via the WebSocket
+        client back to Zeek. Should be fast enough.
         """
         self.logger.info("Processing %d jobs", len(jobs))
 
         adds: list[PubSubRule] = []
-        removes = []
+        removes: list[PubSubRule] = []
 
         # Jobs can be AddRules or RemoveRules where each contain
         # a PubSubRule instance, so split them here.
@@ -71,6 +119,12 @@ class NullRouteClient:
                 raise ValueError(f"unhandled {j!r}")
 
         print("adds: ", ",".join(a.arg for a in adds))
+
+        result = self.do_post("add", adds)
+        self.publish_results("add", adds, result)
+
+        # Do the http POST with the array of addresses, stitch
+        # together the result for the response and send it out.
 
     def run(self):
         """
@@ -111,46 +165,27 @@ class NullRouteClient:
         self.request_queue.put_nowait(StopRequest)
 
 
-ADDED = 0
-REMOVED = 1
-EXISTS = 2
-ERROR = 3
-
-event_names = [
-    "NetControl::pubsub_rule_added",
-    "NetControl::pubsub_rule_removed",
-    "NetControl::pubsub_rule_exists",
-    "NetControl::pubsub_rule_error",
-]
-
-
 class Proxy:
     """
     Proxy sits between Zeek and ACLd.
 
     Receive events from Zeek
-      -->     From Zeek to here
-          --> From here to HTTP API
-          <-- From API to here
-      <--     Send events back to Zeek to confirm.
+
+    acld-ng <-- HTTP --> broker-acld.py <-- websocket --> Zeek
     """
 
     def __init__(
         self,
         *,
         websocket_client: websockets.ClientConnection,
-        nullroute_client: NullRouteClient,
         request_topic: str,
         request_queue: queue.Queue,
-        response_queue: queue.Queue,
     ):
         self.websocket_client: websockets.ClientConnection = websocket_client
-        self.nullroute_client: NullRouteClient = nullroute_client
         self.request_topic = request_topic
         self.pb = zeek_websocket.ProtocolBinding([self.request_topic])
 
         self.request_queue = request_queue
-        self.response_queue = response_queue
 
     async def run(self):
         subscriptions = self.pb.outgoing()
@@ -159,7 +194,7 @@ class Proxy:
         ack = await self.websocket_client.recv()
         ack = json.loads(ack)
         if ack.get("type") != "ack" or "endpoint" not in ack:
-            LOGGER.error("Bad ack received %r", ack)
+            LOGGER.error("Bad ack received from Zeek: %r", ack)
             raise ValueError(repr(ack))
 
         LOGGER.info("Got ack %s", ack)
@@ -208,24 +243,38 @@ class Proxy:
                 #    await self.websocket_client.send(out, text=True)
 
 
-def setup_nullroute_client(args, request_queue, response_queue) -> NullRouteClient:
+def setup_nullroute_client(
+    args, request_queue: queue.Queue, ws: websockets.ClientConnection
+) -> NullRouteClient:
     """
-    TODO: Needs an API token and stuff.
+    TODO: Needs an API token, URL and stuff.
 
     This thing isn't all that special? It just does a POST to /nullroute-bulk
-    with a bunch of IPs to block  and gets back an array of statuses that match
+    with a bunch of IPs to block and gets back an array of statuses that match
     the order of what was passed in?
 
-    There is some
+    This is is an excerpt from the original broker-acld.py code:
 
         res = client.post(....)
         res = res.json()
         for add, r in zip(adds, res["result"])
             add["result"] = r["result"]
+
+
+    The results should be pushed as events via the WebSocket client
+    back to Zeek using the NetControl::pubsub_rule_added event that
+    receives id, rule and msg.
     """
+    api_key: str = ""
+    if "ACLDNG_API_TOKEN" in os.environ:
+        api_key = os.environ["ACLDNG_API_TOKEN"]
+    else:
+        api_key = pathlib.Path("/usr/local/etc/acld-ng-apitoken").read_text().strip()
+
     return NullRouteClient(
         request_queue=request_queue,
-        response_queue=response_queue,
+        ws=ws,
+        api_key=api_key,
         queue_get_timeout=0.01,
     )
 
@@ -250,32 +299,34 @@ async def main():
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
 
     request_queue = queue.Queue()
-    response_queue = queue.Queue()
-    nullroute_client = setup_nullroute_client(args, request_queue, response_queue)
-
-    nullroute_thread = threading.Thread(target=nullroute_client.run)
-    nullroute_thread.start()
+    nullroute_client: NullRouteClient | None = None
+    nullroute_thread: threading.Thread | None = None
 
     try:
         async with websockets.connect(
             args.ws_uri, open_timeout=args.ws_open_timeout
         ) as ws:
-            print("CONNECTED")
+            LOGGER.info("Connected...")
+            nullroute_client = setup_nullroute_client(args, request_queue, ws)
+            nullroute_thread = threading.Thread(target=nullroute_client.run)
+            nullroute_thread.start()
+
             proxy = Proxy(
                 websocket_client=ws,
-                nullroute_client=nullroute_client,
                 request_topic=args.request_topic,
                 request_queue=request_queue,
-                response_queue=response_queue,
             )
+
             try:
                 await proxy.run()
             except asyncio.exceptions.CancelledError:
                 LOGGER.info("Cancelled...")
     finally:
         try:
-            nullroute_client.stop()
-            nullroute_thread.join()
+            if nullroute_client is not None:
+                nullroute_client.stop()
+                assert nullroute_thread is not None
+                nullroute_thread.join()
         except Exception as e:
             LOGGER.exception("Exception shutting down nullroute_client: %s", e)
 

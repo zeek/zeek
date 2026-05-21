@@ -383,12 +383,13 @@ jobs:
       with:
         key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.id }}
 
-    - name: Clone external test suites
-      run: |
-        make -C testing/external/ init
-        ./ci/init-external-repos.sh
-
     # FIXME(bbannier): add ./ci/init-external-repos.sh with caching, maybe in actual job below
+    # - name: Clone external test suites
+    #   run: |
+    #     make -C testing/external/ init
+    #     ./ci/init-external-repos.sh
+
+    # FIXME(bbannier)
     # - name: Clone private test suite
     #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 

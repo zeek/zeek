@@ -236,6 +236,15 @@ else ()
         if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11.0)
             list(APPEND WERROR_FLAG "-Wno-error=restrict")
         endif ()
+
+        # When optimizing GCC often reports false positives around maybe uninitialized
+        # values, e.g., in its string implementation. These are extremely tedious to
+        # silence, so just disable the warning altogether. See
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105616.
+        if (CMAKE_COMPILER_IS_GNUCXX)
+            list(APPEND WERROR_FLAG "-Wno-maybe-uninitialized")
+        endif ()
+
     endif ()
 endif ()
 

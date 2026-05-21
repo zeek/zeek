@@ -4069,8 +4069,7 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
 
                 case TYPE_DOUBLE: result = detail::convert_int_to_double(iv); break;
 
-                case TYPE_INTERVAL: result = cast_value_to_type(detail::convert_int_to_double(iv).get(), t); break;
-
+                case TYPE_INTERVAL: [[fallthrough]];
                 case TYPE_TIME: result = cast_value_to_type(detail::convert_int_to_double(iv).get(), t); break;
 
                 default: break;
@@ -4108,8 +4107,7 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
 
                 case TYPE_DOUBLE: result = detail::convert_count_to_double(cv); break;
 
-                case TYPE_INTERVAL: result = cast_value_to_type(detail::convert_count_to_double(cv).get(), t); break;
-
+                case TYPE_INTERVAL: [[fallthrough]];
                 case TYPE_TIME: result = cast_value_to_type(detail::convert_count_to_double(cv).get(), t); break;
 
                 case TYPE_ADDR: result = detail::convert_count_to_v4_addr(cv, err); break;
@@ -4227,8 +4225,7 @@ static bool can_cast_basic_types(const Type* s, const Type* t) {
 
         case TYPE_ENUM: return t_tag == TYPE_COUNT || t_tag == TYPE_INT;
 
-        case TYPE_INTERVAL: return t_tag == TYPE_DOUBLE;
-
+        case TYPE_INTERVAL: [[fallthrough]];
         case TYPE_TIME: return t_tag == TYPE_DOUBLE;
 
         case TYPE_ADDR: return t_tag == TYPE_SUBNET || is_index_vec(t);

@@ -1,3 +1,7 @@
+9.0.0-dev.205 | 2026-05-21 15:49:07 -0400
+
+  * Clarify note about package manager versions in Quickstart Guide (Sujala Vasanthasena Nelavai)
+
 9.0.0-dev.199 | 2026-05-21 18:29:41 +0200
 
   * github/workflows: Add cifuzz.yml (Arne Welzel, Corelight)

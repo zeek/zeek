@@ -102,6 +102,11 @@ on which version you’re using), and includes a complete Zeek environment with
 See our `Binary Packages wiki page <https://github.com/zeek/zeek/wiki/Binary-Packages>`_
 for the latest updates on binary releases.
 
+.. note::
+
+   Some Linux distributions may provide older versions of Zeek. Check the version
+   packaged for your distribution before installing.
+
 macOS
 -----
 

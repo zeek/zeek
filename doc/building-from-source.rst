@@ -207,6 +207,18 @@ The `ZeekControl`_ management shell has an optional dependency on the Python
 This package is available on PyPI under the name ``websockets``. On Ubuntu
 and Fedora, the distribution package is called ``python3-websockets``.
 
+.. note::
+
+   Some distributions do not yet have websockets version 11.0 or later packaged.
+   If you encounter troubles when using the distribution package, we recommend
+   installing a more recent websockets version into ``$PREFIX/lib/zeek/python/``
+   using ``pip``.
+
+   .. code-block:: console
+
+       pip install --target /opt/zeek/lib/zeek/python/ websockets
+
+
 The `zkg package manager`_, included in the Zeek installation, requires
 two external Python modules:
 

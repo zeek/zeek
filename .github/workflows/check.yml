@@ -32,8 +32,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        # FIXME(bbannier): add ./ci/init-external-repos.sh with caching, maybe in actual job below
-
         - id: fedora-43
           file: ci/fedora-43/Dockerfile
           env:
@@ -384,6 +382,15 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.id }}
+
+    - name: Clone external test suites
+      run: |
+        make -C testing/external/ init
+        ./ci/init-external-repos.sh
+
+    # FIXME(bbannier): add ./ci/init-external-repos.sh with caching, maybe in actual job below
+    # - name: Clone private test suite
+    #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
     - name: Run script
       env:

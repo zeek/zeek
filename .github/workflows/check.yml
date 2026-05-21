@@ -21,6 +21,9 @@ env:
   ZEEK_CI_BTEST_RETRIES: 2
   ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1 # FIXME: enable this eventually
 
+  # Prevent Docker build steps from posting to the summary.
+  DOCKER_BUILD_SUMMARY: false
+
   # FIXME(bbannier): Migrate scripts which use this legacy variable.
   CIRRUS_WORKING_DIR: ${{ github.workspace }}
 

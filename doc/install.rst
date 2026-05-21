@@ -17,10 +17,6 @@ numbers, please refer to our `Release Cadence
 
 .. _docker-images:
 
-Note: Some Linux distributions may provide older versions of Zeek. For the latest
-official Zeek binary packages, see https://docs.zeek.org/en/master/install.html#binary-packages.
-
-
 Docker Images
 =============
 
@@ -105,6 +101,11 @@ on which version you’re using), and includes a complete Zeek environment with
 
 See our `Binary Packages wiki page <https://github.com/zeek/zeek/wiki/Binary-Packages>`_
 for the latest updates on binary releases.
+
+.. note::
+
+   Some Linux distributions may provide older versions of Zeek. Check the version
+   packaged for your distribution before installing.
 
 macOS
 -----

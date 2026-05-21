@@ -15,7 +15,6 @@ systems and does not require custom hardware. See :doc:`install` in order to
 install from pre-built binary packages, or :doc:`building-from-source` in order
 to build Zeek from source.
 
-
 We will first analyze previously captured network traffic from a ``pcap`` file -
 :download:`quickstart.pcap <traces/quickstart.pcap>`. Later, we will use Zeek to
 monitor live traffic. Each section builds on the previous section.

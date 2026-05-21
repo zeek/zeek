@@ -1,3 +1,16 @@
+9.0.0-dev.199 | 2026-05-21 18:29:41 +0200
+
+  * github/workflows: Add cifuzz.yml (Arne Welzel, Corelight)
+
+    Instructions from there:
+
+        https://google.github.io/oss-fuzz/getting-started/continuous-integration/
+
+    There's a way to limit when to run this workflow (we would not need to do
+    it for doc only changes), but for now see if it works at all...
+
+        https://google.github.io/oss-fuzz/getting-started/continuous-integration/#branches-and-paths
+
 9.0.0-dev.197 | 2026-05-21 16:00:54 +0000
 
   * Update libunistd submodule for icmp6.h changes (Tim Wojtulewicz, Corelight)

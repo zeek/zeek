@@ -12,8 +12,9 @@ Quick Start Guide
 
 Zeek is a network traffic analyzer. Zeek works on most modern Unix-based
 systems and does not require custom hardware. See :doc:`install` in order to
-install from official Zeek binary packages (see https://docs.zeek.org/en/master/install.html#binary-packages),  or :doc:`building-from-source` in order
+install from pre-built binary packages, or :doc:`building-from-source` in order
 to build Zeek from source.
+
 
 We will first analyze previously captured network traffic from a ``pcap`` file -
 :download:`quickstart.pcap <traces/quickstart.pcap>`. Later, we will use Zeek to

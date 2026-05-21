@@ -1,3 +1,7 @@
+9.0.0-dev.194 | 2026-05-21 13:19:08 +0200
+
+  * Consolidate duplicated switch cases as pointed out by `clang-tidy` (Benjamin Bannier, Corelight)
+
 9.0.0-dev.192 | 2026-05-21 09:05:37 +0200
 
   * doc: Add websockets pip --target trick (Arne Welzel, Corelight)

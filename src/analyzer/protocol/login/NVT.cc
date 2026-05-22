@@ -258,6 +258,9 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len) {
 }
 
 char* TelnetEnvironmentOption::ExtractEnv(u_char*& data, int& len, int& code) {
+    if ( len <= 0 )
+        return nullptr;
+
     code = data[0];
 
     if ( code != ENVIRON_VAR && code != ENVIRON_VAL && code != ENVIRON_USERVAR )

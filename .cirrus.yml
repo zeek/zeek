@@ -18,7 +18,7 @@ spicy_ssl_config: &SPICY_SSL_CONFIG --build-type=release --disable-broker-tests 
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
-macos_config: &MACOS_CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 -D NODEJS_ROOT_DIR=/opt/homebrew/opt/node@24
+macos_config: &MACOS_CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
 clang_tidy_config: &CLANG_TIDY_CONFIG --build-type=debug --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
 
 resources_template: &RESOURCES_TEMPLATE

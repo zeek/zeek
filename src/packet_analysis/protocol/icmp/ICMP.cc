@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/protocol/icmp/ICMP.h"
 
 #include <netinet/icmp6.h>
+#include <algorithm>
 
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
@@ -557,6 +558,7 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
                                const IP_Hdr* ip_hdr, ICMPSessionAdapter* adapter) {
     static auto icmp6_mld_group_type_type = id::find_type<EnumType>("icmp6_mldv2_group_type");
     static auto icmp6_mld_mar_type = id::find_type<RecordType>("icmp6_mldv2_mar");
+    static auto icmp6_mld_mar_vec_type = id::find_type<VectorType>("icmp6_mldv2_mar_vec");
     static auto addr_vec_type = id::find_type<VectorType>("addr_vec");
 
     // The ICMP header was already parsed and the data pointer starts at the beginning of
@@ -574,6 +576,9 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
 
     size_t remaining = caplen;
     const uint8_t* record_ptr = data;
+
+    auto vec = make_intrusive<VectorVal>(icmp6_mld_mar_vec_type);
+    vec->Reserve(std::min(static_cast<uint16_t>(32), num_multicast_records));
 
     for ( uint16_t i = 0; i < num_multicast_records && remaining > 0; i++ ) {
         if ( remaining < 4 ) {
@@ -600,7 +605,7 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
         remaining -= 16;
 
         auto source_vec = make_intrusive<VectorVal>(addr_vec_type);
-        source_vec->Reserve(num_sources);
+        source_vec->Reserve(std::min(static_cast<uint16_t>(32), num_sources));
 
         for ( uint16_t src = 0; src < num_sources; src++ ) {
             source_vec->Append(make_intrusive<AddrVal>(IPAddr(*reinterpret_cast<const in6_addr*>(record_ptr))));
@@ -621,9 +626,11 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
             remaining -= aux_len;
         }
 
-        if ( icmpv6_mld_report_v2 )
-            adapter->EnqueueConnEvent(icmpv6_mld_report_v2, adapter->ConnVal(), rv);
+        vec->Append(std::move(rv));
     }
+
+    if ( icmpv6_mld_report_v2 )
+        adapter->EnqueueConnEvent(icmpv6_mld_report_v2, adapter->ConnVal(), vec);
 }
 
 void ICMPAnalyzer::Context4(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,

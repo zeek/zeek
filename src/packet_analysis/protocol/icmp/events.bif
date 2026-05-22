@@ -386,4 +386,4 @@ event icmpv6_mld_done_v1%(c: connection, group_addr: addr%);
 ## groups: A vector of ICMP6 MLD Multicast Address Records.
 ##
 ## .. zeek:see:: icmpv6_mld_report_v1 icmpv6_mld_done_v1
-event icmpv6_mld_report_v2%(c: connection, groups: icmp6_mldv2_mar_vector%);
+event icmpv6_mld_report_v2%(c: connection, groups: icmp6_mldv2_mar_vec%);

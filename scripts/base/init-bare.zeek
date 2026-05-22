@@ -357,7 +357,7 @@ type icmp6_mldv2_mar: record {
 	aux_data:       string &optional;
 };
 
-type icmp6_mldv2_mar_vector: vector of icmp6_mldv2_mar;
+type icmp6_mldv2_mar_vec: vector of icmp6_mldv2_mar;
 
 # A DNS mapping between IP address and hostname resolved by Zeek's internal
 # resolver.

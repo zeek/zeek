@@ -180,7 +180,10 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len, u_char
     int len = (*name++) / 2;
     xlen = len;
 
-    if ( len > 30 || len < 1 || name_len < len )
+    // The loop below reads two bytes per encoded name character, on top
+    // of the one length byte already consumed above, so the input must
+    // hold at least 2 * len + 1 bytes total.
+    if ( len > 30 || len < 1 || name_len < 2 * len + 1 )
         return 0;
 
     u_char* convert_name = new u_char[len + 1];

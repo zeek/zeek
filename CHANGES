@@ -1,3 +1,17 @@
+8.0.8-29 | 2026-06-17 20:15:18 +0000
+
+  * bittorrent: fix out-of-bounds read in ResponseBenc peers parser (jmestwa-coder)
+
+    The compact "peers" value in a bencoded tracker response is a list of
+    6-byte <IPv4,port> tuples. ResponseBenc() iterates over it with a
+    "value < end" loop condition and unconditionally reads six bytes per
+    iteration, so when the server-supplied length is not a multiple of six
+    the last iteration reads up to five bytes past the buffer.
+
+    Require at least six bytes remaining before reading another tuple.
+
+    (cherry picked from commit 9bb9daa680800f9698f0073e2594b640dd7003cf)
+
 8.0.8-28 | 2026-06-17 20:14:40 +0000
 
   * GH-5197: Fix segfault when `global_ids` called before types (Evan Typanski, Corelight)

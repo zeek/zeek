@@ -413,7 +413,10 @@ void BitTorrentTracker_Analyzer::ParseHeader(char* name, char* value, bool is_re
 void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::BTT_BencTypes type, int value_len,
                                               char* value) {
     if ( name_len == 5 && ! strncmp(name, "peers", 5) ) {
-        for ( char* end = value + value_len; value < end; value += 6 ) {
+        // The "peers" value is a compact list of 6-byte <IPv4,port>
+        // tuples. Require at least six bytes remaining to avoid an
+        // out-of-bounds read when value_len is not a multiple of six.
+        for ( char* end = value + value_len; end - value >= 6; value += 6 ) {
             // Note, weirdly/unfortunately AddrVal's take
             // addresses in network order but PortVal's
             // take ports in host order.  BitTorrent specifies

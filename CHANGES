@@ -1,3 +1,20 @@
+8.2.0-24 | 2026-06-17 21:22:53 +0000
+
+  * login: fix out-of-bounds read in TelnetEnvironmentOption::ExtractEnv (dxbjavid)
+
+    ExtractEnv() reads data[0] before checking that the caller-supplied
+    length is non-zero. The caller, TelnetEnvironmentOption::RecvSubOption(),
+    gates its loop with while (len > 0) but invokes ExtractEnv() twice per
+    iteration: the second invocation can be entered with len == 0 whenever
+    the first call consumed the last byte of the sub-option payload, in
+    which case ExtractEnv() reads one byte past the end of the sub-option
+    buffer.
+
+    Bail out at the top of ExtractEnv() when there are no bytes left so the
+    data[0] access stays in bounds.
+
+    (cherry picked from commit ffd5e0760261a4bff395973d40c711ee53907dc9)
+
 8.2.0-23 | 2026-06-17 21:22:17 +0000
 
   * bittorrent: fix out-of-bounds read in ResponseBenc peers parser (jmestwa-coder)

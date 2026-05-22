@@ -1,3 +1,15 @@
+9.0.0-dev.207 | 2026-05-22 12:56:58 +0200
+
+  * bittorrent: fix out-of-bounds read in ResponseBenc peers parser (jmestwa-coder)
+
+    The compact "peers" value in a bencoded tracker response is a list of
+    6-byte <IPv4,port> tuples. ResponseBenc() iterates over it with a
+    "value < end" loop condition and unconditionally reads six bytes per
+    iteration, so when the server-supplied length is not a multiple of six
+    the last iteration reads up to five bytes past the buffer.
+
+    Require at least six bytes remaining before reading another tuple.
+
 9.0.0-dev.205 | 2026-05-21 15:49:07 -0400
 
   * Clarify note about package manager versions in Quickstart Guide (Sujala Vasanthasena Nelavai)

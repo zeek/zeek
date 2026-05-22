@@ -1,3 +1,9 @@
+9.0.0-dev.213 | 2026-05-22 14:52:43 -0400
+
+  * GH-5197: Fix segfault when `global_ids` called before types (Evan Typanski, Corelight)
+
+    Fixes #5197
+
 9.0.0-dev.211 | 2026-05-22 13:02:37 +0200
 
   * netbios: fix out-of-bounds read in NetbiosSSN_Interpreter::ConvertName (dxbjavid)

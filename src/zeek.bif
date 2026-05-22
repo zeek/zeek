@@ -2753,6 +2753,13 @@ function global_ids%(%): id_table
 	zeek::ODesc d;
 	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
 
+	// Early abort if parsing to avoid segfaults using GetType() before types are
+	// populated.
+	if ( run_state::is_parsing ) {
+		zeek::reporter->Error("top-level global_ids() call unsupported");
+		return ids;
+	}
+
 	for ( const auto& [_, id] : zeek::detail::global_scope()->Vars() )
 		{
 		d.Clear();

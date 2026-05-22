@@ -8,6 +8,7 @@ import pathlib
 import queue
 import threading
 
+import requests
 import websockets
 import zeek_websocket
 
@@ -28,12 +29,14 @@ class PubSubRule:
 @dataclasses.dataclass
 class AddRules:
     pubsub_id: int
+    reply_topic: str
     rules: list[PubSubRule]
 
 
 @dataclasses.dataclass
 class RemoveRules:
     pubsub_id: int
+    reply_topic: str
     rules: list[PubSubRule]
 
 
@@ -46,32 +49,88 @@ class NullRouteClient:
     def __init__(
         self,
         *,
+        loop: asyncio.AbstractEventLoop,
         request_queue: queue.Queue,
         ws: websockets.ClientConnection,
+        bulk_uri: str,
+        namespace: str,
         api_key: str,
         queue_get_timeout: float,
         max_jobs: int = 10,
+        request_timeout=10.0,
     ):
+        self.loop = loop
         self.request_queue = request_queue
         self.ws = ws
+        self.bulk_uri = bulk_uri
+        self.namespace = namespace
         self.api_key = api_key
         self.queue_get_timeout = queue_get_timeout
         self.max_jobs = max_jobs
         self.stopped = False
 
+        self.session = requests.Session()
+        self.session.headers["X-API-Key"] = self.api_key
+        self.session.headers["Content-Type"] = "application/json"
+
+        self.request_timeout = request_timeout
+
         self.logger = logging.getLogger("acld.nullroute_client")
+
+        self.pb = zeek_websocket.ProtocolBinding([])
+        self.pb.outgoing()  # Discard
 
     def do_post(self, op: str, rules: list[PubSubRule]) -> PostResult:
         """ """
         assert op in ["add", "remove"]
 
-        # XXX: TODO: Do an actual POST request.
-        fake_results = [
-            {"status": ""},
-        ]
-        return PostResult(fake_results)
+        ipinfos = [{"ip": psr.arg, "comment": psr.comment} for psr in rules]
 
-    def publish_results(self, op: str, rules: list[PubSubRule], results: PostResult):
+        req = {
+            "operation": op,
+            "namespace": self.namespace,
+            "ipinfos": ipinfos,
+        }
+
+        LOGGER.debug("Sending %r", req)
+
+        response = self.session.post(
+            self.bulk_uri, json=req, timeout=self.request_timeout
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        LOGGER.debug("Response %r", data)
+
+        return PostResult(data["results"])
+
+    @staticmethod
+    def result_to_event_name(op, result):
+        """
+        Map op and result to an event name to use as a reply.
+        """
+        lut = {
+            "add": {
+                "ok": "NetControl::pubsub_rule_added",
+                "already_present": "NetControl::pubsub_rule_exists",
+                "whitelisted": "NetControl::pubsub_rule_exists",
+            },
+            "remove": {
+                "ok": "NetControl::pubsub_rule_removed",
+                "not_found": "NetControl::pubsub_rule_removed",
+            },
+        }
+
+        return lut[op].get(result, "NetControl::pubsub_rule_error")
+
+    def publish_results(
+        self,
+        op: str,
+        pubsub_id: int,
+        reply_topic: str,
+        rules: list[PubSubRule],
+        result: PostResult,
+    ) -> None:
         """
         Merge results with the original input IPs and publish back to Zeek via the WebSocket client.
 
@@ -94,7 +153,27 @@ class NullRouteClient:
         ]
 
         """
+
         assert op in ["add", "remove"]
+        assert len(rules) == len(result.results)
+
+        for psr, psr_result in zip(rules, result.results):
+            event_name = self.result_to_event_name(op, psr_result["status"])
+
+            args = [
+                zeek_websocket.Value.Count(pubsub_id),
+                psr.rule,
+                "",  ## msg
+            ]
+
+            # This kind of sucks.
+            event = zeek_websocket.Event(event_name, args, metadata=[])
+            self.pb.publish_event(reply_topic, event)
+            msg = self.pb.outgoing()
+            assert msg
+
+            # This too, maybe?
+            asyncio.run_coroutine_threadsafe(self.ws.send(msg), self.loop)
 
     def process_jobs(self, jobs: list[AddRules | RemoveRules]):
         """
@@ -108,10 +187,20 @@ class NullRouteClient:
 
         adds: list[PubSubRule] = []
         removes: list[PubSubRule] = []
+        pubsub_id = None
+        reply_topic = None
 
         # Jobs can be AddRules or RemoveRules where each contain
         # a PubSubRule instance, so split them here.
         for j in jobs:
+            if pubsub_id is None and reply_topic is None:
+                pubsub_id = j.pubsub_id
+                reply_topic = j.reply_topic
+            elif pubsub_id != j.pubsub_id:
+                raise ValueError(f"inconsistent pubsub_id {pubsub_id} != {j.pubsub_id}")
+            elif reply_topic != j.reply_topic:
+                raise ValueError(f"inconsistent pubsub_id {pubsub_id} != {j.pubsub_id}")
+
             if isinstance(j, AddRules):
                 adds.extend(j.rules)
             elif isinstance(j, RemoveRules):
@@ -119,10 +208,15 @@ class NullRouteClient:
             else:
                 raise ValueError(f"unhandled {j!r}")
 
-        print("adds: ", ",".join(a.arg for a in adds))
-
+        # Do the adds first.
         result = self.do_post("add", adds)
-        self.publish_results("add", adds, result)
+        if len(result.results) != len(adds):
+            raise ValueError(
+                f"wrong number of results {len(result.results)} vs {len(adds)}"
+            )
+
+        assert pubsub_id is not None
+        self.publish_results("add", pubsub_id, reply_topic, adds, result)
 
         # Do the http POST with the array of addresses, stitch
         # together the result for the response and send it out.
@@ -144,15 +238,19 @@ class NullRouteClient:
             except queue.Empty:
                 self.logger.debug("Timeout!")
                 timed_out = True
-                if jobs:
-                    # submit tasks
-                    self.process_jobs(jobs)
             else:
                 jobs += [job]
 
-            # How many jobs to dequeue before processing them.
-            if jobs and timed_out or len(jobs) >= self.max_jobs:
-                self.process_jobs(jobs)
+            if (jobs and timed_out) or len(jobs) >= self.max_jobs:
+                try:
+                    self.process_jobs(jobs)
+                except:
+                    LOGGER.exception("Bad")
+
+                    # Terminate the WebSocket client if we error, too.
+                    asyncio.run_coroutine_threadsafe(self.ws.close(), self.loop)
+                    break
+
                 jobs = []
 
         self.logger.info("Stopped")
@@ -217,7 +315,9 @@ class Proxy:
                 # LOGGER.debug("event_name=%s reply_topic=%s rules=%s", name, reply_topic, rules)
                 # print("RULES", rules)
 
-                job = AddRules(pubsub_id=pubsub_id.value, rules=[])
+                job = AddRules(
+                    pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
+                )
 
                 for i, r in enumerate(rules.value):
                     psr = r.as_record(PubSubRule)  # rust rust rust
@@ -267,14 +367,24 @@ def setup_nullroute_client(
     receives id, rule and msg.
     """
     api_key: str = ""
-    if "ACLDNG_API_TOKEN" in os.environ:
+    if args.nullroute_api_key:
+        api_key = args.nullroute_api_key
+    elif "ACLDNG_API_TOKEN" in os.environ:
         api_key = os.environ["ACLDNG_API_TOKEN"]
     else:
-        api_key = pathlib.Path("/usr/local/etc/acld-ng-apitoken").read_text().strip()
+        try:
+            api_key = (
+                pathlib.Path("/usr/local/etc/acld-ng-apitoken").read_text().strip()
+            )
+        except FileNotFoundError as e:
+            LOGGER.warning("%s", e)
 
     return NullRouteClient(
+        loop=asyncio.get_event_loop(),
         request_queue=request_queue,
         ws=ws,
+        bulk_uri=args.nullroute_bulk_uri,
+        namespace=args.nullroute_namespace,
         api_key=api_key,
         queue_get_timeout=0.01,
     )
@@ -295,6 +405,13 @@ async def main():
         default="lbl/acld/request",
         help="The topic to subscribe to and listen of NetControl::pubsub_* events",
     )
+
+    parser.add_argument(
+        "--nullroute-bulk-uri", default="http://localhost:8080/nullroute-bulk"
+    )
+    parser.add_argument("--nullroute-api-key", default="")
+    parser.add_argument("--nullroute-namespace", default="development")
+
     args = parser.parse_args()
 
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))

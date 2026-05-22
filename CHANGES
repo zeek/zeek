@@ -1,3 +1,9 @@
+8.0.8-28 | 2026-06-17 20:14:40 +0000
+
+  * GH-5197: Fix segfault when `global_ids` called before types (Evan Typanski, Corelight)
+
+    (cherry picked from commit f5c9fc9685d57eb36ddd9bc3c763e2a858a9afa9)
+
 8.0.8-27 | 2026-06-17 20:14:05 +0000
 
   * netbios: remove unused broadcast name parsing in ParseBroadcast (dxbjavid)

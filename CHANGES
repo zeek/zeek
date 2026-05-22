@@ -1,3 +1,16 @@
+9.0.0-dev.211 | 2026-05-22 13:02:37 +0200
+
+  * netbios: fix out-of-bounds read in NetbiosSSN_Interpreter::ConvertName (dxbjavid)
+
+    The session-request body length check in ConvertName only required the
+    input buffer to hold `len` bytes, but the conversion loop consumes two
+    bytes per encoded character plus the one length byte already read at the
+    top of the function. With a length byte of 0x3c (so `len` == 30) and a
+    30-byte request body, the original guard `name_len < len` passes and the
+    loop then reads up to 30 bytes past the end of the input buffer. Tighten
+    the guard to `name_len < 2 * len + 1` so the encoded characters are
+    known to be fully contained in the caller-supplied buffer.
+
 9.0.0-dev.209 | 2026-05-22 13:00:06 +0200
 
   * login: fix out-of-bounds read in TelnetEnvironmentOption::ExtractEnv (dxbjavid)

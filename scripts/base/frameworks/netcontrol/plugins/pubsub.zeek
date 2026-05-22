@@ -19,8 +19,9 @@ export {
 		max_batch_delay: interval &default=10msec;
 	};
 
-	## Instantiates the acld plugin.
-	global create_pubsub: function(config: PubSubConfig) : PluginState;
+	##
+	const default_batch_queue_max_size = 200 &redef;
+	const default_batch_queue_max_delay = 5msec &redef;
 
 	type PubSubRule: record {
 		ty: RuleType;
@@ -35,46 +36,47 @@ export {
 	global pubsub_add_rules: event(reply_topic: string, id: count, rules: vector of PubSubRule);
 	global pubsub_remove_rules: event(reply_topic: string, id: count, rules: vector of PubSubRule);
 
-	redef record PluginState += {
-		pubsub_config: PubSubConfig &optional;
-		# Same pattern as in acld.zeek
-		pubsub_id: count &optional;
-	};
-
+	# Extend the BatchQeuue with information about the netcontrol
+	# plugin instance so we can look these up during the flush
+	# allback execution.
 	redef record BatchQueue += {
-		pubsub_plugin_state: PluginState &optional;
+		pubsub_id: count &optional;
+		pubsub_config: PubSubConfig &optional;
 	};
 
-	##
-	const default_batch_queue_max_size = 200 &redef;
-	const default_batch_queue_max_delay = 5msec &redef;
-
-	redef record PluginState += {
-		pubsub_batch_queue_add: BatchQueue &default=batch_queue_new(
+	## Holds the add and remove queues.
+	type PubSubBatchQueues: record {
+		add_queue: BatchQueue &default=batch_queue_new(
 			$max_size=default_batch_queue_max_size,
 			$max_delay=default_batch_queue_max_delay,
 			$flush_callback=function(bq: BatchQueue, elements: vector of any) {
+				local request_topic = bq$pubsub_config$request_topic;
+				local reply_topic = bq$pubsub_config$reply_topic;
 				local psrs = elements as vector of PubSubRule;
-				local psid = bq$pubsub_plugin_state$pubsub_id;
-				local psc = bq$pubsub_plugin_state$pubsub_config;
 
-				# Reporter::info(fmt("FLUSH %s %d", current_time(), |bq$elements|));
-				Cluster::publish(psc$request_topic, pubsub_add_rules, psc$reply_topic, psid, psrs);
+				Cluster::publish(request_topic, pubsub_add_rules, reply_topic, bq$pubsub_id, psrs);
 			}
 		);
-		pubsub_batch_queue_remove: BatchQueue &default=batch_queue_new(
+		remove_queue: BatchQueue &default=batch_queue_new(
 			$max_size=default_batch_queue_max_size,
 			$max_delay=default_batch_queue_max_delay,
 			$flush_callback=function(bq: BatchQueue, elements: vector of any)
 				{
+				local request_topic = bq$pubsub_config$request_topic;
+				local reply_topic = bq$pubsub_config$reply_topic;
 				local psrs = elements as vector of PubSubRule;  # pub sub rules
-				local psid= bq$pubsub_plugin_state$pubsub_id;
-				local psc = bq$pubsub_plugin_state$pubsub_config;
-
-				# Reporter::info(fmt("FLUSH %s %d", current_time(), |bq$elements|));
-				Cluster::publish(psc$request_topic, pubsub_remove_rules, psc$reply_topic, psid, psrs);
+				Cluster::publish(request_topic, pubsub_remove_rules, reply_topic, bq$pubsub_id, psrs);
 				}
 		);
+	};
+
+	## Instantiates the pubsub plugin.
+	global create_pubsub: function(config: PubSubConfig) : PluginState;
+
+	redef record PluginState += {
+		pubsub_config: PubSubConfig &optional;
+		# Same pattern as in acld.zeek
+		pubsub_id: count &optional;
 	};
 
 	## Events that should arrive back on reply_topic with the Rule
@@ -88,13 +90,16 @@ export {
 global netcontrol_pubsub_request_topics: set[string] = set();
 global netcontrol_pubsub_reply_topics: set[string] = set();
 global netcontrol_pubsub_id: table[count] of PluginState = table();
+global netcontrol_pubsub_batch_queues: table[count] of PubSubBatchQueues = table();
 global netcontrol_pubsub_current_id: count = 0;
 
 ### TODO: Should use a batched version to avoid sending one event per rule.
 ### TODO: pubsub_rule_result(id: count, r: Rule: result: enum, msg: string)
-###      might also be a nicer API then having one event per outcome, would
-###      avoid a bunch of duplicated checks.
-###
+###       might also be a nicer API then having one event per outcome, would
+###       avoid a bunch of duplicated checks.
+### TODO: Could also batch multiple rules into a single event to avoid
+###       the extra overhead, given add_rules works this way, might make
+###       more sense.
 event NetControl::pubsub_rule_added(id: count, r: Rule, msg: string)
 	{
 	if ( id !in netcontrol_pubsub_id )
@@ -157,13 +162,14 @@ function pubsub_add_rule_fun(p: PluginState, r: Rule) : bool
 	if ( e$ty != ADDRESS )
 		return F;
 
-	# ip is actually a subnet, so this looks more like 10.0.0.1/32 (?)
+	# ip is actually a subnet!
 	local ip = cat(e$ip);
 	local psr = PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r);
-	if ( r?$location )  # Derived from acl.zeek remove_rule_fun(), not sure that's awesome.
+	if ( r?$location )  # Derived from acl.zeek, not sure that's awesome.
 		psr$comment = r$location;
 
-	batch_queue_add(p$pubsub_batch_queue_add, psr);
+	local q = netcontrol_pubsub_batch_queues[p$pubsub_id]$add_queue;
+	batch_queue_add(q, psr);
 	return T;
 	}
 
@@ -177,7 +183,7 @@ function pubsub_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	if ( e$ty != ADDRESS )
 		return F;
 
-	# ip is actually a subnet, so this looks more like 10.0.0.1/32 (?)
+	# ip is actually a subnet!
 	local ip = cat(e$ip);
 	local psr = PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r);
 	if ( r?$location )  # Derived from acl.zeek remove_rule_fun(), not sure that's awesome.
@@ -185,7 +191,8 @@ function pubsub_remove_rule_fun(p: PluginState, r: Rule, reason: string) : bool
 	else
 		psr$comment = reason;
 
-	batch_queue_add(p$pubsub_batch_queue_remove, PubSubRule($ty=r$ty, $arg=ip, $rule_id=r$id, $r=r));
+	local q = netcontrol_pubsub_batch_queues[p$pubsub_id]$remove_queue;
+	batch_queue_add(q, psr);
 	return T;
 	}
 
@@ -200,7 +207,6 @@ function pubsub_name(p: PluginState) : string
 	{
 	return fmt("PubSub-%s", p$pubsub_config$request_topic);
 	}
-
 
 global pubsub_plugin = Plugin(
 	$name=pubsub_name,
@@ -223,12 +229,18 @@ function create_pubsub(config: PubSubConfig) : PluginState
 		add netcontrol_pubsub_request_topics[config$request_topic];
 
 	local p = PluginState($pubsub_config=config, $plugin=pubsub_plugin, $pubsub_id=netcontrol_pubsub_current_id);
-	# Attach pubsub_id and pubsub_config to various data structures
-	# so there's access to them through the callbacks.
-	p$pubsub_batch_queue_add$pubsub_plugin_state = p;
-	p$pubsub_batch_queue_remove$pubsub_plugin_state = p;
 	netcontrol_pubsub_id[netcontrol_pubsub_current_id] = p;
-	++netcontrol_pubsub_current_id;
 
+	# Attach pubsub_id and pubsub_config to the batch queues
+	# so we have access to them through the callbacks. This
+	# is a bit gnarly.
+	local pubsub_queues = PubSubBatchQueues();
+	pubsub_queues$add_queue$pubsub_id = p$pubsub_id;
+	pubsub_queues$add_queue$pubsub_config = p$pubsub_config;
+	pubsub_queues$remove_queue$pubsub_id = p$pubsub_id;
+	pubsub_queues$remove_queue$pubsub_config = p$pubsub_config;
+	netcontrol_pubsub_batch_queues[netcontrol_pubsub_current_id] = pubsub_queues;
+
+	++netcontrol_pubsub_current_id;
 	return p;
 	}

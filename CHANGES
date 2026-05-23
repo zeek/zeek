@@ -1,3 +1,19 @@
+9.0.0-dev.216 | 2026-05-22 17:21:25 -0700
+
+  * Revert "ci: fix macos build" (Arne Welzel, Corelight)
+
+    This reverts commit 56e2544f8ddb2e6ec753748cfc7aeb4246a175a9.
+
+  * Bump zeekjs to v0.23.0 (Arne Welzel, Corelight)
+
+        3be2225 version: 0.23.0
+        b929f82 Update CI to Fedora 44 and Ubuntu 26.04
+        b00825a Call AddMessageListener() only after locking isolate
+        0fafc23 Rework This() / HolderV2() change
+        087e9fd Make {Get,Set}AlignedPointerFromInternalField() calls v26 compatible
+        101f7fc Replace uses of v8::PropertyCallbackInfo::This() with v8::PropertyCallbackInfo::HolderV2() for Node v26
+        d7618e1 Replace use of v8::Message::GetIsolate() with v8::Isolate::GetCurrent() for Node v26
+
 9.0.0-dev.213 | 2026-05-22 14:52:43 -0400
 
   * GH-5197: Fix segfault when `global_ids` called before types (Evan Typanski, Corelight)

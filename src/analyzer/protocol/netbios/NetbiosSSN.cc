@@ -136,6 +136,13 @@ void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len, bool i
 }
 
 void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool is_query) {
+    // The NetBIOS Datagram Service header consumed by NetbiosDGM_RawMsgHdr
+    // is 14 bytes (type, flags, id, srcip, srcport, length, offset). Reject
+    // short datagrams here so the header constructor does not read past the
+    // end of the caller-supplied UDP payload.
+    if ( len < 14 )
+        return;
+
     NetbiosDGM_RawMsgHdr hdr(data, len);
 
     if ( static_cast<unsigned>(hdr.length - 14) > static_cast<unsigned>(len) )

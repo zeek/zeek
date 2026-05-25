@@ -772,7 +772,7 @@ Types
                                                                                  :rfc:`3810#section-5.2.12`
 :zeek:type:`icmp6_mldv2_mar`: :zeek:type:`record`                                ICMPv6 MLD Version 2 Multicast Address Record, as defined in
                                                                                  :rfc:`3810#section-5.2`
-:zeek:type:`icmp6_mldv2_mar_vector`: :zeek:type:`vector`
+:zeek:type:`icmp6_mldv2_mar_vec`: :zeek:type:`vector`
 :zeek:type:`icmp6_nd_option`: :zeek:type:`record`                                Options extracted from ICMPv6 neighbor discovery messages as specified
                                                                                  by :rfc:`4861`.
 :zeek:type:`icmp6_nd_options`: :zeek:type:`vector`                               A type alias for a vector of ICMPv6 neighbor discovery message options.
@@ -13631,7 +13631,7 @@ Types
    ICMPv6 MLD Version 2 Multicast Address Record, as defined in
    :rfc:`3810#section-5.2`
 
-.. zeek:type:: icmp6_mldv2_mar_vector
+.. zeek:type:: icmp6_mldv2_mar_vec
    :source-code: base/init-bare.zeek 360 360
 
    :Type: :zeek:type:`vector` of :zeek:type:`icmp6_mldv2_mar`

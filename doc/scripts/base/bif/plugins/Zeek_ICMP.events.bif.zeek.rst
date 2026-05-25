@@ -568,7 +568,7 @@ Events
 .. zeek:id:: icmpv6_mld_report_v2
    :source-code: base/bif/plugins/Zeek_ICMP.events.bif.zeek 408 408
 
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, groups: :zeek:type:`icmp6_mldv2_mar_vector`)
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, groups: :zeek:type:`icmp6_mldv2_mar_vec`)
 
    Generated for IPv6 Multicast Listener Discovery v2 Report messages.
 

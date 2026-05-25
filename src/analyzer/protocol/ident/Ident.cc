@@ -191,7 +191,12 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
     do {
         n = n * 10 + (*line - '0');
         ++line;
-    } while ( line < end_of_line && isdigit(*line) );
+    } while ( line < end_of_line && isdigit(*line) && n <= 65535 );
+
+    // Skip any leftover digits past the port-number range so the
+    // caller sees the same line position regardless of overflow.
+    while ( line < end_of_line && isdigit(*line) )
+        ++line;
 
     line = util::skip_whitespace(line, end_of_line);
 

@@ -58,15 +58,24 @@ bool NFLogAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
                 Weird("nflog_bad_tlv_len", packet);
                 return false;
             }
-            else {
-                auto rem = tlv_len % 4;
 
-                if ( rem != 0 )
-                    tlv_len += 4 - rem;
+            // Round up to the padding in a width that can't wrap, then make
+            // sure the TLV fits in the remaining bytes before skipping it. A
+            // tlv_len larger than len would otherwise underflow the size_t
+            // subtraction and march data past the end of the buffer.
+            size_t tlv_skip = tlv_len;
+            auto rem = tlv_skip % 4;
+
+            if ( rem != 0 )
+                tlv_skip += 4 - rem;
+
+            if ( tlv_skip > len ) {
+                Weird("nflog_bad_tlv_len", packet);
+                return false;
             }
 
-            data += tlv_len;
-            len -= tlv_len;
+            data += tlv_skip;
+            len -= tlv_skip;
         }
     }
 

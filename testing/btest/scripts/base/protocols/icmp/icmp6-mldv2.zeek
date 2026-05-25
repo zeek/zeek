@@ -5,7 +5,7 @@
 
 @load base/frameworks/notice/weird
 
-event icmpv6_mld_report_v2(c: connection, groups: icmp6_mldv2_mar_vector)
+event icmpv6_mld_report_v2(c: connection, groups: icmp6_mldv2_mar_vec)
 {
 	print c$id$orig_h, groups;
 }

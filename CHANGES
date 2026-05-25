@@ -1,3 +1,7 @@
+9.0.0-dev.218 | 2026-05-24 17:18:18 -0700
+
+  * Fix sending vector of groups from ICMP MLDv2 reports (Tim Wojtulewicz)
+
 9.0.0-dev.216 | 2026-05-22 17:21:25 -0700
 
   * Revert "ci: fix macos build" (Arne Welzel, Corelight)

@@ -1,5 +1,18 @@
+#!/usr/bin/env python3
+"""
+
+
++--------------+        +------------------------+
+| main thread  |        | NullRouteClient thread |
++--------------+        +------------------------+
+|   ws.recv()  |  --->  |  queue.get()           |
+|              |        |    requests.post()     |
+|              |        |         ws.send()      |
++--------------+        +------------------------+
+
+"""
+
 import argparse
-import asyncio
 import dataclasses
 import json
 import logging
@@ -9,8 +22,8 @@ import queue
 import threading
 
 import requests
-import websockets
 import zeek_websocket
+from websockets.sync.client import ClientConnection, connect
 
 LOGGER = logging.getLogger("acld")
 
@@ -49,9 +62,8 @@ class NullRouteClient:
     def __init__(
         self,
         *,
-        loop: asyncio.AbstractEventLoop,
         request_queue: queue.Queue,
-        ws: websockets.ClientConnection,
+        ws: ClientConnection,
         bulk_uri: str,
         namespace: str,
         api_key: str,
@@ -59,7 +71,6 @@ class NullRouteClient:
         max_jobs: int = 10,
         request_timeout=10.0,
     ):
-        self.loop = loop
         self.request_queue = request_queue
         self.ws = ws
         self.bulk_uri = bulk_uri
@@ -92,15 +103,13 @@ class NullRouteClient:
             "ipinfos": ipinfos,
         }
 
-        LOGGER.debug("Sending %r", req)
+        LOGGER.debug("Sending %d ipinfos to %s", len(ipinfos), self.bulk_uri)
 
         response = self.session.post(
             self.bulk_uri, json=req, timeout=self.request_timeout
         )
         response.raise_for_status()
         data = response.json()
-
-        LOGGER.debug("Response %r", data)
 
         return PostResult(data["results"])
 
@@ -172,8 +181,7 @@ class NullRouteClient:
             msg = self.pb.outgoing()
             assert msg
 
-            # This too, maybe?
-            asyncio.run_coroutine_threadsafe(self.ws.send(msg), self.loop)
+            self.ws.send(msg)
 
     def process_jobs(self, jobs: list[AddRules | RemoveRules]):
         """
@@ -246,9 +254,8 @@ class NullRouteClient:
                     self.process_jobs(jobs)
                 except:
                     LOGGER.exception("Bad")
+                    self.stop()
 
-                    # Terminate the WebSocket client if we error, too.
-                    asyncio.run_coroutine_threadsafe(self.ws.close(), self.loop)
                     break
 
                 jobs = []
@@ -276,21 +283,48 @@ class Proxy:
     def __init__(
         self,
         *,
-        websocket_client: websockets.ClientConnection,
+        ws: ClientConnection,
         request_topic: str,
         request_queue: queue.Queue,
     ):
-        self.websocket_client: websockets.ClientConnection = websocket_client
+        self.ws = ws
         self.request_topic = request_topic
         self.pb = zeek_websocket.ProtocolBinding([self.request_topic])
 
         self.request_queue = request_queue
 
-    async def run(self):
+    def recv_one(self):
+        # This client is driven via events from Zeek.
+        msg = self.ws.recv(decode=False)
+        self.pb.handle_incoming(msg)  # Rust rust rust
+
+        topic_event = self.pb.receive_event()
+        # print("TE", topic_event)
+        if topic_event is not None:
+            topic, event = topic_event
+            name, args = event.name, event.args
+            _ = name
+            reply_topic, pubsub_id, rules = args
+            # LOGGER.debug("event_name=%s reply_topic=%s rules=%s", name, reply_topic, rules)
+            # print("RULES", rules)
+
+            job = AddRules(
+                pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
+            )
+
+            for i, r in enumerate(rules.value):
+                psr = r.as_record(PubSubRule)  # rust rust rust
+                job.rules += [psr]
+
+            # Just put the job into the queue, the NullRouteClient
+            # will pick it up.
+            self.request_queue.put(job)
+
+    def run(self):
         subscriptions = self.pb.outgoing()
         assert subscriptions
-        await self.websocket_client.send(subscriptions)
-        ack = await self.websocket_client.recv()
+        self.ws.send(subscriptions)
+        ack = self.ws.recv()
         ack = json.loads(ack)
         if ack.get("type") != "ack" or "endpoint" not in ack:
             LOGGER.error("Bad ack received from Zeek: %r", ack)
@@ -299,57 +333,16 @@ class Proxy:
         LOGGER.info("Got ack %s", ack)
 
         while True:
-            # This client is driven via events from Zeek.
-            msg = await self.websocket_client.recv(decode=False)
-            # print("GOT MESSAGE!", msg)
-
-            self.pb.handle_incoming(msg)  # Rust rust rust
-
-            topic_event = self.pb.receive_event()
-            # print("TE", topic_event)
-            if topic_event is not None:
-                topic, event = topic_event
-                name, args = event.name, event.args
-                _ = name
-                reply_topic, pubsub_id, rules = args
-                # LOGGER.debug("event_name=%s reply_topic=%s rules=%s", name, reply_topic, rules)
-                # print("RULES", rules)
-
-                job = AddRules(
-                    pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
-                )
-
-                for i, r in enumerate(rules.value):
-                    psr = r.as_record(PubSubRule)  # rust rust rust
-                    job.rules += [psr]
-
-                self.request_queue.put(job)
-
-                # print("XXX XXX QUEUE SIZE", self.request_queue.qsize())
-                # print("pssr", pssr)
-
-                # reply_event = zeek_websocket.Event(
-                #    name=event_names[ADDED],
-                #    args=[pubsub_id, rule, "done!"],
-                #    metadata=[],
-                # )
-
-                # self.pb.publish_event(reply_topic.value, reply_event)
-
-                # This can deadlock when we write too much
-                # because then the transport is "paused"
-                # because probably only continue once we have
-                # consumed more bytes.
-                # while out := self.pb.outgoing():
-                #    await self.websocket_client.send(out, text=True)
+            try:
+                self.recv_one()
+            except KeyboardInterrupt:
+                break
 
 
 def setup_nullroute_client(
-    args, request_queue: queue.Queue, ws: websockets.ClientConnection
+    args, request_queue: queue.Queue, ws: ClientConnection
 ) -> NullRouteClient:
     """
-    TODO: Needs an API token, URL and stuff.
-
     This thing isn't all that special? It just does a POST to /nullroute-bulk
     with a bunch of IPs to block and gets back an array of statuses that match
     the order of what was passed in?
@@ -380,7 +373,6 @@ def setup_nullroute_client(
             LOGGER.warning("%s", e)
 
     return NullRouteClient(
-        loop=asyncio.get_event_loop(),
         request_queue=request_queue,
         ws=ws,
         bulk_uri=args.nullroute_bulk_uri,
@@ -390,7 +382,7 @@ def setup_nullroute_client(
     )
 
 
-async def main():
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument(
@@ -421,24 +413,18 @@ async def main():
     nullroute_thread: threading.Thread | None = None
 
     try:
-        async with websockets.connect(
-            args.ws_uri, open_timeout=args.ws_open_timeout
-        ) as ws:
+        with connect(args.ws_uri, open_timeout=args.ws_open_timeout) as ws:
             LOGGER.info("Connected...")
             nullroute_client = setup_nullroute_client(args, request_queue, ws)
             nullroute_thread = threading.Thread(target=nullroute_client.run)
             nullroute_thread.start()
 
             proxy = Proxy(
-                websocket_client=ws,
+                ws=ws,
                 request_topic=args.request_topic,
                 request_queue=request_queue,
             )
-
-            try:
-                await proxy.run()
-            except asyncio.exceptions.CancelledError:
-                LOGGER.info("Cancelled...")
+            proxy.run()
     finally:
         try:
             if nullroute_client is not None:
@@ -450,4 +436,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

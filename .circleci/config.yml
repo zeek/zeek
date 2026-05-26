@@ -3,6 +3,35 @@ version: 2.1
 orbs:
   win: circleci/windows@5.1.1
 
+parameters:
+  pr_label_full:
+    type: boolean
+    default: false
+  pr_label_skip_all:
+    type: boolean
+    default: false
+  pr_label_benchmark:
+    type: boolean
+    default: false
+  pr_label_cluster_test:
+    type: boolean
+    default: false
+  pr_label_spicy:
+    type: boolean
+    default: false
+  pr_label_windows:
+    type: boolean
+    default: false
+  pr_label_zam:
+    type: boolean
+    default: false
+  pr_label_zeekctl:
+    type: boolean
+    default: false
+  changes_only_docs:
+    type: boolean
+    default: false
+
 commands:
   clone_repo:
     parameters:
@@ -420,6 +449,43 @@ jobs:
           name: Store btest results
           path: btest-results
 
+_filter_if_skip_all: &FILTER_IF_SKIP_ALL
+  filters: not pipeline.parameters.pr_label_skip_all
+
+_filter_if_pr_not_full_ci: &FILTER_IF_PR_NOT_FULL_CI
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full))
+
+_filter_if_pr_not_full_or_benchmark: &FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_benchmark))
+
+_filter_if_pr_not_full_or_cluster_test: &FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_cluster_test))
+
+_filter_if_pr_not_full_or_zam: &FILTER_IF_PR_NOT_FULL_OR_ZAM
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_zam))
+
+_filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_zeekctl))
+
 workflows:
   circleci-config-testing:
     jobs:
@@ -430,99 +496,127 @@ workflows:
       # directory in the repo.
       - create-build-image:
           name: build-image-alpine
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-centos-stream-9
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-centos-stream-10
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-debian-12
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-debian-13
           build_arm: true
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-fedora-43
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-fedora-44
+          << : *FILTER_IF_SKIP_ALL
       - create-build-image:
           name: build-image-opensuse-leap-16.0
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-opensuse-tumbleweed
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-ubuntu-22.04
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-ubuntu-24.04
+          << : *FILTER_IF_SKIP_ALL
       - create-build-image:
           name: build-image-ubuntu-26.04
+          << : *FILTER_IF_PR_NOT_FULL_CI
 
       - macos-build:
           name: macOS-xcode-26.5
           xcode_version: "26.5"
           requires: [fetch-test-traces]
+          << : *FILTER_IF_SKIP_ALL
       - macos-build:
           name: macOS-xcode-16.4
           xcode_version: "16.4"
           requires: [fetch-test-traces]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: alpine
           docker_image: zeek/zeek-ci:alpine
           requires: [fetch-test-traces, build-image-alpine]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-9
           docker_image: zeek/zeek-ci:centos-stream-9
           requires: [fetch-test-traces, build-image-centos-stream-9]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-10
           docker_image: zeek/zeek-ci:centos-stream-10
           requires: [fetch-test-traces, build-image-centos-stream-10]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
           requires: [fetch-test-traces, build-image-debian-12]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13
           docker_image: zeek/zeek-ci:debian-13
           requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-arm
           docker_image: zeek/zeek-ci:debian-13
           resource_class: arm.large
           requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-binary
           docker_image: zeek/zeek-ci:debian-13
           configure_flags:  --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
           requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-static
           docker_image: zeek/zeek-ci:debian-13
           configure_flags: --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
           requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-43
           docker_image: zeek/zeek-ci:fedora-43
           requires: [fetch-test-traces, build-image-fedora-43]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-44
           docker_image: zeek/zeek-ci:fedora-44
           configure_flags:  --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
           requires: [fetch-test-traces, build-image-fedora-44]
+          << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: opensuse-leap-16.0
           docker_image: zeek/zeek-ci:opensuse-leap-16.0
           requires: [fetch-test-traces, build-image-opensuse-leap-16.0]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: opensuse-tumbleweed
           docker_image: zeek/zeek-ci:opensuse-tumbleweed
           requires: [fetch-test-traces, build-image-opensuse-tumbleweed]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-22.04
           docker_image: zeek/zeek-ci:ubuntu-22.04
           requires: [fetch-test-traces, build-image-ubuntu-22.04]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           enable_benchmarks: true
+          << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -532,6 +626,7 @@ workflows:
             CXX="clang++-19"
             CXXFLAGS="-stdlib=libc++"
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA="--disable-javascript"
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -541,6 +636,7 @@ workflows:
             CC="clang-19"
             CXX="clang++-19"
           enable_tests: false
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -550,12 +646,14 @@ workflows:
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           install_spicy_analyzers: true
           enable_benchmarks: true
+          << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           install_spicy_analyzers: true
           enable_benchmarks: true
+          << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -565,10 +663,12 @@ workflows:
             ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
             ZEEK_CI_BTEST_JOBS=3
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
       - linux-build:
           name: ubuntu-26.04
           docker_image: zeek/zeek-ci:ubuntu-26.04
           requires: [fetch-test-traces, build-image-ubuntu-26.04]
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -581,6 +681,7 @@ workflows:
             ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
             ZEEK_CI_CPUS=8
             ZEEK_CI_BTEST_JOBS=8
+          << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: asan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -596,6 +697,7 @@ workflows:
             ZEEK_CI_SKIP_UNIT_TESTS=1
             ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
       - linux-build:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -607,6 +709,7 @@ workflows:
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ZEEK_TAILORED_UB_CHECKS=1
             UBSAN_OPTIONS=print_stacktrace=1
+          << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -622,6 +725,7 @@ workflows:
             ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
             ZEEK_CI_BTEST_JOBS=3
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
       - linux-build:
           name: tsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -632,8 +736,10 @@ workflows:
             CXX=clang++-19
             ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
             ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+          << : *FILTER_IF_PR_NOT_FULL_CI
 
-      - windows-build
+      - windows-build:
+          << : *FILTER_IF_SKIP_ALL
 
   weekly_compiler_builds:
     when: pipeline.schedule.name == "weekly"

@@ -1,3 +1,7 @@
+9.0.0-dev.221 | 2026-05-26 08:11:01 -0700
+
+  * Ignore -Wmaybe-uninitialized for GCC when building with --enable-werror (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.218 | 2026-05-24 17:18:18 -0700
 
   * Fix sending vector of groups from ICMP MLDv2 reports (Tim Wojtulewicz)

@@ -409,7 +409,9 @@ static void init_window(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::TC
             endpoint->window_scale = 0;
     }
     else {
-        endpoint->window_scale = scale;
+        // RFC 7323 caps the window scale shift count at 14; a larger value
+        // would overshift window << scale in update_window().
+        endpoint->window_scale = scale > 14 ? 14 : scale;
         endpoint->window_seq = base_seq;
         endpoint->window_ack_seq = ack_seq;
 

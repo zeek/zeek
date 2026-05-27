@@ -102,19 +102,7 @@ void NetbiosSSN_Interpreter::ParseDatagram(const u_char* data, int len, bool is_
 }
 
 void NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len, bool is_query) {
-    // FIND THE NUL-TERMINATED NAME STRINGS HERE!
-    // Not sure what's in them, so we don't keep them currently.
-
-    String* srcname = new String((char*)data);
-    data += srcname->Len() + 1;
-    len -= srcname->Len();
-
-    String* dstname = new String((char*)data);
-    data += dstname->Len() + 1;
-    len -= dstname->Len();
-
-    delete srcname;
-    delete dstname;
+    // TODO: Parse and validate broadcast source/destination names if needed.
 
     // if ( smb_session )
     //	smb_session->Deliver(is_query, len, data);

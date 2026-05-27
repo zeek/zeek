@@ -1,3 +1,15 @@
+8.0.8-27 | 2026-06-17 20:14:05 +0000
+
+  * netbios: remove unused broadcast name parsing in ParseBroadcast (dxbjavid)
+
+    The source/destination NetBIOS names were parsed via new String(const
+    char*), which selects the std::string_view constructor and calls
+    strlen() on the network-supplied buffer, reading past its end when no
+    NUL terminator is present within len. The parsed names were never used,
+    so drop the dead parsing and leave a TODO.
+
+    (cherry picked from commit 7d4a471244624200045036616e233e5ddce1e2de)
+
 8.0.8-26 | 2026-06-17 20:05:54 +0000
 
   * netbios: fix MAKE_INT16 high-byte left shift (dxbjavid)

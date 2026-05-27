@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-
-
-+--------------+        +------------------------+
-| main thread  |        | NullRouteClient thread |
-+--------------+        +------------------------+
-|   ws.recv()  |  --->  |  queue.get()           |
-|              |        |    requests.post()     |
-|              |        |         ws.send()      |
-+--------------+        +------------------------+
-
++-------------------+        +------------------------+
+| main thread       |        | NullRouteClient thread |
++-------------------+        +------------------------+
+|  main()           |        |                        |
+|    Receiver.run() |        |                        |
+|      recv_one()   |        |                        |
+|        ws.recv()  | -----> |  queue.get()           |
+|                   |        |    requests.post()     |
+|                   |        |      zip() results
+|                   |        |        m
+|                   |        |         ws.send()      |
++-------------------+        +------------------------+
 """
 
 import argparse
@@ -23,7 +25,8 @@ import threading
 
 import requests
 import zeek_websocket
-from websockets.sync.client import ClientConnection, connect
+from websockets.sync.client import connect
+from websockets.sync.connection import Connection
 
 LOGGER = logging.getLogger("acld")
 
@@ -62,22 +65,22 @@ class NullRouteClient:
     def __init__(
         self,
         *,
-        request_queue: queue.Queue,
-        ws: ClientConnection,
+        job_queue: queue.Queue,
+        ws: Connection,
         bulk_uri: str,
         namespace: str,
         api_key: str,
-        queue_get_timeout: float,
-        max_jobs: int = 10,
+        job_queue_get_timeout: float,
+        batch_jobs: int = 10,
         request_timeout=10.0,
     ):
-        self.request_queue = request_queue
+        self.job_queue = job_queue
         self.ws = ws
         self.bulk_uri = bulk_uri
         self.namespace = namespace
         self.api_key = api_key
-        self.queue_get_timeout = queue_get_timeout
-        self.max_jobs = max_jobs
+        self.queue_get_timeout = job_queue_get_timeout
+        self.batch_jobs = batch_jobs
         self.stopped = False
 
         self.session = requests.Session()
@@ -169,13 +172,15 @@ class NullRouteClient:
         for psr, psr_result in zip(rules, result.results):
             event_name = self.result_to_event_name(op, psr_result["status"])
 
+            self.logger.debug("reply with %s for %s", event_name, psr.rule)
+
             args = [
                 zeek_websocket.Value.Count(pubsub_id),
                 psr.rule,
                 "",  ## msg
             ]
 
-            # This kind of sucks.
+            # This is kind of weird.
             event = zeek_websocket.Event(event_name, args, metadata=[])
             self.pb.publish_event(reply_topic, event)
             msg = self.pb.outgoing()
@@ -201,6 +206,8 @@ class NullRouteClient:
         # Jobs can be AddRules or RemoveRules where each contain
         # a PubSubRule instance, so split them here.
         for j in jobs:
+            # Ensure pubsub_id and reply_topic within all
+            # jobs is consistent.
             if pubsub_id is None and reply_topic is None:
                 pubsub_id = j.pubsub_id
                 reply_topic = j.reply_topic
@@ -216,18 +223,25 @@ class NullRouteClient:
             else:
                 raise ValueError(f"unhandled {j!r}")
 
+        self.logger.info("%d IPs to add, %d IPs to remove", len(adds), len(removes))
+
         # Do the adds first.
+        assert pubsub_id is not None
+        assert reply_topic is not None
+
         result = self.do_post("add", adds)
         if len(result.results) != len(adds):
             raise ValueError(
                 f"wrong number of results {len(result.results)} vs {len(adds)}"
             )
-
-        assert pubsub_id is not None
         self.publish_results("add", pubsub_id, reply_topic, adds, result)
 
-        # Do the http POST with the array of addresses, stitch
-        # together the result for the response and send it out.
+        result = self.do_post("remove", removes)
+        if len(result.results) != len(removes):
+            raise ValueError(
+                f"wrong number of results {len(result.results)} vs {len(adds)}"
+            )
+        self.publish_results("remove", pubsub_id, reply_topic, removes, result)
 
     def run(self):
         """
@@ -238,7 +252,7 @@ class NullRouteClient:
         while not self.stopped:
             timed_out = False
             try:
-                job = self.request_queue.get(timeout=self.queue_get_timeout)
+                job = self.job_queue.get(timeout=self.queue_get_timeout)
                 if job is StopRequest:
                     self.stopped = True
                     break
@@ -249,13 +263,12 @@ class NullRouteClient:
             else:
                 jobs += [job]
 
-            if (jobs and timed_out) or len(jobs) >= self.max_jobs:
+            if (jobs and timed_out) or len(jobs) >= self.batch_jobs:
                 try:
                     self.process_jobs(jobs)
                 except:
                     LOGGER.exception("Bad")
                     self.stop()
-
                     break
 
                 jobs = []
@@ -268,14 +281,13 @@ class NullRouteClient:
         """
         self.logger.info("Stopping")
         self.stopped = True
-        self.request_queue.put_nowait(StopRequest)
+        self.job_queue.put_nowait(StopRequest)
 
 
-class Proxy:
+class Receiver:
     """
-    Proxy sits between Zeek and ACLd.
-
-    Receive events from Zeek
+    Receive events from Zeek, place them into job_queue where the
+    NullRouteClient will pick them out and reply to Zeek.
 
     acld-ng <-- HTTP --> broker-acld.py <-- websocket --> Zeek
     """
@@ -283,15 +295,15 @@ class Proxy:
     def __init__(
         self,
         *,
-        ws: ClientConnection,
+        ws: Connection,
         request_topic: str,
-        request_queue: queue.Queue,
+        job_queue: queue.Queue,
     ):
         self.ws = ws
         self.request_topic = request_topic
         self.pb = zeek_websocket.ProtocolBinding([self.request_topic])
 
-        self.request_queue = request_queue
+        self.job_queue = job_queue
 
     def recv_one(self):
         # This client is driven via events from Zeek.
@@ -308,17 +320,25 @@ class Proxy:
             # LOGGER.debug("event_name=%s reply_topic=%s rules=%s", name, reply_topic, rules)
             # print("RULES", rules)
 
-            job = AddRules(
-                pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
-            )
+            if name == "NetControl::pubsub_add_rules":
+                job = AddRules(
+                    pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
+                )
+            elif name == "NetControl::pubsub_remove_rules":
+                job = RemoveRules(
+                    pubsub_id=pubsub_id.value, reply_topic=reply_topic.value, rules=[]
+                )
+            else:
+                raise ValueError(f"unexpected event {name}")
 
+            # Copy all PubSubRule instances from the received vector.
             for i, r in enumerate(rules.value):
                 psr = r.as_record(PubSubRule)  # rust rust rust
                 job.rules += [psr]
 
             # Just put the job into the queue, the NullRouteClient
             # will pick it up.
-            self.request_queue.put(job)
+            self.job_queue.put(job)
 
     def run(self):
         subscriptions = self.pb.outgoing()
@@ -340,7 +360,7 @@ class Proxy:
 
 
 def setup_nullroute_client(
-    args, request_queue: queue.Queue, ws: ClientConnection
+    args, job_queue: queue.Queue, ws: Connection
 ) -> NullRouteClient:
     """
     This thing isn't all that special? It just does a POST to /nullroute-bulk
@@ -373,12 +393,13 @@ def setup_nullroute_client(
             LOGGER.warning("%s", e)
 
     return NullRouteClient(
-        request_queue=request_queue,
+        job_queue=job_queue,
         ws=ws,
         bulk_uri=args.nullroute_bulk_uri,
         namespace=args.nullroute_namespace,
         api_key=api_key,
-        queue_get_timeout=0.01,
+        batch_jobs=args.nullroute_batch_jobs,
+        job_queue_get_timeout=args.nullroute_job_queue_get_timeout,
     )
 
 
@@ -403,28 +424,28 @@ def main():
     )
     parser.add_argument("--nullroute-api-key", default="")
     parser.add_argument("--nullroute-namespace", default="development")
+    parser.add_argument("--nullroute-job-queue-get-timeout", type=float, default=0.01)
+    parser.add_argument("--nullroute-batch-jobs", type=int, default=10)
 
     args = parser.parse_args()
 
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
 
-    request_queue = queue.Queue()
+    job_queue = queue.Queue()
     nullroute_client: NullRouteClient | None = None
     nullroute_thread: threading.Thread | None = None
 
     try:
         with connect(args.ws_uri, open_timeout=args.ws_open_timeout) as ws:
             LOGGER.info("Connected...")
-            nullroute_client = setup_nullroute_client(args, request_queue, ws)
+            nullroute_client = setup_nullroute_client(args, job_queue, ws)
             nullroute_thread = threading.Thread(target=nullroute_client.run)
             nullroute_thread.start()
 
-            proxy = Proxy(
-                ws=ws,
-                request_topic=args.request_topic,
-                request_queue=request_queue,
+            receiver = Receiver(
+                ws=ws, request_topic=args.request_topic, job_queue=job_queue
             )
-            proxy.run()
+            receiver.run()
     finally:
         try:
             if nullroute_client is not None:

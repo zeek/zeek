@@ -1,7 +1,7 @@
 @echo on
 
 echo %ZEEK_CI_CPUS%
-wmic cpu get NumberOfCores, NumberOfLogicalProcessors/Format:List
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Processor | Select-Object NumberOfCores, NumberOfLogicalProcessors | Format-List"
 systeminfo
 dir C:
 choco list

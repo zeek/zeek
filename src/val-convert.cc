@@ -111,14 +111,14 @@ ValPtr convert_int_to_count(zeek_int_t i, std::string& err) {
 
 ValPtr convert_int_to_double(zeek_int_t i) { return make_intrusive<DoubleVal>(i); }
 
-ValPtr convert_double_to_int(double d) { return val_mgr->Int(zeek_int_t(rint(d))); }
+ValPtr convert_double_to_int(double d) { return val_mgr->Int(static_cast<zeek_int_t>(rint(d))); }
 
 ValPtr convert_double_to_count(double d, std::string& err) {
     if ( d < 0.0 ) {
         err = "bad conversion to count";
         return nullptr;
     }
-    return val_mgr->Count(zeek_uint_t(rint(d)));
+    return val_mgr->Count(static_cast<zeek_uint_t>(rint(d)));
 }
 
 ValPtr convert_double_to_time(double d) { return make_intrusive<TimeVal>(d); }

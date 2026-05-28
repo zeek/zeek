@@ -175,7 +175,9 @@ class NullRouteClient:
             elif pubsub_id != j.pubsub_id:
                 raise ValueError(f"inconsistent pubsub_id {pubsub_id} != {j.pubsub_id}")
             elif reply_topic != j.reply_topic:
-                raise ValueError(f"inconsistent pubsub_id {pubsub_id} != {j.pubsub_id}")
+                raise ValueError(
+                    f"inconsistent reply_topic {reply_topic} != {j.reply_topic}"
+                )
 
             if isinstance(j, AddRules):
                 adds.extend(j.rules)
@@ -190,19 +192,21 @@ class NullRouteClient:
         assert pubsub_id is not None
         assert reply_topic is not None
 
-        result = self.do_post("add", adds)
-        if len(result.results) != len(adds):
-            raise ValueError(
-                f"wrong number of results {len(result.results)} vs {len(adds)}"
-            )
-        self.publish_results("add", pubsub_id, reply_topic, adds, result)
+        if adds:
+            result = self.do_post("add", adds)
+            if len(result.results) != len(adds):
+                raise ValueError(
+                    f"wrong number of results {len(result.results)} vs {len(adds)}"
+                )
+            self.publish_results("add", pubsub_id, reply_topic, adds, result)
 
-        result = self.do_post("remove", removes)
-        if len(result.results) != len(removes):
-            raise ValueError(
-                f"wrong number of results {len(result.results)} vs {len(adds)}"
-            )
-        self.publish_results("remove", pubsub_id, reply_topic, removes, result)
+        if removes:
+            result = self.do_post("remove", removes)
+            if len(result.results) != len(removes):
+                raise ValueError(
+                    f"wrong number of results {len(result.results)} vs {len(removes)}"
+                )
+            self.publish_results("remove", pubsub_id, reply_topic, removes, result)
 
     def run(self):
         """
@@ -214,17 +218,22 @@ class NullRouteClient:
             timed_out = False
             try:
                 job = self.job_queue.get(timeout=self.queue_get_timeout)
-                if job is StopRequest:
-                    self.stopped = True
-                    break
 
             except queue.Empty:
                 self.logger.debug("Timeout!")
                 timed_out = True
             else:
-                jobs += [job]
+                if job is StopRequest:
+                    self.stopped = True
+                else:
+                    jobs += [job]
 
-            if (jobs and timed_out) or len(jobs) >= self.batch_jobs:
+            # Process jobs if there are some queued and getting them resulted
+            # in a timeout or are now meant to stop, or when the number of
+            # jobs we want to batch has been reached.
+            #
+            # Maybe should batch on IPs instead of jobs...
+            if (jobs and (timed_out or self.stopped)) or len(jobs) >= self.batch_jobs:
                 try:
                     self.process_jobs(jobs)
                 except Exception as e:
@@ -318,14 +327,11 @@ def main():
 
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
 
-    job_queue = queue.Queue()
-    nullroute_client: NullRouteClient | None = None
-    nullroute_thread: threading.Thread | None = None
-
     with Client(args.ws_uri, topics=[args.request_topic]) as zeek:
         """
-        Zeek event handlers enqueue jobs to NullRouteClient.
+        Zeek event handlers enqueue jobs for processing by NullRouteClient thread.
         """
+        job_queue = queue.Queue()
 
         @zeek.on("NetControl::pubsub_add_rules")
         def add_rules(reply_topic: str, pubsub_id: count, rules: list[PubSubRule]):
@@ -347,7 +353,7 @@ def main():
         except KeyboardInterrupt:
             LOGGER.info("Interrupted")
         finally:
-            # Shutdown
+            # Shutdown nullroute client.
             try:
                 nullroute_client.stop()
                 nullroute_thread.join()

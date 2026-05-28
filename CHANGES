@@ -1,3 +1,13 @@
+9.0.0-dev.229 | 2026-05-28 13:55:01 +0200
+
+  * netbios: fix MAKE_INT16 high-byte left shift (dxbjavid)
+
+    MAKE_INT16 uses `dest <= 8;` (a discarded comparison) where
+    `dest <<= 8;` was intended, so the four uint16_t fields parsed via
+    this helper in NetbiosDGM_RawMsgHdr (id, srcport, length, offset)
+    end up as `byte0 | byte1`. clang flags the line under
+    -Wunused-comparison.
+
 9.0.0-dev.227 | 2026-05-28 09:44:24 +0200
 
   * btest/cluster/zeromq: Stabilize drop tests, take two (Arne Welzel, Corelight)

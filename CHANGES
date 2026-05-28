@@ -1,3 +1,12 @@
+9.0.0-dev.227 | 2026-05-28 09:44:24 +0200
+
+  * btest/cluster/zeromq: Stabilize drop tests, take two (Arne Welzel, Corelight)
+
+    Instead of publishing a fixed number of events and expecting drops,
+    switch to publishing until drops have happened. Also, reduce xsub_rcvhwm
+    to avoid queueing overly many stale messages on the receiver and never
+    seeing more up-to-date messages.
+
 9.0.0-dev.225 | 2026-05-27 14:23:54 -0700
 
   * Bump zeek-testing to pull in m57-long baseline tweak (Christian Kreibich, Corelight)

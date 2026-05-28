@@ -38,13 +38,21 @@ global done: event(name: string) &is_used;
 global finish: event(name: string) &is_used;
 global ping: event(sender: string, c: count) &is_used;
 
-# How many messages each node publishes in total.
-const total_publishes = 100000;
 # How many events to publish per tick()
-const batch = 1000;
+const batch = 500;
+
+# Lower HWMs to provoke drops fast!
+redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
+redef Cluster::Backend::ZeroMQ::xsub_rcvhwm = batch / 10;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 10;
+
+# Helpers to get drop counts.
+global xpub_drops: function(): count = Cluster::Backend::ZeroMQ::xpub_drops;
+global onloop_drops: function(): count = Cluster::Backend::ZeroMQ::onloop_drops;
 
 global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 # @TEST-END-FILE
+
 
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
@@ -54,17 +62,21 @@ global nodes_done: set[string] = set();
 global nodes_down: set[string] = set();
 
 global sent_finish = F;
+global scheduled_finish = F;
 
 event send_finish()
 	{
-	if ( sent_finish )
-		return;
+	# Reset the timer for done() to re-arm it.
+	scheduled_finish = F;
 
-	print "sending finish";
+	if ( ! sent_finish )
+		{
+		print "sending first finish";
+		sent_finish = T;
+		}
+
 	for ( n in test_nodes )
 		Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
-
-	sent_finish = T;
 	}
 
 event Cluster::node_up(name: string, id: string)
@@ -96,31 +108,27 @@ event done(sender: string)
 	if ( prev < |nodes_done| )
 		print "nodes_done", |nodes_done|;
 
-	if ( |nodes_done| == |test_nodes| )
-		event send_finish();
+	if ( |nodes_done| < |test_nodes| )
+		return;
+
+	# Coalesce multiple finish() events together.
+	if ( ! scheduled_finish )
+		{
+		schedule 10msec { send_finish() };
+		scheduled_finish = T;
+		}
 	}
 
 event zeek_done()
 	{
-	local xpub_drops = Cluster::Backend::ZeroMQ::xpub_drops();
-	local onloop_drops = Cluster::Backend::ZeroMQ::onloop_drops();
-	print "had xpub_drops?", xpub_drops > 0;
-	print "had onloop_drops?", onloop_drops > 0;
+	print "had xpub_drops?", xpub_drops() > 0;
+	print "had onloop_drops?", onloop_drops() > 0;
 	}
 # @TEST-END-FILE
 
 
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
-
-# Lower HWMs to provoke drops.
-#
-# Okay, so these numbers are just magically tuned until this test
-# seems to reliably pass with an ASAN build, nothing more. They
-# interact with the number of publishes and chosen batch. If this
-# becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
-redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
-redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
 
 # last_c tracks the last publish offset from other nodes.
 global last_c: table[string] of count &default=0;
@@ -129,6 +137,8 @@ global last_c: table[string] of count &default=0;
 # have non-zero difference.
 global drop_c: table[string] of count &default=0;
 
+# We don't really do anything other than checking if nodes have gaps
+# in their ping events and account for their drops.
 event ping(sender: string, c: count)
 	{
 	local dropped = c  - last_c[sender] - 1;
@@ -136,18 +146,6 @@ event ping(sender: string, c: count)
 		drop_c[sender] += dropped;
 
 	last_c[sender] = c;
-
-	# Check if all senders sent enough messages. If not,
-	# wait for the next ping to arrive.
-	if ( |last_c| < |test_nodes|  - 1 )
-		return;
-
-	for ( _, lc in last_c )
-		if ( lc < total_publishes )
-			return;
-
-	# If all nodes sent enough pings, send "done" to the manager.
-	Cluster::publish(Cluster::manager_topic, done, Cluster::node);
 	}
 
 global publishes = 0;
@@ -161,20 +159,15 @@ event tick()
 		++publishes;
 		Cluster::publish(Cluster::worker_topic, ping, Cluster::node, publishes);
 		Cluster::publish(Cluster::proxy_topic, ping, Cluster::node, publishes);
-
-		# Continue sending a single publish for every tick() even
-		# if we've published enough in order for the manager to
-		# detect we're done. We need to continue here because this
-		# node, but also the manager node, may have dropped events.
-		if ( publishes >= total_publishes )
-			break;
 		}
 
-	# Relax publishing if we published enough as to not
-	# continue to overload the cluster and have a better
-	# chance of termination events going through.
-	local s = publishes < total_publishes ? 0.1msec : 10msec;
-	schedule s { tick() };
+	# Whenver a node detects that it had xpub and onloop drops itself, it
+	# sends done() to the manager. Other nodes will see xpub_drops() in
+	# drop_c as gaps.
+	if ( xpub_drops() > 0 && onloop_drops() > 0 )
+		Cluster::publish(Cluster::manager_topic, done, Cluster::node);
+
+	schedule 1msec { tick() };
 	}
 
 event finish(name: string)
@@ -184,10 +177,8 @@ event finish(name: string)
 
 event zeek_done()
 	{
-	local xpub_drops = Cluster::Backend::ZeroMQ::xpub_drops();
-	local onloop_drops = Cluster::Backend::ZeroMQ::onloop_drops();
-	print "had xpub_drops?", xpub_drops > 0;
-	print "had onloop_drops?", onloop_drops > 0;
+	print "had xpub_drops?", xpub_drops() > 0;
+	print "had onloop_drops?", onloop_drops() > 0;
 
 	for ( n in test_nodes )
 		if ( n != Cluster::node )

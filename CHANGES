@@ -1,3 +1,9 @@
+8.2.0-19 | 2026-06-17 21:17:29 +0000
+
+  * krb: fix out-of-bounds read in GetStringFromPrincipalName (jmestwa-coder)
+
+    (cherry picked from commit 9c81c55e6ac00601e13d74c76a7595bced259561)
+
 8.2.0-18 | 2026-06-17 21:16:22 +0000
 
  * Fix threading value constructor to copy sizes (Jan Grashoefer, Corelight)

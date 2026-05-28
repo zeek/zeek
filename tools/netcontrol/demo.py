@@ -35,6 +35,10 @@ StopRequest = object()
 
 @dataclasses.dataclass
 class PubSubRule:
+    """
+    The type as received from Zeek.
+    """
+
     ty: str
     arg: str
     comment: str
@@ -145,25 +149,6 @@ class NullRouteClient:
     ) -> None:
         """
         Merge results with the original input IPs and publish back to Zeek via the WebSocket client.
-
-        add:
-        "ok", -> event pubsub_rule_added
-
-        "already_present"
-        "whitelisted" -> event pubsub_rule_exists
-
-        remove:
-        "ok",
-        "not_found -> event pubsub_rule_removed
-
-                   -> event pubsub_rule_error
-        event_names = [
-            "NetControl::pubsub_rule_added",
-            "NetControl::pubsub_rule_removed",
-            "NetControl::pubsub_rule_exists",
-            "NetControl::pubsub_rule_error",
-        ]
-
         """
 
         assert op in ["add", "remove"]

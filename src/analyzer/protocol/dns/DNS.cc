@@ -635,7 +635,7 @@ uint32_t DNS_Interpreter::ExtractLong(const u_char*& data, int& len) {
 
     uint32_t val;
 
-    val = data[0] << 24;
+    val = static_cast<uint32_t>(data[0]) << 24;
     val |= data[1] << 16;
     val |= data[2] << 8;
     val |= data[3];

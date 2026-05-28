@@ -5,7 +5,7 @@ nodes_up, 3
 nodes_done, 1
 nodes_done, 2
 nodes_done, 3
-sending finish
+sending first finish
 nodes_down, 1
 nodes_down, 2
 nodes_down, 3

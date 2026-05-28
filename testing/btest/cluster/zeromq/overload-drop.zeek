@@ -1,4 +1,4 @@
-# @TEST-DOC: Workers and proxy publish to the manager topic. They publish so fast that messages are dropped a) on their end and b) on the manager as well. The test checks that metrics are incremented and the manager also verifies that not all messages arrived.
+# @TEST-DOC: Workers and proxy publish to the manager topic. They publish so fast that messages should be dropped a) on their end and b) on the manager's onloop queue as well. The manager tests in ping() if the sender dropped and also if its own onloop queue had dropped and only then starts sending finish() events to all nodes.
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: ! is-windows-ci
@@ -35,24 +35,23 @@ redef Log::default_rotation_interval = 0 secs;
 
 global tick: event() &is_used;
 global finish: event(name: string) &is_used;
-global ping: event(sender: string, c: count) &is_used;
+global ping: event(sender: string, c: count, xdc: count) &is_used;
 
-# How many messages each node publishes in total.
-const total_publishes = 100000;
 # How many events to publish per tick()
-const batch = 1000;
+const batch = 500;
 
-# Lower HWMs to provoke drops.
-#
-# Okay, so these numbers are just magically tuned until this test
-# seems to reliably pass with an ASAN build, nothing more. They
-# interact with the number of publishes and chosen batch. If this
-# becomes unmaintainalbe going forward, easier to skip on ASAN IMO.
+# Lower HWMs to provoke drops fast!
 redef Cluster::Backend::ZeroMQ::xpub_sndhwm = batch / 5;
-redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 6;
+redef Cluster::Backend::ZeroMQ::xsub_rcvhwm = batch / 10;
+redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = batch / 10;
+
+# Helpers to get drop counts.
+global xpub_drops: function(): count = Cluster::Backend::ZeroMQ::xpub_drops;
+global onloop_drops: function(): count = Cluster::Backend::ZeroMQ::onloop_drops;
 
 global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 # @TEST-END-FILE
+
 
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
@@ -60,23 +59,44 @@ global test_nodes = set( "proxy", "worker-1", "worker-2" ) &ordered;
 global nodes_up: set[string] = set();
 global nodes_down: set[string] = set();
 
+# last_c tracks the last publish offset from other nodes.
+global last_c: table[string] of count &default=0;
+
+# drop_c is incremented whenever c from sender and last_c[sender]
+# have non-zero difference.
+global drop_c: table[string] of count;
+
+# xpub_drop_c tracks the xpub_drops of the node on the
+# ZeroMQ side. This is transported in the ping() event
+# as xdc argument (xpub drop count).
+global xpub_drop_c: table[string] of count;
+
+# The manager sends finish events via a scheduled event,
+# but at a fairly low rate.
+global scheduled_finish = F;
 global sent_finish = F;
 
 event send_finish()
 	{
-	if ( sent_finish )
-		return;
+	# Reset the timer for ping() to re-arm it.
+	scheduled_finish = F;
 
-	print "sending finish";
+	if ( ! sent_finish )
+		{
+		print "sending first finish";
+		sent_finish = T;
+		}
+
 	for ( n in test_nodes )
 		Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
-
-	sent_finish = T;
 	}
 
 event Cluster::node_up(name: string, id: string)
 	{
 	add nodes_up[name];
+	xpub_drop_c[name] = 0;
+	drop_c[name] = 0;
+
 	print "nodes_up", |nodes_up|;
 
 	# Get the ball rolling once all nodes are available, sending the
@@ -96,14 +116,8 @@ event Cluster::node_down(name: string, id: string)
 		terminate();
 	}
 
-# last_c tracks the last publish offset from other nodes.
-global last_c: table[string] of count &default=0;
-
-# drop_c is incremented whenever c from sender and last_c[sender]
-# have non-zero difference.
-global drop_c: table[string] of count &default=0;
-
-event ping(sender: string, c: count)
+# Manager gets a ping() from another node.
+event ping(sender: string, c: count, xdc: count)
 	{
 	local dropped = c  - last_c[sender] - 1;
 	if ( dropped > 0 )
@@ -111,22 +125,27 @@ event ping(sender: string, c: count)
 
 	last_c[sender] = c;
 
-	# Check if all senders sent enough messages. If not,
-	# wait for the next ping to arrive.
-	for ( _, lc in last_c )
-		if ( lc < total_publishes )
+	xpub_drop_c[sender] = xdc;
+
+	for ( _, xdc in xpub_drop_c )
+		if ( xdc == 0 )
 			return;
 
-	# Send finish just once.
-	event send_finish();
+	# Check if the manager itself already dropped onloop messages.
+	if ( onloop_drops() == 0 )
+		return;
+
+	# Coalesce multiple finish() events together.
+	if ( ! scheduled_finish )
+		{
+		schedule 10msec { send_finish() };
+		scheduled_finish = T;
+		}
 	}
 
 event zeek_done()
 	{
-	local xpub_drops = Cluster::Backend::ZeroMQ::xpub_drops();
-	local onloop_drops = Cluster::Backend::ZeroMQ::onloop_drops();
-	print "had xpub_drops?", xpub_drops > 0;
-	print "had onloop_drops?", onloop_drops > 0;
+	print "had onloop_drops?", onloop_drops() > 0;
 
 	for ( n in test_nodes )
 		print fmt("node %s dropped=%s", n, drop_c[n] > 0);
@@ -143,24 +162,17 @@ global publishes = 0;
 event tick()
 	{
 	local i = batch;
+	local xdc = xpub_drops();
+
 	while ( i > 0 )
 		{
 		--i;
 		++publishes;
-		Cluster::publish(Cluster::manager_topic, ping, Cluster::node, publishes);
-
-		# Continue sending a single publish for every tick() even
-		# if we've published enough in order for the manager to
-		# detect we're done. We need to continue here because this
-		# node, but also the manager node, may have dropped events.
-		if ( publishes >= total_publishes )
-			break;
+		Cluster::publish(Cluster::manager_topic, ping,
+		                 Cluster::node, publishes, xdc);
 		}
 
-	# Relax publishing if we published enough so the manager
-	# isn't totally overloaded.
-	local s = publishes < total_publishes ? 0.1msec : 10msec;
-	schedule s { tick() };
+	schedule 1msec { tick() };
 	}
 
 event finish(name: string)
@@ -170,9 +182,7 @@ event finish(name: string)
 
 event zeek_done()
 	{
-	local xpub_drops = Cluster::Backend::ZeroMQ::xpub_drops();
-	local onloop_drops = Cluster::Backend::ZeroMQ::onloop_drops();
-	print "had xpub_drops?", xpub_drops > 0;
-	print "had onloop_drops?", onloop_drops > 0;
+	print "had xpub_drops?", xpub_drops() > 0;
+	print "had onloop_drops?", onloop_drops() > 0;
 	}
 # @TEST-END-FILE

@@ -13,7 +13,7 @@
 
 static constexpr void MAKE_INT16(uint16_t& dest, const u_char*& src) {
     dest = *src;
-    dest <= 8;
+    dest <<= 8;
     src++;
     dest |= *src;
     src++;

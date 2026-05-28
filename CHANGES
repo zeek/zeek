@@ -1,3 +1,15 @@
+8.2.0-20 | 2026-06-17 21:18:04 +0000
+
+  * netbios: fix MAKE_INT16 high-byte left shift (dxbjavid)
+
+    MAKE_INT16 uses `dest <= 8;` (a discarded comparison) where
+    `dest <<= 8;` was intended, so the four uint16_t fields parsed via
+    this helper in NetbiosDGM_RawMsgHdr (id, srcport, length, offset)
+    end up as `byte0 | byte1`. clang flags the line under
+    -Wunused-comparison.
+
+    (cherry picked from commit 23f30f77cda8d7e7bb90d62c9b24c26e212f3513)
+
 8.2.0-19 | 2026-06-17 21:17:29 +0000
 
   * krb: fix out-of-bounds read in GetStringFromPrincipalName (jmestwa-coder)

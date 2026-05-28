@@ -1,3 +1,9 @@
+9.0.0-dev.232 | 2026-05-28 16:58:45 -0700
+
+  * krb: fix out-of-bounds read in GetStringFromPrincipalName (jmestwa-coder)
+
+  * Update libunistd submodule for CMake version fix (Tim Wojtulewicz)
+
 9.0.0-dev.229 | 2026-05-28 13:55:01 +0200
 
   * netbios: fix MAKE_INT16 high-byte left shift (dxbjavid)

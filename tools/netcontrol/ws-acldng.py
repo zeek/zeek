@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ws-acld.py - Python side talking to acldng via the netcontrol/pubsub plugin.
+ws-acldng.py - Python plumbing talking to Zeek and acldng for NetControl logic.
 """
 
 import argparse
@@ -48,6 +48,12 @@ class PostResult:
 
 
 class NullRouteClient:
+    """
+    NullRouteClient.
+
+    Run this in a thread and place AddRules or RemoveRules jobs into it.
+    """
+
     def __init__(
         self,
         *,
@@ -159,6 +165,10 @@ class NullRouteClient:
         for j in jobs:
             # Ensure pubsub_id and reply_topic within all
             # jobs is consistent.
+            #
+            # XXX: We could also flush jobs whenever the pubsub_id
+            #      or reply_topic changes, but for now this should
+            #      be okay.
             if pubsub_id is None and reply_topic is None:
                 pubsub_id = j.pubsub_id
                 reply_topic = j.reply_topic
@@ -196,8 +206,6 @@ class NullRouteClient:
 
     def run(self):
         """
-        Run method of the NullRouteClient
-
         Consume jobs from the queue until stopped.
         """
         self.logger.info("Running!")

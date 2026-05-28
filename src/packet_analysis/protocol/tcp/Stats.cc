@@ -53,6 +53,7 @@ void TCPStateStats::PrintStats(File* file, const char* prefix) {
             STATE_STRING(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED, "Est.  ");
             STATE_STRING(analyzer::tcp::TCP_ENDPOINT_CLOSED, "Fin.  ");
             STATE_STRING(analyzer::tcp::TCP_ENDPOINT_RESET, "Rst.  ");
+            default: break;
         }
 
         file->Write("  ");

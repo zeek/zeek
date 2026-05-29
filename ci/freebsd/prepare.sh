@@ -11,9 +11,9 @@ pkg install -y bash cppzmq git cmake-core swig bison python3 base64 flex ccache 
 pkg upgrade -y curl
 pyver=$(python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")')
 pkg install -y $pyver-sqlite3
-python -m ensurepip --upgrade
+python3 -m ensurepip --upgrade
 
-python -m pip install websockets junit2html
+python3 -m pip install websockets junit2html
 
 # Spicy detects whether it is run from build directory via `/proc`.
 echo "proc /proc procfs rw,noauto 0 0" >>/etc/fstab

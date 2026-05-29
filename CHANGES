@@ -1,3 +1,9 @@
+8.0.8-24 | 2026-06-17 19:56:06 +0000
+
+  * Fix threading value constructor to copy sizes (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit af7441714d5fbc793b96b0d68dd9b689cafc9edf)
+
 8.0.8-23 | 2026-06-17 19:55:39 +0000
 
   * irc: use starts_with for empty-safe nick prefix check in DeliverStream (dxbjavid)

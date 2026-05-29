@@ -93,6 +93,7 @@ Value::Value(const Value& other) {
         case TYPE_FILE:
         case TYPE_FUNC: {
             val.string_val.data = util::copy_string(other.val.string_val.data, other.val.string_val.length);
+            val.string_val.length = other.val.string_val.length;
             break;
         }
 
@@ -101,12 +102,14 @@ Value::Value(const Value& other) {
             break;
         }
         case TYPE_TABLE: {
+            val.set_val.size = other.val.set_val.size;
             val.set_val.vals = new Value*[other.val.set_val.size];
             for ( zeek_int_t i = 0; i < other.val.set_val.size; i++ )
                 val.set_val.vals[i] = new Value(*other.val.set_val.vals[i]);
             break;
         }
         case TYPE_VECTOR: {
+            val.vector_val.size = other.val.vector_val.size;
             val.vector_val.vals = new Value*[other.val.vector_val.size];
             for ( zeek_int_t i = 0; i < other.val.vector_val.size; i++ )
                 val.vector_val.vals[i] = new Value(*other.val.vector_val.vals[i]);

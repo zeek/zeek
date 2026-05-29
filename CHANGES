@@ -1,3 +1,34 @@
+9.0.0-dev.246 | 2026-05-29 16:41:00 -0700
+
+  * Add Github Actions CI (Benjamin Bannier, Corelight)
+
+  * Fix threading value constructor to copy sizes (Jan Grashoefer, Corelight)
+
+  * Remove CirrusCI configuration (Tim Wojtulewicz, Corelight)
+
+  * CI: Rework Windows Dockerfile to use newer version of Windows (Tim Wojtulewicz, Corelight)
+
+  * Consistently use `python3` on Freebsd in CI (Benjamin Bannier, Corelight)
+
+  * Do not hardcode path to msvc toolchain path (Benjamin Bannier, Corelight)
+
+    The Windows CI setup would previously hardcode paths to the msvc
+    toolchain in multiple scripts. This was error prone, and made it harder
+    to work with different toolchain installations or versions.
+
+    This patch reworks the scripts to now assume and requires that
+    `VSINSTALLDIR` points tro a toolchain installation.
+
+  * Replace use of `wmic` with Powershell equivalent (Benjamin Bannier, Corelight)
+
+    If `wmic` is not available in the environment installing it could be
+    very slow since it requires a big download. Avoid it altogether by using
+    builtin Powershell features.
+
+  * Infer default value for ZEEK_CI_CPUS (Benjamin Bannier, Corelight)
+
+  * Adapt CI shell scripts to run on other CI providers (Tim Wojtulewicz)
+
 9.0.0-dev.234 | 2026-05-29 10:03:56 -0700
 
   * Fix zeek-testing commit hash (Tim Wojtulewicz, Corelight)

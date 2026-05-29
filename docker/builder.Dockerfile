@@ -29,7 +29,6 @@ RUN apt-get -q update \
      git \
      libfl2 \
      libfl-dev \
-     libnode-dev \
      libmaxminddb-dev \
      libpcap-dev \
      libssl-dev \
@@ -43,6 +42,17 @@ RUN apt-get -q update \
      python3-pip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Download the NodeJS package and build it manually. The problem here is that
+# the Node packages included with Debian package a very old version of Node.
+# We want something newer in the image. The options passed to configure mirror
+# the ones that Debian passes to build the libnode-dev package.
+ENV NODE_VERSION=v24.16.0
+RUN curl -O https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}.tar.gz
+ && tar -xzf node-${NODE_VERSION}.tar.gz
+ && (cd node-${NODE_VERSION} && ./configure --shared --without-npm --use-openssl-ca --prefix/usr && make -j install )
+ && rm -rf node-${NODE_VERSION}
+ && rm node-${NODE_VERSION}.tar.gz
 
 # Tell git all the repositories are safe.
 RUN git config --global --add safe.directory '*'

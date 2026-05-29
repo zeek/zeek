@@ -117,6 +117,9 @@ Changed Functionality
   per-host, per-software history. Redefining this setting to 0 disables this
   cache.
 
+- The buffering state of a logging stream set via ``Log::set_buf()`` is now inherited
+  by writers created dynamically at runtime after the ``Log::set_buf()`` call.
+
 Deprecated Functionality
 ------------------------
 

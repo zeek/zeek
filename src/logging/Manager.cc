@@ -274,6 +274,8 @@ struct Manager::Stream {
 
     bool enable_remote = false;
 
+    bool buf = true; // Buffering enabled? Configurable via Log::set_buf() and Manager::SetBuf()
+
     std::shared_ptr<telemetry::Counter> total_writes; // Initialized on first write.
 
     // State about delayed writes for this Stream.
@@ -1792,6 +1794,9 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
                                                     num_fields, fields));
     }
 
+    // New writers inherit buffering state of stream.
+    winfo->writer->SetBuf(stream->buf);
+
     InstallRotationTimer(winfo);
 
     return winfo->writer;
@@ -1989,6 +1994,8 @@ bool Manager::SetBuf(EnumVal* id, bool enabled) {
     Stream* stream = FindStream(id);
     if ( ! stream )
         return false;
+
+    stream->buf = enabled;
 
     for ( const auto& [_, winfo] : stream->writers )
         winfo->writer->SetBuf(enabled);

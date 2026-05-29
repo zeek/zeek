@@ -838,7 +838,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     else if ( irc_nick_message && command == "NICK" ) {
         string_view nick{params};
-        if ( nick[0] == ':' )
+        if ( nick.starts_with(':') )
             nick = nick.substr(1);
 
         EnqueueConnEvent(irc_nick_message, ConnVal(), val_mgr->Bool(orig), make_intrusive<StringVal>(prefix.c_str()),

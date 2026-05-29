@@ -2,7 +2,7 @@
 :: cmd current shell. This path is hard coded to the one on the CI image, but
 :: can be adjusted if running builds locally. Unfortunately, the initial path
 :: isn't in the environment so we have to hardcode the whole path.
-call "c:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+call "%VSINSTALLDIR%VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
 
 :: vcvarsall always sets this to a value, so we need to reset it so that the
 :: remainder of the commands can set it if needed.

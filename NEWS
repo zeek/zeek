@@ -120,6 +120,10 @@ Changed Functionality
 - The buffering state of a logging stream set via ``Log::set_buf()`` is now inherited
   by writers created dynamically at runtime after the ``Log::set_buf()`` call.
 
+- Setting ``Log::flush_interval`` to 0.0sec now disables the flushing timer
+  for log streams. Previously, it would result in scheduling a new timer that
+  would immediately expire, something that isn't very useful.
+
 Deprecated Functionality
 ------------------------
 

@@ -2282,6 +2282,10 @@ void Manager::FlushAll() {
 }
 
 void Manager::StartLogFlushTimer() {
+    // Special case 0.0 interval for no auto-flush.
+    if ( BifConst::Log::flush_interval == 0.0 )
+        return;
+
     double next_t = zeek::run_state::network_time + BifConst::Log::flush_interval;
     log_flush_timer = new detail::LogFlushWriteBufferTimer(next_t);
     zeek::detail::timer_mgr->Add(log_flush_timer);

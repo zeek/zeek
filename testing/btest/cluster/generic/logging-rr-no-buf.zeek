@@ -38,6 +38,9 @@
 
 redef Log::default_rotation_interval = 0sec;
 
+# Disable the flush timer.
+redef Log::flush_interval = 0.0sec;
+
 module LogRR;
 
 export {

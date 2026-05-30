@@ -1,8 +1,8 @@
 FROM opensuse/leap:16.0
 
-# A version field to invalidate Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20251017
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=20260515
 
 RUN zypper refresh \
  && zypper in -y \

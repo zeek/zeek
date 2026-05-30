@@ -1,3 +1,13 @@
+9.0.0-dev.251 | 2026-05-29 17:21:41 -0700
+
+  * Disable scripts/base/protocols/ldap/functions btest for asan builds (Tim Wojtulewicz, Corelight)
+
+  * Use dynamic configuration to manager Github labels for PRs (Tim Wojtulewicz, Corelight)
+
+  * Add configuration for CircleCI (Tim Wojtulewicz, Corelight)
+
+  * Bump dates on CI Dockerfiles (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.246 | 2026-05-29 16:41:00 -0700
 
   * Add Github Actions CI (Benjamin Bannier, Corelight)

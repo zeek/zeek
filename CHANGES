@@ -1,3 +1,7 @@
+9.0.0-dev.261 | 2026-06-01 08:42:51 -0700
+
+  * Fix potential null-dereference in pcapng packet source (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.259 | 2026-06-01 16:26:02 +0200
 
   * netbios: report violation on short UDP datagram and use extract_uint32 for srcip (dxbjavid)

@@ -174,7 +174,7 @@ void Source::ParseInterfaceBlock(light_block block) {
     intf.snaplen = lidb->snapshot_length;
 
     light_option opt = light_find_option(block, LIGHT_OPTION_IF_TSRESOL);
-    if ( opt ) {
+    if ( opt && opt->length > 0 ) {
         if ( (opt->data[0] & 0x80) == 0x80 )
             intf.ts_resolution = 2 << (opt->data[0] & 0x7F);
         else

@@ -1,3 +1,9 @@
+9.0.0-dev.265 | 2026-06-01 09:19:06 -0700
+
+  * gtpv1: fix out-of-bounds read in BuildEndUserAddr (dxbjavid)
+
+  * gssapi: fix out-of-bounds read in is_first_byte on empty token (dxbjavid)
+
 9.0.0-dev.261 | 2026-06-01 08:42:51 -0700
 
   * Fix potential null-dereference in pcapng packet source (Tim Wojtulewicz, Corelight)

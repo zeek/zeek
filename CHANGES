@@ -1,3 +1,13 @@
+8.0.8-19 | 2026-06-17 19:46:30 +0000
+
+  * gtpv1: fix out-of-bounds read in BuildEndUserAddr (dxbjavid)
+
+    (cherry picked from commit f7f16cf2bb3c187368246f3c1974fb99c8cab23f)
+
+  * gssapi: fix out-of-bounds read in is_first_byte on empty token (dxbjavid)
+
+    (cherry picked from commit f7f16cf2bb3c187368246f3c1974fb99c8cab23f)
+
 8.0.8-18 | 2026-06-17 19:45:46 +0000
 
   * dns: cast remaining ExtractLong byte shifts to uint32_t (dxbjavid)

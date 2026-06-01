@@ -49,7 +49,7 @@ refine flow RFB_Flow += {
 		if ( rfb_server_parameters )
 			{
 			auto vec_ptr = ${msg.name};
-			auto name_ptr = vec_ptr->empty() ? "" : reinterpret_cast<const char*>(vec_ptr->data());
+			auto name_ptr = reinterpret_cast<const char*>(vec_ptr->data());
 			zeek::BifEvent::enqueue_rfb_server_parameters(
 			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
 			    zeek::make_intrusive<zeek::StringVal>(${msg.name}->size(), name_ptr),

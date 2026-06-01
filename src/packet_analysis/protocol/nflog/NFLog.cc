@@ -70,7 +70,7 @@ bool NFLogAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
                 tlv_skip += 4 - rem;
 
             if ( tlv_skip > len ) {
-                Weird("nflog_bad_tlv_len", packet);
+                Weird("nflog_bad_tlv_len", packet, util::fmt("(%zu > %zu)", tlv_skip, len));
                 return false;
             }
 

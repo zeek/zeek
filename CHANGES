@@ -1,3 +1,9 @@
+8.0.8-21 | 2026-06-17 19:47:47 +0000
+
+  * gssapi: fix out-of-bounds read in is_first_byte on empty token (dxbjavid)
+
+    (cherry picked from commit 3f0a0529c1698052d487662b21404422306d1de6)
+
 8.0.8-20 | 2026-06-17 19:47:20 +0000
 
   * null: cast all bytes to uint32_t in protocol field (dxbjavid)

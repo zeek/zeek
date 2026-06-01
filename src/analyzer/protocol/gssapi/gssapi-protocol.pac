@@ -75,6 +75,6 @@ type KRB_BLOB = record {
 refine connection GSSAPI_Conn += {
 	function is_first_byte(token: bytestring, byte: uint8): bool
 		%{
-		return token[0] == byte;
+		return token.length() > 0 && token[0] == byte;
 		%}
 };

@@ -1,3 +1,9 @@
+9.0.0-dev.268 | 2026-06-01 09:19:33 -0700
+
+  * null: cast all bytes to uint32_t in protocol field (dxbjavid)
+
+  * null: cast to uint32_t to avoid signed-shift UB (dxbjavid)
+
 9.0.0-dev.265 | 2026-06-01 09:19:06 -0700
 
   * gtpv1: fix out-of-bounds read in BuildEndUserAddr (dxbjavid)

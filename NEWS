@@ -57,6 +57,10 @@ New Functionality
 - The event ``ssl_extension_signature_algorithms_cert`` was added. It is raised for the
   signature_algorithms_cert TLS extension.
 
+- The new ``?as`` operator evaluates to true if Zeek can safely convert its lefthand operand
+  to its righthand type. This change accompanies expanded support for the ``as`` casting
+  operator, see below.
+
 Changed Functionality
 ---------------------
 
@@ -76,6 +80,10 @@ Changed Functionality
   file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
   layer, without partaking in cluster node events.
 
+- The ``as`` operator now supports all of the type conversions currently available via
+  explicit conversion BiFs (such as ``interval_to_double()`` and similars), plus some
+  additional ones that are natural companions. See the type-casting section in the
+  operator documentation for details. Zeek's own scripts now use ``as`` throughout.
 
 Deprecated Functionality
 ------------------------

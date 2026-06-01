@@ -1,3 +1,13 @@
+8.0.8-20 | 2026-06-17 19:47:20 +0000
+
+  * null: cast all bytes to uint32_t in protocol field (dxbjavid)
+
+    (cherry picked from commit 2361f44c44b0f62720f1e5485a0ffd97e1147bd5)
+
+  * null: cast to uint32_t to avoid signed-shift UB (dxbjavid)
+
+    (cherry picked from commit 2361f44c44b0f62720f1e5485a0ffd97e1147bd5)
+
 8.0.8-19 | 2026-06-17 19:46:30 +0000
 
   * gtpv1: fix out-of-bounds read in BuildEndUserAddr (dxbjavid)

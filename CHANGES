@@ -1,3 +1,9 @@
+9.0.0-dev.271 | 2026-06-01 12:45:20 -0700
+
+  * dns: cast remaining ExtractLong byte shifts to uint32_t (dxbjavid)
+
+  * dns: cast to uint32_t in ExtractLong to avoid signed-shift overflow (dxbjavid)
+
 9.0.0-dev.268 | 2026-06-01 09:19:33 -0700
 
   * null: cast all bytes to uint32_t in protocol field (dxbjavid)

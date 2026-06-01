@@ -95,7 +95,7 @@ bool IPAddr::ConvertString(const char* s, in6_addr* result) {
         if ( num < 0 || num > 255 )
             return false;
 
-    uint32_t addr = (a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3];
+    uint32_t addr = (static_cast<uint32_t>(a[0]) << 24) | (a[1] << 16) | (a[2] << 8) | a[3];
     addr = htonl(addr);
     memcpy(result->s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
     memcpy(&result->s6_addr[12], &addr, sizeof(uint32_t));

@@ -1,3 +1,13 @@
+8.2.0-11 | 2026-06-17 20:59:38 +0000
+
+  * dns: cast remaining ExtractLong byte shifts to uint32_t (dxbjavid)
+
+    (cherry picked from commit 60c283b2dcfde697e2052e5e7c0f9bba1d5e5de6)
+
+  * dns: cast to uint32_t in ExtractLong to avoid signed-shift overflow (dxbjavid)
+
+    (cherry picked from commit 60c283b2dcfde697e2052e5e7c0f9bba1d5e5de6)
+
 8.2.0-10 | 2026-06-17 20:59:04 +0000
 
   * ident: only guard the overflow in ParsePort, keep range check below (dxbjavid)

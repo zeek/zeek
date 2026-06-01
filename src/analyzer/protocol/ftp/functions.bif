@@ -30,7 +30,7 @@ static zeek::RecordValPtr parse_port(const std::string& line)
 
 		if ( good )
 			{
-			addr = (bytes[0] << 24) | (bytes[1] << 16) |
+			addr = (static_cast<uint32_t>(bytes[0]) << 24) | (bytes[1] << 16) |
 					(bytes[2] << 8) | bytes[3];
 			port = (bytes[4] << 8) | bytes[5];
 			}

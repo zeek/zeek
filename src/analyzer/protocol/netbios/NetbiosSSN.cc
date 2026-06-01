@@ -8,6 +8,7 @@
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/netbios/events.bif.h"
+#include "zeek/net_util.h"
 #include "zeek/session/Manager.h"
 
 static constexpr void MAKE_INT16(uint16_t& dest, const u_char*& src) {
@@ -43,10 +44,8 @@ NetbiosDGM_RawMsgHdr::NetbiosDGM_RawMsgHdr(const u_char*& data, int& len) {
     MAKE_INT16(id, data);
     len -= 2;
 
-    srcip = *data++ << 24;
-    srcip |= *data++ << 16;
-    srcip |= *data++ << 8;
-    srcip |= *data++;
+    srcip = extract_uint32(data);
+    data += 4;
     len -= 4;
 
     MAKE_INT16(srcport, data);
@@ -140,8 +139,11 @@ void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool i
     // is 14 bytes (type, flags, id, srcip, srcport, length, offset). Reject
     // short datagrams here so the header constructor does not read past the
     // end of the caller-supplied UDP payload.
-    if ( len < 14 )
+    if ( len < 14 ) {
+        analyzer->AnalyzerViolation("NetBIOS datagram too short for header", reinterpret_cast<const char*>(data),
+                                    len);
         return;
+    }
 
     NetbiosDGM_RawMsgHdr hdr(data, len);
 

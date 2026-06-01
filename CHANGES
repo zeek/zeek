@@ -1,3 +1,14 @@
+8.2.0-17 | 2026-06-17 21:15:55 +0000
+
+ * irc: use starts_with for empty-safe nick prefix check in DeliverStream (dxbjavid)
+
+    A NICK command with no parameters reaches the handler with an empty
+    params string. string_view nick{params}; nick[0] then indexes a
+    zero-length view, which is UB and aborts under hardened libstdc++/libc++.
+    Use starts_with(':') to match the QUIT branch just above.
+
+    (cherry picked from commit 80bc46152c75a04a3cae8967f223894febbdbe87)
+
 8.2.0-16 | 2026-06-17 21:12:10 +0000
 
   * netbios: report violation on short UDP datagram and use extract_uint32 for srcip (dxbjavid)

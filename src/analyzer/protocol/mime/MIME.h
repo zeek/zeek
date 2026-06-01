@@ -260,7 +260,6 @@ protected:
     int buffer_start;
     int data_start;
     int content_hash_length;
-    int content_hash_length_sha256;
     detail::HashDigestState* md5_hash = nullptr;
     detail::HashDigestState* sha256_hash = nullptr;
     std::vector<const String*> entity_content;

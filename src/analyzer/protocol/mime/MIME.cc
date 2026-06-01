@@ -1284,15 +1284,13 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
         return;
     }
 
-    if ( compute_content_hash ) {
-        content_hash_length += len;
-        zeek::detail::hash_update(md5_hash, reinterpret_cast<const u_char*>(buf), len);
-    }
+    content_hash_length += len;
 
-    if ( compute_content_hash_sha256 ) {
-        content_hash_length_sha256 += len;
+    if ( compute_content_hash )
+        zeek::detail::hash_update(md5_hash, reinterpret_cast<const u_char*>(buf), len);
+
+    if ( compute_content_hash_sha256 )
         zeek::detail::hash_update(sha256_hash, reinterpret_cast<const u_char*>(buf), len);
-    }
 
     if ( mime_entity_data || mime_all_data ) {
         String* s = new String(reinterpret_cast<const u_char*>(buf), len, false);

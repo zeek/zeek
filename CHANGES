@@ -1,3 +1,22 @@
+9.0.0-dev.254 | 2026-06-01 11:45:31 +0200
+
+  * testing/btest/cluster/zeromq: Supervisor using publish/subscribe via ZeroMQ (Arne Welzel, Corelight)
+
+    ...to send and receive events from supervised nodes.
+
+  * cluster/backend/zeromq: Move redefs into options.zeek (Arne Welzel, Corelight)
+
+    This change allows to load options.zeek by a Zeek supervisor process and
+    connect with the ZeroMQ XPUB/XSUB socket without partaking in the Zeek
+    cluster eventing (Cluster::nodes, Cluster::node_up, etc). The ZeroMQ specific
+    events remains in main.zeek, which shouldn't be loaded in the supervisor as
+    it is not part of Cluster::nodes.
+
+    This provides a channel for the supervisor process to send and receive
+    events to supervised nodes. With the Broker backend, was previously possible
+    with explicit Broker::listen() calls in the supervisor process and Broker::peer()
+    calls from the supervised nodes.
+
 9.0.0-dev.251 | 2026-05-29 17:21:41 -0700
 
   * Disable scripts/base/protocols/ldap/functions btest for asan builds (Tim Wojtulewicz, Corelight)

@@ -72,6 +72,11 @@ Changed Functionality
 - The ``extension_signature_algorithm`` event previously was incorrectly raised when a
   CertificateRequest message was encountered. It now is not raised for CertificateRequest messages.
 
+- The options and redefinitions from ``zeromq/main.zeek`` were split into a separate
+  file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
+  layer, without partaking in cluster node events.
+
+
 Deprecated Functionality
 ------------------------
 

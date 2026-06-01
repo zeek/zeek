@@ -1,3 +1,13 @@
+8.0.8-22 | 2026-06-17 19:55:05 +0000
+
+  * netbios: report violation on short UDP datagram and use extract_uint32 for srcip (dxbjavid)
+
+    (cherry picked from commit bf4e67330413748480a625e102cf1e356c7be2b7)
+
+  * netbios: reject short UDP datagrams in ParseMessageUDP (dxbjavid)
+
+    (cherry picked from commit bf4e67330413748480a625e102cf1e356c7be2b7)
+
 8.0.8-21 | 2026-06-17 19:47:47 +0000
 
   * gssapi: fix out-of-bounds read in is_first_byte on empty token (dxbjavid)

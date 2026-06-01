@@ -97,10 +97,14 @@ zeek::RecordValPtr BuildEndUserAddr(const InformationElement* ie)
 
 		switch ( ie->end_user_addr()->pdp_type_num() ) {
 		case 0x21:
+			if ( len < 4 )
+				break;
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
 			  zeek::IPAddr(IPv4, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 			break;
 		case 0x57:
+			if ( len < 16 )
+				break;
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
 			  zeek::IPAddr(IPv6, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 			break;

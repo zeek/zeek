@@ -1,4 +1,6 @@
-Code for LBLs netcontrol usage via WebSocket
+# ws-acldng.py
+
+Code for LBL's netcontrol WebSocket acldng setup.
 
 
 # Installation
@@ -6,13 +8,12 @@ Code for LBLs netcontrol usage via WebSocket
 ```
 $ python3 -m venv venv
 $ . venv/bin/activate
-$ git clone git@github.com:zeek/zeek-websocket-rs.git
-$ pip install ./zeek-websocket-rs
+$ pip install -r requirements.txt
 ```
 
 
 # Test Run
 
 ```
-
+ACLDNG_API_TOKEN=1234 python3 ws-acldng.py --nullroute-bulk-uri http://127.0.0.1:8080/nullroute-bulk
 ```

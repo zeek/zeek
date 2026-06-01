@@ -12,7 +12,7 @@ import queue
 import threading
 
 import requests
-from zeekws.zeekws import Client, RawArg, count, enum
+from zeekpy import RawArg, Zeek, count, enum
 
 LOGGER = logging.getLogger("acld")
 
@@ -58,7 +58,7 @@ class NullRouteClient:
         self,
         *,
         job_queue: queue.Queue,
-        zeek: Client,
+        zeek: Zeek,
         bulk_uri: str,
         namespace: str,
         api_key: str,
@@ -255,7 +255,7 @@ class NullRouteClient:
         self.job_queue.put_nowait(StopRequest)
 
     @staticmethod
-    def create(job_queue: queue.Queue, zeek: Client, args: argparse.Namespace):
+    def create(job_queue: queue.Queue, zeek: Zeek, args: argparse.Namespace):
         """
         Create a new NullRouteClient.
 
@@ -290,11 +290,11 @@ def main():
     """
     Entry point.
 
-    Connects to Zeek using zeekws.Client, spawns the NullRouteClient
+    Connects to Zeek using zeekpy.Zeek, spawns the NullRouteClient
     thread, starts consuming events until stopped, places "jobs" into
     the job_queue for the NullRouteClient to pick up. NullRouteClient
-    uses zeekws.Client.publish() to send the result of the jobs back
-    to Zeek.
+    uses zeekpy.Zeek.publish() to send the result of the jobs back
+    to Zeek as Zeek events.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--log-level", default="INFO")
@@ -327,22 +327,25 @@ def main():
 
     logging.basicConfig(level=getattr(logging, args.log_level.upper()))
 
-    with Client(args.ws_uri, topics=[args.request_topic]) as zeek:
-        """
-        Zeek event handlers enqueue jobs for processing by NullRouteClient thread.
-        """
-        job_queue = queue.Queue()
+    job_queue = queue.Queue()
 
-        @zeek.on("NetControl::pubsub_add_rules")
-        def add_rules(reply_topic: str, pubsub_id: count, rules: list[PubSubRule]):
-            job = AddRules(pubsub_id=pubsub_id, reply_topic=reply_topic, rules=rules)
-            job_queue.put(job)
+    zeek = Zeek(args.ws_uri, topics=[args.request_topic])
 
-        @zeek.on("NetControl::pubsub_remove_rules")
-        def remove_rules(reply_topic: str, pubsub_id: count, rules: list[PubSubRule]):
-            job = RemoveRules(pubsub_id=pubsub_id, reply_topic=reply_topic, rules=rules)
-            job_queue.put(job)
+    @zeek.on("NetControl::pubsub_add_rules")
+    def add_rules(reply_topic: str, pubsub_id: count, rules: list[PubSubRule]):
+        job = AddRules(pubsub_id=pubsub_id, reply_topic=reply_topic, rules=rules)
+        job_queue.put(job)
 
+    @zeek.on("NetControl::pubsub_remove_rules")
+    def remove_rules(reply_topic: str, pubsub_id: count, rules: list[PubSubRule]):
+        job = RemoveRules(pubsub_id=pubsub_id, reply_topic=reply_topic, rules=rules)
+        job_queue.put(job)
+
+    LOGGER.info("Connecting to Zeek uri=%s", args.ws_uri)
+
+    # Connect to Zeek, start the nullroute client thread,
+    # then start consuming events.
+    with zeek:
         LOGGER.info("Starting NullrouteClientT thread ...")
         nullroute_client = NullRouteClient.create(job_queue, zeek, args)
         nullroute_thread = threading.Thread(target=nullroute_client.run)
@@ -353,7 +356,6 @@ def main():
         except KeyboardInterrupt:
             LOGGER.info("Interrupted")
         finally:
-            # Shutdown nullroute client.
             try:
                 nullroute_client.stop()
                 nullroute_thread.join()

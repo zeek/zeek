@@ -79,6 +79,15 @@ global many_args: event(
 	pvec: vector of port
 );
 
+global ping: event(c: count);
+global pong: event(c: count);
+
+global ping_count = 0;
+
+event pong(c: count) {
+	Reporter::info(fmt("Got pong %d", c));
+}
+
 event mtick()
 	{
 	local td = current_time() - s;
@@ -102,11 +111,15 @@ event mtick()
 	                        R($c=4711, $a=[2000::1], $oa=1.2.3.4),
 	                        R($c=1337, $a=1.3.3.7)),
 	);
+
+
+	Cluster::publish("/pings/", ping, ++ping_count);
 	schedule 1sec { mtick() };
 	}
 
 event zeek_init()
 	{
+	Cluster::subscribe("/pongs/");
 	schedule 10msec { mtick() };
 	}
 

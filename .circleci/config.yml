@@ -488,7 +488,7 @@ _filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
              and not pipeline.parameters.pr_label_zeekctl))
 
 workflows:
-  circleci-config-testing:
+  zeek_builds:
     jobs:
       - fetch-test-traces
 

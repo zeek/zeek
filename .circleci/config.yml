@@ -322,6 +322,7 @@ jobs:
       ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       CTEST_OUTPUT_ON_FAILURE: 1
+      VSINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\'
     machine:
       image: windows-server-2025-gui:edge
     resource_class: windows.large

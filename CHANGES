@@ -1,3 +1,11 @@
+9.0.0-dev.281 | 2026-06-02 08:57:02 -0700
+
+  * Add a couple clang-tidy modernize-avoid-c-style-cast fixes (Tim Wojtulewicz, Corelight)
+
+  * Disable some new clang-tidy checkers (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy bugprone-unhandled-code-path findings (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.277 | 2026-06-02 17:15:21 +0200
 
   * ident: only guard the overflow in ParsePort, keep range check below (dxbjavid)

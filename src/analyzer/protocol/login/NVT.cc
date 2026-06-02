@@ -347,6 +347,8 @@ TelnetOption* NVT_Analyzer::FindOption(unsigned int code) {
             case TELNET_OPTION_AUTHENTICATE: opt = new detail::TelnetAuthenticateOption(this); break;
 
             case TELNET_OPTION_ENVIRON: opt = new detail::TelnetEnvironmentOption(this); break;
+
+            default: break;
         }
     }
 

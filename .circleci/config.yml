@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@5.1.1
+  aws-cli: circleci/aws-cli@5.4.1
 
 # These parameters are set via setup.yml. The PR ones are based on the labels for PRs
 # from Github. changes_only_docs is for PRs that only change docs.
@@ -31,6 +32,10 @@ parameters:
     type: boolean
     default: false
   changes_only_docs:
+    type: boolean
+    default: false
+  has_release_tag:
+    description: True if running for a tag of the form v1.2.3 or v1.2.3-rc1
     type: boolean
     default: false
 
@@ -483,6 +488,227 @@ jobs:
           path: btest-results
           destination: btest-results
 
+  release-image-build:
+    parameters:
+      arch:
+        type: string
+      resource_class:
+        type: string
+    environment:
+      ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
+      BUILDKIT_PROGRESS: plain
+      IMAGE_TAG: zeek/zeek-multiarch:<< parameters.arch >>
+      IMAGE_ARCH: << parameters.arch >>
+      # This is based on the medium resource class passed into the job.
+      ZEEK_CI_CPUS: 4
+      # These duplicate the default parameter values from the other jobs
+      CCACHE_MAXSIZE: 1000M
+      CCACHE_MAXFILES: 20000
+    machine:
+      image: ubuntu-2404:current
+      docker_layer_caching: true
+    resource_class: << parameters.resource_class >>
+    steps:
+      - clone_repo:
+          include_external_tests: false
+      - run:
+          name: Create builder image
+          command: |
+            set -x
+
+            LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null || true)
+            LAST_BUILDER_SHA=$(docker inspect -f "{{ index .Config.Labels "org.opencontainers.image.revision" }}" zeek-builder:latest 2>/dev/null || true)
+
+            (cd docker && docker build \
+                             --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                             -t zeek-builder:latest \
+                             -f builder.Dockerfile .)
+
+            NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
+
+            echo "Old Builder Image ID: ${LAST_BUILDER_IMAGE_ID}"
+            echo "New Builder Image ID: ${NEW_BUILDER_IMAGE_ID}"
+            echo "Old Commit SHA: ${LAST_BUILDER_SHA}"
+            echo "New Commit SHA: ${CIRCLE_SHA1}"
+
+            if [ -n "${LAST_BUILDER_IMAGE_ID}" ] &&
+               [ "${LAST_BUILDER_IMAGE_ID}" = "${NEW_BUILDER_IMAGE_ID}" ] &&
+               [ "${LAST_BUILDER_SHA}" = "${CIRCLE_SHA1}" ]; then
+              echo "Builder image was not rebuilt, no need to rebuild the rest."
+              circleci-agent step halt
+            fi
+      - restore_cache:
+          name: Restore ccache
+          keys:
+            - cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+      - run:
+          name: Build zeek in new image
+          command: |
+            docker run --name zeek-builder-container \
+                -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+                -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+                -e CCACHE_DIR=/tmp/ccache \
+                -e CCACHE_NOSTATS=1 \
+                -v ${CIRCLE_WORKING_DIRECTORY}:/src/zeek \
+                -v /tmp/ccache:/tmp/ccache \
+                -w /src/zeek zeek-builder:latest \
+                bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+
+            # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+            docker commit zeek-builder-container zeek-build
+      - run:
+          name: Build final image
+          command: |
+            ZEEK_VERSION=$(cat ${CIRCLE_WORKING_DIRECTORY}/VERSION)
+            CREATED_DATE=$(date -Iseconds)
+            echo "Building final image for ${ZEEK_VERSION} at ${CREATED_DATE}"
+
+            (cd docker && docker build \
+                                 --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                                 --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                                 --build-arg CREATED_DATE=${CREATED_DATE} \
+                                 -t ${IMAGE_TAG} \
+                                 -f final.Dockerfile .)
+
+            mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+            docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+      - run:
+          name: Run tests
+          command: |
+            docker tag ${IMAGE_TAG} zeek:latest
+            make -C docker/btest
+      - save_cache:
+          name: Save ccache
+          key: cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+          paths:
+            - /tmp/ccache
+      - persist_to_workspace:
+          name: Persist saved image to workspace
+          root: /tmp/zeek_images
+          paths:
+            - ${IMAGE_ARCH}
+
+  container-image-manifest-build:
+    environment:
+      BUILDKIT_PROGRESS: plain
+      AWS_REGION: us-east-1
+    docker:
+      - image: cimg/aws:2025.01
+    steps:
+      - run:
+          name: Output docker/buildx versions
+          command: docker version && docker buildx version
+      # See https://circleci.com/docs/guides/execution-managed/building-docker-images/ for docs
+      # on what this does.
+      - setup_remote_docker
+      - run:
+          name: Set up Docker Buildx
+          command: |
+            docker buildx create --use --name multiarch-builder --driver docker-container
+            docker buildx inspect --bootstrap
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
+      - aws-cli/setup:
+          # Defined in the zeek context on the CCI org
+          role_arn: ${AWS_ECR_ROLE_ARN}
+          region: ${AWS_REGION}
+          session_duration: "1800"
+          profile_name: "OIDC-PROFILE"
+      - run:
+          name: Log in to AWS ECR
+          command: |
+            aws ecr-public get-login-password --profile "OIDC-PROFILE" | docker login --username AWS --password-stdin public.ecr.aws
+      - attach_workspace:
+          name: Attach workspace with images
+          at: /tmp/zeek_images
+      - run:
+          name: Load images from workspace
+          command: |
+            set -x
+            ls -Rlha /tmp/zeek_images
+            docker load -i /tmp/zeek_images/amd64/final.image
+            docker load -i /tmp/zeek_images/arm64/final.image
+            docker image ls -a
+      # Clone the repo to get the CI scripts but don't include any of the extras
+      - clone_repo:
+          include_submodules: false
+          include_external_tests: false
+      - run:
+          name: Set image tag
+          command: |
+            # If we have a CIRCLE_TAG, use the value in VERSION to push the multiarch
+            # images, otherwise use latest. Basically we push the arch images as
+            #    zeek/zeek:1.2.3-<amd64|arm64> or
+            #    zeek/zeek-dev:latest-<amd64|arm64>
+            # and using these, create a manifest of the form zeek/zeek:${CIRCLE_TAG}
+            # for tags, or zeek/zeek-dev:latest for pushes to master.
+            set -x
+            if [ -n "${CIRCLE_TAG}" ]; then
+              echo "IMAGE_NAME=zeek"  >> $BASH_ENV
+              echo "IMAGE_TAG=$(cat VERSION)" >> $BASH_ENV
+              if [ "${CIRCLE_TAG}" != "v$(cat VERSION)" ]; then
+                echo "CIRCLE_TAG '${CIRCLE_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
+                exit 1
+              fi
+            elif [ "${CIRCLE_BRANCH}" = "master" ]; then
+              echo "IMAGE_NAME=zeek-dev"  >> $BASH_ENV
+              echo "IMAGE_TAG=latest" >> $BASH_ENV
+            # Hunk for testing and pushing into zeek/zeek-next. Make sure
+            # to allow the branch in the above only_if attribute of this task.
+            # elif [ "${CIRCLE_BRANCH}" = "topic/timw/circleci-docker-image-builds" ]; then
+            #   echo "IMAGE_NAME=zeek-next"  >> $BASH_ENV
+            #   echo "IMAGE_TAG=latest" >> $BASH_ENV
+            else
+              echo "Bad tag/branch for container_image_manifest"
+              env
+              exit 1
+            fi
+      - run:
+          name: Set additional manifest tags
+          command: |
+            set -x
+            if [ -z "${CIRCLE_TAG}" ]; then
+              exit 0
+            fi
+
+            # Populate the checkout with all the repository information we need
+            # to determine what the current feature and lts versions are.
+            git fetch --tags origin \
+                '+refs/heads/release/*:refs/remotes/origin/release/*' \
+                '+refs/heads/master:refs/remotes/origin/master'
+
+            ./ci/container-images-addl-tags.sh "${CIRCLE_TAG}" | tee -a $BASH_ENV
+      - run:
+          name: Push image tags
+          command: |
+            ./ci/container-images-tag-and-push.sh
+            REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
+
+  public-ecr-cleanup:
+    environment:
+      AWS_REGION: us-east-1
+    docker:
+      - image: cimg/base:current
+    steps:
+      - clone_repo:
+          include_submodules: false
+          include_external_tests: false
+      - aws-cli/setup:
+          # Defined in the zeek context on the CCI org
+          role_arn: ${AWS_ECR_ROLE_ARN}
+          region: ${AWS_REGION}
+          session_duration: "1800"
+          profile_name: "OIDC-PROFILE"
+      - run:
+          name: Log in to AWS ECR
+          command: |
+            aws ecr-public get-login-password --profile "OIDC-PROFILE" | docker login --username AWS --password-stdin public.ecr.aws
+      - run: ./ci/public-ecr-cleanup.sh
+
+# Workflow job filters control when a job runs based on the conditions passed. The
+# filters allow a job to run if the conditions in the filter are *true*, which seems
+# counter-intuitive to their name.
 _filter_if_skip_all: &FILTER_IF_SKIP_ALL
   filters: not pipeline.parameters.pr_label_skip_all
 
@@ -519,6 +745,10 @@ _filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
          or (pipeline.event.name == "pull_request"
              and not pipeline.parameters.pr_label_full
              and not pipeline.parameters.pr_label_zeekctl))
+
+_filter_nightly_or_tagged: &FILTER_NIGHTLY_OR_TAGGED
+  filters: |
+    pipeline.schedule.name == "nightly" or pipeline.parameters.has_release_tag
 
 
 _configure_binary_build: &CONFIGURE_BINARY_BUILD
@@ -796,6 +1026,27 @@ workflows:
 
       - windows-build:
           << : *FILTER_IF_SKIP_ALL
+
+      - release-image-build:
+          name: amd64-container-image
+          arch: amd64
+          resource_class: medium
+          << : *FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+      - release-image-build:
+          name: arm64-container-image
+          arch: arm64
+          resource_class: arm.medium
+          << : *FILTER_NIGHTLY_OR_TAGGED
+      - container-image-manifest-build:
+          requires: [amd64-container-image, arm64-container-image]
+          context:
+            - zeek
+          << : *FILTER_NIGHTLY_OR_TAGGED
+      - public-ecr-cleanup:
+          requires: [container-image-manifest-build]
+          context:
+            - zeek
+          << : *FILTER_NIGHTLY_OR_TAGGED
 
   weekly_compiler_builds:
     when: pipeline.schedule.name == "weekly"

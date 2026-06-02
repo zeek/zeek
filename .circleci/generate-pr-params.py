@@ -2,13 +2,15 @@
 
 import json
 import os
+import re
 import urllib.request
 
 PR_NUMBER = os.getenv("CIRCLE_PULL_REQUEST", "")
 GH_API_TOKEN = os.getenv("GH_TOKEN", "")
+GIT_TAG = os.getenv("CIRCLE_TAG", "")
 
 params = {}
-if len(PR_NUMBER) > 0:
+if PR_NUMBER:
     url = PR_NUMBER
     url = url.replace("https://github.com", "https://api.github.com/repos")
     url = url.replace("/pull/", "/issues/")
@@ -49,6 +51,9 @@ if len(PR_NUMBER) > 0:
 
     if not params:
         print("No GitHub labels found on PR")
+
+if GIT_TAG and re.match(r"^v\d+\.\d+\.\d+(-rc[0-9]+)?$", GIT_TAG):
+    params["has_release_tag"] = True
 
 with open("/tmp/parameters.json", "w") as params_file:
     json.dump(params, params_file)

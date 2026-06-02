@@ -54,6 +54,16 @@ This release fixes the following security issues:
   when processing ASN.1 messages. An analyzer violation is returned and logged when the
   condition is met.
 
+- For the Broker cluster backend, a WebSocket client subscribing to the empty topic
+  string (match-all topic) would cause the Zeek process hosting the WebSocket server
+  to crash due to a logic error when processing non-event message types.
+
+  As a note, the WebSocket API does not provide authentication or authorization
+  mechanisms and therefore should always be locked down to make it unreachable
+  from untrusted locations (e.g., localhost-only, fronting nginx with basic
+  or certificate-based authentication, running in a separate network namespace)
+  to reduce the attack surface.
+
 This release fixes the following bugs:
 
 - Support for non-Broker cluster backends was added to the cluster/experimental set of

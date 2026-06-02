@@ -36,18 +36,18 @@ event signature_match(state: signature_state, msg: string, data: string) &priori
 
 event Software::register(info: Software::Info) &priority=5
 	{
-	if ( info$host !in Software::tracked )
+	if ( info$host !in Software::tracked_software )
 		return;
 
-	local ss = Software::tracked[info$host];
+	local ss = Software::tracked_software[info$host];
 
 	if ( info$name !in ss )
 		return;
 
-	local old_info = ss[info$name];
-
-	if ( ! old_info?$url )
+	if ( ! ss[info$name]?$last )
 		return;
+
+	local old_info = ss[info$name]$last;
 
 	if ( ! info?$url )
 		return;

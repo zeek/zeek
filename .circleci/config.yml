@@ -35,14 +35,20 @@ parameters:
 commands:
   clone_repo:
     parameters:
+      include_submodules:
+        type: boolean
+        default: true
       include_external_tests:
         type: boolean
         default: true
     steps:
       - checkout
-      - run:
-          name: Update submodules
-          command: git submodule update --recursive --init
+      - when:
+          condition: << parameters.include_submodules >>
+          steps:
+            - run:
+                name: Update submodules
+                command: git submodule update --recursive --init --recommend-shallow -j ${ZEEK_CI_CPUS}
       - when:
           condition: << parameters.include_external_tests >>
           steps:

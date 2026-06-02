@@ -1,3 +1,11 @@
+9.0.0-dev.277 | 2026-06-02 17:15:21 +0200
+
+  * ident: only guard the overflow in ParsePort, keep range check below (dxbjavid)
+
+  * ident: fix signed overflow in ParsePort (dxbjavid)
+
+  * NEWS: add missing entry for #5433 (Christian Kreibich, Corelight)
+
 9.0.0-dev.271 | 2026-06-01 12:45:20 -0700
 
   * dns: cast remaining ExtractLong byte shifts to uint32_t (dxbjavid)

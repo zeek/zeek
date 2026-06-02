@@ -1200,7 +1200,7 @@ Redefinable Options
 
          ``Cluster::CLUSTER_BACKEND_BROKER``
 
-   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
       ``=``::
 

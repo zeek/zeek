@@ -91,7 +91,7 @@ State Variables
             exclusive=F
          }
 
-   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
       ``=``::
 
@@ -144,7 +144,7 @@ State Variables
             exclusive=F
          }
 
-   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
       ``=``::
 
@@ -197,7 +197,7 @@ State Variables
             exclusive=F
          }
 
-   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/main.zeek`
+   :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
       ``=``::
 

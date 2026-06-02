@@ -11,24 +11,6 @@ ZeroMQ cluster logic
 
 Summary
 ~~~~~~~
-Redefinitions
-#############
-================================================================================================================= =
-:zeek:id:`Cluster::Backend::ZeroMQ::run_proxy_thread`: :zeek:type:`bool` :zeek:attr:`&redef`
-:zeek:id:`Cluster::Telemetry::topic_normalizations`: :zeek:type:`table` :zeek:attr:`&ordered` :zeek:attr:`&redef`
-:zeek:id:`Cluster::backend`: :zeek:type:`Cluster::BackendTag` :zeek:attr:`&redef`
-:zeek:id:`Cluster::logger_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
-:zeek:id:`Cluster::logger_topic`: :zeek:type:`string` :zeek:attr:`&redef`
-:zeek:id:`Cluster::manager_topic`: :zeek:type:`string` :zeek:attr:`&redef`
-:zeek:id:`Cluster::node_id`: :zeek:type:`function` :zeek:attr:`&redef`
-:zeek:id:`Cluster::node_topic`: :zeek:type:`function` :zeek:attr:`&redef`
-:zeek:id:`Cluster::nodeid_topic`: :zeek:type:`function` :zeek:attr:`&redef`
-:zeek:id:`Cluster::proxy_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
-:zeek:id:`Cluster::proxy_topic`: :zeek:type:`string` :zeek:attr:`&redef`
-:zeek:id:`Cluster::worker_pool_spec`: :zeek:type:`Cluster::PoolSpec` :zeek:attr:`&redef`
-:zeek:id:`Cluster::worker_topic`: :zeek:type:`string` :zeek:attr:`&redef`
-================================================================================================================= =
-
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~

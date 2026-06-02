@@ -1,3 +1,17 @@
+9.0.0-dev.287 | 2026-06-02 16:38:27 -0400
+
+  * Move `Log::flush_all` and pcapng source NEWS (Evan Typanski, Corelight)
+
+    They were in the wrong versions.
+
+    `Log::flush_all` introduced by:
+
+    ccab1a91bf8168eb54d0dda8b1de62c4939cbcaa
+
+    pcapng source introduced by:
+
+    3c966a37ebb6abf8327c002f8447f38d53fbf06a
+
 9.0.0-dev.283 | 2026-06-02 17:43:08 +0100
 
   * Add AI Usage Policy (Johanna Amann, Corelight)

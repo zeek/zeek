@@ -176,6 +176,12 @@ New Functionality
   engineering team at Microsoft. The btest suite now runs on CI builds. The great majority
   of btests pass, with a small number skipped for various documented reasons.
 
+- A new packet source was added that supports reading pcapng files. This supports packet
+  captures with multiple interfaces, packet metadata, and capture file metadata. It will
+  be automatically used when the magic number in the file header is detected, or if
+  ``pcapng::`` is passed as a prefix to the filename with Zeek's ``-r`` argument. It does
+  not currently support BPF filtering via Zeek's ``-f`` argument.
+
 Changed Functionality
 ---------------------
 
@@ -479,11 +485,8 @@ New Functionality
   https://github.com/opencontainers/image-spec/blob/main/annotations.md for more details
   about the labels.
 
-- A new packet source was added that supports reading pcapng files. This supports packet
-  captures with multiple interfaces, packet metadata, and capture file metadata. It will
-  be automatically used when the magic number in the file header is detected, or if
-  ``pcapng::`` is passed as a prefix to the filename with Zeek's ``-r`` argument. It does
-  not currently support BPF filtering via Zeek's ``-f`` argument.
+- A new BIF ``Log::flush_all`` was added that causes all logs to be written to disk
+  immediately.
 
 Changed Functionality
 ---------------------
@@ -1506,9 +1509,6 @@ New Functionality
 
 - A new weird ``DNS_unknown_opcode`` was added to the DNS analyzer to report
   when it receives opcodes that it cannot process.
-
-- A new BIF ``Log::flush_all`` was added that causes all logs to be written to disk
-  immediately.
 
 Changed Functionality
 ---------------------

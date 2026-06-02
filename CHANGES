@@ -1,3 +1,7 @@
+9.0.0-dev.283 | 2026-06-02 17:43:08 +0100
+
+  * Add AI Usage Policy (Johanna Amann, Corelight)
+
 9.0.0-dev.281 | 2026-06-02 08:57:02 -0700
 
   * Add a couple clang-tidy modernize-avoid-c-style-cast fixes (Tim Wojtulewicz, Corelight)

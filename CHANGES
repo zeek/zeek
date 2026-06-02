@@ -1,3 +1,13 @@
+8.0.8-17 | 2026-06-17 19:44:01 +0000
+
+  * ident: only guard the overflow in ParsePort, keep range check below (dxbjavid)
+
+    (cherry picked from commit df09f10908ff059b5524e38de07c99a85b8804d0)
+
+  * ident: fix signed overflow in ParsePort (dxbjavid)
+
+    (cherry picked from commit df09f10908ff059b5524e38de07c99a85b8804d0)
+
 8.0.8-16 | 2026-06-17 18:51:13 +0000
 
   * ssl: validate record length before reading AEAD nonce during decryption (uwezkhan)

@@ -189,7 +189,10 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
     const char* l = line;
 
     do {
-        n = n * 10 + (*line - '0');
+        // Stop accumulating once the value is out of range to avoid
+        // signed overflow; the check below still flags it as bad.
+        if ( n <= 65535 )
+            n = n * 10 + (*line - '0');
         ++line;
     } while ( line < end_of_line && isdigit(*line) );
 

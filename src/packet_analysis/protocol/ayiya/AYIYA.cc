@@ -34,7 +34,7 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
-    uint8_t identity_len = 1 << (data[0] >> 4);
+    size_t identity_len = 1 << (data[0] >> 4);
     uint8_t signature_len = (data[1] >> 4) * 4;
     hdr_size += identity_len + signature_len;
 

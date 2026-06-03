@@ -1,0 +1,7 @@
+# @TEST-DOC: An AYIYA packet with an identity-length nibble of 8 encodes a 256 octet identity field. That length used to wrap to zero in a uint8_t, so the inner packet was forwarded from an offset still inside the header. Check that the inner IPv6 packet is decapsulated from the correct offset.
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/ayiya-large-identity.pcap %INPUT
+# @TEST-EXEC: btest-diff tunnel.log
+# @TEST-EXEC: btest-diff conn.log
+
+@load base/frameworks/tunnels
+@load base/protocols/conn

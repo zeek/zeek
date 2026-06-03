@@ -1,3 +1,7 @@
+9.0.0-dev.305 | 2026-06-03 18:11:08 +0100
+
+  * ssl: validate record length before reading AEAD nonce during decryption (uwezkhan)
+
 9.0.0-dev.303 | 2026-06-03 18:41:20 +0200
 
   * Do not run concurrent GH actions workflow for anything but tags [skip ci] (Benjamin Bannier, Corelight)

@@ -226,6 +226,7 @@ export {
 		["SYN_seq_jump"]                        = ACTION_LOG,
 		["SYN_with_data"]                       = ACTION_LOG_PER_ORIG,
 		["TCP_christmas"]                       = ACTION_LOG,
+		["TCP_scale_range"]                     = ACTION_LOG,
 		["truncated_ARP"]                       = ACTION_LOG,
 		["truncated_NTP"]                       = ACTION_LOG,
 		["UDP_datagram_length_mismatch"]        = ACTION_LOG_PER_ORIG,

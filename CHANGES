@@ -1,3 +1,21 @@
+9.0.0-dev.320 | 2026-06-03 15:01:36 -0400
+
+  * nflog: report bad TLV lengths and add a regression test (dxbjavid)
+
+  * nflog: fix out-of-bounds read in NFLogAnalyzer::AnalyzePacket (dxbjavid)
+
+  * ayiya: add test for identity length that overflows uint8_t (dxbjavid)
+
+    Adds a trace with an AYIYA packet whose identity-length nibble is 8,
+    encoding a 256 octet identity field. That length used to wrap to zero
+    when stored in a uint8_t, leaving hdr_size too small so the inner packet
+    was forwarded from an offset still inside the header. The test checks
+    that the inner IPv6 packet is decapsulated into tunnel.log and conn.log.
+
+  * widen ayiya identity_len to avoid uint8_t truncation (dxbjavid)
+
+  * dce-rpc: fix out-of-bounds read in process_dce_rpc_bind_ack (dxbjavid)
+
 9.0.0-dev.310 | 2026-06-03 20:39:29 +0200
 
   * tcp: log TCP_scale_range weird for out-of-range window scale (dxbjavid)

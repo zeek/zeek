@@ -1,3 +1,7 @@
+9.0.0-dev.307 | 2026-06-03 11:37:25 -0700
+
+  * CI: Pass token to github requests for labels (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.305 | 2026-06-03 18:11:08 +0100
 
   * ssl: validate record length before reading AEAD nonce during decryption (uwezkhan)

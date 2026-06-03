@@ -5,6 +5,7 @@ import os
 import urllib.request
 
 PR_NUMBER = os.getenv("CIRCLE_PULL_REQUEST", "")
+GH_API_TOKEN = os.getenv("GH_TOKEN", "")
 
 params = {}
 if len(PR_NUMBER) > 0:
@@ -15,13 +16,15 @@ if len(PR_NUMBER) > 0:
 
     print(f"Requesting {url} to get PR labels from GitHub")
 
-    # TODO: this might need a token for requests to private repositories, or it might
-    # use the github app connection in the project. I don't really know.
-    req = urllib.request.Request(
-        url, headers={"content-type": "Accept: application/vnd.github+json"}
-    )
-    response = urllib.request.urlopen(req)
+    headers = {
+        "content-type": "Accept: application/vnd.github+json",
+    }
 
+    if GH_API_TOKEN:
+        headers["Authorization"] = f"Bearer: {GH_API_TOKEN}"
+
+    req = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(req)
     resp_json = json.loads(response.read().decode("utf8"))
 
     for label in resp_json:

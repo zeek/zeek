@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
+#include <cinttypes>
+
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Manager.h"
@@ -409,9 +411,16 @@ static void init_window(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::TC
             endpoint->window_scale = 0;
     }
     else {
-        // RFC 7323 caps the window scale shift count at 14; a larger value
-        // would overshift window << scale in update_window().
-        endpoint->window_scale = scale > 14 ? 14 : scale;
+        if ( scale > 14 ) {
+            // RFC 7323 caps the window scale shift count at 14; a larger value
+            // would overshift window << scale in update_window().
+            if ( ! endpoint->Conn()->DidWeird() )
+                endpoint->Conn()->Weird("TCP_scale_range", util::fmt("%" PRId64, scale), "TCP");
+
+            scale = 14;
+        }
+
+        endpoint->window_scale = scale;
         endpoint->window_seq = base_seq;
         endpoint->window_ack_seq = ack_seq;
 

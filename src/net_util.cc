@@ -229,8 +229,8 @@ uint32_t extract_uint32(const u_char* data) {
     uint32_t val;
 
     val = static_cast<uint32_t>(data[0]) << 24;
-    val |= data[1] << 16;
-    val |= data[2] << 8;
+    val |= static_cast<uint32_t>(data[1]) << 16;
+    val |= static_cast<uint32_t>(data[2]) << 8;
     val |= data[3];
 
     return val;

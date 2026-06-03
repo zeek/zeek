@@ -1,7 +1,8 @@
 name: CIFuzz
 
 on:
-  pull_request:
+  schedule:
+    - cron: "13 2 * * *"
 
 permissions: {}
 

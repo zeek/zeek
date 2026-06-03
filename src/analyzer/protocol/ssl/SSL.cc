@@ -286,6 +286,13 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
         else
             s_seq++;
 
+        // The record must be large enough to hold the 8-byte explicit nonce
+        // and the 16-byte GCM authentication tag.
+        if ( encrypted_len <= (16 + 8) ) {
+            DBG_LOG(DBG_ANALYZER, "Invalid encrypted length encountered during TLS decryption");
+            return false;
+        }
+
         // AEAD nonce, length 12
         byte_buffer s_aead_nonce;
         s_aead_nonce.reserve(12);
@@ -303,12 +310,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
         EVP_CipherInit(ctx, EVP_aes_256_gcm(), nullptr, nullptr, 0);
 
         encrypted += 8;
-        // FIXME: is this because of nonce and aead tag?
-        if ( encrypted_len <= (16 + 8) ) {
-            DBG_LOG(DBG_ANALYZER, "Invalid encrypted length encountered during TLS decryption");
-            EVP_CIPHER_CTX_free(ctx);
-            return false;
-        }
+        // Subtract the explicit nonce (8 bytes) and the GCM tag (16 bytes);
         encrypted_len -= 8;
         encrypted_len -= 16;
 

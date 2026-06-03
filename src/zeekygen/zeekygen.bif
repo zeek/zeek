@@ -1,5 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+%gen-native
+
 ##! Functions for querying script, package, or variable documentation.
 
 %%{

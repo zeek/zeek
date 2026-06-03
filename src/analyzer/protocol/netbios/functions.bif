@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include "zeek/Reporter.h"
 
@@ -82,7 +84,7 @@ function decode_netbios_name%(name: string%): string
 function decode_netbios_name_type%(name: string%): count
 	%{
 	if ( name->Len() != 32 )
-		return val_mgr->Count(256);
+		return 256;
 
 	const u_char* s = name->Bytes();
 
@@ -91,11 +93,10 @@ function decode_netbios_name_type%(name: string%): count
 		char c = netbios_toupper(s[i]);
 
 		if ( c < 'A' || c > 'P' )
-			return val_mgr->Count(256);
+			return 256;
 		}
 
 	char c0 = toupper(s[30]);
 	char c1 = toupper(s[31]);
-	char return_val = ((c0 - 'A') << 4) + (c1 - 'A');
-	return zeek::val_mgr->Count(return_val);
+	return ((c0 - 'A') << 4) + (c1 - 'A');
 	%}

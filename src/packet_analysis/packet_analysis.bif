@@ -1,3 +1,5 @@
+%gen-native
+
 module PacketAnalyzer;
 
 %%{
@@ -18,14 +20,14 @@ function register_packet_analyzer%(parent: PacketAnalyzer::Tag, identifier: coun
 	%{
 	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->AsEnumVal());
 	if ( ! parent_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->AsEnumVal());
 	if ( ! child_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	parent_analyzer->RegisterProtocol(identifier, std::move(child_analyzer));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Attempts to add an entry to ``parent``'s dispatcher that maps a protocol/index to a next-stage ``child``
@@ -39,14 +41,14 @@ function try_register_packet_analyzer_by_name%(parent: string, identifier: count
 	%{
 	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->ToStdString());
 	if ( ! parent_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->ToStdString());
 	if ( ! child_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	parent_analyzer->RegisterProtocol(identifier, std::move(child_analyzer));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Internal function that is used to update the core-mirror of the script-level ``ignore_checksums_nets`` variable.
@@ -56,7 +58,7 @@ function PacketAnalyzer::__set_ignore_checksums_nets%(v: subnet_set%) : bool
 		zeek::emit_builtin_error("update_ignore_checksums_net() requires a table/set argument");
 
 	zeek::packet_analysis::IP::IPBasedAnalyzer::SetIgnoreChecksumsNets(zeek::IntrusivePtr{zeek::NewRef{}, v->AsTableVal()});
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Registers a child analyzer with a parent analyzer to perform packet detection when determining whether
@@ -68,26 +70,24 @@ function register_protocol_detection%(parent: PacketAnalyzer::Tag, child: Packet
 	%{
 	packet_analysis::AnalyzerPtr parent_analyzer = packet_mgr->GetAnalyzer(parent->AsEnumVal());
 	if ( ! parent_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	packet_analysis::AnalyzerPtr child_analyzer = packet_mgr->GetAnalyzer(child->AsEnumVal());
 	if ( ! child_analyzer )
-		return zeek::val_mgr->False();
+		return false;
 
 	parent_analyzer->RegisterProtocolDetection(std::move(child_analyzer));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Internal function to disable a packet analyzer.
 function PacketAnalyzer::__disable_analyzer%(id: PacketAnalyzer::Tag%) : bool
 	%{
-	bool result = zeek::packet_mgr->DisableAnalyzer(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::packet_mgr->DisableAnalyzer(id->AsEnumVal());
 	%}
 
 ## Internal function to enable a packet analyzer.
 function PacketAnalyzer::__enable_analyzer%(id: PacketAnalyzer::Tag%) : bool
 	%{
-	bool result = zeek::packet_mgr->EnableAnalyzer(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::packet_mgr->EnableAnalyzer(id->AsEnumVal());
 	%}

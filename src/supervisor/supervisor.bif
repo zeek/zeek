@@ -1,3 +1,5 @@
+%gen-native
+
 ##! The BIFs that define the Zeek supervisor control interface.
 
 %%{
@@ -46,11 +48,10 @@ function Supervisor::__destroy%(node: string%): bool
 	if ( ! zeek::supervisor_mgr )
 		{
 		zeek::emit_builtin_error("supervisor mode not enabled");
-		return zeek::val_mgr->Bool(false);
+		return false;
 		}
 
-	auto rval = zeek::supervisor_mgr->Destroy(node->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::supervisor_mgr->Destroy(node->CheckString());
 	%}
 
 function Supervisor::__restart%(node: string%): bool
@@ -58,16 +59,15 @@ function Supervisor::__restart%(node: string%): bool
 	if ( ! zeek::supervisor_mgr )
 		{
 		zeek::emit_builtin_error("supervisor mode not enabled");
-		return zeek::val_mgr->Bool(false);
+		return false;
 		}
 
-	auto rval = zeek::supervisor_mgr->Restart(node->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::supervisor_mgr->Restart(node->CheckString());
 	%}
 
 function Supervisor::__is_supervised%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::Supervisor::ThisNode().has_value());
+	return zeek::Supervisor::ThisNode().has_value();
 	%}
 
 function Supervisor::__node%(%): Supervisor::NodeConfig
@@ -87,17 +87,17 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 
 function Supervisor::__is_supervisor%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::supervisor_mgr != nullptr);
+	return zeek::supervisor_mgr != nullptr;
 	%}
 
 function Supervisor::__stem_pid%(%): int
 	%{
 	if ( zeek::supervisor_mgr )
-		return zeek::val_mgr->Int(zeek::supervisor_mgr->StemPID());
+		return zeek::supervisor_mgr->StemPID();
 
 	if ( zeek::Supervisor::ThisNode() )
-		return zeek::val_mgr->Int(zeek::Supervisor::ThisNode()->parent_pid);
+		return zeek::Supervisor::ThisNode()->parent_pid;
 
 	zeek::emit_builtin_error("supervisor mode not enabled and not a supervised node");
-	return zeek::val_mgr->Int(-1);
+	return -1;
 	%}

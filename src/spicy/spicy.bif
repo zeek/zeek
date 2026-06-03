@@ -1,5 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+%gen-native
+
 module Spicy;
 
 %%{
@@ -30,14 +32,14 @@ function Spicy::__toggle_analyzer%(tag: any, enable: bool%) : bool
         %{
         if ( tag->GetType()->Tag() != TYPE_ENUM ) {
             zeek::reporter->Warning("Spicy::disable_analyzer() must receive an analyzer tag");
-            return val_mgr->Bool(false);
+            return false;
             }
 
         bool result = spicy_mgr->toggleAnalyzer(tag->AsEnumVal(), enable);
         if ( ! result )
             zeek::reporter->Warning("could not toggle Spicy analyzer");
 
-        return val_mgr->Bool(result);
+        return result;
         %}
 
 type ResourceUsage: record;

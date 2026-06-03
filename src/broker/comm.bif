@@ -1,3 +1,4 @@
+%gen-native
 
 ##! Functions and events regarding broker communication mechanisms.
 
@@ -155,11 +156,11 @@ function Broker::__peer%(a: string, p: port, retry: interval%): bool
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("remote connection port must use tcp");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	broker_mgr->Peer(a->CheckString(), p->Port(), retry);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__peer_no_retry%(a: string, p: port%): bool
@@ -169,11 +170,11 @@ function Broker::__peer_no_retry%(a: string, p: port%): bool
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("remote connection port must use tcp");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	broker_mgr->PeerNoRetry(a->CheckString(), p->Port());
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__unpeer%(a: string, p: port%): bool
@@ -183,17 +184,17 @@ function Broker::__unpeer%(a: string, p: port%): bool
 	if ( ! p->IsTCP() )
 		{
 		zeek::emit_builtin_error("remote connection port must use tcp");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	broker_mgr->Unpeer(a->CheckString(), p->Port());
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__is_outbound_peering%(a: string, p: port%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	return zeek::val_mgr->Bool(broker_mgr->IsOutboundPeering(a->CheckString(), p->Port()));
+	return broker_mgr->IsOutboundPeering(a->CheckString(), p->Port());
 	%}
 
 function Broker::__peers%(%): PeerInfos

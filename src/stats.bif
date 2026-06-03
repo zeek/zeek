@@ -1,3 +1,4 @@
+%gen-native
 
 %%{ // C segment
 #include <sys/resource.h>

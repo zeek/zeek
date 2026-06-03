@@ -40,8 +40,8 @@ class Frame;
 } // namespace zeek::detail
 
 namespace zeek::BifFunc {
-zeek::ValPtr md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-zeek::ValPtr sha256_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+zeek::ValPtr md5_hmac_native(zeek::detail::Frame* frame, const zeek::Args*);
+zeek::ValPtr sha256_hmac_native(zeek::detail::Frame* frame, const zeek::Args*);
 } // namespace zeek::BifFunc
 
 namespace zeek::detail {
@@ -222,9 +222,9 @@ private:
     inline static bool hmac_md5_seeds_initialized = false;
 
     friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-    friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
+    friend ValPtr BifFunc::md5_hmac_native(zeek::detail::Frame* frame, const Args*);
     friend void util::detail::hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
-    friend ValPtr BifFunc::sha256_hmac_bif(zeek::detail::Frame* frame, const Args*);
+    friend ValPtr BifFunc::sha256_hmac_native(zeek::detail::Frame* frame, const Args*);
 };
 
 enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };

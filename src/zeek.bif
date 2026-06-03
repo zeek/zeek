@@ -1047,7 +1047,7 @@ function md5_hash_init%(%): opaque of md5
 	%{
 	auto digest = zeek::make_intrusive<zeek::MD5Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
@@ -1075,7 +1075,7 @@ function sha1_hash_init%(%): opaque of sha1
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA1Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA224 handle to enable incremental hash computation. You can
@@ -1095,7 +1095,7 @@ function sha224_hash_init%(%): opaque of sha224
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA224Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
@@ -1123,7 +1123,7 @@ function sha256_hash_init%(%): opaque of sha256
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA256Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA384 handle to enable incremental hash computation. You can
@@ -1143,7 +1143,7 @@ function sha384_hash_init%(%): opaque of sha384
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA384Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA512 handle to enable incremental hash computation. You can
@@ -1171,7 +1171,7 @@ function sha512_hash_init%(%): opaque of sha512
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA512Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Updates the MD5 value associated with a given index. It is required to
@@ -1708,7 +1708,7 @@ function find_entropy%(data: string%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return std::move(ent_result);
+	return ent_result;
 	%}
 
 ## Initializes data structures for incremental entropy calculation.
@@ -1762,7 +1762,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return std::move(ent_result);
+	return ent_result;
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1851,7 +1851,7 @@ function table_values%(t: any%): any_vec
 		vv->Append(iter.value->GetVal());
 		}
 
-	return std::move(vv);
+	return vv;
 	%}
 
 ## Gets all keys from a table.
@@ -1878,7 +1878,7 @@ function table_keys%(t: any%): any
 		sv->Assign(th->RecoverVals(*iter.GetHashKey()), nullptr);
 		}
 
-	return std::move(sv);
+	return sv;
 	%}
 
 ## Gets all subnets that contain a given subnet from a set/table[subnet].
@@ -2586,7 +2586,7 @@ function type_aliases%(x: any%): string_set
 	for ( const auto& name : it->second )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Returns all value names associated with an enum type.
@@ -2618,7 +2618,7 @@ function enum_names%(et: any%): string_set
 	for ( const auto& [name, i] : enum_type->Names() )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
@@ -2630,7 +2630,7 @@ function zeek_args%(%): string_vec
 	for ( auto i = 0; i < zeek::detail::zeek_argc; ++i )
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(zeek::detail::zeek_argv[i]));
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
@@ -2674,7 +2674,7 @@ function packet_source%(%): PacketSource
 		r->Assign(3, ps->Netmask());
 		}
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Generates a table of the "footprint" of all global container variables.
@@ -2704,7 +2704,7 @@ function global_container_footprints%(%): var_sizes
 		sizes->Assign(std::move(id_name), std::move(fp));
 		}
 
-	return std::move(sizes);
+	return sizes;
 	%}
 
 ## Computes a value's "footprint": the number of objects the value contains
@@ -2803,7 +2803,7 @@ function global_ids%(%): id_table
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
-	return std::move(ids);
+	return ids;
 	%}
 
 ## Returns a set giving the names of all global options.
@@ -2822,7 +2822,7 @@ function global_options%(%): string_set
 		options->Assign(std::move(id_name), nullptr);
 		}
 
-	return std::move(options);
+	return options;
 	%}
 
 ## Returns the value of a global identifier.
@@ -3076,7 +3076,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 		len -= 16;
 		}
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Converts an :zeek:type:`addr` to an :zeek:type:`index_vec`.
@@ -3384,7 +3384,7 @@ function to_subnet%(sn: string%): subnet
 
 	auto ret = zeek::make_intrusive<zeek::SubNetVal>(tmp);
 	delete [] s;
-	return std::move(ret);
+	return ret;
 	%}
 
 ## Converts a :zeek:type:`addr` to a :zeek:type:`subnet`.
@@ -4022,7 +4022,7 @@ function convert_for_pattern%(s: string%): string
 	char* t = to_pat_str(s->Len(), reinterpret_cast<const char*>(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
-	return std::move(ret);
+	return ret;
 	%}
 
 ## Converts a :zeek:type:`string` into a :zeek:type:`pattern`.
@@ -4393,8 +4393,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		}
 
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
-	auto hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
-	return std::move(hdr);
+	return zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
 	%}
 
 ## Returns the currently processed PCAP packet's timestamp or a 0 timestamp if
@@ -5217,7 +5216,7 @@ function rotate_file%(f: file%): rotate_info
 	info->AssignTime(2, 0.0);
 	info->AssignTime(3, 0.0);
 
-	return std::move(info);
+	return info;
 	%}
 
 ## Rotates a file identified by its name.
@@ -5273,7 +5272,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( is_addl_pkt_dumper )
 		info->AssignTime(2, addl_pkt_dumper->OpenTime());
 
-	return std::move(info);
+	return info;
 	%}
 
 ## Calculates the duration until the next time a file is to be rotated, based
@@ -5850,7 +5849,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 		rval->Assign(err_idx, res.error().c_str());
 		}
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Compresses a given path by removing '..'s and the parent directory it
@@ -6073,7 +6072,7 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 	result->Assign(n++, stats.hits);
 	result->Assign(n++, stats.misses);
 
-	return std::move(result);
+	return result;
 	%}
 
 ## Determine the path used by a non-relative @load directive.

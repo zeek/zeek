@@ -172,7 +172,7 @@ function Reporter::get_weird_sampling_whitelist%(%): string_set
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
 		}
-	return std::move(set);
+	return set;
 	%}
 
 ## Sets the weird sampling whitelist
@@ -209,7 +209,7 @@ function Reporter::get_weird_sampling_global_list%(%): string_set
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
 		}
-	return std::move(set);
+	return set;
 	%}
 
 ## Sets the weird sampling global list

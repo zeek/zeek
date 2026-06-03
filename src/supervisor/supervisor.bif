@@ -78,11 +78,10 @@ function Supervisor::__node%(%): Supervisor::NodeConfig
 		const auto& rt = zeek::BifType::Record::Supervisor::NodeConfig;
 		auto rval = zeek::make_intrusive<zeek::RecordVal>(rt);
 		rval->AssignField("name", "<invalid>");
-		return std::move(rval);
+		return rval;
 		}
 
-	auto rval = zeek::Supervisor::ThisNode()->config.ToRecord();
-	return std::move(rval);
+	return zeek::Supervisor::ThisNode()->config.ToRecord();
 	%}
 
 function Supervisor::__is_supervisor%(%): bool

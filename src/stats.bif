@@ -58,7 +58,7 @@ function get_net_stats%(%): NetStats
 	if ( stat.filtered )
 		r->Assign(n++, stat.filtered.value());
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns Zeek traffic statistics.
@@ -111,7 +111,7 @@ function get_conn_stats%(%): ConnStats
 
 	r->Assign(n++, zeek::detail::killed_by_inactivity);
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns Zeek process statistics.
@@ -168,7 +168,7 @@ function get_proc_stats%(%): ProcStats
 	r->Assign(n++, static_cast<uint64_t>(ru.ru_oublock));
 	r->Assign(n++, static_cast<uint64_t>(ru.ru_nivcsw));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about the event engine.
@@ -195,7 +195,7 @@ function get_event_stats%(%): EventStats
 	r->Assign(n++, event_mgr.num_events_queued);
 	r->Assign(n++, event_mgr.num_events_dispatched);
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about reassembler usage.
@@ -225,7 +225,7 @@ function get_reassembler_stats%(%): ReassemblerStats
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_TCP));
 	r->Assign(n++, Reassembler::MemoryAllocation(zeek::REASSEM_UNKNOWN));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about DNS lookup activity.
@@ -261,7 +261,7 @@ function get_dns_stats%(%): DNSStats
 	r->Assign(n++, static_cast<uint64_t>(dstats.cached.texts));
 	r->Assign(n++, static_cast<uint64_t>(dstats.cached.total));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about timer usage.
@@ -289,7 +289,7 @@ function get_timer_stats%(%): TimerStats
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->PeakSize()));
 	r->Assign(n++, static_cast<uint64_t>(zeek::detail::timer_mgr->CumulativeNum()));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about file analysis.
@@ -317,7 +317,7 @@ function get_file_analysis_stats%(%): FileAnalysisStats
 	r->Assign(n++, zeek::file_mgr->MaxFiles());
 	r->Assign(n++, zeek::file_mgr->CumulativeFiles());
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about thread usage.
@@ -343,7 +343,7 @@ function get_thread_stats%(%): ThreadStats
 
 	r->Assign(n++, static_cast<uint64_t>(zeek::thread_mgr->NumThreads()));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about TCP gaps.
@@ -372,7 +372,7 @@ function get_gap_stats%(%): GapStats
 	r->Assign(n++, zeek::detail::tot_gap_events);
 	r->Assign(n++, zeek::detail::tot_gap_bytes);
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about the regular expression engine. Statistics include
@@ -412,7 +412,7 @@ function get_matcher_stats%(%): MatcherStats
 	r->Assign(n++, s.hits);
 	r->Assign(n++, s.misses);
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about Broker communication.
@@ -448,7 +448,7 @@ function get_broker_stats%(%): BrokerStats
 	r->Assign(n++, static_cast<uint64_t>(cs.num_ids_incoming));
 	r->Assign(n++, static_cast<uint64_t>(cs.num_ids_outgoing));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about reporter messages and weirds.
@@ -483,7 +483,7 @@ function get_reporter_stats%(%): ReporterStats
 	r->Assign(n++, reporter->GetWeirdCount());
 	r->Assign(n++, std::move(weirds_by_type));
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Returns statistics about calls to event handlers.
@@ -510,5 +510,5 @@ function get_event_handler_stats%(%): EventNameStats
 			}
 		}
 
-	return std::move(rval);
+	return rval;
 	%}

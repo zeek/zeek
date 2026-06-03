@@ -1,3 +1,13 @@
+8.0.8-13 | 2026-06-17 18:29:57 +0000
+
+  * ayiya: add test for identity length that overflows uint8_t (dxbjavid)
+
+    (cherry picked from commit 5e98a79c31f79ce210044aad760b8b717386834e)
+
+  * widen ayiya identity_len to avoid uint8_t truncation (dxbjavid)
+
+    (cherry picked from commit 5e98a79c31f79ce210044aad760b8b717386834e)
+
 8.0.8-12 | 2026-06-17 18:22:02 +0000
 
   * Add test for dce-rpc behavior change (dxbjavid)

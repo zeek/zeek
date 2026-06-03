@@ -22,7 +22,9 @@ BAD_TLV = struct.pack("<HH", 0x0100, 1) + b"\x00\x00\x00\x00"
 def main():
     payload = NFLOG_HEADER + BAD_TLV
 
-    global_header = struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, LINKTYPE_NFLOG)
+    global_header = struct.pack(
+        "<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, LINKTYPE_NFLOG
+    )
     record_header = struct.pack("<IIII", 0, 0, len(payload), len(payload))
 
     out = Path(__file__).resolve().parent / "nflog-bad-tlv-len.pcap"

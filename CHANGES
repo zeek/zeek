@@ -1,3 +1,18 @@
+8.0.9-16 | 2026-08-10 18:33:42 -0700
+
+  * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)
+
+    (cherry picked from commit 0cb342f6e37463d8a0a11ba45faa0823b3c1cad7)
+
+  * CCI: Adapt ci/benchmark.sh to work with CircleCI (Tim Wojtulewicz, Corelight)
+
+    I had to drop the cirrus_pr_labels and github_check_suite_id options from the
+    request due to not having that data readily available. The check_suite one might
+    come back, but the PR labels one is more challenging and probably not that
+    useful.
+
+    (cherry picked from commit f9416f0921de08ce5a75117cf04051b2601b5304)
+
 8.0.9-14 | 2026-08-10 17:25:57 -0700
 
   * Fix cluster.websockets.ping-timeout btest when using websockets >= 17.0 (Tim Wojtulewicz, Corelight)

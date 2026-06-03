@@ -3,6 +3,9 @@
 # Supervisor::create() call. This previously triggered an instant-abort()
 # due to write() returning with EAGAIN when the pipe was filled.
 
+# Very slow with ASAN, skip it there.
+# @TEST-REQUIRES: ! have-asan
+
 # @TEST-PORT: BROKER_PORT
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT

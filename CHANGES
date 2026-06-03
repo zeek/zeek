@@ -1,3 +1,29 @@
+8.0.8-10 | 2026-06-17 18:12:33 +0000
+
+  * tcp: log TCP_scale_range weird for out-of-range window scale (dxbjavid)
+
+    Raise a TCP_scale_range weird with the offending shift count when a SYN
+    carries a window scale above the RFC 7323 max of 14, then clamp to 14 as
+    the RFC prescribes. Add a btest with a pcap whose SYN advertises shift
+    count 255.
+
+    (cherry picked from commit 0c206539d242866e12c583c288fd15d451692989)
+
+  * tcp: clamp window_scale to RFC 7323 max to avoid oversized shift (dxbjavid)
+
+    (cherry picked from commit 0c206539d242866e12c583c288fd15d451692989)
+
+  * testing/scripts: Add btest-diff-cut (Arne Welzel, Corelight)
+
+    This is a reimplementation of Benjamin's btest-diff-cut in a few
+    lines of bash instead of Python to include in the Zeek tree.
+
+    (cherry picked from commit 0865fb090ebb6bd00740a032a152767a8c7d7403)
+
+  * Bump zeekjs submodule to v0.23.0 for Node 26 fixes (Tim Wojtulewicz, Corelight)
+
+  * Add #defined checks back for LIBRESSL_VERSION_NUMBER (Tim Wojtulewicz, Corelight)
+
 8.0.8-6 | 2026-06-17 16:30:21 +0000
 
   * add libressl version check (Kevin Harrington)

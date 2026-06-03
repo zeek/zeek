@@ -46,6 +46,10 @@ redef record SSL::Info += {
 	sigalgs: vector of count &log &optional;
 	## Client supported hash algorithms
 	hashalgs: vector of count &log &optional;
+	## HPKE KDF identifier from the encrypted_client_hello extension.
+	ech_kdf_id: count &log &optional;
+	## HPKE AEAD identifier from the encrypted_client_hello extension.
+	ech_aead_id: count &log &optional;
 };
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
@@ -175,4 +179,15 @@ event ssl_extension_signature_algorithm(c: connection, is_client: bool, signatur
 
 	c$ssl$sigalgs = sigalgs;
 	c$ssl$hashalgs = hashalgs;
+	}
+
+event ssl_extension_encrypted_client_hello(c: connection, is_client: bool, kdf_id: count, aead_id: count, config_id: count, enc: string, payload_length: count)
+	{
+	if ( ! is_client )
+		return;
+
+	set_session(c);
+
+	c$ssl$ech_kdf_id = kdf_id;
+	c$ssl$ech_aead_id = aead_id;
 	}

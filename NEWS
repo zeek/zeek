@@ -88,6 +88,9 @@ Changed Functionality
   additional ones that are natural companions. See the type-casting section in the
   operator documentation for details. Zeek's own scripts now use ``as`` throughout.
 
+- ``policy/protocols/ssl/ssl-log-ext.zeek`` now logs the HPKE KDF and AEAD identifiers from the
+  encrypted client hello extension in the ``ech_kdf_id`` and ``ech_aead_id`` fields.
+
 Deprecated Functionality
 ------------------------
 

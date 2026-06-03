@@ -1,3 +1,12 @@
+9.0.0-dev.300 | 2026-06-03 15:51:56 +0100
+
+  * Add encrypted_client_hello HPKE KDF and AEAD id to ssl-log-ext (Johanna Amann, Corelight)
+
+    This commit adds two new cryptographic values from the TLS 1.3 encrypted
+    client hello extension to the ssl-log-ext policy script.
+
+  * Add support for the Encrypted Client Hello extension (Johanna Amann, Corelight)
+
 9.0.0-dev.295 | 2026-06-03 16:37:23 +0200
 
   * MIME: Fix mime_content_hash_sha256 and remove unused variable (Arne Welzel, Corelight)

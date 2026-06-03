@@ -1,3 +1,13 @@
+8.0.8-12 | 2026-06-17 18:22:02 +0000
+
+  * Add test for dce-rpc behavior change (dxbjavid)
+
+    (cherry picked from commit 6f9fa9775327c92d8cef3fceb947617d4c6d2b20)
+
+  * dce-rpc: fix out-of-bounds read in process_dce_rpc_bind_ack (dxbjavid)
+
+    (cherry picked from commit 6f9fa9775327c92d8cef3fceb947617d4c6d2b20)
+
 8.0.8-11 | 2026-06-17 18:20:30 +0000
 
   * Management framework: fix regression in metrics-port collision avoidance (Johanna Amann, Corelight)

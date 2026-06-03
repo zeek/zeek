@@ -1,3 +1,29 @@
+9.0.0-dev.295 | 2026-06-03 16:37:23 +0200
+
+  * MIME: Fix mime_content_hash_sha256 and remove unused variable (Arne Welzel, Corelight)
+
+    Local fuzzing with ubsan tickled an integer overflow for content_hash_length_sha256
+    due to the variable never being initialized in the first place.
+
+    It also hadn't actually been used and there was a bug for mime_content_hash_sha256
+    receiving content_hash_length, but that one only being updated when mime_content_hash
+    was in use.
+
+    So, just use the one single content_hash_length for both and add a test
+    for the different combinations of event usages.
+
+  * github/workflows: Switch cifuzz to run nightly (Arne Welzel, Corelight)
+
+    This was added originally to ensure we don't break fuzzers unknowingly.
+    It doesn't need to run on every PR push or merge. Every night should
+    be fine.
+
+  * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)
+
+    Saw these failing on Circle CI in the ASAN build and figured 5 and 10
+    seconds might be a bit too short and the large-cluster test seems fine
+    to just skip under ASAN.
+
 9.0.0-dev.289 | 2026-06-02 16:53:10 -0700
 
   * Update btest submodule for unstable-junit changes (Tim Wojtulewicz, Corelight)

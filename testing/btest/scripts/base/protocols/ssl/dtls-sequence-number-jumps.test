@@ -1,0 +1,5 @@
+# This checks DTLS analyzer behavior with large jumps in sequence numbers.
+
+# @TEST-REQUIRES: ! have-spicy-ssl  # DTLS not supported in Spicy SSL
+# @TEST-EXEC: zeek -C -r $TRACES/tls/dtls-sequence-number-jumps.pcap frameworks/analyzer/debug-logging %INPUT
+# @TEST-EXEC: btest-diff analyzer_debug.log

@@ -1,3 +1,15 @@
+9.0.0-dev.332 | 2026-06-03 16:21:37 -0700
+
+  * Updates to the software framework (Justin Azoff, Christian Kreibich, and Arne Welzel, Corelight)
+
+    - Optimize software found cluster communication
+    - Update scripts/base/frameworks/software/main.zeek
+    - Make found_cache and parse_cache lifetimes configurable
+    - Additional proxy-side log suppression
+    - Reflect changes in detect-webapps.zeek
+    - Updates to tests to reflect caching changes
+    - Update NEWS entry to reflect software framework updates
+
 9.0.0-dev.324 | 2026-06-03 15:49:33 -0700
 
   * Update scripts.base.frameworks.telemetry.internal-metrics baseline (Christian Kreibich, Corelight)

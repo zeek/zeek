@@ -2,6 +2,7 @@
 # @TEST-EXEC: btest-diff software.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-timestamps btest-diff notice.log
 
+# @TEST-START-FILE common.zeek
 @load base/frameworks/software
 @load policy/frameworks/software/version-changes
 
@@ -9,7 +10,7 @@ const fake_software_name = "my_fake_software";
 redef Software::asset_tracking = ALL_HOSTS;
 redef Software::interesting_version_changes += {fake_software_name};
 
-global versions: vector of string = vector("1.0.0", "1.1.0", "1.2.0", "1.0.0");
+global versions: vector of string = vector("1.0.0", "1.1.0", "1.2.0", "1.0.0", "1.3.0");
 global version_index = 0;
 global c = 0;
 
@@ -37,3 +38,15 @@ event zeek_init()
 	{
 	event new_software();
 	}
+# @TEST-END-FILE
+
+@load ./common.zeek
+
+# @TEST-START-NEXT
+# Disable the hit suppression on the workers -- this is the historical behavior.
+# The broader tracking of versions in the proxies still suppresses duplicates,
+# so the result should look the same as for the test above.
+
+@load ./common.zeek
+
+redef Software::found_cache_interval = 0secs;

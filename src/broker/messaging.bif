@@ -1,3 +1,4 @@
+%gen-native
 
 ##! Functions for peering and various messaging patterns.
 
@@ -127,42 +128,36 @@ function Broker::make_event%(...%): Broker::Event
 ## Returns: true if the message is sent.
 function Broker::publish%(topic: string, ...%): bool
 	%{
-	auto rval = publish_event_args(ArgsSpan{*@ARGS@}.subspan(1),
+	return publish_event_args(ArgsSpan{*@ARGS@}.subspan(1),
 	                               topic->AsString(), frame);
-	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Broker::__flush_logs%(%): count
 	%{
-	auto rval = zeek::broker_mgr->FlushLogBuffers();
-	return zeek::val_mgr->Count(static_cast<uint64_t>(rval));
+	return static_cast<uint64_t>(zeek::broker_mgr->FlushLogBuffers());
 	%}
 
 function Broker::__publish_id%(topic: string, id: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	auto rval = zeek::broker_mgr->PublishIdentifier(topic->CheckString(),
-	                                                id->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::broker_mgr->PublishIdentifier(topic->CheckString(),
+	                                           id->CheckString());
 	%}
 
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	auto rval = zeek::broker_mgr->Subscribe(topic_prefix->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::broker_mgr->Subscribe(topic_prefix->CheckString());
 	%}
 
 function Broker::__forward%(topic_prefix: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	auto rval = zeek::broker_mgr->Forward(topic_prefix->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::broker_mgr->Forward(topic_prefix->CheckString());
 	%}
 
 function Broker::__unsubscribe%(topic_prefix: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	auto rval = zeek::broker_mgr->Unsubscribe(topic_prefix->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::broker_mgr->Unsubscribe(topic_prefix->CheckString());
 	%}

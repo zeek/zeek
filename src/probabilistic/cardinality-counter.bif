@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions to create and manipulate probabilistic cardinality counters.
 
 %%{
@@ -45,17 +47,17 @@ function hll_cardinality_add%(handle: opaque of cardinality, elem: any%): bool
 	if ( ! cv->Type() && ! cv->Typify(elem->GetType()) )
 		{
 		reporter->Error("failed to set HLL type");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	else if ( ! same_type(cv->Type(), elem->GetType()) )
 		{
 		reporter->Error("incompatible HLL data type");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	cv->Add(elem);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Merges a HLL cardinality counter into another.
@@ -82,7 +84,7 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	     ! same_type(v1->Type(), v2->Type()) )
 		{
 		reporter->Error("incompatible HLL types");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	zeek::probabilistic::detail::CardinalityCounter* h1 = v1->Get();
@@ -92,10 +94,10 @@ function hll_cardinality_merge_into%(handle1: opaque of cardinality, handle2: op
 	if ( ! res )
 		{
 		reporter->Error("Cardinality counters with different parameters cannot be merged");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Estimate the current cardinality of an HLL cardinality counter.
@@ -111,9 +113,7 @@ function hll_cardinality_estimate%(handle: opaque of cardinality%): double
 	auto* cv = static_cast<CardinalityVal*>(handle);
 	zeek::probabilistic::detail::CardinalityCounter* h = cv->Get();
 
-	double estimate = h->Size();
-
-	return zeek::make_intrusive<zeek::DoubleVal>(estimate);
+	return h->Size();
 	%}
 
 ## Copy a HLL cardinality counter.

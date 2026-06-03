@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions to create and manipulate Bloom filters.
 
 %%{
@@ -183,9 +185,9 @@ function bloomfilter_decrement%(bf: opaque of bloomfilter, x: any%): bool
 		reporter->Error("incompatible Bloom filter types");
 
 	if ( bfv->Decrement(x) )
-		return val_mgr->True();
+		return true;
 	else
-		return val_mgr->False();
+		return false;
 	%}
 #
 
@@ -210,15 +212,15 @@ function bloomfilter_lookup%(bf: opaque of bloomfilter, x: any%): count
 	const auto* bfv = static_cast<const BloomFilterVal*>(bf);
 
 	if ( ! bfv->Type() )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
 	else if ( ! same_type(bfv->Type(), x->GetType()) )
 		reporter->Error("incompatible Bloom filter types");
 
 	else
-		return zeek::val_mgr->Count(static_cast<uint64_t>(bfv->Count(x)));
+		return static_cast<uint64_t>(bfv->Count(x));
 
-	return zeek::val_mgr->Count(0);
+	return 0;
 	%}
 
 ## Removes all elements from a Bloom filter. This function resets all bits in

@@ -1,3 +1,4 @@
+%gen-native
 
 module Pcap;
 
@@ -41,7 +42,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 		// large.
 		zeek::emit_builtin_error(
 			zeek::util::fmt("PCAP filter ids must remain below 100 (is %" PRId64 ")", id->AsInt()));
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	bool success = true;
@@ -55,7 +56,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 			success = false;
 		}
 
-	return zeek::val_mgr->Bool(success);
+	return success;
 	%}
 
 ## Installs a PCAP filter that has been precompiled with
@@ -84,7 +85,7 @@ function Pcap::install_pcap_filter%(id: PcapFilterID%): bool
 	if ( ps && ! ps->SetFilter(id->AsInt()) )
 		success = false;
 
-	return zeek::val_mgr->Bool(success);
+	return success;
 	%}
 
 ## Returns a string representation of the last PCAP error.

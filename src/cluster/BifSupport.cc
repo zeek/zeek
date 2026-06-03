@@ -73,18 +73,18 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
     return rec;
 }
 
-zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
+bool publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     static const auto& cluster_event_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
     static const auto& broker_event_type = zeek::id::find_type<zeek::RecordType>("Broker::Event");
 
     if ( args.empty() ) {
         zeek::emit_builtin_error("no event arguments given");
-        return zeek::val_mgr->False();
+        return false;
     }
 
     if ( topic->GetType()->Tag() != zeek::TYPE_STRING ) {
         zeek::emit_builtin_error("topic is not a string");
-        return zeek::val_mgr->False();
+        return false;
     }
 
     auto topic_str = topic->AsStringVal()->ToStdString();
@@ -92,17 +92,17 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     if ( args[0]->GetType()->Tag() == zeek::TYPE_FUNC ) {
         auto event = zeek::cluster::backend->MakeClusterEvent({zeek::NewRef{}, args[0]->AsFuncVal()}, args.subspan(1));
         if ( event )
-            return zeek::val_mgr->Bool(zeek::cluster::backend->PublishEvent(topic_str, *event));
+            return zeek::cluster::backend->PublishEvent(topic_str, *event);
 
-        return zeek::val_mgr->False();
+        return false;
     }
     else if ( args[0]->GetType()->Tag() == zeek::TYPE_RECORD ) {
         if ( args[0]->GetType() == cluster_event_type ) { // Handling Cluster::Event record type
             auto ev = to_cluster_event(zeek::cluster::backend, zeek::cast_intrusive<zeek::RecordVal>(args[0]));
             if ( ! ev )
-                return zeek::val_mgr->False();
+                return false;
 
-            return zeek::val_mgr->Bool(zeek::cluster::backend->PublishEvent(topic_str, *ev));
+            return zeek::cluster::backend->PublishEvent(topic_str, *ev);
         }
         else if ( args[0]->GetType() == broker_event_type ) {
             // Handling Broker::Event record type created by Broker::make_event()
@@ -112,21 +112,21 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
                     zeek::util::fmt("Publish of Broker::Event record instance with type '%s' to a non-Broker backend",
                                     zeek::obj_desc_short(args[0]->GetType()).c_str()));
 
-                return zeek::val_mgr->False();
+                return false;
             }
 
-            return zeek::val_mgr->Bool(zeek::broker_mgr->PublishEvent(std::move(topic_str), args[0]->AsRecordVal()));
+            return zeek::broker_mgr->PublishEvent(std::move(topic_str), args[0]->AsRecordVal());
         }
         else {
             zeek::emit_builtin_error(zeek::util::fmt("Publish of unknown record type '%s'",
                                                      zeek::obj_desc_short(args[0]->GetType()).c_str()));
-            return zeek::val_mgr->False();
+            return false;
         }
     }
 
     zeek::emit_builtin_error(zeek::util::fmt("expected function or record as first argument, got %s",
                                              zeek::obj_desc_short(args[0]->GetType()).c_str()));
-    return zeek::val_mgr->False();
+    return false;
 }
 
 bool is_cluster_pool(const zeek::Val* pool) {

@@ -1,3 +1,5 @@
+%gen-native
+
 module PacketAnalyzer::TEREDO;
 
 %%{
@@ -15,11 +17,11 @@ function remove_teredo_connection%(cid: conn_id%) : bool
 		{
 		auto r = zeek::conn_key_mgr->GetFactory().ConnKeyFromVal(*cid);
 		if ( ! r.has_value() )
-			return zeek::val_mgr->False();
+			return false;
 
 		auto sk = r.value()->SessionKey();
 		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(sk);
 		}
 
-	return zeek::val_mgr->True();
+	return true;
 	%}

@@ -1,3 +1,4 @@
+%gen-native
 
 ##! Functions to interface with broker's distributed data store.
 
@@ -86,9 +87,9 @@ function Broker::__is_closed%(h: opaque of Broker::Store%): bool
 		zeek::detail::emit_builtin_exception("invalid Broker store handle", h);
 
 	if ( ! handle->have_store )
-		return zeek::val_mgr->True();
+		return true;
 
-	return zeek::val_mgr->Bool(! broker_mgr->LookupStore(handle->store.name()));
+	return ! broker_mgr->LookupStore(handle->store.name());
 	%}
 
 function Broker::__close%(h: opaque of Broker::Store%): bool
@@ -99,15 +100,15 @@ function Broker::__close%(h: opaque of Broker::Store%): bool
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return val_mgr->False();
+		return false;
 		}
 
 	if ( ! handle->have_store )
 		{
-		return val_mgr->False();
+		return false;
 		}
 
-	return zeek::val_mgr->Bool(broker_mgr->CloseStore(handle->store.name()));
+	return broker_mgr->CloseStore(handle->store.name());
 	%}
 
 function Broker::__store_name%(h: opaque of Broker::Store%): string
@@ -139,7 +140,7 @@ function Broker::__exists%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	auto trigger = frame->GetTrigger();
+	auto trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger )
 		{
@@ -155,10 +156,10 @@ function Broker::__exists%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, @FRAME@->GetTriggerAssoc(),
 	                                               handle->store);
 	auto req_id = handle->proxy.exists(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -185,7 +186,7 @@ function Broker::__get%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	auto trigger = frame->GetTrigger();
+	auto trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger )
 		{
@@ -201,10 +202,10 @@ function Broker::__get%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, @FRAME@->GetTriggerAssoc(),
 	                                               handle->store);
 	auto req_id = handle->proxy.get(std::move(*key));
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -238,7 +239,7 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	auto trigger = frame->GetTrigger();
+	auto trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger )
 		{
@@ -254,10 +255,10 @@ function Broker::__put_unique%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, @FRAME@->GetTriggerAssoc(),
 	                                               handle->store);
 
 	auto req_id = handle->proxy.put_unique(std::move(*key), std::move(*val),
@@ -294,7 +295,7 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	auto trigger = frame->GetTrigger();
+	auto trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger )
 		{
@@ -310,10 +311,10 @@ function Broker::__get_index_from_value%(h: opaque of Broker::Store,
 		return zeek::Broker::detail::query_result();
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, @FRAME@->GetTriggerAssoc(),
 						       handle->store);
 	auto req_id = handle->proxy.get_index_from_value(std::move(*key),
 	                                                 std::move(*index));
@@ -338,7 +339,7 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 		return zeek::Broker::detail::query_result();
 		}
 
-	auto trigger = frame->GetTrigger();
+	auto trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger )
 		{
@@ -354,10 +355,10 @@ function Broker::__keys%(h: opaque of Broker::Store%): Broker::QueryResult
 		return zeek::Broker::detail::query_result();
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
-	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, frame->GetTriggerAssoc(),
+	auto cb = new zeek::Broker::detail::StoreQueryCallback(trigger, @FRAME@->GetTriggerAssoc(),
 	                                             handle->store);
 	auto req_id = handle->proxy.keys();
 	broker_mgr->TrackStoreQuery(handle, req_id, cb);
@@ -373,7 +374,7 @@ function Broker::__put%(h: opaque of Broker::Store,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -382,17 +383,17 @@ function Broker::__put%(h: opaque of Broker::Store,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! val )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for value argument", v);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.put(std::move(*key), std::move(*val), zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
@@ -402,7 +403,7 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -410,11 +411,11 @@ function Broker::__erase%(h: opaque of Broker::Store, k: any%): bool
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.erase(std::move(*key));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
@@ -425,7 +426,7 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -434,18 +435,18 @@ function Broker::__increment%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! amount )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for amount argument", a);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.increment(std::move(*key), std::move(*amount),
 	                        zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
@@ -456,7 +457,7 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -465,17 +466,17 @@ function Broker::__decrement%(h: opaque of Broker::Store, k: any, a: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! amount )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for amount argument", a);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.decrement(std::move(*key), std::move(*amount), zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
@@ -486,7 +487,7 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -495,17 +496,17 @@ function Broker::__append%(h: opaque of Broker::Store, k: any, s: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! str )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for str argument", s);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.append(std::move(*key), std::move(*str), zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
@@ -516,7 +517,7 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -525,18 +526,18 @@ function Broker::__insert_into_set%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! idx )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for index argument", i);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
 	                          zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
@@ -547,7 +548,7 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -557,24 +558,24 @@ function Broker::__insert_into_table%(h: opaque of Broker::Store, k: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! idx )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for index argument", i);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! val )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for value argument", v);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.insert_into(std::move(*key), std::move(*idx),
 	                          std::move(*val), zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
@@ -585,7 +586,7 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -594,18 +595,18 @@ function Broker::__remove_from%(h: opaque of Broker::Store, k: any, i: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! idx )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for index argument", i);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.remove_from(std::move(*key), std::move(*idx),
 	                          zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
@@ -616,7 +617,7 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -625,17 +626,17 @@ function Broker::__push%(h: opaque of Broker::Store, k: any, v: any,
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! val )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for value argument", v);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.push(std::move(*key), std::move(*val), zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
@@ -645,7 +646,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	auto key = zeek::Broker::detail::val_to_data(k);
@@ -653,11 +654,11 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 	if ( ! key )
 		{
 		zeek::emit_builtin_error("invalid Broker data conversion for key argument", k);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.pop(*key, zeek::Broker::detail::convert_expiry(e));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 function Broker::__clear%(h: opaque of Broker::Store%): bool
@@ -667,9 +668,9 @@ function Broker::__clear%(h: opaque of Broker::Store%): bool
 	if ( ! handle )
 		{
 		zeek::emit_builtin_error("invalid Broker store handle", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	handle->store.clear();
-	return zeek::val_mgr->True();
+	return true;
 	%}

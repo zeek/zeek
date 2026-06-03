@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions for accessing counter metrics from script land.
 
 module Telemetry;
@@ -19,12 +21,12 @@ auto with(zeek::Val* val, const char* error_msg, Fun fun)
 	if ( auto ptr = static_cast<ScriptHandle*>(val) )
 		{
 		fun(ptr->GetHandle());
-		return zeek::val_mgr->True();
+		return true;
 		}
 	else
 		{
 		zeek::reporter->Error("%s", error_msg);
-		return zeek::val_mgr->False();
+		return false;
 		}
 	}
 
@@ -150,12 +152,12 @@ function Telemetry::__counter_value%(val: opaque of counter_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::CounterMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<zeek::DoubleVal>(ptr->GetHandle()->Value());
+		return ptr->GetHandle()->Value();
 		}
 	else
 		{
 		zeek::reporter->Error("Telemetry::counter_value: invalid handle.");
-		return zeek::make_intrusive<zeek::DoubleVal>(0);
+		return 0;
 		}
 	%}
 
@@ -215,12 +217,12 @@ function Telemetry::__gauge_value%(val: opaque of gauge_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::GaugeMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<zeek::DoubleVal>(ptr->GetHandle()->Value());
+		return ptr->GetHandle()->Value();
 		}
 	else
 		{
 		zeek::reporter->Error("Telemetry::gauge_value: invalid handle.");
-		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
+		return 0.0;
 		}
 	%}
 
@@ -278,12 +280,12 @@ function Telemetry::__histogram_sum%(val: opaque of histogram_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::HistogramMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<zeek::DoubleVal>(ptr->GetHandle()->Sum());
+		return ptr->GetHandle()->Sum();
 		}
 	else
 		{
 		zeek::reporter->Error("Telemetry::histogram_sum: invalid handle.");
-        return make_intrusive<zeek::DoubleVal>(0.0);
+        return 0.0;
 		}
 	%}
 

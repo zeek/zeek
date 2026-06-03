@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions related to general storage operations. These are not specific to async or sync.
 
 %%{
@@ -20,7 +22,7 @@ module Storage;
 function Storage::is_open%(backend: opaque of Storage::BackendHandle%) : bool
 	%{
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
-	return zeek::val_mgr->Bool(b.has_value());
+	return b.has_value();
 	%}
 
 ## Checks whether a storage backend was opened in forced-synchronous mode.
@@ -33,7 +35,7 @@ function Storage::is_forced_sync%(backend: opaque of Storage::BackendHandle%) : 
 	%{
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b.has_value() )
-		return zeek::val_mgr->Bool(false);
+		return false;
 
-	return zeek::val_mgr->Bool(b.value()->backend->IsForcedSync());
+	return b.value()->backend->IsForcedSync();
 	%}

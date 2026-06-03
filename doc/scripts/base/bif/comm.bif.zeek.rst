@@ -11,12 +11,6 @@ Functions and events regarding broker communication mechanisms.
 
 Summary
 ~~~~~~~
-Types
-#####
-====================================================== =
-:zeek:type:`Broker::BrokerProtocol`: :zeek:type:`enum`
-====================================================== =
-
 Events
 ######
 =========================================================== ======================================================================
@@ -48,18 +42,6 @@ Functions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Types
-#####
-.. zeek:type:: Broker::BrokerProtocol
-   :source-code: base/bif/comm.bif.zeek 149 149
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: Broker::NATIVE Broker::BrokerProtocol
-
-      .. zeek:enum:: Broker::WEBSOCKET Broker::BrokerProtocol
-
-
 Events
 ######
 .. zeek:id:: Broker::endpoint_discovered
@@ -210,7 +192,7 @@ Functions
 .. zeek:id:: Broker::__listen
    :source-code: base/bif/comm.bif.zeek 155 155
 
-   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`, proto: :zeek:type:`Broker::BrokerProtocol`) : :zeek:type:`port`
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`port`
 
 
 .. zeek:id:: Broker::__node_id

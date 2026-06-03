@@ -260,7 +260,7 @@ private:
     }
 
     // The maximum number of messages queueable for transmission to a peer,
-    // see Broker::peer_buffer_size and Broker::web_socket_buffer_size.
+    // see Broker::peer_buffer_size.
     size_t buffer_size;
 
     // Seconds after which we reset stats tracked per time window.
@@ -541,21 +541,6 @@ void Manager::DoInitPostScript() {
         reporter->FatalError("Invalid Broker::peer_overflow_policy: %s", peer_overflow_policy);
     }
 
-    options.web_socket_buffer_size = get_option("Broker::web_socket_buffer_size")->AsCount();
-    auto web_socket_overflow_policy = get_option("Broker::web_socket_overflow_policy")->AsString()->CheckString();
-    if ( util::streq(web_socket_overflow_policy, "disconnect") ) {
-        options.web_socket_overflow_policy = broker::overflow_policy::disconnect;
-    }
-    else if ( util::streq(web_socket_overflow_policy, "drop_oldest") ) {
-        options.web_socket_overflow_policy = broker::overflow_policy::drop_oldest;
-    }
-    else if ( util::streq(web_socket_overflow_policy, "drop_newest") ) {
-        options.web_socket_overflow_policy = broker::overflow_policy::drop_newest;
-    }
-    else {
-        reporter->FatalError("Invalid Broker::web_socket_overflow_policy: %s", web_socket_overflow_policy);
-    }
-
     broker::configuration config{options};
 
     config.openssl_cafile(get_option("Broker::ssl_cafile")->AsString()->CheckString());
@@ -757,15 +742,11 @@ void Manager::ClearStores() {
         handle->store.clear();
 }
 
-uint16_t Manager::Listen(const string& addr, uint16_t port, BrokerProtocol type) {
+uint16_t Manager::Listen(const string& addr, uint16_t port) {
     if ( bstate->endpoint.is_shutdown() )
         return 0;
 
-    switch ( type ) {
-        case BrokerProtocol::Native: bound_port = bstate->endpoint.listen(addr, port); break;
-
-        case BrokerProtocol::WebSocket: bound_port = bstate->endpoint.web_socket_listen(addr, port); break;
-    }
+    bound_port = bstate->endpoint.listen(addr, port);
 
     if ( bound_port == 0 )
         Error("Failed to listen on %s:%" PRIu16, addr.empty() ? "INADDR_ANY" : addr.c_str(), port);

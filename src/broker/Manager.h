@@ -91,12 +91,6 @@ struct Stats {
  */
 class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
-    /** Broker protocol to expect on a listening port. */
-    enum class BrokerProtocol : uint8_t {
-        Native,   /**< Broker's native binary protocol */
-        WebSocket /** Broker's WebSocket protocol for external clients. */
-    };
-
     static const broker::endpoint_info NoPeer;
 
     /**
@@ -125,7 +119,7 @@ public:
      * return value equals *port* on success. If *port* equals 0, then the
      * return values represents the bound port as chosen by the OS.
      */
-    uint16_t Listen(const std::string& addr, uint16_t port, BrokerProtocol protocol = BrokerProtocol::Native);
+    uint16_t Listen(const std::string& addr, uint16_t port);
 
     /**
      * Initiate a peering with a remote endpoint.

@@ -1,3 +1,11 @@
+9.0.0-dev.324 | 2026-06-03 15:49:33 -0700
+
+  * Update scripts.base.frameworks.telemetry.internal-metrics baseline (Christian Kreibich, Corelight)
+
+  * Bump auxil/broker to pull in removal of WebSocket codebase (Christian Kreibich, Corelight)
+
+  * Remove obsolete Broker WebSocket server references (Dominik Charousset)
+
 9.0.0-dev.320 | 2026-06-03 15:01:36 -0400
 
   * nflog: report bad TLV lengths and add a regression test (dxbjavid)

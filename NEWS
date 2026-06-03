@@ -11,6 +11,18 @@ We'd like to thank ... their contributions to this release.
 Breaking Changes
 ----------------
 
+- Expanding on the removal of ``Broker::listen_websocket()`` in Zeek 8.1, this
+  release fully removes Broker's legacy embedded WebSocket server. The script
+  layer no longer provides ``Broker::BrokerProtocol`` and the options
+  ``Broker::default_port_websocket``, ``Broker::default_listen_address_websocket``,
+  ``Broker::web_socket_buffer_size``, and ``Broker::web_socket_overflow_policy``
+  have likewise been removed. Use :zeek:see:`Cluster::listen_websocket()` and the
+  ``ZEEK_WEBSOCKET_*`` environment variables instead.
+
+  In Zeek's core, the Broker manager's ``Listen()`` method now always uses
+  Broker's native protocol and no longer accepts the optional ``BrokerProtocol``
+  argument. The ``BrokerProtocol`` enum has been removed.
+
 New Functionality
 -----------------
 

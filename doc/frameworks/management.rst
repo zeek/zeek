@@ -489,10 +489,10 @@ Compatibility
 -------------
 
 Zeek 5.2 switched client/controller communication from Broker's native wire
-format to the newer `WebSocket data transport
-<https://docs.zeek.org/projects/broker/en/current/web-socket.html>`_, with
-``zeek-client`` 1.2.0 being the first version to exclusively use WebSockets.
-This has a few implications:
+format to the WebSocket-based transport described in the Zeek manual's
+`WebSocket API <https://docs.zeek.org/en/master/advanced/devel/websocket-api.html>`_
+section, with ``zeek-client`` 1.2.0 being the first version to exclusively use
+WebSockets. This has a few implications:
 
 * Since Broker dedicates separate ports to the respective wire formats, the
   controller listens on TCP port 2149 for WebSocket connections, while
@@ -501,15 +501,9 @@ This has a few implications:
 
 * ``zeek-client`` 1.2.0 and newer default to connecting to port 2149.
 
-* Controllers running Zeek older than 5.2 need tweaking to listen on a WebSocket
-  port, for example by saying:
-
-  .. code-block:: console
-
-     event zeek_init()
-         {
-         Broker::listen_websocket("0.0.0.0", 2149/tcp);
-         }
+* Controllers must call :zeek:see:`Cluster::listen_websocket` (or rely on the
+  management framework to do so) so the controller accepts WebSocket clients on
+  the expected port.
 
 * Older clients continue to work with Zeek 5.2 and newer.
 

@@ -31,12 +31,10 @@ Redefinable Options
 :zeek:id:`Broker::default_connect_retry`: :zeek:type:`interval` :zeek:attr:`&redef`                     Default interval to retry connecting to a peer if it cannot be made to
                                                                                                         work initially, or if it ever becomes disconnected.
 :zeek:id:`Broker::default_listen_address`: :zeek:type:`string` :zeek:attr:`&redef`                      Default address on which to listen.
-:zeek:id:`Broker::default_listen_address_websocket`: :zeek:type:`string` :zeek:attr:`&redef`            Default address on which to listen for WebSocket connections.
 :zeek:id:`Broker::default_listen_retry`: :zeek:type:`interval` :zeek:attr:`&redef`                      Default interval to retry listening on a port if it's currently in
                                                                                                         use already.
 :zeek:id:`Broker::default_log_topic_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                    The default topic prefix where logs will be published.
 :zeek:id:`Broker::default_port`: :zeek:type:`port` :zeek:attr:`&redef`                                  Default port for native Broker communication.
-:zeek:id:`Broker::default_port_websocket`: :zeek:type:`port` :zeek:attr:`&redef`                        Default port for Broker WebSocket communication.
 :zeek:id:`Broker::disable_ssl`: :zeek:type:`bool` :zeek:attr:`&redef`                                   If true, do not use SSL for network connections.
 :zeek:id:`Broker::forward_messages`: :zeek:type:`bool` :zeek:attr:`&redef`                              Forward all received messages to subscribing peers.
 :zeek:id:`Broker::log_batch_interval`: :zeek:type:`interval` :zeek:attr:`&redef`                        Max time to buffer log messages before sending the current set out as a
@@ -69,8 +67,6 @@ Redefinable Options
                                                                                                         certificate.
 :zeek:id:`Broker::ssl_passphrase`: :zeek:type:`string` :zeek:attr:`&redef`                              Passphrase to decrypt the private key specified by
                                                                                                         :zeek:see:`Broker::ssl_keyfile`.
-:zeek:id:`Broker::web_socket_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`                       Same as :zeek:see:`Broker::peer_buffer_size` but for WebSocket clients.
-:zeek:id:`Broker::web_socket_overflow_policy`: :zeek:type:`string` :zeek:attr:`&redef`                  Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
 ======================================================================================================= ===========================================================================
 
 Types
@@ -194,17 +190,6 @@ Redefinable Options
 
    .. zeek:see:: Broker::listen
 
-.. zeek:id:: Broker::default_listen_address_websocket
-   :source-code: base/frameworks/broker/main.zeek 32 32
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``""``
-
-   Default address on which to listen for WebSocket connections.
-
-   .. zeek:see:: Cluster::listen_websocket
-
 .. zeek:id:: Broker::default_listen_retry
    :source-code: base/frameworks/broker/main.zeek 22 22
 
@@ -236,20 +221,6 @@ Redefinable Options
 
    Default port for native Broker communication. Where not specified
    otherwise, this is the port to connect to and listen on.
-
-.. zeek:id:: Broker::default_port_websocket
-   :source-code: base/frameworks/broker/main.zeek 16 16
-
-   :Type: :zeek:type:`port`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``9997/tcp``
-
-   Default port for Broker WebSocket communication. Where not specified
-   otherwise, this is the port to connect to and listen on for
-   WebSocket connections.
-
-   See the Broker documentation for a specification of the message
-   format over WebSocket connections.
 
 .. zeek:id:: Broker::disable_ssl
    :source-code: base/frameworks/broker/main.zeek 45 45
@@ -465,24 +436,6 @@ Redefinable Options
    Passphrase to decrypt the private key specified by
    :zeek:see:`Broker::ssl_keyfile`. If set, Zeek will require valid
    certificates for all peers.
-
-.. zeek:id:: Broker::web_socket_buffer_size
-   :source-code: base/frameworks/broker/main.zeek 97 97
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``8192``
-
-   Same as :zeek:see:`Broker::peer_buffer_size` but for WebSocket clients.
-
-.. zeek:id:: Broker::web_socket_overflow_policy
-   :source-code: base/frameworks/broker/main.zeek 100 100
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"drop_oldest"``
-
-   Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
 
 Types
 #####

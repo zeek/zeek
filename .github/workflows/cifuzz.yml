@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "13 2 * * *"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 permissions: {}
 
 jobs:

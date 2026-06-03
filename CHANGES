@@ -1,3 +1,25 @@
+9.0.0-dev.303 | 2026-06-03 18:41:20 +0200
+
+  * Do not run concurrent GH actions workflow for anything but tags [skip ci] (Benjamin Bannier, Corelight)
+
+    While Cirrus CI only cancelled concurrent jobs for the same PR, this
+    goes a step further and cancels existing jobs for anything but tag
+    builds. For `master` this reflects our workflow of pushing individual
+    merges in rapid succession where we only care about the last push. This
+    should free up additional resources so jobs can schedule faster.
+
+  * Automatically cancel exisiting GH CI workflows on PR update (Benjamin Bannier, Corelight)
+
+    Previously we would run all GH actions CI workflows to completion, even
+    if the PR was updated and another run was started. Since we only have a
+    limited number of workers available this causes contention across the
+    whole GH org. It is also inconsistent with how Cirrus CI behaved, so
+    people are not at all concious about cancelling outdated jobs.
+
+    This PR changes the configuration of all workflows which trigger for
+    pull requests to automatically cancel existing jobs on updates,
+    mirroring the behavior of Cirrus CI.
+
 9.0.0-dev.300 | 2026-06-03 15:51:56 +0100
 
   * Add encrypted_client_hello HPKE KDF and AEAD id to ssl-log-ext (Johanna Amann, Corelight)

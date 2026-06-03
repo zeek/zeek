@@ -821,6 +821,7 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == nullptr || $element != nullptr);
 		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == nullptr || $element != nullptr);
 		EXT_CONNECTION_ID -> connection_id: ConnectionId(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_ENCRYPTED_CLIENT_HELLO -> encrypted_client_hello: EncryptedClientHelloSwitch(rec)[] &until($element == nullptr || $element != nullptr);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -830,6 +831,28 @@ type SSLExtension(rec: HandshakeRecord) = record {
 type ConnectionId(rec: HandshakeRecord) = record {
 	length: uint8;
 	cid: bytestring &length=length;
+};
+
+# The encrypted_client_hello extension carries a type; only
+# the outer form (0) carries further data. The inner variant
+# should not occur in unencrypted packets; we raise a weird if
+# we see it.
+type EncryptedClientHelloSwitch(rec: HandshakeRecord) = record {
+	tpe: uint8;
+	ech: case tpe of {
+		0 -> outer: EncryptedClientHello(rec);
+		default -> inner: bytestring &restofdata &transient;
+	};
+};
+
+type EncryptedClientHello(rec: HandshakeRecord) = record {
+	kdf_id: uint16;
+	aead_id: uint16;
+	config_id: uint8;
+	enc_length: uint16;
+	enc: bytestring &length=enc_length;
+	payload_length: uint16;
+	payload: bytestring &length=payload_length &transient;
 };
 
 type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case ( rec.is_orig ^ $context.connection.flipped() ) of {

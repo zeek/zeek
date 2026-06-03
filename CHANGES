@@ -1,3 +1,9 @@
+8.0.8-16 | 2026-06-17 18:51:13 +0000
+
+  * ssl: validate record length before reading AEAD nonce during decryption (uwezkhan)
+
+    (cherry picked from commit e03868189782a1f81986887cb1ace1ae4d083eb2)
+
 8.0.8-15 | 2026-06-17 18:50:22 +0000
 
   * nflog: report bad TLV lengths and add a regression test (dxbjavid)

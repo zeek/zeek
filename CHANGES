@@ -1,3 +1,13 @@
+8.0.8-15 | 2026-06-17 18:50:22 +0000
+
+  * nflog: report bad TLV lengths and add a regression test (dxbjavid)
+
+    (cherry picked from commit 4281d53f16a2d59280d82dccc5ac6f37d1816183)
+
+  * nflog: fix out-of-bounds read in NFLogAnalyzer::AnalyzePacket (dxbjavid)
+
+    (cherry picked from commit 4281d53f16a2d59280d82dccc5ac6f37d1816183)
+
 8.0.8-14 | 2026-06-17 18:31:37 +0000
 
   * Geneve: fix parsing of encapsulated ipv6 (Johanna Amann, Corelight)

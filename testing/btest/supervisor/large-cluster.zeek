@@ -6,6 +6,8 @@
 # On Windows, spawning 32 concurrent processes with Broker peering
 # exceeds the reliable process/handle limits in CI and hangs.
 # @TEST-REQUIRES: ! is-windows
+# Very slow with ASAN, skip it there.
+# @TEST-REQUIRES: ! have-asan
 # @TEST-PORT: BROKER_PORT
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT

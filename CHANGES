@@ -1,3 +1,9 @@
+8.2.1-17 | 2026-08-11 11:17:20 -0700
+
+  * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)
+
+    (cherry picked from commit 0cb342f6e37463d8a0a11ba45faa0823b3c1cad7)
+
 8.2.1-16 | 2026-08-11 11:16:20 -0700
 
   * CCI: Adapt ci/benchmark.sh to work with CircleCI (Tim Wojtulewicz, Corelight)

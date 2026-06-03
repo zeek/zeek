@@ -12,6 +12,11 @@ RETRIES=${ZEEK_CI_BTEST_RETRIES:-3}
 ${BTEST} -z ${RETRIES} -j ${JOBS} -d -x btest-results.xml
 result=$?
 
+# Copy these into a location where CI hosts can collect all of the results from at once.
+# This should happen before the re-runs because otherwise it eats all of the results.
+mkdir -p ${CIRCLE_WORKING_DIRECTORY}/btest-results/$1
+cp btest-results.xml ${CIRCLE_WORKING_DIRECTORY}/btest-results/$1/results.xml
+
 if [ ${result} -ne 0 ] && [ -f .btest.failed.dat ]; then
     echo "=== Initial btest run had failures, retrying after cleanup ==="
 

@@ -98,6 +98,7 @@ type Extensions = enum {
     channel_id = 30031,
     channel_id_new = 30032,
     padding_old = 35655,
+    encrypted_client_hello = 65037,
     renegotiation_info = 65281,
 };
 
@@ -1116,12 +1117,33 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
         Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(sh, client_hello) &max-size=self.length if(self.length > 0);
         Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes(sh) &max-size=self.length if(self.length > 0);
         Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(sh, client_hello) &max-size=self.length if(self.length > 0);
+        Extensions::encrypted_client_hello -> encrypted_client_hello: EncryptedClientHelloSwitch(sh) &max-size=self.length if(self.length > 0);
         * -> unknown: bytes &size=self.length;
     };
 
     on raw {
         self.set_input(self.input() + 4);
     }
+};
+
+type EncryptedClientHelloSwitch = unit(sh: Share) {
+    tpe: uint8; # 0 = outer, 1 = inner - we should never ever see 1 as a type, but who knows, right...
+    ech: EncryptedClientHello(sh) if(self.tpe == 0); # if inner - empty
+
+    on tpe {
+        if (self.tpe != 0)
+            zeek::weird("ssl_unexpected_inner_encrypted_client_hello");
+    }
+};
+
+type EncryptedClientHello = unit(sh: Share) {
+    kdf_id: uint16;
+    aead_id: uint16;
+    config_id: uint8;
+    enc_length: uint16;
+    enc: bytes &size=self.enc_length;
+    payload_length: uint16;
+    payload: bytes &size=self.payload_length;
 };
 
 type SelectedPreSharedKeyIdentity = unit(sh: Share) {

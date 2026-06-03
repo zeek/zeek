@@ -1,0 +1,40 @@
+version: 2.1
+setup: true
+
+orbs:
+  continuation: circleci/continuation@2.0.1
+
+jobs:
+  setup_job:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      # TODO: this needs to skip the job entirely if the only files that changed were
+      # docs.
+      - checkout
+      - run:
+          # This step has to always run, but it may output an empty parameter set
+          # if the build isn't a PR. This is normal. It's unfortunate that this can't
+          # be done with a when-condition to avoid the checkout.
+          name: Check GitHub PR tags
+          command: .circleci/generate-pr-params.py
+      - continuation/continue:
+          configuration_path: .circleci/config.yml
+          parameters: /tmp/parameters.json
+
+workflows:
+  setup:
+    when:
+      or:
+        - equal: [ "pull_request", << pipeline.event.name >> ]
+        - equal: [ master, << pipeline.git.branch >> ]
+        - matches:
+            pattern: "^release/.*"
+            value: << pipeline.git.branch >>
+        - matches:
+            pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"
+            value: << pipeline.git.tag >>
+        - equal: [ "nightly", << pipeline.schedule.name >> ]
+        - equal: [ "weekly", << pipeline.schedule.name >> ]
+    jobs:
+      - setup_job

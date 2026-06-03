@@ -57,6 +57,13 @@ New Functionality
 - The event ``ssl_extension_signature_algorithms_cert`` was added. It is raised for the
   signature_algorithms_cert TLS extension.
 
+- The new ``?as`` operator evaluates to true if Zeek can safely convert its lefthand operand
+  to its righthand type. This change accompanies expanded support for the ``as`` casting
+  operator, see below.
+
+- The event ``ssl_extension_encrypted_client_hello`` was added. It contains information about
+  the encrypted_client_hello TLS extension.
+
 Changed Functionality
 ---------------------
 
@@ -71,6 +78,18 @@ Changed Functionality
 
 - The ``extension_signature_algorithm`` event previously was incorrectly raised when a
   CertificateRequest message was encountered. It now is not raised for CertificateRequest messages.
+
+- The options and redefinitions from ``zeromq/main.zeek`` were split into a separate
+  file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
+  layer, without partaking in cluster node events.
+
+- The ``as`` operator now supports all of the type conversions currently available via
+  explicit conversion BiFs (such as ``interval_to_double()`` and similars), plus some
+  additional ones that are natural companions. See the type-casting section in the
+  operator documentation for details. Zeek's own scripts now use ``as`` throughout.
+
+- ``policy/protocols/ssl/ssl-log-ext.zeek`` now logs the HPKE KDF and AEAD identifiers from the
+  encrypted client hello extension in the ``ech_kdf_id`` and ``ech_aead_id`` fields.
 
 Deprecated Functionality
 ------------------------
@@ -248,6 +267,12 @@ New Functionality
 - Windows support has been greatly improved, thanks to a raft of contributions from an
   engineering team at Microsoft. The btest suite now runs on CI builds. The great majority
   of btests pass, with a small number skipped for various documented reasons.
+
+- A new packet source was added that supports reading pcapng files. This supports packet
+  captures with multiple interfaces, packet metadata, and capture file metadata. It will
+  be automatically used when the magic number in the file header is detected, or if
+  ``pcapng::`` is passed as a prefix to the filename with Zeek's ``-r`` argument. It does
+  not currently support BPF filtering via Zeek's ``-f`` argument.
 
 Changed Functionality
 ---------------------
@@ -552,11 +577,8 @@ New Functionality
   https://github.com/opencontainers/image-spec/blob/main/annotations.md for more details
   about the labels.
 
-- A new packet source was added that supports reading pcapng files. This supports packet
-  captures with multiple interfaces, packet metadata, and capture file metadata. It will
-  be automatically used when the magic number in the file header is detected, or if
-  ``pcapng::`` is passed as a prefix to the filename with Zeek's ``-r`` argument. It does
-  not currently support BPF filtering via Zeek's ``-f`` argument.
+- A new BIF ``Log::flush_all`` was added that causes all logs to be written to disk
+  immediately.
 
 Changed Functionality
 ---------------------
@@ -1579,9 +1601,6 @@ New Functionality
 
 - A new weird ``DNS_unknown_opcode`` was added to the DNS analyzer to report
   when it receives opcodes that it cannot process.
-
-- A new BIF ``Log::flush_all`` was added that causes all logs to be written to disk
-  immediately.
 
 Changed Functionality
 ---------------------

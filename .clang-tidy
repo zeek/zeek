@@ -17,6 +17,7 @@ Checks: [-*,
          # Skipping these temporarily because they are very noisy
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
+         -bugprone-signed-bitwise,
          -bugprone-unchecked-optional-access,
          -bugprone-unchecked-string-to-number-conversion,
          -modernize-use-integer-sign-comparison,
@@ -37,6 +38,7 @@ Checks: [-*,
 
          # These report warnings that are rather difficult to fix or are things
          # we simply don't want to fix.
+         -bugprone-assignment-in-selection-statement,
          -bugprone-pointer-arithmetic-on-polymorphic-object,
          -bugprone-exception-escape,
          -bugprone-command-processor,
@@ -46,6 +48,7 @@ Checks: [-*,
          -modernize-raw-string-literal,
          -modernize-use-auto,
          -modernize-use-nodiscard,
+         -modernize-use-std-bit,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
          -modernize-use-string-view,

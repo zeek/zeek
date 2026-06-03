@@ -1,8 +1,8 @@
 FROM opensuse/tumbleweed
 
-# A version field to invalidate Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20250905
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=20260515
 
 # Remove the repo-openh264 repository, it caused intermittent issues
 # and we should not be needing any packages from it.

@@ -1,3 +1,173 @@
+9.0.0-dev.300 | 2026-06-03 15:51:56 +0100
+
+  * Add encrypted_client_hello HPKE KDF and AEAD id to ssl-log-ext (Johanna Amann, Corelight)
+
+    This commit adds two new cryptographic values from the TLS 1.3 encrypted
+    client hello extension to the ssl-log-ext policy script.
+
+  * Add support for the Encrypted Client Hello extension (Johanna Amann, Corelight)
+
+9.0.0-dev.295 | 2026-06-03 16:37:23 +0200
+
+  * MIME: Fix mime_content_hash_sha256 and remove unused variable (Arne Welzel, Corelight)
+
+    Local fuzzing with ubsan tickled an integer overflow for content_hash_length_sha256
+    due to the variable never being initialized in the first place.
+
+    It also hadn't actually been used and there was a bug for mime_content_hash_sha256
+    receiving content_hash_length, but that one only being updated when mime_content_hash
+    was in use.
+
+    So, just use the one single content_hash_length for both and add a test
+    for the different combinations of event usages.
+
+  * github/workflows: Switch cifuzz to run nightly (Arne Welzel, Corelight)
+
+    This was added originally to ensure we don't break fuzzers unknowingly.
+    It doesn't need to run on every PR push or merge. Every night should
+    be fine.
+
+  * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)
+
+    Saw these failing on Circle CI in the ASAN build and figured 5 and 10
+    seconds might be a bit too short and the large-cluster test seems fine
+    to just skip under ASAN.
+
+9.0.0-dev.289 | 2026-06-02 16:53:10 -0700
+
+  * Update btest submodule for unstable-junit changes (Tim Wojtulewicz, Corelight)
+
+9.0.0-dev.287 | 2026-06-02 16:38:27 -0400
+
+  * Move `Log::flush_all` and pcapng source NEWS (Evan Typanski, Corelight)
+
+    They were in the wrong versions.
+
+    `Log::flush_all` introduced by:
+
+    ccab1a91bf8168eb54d0dda8b1de62c4939cbcaa
+
+    pcapng source introduced by:
+
+    3c966a37ebb6abf8327c002f8447f38d53fbf06a
+
+9.0.0-dev.283 | 2026-06-02 17:43:08 +0100
+
+  * Add AI Usage Policy (Johanna Amann, Corelight)
+
+9.0.0-dev.281 | 2026-06-02 08:57:02 -0700
+
+  * Add a couple clang-tidy modernize-avoid-c-style-cast fixes (Tim Wojtulewicz, Corelight)
+
+  * Disable some new clang-tidy checkers (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy bugprone-unhandled-code-path findings (Tim Wojtulewicz, Corelight)
+
+9.0.0-dev.277 | 2026-06-02 17:15:21 +0200
+
+  * ident: only guard the overflow in ParsePort, keep range check below (dxbjavid)
+
+  * ident: fix signed overflow in ParsePort (dxbjavid)
+
+  * NEWS: add missing entry for #5433 (Christian Kreibich, Corelight)
+
+9.0.0-dev.271 | 2026-06-01 12:45:20 -0700
+
+  * dns: cast remaining ExtractLong byte shifts to uint32_t (dxbjavid)
+
+  * dns: cast to uint32_t in ExtractLong to avoid signed-shift overflow (dxbjavid)
+
+9.0.0-dev.268 | 2026-06-01 09:19:33 -0700
+
+  * null: cast all bytes to uint32_t in protocol field (dxbjavid)
+
+  * null: cast to uint32_t to avoid signed-shift UB (dxbjavid)
+
+9.0.0-dev.265 | 2026-06-01 09:19:06 -0700
+
+  * gtpv1: fix out-of-bounds read in BuildEndUserAddr (dxbjavid)
+
+  * gssapi: fix out-of-bounds read in is_first_byte on empty token (dxbjavid)
+
+9.0.0-dev.261 | 2026-06-01 08:42:51 -0700
+
+  * Fix potential null-dereference in pcapng packet source (Tim Wojtulewicz, Corelight)
+
+9.0.0-dev.259 | 2026-06-01 16:26:02 +0200
+
+  * netbios: report violation on short UDP datagram and use extract_uint32 for srcip (dxbjavid)
+
+  * netbios: reject short UDP datagrams in ParseMessageUDP (dxbjavid)
+
+9.0.0-dev.256 | 2026-06-01 13:40:17 +0200
+
+  * irc: use starts_with for empty-safe nick prefix check in DeliverStream (dxbjavid)
+
+    A NICK command with no parameters reaches the handler with an empty
+    params string. string_view nick{params}; nick[0] then indexes a
+    zero-length view, which is UB and aborts under hardened libstdc++/libc++.
+    Use starts_with(':') to match the QUIT branch just above.
+
+9.0.0-dev.254 | 2026-06-01 11:45:31 +0200
+
+  * testing/btest/cluster/zeromq: Supervisor using publish/subscribe via ZeroMQ (Arne Welzel, Corelight)
+
+    ...to send and receive events from supervised nodes.
+
+  * cluster/backend/zeromq: Move redefs into options.zeek (Arne Welzel, Corelight)
+
+    This change allows to load options.zeek by a Zeek supervisor process and
+    connect with the ZeroMQ XPUB/XSUB socket without partaking in the Zeek
+    cluster eventing (Cluster::nodes, Cluster::node_up, etc). The ZeroMQ specific
+    events remains in main.zeek, which shouldn't be loaded in the supervisor as
+    it is not part of Cluster::nodes.
+
+    This provides a channel for the supervisor process to send and receive
+    events to supervised nodes. With the Broker backend, was previously possible
+    with explicit Broker::listen() calls in the supervisor process and Broker::peer()
+    calls from the supervised nodes.
+
+9.0.0-dev.251 | 2026-05-29 17:21:41 -0700
+
+  * Disable scripts/base/protocols/ldap/functions btest for asan builds (Tim Wojtulewicz, Corelight)
+
+  * Use dynamic configuration to manager Github labels for PRs (Tim Wojtulewicz, Corelight)
+
+  * Add configuration for CircleCI (Tim Wojtulewicz, Corelight)
+
+  * Bump dates on CI Dockerfiles (Tim Wojtulewicz, Corelight)
+
+9.0.0-dev.246 | 2026-05-29 16:41:00 -0700
+
+  * Add Github Actions CI (Benjamin Bannier, Corelight)
+
+  * Fix threading value constructor to copy sizes (Jan Grashoefer, Corelight)
+
+  * Remove CirrusCI configuration (Tim Wojtulewicz, Corelight)
+
+  * CI: Rework Windows Dockerfile to use newer version of Windows (Tim Wojtulewicz, Corelight)
+
+  * Consistently use `python3` on Freebsd in CI (Benjamin Bannier, Corelight)
+
+  * Do not hardcode path to msvc toolchain path (Benjamin Bannier, Corelight)
+
+    The Windows CI setup would previously hardcode paths to the msvc
+    toolchain in multiple scripts. This was error prone, and made it harder
+    to work with different toolchain installations or versions.
+
+    This patch reworks the scripts to now assume and requires that
+    `VSINSTALLDIR` points tro a toolchain installation.
+
+  * Replace use of `wmic` with Powershell equivalent (Benjamin Bannier, Corelight)
+
+    If `wmic` is not available in the environment installing it could be
+    very slow since it requires a big download. Avoid it altogether by using
+    builtin Powershell features.
+
+  * Infer default value for ZEEK_CI_CPUS (Benjamin Bannier, Corelight)
+
+  * Adapt CI shell scripts to run on other CI providers (Tim Wojtulewicz)
+
 9.0.0-dev.234 | 2026-05-29 10:03:56 -0700
 
   * Fix zeek-testing commit hash (Tim Wojtulewicz, Corelight)

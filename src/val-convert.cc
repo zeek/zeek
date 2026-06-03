@@ -139,7 +139,7 @@ ValPtr convert_int_to_count(zeek_int_t i, std::string& err) {
 
 ValPtr convert_int_to_double(zeek_int_t i) { return make_intrusive<DoubleVal>(i); }
 
-ValPtr convert_double_to_int(double d) { return val_mgr->Int(zeek_int_t(rint(d))); }
+ValPtr convert_double_to_int(double d) { return val_mgr->Int(static_cast<zeek_int_t>(rint(d))); }
 
 ValPtr convert_double_to_count(double d, std::string& err) {
     auto c = convert_double_to_native_count(d, err);

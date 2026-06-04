@@ -219,6 +219,9 @@ jobs:
       enable_tests:
         type: boolean
         default: true
+      enable_fuzzer_tests:
+        type: boolean
+        default: false
       enable_benchmarks:
         # TODO: create the benchmarker steps
         type: boolean
@@ -302,6 +305,14 @@ jobs:
             - run:
                 name: Test
                 command: ci/test.sh
+            - store_test_results:
+                path: btest-results
+      - when:
+          condition: << parameters.enable_fuzzer_tests >>
+          steps:
+            - run:
+                name: Test
+                command: ci/test-fuzzers.sh
             - store_test_results:
                 path: btest-results
       - when:
@@ -864,7 +875,12 @@ workflows:
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          configure_flags: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror --enable-fuzzers --enable-coverage
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          enable_fuzzer_tests: true
+          enable_coverage: true
+          context:
+            - zeek
           context:
             - zeek
           << : *FILTER_IF_SKIP_ALL
@@ -925,12 +941,10 @@ workflows:
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --ccache --enable-werror
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
-          enable_coverage: true
-          context:
-            - zeek
+          enable_fuzzer_tests: true
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG

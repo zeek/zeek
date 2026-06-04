@@ -34,7 +34,7 @@ event zeek_init() &priority=20
 
 	# Some additional mappings for protocols that we already handle natively.
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x0800, PacketAnalyzer::ANALYZER_IP);
-	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x08DD, PacketAnalyzer::ANALYZER_IP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x86DD, PacketAnalyzer::ANALYZER_IP);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x0806, PacketAnalyzer::ANALYZER_ARP);
 	}
 

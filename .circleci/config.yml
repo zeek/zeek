@@ -311,7 +311,7 @@ jobs:
           condition: << parameters.enable_fuzzer_tests >>
           steps:
             - run:
-                name: Test
+                name: Test fuzzers
                 command: ci/test-fuzzers.sh
             - store_test_results:
                 path: btest-results
@@ -320,7 +320,7 @@ jobs:
           steps:
             - run:
                 name: Run coverage
-                command: ci/upload_coverage.sh
+                command: ci/upload-coverage.sh
       - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:

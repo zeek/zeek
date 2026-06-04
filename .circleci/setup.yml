@@ -13,11 +13,8 @@ jobs:
       # docs.
       - checkout
       - run:
-          # This step has to always run, but it may output an empty parameter set
-          # if the build isn't a PR. This is normal. It's unfortunate that this can't
-          # be done with a when-condition to avoid the checkout.
-          name: Check GitHub PR tags
-          command: .circleci/generate-pr-params.py
+          name: Generate workflow parameters
+          command: .circleci/generate-workflow-params.py
       - continuation/continue:
           configuration_path: .circleci/config.yml
           parameters: /tmp/parameters.json

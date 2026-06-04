@@ -24,6 +24,7 @@ workflows:
     when:
       or:
         - equal: [ "pull_request", << pipeline.event.name >> ]
+        - equal: [ topic/timw/circleci-benchmarks-and-coverage, << pipeline.git.branch >> ]
         - and:
           # The check for the trigger here prevents us from doing double builds on pushes
           # to master. If the all-pushes trigger is deleted or recreated from the project

@@ -1,3 +1,9 @@
+9.0.0-dev.346 | 2026-06-04 13:51:43 -0700
+
+  * GH-5532: Add dtls test that checks behavior on sequence number jumps (Johanna Amann, Corelight)
+
+  * dtls: bound handshake fragment sequence shift in proc_handshake (dxbjavid)
+
 9.0.0-dev.343 | 2026-06-04 15:51:50 +0100
 
   * Geneve: fix parsing of encapsulated ipv6 (Johanna Amann, Corelight)

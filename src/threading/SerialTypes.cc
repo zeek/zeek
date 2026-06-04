@@ -295,7 +295,22 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             if ( ! fmt->Read(&val.set_val.size, "set_size") )
                 return false;
 
-            val.set_val.vals = new Value*[val.set_val.size];
+            // A negative size is invalid input. Reject it before it reaches
+            // new[], where it is converted to a huge size_t and throws
+            // std::bad_array_new_length. Reset to 0 so the destructor does not
+            // walk a bogus length.
+            if ( val.set_val.size < 0 ) {
+                reporter->Error("negative set size in binary format");
+                val.set_val.size = 0;
+                return false;
+            }
+
+            // Value-initialize the array so every element pointer starts null.
+            // If a later element fails to read and we bail out below, the
+            // destructor's "delete val.set_val.vals[i]" over the full size is a
+            // safe no-op on the not-yet-populated slots rather than a free of
+            // an indeterminate pointer.
+            val.set_val.vals = new Value*[val.set_val.size]();
 
             for ( zeek_int_t i = 0; i < val.set_val.size; ++i ) {
                 val.set_val.vals[i] = new Value;
@@ -311,7 +326,14 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
                 return false;
 
-            val.vector_val.vals = new Value*[val.vector_val.size];
+            // See the TYPE_TABLE case above for why these two guards exist.
+            if ( val.vector_val.size < 0 ) {
+                reporter->Error("negative vector size in binary format");
+                val.vector_val.size = 0;
+                return false;
+            }
+
+            val.vector_val.vals = new Value*[val.vector_val.size]();
 
             for ( zeek_int_t i = 0; i < val.vector_val.size; ++i ) {
                 val.vector_val.vals[i] = new Value;

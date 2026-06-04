@@ -205,40 +205,21 @@ WebSocket API to the Publish/Subscribe Layer
 
 Interacting with Zeek's publish/subscribe layer using external non-Zeek
 applications is possible using :ref:`Zeek's WebSocket API <websocket-api>`.
+The WebSocket API provides a cluster backend agnostic entry point for non-Zeek
+processes to publish and receive Zeek events.
 
-Conventionally, the Zeek manager process listens for incoming WebSocket
-connections from external applications. Starting from Zeek 8.1, the manager
-process in a ZeekControl managed cluster listens on::
+Starting with version 8.1, the Zeek manager process listens for incoming
+WebSocket connections on::
 
         ws://127.0.0.1:27759
 
-The sketch below shows the idea.
+The following diagram sketches the idea.
 
 .. figure:: /images/cluster/single-system-websocket.svg
 
-Essentially, the manager process provides a cluster backend agnostic entry
-point to Zeek's publish/subscribe layer. It is possible to start such
-WebSocket entrypoints on other Zeek processes (even workers) using
-:zeek:see:`Cluster::listen_websocket` within your own scripts.
-
-As WebSocket provides a bi-directional persistent connection, which allows
-non-Zeek processes to send and receive remote Zeek events that all other
-connected Zeek and non-Zeek processes will see.
-
-.. note::
-
-   Zeek's WebSocket API does not provide any authentication or authorization
-   mechanisms. Any external application can subscribe to every topic prefix
-   and observe all events produced by processes in a Zeek cluster. Similarly,
-   an external application may publish events to any topic it wishes.
-   If this is concerning to you, place a reverse proxy like Nginx with basic
-   authorization or a more advanced configuration in front of Zeek's
-   WebSocket API. While Zeek supports TLS certificates for the WebSocket API,
-   a fronting Nginx might be the better place to do this.
-
-   If a single WebSocket API presents a bottleneck, an idea is to run a WebSocket
-   API on all proxy processes and, again, let a fronting Nginx process perform
-   load-balancing.
+It is possible to start WebSocket entrypoints on other Zeek processes in
+a cluster (even workers) using the :zeek:see:`Cluster::listen_websocket`
+function explicitly.
 
 
 Operational Metrics via Prometheus

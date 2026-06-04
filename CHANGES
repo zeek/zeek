@@ -1,3 +1,16 @@
+9.0.0-dev.335 | 2026-06-04 12:00:02 +0100
+
+  * Netcontrol acld - fix command (Johanna Amann, Corelight)
+
+    This fixes a typo in the conversion of a netcontrol rule to an
+    acld.rule. This bug, in principle, would cause an invalid acld command
+    to be sent, which would probably cause the rule to just not be executed.
+
+    We never noticed that, because the people using netcontrol+acld don't
+    use it for flow rules - so this code is not really exercised. This also
+    makes this a rather low importance bugfix - but it still seems not nice
+    to have it broken like this.
+
 9.0.0-dev.332 | 2026-06-03 16:21:37 -0700
 
   * Updates to the software framework (Justin Azoff, Christian Kreibich, and Arne Welzel, Corelight)

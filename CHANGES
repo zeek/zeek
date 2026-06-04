@@ -1,3 +1,15 @@
+8.0.8-11 | 2026-06-17 18:20:30 +0000
+
+  * Management framework: fix regression in metrics-port collision avoidance (Johanna Amann, Corelight)
+
+    A bug was introduced in 0c0769b1b2, which added a statement
+    before the opening braces of the for loop.
+
+    This means that most of the ports were never recorded in
+    instance_ports_set, which can lead to collisions.
+
+    (cherry picked from commit 8c69644201cd94e03d7793e7b3f73e260ff2a64a)
+
 8.0.8-10 | 2026-06-17 18:12:33 +0000
 
   * tcp: log TCP_scale_range weird for out-of-range window scale (dxbjavid)

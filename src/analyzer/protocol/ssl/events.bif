@@ -219,7 +219,7 @@ event ssl_extension_signature_algorithm%(c: connection, is_client: bool, signatu
 ##    ssl_extension_encrypted_client_hello
 event ssl_extension_signature_algorithms_cert%(c: connection, is_client: bool, signature_schemes: index_vec%);
 
-## Generated for a Key Share extension. This TLS extension is defined in TLS1.3-draft16
+## Generated for a Key Share extension. This TLS extension is defined in :rfc:`8446`
 ## and sent by the client and the server in the initial handshake. It gives the list of
 ## named groups supported by the client and chosen by the server.
 ##
@@ -243,6 +243,7 @@ event ssl_extension_signature_algorithms_cert%(c: connection, is_client: bool, s
 event ssl_extension_key_share%(c: connection, is_client: bool, curves: index_vec%);
 
 ## Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
+## This TLS extension is defined in :rfc:`8446`.
 ##
 ## The extension lists the identities the client is willing to negotiate with the server;
 ## they can either be pre-shared or be based on previous handshakes.
@@ -268,6 +269,7 @@ event ssl_extension_key_share%(c: connection, is_client: bool, curves: index_vec
 event ssl_extension_pre_shared_key_client_hello%(c: connection, is_client: bool, identities: psk_identity_vec, binders: string_vec%);
 
 ## Generated for the pre-shared key extension as it is sent in the TLS 1.3 server hello.
+## This TLS extension is defined in :rfc:`8446`.
 ##
 ## c: The connection.
 ##
@@ -383,7 +385,7 @@ event ssl_dh_client_params%(c: connection, Yc: string%);
 event ssl_rsa_client_pms%(c: connection, pms: string%);
 
 ## Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
-## This TLS extension is defined in draft-ietf-tls-applayerprotoneg and sent in
+## This TLS extension is defined in :rfc:`8446` and sent in
 ## the initial handshake. It contains the list of client supported application
 ## protocols by the client or the server, respectively.
 ##
@@ -470,7 +472,7 @@ event ssl_extension_server_name%(c: connection, is_client: bool, names: string_v
 event ssl_extension_signed_certificate_timestamp%(c: connection, is_client: bool, version: count, logid: string, timestamp: count, signature_and_hashalgorithm: SSL::SignatureAndHashAlgorithm, signature: string%);
 
 ## Generated for an TLS Supported Versions extension. This TLS extension
-## is defined in the TLS 1.3 rfc and sent by the client in the initial handshake.
+## is defined in :rfc:`8446` (TL1 1.3) and sent by the client in the initial handshake.
 ## It contains the TLS versions that it supports. This information can be used by
 ## the server to choose the best TLS version o use.
 ##
@@ -494,7 +496,7 @@ event ssl_extension_signed_certificate_timestamp%(c: connection, is_client: bool
 event ssl_extension_supported_versions%(c: connection, is_client: bool, versions: index_vec%);
 
 ## Generated for an TLS Pre-Shared Key Exchange Modes extension. This TLS extension is defined
-## in the TLS 1.3 rfc and sent by the client in the initial handshake. It contains the
+## in :rfc:`8446` (TLS 1.3) and sent by the client in the initial handshake. It contains the
 ## list of Pre-Shared Key Exchange Modes that it supports.
 ## c: The connection.
 ##
@@ -657,7 +659,7 @@ event ssl_session_ticket_handshake%(c: connection, ticket_lifetime_hint: count, 
 event ssl_heartbeat%(c: connection, is_client: bool, length: count, heartbeat_type: count, payload_length: count, payload: string%);
 
 ## Generated for SSL/TLS messages that are sent before full session encryption
-## starts. Note that "full encryption" is a bit fuzzy, especially for TLSv1.3;
+## starts. Note that "full encryption" is a bit fuzzy, especially for TLS 1.3;
 ## here this event will be raised for early packets that are already using
 ## pre-encryption.  # This event is also used by Zeek internally to determine if
 ## the connection has been completely setup. This is necessary as TLS 1.3 does

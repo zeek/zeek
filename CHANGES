@@ -1,3 +1,11 @@
+9.0.0-dev.343 | 2026-06-04 15:51:50 +0100
+
+  * Geneve: fix parsing of encapsulated ipv6 (Johanna Amann, Corelight)
+
+    This fixes a type in the
+    PacketAnalyzer::register_packet_analyzer call that prevented
+    encapsulated ipv6 from being parsed.
+
 9.0.0-dev.341 | 2026-06-04 15:00:10 +0100
 
   * Management framework: fix regression in metrics-port collision avoidance (Johanna Amann, Corelight)

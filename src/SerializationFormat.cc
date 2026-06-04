@@ -163,6 +163,19 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag) {
         return false;
 
     l = ntohl(l);
+
+    // A negative length is invalid and only arises from corrupt or malicious
+    // input. Reject it before it is used to size an allocation or as a byte
+    // count: "new char[l + 1]" would either allocate a zero-byte buffer (l ==
+    // -1) or throw std::bad_array_new_length, and passing a negative "l" to
+    // ReadData() widens it to a huge size_t, bypassing the bounds check and
+    // causing an out-of-bounds read/write.
+    if ( l < 0 ) {
+        reporter->Error("negative string length in binary format");
+        *str = nullptr;
+        return false;
+    }
+
     char* s = new char[l + 1];
 
     if ( ! ReadData(s, l) ) {

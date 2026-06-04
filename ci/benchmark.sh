@@ -5,15 +5,9 @@ ZEEK_BENCHMARK_ENDPOINT="/zeek"
 # Setting this causes any command failures to immediately cause the script to fail.
 set -e
 
-# Don't do this unless the user has access to the encrypted variables. This will
-# basically exclude any PR that doesn't come from the main zeek repo.
-if [ "${CIRRUS_USER_PERMISSION}" != "admin" -a "${CIRRUS_USER_PERMISSION}" != "write" ]; then
-    echo "Benchmarks are skipped for repositories outside of the main Zeek project"
-    exit 0
-fi
-
-if [ "${CIRRUS_REPO_FULL_NAME}" != "zeek/zeek" ]; then
-    echo "Benchmarks skipped for non-zeek repo"
+# Skip running benchmarks for jobs from forks.
+if [ ${ZEEK_IS_INTERNAL_JOB} -ne 1 ]; then
+    echo "Coverage upload skipped for jobs from forks"
     exit 0
 fi
 

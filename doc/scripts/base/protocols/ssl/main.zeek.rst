@@ -662,6 +662,20 @@ Types
       Client supported hash algorithms
 
 
+   .. zeek:field:: ech_kdf_id :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/ssl/ssl-log-ext.zeek` is loaded)
+
+      HPKE KDF identifier from the encrypted_client_hello extension.
+
+
+   .. zeek:field:: ech_aead_id :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/policy/protocols/ssl/ssl-log-ext.zeek` is loaded)
+
+      HPKE AEAD identifier from the encrypted_client_hello extension.
+
+
    .. zeek:field:: validation_status :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/protocols/ssl/validate-certs.zeek` is loaded)

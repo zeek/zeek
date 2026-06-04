@@ -77,6 +77,12 @@ Redefinitions
 
                                               hashalgs: :zeek:type:`vector` of :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
                                                 Client supported hash algorithms
+
+                                              ech_kdf_id: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+                                                HPKE KDF identifier from the encrypted_client_hello extension.
+
+                                              ech_aead_id: :zeek:type:`count` :zeek:attr:`&log` :zeek:attr:`&optional`
+                                                HPKE AEAD identifier from the encrypted_client_hello extension.
 =========================================== ===============================================================================================================
 
 

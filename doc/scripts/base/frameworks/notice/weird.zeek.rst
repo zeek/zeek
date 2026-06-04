@@ -87,7 +87,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: Weird::ignore_hosts
-   :source-code: base/frameworks/notice/weird.zeek 266 266
+   :source-code: base/frameworks/notice/weird.zeek 267 267
 
    :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -97,7 +97,7 @@ Runtime Options
    and weird name into this set.
 
 .. zeek:id:: Weird::weird_do_not_ignore_repeats
-   :source-code: base/frameworks/notice/weird.zeek 270 270
+   :source-code: base/frameworks/notice/weird.zeek 271 271
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -194,9 +194,10 @@ Redefinable Options
             ["line_terminated_with_single_LF"] = Weird::ACTION_LOG,
             ["irc_invalid_names_line"] = Weird::ACTION_LOG,
             ["DNS_RR_unknown_type"] = Weird::ACTION_LOG,
+            ["TCP_scale_range"] = Weird::ACTION_LOG,
             ["repeated_SYN_reply_wo_ack"] = Weird::ACTION_LOG,
-            ["bad_HTTP_reply"] = Weird::ACTION_LOG,
             ["FIN_storm"] = Weird::ACTION_NOTICE_PER_ORIG,
+            ["bad_HTTP_reply"] = Weird::ACTION_LOG,
             ["HTTP_response_before_request"] = Weird::ACTION_LOG,
             ["NUL_in_line"] = Weird::ACTION_LOG,
             ["pop3_server_command_unknown"] = Weird::ACTION_LOG,
@@ -301,7 +302,7 @@ Redefinable Options
 State Variables
 ###############
 .. zeek:id:: Weird::did_log
-   :source-code: base/frameworks/notice/weird.zeek 284 284
+   :source-code: base/frameworks/notice/weird.zeek 285 285
 
    :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
@@ -312,7 +313,7 @@ State Variables
    could cause overload during storms.
 
 .. zeek:id:: Weird::did_notice
-   :source-code: base/frameworks/notice/weird.zeek 288 288
+   :source-code: base/frameworks/notice/weird.zeek 289 289
 
    :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
@@ -322,7 +323,7 @@ State Variables
    duplicate notices from being raised.
 
 .. zeek:id:: Weird::weird_ignore
-   :source-code: base/frameworks/notice/weird.zeek 279 279
+   :source-code: base/frameworks/notice/weird.zeek 280 280
 
    :Type: :zeek:type:`set` [:zeek:type:`string`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``10.0 mins`` :zeek:attr:`&redef`
@@ -452,7 +453,7 @@ Types
 Events
 ######
 .. zeek:id:: Weird::log_weird
-   :source-code: base/frameworks/notice/weird.zeek 294 294
+   :source-code: base/frameworks/notice/weird.zeek 295 295
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Weird::Info`)
 
@@ -474,7 +475,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: Weird::weird
-   :source-code: base/frameworks/notice/weird.zeek 420 423
+   :source-code: base/frameworks/notice/weird.zeek 421 424
 
    :Type: :zeek:type:`function` (w: :zeek:type:`Weird::Info`) : :zeek:type:`void`
    :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use Reporter::<granularity>_weird instead."*

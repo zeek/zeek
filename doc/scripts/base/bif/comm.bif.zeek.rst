@@ -184,49 +184,49 @@ Events
 Functions
 #########
 .. zeek:id:: Broker::__is_outbound_peering
-   :source-code: base/bif/comm.bif.zeek 167 167
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
-
-
-.. zeek:id:: Broker::__listen
-   :source-code: base/bif/comm.bif.zeek 155 155
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`port`
-
-
-.. zeek:id:: Broker::__node_id
-   :source-code: base/bif/comm.bif.zeek 173 173
-
-   :Type: :zeek:type:`function` () : :zeek:type:`string`
-
-
-.. zeek:id:: Broker::__peer
-   :source-code: base/bif/comm.bif.zeek 158 158
-
-   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`, retry: :zeek:type:`interval`) : :zeek:type:`bool`
-
-
-.. zeek:id:: Broker::__peer_no_retry
    :source-code: base/bif/comm.bif.zeek 161 161
 
    :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
 
 
+.. zeek:id:: Broker::__listen
+   :source-code: base/bif/comm.bif.zeek 149 149
+
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`port`
+
+
+.. zeek:id:: Broker::__node_id
+   :source-code: base/bif/comm.bif.zeek 167 167
+
+   :Type: :zeek:type:`function` () : :zeek:type:`string`
+
+
+.. zeek:id:: Broker::__peer
+   :source-code: base/bif/comm.bif.zeek 152 152
+
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`, retry: :zeek:type:`interval`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Broker::__peer_no_retry
+   :source-code: base/bif/comm.bif.zeek 155 155
+
+   :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
+
+
 .. zeek:id:: Broker::__peering_stats
-   :source-code: base/bif/comm.bif.zeek 176 176
+   :source-code: base/bif/comm.bif.zeek 170 170
 
    :Type: :zeek:type:`function` () : :zeek:type:`BrokerPeeringStatsTable`
 
 
 .. zeek:id:: Broker::__peers
-   :source-code: base/bif/comm.bif.zeek 170 170
+   :source-code: base/bif/comm.bif.zeek 164 164
 
    :Type: :zeek:type:`function` () : :zeek:type:`Broker::PeerInfos`
 
 
 .. zeek:id:: Broker::__unpeer
-   :source-code: base/bif/comm.bif.zeek 164 164
+   :source-code: base/bif/comm.bif.zeek 158 158
 
    :Type: :zeek:type:`function` (a: :zeek:type:`string`, p: :zeek:type:`port`) : :zeek:type:`bool`
 

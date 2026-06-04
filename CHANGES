@@ -1,3 +1,13 @@
+9.0.0-dev.341 | 2026-06-04 15:00:10 +0100
+
+  * Management framework: fix regression in metrics-port collision avoidance (Johanna Amann, Corelight)
+
+    A bug was introduced in 0c0769b1b2, which added a statement
+    before the opening braces of the for loop.
+
+    This means that most of the ports were never recorded in
+    instance_ports_set, which can lead to collisions.
+
 9.0.0-dev.339 | 2026-06-04 13:36:10 +0200
 
   * doc: Wrangle WebSocket docs a bit and add security considerations (Arne Welzel, Corelight)

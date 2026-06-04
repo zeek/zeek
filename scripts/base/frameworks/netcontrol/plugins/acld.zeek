@@ -183,9 +183,9 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 			else if ( is_tcp_port(f$dst_p) && r$ty == WHITELIST )
 				command = "permittcpdsthostport";
 			else if ( is_udp_port(f$dst_p) && r$ty == DROP)
-				command = "dropucpdsthostport";
+				command = "dropudpdsthostport";
 			else if ( is_udp_port(f$dst_p) && r$ty == WHITELIST)
-				command = "permitucpdsthostport";
+				command = "permitudpdsthostport";
 
 			arg = fmt("%s %d", f$dst_h as addr, f$dst_p);
 			}

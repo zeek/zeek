@@ -1,3 +1,13 @@
+8.0.8-32 | 2026-06-17 21:52:39 +0000
+
+  * GH-5532: Add dtls test that checks behavior on sequence number jumps (Johanna Amann, Corelight)
+
+    (cherry picked from commit a8e0e833f8a3f0968a2fcd92f18a9efd4cb89717)
+
+  * dtls: bound handshake fragment sequence shift in proc_handshake (dxbjavid)
+
+    (cherry picked from commit a8e0e833f8a3f0968a2fcd92f18a9efd4cb89717)
+
 8.0.8-31 | 2026-06-17 20:16:31 +0000
 
   * netbios: fix out-of-bounds read in NetbiosSSN_Interpreter::ConvertName (dxbjavid)

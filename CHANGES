@@ -1,3 +1,13 @@
+8.2.0-4 | 2026-06-17 20:48:53 +0000
+
+  * Geneve: fix parsing of encapsulated ipv6 (Johanna Amann, Corelight)
+
+    This fixes a type in the
+    PacketAnalyzer::register_packet_analyzer call that prevented
+    encapsulated ipv6 from being parsed.
+
+    (cherry picked from commit 0dac23f7654b9bcddacdf67868439a03f321b6ac)
+
 8.2.0-3 | 2026-06-17 20:47:26 +0000
 
   * tcp: log TCP_scale_range weird for out-of-range window scale (dxbjavid)

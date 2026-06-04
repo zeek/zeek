@@ -12,6 +12,5 @@
 ##
 ## msg: The message logged.
 ##
-## .. note:: Zeek currently parses only UDP syslog traffic. Support for TCP
-##    syslog will be added soon.
+## .. note:: Zeek currently parses only UDP syslog traffic.
 event syslog_message%(c: connection, facility: count, severity: count, msg: string%);

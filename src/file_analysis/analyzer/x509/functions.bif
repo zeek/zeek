@@ -132,7 +132,7 @@ bool check_hostname(std::string_view hostname, std::string_view certname)
 		return true;
 
 	// ok, now there is still the chance that it is a wildcard cert.
-	// We go according to RFC6128 here:
+	// We go according to RFC 6125 here:
 	// * wildcards are allowed in the leftmost label
 	// * wildcards are only compared against the leftmost label
 	// * the wildcard character may not be the only part of the label (so abc* is ok)

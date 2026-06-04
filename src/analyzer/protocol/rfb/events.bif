@@ -32,14 +32,18 @@ event rfb_share_flag%(c: connection, flag: bool%);
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## version: of the client's rfb library
+## major_version: The major version of the client's RFB library.
+##
+## minor_version: The minor version of the client's RFB library.
 event rfb_client_version%(c: connection, major_version: string, minor_version: string%);
 
 ## Generated for RFB event server banner message
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## version: of the server's rfb library
+## major_version: The major version of the server's RFB library.
+##
+## minor_version: The minor version of the server's RFB library.
 event rfb_server_version%(c: connection, major_version: string, minor_version: string%);
 
 ## Generated for RFB event server parameter message

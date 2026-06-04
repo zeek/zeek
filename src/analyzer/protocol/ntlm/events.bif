@@ -2,7 +2,7 @@
 ##
 ## c: The connection.
 ##
-## negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+## negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Negotiate` for more details.
 ##
 ## .. zeek:see:: ntlm_challenge ntlm_authenticate
 event ntlm_negotiate%(c: connection, negotiate: NTLM::Negotiate%);
@@ -11,7 +11,7 @@ event ntlm_negotiate%(c: connection, negotiate: NTLM::Negotiate%);
 ##
 ## c: The connection.
 ##
-## negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+## challenge: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Challenge` for more details.
 ##
 ## .. zeek:see:: ntlm_negotiate ntlm_authenticate
 event ntlm_challenge%(c: connection, challenge: NTLM::Challenge%);
@@ -20,7 +20,7 @@ event ntlm_challenge%(c: connection, challenge: NTLM::Challenge%);
 ##
 ## c: The connection.
 ##
-## request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+## request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Authenticate` for more details.
 ##
 ## .. zeek:see:: ntlm_negotiate ntlm_challenge
 event ntlm_authenticate%(c: connection, request: NTLM::Authenticate%);

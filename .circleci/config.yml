@@ -223,6 +223,9 @@ jobs:
         # TODO: create the benchmarker steps
         type: boolean
         default: false
+      enable_coverage:
+        type: boolean
+        default: false
       install_spicy_analyzers:
         type: boolean
         default: false
@@ -301,6 +304,12 @@ jobs:
                 command: ci/test.sh
             - store_test_results:
                 path: btest-results
+      - when:
+          condition: << parameters.enable_coverage >>
+          steps:
+            - run:
+                name: Run coverage
+                command: ci/upload_coverage.sh
       - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:
@@ -916,6 +925,9 @@ workflows:
           configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
+          enable_coverage: true
+          context:
+            - zeek
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG

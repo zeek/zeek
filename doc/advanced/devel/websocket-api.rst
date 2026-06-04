@@ -87,6 +87,35 @@ To verify that the WebSocket API is functional in your deployment use, for examp
 Zeek's ``cluster.log`` file will also have an entry for the WebSocket client connection.
 The empty array in the command specifies the client's subscriptions, in this case none.
 
+
+.. _websocket-api-security-considerations:
+
+Security Considerations
+=======================
+
+Zeek's WebSocket API does not provide authentication or authorization mechanisms.
+Any client can subscribe to every topic prefix and observe all events published by
+other processes in a Zeek cluster. Similarly, a client may publish any event to
+any topic in a cluster. The model today is that WebSocket clients are implicitly
+trusted.
+
+Therefore, you should always ensure access to the WebSocket API is locked down.
+You may look into employing a firewall for filtering, using separate network namespaces,
+assume localhost access is trusted, or fronting the WebSocket API with a reverse
+proxy like nginx or haproxy to enable basic or certificate-based authentication
+for remote clients.
+
+While Zeek supports TLS certificates for the WebSocket API itself, a reverse proxy
+is the recommended place to do this if you expose the API outside of localhost.
+An actual reverse proxy provides more features and also allows load-balancing
+clients across multiple Zeek processes if you ever have a need for this.
+
+Note that this isn't different from an external application directly connecting
+to the cluster backend communication layer (e.g., the older Broker listening ports
+or the newer ZeroMQ XPUB/XSUB or logging PULL ports), other then it being generic
+and cluster backend agnostic.
+
+
 Version 1
 =========
 

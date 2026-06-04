@@ -1,3 +1,10 @@
+9.0.0-dev.339 | 2026-06-04 13:36:10 +0200
+
+  * doc: Wrangle WebSocket docs a bit and add security considerations (Arne Welzel, Corelight)
+
+    Suggested in #5521 by @0xxon and slightly related to #5518, but focus
+    on the security considerations.
+
 9.0.0-dev.337 | 2026-06-04 12:07:16 +0100
 
   * Update a couple of SSL/TLS event descriptions (Johanna Amann, Corelight)

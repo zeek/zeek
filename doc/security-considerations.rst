@@ -47,6 +47,13 @@ The following lists steps you can take to protect your Zeek cluster.
   <https://github.com/zeek/zeek/blob/master/testing/btest/broker/remote_event_ssl_auth.zeek>`_
   for an example.
 
+* In newer versions of Zeek, :ref:`ZeekControl <invoking-zeekctl>` uses Zeek's
+  :ref:`WebSocket API <websocket-api>` to interact through the manager with
+  other Zeek cluster nodes. The manager process listens for WebSocket connections
+  on ``127.0.0.1:27759`` by default. The WebSocket API does not feature any
+  authentication or authorization mechanisms and assumes localhost is trusted.
+  See also the :ref:`WebSocket API documentation <websocket-api-security-considerations>`.
+
 * On Linux, consider the ``CAP_NET_RAW`` and ``CAP_NET_ADMIN`` capabilities to
   avoid the need to run Zeek as root. You can `extend zeekctl to support this
   <https://github.com/userjack6880/zeekctl-setcap/tree/master>`_, or use

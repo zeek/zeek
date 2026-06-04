@@ -881,8 +881,6 @@ workflows:
           enable_coverage: true
           context:
             - zeek
-          context:
-            - zeek
           << : *FILTER_IF_SKIP_ALL
       # - linux-build:
       #     name: ubuntu-24.04-clang-libcpp

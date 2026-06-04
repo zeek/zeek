@@ -156,7 +156,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
                 return false;
         }
         else {
-            f = zeek::detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
+            f = zeek::detail::fragment_mgr->NextFragment(run_state::processing_start_time, *packet, packet->ip_hdr,
                                                          packet->data + hdr_size);
             std::shared_ptr<IP_Hdr> ih = f->ReassembledPkt();
 

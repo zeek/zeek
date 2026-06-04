@@ -76,6 +76,19 @@ refine connection SSL_Conn += {
 			}
 
 		// if we arrive here, we are actually ready to resume.
+
+		// message_sequence_seen only has room for 32 fragments, so a sequence
+		// number further than that from the first one cannot be tracked and
+		// would shift past the width of the bitfield.
+		uint64 seq_distance = i->message_first_sequence > sequence_number
+		                          ? i->message_first_sequence - sequence_number
+		                          : sequence_number - i->message_first_sequence;
+		if ( seq_distance >= 32 )
+			{
+			zeek_analyzer()->AnalyzerViolation("DTLS handshake fragment sequence number outside reassembly window.");
+			return true;
+			}
+
 		if ( i->message_first_sequence > sequence_number )
 			{
 			if ( i->first_sequence_seen )
@@ -94,7 +107,7 @@ refine connection SSL_Conn += {
 			i->first_sequence_seen = true;
 
 		// check if we already saw the message
-		if ( ( i->message_sequence_seen & ( 1 << (sequence_number - i->message_first_sequence) ) ) != 0 )
+		if ( ( i->message_sequence_seen & ( UINT32_C(1) << (sequence_number - i->message_first_sequence) ) ) != 0 )
 			return true; // do not handle same message fragment twice
 
 		// copy data from fragment to buffer
@@ -111,7 +124,7 @@ refine connection SSL_Conn += {
 			}
 
 		// store that we handled fragment
-		i->message_sequence_seen |= 1 << (sequence_number - i->message_first_sequence);
+		i->message_sequence_seen |= UINT32_C(1) << (sequence_number - i->message_first_sequence);
 		memcpy(i->buffer + foffset, ${rec.data}.data(), ${rec.data}.length());
 
 		//fprintf(stderr, "Copied to buffer offset %u length %u\n", foffset, ${rec.data}.length());
@@ -131,7 +144,7 @@ refine connection SSL_Conn += {
 				return true;
 				}
 
-			if ( ( ~(i->message_sequence_seen) & ( ( 1<<(total_length+1) ) -1 ) ) == 0 )
+			if ( ( ~(i->message_sequence_seen) & ( ( UINT32_C(1)<<(total_length+1) ) -1 ) ) == 0 )
 				{
 				//fprintf(stderr, "ALl fragments here. Total length %u\n", length);
 				zeek_analyzer()->SendHandshake(${pdu.raw_tls_version}, ${rec.msg_type}, length, i->buffer, i->buffer + length, ${pdu.is_orig});

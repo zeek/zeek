@@ -921,7 +921,6 @@ workflows:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_SKIP_ALL
@@ -953,7 +952,6 @@ workflows:
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           install_spicy_analyzers: true
-          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
@@ -962,7 +960,6 @@ workflows:
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           install_spicy_analyzers: true
-          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK

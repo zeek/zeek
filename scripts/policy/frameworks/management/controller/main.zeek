@@ -418,8 +418,8 @@ function config_assign_metrics_ports(config: Management::Configuration)
 	# Pre-populate nodes with pre-defined metrics ports, as well
 	# as their Broker ports:
 	for ( node in config$nodes )
-		node_addr = instance_addr_lookup[node$instance];
 		{
+		node_addr = instance_addr_lookup[node$instance];
 		if ( node?$p )
 			add instance_ports_set[node_addr][node$p as count];
 		if ( node?$metrics_port )

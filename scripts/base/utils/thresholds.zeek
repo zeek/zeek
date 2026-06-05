@@ -48,7 +48,7 @@ function new_track_count(): TrackCount
 
 function check_threshold(v: vector of count, tracker: TrackCount): bool
 	{
-	if ( tracker$index <= |v| && tracker$n >= v[tracker$index] )
+	if ( tracker$index < |v| && tracker$n >= v[tracker$index] )
 		{
 		++tracker$index;
 		return T;

@@ -21,6 +21,10 @@ Iteration: 9, threshold check: F
 [n=9, index=4]
 Iteration: 10, threshold check: T
 [n=10, index=5]
+Iteration: 11, threshold check: F
+[n=11, index=5]
+Iteration: 12, threshold check: F
+[n=12, index=5]
 ====================================
 Iteration: 0, threshold check: F
 [n=0, index=0]
@@ -44,3 +48,7 @@ Iteration: 9, threshold check: F
 [n=9, index=4]
 Iteration: 10, threshold check: T
 [n=10, index=5]
+Iteration: 11, threshold check: F
+[n=11, index=5]
+Iteration: 12, threshold check: F
+[n=12, index=5]

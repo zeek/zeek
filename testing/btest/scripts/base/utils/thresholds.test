@@ -5,7 +5,7 @@
 
 redef default_notice_thresholds = { 2, 4, 6, 8, 10 };
 const my_thresholds: vector of count = { 2, 4, 6, 8, 10 };
-const loop_v: vector of count = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+const loop_v: vector of count = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 global track_count: TrackCount;
 
 for ( i in loop_v )

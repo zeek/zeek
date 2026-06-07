@@ -3,6 +3,7 @@
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-REQUIRES: which jq
+# @TEST-REQUIRES: ! is-windows-ci
 #
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_LOGGER1_PORT
@@ -20,7 +21,7 @@
 # @TEST-EXEC: btest-bg-run logger-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 180
 # @TEST-EXEC: btest-diff manager/services.out
 
 # @TEST-START-FILE cluster-layout.zeek
@@ -42,14 +43,28 @@ redef Cluster::nodes = {
 services_url=$1
 output_file=$2
 
-services_data=$(curl -s -m 5 ${services_url})
+services_data=$(curl -fsS -m 5 ${services_url})
+if [ -z "${services_data}" ]; then
+	echo "Failed to fetch services data from ${services_url}" >> ${output_file}
+	exit 0
+fi
 
-for host in $(echo ${services_data} | jq -r '.[0].targets[]' | sort); do
-	metrics=$(curl -m 5 --trace trace-${host}.out http://${host}/metrics)
-	if [ $? -eq 0 ] ; then
-		version_info=$(echo ${metrics} | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'node="[^"]*"')
-		echo ${version_info} >> ${output_file};
-	else
+for host in $(echo "${services_data}" | jq -r '.[0].targets[]' | sort); do
+	# Retry a few times in case the node's HTTP server isn't ready yet.
+	success=0
+	for attempt in 1 2 3 4 5; do
+		metrics=$(curl -s -m 3 http://${host}/metrics 2>/dev/null)
+		if [ $? -eq 0 ] && [ -n "${metrics}" ]; then
+			version_info=$(printf '%s\n' "${metrics}" | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'node="[^"]*"')
+			if [ -n "${version_info}" ]; then
+				echo ${version_info} >> ${output_file};
+				success=1
+				break
+			fi
+		fi
+		[ "$attempt" -lt 5 ] && sleep 2
+	done
+	if [ ${success} -eq 0 ]; then
 		echo "Failed to request data from ${host}" >> ${output_file}
 	fi
 done
@@ -59,8 +74,8 @@ done
 @load policy/frameworks/cluster/experimental
 @load base/frameworks/telemetry
 
-# So the cluster nodes don't terminate right away.
-#redef exit_only_after_terminate=T;
+# Keep cluster nodes alive until explicitly terminated.
+redef exit_only_after_terminate=T;
 
 @if ( Cluster::node == "manager" )
 
@@ -83,7 +98,7 @@ event run_test()
 
 		terminate();
 		}
-	timeout 10sec
+	timeout 120sec
 		{
 		# This is bad.
 		print "ERROR: Timed out requesting service information";

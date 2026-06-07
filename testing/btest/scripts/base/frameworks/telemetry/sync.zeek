@@ -30,7 +30,7 @@ output_file=$2
 PORT=$(echo ${METRICS_PORT} | cut -d '/' -f 1)
 URL=http://localhost:${PORT}/metrics
 
-curl -m 5 --trace $trace_file $URL | grep ^btest > $output_file
+curl -m 5 --trace $trace_file $URL | grep ^btest | sort > $output_file
 
 exit 0
 # @TEST-END-FILE

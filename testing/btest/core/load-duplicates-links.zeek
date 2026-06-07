@@ -15,7 +15,7 @@
 # On non-Windows use ln -s; on Windows use mklink for real symlinks.
 # @TEST-EXEC: echo "@load ./main" >baz/__load__.zeek
 # @TEST-EXEC: echo "@load ./main-sym" >>baz/__load__.zeek
-# @TEST-EXEC: (cd baz && if is-windows; then cmd //c "mklink main-sym.zeek main.zeek" > /dev/null; else ln -s main.zeek main-sym.zeek; fi)
+# @TEST-EXEC: (cd baz && if is-windows; then "$COMSPEC" //c "mklink main-sym.zeek main.zeek" > /dev/null; else ln -s main.zeek main-sym.zeek; fi)
 
 # @TEST-EXEC: zeek -b foo bar baz foo/../foo bar/../bar baz/../baz $(pwd)/foo $(pwd)/bar $(pwd)/baz >out
 # @TEST-EXEC: btest-diff out

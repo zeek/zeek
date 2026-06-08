@@ -297,6 +297,9 @@ jobs:
                 command: ci/test.sh
             - store_test_results:
                 path: btest-results
+            - store_artifacts:
+                path: btest-results
+                destination: btest-results
       - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:
@@ -396,6 +399,9 @@ jobs:
       - store_test_results:
           name: Store btest results
           path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
 
   macos-build:
     parameters:
@@ -455,6 +461,9 @@ jobs:
       - store_test_results:
           name: Store btest results
           path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
 
 _filter_if_skip_all: &FILTER_IF_SKIP_ALL
   filters: not pipeline.parameters.pr_label_skip_all

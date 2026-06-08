@@ -1,3 +1,41 @@
+8.2.0-27 | 2026-06-17 21:37:12 +0000
+
+  * rfb: use data() directly for server-params name pointer (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * rfb: fix null deref in proc_handle_server_params on empty name (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * asn1: add test for overlong oid subidentifier weird (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * asn1: fix uint64 shift UB on overlong oid subidentifier (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * net_util: cast all shifted bytes to uint32_t in extract_uint32 (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * net_util: cast to uint32_t in extract_uint32 to avoid signed-shift overflow (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * ftp: cast remaining parse_port byte shifts to uint32_t (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * use uint32_t for ftp PORT address shift in parse_port (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
+  * ipaddr: cast first octet to uint32_t in ConvertString (dxbjavid)
+
+    (cherry picked from commit f4988920df1dc1e6c3fe85e3606c7949dad4eae8)
+
 8.2.0-26 | 2026-06-17 21:36:29 +0000
 
   * GH-5532: Add dtls test that checks behavior on sequence number jumps (Johanna Amann, Corelight)

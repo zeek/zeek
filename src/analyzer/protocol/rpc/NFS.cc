@@ -88,8 +88,15 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
 
     // Reply always starts with the NFS status.
     if ( rpc_success ) {
-        if ( n >= 4 )
-            nfs_status = static_cast<BifEnum::NFS3::status_t>(extract_XDR_uint32(buf, n));
+        if ( n >= 4 ) {
+            uint32_t raw_nfs_status = extract_XDR_uint32(buf, n);
+            if ( zeek::BifType::Enum::NFS3::status_t->Lookup(raw_nfs_status) )
+                nfs_status = static_cast<BifEnum::NFS3::status_t>(raw_nfs_status);
+            else {
+                Weird("invalid_nfs_status", util::fmt("%u", raw_nfs_status));
+                nfs_status = BifEnum::NFS3::NFS3ERR_UNKNOWN;
+            }
+        }
         else
             nfs_status = BifEnum::NFS3::NFS3ERR_UNKNOWN;
     }
@@ -351,15 +358,25 @@ RecordValPtr NFS_Interp::nfs3_fattr(const u_char*& buf, int& n) {
 }
 
 EnumValPtr NFS_Interp::nfs3_time_how(const u_char*& buf, int& n) {
-    BifEnum::NFS3::time_how_t t = static_cast<BifEnum::NFS3::time_how_t>(extract_XDR_uint32(buf, n));
-    auto rval = BifType::Enum::NFS3::time_how_t->GetEnumVal(t);
-    return rval;
+    uint32_t raw_time_how = extract_XDR_uint32(buf, n);
+
+    if ( ! zeek::BifType::Enum::NFS3::time_how_t->Lookup(raw_time_how) ) {
+        Weird("unhandled_nfs3_time_how", util::fmt("%u", raw_time_how));
+        return nullptr;
+    }
+
+    return BifType::Enum::NFS3::time_how_t->GetEnumVal(static_cast<zeek_int_t>(raw_time_how));
 }
 
 EnumValPtr NFS_Interp::nfs3_ftype(const u_char*& buf, int& n) {
-    BifEnum::NFS3::file_type_t t = static_cast<BifEnum::NFS3::file_type_t>(extract_XDR_uint32(buf, n));
-    auto rval = BifType::Enum::NFS3::file_type_t->GetEnumVal(t);
-    return rval;
+    uint32_t raw_file_type = extract_XDR_uint32(buf, n);
+
+    if ( ! BifType::Enum::NFS3::file_type_t->Lookup(raw_file_type) ) {
+        Weird("unhandled_nfs3_file_type", util::fmt("%u", raw_file_type));
+        return nullptr;
+    }
+
+    return BifType::Enum::NFS3::file_type_t->GetEnumVal(static_cast<zeek_int_t>(raw_file_type));
 }
 
 RecordValPtr NFS_Interp::nfs3_wcc_attr(const u_char*& buf, int& n) {
@@ -438,9 +455,14 @@ RecordValPtr NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n) {
 }
 
 EnumValPtr NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) {
-    BifEnum::NFS3::stable_how_t stable = static_cast<BifEnum::NFS3::stable_how_t>(extract_XDR_uint32(buf, n));
-    auto rval = BifType::Enum::NFS3::stable_how_t->GetEnumVal(stable);
-    return rval;
+    auto raw_stable_how = extract_XDR_uint32(buf, n);
+
+    if ( ! zeek::BifType::Enum::NFS3::stable_how_t->Lookup(raw_stable_how) ) {
+        Weird("unhandled_nfs3_stable_how", util::fmt("%u", raw_stable_how));
+        return nullptr;
+    }
+
+    return BifType::Enum::NFS3::stable_how_t->GetEnumVal(static_cast<zeek_int_t>(raw_stable_how));
 }
 
 RecordValPtr NFS_Interp::nfs3_lookup_reply(const u_char*& buf, int& n, BifEnum::NFS3::status_t status) {

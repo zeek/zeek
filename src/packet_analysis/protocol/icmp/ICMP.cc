@@ -432,6 +432,11 @@ void ICMPAnalyzer::RouterAdvert(double t, const struct icmp* icmpp, int len, int
 
     int opt_offset = sizeof(reachable) + sizeof(retrans);
 
+    if ( caplen < opt_offset ) {
+        Weird("icmp6_ra_bad_opt_offset", nullptr, util::fmt("%u (length %u)", opt_offset, caplen));
+        return;
+    }
+
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
                               val_mgr->Count(icmpp->icmp_num_addrs),         // Cur Hop Limit
                               val_mgr->Bool(icmpp->icmp_wpa & 0x80),         // Managed
@@ -460,6 +465,11 @@ void ICMPAnalyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len, i
 
     int opt_offset = sizeof(in6_addr);
 
+    if ( caplen < opt_offset ) {
+        Weird("icmp6_na_bad_opt_offset", nullptr, util::fmt("%u (length %u)", opt_offset, caplen));
+        return;
+    }
+
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
                               val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
                               val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
@@ -481,6 +491,11 @@ void ICMPAnalyzer::NeighborSolicit(double t, const struct icmp* icmpp, int len, 
         tgtaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data));
 
     int opt_offset = sizeof(in6_addr);
+
+    if ( caplen < opt_offset ) {
+        Weird("icmp6_ns_bad_opt_offset", nullptr, util::fmt("%u (length %u)", opt_offset, caplen));
+        return;
+    }
 
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
                               make_intrusive<AddrVal>(tgtaddr),
@@ -504,6 +519,11 @@ void ICMPAnalyzer::Redirect(double t, const struct icmp* icmpp, int len, int cap
         dstaddr = IPAddr(*reinterpret_cast<const in6_addr*>(data + sizeof(in6_addr)));
 
     int opt_offset = 2 * sizeof(in6_addr);
+
+    if ( caplen < opt_offset ) {
+        Weird("icmp6_redirect_bad_opt_offset", nullptr, util::fmt("%u (length %u)", opt_offset, caplen));
+        return;
+    }
 
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
                               make_intrusive<AddrVal>(tgtaddr), make_intrusive<AddrVal>(dstaddr),
@@ -558,6 +578,8 @@ void ICMPAnalyzer::Context6(double t, const struct icmp* icmpp, int len, int cap
 }
 
 zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* data, ICMPSessionAdapter* adapter) {
+    assert(caplen >= 0);
+
     static auto icmp6_nd_option_type = id::find_type<RecordType>("icmp6_nd_option");
     static auto icmp6_nd_prefix_info_type = id::find_type<RecordType>("icmp6_nd_prefix_info");
 

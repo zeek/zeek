@@ -163,6 +163,14 @@ zeek::StringValPtr asn1_oid_to_val(const ASN1Encoding* oid)
 
 	for ( const auto& subidentifier : subidentifiers )
 		{
+		// A subidentifier longer than 10 bytes contributes a shift count
+		// >= 64, which is undefined behavior on uint64.
+		if ( subidentifier.size() > 10 )
+			{
+			zeek::reporter->Weird("asn_oid_subidentifier_too_long", zeek::util::fmt("%zu", subidentifier.size()));
+			return zeek::val_mgr->EmptyString();
+			}
+
 		uint64 value = 0;
 
 		for ( size_t j = 0; j < subidentifier.size(); ++j )

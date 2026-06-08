@@ -1,3 +1,22 @@
+9.0.0-dev.364 | 2026-06-08 11:18:44 -0700
+
+  * [windows] fix telemetry test failures on Windows CI (Maor Hamami)
+
+    telemetry.sync: Sort grep output in fetch-metrics.sh to make metric
+    line ordering deterministic across platforms. Update baselines
+    (metrics2.txt, metrics3.txt) to match alphabetical sort order.
+
+    telemetry.prometheus: Skip on Windows CI (is-windows-ci) - the cluster
+    test has CI-specific networking issues where 3 of 4 node Prometheus
+    HTTP endpoints are unreachable, consistent with other cluster tests
+    already excluded on Windows CI. Also add retry logic, improved error
+    handling, and exit_only_after_terminate for local Windows runs.
+
+  * [windows] fix load-duplicates-links test: use COMSPEC for cmd.exe (Maor Hamami)
+
+    Use COMSPEC instead of bare cmd in the mklink command, since
+    C:\Windows\System32 may not be on PATH in git bash/btest environments.
+
 9.0.0-dev.360 | 2026-06-08 13:25:43 -0400
 
   * rfb: use data() directly for server-params name pointer (dxbjavid)

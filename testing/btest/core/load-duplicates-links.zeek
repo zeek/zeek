@@ -13,6 +13,8 @@
 # @TEST-EXEC: ln common-load.zeek bar/__load__.zeek
 
 # On non-Windows use ln -s; on Windows use mklink for real symlinks.
+# Use COMSPEC instead of bare cmd in the mklink command, since
+# C:\Windows\System32 may not be on PATH in git bash/btest environments.
 # @TEST-EXEC: echo "@load ./main" >baz/__load__.zeek
 # @TEST-EXEC: echo "@load ./main-sym" >>baz/__load__.zeek
 # @TEST-EXEC: (cd baz && if is-windows; then "$COMSPEC" //c "mklink main-sym.zeek main.zeek" > /dev/null; else ln -s main.zeek main-sym.zeek; fi)

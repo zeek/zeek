@@ -2,7 +2,7 @@
 
 
 # The protocol specifies some 32-bit variable-length data fields for the
-# key and cert material. This value caps the size of thse to help prevent
+# key and cert material. This value caps the size of these to help prevent
 # excessive buffering and integer overflows in BinPAC. This is 256 KB.
 let MAX_DATA_LENGTH: uint32 = 262144;
 

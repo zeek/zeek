@@ -30,8 +30,8 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     data += llc_header_len;
     len -= llc_header_len;
 
-    int oui = (data[0] << 16) | (data[1] << 8) | data[2];
-    int protocol = (data[3] << 8) | data[4];
+    int oui = (static_cast<uint32_t>(data[0]) << 16u) | (static_cast<uint32_t>(data[1]) << 8u) | data[2];
+    int protocol = (static_cast<uint32_t>(data[3]) << 8u) | data[4];
 
     data += 5;
     len -= 5;

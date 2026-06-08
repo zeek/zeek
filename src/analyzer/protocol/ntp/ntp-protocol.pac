@@ -128,13 +128,13 @@ type NTP_CONTROL_MAC = record {
 type Extension_Field = record {
 	first_byte_ext: uint8;
 	field_type:     uint8;
-	len:            uint16;
+	len:            uint16 &enforce(len >= 16);
 	association_id: uint16;
 	timestamp:      uint32;
 	filestamp:      uint32;
-	value_len:      uint32;
-	value:          bytestring &length=value_len;
-	sig_len:        uint32;
+	value_len:      uint32 &enforce(value_len <= (len - 18));
+	value:          bytestring &length=value_len ;
+	sig_len:        uint32 &enforce(value_len <= (len - 22));
 	signature:      bytestring &length=sig_len;
 	pad:            padding to (len - offsetof(first_byte_ext));
 } &let {

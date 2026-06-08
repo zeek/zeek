@@ -1,4 +1,5 @@
 # @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: ! have-asan
 #
 # @TEST-EXEC: spicyz -d foo.spicy foo.evt -o foo.hlto
 # @TEST-EXEC: zeek -r ${TRACES}/http/206_example_b.pcap foo.hlto "Spicy::enable_print=T" >output 2>&1

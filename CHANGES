@@ -1,3 +1,20 @@
+9.0.0-dev.369 | 2026-06-08 15:03:30 -0700
+
+  * Disable spicy.tcp-eod-behavior-on-destroy btest under asan (Tim Wojtulewicz, Corelight)
+
+    This test takes a very long time to complete on CircleCI, and can lead
+    to timeouts. Disable it for asan builds to resolve that.
+
+  * Rework clone_repos command a little (Tim Wojtulewicz, Corelight)
+
+    - Add parameter for including submodules, allowing callers to skip that step
+    - Pass --recommend-shallow for potentially faster submodule updates
+    - Pass -j when updating submodules to request them in parallel
+
+  * Rename default zeek builds workflow (Tim Wojtulewicz, Corelight)
+
+  * Avoid double builds from merges to master (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.364 | 2026-06-08 11:18:44 -0700
 
   * [windows] fix telemetry test failures on Windows CI (Maor Hamami)

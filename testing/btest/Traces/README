@@ -150,3 +150,10 @@ Trace Index/Sources:
 - ntp/ntp-no-extensions-mac.pcap
   Generated from a reproducer for an OSS-Fuzz finding. This is an NTP packet with no extensions
   but with a trailing key ID and message authentication code.
+- mount/mount-unmount.pcap and -bad-status.pcap and -bad-auth-flavor.pcap
+  Created by setting up a NFSv3 server on a Ubuntu VM and added the
+  Python script mount-unmount-scramble.py to override the status fields
+  using scapy.
+- nfs/nfs_fileop.pcap Created by setting up a NFSv3 server on a Ubuntu VM
+  and creating a single file and deleting it again. Used with scramble.py
+  to produce some invalid values.

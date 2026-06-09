@@ -11,4 +11,10 @@ brew install cmake cppzmq openssl@3 python@3 swig bison flex ccache libmaxminddb
 which python3
 python3 --version
 
-python3 -m pip install --user --break-system-packages websockets junit2html
+# Python3 on CircleCI in installed via pyenv, which means we can install the modules
+# directly into the pyenv without involving the user or system directory.
+if [[ "${CIRCLECI}" = "true" ]]; then
+    python3 -m pip install websockets junit2html
+else
+    python3 -m pip install --user --break-system-packages websockets junit2html
+fi

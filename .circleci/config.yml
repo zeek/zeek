@@ -3,6 +3,8 @@ version: 2.1
 orbs:
   win: circleci/windows@5.1.1
 
+# These parameters are set via setup.yml. The PR ones are based on the labels for PRs
+# from Github. changes_only_docs is for PRs that only change docs.
 parameters:
   pr_label_full:
     type: boolean
@@ -36,9 +38,11 @@ commands:
   clone_repo:
     parameters:
       include_submodules:
+        description: Flag for whether to recursively update submodules after cloning
         type: boolean
         default: true
       include_external_tests:
+        description: Flag for whether to include the external test repos/data after cloning
         type: boolean
         default: true
     steps:
@@ -62,12 +66,15 @@ commands:
   setup_ccache:
     parameters:
       max_size:
+        description: Flag that matches the max_size ccache argument
         type: string
         default: 1000M
       max_files:
+        description: Flag that matches the max_files ccache argument
         type: integer
         default: 20000
       path:
+        description: The path where cache files are stored
         type: string
     steps:
       - run:
@@ -119,6 +126,7 @@ jobs:
   create-build-image:
     parameters:
       build_arm:
+        description: Flag for whether to build an ARM variant of the image
         type: boolean
         default: false
     docker:
@@ -202,32 +210,40 @@ jobs:
   linux-build:
     parameters:
       docker_image:
+        description: The Docker image to be used as the base for building
         type: string
       resource_class:
+        description: The CircleCI resource class the Docker instance is run under
         type: string
         default: large
       configure_flags:
+        description: The flags passed to the Zeek configure script
         type: string
         default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
       extra_env:
+        description: A list of additional environment variables to set before building
         type: string
         default: ""
       enable_tests:
+        description: Flag for whether Zeek's unit tests/btests should be run after building
         type: boolean
         default: true
       enable_benchmarks:
-        # TODO: create the benchmarker steps
+        description: Flag for whether the benchmarks should run after building
         type: boolean
         default: false
       install_spicy_analyzers:
+        description: Flag for whether to install the Spicy analyzers used for testing
         type: boolean
         default: false
       # The command run by this parameter requires the ZEEK_CI_COMPILER environment variable
       # to be set via the extra_env parameter.
       install_latest_compiler:
+        description: Flag for whether to install the latest compilers on the image before building
         type: boolean
         default: false
       ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
         type: string
         default: "20260515"
     environment:
@@ -297,6 +313,9 @@ jobs:
                 command: ci/test.sh
             - store_test_results:
                 path: btest-results
+            - store_artifacts:
+                path: btest-results
+                destination: btest-results
       - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:
@@ -396,13 +415,18 @@ jobs:
       - store_test_results:
           name: Store btest results
           path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
 
   macos-build:
     parameters:
       configure_flags:
+        description: The flags passed to the Zeek configure script
         type: string
         default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 -D NODEJS_ROOT_DIR=/opt/homebrew/opt/node@24
       xcode_version:
+        description: The version of Xcode used for the build
         type: string
     environment:
       ZEEK_CI: 1
@@ -455,6 +479,9 @@ jobs:
       - store_test_results:
           name: Store btest results
           path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
 
 _filter_if_skip_all: &FILTER_IF_SKIP_ALL
   filters: not pipeline.parameters.pr_label_skip_all
@@ -492,6 +519,28 @@ _filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
          or (pipeline.event.name == "pull_request"
              and not pipeline.parameters.pr_label_full
              and not pipeline.parameters.pr_label_zeekctl))
+
+
+_configure_binary_build: &CONFIGURE_BINARY_BUILD
+  configure_flags: --build-type=release --disable-broker-tests --binary-package --enable-static-broker --enable-static-binpac --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --ccache --enable-werror
+
+_configure_static_build: &CONFIGURE_STATIC_BUILD
+  configure_flags: --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+
+_configure_clang_tidy: &CONFIGURE_CLANG_TIDY
+  configure_flags: --build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
+
+_configure_spicy_ssl: &CONFIGURE_SPICY_SSL
+  configure_flags: --build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror
+
+_configure_asan: &CONFIGURE_ASAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+
+_configure_ubsan: &CONFIGURE_UBSAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror --disable-javascript
+
+_configure_tsan: &CONFIGURE_TSAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror --disable-javascript
 
 workflows:
   zeek_builds:
@@ -583,13 +632,13 @@ workflows:
       - linux-build:
           name: debian-13-binary
           docker_image: zeek/zeek-ci:debian-13
-          configure_flags:  --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
+          << : *CONFIGURE_BINARY_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-static
           docker_image: zeek/zeek-ci:debian-13
-          configure_flags: --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+          << : *CONFIGURE_STATIC_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
@@ -600,7 +649,7 @@ workflows:
       - linux-build:
           name: fedora-44
           docker_image: zeek/zeek-ci:fedora-44
-          configure_flags:  --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
+          << : *CONFIGURE_BINARY_BUILD
           requires: [fetch-test-traces, build-image-fedora-44]
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
@@ -637,7 +686,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          configure_flags: --build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
+          << : *CONFIGURE_CLANG_TIDY
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CC="clang-19"
@@ -647,7 +696,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          configure_flags: --build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror
+          << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
@@ -679,7 +728,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+          << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
@@ -692,7 +741,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --ccache --enable-werror
+          << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
@@ -709,7 +758,7 @@ workflows:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror --disable-javascript
+          << : *CONFIGURE_UBSAN
           extra_env: |
             CC=clang-19
             CXX=clang++-19
@@ -721,7 +770,7 @@ workflows:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror --disable-javascript
+          << : *CONFIGURE_UBSAN
           extra_env: |
             CC=clang-19
             CXX=clang++-19
@@ -737,7 +786,7 @@ workflows:
           name: tsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          configure_flags: --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror --disable-javascript
+          << : *CONFIGURE_TSAN
           extra_env: |
             CC=clang-19
             CXX=clang++-19

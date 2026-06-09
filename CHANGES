@@ -1,3 +1,17 @@
+9.0.0-dev.378 | 2026-06-09 16:36:16 -0700
+
+  * Install python modules into pyenv on CircleCI for macOS (Tim Wojtulewicz, Corelight)
+
+  * Disable CTU-SME test for CircleCI asan builds (Tim Wojtulewicz, Corelight)
+
+  * Document parameters used in the various job definitions (Tim Wojtulewicz, Corelight)
+
+  * CI: Make yaml anchors out of extra configure statements (Tim Wojtulewicz, Corelight)
+
+  * CI: Store btest results as artifacts (Tim Wojtulewicz, Corelight)
+
+  * Use PRIu64 for zeek_uint_t formatting (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.371 | 2026-06-09 09:06:31 -0700
 
   * Report weird if skip analyzer skips more than available data (Tim Wojtulewicz, Corelight)

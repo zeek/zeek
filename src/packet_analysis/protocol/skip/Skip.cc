@@ -17,5 +17,10 @@ void SkipAnalyzer::Initialize() {
 }
 
 bool SkipAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    if ( skip_bytes > len ) {
+        Weird("skip_bad_length", packet, util::fmt("%zu > %llu", len, skip_bytes));
+        return false;
+    }
+
     return ForwardPacket(len - skip_bytes, data + skip_bytes, packet);
 }

@@ -1,3 +1,7 @@
+9.0.0-dev.371 | 2026-06-09 09:06:31 -0700
+
+  * Report weird if skip analyzer skips more than available data (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.369 | 2026-06-08 15:03:30 -0700
 
   * Disable spicy.tcp-eod-behavior-on-destroy btest under asan (Tim Wojtulewicz, Corelight)

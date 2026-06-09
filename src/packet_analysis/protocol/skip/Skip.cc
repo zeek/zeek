@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/skip/Skip.h"
 
+#include <cinttypes>
+
 using namespace zeek::packet_analysis::Skip;
 
 SkipAnalyzer::SkipAnalyzer() : zeek::packet_analysis::Analyzer("Skip") {}
@@ -18,7 +20,7 @@ void SkipAnalyzer::Initialize() {
 
 bool SkipAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
     if ( skip_bytes > len ) {
-        Weird("skip_bad_length", packet, util::fmt("%zu > %llu", len, skip_bytes));
+        Weird("skip_bad_length", packet, util::fmt("%zu > %" PRIu64, len, skip_bytes));
         return false;
     }
 

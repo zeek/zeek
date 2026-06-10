@@ -1,3 +1,24 @@
+8.2.0-33 | 2026-06-17 21:50:58 +0000
+
+  * base64: Redo some calculations for signed shifts (Evan Typanski, Corelight)
+
+    This also rewrites it to be a bit easier to follow, I struggled very
+    hard to figure it out. With the help of Gemini it was more apparent.
+
+    (cherry picked from commit 0e92beee2197dcd04647dd04c32a948639700355)
+
+  * snap: Fix minor signed bitshift issues (Evan Typanski, Corelight)
+
+    (cherry picked from commit 0e92beee2197dcd04647dd04c32a948639700355)
+
+  * geneve: Fix minor signed bitshift issues (Evan Typanski, Corelight)
+
+    (cherry picked from commit 0e92beee2197dcd04647dd04c32a948639700355)
+
+  * vxlan: Fix some shifts and weirdness in VNI (Evan Typanski, Corelight)
+
+    (cherry picked from commit 0e92beee2197dcd04647dd04c32a948639700355)
+
 8.2.0-32 | 2026-06-17 21:50:29 +0000
 
   * RDP: Cap certain protocol fields to 1000 entries or 256 KB in length (Arne Welzel, Corelight)

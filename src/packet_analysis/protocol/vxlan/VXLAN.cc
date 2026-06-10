@@ -38,7 +38,7 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    int vni = (data[4] << 16) + (data[5] << 8) + (data[6] << 0);
+    uint32_t vni = (static_cast<uint32_t>(data[4]) << 16u) | (static_cast<uint32_t>(data[5]) << 8u) | data[6];
 
     len -= hdr_size;
     data += hdr_size;

@@ -1188,8 +1188,9 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             for ( auto& v : rec )
                 vals.emplace_back(&v);
 
-            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer_name, filter->name, *info, filter->num_fields,
-                                                      filter->fields, &vals[0]);
+            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer_name, filter->name, *info,
+                                                      writer->header.field_pointers.size(),
+                                                      writer->header.field_pointers.data(), &vals[0]);
             if ( ! res ) {
                 DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
                         stream->name.c_str());
@@ -1785,11 +1786,13 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
     winfo->writer = new WriterFrontend(*winfo->info, id, writer, local, remote);
     winfo->writer->Init(num_fields, fields);
+    fields = nullptr; // freed or owned by WriterBackend, cannot use.
 
     if ( ! from_remote ) {
         winfo->hook_initialized = true;
         PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(writer_name, instantiating_filter, local, remote, *winfo->info,
-                                                    num_fields, fields));
+                                                    winfo->writer->header.field_pointers.size(),
+                                                    winfo->writer->header.field_pointers.data()));
     }
 
     InstallRotationTimer(winfo);

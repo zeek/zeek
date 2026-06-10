@@ -231,12 +231,9 @@ RecordValPtr MOUNT_Interp::mount3_mnt_reply(const u_char*& buf, int& n, BifEnum:
         auto enum_vector = make_intrusive<VectorType>(BifType::Enum::MOUNT3::auth_flavor_t);
         auto auth_flavors = make_intrusive<VectorVal>(std::move(enum_vector));
 
-        for ( auto i = 0u; i < auth_flavors_count; ++i ) {
-            auto af = mount3_auth_flavor(buf, n);
-
-            if ( af )
+        for ( auto i = 0u; i < auth_flavors_count; ++i )
+            if ( auto af = mount3_auth_flavor(buf, n) )
                 auth_flavors->Append(std::move(af));
-        }
 
         if ( auth_flavors_count_in_reply > max_auth_flavors )
             // Prevent further "excess RPC" weirds

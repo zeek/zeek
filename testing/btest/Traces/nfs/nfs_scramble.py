@@ -1,7 +1,8 @@
 """
 Rewrite the nfs_base.pcap scramble some status and enum values to trigger weirds.
 """
-from scapy.all import *
+
+from scapy.all import Raw, rdpcap, wrpcap
 
 # Packet 25 is an FSINFO reply.
 pkts = rdpcap("nfs_base.pcap")
@@ -9,7 +10,7 @@ pkt = pkts[24]
 
 # Scramble STATUS NFS3_OK to AAAA
 data = bytearray(pkt[Raw].load)
-data[28:32] = b'\x41\x41\x41\x41'
+data[28:32] = b"\x41\x41\x41\x41"
 pkt[Raw].load = bytes(data)
 
 wrpcap("nfs_fsinfo_bad_status.pcap", pkts)
@@ -19,7 +20,7 @@ wrpcap("nfs_fsinfo_bad_status.pcap", pkts)
 pkts = rdpcap("nfs_base.pcap")
 pkt = pkts[28]
 data = bytearray(pkt[Raw].load)
-data[32:36] = b'\x42\x42\x42\x42'
+data[32:36] = b"\x42\x42\x42\x42"
 pkt[Raw].load = bytes(data)
 wrpcap("nfs_getattr_bad_ftype.pcap", pkts)
 
@@ -29,8 +30,8 @@ wrpcap("nfs_getattr_bad_ftype.pcap", pkts)
 pkts = rdpcap("nfs_base.pcap")
 pkt = pkts[43]
 data = bytearray(pkt[Raw].load)
-data[144:148] = b'\x42\x42\x42\x42'
-data[148:152] = b'\x43\x43\x43\x43'
+data[144:148] = b"\x42\x42\x42\x42"
+data[148:152] = b"\x43\x43\x43\x43"
 pkt[Raw].load = bytes(data)
 wrpcap("nfs_setattr_bad_set_it.pcap", pkts)
 
@@ -39,6 +40,6 @@ wrpcap("nfs_setattr_bad_set_it.pcap", pkts)
 pkts = rdpcap("nfs_write.pcap")
 pkt = pkts[133]
 data = bytearray(pkt[Raw].load)
-data[128:132] = b'\x43\x43\x43\x43'
+data[128:132] = b"\x43\x43\x43\x43"
 pkt[Raw].load = bytes(data)
 wrpcap("nfs_write_bad_stable_how.pcap", pkts)

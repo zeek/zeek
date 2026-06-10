@@ -1,0 +1,2 @@
+const SSH::max_packet_length: count;
+const SSH::max_string_length: count;

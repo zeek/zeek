@@ -3950,6 +3950,29 @@ export {
 		## Are these the capabilities of the server?
 		is_server:                  bool;
 	};
+
+	## When the SSH analyzer observes packets with a packet length
+	## field that exceeds below value, it truncates the length to
+	## the limit and raises a ``SSH_max_packet_exceeded`` weird.
+	## Subsequent parsing will likely fail, but it's probable that
+	## this was not valid SSH traffic to begin with.
+	## According to RFC 4253, the minimum packet length all implementations
+	## must support is an arbitrary 35000 bytes. The default is 8MB,
+	## which is a roughly double and two magnitutes larger than that.
+	##
+	## Setting this value to zero disables the capping mechanism.
+	const max_packet_length = 8 * 1024 * 1024 &redef;
+
+	## When the SSH analyzer observes SSH string fields with lengths
+	## that exceeds below value, it truncates the length to
+	## the limit and raises a ``SSH_max_string_length_exceeded`` weird.
+	## Subsequent parsing will likely fail, but it's probable that
+	## this was not valid SSH traffic to begin with. Strings are used
+	## to exchange MAC and compression algorithms. A 2MB string listing
+	## such algorithms is weird.
+	##
+	## Setting this value to zero disables the capping mechanism.
+	const max_string_length = 2 * 1024 * 1024 &redef;
 }
 
 module NTLM;

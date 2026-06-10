@@ -432,6 +432,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSH.consts.bif.zeek, <...>/Zeek_SSH.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek) -> -1
@@ -755,6 +756,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSH.consts.bif.zeek, <...>/Zeek_SSH.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek) -> (-1, <no content>)
@@ -1403,6 +1405,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSH.consts.bif.zeek, <...>/Zeek_SSH.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek)
@@ -1726,6 +1729,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SOCKS.events.bif.zeek, <...>/Zeek_SOCKS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SQLiteReader.sqlite.bif.zeek, <...>/Zeek_SQLiteReader.sqlite.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SQLiteWriter.sqlite.bif.zeek, <...>/Zeek_SQLiteWriter.sqlite.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSH.consts.bif.zeek, <...>/Zeek_SSH.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSH.events.bif.zeek, <...>/Zeek_SSH.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSH.types.bif.zeek, <...>/Zeek_SSH.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.consts.bif.zeek, <...>/Zeek_SSL.consts.bif.zeek)
@@ -2373,6 +2377,7 @@
 0.000000 | HookLoadFile  ./Zeek_SOCKS.events.bif.zeek <...>/Zeek_SOCKS.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SQLiteReader.sqlite.bif.zeek <...>/Zeek_SQLiteReader.sqlite.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SQLiteWriter.sqlite.bif.zeek <...>/Zeek_SQLiteWriter.sqlite.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_SSH.consts.bif.zeek <...>/Zeek_SSH.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSH.events.bif.zeek <...>/Zeek_SSH.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSH.types.bif.zeek <...>/Zeek_SSH.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.consts.bif.zeek <...>/Zeek_SSL.consts.bif.zeek
@@ -2696,6 +2701,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_SOCKS.events.bif.zeek <...>/Zeek_SOCKS.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SQLiteReader.sqlite.bif.zeek <...>/Zeek_SQLiteReader.sqlite.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SQLiteWriter.sqlite.bif.zeek <...>/Zeek_SQLiteWriter.sqlite.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SSH.consts.bif.zeek <...>/Zeek_SSH.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSH.events.bif.zeek <...>/Zeek_SSH.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSH.types.bif.zeek <...>/Zeek_SSH.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.consts.bif.zeek <...>/Zeek_SSL.consts.bif.zeek

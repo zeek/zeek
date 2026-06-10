@@ -1,3 +1,7 @@
+9.0.0-dev.385 | 2026-06-10 11:05:57 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.383 | 2026-06-10 10:25:44 -0400
 
   * base64: Redo some calculations for signed shifts (Evan Typanski, Corelight)

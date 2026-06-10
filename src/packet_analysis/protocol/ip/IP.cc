@@ -45,7 +45,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     std::shared_ptr<IP_Hdr> ip_hdr;
 
     if ( protocol == 4 ) {
-        ip_hdr = std::make_shared<IP_Hdr>(ip, false);
+        ip_hdr = std::make_shared<IP_Hdr>(ip, false, false, len);
         packet->l3_proto = L3_IPV4;
     }
     else if ( protocol == 6 ) {
@@ -54,7 +54,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
             return false;
         }
 
-        ip_hdr = std::make_shared<IP_Hdr>(reinterpret_cast<const ip6_hdr*>(data), false, static_cast<int>(len));
+        ip_hdr = std::make_shared<IP_Hdr>(reinterpret_cast<const ip6_hdr*>(data), false, len, nullptr, false);
         packet->l3_proto = L3_IPV6;
     }
     else {

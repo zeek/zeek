@@ -13,8 +13,14 @@ namespace zeek::analyzer::rpc {
 namespace detail {
 
 bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) {
-    if ( c->Program() != 100003 )
+    // NFSACL isn't implemented, simply skip over it.
+    if ( c->Program() == 100227 ) {
+        n = 0;
+        return true;
+    }
+    else if ( c->Program() != 100003 ) {
         Weird("bad_RPC_program", util::fmt("%d", c->Program()));
+    }
 
     uint32_t proc = c->Proc();
     // The call arguments, depends on the call type obviously ...
@@ -85,6 +91,12 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
     ValPtr reply;
     BifEnum::NFS3::status_t nfs_status = BifEnum::NFS3::NFS3ERR_OK;
     bool rpc_success = (rpc_status == BifEnum::RPC_SUCCESS);
+
+    // NFSACL isn't implemented, simply skip over it.
+    if ( c->Program() == 100227 ) {
+        n = 0;
+        return true;
+    }
 
     // Reply always starts with the NFS status.
     if ( rpc_success ) {

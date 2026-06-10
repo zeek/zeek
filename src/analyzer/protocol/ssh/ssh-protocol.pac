@@ -51,10 +51,12 @@ type SSH_Version_Client = record {
 type SSH_Key_Exchange(is_orig: bool) = record {
 	packet_length: uint32;
 	key_ex: case $context.connection.get_version() of {
-		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, packet_length);
-		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, packet_length);
-	};
-} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length);
+		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, capped_packet_length);
+		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, capped_packet_length);
+	} &requires(capped_packet_length);
+} &let {
+	capped_packet_length: uint32 = context.flow.cap_packet_length(packet_length);
+} &length = $context.flow.get_kex_length($context.connection.get_version(), capped_packet_length);
 
 # SSH1 constructs
 #################
@@ -275,8 +277,10 @@ type SSH2_ECC_REPLY(length: uint32, is_orig: bool) = record {
 
 type ssh_string = record {
 	len : uint32;
-	val : bytestring &length=len;
-};
+	val : bytestring &length=capped_len;
+} &let {
+	capped_len = context.flow.cap_string_length(len);
+}
 
 type ssh_host_key = record {
 	len      : uint32;

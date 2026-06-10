@@ -35,14 +35,19 @@ void Base64Converter::Encode(int len, const unsigned char* data, int* pblen, cha
     }
 
     for ( int i = 0, j = 0; (i < len) && (j < blen); ) {
-        uint32_t bit32 = data[i++] << 16;
-        bit32 += (i++ < len ? data[i - 1] : 0) << 8;
-        bit32 += i++ < len ? data[i - 1] : 0;
+        int remaining = len - i;
+        uint32_t bit32 = 0;
 
-        buf[j++] = alphabet[(bit32 >> 18) & 0x3f];
-        buf[j++] = alphabet[(bit32 >> 12) & 0x3f];
-        buf[j++] = (i == (len + 2)) ? '=' : alphabet[(bit32 >> 6) & 0x3f];
-        buf[j++] = (i >= (len + 1)) ? '=' : alphabet[bit32 & 0x3f];
+        bit32 |= (static_cast<uint32_t>(data[i++]) << 16u);
+        if ( remaining > 1 )
+            bit32 |= (static_cast<uint32_t>(data[i++]) << 8u);
+        if ( remaining > 2 )
+            bit32 |= data[i++];
+
+        buf[j++] = alphabet[(bit32 >> 18u) & 0x3fu];
+        buf[j++] = alphabet[(bit32 >> 12u) & 0x3fu];
+        buf[j++] = (remaining < 2) ? '=' : alphabet[(bit32 >> 6u) & 0x3fu];
+        buf[j++] = (remaining < 3) ? '=' : alphabet[bit32 & 0x3fu];
     }
 }
 

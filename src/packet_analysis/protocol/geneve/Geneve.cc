@@ -95,10 +95,10 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 
     // Get the next header. This will probably be Ethernet (0x6558), but get it
     // anyways so that the forwarding can do its thing.
-    auto next_header = (data[2] << 8) + data[3];
+    auto next_header = (static_cast<uint32_t>(data[2]) << 8u) | data[3];
 
     // Grab the VNI out of the data before advancing the data pointer
-    auto vni = (data[4] << 16) + (data[5] << 8) + data[6];
+    auto vni = (static_cast<uint32_t>(data[4]) << 16u) | (static_cast<uint32_t>(data[5]) << 8u) | data[6];
 
     len -= hdr_size;
     data += hdr_size;

@@ -102,7 +102,7 @@ bool NFS_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_status,
     if ( rpc_success ) {
         if ( n >= 4 ) {
             uint32_t raw_nfs_status = extract_XDR_uint32(buf, n);
-            if ( BifType::Enum::NFS3::status_t->Lookup(raw_nfs_status) )
+            if ( zeek::BifType::Enum::NFS3::status_t->Lookup(raw_nfs_status) )
                 nfs_status = static_cast<BifEnum::NFS3::status_t>(raw_nfs_status);
             else {
                 Weird("invalid_nfs_status", util::fmt("%u", raw_nfs_status));
@@ -371,8 +371,8 @@ RecordValPtr NFS_Interp::nfs3_fattr(const u_char*& buf, int& n) {
 
 EnumValPtr NFS_Interp::nfs3_time_how(const u_char*& buf, int& n) {
     uint32_t raw_time_how = extract_XDR_uint32(buf, n);
-    // time_how_t in src/types.bif goes to SET_TO_CLIENT_TIME = 2.
-    if ( raw_time_how > zeek::BifEnum::NFS3::time_how_t::SET_TO_CLIENT_TIME ) {
+
+    if ( ! zeek::BifType::Enum::NFS3::time_how_t->Lookup(raw_time_how) ) {
         Weird("unhandled_nfs3_time_how", util::fmt("%u", raw_time_how));
         return nullptr;
     }
@@ -383,8 +383,7 @@ EnumValPtr NFS_Interp::nfs3_time_how(const u_char*& buf, int& n) {
 EnumValPtr NFS_Interp::nfs3_ftype(const u_char*& buf, int& n) {
     uint32_t raw_file_type = extract_XDR_uint32(buf, n);
 
-    // file_type_t in src/types.bif goes to FTYPE_FIFO = 7.
-    if ( raw_file_type == 0 || raw_file_type > zeek::BifEnum::NFS3::file_type_t::FTYPE_FIFO ) {
+    if ( ! BifType::Enum::NFS3::file_type_t->Lookup(raw_file_type) ) {
         Weird("unhandled_nfs3_file_type", util::fmt("%u", raw_file_type));
         return nullptr;
     }
@@ -470,8 +469,7 @@ RecordValPtr NFS_Interp::nfs3_pre_op_attr(const u_char*& buf, int& n) {
 EnumValPtr NFS_Interp::nfs3_stable_how(const u_char*& buf, int& n) {
     auto raw_stable_how = extract_XDR_uint32(buf, n);
 
-    // stable_how_t in src/types.bif goes to FILE_SYNC = 2.
-    if ( raw_stable_how > zeek::BifEnum::NFS3::stable_how_t::FILE_SYNC ) {
+    if ( ! zeek::BifType::Enum::NFS3::stable_how_t->Lookup(raw_stable_how) ) {
         Weird("unhandled_nfs3_stable_how", util::fmt("%u", raw_stable_how));
         return nullptr;
     }

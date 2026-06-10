@@ -60,7 +60,7 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
     if ( rpc_success ) {
         if ( n >= 4 ) {
             uint32_t raw_mount_status = extract_XDR_uint32(buf, n);
-            if ( BifType::Enum::MOUNT3::status_t->Lookup(raw_mount_status) )
+            if ( zeek::BifType::Enum::MOUNT3::status_t->Lookup(raw_mount_status) )
                 mount_status = static_cast<BifEnum::MOUNT3::status_t>(raw_mount_status);
             else {
                 Weird("invalid_mount_status", util::fmt("%u", raw_mount_status));
@@ -178,8 +178,7 @@ Args MOUNT_Interp::event_common_vl(RPC_CallInfo* c, BifEnum::rpc_status rpc_stat
 EnumValPtr MOUNT_Interp::mount3_auth_flavor(const u_char*& buf, int& n) {
     uint32_t raw_auth_flavor = extract_XDR_uint32(buf, n);
 
-    // auth_flavor_t in src/types.bif goes to AUTH_DES = 3.
-    if ( raw_auth_flavor > zeek::BifEnum::MOUNT3::auth_flavor_t::AUTH_DES ) {
+    if ( ! zeek::BifType::Enum::MOUNT3::auth_flavor_t->Lookup(raw_auth_flavor) ) {
         Weird("unhandled_mount3_auth_flavor", util::fmt("%u", raw_auth_flavor));
         return nullptr;
     }

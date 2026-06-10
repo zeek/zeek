@@ -17,6 +17,16 @@ redef DPD::track_removed_services_in_connection=T;
 	redef LogAscii::use_json = F;
 @endif
 
+@ifdef ( Telemetry::log_interval )
+	# We're reading pcaps, so the frequency of metrics collection is not
+	# significant. Frequent collection can dominate the runtime of a test,
+	# so dial this down considerably.
+	redef Telemetry::log_interval = 24hr;
+@endif
+
+# Similar to the above, dial down the profiling frequency.
+redef profiling_interval = 24hr;
+
 # The tests don't load intel data and so all Intel event groups are disabled
 # due to intel/seen/manage-event-groups being loaded by default. Disable that
 # functionality by default to cover execution in the intel/seen scripts.

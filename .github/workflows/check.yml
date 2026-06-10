@@ -373,8 +373,7 @@ jobs:
         persist-credentials: false
 
     - name: Cache Docker image
-      # uses: ScribeMD/docker-cache@0.5.0
-      uses: AndreKurait/docker-cache@0fe76702a40db986d9663c24954fc14c6a6031b7 # 0.6.0
+      uses: AndreKurait/docker-cache@7a3887908bdb97935395833df69b060cfcca0f7f # 0.7.0
       id: docker-cache
       with:
         key: docker-${{ matrix.id }}-${{ hashFiles(matrix.file) }}

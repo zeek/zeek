@@ -40,6 +40,20 @@
 # @TEST-EXEC: zeek -b -C -r $TRACES/trunc/mpls-6in6-6in6-4in6-trunc.pcap %INPUT
 # @TEST-EXEC: cat weird.log >> output
 
+# Truncated packet where there's only an IP header but the IP length says
+# otherwise.
+# @TEST-EXEC: zeek -b -C -r $TRACES/trunc/ip-discarder-truncated-tcp-oob.pcapng %INPUT ./discarder.zeek >> discarder.output
+# @TEST-EXEC: cat weird.log >> output
+# @TEST-EXEC: btest-diff discarder.output
+
 # @TEST-EXEC: btest-diff output
 
 @load base/frameworks/notice/weird
+
+# @TEST-START-FILE discarder.zeek
+function discarder_check_ip(p: pkt_hdr): bool
+       {
+       print "discarder_check_ip", p;
+       return F;
+       }
+# @TEST-END-FILE

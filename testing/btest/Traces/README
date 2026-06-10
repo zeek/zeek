@@ -166,3 +166,5 @@ Trace Index/Sources:
 - http/query-method.pcap http/query-method-non-standard-port.pcap
   Scapy-generated (query-method.pcap.py creates both files). HTTP QUERY method
   (RFC 10008) on port 80 and port 4711 respectively.
+- trunc/ip-discarder-truncated-tcp-oob.pcapng
+  Generated a scapy script created by GPT-5.5. See trunc/ip-discarder-truncated-tcp-oob.pcapng.py.

@@ -1,3 +1,16 @@
+9.0.0-dev.383 | 2026-06-10 10:25:44 -0400
+
+  * base64: Redo some calculations for signed shifts (Evan Typanski, Corelight)
+
+    This also rewrites it to be a bit easier to follow, I struggled very
+    hard to figure it out. With the help of Gemini it was more apparent.
+
+  * snap: Fix minor signed bitshift issues (Evan Typanski, Corelight)
+
+  * geneve: Fix minor signed bitshift issues (Evan Typanski, Corelight)
+
+  * vxlan: Fix some shifts and weirdness in VNI (Evan Typanski, Corelight)
+
 9.0.0-dev.378 | 2026-06-09 16:36:16 -0700
 
   * Install python modules into pyenv on CircleCI for macOS (Tim Wojtulewicz, Corelight)

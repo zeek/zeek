@@ -358,6 +358,10 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const {
     else
         pkt_hdr->Assign(sindex + 1, ToIPHdrVal());
 
+    // Sanity check that we have enough data captured to parse the payload.
+    if ( len > 0 && len < HdrLen() + PayloadLen() )
+        return pkt_hdr;
+
     // L4 header.
     const u_char* data = Payload();
 

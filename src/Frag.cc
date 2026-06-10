@@ -214,7 +214,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */) {
         return;
 
     // We have it all.  Compute the expected size of the fragment.
-    uint64_t n = proto_hdr_len + frag_size;
+    const uint64_t n = proto_hdr_len + frag_size;
 
     // It's possible that we have blocks associated with this fragment
     // that exceed this size, if we saw MF fragments (which don't lead
@@ -261,7 +261,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */) {
     if ( version == 4 ) {
         struct ip* reassem4 = (struct ip*)pkt_start;
         reassem4->ip_len = htons(frag_size + proto_hdr_len);
-        reassembled_pkt = std::make_shared<IP_Hdr>(reassem4, true, true);
+        reassembled_pkt = std::make_shared<IP_Hdr>(reassem4, true, true, n);
         DeleteTimer();
     }
 

@@ -80,3 +80,13 @@ XXXXXXXXXX.XXXXXX	-	-	-	-	-	internally_truncated_header	-	F	zeek	IP
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
 XXXXXXXXXX.XXXXXX	-	-	-	-	-	invalid_IP_header_size_in_tunnel	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	weird
+#open XXXX-XX-XX-XX-XX-XX
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
+#types	time	string	addr	port	addr	port	string	string	bool	string	string
+1.000000	-	10.0.0.1	0	10.0.0.2	0	internally_truncated_header	-	F	zeek	TCP
+#close XXXX-XX-XX-XX-XX-XX

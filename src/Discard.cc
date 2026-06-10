@@ -44,6 +44,11 @@ bool Discarder::NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caple
             return discard_packet;
     }
 
+    // If the caplen is less than the reported length from the packet, we can't decode
+    // the rest of the protocols.
+    if ( caplen < len )
+        return false;
+
     int proto = ip->NextProto();
     if ( proto != IPPROTO_TCP && proto != IPPROTO_UDP && proto != IPPROTO_ICMP )
         // This is not a protocol we understand.

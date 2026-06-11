@@ -168,6 +168,16 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
                     new_state |= orig ? ORIG_OK : RESP_OK;
             }
 
+            // Length after adding the CRLF and new line
+            auto new_headers_len = ms->headers.length() + 2 + ms->buffer.length();
+            if ( zeek::BifConst::Gnutella::max_header_length > 0 &&
+                 new_headers_len >= zeek::BifConst::Gnutella::max_header_length ) {
+                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+                const char* addl = zeek::util::fmt("%lu", new_headers_len);
+                Weird("exceeded_gnutella_max_headers_length", addl);
+                return;
+            }
+
             ms->headers = ms->headers + "\r\n" + ms->buffer;
             ms->buffer = "";
         }

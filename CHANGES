@@ -1,3 +1,13 @@
+9.0.0-dev.401 | 2026-06-11 12:13:55 -0700
+
+  * Disable benchmarks until we can fix the service (Tim Wojtulewicz, Corelight)
+
+  * Add flags to control running coverage and fuzzer tests for linux jobs (Tim Wojtulewicz, Corelight)
+
+  * Add usage of ZEEK_IS_INTERNAL_JOB to control benchmarks/coverage (Tim Wojtulewicz, Corelight)
+
+  * Rename CircleCI params generation script (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.396 | 2026-06-11 10:42:20 -0700
 
   * Improvements to the default setup of external testsuites (Christian Kreibich, Corelight)

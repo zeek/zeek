@@ -233,8 +233,16 @@ jobs:
         description: Flag for whether Zeek's unit tests/btests should be run after building
         type: boolean
         default: true
+      enable_fuzzer_tests:
+        description: Flag for whether to run the fuzzer tests after the regular tests
+        type: boolean
+        default: false
       enable_benchmarks:
         description: Flag for whether the benchmarks should run after building
+        type: boolean
+        default: false
+      enable_coverage:
+        description: Flag for whether to update/upload coverage data after testing
         type: boolean
         default: false
       install_spicy_analyzers:
@@ -321,6 +329,18 @@ jobs:
             - store_artifacts:
                 path: btest-results
                 destination: btest-results
+      - when:
+          condition: << parameters.enable_fuzzer_tests >>
+          steps:
+            - run:
+                name: Test fuzzers
+                command: ci/test-fuzzers.sh
+      - when:
+          condition: << parameters.enable_coverage >>
+          steps:
+            - run:
+                name: Run coverage
+                command: ci/upload-coverage.sh
       - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:
@@ -901,7 +921,8 @@ workflows:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          enable_benchmarks: true
+          context:
+            - zeek
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
@@ -931,14 +952,16 @@ workflows:
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           install_spicy_analyzers: true
-          enable_benchmarks: true
+          context:
+            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           install_spicy_analyzers: true
-          enable_benchmarks: true
+          context:
+            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-zam
@@ -961,6 +984,10 @@ workflows:
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
+          enable_coverage: true
+          enable_fuzzer_tests: true
+          context:
+            - zeek
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG

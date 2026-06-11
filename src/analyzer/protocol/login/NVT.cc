@@ -408,8 +408,21 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
 
     // Add data up to IAC or end.
     for ( ; len > 0; --len, ++data ) {
-        if ( offset >= buf_len )
-            InitBuffer(buf_len * 2);
+        if ( offset >= buf_len ) {
+            if ( ! InitBufferSafe(buf_len * 2) ) {
+                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+                Weird("nvt_line_size_exceeded", util::fmt("%u", buf_len));
+
+                // Reset the offset to keep going. Try to forward the data, since
+                // it's handling lines.
+                buf[buf_len - 1] = '\0';
+                ForwardStream(buf_len - 1, buf, IsOrig());
+                offset = 0;
+
+                // Keep parsing, but just use the buffer we have here.
+                continue;
+            }
+        }
 
         int c = data[0];
 
@@ -551,8 +564,18 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
 
     // A suboption.  Spin looking for end.
     for ( ; len > 0; --len, ++data ) {
-        if ( offset >= buf_len )
-            InitBuffer(buf_len * 2);
+        if ( offset >= buf_len ) {
+            if ( ! InitBufferSafe(buf_len * 2) ) {
+                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+                Weird("nvt_option_size_exceeded", util::fmt("%u", buf_len));
+
+                // Just abort suboption parsing; we aren't getting anything useful anyway.
+                pending_IAC = false;
+                is_suboption = false;
+                offset = 0;
+                return;
+            }
+        }
 
         unsigned int code = data[0];
 

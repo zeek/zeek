@@ -29,8 +29,16 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data) {
                                                     // legitimate stream
 
     for ( ; len > 0; --len, ++data ) {
-        if ( offset >= buf_len )
-            InitBuffer(buf_len * 2);
+        if ( offset >= buf_len ) {
+            if ( ! InitBufferSafe(buf_len * 2) ) {
+                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+                Weird("rlogin_line_size_exceeded", util::fmt("%u", buf_len));
+
+                state = RLOGIN_UNKNOWN;
+                offset = 0;
+                continue;
+            }
+        }
 
         unsigned int c = data[0];
 

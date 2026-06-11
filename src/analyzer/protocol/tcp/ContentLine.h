@@ -74,6 +74,9 @@ protected:
     class State;
     void InitState();
     void InitBuffer(int size);
+    // Same as InitBuffer, but caps at max_line_length. This will return false if the
+    // buffer cannot be expanded any more.
+    bool InitBufferSafe(int size);
     virtual void DoDeliver(int len, const u_char* data);
     int DoDeliverOnce(int len, const u_char* data);
     void CheckNUL();

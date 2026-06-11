@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b -r $TRACES/smtp.trace %INPUT
 # @TEST-EXEC: zeek -b -r $TRACES/dns-edns-ecs.pcap %INPUT
-# @TEST-EXEC: zeek -b -r $TRACES/contentline-irc-5k-line.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/contentline/contentline-irc-5k-line.pcap %INPUT
 #
 # @TEST-EXEC: btest-diff .stdout
 

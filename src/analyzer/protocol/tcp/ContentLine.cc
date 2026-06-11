@@ -61,6 +61,15 @@ void ContentLine_Analyzer::InitBuffer(int size) {
     buf_len = size;
 }
 
+bool ContentLine_Analyzer::InitBufferSafe(int size) {
+    if ( buf_len >= max_line_length )
+        return false;
+
+    InitBuffer(std::min(size, max_line_length));
+
+    return true;
+}
+
 ContentLine_Analyzer::~ContentLine_Analyzer() { delete[] buf; }
 
 bool ContentLine_Analyzer::HasPartialLine() const { return buf && offset > 0; }
@@ -199,11 +208,6 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
         return 0;
 
     for ( ; len > 0; --len, ++data ) {
-        if ( offset >= buf_len )
-            InitBuffer(buf_len * 2);
-
-        int c = data[0];
-
 #define EMIT_LINE                                                                                                      \
     {                                                                                                                  \
         buf[offset] = '\0';                                                                                            \
@@ -216,9 +220,14 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
         return seq_len;                                                                                                \
     }
 
-        if ( offset >= max_line_length ) {
-            Weird("contentline_size_exceeded");
-            EMIT_LINE
+        int c = data[0];
+
+        if ( offset >= buf_len ) {
+            if ( ! InitBufferSafe(buf_len * 2) ) {
+                Weird("contentline_size_exceeded");
+                offset = buf_len - 1;
+                EMIT_LINE
+            }
         }
 
         switch ( c ) {

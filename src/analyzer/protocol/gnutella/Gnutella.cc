@@ -6,6 +6,7 @@
 #include <cctype>
 
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/gnutella/consts.bif.h"
 #include "zeek/analyzer/protocol/gnutella/events.bif.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 
@@ -88,6 +89,15 @@ bool Gnutella_Analyzer::NextLine(const u_char* data, int len) {
         }
         else
             ms->buffer += data[ms->current_offset];
+
+        if ( zeek::BifConst::Gnutella::max_line_length > 0 &&
+             ms->buffer.length() >= zeek::BifConst::Gnutella::max_line_length ) {
+            Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            const char* addl = zeek::util::fmt("%lu", ms->buffer.length());
+            Weird("exceeded_gnutella_max_line_length", addl);
+
+            return false;
+        }
     }
 
     return false;

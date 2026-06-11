@@ -1,3 +1,10 @@
+9.0.0-dev.392 | 2026-06-11 17:19:09 +0200
+
+  * github/workflows: Run CIFuzz only on zeek/zeek (Arne Welzel, Corelight)
+
+    The job clones from github.com/zeek/zeek, so it doesn't make a lot of
+    sense to run that in forks as it'll always fail.
+
 9.0.0-dev.390 | 2026-06-11 13:56:14 +0200
 
   * logging: Make Log::flush_interval = 0.0sec disable the flushing timer (Arne Welzel, Corelight)

@@ -1,3 +1,7 @@
+9.0.0-dev.403 | 2026-06-11 12:57:57 -0700
+
+  * Cache docker image directly with official Docker actions (Benjamin Bannier, Corelight)
+
 9.0.0-dev.401 | 2026-06-11 12:13:55 -0700
 
   * Disable benchmarks until we can fix the service (Tim Wojtulewicz, Corelight)

@@ -358,6 +358,11 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         if ( ! analyzer::mime::is_null_data_chunk(vt) ) {
             int64_t n;
             if ( util::atoi_n(vt.length, vt.data, nullptr, 10, n) && n >= 0 ) {
+                if ( n > 0 && vt.length > 0 && vt.data[0] == '0' ) {
+                    std::string addl(vt.data, vt.length);
+                    http_message->analyzer->Weird("HTTP_content_length_leading_zeros", addl.c_str());
+                }
+
                 content_length = n;
 
                 if ( is_partial_content && range_length != content_length ) {

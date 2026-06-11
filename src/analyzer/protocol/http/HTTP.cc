@@ -353,6 +353,20 @@ void HTTP_Entity::SetPlainDelivery(int64_t length) {
 }
 
 void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
+    if ( Depth() == 0 && h->get_fold_lines() > 1 ) {
+        // RFC 7230 (2014) deprecates line folding and calls it
+        // obsolete line folding (obs-fold) as it can be leveraged
+        // to smuggle requests. Some intermediaries may interpret the
+        // line folding differently.
+        //
+        // Start raising weirds for folded lines. It's 2026.
+        //
+        // https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4
+        auto hname = h->get_name();
+        std::string addl(hname.data, hname.length);
+        http_message->MyHTTP_Analyzer()->Weird("HTTP_obsolete_line_folding", addl.c_str());
+    }
+
     if ( analyzer::mime::istrequal(h->get_name(), "content-length") ) {
         // First: If we've switched into chunked transfer, seeing
         // a Content-Length header is weird.

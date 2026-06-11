@@ -354,6 +354,11 @@ void HTTP_Entity::SetPlainDelivery(int64_t length) {
 
 void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
     if ( analyzer::mime::istrequal(h->get_name(), "content-length") ) {
+        // First: If we've switched into chunked transfer, seeing
+        // a Content-Length header is weird.
+        if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
+
         data_chunk_t vt = h->get_value_token();
         if ( ! analyzer::mime::is_null_data_chunk(vt) ) {
             int64_t n;
@@ -387,6 +392,11 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
     // Figure out content-length for HTTP 206 Partial Content response
     else if ( analyzer::mime::istrequal(h->get_name(), "content-range") &&
               http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 ) {
+        // First: If we've switched into chunked transfer, seeing
+        // a Content-Range header is weird.
+        if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_and_chunked");
+
         data_chunk_t vt = h->get_value_token();
         std::string byte_unit(vt.data, vt.length);
         vt = h->get_value_after_token();
@@ -496,8 +506,14 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                 http_version = http_message->analyzer->GetReplyVersionNumber();
 
             data_chunk_t vt = h->get_value_token();
-            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
+            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
                 chunked_transfer_state = BEFORE_CHUNK;
+
+                // Just switched into chunked transfer mode. If we previously parsed
+                // a valid Content-Length or Content-Range header, that's weird.
+                if ( content_length >= 0 )
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
+            }
         }
         else {
             http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");

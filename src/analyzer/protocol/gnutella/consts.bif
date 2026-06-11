@@ -1,1 +1,2 @@
 const Gnutella::max_line_length: count;
+const Gnutella::max_header_length: count;

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 from pathlib import Path
 
-from scapy.all import Ether, IP, TCP, Raw, wrpcapng
+from scapy.all import IP, TCP, Ether, Raw, wrpcapng
 
 OUTDIR = Path(__file__).resolve().parent
 SRC = "10.0.0.1"
@@ -12,7 +13,11 @@ DMAC = "02:00:00:00:00:02"
 
 
 def pkt(src_ip, dst_ip, sport, dport, seq, ack, flags, payload=b""):
-    p = Ether(src=SMAC, dst=DMAC) / IP(src=src_ip, dst=dst_ip, id=0x1234, flags="DF", ttl=64) / TCP(sport=sport, dport=dport, seq=seq, ack=ack, flags=flags, window=64240)
+    p = (
+        Ether(src=SMAC, dst=DMAC)
+        / IP(src=src_ip, dst=dst_ip, id=0x1234, flags="DF", ttl=64)
+        / TCP(sport=sport, dport=dport, seq=seq, ack=ack, flags=flags, window=64240)
+    )
     if payload:
         p = p / Raw(load=payload)
     return p
@@ -38,5 +43,28 @@ def tcp_flow(dst_port, payloads, src_port=40000):
     return packets
 
 
-payload = b"GNUTELLA CONNECT/0.6\r\n" + b"X-Long: " + b"C" * 200
-wrpcapng(str(OUTDIR / "max-line.pcapng"), tcp_flow(6346, chunks(payload), 40004))
+parser = argparse.ArgumentParser(
+    description="Generate a Gnutella pcapng with long header lines"
+)
+parser.add_argument(
+    "--key-length",
+    type=int,
+    default=200,
+    help="Length of each header value (default: 200)",
+)
+parser.add_argument(
+    "--num-lines", type=int, default=1, help="Number of long header lines (default: 1)"
+)
+parser.add_argument(
+    "--output",
+    type=str,
+    default="max-line.pcapng",
+    help="Output filename (default: max-line.pcapng)",
+)
+args = parser.parse_args()
+
+header_lines = b"".join(
+    b"X-Long: " + b"C" * args.key_length + b"\r\n" for _ in range(args.num_lines)
+)
+payload = b"GNUTELLA CONNECT/0.6\r\n" + header_lines
+wrpcapng(str(OUTDIR / args.output), tcp_flow(6346, chunks(payload), 40004))

@@ -136,7 +136,8 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
                 ASSERT(Depth() == 0); // chunked transfer only allowed for top-level entity
                 ASSERT(trailing_CRLF);
                 if ( ! util::atoi_n(len, data, nullptr, 16, expect_data_length) ) {
-                    http_message->Weird("HTTP_bad_chunk_size");
+                    std::string addl(data, len);
+                    http_message->analyzer->Weird("HTTP_bad_chunk_size", addl.c_str());
                     expect_data_length = 0;
                 }
 
@@ -356,7 +357,7 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         data_chunk_t vt = h->get_value_token();
         if ( ! analyzer::mime::is_null_data_chunk(vt) ) {
             int64_t n;
-            if ( util::atoi_n(vt.length, vt.data, nullptr, 10, n) ) {
+            if ( util::atoi_n(vt.length, vt.data, nullptr, 10, n) && n >= 0 ) {
                 content_length = n;
 
                 if ( is_partial_content && range_length != content_length ) {
@@ -368,8 +369,13 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                         content_length = range_length;
                 }
             }
-            else
+            else {
+                // atoi_n bailed on the content length
+                // value or it was negative.
+                std::string addl(vt.data, vt.length);
+                http_message->analyzer->Weird("HTTP_bad_content_length", addl.c_str());
                 content_length = 0;
+            }
         }
     }
 

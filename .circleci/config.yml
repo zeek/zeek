@@ -732,6 +732,161 @@ jobs:
             aws ecr-public get-login-password --profile "OIDC-PROFILE" | docker login --username AWS --password-stdin public.ecr.aws
       - run: ./ci/public-ecr-cleanup.sh
 
+  zeekctl-testing:
+    parameters:
+      docker_image:
+        description: The Docker image to be used as the base for building
+        type: string
+      ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        type: string
+        default: "20260515"
+      resource_class:
+        description: The CircleCI resource class the Docker instance is run under
+        type: string
+        default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: linux
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+    docker:
+      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    resource_class: << parameters.resource_class >>
+    steps:
+      - run:
+          name: Install iproute2
+          command: |
+            apt-get update && apt-get install -y --no-install-recommends iproute2
+      - clone_repo:
+          include_external_tests: false
+      - restore_cache:
+          name: Restore ccache directory
+          # The cascade of keys here allows future jobs to look down the chain for an existing
+          # matching cache. Revision, then branch, then arch, then job. This allows it to
+          # potentially find a ccache entry that it can base off it instead of starting fresh
+          # every time.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: /root/.ccache
+      - run:
+          name: Build
+          command: cd auxil/zeekctl/testing && ./Scripts/build-zeek
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
+      - run:
+          name: Test
+          command: cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
+      - store_artifacts:
+          path: auxil/zeekctl/testing/.tmp
+          destination: test_output
+          when: on_fail
+
+  include-plugins-testing:
+    parameters:
+      docker_image:
+        description: The Docker image to be used as the base for building
+        type: string
+      ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        type: string
+        default: "20260515"
+      resource_class:
+        description: The CircleCI resource class the Docker instance is run under
+        type: string
+        default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: linux
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+    docker:
+      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    resource_class: << parameters.resource_class >>
+    steps:
+      - run:
+          name: Set extra environment variables
+          command: |
+            echo "export ZEEK_CI_WORKING_DIR=${CIRCLE_WORKING_DIRECTORY}" >> "$BASH_ENV"
+      - clone_repo:
+          include_external_tests: false
+      - run:
+          name: Clone plugin repos
+          command: |
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git
+            cd zeek-perf-support && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git
+            cd zeek-more-hashes && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git
+            cd zeek-cluster-backend-nats && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git
+            cd zeek-kafka && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+      - restore_cache:
+          name: Restore ccache directory
+          # The cascade of keys here allows future jobs to look down the chain for an existing
+          # matching cache. Revision, then branch, then arch, then job. This allows it to
+          # potentially find a ccache entry that it can base off it instead of starting fresh
+          # every time.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: /root/.ccache
+      - run:
+          name: Build
+          command: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/protocol-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/py-lib-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/zeek-version-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-perf-support;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-more-hashes;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-cluster-backend-nats;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-kafka'" ./ci/build.sh
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
+      - run:
+          name: Test
+          command: cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+      - run:
+          name: External plugin tests
+          command: |
+            . ${ZEEK_CI_WORKING_DIR}/build/zeek-path-dev.sh
+            set -ex
+            # For now, just check if the external plugins are available.
+            zeek -N Zeek::PerfSupport
+            zeek -N Zeek::MoreHashes
+            zeek -N Zeek::Cluster_Backend_NATS
+            zeek -N Seiso::Kafka
+      - store_artifacts:
+          path: auxil/zeekctl/testing/.tmp
+          destination: test_output
+          when: on_fail
+
+
 # Workflow job filters control when a job runs based on the conditions passed. The
 # filters allow a job to run if the conditions in the filter are *true*, which seems
 # counter-intuitive to their name.
@@ -1080,6 +1235,16 @@ workflows:
           context:
             - zeek
           << : *FILTER_NIGHTLY_OR_TAGGED
+
+      - zeekctl-testing:
+          docker_image: zeek/zeek-ci:debian-12
+          requires: [build-image-debian-12]
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
+
+      - include-plugins-testing:
+          docker_image: zeek/zeek-ci:debian-13
+          requires: [build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
 
   weekly_compiler_builds:
     when: pipeline.schedule.name == "weekly"

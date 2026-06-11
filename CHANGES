@@ -1,3 +1,22 @@
+9.0.0-dev.390 | 2026-06-11 13:56:14 +0200
+
+  * logging: Make Log::flush_interval = 0.0sec disable the flushing timer (Arne Welzel, Corelight)
+
+    As written in the NEWS entry, the previous behavior of scheduling a new
+    timer immediately isn't very useful and changing it to skip flushing altogether
+    helps to make the logging-rr-no-buf test more reliable.
+
+  * logging: Make Log::set_buf() sticky for new writers (Arne Welzel, Corelight)
+
+    @J-Gras reports that WriterFrontends created dynamically at runtime
+    after a Log::set_buf() call for the stream during zeek_init() will not
+    inherit the buffering state. Cache ``buf`` also on the stream and apply
+    it to writers created dynamically.
+
+    The test isn't 100%, but it fails fairly regularly when removing the
+    Log::set_buf() calls in zeek_init() or the change in this commit is
+    reverted. The logging infrastructure is pretty opaque, so...
+
 9.0.0-dev.387 | 2026-06-10 11:58:11 -0700
 
   * Add jobs to build docker release images (Tim Wojtulewicz, Corelight)

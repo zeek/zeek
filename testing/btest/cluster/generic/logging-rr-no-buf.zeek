@@ -1,4 +1,4 @@
-# @TEST-DOC: Testing round-robin of Log::write() across two loggers.
+# @TEST-DOC: Testing round-robin of Log::write() across two loggers. Same as logging-rr.zeek, but using Log::set_buf(stream, F) to disable stream and wrtier buffering.
 #
 # @TEST-REQUIRES: have-zeromq
 #
@@ -37,8 +37,9 @@
 @load ./zeromq-test-bootstrap.zeek
 
 redef Log::default_rotation_interval = 0sec;
-redef Log::flush_interval = 0.03sec;
-redef Log::write_buffer_size = 7;
+
+# Disable the flush timer.
+redef Log::flush_interval = 0.0sec;
 
 module LogRR;
 
@@ -57,6 +58,10 @@ event zeek_init()
 	{
 	Log::create_stream(LOG1, [$columns=Info, $path="rr1"]);
 	Log::create_stream(LOG2, [$columns=Info, $path="rr2"]);
+
+	# Disable stream buffering.
+	Log::set_buf(LOG1, F);
+	Log::set_buf(LOG2, F);
 	}
 
 event finish()
@@ -121,7 +126,6 @@ event write_log1(c: count)
 		}
 
 	Log::write(LogRR::LOG1, [$c=c]);
-	Log::flush(LogRR::LOG1);
 	schedule 0.05sec { write_log1(++c) };
 	}
 
@@ -147,8 +151,8 @@ event zeek_init()
 	{
 	event write_log1(0);
 	}
-
 # @TEST-END-FILE
+
 
 # @TEST-START-FILE check-log.sh
 #!/usr/bin/env bash

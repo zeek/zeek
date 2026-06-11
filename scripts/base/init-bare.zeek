@@ -3879,7 +3879,13 @@ export {
 	## In earlier Zeek releases this was governed by :zeek:see:`Threading::heartbeat_interval`.
 	## For Broker, see also :zeek:see:`Broker::log_batch_interval`.
 	##
+	## Setting this value to a zero interval (0.0sec), disables the global
+	## log flushing timer. Note that it is then your responsibility to call
+	## :zeek:see:`Log::flush_all` regularly, or disable log buffering of
+	## all active streams via :zeek:see:`Log::set_buf`.
+	##
 	## .. :zeek:see:`Log::flush`
+	## .. :zeek:see:`Log::flush_all`
 	## .. :zeek:see:`Log::set_buf`
 	## .. :zeek:see:`Log::write_buffer_size`
 	const flush_interval = 1.0sec &redef;

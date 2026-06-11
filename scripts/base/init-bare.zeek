@@ -6167,6 +6167,14 @@ export {
 	option max_payload_size = 100;
 }
 
+module Gnutella;
+
+export {
+	## Stop processing lines that exceed this byte limit before encountering
+	## a line terminator.
+	const max_line_length = 8192 &redef;
+}
+
 module Cluster;
 
 export {

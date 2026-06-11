@@ -393,6 +393,11 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                     if ( range_length > content_length )
                         content_length = range_length;
                 }
+
+                // Weird if Content-Length is 0 and Expect: 100-continue header used.
+                // This is replicated in the "expect" header processing.
+                if ( content_length == 0 && expect_100_cont )
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_0_and_expect_100_cont");
             }
             else {
                 // atoi_n bailed on the content length
@@ -549,6 +554,21 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             encoding = GZIP;
         if ( analyzer::mime::istrequal(vt, "deflate") )
             encoding = DEFLATE;
+    }
+    else if ( analyzer::mime::istrequal(h->get_name(), "expect") ) {
+        data_chunk_t vt = h->get_value_token();
+        // Expect: 100-continue should only have 100-continue as value.
+        if ( ! analyzer::mime::istrequal(vt, "100-continue") ) {
+            std::string addl(vt.data, vt.length);
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_expect_not_100_continue", addl.c_str());
+        }
+
+        expect_100_cont = true;
+
+        // Weird if Content-Length is 0 and Expect: 100-continue header used.
+        // This is replicated in the "content-length" header processing.
+        if ( content_length == 0 && expect_100_cont )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_0_and_expect_100_cont");
     }
 
     analyzer::mime::MIME_Entity::SubmitHeader(h);

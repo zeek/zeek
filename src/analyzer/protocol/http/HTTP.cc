@@ -523,6 +523,14 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
                 chunked_transfer_state = BEFORE_CHUNK;
 
+                data_chunk_t rest = h->get_value_after_token();
+                if ( rest.length > 0 && rest.data != nullptr ) {
+                    // If something follows the chunked value in the header,
+                    // that's weird and might be an attempt to smuggle something.
+                    std::string addl(rest.data, rest.length);
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_chunked_multi", addl.c_str());
+                }
+
                 // Just switched into chunked transfer mode. If we previously parsed
                 // a valid Content-Length or Content-Range header, that's weird.
                 if ( content_length >= 0 )

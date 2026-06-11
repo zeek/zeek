@@ -1,3 +1,10 @@
+9.0.0-dev.396 | 2026-06-11 10:42:20 -0700
+
+  * Improvements to the default setup of external testsuites (Christian Kreibich, Corelight)
+    - Don't load the ZIP analyzer in testing-setup.zeek
+    - Tune profiling and telemetry metrics collection in testing-setup.zeek
+    - Load local scripts from testing-setup.zeek relatively
+
 9.0.0-dev.392 | 2026-06-11 17:19:09 +0200
 
   * github/workflows: Run CIFuzz only on zeek/zeek (Arne Welzel, Corelight)

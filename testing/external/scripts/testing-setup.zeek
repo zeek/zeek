@@ -1,7 +1,7 @@
 # Sets some testing specific options.
 
-@load external-ca-list
-@load external-ct-list
+@load ./external-ca-list
+@load ./external-ct-list
 
 @load protocols/conn/failed-service-logging
 redef DPD::track_removed_services_in_connection=T;
@@ -16,6 +16,16 @@ redef DPD::track_removed_services_in_connection=T;
 	# (json-logs.zeek activates this).
 	redef LogAscii::use_json = F;
 @endif
+
+@ifdef ( Telemetry::log_interval )
+	# We're reading pcaps, so the frequency of metrics collection is not
+	# significant. Frequent collection can dominate the runtime of a test,
+	# so dial this down considerably.
+	redef Telemetry::log_interval = 24hr;
+@endif
+
+# Similar to the above, dial down the profiling frequency.
+redef profiling_interval = 24hr;
 
 # The tests don't load intel data and so all Intel event groups are disabled
 # due to intel/seen/manage-event-groups being loaded by default. Disable that
@@ -34,6 +44,3 @@ redef Analyzer::DebugLogging::include_disabling = F;
 # in order to skip initialization of cluster backend. Cluster backends may keep
 # the IO loop alive once registered due to registering IO sources.
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;
-
-# Register the ZIP analyzer to handle application/zip
-@load policy/files/zip/register

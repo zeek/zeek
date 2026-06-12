@@ -3849,7 +3849,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 	const char* bytes = hexstr->AsString()->CheckString();
 	size_t outlen = (len/2);
-	auto bytestring_buf = std::make_unique<char[]>(outlen);
+	auto bytestring_buf = std::make_unique<unsigned char[]>(outlen);
 	auto bytestring = bytestring_buf.get();
 	memset(bytestring, 0, outlen);
 
@@ -3871,7 +3871,7 @@ function hexstr_to_bytestring%(hexstr: string%): string
 
 		}
 
-	return zeek::make_intrusive<zeek::StringVal>(outlen, bytestring);
+	return zeek::make_intrusive<zeek::StringVal>(outlen, reinterpret_cast<char*>(bytestring));
 	%}
 
 ## Encodes a Base64-encoded string.

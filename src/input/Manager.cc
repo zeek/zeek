@@ -850,7 +850,7 @@ bool Manager::RemoveStreamContinuation(ReaderFrontend* reader) {
 }
 
 bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, const string& nameprepend,
-                               bool allow_file_func) const {
+                               bool allow_file_func, bool parent_optional) const {
     for ( int i = 0; i < rec->NumFields(); i++ ) {
         if ( ! IsCompatibleType(rec->GetFieldType(i).get()) ) {
             string name = nameprepend + rec->FieldName(i);
@@ -861,7 +861,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             if ( allow_file_func ) {
                 if ( (rec->GetFieldType(i)->Tag() == TYPE_FILE || rec->GetFieldType(i)->Tag() == TYPE_FUNC ||
                       rec->GetFieldType(i)->Tag() == TYPE_OPAQUE) &&
-                     rec->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) ) {
+                     (rec->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL) || parent_optional) ) {
                     reporter->Info(
                         "Encountered incompatible type \"%s\" in type definition for "
                         "field \"%s\" in ReaderFrontend. Ignoring optional field.",
@@ -881,13 +881,9 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             string prep = nameprepend + rec->FieldName(i) + ".";
 
             const auto* rt = rec->GetFieldType(i)->AsRecordType();
-            if ( rt->NumFields() > 0 && rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) ) {
-                reporter->Info("The input framework does not support optional record fields: \"%s\"",
-                               rec->FieldName(i));
-                return false;
-            }
-
-            if ( ! UnrollRecordType(fields, rt, prep, allow_file_func) ) {
+            if ( ! UnrollRecordType(fields, rt, prep, allow_file_func,
+                                    rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) != NULL ||
+                                        parent_optional) ) {
                 return false;
             }
         }
@@ -898,7 +894,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             ValPtr c;
             TypeTag ty = rec->GetFieldType(i)->Tag();
             TypeTag st = TYPE_VOID;
-            bool optional = false;
+            bool optional = false || parent_optional;
 
             if ( ty == TYPE_TABLE )
                 st = rec->GetFieldType(i)->AsTableType()->GetIndices()->GetPureType()->Tag();
@@ -1735,7 +1731,7 @@ RecordVal* Manager::ListValToRecordVal(ListVal* list, RecordType* request_type, 
 
 // Convert a threading value to a record value
 RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* vals, RecordType* request_type,
-                                     int* position, bool& have_error) const {
+                                     int* position, bool& have_error, bool parent_optional) const {
     assert(position != nullptr); // we need the pointer to point to data.
 
     auto rec = make_intrusive<RecordVal>(RecordTypePtr{NewRef{}, request_type});
@@ -1743,7 +1739,9 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
         Val* fieldVal = nullptr;
         if ( request_type->GetFieldType(i)->Tag() == TYPE_RECORD )
             fieldVal =
-                ValueToRecordVal(stream, vals, request_type->GetFieldType(i)->AsRecordType(), position, have_error);
+                ValueToRecordVal(stream, vals, request_type->GetFieldType(i)->AsRecordType(), position, have_error,
+                                 request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) != NULL ||
+                                     parent_optional);
         else if ( request_type->GetFieldType(i)->Tag() == TYPE_FILE ||
                   request_type->GetFieldType(i)->Tag() == TYPE_FUNC ) {
             // If those two unsupported types are encountered here, they have
@@ -1755,7 +1753,8 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
             // Better check that it really is optional. You never know.
             assert(request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
         }
-        else if ( ! vals[*position]->present && ! request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) ) {
+        else if ( ! vals[*position]->present && ! request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) &&
+                  ! parent_optional ) {
             auto source = stream->reader->Info().source;
             auto file_pos = vals[*position]->GetFileLineNumber();
 

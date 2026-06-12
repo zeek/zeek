@@ -35,8 +35,25 @@ env:
   DOCKER_BUILD_SUMMARY: false
 
 jobs:
+  # A job which only succeeds if we are running in a public repository.
+  #
+  # We use this below to skip all actual CI jobs in private repositories since
+  # our CI matrix is huge and would quickly burn through the free credits
+  # available for private repositories. To implement this jobs depend on this
+  # one, but this one only ever runs for public repositories.
+  is-public-repo:
+    name: Require public repository
+    runs-on: ubuntu-latest
+    if: github.event.repository.private == false
+    outputs:
+      is_public_repo: ${{ true }}
+    steps:
+      - run: |
+          : # Need to add at least one step
+
   linux:
     runs-on: ubuntu-latest
+    needs: is-public-repo
 
     strategy:
       fail-fast: false
@@ -435,6 +452,7 @@ jobs:
 
   windows:
     runs-on: windows-2025
+    needs: is-public-repo
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
@@ -500,6 +518,7 @@ jobs:
           - release: macos-26
 
     runs-on: ${{ matrix.release }}
+    needs: is-public-repo
 
     name: ${{ matrix.release }}
 

@@ -1150,13 +1150,19 @@ int atoi_n(int len, const char* s, const char** end, int base, T& result) {
         ++s;
     }
 
+    // Reject negative numbers for unsigned result type.
+    if ( neg && std::is_unsigned_v<T> )
+        return 0;
+
     using Unsigned = std::make_unsigned_t<T>;
     constexpr T min = std::numeric_limits<T>::min();
     constexpr T max = std::numeric_limits<T>::max();
-    constexpr auto max_value = std::is_signed_v<T> ? static_cast<Unsigned>(min) : static_cast<Unsigned>(max);
-    static_assert(max_value <= std::numeric_limits<uint64_t>::max());
-
     const auto base_u = static_cast<Unsigned>(base); // base unsigned
+
+    // int8_t: range -128..127
+    // If neg and signed, parse to 128 ((uint8_t(-128)), otherwise 127.
+    // For uint8_t, 255 (uint8_t max) is used. If neg, rejected above.
+    const auto max_value = (neg && std::is_signed_v<T>) ? static_cast<Unsigned>(min) : static_cast<Unsigned>(max);
     uint64_t n = 0;
 
     int i;
@@ -2341,37 +2347,58 @@ TEST_SUITE("util") {
         CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);
     }
 
-    // Test that parsing -1 into an uint8_t produces 255 and uint64_t produces
-    // uint64_t::max(). Also check that 255 is parsed for uint8_t as 255, but
-    // rejected for int8_t.
-    TEST_CASE("atoi_n underflows") {
+    TEST_CASE("atoi_n overflows") {
         std::string minus_one = "-1";
-        std::string minus_two = "-2";
+        std::string one_twenty_seven = "127";
+        std::string one_twenty_eight = "128";
+        std::string minus_one_twenty_eight = "-128";
+        std::string minus_one_twenty_nine = "-129";
         std::string two_fifty_five = "255";
+        std::string two_fifty_six = "256";
 
         uint8_t result;
+        int8_t signed_result;
         uint64_t result64;
         int r;
 
         r = atoi_n<uint8_t>(minus_one.size(), minus_one.c_str(), nullptr, 10, result);
-        CHECK_EQ(r, 1);
-        CHECK_EQ(result, 255);
+        CHECK_EQ(r, 0);
 
         r = atoi_n<uint64_t>(minus_one.size(), minus_one.c_str(), nullptr, 10, result64);
-        CHECK_EQ(r, 1);
-        CHECK_EQ(result64, std::numeric_limits<uint64_t>::max());
+        CHECK_EQ(r, 0);
 
-        r = atoi_n<uint8_t>(minus_two.size(), minus_two.c_str(), nullptr, 10, result);
+        r = atoi_n<int8_t>(minus_one.size(), minus_one.c_str(), nullptr, 10, signed_result);
         CHECK_EQ(r, 1);
-        CHECK_EQ(result, 254);
+        CHECK_EQ(signed_result, -1);
 
         r = atoi_n<uint8_t>(two_fifty_five.size(), two_fifty_five.c_str(), nullptr, 10, result);
         CHECK_EQ(r, 1);
         CHECK_EQ(result, 255);
 
+        // 256 does not fit uint8_t
+        r = atoi_n<uint8_t>(two_fifty_six.size(), two_fifty_six.c_str(), nullptr, 10, result);
+        CHECK_EQ(r, 0);
+
         // 255 does not fit into int8_t, so this fails.
-        int8_t signed_result;
         r = atoi_n<int8_t>(two_fifty_five.size(), two_fifty_five.c_str(), nullptr, 10, signed_result);
+        CHECK_EQ(r, 0);
+
+        // 127 does fit into int8_t, this passes
+        r = atoi_n<int8_t>(one_twenty_seven.size(), one_twenty_seven.c_str(), nullptr, 10, signed_result);
+        CHECK_EQ(r, 1);
+        CHECK_EQ(signed_result, 127);
+
+        // -128 does fit into int8_t, this passes
+        r = atoi_n<int8_t>(minus_one_twenty_eight.size(), minus_one_twenty_eight.c_str(), nullptr, 10, signed_result);
+        CHECK_EQ(r, 1);
+        CHECK_EQ(signed_result, -128);
+
+        // 128 does not fit into int8_t, so this fails.
+        r = atoi_n<int8_t>(one_twenty_eight.size(), one_twenty_eight.c_str(), nullptr, 10, signed_result);
+        CHECK_EQ(r, 0);
+
+        // -129 does fit into int8_t, this passes
+        r = atoi_n<int8_t>(minus_one_twenty_nine.size(), minus_one_twenty_nine.c_str(), nullptr, 10, signed_result);
         CHECK_EQ(r, 0);
     }
 
@@ -2479,9 +2506,19 @@ TEST_SUITE("util") {
     TEST_CASE("atoi_n base 2 wrong end") {
         const char* dec = "010177"; // 5
         int val;
+        const char* endp;
 
-        CHECK(atoi_n(strlen(dec), dec, nullptr, 2, val) == 1);
+        CHECK(atoi_n(strlen(dec), dec, &endp, 2, val) == 1);
         CHECK(val == 5);
+        CHECK(*endp == '7');
+        CHECK(endp == (dec + 4));
+    }
+
+    TEST_CASE("atoi_n fronting space fails") {
+        const char* dec = " 40";
+        int val;
+
+        CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 0);
     }
 
     TEST_CASE("uitoa_n") {

@@ -23,7 +23,7 @@ if PR_NUMBER:
     }
 
     if GH_API_TOKEN:
-        headers["Authorization"] = f"Bearer: {GH_API_TOKEN}"
+        headers["Authorization"] = f"Bearer {GH_API_TOKEN}"
 
     req = urllib.request.Request(url, headers=headers)
     response = urllib.request.urlopen(req)

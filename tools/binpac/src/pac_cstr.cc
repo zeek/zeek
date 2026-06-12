@@ -56,11 +56,12 @@ int expand_escape(const char*& s) {
             for ( int len = 0; len < 3 && isascii(*s) && isdigit(*s); ++s, ++len )
                 ;
 
-            int result;
+            unsigned int result;
             if ( sscanf(start, "%3o", &result) != 1 )
                 throw EscapeException(strfmt("bad octal escape: \"%s", start));
 
-            return result;
+            // Capped at 777, safe to cast.
+            return static_cast<int>(result);
         }
 
         case 'x': { /* \x<hex> */
@@ -70,11 +71,12 @@ int expand_escape(const char*& s) {
             for ( int len = 0; len < 2 && isascii(*s) && isxdigit(*s); ++s, ++len )
                 ;
 
-            int result;
+            unsigned int result;
             if ( sscanf(start, "%2x", &result) != 1 )
                 throw EscapeException(strfmt("bad hexadecimal escape: \"%s", start));
 
-            return result;
+            // Capped at 255, safe to cast.
+            return static_cast<int>(result);
         }
 
         default: return s[-1];

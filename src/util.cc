@@ -2310,9 +2310,18 @@ TEST_SUITE("util") {
         CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 1);
         CHECK(val == 12345);
 
+        const char* dec0 = "012345";
+
+        CHECK(atoi_n(strlen(dec0), dec0, nullptr, 10, val) == 1);
+        CHECK(val == 12345);
+
         const char* hex = "12AB";
         CHECK(atoi_n(strlen(hex), hex, nullptr, 16, val) == 1);
         CHECK(val == 0x12AB);
+
+        const char* hex0 = "00ff";
+        CHECK(atoi_n(strlen(hex0), hex0, nullptr, 16, val) == 1);
+        CHECK(val == 0xff);
 
         const char* fail = "XYZ";
         CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);

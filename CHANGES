@@ -1,3 +1,11 @@
+9.0.0-dev.410 | 2026-06-12 11:59:19 -0700
+
+  * Fix token usage for GH API requests (Tim Wojtulewicz, Corelight)
+
+  * Pass -y to brew in macOS prepare.sh script (Tim Wojtulewicz, Corelight)
+
+  * Set ZEEK_CI_CPUS based on a parameter for some jobs (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.406 | 2026-06-12 11:08:43 -0700
 
   * Update to latest upstream libkqueue (Tim Wojtulewicz)

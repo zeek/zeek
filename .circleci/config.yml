@@ -221,6 +221,10 @@ jobs:
         description: The CircleCI resource class the Docker instance is run under
         type: string
         default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
       configure_flags:
         description: The flags passed to the Zeek configure script
         type: string
@@ -262,8 +266,8 @@ jobs:
     environment:
       ZEEK_CI: 1
       ZEEK_CI_CONFIGURE_FLAGS: << parameters.configure_flags >>
-      ZEEK_CI_CPUS: 4
-      ZEEK_CI_BTEST_JOBS: 4
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
       ZEEK_CI_BTEST_RETRIES: 2
       ZEEK_CI_RUNNER_OS: linux
       ZEEK_TEST_ULIMIT_OPEN_FILES: 256
@@ -514,13 +518,15 @@ jobs:
         type: string
       resource_class:
         type: string
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
     environment:
       ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
       BUILDKIT_PROGRESS: plain
       IMAGE_TAG: zeek/zeek-multiarch:<< parameters.arch >>
       IMAGE_ARCH: << parameters.arch >>
-      # This is based on the medium resource class passed into the job.
-      ZEEK_CI_CPUS: 4
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
       # These duplicate the default parameter values from the other jobs
       CCACHE_MAXSIZE: 1000M
       CCACHE_MAXFILES: 20000
@@ -986,14 +992,13 @@ workflows:
           resource_class: xlarge
           enable_coverage: true
           enable_fuzzer_tests: true
+          cpu_count: 8
           context:
             - zeek
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
-            ZEEK_CI_CPUS=8
-            ZEEK_CI_BTEST_JOBS=8
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: asan-sanitizer-zam
@@ -1001,12 +1006,11 @@ workflows:
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
+          cpu_count: 8
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
-            ZEEK_CI_CPUS=8
-            ZEEK_CI_BTEST_JOBS=6
             ZEEK_CI_SKIP_UNIT_TESTS=1
             ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
@@ -1058,11 +1062,13 @@ workflows:
           name: amd64-container-image
           arch: amd64
           resource_class: medium
+          cpu_count: 4
           << : *FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
       - release-image-build:
           name: arm64-container-image
           arch: arm64
           resource_class: arm.medium
+          cpu_count: 4
           << : *FILTER_NIGHTLY_OR_TAGGED
       - container-image-manifest-build:
           requires: [amd64-container-image, arm64-container-image]

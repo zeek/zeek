@@ -88,7 +88,6 @@ public:
 
     // Iterator support
     using iterator = zeek::DictIterator<file_analysis::Analyzer>;
-    ;
     using const_iterator = const iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;

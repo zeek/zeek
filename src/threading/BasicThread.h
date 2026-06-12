@@ -126,7 +126,6 @@ public:
      * other thread than the current one.
      */
     const char* Fmt(const char* format, ...) __attribute__((format(printf, 2, 3)));
-    ;
 
     /**
      * A version of strerror() that the thread can safely use. This is

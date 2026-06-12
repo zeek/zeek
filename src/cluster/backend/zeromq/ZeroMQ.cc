@@ -925,9 +925,9 @@ void ZeroMQBackend::HandleMonitoringMessages(const std::vector<MultipartMessage>
 
 void ZeroMQBackend::Run() {
     char name[4 + 2 + 16 + 1]{}; // zmq-0x<8byte pointer in hex><nul>
-    snprintf(name, sizeof(name), "zmq-%p", this);
+    snprintf(name, sizeof(name), "zmq-%p", static_cast<void*>(this));
     util::detail::set_thread_name(name);
-    ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread starting (%p)\n", this);
+    ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread starting (%p)\n", static_cast<void*>(this));
 
     struct SocketInfo {
         zmq::socket_ref socket;
@@ -960,7 +960,7 @@ void ZeroMQBackend::Run() {
         for ( auto& s : monitoring_sockets )
             s.close();
 
-        ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread sockets closed (%p)\n", this);
+        ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread sockets closed (%p)\n", static_cast<void*>(this));
     });
 
     std::vector<zmq::pollitem_t> poll_items(sockets.size());
@@ -1054,7 +1054,7 @@ void ZeroMQBackend::Run() {
                 throw;
 
             // Shutdown.
-            ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread terminating (%p)\n", this);
+            ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread terminating (%p)\n", static_cast<void*>(this));
             break;
         }
 

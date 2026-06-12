@@ -241,7 +241,7 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 <INITIAL>&until			return TOK_ATTR_UNTIL;
 
 <INITIAL,PP>"0x"{HEX}		{
-				int n;
+				unsigned int n;
 				sscanf(yytext + 2, "%x", &n);
 				yylval.num = new Number(yytext, n);
 				return TOK_NUMBER;

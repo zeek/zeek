@@ -530,6 +530,9 @@ jobs:
       # These duplicate the default parameter values from the other jobs
       CCACHE_MAXSIZE: 1000M
       CCACHE_MAXFILES: 20000
+      # Fixes an issue with the ubuntu-2404 image not having the latest buildx and the
+      # manifest getting deleted mid-build, which causes errors.
+      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
     machine:
       image: ubuntu-2404:current
       docker_layer_caching: true

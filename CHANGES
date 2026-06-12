@@ -1,3 +1,7 @@
+9.0.0-dev.406 | 2026-06-12 11:08:43 -0700
+
+  * Update to latest upstream libkqueue (Tim Wojtulewicz)
+
 9.0.0-dev.403 | 2026-06-11 12:57:57 -0700
 
   * Cache docker image directly with official Docker actions (Benjamin Bannier, Corelight)

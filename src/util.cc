@@ -1144,61 +1144,18 @@ int atoi_n(int len, const char* s, const char** end, int base, T& result) {
     if ( base < 2 || base > 36 )
         return 0;
 
-    if ( len > 0 && *s == '-' ) {
-        neg = 1;
-        --len;
-        ++s;
-    }
+    const char* last = s + len;
 
-    // Reject negative numbers for unsigned result type.
-    if ( neg && std::is_unsigned_v<T> )
+    auto r = std::from_chars(s, last, result, base);
+
+    if ( r.ec == std::errc::invalid_argument )
         return 0;
 
-    using Unsigned = std::make_unsigned_t<T>;
-    constexpr T min = std::numeric_limits<T>::min();
-    constexpr T max = std::numeric_limits<T>::max();
-    const auto base_u = static_cast<Unsigned>(base); // base unsigned
-
-    // int8_t: range -128..127
-    // If neg and signed, parse to 128 ((uint8_t(-128)), otherwise 127.
-    // For uint8_t, 255 (uint8_t max) is used. If neg, rejected above.
-    const auto max_value = (neg && std::is_signed_v<T>) ? static_cast<Unsigned>(min) : static_cast<Unsigned>(max);
-    uint64_t n = 0;
-
-    int i;
-    for ( i = 0; i < len; ++i ) {
-        unsigned int d;
-
-        if ( s[i] >= '0' && s[i] < '0' + base )
-            d = s[i] - '0';
-
-        else if ( s[i] >= 'a' && s[i] < 'a' - 10 + base )
-            d = s[i] - 'a' + 10;
-
-        else if ( s[i] >= 'A' && s[i] < 'A' - 10 + base )
-            d = s[i] - 'A' + 10;
-
-        else if ( i > 0 )
-            break;
-
-        else
-            return 0;
-
-        // Can we multiply n without overflowing? And then
-        // also add the digit just parsed? Else, fail.
-        if ( n > (max_value / base_u) || d > (max_value - n * base_u) )
-            return 0;
-
-        n = n * base + d;
-    }
-
-    if ( neg )
-        result = -n;
-    else
-        result = n;
+    if ( r.ec == std::errc::result_out_of_range )
+        return 0;
 
     if ( end )
-        *end = s + i;
+        *end = r.ptr;
 
     return 1;
 }
@@ -2332,6 +2289,20 @@ TEST_SUITE("util") {
         CHECK(atoi_n(strlen(dec), dec, nullptr, 37, val) == 0);
     }
 
+    // This succeeded previously and returned 0, with std::from_chars
+    // it fails, which seems very reasonable.
+    TEST_CASE("atoi_n empty string fails") {
+        int val;
+        CHECK(atoi_n(0, "", nullptr, 10, val) == 0);
+    }
+
+    // This succeeded previously and returned 0, with std::from_chars
+    // it fails, which seems very reasonable.
+    TEST_CASE("atoi_n solitary minus fails") {
+        int val;
+        CHECK(atoi_n(1, "-", nullptr, 10, val) == 0);
+    }
+
     TEST_CASE("atoi_n") {
         const char* dec = "12345";
         int val;
@@ -2339,9 +2310,18 @@ TEST_SUITE("util") {
         CHECK(atoi_n(strlen(dec), dec, nullptr, 10, val) == 1);
         CHECK(val == 12345);
 
+        const char* dec0 = "012345";
+
+        CHECK(atoi_n(strlen(dec0), dec0, nullptr, 10, val) == 1);
+        CHECK(val == 12345);
+
         const char* hex = "12AB";
         CHECK(atoi_n(strlen(hex), hex, nullptr, 16, val) == 1);
         CHECK(val == 0x12AB);
+
+        const char* hex0 = "00ff";
+        CHECK(atoi_n(strlen(hex0), hex0, nullptr, 16, val) == 1);
+        CHECK(val == 0xff);
 
         const char* fail = "XYZ";
         CHECK(atoi_n(strlen(fail), fail, nullptr, 10, val) == 0);

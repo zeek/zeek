@@ -1,3 +1,16 @@
+# NTP extensions were updated in RFC 7822 to be at least 16 bytes, as well as
+# be a multiple of 4. It also has a length field as the second 2 bytes of the
+# extension. This function checks whether the length field matches the proper
+# values, and is used to check to see if extensions should be parsed.
+function ntp_has_extensions(data: bytestring): bool
+	%{
+	if ( data.length() < 16 )
+		return false;
+
+	uint16_t ext_len = (data[2] << 8) | data[3];
+	return ext_len >= 16 && ext_len % 4 == 0 && ext_len <= static_cast<uint32_t>(data.length());
+	%}
+
 # This is the common part in the header format.
 # See RFC 5905 for details
 enum NTP_Mode {
@@ -52,20 +65,27 @@ type NTP_std_msg = record {
 	receive_ts:      NTP_Time;
 	transmit_ts:     NTP_Time;
 
+	trailing:        bytestring &restofdata;
+} &let {
+	# Pass the rest of the data to be processed as extension and/or MAC
+	ext_and_mac: NTP_Ext_and_MAC(trailing) withinput trailing;
+} &byteorder=bigendian;
+
+type NTP_Ext_and_MAC(data: bytestring) = record {
 	extensions: case ( has_exts ) of {
-		true  -> exts: Extension_Field[] &until($input.length() <= 24);
+		true  -> exts: Extension_Field[] &until($input.length() < 16);
 		false -> nil:  empty;
 	} &requires(has_exts);
 
-	mac_fields: case ( mac_len ) of {
-		20 -> mac: NTP_MAC;
-		24 -> mac_ext: NTP_MAC_ext;
-		default -> nil2: empty;
-	} &requires(mac_len);
+	mac_fields: case ( has_mac ) of {
+		true -> mac: NTP_MAC_var(mac_len);
+		false -> nil2: empty;
+	} &requires(has_mac);
 } &let {
-	length = sourcedata.length();
-	has_exts: bool = (length - offsetof(extensions)) > 24;
-	mac_len: uint32 = (length - offsetof(mac_fields));
+	# Check the rest of the data to see if extensions exist
+	has_exts: bool = ntp_has_extensions(data);
+	mac_len: uint32 = sourcedata.length() - offsetof(mac_fields);
+	has_mac: bool = mac_len >= 4;
 } &byteorder=bigendian &exportsourcedata;
 
 # This format is for mode==6, control msg
@@ -92,17 +112,11 @@ type NTP_control_msg = record {
 	has_control_mac: bool = (length - offsetof(mac_fields)) == 12;
 } &byteorder=bigendian &exportsourcedata;
 
-# As in RFC 5905
-type NTP_MAC = record {
+# As in RFC 5905, variable-length MAC: 4-byte key ID + variable-length digest
+type NTP_MAC_var(total_len: uint32) = record {
 	key_id: uint32;
-	digest: bytestring &length=16;
-} &length=20;
-
-# As in RFC 5906, same as NTP_MAC but with a 160 bit digest
-type NTP_MAC_ext = record {
-	key_id: uint32;
-	digest: bytestring &length=20;
-} &length=24;
+	digest: bytestring &length=(total_len - 4);
+};
 
 # As in RFC 1119
 type NTP_CONTROL_MAC = record {
@@ -114,13 +128,13 @@ type NTP_CONTROL_MAC = record {
 type Extension_Field = record {
 	first_byte_ext: uint8;
 	field_type:     uint8;
-	len:            uint16;
+	len:            uint16 &enforce(len >= 16);
 	association_id: uint16;
 	timestamp:      uint32;
 	filestamp:      uint32;
-	value_len:      uint32;
-	value:          bytestring &length=value_len;
-	sig_len:        uint32;
+	value_len:      uint32 &enforce(value_len <= (len - 18));
+	value:          bytestring &length=value_len ;
+	sig_len:        uint32 &enforce(value_len <= (len - 22));
 	signature:      bytestring &length=sig_len;
 	pad:            padding to (len - offsetof(first_byte_ext));
 } &let {

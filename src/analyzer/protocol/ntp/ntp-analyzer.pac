@@ -64,21 +64,16 @@
 		rv->Assign(10, proc_ntp_timestamp(${nsm.receive_ts}));
 		rv->Assign(11, proc_ntp_timestamp(${nsm.transmit_ts}));
 
-		if ( ${nsm.mac_len} == 20 )
+		if ( ${nsm.ext_and_mac.has_mac} )
 			{
-			rv->Assign(12, ${nsm.mac.key_id});
-			rv->Assign(13, to_stringval(${nsm.mac.digest}));
-			}
-		else if ( ${nsm.mac_len} == 24 )
-			{
-			rv->Assign(12, ${nsm.mac_ext.key_id});
-			rv->Assign(13, to_stringval(${nsm.mac_ext.digest}));
+			rv->Assign(12, ${nsm.ext_and_mac.mac.key_id});
+			rv->Assign(13, to_stringval(${nsm.ext_and_mac.mac.digest}));
 			}
 
-		if ( ${nsm.has_exts} )
+		if ( ${nsm.ext_and_mac.has_exts} )
 			{
 			// TODO: add extension fields
-			rv->Assign(14, static_cast<uint32>(${nsm.exts}->size()));
+			rv->Assign(14, static_cast<uint32>(${nsm.ext_and_mac.exts}->size()));
 			}
 
 		return rv;

@@ -111,7 +111,7 @@ type NTP_mode7_msg = record {
 	err_and_data_len  : uint16;
 	data              : bytestring &length=data_len;
 	have_mac          : case(auth_bit) of {
-		true  -> mac: NTP_MAC;
+		true  -> mac: NTP_MAC_var(20);
 		false -> nil: empty;
 	};
 } &let {

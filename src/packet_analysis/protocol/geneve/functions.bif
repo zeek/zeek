@@ -1,3 +1,5 @@
+%gen-native
+
 module PacketAnalyzer::Geneve;
 
 %%{

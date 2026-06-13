@@ -1,3 +1,5 @@
+%gen-native
+
 ##! The reporter built-in functions allow for the scripting layer to
 ##! generate messages of varying severity.  If no event handlers
 ##! exist for reporter messages, the messages are output to stderr.
@@ -22,10 +24,10 @@ module Reporter;
 ## .. zeek:see:: reporter_info
 function Reporter::info%(msg: string%): bool
 	%{
-	reporter->PushLocation(frame->GetCallLocation());
+	reporter->PushLocation(@FRAME@->GetCallLocation());
 	reporter->Info("%s", msg->CheckString());
 	reporter->PopLocation();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a message that warns of a potential problem.
@@ -37,10 +39,10 @@ function Reporter::info%(msg: string%): bool
 ## .. zeek:see:: reporter_warning
 function Reporter::warning%(msg: string%): bool
 	%{
-	reporter->PushLocation(frame->GetCallLocation());
+	reporter->PushLocation(@FRAME@->GetCallLocation());
 	reporter->Warning("%s", msg->CheckString());
 	reporter->PopLocation();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a usually non-fatal error indicative of a definite problem that
@@ -54,10 +56,10 @@ function Reporter::warning%(msg: string%): bool
 ## .. zeek:see:: reporter_error
 function Reporter::error%(msg: string%): bool
 	%{
-	reporter->PushLocation(frame->GetCallLocation());
+	reporter->PushLocation(@FRAME@->GetCallLocation());
 	reporter->Error("%s", msg->CheckString());
 	reporter->PopLocation();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a fatal error on stderr and terminates program execution.
@@ -67,10 +69,10 @@ function Reporter::error%(msg: string%): bool
 ## Returns: Always true.
 function Reporter::fatal%(msg: string%): bool
 	%{
-	reporter->PushLocation(frame->GetCallLocation());
+	reporter->PushLocation(@FRAME@->GetCallLocation());
 	reporter->FatalError("%s", msg->CheckString());
 	reporter->PopLocation();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a fatal error on stderr and terminates program execution
@@ -81,10 +83,10 @@ function Reporter::fatal%(msg: string%): bool
 ## Returns: Always true.
 function Reporter::fatal_error_with_core%(msg: string%): bool
 	%{
-	reporter->PushLocation(frame->GetCallLocation());
+	reporter->PushLocation(@FRAME@->GetCallLocation());
 	reporter->FatalErrorWithCore("%s", msg->CheckString());
 	reporter->PopLocation();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a "net" weird.
@@ -95,7 +97,7 @@ function Reporter::fatal_error_with_core%(msg: string%): bool
 function Reporter::net_weird%(name: string, addl: string &default="", source: string &default=""%): bool
 	%{
 	reporter->Weird(name->CheckString(), addl->CheckString(), source->CheckString());
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a "flow" weird.
@@ -110,7 +112,7 @@ function Reporter::net_weird%(name: string, addl: string &default="", source: st
 function Reporter::flow_weird%(name: string, orig: addr, resp: addr, addl: string &default="", source: string &default=""%): bool
 	%{
 	reporter->Weird(orig->AsAddr(), resp->AsAddr(), name->CheckString(), addl->CheckString(), source->CheckString());
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a "conn" weird.
@@ -135,7 +137,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 		                name->CheckString(), addl->CheckString(), source->CheckString());
 		}
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Generates a "file" weird.
@@ -153,10 +155,10 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 	auto file = zeek::file_mgr->LookupFile(fuid->CheckString());
 
 	if ( ! file )
-		return zeek::val_mgr->False();
+		return false;
 
 	reporter->Weird(file, name->CheckString(), addl->CheckString(), source->CheckString());
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Gets the weird sampling whitelist
@@ -170,7 +172,7 @@ function Reporter::get_weird_sampling_whitelist%(%): string_set
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
 		}
-	return std::move(set);
+	return set;
 	%}
 
 ## Sets the weird sampling whitelist
@@ -193,7 +195,7 @@ function Reporter::set_weird_sampling_whitelist%(weird_sampling_whitelist: strin
 		whitelist_set.emplace(std::move(key));
 		}
 	reporter->SetWeirdSamplingWhitelist(std::move(whitelist_set));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Gets the weird sampling global list
@@ -207,7 +209,7 @@ function Reporter::get_weird_sampling_global_list%(%): string_set
 		auto idx = zeek::make_intrusive<zeek::StringVal>(el);
 		set->Assign(std::move(idx), nullptr);
 		}
-	return std::move(set);
+	return set;
 	%}
 
 ## Sets the weird sampling global list
@@ -229,7 +231,7 @@ function Reporter::set_weird_sampling_global_list%(weird_sampling_global_list: s
 		global_list_set.emplace(std::move(key));
 		}
 	reporter->SetWeirdSamplingGlobalList(std::move(global_list_set));
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Gets the current weird sampling threshold
@@ -237,7 +239,7 @@ function Reporter::set_weird_sampling_global_list%(weird_sampling_global_list: s
 ## Returns: current weird sampling threshold.
 function Reporter::get_weird_sampling_threshold%(%) : count
 	%{
-	return zeek::val_mgr->Count(reporter->GetWeirdSamplingThreshold());
+	return reporter->GetWeirdSamplingThreshold();
 	%}
 
 ## Sets the current weird sampling threshold
@@ -248,7 +250,7 @@ function Reporter::get_weird_sampling_threshold%(%) : count
 function Reporter::set_weird_sampling_threshold%(weird_sampling_threshold: count%) : bool
 	%{
 	reporter->SetWeirdSamplingThreshold(weird_sampling_threshold);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 
@@ -257,7 +259,7 @@ function Reporter::set_weird_sampling_threshold%(weird_sampling_threshold: count
 ## Returns: weird sampling rate.
 function Reporter::get_weird_sampling_rate%(%) : count
 	%{
-	return zeek::val_mgr->Count(reporter->GetWeirdSamplingRate());
+	return reporter->GetWeirdSamplingRate();
 	%}
 
 ## Sets the weird sampling rate.
@@ -268,7 +270,7 @@ function Reporter::get_weird_sampling_rate%(%) : count
 function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 	%{
 	reporter->SetWeirdSamplingRate(weird_sampling_rate);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Gets the current weird sampling duration.
@@ -276,7 +278,7 @@ function Reporter::set_weird_sampling_rate%(weird_sampling_rate: count%) : bool
 ## Returns: weird sampling duration.
 function Reporter::get_weird_sampling_duration%(%) : interval
 	%{
-	return zeek::make_intrusive<zeek::IntervalVal>(reporter->GetWeirdSamplingDuration());
+	return reporter->GetWeirdSamplingDuration();
 	%}
 
 ## Sets the current weird sampling duration. Please note that
@@ -288,5 +290,5 @@ function Reporter::get_weird_sampling_duration%(%) : interval
 function Reporter::set_weird_sampling_duration%(weird_sampling_duration: interval%) : bool
 	%{
 	reporter->SetWeirdSamplingDuration(weird_sampling_duration);
-	return zeek::val_mgr->True();
+	return true;
 	%}

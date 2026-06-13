@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
@@ -667,7 +669,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	if ( precert && issuer_key_hash->Len() != 32)
 		{
 		zeek::reporter->Error("Invalid issuer_key_hash length");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	std::string data;
@@ -691,7 +693,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		if ( pos < 0 )
 			{
 			zeek::reporter->Error("NID_ct_precert_scts not found");
-			return zeek::val_mgr->False();
+			return false;
 			}
 #else
 		int num_ext = X509_get_ext_count(x);
@@ -781,7 +783,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	EVP_MD_CTX_destroy(mdctx);
 	EVP_PKEY_free(key);
 
-	return zeek::val_mgr->Bool(success);
+	return success;
 
 sct_verify_err:
 	if (mdctx)
@@ -790,7 +792,7 @@ sct_verify_err:
 		EVP_PKEY_free(key);
 
 	zeek::reporter->Error("%s", errstr.c_str());
-	return zeek::val_mgr->False();
+	return false;
 	%}
 
 
@@ -941,7 +943,7 @@ function x509_set_certificate_cache%(tbl: string_any_table%) : bool
 	%{
 	zeek::file_analysis::detail::X509::SetCertificateCache({zeek::NewRef{}, tbl->AsTableVal()});
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## This function sets up the callback that is called when an entry is matched against the table set
@@ -959,7 +961,7 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 	%{
 	zeek::file_analysis::detail::X509::SetCertificateCacheHitCallback({zeek::NewRef{}, f->AsFunc()});
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## This function checks a hostname against the name given in a certificate subject/SAN, including
@@ -977,10 +979,7 @@ function x509_set_certificate_cache_hit_callback%(f: string_any_file_hook%) : bo
 ## .. zeek:see:: x509_check_cert_hostname
 function x509_check_hostname%(hostname: string, certname: string%): bool
 	%{
-	if ( check_hostname(hostname->ToStdStringView(), certname->ToStdStringView()) )
-		return zeek::val_mgr->True();
-
-	return zeek::val_mgr->False();
+	return check_hostname(hostname->ToStdStringView(), certname->ToStdStringView());
 	%}
 
 ## This function checks if a hostname matches one of the hostnames given in the certificate.

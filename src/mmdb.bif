@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include "zeek/MMDB.h"
 %%}
@@ -12,7 +14,7 @@
 ## .. zeek:see:: lookup_autonomous_system
 function mmdb_open_location_db%(f: string%) : bool
 	%{
-	return zeek::mmdb_open_location_db(StringValPtr(NewRef(), f));
+	return zeek::mmdb_open_location_db(StringValPtr(NewRef(), f))->AsBool();
 	%}
 
 ## Initializes MMDB for later use of lookup_autonomous_system.
@@ -25,7 +27,7 @@ function mmdb_open_location_db%(f: string%) : bool
 ## .. zeek:see:: lookup_autonomous_system
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
-	return zeek::mmdb_open_asn_db(StringValPtr(NewRef(), f));
+	return zeek::mmdb_open_asn_db(StringValPtr(NewRef(), f))->AsBool();
 	%}
 
 ## Performs a geo-lookup of an IP address.

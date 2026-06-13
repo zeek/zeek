@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions to enable script-level control & querying of ZAM profiling.
 
 module ZAM::Prof;
@@ -41,8 +43,7 @@ module ZAM::Prof;
 ## .. zeek:see:: ZAM::Prof::get_module_profile ZAM::Prof::estimated_profiling_overhead
 function ZAM::Prof::set_module_profiling%(mod: string, active: bool%): count
 	%{
-	auto nbodies = detail::set_module_profiling(mod->ToStdString(), active);
-	return val_mgr->Count(nbodies);
+	return detail::set_module_profiling(mod->ToStdString(), active);
 	%}
 
 ## Returns the profile for the given module so far.
@@ -68,6 +69,5 @@ function ZAM::Prof::get_module_profile%(mod: string%): ZAM::Prof::Profile
 function ZAM::Prof::estimated_profiling_overhead%(%): interval
 	%{
 	detail::estimate_ZAM_profiling_overhead();
-	auto tot = detail::CPU_prof_overhead + detail::mem_prof_overhead;
-	return make_intrusive<IntervalVal>(tot);
+	return detail::CPU_prof_overhead + detail::mem_prof_overhead;
 	%}

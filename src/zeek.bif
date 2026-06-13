@@ -1,3 +1,5 @@
+%gen-native
+
 ##! A collection of built-in functions that implement a variety of things
 ##! such as general programming algorithms, string processing, math functions,
 ##! introspection, type conversion, file/directory manipulation, packet
@@ -398,7 +400,7 @@ static zeek::plugin::component::Type CategoryStringToEnum(const std::string& cat
 ## .. zeek:see:: network_time set_network_time
 function current_time%(%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(zeek::util::current_time());
+	return zeek::util::current_time();
 	%}
 
 ## Returns the timestamp of the last packet processed. This function returns
@@ -410,7 +412,7 @@ function current_time%(%): time
 ## .. zeek:see:: current_time set_network_time
 function network_time%(%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(zeek::run_state::network_time);
+	return zeek::run_state::network_time;
 	%}
 
 ## Sets the timestamp associated with the last packet processed. Used for
@@ -424,7 +426,7 @@ function network_time%(%): time
 function set_network_time%(nt: time%): bool
 	%{
 	zeek::run_state::network_time = nt;
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Returns the timestamp of the last raised event. The timestamp reflects the
@@ -437,7 +439,7 @@ function set_network_time%(nt: time%): bool
 ## .. zeek:see:: current_time set_network_time
 function current_event_time%(%): time
 	%{
-	return zeek::make_intrusive<zeek::TimeVal>(zeek::event_mgr.CurrentEventTime());
+	return zeek::event_mgr.CurrentEventTime();
 	%}
 
 ## Register the expected Zeek type for event metadata.
@@ -458,13 +460,12 @@ function EventMetadata::register%(id: EventMetadata::ID, t: any%): bool
        if ( tty->Tag() != zeek::TYPE_TYPE )
                {
                zeek::emit_builtin_error("register_event_metadata() expects type");
-               return zeek::val_mgr->False();
+               return false;
                }
 
        EnumValPtr idvp = {zeek::NewRef{}, id->AsEnumVal()};
 
-       bool r = zeek::event_registry->RegisterMetadata(idvp, tty->AsTypeType()->GetType());
-       return zeek::val_mgr->Bool(r);
+       return zeek::event_registry->RegisterMetadata(idvp, tty->AsTypeType()->GetType());
        %}
 
 ## Query the current event's metadata with identifier *id*.
@@ -542,8 +543,8 @@ function setenv%(var: string, val: string%): bool
 	                    val->AsString()->CheckString(), 1);
 
 	if ( result < 0 )
-		return zeek::val_mgr->False();
-	return zeek::val_mgr->True();
+		return false;
+	return true;
 	%}
 
 ## Shuts down the Zeek process immediately.
@@ -566,10 +567,10 @@ function exit%(code: int%): any
 function terminate%(%): bool
 	%{
 	if ( zeek::run_state::terminating )
-		return zeek::val_mgr->False();
+		return false;
 
 	zeek::util::detail::terminate_processing();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 %%{
@@ -716,8 +717,7 @@ static int do_system(const char* s)
 ##      to an internal system failure.
 function system%(str: string%): int
 	%{
-	int result = do_system(str->CheckString());
-	return zeek::val_mgr->Int(result);
+	return do_system(str->CheckString());
 	%}
 
 ## Invokes a command via the ``system`` function of the OS with a prepared
@@ -738,17 +738,17 @@ function system_env%(str: string, env: table_string_of_string%): int
 	if ( env->GetType()->Tag() != zeek::TYPE_TABLE )
 		{
 		zeek::emit_builtin_error("system_env() requires a table argument");
-		return zeek::val_mgr->Int(-1);
+		return -1;
 		}
 
 	if ( ! prepare_environment(env->AsTableVal(), true) )
-		return zeek::val_mgr->Int(-1);
+		return -1;
 
 	int result = do_system(str->CheckString());
 
 	prepare_environment(env->AsTableVal(), false);
 
-	return zeek::val_mgr->Int(result);
+	return result;
 	%}
 
 ## Opens a program with ``popen`` and writes a given string to the returned
@@ -772,7 +772,7 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( ! tmppath )
 		{
 		zeek::reporter->Error("Failed to create temp file name for %s", prog);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 		{
@@ -781,7 +781,7 @@ function piped_exec%(program: string, to_write: string%): bool
 			{
 			free(tmppath);
 			zeek::reporter->Error("Failed to create temp file for %s", prog);
-			return zeek::val_mgr->False();
+			return false;
 			}
 		fputs(prog, tf);
 		fputc('\n', tf);
@@ -800,7 +800,7 @@ function piped_exec%(program: string, to_write: string%): bool
 		free(tmppath);
 #endif
 		zeek::reporter->Error("Failed to popen %s", prog);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	const u_char* input_data = to_write->Bytes();
@@ -818,10 +818,10 @@ function piped_exec%(program: string, to_write: string%): bool
 	if ( bytes_written != input_data_len )
 		{
 		zeek::reporter->Error("Failed to write all given data to %s", prog);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Sleeps for the given amount of time.
@@ -841,8 +841,7 @@ function sleep%(i: interval%): interval
 	const auto start = std::chrono::high_resolution_clock::now();
 	std::this_thread::sleep_for(std::chrono::duration<double>(i));
 	const auto end = std::chrono::high_resolution_clock::now();
-	const auto slept = std::chrono::duration<double>(end - start).count();
-	return zeek::make_intrusive<zeek::IntervalVal>(slept);
+	return std::chrono::duration<double>(end - start).count();
         %}
 
 %%{
@@ -1048,7 +1047,7 @@ function md5_hash_init%(%): opaque of md5
 	%{
 	auto digest = zeek::make_intrusive<zeek::MD5Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
@@ -1076,7 +1075,7 @@ function sha1_hash_init%(%): opaque of sha1
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA1Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA224 handle to enable incremental hash computation. You can
@@ -1096,7 +1095,7 @@ function sha224_hash_init%(%): opaque of sha224
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA224Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
@@ -1124,7 +1123,7 @@ function sha256_hash_init%(%): opaque of sha256
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA256Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA384 handle to enable incremental hash computation. You can
@@ -1144,7 +1143,7 @@ function sha384_hash_init%(%): opaque of sha384
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA384Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Constructs an SHA512 handle to enable incremental hash computation. You can
@@ -1172,7 +1171,7 @@ function sha512_hash_init%(%): opaque of sha512
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA512Val>();
 	digest->Init();
-	return std::move(digest);
+	return digest;
 	%}
 
 ## Updates the MD5 value associated with a given index. It is required to
@@ -1193,8 +1192,7 @@ function sha512_hash_init%(%): opaque of sha512
 ##    sha512_hash sha512_hash_init sha512_hash_update sha512_hash_finish
 function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Updates the SHA1 value associated with a given index. It is required to
@@ -1215,8 +1213,7 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 ##    sha512_hash sha512_hash_init sha512_hash_update sha512_hash_finish
 function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Updates the SHA224 value associated with a given index. It is required to
@@ -1237,8 +1234,7 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 ##    sha512_hash sha512_hash_init sha512_hash_update sha512_hash_finish
 function sha224_hash_update%(handle: opaque of sha224, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Updates the SHA256 value associated with a given index. It is required to
@@ -1259,8 +1255,7 @@ function sha224_hash_update%(handle: opaque of sha224, data: string%): bool
 ##    sha512_hash sha512_hash_init sha512_hash_update sha512_hash_finish
 function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Updates the SHA384 value associated with a given index. It is required to
@@ -1281,8 +1276,7 @@ function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 ##    sha512_hash sha512_hash_init sha512_hash_update sha512_hash_finish
 function sha384_hash_update%(handle: opaque of sha384, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Updates the SHA512 value associated with a given index. It is required to
@@ -1303,8 +1297,7 @@ function sha384_hash_update%(handle: opaque of sha384, data: string%): bool
 ##    sha512_hash sha512_hash_init sha512_hash_finish
 function sha512_hash_update%(handle: opaque of sha512, data: string%): bool
 	%{
-	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
-	return zeek::val_mgr->Bool(rc);
+	return static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Returns the final MD5 digest of an incremental hash computation.
@@ -1478,9 +1471,7 @@ function paraglob_match%(handle: opaque of paraglob, match: string%): string_vec
 ## .. zeek:see:: paraglob_match paraglob_init
 function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%) : bool
 	%{
-	return zeek::val_mgr->Bool(
-		*(static_cast<ParaglobVal*>(p_one)) ==  *(static_cast<ParaglobVal*>(p_two))
-	);
+	return *(static_cast<ParaglobVal*>(p_one)) ==  *(static_cast<ParaglobVal*>(p_two));
 	%}
 
 %%{
@@ -1528,8 +1519,7 @@ function fnv1a32%(input: any%): count
 	uint32_t offset = 2166136261;
 	uint32_t prime = 16777619;
 
-	auto hash = fnva<uint32_t>(input, offset, prime);
-	return zeek::val_mgr->Count(hash);
+	return fnva<uint32_t>(input, offset, prime);
 	%}
 
 ## Returns 64-bit digest of arbitrary input values using FNV-1a hash algorithm.
@@ -1543,8 +1533,7 @@ function fnv1a64%(input: any%): count
 	uint64_t offset = 0xCBF29CE484222325;
 	uint64_t prime = 0x100000001B3;
 
-	uint64_t hash = fnva(input, offset, prime);
-	return zeek::val_mgr->Count(hash);
+	return fnva(input, offset, prime);
 	%}
 
 ## Calculates a weight value for use in a Rendezvous Hashing algorithm.
@@ -1571,7 +1560,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 
 	uint32_t rval = (a * ((a * si + b) ^ d) + b) % m;
 
-	return zeek::val_mgr->Count(rval);
+	return rval;
 	%}
 
 ## Generates a random number.
@@ -1588,8 +1577,7 @@ function hrw_weight%(key_digest: count, site_id: count%): count
 ##      provided by the OS.
 function rand%(max: count%): count
 	%{
-	auto result = static_cast<zeek_uint_t>(static_cast<double>(max) * static_cast<double>(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
-	return zeek::val_mgr->Count(result);
+	return static_cast<zeek_uint_t>(static_cast<double>(max) * static_cast<double>(zeek::util::detail::random_number()) / (zeek::util::detail::max_random() + 1.0));
 	%}
 
 ## Sets the seed for subsequent :zeek:id:`rand` calls.
@@ -1720,7 +1708,7 @@ function find_entropy%(data: string%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return std::move(ent_result);
+	return ent_result;
 	%}
 
 ## Initializes data structures for incremental entropy calculation.
@@ -1744,9 +1732,7 @@ function entropy_test_init%(%): opaque of entropy
 ## .. zeek:see:: find_entropy entropy_test_add entropy_test_finish
 function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 	%{
-	bool status = static_cast<EntropyVal*>(handle)->Feed(data->Bytes(),
-	                                                     data->Len());
-	return zeek::val_mgr->Bool(status);
+	return static_cast<EntropyVal*>(handle)->Feed(data->Bytes(), data->Len());
 	%}
 
 ## Finishes an incremental entropy calculation. Before using this function,
@@ -1776,7 +1762,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return std::move(ent_result);
+	return ent_result;
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1865,7 +1851,7 @@ function table_values%(t: any%): any_vec
 		vv->Append(iter.value->GetVal());
 		}
 
-	return std::move(vv);
+	return vv;
 	%}
 
 ## Gets all keys from a table.
@@ -1892,7 +1878,7 @@ function table_keys%(t: any%): any
 		sv->Assign(th->RecoverVals(*iter.GetHashKey()), nullptr);
 		}
 
-	return std::move(sv);
+	return sv;
 	%}
 
 ## Gets all subnets that contain a given subnet from a set/table[subnet].
@@ -1946,19 +1932,19 @@ function check_subnet%(search: subnet, t: any%): bool
 	if ( t->GetType()->Tag() != zeek::TYPE_TABLE || ! t->GetType()->AsTableType()->IsSubNetIndex() )
 		{
 		zeek::reporter->Error("check_subnet needs to be called on a set[subnet]/table[subnet].");
-		return nullptr;
+		return false;
 		}
 
 	const zeek::detail::PrefixTable* pt = t->AsTableVal()->Subnets();
 	if ( ! pt )
 		{
 		zeek::reporter->Error("check_subnet encountered nonexisting prefix table.");
-		return nullptr;
+		return false;
 		}
 
 	void* res = pt->Lookup(search, true);
 
-	return zeek::val_mgr->Bool(res != nullptr);
+	return res != nullptr;
 	%}
 
 ## Checks whether two objects reference the same internal object. This function
@@ -1972,7 +1958,7 @@ function check_subnet%(search: subnet, t: any%): bool
 ## Returns: True if *o1* and *o2* are equal.
 function same_object%(o1: any, o2: any%): bool
 	%{
-	return zeek::val_mgr->Bool(o1 == o2);
+	return o1 == o2;
 	%}
 
 ## Resizes a vector.
@@ -1987,10 +1973,10 @@ function resize%(aggr: any, newsize: count%) : count
 	if ( aggr->GetType()->Tag() != zeek::TYPE_VECTOR )
 		{
 		zeek::emit_builtin_error("resize() operates on vectors");
-		return nullptr;
+		return 0;
 		}
 
-	return zeek::val_mgr->Count(aggr->AsVectorVal()->Resize(newsize));
+	return aggr->AsVectorVal()->Resize(newsize);
 	%}
 
 ## Tests whether a boolean vector (``vector of bool``) has *any* true
@@ -2007,15 +1993,15 @@ function any_set%(v: any%) : bool
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
 		zeek::emit_builtin_error("any_set() requires vector of bool");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( vv->BoolAt(i) )
-			return zeek::val_mgr->True();
+			return true;
 
-	return zeek::val_mgr->False();
+	return false;
 	%}
 
 ## Tests whether *all* elements of a boolean vector (``vector of bool``) are
@@ -2036,15 +2022,15 @@ function all_set%(v: any%) : bool
 	     v->GetType()->Yield()->Tag() != zeek::TYPE_BOOL )
 		{
 		zeek::emit_builtin_error("all_set() requires vector of bool");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	VectorVal* vv = v->AsVectorVal();
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		if ( ! vv->BoolAt(i) )
-			return zeek::val_mgr->False();
+			return false;
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Sorts a vector in place. The second argument is a comparison function that
@@ -2326,7 +2312,7 @@ function print_raw%(...%): bool
 	d.SetStyle(RAW_STYLE);
 	describe_vals(@ARG@, &d, 0);
 	printf("%.*s", static_cast<int>(d.Size()), d.Description());
-	return zeek::val_mgr->Bool(true);
+	return true;
 	%}
 
 # ===========================================================================
@@ -2346,7 +2332,7 @@ function print_raw%(...%): bool
 ## .. zeek:see:: ceil sqrt exp ln log2 log10 pow
 function floor%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(floor(d));
+	return floor(d);
 	%}
 
 ## Computes the smallest integer greater or equal than the given :zeek:type:`double` value.
@@ -2360,7 +2346,7 @@ function floor%(d: double%): double
 ## .. zeek:see:: floor sqrt exp ln log2 log10 pow
 function ceil%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(ceil(d));
+	return ceil(d);
 	%}
 
 ## Computes the square root of a :zeek:type:`double`.
@@ -2375,10 +2361,10 @@ function sqrt%(x: double%): double
 	if ( x < 0 )
 		{
 		zeek::reporter->Error("negative sqrt argument");
-		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
+		return -1.0;
 		}
 
-	return zeek::make_intrusive<zeek::DoubleVal>(sqrt(x));
+	return sqrt(x);
 	%}
 
 ## Computes the exponential function.
@@ -2390,7 +2376,7 @@ function sqrt%(x: double%): double
 ## .. zeek:see:: floor ceil sqrt ln log2 log10 pow
 function exp%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(exp(d));
+	return exp(d);
 	%}
 
 ## Computes the natural logarithm of a number.
@@ -2402,7 +2388,7 @@ function exp%(d: double%): double
 ## .. zeek:see:: floor ceil sqrt exp log2 log10 pow
 function ln%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(log(d));
+	return log(d);
 	%}
 
 ## Computes the base 2 logarithm of a number.
@@ -2414,7 +2400,7 @@ function ln%(d: double%): double
 ## .. zeek:see:: floor ceil sqrt exp ln log10 pow
 function log2%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(log2(d));
+	return log2(d);
 	%}
 
 ## Computes the common logarithm of a number.
@@ -2426,7 +2412,7 @@ function log2%(d: double%): double
 ## .. zeek:see:: floor ceil sqrt exp ln log2 pow
 function log10%(d: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(log10(d));
+	return log10(d);
 	%}
 
 ## Computes the *x* raised to the power *y*.
@@ -2440,7 +2426,7 @@ function log10%(d: double%): double
 ## .. zeek:see:: floor ceil sqrt exp ln log2 log10
 function pow%(x: double, y: double%): double
 	%{
-	return zeek::make_intrusive<zeek::DoubleVal>(pow(x, y));
+	return pow(x, y);
 	%}
 
 # ===========================================================================
@@ -2455,7 +2441,7 @@ function pow%(x: double, y: double%): double
 ##          none.
 function current_analyzer%(%) : count
 	%{
-	return zeek::val_mgr->Count(zeek::event_mgr.CurrentAnalyzer());
+	return zeek::event_mgr.CurrentAnalyzer();
 	%}
 
 ## Returns Zeek's process ID.
@@ -2463,7 +2449,7 @@ function current_analyzer%(%) : count
 ## Returns: Zeek's process ID.
 function getpid%(%) : count
 	%{
-	return zeek::val_mgr->Count(getpid());
+	return getpid();
 	%}
 
 %%{
@@ -2491,7 +2477,7 @@ extern bool bare_mode;
 ## Returns: True if Zeek was started in bare mode, false otherwise.
 function bare_mode%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::run_state::detail::bare_mode);
+	return zeek::run_state::detail::bare_mode;
 	%}
 
 ## Returns the type name of an arbitrary Zeek variable.
@@ -2600,7 +2586,7 @@ function type_aliases%(x: any%): string_set
 	for ( const auto& name : it->second )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Returns all value names associated with an enum type.
@@ -2632,7 +2618,7 @@ function enum_names%(et: any%): string_set
 	for ( const auto& [name, i] : enum_type->Names() )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
@@ -2644,7 +2630,7 @@ function zeek_args%(%): string_vec
 	for ( auto i = 0; i < zeek::detail::zeek_argc; ++i )
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(zeek::detail::zeek_argv[i]));
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
@@ -2657,7 +2643,7 @@ function zeek_args%(%): string_vec
 ## .. zeek:see:: reading_traces packet_source
 function reading_live_traffic%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::run_state::reading_live);
+	return zeek::run_state::reading_live;
 	%}
 
 ## Checks whether Zeek reads traffic from a trace file (as opposed to from a
@@ -2668,7 +2654,7 @@ function reading_live_traffic%(%): bool
 ## .. zeek:see:: reading_live_traffic packet_source
 function reading_traces%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::run_state::reading_traces);
+	return zeek::run_state::reading_traces;
 	%}
 
 ## Returns: the packet source being read by Zeek.
@@ -2688,7 +2674,7 @@ function packet_source%(%): PacketSource
 		r->Assign(3, ps->Netmask());
 		}
 
-	return std::move(r);
+	return r;
 	%}
 
 ## Generates a table of the "footprint" of all global container variables.
@@ -2718,7 +2704,7 @@ function global_container_footprints%(%): var_sizes
 		sizes->Assign(std::move(id_name), std::move(fp));
 		}
 
-	return std::move(sizes);
+	return sizes;
 	%}
 
 ## Computes a value's "footprint": the number of objects the value contains
@@ -2730,7 +2716,7 @@ function global_container_footprints%(%): var_sizes
 ## .. zeek:see:: global_container_footprints
 function val_footprint%(v: any%): count
 	%{
-	return zeek::val_mgr->Count(v->Footprint());
+	return v->Footprint();
 	%}
 
 ## Generates a table with information about all global identifiers. The table
@@ -2817,7 +2803,7 @@ function global_ids%(%): id_table
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
-	return std::move(ids);
+	return ids;
 	%}
 
 ## Returns a set giving the names of all global options.
@@ -2836,7 +2822,7 @@ function global_options%(%): string_set
 		options->Assign(std::move(id_name), nullptr);
 		}
 
-	return std::move(options);
+	return options;
 	%}
 
 ## Returns the value of a global identifier.
@@ -2926,7 +2912,7 @@ function do_profiling%(%) : any
 function is_local_interface%(ip: addr%) : bool
 	%{
 	if ( ip->AsAddr().IsLoopback() )
-		return zeek::val_mgr->True();
+		return true;
 #ifndef _MSC_VER
 	list<zeek::IPAddr> addrs;
 
@@ -2958,10 +2944,10 @@ function is_local_interface%(ip: addr%) : bool
 	for ( it = addrs.begin(); it != addrs.end(); ++it )
 		{
 		if ( *it == ip->AsAddr() )
-			return zeek::val_mgr->True();
+			return true;
 		}
 #endif
-	return zeek::val_mgr->False();
+	return false;
 	%}
 
 ## Write rule matcher statistics (DFA states, transitions, memory usage, cache
@@ -2977,7 +2963,7 @@ function dump_rule_stats%(f: file%): bool
 	if ( zeek::detail::rule_matcher )
 		zeek::detail::rule_matcher->DumpStats(f);
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Checks if Zeek is terminating.
@@ -2987,7 +2973,7 @@ function dump_rule_stats%(f: file%): bool
 ## .. zeek:see:: terminate
 function zeek_is_terminating%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::run_state::terminating);
+	return zeek::run_state::terminating;
 	%}
 
 ## Returns the hostname of the machine Zeek runs on.
@@ -3010,10 +2996,7 @@ function gethostname%(%) : string
 ## Returns: true if *a* is an IPv4 address, else false.
 function is_v4_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPv4 )
-		return zeek::val_mgr->True();
-	else
-		return zeek::val_mgr->False();
+	return a->AsAddr().GetFamily() == IPv4;
 	%}
 
 ## Returns whether an address is IPv6 or not.
@@ -3023,10 +3006,7 @@ function is_v4_addr%(a: addr%): bool
 ## Returns: true if *a* is an IPv6 address, else false.
 function is_v6_addr%(a: addr%): bool
 	%{
-	if ( a->AsAddr().GetFamily() == IPv6 )
-		return zeek::val_mgr->True();
-	else
-		return zeek::val_mgr->False();
+	return a->AsAddr().GetFamily() == IPv6;
 	%}
 
 ## Returns whether a subnet specification is IPv4 or not.
@@ -3036,10 +3016,7 @@ function is_v6_addr%(a: addr%): bool
 ## Returns: true if *s* is an IPv4 subnet, else false.
 function is_v4_subnet%(s: subnet%): bool
 	%{
-	if ( s->AsSubNet().Prefix().GetFamily() == IPv4 )
-		return zeek::val_mgr->True();
-	else
-		return zeek::val_mgr->False();
+	return s->AsSubNet().Prefix().GetFamily() == IPv4;
 	%}
 
 ## Returns whether a subnet specification is IPv6 or not.
@@ -3049,10 +3026,7 @@ function is_v4_subnet%(s: subnet%): bool
 ## Returns: true if *s* is an IPv6 subnet, else false.
 function is_v6_subnet%(s: subnet%): bool
 	%{
-	if ( s->AsSubNet().Prefix().GetFamily() == IPv6 )
-		return zeek::val_mgr->True();
-	else
-		return zeek::val_mgr->False();
+	return s->AsSubNet().Prefix().GetFamily() == IPv6;
 	%}
 
 %%{
@@ -3102,7 +3076,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 		len -= 16;
 		}
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Converts an :zeek:type:`addr` to an :zeek:type:`index_vec`.
@@ -3133,7 +3107,7 @@ function counts_to_addr%(v: index_vec%): addr
 	auto result = detail::convert_counts_to_addr(vv, err);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		zeek::emit_builtin_error(err.c_str(), v);
 		uint32_t bytes[4];
 		memset(bytes, 0, sizeof(bytes));
 		return zeek::make_intrusive<zeek::AddrVal>(bytes);
@@ -3151,10 +3125,10 @@ function enum_to_int%(e: any%): int
 	if ( e->GetType()->Tag() != zeek::TYPE_ENUM )
 		{
 		zeek::emit_builtin_error("enum_to_int() requires enum value");
-		return zeek::val_mgr->Int(-1);
+		return -1;
 		}
 
-	return detail::convert_enum_to_int(e->AsEnum());
+	return e->AsEnum();
 	%}
 
 ## Converts a :zeek:type:`string` to an :zeek:type:`int`. For values where
@@ -3170,13 +3144,13 @@ function enum_to_int%(e: any%): int
 function to_int%(str: string, base: count &default=10%): int
 	%{
 	std::string err;
-	auto result = detail::convert_string_to_int(str, err, base);
+	auto result = detail::convert_string_to_native_int(str, err, base);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
-		return zeek::val_mgr->Int(0);
+		zeek::emit_builtin_error(err.c_str(), str);
+		return 0;
 		}
-	return result;
+	return *result;
 	%}
 
 
@@ -3188,13 +3162,13 @@ function to_int%(str: string, base: count &default=10%): int
 function int_to_count%(n: int%): count
 	%{
 	std::string err;
-	auto result = detail::convert_int_to_count(n, err);
+	auto result = detail::convert_int_to_native_count(n, err);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
-		return zeek::val_mgr->Count(0);
+		zeek::emit_builtin_error(err.c_str(), zeek::val_mgr->Int(n));
+		return 0;
 		}
-	return result;
+	return *result;
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`int`.
@@ -3207,7 +3181,7 @@ function int_to_count%(n: int%): count
 ## .. zeek:see:: double_to_time
 function double_to_int%(d: double%): int
 	%{
-	return detail::convert_double_to_int(d);
+	return zeek_int_t(rint(d));
 	%}
 
 ## Converts a :zeek:type:`double` to a :zeek:type:`count`.
@@ -3220,13 +3194,13 @@ function double_to_int%(d: double%): int
 function double_to_count%(d: double%): count
 	%{
 	std::string err;
-	auto result = detail::convert_double_to_count(d, err);
+	auto result = detail::convert_double_to_native_count(d, err);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
-		return zeek::val_mgr->Count(0);
+		zeek::emit_builtin_error(err.c_str(), zeek::make_intrusive<zeek::DoubleVal>(d));
+		return 0;
 		}
-	return result;
+	return *result;
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`count`. For values where
@@ -3243,13 +3217,13 @@ function double_to_count%(d: double%): count
 function to_count%(str: string, base: count &default=10%): count
 	%{
 	std::string err;
-	auto result = detail::convert_string_to_count(str, err, base);
+	auto result = detail::convert_string_to_native_count(str, err, base);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
-		return zeek::val_mgr->Count(0);
+		zeek::emit_builtin_error(err.c_str(), str);
+		return 0;
 		}
-	return result;
+	return *result;
 	%}
 
 ## Converts an :zeek:type:`interval` to a :zeek:type:`double`.
@@ -3261,7 +3235,7 @@ function to_count%(str: string, base: count &default=10%): count
 ## .. zeek:see:: double_to_interval
 function interval_to_double%(i: interval%): double
 	%{
-	return detail::convert_interval_to_double(i);
+	return i;
 	%}
 
 ## Converts a :zeek:type:`count` to a :zeek:type:`double`.
@@ -3273,7 +3247,7 @@ function interval_to_double%(i: interval%): double
 ## .. zeek:see:: int_to_double double_to_count
 function count_to_double%(c: count%): double
 	%{
-	return detail::convert_count_to_double(c);
+	return c;
 	%}
 
 ## Converts an :zeek:type:`int` to a :zeek:type:`double`.
@@ -3285,7 +3259,7 @@ function count_to_double%(c: count%): double
 ## .. zeek:see:: count_to_double double_to_count
 function int_to_double%(i: int%): double
 	%{
-	return detail::convert_int_to_double(i);
+	return i;
 	%}
 
 ## Converts a :zeek:type:`time` value to a :zeek:type:`double`.
@@ -3297,7 +3271,7 @@ function int_to_double%(i: int%): double
 ## .. zeek:see:: double_to_time
 function time_to_double%(t: time%): double
 	%{
-	return detail::convert_time_to_double(t);
+	return t;
 	%}
 
 ## Converts a :zeek:type:`double` value to a :zeek:type:`time`.
@@ -3309,7 +3283,7 @@ function time_to_double%(t: time%): double
 ## .. zeek:see:: time_to_double double_to_count
 function double_to_time%(d: double%): time
 	%{
-	return detail::convert_double_to_time(d);
+	return d;
 	%}
 
 ## Converts a :zeek:type:`double` to an :zeek:type:`interval`.
@@ -3321,7 +3295,7 @@ function double_to_time%(d: double%): time
 ## .. zeek:see:: interval_to_double
 function double_to_interval%(d: double%): interval
 	%{
-	return detail::convert_double_to_interval(d);
+	return d;
 	%}
 
 ## Converts a :zeek:type:`port` to a :zeek:type:`count`.
@@ -3333,7 +3307,7 @@ function double_to_interval%(d: double%): interval
 ## .. zeek:see:: count_to_port
 function port_to_count%(p: port%): count
 	%{
-	return detail::convert_port_to_count(p->Port());
+	return p->Port();
 	%}
 
 ## Converts a :zeek:type:`count` and ``transport_proto`` to a :zeek:type:`port`.
@@ -3378,7 +3352,7 @@ function to_addr%(ip: string%): addr
 ## Returns: T if the string is a valid IPv4 or IPv6 address format.
 function is_valid_ip%(ip: string%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::IPAddr::IsValid(ip->ToStdString().c_str()));
+	return zeek::IPAddr::IsValid(ip->ToStdString().c_str());
 	%}
 
 ## Checks if a string is a valid IPv4 or IPv6 subnet.
@@ -3388,7 +3362,7 @@ function is_valid_ip%(ip: string%): bool
 ## Returns: T if the string is a valid IPv4 or IPv6 subnet format.
 function is_valid_subnet%(cidr: string%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::IPPrefix::IsValid(cidr->ToStdString().c_str()));
+	return zeek::IPPrefix::IsValid(cidr->ToStdString().c_str());
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
@@ -3410,7 +3384,7 @@ function to_subnet%(sn: string%): subnet
 
 	auto ret = zeek::make_intrusive<zeek::SubNetVal>(tmp);
 	delete [] s;
-	return std::move(ret);
+	return ret;
 	%}
 
 ## Converts a :zeek:type:`addr` to a :zeek:type:`subnet`.
@@ -3447,7 +3421,7 @@ function subnet_to_addr%(sn: subnet%): addr
 ## .. zeek:see:: to_subnet
 function subnet_width%(sn: subnet%): count
 	%{
-	return zeek::val_mgr->Count(sn->Width());
+	return sn->Width();
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`double`.
@@ -3460,13 +3434,13 @@ function subnet_width%(sn: subnet%): count
 function to_double%(str: string%): double
 	%{
 	std::string err;
-	auto result = detail::convert_string_to_double(str, err);
+	auto result = detail::convert_string_to_native_double(str, err);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
-		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
+		zeek::emit_builtin_error(err.c_str(), str);
+		return 0.0;
 		}
-	return result;
+	return *result;
 	%}
 
 ## Converts a :zeek:type:`count` to an :zeek:type:`addr`.
@@ -3482,7 +3456,7 @@ function count_to_v4_addr%(ip: count%): addr
 	auto result = detail::convert_count_to_v4_addr(ip, err);
 	if ( ! result )
 		{
-		zeek::emit_builtin_error(err.c_str(), @ARG@[0]);
+		zeek::emit_builtin_error(err.c_str(), zeek::val_mgr->Count(ip));
 		return zeek::make_intrusive<zeek::AddrVal>(0);
 		}
 
@@ -3576,13 +3550,13 @@ function bytestring_to_double%(s: string%): double
 	if ( s->Len() != sizeof(double) )
 		{
 		zeek::emit_builtin_error("bad conversion to double");
-		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
+		return 0.0;
 		}
 
 	// See #908 for a discussion of portability.
 	double d;
 	memcpy(&d, s->Bytes(), sizeof(double));
-	return zeek::make_intrusive<zeek::DoubleVal>(ntohd(d));
+	return ntohd(d);
 	%}
 
 ## Converts a string of bytes representing a float value (in network byte order)
@@ -3600,12 +3574,12 @@ function bytestring_to_float%(s: string%): double
 	if ( s->Len() != sizeof(float) )
 		{
 		zeek::emit_builtin_error("bad conversion to float");
-		return zeek::make_intrusive<zeek::DoubleVal>(0.0);
+		return 0.0;
 		}
 
 	float f;
 	memcpy(&f, s->Bytes(), sizeof(float));
-	return zeek::make_intrusive<zeek::DoubleVal>(ntohf(f));
+	return ntohf(f);
 	%}
 
 ## Converts a string of bytes to a :zeek:type:`count`.
@@ -3629,13 +3603,13 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 
 	if ( string_len == 0 )
 		{
-		return zeek::val_mgr->Count(0);
+		return 0;
 		}
 	if ( string_len == sizeof(uint8_t) )
 		{
 		uint8_t value = 0;
 		memcpy(&value, p, sizeof(uint8_t));
-		return zeek::val_mgr->Count(value);
+		return value;
 		}
 	else if ( string_len <= sizeof(uint16_t) )
 		{
@@ -3658,7 +3632,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		else
 			memcpy(&value, p, sizeof(uint16_t));
 
-		return zeek::val_mgr->Count(value);
+		return value;
 		}
 	else if ( string_len <= sizeof(uint32_t) )
 		{
@@ -3688,7 +3662,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			}
 
 		memcpy(&value, buf, sizeof(uint32_t));
-		return zeek::val_mgr->Count(value);
+		return value;
 		}
 	else if ( string_len <= sizeof(uint64_t) )
 		{
@@ -3718,11 +3692,11 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 			}
 
 		memcpy(&value, buf, sizeof(uint64_t));
-		return zeek::val_mgr->Count(value);
+		return value;
 		}
 
 	zeek::emit_builtin_error("unsupported byte length for bytestring_to_count");
-	return zeek::val_mgr->Count(0);
+	return 0;
 	%}
 
 ## Converts a reverse pointer name to an address. For example,
@@ -3746,7 +3720,7 @@ function ptr_name_to_addr%(s: string%): addr
 			a, a+1, a+2, a+3, ss) != 5
 			|| strcmp(ss, "in-addr.arpa") != 0 )
 			{
-			zeek::emit_builtin_error("bad PTR name", @ARG@[0]);
+			zeek::emit_builtin_error("bad PTR name", s);
 			addr = 0;
 			}
 		else
@@ -3771,7 +3745,7 @@ function ptr_name_to_addr%(s: string%): addr
 			b+7, b+6, b+5, b+4, b+3, b+2, b+1, b, ss) != 33
 			|| strcmp(ss, "ip6.arpa") != 0 )
 			{
-			zeek::emit_builtin_error("bad PTR name", @ARG@[0]);
+			zeek::emit_builtin_error("bad PTR name", s);
 			memset(addr6, 0, sizeof addr6);
 			}
 		else
@@ -3930,7 +3904,7 @@ function decode_base64%(s: string, a: string &default=""%): string
 ## .. zeek:see:: decode_base64 decode_base64_conn encode_base64
 function is_valid_base64%(s: string, a: string &default=""%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::detail::is_valid_base64(s->AsString(), a->AsString()));
+	return zeek::detail::is_valid_base64(s->AsString(), a->AsString());
 	%}
 
 ## Decodes a Base64-encoded string that was derived from processing a connection.
@@ -4048,7 +4022,7 @@ function convert_for_pattern%(s: string%): string
 	char* t = to_pat_str(s->Len(), reinterpret_cast<const char*>(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
-	return std::move(ret);
+	return ret;
 	%}
 
 ## Converts a :zeek:type:`string` into a :zeek:type:`pattern`.
@@ -4122,11 +4096,10 @@ function strptime%(fmt: string, d: string%) : time
 	     ! strptime(d->CheckString(), fmt->CheckString(), &t) )
 		{
 		zeek::reporter->Warning("strptime conversion failed: fmt:%s d:%s", fmt->CheckString(), d->CheckString());
-		return zeek::make_intrusive<zeek::TimeVal>(0.0);
+		return 0.0;
 		}
 
-	double ret = mktime(&t);
-	return zeek::make_intrusive<zeek::TimeVal>(ret);
+	return mktime(&t);
 	%}
 
 
@@ -4187,7 +4160,7 @@ function remask_addr%(a1: addr, a2: addr, top_bits_from_a1: count%): addr
 ## .. zeek:see:: is_udp_port is_icmp_port
 function is_tcp_port%(p: port%): bool
 	%{
-	return zeek::val_mgr->Bool(p->IsTCP());
+	return p->IsTCP();
 	%}
 
 ## Checks whether a given :zeek:type:`port` has UDP as transport protocol.
@@ -4199,7 +4172,7 @@ function is_tcp_port%(p: port%): bool
 ## .. zeek:see:: is_icmp_port is_tcp_port
 function is_udp_port%(p: port%): bool
 	%{
-	return zeek::val_mgr->Bool(p->IsUDP());
+	return p->IsUDP();
 	%}
 
 ## Checks whether a given :zeek:type:`port` has ICMP as transport protocol.
@@ -4211,7 +4184,7 @@ function is_udp_port%(p: port%): bool
 ## .. zeek:see:: is_tcp_port is_udp_port
 function is_icmp_port%(p: port%): bool
 	%{
-	return zeek::val_mgr->Bool(p->IsICMP());
+	return p->IsICMP();
 	%}
 
 %%{
@@ -4282,10 +4255,7 @@ function get_port_transport_proto%(p: port%): transport_proto
 ## .. zeek:see:: lookup_connection
 function connection_exists%(c: conn_id%): bool
 	%{
-	if ( session_mgr->FindConnection(c) )
-		return zeek::val_mgr->True();
-	else
-		return zeek::val_mgr->False();
+	return session_mgr->FindConnection(c);
 	%}
 
 ## Returns the :zeek:type:`connection` record for a given connection identifier.
@@ -4339,7 +4309,7 @@ function dump_current_packet%(file_name: string%) : bool
 	auto* pkt_src = dynamic_cast<zeek::iosource::PktSrc*>(zeek::run_state::detail::current_iosrc);
 
 	if ( ! pkt_src || ! pkt_src->GetCurrentPacket(&pkt) )
-		return zeek::val_mgr->False();
+		return false;
 
 	if ( addl_pkt_dumper && addl_pkt_dumper->Path() != file_name->CheckString())
 		{
@@ -4355,7 +4325,7 @@ function dump_current_packet%(file_name: string%) : bool
 		addl_pkt_dumper->Dump(pkt);
 		}
 
-	return zeek::val_mgr->Bool( addl_pkt_dumper && ! addl_pkt_dumper->IsError());
+	return addl_pkt_dumper && ! addl_pkt_dumper->IsError();
 	%}
 
 ## Returns the currently processed PCAP packet.
@@ -4423,8 +4393,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 		}
 
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
-	auto hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
-	return std::move(hdr);
+	return zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
 	%}
 
 ## Returns the currently processed PCAP packet's timestamp or a 0 timestamp if
@@ -4449,7 +4418,7 @@ function get_current_packet_ts%(%) : time
 	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
 		ts = p->time;
 
-	return zeek::make_intrusive<zeek::TimeVal>(ts);
+	return ts;
 	%}
 
 ## Writes a given packet to a file.
@@ -4493,7 +4462,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		addl_pkt_dumper->Dump(&p);
 		}
 
-	return zeek::val_mgr->Bool(addl_pkt_dumper && ! addl_pkt_dumper->IsError());
+	return addl_pkt_dumper && ! addl_pkt_dumper->IsError();
 	%}
 
 %%{
@@ -4573,7 +4542,7 @@ function lookup_addr%(host: addr%) : string
 	%{
 	// FIXME: It should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -4581,11 +4550,11 @@ function lookup_addr%(host: addr%) : string
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->LookupAddr(host->AsAddr(),
-			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), true));
+			new LookupHostCallback(trigger, @FRAME@->GetTriggerAssoc(), true));
 	return nullptr;
 	%}
 
@@ -4602,7 +4571,7 @@ function lookup_hostname_txt%(host: string%) : string
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -4610,11 +4579,11 @@ function lookup_hostname_txt%(host: string%) : string
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->LookupText(host->CheckString(),
-			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), true));
+			new LookupHostCallback(trigger, @FRAME@->GetTriggerAssoc(), true));
 	return nullptr;
 	%}
 
@@ -4631,7 +4600,7 @@ function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
 	// lookups if we're reading a trace.
-	zeek::detail::trigger::Trigger* trigger = frame->GetTrigger();
+	zeek::detail::trigger::Trigger* trigger = @FRAME@->GetTrigger();
 
 	if ( ! trigger)
 		{
@@ -4639,11 +4608,11 @@ function lookup_hostname%(host: string%) : addr_set
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 		}
 
-	frame->SetDelayed();
+	@FRAME@->SetDelayed();
 	trigger->Hold();
 
 	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
-			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), false));
+			new LookupHostCallback(trigger, @FRAME@->GetTriggerAssoc(), false));
 	return nullptr;
 	%}
 
@@ -4692,7 +4661,7 @@ function haversine_distance%(lat1: double, long1: double, lat2: double, long2: d
 	double a = s1 * s1 + cos(lat1 * PI/180) * cos(lat2 * PI/180) * s2 * s2;
 	double distance = 2 * RADIUS * asin(sqrt(a));
 
-	return zeek::make_intrusive<zeek::DoubleVal>(distance);
+	return distance;
 	%}
 
 ## Converts UNIX file permissions given by a mode to an ASCII string.
@@ -4846,14 +4815,14 @@ function lookup_connection_analyzer_id%(cid: conn_id, atype: AllAnalyzers::Tag%)
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("connection ID not a known connection", cid);
-		return zeek::val_mgr->Count(0);
+		return 0;
 		}
 
 	analyzer::Analyzer* a = c->FindAnalyzer(analyzer_mgr->GetComponentTag(atype));
 	if ( ! a )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
-	return zeek::val_mgr->Count(a->GetID());
+	return a->GetID();
 	%}
 
 ## Disables the analyzer which raised the current event (if the analyzer
@@ -4880,7 +4849,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! c )
 		{
 		zeek::emit_builtin_error("connection ID not a known connection", cid);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	analyzer::Analyzer* a = c->FindAnalyzer(aid);
@@ -4888,7 +4857,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		{
 		if ( err_if_no_conn )
 			zeek::emit_builtin_error("connection does not have analyzer specified to disable");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	// If a user passed the analyzer ID of a root analyzer like TCP or UDP
@@ -4898,7 +4867,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! a->Parent() )
 		{
 		zeek::emit_builtin_error(zeek::util::fmt("root analyzer %s cannot be removed", a->GetAnalyzerName()));
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	static auto disabling_analyzer_hook = id::find_func("Analyzer::disabling_analyzer");
@@ -4908,14 +4877,13 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		auto hook_rval = disabling_analyzer_hook->Invoke(c->GetVal(), a->GetAnalyzerTag().AsVal(),
 		                                                 zeek::val_mgr->Count(aid));
 		if ( hook_rval && ! hook_rval->AsBool() )
-			return zeek::val_mgr->False();
+			return false;
 		}
 
 	if ( prevent )
 		a->Parent()->PreventChildren(a->GetAnalyzerTag());
 
-	auto rval = a->Remove();
-	return zeek::val_mgr->Bool(rval);
+	return a->Remove();
 	%}
 
 ## Informs Zeek that it should skip any further processing of the contents of
@@ -4936,10 +4904,10 @@ function skip_further_processing%(cid: conn_id%): bool
 	%{
 	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->False();
+		return false;
 
 	c->GetSessionAdapter()->SetSkip(true);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Controls whether packet contents belonging to a connection should be
@@ -4966,10 +4934,10 @@ function set_record_packets%(cid: conn_id, do_record: bool%): bool
 	%{
 	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->False();
+		return false;
 
 	c->SetRecordPackets(do_record);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Sets an individual inactivity timeout for a connection and thus
@@ -4984,12 +4952,12 @@ function set_inactivity_timeout%(cid: conn_id, t: interval%): interval
 	%{
 	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::make_intrusive<zeek::IntervalVal>(0.0);
+		return 0.0;
 
 	double old_timeout = c->InactivityTimeout();
 	c->SetInactivityTimeout(t);
 
-	return zeek::make_intrusive<zeek::IntervalVal>(old_timeout);
+	return old_timeout;
 	%}
 
 # ===========================================================================
@@ -5044,7 +5012,7 @@ function open_for_append%(f: string%): file
 ##              rmdir unlink rename
 function close%(f: file%): bool
 	%{
-	return zeek::val_mgr->Bool(f->Close());
+	return f->Close();
 	%}
 
 ## Writes data to an open file.
@@ -5061,9 +5029,9 @@ function close%(f: file%): bool
 function write_file%(f: file, data: string%): bool
 	%{
 	if ( ! f )
-		return zeek::val_mgr->False();
+		return false;
 
-	return zeek::val_mgr->Bool(f->Write(reinterpret_cast<const char*>(data->Bytes()), data->Len()));
+	return f->Write(reinterpret_cast<const char*>(data->Bytes()), data->Len());
 	%}
 
 ## Alters the buffering behavior of a file.
@@ -5081,7 +5049,7 @@ function write_file%(f: file, data: string%): bool
 function set_buf%(f: file, buffered: bool%): any
 	%{
 	f->SetBuf(buffered);
-	return zeek::val_mgr->True();
+	return val_mgr->True();
 	%}
 
 ## Flushes all open files to disk.
@@ -5093,7 +5061,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##              rmdir unlink rename
 function flush_all%(%): bool
 	%{
-	return zeek::val_mgr->Bool(fflush(nullptr) == 0);
+	return fflush(nullptr) == 0;
 	%}
 
 ## Creates a new directory.
@@ -5117,13 +5085,13 @@ function mkdir%(f: string%): bool
 		// check if already exists and is directory.
 		if ( errno == EEXIST && stat(filename, &filestat) == 0
 		     && S_ISDIR(filestat.st_mode) )
-			return zeek::val_mgr->True();
+			return true;
 
 		zeek::reporter->Warning("cannot create directory '%s': %s", filename, strerror(error));
-		return zeek::val_mgr->False();
+		return false;
 		}
 	else
-		return zeek::val_mgr->True();
+		return true;
 	%}
 
 
@@ -5144,10 +5112,10 @@ function rmdir%(d: string%): bool
 	if ( rmdir(dirname) < 0 )
 		{
 		zeek::reporter->Warning("cannot remove directory '%s': %s", dirname, strerror(errno));
-		return zeek::val_mgr->False();
+		return false;
 		}
 	else
-		return zeek::val_mgr->True();
+		return true;
 	%}
 
 ## Removes a file from a directory.
@@ -5167,10 +5135,10 @@ function unlink%(f: string%): bool
 	if ( unlink(filename) < 0 )
 		{
 		zeek::reporter->Warning("cannot unlink file '%s': %s", filename, strerror(errno));
-		return zeek::val_mgr->False();
+		return false;
 		}
 	else
-		return zeek::val_mgr->True();
+		return true;
 	%}
 
 ## Renames a file from src_f to dst_f.
@@ -5192,10 +5160,10 @@ function rename%(src_f: string, dst_f: string%): bool
 	if ( rename(src_filename, dst_filename) < 0 )
 		{
 		zeek::reporter->Warning("cannot rename file '%s' to '%s': %s", src_filename, dst_filename, strerror(errno));
-		return zeek::val_mgr->False();
+		return false;
 		}
 	else
-		return zeek::val_mgr->True();
+		return true;
 	%}
 
 ## Checks whether a given file is open.
@@ -5207,7 +5175,7 @@ function rename%(src_f: string, dst_f: string%): bool
 ## .. todo:: Rename to ``is_open``.
 function active_file%(f: file%): bool
 	%{
-	return zeek::val_mgr->Bool(f->IsOpen());
+	return f->IsOpen();
 	%}
 
 ## Gets the filename associated with a file handle.
@@ -5248,7 +5216,7 @@ function rotate_file%(f: file%): rotate_info
 	info->AssignTime(2, 0.0);
 	info->AssignTime(3, 0.0);
 
-	return std::move(info);
+	return info;
 	%}
 
 ## Rotates a file identified by its name.
@@ -5304,7 +5272,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( is_addl_pkt_dumper )
 		info->AssignTime(2, addl_pkt_dumper->OpenTime());
 
-	return std::move(info);
+	return info;
 	%}
 
 ## Calculates the duration until the next time a file is to be rotated, based
@@ -5321,7 +5289,7 @@ function calc_next_rotate%(i: interval%) : interval
 	static auto base_time = log_rotate_base_time->AsString()->CheckString();
 
 	double base = zeek::util::detail::parse_rotate_base_time(base_time);
-	return zeek::make_intrusive<zeek::IntervalVal>(zeek::util::detail::calc_next_rotate(zeek::run_state::network_time, i, base));
+	return zeek::util::detail::calc_next_rotate(zeek::run_state::network_time, i, base);
 	%}
 
 ## Returns the size of a given file.
@@ -5334,9 +5302,9 @@ function file_size%(f: string%) : double
 	struct stat s;
 
 	if ( stat(f->CheckString(), &s) < 0 )
-		return zeek::make_intrusive<zeek::DoubleVal>(-1.0);
+		return -1.0;
 
-	return zeek::make_intrusive<zeek::DoubleVal>(static_cast<double>(s.st_size));
+	return static_cast<double>(s.st_size);
 	%}
 
 ## Prevents escaping of non-ASCII characters when writing to a file.
@@ -5384,7 +5352,7 @@ function enable_raw_output%(f: file%): any
 function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	packet_mgr->GetPacketFilter()->AddSrc(ip->AsAddr(), tcp_flags, prob);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Installs a filter to drop packets originating from a given subnet with
@@ -5414,7 +5382,7 @@ function install_src_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	packet_mgr->GetPacketFilter()->AddSrc(snet, tcp_flags, prob);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Removes a source address filter.
@@ -5435,7 +5403,7 @@ function install_src_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_src_addr_filter%(ip: addr%) : bool
 	%{
-	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveSrc(ip->AsAddr()));
+	return packet_mgr->GetPacketFilter()->RemoveSrc(ip->AsAddr());
 	%}
 
 ## Removes a source subnet filter.
@@ -5456,7 +5424,7 @@ function uninstall_src_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_src_net_filter%(snet: subnet%) : bool
 	%{
-	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveSrc(snet));
+	return packet_mgr->GetPacketFilter()->RemoveSrc(snet);
 	%}
 
 ## Installs a filter to drop packets destined to a given IP address with
@@ -5489,7 +5457,7 @@ function uninstall_src_net_filter%(snet: subnet%) : bool
 function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : bool
 	%{
 	packet_mgr->GetPacketFilter()->AddDst(ip->AsAddr(), tcp_flags, prob);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Installs a filter to drop packets destined to a given subnet with
@@ -5519,7 +5487,7 @@ function install_dst_addr_filter%(ip: addr, tcp_flags: count, prob: double%) : b
 function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) : bool
 	%{
 	packet_mgr->GetPacketFilter()->AddDst(snet, tcp_flags, prob);
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Removes a destination address filter.
@@ -5540,7 +5508,7 @@ function install_dst_net_filter%(snet: subnet, tcp_flags: count, prob: double%) 
 ##              Pcap::error
 function uninstall_dst_addr_filter%(ip: addr%) : bool
 	%{
-	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveDst(ip->AsAddr()));
+	return packet_mgr->GetPacketFilter()->RemoveDst(ip->AsAddr());
 	%}
 
 ## Removes a destination subnet filter.
@@ -5561,7 +5529,7 @@ function uninstall_dst_addr_filter%(ip: addr%) : bool
 ##              Pcap::error
 function uninstall_dst_net_filter%(snet: subnet%) : bool
 	%{
-	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveDst(snet));
+	return packet_mgr->GetPacketFilter()->RemoveDst(snet);
 	%}
 
 ## Checks whether the current event came from a remote peer.
@@ -5569,7 +5537,7 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 ## Returns: True if the current event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != zeek::util::detail::SOURCE_LOCAL);
+	return zeek::event_mgr.CurrentSource() != zeek::util::detail::SOURCE_LOCAL;
 	%}
 
 ## Stops Zeek's packet processing. This function is used to synchronize
@@ -5600,7 +5568,7 @@ function continue_processing%(%) : any
 ##               continue_processing
 function is_processing_suspended%(%): bool
 	%{
-	return zeek::val_mgr->Bool(zeek::run_state::is_processing_suspended());
+	return zeek::run_state::is_processing_suspended();
 	%}
 
 # ===========================================================================
@@ -5616,12 +5584,12 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 				from_orig: bool, clear: bool%) : bool
 	%{
 	if ( ! zeek::detail::rule_matcher )
-		return zeek::val_mgr->False();
+		return false;
 
 	c->Match(static_cast<zeek::detail::Rule::PatternType>(pattern_type), s->Bytes(), s->Len(),
 	         from_orig, bol, eol, clear);
 
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## By default, zeek does not generate (raise) events that have not handled by
@@ -5633,7 +5601,7 @@ function match_signatures%(c: connection, pattern_type: int, s: string,
 function generate_all_events%(%) : bool
 	%{
 	event_registry->ActivateAllHandlers();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Check if an event is handled. Typically this means that a script defines an event.
@@ -5651,13 +5619,13 @@ function is_event_handled%(event_name: string%) : bool
 	if ( ! h )
 		{
 		zeek::emit_builtin_error(zeek::util::fmt("is_event_handled: '%s' is not an event", event_name->CheckString()));
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( *h )
-		return zeek::val_mgr->True();
+		return true;
 
-	return zeek::val_mgr->False();
+	return false;
 	%}
 
 %%{
@@ -5677,7 +5645,7 @@ static void init_secondary_bifs()
 function __init_secondary_bifs%(%): bool
 	%{
 	init_secondary_bifs();
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 # ===========================================================================
@@ -5881,7 +5849,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 		rval->Assign(err_idx, res.error().c_str());
 		}
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Compresses a given path by removing '..'s and the parent directory it
@@ -5903,7 +5871,7 @@ function compress_path%(dir: string%): string
 function is_protocol_analyzer%(atype: AllAnalyzers::Tag%) : bool
 	%{
 	auto val = atype->AsEnumVal();
-	return val_mgr->Bool(zeek::analyzer_mgr->Lookup(val) != nullptr);
+	return zeek::analyzer_mgr->Lookup(val) != nullptr;
 	%}
 
 ## Returns true if the given tag belongs to a file analyzer.
@@ -5914,7 +5882,7 @@ function is_protocol_analyzer%(atype: AllAnalyzers::Tag%) : bool
 function is_file_analyzer%(atype: AllAnalyzers::Tag%) : bool
 	%{
 	auto val = atype->AsEnumVal();
-	return val_mgr->Bool(zeek::file_mgr->Lookup(val) != nullptr);
+	return zeek::file_mgr->Lookup(val) != nullptr;
 	%}
 
 ## Returns true if the given tag belongs to a packet analyzer.
@@ -5925,7 +5893,7 @@ function is_file_analyzer%(atype: AllAnalyzers::Tag%) : bool
 function is_packet_analyzer%(atype: AllAnalyzers::Tag%) : bool
 	%{
 	auto val = atype->AsEnumVal();
-	return val_mgr->Bool(zeek::packet_mgr->Lookup(val) != nullptr);
+	return zeek::packet_mgr->Lookup(val) != nullptr;
 	%}
 
 %%{ // C segment
@@ -5973,8 +5941,7 @@ static bool has_event_group(zeek::EventGroupKind kind, const char *group)
 ##               enable_module_events disable_module_events has_module_events
 function enable_event_group%(group: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Attribute,
-	                                              group->CheckString()));
+	return enable_event_group(zeek::EventGroupKind::Attribute, group->CheckString());
 	%}
 
 ## Disabled the given event group.
@@ -5988,8 +5955,7 @@ function enable_event_group%(group: string%) : bool
 ##               enable_module_events disable_module_events has_module_events
 function disable_event_group%(group: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Attribute,
-	                                               group->CheckString()));
+	return disable_event_group(zeek::EventGroupKind::Attribute, group->CheckString());
 	%}
 
 ## Does an attribute event group with this name exist?
@@ -6000,8 +5966,7 @@ function disable_event_group%(group: string%) : bool
 ##               enable_module_events disable_module_events has_module_events
 function has_event_group%(group: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(has_event_group(zeek::EventGroupKind::Attribute,
-	                                           group->CheckString()));
+	return has_event_group(zeek::EventGroupKind::Attribute, group->CheckString());
 	%}
 
 ## Enable all event handlers and hooks in the given module.
@@ -6015,8 +5980,7 @@ function has_event_group%(group: string%) : bool
 ##               enable_module_events disable_module_events has_module_events
 function enable_module_events%(module_name: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Module,
-	                                              module_name->CheckString()));
+	return enable_event_group(zeek::EventGroupKind::Module, module_name->CheckString());
 	%}
 
 ## Disable all event handlers and hooks in the given module.
@@ -6029,8 +5993,7 @@ function enable_module_events%(module_name: string%) : bool
 ##               enable_module_events disable_module_events has_module_events
 function disable_module_events%(module_name: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Module,
-	                                               module_name->CheckString()));
+	return disable_event_group(zeek::EventGroupKind::Module, module_name->CheckString());
 	%}
 
 ## Does a module event group with this name exist?
@@ -6041,8 +6004,7 @@ function disable_module_events%(module_name: string%) : bool
 ##               enable_module_events disable_module_events has_module_events
 function has_module_events%(group: string%) : bool
 	%{
-	return zeek::val_mgr->Bool(has_event_group(zeek::EventGroupKind::Module,
-	                                           group->CheckString()));
+	return has_event_group(zeek::EventGroupKind::Module, group->CheckString());
 	%}
 
 ## Returns true if Zeek was built with support for using Spicy analyzers (which
@@ -6050,9 +6012,9 @@ function has_module_events%(group: string%) : bool
 function have_spicy%(%) : bool
 	%{
 #ifdef HAVE_SPICY
-	return zeek::val_mgr->Bool(true);
+	return true;
 #else
-	return zeek::val_mgr->Bool(false);
+	return false;
 #endif
 	%}
 
@@ -6060,7 +6022,7 @@ function have_spicy%(%) : bool
 ## (which is the default if Spicy support is available).
 function have_spicy_analyzers%(%) : bool
 	%{
-	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);
+	return USE_SPICY_ANALYZERS;
 	%}
 
 %%{
@@ -6110,7 +6072,7 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 	result->Assign(n++, stats.hits);
 	result->Assign(n++, stats.misses);
 
-	return std::move(result);
+	return result;
 	%}
 
 ## Determine the path used by a non-relative @load directive.
@@ -6201,7 +6163,7 @@ function modulo%(a: int, b: int%): int
 	%{
 	if ( b == 0 ) {
 		zeek::reporter->Error("modulo by zero");
-		return nullptr;
+		return 0;
 	}
-	return zeek::val_mgr->Int(((a % b) + b) % b);
+	return ((a % b) + b) % b;
 	%}

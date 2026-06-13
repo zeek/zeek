@@ -24,6 +24,7 @@ char* copy_string(const char* s)
 int line_number = 1;
 
 extern bool in_c_code;
+extern bool gen_native;
 
 int check_c_mode(int t)
 	{
@@ -65,6 +66,8 @@ HEX	[0-9a-fA-F]+
 
 [=,:;]	return check_c_mode(yytext[0]);
 
+"%gen-native"	return TOK_GEN_NATIVE;
+
 "%{"	return TOK_LPB;
 "%}"	return TOK_RPB;
 "%%{"	return TOK_LPPB;
@@ -89,6 +92,7 @@ HEX	[0-9a-fA-F]+
 "@ARG@"		return TOK_ARG;
 "@ARGS@"	return TOK_ARGS;
 "@ARGC@"	return TOK_ARGC;
+"@FRAME@"	return TOK_FRAME;
 
 "T"	yylval.val = 1; return TOK_BOOL;
 "F"	yylval.val = 0; return TOK_BOOL;
@@ -163,18 +167,18 @@ FILE* fp_netvar_h = nullptr;
 FILE* fp_netvar_def = nullptr;
 FILE* fp_netvar_init = nullptr;
 
-void remove_file(const char *surfix);
+void remove_file(const char *suffix);
 void err_exit(void);
-FILE* open_output_file(const char* surfix);
+FILE* open_output_file(const char* suffix);
 void close_if_open(FILE **fpp);
 void close_all_output_files(void);
 
 
-FILE* open_output_file(const char* surfix) {
+FILE* open_output_file(const char* suffix) {
     char fn[1024];
     FILE* fp;
 
-    snprintf(fn, sizeof(fn), "%s.%s", input_filename, surfix);
+    snprintf(fn, sizeof(fn), "%s.%s", input_filename, suffix);
     if ( fp = fopen(fn, "w"); fp == nullptr  ) {
         fprintf(stderr, "Error: cannot open file: %s\n", fn);
         err_exit();
@@ -385,6 +389,7 @@ int main(int argc, char* argv[]) {
         fprintf(fp_netvar_init, "#endif\n");
 
         yy_switch_to_buffer(yy_create_buffer(fp_input, YY_BUF_SIZE));
+        gen_native = false;
         yyparse();
 
         fprintf(fp_netvar_init, "#ifdef __GNUC__\n");
@@ -419,10 +424,10 @@ void close_all_output_files(void) {
     }
 }
 
-void remove_file(const char* surfix) {
+void remove_file(const char* suffix) {
     char fn[1024];
 
-    snprintf(fn, sizeof(fn), "%s.%s", input_filename, surfix);
+    snprintf(fn, sizeof(fn), "%s.%s", input_filename, suffix);
     unlink(fn);
 }
 

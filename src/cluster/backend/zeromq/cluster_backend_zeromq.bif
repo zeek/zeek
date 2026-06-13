@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include <zmq.h>
 
@@ -15,10 +17,10 @@ function spawn_zmq_proxy_thread%(%): bool
 	if ( ! zeromq_backend )
 		{
 		zeek::emit_builtin_error("Cluster::backend not set to ZeroMQ?");
-		return zeek::val_mgr->Bool(false);
+		return false;
 		}
 
-	return zeek::val_mgr->Bool(zeromq_backend->SpawnZmqProxyThread());
+	return zeromq_backend->SpawnZmqProxyThread();
 	%}
 
 ## Generate a CURVE keypair

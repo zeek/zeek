@@ -1,3 +1,5 @@
+%gen-native
+
 %%{ // C segment
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"

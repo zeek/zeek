@@ -46,9 +46,9 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args);
  * @param args The arguments to the BiF function. May either be a prepared event from make_event(),
  *  or a FuncValPtr and it's arguments
  *
- * @return A BoolValPtr that's true if the event was published, else false.
+ * @return True if the event was published, else false.
  */
-zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args);
+bool publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args);
 
 bool is_cluster_pool(const zeek::Val* pool);
 

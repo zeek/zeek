@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions related to asynchronous storage operations.
 
 %%{
@@ -61,7 +63,7 @@ module Storage::Async;
 
 function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
-	auto trigger = init_trigger(frame);
+	auto trigger = init_trigger(@FRAME@);
 	if ( ! trigger )
 		return nullptr;
 
@@ -72,7 +74,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 
 	if ( ! b.has_value() ) {
 		trigger->Cache(
-			frame->GetTriggerAssoc(),
+			@FRAME@->GetTriggerAssoc(),
 			new StringVal(util::fmt("Failed to instantiate backend: %s", b.error().c_str())));
 		trigger->Release();
 		return nullptr;
@@ -80,7 +82,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 
 	auto bh = make_intrusive<storage::detail::BackendHandleVal>(b.value());
 
-	auto cb = new OpenResultCallback(trigger, frame->GetTriggerAssoc(), bh);
+	auto cb = new OpenResultCallback(trigger, @FRAME@->GetTriggerAssoc(), bh);
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
@@ -93,11 +95,11 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 
 function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	auto trigger = init_trigger(frame);
+	auto trigger = init_trigger(@FRAME@);
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, @FRAME@->GetTriggerAssoc());
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -114,11 +116,11 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	auto trigger = init_trigger(frame);
+	auto trigger = init_trigger(@FRAME@);
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, @FRAME@->GetTriggerAssoc());
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -139,11 +141,11 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	auto trigger = init_trigger(frame);
+	auto trigger = init_trigger(@FRAME@);
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, @FRAME@->GetTriggerAssoc());
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -160,11 +162,11 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	auto trigger = init_trigger(frame);
+	auto trigger = init_trigger(@FRAME@);
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, @FRAME@->GetTriggerAssoc());
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());

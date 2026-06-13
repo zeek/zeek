@@ -28,6 +28,8 @@ private:
      * @return A unique pointer to the ConnKey instance, or an error message.
      */
     zeek::expected<zeek::ConnKeyPtr, std::string> DoConnKeyFromVal(const zeek::Val& v) const override;
+
+    zeek::session::detail::Key DoFragmentKey(const zeek::Packet& pkt, const zeek::IP_Hdr& ip) const override;
 };
 
 } // namespace zeek::conn_key::vlan_fivetuple

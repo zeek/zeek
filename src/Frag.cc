@@ -6,6 +6,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
+#include "zeek/conn_key/Manager.h"
 #include "zeek/session/Manager.h"
 
 constexpr uint32_t MIN_ACCEPTABLE_FRAG_SIZE = 64;
@@ -26,10 +27,9 @@ void FragTimer::Dispatch(double t, bool /* is_expire */) {
 }
 
 FragReassembler::FragReassembler(session::Manager* arg_s, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt,
-                                 const FragReassemblerKey& k, double t)
-    : Reassembler(0, REASSEM_FRAG) {
+                                 FragReassemblerKey k, double t)
+    : Reassembler(0, REASSEM_FRAG), key(std::move(k)) {
     s = arg_s;
-    key = k;
 
     const struct ip* ip4 = ip->IP4_Hdr();
     if ( ip4 ) {
@@ -298,18 +298,20 @@ void FragReassembler::DeleteTimer() {
 
 FragmentManager::~FragmentManager() { Clear(); }
 
-FragReassembler* FragmentManager::NextFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt) {
-    uint32_t frag_id = ip->ID();
-    FragReassemblerKey key = std::make_tuple(ip->SrcAddr(), ip->DstAddr(), frag_id);
+FragReassembler* FragmentManager::NextFragment(double t, const Packet& packet, const std::shared_ptr<IP_Hdr>& ip,
+                                               const u_char* pkt) {
+    auto lookup_key = conn_key_mgr->GetFactory().FragmentKey(packet, *ip);
 
     FragReassembler* f = nullptr;
-    auto it = fragments.find(key);
+    auto it = fragments.find(lookup_key);
     if ( it != fragments.end() )
         f = it->second;
 
     if ( ! f ) {
-        f = new FragReassembler(session_mgr, ip, pkt, key, t);
-        fragments[key] = f;
+        auto owned_key = conn_key_mgr->GetFactory().FragmentKey(packet, *ip);
+        auto map_key = conn_key_mgr->GetFactory().FragmentKey(packet, *ip);
+        f = new FragReassembler(session_mgr, ip, pkt, std::move(owned_key), t);
+        fragments.emplace(std::move(map_key), f);
         if ( fragments.size() > max_fragments )
             max_fragments = fragments.size();
         return f;

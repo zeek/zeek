@@ -24,6 +24,7 @@ struct KeyHash;
 class Key final {
 public:
     const static size_t CONNECTION_KEY_TYPE = 0;
+    const static size_t FRAGMENT_KEY_TYPE = 1;
 
     /**
      * Create a new session key from a data pointer.

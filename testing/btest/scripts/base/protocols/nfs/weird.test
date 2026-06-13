@@ -1,0 +1,29 @@
+# @TEST-DOC: Tickle some weirds for invalid status.
+#
+# @TEST-EXEC: zeek -b -r $TRACES/nfs/nfs_fsinfo_bad_status.pcap %INPUT
+# @TEST-EXEC: zeek-cut -m < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: zeek -b -r $TRACES/nfs/nfs_getattr_bad_ftype.pcap %INPUT
+# @TEST-EXEC: zeek-cut < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: zeek -b -r $TRACES/nfs/nfs_setattr_bad_set_it.pcap %INPUT
+# @TEST-EXEC: zeek-cut < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: zeek -b -r $TRACES/nfs/nfs_write_bad_stable_how.pcap %INPUT
+# @TEST-EXEC: zeek-cut < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: btest-diff weird.log.all
+
+@load base/frameworks/notice/weird
+global nfs_ports: set[port] = { 2049/tcp, 2049/udp } &redef;
+redef ignore_checksums = T;
+
+event zeek_init()
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_NFS, nfs_ports);
+	Analyzer::enable_analyzer(Analyzer::ANALYZER_NFS);
+	}

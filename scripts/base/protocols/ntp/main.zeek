@@ -47,6 +47,28 @@ export {
 		xmt_time:   time &log;
 		## Number of extension fields (which are not currently parsed).
 		num_exts:   count &default=0 &log;
+		## The control operation code for a mode 6 message.
+		op_code:    count   &log &optional;
+		## The sequence number of a mode 6 control message.
+		control_sequence: count &log &optional;
+		## The status word of a mode 6 control response.
+		control_status:   count &log &optional;
+		## The association ID of a mode 6 control message.
+		association_id:   count &log &optional;
+		## The payload data of a mode 6 control message.
+		control_data:     string &log &optional;
+		## The request code for a mode 7 message.
+		req_code:    count  &log &optional;
+		## The sequence number of a mode 7 message.
+		mode7_sequence: count &log &optional;
+		## The implementation number of a mode 7 message.
+		mode7_implementation: count &log &optional;
+		## The authentication flag for a mode 7 message.
+		mode7_auth:  bool   &log &optional;
+		## The error code for a mode 7 message.
+		mode7_err:   count  &log &optional;
+		## The payload data of a mode 7 message.
+		mode7_data:  string &log &optional;
 	};
 
 	## Event that can be handled to access the NTP record as it is sent on
@@ -96,6 +118,27 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 		info$num_exts = msg$std_msg$num_exts;
 		}
 
+	if ( msg?$control_msg )
+		{
+		info$op_code = msg$control_msg$op_code;
+		info$control_sequence = msg$control_msg$sequence;
+		info$control_status = msg$control_msg$status;
+		info$association_id = msg$control_msg$association_id;
+		if ( msg$control_msg?$data )
+			info$control_data = msg$control_msg$data;
+		}
+
+	if ( msg?$mode7_msg )
+		{
+		info$req_code = msg$mode7_msg$req_code;
+		info$mode7_sequence = msg$mode7_msg$sequence;
+		info$mode7_implementation = msg$mode7_msg$implementation;
+		info$mode7_auth = msg$mode7_msg$auth_bit;
+		info$mode7_err = msg$mode7_msg$err;
+		if ( msg$mode7_msg?$data )
+			info$mode7_data = msg$mode7_msg$data;
+		}
+
 	# Copy the present packet info into the connection record
 	# If more ntp packets are sent on the same connection, the newest one
 	# will overwrite the previous
@@ -104,7 +147,7 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=-5
 	{
-	if ( c?$ntp && msg$mode <= 5 )
+	if ( c?$ntp )
 		Log::write(NTP::LOG, c$ntp);
 	}
 

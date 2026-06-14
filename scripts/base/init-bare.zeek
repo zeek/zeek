@@ -6064,9 +6064,9 @@ export {
 		data:           string &optional;
 	};
 
-	## NTP message as defined in :rfc:`5905`.  Does include fields for mode 7,
-	## reserved for private use in :rfc:`5905`, but used in some implementation
-	## for commands such as "monlist".
+	## NTP message as defined in :rfc:`5905`, with additions for mode 6
+	## control operations (:rfc:`1119`) and mode 7 private use (reserved
+	## in :rfc:`5905` but used in some implementations for "monlist").
 	type NTP::Message: record {
 		## The NTP version number (1, 2, 3, 4).
 		version:        count;
@@ -6076,9 +6076,9 @@ export {
 		##   * 2 - symmetric passive
 		##   * 3 - client
 		##   * 4 - server
-		##   * 5 - broadcast
-		##   * 6 - NTP control message
-		##   * 7 - reserved for private use
+		##   * 5 - broadcast server
+		##   * 6 - control
+		##   * 7 - private
 		mode:           count;
 		## If mode 1-5, the standard fields for synchronization operations are
 		## here.  See :rfc:`5905`

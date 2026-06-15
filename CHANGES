@@ -1,3 +1,7 @@
+9.0.0-dev.423 | 2026-06-15 09:32:14 -0700
+
+  * Update zeek-testing commit hash to latest commit (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.422 | 2026-06-15 09:26:10 -0700
 
   * Skip GH CI when running in private repos [skip ci] (Benjamin Bannier, Corelight)

@@ -661,7 +661,7 @@ bool Type::AddSizeVar(Output* out_cc, Env* env) {
 
     ID* size_var_id = new ID(strfmt("%s__size", value_var() ? value_var()->Name() : decl_id()->Name()));
 
-    DEBUG_MSG("adding size var `%s' to env %p\n", size_var_id->Name(), env);
+    DEBUG_MSG("adding size var `%s' to env %p\n", size_var_id->Name(), static_cast<void*>(env));
 
     size_var_field_ = new TempVarField(size_var_id, extern_type_int->Clone());
     size_var_field_->Prepare(env);

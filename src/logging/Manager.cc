@@ -1290,14 +1290,15 @@ bool Manager::DelayFinish(const EnumValPtr& id, const RecordValPtr& record, cons
     const auto& it = stream->delay_tokens.find(token);
 
     if ( it == stream->delay_tokens.end() ) {
-        reporter->Error("non-existing log record for token=%" PRIu64 " %p", token, record.get());
+        reporter->Error("non-existing log record for token=%" PRIu64 " %p", token, static_cast<void*>(record.get()));
         return false;
     }
 
     auto& delay_info = it->second;
 
     if ( delay_info->Record() != record ) {
-        reporter->Error("record mismatch token=%" PRIu64 " %p and %p", token, record.get(), delay_info->Record().get());
+        reporter->Error("record mismatch token=%" PRIu64 " %p and %p", token, static_cast<void*>(record.get()),
+                        static_cast<void*>(delay_info->Record().get()));
         return false;
     }
 

@@ -42,7 +42,7 @@ function apply_table_change_infos%(tcheader: TableChangeHeader, table_change_inf
 	zeek::detail::PublishOnChangeState* poc_state = tval->GetPublishOnChangeState();
 	if ( ! poc_state ) {
 		zeek::reporter->Warning("apply_table_change_infos: %s (%p) has no PublishOnChange state!",
-		                        idstr->ToStdString().c_str(), tval.get());
+		                        idstr->ToStdString().c_str(), static_cast<void*>(tval.get()));
 		return zeek::val_mgr->False();
 	}
 

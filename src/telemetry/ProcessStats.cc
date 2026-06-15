@@ -151,7 +151,7 @@ process_stats get_process_stats() {
                          "%*d " // 21. Obsolete since 2.6
                          "%*u " // 22. Time the process started after system boot
                          "%lu " // 23. Virtual memory size in bytes
-                         "%ld", // 24. Resident set size in pages
+                         "%lu", // 24. Resident set size in pages
                          &utime_ticks, &stime_ticks, &vmsize_bytes, &rss_pages);
         fclose(f);
 

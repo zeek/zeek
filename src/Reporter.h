@@ -157,7 +157,6 @@ public:
     // Report an analyzer error. That analyzer will be set to not process
     // any further input, but Zeek otherwise continues normally.
     void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-    ;
 
     // Toggle whether non-fatal messages should be reported through the
     // scripting layer rather on standard output. Fatal errors are always
@@ -293,7 +292,6 @@ private:
     // and that takes va_list anyway.
     void WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, ...)
         __attribute__((format(printf, 4, 5)));
-    ;
     void UpdateWeirdStats(const char* name);
     inline bool WeirdOnSamplingWhiteList(const char* name) { return weird_sampling_whitelist.contains(name); }
     inline bool WeirdOnGlobalList(const char* name) { return weird_sampling_global_list.contains(name); }

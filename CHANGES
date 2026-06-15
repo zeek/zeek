@@ -1,3 +1,20 @@
+9.0.0-dev.416 | 2026-06-15 09:14:25 +0200
+
+  * telemetry/ProcessStats: Use %lu for rss_pages (Arne Welzel, Corelight)
+
+    We read into an unsigned long and the value should always be positive.
+    This squelches:
+
+        ProcessStats.cc:154:29: warning: format ‘%ld’ expects argument of type ‘long int*’, but argument 6 has type ‘long unsigned int*’ [-Wformat=]
+
+  * binpac: Fix %3o / %2x / %x parsing expecting unsigned int (Arne Welzel, Corelight)
+
+  * zeek.bif: Fix %hhx expecting unsigned char (Arne Welzel, Corelight)
+
+  * Fix some %p expecting void* warnings (Arne Welzel, Corelight)
+
+  * BasicThread/Reporter/Debug/AnalyzerSet: Fix stray semicolon (Arne Welzel, Corelight)
+
 9.0.0-dev.410 | 2026-06-12 11:59:19 -0700
 
   * Fix token usage for GH API requests (Tim Wojtulewicz, Corelight)

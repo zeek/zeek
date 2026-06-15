@@ -108,6 +108,18 @@ flow WebSocket_Flow(is_orig: bool) {
 			effective_opcode_ = ${hdr.opcode};
 
 		frame_payload_len_ = ${hdr.payload_len};
+
+		// Control frames cannot exceed 125 bytes, per RFC 6455 section 5.5. This limit can be
+		// configured.
+		if ( zeek::BifConst::WebSocket::max_control_frame_size != 0 &&
+		     (effective_opcode_ == OPCODE_CLOSE || effective_opcode_ == OPCODE_PING || effective_opcode_ == OPCODE_PONG) &&
+		     frame_payload_len_ > zeek::BifConst::WebSocket::max_control_frame_size ) {
+			connection()->zeek_analyzer()->Weird("websocket_control_frame_size_exceeded",
+		                                         zeek::util::fmt("%" PRIu64 " > %" PRIu64, frame_payload_len_,
+		                                                         zeek::BifConst::WebSocket::max_control_frame_size));
+			frame_payload_len_ = zeek::BifConst::WebSocket::max_control_frame_size;
+		}
+
 		has_mask_ = ${hdr.has_mask};
 		masking_key_idx_ = 0;
 		if ( has_mask_ ) {

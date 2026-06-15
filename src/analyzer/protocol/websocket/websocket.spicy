@@ -48,6 +48,15 @@ type Frame = unit(m: Message) {
             self.payload_len = self.payload_len8;
     }
 
+    # Verify that CLOSE, PING, and PONG are all under a configurable limit.
+    : void {
+        local max_control_frame = zeek::get_count("WebSocket::max_control_frame_size");
+        if (max_control_frame != 0 && (self.effective_opcode == OPCODE_CLOSE || self.effective_opcode == OPCODE_PING || self.effective_opcode == OPCODE_PONG) && self.payload_len > max_control_frame) {
+            zeek::weird("websocket_control_frame_size_exceeded", "%u > %u" % (self.payload_len, max_control_frame));
+            self.payload_len = max_control_frame;
+        }
+    }
+
     # This being an uint8[] allows masking_key[x] indexing, while a bytes
     # object would require *masking_key.at(i) which took roughly 20% more
     # runtime when I tested it.

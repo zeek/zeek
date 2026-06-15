@@ -521,7 +521,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
             last_was_IAC = false;
 
             if ( offset >= buf_len )
-                InitBuffer(buf_len * 2);
+                InitBuffer(offset + 1);
 
             buf[offset++] = code;
         }
@@ -530,7 +530,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
             is_suboption = false;
 
             if ( offset >= buf_len )
-                InitBuffer(buf_len * 2);
+                InitBuffer(offset + 1);
 
             buf[offset++] = code;
         }

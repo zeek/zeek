@@ -831,6 +831,12 @@ export {
 	## testing reasons.
 	const payload_chunk_size = 8192 &redef;
 
+	## The WebSocket analyzer will cap any control frames
+	## (CLOSE, PING, PONG) to this limit and emit a weird if
+	## exceeded. This is defined in the RFC as 125 bytes.
+	## Set to 0 to disable this check.
+	const max_control_frame_size = 125 &redef;
+
 	## Whether to enable DPD on WebSocket frame payload by default.
 	const use_dpd_default = T &redef;
 

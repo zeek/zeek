@@ -1,1 +1,2 @@
 const WebSocket::payload_chunk_size: count;
+const WebSocket::max_control_frame_size: count;

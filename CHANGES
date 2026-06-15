@@ -1,3 +1,7 @@
+9.0.0-dev.425 | 2026-06-15 16:20:09 -0700
+
+  * Add zeekctl and include-plugin testing to CircleCI config (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.423 | 2026-06-15 09:32:14 -0700
 
   * Update zeek-testing commit hash to latest commit (Tim Wojtulewicz, Corelight)

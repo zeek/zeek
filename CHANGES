@@ -1,3 +1,7 @@
+9.0.0-dev.420 | 2026-06-15 09:25:27 -0700
+
+  * Ignore build-time-generated libkqueue headers for clang-tidy (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.418 | 2026-06-15 09:24:39 -0700
 
   * Disable default buildx attestations when building docker images (Tim Wojtulewicz, Corelight)

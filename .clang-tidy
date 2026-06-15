@@ -83,7 +83,7 @@ Checks: [-*,
 ]
 
 HeaderFilterRegex: '.h'
-ExcludeHeaderFilterRegex: '.*(auxil|3rdparty)/.*'
+ExcludeHeaderFilterRegex: '.*(auxil|3rdparty|build/libkqueue-build)/.*'
 SystemHeaders: false
 CheckOptions:
     - key: modernize-use-default-member-init.UseAssignment

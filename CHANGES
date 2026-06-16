@@ -1,3 +1,25 @@
+8.0.8-36 | 2026-06-17 21:59:30 +0000
+
+  * utils/atoi_n: Switch to std::from_chars (Arne Welzel, Corelight)
+
+    This does all the hard work already.
+
+    (cherry picked from commit e47ad51093cdb885bf3aad5949fc691360407771)
+
+  * utils/atoi_n: Reject neg for unsigned, prevent overflow for signed (Arne Welzel, Corelight)
+
+    Mostly add tests for parsing edge cases of int8_t before switching to
+    std::from_chars.
+
+    (cherry picked from commit e47ad51093cdb885bf3aad5949fc691360407771)
+
+  * GH-2382: utils/atoi_n: Prevent overflows and fix digit parsing for base < 10 (Arne Welzel, Corelight)
+
+    Fuzzing with UBSAN triggered the n = n * base + d line as overflowing,
+    incorporate the atoi_n changes from Spicy also in the Zeek code and add
+
+    (cherry picked from commit e47ad51093cdb885bf3aad5949fc691360407771)
+
 8.0.8-35 | 2026-06-17 21:55:42 +0000
 
   * smb/smb1_writex_and_response: Fix written_high int overflow by using << (Arne Welzel, Corelight)

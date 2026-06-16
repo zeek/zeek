@@ -1,0 +1,10 @@
+-- Silence any output for these commands. This prevents breaking baselines.
+.output /dev/null
+
+-- Sqlite 3.52.0 and up return 17 digits for floating point values by default,
+-- which breaks some baselines. Enforce the old 15 digit version for btest
+-- baselines.
+.dbconfig fp_digits 15
+
+-- Restore output to stdout
+.output stdout

@@ -78,6 +78,10 @@ export {
 	## Truncate the reply_msg field in the log to that many bytes to avoid
 	## excessive logging volume.
 	option max_reply_msg_length = 4096;
+
+	## If true, log a summary entry for FTP sessions where a user was
+	## seen but no logged_commands were issued.
+	option report_unlogged_sessions = T;
 }
 
 # Add the state tracking information variable to the connection record
@@ -489,15 +493,11 @@ hook finalize_ftp(c: connection)
 		ftp_message(c);
 		}
 
-	if ( c$ftp?$user && ! c$ftp$logged_command_seen )
+	if ( c$ftp?$user && ! c$ftp$logged_command_seen && report_unlogged_sessions )
 		{
 		local s: Info = c$ftp;
 		s$ts = network_time();
 		s$command = "<session>";
-
-		if ( s?$password && should_hide_password(s) )
-			s$password = "<hidden>";
-
 		Log::write(FTP::LOG, s);
 		}
 	}

@@ -1,3 +1,20 @@
+8.0.8-35 | 2026-06-17 21:55:42 +0000
+
+  * smb/smb1_writex_and_response: Fix written_high int overflow by using << (Arne Welzel, Corelight)
+
+    The uint16 written_high is promoted to int before the multiplication and
+    potentially causes the sign-bit of the int be set, causing UBSAN to report
+    an overflow:
+
+        /src/zeek/build/src/analyzer/protocol/smb/smb_pac.cc:8456:40: runtime error: signed integer overflow: 56387 * 65536 cannot be represented in type 'int'
+
+    Bit-shifting with 16 has the same effect, but is not undefined with C++20
+    anymore, so use this. Alternative would be to create a written_high32
+    intermediary in the &let section, but the data_len of the write_andx_request
+    uses shifting, too.
+
+    (cherry picked from commit 81f2bc3f436593b91be345004867c14ccdd09dad)
+
 8.0.8-34 | 2026-06-17 21:55:07 +0000
 
   * base64: Redo some calculations for signed shifts (Evan Typanski, Corelight)

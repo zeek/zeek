@@ -80,6 +80,6 @@ type SMB1_write_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	andx_command    : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
 } &let {
-	written_bytes : uint32 = (written_high * 0x10000) + written_low;
+	written_bytes : uint32 = (written_high << 16) + written_low;
 	proc          : bool   = $context.connection.proc_smb1_write_andx_response(header, this);
 };

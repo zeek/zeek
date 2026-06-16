@@ -1,3 +1,12 @@
+9.0.0-dev.435 | 2026-06-16 10:47:48 -0700
+
+  * CI: Add store_install_tarball parameter to run 'make install' during the build (Tim Wojtulewicz, Corelight)
+
+    This also:
+    - Renames the tarball from build.tgz to install.tgz
+    - Renames the env variable to from ZEEK_CI_CREATE_ARTIFACT to ZEEK_CI_CREATE_INSTALL_TARBALL
+    - Tars just the install directory instead of the entire path
+
 9.0.0-dev.433 | 2026-06-16 10:51:22 +0200
 
   * sip: Weird on invalid CONTENT-LENGTH headers (Arne Welzel, Corelight)

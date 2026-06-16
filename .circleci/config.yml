@@ -242,7 +242,11 @@ jobs:
         type: boolean
         default: false
       enable_benchmarks:
-        description: Flag for whether the benchmarks should run after building
+        description: Flag for whether the benchmarks should run after building. If this is true, the store_install_tarball parameter must be true as well.
+        type: boolean
+        default: false
+      store_install_tarball:
+        description: Flag for whether the build/install artifacts are stored. This flag also causes the build to install Zeek.
         type: boolean
         default: false
       enable_coverage:
@@ -250,7 +254,7 @@ jobs:
         type: boolean
         default: false
       install_spicy_analyzers:
-        description: Flag for whether to install the Spicy analyzers used for testing
+        description: Flag for whether to install the Spicy analyzers used for testing. If this is true, the store_install_tarball parameter must be true as well.
         type: boolean
         default: false
       # The command run by this parameter requires the ZEEK_CI_COMPILER environment variable
@@ -272,7 +276,6 @@ jobs:
       ZEEK_CI_RUNNER_OS: linux
       ZEEK_TEST_ULIMIT_OPEN_FILES: 256
       ZEEK_CIRCLE_EXTRA_ENV: << parameters.extra_env >>
-      ZEEK_CI_CREATE_ARTIFACT: << parameters.enable_benchmarks >>
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
@@ -285,6 +288,16 @@ jobs:
           name: Set extra environment variables
           command: |
             echo "export ZEEK_CI_WORKING_DIR=${CIRCLE_WORKING_DIRECTORY}" >> "$BASH_ENV"
+
+            # This could be done in the environment block of the job definition, but
+            # we pass 0/1 for consistency with other environment variables in the rest
+            # of the config.
+            if [[ "<< parameters.store_install_tarball >>" == "true" ]]; then
+              echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=0" >> "$BASH_ENV"
+            fi
+
             IFS=$'\n'
             for line in ${ZEEK_CIRCLE_EXTRA_ENV}; do
               echo "export ${line}" >> "$BASH_ENV"
@@ -331,6 +344,7 @@ jobs:
             - store_test_results:
                 path: btest-results
             - store_artifacts:
+                name: Upload btest artifacts
                 path: btest-results
                 destination: btest-results
       - when:
@@ -346,6 +360,12 @@ jobs:
                 name: Run coverage
                 command: ci/upload-coverage.sh
       - when:
+          condition: << parameters.store_install_tarball >>
+          steps:
+            - store_artifacts:
+                path: install.tgz
+                destination: install.tgz
+      - when:
           condition: << parameters.install_spicy_analyzers >>
           steps:
             - run:
@@ -356,11 +376,6 @@ jobs:
       - when:
           condition: << parameters.enable_benchmarks >>
           steps:
-            # TODO: this might be best as a separate parameter than a side effect of the
-            # benchmarks parameter.
-            - store_artifacts:
-                path: build.tgz
-                destination: build
             - run:
                 name: Run benchmarks
                 command: ci/benchmark.sh
@@ -1115,6 +1130,7 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
+          store_install_tarball: true
           install_spicy_analyzers: true
           context:
             - zeek
@@ -1123,6 +1139,7 @@ workflows:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          store_install_tarball: true
           install_spicy_analyzers: true
           context:
             - zeek

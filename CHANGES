@@ -1,3 +1,7 @@
+9.0.0-dev.437 | 2026-06-16 11:46:46 -0700
+
+  * Clamp some lengths in the NTP extension parsing (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.435 | 2026-06-16 10:47:48 -0700
 
   * CI: Add store_install_tarball parameter to run 'make install' during the build (Tim Wojtulewicz, Corelight)

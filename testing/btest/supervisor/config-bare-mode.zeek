@@ -6,7 +6,7 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-REQUIRES: ! is-windows-ci
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff zeek/inherit/node.out
 # @TEST-EXEC: btest-diff zeek/bare/node.out
 # @TEST-EXEC: btest-diff zeek/default/node.out

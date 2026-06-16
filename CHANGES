@@ -1,3 +1,7 @@
+9.0.0-dev.439 | 2026-06-16 16:01:04 -0700
+
+  * Add sqlite3.rc to enforce certain sqlite3 options to ensure baseline determinism across versions (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.437 | 2026-06-16 11:46:46 -0700
 
   * Clamp some lengths in the NTP extension parsing (Tim Wojtulewicz, Corelight)

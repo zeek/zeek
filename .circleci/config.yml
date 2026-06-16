@@ -1220,12 +1220,12 @@ workflows:
           << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
       - linux-build:
           name: tsan-sanitizer
-          docker_image: zeek/zeek-ci:ubuntu-24.04
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          docker_image: zeek/zeek-ci:ubuntu-26.04
+          requires: [fetch-test-traces, build-image-ubuntu-26.04]
           << : *CONFIGURE_TSAN
           extra_env: |
-            CC=clang-19
-            CXX=clang++-19
+            CC=clang-21
+            CXX=clang++-21
             ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
             ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
           << : *FILTER_IF_PR_NOT_FULL_CI

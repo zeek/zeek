@@ -19,6 +19,7 @@ type Frame = unit(m: Message) {
     var masking_key_idx: uint64;
     var close_data: bytes;
     var effective_opcode: uint8;
+    var remaining_payload_len: uint64;
 
     : bitfield(16) {
         fin: 0 &convert=cast<bool>($$);
@@ -50,10 +51,12 @@ type Frame = unit(m: Message) {
 
     # Verify that CLOSE, PING, and PONG are all under a configurable limit.
     : void {
+        self.remaining_payload_len = self.payload_len;
+
         local max_control_frame = zeek::get_count("WebSocket::max_control_frame_size");
         if (max_control_frame != 0 && (self.effective_opcode == OPCODE_CLOSE || self.effective_opcode == OPCODE_PING || self.effective_opcode == OPCODE_PONG) && self.payload_len > max_control_frame) {
             zeek::weird("websocket_control_frame_size_exceeded", "%u > %u" % (self.payload_len, max_control_frame));
-            self.payload_len = max_control_frame;
+            self.remaining_payload_len = max_control_frame;
         }
     }
 
@@ -77,8 +80,11 @@ type Frame = unit(m: Message) {
 
         # Accumulate the unmasked data in close_data if this a close frame
         # so it can be parsed by the outer Message. It's a bit of a hack.
-        if (self.effective_opcode == OPCODE_CLOSE)
-            self.close_data += $$;
+        if (self.effective_opcode == OPCODE_CLOSE && self.remaining_payload_len > 0) {
+            local emit = |$$| < self.remaining_payload_len ? |$$| : self.remaining_payload_len;
+            self.close_data += $$.sub(0, emit);
+            self.remaining_payload_len -= emit;
+        }
     }
 };
 

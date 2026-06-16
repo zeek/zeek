@@ -1,3 +1,48 @@
+9.0.0-dev.433 | 2026-06-16 10:51:22 +0200
+
+  * sip: Weird on invalid CONTENT-LENGTH headers (Arne Welzel, Corelight)
+
+    Commit b02623bb74772a859eb2f8494c3e86bef1ddcf35 changed to_count() usage
+    to "as count" casts which is stricter for trailing and fronting whitespace.
+    For this specific usage seems better to just weird if the conversion
+    isn't possible.
+
+    This was found by OSS-Fuzz because it has "abort on scripting"
+    errors enabled.
+
+    Fix and triage done by me, test PCAP and btest almsot autonomously
+    via an LLM.
+
+  * smb/smb1_writex_and_response: Fix written_high int overflow by using << (Arne Welzel, Corelight)
+
+    The uint16 written_high is promoted to int before the multiplication and
+    potentially causes the sign-bit of the int be set, causing UBSAN to report
+    an overflow:
+
+        /src/zeek/build/src/analyzer/protocol/smb/smb_pac.cc:8456:40: runtime error: signed integer overflow: 56387 * 65536 cannot be represented in type 'int'
+
+    Bit-shifting with 16 has the same effect, but is not undefined with C++20
+    anymore, so use this. Alternative would be to create a written_high32
+    intermediary in the &let section, but the data_len of the write_andx_request
+    uses shifting, too.
+
+  * utils/atoi_n: Switch to std::from_chars (Arne Welzel, Corelight)
+
+    This does all the hard work already.
+
+  * utils/atoi_n: Reject neg for unsigned, prevent overflow for signed (Arne Welzel, Corelight)
+
+    Mostly add tests for parsing edge cases of int8_t before switching to
+    std::from_chars.
+
+  * GH-2382: utils/atoi_n: Prevent overflows and fix digit parsing for base < 10 (Arne Welzel, Corelight)
+
+    Fuzzing with UBSAN triggered the n = n * base + d line as overflowing,
+    incorporate the atoi_n changes from Spicy also in the Zeek code and add
+    some tests for the edge cases.
+
+    Reference zeek/spicy#2382 zeek/spicy#2397
+
 9.0.0-dev.425 | 2026-06-15 16:20:09 -0700
 
   * Add zeekctl and include-plugin testing to CircleCI config (Tim Wojtulewicz, Corelight)

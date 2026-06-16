@@ -210,7 +210,10 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$call_id = value;
 				break;
 			case "CONTENT-LENGTH", "L":
-				c$sip$request_body_len = value as count;
+				if ( value ?as count )
+					c$sip$request_body_len = value as count;
+				else
+					Reporter::conn_weird("invalid_SIP_request_body_len", c, value);
 				break;
 			case "CSEQ":
 				c$sip$seq = value;
@@ -249,7 +252,10 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 		switch ( name )
 			{
 			case "CONTENT-LENGTH", "L":
-				c$sip$response_body_len = value as count;
+				if ( value ?as count )
+					c$sip$response_body_len = value as count;
+				else
+					Reporter::conn_weird("invalid_SIP_response_body_len", c, value);
 				break;
 			case "CONTENT-TYPE", "C":
 				c$sip$content_type = value;

@@ -1,3 +1,9 @@
+8.0.8-37 | 2026-06-17 22:12:11 +0000
+
+  * Clamp some lengths in the NTP extension parsing (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit fc3fa9d5ee61824db3376f776cf6942c28ecc587)
+
 8.0.8-36 | 2026-06-17 21:59:30 +0000
 
   * utils/atoi_n: Switch to std::from_chars (Arne Welzel, Corelight)

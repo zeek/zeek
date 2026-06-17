@@ -124,6 +124,10 @@ Changed Functionality
   for log streams. Previously, it would result in scheduling a new timer that
   would immediately expire, something that isn't very useful.
 
+- Certain protocol fields in the RDP parser are capped to maximum values to
+  prevent unbounded buffering. This also prevents signed integer overflow
+  reports from the BinPAC-generated code when running under UBSAN.
+
 Deprecated Functionality
 ------------------------
 

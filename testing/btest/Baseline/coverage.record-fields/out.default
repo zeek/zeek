@@ -494,6 +494,40 @@ connection {
         * version: count, log=T, optional=F
         * xmt_time: time, log=T, optional=F
        }
+  * ntp_control: record NTP::ControlInfo, log=F, optional=T
+      NTP::ControlInfo {
+        * association_id: count, log=T, optional=F
+        * crypto_checksum: string, log=T, optional=T
+        * data: string, log=T, optional=T
+        * err_bit: bool, log=T, optional=F
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * key_id: count, log=T, optional=T
+        * mode: count, log=T, optional=F
+        * more_bit: bool, log=T, optional=F
+        * op_code: count, log=T, optional=F
+        * resp_bit: bool, log=T, optional=F
+        * sequence: count, log=T, optional=F
+        * status: count, log=T, optional=F
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * version: count, log=T, optional=F
+       }
+  * ntp_private: record NTP::PrivateInfo, log=F, optional=T
+      NTP::PrivateInfo {
+        * auth_bit: bool, log=T, optional=F
+        * data: string, log=T, optional=T
+        * err: count, log=T, optional=F
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * implementation: count, log=T, optional=F
+        * mode: count, log=T, optional=F
+        * req_code: count, log=T, optional=F
+        * sequence: count, log=T, optional=F
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * version: count, log=T, optional=F
+       }
   * orig: record endpoint, log=F, optional=F
       endpoint {
         * flow_label: count, log=F, optional=F

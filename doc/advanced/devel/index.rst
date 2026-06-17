@@ -16,6 +16,8 @@ within the Zeek source tree `here <doc_repo_>`_.
 .. toctree::
    :maxdepth: 2
 
+   hacking
+   btest
    plugins
    spicy/index
    websocket-api

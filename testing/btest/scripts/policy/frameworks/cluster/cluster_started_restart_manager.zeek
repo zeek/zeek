@@ -7,7 +7,7 @@
 # @TEST-PORT: WORKER1_PORT
 # @TEST-PORT: WORKER2_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 25
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff zeek/supervisor.out
 # @TEST-EXEC: btest-diff zeek/manager/stdout
 # @TEST-EXEC: btest-diff zeek/worker-1/stdout

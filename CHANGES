@@ -1,3 +1,7 @@
+9.0.0-dev.448 | 2026-06-17 15:22:39 -0700
+
+  * GH CI: Update to the new environment variable for creating artifacts (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.446 | 2026-06-17 08:29:14 -0700
 
   * Extend timeouts for some cluster-based jobs for CI ASAN ZAM testing (Tim Wojtulewicz, Corelight)

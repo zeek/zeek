@@ -175,7 +175,7 @@ jobs:
         - id: ubuntu-24.04
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            ZEEK_CI_CREATE_ARTIFACT: 1
+            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
           run: |
             ./ci/pre-build.sh
             ./ci/build.sh
@@ -223,7 +223,7 @@ jobs:
         - id: ubuntu-24.04-spicy
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            ZEEK_CI_CREATE_ARTIFACT: 1
+            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
           run: |
             (
@@ -241,7 +241,7 @@ jobs:
         - id: ubuntu-24.04-spicy-head
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            ZEEK_CI_CREATE_ARTIFACT: 1
+            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
           run: |
             ./ci/pre-build.sh

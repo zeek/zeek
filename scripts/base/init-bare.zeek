@@ -5999,6 +5999,14 @@ export {
 	const max_header_length = 32768 &redef;
 }
 
+module Finger;
+
+export {
+	## The maximum line length for Finger requests and replies. If any lines
+	## exceed this limit, then this will trigger a violation.
+	option max_line_length = 1024;
+}
+
 module Cluster;
 
 export {

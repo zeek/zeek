@@ -1,3 +1,9 @@
+8.0.8-6 | 2026-06-17 16:30:21 +0000
+
+  * add libressl version check (Kevin Harrington)
+
+  * Add note about Broker WebSocketShim abort() to NEWS (Arne Welzel, Corelight)
+
 8.0.8 | 2026-05-12 16:29:19 +0000
 
   * Update docs for v8.0.8 (Tim Wojtulewicz, Corelight)

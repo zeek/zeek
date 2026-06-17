@@ -118,9 +118,9 @@ type Extension_Field = record {
 	association_id: uint16;
 	timestamp:      uint32;
 	filestamp:      uint32;
-	value_len:      uint32 &enforce(value_len <= (len - 18));
+	value_len:      uint32 &enforce(value_len <= (len - 18u));
 	value:          bytestring &length=value_len;
-	sig_len:        uint32 &enforce(value_len <= (len - 22));
+	sig_len:        uint32 &enforce(value_len <= (len - 22u));
 	signature:      bytestring &length=sig_len;
 	pad:            padding to (len - offsetof(first_byte_ext));
 } &let {

@@ -254,6 +254,13 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 				return TOK_NUMBER;
 				}
 
+<INITIAL,PP>{D}u		{
+				unsigned int n;
+				sscanf(yytext, "%uu", &n);
+				yylval.num = new Number(n);
+				return TOK_NUMBER;
+				}
+
 <INITIAL,PP>{ID}(::{ID})*	{
 				yylval.id = new ID(yytext);
 				return TOK_ID;

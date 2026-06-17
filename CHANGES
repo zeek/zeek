@@ -1,3 +1,9 @@
+8.2.0-31 | 2026-06-17 21:47:28 +0000
+
+  * Allow unsigned constants in binpac code (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 46a8b9673a27fc06367a83fb3d05ab7837f0b1ed)
+
 8.2.0-30 | 2026-06-17 21:46:57 +0000
 
   * Clamp some lengths in the NTP extension parsing (Tim Wojtulewicz, Corelight)

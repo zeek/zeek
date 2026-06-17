@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # This timeout needs to be large to accommodate ZAM compilation delays.
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager/.stdout
 
 @load base/frameworks/sumstats
@@ -29,7 +29,7 @@ event zeek_init() &priority=5
 	                  	local r = result["test"];
 	                  	print fmt("Host: %s  Sampled observations: %d", key$host, r$sample_elements);
 	                  	local sample_nums: vector of count = vector();
-	                  	for ( sample in r$samples ) 
+	                  	for ( sample in r$samples )
 	                  		sample_nums += r$samples[sample]$num;
 
 	                  	print fmt("    %s", sort(sample_nums));

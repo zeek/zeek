@@ -1,3 +1,17 @@
+8.2.0-38 | 2026-06-18 11:27:22 -0700
+
+  * Extend timeouts for some cluster-based jobs for CI ASAN ZAM testing (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c8ae3a75d5640d7487e5f03b13430ea4b07ebbd4)
+
+  * Adjust Dockerfile dates to include a version number (Tim Wojtulewicz, Corelight)
+
+  * Migrate CircleCi configuration, including Dockerfile refreshes (Tim Wojtulewicz, Corelight)
+
+  * Initial docs updates for 8.2.1 (Tim Wojtulewicz, Corelight)
+
+  * Remove Cirrus config, migrate GH CI config and CI script changes (Tim Wojtulewicz, Corelight)
+
 8.2.0-33 | 2026-06-17 21:50:58 +0000
 
   * base64: Redo some calculations for signed shifts (Evan Typanski, Corelight)

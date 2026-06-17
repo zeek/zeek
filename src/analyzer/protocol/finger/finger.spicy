@@ -10,6 +10,27 @@ import spicy;
 const OptionalWhiteSpace = /[ \t]*/;
 const NewLine = /\r?\n/;
 
+# Allow configuring max line length via Zeek, but don't include if building separate.
+@if HAVE_ZEEK
+import zeek;
+global _max_line_length: optional<uint64>; function max_line_length(): uint64 {
+    if (!_max_line_length) {
+        _max_line_length = zeek::get_count("Finger::max_line_length");
+        # If 0, cap at a high number.
+        #
+        # While this can technically still cap it, that threshold should be high enough
+        # that it wouldn't happen with realistic input.
+        if (*_max_line_length == 0)
+            _max_line_length = 1024 * 1024;
+    }
+    return *_max_line_length;
+}
+@else
+function max_line_length(): uint64 {
+    return 1024;
+}
+@endif
+
 public type Request = unit {
     : OptionalWhiteSpace;
 
@@ -22,7 +43,7 @@ public type Request = unit {
 
     : OptionalWhiteSpace;
 
-    arg: /[^\r\n]*/ &convert=$$.strip().split1(b"@") {
+    arg: /[^\r\n]*/ &max-size=max_line_length() &convert=$$.strip().split1(b"@") {
         # We require valid UTF-8 to weed out binary data.
         self.user = self.arg[0].decode();
 
@@ -41,7 +62,7 @@ public type Request = unit {
 };
 
 type ReplyLine = unit {
-    data: /[^\r\n]*/ &convert=$$.decode(); # Require valid UTF-8 here as well.
+    data: /[^\r\n]*/ &max-size=max_line_length() &convert=$$.decode(); # Require valid UTF-8 here as well.
     : NewLine;
 
     on %done {

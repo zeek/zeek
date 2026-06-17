@@ -75,7 +75,10 @@ Expr::Expr(Number* arg_num) : DataDepElement(EXPR) {
     init();
     expr_type_ = EXPR_NUM;
     num_ = arg_num;
-    orig_ = strfmt("((int) %s)", num_->Str());
+    if ( num_->IsUnsigned() )
+        orig_ = strfmt("((unsigned int) %s)", num_->Str());
+    else
+        orig_ = strfmt("((int) %s)", num_->Str());
 }
 
 Expr::Expr(Nullptr* arg_nullp) : DataDepElement(EXPR) {

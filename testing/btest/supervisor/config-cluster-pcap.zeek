@@ -4,7 +4,7 @@
 # @TEST-PORT: MANAGER_PORT
 # @TEST-PORT: WORKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j %INPUT
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: mv zeek/worker/conn.log zeek/worker/conn.log.orig
 # @TEST-EXEC: zeek-cut ts uid id.orig_h id.resp_h history service < zeek/worker/conn.log.orig > zeek/worker/conn.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff zeek/worker/conn.log

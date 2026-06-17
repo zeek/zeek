@@ -12,7 +12,7 @@
 # @TEST-EXEC: $SCRIPTS/wait-for-file manager/lost 15 || (btest-bg-wait -k 1 && false)
 
 # @TEST-EXEC: btest-bg-run worker-2  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-2 zeek -b --pseudo-realtime -C -r $TRACES/tls/ecdhe.pcap %INPUT"
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff manager/x509.log
 
 @load base/protocols/ssl

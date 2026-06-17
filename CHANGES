@@ -1,3 +1,11 @@
+8.0.8-47 | 2026-06-24 13:48:08 -0700
+
+  * Extend timeouts for some cluster-based jobs for CI ASAN ZAM testing (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c8ae3a75d5640d7487e5f03b13430ea4b07ebbd4)
+
+  * Add openssl and pcre to vcpkg.json (Tim Wojtulewicz, Corelight)
+
 8.0.8-45 | 2026-06-24 10:42:46 -0700
 
   * NTP: Prevent len underflow in &enforce during extension parsing (Arne Welzel, Corelight)

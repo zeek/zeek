@@ -1,3 +1,16 @@
+8.2.0-32 | 2026-06-17 21:50:29 +0000
+
+  * RDP: Cap certain protocol fields to 1000 entries or 256 KB in length (Arne Welzel, Corelight)
+
+    When fuzzing RDP with UBSAN, the fuzzer would produce lengths for key or
+    cert data close to INT_MAX which then leads to signed integer overflows in
+    error messages from BinPAC. Prevent this by capping key and cert blobs
+    to 256 KB similar to what's done in RFB. This should be sufficient and
+    also prevent unreasonable buffering.  Also cap channels and num_of_certs
+    in X509 to 1000.
+
+    (cherry picked from commit 43af2fd502444a649fd03314e64d06da48ed9cea)
+
 8.2.0-31 | 2026-06-17 21:47:28 +0000
 
   * Allow unsigned constants in binpac code (Tim Wojtulewicz, Corelight)

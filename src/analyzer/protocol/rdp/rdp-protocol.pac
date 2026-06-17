@@ -1,5 +1,11 @@
 %include ../asn1/asn1.pac
 
+
+# The protocol specifies some 32-bit variable-length data fields for the
+# key and cert material. This value caps the size of these to help prevent
+# excessive buffering and integer overflows in BinPAC. This is 256 KB.
+let MAX_DATA_LENGTH: uint32 = 262144;
+
 type TPKT(is_orig: bool) = record {
 	version:  uint8;
 	reserved: uint8;
@@ -235,7 +241,7 @@ type Client_Security_Data = record {
 } &byteorder=littleendian;
 
 type Client_Network_Data = record {
-	channel_count: uint32;
+	channel_count: uint32 &enforce(channel_count <= 1000);
 	channel_def_array: Client_Channel_Def[channel_count];
 } &byteorder=littleendian;
 
@@ -325,7 +331,7 @@ type Server_Security_Data = record {
 	encryption_method:      uint32;
 	encryption_level:       uint32;
 	server_random_length:   uint32 &enforce((encryption_level == 0 && encryption_method == 0 && server_random_length == 0) || (server_random_length == 0x20));
-	server_cert_length:     uint32;
+	server_cert_length:     uint32 &enforce(server_random_length <= MAX_DATA_LENGTH);
 	server_random:          bytestring &length=server_random_length;
 	server_certificate:     Server_Certificate &length=server_cert_length;
 } &let {
@@ -359,19 +365,19 @@ type Server_Proprietary_Cert(cert: Server_Certificate) = record {
 
 type Public_Key_Blob = record {
 	magic:           bytestring &length=4;
-	key_length:      uint32;
+	key_length:      uint32 &enforce(key_length <= MAX_DATA_LENGTH);
 	bit_length:      uint32;
 	public_exponent: uint32;
 	modulus:         bytestring &length=key_length;
 } &byteorder=littleendian;
 
 type X509 = record {
-	num_of_certs: uint32;
+	num_of_certs: uint32 &enforce(num_of_certs <= 1000);
 	certs: X509_Cert_Data[num_of_certs];
 } &byteorder=littleendian;
 
 type X509_Cert_Data = record {
-	cert_len: uint32;
+	cert_len: uint32 &enforce(cert_len <= MAX_DATA_LENGTH);
 	cert: bytestring &length=cert_len;
 } &byteorder=littleendian;
 

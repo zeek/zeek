@@ -65,7 +65,7 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 	const ASN1_OCTET_STRING* key  = nullptr;
 	const X509_NAME*         name = nullptr;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x30900000L)
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || ( LIBRESSL_VERSION_NUMBER < 0x30900000L )
 	OCSP_RESPID* resp_id = basic_resp->tbsResponseData->responderId;
 
 	if ( resp_id->type == V_OCSP_RESPID_NAME )

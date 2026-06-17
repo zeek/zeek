@@ -10,12 +10,13 @@ BTEST=$(pwd)/auxil/btest/btest
 # Due to issues with DNS lookups on macOS, one of the Cirrus support people recommended we
 # run our tests as root. See https://github.com/cirruslabs/cirrus-ci-docs/issues/1302 for
 # more details.
-if [[ "${CIRRUS_OS}" == "darwin" ]]; then
+# TODO: Is this necessary anymore?
+if [[ "${ZEEK_CI_RUNNER_OS}" == "macos" ]]; then
     BTEST="sudo ${BTEST}"
 fi
 
-if [[ -z "${CIRRUS_CI}" ]]; then
-    # Set default values to use in place of env. variables set by Cirrus CI.
+if [[ -z "${ZEEK_CI}" ]]; then
+    # Set default values to use in place of env. variables set by CI.
     ZEEK_CI_CPUS=1
     [[ $(which nproc) ]] && ZEEK_CI_CPUS=$(nproc)
     [[ -n "${1}" ]] && ZEEK_CI_CPUS=${1}
@@ -24,10 +25,16 @@ if [[ -z "${CIRRUS_CI}" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-. ${SCRIPT_DIR}/common.sh
 
 if [ -n "${ZEEK_TSAN_OPTIONS}" ]; then
     export TSAN_OPTIONS=${ZEEK_TSAN_OPTIONS}
+fi
+
+if [ -n "${ZEEK_TEST_ULIMIT_OPEN_FILES}" ]; then
+    if ! ulimit -n "${ZEEK_TEST_ULIMIT_OPEN_FILES}"; then
+        echo "failed to run ulimit -n ${ZEEK_TEST_ULIMIT_OPEN_FILES}" >&2
+        exit 1
+    fi
 fi
 
 function pushd {
@@ -64,6 +71,11 @@ function prep_artifacts {
     banner "Prepare artifacts"
     [[ -d .tmp ]] && rm -rf .tmp/script-coverage && tar -czf tmp.tar.gz .tmp
     junit2html btest-results.xml btest-results.html
+
+    # Copy these into a location where CI hosts can collect all of the results from at
+    # once.
+    mkdir -p ${CIRCLE_WORKING_DIRECTORY}/btest-results/$1
+    cp btest-results.xml ${CIRCLE_WORKING_DIRECTORY}/btest-results/$1/results.xml
 }
 
 function run_btests {
@@ -74,7 +86,7 @@ function run_btests {
     ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
         ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} ${ZEEK_CI_BTEST_EXTRA_ARGS} || result=1
     make coverage
-    prep_artifacts
+    prep_artifacts btest
     popd
     return 0
 }
@@ -108,7 +120,7 @@ function run_external_btests {
     pushd testing/external/zeek-testing
     cat btest.out
     make coverage
-    prep_artifacts
+    prep_artifacts zeek-testing
     popd
 
     if [[ -n "${zeek_testing_private_pid}" ]]; then

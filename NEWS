@@ -94,6 +94,22 @@ Changed Functionality
 - The ``extension_signature_algorithm`` event previously was incorrectly raised when a
   CertificateRequest message was encountered. It now is not raised for CertificateRequest messages.
 
+- The HTTP analyzer was extended with a number of new weirds to detect unusual
+  Content-Length, Transfer-Encoding and Expect header usage:
+
+	HTTP_bad_chunk_size
+	HTTP_chunked_multi
+	HTTP_content_length_0_and_expect_100_cont
+	HTTP_content_length_leading_zeros
+	HTTP_bad_content_length
+	HTTP_obsolete_line_folding
+	HTTP_content_length_and_chunked
+	HTTP_content_range_and_chunked
+	HTTP_expect_not_100_continue
+
+  If you observe an excessive number of these weirds, you may always
+  filter these out or report as false positives to us.
+
 - The options and redefinitions from ``zeromq/main.zeek`` were split into a separate
   file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
   layer, without partaking in cluster node events.

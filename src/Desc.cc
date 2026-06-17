@@ -362,6 +362,16 @@ bool ODesc::FindType(const Type* type) {
     return false;
 }
 
+bool ODesc::PushVal(const Val* v) {
+    auto res = encountered_vals.insert(v);
+    return std::get<1>(res);
+}
+
+bool ODesc::PopVal(const Val* v) {
+    size_t res = encountered_vals.erase(v);
+    return (res == 1);
+}
+
 std::string obj_desc(const Obj* o) {
     static ODesc d;
 

@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20250905
+ENV DOCKERFILE_VERSION=20260617
 
 RUN apt-get update && apt-get -y install \
     bc \
@@ -39,7 +39,7 @@ RUN apt-get update && apt-get -y install \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
- RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 0 \
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 0 \
   && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 0
 
 RUN pip3 install websockets junit2html

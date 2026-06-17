@@ -2,7 +2,7 @@ FROM opensuse/leap:16.0
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20251017
+ENV DOCKERFILE_VERSION=20260617
 
 RUN zypper refresh \
  && zypper in -y \

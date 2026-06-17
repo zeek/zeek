@@ -2,7 +2,7 @@ FROM fedora:44
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20260506
+ENV DOCKERFILE_VERSION=20260617
 
 RUN dnf -y install \
     bison \

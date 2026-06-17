@@ -13116,7 +13116,7 @@ Events
    .. zeek:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
 
 .. zeek:id:: sip_header
-   :source-code: base/protocols/sip/main.zeek 193 273
+   :source-code: base/protocols/sip/main.zeek 193 279
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 

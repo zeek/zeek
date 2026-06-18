@@ -1,3 +1,7 @@
+9.0.0-dev.450 | 2026-06-17 17:45:40 -0700
+
+  * GH-32: Bump zeek-testing to pull in CTU pcap cleanup (Christian Kreibich, Corelight)
+
 9.0.0-dev.448 | 2026-06-17 15:22:39 -0700
 
   * GH CI: Update to the new environment variable for creating artifacts (Tim Wojtulewicz, Corelight)

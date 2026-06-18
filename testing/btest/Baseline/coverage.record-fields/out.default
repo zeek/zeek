@@ -147,6 +147,7 @@ connection {
       FTP::Info {
         * arg: string, log=T, optional=T
         * capture_password: bool, log=F, optional=T
+        * logged_command_seen: bool, log=F, optional=T
         * cmdarg: record FTP::CmdArg, log=F, optional=T
             FTP::CmdArg {
               * arg: string, log=F, optional=T

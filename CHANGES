@@ -1,3 +1,21 @@
+9.0.0-dev.453 | 2026-06-18 16:03:32 -0700
+
+  * Fix image-generation ccache and workspace persistence (Tim Wojtulewicz, Corelight)
+
+  * Add better error handling to the release image builds (Tim Wojtulewicz, Corelight)
+
+    The failure is caused by an inconsistent Docker layer cache state when using
+     the machine executor with DLC enabled. These changes will do 3 things:
+
+    - Stricter error handling — The step fails clearly if the build fails,
+      instead of continuing with a broken state.
+    - Cache cleanup when the image is missing — If zeek-builder:latest isn’t on
+      the runner but BuildKit still has cached layers, we run docker builder
+      prune first so we don’t hit “cached layers but missing blobs.”
+    - One automatic retry — If the build still fails (e.g. digest not found
+      during export), we clear the build cache and rerun once with --no-cache
+      so the job can succeed without a manual re-run.
+
 9.0.0-dev.450 | 2026-06-17 17:45:40 -0700
 
   * GH-32: Bump zeek-testing to pull in CTU pcap cleanup (Christian Kreibich, Corelight)

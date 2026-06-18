@@ -601,7 +601,10 @@ jobs:
       - restore_cache:
           name: Restore ccache
           keys:
-            - cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - run:
           name: Build zeek in new image
           command: |
@@ -640,14 +643,14 @@ jobs:
             make -C docker/btest
       - save_cache:
           name: Save ccache
-          key: cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/ccache
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images
           paths:
-            - ${IMAGE_ARCH}
+            - .
 
   container-image-manifest-build:
     environment:

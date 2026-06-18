@@ -264,9 +264,9 @@ jobs:
         type: boolean
         default: false
       ci_image_date:
-        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        description: The versions tring in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
         type: string
-        default: "20260617"
+        default: "8.2-20260618"
     environment:
       ZEEK_CI: 1
       ZEEK_CI_CONFIGURE_FLAGS: << parameters.configure_flags >>

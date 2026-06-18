@@ -1,9 +1,9 @@
 # escape=`
 FROM mcr.microsoft.com/dotnet/framework/runtime:4.8.1-windowsservercore-ltsc2025
 
-# A version field to invalidatea Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION=20260617
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=8.2-20260618
 
 # Set the shell to powershell so that we can install Chocolatey with the right
 # permissions.

@@ -558,15 +558,32 @@ jobs:
       - run:
           name: Create builder image
           command: |
-            set -x
+            set -euxo pipefail
+
+            build_builder() {
+              (cd docker && docker build \
+                               --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                               -t zeek-builder:latest \
+                               -f builder.Dockerfile .)
+            }
 
             LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null || true)
             LAST_BUILDER_SHA=$(docker inspect -f "{{ index .Config.Labels "org.opencontainers.image.revision" }}" zeek-builder:latest 2>/dev/null || true)
 
-            (cd docker && docker build \
-                             --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                             -t zeek-builder:latest \
-                             -f builder.Dockerfile .)
+            # DLC can restore BuildKit cache without the tagged image or blobs.
+            if [ -z "${LAST_BUILDER_IMAGE_ID}" ]; then
+              docker builder prune -af || true
+            fi
+
+            # Attempt to build the image once. If it fails, do it again without the cache.
+            if ! build_builder; then
+              echo "Builder build failed; clearing build cache and retrying once with --no-cache..."
+              docker builder prune -af || true
+              (cd docker && docker build --no-cache \
+                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                -t zeek-builder:latest \
+                -f builder.Dockerfile .)
+            fi
 
             NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
 
@@ -584,7 +601,10 @@ jobs:
       - restore_cache:
           name: Restore ccache
           keys:
-            - cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - run:
           name: Build zeek in new image
           command: |
@@ -623,14 +643,14 @@ jobs:
             make -C docker/btest
       - save_cache:
           name: Save ccache
-          key: cache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/ccache
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images
           paths:
-            - ${IMAGE_ARCH}
+            - .
 
   container-image-manifest-build:
     environment:

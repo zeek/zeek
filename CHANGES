@@ -1,3 +1,30 @@
+8.2.0-40 | 2026-06-18 16:06:20 -0700
+
+  * Fix image-generation ccache and workspace persistence (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e8612e153f3f29576eb7a33ac9f73e817f14eed7)
+
+  * Add better error handling to the release image builds (Tim Wojtulewicz, Corelight)
+
+    The failure is caused by an inconsistent Docker layer cache state when using
+     the machine executor with DLC enabled. These changes will do 3 things:
+
+    - Stricter error handling — The step fails clearly if the build fails,
+      instead of continuing with a broken state.
+    - Cache cleanup when the image is missing — If zeek-builder:latest isn’t on
+      the runner but BuildKit still has cached layers, we run docker builder
+      prune first so we don’t hit “cached layers but missing blobs.”
+    - One automatic retry — If the build still fails (e.g. digest not found
+      during export), we clear the build cache and rerun once with --no-cache
+      so the job can succeed without a manual re-run.
+
+    (cherry picked from commit e8612e153f3f29576eb7a33ac9f73e817f14eed7)
+
+  * Update Windows CI scripts to match master (Tim Wojtulewicz, Corelight)
+
+    This disables running btests since they haven't been fixed on the
+    release branch.
+
 8.2.0-38 | 2026-06-18 11:27:22 -0700
 
   * Extend timeouts for some cluster-based jobs for CI ASAN ZAM testing (Tim Wojtulewicz, Corelight)

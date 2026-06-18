@@ -157,3 +157,6 @@ Trace Index/Sources:
 - nfs/nfs_fileop.pcap Created by setting up a NFSv3 server on a Ubuntu VM
   and creating a single file and deleting it again. Used with scramble.py
   to produce some invalid values.
+- http/query-method.pcap http/query-method-non-standard-port.pcap
+  Scapy-generated (query-method.pcap.py creates both files). HTTP QUERY method
+  (RFC 10008) on port 80 and port 4711 respectively.

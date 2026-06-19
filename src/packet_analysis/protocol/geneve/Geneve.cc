@@ -121,8 +121,8 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     if ( analysis_succeeded && geneve_packet ) {
         EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
         if ( ec && ec->ip_hdr )
-            inner_packet->session->EnqueueEvent(geneve_packet, nullptr, packet->session->GetVal(),
-                                                ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
+            packet->session->EnqueueEvent(geneve_packet, nullptr, packet->session->GetVal(), ec->ip_hdr->ToPktHdrVal(),
+                                          val_mgr->Count(vni));
     }
 
     return analysis_succeeded;

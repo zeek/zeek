@@ -2,6 +2,10 @@
 
 #include "zeek/threading/SerialTypes.h"
 
+#include <algorithm>
+#include <optional>
+#include <vector>
+
 #include "zeek/Reporter.h"
 #include "zeek/SerializationFormat.h"
 // The following are required for ValueToVal.
@@ -205,6 +209,31 @@ bool Value::IsCompatibleType(Type* t, bool atomic_only) {
     return false;
 }
 
+// Read size elements from fmt, allocating the pointer array dynamically. Returns nullopt on error.
+static std::optional<std::vector<Value*>> read_elements(detail::SerializationFormat* fmt, zeek_int_t size) {
+    if ( size < 0 )
+        return std::nullopt;
+
+    // Only reserve up to 1024 pointers and rely on dynamic
+    // reallocation of std::vector past that many elements.
+    std::vector<Value*> vec;
+    vec.reserve(static_cast<size_t>(std::min(size, zeek_int_t(1024))));
+
+    for ( zeek_int_t i = 0; i < size; ++i ) {
+        vec.emplace_back(new Value);
+        if ( ! vec.back()->Read(fmt) ) {
+            // Free on error.
+            for ( auto* v : vec )
+                delete v;
+
+            return std::nullopt;
+        }
+    }
+
+    assert(vec.size() == static_cast<size_t>(size));
+    return {std::move(vec)};
+}
+
 bool Value::Read(detail::SerializationFormat* fmt) {
     int ty;
     int sty;
@@ -294,15 +323,15 @@ bool Value::Read(detail::SerializationFormat* fmt) {
 
             // XXX: Why have we never checked the table's subtype?
 
-            val.set_val.vals = new Value*[val.set_val.size];
+            auto result = read_elements(fmt, val.set_val.size);
 
-            for ( zeek_int_t i = 0; i < val.set_val.size; ++i ) {
-                val.set_val.vals[i] = new Value;
-
-                if ( ! val.set_val.vals[i]->Read(fmt) )
-                    return false;
+            if ( ! result ) {
+                val.set_val.size = 0;
+                return false;
             }
 
+            val.set_val.vals = new Value*[result->size()];
+            std::copy(result->data(), result->data() + result->size(), val.set_val.vals);
             return true;
         }
 
@@ -312,15 +341,15 @@ bool Value::Read(detail::SerializationFormat* fmt) {
 
             // XXX: Why have we never checked the vector's subtype?
 
-            val.vector_val.vals = new Value*[val.vector_val.size];
+            auto result = read_elements(fmt, val.vector_val.size);
 
-            for ( zeek_int_t i = 0; i < val.vector_val.size; ++i ) {
-                val.vector_val.vals[i] = new Value;
-
-                if ( ! val.vector_val.vals[i]->Read(fmt) )
-                    return false;
+            if ( ! result ) {
+                val.vector_val.size = 0;
+                return false;
             }
 
+            val.vector_val.vals = new Value*[result->size()];
+            std::copy(result->data(), result->data() + result->size(), val.vector_val.vals);
             return true;
         }
 

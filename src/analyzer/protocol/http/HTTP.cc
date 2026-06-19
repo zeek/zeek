@@ -415,7 +415,23 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         int fr = util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
         int lr = util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
         if ( fr != 1 || lr != 1 ) {
-            http_message->Weird("HTTP_content_range_cannot_parse");
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_cannot_parse", byte_range.c_str());
+            return;
+        }
+
+        if ( f < 0 || l < 0 ) {
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_invalid", byte_range.c_str());
+            return;
+        }
+        if ( l < f ) {
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_non_positive_content_range", byte_range.c_str());
+            return;
+        }
+
+        // The range is first and last, inclusive,so need to add 1 below.
+        // Ensure this won't overflow.
+        if ( (l - f) > std::numeric_limits<int64_t>::max() - 1 ) {
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_overflow", byte_range.c_str());
             return;
         }
 
@@ -427,8 +443,10 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         if ( len > 0 ) {
             if ( instance_length_str != "*" ) {
                 if ( ! util::atoi_n(instance_length_str.size(), instance_length_str.c_str(), nullptr, 10,
-                                    instance_length) )
+                                    instance_length) ) {
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_invalid_instance", byte_range.c_str());
                     instance_length = 0;
+                }
             }
 
             is_partial_content = true;
@@ -447,10 +465,6 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             }
             else
                 content_length = range_length;
-        }
-        else {
-            http_message->Weird("HTTP_non_positive_content_range");
-            return;
         }
     }
 

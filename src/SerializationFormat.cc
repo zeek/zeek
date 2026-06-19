@@ -50,7 +50,7 @@ size_t SerializationFormat::EndWrite(char** data) {
 }
 
 bool SerializationFormat::ReadData(void* b, size_t count) {
-    if ( input_pos + count > input_len ) {
+    if ( count > input_len - input_pos ) {
         reporter->Error("data underflow during read in binary format");
         return false;
     }

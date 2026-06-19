@@ -52,7 +52,6 @@ size_t SerializationFormat::EndWrite(char** data) {
 bool SerializationFormat::ReadData(void* b, size_t count) {
     if ( input_pos + count > input_len ) {
         reporter->Error("data underflow during read in binary format");
-        abort();
         return false;
     }
 
@@ -372,3 +371,247 @@ bool BinarySerializationFormat::Write(const char* buf, int len, const char* tag)
 }
 
 } // namespace zeek::detail
+
+#include "zeek/3rdparty/doctest.h"
+
+TEST_SUITE_BEGIN("serialization format");
+
+TEST_CASE("type addr") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+    // type, subtype, present
+    std::string buf = std::string("\x00\x00\x00\x0b", 4); // type: 11, addr
+    buf += std::string("\x00\x00\x00\x16", 4);            // subtype: 22, error (not used)
+    buf += std::string("\x01");                           // present: true
+
+    SUBCASE("valid 4") {
+        buf += std::string("\x04");             // addr-family: 4
+        buf += std::string("\x01\x02\x03\x04"); // address value (4 bytes)
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        REQUIRE_EQ(v.val.addr_val.family, IPv4);
+        bf.EndRead();
+
+        char buf[64];
+        inet_ntop(AF_INET, &v.val.addr_val.in.in4, buf, sizeof(buf));
+        CHECK_EQ(buf, std::string("1.2.3.4"));
+    }
+
+    SUBCASE("valid 6") {
+        buf += std::string("\x06");             // addr-family: 6
+        buf += std::string("\x01\x02\x03\x04"); // address value (16 bytes)
+        buf += std::string("\x05\x06\x07\x08");
+        buf += std::string("\x09\x0a\x0b\x0c");
+        buf += std::string("\x0d\x0e\x0f\x10");
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        REQUIRE_EQ(v.val.addr_val.family, IPv6);
+        bf.EndRead();
+
+        char buf[64];
+        inet_ntop(AF_INET6, &v.val.addr_val.in.in6, buf, sizeof(buf));
+        CHECK_EQ(buf, std::string("102:304:506:708:90a:b0c:d0e:f10"));
+    }
+
+    SUBCASE("invalid") {
+        buf += std::string("\x03");             // addr-family: 5 (valid: 4 or 6)
+        buf += std::string("\x01\x02\x03\x04"); // address value (4 bytes)
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+}
+
+TEST_CASE("type subnet") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+    // type, subtype, present
+    std::string buf = std::string("\x00\x00\x00\x0c", 4); // type: 12, subnet
+    buf += std::string("\x00\x00\x00\x16", 4);            // subtype: 22, error (not used)
+    buf += std::string("\x01");                           // present: true
+
+    SUBCASE("valid 4") {
+        buf += std::string("\x70");                // subnet-len: 112 (/16)
+        buf += std::string("\x04");                // addr-family: 4
+        buf += std::string("\x01\x02\x00\x00", 4); // address value (4 bytes)
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+    }
+
+    SUBCASE("valid 6") {
+        buf += std::string("\x40");                // subnet-len: 64 (/64)
+        buf += std::string("\x06");                // addr-family: 5 (valid: 4 or 6)
+        buf += std::string("\x01\x02\x03\x04", 4); // address value (16 bytes)
+        buf += std::string("\x05\x06\x07\x08", 4);
+        buf += std::string("\x00\x00\x00\x00", 4);
+        buf += std::string("\x00\x00\x00\x00", 4);
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+    }
+
+    SUBCASE("invalid") {
+        buf += std::string("\x70");             // subnet-len: 112 (/16)
+        buf += std::string("\x03");             // addr-family: 5 (valid: 4 or 6)
+        buf += std::string("\x01\x02\x03\x04"); // address value (16 bytes)
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+}
+
+TEST_CASE("type") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+
+    SUBCASE("invalid type") {
+        // type, subtype, present
+        std::string buf = std::string("\x00\x00\x00\xff", 4); // type: 255, bad
+        buf += std::string("\x00\x00\x00\x16", 4);            // subtype: 22, error (not used)
+        buf += std::string("\x01");                           // present: true
+        buf += std::string("\x01\x02\x03\x03");               // stuff
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+
+    SUBCASE("set with invalid subtype - never checked") {
+        std::string buf = std::string("\x00\x00\x00\x0e", 4); // type: 14, table/set
+        buf += std::string("\x00\x00\x00\xff", 4);            // subtype: 255, bad
+        buf += std::string("\x01");                           // present: true
+        buf += std::string("\x00\x00\x00\x00", 4);            // set-size: 0
+        buf += std::string("\x00\x00\x00\x00", 4);
+
+        bf.StartRead(buf.data(), buf.size());
+        // This succeeds, even though subtype is bad (255)
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+    }
+}
+
+TEST_CASE("set") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+    std::string buf = std::string("\x00\x00\x00\x0e", 4); // type: 14, table/set
+    buf += std::string("\x00\x00\x00\x01", 4);            // subtype: bool / ignored
+    buf += std::string("\x01");                           // present: true
+
+    SUBCASE("two bools") {
+        // Note how the subtype of a set/table isn't actually used and we
+        // encode the bool type for every element over and over again.
+        // Using 9 bytes at a time to describe the (redundant) bool type
+        // and subtype, then another 8 bytes for its value. 17 bytes for
+        // essentially a single bit of information.
+        //
+        // I think we should take a good look at doing something else here.
+        //
+        // MessagePack looks pretty promising. A set with two bools would
+        // take up 3 bytes because it uses clever encoding. It also supports
+        // ext types, so you can include non-standard types, something that
+        // JSON doesn't allow.
+        buf += std::string("\x00\x00\x00\x00", 4); // set-size: 2
+        buf += std::string("\x00\x00\x00\x02", 4); // set-size: 2
+        buf += std::string("\x00\x00\x00\x01", 4); // bool type
+        buf += std::string("\x00\x00\x00\x00", 4); // bool subtype
+        buf += std::string("\x01", 1);             // bool present
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: true
+        buf += std::string("\x00\x00\x00\x01", 4); // bool: true
+        buf += std::string("\x00\x00\x00\x01", 4); // bool type
+        buf += std::string("\x00\x00\x00\x00", 4); // bool subtype
+        buf += std::string("\x01", 1);             // bool present
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: false
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: false
+
+        bf.StartRead(buf.data(), buf.size());
+        // This succeeds, even though subtype is bad (255)
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+
+        CHECK_EQ(v.type, zeek::TYPE_TABLE);
+        CHECK_EQ(v.subtype, zeek::TYPE_BOOL);
+        REQUIRE(v.val.set_val.size == 2);
+        CHECK_EQ(v.val.set_val.vals[0]->type, zeek::TYPE_BOOL);
+        CHECK_EQ(v.val.set_val.vals[0]->val.int_val, 1);
+        CHECK_EQ(v.val.set_val.vals[1]->type, zeek::TYPE_BOOL);
+        CHECK_EQ(v.val.set_val.vals[1]->val.int_val, 0);
+    }
+
+    SUBCASE("underflow") {
+        buf += std::string("\x00\x00\x00\x00", 4); // set-size: 2
+        buf += std::string("\x00\x00\x00\x02", 4); // set-size: 2
+                                                   // missing bytes.
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+}
+
+TEST_CASE("vector") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+
+    std::string buf = std::string("\x00\x00\x00\x13", 4); // type: 19, vector
+    buf += std::string("\x00\x00\x00\xff", 4);            // subtype: 255, bad, ignored
+    buf += std::string("\x01");                           // present: true
+                                                          //
+    SUBCASE("empty") {
+        buf += std::string("\x00\x00\x00\x00", 4); // vector-size: 0
+        buf += std::string("\x00\x00\x00\x00", 4); // vector-size: 0
+                                                   //
+        bf.StartRead(buf.data(), buf.size());
+        // This succeeds, even though subtype is bad (255)
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+
+        CHECK_EQ(v.type, zeek::TYPE_VECTOR);
+        CHECK_EQ(v.subtype, 255);
+        REQUIRE(v.val.vector_val.size == 0);
+    }
+
+    SUBCASE("two bools") {
+        buf += std::string("\x00\x00\x00\x00", 4); // vector-size: 2
+        buf += std::string("\x00\x00\x00\x02", 4); // vector-size: 2
+        buf += std::string("\x00\x00\x00\x01", 4); // bool type
+        buf += std::string("\x00\x00\x00\x00", 4); // bool subtype
+        buf += std::string("\x01", 1);             // bool present
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: true
+        buf += std::string("\x00\x00\x00\x01", 4); // bool: true
+        buf += std::string("\x00\x00\x00\x01", 4); // bool type
+        buf += std::string("\x00\x00\x00\x00", 4); // bool subtype
+        buf += std::string("\x01", 1);             // bool present
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: false
+        buf += std::string("\x00\x00\x00\x00", 4); // bool: false
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+
+        CHECK_EQ(v.type, zeek::TYPE_VECTOR);
+        CHECK_EQ(v.subtype, 255);
+        REQUIRE(v.val.vector_val.size == 2);
+        CHECK_EQ(v.val.vector_val.vals[0]->type, zeek::TYPE_BOOL);
+        CHECK_EQ(v.val.vector_val.vals[0]->val.int_val, 1);
+        CHECK_EQ(v.val.vector_val.vals[1]->type, zeek::TYPE_BOOL);
+        CHECK_EQ(v.val.vector_val.vals[1]->val.int_val, 0);
+    }
+
+    SUBCASE("underflow") {
+        buf += std::string("\x00\x00\x00\x00", 4); // vector-size: 2
+        buf += std::string("\x00\x00\x00\x02", 4); // vector-size: 2
+                                                   // missing bytes
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+}
+
+TEST_SUITE_END();

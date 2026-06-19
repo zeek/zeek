@@ -250,11 +250,10 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             switch ( family ) {
                 case 4: val.addr_val.family = IPv4; return fmt->Read(&val.addr_val.in.in4, "addr-in4");
                 case 6: val.addr_val.family = IPv6; return fmt->Read(&val.addr_val.in.in6, "addr-in6");
-                default: reporter->Warning("Unknown family type %d when reading addr\n", family); break;
+                default: return false;
             }
 
             // Can't be reached.
-            abort();
         }
 
         case TYPE_SUBNET: {
@@ -274,11 +273,10 @@ bool Value::Read(detail::SerializationFormat* fmt) {
                     val.subnet_val.length = (uint8_t)length;
                     val.subnet_val.prefix.family = IPv6;
                     return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
-                default: reporter->Warning("Unknown family type %d when reading subnet\n", family); break;
+                default: return false;
             }
 
             // Can't be reached.
-            abort();
         }
 
         case TYPE_DOUBLE:
@@ -293,6 +291,8 @@ bool Value::Read(detail::SerializationFormat* fmt) {
         case TYPE_TABLE: {
             if ( ! fmt->Read(&val.set_val.size, "set_size") )
                 return false;
+
+            // XXX: Why have we never checked the table's subtype?
 
             val.set_val.vals = new Value*[val.set_val.size];
 
@@ -310,6 +310,8 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
                 return false;
 
+            // XXX: Why have we never checked the vector's subtype?
+
             val.vector_val.vals = new Value*[val.vector_val.size];
 
             for ( zeek_int_t i = 0; i < val.vector_val.size; ++i ) {
@@ -322,9 +324,14 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             return true;
         }
 
-        default: reporter->InternalError("unsupported type %s in Value::Read", type_name(type));
+        default: {
+            reporter->InternalWarning("unsupported type %s (%d) in Value::Read", type_name(type),
+                                      static_cast<int>(type));
+            return false;
+        }
     }
 
+    // unreachable
     return false;
 }
 
@@ -405,7 +412,10 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
             return true;
         }
 
-        default: reporter->InternalError("unsupported type %s in Value::Write", type_name(type));
+        default: {
+            reporter->InternalWarning("unsupported type %s in Value::Write", type_name(type));
+            return false;
+        }
     }
 
     // unreachable

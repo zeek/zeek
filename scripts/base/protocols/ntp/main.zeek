@@ -52,6 +52,7 @@ export {
 	};
 
 	## The record type which contains the column fields of the NTP control log.
+	## For more in-depth documentation, see :zeek:see:`NTP::ControlMessage`.
 	type ControlInfo: record {
 		## Timestamp for when the event happened.
 		ts:         time    &log;
@@ -86,6 +87,7 @@ export {
 	};
 
 	## The record type which contains the column fields of the NTP private log.
+	## For more in-depth documentation, see :zeek:see:`NTP::Mode7Message`.
 	type PrivateInfo: record {
 		## Timestamp for when the event happened.
 		ts:         time    &log;
@@ -144,7 +146,7 @@ event zeek_init() &priority=5
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 	{
 	# Mode 1-5: standard NTP synchronization messages.
-	if ( msg$mode <= 5 && msg?$std_msg )
+	if ( msg?$std_msg )
 		{
 		local info: Info;
 		info$ts  = network_time();

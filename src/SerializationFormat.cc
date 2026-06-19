@@ -162,6 +162,10 @@ bool BinarySerializationFormat::Read(char** str, int* len, const char* tag) {
         return false;
 
     l = ntohl(l);
+
+    if ( l < 0 || static_cast<size_t>(l) > input_len - input_pos )
+        return false;
+
     char* s = new char[l + 1];
 
     if ( ! ReadData(s, l) ) {
@@ -612,6 +616,45 @@ TEST_CASE("vector") {
         bf.StartRead(buf.data(), buf.size());
         REQUIRE_FALSE(v.Read(&bf));
         bf.EndRead();
+    }
+}
+
+TEST_CASE("string") {
+    zeek::threading::Value v;
+    zeek::detail::BinarySerializationFormat bf;
+
+    std::string buf = std::string("\x00\x00\x00\x07", 4); // type: 7, string
+    buf += std::string("\x00\x00\x00\x16", 4);            // subtype: 22, error, ignored
+    buf += std::string("\x01");                           // present: true
+                                                          //
+    SUBCASE("negative length") {
+        buf += std::string("\xff\xff\xff\xff", 4); // string-size: -1, two-complement
+        buf += std::string("\x41\x42\x43\x44", 4); // A B C D
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+
+    SUBCASE("too long for input") {
+        buf += std::string("\x00\x00\x00\xff", 4); // string-size: 255, too long for input
+        buf += std::string("\x41\x42\x43\x44", 4); // A B C D
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE_FALSE(v.Read(&bf));
+        bf.EndRead();
+    }
+
+    SUBCASE("4") {
+        buf += std::string("\x00\x00\x00\x04", 4); // string-size: 4
+        buf += std::string("\x41\x42\x43\x44", 4); // A B C D
+
+        bf.StartRead(buf.data(), buf.size());
+        REQUIRE(v.Read(&bf));
+        bf.EndRead();
+
+        CHECK_EQ(v.val.string_val.length, 4);
+        CHECK_EQ(std::string{v.val.string_val.data, static_cast<size_t>(v.val.string_val.length)}, "ABCD");
     }
 }
 

@@ -78,7 +78,6 @@ option(INSTALL_BTEST "Install btest alongside Zeek." ${ZEEK_INSTALL_TOOLS_DEFAUL
 option(INSTALL_BTEST_PCAPS "Install pcap files for testing." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
-option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary." ON)
 option(ZEEK_ENABLE_FUZZERS "Build Zeek fuzzing targets." OFF)
@@ -1341,23 +1340,6 @@ if (NOT MSVC)
 endif ()
 
 # ##############################################################################
-# zkg configuration
-
-if (INSTALL_ZKG)
-    # An etc/zkg directory for zkg's config file simplifies zkg's config file
-    # code.
-    set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
-    set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
-
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
-
-    install(DIRECTORY DESTINATION var/lib/zkg)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
-            RENAME config)
-endif ()
-
-# ##############################################################################
 # Look for external plugins to build in
 
 string(REPLACE "," " " _build_in_plugins "${ZEEK_INCLUDE_PLUGINS}")
@@ -1432,7 +1414,6 @@ endif ()
 include(CheckOptionalBuildSources)
 
 checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
-checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
 checkoptionalbuildsources(auxil/zeekctl ZeekControl INSTALL_ZEEKCTL)
 checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
@@ -1464,7 +1445,7 @@ zeek_finalize_bif_autogen_stubs(src/__all__.bif.cc src/__all__.bif.init.cc
 # ##############################################################################
 # Packaging Setup
 
-if (INSTALL_ZEEKCTL OR INSTALL_ZKG OR INSTALL_ZEEK_CLIENT)
+if (INSTALL_ZEEKCTL OR INSTALL_ZEEK_CLIENT)
     # CPack RPM Generator may not automatically detect this
     set(CPACK_RPM_PACKAGE_REQUIRES "python >= ${ZEEK_PYTHON_MIN}")
 endif ()
@@ -1630,7 +1611,6 @@ output_summary_bool("Spicy analyzers" ${USE_SPICY_ANALYZERS})
 output_summary_bool("zeek-client" ${INSTALL_ZEEK_CLIENT})
 output_summary_bool("zeek-systemd-generator" ${ENABLE_ZEEK_SYSTEMD_GENERATOR})
 output_summary_bool("ZeekControl" ${INSTALL_ZEEKCTL})
-output_summary_bool("zkg" ${INSTALL_ZKG})
 message("")
 
 output_summary_bool("libmaxminddb" ${USE_GEOIP})

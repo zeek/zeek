@@ -233,6 +233,11 @@ jobs:
             git submodule update --init --recursive;
             )
 
+            # `./ci/spicy-install-analyzers.sh` requires zkg.
+            pipx ensurepath
+            source ~/.bashrc
+            pipx install zkg
+
             ./ci/pre-build.sh
             ./ci/build.sh
             ./ci/test.sh

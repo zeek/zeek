@@ -372,6 +372,12 @@ jobs:
                 name: Install spicy analyzers
                 command: |
                   set +e
+
+                  # `./ci/spicy-install-analyzers.sh` requires zkg.
+                  pipx ensurepath
+                  source ~/.bashrc
+                  pipx install zkg
+
                   ci/spicy-install-analyzers.sh
       - when:
           condition: << parameters.enable_benchmarks >>

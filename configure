@@ -86,7 +86,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-spicy        don't include Spicy
     --disable-zeek-client  don't install Zeek cluster management client
     --disable-zeekctl      don't install ZeekControl
-    --disable-zkg          don't install zkg
 
   Required Packages in Non-Standard Locations:
     --with-bison=PATH      path to bison executable
@@ -351,9 +350,6 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-zeekctl)
             append_cache_entry INSTALL_ZEEKCTL BOOL false
-            ;;
-        --disable-zkg)
-            append_cache_entry INSTALL_ZKG BOOL false
             ;;
         --with-bind=*)
             append_cache_entry BIND_ROOT_DIR PATH $optarg

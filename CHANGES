@@ -1,3 +1,14 @@
+9.0.0-dev.458 | 2026-06-19 13:30:59 +0200
+
+  * Introduce AGENTS.md (Arne Welzel, Corelight)
+
+  * doc: Add hacking.rst and btest.rst (Arne Welzel, Corelight)
+
+    Mostly just writing down a few things from my own local setup and
+    workflow and what I know about btests.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.453 | 2026-06-18 16:03:32 -0700
 
   * Fix image-generation ccache and workspace persistence (Tim Wojtulewicz, Corelight)

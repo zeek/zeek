@@ -12,3 +12,30 @@ on LDAP::TlsForward::%init {
 on LDAP::TlsForward::chunk {
     zeek::protocol_data_in(zeek::is_orig(), self.chunk);
 }
+
+on LDAP::BindRequest::%done {
+    if ( self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && |self.saslCreds.payload| > 0 ) {
+        local mech = self.saslCreds.mechanism;
+        if ( mech == "GSS-SPNEGO" || mech == "GSSAPI" ) {
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
+        } else if ( mech == "NTLM" ) {
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("NTLM"));
+        }
+    } else if ( self.authType == LDAP::BindAuthType::SICILY_NEGOTIATE || self.authType == LDAP::BindAuthType::SICILY_RESPONSE ) {
+        # Sicily is an older Microsoft authentication method that uses NTLMSSP
+        zeek::protocol_data_in(zeek::is_orig(), self.authData, zeek::protocol_handle_get_or_create("NTLM"));
+    }
+}
+
+on LDAP::BindResponse::%done {
+    if ( |self.serverSaslCreds| > 0 ) {
+        local mech = self.mechanism;
+        for ( cred in self.serverSaslCreds ) {
+            if ( mech == "GSS-SPNEGO" || mech == "GSSAPI" ) {
+                zeek::protocol_data_in(zeek::is_orig(), cred.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
+            } else if ( mech == "NTLM" ) {
+                zeek::protocol_data_in(zeek::is_orig(), cred.payload, zeek::protocol_handle_get_or_create("NTLM"));
+            }
+        }
+    }
+}

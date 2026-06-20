@@ -496,7 +496,6 @@ hook finalize_ftp(c: connection)
 	if ( c$ftp?$user && ! c$ftp$logged_command_seen && report_unlogged_sessions )
 		{
 		local s: Info = c$ftp;
-		s$ts = network_time();
 		s$command = "<session>";
 		Log::write(FTP::LOG, s);
 		}

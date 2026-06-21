@@ -291,8 +291,7 @@ if (ZEEK_SANITIZERS)
             if (DEFINED ENV{ZEEK_TAILORED_UB_CHECKS})
                 # list(APPEND _check_list "alignment") # TODO: fix associated errors
                 list(APPEND _check_list "bool")
-                # Not implemented in older GCCs
-                # list(APPEND _check_list "builtin")
+                list(APPEND _check_list "builtin")
                 # This covers both array and local bounds (see the separate array-bounds
                 # and local-bounds options below)
                 list(APPEND _check_list "bounds")
@@ -302,8 +301,7 @@ if (ZEEK_SANITIZERS)
                 list(APPEND _check_list "integer-divide-by-zero")
                 list(APPEND _check_list "nonnull-attribute")
                 list(APPEND _check_list "null")
-                # Not implemented in older GCCs
-                # list(APPEND _check_list "pointer-overflow")
+                list(APPEND _check_list "pointer-overflow")
                 list(APPEND _check_list "return")
                 list(APPEND _check_list "returns-nonnull-attribute")
                 list(APPEND _check_list "shift")

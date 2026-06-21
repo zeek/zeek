@@ -772,39 +772,48 @@ if (ZEEK_SANITIZERS)
             if (DEFINED ENV{ZEEK_TAILORED_UB_CHECKS})
                 # list(APPEND _check_list "alignment") # TODO: fix associated errors
                 list(APPEND _check_list "bool")
-                # list(APPEND _check_list "builtin") # Not implemented in older GCCs
-                list(APPEND _check_list "bounds") # Covers both array/local bounds
-                                                  # options below
-                # list(APPEND _check_list "array-bounds") # Not implemented by GCC
-                # list(APPEND _check_list "local-bounds") # Not normally part of
-                # "undefined"
+                # Not implemented in older GCCs
+                # list(APPEND _check_list "builtin")
+                # This covers both array and local bounds (see the separate array-bounds
+                # and local-bounds options below)
+                list(APPEND _check_list "bounds")
                 list(APPEND _check_list "enum")
                 list(APPEND _check_list "float-cast-overflow")
                 list(APPEND _check_list "float-divide-by-zero")
-                # list(APPEND _check_list "function") # Not implemented by GCC
-                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not
-                # truly UB list(APPEND _check_list "implicit-signed-integer-truncation")
-                # # Not truly UB list(APPEND _check_list "implicit-integer-sign-change")
-                # # Not truly UB
                 list(APPEND _check_list "integer-divide-by-zero")
                 list(APPEND _check_list "nonnull-attribute")
                 list(APPEND _check_list "null")
-                # list(APPEND _check_list "nullability-arg") # Not normally part of
-                # "undefined" list(APPEND _check_list "nullability-assign") # Not
-                # normally part of "undefined" list(APPEND _check_list
-                # "nullability-return") # Not normally part of "undefined" list(APPEND
-                # _check_list "objc-cast") # Not truly UB list(APPEND _check_list
-                # "pointer-overflow") # Not implemented in older GCCs
+                # Not implemented in older GCCs
+                # list(APPEND _check_list "pointer-overflow")
                 list(APPEND _check_list "return")
                 list(APPEND _check_list "returns-nonnull-attribute")
                 list(APPEND _check_list "shift")
-                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by
-                # GCC
                 list(APPEND _check_list "signed-integer-overflow")
                 list(APPEND _check_list "unreachable")
-                # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
                 list(APPEND _check_list "vla-bound")
                 list(APPEND _check_list "vptr")
+
+                # These are not supported by GCC (as of 16.1.0)
+                # list(APPEND _check_list "function")
+                # list(APPEND _check_list "unsigned-shift-base")
+
+                # These are not normally part of the global "undefined" option
+                # list(APPEND _check_list "nullability-arg")
+                # list(APPEND _check_list "nullability-assign")
+                # list(APPEND _check_list "nullability-return")
+
+                # These aren't truly undefined behavior, but are caught by UBSan
+                # list(APPEND _check_list "implicit-unsigned-integer-truncation")
+                # list(APPEND _check_list "implicit-signed-integer-truncation")
+                # list(APPEND _check_list "implicit-integer-sign-change")
+                # list(APPEND _check_list "objc-cast")
+                # list(APPEND _check_list "unsigned-integer-overflow")
+
+                # Not implemented by GCC, but covered by "bounds" above
+                # list(APPEND _check_list "array-bounds")
+                # Not normally part of "undefined" or implemented by GCC, but covered by
+                # "bounds" above
+                # list(APPEND _check_list "local-bounds")
 
                 # Clang complains if this one is defined and the optimizer is set to
                 # -O0. We only set that optimization level if NO_OPTIMIZATIONS is

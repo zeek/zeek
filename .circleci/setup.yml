@@ -29,7 +29,9 @@ workflows:
           # to master. If the all-pushes trigger is deleted or recreated from the project
           # this needs to be fixed. See below for more docs on how to get this ID.
           - equal: [ master, << pipeline.git.branch >> ]
-          - equal: [ f5314bc7-fc82-4458-bd27-fc73c71e5a73, << pipeline.trigger.id >> ]
+          - or:
+            - equal: [ 593abe2f-5739-4f75-99de-b3afb2ee099d, << pipeline.trigger.id >> ] # zeek
+            - equal: [ 338ccf41-69c6-4c4f-a0cf-7be8fdd74bd3, << pipeline.trigger.id >> ] # zeek-security
         - matches:
             pattern: "^release/.*"
             value: << pipeline.git.branch >>

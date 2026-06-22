@@ -268,6 +268,137 @@ if (ENABLE_CLANG_TIDY)
     endif ()
 endif ()
 
+if (ZEEK_SANITIZERS)
+    string(REPLACE "," " " _sanitizer_args "${ZEEK_SANITIZERS}")
+    separate_arguments(_sanitizer_args)
+    set(ZEEK_SANITIZERS "")
+
+    foreach (_sanitizer ${_sanitizer_args})
+        if (ZEEK_SANITIZERS)
+            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
+        endif ()
+
+        if (_sanitizer STREQUAL "thread")
+            set(ZEEK_TSAN true)
+        endif ()
+
+        if (NOT _sanitizer STREQUAL "undefined")
+            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
+            continue()
+        endif ()
+
+        if (NOT DEFINED ZEEK_SANITIZER_UB_CHECKS)
+            if (DEFINED ENV{ZEEK_TAILORED_UB_CHECKS})
+                # list(APPEND _check_list "alignment") # TODO: fix associated errors
+                list(APPEND _check_list "bool")
+                # list(APPEND _check_list "builtin") # Not implemented in older GCCs
+                list(APPEND _check_list "bounds") # Covers both array/local bounds
+                                                  # options below
+                # list(APPEND _check_list "array-bounds") # Not implemented by GCC
+                # list(APPEND _check_list "local-bounds") # Not normally part of
+                # "undefined"
+                list(APPEND _check_list "enum")
+                list(APPEND _check_list "float-cast-overflow")
+                list(APPEND _check_list "float-divide-by-zero")
+                # list(APPEND _check_list "function") # Not implemented by GCC
+                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not
+                # truly UB list(APPEND _check_list "implicit-signed-integer-truncation")
+                # # Not truly UB list(APPEND _check_list "implicit-integer-sign-change")
+                # # Not truly UB
+                list(APPEND _check_list "integer-divide-by-zero")
+                list(APPEND _check_list "nonnull-attribute")
+                list(APPEND _check_list "null")
+                # list(APPEND _check_list "nullability-arg") # Not normally part of
+                # "undefined" list(APPEND _check_list "nullability-assign") # Not
+                # normally part of "undefined" list(APPEND _check_list
+                # "nullability-return") # Not normally part of "undefined" list(APPEND
+                # _check_list "objc-cast") # Not truly UB list(APPEND _check_list
+                # "pointer-overflow") # Not implemented in older GCCs
+                list(APPEND _check_list "return")
+                list(APPEND _check_list "returns-nonnull-attribute")
+                list(APPEND _check_list "shift")
+                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by
+                # GCC
+                list(APPEND _check_list "signed-integer-overflow")
+                list(APPEND _check_list "unreachable")
+                # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
+                list(APPEND _check_list "vla-bound")
+                list(APPEND _check_list "vptr")
+
+                # Clang complains if this one is defined and the optimizer is set to
+                # -O0. We only set that optimization level if NO_OPTIMIZATIONS is
+                # passed, so disable the option if that's set.
+                if (NOT DEFINED ENV{NO_OPTIMIZATIONS})
+                    list(APPEND _check_list "object-size")
+                endif ()
+
+                string(REPLACE ";" "," _ub_checks "${_check_list}")
+                set(ZEEK_SANITIZER_UB_CHECKS "${_ub_checks}" CACHE INTERNAL "" FORCE)
+            else ()
+                set(ZEEK_SANITIZER_UB_CHECKS "undefined" CACHE INTERNAL "" FORCE)
+            endif ()
+        endif ()
+
+        set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${ZEEK_SANITIZER_UB_CHECKS}")
+    endforeach ()
+
+    set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
+
+    # The linker command used by check_cxx_compiler_flag requires you to also pass
+    # the sanitizer to it or it fails. The best way to do this is to set
+    # CMAKE_REQUIRED_LINK_OPTIONS, but save off a copy of it so it can be reset
+    # back to what it was previously afterwards.
+    set(_temp_link_options ${CMAKE_REQUIRED_LINK_OPTIONS})
+    list(APPEND CMAKE_REQUIRED_LINK_OPTIONS ${_sanitizer_flags})
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(${_sanitizer_flags} COMPILER_SUPPORTS_SANITIZERS)
+    if (NOT COMPILER_SUPPORTS_SANITIZERS)
+        message(FATAL_ERROR "Invalid sanitizer compiler flags: ${_sanitizer_flags}")
+    endif ()
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${_temp_link_options})
+
+    if (ZEEK_SANITIZER_UB_CHECKS)
+        set(_sanitizer_flags
+            "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
+    endif ()
+
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
+    set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
+
+    if (NOT DEFINED ZEEK_SANITIZER_OPTIMIZATIONS)
+        if (DEFINED ENV{NO_OPTIMIZATIONS})
+            # Using -O1 is generally the suggestion to get more reasonable
+            # performance.  The one downside is it that the compiler may optimize out
+            # code that otherwise generates an error/leak in a -O0 build, but that
+            # should be rare and users mostly will not be running unoptimized builds
+            # in production anyway.
+            set(ZEEK_SANITIZER_OPTIMIZATIONS false CACHE INTERNAL "" FORCE)
+        else ()
+            set(ZEEK_SANITIZER_OPTIMIZATIONS true CACHE INTERNAL "" FORCE)
+        endif ()
+    endif ()
+
+    if (ZEEK_SANITIZER_OPTIMIZATIONS)
+        set(_sanitizer_flags "${_sanitizer_flags} -O1")
+    endif ()
+
+endif ()
+
+# Convenience function for enabling sanitizers for a target.
+#
+# Usage:
+#
+#    zeek_target_enable_sanitizers(<target>)
+#
+function (zeek_target_enable_sanitizers target_name)
+    string(REPLACE " " ";" _flags "${_sanitizer_flags}")
+
+    foreach (flag ${_flags})
+        target_compile_options(${target_name} PRIVATE ${flag})
+        target_link_options(${target_name} PRIVATE ${flag})
+    endforeach ()
+endfunction (zeek_target_enable_sanitizers)
+
 # ##############################################################################
 # Main targets and utilities.
 
@@ -296,6 +427,7 @@ add_custom_target(zeek_autogen_files)
 # reasons and backwards compatibility).
 if (ZEEK_STANDALONE)
     add_executable(zeek_exe)
+    zeek_target_enable_sanitizers(zeek_exe)
     target_compile_features(zeek_exe PRIVATE ${ZEEK_CXX_STD})
     set_target_properties(zeek_exe PROPERTIES CXX_EXTENSIONS OFF)
     target_link_libraries(zeek_exe PRIVATE $<BUILD_INTERFACE:zeek_internal>)
@@ -316,6 +448,7 @@ if (ZEEK_STANDALONE)
     endif ()
 else ()
     add_library(zeek_lib STATIC)
+    zeek_target_enable_sanitizers(zeek_lib)
 endif ()
 
 if (TARGET zeek_lib)
@@ -343,6 +476,7 @@ if (ZEEK_ENABLE_FUZZERS)
     target_compile_features(zeek_fuzzer_shared PRIVATE ${ZEEK_CXX_STD})
     set_target_properties(zeek_fuzzer_shared PROPERTIES CXX_EXTENSIONS OFF)
     target_link_libraries(zeek_fuzzer_shared PUBLIC $<BUILD_INTERFACE:zeek_internal>)
+    zeek_target_enable_sanitizers(zeek_fuzzer_shared)
     # Tell zeek_target_link_libraries to add library dependencies as PUBLIC.
     set(zeek_fuzzer_shared_access PUBLIC)
 endif ()
@@ -477,6 +611,7 @@ function (zeek_add_subdir_library name)
     add_dependencies(${target_name} zeek_autogen_files)
     target_link_libraries(${target_name} PRIVATE $<BUILD_INTERFACE:zeek_internal>)
     target_compile_options(${target_name} PRIVATE ${WERROR_FLAG})
+    zeek_target_enable_sanitizers(${target_name})
 
     # Take care of compiling BIFs.
     if (FN_ARGS_BIFS)
@@ -749,129 +884,6 @@ if (NOT BINARY_PACKAGING_MODE)
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_FULL_LIBDIR}/zeek")
 endif ()
 
-if (ZEEK_SANITIZERS)
-    string(REPLACE "," " " _sanitizer_args "${ZEEK_SANITIZERS}")
-    separate_arguments(_sanitizer_args)
-    set(ZEEK_SANITIZERS "")
-
-    foreach (_sanitizer ${_sanitizer_args})
-        if (ZEEK_SANITIZERS)
-            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
-        endif ()
-
-        if (_sanitizer STREQUAL "thread")
-            set(ZEEK_TSAN true)
-        endif ()
-
-        if (NOT _sanitizer STREQUAL "undefined")
-            set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
-            continue()
-        endif ()
-
-        if (NOT DEFINED ZEEK_SANITIZER_UB_CHECKS)
-            if (DEFINED ENV{ZEEK_TAILORED_UB_CHECKS})
-                # list(APPEND _check_list "alignment") # TODO: fix associated errors
-                list(APPEND _check_list "bool")
-                # list(APPEND _check_list "builtin") # Not implemented in older GCCs
-                list(APPEND _check_list "bounds") # Covers both array/local bounds
-                                                  # options below
-                # list(APPEND _check_list "array-bounds") # Not implemented by GCC
-                # list(APPEND _check_list "local-bounds") # Not normally part of
-                # "undefined"
-                list(APPEND _check_list "enum")
-                list(APPEND _check_list "float-cast-overflow")
-                list(APPEND _check_list "float-divide-by-zero")
-                # list(APPEND _check_list "function") # Not implemented by GCC
-                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not
-                # truly UB list(APPEND _check_list "implicit-signed-integer-truncation")
-                # # Not truly UB list(APPEND _check_list "implicit-integer-sign-change")
-                # # Not truly UB
-                list(APPEND _check_list "integer-divide-by-zero")
-                list(APPEND _check_list "nonnull-attribute")
-                list(APPEND _check_list "null")
-                # list(APPEND _check_list "nullability-arg") # Not normally part of
-                # "undefined" list(APPEND _check_list "nullability-assign") # Not
-                # normally part of "undefined" list(APPEND _check_list
-                # "nullability-return") # Not normally part of "undefined" list(APPEND
-                # _check_list "objc-cast") # Not truly UB list(APPEND _check_list
-                # "pointer-overflow") # Not implemented in older GCCs
-                list(APPEND _check_list "return")
-                list(APPEND _check_list "returns-nonnull-attribute")
-                list(APPEND _check_list "shift")
-                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by
-                # GCC
-                list(APPEND _check_list "signed-integer-overflow")
-                list(APPEND _check_list "unreachable")
-                # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
-                list(APPEND _check_list "vla-bound")
-                list(APPEND _check_list "vptr")
-
-                # Clang complains if this one is defined and the optimizer is set to
-                # -O0. We only set that optimization level if NO_OPTIMIZATIONS is
-                # passed, so disable the option if that's set.
-                if (NOT DEFINED ENV{NO_OPTIMIZATIONS})
-                    list(APPEND _check_list "object-size")
-                endif ()
-
-                string(REPLACE ";" "," _ub_checks "${_check_list}")
-                set(ZEEK_SANITIZER_UB_CHECKS "${_ub_checks}" CACHE INTERNAL "" FORCE)
-            else ()
-                set(ZEEK_SANITIZER_UB_CHECKS "undefined" CACHE INTERNAL "" FORCE)
-            endif ()
-        endif ()
-
-        set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${ZEEK_SANITIZER_UB_CHECKS}")
-    endforeach ()
-
-    set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
-
-    # The linker command used by check_cxx_compiler_flag requires you to also pass
-    # the sanitizer to it or it fails. The best way to do this is to set
-    # CMAKE_REQUIRED_LINK_OPTIONS, but save off a copy of it so it can be reset
-    # back to what it was previously afterwards.
-    set(_temp_link_options ${CMAKE_REQUIRED_LINK_OPTIONS})
-    list(APPEND CMAKE_REQUIRED_LINK_OPTIONS ${_sanitizer_flags})
-    include(CheckCXXCompilerFlag)
-    check_cxx_compiler_flag(${_sanitizer_flags} COMPILER_SUPPORTS_SANITIZERS)
-    if (NOT COMPILER_SUPPORTS_SANITIZERS)
-        message(FATAL_ERROR "Invalid sanitizer compiler flags: ${_sanitizer_flags}")
-    endif ()
-    set(CMAKE_REQUIRED_LINK_OPTIONS ${_temp_link_options})
-
-    if (ZEEK_SANITIZER_UB_CHECKS)
-        set(_sanitizer_flags
-            "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
-    endif ()
-
-    set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
-    set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
-
-    if (NOT DEFINED ZEEK_SANITIZER_OPTIMIZATIONS)
-        if (DEFINED ENV{NO_OPTIMIZATIONS})
-            # Using -O1 is generally the suggestion to get more reasonable
-            # performance.  The one downside is it that the compiler may optimize out
-            # code that otherwise generates an error/leak in a -O0 build, but that
-            # should be rare and users mostly will not be running unoptimized builds
-            # in production anyway.
-            set(ZEEK_SANITIZER_OPTIMIZATIONS false CACHE INTERNAL "" FORCE)
-        else ()
-            set(ZEEK_SANITIZER_OPTIMIZATIONS true CACHE INTERNAL "" FORCE)
-        endif ()
-    endif ()
-
-    if (ZEEK_SANITIZER_OPTIMIZATIONS)
-        set(_sanitizer_flags "${_sanitizer_flags} -O1")
-    endif ()
-
-    # Technically, the we also need to use the compiler to drive linking and give
-    # the sanitizer flags there, too.  However, CMake, by default, uses the
-    # compiler for linking and so the automatically flags get used.  See
-    # https://cmake.org/pipermail/cmake/2014-August/058268.html
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
-    set(ZEEK_SANITIZER_CXX_FLAGS ${_sanitizer_flags})
-endif ()
-
 # ##############################################################################
 # Dependency Configuration
 
@@ -1013,8 +1025,16 @@ else ()
         set(ENABLE_STATIC_ONLY true)
     endif ()
 
+    # Set linker flags so broker executables/shared libs get the ASan runtime.
+    if (_sanitizer_flags)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
+    endif ()
+
     add_subdirectory(auxil/broker)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+    zeek_target_enable_sanitizers(broker)
 
     if (BUILD_STATIC_BROKER)
         list(APPEND zeekdeps broker_static)
@@ -1074,6 +1094,23 @@ if (NOT DISABLE_SPICY)
         set(SPICY_ENABLE_TESTS OFF)
         add_subdirectory(auxil/spicy)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
+
+        # Zeek links Spicy's runtime libraries, so they should to be compiled
+        # with sanitizer support if it is enabled for Zeek.
+        #
+        # NOTE: `zeek_target_enable_sanitizers` is a noop if `_sanitizer_flags` is unset.
+        foreach (rt_lib IN ITEMS hilti-rt hilti-rt-debug spicy-rt spicy-rt-debug)
+            zeek_target_enable_sanitizers(${rt_lib})
+
+            # The library might pull in binary dependencies also compiled by
+            # Spicy. Enable ASAN support for them as well.
+            get_target_property(_deps ${rt_lib} LINK_LIBRARIES)
+            foreach (dep ${_deps})
+                if (TARGET ${dep})
+                    zeek_target_enable_sanitizers(${dep})
+                endif ()
+            endforeach ()
+        endforeach ()
 
         zeek_add_dependencies(spicy)
 

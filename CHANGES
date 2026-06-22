@@ -1,3 +1,18 @@
+9.0.0-dev.460 | 2026-06-22 21:42:54 +0000
+
+  * Use target-based approach for enabling sanitizers (Benjamin Bannier, Corelight)
+
+    The current approach for building with sanitizers is to build all
+    targets in the tree with them, regardless of whether they are from Zeek
+    or from something we vendor. While this seems interesting it also means
+    that everything incurrs potential ASAN overhead, regardless of whether
+    it is actually needed here or not, e.g., in a container on my machine
+    `spicyz` invocations are very slow for some configurations (>30min
+    runtimes for some builtin analyzers), but this seems largely unnecessary
+    since Spicy already does its own sanitizer builds.
+
+    This patch changes that approach to instead be opt-in.
+
 9.0.0-dev.458 | 2026-06-19 13:30:59 +0200
 
   * Introduce AGENTS.md (Arne Welzel, Corelight)

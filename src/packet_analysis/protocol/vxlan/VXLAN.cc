@@ -61,8 +61,8 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     if ( analysis_succeeded && vxlan_packet ) {
         EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
         if ( ec && ec->ip_hdr )
-            inner_packet->session->EnqueueEvent(vxlan_packet, nullptr, packet->session->GetVal(),
-                                                ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
+            packet->session->EnqueueEvent(vxlan_packet, nullptr, packet->session->GetVal(), ec->ip_hdr->ToPktHdrVal(),
+                                          val_mgr->Count(vni));
     }
 
     return analysis_succeeded;

@@ -1,3 +1,24 @@
+8.0.8-44 | 2026-06-24 10:41:59 -0700
+
+  * GENEVE/VXLAN: Regression test for UBSAN nullptr deref inner_packet->session (Arne Welzel, Corelight)
+
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+    (cherry picked from commit ac994c4b10fdbbb1b174b5ead152770d6c579f8f)
+
+  * GENEVE/VXLAN: Fix EnqueueEvent() invocation on inner_packet->session (Arne Welzel, Corelight)
+
+    UBSAN found that inner_packet->session->EnqueueEvent() may use a
+    nullptr session when subsequent analyzers didn't attach a session
+    to the inner_packet using the encapsulated payload. A VXLAN packet
+    with an inner TCP packet that has a bad checksum can cause this.
+
+    There might be a bit of a question if the analysis_succeeded return
+    from ForwardPacket() should guarantee a set session, but seems an
+    orthogonal topic.
+
+    (cherry picked from commit ac994c4b10fdbbb1b174b5ead152770d6c579f8f)
+
 8.0.8-43 | 2026-06-24 10:40:06 -0700
 
   * HTTP: Add regression test for invalid Content-Range headers (Arne Welzel, Corelight)

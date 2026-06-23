@@ -2,9 +2,9 @@ FROM debian:13
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
-# A version field to invalidate Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20250813
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=8.0-20260618
 
 RUN apt-get update && apt-get -y install \
     bison \

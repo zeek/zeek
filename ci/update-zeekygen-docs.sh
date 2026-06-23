@@ -25,7 +25,9 @@ esac
 
 cd $build_dir
 . zeek-path-dev.sh
+
 export ZEEK_SEED_FILE=$source_dir/testing/btest/random.seed
+export ZEEK_ENABLE_ZEEKYGEN_WARNINGS=1
 
 function run_zeek {
     ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen
@@ -64,13 +66,13 @@ branch="$(git branch --show-current)"
 if [[ "$branch" =~ ^release/.* ]]; then
     doc_config_file=$source_dir/doc/conf.py
     cat ${doc_config_file} | sed \
-        -e "s#\(zeek_code_version[[:space:]]*=[[:space:]]*\)[^\n]*#\1\"$branch\"#g" \
+        -e "s#\(zeek_code_version[[:space:]]*=[[:space:]]*\)[^\n]*#\1'$branch'#g" \
         >${doc_config_file}.tmp
     mv ${doc_config_file}.tmp ${doc_config_file}
 fi
 
 if [ -n "$(cd $source_dir/doc && git status --porcelain)" ]; then
-    echo "*** There are changes in zeek-docs that need a review, commit, and push ***"
+    echo "*** There are changes in the doc directory that need a review, commit, and push ***"
 else
     echo "No changes or further action needed"
 fi

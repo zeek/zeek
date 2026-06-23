@@ -1,8 +1,8 @@
-FROM fedora:41
+FROM fedora:44
 
-# A version field to invalidate Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20250203
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=8.0-20260618
 
 RUN dnf -y install \
     bison \
@@ -12,6 +12,7 @@ RUN dnf -y install \
     diffutils \
     findutils \
     flex \
+    gawk \
     gcc \
     gcc-c++ \
     git \

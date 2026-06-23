@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM ubuntu:26.04
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
@@ -7,9 +7,12 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 ENV DOCKERFILE_VERSION=8.0-20260618
 
 RUN apt-get update && apt-get -y install \
+    bc \
     bison \
     bsdmainutils \
     ccache \
+    clang-18 \
+    clang++-18 \
     cmake \
     cppzmq-dev \
     curl \
@@ -19,25 +22,25 @@ RUN apt-get update && apt-get -y install \
     gcc \
     git \
     jq \
+    lcov \
     libkrb5-dev \
-    libnats-dev \
-    libnode-dev \
+    libmaxminddb-dev \
     libpcap-dev \
-    librdkafka-dev \
     libssl-dev \
-    libuv1-dev \
     make \
     python3 \
     python3-dev \
-    python3-pip\
+    python3-pip \
+    ruby \
     sqlite3 \
     swig \
+    unzip \
     wget \
-    xz-utils \
     zlib1g-dev \
+    libc++-dev \
+    libc++abi-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
-# Debian bookworm really doesn't like using pip to install system wide stuff, but
-# doesn't seem there's a python3-junit2html package, so not sure what we'd break.
 RUN pip3 install --break-system-packages websockets junit2html
+RUN gem install coveralls-lcov

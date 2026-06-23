@@ -1,24 +1,16 @@
-FROM opensuse/tumbleweed
+FROM opensuse/leap:16.0
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
 ENV DOCKERFILE_VERSION=8.0-20260618
 
-# Remove the repo-openh264 repository, it caused intermittent issues
-# and we should not be needing any packages from it.
-RUN zypper modifyrepo --disable repo-openh264 || true
-
 RUN zypper refresh \
  && zypper in -y \
-    awk \
     bison \
     ccache \
     cmake \
-    cppzmq-devel \
     curl \
-    diffutils \
     dnsmasq \
-    findutils \
     flex \
     gcc \
     gcc-c++ \
@@ -29,14 +21,15 @@ RUN zypper refresh \
     libpcap-devel \
     make \
     openssh \
-    python3 \
-    python3-devel \
-    python3-pip \
+    procps \
+    python313 \
+    python313-devel \
+    python313-pip \
     swig \
     tar \
-    util-linux \
     which \
+    zeromq-devel \
     zlib-devel \
   && rm -rf /var/cache/zypp
 
-RUN pip3 install --break-system-packages websockets junit2html
+RUN pip3 install websockets junit2html

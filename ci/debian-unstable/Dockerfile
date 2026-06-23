@@ -1,18 +1,15 @@
-FROM ubuntu:24.10
+FROM debian:unstable
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
-# A version field to invalidate Cirrus's build cache when needed, as suggested in
-# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20241115
+# A version field used by Circle to create new versions on DockerHub
+# during rebuilds.
+ENV DOCKERFILE_VERSION=8.0-20260618
 
 RUN apt-get update && apt-get -y install \
-    bc \
     bison \
     bsdmainutils \
     ccache \
-    clang-18 \
-    clang++-18 \
     cmake \
     cppzmq-dev \
     curl \
@@ -22,25 +19,25 @@ RUN apt-get update && apt-get -y install \
     gcc \
     git \
     jq \
-    lcov \
     libkrb5-dev \
-    libmaxminddb-dev \
+    libnats-dev \
+    libnode-dev \
     libpcap-dev \
+    librdkafka-dev \
     libssl-dev \
+    libuv1-dev \
     make \
     python3 \
     python3-dev \
-    python3-pip \
-    ruby \
+    python3-pip\
     sqlite3 \
     swig \
-    unzip \
     wget \
+    xz-utils \
     zlib1g-dev \
-    libc++-dev \
-    libc++abi-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
+# Debian bookworm really doesn't like using pip to install system wide stuff, but
+# doesn't seem there's a python3-junit2html package, so not sure what we'd break.
 RUN pip3 install --break-system-packages websockets junit2html
-RUN gem install coveralls-lcov

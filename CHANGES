@@ -1,3 +1,34 @@
+9.0.0-dev.466 | 2026-06-23 14:52:39 +0200
+
+  * HTTP: Add regression test for invalid Content-Range headers (Arne Welzel, Corelight)
+
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+  * HTTP: Avoid int64_t overflow when parsing Content-Range (Arne Welzel, Corelight)
+
+    Receiving Content-Range: 0-INT64_MAX/* makes UBSAN report an integer
+    overflow because the range is inclusive and so INT64_MAX+1 overflows
+    and we end up with a very large negative length.
+
+    Prevent this early raise a weird instead. Also prevent from negative
+    first and last bytes explicitly as we parse into an int64_t and if
+    there's an extra dash before last, would parse it as negative number.
+
+  * GENEVE/VXLAN: Regression test for UBSAN nullptr deref inner_packet->session (Arne Welzel, Corelight)
+
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+  * GENEVE/VXLAN: Fix EnqueueEvent() invocation on inner_packet->session (Arne Welzel, Corelight)
+
+    UBSAN found that inner_packet->session->EnqueueEvent() may use a
+    nullptr session when subsequent analyzers didn't attach a session
+    to the inner_packet using the encapsulated payload. A VXLAN packet
+    with an inner TCP packet that has a bad checksum can cause this.
+
+    There might be a bit of a question if the analysis_succeeded return
+    from ForwardPacket() should guarantee a set session, but seems an
+    orthogonal topic.
+
 9.0.0-dev.460 | 2026-06-22 21:42:54 +0000
 
   * Use target-based approach for enabling sanitizers (Benjamin Bannier, Corelight)

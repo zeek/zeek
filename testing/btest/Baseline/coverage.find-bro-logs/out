@@ -38,6 +38,8 @@ notice
 notice_alarm
 ntlm
 ntp
+ntp_control
+ntp_private
 ocsp
 openflow
 packet_filter

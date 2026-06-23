@@ -75,6 +75,10 @@ New Functionality
 - The event ``ssl_extension_encrypted_client_hello`` was added. It contains information about
   the encrypted_client_hello TLS extension.
 
+- Added two new NTP logs: ``ntp_control.log`` and ``ntp_private.log``, corresponding
+  to NTP modes 6 and 7. Since these modes differ from other NTP operations, they were
+  added to separate logs. Previously, only NTP modes 5 and under were logged.
+
 Changed Functionality
 ---------------------
 

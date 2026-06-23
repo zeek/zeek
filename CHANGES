@@ -1,3 +1,10 @@
+9.0.0-dev.469 | 2026-06-23 09:22:04 -0400
+
+  * NTP: log mode 6 control and mode 7 private messages to separate logs (li-zhou)
+
+    Add ntp_control.log and ntp_private.log, following the MQTT multi-log
+    pattern.  Mode 1-5 messages continue to go to ntp.log unchanged.
+
 9.0.0-dev.466 | 2026-06-23 14:52:39 +0200
 
   * HTTP: Add regression test for invalid Content-Range headers (Arne Welzel, Corelight)

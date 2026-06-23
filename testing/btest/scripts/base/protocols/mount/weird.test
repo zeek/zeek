@@ -1,0 +1,23 @@
+# @TEST-DOC: Tickle some weirds for invalid mount status or auth flavor.
+#
+# @TEST-EXEC: zeek -b -r $TRACES/mount/mount-unmount-bad-status.pcap %INPUT
+# @TEST-EXEC: zeek-cut -m < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: zeek -b -r $TRACES/mount/mount-unmount-bad-auth-flavor.pcap %INPUT
+# @TEST-EXEC: zeek-cut -m < weird.log >> weird.log.all
+# @TEST-EXEC: rm *.log
+#
+# @TEST-EXEC: btest-diff weird.log.all
+
+@load base/frameworks/notice/weird
+
+global mount_ports: set[port] = { 635/tcp, 635/udp, 20048/tcp, 20048/udp } &redef;
+
+redef ignore_checksums = T;
+
+event zeek_init()
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_MOUNT, mount_ports);
+	Analyzer::enable_analyzer(Analyzer::ANALYZER_MOUNT);
+	}

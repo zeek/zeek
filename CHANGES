@@ -1,3 +1,29 @@
+9.0.0-dev.473 | 2026-06-23 19:15:59 +0200
+
+  * nfs: Skip over NFSACL programs (Arne Welzel, Corelight)
+
+    The nfs_write.pcap contains an RPC call for program NFSACL (100227).
+    Skip over this for now.
+
+  * testing/btest: Add some test pcaps for checking on the mount/nfs weirds (Arne Welzel, Corelight)
+
+    This is not absolutely complete, but does check invalid status, file type
+    auth flavors and the NFS set_it and stable_how enums. I didn't want an
+    LLM to generate because the protocol is complex enough, so this adds a
+    Scapy scripts that can be used to scramble the packets of an existing pcap.
+
+  * rpc/nfs/mount: Fix ubsan santizer issues with invalid enum values (Arne Welzel, Corelight)
+
+    Fuzzing the "mount analyzer" with UBSAN, invalid loads for enums were
+    detected and on further inspection, the EnumType::GetEnumVal() call
+    would dynamically allocate enum values for anything parsed from the
+    wire. The ANALYZER_MOUNT isn't enabled by default and there are no
+    DPD rules or even scripts.
+
+    Example from UBSAN:
+
+        rpc/MOUNT.cc:173:66: runtime error: load of value 48, which is not a valid value for type 'BifEnum::MOUNT3::auth_flavor_t'
+
 9.0.0-dev.469 | 2026-06-23 09:22:04 -0400
 
   * NTP: log mode 6 control and mode 7 private messages to separate logs (li-zhou)

@@ -1,3 +1,23 @@
+8.2.0-41 | 2026-06-24 10:43:49 -0700
+
+  * HTTP: Add regression test for invalid Content-Range headers (Arne Welzel, Corelight)
+
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+    (cherry picked from commit fce9173214c0dddae211322ca2ea417bdc6c24f0)
+
+  * HTTP: Avoid int64_t overflow when parsing Content-Range (Arne Welzel, Corelight)
+
+    Receiving Content-Range: 0-INT64_MAX/* makes UBSAN report an integer
+    overflow because the range is inclusive and so INT64_MAX+1 overflows
+    and we end up with a very large negative length.
+
+    Prevent this early raise a weird instead. Also prevent from negative
+    first and last bytes explicitly as we parse into an int64_t and if
+    there's an extra dash before last, would parse it as negative number.
+
+    (cherry picked from commit fce9173214c0dddae211322ca2ea417bdc6c24f0)
+
 8.2.0-40 | 2026-06-18 16:06:20 -0700
 
   * Fix image-generation ccache and workspace persistence (Tim Wojtulewicz, Corelight)

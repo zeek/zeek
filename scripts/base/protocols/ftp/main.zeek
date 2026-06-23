@@ -81,7 +81,7 @@ export {
 
 	## If true, log a summary entry for FTP sessions where a user was
 	## seen but no logged_commands were issued.
-	option report_unlogged_sessions = T;
+	option log_at_least_one_command = T;
 }
 
 # Add the state tracking information variable to the connection record
@@ -493,10 +493,9 @@ hook finalize_ftp(c: connection)
 		ftp_message(c);
 		}
 
-	if ( c$ftp?$user && ! c$ftp$logged_command_seen && report_unlogged_sessions )
+	if ( c$ftp?$user && ! c$ftp$logged_command_seen && log_at_least_one_command )
 		{
 		local s: Info = c$ftp;
-		s$command = "<session>";
 		Log::write(FTP::LOG, s);
 		}
 	}

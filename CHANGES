@@ -1,3 +1,22 @@
+9.0.0-dev.478 | 2026-06-24 16:08:44 +0200
+
+  * GH-5583: http: Add QUERY method (RFC 10008) to known methods, extend dpd.sig (Arne Welzel, Corelight)
+
+    RFC 10008 is a proposed standard to add a new HTTP method, QUERY:
+
+    	https://www.rfc-editor.org/info/rfc10008/
+
+    Not sure we'll ever see this in plaintext HTTP/1.1 traffic anywhere, but
+    Zeek already parses it, so this commit only really adds it to
+    http_methods to prevent the unknown_HTTP_method weird. It also extends
+    the DPD signature to include QUERY.
+
+    I didn't do a lot here, this was mostly for testing Claude follows the
+    instructions in btest.rst as proposed in #5583 and the QUERY method showed
+    up on Hacker News yesterday, so seemed a good opportunity to test drive.
+
+    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
 9.0.0-dev.476 | 2026-06-24 10:02:18 +0200
 
   * NTP: Prevent len underflow in &enforce during extension parsing (Arne Welzel, Corelight)

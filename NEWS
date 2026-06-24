@@ -94,6 +94,9 @@ Changed Functionality
 - The ``extension_signature_algorithm`` event previously was incorrectly raised when a
   CertificateRequest message was encountered. It now is not raised for CertificateRequest messages.
 
+- The proposed HTTP QUERY method from RFC 10008 does not produce a weird anymore.
+  Zeek already parsed the QUERY method, but raised a weird.
+
 - The options and redefinitions from ``zeromq/main.zeek`` were split into a separate
   file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
   layer, without partaking in cluster node events.

@@ -130,7 +130,9 @@ export {
 		"PROPFIND", "PROPPATCH", "MKCOL",
 		"COPY", "MOVE", "LOCK", "UNLOCK",
 		"POLL", "REPORT", "SUBSCRIBE", "BMOVE",
-		"SEARCH"
+		"SEARCH",
+		# Proposed standard: https://www.rfc-editor.org/info/rfc10008
+		"QUERY",
 	};
 
 	## Event that can be handled to access the HTTP record as it is sent on

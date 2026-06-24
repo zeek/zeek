@@ -132,6 +132,10 @@ Changed Functionality
   prevent unbounded buffering. This also prevents signed integer overflow
   reports from the BinPAC-generated code when running under UBSAN.
 
+- The ``local.zeek`` script no longer loads ``policy/frameworks/telemetry/log.zeek``
+  by default.
+  
+
 Deprecated Functionality
 ------------------------
 

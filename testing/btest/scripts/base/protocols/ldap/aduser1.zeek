@@ -5,7 +5,9 @@
 # @TEST-EXEC: mkdir ntlm && mv *.log ntlm
 # @TEST-EXEC: btest-diff krb/ldap.log
 # @TEST-EXEC: btest-diff krb/ldap_search.log
+# @TEST-EXEC: btest-diff-cut -m krb/kerberos.log
 # @TEST-EXEC: btest-diff ntlm/ldap.log
 # @TEST-EXEC: btest-diff ntlm/ldap_search.log
+# @TEST-EXEC: btest-diff-cut -m ntlm/ntlm.log
 #
 # @TEST-DOC: Check two traces using different authentication mechanisms, but the same search request.

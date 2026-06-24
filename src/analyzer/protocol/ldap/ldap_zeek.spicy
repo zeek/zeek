@@ -14,26 +14,26 @@ on LDAP::TlsForward::chunk {
 }
 
 on LDAP::BindRequest::%done {
-    if ( self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && |self.saslCreds.payload| > 0 ) {
+    if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.credentials) {
         local mech = self.saslCreds.mechanism;
-        if ( mech == "GSS-SPNEGO" || mech == "GSSAPI" ) {
-            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
-        } else if ( mech == "NTLM" ) {
-            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("NTLM"));
+        if (mech == "GSS-SPNEGO" || mech == "GSSAPI") {
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.credentials.application_data, zeek::protocol_handle_get_or_create("GSSAPI"));
+        } else if (mech == "NTLM") {
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.credentials.application_data, zeek::protocol_handle_get_or_create("NTLM"));
         }
-    } else if ( self.authType == LDAP::BindAuthType::SICILY_NEGOTIATE || self.authType == LDAP::BindAuthType::SICILY_RESPONSE ) {
+    } else if (self.authType == LDAP::BindAuthType::SICILY_NEGOTIATE || self.authType == LDAP::BindAuthType::SICILY_RESPONSE) {
         # Sicily is an older Microsoft authentication method that uses NTLMSSP
         zeek::protocol_data_in(zeek::is_orig(), self.authData, zeek::protocol_handle_get_or_create("NTLM"));
     }
 }
 
 on LDAP::BindResponse::%done {
-    if ( |self.serverSaslCreds| > 0 ) {
+    if (|self.serverSaslCreds| > 0) {
         local mech = self.mechanism;
-        for ( cred in self.serverSaslCreds ) {
-            if ( mech == "GSS-SPNEGO" || mech == "GSSAPI" ) {
+        for (cred in self.serverSaslCreds) {
+            if (mech == "GSS-SPNEGO" || mech == "GSSAPI") {
                 zeek::protocol_data_in(zeek::is_orig(), cred.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
-            } else if ( mech == "NTLM" ) {
+            } else if (mech == "NTLM") {
                 zeek::protocol_data_in(zeek::is_orig(), cred.payload, zeek::protocol_handle_get_or_create("NTLM"));
             }
         }

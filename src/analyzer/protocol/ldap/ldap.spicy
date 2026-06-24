@@ -406,20 +406,17 @@ type GSS_SPNEGO_Init = unit {
 type SaslCredentials = unit {
     mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
 
-    # Optionally strip the OCTET STRING header
+    # Optionally strip the credentials OCTET STRING ASN.1 header
     switch {
-        -> credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
+        -> credentials: ASN1::ASN1Message(False) &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
         -> : void;
     };
 
-    # Dump the remaining raw bytes into the payload
-    payload: bytes &eod;
-
     # Peak into GSS-SPNEGO payload if we have any.
     switch (self.mechanism) {
-        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init &parse-from=self.payload;
+        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init &parse-from=self.credentials.application_data;
         * -> : void;
-    } if (|self.payload| > 0);
+    } if (self?.credentials);
 };
 
 type SicilyMessage = unit {

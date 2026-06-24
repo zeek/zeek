@@ -11379,6 +11379,16 @@ Types
       (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
 
 
+   .. zeek:field:: ntp_control :zeek:type:`NTP::ControlInfo` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
+
+
+   .. zeek:field:: ntp_private :zeek:type:`NTP::PrivateInfo` :zeek:attr:`&optional`
+
+      (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
+
+
    .. zeek:field:: postgresql :zeek:type:`PostgreSQL::Info` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/base/protocols/postgresql/main.zeek` is loaded)

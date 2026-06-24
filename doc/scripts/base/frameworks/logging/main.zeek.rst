@@ -878,6 +878,16 @@ Types
          (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
 
 
+      .. zeek:enum:: NTP::CONTROL_LOG Log::ID
+
+         (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
+
+
+      .. zeek:enum:: NTP::PRIVATE_LOG Log::ID
+
+         (present if :doc:`/scripts/base/protocols/ntp/main.zeek` is loaded)
+
+
       .. zeek:enum:: PostgreSQL::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/postgresql/main.zeek` is loaded)

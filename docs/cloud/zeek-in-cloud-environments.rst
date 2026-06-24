@@ -139,7 +139,7 @@ Considerations
 - Filtering reduces cost and improves performance.
 - n2‑standard or c2‑standard instances provide stable throughput.
 
-Zeek in Containerized Environments (EKS, AKS, GKE)
+Zeek in Containerized Environments (EKS, Azure Kubernetes Service, GKE)
 --------------------------------------------------
 
 Overview

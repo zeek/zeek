@@ -3,9 +3,16 @@
   "version-string": "latest",
   "dependencies": [
     "c-ares",
+    "cppzmq",
     "libpcap",
     "openssl",
     "pcre",
+    {
+      "name": "zeromq",
+      "features": [
+        "sodium"
+      ]
+    },
     "zlib"
   ]
 }

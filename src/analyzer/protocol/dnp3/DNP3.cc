@@ -173,7 +173,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             // received packet is a response.
             u_char ctrl = endp->buffer[PSEUDO_CONTROL_FIELD_INDEX];
 
-            if ( orig != static_cast<bool>(ctrl & 0x80) )
+            if ( orig != static_cast<bool>(static_cast<unsigned int>(ctrl) & 0x80u) )
                 analyzer->Weird("dnp3_unexpected_flow_direction");
 
             // Update state.
@@ -268,8 +268,8 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp) {
     // bytes or not. FIN indicate whether the following DNP3 Serial Application Layer is last chunk
     // of bytes or not.
 
-    int is_first = (endp->tpflags & 0x40) >> 6; // Initial chunk of data in this packet.
-    int is_last = (endp->tpflags & 0x80) >> 7;  // Last chunk of data in this packet.
+    int is_first = (static_cast<unsigned int>(endp->tpflags) & 0x40u) >> 6u; // Initial chunk of data in this packet.
+    int is_last = (static_cast<unsigned int>(endp->tpflags) & 0x80u) >> 7u;  // Last chunk of data in this packet.
 
     int transport = PSEUDO_TRANSPORT_LEN;
 
@@ -327,7 +327,7 @@ void DNP3_Base::ClearEndpointState(bool orig) {
 bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where) {
     unsigned int crc = CalcCRC(len, data);
 
-    if ( crc16[0] == (crc & 0xff) && crc16[1] == (crc & 0xff00) >> 8 )
+    if ( crc16[0] == (crc & 0xffu) && crc16[1] == (crc & 0xff00u) >> 8u )
         return true;
 
     analyzer->Weird(util::fmt("dnp3_corrupt_%s_checksum", where));
@@ -339,10 +339,10 @@ void DNP3_Base::PrecomputeCRCTable() {
         unsigned int crc = i;
 
         for ( unsigned int j = 0; j < 8; ++j ) {
-            if ( crc & 0x0001 )
-                crc = (crc >> 1) ^ 0xA6BC; // Generating polynomial.
+            if ( crc & 0x0001u )
+                crc = (crc >> 1u) ^ 0xA6BCu; // Generating polynomial.
             else
-                crc >>= 1;
+                crc >>= 1u;
         }
 
         crc_table[i] = crc;
@@ -353,11 +353,11 @@ unsigned int DNP3_Base::CalcCRC(int len, const u_char* data) {
     unsigned int crc = 0x0000;
 
     for ( int i = 0; i < len; i++ ) {
-        unsigned int index = (crc ^ data[i]) & 0xFF;
-        crc = crc_table[index] ^ (crc >> 8);
+        unsigned int index = (crc ^ static_cast<unsigned int>(data[i])) & 0xFFu;
+        crc = crc_table[index] ^ (crc >> 8u);
     }
 
-    return ~crc & 0xFFFF;
+    return ~crc & 0xFFFFu;
 }
 
 } // namespace detail

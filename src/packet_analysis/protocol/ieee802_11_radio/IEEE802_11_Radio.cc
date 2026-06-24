@@ -15,7 +15,7 @@ bool IEEE802_11_RadioAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Pa
     }
 
     // Skip over the RadioTap header
-    size_t rtheader_len = (data[3] << 8) + data[2];
+    size_t rtheader_len = (static_cast<uint32_t>(data[3]) << 8u) + data[2];
 
     if ( rtheader_len >= len ) {
         Weird("truncated_radiotap_header", packet);

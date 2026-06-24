@@ -1563,7 +1563,7 @@ function fnv1a64%(input: any%): count
 function hrw_weight%(key_digest: count, site_id: count%): count
 	%{
 	uint32_t d = key_digest;
-	d &= 0x7fffffff; // 31-bit digest
+	d &= 0x7fffffffu; // 31-bit digest
 	uint32_t si = site_id;
 	auto a = 1103515245;
 	auto b = 12345;
@@ -3508,7 +3508,7 @@ function raw_bytes_to_v4_addr%(b: string%): addr
 	else
 		{
 		const u_char* bp = b->Bytes();
-		a = (bp[0] << 24) | (bp[1] << 16) | (bp[2] << 8) | bp[3];
+		a = (static_cast<uint32_t>(bp[0]) << 24u) | (static_cast<uint32_t>(bp[1]) << 16u) | (static_cast<uint32_t>(bp[2]) << 8u) | static_cast<uint32_t>(bp[3]);
 		}
 
 	return zeek::make_intrusive<zeek::AddrVal>(htonl(a));
@@ -3533,10 +3533,15 @@ function raw_bytes_to_v6_addr%(x: string%): addr
 	else
 		{
 		const u_char* xp = x->Bytes();
-		bytes[0] = htonl((xp[0] << 24) | (xp[1] << 16) | (xp[2] << 8) | xp[3]);
-		bytes[1] = htonl((xp[0+4] << 24) | (xp[1+4] << 16) | (xp[2+4] << 8) | xp[3+4]);
-		bytes[2] = htonl((xp[0+8] << 24) | (xp[1+8] << 16) | (xp[2+8] << 8) | xp[3+8]);
-		bytes[3] = htonl((xp[0+12] << 24) | (xp[1+12] << 16) | (xp[2+12] << 8) | xp[3+12]);
+		bytes[0] = htonl((static_cast<uint32_t>(xp[0]) << 24u) | (static_cast<uint32_t>(xp[1]) << 16u) |
+                         (static_cast<uint32_t>(xp[2]) << 8u) | static_cast<uint32_t>(xp[3]));
+		bytes[1] = htonl((static_cast<uint32_t>(xp[0+4]) << 24u) | (static_cast<uint32_t>(xp[1+4]) << 16u) |
+                         (static_cast<uint32_t>(xp[2+4]) << 8u) | static_cast<uint32_t>(xp[3+4]));
+		bytes[2] = htonl((static_cast<uint32_t>(xp[0+8]) << 24u) | (static_cast<uint32_t>(xp[1+8]) << 16u) |
+                         (static_cast<uint32_t>(xp[2+8]) << 8u) | static_cast<uint32_t>(xp[3+8]));
+		bytes[3] = htonl((static_cast<uint32_t>(xp[0+12]) << 24u) |
+                         (static_cast<uint32_t>(xp[1+12]) << 16u) |
+                         (static_cast<uint32_t>(xp[2+12]) << 8u) | static_cast<uint32_t>(xp[3+12]));
 		}
 
 	return zeek::make_intrusive<zeek::AddrVal>(bytes);
@@ -3750,7 +3755,7 @@ function ptr_name_to_addr%(s: string%): addr
 			addr = 0;
 			}
 		else
-			addr = (a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+			addr = (static_cast<uint32_t>(a[3]) << 24u) | (static_cast<uint32_t>(a[2]) << 16u) | (static_cast<uint32_t>(a[1]) << 8u) | static_cast<uint32_t>(a[0]);
 
 		return zeek::make_intrusive<zeek::AddrVal>(htonl(addr));
 		}

@@ -27,22 +27,22 @@ enum FieldType : uint8_t {
 
 class Field : public Object, public DataDepElement {
 public:
-    Field(FieldType tof, int flags, ID* id, Type* type);
+    Field(FieldType tof, unsigned int flags, ID* id, Type* type);
     // Field flags
 
     // Whether the field will be evaluated by calling the Parse()
     // function of the type
-    static const int TYPE_TO_BE_PARSED = 1;
-    static const int TYPE_NOT_TO_BE_PARSED = 0;
+    static const unsigned int TYPE_TO_BE_PARSED = 1;
+    static const unsigned int TYPE_NOT_TO_BE_PARSED = 0;
 
     // Whether the field is a member of the class or a temp
     // variable
-    static const int CLASS_MEMBER = 2;
-    static const int NOT_CLASS_MEMBER = 0;
+    static const unsigned int CLASS_MEMBER = 2;
+    static const unsigned int NOT_CLASS_MEMBER = 0;
 
     // Whether the field is public readable
-    static const int PUBLIC_READABLE = 4;
-    static const int NOT_PUBLIC_READABLE = 0;
+    static const unsigned int PUBLIC_READABLE = 4;
+    static const unsigned int NOT_PUBLIC_READABLE = 0;
 
     ~Field() override;
 
@@ -76,7 +76,7 @@ protected:
 
 protected:
     FieldType tof_;
-    int flags_;
+    unsigned int flags_;
     ID* id_;
     Type* type_;
     const ID* decl_id_;

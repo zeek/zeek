@@ -18,7 +18,7 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     // bytes long. Whether this is unnumbered is denoted by the last two bits being
     // set.
     size_t llc_header_len = 3;
-    if ( (data[2] & 0x03) != 0x03 )
+    if ( (static_cast<uint32_t>(data[2]) & 0x03u) != 0x03u )
         llc_header_len++;
 
     // Check the full length of the SNAP header, which is the LLC header plus 5 bytes.
@@ -39,8 +39,8 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     // Protocol values for SNAP can differ based what OUI publishes them, so use a
     // combination of them for the identifier used to forward.
     int64_t identifier = oui;
-    identifier <<= 16;
-    identifier |= protocol;
+    identifier = static_cast<int64_t>(static_cast<uint64_t>(identifier) << 16u);
+    identifier = static_cast<int64_t>(static_cast<uint64_t>(identifier) | static_cast<uint64_t>(protocol));
 
     return ForwardPacket(len, data, packet, identifier);
 }

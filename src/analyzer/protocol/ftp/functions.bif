@@ -30,9 +30,9 @@ static zeek::RecordValPtr parse_port(const std::string& line)
 
 		if ( good )
 			{
-			addr = (static_cast<uint32_t>(bytes[0]) << 24) | (static_cast<uint32_t>(bytes[1]) << 16) |
-					(static_cast<uint32_t>(bytes[2]) << 8) | bytes[3];
-			port = (static_cast<uint32_t>(bytes[4]) << 8) | bytes[5];
+			addr = (static_cast<uint32_t>(bytes[0]) << 24u) | (static_cast<uint32_t>(bytes[1]) << 16u) |
+					(static_cast<uint32_t>(bytes[2]) << 8u) | static_cast<uint32_t>(bytes[3]);
+			port = (static_cast<uint32_t>(bytes[4]) << 8u) | static_cast<uint32_t>(bytes[5]);
 			}
 		}
 
@@ -219,9 +219,9 @@ function fmt_ftp_port%(a: addr, p: port%): string
 		uint32_t a = ntohl(addr[0]);
 		uint32_t pn = p->Port();
 		return zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("%d,%d,%d,%d,%d,%d",
-		                                                 a >> 24, (a >> 16) & 0xff,
-		                                                 (a >> 8) & 0xff, a & 0xff,
-		                                                 pn >> 8, pn & 0xff));
+		                                                 a >> 24u, (a >> 16u) & 0xffu,
+		                                                 (a >> 8u) & 0xffu, a & 0xffu,
+		                                                 pn >> 8u, pn & 0xffu));
 		}
 	else
 		{

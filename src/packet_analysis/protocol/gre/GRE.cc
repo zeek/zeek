@@ -10,24 +10,24 @@
 
 using namespace zeek::packet_analysis::GRE;
 
-static unsigned int gre_header_len(uint16_t flags = 0) {
+static unsigned int gre_header_len(unsigned int flags = 0) {
     unsigned int len = 4; // Always has 2 byte flags and 2 byte protocol type.
 
-    if ( flags & 0x8000 )
+    if ( flags & 0x8000u )
         // Checksum/Reserved1 present.
         len += 4;
 
     // Not considering routing presence bit since it's deprecated ...
 
-    if ( flags & 0x2000 )
+    if ( flags & 0x2000u )
         // Key present.
         len += 4;
 
-    if ( flags & 0x1000 )
+    if ( flags & 0x1000u )
         // Sequence present.
         len += 4;
 
-    if ( flags & 0x0080 )
+    if ( flags & 0x0080u )
         // Acknowledgement present.
         len += 4;
 
@@ -50,9 +50,9 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     int proto = packet->proto;
     int gre_link_type = DLT_RAW;
 
-    uint16_t flags_ver = ntohs(*reinterpret_cast<const uint16_t*>(data + 0));
-    uint16_t proto_typ = ntohs(*reinterpret_cast<const uint16_t*>(data + 2));
-    int gre_version = flags_ver & 0x0007;
+    unsigned int flags_ver = static_cast<unsigned int>(ntohs(*reinterpret_cast<const uint16_t*>(data + 0)));
+    unsigned int proto_typ = static_cast<unsigned int>(ntohs(*reinterpret_cast<const uint16_t*>(data + 2)));
+    unsigned int gre_version = flags_ver & 0x0007u;
 
     unsigned int eth_len = 0;
     unsigned int gre_len = gre_header_len(flags_ver);
@@ -83,7 +83,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
                 erspan_len = 0;
                 eth_len = 14;
                 gre_link_type = DLT_EN10MB;
-                bool have_sequence_header = ((flags_ver & 0x1000) == 0x1000);
+                bool have_sequence_header = ((flags_ver & 0x1000u) == 0x1000u);
                 if ( have_sequence_header ) {
                     // ERSPAN type II
                     erspan_len += 8;
@@ -107,7 +107,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
                 gre_link_type = DLT_EN10MB;
 
                 auto flags = data + gre_len + erspan_len - 1;
-                bool have_opt_header = ((*flags & 0x01) == 0x01);
+                bool have_opt_header = ((static_cast<unsigned int>(*flags) & 0x01u) == 0x01u);
 
                 if ( have_opt_header ) {
                     if ( len > gre_len + erspan_len + 8 + eth_len )
@@ -123,9 +123,9 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
                 return false;
             }
         }
-        else if ( ((proto_typ & 0x8200) == 0x8200 && (proto_typ & 0x0F) == 0) ||
-                  ((proto_typ & 0x8300) == 0x8300 && (proto_typ & 0x0F) == 0 && (proto_typ <= 0x8370)) ||
-                  (proto_typ == 0x9000) ) {
+        else if ( ((proto_typ & 0x8200u) == 0x8200u && (proto_typ & 0x0Fu) == 0) ||
+                  ((proto_typ & 0x8300u) == 0x8300u && (proto_typ & 0x0Fu) == 0 && (proto_typ <= 0x8370u)) ||
+                  (proto_typ == 0x9000u) ) {
             // ARUBA: Set gre_link_type to IEEE802.11 so the IPTUNNEL analyzer uses
             // that to instantiate the fake tunnel packet, otherwise it'd be using
             // DLT_RAW which is not correct for ARUBA.
@@ -152,14 +152,14 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
         }
     }
 
-    if ( flags_ver & 0x4000 ) {
+    if ( flags_ver & 0x4000u ) {
         // RFC 2784 deprecates the variable length routing field specified by RFC 1701. It could be
         // parsed here, but easiest to just skip for now.
         Weird("gre_routing", packet);
         return false;
     }
 
-    if ( flags_ver & 0x0078 ) {
+    if ( flags_ver & 0x0078u ) {
         // Expect last 4 bits of flags are reserved, undefined.
         Weird("unknown_gre_flags", packet);
         return false;

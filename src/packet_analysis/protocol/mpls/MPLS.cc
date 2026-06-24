@@ -16,7 +16,7 @@ bool MPLSAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
             return false;
         }
 
-        end_of_stack = *(data + 2u) & 0x01;
+        end_of_stack = static_cast<uint32_t>(*(data + 2u)) & 0x01u;
         data += 4;
         len -= 4;
     }

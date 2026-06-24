@@ -34,7 +34,8 @@ void NCP_Session::DeliverFrame(const binpac::NCP::ncp_frame* frame) {
         req_func = frame->request()->function();
         if ( req_func == 0x57 ) // enhanced FILE_DIR services
         {
-            req_func = (req_func << 8) | frame->request()->subfunction();
+            req_func = static_cast<int>((static_cast<uint32_t>(req_func) << 8u) |
+                                        static_cast<uint32_t>(frame->request()->subfunction()));
         }
     }
 
@@ -122,7 +123,7 @@ void NCP_FrameBuffer::compute_msg_length() {
     const u_char* data = Data();
     msg_len = 0;
     for ( int i = 0; i < 4; ++i )
-        msg_len = (msg_len << 8) | data[4 + i];
+        msg_len = (msg_len << 8u) | data[4 + i];
 }
 
 } // namespace detail
@@ -158,7 +159,8 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
         }
 
         int frame_type_index = IsOrig() ? 16 : 8;
-        int frame_type = (static_cast<int>(data[frame_type_index])) << 8 | data[frame_type_index + 1];
+        int frame_type = static_cast<int>((static_cast<uint32_t>(data[frame_type_index]) << 8u) |
+                                          static_cast<uint32_t>(data[frame_type_index + 1]));
 
         if ( frame_type != 0x1111 && frame_type != 0x2222 && frame_type != 0x3333 && frame_type != 0x5555 &&
              frame_type != 0x7777 && frame_type != 0x9999 )

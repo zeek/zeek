@@ -163,14 +163,14 @@ int expand_escape(const char*& s) {
             int digit = parse_octal_digit(*s);
 
             if ( digit >= 0 ) {
-                result = (result << 3) | digit;
+                result = static_cast<int>((static_cast<uint32_t>(result) << 3u) | static_cast<uint32_t>(digit));
                 ++s;
 
                 // third digit?
                 digit = parse_octal_digit(*s);
 
                 if ( digit >= 0 ) {
-                    result = (result << 3) | digit;
+                    result = static_cast<int>((static_cast<uint32_t>(result) << 3u) | static_cast<uint32_t>(digit));
                     ++s;
                 }
             }
@@ -194,7 +194,7 @@ int expand_escape(const char*& s) {
             int digit = parse_hex_digit(*s);
 
             if ( digit >= 0 ) {
-                result = (result << 4) | digit;
+                result = static_cast<int>((static_cast<uint32_t>(result) << 4u) | static_cast<uint32_t>(digit));
                 ++s;
             }
 
@@ -431,7 +431,7 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 
         for ( size_t i = 0; i < pos; ++i ) {
             seed ^= buf[i];
-            seed = (seed << 1) | (seed >> 31);
+            seed = (seed << 1u) | (seed >> 31u);
         }
     }
 
@@ -925,7 +925,8 @@ std::string get_unescaped_string(const std::string& arg_str) {
 
     while ( pos < arg_str.length() ) {
         if ( str[pos] == '\\' && str[pos + 1] == 'x' && isxdigit(str[pos + 2]) && isxdigit(str[pos + 3]) ) {
-            *bufpos = (decode_hex(str[pos + 2]) << 4) + decode_hex(str[pos + 3]);
+            *bufpos = (static_cast<uint32_t>(decode_hex(str[pos + 2])) << 4u) +
+                      static_cast<uint32_t>(decode_hex(str[pos + 3]));
 
             pos += 4;
             bufpos++;
@@ -1745,7 +1746,7 @@ const void* memory_align(const void* ptr, size_t size) {
     const char* buf = reinterpret_cast<const char*>(ptr);
     size_t mask = size - 1; // Assume size is a power of 2.
     intptr_t l_ptr = reinterpret_cast<intptr_t>(ptr);
-    ptrdiff_t offset = l_ptr & mask;
+    ptrdiff_t offset = static_cast<ptrdiff_t>(static_cast<uintptr_t>(l_ptr) & mask);
 
     if ( offset > 0 )
         return reinterpret_cast<const void*>(buf - offset + size);
@@ -1761,7 +1762,7 @@ void* memory_align_and_pad(void* ptr, size_t size) {
 
     char* buf = reinterpret_cast<char*>(ptr);
     size_t mask = size - 1;
-    while ( (reinterpret_cast<intptr_t>(buf) & mask) != 0 )
+    while ( (reinterpret_cast<uintptr_t>(buf) & mask) != 0 )
         // Not aligned - zero pad.
         *buf++ = '\0';
 
@@ -1966,8 +1967,11 @@ string escape_utf8(string_view val, int flags) {
     bool found_bad = false;
     size_t idx = 0;
 
-    bool escape_printable_controls = (flags & ESCAPE_PRINTABLE_CONTROLS) == ESCAPE_PRINTABLE_CONTROLS;
-    bool escape_other_controls = (flags & ESCAPE_UNPRINTABLE_CONTROLS) == ESCAPE_UNPRINTABLE_CONTROLS;
+    bool escape_printable_controls =
+        (static_cast<uint32_t>(flags) & static_cast<uint32_t>(ESCAPE_PRINTABLE_CONTROLS)) ==
+        static_cast<uint32_t>(ESCAPE_PRINTABLE_CONTROLS);
+    bool escape_other_controls = (static_cast<uint32_t>(flags) & static_cast<uint32_t>(ESCAPE_UNPRINTABLE_CONTROLS)) ==
+                                 static_cast<uint32_t>(ESCAPE_UNPRINTABLE_CONTROLS);
 
     while ( idx < val.size() ) {
         const char ch = val_data[idx];

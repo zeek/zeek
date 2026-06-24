@@ -24,7 +24,7 @@ void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n, size_t pool) {
         uid[i] = v && i < n ? v[i] : util::calculate_unique_id(pool);
 
     if ( res.rem )
-        uid[0] >>= 64 - res.rem;
+        uid[0] >>= 64u - static_cast<unsigned int>(res.rem);
 }
 
 std::string UID::Base62(std::string prefix) const {

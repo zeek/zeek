@@ -37,10 +37,10 @@ public:
 
     ////////////////////////////////////////
     // Code generation
-    virtual void Prepare(Env* env, int flags);
+    virtual void Prepare(Env* env, unsigned int flags);
 
     // Flag(s) for Prepare()
-    static const int TO_BE_PARSED = 1;
+    static const unsigned int TO_BE_PARSED = 1;
 
     virtual void GenPubDecls(Output* out, Env* env);
     virtual void GenPrivDecls(Output* out, Env* env);

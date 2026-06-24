@@ -126,7 +126,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
         // we're using the AF_UNSPEC family, we get both the ipv4 and ipv6 responses
         // back in the same request if use ares_getaddrinfo() so we can store them both
         // in the same mapping.
-        ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0};
+        ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0}; // NOLINT(bugprone-signed-bitwise)
         ares_getaddrinfo(channel, host.c_str(), nullptr, &hints, addrinfo_cb, req_data.release());
     }
     else {
@@ -395,7 +395,9 @@ static void sock_cb(void* data, ares_socket_t s, int read, int write) {
     mgr->RegisterSocket(static_cast<int>(s), read == 1, write == 1);
 }
 
-DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource(true), mode(arg_mode) { ares_library_init(ARES_LIB_INIT_ALL); }
+DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource(true), mode(arg_mode) {
+    ares_library_init(ARES_LIB_INIT_ALL); // NOLINT(bugprone-signed-bitwise)
+}
 
 DNS_Mgr::~DNS_Mgr() {
     Flush();
@@ -440,6 +442,7 @@ void DNS_Mgr::InitSource() {
     // Enable an EDNS option to be sent with the requests. This allows us to set
     // a bigger UDP buffer size in the request, which prevents fallback to TCP
     // at least up to that size.
+    // NOLINTBEGIN(bugprone-signed-bitwise)
     options.flags = ARES_FLAG_EDNS;
     optmask |= ARES_OPT_FLAGS;
 
@@ -462,6 +465,7 @@ void DNS_Mgr::InitSource() {
     options.sock_state_cb = sock_cb;
     options.sock_state_cb_data = this;
     optmask |= ARES_OPT_SOCK_STATE_CB;
+    // NOLINTEND(bugprone-signed-bitwise)
 
     int status = ares_init_options(&channel, &options, optmask);
     if ( status != ARES_SUCCESS )
@@ -847,8 +851,10 @@ void DNS_Mgr::Resolve() {
 
         if ( res > 0 ) {
             for ( int i = 0; i < nfds; i++ ) {
-                int rdfd = pollfds[i].revents & POLLIN ? pollfds[i].fd : ARES_SOCKET_BAD;
-                int wrfd = pollfds[i].revents & POLLOUT ? pollfds[i].fd : ARES_SOCKET_BAD;
+                int rdfd =
+                    pollfds[i].revents & POLLIN ? pollfds[i].fd : ARES_SOCKET_BAD; // NOLINT(bugprone-signed-bitwise)
+                int wrfd =
+                    pollfds[i].revents & POLLOUT ? pollfds[i].fd : ARES_SOCKET_BAD; // NOLINT(bugprone-signed-bitwise)
 
                 if ( rdfd != ARES_SOCKET_BAD || wrfd != ARES_SOCKET_BAD )
                     ares_process_fd(channel, rdfd, wrfd);
@@ -1261,7 +1267,9 @@ double DNS_Mgr::GetNextTimeout() {
 
 void DNS_Mgr::ProcessFd(int fd, int flags) {
     if ( socket_fds.contains(fd) ) {
+        // NOLINTNEXTLINE(bugprone-signed-bitwise)
         int read_fd = (flags & IOSource::ProcessFlags::READ) != 0 ? fd : ARES_SOCKET_BAD;
+        // NOLINTNEXTLINE(bugprone-signed-bitwise)
         int write_fd = (flags & IOSource::ProcessFlags::WRITE) != 0 ? fd : ARES_SOCKET_BAD;
         ares_process_fd(channel, read_fd, write_fd);
     }

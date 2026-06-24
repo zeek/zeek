@@ -414,7 +414,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
         int c = data[0];
 
         if ( binary_mode && c != TELNET_IAC )
-            c &= 0x7f;
+            c &= 0x7f; // NOLINT(bugprone-signed-bitwise)
 
         switch ( c ) {
             case '\r':

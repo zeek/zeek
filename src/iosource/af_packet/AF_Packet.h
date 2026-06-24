@@ -67,8 +67,8 @@ private:
         int flags = 0;
 
         bool Valid() { return index >= 0; }
-        bool IsUp() { return flags & IFF_UP; }
-        bool IsLoopback() { return flags & IFF_LOOPBACK; }
+        bool IsUp() { return static_cast<uint32_t>(flags) & static_cast<uint32_t>(IFF_UP); }
+        bool IsLoopback() { return static_cast<uint32_t>(flags) & static_cast<uint32_t>(IFF_LOOPBACK); }
     };
 
     InterfaceInfo GetInterfaceInfo(const std::string& path);

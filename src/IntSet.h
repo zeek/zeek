@@ -43,17 +43,17 @@ inline void IntSet::Insert(unsigned int i) {
     if ( i / 8 >= size )
         Expand(i);
 
-    set[i / 8] |= (1 << (i % 8));
+    set[i / 8] |= (1u << (i % 8u));
 }
 
 inline void IntSet::Remove(unsigned int i) {
     if ( i / 8 >= size )
         Expand(i);
     else
-        set[i / 8] &= ~(1 << (i % 8));
+        set[i / 8] &= ~(1u << (i % 8u));
 }
 
-inline bool IntSet::Contains(unsigned int i) const { return i / 8 < size ? set[i / 8] & (1 << (i % 8)) : false; }
+inline bool IntSet::Contains(unsigned int i) const { return i / 8 < size ? set[i / 8] & (1u << (i % 8u)) : false; }
 
 inline void IntSet::Clear() { memset(set, 0, size); }
 

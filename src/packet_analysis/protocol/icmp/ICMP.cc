@@ -444,13 +444,13 @@ void ICMPAnalyzer::RouterAdvert(double t, const struct icmp* icmpp, int len, int
     int opt_offset = sizeof(reachable) + sizeof(retrans);
 
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
-                              val_mgr->Count(icmpp->icmp_num_addrs),         // Cur Hop Limit
-                              val_mgr->Bool(icmpp->icmp_wpa & 0x80),         // Managed
-                              val_mgr->Bool(icmpp->icmp_wpa & 0x40),         // Other
-                              val_mgr->Bool(icmpp->icmp_wpa & 0x20),         // Home Agent
-                              val_mgr->Count((icmpp->icmp_wpa & 0x18) >> 3), // Pref
-                              val_mgr->Bool(icmpp->icmp_wpa & 0x04),         // Proxy
-                              val_mgr->Count(icmpp->icmp_wpa & 0x02),        // Reserved
+                              val_mgr->Count(icmpp->icmp_num_addrs),                                  // Cur Hop Limit
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_wpa) & 0x80u),          // Managed
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_wpa) & 0x40u),          // Other
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_wpa) & 0x20u),          // Home Agent
+                              val_mgr->Count((static_cast<uint32_t>(icmpp->icmp_wpa) & 0x18u) >> 3u), // Pref
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_wpa) & 0x04u),          // Proxy
+                              val_mgr->Count(static_cast<uint32_t>(icmpp->icmp_wpa) & 0x02u),         // Reserved
                               make_intrusive<IntervalVal>(static_cast<double>(ntohs(icmpp->icmp_lifetime)), Seconds),
                               make_intrusive<IntervalVal>(static_cast<double>(ntohl(reachable)), Milliseconds),
                               make_intrusive<IntervalVal>(static_cast<double>(ntohl(retrans)), Milliseconds),
@@ -472,9 +472,9 @@ void ICMPAnalyzer::NeighborAdvert(double t, const struct icmp* icmpp, int len, i
     int opt_offset = sizeof(in6_addr);
 
     adapter->EnqueueConnEvent(f, adapter->ConnVal(), BuildInfo(icmpp, len, true, ip_hdr),
-                              val_mgr->Bool(icmpp->icmp_num_addrs & 0x80), // Router
-                              val_mgr->Bool(icmpp->icmp_num_addrs & 0x40), // Solicited
-                              val_mgr->Bool(icmpp->icmp_num_addrs & 0x20), // Override
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_num_addrs) & 0x80u), // Router
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_num_addrs) & 0x40u), // Solicited
+                              val_mgr->Bool(static_cast<uint32_t>(icmpp->icmp_num_addrs) & 0x20u), // Override
                               make_intrusive<AddrVal>(tgtaddr),
                               BuildNDOptionsVal(caplen - opt_offset, data + opt_offset, adapter));
 }
@@ -724,8 +724,8 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
                     if ( caplen >= 30 ) {
                         auto info = make_intrusive<zeek::RecordVal>(icmp6_nd_prefix_info_type);
                         uint8_t prefix_len = *reinterpret_cast<const uint8_t*>(data);
-                        bool L_flag = (*reinterpret_cast<const uint8_t*>(data + 1) & 0x80) != 0;
-                        bool A_flag = (*reinterpret_cast<const uint8_t*>(data + 1) & 0x40) != 0;
+                        bool L_flag = (static_cast<uint32_t>(*reinterpret_cast<const uint8_t*>(data + 1)) & 0x80u) != 0;
+                        bool A_flag = (static_cast<uint32_t>(*reinterpret_cast<const uint8_t*>(data + 1)) & 0x40u) != 0;
                         uint32_t valid_life = *reinterpret_cast<const uint32_t*>(data + 2);
                         uint32_t prefer_life = *reinterpret_cast<const uint32_t*>(data + 6);
                         in6_addr prefix = *reinterpret_cast<const in6_addr*>(data + 14);

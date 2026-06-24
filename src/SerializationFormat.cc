@@ -117,7 +117,7 @@ bool BinarySerializationFormat::Read(int64_t* v, const char* tag) {
     if ( ! ReadData(x, sizeof(x)) )
         return false;
 
-    *v = ((static_cast<int64_t>(ntohl(x[0]))) << 32) | ntohl(x[1]);
+    *v = static_cast<int64_t>((static_cast<uint64_t>(ntohl(x[0])) << 32u) | static_cast<uint64_t>(ntohl(x[1])));
     DBG_LOG(DBG_SERIAL, "Read int64_t %" PRId64 " [%s]", *v, tag);
     return true;
 }
@@ -127,7 +127,7 @@ bool BinarySerializationFormat::Read(uint64_t* v, const char* tag) {
     if ( ! ReadData(x, sizeof(x)) )
         return false;
 
-    *v = ((static_cast<uint64_t>(ntohl(x[0]))) << 32) | ntohl(x[1]);
+    *v = (static_cast<uint64_t>(ntohl(x[0])) << 32u) | static_cast<uint64_t>(ntohl(x[1]));
     DBG_LOG(DBG_SERIAL, "Read uint64_t %" PRIu64 " [%s]", *v, tag);
     return true;
 }
@@ -290,16 +290,16 @@ bool BinarySerializationFormat::Write(int v, const char* tag) {
 bool BinarySerializationFormat::Write(uint64_t v, const char* tag) {
     DBG_LOG(DBG_SERIAL, "Write uint64_t %" PRIu64 " [%s]", v, tag);
     uint32_t x[2];
-    x[0] = htonl(v >> 32);
-    x[1] = htonl(v & 0xffffffff);
+    x[0] = htonl(static_cast<uint32_t>(v >> 32u));
+    x[1] = htonl(static_cast<uint32_t>(v & 0xffffffffu));
     return WriteData(x, sizeof(x));
 }
 
 bool BinarySerializationFormat::Write(int64_t v, const char* tag) {
     DBG_LOG(DBG_SERIAL, "Write int64_t %" PRId64 " [%s]", v, tag);
     uint32_t x[2];
-    x[0] = htonl(v >> 32);
-    x[1] = htonl(v & 0xffffffff);
+    x[0] = htonl(static_cast<uint32_t>(static_cast<uint64_t>(v) >> 32u));
+    x[1] = htonl(static_cast<uint32_t>(static_cast<uint64_t>(v) & 0xffffffffu));
     return WriteData(x, sizeof(x));
 }
 

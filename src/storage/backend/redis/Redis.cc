@@ -288,8 +288,8 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         REDIS_OPTIONS_SET_UNIX(&opt, server_addr.c_str());
     }
 
-    opt.options |= REDIS_OPT_PREFER_IPV4;
-    opt.options |= REDIS_OPT_NOAUTOFREEREPLIES;
+    opt.options |= REDIS_OPT_PREFER_IPV4;       // NOLINT(bugprone-signed-bitwise)
+    opt.options |= REDIS_OPT_NOAUTOFREEREPLIES; // NOLINT(bugprone-signed-bitwise)
 
     auto connect_timeout_opt = backend_options->GetField<IntervalVal>("connect_timeout")->Get();
     struct timeval timeout = util::double_to_timeval(connect_timeout_opt);
@@ -785,9 +785,9 @@ void Redis::OnDisconnect(int status) {
 void Redis::ProcessFd(int fd, int flags) {
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
-    if ( (flags & IOSource::ProcessFlags::READ) != 0 )
+    if ( (static_cast<uint8_t>(flags) & IOSource::ProcessFlags::READ) != 0 )
         redisAsyncHandleRead(async_ctx);
-    if ( (flags & IOSource::ProcessFlags::WRITE) != 0 )
+    if ( (static_cast<uint8_t>(flags) & IOSource::ProcessFlags::WRITE) != 0 )
         redisAsyncHandleWrite(async_ctx);
 }
 

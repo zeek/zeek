@@ -20,10 +20,11 @@ All btests run in CI on various platforms with and without ZAM enabled.
 Packet Traces (PCAP Files)
 --------------------------
 
-We store packet traces in testing/btest/Traces/. The README file represents an
-index where PCAPs came from or how they were created to keep a bit of lineage
-available. PCAP filenames always end with ``.pcap`` or ``.pcapng``. Usually PCAP
-files are stored uncompressed, except for some larger but highly compressible examples.
+We store packet traces in testing/btest/Traces/ which is mostly structured
+by protocol. The README file represents an index where PCAPs came from or how
+they were created to keep a bit of lineage available. PCAP filenames always
+end with ``.pcap`` or ``.pcapng``. Usually PCAP files are stored uncompressed,
+except for some larger but highly compressible examples.
 
 There are generally two approaches to create new packet traces in isolation
 if you cannot share a packet capture from a production network.
@@ -37,12 +38,15 @@ over Scapy-generated traces. For edge case testing of parsers, Scapy-generated,
 Scapy-edited, or hex-edited capture files are all fair game. Keep a note in
 the README what was done to create a certain trace.
 
-The testing/btest/Traces directory is mostly structured by protocol. When
-adding a Scapy-generated trace, ``<name>.pcap``, put a ``<name>.pcap.py``
+
+When adding a Scapy-generated trace, ``<name>.pcap``, put a ``<name>.pcap.py``
 file next to it. Running the Python script should generate the ``<name>.pcap``
-file next to ``<name>.pcap.py`` reproducibly. Running the script a year later
-should produce the exact same result. We commit generated PCAP files into
-the repository.
+reproducibly. Always prefer to use higher-level Scapy APIs (Ether, IP, TCP, UDP, ...)
+instead of creating packet payloads using ``struct.pack`` or bytes literals.
+Do the latter only if there's no high-level API offered. Functionality from
+``scapy.contrib`` is fine to use, too.
+
+We commit generated PCAP files into the repository.
 
 Multi-word PCAP names should be all lower-case and use dashes for separation.
 The PCAP's name should include the thing or scenario being tested. For example,

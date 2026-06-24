@@ -64,7 +64,6 @@ zeek::VectorValPtr listval_to_anyvec(const zeek::ListVal& lv) {
 // Broker unserialization wraps any values into the opaque Broker::Data type. This helper
 // unwraps that and converts to the correct type t.
 zeek::ValPtr maybe_unwrap_broker_data(zeek::Type& t, zeek::Val* any) {
-    zeek::ValPtr ret;
     if ( any->GetType() == zeek::Broker::detail::DataVal::ScriptDataType() ) {
         auto ov = any->AsRecordVal()->GetField<zeek::OpaqueVal>(0);
         if ( ov->GetType() != zeek::Broker::detail::opaque_of_data_type ) {

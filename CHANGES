@@ -1,3 +1,11 @@
+9.0.0-dev.476 | 2026-06-24 10:02:18 +0200
+
+  * NTP: Prevent len underflow in &enforce during extension parsing (Arne Welzel, Corelight)
+
+    Follow-up for d434522b. If len was parsed as less than 18 (or 22), the
+    &enforce condition using len - 18 (or len - 22) would underflow and not
+    actually enforce the value_len or sig_len limits properly.
+
 9.0.0-dev.473 | 2026-06-23 19:15:59 +0200
 
   * nfs: Skip over NFSACL programs (Arne Welzel, Corelight)

@@ -407,6 +407,17 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
     ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
 
+if (MSVC)
+    add_zeek_dynamic_plugin_build_interface_include_directories(
+        ${PROJECT_SOURCE_DIR}/auxil/libunistd/unistd)
+    # Add vcpkg include path for third-party headers (pcap, zlib, etc.)
+    # that Zeek headers transitively depend on.
+    if (VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+        add_zeek_dynamic_plugin_build_interface_include_directories(
+            ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
+    endif ()
+endif ()
+
 target_include_directories(
     zeek_dynamic_plugin_base SYSTEM
     INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)

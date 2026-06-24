@@ -4,6 +4,8 @@
   "dependencies": [
     "c-ares",
     "libpcap",
+    "openssl",
+    "pcre",
     "zlib"
   ]
 }

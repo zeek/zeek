@@ -107,8 +107,10 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     // In shared-cache mode, a write on the main connection while the
     // expiration thread holds its transaction on expire_db fails immediately
     // with SQLITE_LOCKED_SHAREDCACHE instead of waiting for busy_timeout.
+    // NOLINTBEGIN(bugprone-signed-bitwise)
     constexpr int open_flags =
         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_PRIVATECACHE;
+    // NOLINTEND(bugprone-signed-bitwise)
 
     if ( auto open_res = CheckError(sqlite3_open_v2(full_path.c_str(), &db, open_flags, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {

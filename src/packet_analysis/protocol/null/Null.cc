@@ -12,8 +12,8 @@ bool NullAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
         return false;
     }
 
-    uint32_t protocol = (static_cast<uint32_t>(data[3]) << 24) + (static_cast<uint32_t>(data[2]) << 16) +
-                        (static_cast<uint32_t>(data[1]) << 8) + data[0];
+    uint32_t protocol = (static_cast<uint32_t>(data[3]) << 24u) + (static_cast<uint32_t>(data[2]) << 16u) +
+                        (static_cast<uint32_t>(data[1]) << 8u) + data[0];
     // skip link header
     return ForwardPacket(len - 4, data + 4, packet, protocol);
 }

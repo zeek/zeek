@@ -176,7 +176,7 @@ bool AF_PacketSource::EnablePromiscMode(const AF_PacketSource::InterfaceInfo& in
 bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag) {
     if ( enabled ) {
         uint32_t fanout_id = zeek::BifConst::AF_Packet::fanout_id;
-        uint32_t fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
+        uint32_t fanout_arg = ((fanout_id & 0xffffu) | (GetFanoutMode(defrag) << 16u));
 
         if ( setsockopt(socket_fd, SOL_PACKET, PACKET_FANOUT, &fanout_arg, sizeof(fanout_arg)) < 0 )
             return false;
@@ -267,11 +267,11 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
 
         pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
-        if ( packet->tp_status & TP_STATUS_VLAN_VALID ) {
-            uint16_t tci = packet->hv1.tp_vlan_tci;
-            uint16_t vlan_id = tci & 0xfff;
-            uint8_t vlan_pcp = (tci & 0xe000) >> 13;
-            bool vlan_dei = (tci & 0x1000) != 0;
+        if ( static_cast<uint32_t>(packet->tp_status) & static_cast<uint32_t>(TP_STATUS_VLAN_VALID) ) {
+            uint32_t tci = static_cast<uint32_t>(packet->hv1.tp_vlan_tci);
+            uint16_t vlan_id = static_cast<uint16_t>(tci & 0xfffu);
+            uint8_t vlan_pcp = static_cast<uint8_t>((tci & 0xe000u) >> 13u);
+            bool vlan_dei = (tci & 0x1000u) != 0;
             pkt->vlan = {.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei};
         }
 

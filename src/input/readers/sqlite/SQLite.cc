@@ -79,7 +79,10 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
     else
         query = it->second;
 
-    if ( checkError(sqlite3_open_v2(fullpath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, nullptr)) )
+    if ( checkError(sqlite3_open_v2(fullpath.c_str(), &db,
+                                    static_cast<int>(static_cast<unsigned int>(SQLITE_OPEN_READWRITE) |
+                                                     static_cast<unsigned int>(SQLITE_OPEN_NOMUTEX)),
+                                    nullptr)) )
         return false;
 
     num_fields = arg_num_fields;

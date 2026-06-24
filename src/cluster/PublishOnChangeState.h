@@ -38,7 +38,7 @@ class Timer;
  */
 constexpr uint8_t table_change_to_bit(BifEnum::TableChange change) {
     assert(static_cast<int>(change) <= 7);
-    return uint8_t{1} << static_cast<int>(change);
+    return static_cast<uint8_t>(1u << static_cast<unsigned int>(change));
 }
 
 /**

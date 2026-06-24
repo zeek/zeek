@@ -16,10 +16,11 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
         return false;
     }
 
-    uint16_t tci = (data[0] << 8u) + data[1];
-    uint16_t vlan_id = tci & 0xfff;
-    uint8_t vlan_pcp = (tci & 0xe000) >> 13;
-    bool vlan_dei = (tci & 0x1000) != 0;
+    uint32_t tci_u = (static_cast<uint32_t>(data[0]) << 8u) + data[1];
+    uint16_t tci = static_cast<uint16_t>(tci_u);
+    uint16_t vlan_id = static_cast<uint16_t>(tci_u & 0xfffu);
+    uint8_t vlan_pcp = static_cast<uint8_t>((tci_u & 0xe000u) >> 13u);
+    bool vlan_dei = (tci_u & 0x1000u) != 0;
     if ( ! packet->vlan )
         packet->vlan = {.id = vlan_id, .pcp = vlan_pcp, .dei = vlan_dei};
     else {

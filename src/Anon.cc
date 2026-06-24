@@ -21,7 +21,8 @@ namespace zeek::detail {
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32() {
-    return ((util::detail::random_number() & 0xffff) << 16) | (util::detail::random_number() & 0xffff);
+    return ((static_cast<uint32_t>(util::detail::random_number()) & 0xffffu) << 16) |
+           (static_cast<uint32_t>(util::detail::random_number()) & 0xffff);
 }
 
 // From tcpdpriv, adapted to return uint32_t
@@ -312,13 +313,14 @@ ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
     for ( int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
+        prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<uint32_t>(i))) |
+                              static_cast<uint32_t>(1 << static_cast<uint32_t>(31 - i)));
 
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_sha256(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
+        ipaddr32_t bit_mask = (digest[0] & 1u) << static_cast<uint32_t>(31 - i);
 
         // x_i' = x_i ^ f_{i-1}.
         output ^= bit_mask;

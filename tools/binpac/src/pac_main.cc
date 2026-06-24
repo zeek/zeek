@@ -149,17 +149,25 @@ int compile(const char* filename) {
         out_h.println("");
         out_h.println("#include \"binpac.h\"");
         out_h.println("");
+        out_h.println("// NOLINTBEGIN(bugprone-signed-bitwise)");
+        out_h.println("");
 
         out_cc.println("");
         out_cc.println("#ifdef __clang__");
         out_cc.println("#pragma clang diagnostic ignored \"-Wparentheses-equality\"");
         out_cc.println("#endif");
         out_cc.println("");
+        out_cc.println("// NOLINTBEGIN(bugprone-signed-bitwise)");
+        out_cc.println("");
 
         out_cc.println("#include \"%s.h\"\n", basename.c_str());
 
         Decl::ProcessDecls(&out_h, &out_cc);
 
+        out_cc.println("// NOLINTEND(bugprone-signed-bitwise)");
+
+        out_h.println("// NOLINTEND(bugprone-signed-bitwise)");
+        out_h.println("");
         out_h.println("#endif /* %s_h */", filename_id);
     } catch ( OutputException& e ) {
         fprintf(stderr, "Error in compiling %s: %s\n", filename, e.what());

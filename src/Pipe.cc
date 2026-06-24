@@ -28,7 +28,7 @@ static int set_flags(int fd, int flags) {
         pipe_fail(errno);
 
     if ( flags ) {
-        rval |= flags;
+        rval |= flags; // NOLINT(bugprone-signed-bitwise)
 
         if ( fcntl(fd, F_SETFD, rval) == -1 )
             pipe_fail(errno);
@@ -44,7 +44,7 @@ static int unset_flags(int fd, int flags) {
         pipe_fail(errno);
 
     if ( flags ) {
-        rval &= ~flags;
+        rval &= ~flags; // NOLINT(bugprone-signed-bitwise)
 
         if ( fcntl(fd, F_SETFD, rval) == -1 )
             pipe_fail(errno);
@@ -60,7 +60,7 @@ static int set_status_flags(int fd, int flags) {
         pipe_fail(errno);
 
     if ( flags ) {
-        rval |= flags;
+        rval |= flags; // NOLINT(bugprone-signed-bitwise)
 
         if ( fcntl(fd, F_SETFL, rval) == -1 )
             pipe_fail(errno);

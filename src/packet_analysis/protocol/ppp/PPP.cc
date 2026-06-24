@@ -27,10 +27,10 @@ bool PPPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
             return false;
         }
 
-        uint32_t protocol = (data[2] << 8) + data[3];
+        uint32_t protocol = (static_cast<uint32_t>(data[2]) << 8u) + data[3];
         return ForwardPacket(len - 4, data + 4, packet, protocol);
     }
 
-    uint32_t protocol = (data[0] << 8) + data[1];
+    uint32_t protocol = (static_cast<uint32_t>(data[0]) << 8u) + data[1];
     return ForwardPacket(len - 2, data + 2, packet, protocol);
 }

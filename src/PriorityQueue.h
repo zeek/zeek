@@ -62,9 +62,9 @@ protected:
     void BubbleUp(int bin);
     void BubbleDown(int bin);
 
-    int Parent(int bin) const { return bin >> 1; }
+    int Parent(int bin) const { return static_cast<int>(static_cast<uint32_t>(bin) >> 1u); }
 
-    int LeftChild(int bin) const { return bin << 1; }
+    int LeftChild(int bin) const { return static_cast<int>(static_cast<uint32_t>(bin) << 1u); }
 
     int RightChild(int bin) const { return LeftChild(bin) + 1; }
 

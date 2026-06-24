@@ -17,7 +17,7 @@ bool LLCAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     // bytes long. Whether this is unnumbered is denoted by the last two bits being
     // set.
     size_t llc_header_len = 3;
-    if ( (data[2] & 0x03) != 0x03 )
+    if ( (static_cast<uint32_t>(data[2]) & 0x03u) != 0x03u )
         llc_header_len++;
 
     if ( len < llc_header_len ) {

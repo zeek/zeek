@@ -177,8 +177,8 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 // Start, end bounds of which frame numbers to print
 static int dbg_backtrace_internal(int start, int end) {
-    if ( start < 0 || end < 0 || static_cast<unsigned>(start) >= call_stack.size() ||
-         static_cast<unsigned>(end) >= call_stack.size() )
+    if ( start < 0 || end < 0 || static_cast<unsigned int>(start) >= call_stack.size() ||
+         static_cast<unsigned int>(end) >= call_stack.size() )
         reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
     if ( start < end ) {

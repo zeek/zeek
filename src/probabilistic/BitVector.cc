@@ -364,8 +364,8 @@ BitVector::size_type BitVector::Count() const {
 
         while ( block ) {
             // TODO: use _popcnt if available.
-            n += count_table[block & ((1u << 8) - 1)];
-            block >>= 8;
+            n += count_table[block & ((1u << 8u) - 1u)];
+            block >>= 8u;
         }
 
         ++first;
@@ -461,7 +461,7 @@ BitVector::size_type BitVector::lowest_bit(block_type block) {
     block_type x = block - (block & (block - 1));
     size_type log = 0;
 
-    while ( x >>= 1 )
+    while ( x >>= 1u )
         ++log;
 
     return log;

@@ -52,7 +52,7 @@ Type* CaseType::ValueType() const {
 
 string CaseType::DefaultValue() const { return ValueType()->DefaultValue(); }
 
-void CaseType::Prepare(Env* env, int flags) {
+void CaseType::Prepare(Env* env, unsigned int flags) {
     ASSERT(flags & TO_BE_PARSED);
 
     index_var_ = new ID(strfmt("%s_case_index", value_var()->Name()));

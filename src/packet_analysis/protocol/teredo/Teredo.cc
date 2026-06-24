@@ -69,7 +69,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, size_t& len, bool found_or
         return DoParse(data, len, found_origin, true);
     }
 
-    else if ( ((tag & 0xf000) >> 12) == 6 ) {
+    else if ( ((static_cast<uint32_t>(tag) & 0xf000u) >> 12u) == 6u ) {
         // IPv6
         if ( len < 40 ) {
             Weird("truncated_IPv6_in_Teredo");
@@ -108,7 +108,8 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner)
 
     if ( origin_indication ) {
         auto teredo_origin = make_intrusive<RecordVal>(teredo_origin_type);
-        uint16_t port = ntohs(*reinterpret_cast<const uint16_t*>(origin_indication + 2)) ^ 0xFFFF;
+        uint16_t port = static_cast<uint16_t>(
+            static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(origin_indication + 2))) ^ 0xFFFFu);
         uint32_t addr = ntohl(*reinterpret_cast<const uint32_t*>(origin_indication + 4)) ^ 0xFFFFFFFF;
         teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
         teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
@@ -249,8 +250,8 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet) {
     // Do some fast checks that must be true before moving to more complicated ones.
     // Mostly this avoids doing the regex below if we can help it.
-    if ( (len < 40) ||
-         ((len > 8) && ((data[0] >> 4) != 6) && ((data[0] != 0x00) || (data[1] != 0x00 && data[1] != 0x01))) )
+    if ( (len < 40) || ((len > 8) && ((static_cast<uint32_t>(data[0]) >> 4u) != 6u) &&
+                        ((data[0] != 0x00) || (data[1] != 0x00 && data[1] != 0x01))) )
         return false;
 
     if ( pattern_re->Match(data, len) )
@@ -299,7 +300,7 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 
         // Double check that the next byte in the header contains an IPv6
         // version number.
-        val = data[0] >> 4;
+        val = static_cast<uint16_t>(static_cast<uint32_t>(data[0]) >> 4u);
         if ( val == 6 )
             return true;
     }

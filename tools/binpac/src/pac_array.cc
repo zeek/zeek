@@ -151,7 +151,7 @@ void ArrayType::ProcessAttr(Attr* a) {
     }
 }
 
-void ArrayType::Prepare(Env* env, int flags) {
+void ArrayType::Prepare(Env* env, unsigned int flags) {
     if ( flags & TO_BE_PARSED ) {
         ID* arraylength_var = new ID(strfmt("%s__arraylength", value_var()->Name()));
         ID* elem_var = new ID(strfmt("%s__elem", value_var()->Name()));

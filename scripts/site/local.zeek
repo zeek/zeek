@@ -92,7 +92,7 @@ redef digest_salt = "Please change this value.";
 
 # Enable logging of telemetry data into telemetry.log and telemetry_histogram.log.
 # This can impact performance if periodic metrics collection makes up a large
-# part of Zeek's work, such as in "sparse" long-running pcaps.
+# part of Zeek's work, such as with "sparse" long-running pcaps.
 # @load policy/frameworks/telemetry/log
 
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling

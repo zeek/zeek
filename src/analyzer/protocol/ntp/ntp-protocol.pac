@@ -118,9 +118,15 @@ type Extension_Field = record {
 	association_id: uint16;
 	timestamp:      uint32;
 	filestamp:      uint32;
-	value_len:      uint32 &enforce(value_len <= (len - 18u));
+	# XXX: the len >= 18 is inconsistent with with len >= 16 above,
+	#      but needed to avoid len - 18 underflowing.
+	#
+	#      Extension parsing needs re-work: https://github.com/zeek/zeek/issues/5551
+	#      (Improve NTPv4 extension parsing and introduce dedicated extension event)
+	value_len:      uint32 &enforce(len >= 18 && value_len <= (len - 18u));
 	value:          bytestring &length=value_len;
-	sig_len:        uint32 &enforce(value_len <= (len - 22u));
+	# XXX: the len >= 22 is inconsistent with with len >= 16 above.
+	sig_len:        uint32 &enforce(len >= 22 && value_len <= (len - 22u));
 	signature:      bytestring &length=sig_len;
 	pad:            padding to (len - offsetof(first_byte_ext));
 } &let {

@@ -615,7 +615,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     if ( out ) {
         std::string s = "";
 
-        if ( run_state::zeek_start_network_time != 0.0 ) {
+        if ( (run_state::reading_live || run_state::reading_traces) && run_state::zeek_start_network_time != 0.0 ) {
             char tmp[32];
             snprintf(tmp, 32, "%.6f", run_state::network_time);
             s += std::string(tmp) + " ";

@@ -1057,16 +1057,22 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     }
 
     if ( ! run_state::reading_live && ! run_state::reading_traces &&
-         id::find_const("allow_network_time_forward")->AsBool() )
+         id::find_const("allow_network_time_forward")->AsBool() ) {
         // Set up network_time to track real-time, since
         // we don't have any other source for it.
         run_state::detail::update_network_time(util::current_time());
+
+        run_state::zeek_start_network_time = run_state::network_time;
+    }
 
     // Plugin pre-execution hook.
     plugin_mgr->InitPreExecution();
 
     if ( zeek_init )
         event_mgr.Enqueue(zeek_init, Args{});
+
+    if ( run_state::network_time != 0.0 && network_time_init )
+        event_mgr.Enqueue(network_time_init, Args{});
 
     // Enable LeakSanitizer before zeek_init() and even before executing
     // top-level statements.  Even though it's not bad if a leak happens only

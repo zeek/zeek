@@ -72,6 +72,8 @@ export {
 
 		## Determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
+		## Used to detect sessions that would otherwise produce no ftp.log entries.
+		logged_command_seen: bool &default=F;
 
 		## File unique ID.
 		fuid: string &optional &log;

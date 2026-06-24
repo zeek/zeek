@@ -78,6 +78,10 @@ export {
 	## Truncate the reply_msg field in the log to that many bytes to avoid
 	## excessive logging volume.
 	option max_reply_msg_length = 4096;
+
+	## If true, log a summary entry for FTP sessions where a user was
+	## seen but no logged_commands were issued.
+	option log_at_least_one_command = T;
 }
 
 # Add the state tracking information variable to the connection record
@@ -210,7 +214,10 @@ function ftp_message(c: connection)
 		s$password = password_hidden_string;
 
 	if ( s?$cmdarg && s$command in logged_commands)
+		{
 		Log::write(FTP::LOG, s);
+		c$ftp$logged_command_seen = T;
+		}
 
 	# The MIME and file_size, data_channel and fuid fields are specific to
 	# file transfer commands and may not be used in all commands so they
@@ -484,5 +491,11 @@ hook finalize_ftp(c: connection)
 		{
 		c$ftp$cmdarg = cmdarg;
 		ftp_message(c);
+		}
+
+	if ( c$ftp?$user && ! c$ftp$logged_command_seen && log_at_least_one_command )
+		{
+		local s: Info = c$ftp;
+		Log::write(FTP::LOG, s);
 		}
 	}

@@ -1,3 +1,13 @@
+9.0.0-dev.493 | 2026-06-24 16:46:59 -0400
+
+  * GH-5570: ftp: log login-only sessions missing from ftp.log (achill06)
+
+    FTP sessions consisting only of USER/PASS/QUIT commands produced no ftp.log entries. This affected visibility of brute-force login attempts which would be completely invisible to defenders.
+
+    Fix: add a logged_command_seen flag to FTP::Info. When finalize_ftp runs, if there were no logged commands, then log the final command.
+
+    Fixes #5570
+
 9.0.0-dev.486 | 2026-06-24 16:46:39 -0400
 
   * GH-5580: ntp: Update private testing hash for new log (Evan Typanski, Corelight)

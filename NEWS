@@ -137,7 +137,13 @@ Changed Functionality
 
 - The ``local.zeek`` script no longer loads ``policy/frameworks/telemetry/log.zeek``
   by default.
-  
+
+- Previously, Zeek wouldn't log FTP sessions that only had USER/PASS/QUIT
+  commands in ``ftp.log`` at all. This has been changed to log at least one
+  command (the last one) when no other command was logged for the session,
+  even if that command isn't part of ``FTP::logged_commands``. You can
+  revert to the previous behavior by setting
+  ``FTP::log_at_least_one_command=F``.
 
 Deprecated Functionality
 ------------------------

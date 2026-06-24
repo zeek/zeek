@@ -1,3 +1,11 @@
+9.0.0-dev.482 | 2026-06-24 10:31:07 -0700
+
+  * Update task IDs for CircleCI master push builds (Tim Wojtulewicz, Corelight)
+
+  * PublishOnChangeState - remove unnecessary variable (Johanna Amann, Corelight)
+
+    This is a driveby commit, just noticed while looking at something else.
+
 9.0.0-dev.478 | 2026-06-24 16:08:44 +0200
 
   * GH-5583: http: Add QUERY method (RFC 10008) to known methods, extend dpd.sig (Arne Welzel, Corelight)

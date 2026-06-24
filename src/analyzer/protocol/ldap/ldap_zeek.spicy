@@ -14,12 +14,12 @@ on LDAP::TlsForward::chunk {
 }
 
 on LDAP::BindRequest::%done {
-    if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.credentials) {
+    if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.payload) {
         local mech = self.saslCreds.mechanism;
         if (mech == "GSS-SPNEGO" || mech == "GSSAPI") {
-            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.credentials.application_data, zeek::protocol_handle_get_or_create("GSSAPI"));
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
         } else if (mech == "NTLM") {
-            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.credentials.application_data, zeek::protocol_handle_get_or_create("NTLM"));
+            zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("NTLM"));
         }
     } else if (self.authType == LDAP::BindAuthType::SICILY_NEGOTIATE || self.authType == LDAP::BindAuthType::SICILY_RESPONSE) {
         # Sicily is an older Microsoft authentication method that uses NTLMSSP

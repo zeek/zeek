@@ -408,15 +408,17 @@ type SaslCredentials = unit {
 
     # Optionally strip the credentials OCTET STRING ASN.1 header
     switch {
-        -> credentials: ASN1::ASN1Message(False) &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
+        -> credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
         -> : void;
     };
 
+    payload: bytes &size=self.credentialsHeader.len.len if(self?.credentialsHeader);
+
     # Peak into GSS-SPNEGO payload if we have any.
     switch (self.mechanism) {
-        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init &parse-from=self.credentials.application_data;
+        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init &parse-from=self.payload;
         * -> : void;
-    } if (self?.credentials);
+    } if(self?.payload);
 };
 
 type SicilyMessage = unit {
@@ -513,7 +515,9 @@ type ServerSaslCreds = unit {
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
     var mechanism: string;
-    on %init {self.mechanism = ctx.saslMechanism; }
+    on %init {
+        self.mechanism = ctx.saslMechanism;
+    }
     : Result {
         message.result_ = $$;
 

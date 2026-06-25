@@ -1,3 +1,10 @@
+9.0.0-dev.498 | 2026-06-25 13:20:10 -0400
+
+  * GH-5579: ftp: Update baselines that log every session (Evan Typanski, Corelight)
+
+    #5579 added new behavior to ftp.log but I didn't see the baseline
+    update necessary in CI.
+
 9.0.0-dev.496 | 2026-06-24 22:48:20 -0700
 
   * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)

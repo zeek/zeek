@@ -2,6 +2,5 @@
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
 # @TEST-EXEC: zeek -r $TRACES/quic/quicv2-echo-dpd-custom-port-4433.pcap base/protocols/quic
-# @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut
-# @TEST-EXEC: btest-diff conn.log.cut
-# @TEST-EXEC: btest-diff quic.log
+# @TEST-EXEC: btest-diff-cut -m uid history service conn.log
+# @TEST-EXEC: btest-diff-cut -m quic.log

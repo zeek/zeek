@@ -72,7 +72,7 @@ Types
    The expected endpoints of an FTP data channel.
 
 .. zeek:type:: FTP::Info
-   :source-code: base/protocols/ftp/info.zeek 26 78
+   :source-code: base/protocols/ftp/info.zeek 26 80
 
    :Type: :zeek:type:`record`
 
@@ -169,6 +169,11 @@ Types
    .. zeek:field:: capture_password :zeek:type:`bool` :zeek:attr:`&default` = :zeek:see:`FTP::default_capture_password` :zeek:attr:`&optional`
 
       Determines if the password will be captured for this request.
+
+
+   .. zeek:field:: logged_command_seen :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+
+      Used to detect sessions that would otherwise produce no ftp.log entries.
 
 
    .. zeek:field:: fuid :zeek:type:`string` :zeek:attr:`&optional` :zeek:attr:`&log`

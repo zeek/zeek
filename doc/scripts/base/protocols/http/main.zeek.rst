@@ -100,6 +100,7 @@ Runtime Options
             "BMOVE",
             "SEARCH",
             "TRACE",
+            "QUERY",
             "LOCK",
             "PROPPATCH",
             "HEAD",
@@ -122,7 +123,7 @@ Runtime Options
    of letters ``[A-Za-z]``.
 
 .. zeek:id:: HTTP::max_pending_requests
-   :source-code: base/protocols/http/main.zeek 147 147
+   :source-code: base/protocols/http/main.zeek 149 149
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -158,7 +159,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: HTTP::default_max_field_string_bytes
-   :source-code: base/protocols/http/main.zeek 155 155
+   :source-code: base/protocols/http/main.zeek 157 157
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -496,7 +497,7 @@ Types
 Events
 ######
 .. zeek:id:: HTTP::log_http
-   :source-code: base/protocols/http/main.zeek 138 138
+   :source-code: base/protocols/http/main.zeek 140 140
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`HTTP::Info`)
 
@@ -506,7 +507,7 @@ Events
 Hooks
 #####
 .. zeek:id:: HTTP::finalize_http
-   :source-code: base/protocols/http/main.zeek 394 406
+   :source-code: base/protocols/http/main.zeek 396 408
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

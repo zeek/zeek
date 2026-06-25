@@ -3436,7 +3436,7 @@ Events
 ++++++
 
 .. zeek:id:: file_transferred
-   :source-code: base/protocols/ftp/main.zeek 450 458
+   :source-code: base/protocols/ftp/main.zeek 457 465
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, prefix: :zeek:type:`string`, descr: :zeek:type:`string`, mime_type: :zeek:type:`string`)
 
@@ -4036,7 +4036,7 @@ Events
       truncate_http_URI http_connection_upgrade
 
 .. zeek:id:: http_reply
-   :source-code: base/protocols/http/main.zeek 275 314
+   :source-code: base/protocols/http/main.zeek 277 316
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 

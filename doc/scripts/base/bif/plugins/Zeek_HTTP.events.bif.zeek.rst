@@ -291,7 +291,7 @@ Events
       http_connection_upgrade
 
 .. zeek:id:: http_reply
-   :source-code: base/protocols/http/main.zeek 275 314
+   :source-code: base/protocols/http/main.zeek 277 316
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 

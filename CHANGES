@@ -1,3 +1,7 @@
+9.0.0-dev.496 | 2026-06-24 22:48:20 -0700
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.0.0-dev.493 | 2026-06-24 16:46:59 -0400
 
   * GH-5570: ftp: log login-only sessions missing from ftp.log (achill06)

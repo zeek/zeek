@@ -174,9 +174,6 @@ jobs:
             docker buildx create --use --name multiarch-builder --driver docker-container
             docker buildx inspect --bootstrap
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
-      - run:
           name: Check if image exists remotely
           command: |
             # set +e prevents this script from exiting immediately if one of the commands fails.
@@ -190,18 +187,27 @@ jobs:
                if [ $NUM_LINES -eq 2 ]; then
                  echo "Both amd64 and arm64 images already exist for $FULL_IMAGE_TAG, exiting"
                  circleci-agent step halt
-               else
+               else if [ -n "${DOCKER_LOGIN} " ]; then
                  echo "Either amd64 or arm64 images are missing from $FULL_IMAGE_TAG, continuing with build"
+               else
+                 echo "Either amd64 or arm64 images are missing from $FULL_IMAGE_TAG, failing build"
+                 exit 1
                fi
             else
                NUM_LINES=$(docker manifest inspect $FULL_IMAGE_TAG 2>/dev/null | grep -c -E "amd64")
                if [ $NUM_LINES -eq 1 ]; then
                  echo "$FULL_IMAGE_TAG already exists, exiting"
                  circleci-agent step halt
-               else
+               else if [ -n "${DOCKER_LOGIN} " ]; then
                  echo "$FULL_IMAGE_TAG is missing, continuing with build"
+               else
+                 echo "$FULL_IMAGE_TAG is missing, failing build"
+                 exit 1
                fi
             fi
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
       - run:
           name: Build and push multi-arch image
           command: |
@@ -279,9 +285,6 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -796,9 +799,6 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -863,9 +863,6 @@ jobs:
       ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:

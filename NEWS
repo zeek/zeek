@@ -79,6 +79,9 @@ New Functionality
   to NTP modes 6 and 7. Since these modes differ from other NTP operations, they were
   added to separate logs. Previously, only NTP modes 5 and under were logged.
 
+- Added DPD signatures for QUIC version 1 and QUIC version 2 to attach the QUIC
+  analyzer on non port 443 UDP connections when there's a signature match.
+
 Changed Functionality
 ---------------------
 

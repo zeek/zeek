@@ -42,6 +42,12 @@ Trace Index/Sources:
 - quic/merlinc2_Zeek_example.pcapng
   Provided by Faan Rossouw on #4198
   https://github.com/zeek/zeek/issues/4198
+- quic/chromium-dpd-custom-port-4433.pcap
+  Derived from quic/chromium-115.0.5790.110-api-cirrus-com.pcap using
+  `tcprewrite --portmap=443:4433 --fixcsum` to test QUICv1 DPD on non-standard ports.
+- quic/quicv2-echo-dpd-custom-port-4433.pcap
+  Derived from quic/quicv2-echo-443.pcap using
+  `tcprewrite --portmap=443:4433 --fixcsum` to test QUICv2 DPD on non-standard ports.
 - pe/pe.pcap
   VirusTotal reports that this file contains malware. The PE analyzer was originally added
   to decode info for malware, so this is expected. See

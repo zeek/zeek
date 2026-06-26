@@ -2,4 +2,5 @@
 @load ./spicy-events
 @load ./consts
 @load ./main
+@load-sigs ./dpd.sig
 @endif

@@ -1,3 +1,13 @@
+9.0.0-dev.506 | 2026-06-26 12:58:10 +0200
+
+  * quic: replace zeek-cut and btest-diff to btest-diff-cut, drop ts from conn.log (Shubham Kumar)
+
+    Signed-off-by: Shubham Kumar <chmodshubham@gmail.com>
+
+  * feat: Add QUIC DPD signatures for protocol detection on non-standard ports (Shubham Kumar)
+
+    Signed-off-by: Shubham Kumar <chmodshubham@gmail.com>
+
 9.0.0-dev.503 | 2026-06-26 10:24:05 +0200
 
   * Add btest for network_time_init on wallclock (Jan Grashoefer, Corelight)

@@ -1,3 +1,14 @@
+9.0.0-dev.503 | 2026-06-26 10:24:05 +0200
+
+  * Add btest for network_time_init on wallclock (Jan Grashoefer, Corelight)
+
+  * Trigger network_time_init for wallclock fallback (Jan Grashoefer, Corelight)
+
+    In a live cluster, network_time_init was never raised on non-worker
+    nodes. Furthermore, Claude pointed out that due table entry expiration
+    being offset based, not initializing zeek_start_network_time caused a
+    year 2038 bug.
+
 9.0.0-dev.500 | 2026-06-25 12:00:23 -0700
 
   * Bump `cmake/` (Benjamin Bannier, Corelight)

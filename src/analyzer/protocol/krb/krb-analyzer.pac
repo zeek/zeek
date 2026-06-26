@@ -35,7 +35,7 @@ zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const ZeekAnalyz
 	rv->Assign(1, asn1_integer_to_val(msg->msg_type()->data(), zeek::TYPE_COUNT));
 
 	if ( msg->padata()->has_padata() )
-		rv->Assign(2, proc_padata(msg->padata()->padata()->padata(), zeek_analyzer, false));
+		rv->Assign(2, proc_padata(msg->padata()->padata()->padata(), zeek_analyzer));
 
 	for ( KRB_REQ_Arg* element : *(msg->body_args()) )
 		{
@@ -156,7 +156,7 @@ bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>
 				break;
 			case 12:
 				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
-					rv->Assign(10, proc_padata(arg->args()->e_data()->padata(), nullptr, true));
+					rv->Assign(10, proc_padata(arg->args()->e_data()->padata(), nullptr));
 				break;
 			default:
 				break;
@@ -210,7 +210,7 @@ refine connection KRB_Conn += {
 			rv->Assign(1, asn1_integer_to_val(${msg.msg_type.data}, zeek::TYPE_COUNT));
 
 			if ( ${msg.padata.has_padata} )
-				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, zeek_analyzer(), false));
+				rv->Assign(2, proc_padata(${msg.padata.padata.padata}, zeek_analyzer()));
 
 			rv->Assign(3, to_stringval(${msg.client_realm.encoding.content}));
 			rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));

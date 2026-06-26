@@ -2,6 +2,8 @@
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: ! is-windows-ci
+# @TEST-REQUIRES: ! ( have-asan && test -n "${CI}" )
+# @TEST-REQUIRES: ! ( have-ubsan && test -n "${CI}" )
 #
 # @TEST-GROUP: cluster-zeromq
 #

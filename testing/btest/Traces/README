@@ -160,3 +160,7 @@ Trace Index/Sources:
 - http/query-method.pcap http/query-method-non-standard-port.pcap
   Scapy-generated (query-method.pcap.py creates both files). HTTP QUERY method
   (RFC 10008) on port 80 and port 4711 respectively.
+- krb/error-preauth-padata.pcap
+  Generated from Claude-generated scapy script error-preauth-padata.pcap.py. Based on
+  a hand-rolled pcap from security report. KRB_ERROR with PA-DATA inside that caused a
+  nullptr derefenence.

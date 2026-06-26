@@ -1092,6 +1092,7 @@ if (NOT DISABLE_SPICY)
         endif ()
 
         set(SPICY_ENABLE_TESTS OFF)
+        set(SPICY_ENABLE_BENCHMARKS OFF)
         add_subdirectory(auxil/spicy)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
 

@@ -394,7 +394,7 @@ type GSS_SPNEGO_Init = unit {
     switch {
         -> spnegoInitByte: uint8(0x60);
         -> spnegoChoiceByte: uint8(0xa1);
-        -> ntlmSignature: skip b"NTLMSSP"; # Unsupported, should forward to child analyzer!
+        -> ntlmSignature: b"NTLMSSP";
     };
 
     spnegoLen: skip ASN1::LengthType if(self?.spnegoInitByte || self?.spnegoChoiceByte);
@@ -431,7 +431,7 @@ type SicilyMessage = unit {
 type GSS_SPNEGO_Subsequent = unit {
     switch {
         -> spnegoChoiceByte: uint8(0xa1);
-        -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
+        -> ntlmSignature: b"NTLMSSP";
     };
 
     spnegoChoiceLen: skip ASN1::LengthType if(self?.spnegoChoiceByte);

@@ -16,6 +16,13 @@ on LDAP::TlsForward::chunk {
 on LDAP::BindRequest::%done {
     if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.payload) {
         local mech = self.saslCreds.mechanism;
+        # Forward GSS-SPNEGO with NTLMSSP inside directly to the NTLM
+        # analyzer rather than going through GSSAPI analyzer, because
+        # that analyser doesn't expect the NTLMSSP string as input.
+        if (self.saslCreds?.gss_spnego && self.saslCreds.gss_spnego?.ntlmSignature) {
+            mech = "NTLM";
+        }
+
         if (mech == "GSS-SPNEGO" || mech == "GSSAPI") {
             zeek::protocol_data_in(zeek::is_orig(), self.saslCreds.payload, zeek::protocol_handle_get_or_create("GSSAPI"));
         } else if (mech == "NTLM") {
@@ -30,6 +37,12 @@ on LDAP::BindRequest::%done {
 on LDAP::BindResponse::%done {
     if (|self.serverSaslCreds| > 0) {
         local mech = self.mechanism;
+        # Same as for BindRequest: Send GSS-SPNEGO with NTLMSSP inside
+        # directly to the NTLM analyzer rather than going through GSSAPI.
+        if (self?.gss_spnego && self.gss_spnego?.ntlmSignature) {
+            mech = "NTLM";
+        }
+
         for (cred in self.serverSaslCreds) {
             if (mech == "GSS-SPNEGO" || mech == "GSSAPI") {
                 zeek::protocol_data_in(zeek::is_orig(), cred.payload, zeek::protocol_handle_get_or_create("GSSAPI"));

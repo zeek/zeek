@@ -31,6 +31,7 @@ RUN apt-get update && apt-get -y install \
     python3 \
     python3-dev \
     python3-pip \
+    python3-venv \
     ruby \
     sqlite3 \
     swig \

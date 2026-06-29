@@ -47,6 +47,10 @@ New Functionality
 
 	./configure -D ENABLE_PACKET_SOURCE_UDP=no
 
+- The LDAP analyzer now forwards the SASL payload from bindRequest and bindResponse
+  units to GSSAPI and NTLM parsers to extract additional information into the
+  the ``ntlm.log`` or ``kerberos.log`` logs.
+
 - Imported the zeek/spicy-zip file analyzer into the main tree. This analyzer outputs
   information about ZIP files found in other protocols, including information about the
   contents of such archives. It will recursive search zip files, so there is the
@@ -81,6 +85,9 @@ New Functionality
 
 - Added DPD signatures for QUIC version 1 and QUIC version 2 to attach the QUIC
   analyzer on non port 443 UDP connections when there's a signature match.
+
+- The ``kerberos.log`` log entries now contains ``AP`` entries with filled ``service``
+  and ``cipher`` columns. Previously, the log entries had all columns unset.
 
 Changed Functionality
 ---------------------

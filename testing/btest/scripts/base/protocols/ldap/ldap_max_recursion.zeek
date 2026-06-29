@@ -8,5 +8,5 @@
 event analyzer_violation_info(atype: AllAnalyzers::Tag,
     info: AnalyzerViolationInfo)
 	{
-	print info$c$uid, info$reason;
+	print info$c$uid, gsub(info$reason, /:[0-9]+:[0-9]+-[0-9]+:[0-9]+/, ":XXX:XXX-XXX:XXX");
 	}

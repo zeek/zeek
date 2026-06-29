@@ -26,7 +26,8 @@ export {
 		id:            conn_id  &log;
 
 		## Request type - Authentication Service ("AS") or
-		## Ticket Granting Service ("TGS")
+		## Ticket Granting Service ("TGS") or
+		## Application Request ("AP")
 		request_type:  string   &log &optional;
 		## Client
 		client:        string   &log &optional;
@@ -193,6 +194,23 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) &priority=5
 	{
 	set_session(c);
+	c$krb$request_type = "AP";
+	if ( ticket?$service_name )
+		c$krb$service = ticket$service_name;
+	if ( ticket?$cipher )
+		c$krb$cipher = cipher_name[ticket$cipher];
+	}
+
+# event krb_ap_response(c: connection) &priority=5
+#   {
+#   if ( set_session(c) )
+#        return;
+#   ...
+#   }
+
+event krb_ap_response(c: connection) &priority=-5
+	{
+	do_log(c);
 	}
 
 event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5

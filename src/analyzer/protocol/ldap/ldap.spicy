@@ -383,8 +383,6 @@ type GSS_SPNEGO_negTokenInit = unit {
 # Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO,
 # or GSS-SPNEGO with a NTMLSSP payload that starts with NTLMSSP.
 type GSS_SPNEGO_Init = unit {
-    # This is the optional octet string in SaslCredentials.
-    credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
 
     # Now we either have the initial message as specified in RFC2743 or
     # a continuation from RFC4178, or a "NTMLSSP" signature.
@@ -396,7 +394,7 @@ type GSS_SPNEGO_Init = unit {
     switch {
         -> spnegoInitByte: uint8(0x60);
         -> spnegoChoiceByte: uint8(0xa1);
-        -> ntlmSignature: skip b"NTLMSSP"; # Unsupported, should forward to child analyzer!
+        -> ntlmSignature: b"NTLMSSP";
     };
 
     spnegoLen: skip ASN1::LengthType if(self?.spnegoInitByte || self?.spnegoChoiceByte);
@@ -408,11 +406,19 @@ type GSS_SPNEGO_Init = unit {
 type SaslCredentials = unit {
     mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
 
+    # Optionally strip the credentials OCTET STRING ASN.1 header
+    switch {
+        -> credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
+        -> : void;
+    };
+
+    payload: bytes &size=self.credentialsHeader.len.len if(self?.credentialsHeader);
+
     # Peak into GSS-SPNEGO payload if we have any.
     switch (self.mechanism) {
-        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
-        * -> : skip bytes &eod;
-    };
+        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init &parse-from=self.payload;
+        * -> : void;
+    } if(self?.payload);
 };
 
 type SicilyMessage = unit {
@@ -425,7 +431,7 @@ type SicilyMessage = unit {
 type GSS_SPNEGO_Subsequent = unit {
     switch {
         -> spnegoChoiceByte: uint8(0xa1);
-        -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
+        -> ntlmSignature: b"NTLMSSP";
     };
 
     spnegoChoiceLen: skip ASN1::LengthType if(self?.spnegoChoiceByte);
@@ -508,6 +514,10 @@ type ServerSaslCreds = unit {
 };
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
+    var mechanism: string;
+    on %init {
+        self.mechanism = ctx.saslMechanism;
+    }
     : Result {
         message.result_ = $$;
 

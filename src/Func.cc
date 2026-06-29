@@ -77,6 +77,8 @@ std::vector<CallInfo> call_stack;
 bool did_builtin_init = false;
 std::vector<void (*)()> bif_initializers;
 static const std::pair<bool, zeek::ValPtr> empty_hook_result(false, nullptr);
+
+uint64_t max_recursion_depth = 1000;
 } // namespace zeek::detail
 
 namespace zeek {
@@ -317,6 +319,11 @@ bool ScriptFunc::IsPure() const {
 }
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
+    if ( max_recursion_depth != 0 && call_stack.size() >= max_recursion_depth ) {
+        reporter->RuntimeError(GetLocationInfo(), "maximum recursion depth %" PRIu64 " exceeded", max_recursion_depth);
+        return nullptr;
+    }
+
     auto [handled, hook_result] =
         PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 

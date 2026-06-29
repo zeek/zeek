@@ -48,6 +48,8 @@ using StmtPtr = IntrusivePtr<Stmt>;
 class ScriptFunc;
 class FunctionIngredients;
 
+extern uint64_t max_recursion_depth;
+
 } // namespace detail
 
 class EventGroup;

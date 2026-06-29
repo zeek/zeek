@@ -9,6 +9,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
+#include "zeek/analyzer/protocol/rpc/consts.bif.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
 #include "zeek/session/Manager.h"
 
@@ -149,6 +150,21 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, bool is_or
                 Weird("bad_RPC");
                 delete call;
                 return 0;
+            }
+
+            // Prevent unbounded state growth of calls map, completely clearing it
+            // when exceeded. See also DCE-RPC analyzer handling in smb-pipe.pac,
+            // or SMB::max_pending_messages in the SMB analyzer.
+            if ( BifConst::rpc_max_pending_calls > 0 && calls.size() >= BifConst::rpc_max_pending_calls ) {
+                Weird("RPC_pending_calls_discarded");
+
+                if ( rpc_discarded_pending_calls )
+                    analyzer->EnqueueConnEvent(rpc_discarded_pending_calls, analyzer->ConnVal());
+
+                for ( const auto& call : calls )
+                    delete call.second;
+
+                calls.clear();
             }
 
             calls[xid] = call;

@@ -211,6 +211,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_RDP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RDP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RFB.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_RPC.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_RPC.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SIP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek

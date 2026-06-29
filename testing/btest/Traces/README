@@ -135,3 +135,16 @@ Trace Index/Sources:
   Generated from Claude-generated scapy script error-preauth-padata.pcap.py. Based on
   a hand-rolled pcap from security report. KRB_ERROR with PA-DATA inside that caused a
   nullptr derefenence.
+- mount/mount-unmount.pcap and -bad-status.pcap and -bad-auth-flavor.pcap
+  Created by setting up a NFSv3 server on a Ubuntu VM and added the
+  Python script mount-unmount-scramble.py to override the status fields
+  using scapy.
+- nfs/nfs_fileop.pcap Created by setting up a NFSv3 server on a Ubuntu VM
+  and creating a single file and deleting it again. Used with scramble.py
+  to produce some invalid values.
+- http/query-method.pcap http/query-method-non-standard-port.pcap
+  Scapy-generated (query-method.pcap.py creates both files). HTTP QUERY method
+  (RFC 10008) on port 80 and port 4711 respectively.
+- portmapper-many-unanswered-calls.pcapng.gz: Generated via portmapper-many-unanswered-calls.py
+  produced by ChatGPT 5.5. Script slightly adapted to use deterministic packet timestamps,
+  then gzip compressed.

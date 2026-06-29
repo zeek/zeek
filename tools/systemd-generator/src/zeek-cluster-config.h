@@ -261,6 +261,11 @@ public:
     std::filesystem::path LogQueueDir() const { return SpoolDir() / "log-queue"; }
 
     /**
+     * @return True if the manager should be installed, otherwise false.
+     */
+    bool Manager() const noexcept { return manager; }
+
+    /**
      * @return The number of loggers to run.
      */
     int Loggers() const noexcept { return loggers; }
@@ -347,6 +352,7 @@ private:
     std::filesystem::path source_path;
     bool exists = false;
 
+    bool manager = true;
     int loggers = 1;
     int proxies = 1;
 

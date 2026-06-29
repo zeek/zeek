@@ -118,41 +118,26 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     ensure_symlink("../zeek-setup.service", zeek_target_wants / "zeek-setup.service");
 
-    // Manager
-    setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("manager"));
-    setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("manager"));
-    ensure_symlink("../zeek-manager.service", zeek_target_wants / "zeek-manager.service");
+    // Manager Unit if enabled.
+    if ( config.Manager() ) {
+        auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "Zeek Manager", config);
+        manager_unit.AddEnvironment("CLUSTER_NODE", "manager");
+        manager_unit.SetSyslogIdentifier("zeek-manager");
+        manager_unit.SetWorkingDirectory(config.WorkingDirectory("manager"));
+        manager_unit.AddReadWritePath(config.WorkingDirectory("manager"));
+        manager_unit.AddAfter("zeek-logger@.service");
+        manager_unit.SetSlice("zeek-manager.slice");
+        manager_unit.SetMemoryMax(config.MemoryMaxFor("manager"));
+        if ( auto nice = config.NiceFor("manager"); nice )
+            manager_unit.SetNice(*nice);
 
-    // Loggers
-    for ( int idx = 1; idx <= config.Loggers(); idx++ ) {
-        auto wdir = "logger-" + std::to_string(idx);
-        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand(wdir));
-        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
-        auto name = systemd_unit_name("logger", idx);
-        ensure_symlink("../zeek-logger@.service", zeek_target_wants / name);
+        manager_unit.Write();
+
+        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("manager"));
+        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("manager"));
+        ensure_symlink("../zeek-manager.service", zeek_target_wants / "zeek-manager.service");
     }
 
-    // Proxies
-    for ( int idx = 1; idx <= config.Proxies(); idx++ ) {
-        auto wdir = "proxy-" + std::to_string(idx);
-        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand(wdir));
-        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
-
-        auto name = systemd_unit_name("proxy", idx);
-        ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
-    }
-
-    // Manager Unit
-    auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "Zeek Manager", config);
-    manager_unit.AddEnvironment("CLUSTER_NODE", "manager");
-    manager_unit.SetSyslogIdentifier("zeek-manager");
-    manager_unit.SetWorkingDirectory(config.WorkingDirectory("manager"));
-    manager_unit.AddReadWritePath(config.WorkingDirectory("manager"));
-    manager_unit.AddAfter("zeek-logger@.service");
-    manager_unit.SetSlice("zeek-manager.slice");
-    manager_unit.SetMemoryMax(config.MemoryMaxFor("manager"));
-    if ( auto nice = config.NiceFor("manager"); nice )
-        manager_unit.SetNice(*nice);
 
     // Logger Template Unit
     auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "Zeek Logger %i", config);
@@ -170,6 +155,16 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     logger_unit.SetMemoryMax(config.MemoryMaxFor("logger"));
     if ( auto nice = config.NiceFor("logger"); nice )
         logger_unit.SetNice(*nice);
+    logger_unit.Write();
+
+    // Loggers
+    for ( int idx = 1; idx <= config.Loggers(); idx++ ) {
+        auto wdir = "logger-" + std::to_string(idx);
+        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand(wdir));
+        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
+        auto name = systemd_unit_name("logger", idx);
+        ensure_symlink("../zeek-logger@.service", zeek_target_wants / name);
+    }
 
     // Proxy Template Unit
     auto proxy_unit = systemd_add_node_unit(dir / "zeek-proxy@.service", "Zeek Proxy %i", config);
@@ -182,6 +177,17 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     proxy_unit.SetMemoryMax(config.MemoryMaxFor("proxy"));
     if ( auto nice = config.NiceFor("proxy"); nice )
         proxy_unit.SetNice(*nice);
+    proxy_unit.Write();
+
+    // Proxies
+    for ( int idx = 1; idx <= config.Proxies(); idx++ ) {
+        auto wdir = "proxy-" + std::to_string(idx);
+        setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand(wdir));
+        setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
+
+        auto name = systemd_unit_name("proxy", idx);
+        ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
+    }
 
     // Global worker index.
     int global_worker_index = 0;
@@ -213,7 +219,10 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
                                             iwc.Args(), config.ClusterBackendArgs()});
         worker_interface_unit.AddEnvironment("CLUSTER_NODE", worker_cluster_node + "-%i");
         worker_interface_unit.SetSyslogIdentifier(worker_unit_prefix + "-%i");
-        worker_interface_unit.AddAfter(manager_unit.Name());
+
+        if ( config.Manager() )
+            worker_interface_unit.AddAfter("zeek-manager.service");
+
         worker_interface_unit.AddAfter(logger_unit.Name());
         worker_interface_unit.AddAfter(proxy_unit.Name());
         worker_interface_unit.SetAmbientCapabilities("CAP_NET_RAW");
@@ -292,9 +301,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     target_unit.Write();
     setup_unit.Write();
-    manager_unit.Write();
-    logger_unit.Write();
-    proxy_unit.Write();
 
     // Optional archiver service.
     if ( config.IsArchiverEnabled() ) {

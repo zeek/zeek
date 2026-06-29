@@ -179,3 +179,6 @@ Trace Index/Sources:
   Generated from Claude-generated scapy script error-preauth-padata.pcap.py. Based on
   a hand-rolled pcap from security report. KRB_ERROR with PA-DATA inside that caused a
   nullptr derefenence.
+- portmapper-many-unanswered-calls.pcapng.gz: Generated via portmapper-many-unanswered-calls.py
+  produced by ChatGPT 5.5. Script slightly adapted to use deterministic packet timestamps,
+  then gzip compressed.

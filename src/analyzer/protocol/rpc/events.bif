@@ -850,6 +850,12 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 ##    signature.
 event rpc_reply%(c: connection, xid: count, status: rpc_status, reply_len: count%);
 
+## Generated when Zeek cleared all pending RPC calls due to
+## the tracking table exceeding :zeek:see:`rpc_max_pending_calls`.
+##
+## c: The connection.
+event rpc_discarded_pending_calls%(c: connection%);
+
 ## Generated for MOUNT3 request/reply dialogues of type *null*. The event is
 ## generated once we have either seen both the request and its corresponding
 ## reply, or an unanswered request has timed out.

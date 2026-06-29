@@ -201,6 +201,7 @@ export {
 		["repeated_SYN_with_ack"]               = ACTION_LOG,
 		["responder_RPC_call"]                  = ACTION_LOG_PER_ORIG,
 		["rlogin_text_after_rejected"]          = ACTION_LOG,
+		["RPC_pending_calls_discarded"]         = ACTION_LOG,
 		["RPC_rexmit_inconsistency"]            = ACTION_LOG,
 		["RPC_underflow"]                       = ACTION_LOG,
 		["RST_storm"]                           = ACTION_LOG,

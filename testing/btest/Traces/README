@@ -166,3 +166,6 @@ Trace Index/Sources:
 - http/query-method.pcap http/query-method-non-standard-port.pcap
   Scapy-generated (query-method.pcap.py creates both files). HTTP QUERY method
   (RFC 10008) on port 80 and port 4711 respectively.
+- portmapper-many-unanswered-calls.pcapng.gz: Generated via portmapper-many-unanswered-calls.py
+  produced by ChatGPT 5.5. Script slightly adapted to use deterministic packet timestamps,
+  then gzip compressed.

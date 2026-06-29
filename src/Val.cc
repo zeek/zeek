@@ -3524,6 +3524,9 @@ static bool sort_function(const std::optional<ZVal>& a, const std::optional<ZVal
     auto b_v = b->ToVal(sort_type);
 
     auto result = sort_function_comp->Invoke(a_v, b_v);
+    if ( ! result )
+        reporter->RuntimeError(sort_function_comp->GetLocationInfo(), "comparison function did not return a value");
+
     int int_result = result->CoerceToInt();
 
     return int_result < 0;

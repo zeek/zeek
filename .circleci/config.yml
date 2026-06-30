@@ -1148,8 +1148,6 @@ workflows:
           docker_image: zeek/zeek-ci:ubuntu-24.04
           << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          extra_env: |
-            ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
           install_spicy_analyzers: true
           context:
@@ -1159,6 +1157,8 @@ workflows:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
           install_spicy_analyzers: true
           context:

@@ -226,13 +226,6 @@ jobs:
             ZEEK_CI_CREATE_INSTALL_TARBALL: 1
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
           run: |
-            (
-            cd auxil/spicy;
-            git fetch;
-            git reset --hard origin/main;
-            git submodule update --init --recursive;
-            )
-
             ./ci/pre-build.sh
             ./ci/build.sh
             ./ci/test.sh
@@ -243,6 +236,7 @@ jobs:
           env:
             ZEEK_CI_CREATE_INSTALL_TARBALL: 1
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
+            ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
           run: |
             ./ci/pre-build.sh
             ./ci/build.sh

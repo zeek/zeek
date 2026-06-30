@@ -1,3 +1,18 @@
+9.0.0-dev.518 | 2026-06-30 13:48:02 +0200
+
+  * CI: Reset auxil/spicy to origin/main in -spicy-head tasks, not -spicy tasks (Arne Welzel, Corelight)
+
+    Not sure if this was an oversight or whether the "head" terminology is
+    confusing. Previously, "head" described using the latest commit of
+    origin/main, but this changed with the new CI systems.
+
+    Currently, the build is failing when using latest main from zeek/spicy
+    and in CI that resulted in the ubuntu-24.04-spicy task to fail, not the
+    ubuntu-24.04-spicy-head. This had me confused. Flip these for GitHub
+    and CircleCI.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.513 | 2026-06-29 14:12:08 +0200
 
   * Route raw NTLMSSP payloads directly to NTLM analyzer (VasuBhakt)

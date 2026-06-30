@@ -3,6 +3,16 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.2.1
+==========
+
+Thank you to ... for their contribution to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+
 Zeek 8.2.0
 ==========
 

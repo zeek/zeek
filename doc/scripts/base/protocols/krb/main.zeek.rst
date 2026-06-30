@@ -64,7 +64,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: KRB::ignored_errors
-   :source-code: base/protocols/krb/main.zeek 60 60
+   :source-code: base/protocols/krb/main.zeek 61 61
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -117,7 +117,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: KRB::Info
-   :source-code: base/protocols/krb/main.zeek 20 57
+   :source-code: base/protocols/krb/main.zeek 20 58
 
    :Type: :zeek:type:`record`
 
@@ -140,7 +140,8 @@ Types
    .. zeek:field:: request_type :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
       Request type - Authentication Service ("AS") or
-      Ticket Granting Service ("TGS")
+      Ticket Granting Service ("TGS") or
+      Application Request ("AP")
 
 
    .. zeek:field:: client :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
@@ -272,7 +273,7 @@ Types
 Events
 ######
 .. zeek:id:: KRB::log_krb
-   :source-code: base/protocols/krb/main.zeek 74 74
+   :source-code: base/protocols/krb/main.zeek 75 75
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`KRB::Info`)
 
@@ -282,7 +283,7 @@ Events
 Hooks
 #####
 .. zeek:id:: KRB::finalize_krb
-   :source-code: base/protocols/krb/main.zeek 77 77
+   :source-code: base/protocols/krb/main.zeek 78 78
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

@@ -1,3 +1,15 @@
+8.0.8-53 | 2026-06-30 10:29:26 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Migrate cleaned version of CTU-SME pcap to release branch (Tim Wojtulewicz, Corelight)
+
+  * Add checks for vcpkg headers for Windows builds (Tim Wojtulewicz, Corelight)
+
+  * Fix find_package for ZeroMQ to match master (Tim Wojtulewicz, Corelight)
+
+  * Migrate vcpkg.json wholesale from master (Tim Wojtulewicz, Corelight)
+
 8.0.8-47 | 2026-06-24 13:48:08 -0700
 
   * Extend timeouts for some cluster-based jobs for CI ASAN ZAM testing (Tim Wojtulewicz, Corelight)

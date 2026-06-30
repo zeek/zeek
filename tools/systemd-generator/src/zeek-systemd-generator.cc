@@ -121,6 +121,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     // Manager Unit if enabled.
     if ( config.Manager() ) {
         auto manager_unit = systemd_add_node_unit(dir / "zeek-manager.service", "Zeek Manager", config);
+        // Do not use PrefixedClusterNode() for manager: There's only ever a single one.
         manager_unit.AddEnvironment("CLUSTER_NODE", "manager");
         manager_unit.SetSyslogIdentifier("zeek-manager");
         manager_unit.SetWorkingDirectory(config.WorkingDirectory("manager"));
@@ -141,7 +142,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     // Logger Template Unit
     auto logger_unit = systemd_add_node_unit(dir / "zeek-logger@.service", "Zeek Logger %i", config);
-    logger_unit.AddEnvironment("CLUSTER_NODE", "logger-%i");
+    logger_unit.AddEnvironment("CLUSTER_NODE", config.PrefixedClusterNode("logger-%i"));
     logger_unit.SetSyslogIdentifier("zeek-logger-%i");
     logger_unit.SetWorkingDirectory(config.WorkingDirectory("logger-%i"));
     logger_unit.AddReadWritePath(config.WorkingDirectory("logger-%i"));
@@ -168,7 +169,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     // Proxy Template Unit
     auto proxy_unit = systemd_add_node_unit(dir / "zeek-proxy@.service", "Zeek Proxy %i", config);
-    proxy_unit.AddEnvironment("CLUSTER_NODE", "proxy-%i");
+    proxy_unit.AddEnvironment("CLUSTER_NODE", config.PrefixedClusterNode("proxy-%i"));
     proxy_unit.SetSyslogIdentifier("zeek-proxy-%i");
     proxy_unit.SetWorkingDirectory(config.WorkingDirectory("proxy-%i"));
     proxy_unit.AddReadWritePath(config.WorkingDirectory("proxy-%i"));
@@ -217,7 +218,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         worker_interface_unit.SetExecStart(config.ZeekExe().string(),
                                            {"-i", "${INTERFACE}", systemd_generator_policy_scripts(), config.Args(),
                                             iwc.Args(), config.ClusterBackendArgs()});
-        worker_interface_unit.AddEnvironment("CLUSTER_NODE", worker_cluster_node + "-%i");
+        worker_interface_unit.AddEnvironment("CLUSTER_NODE", config.PrefixedClusterNode(worker_cluster_node + "-%i"));
         worker_interface_unit.SetSyslogIdentifier(worker_unit_prefix + "-%i");
 
         if ( config.Manager() )

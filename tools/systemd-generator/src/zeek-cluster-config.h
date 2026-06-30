@@ -305,6 +305,16 @@ public:
     const std::string& ClusterBackendArgs() const { return cluster_backend_args; }
 
     /**
+     * If cluster_node_prefix is set, return the given string prepended with the prefix and a dash, else return s.
+     */
+    std::string PrefixedClusterNode(const std::string& s) const {
+        if ( cluster_node_prefix )
+            return *cluster_node_prefix + "-" + s;
+
+        return s;
+    }
+
+    /**
      * Computes the PATH to use from ext_path, base_dir / bin and path.
      *
      * @return Colon separated string for the PATH variable to use.
@@ -404,6 +414,9 @@ private:
 
     // Manually specify the cluster-layout.zeek
     std::optional<std::filesystem::path> cluster_layout;
+
+    // Prefix for CLUSTER_NODE
+    std::optional<std::string> cluster_node_prefix;
 
     std::vector<std::string> errors;
 };

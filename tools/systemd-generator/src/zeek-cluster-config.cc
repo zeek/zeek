@@ -628,6 +628,9 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         else if ( key == "cluster_layout" ) {
             config.cluster_layout = option.Value();
         }
+        else if ( key == "cluster_node_prefix" ) {
+            config.cluster_node_prefix = option.Value();
+        }
         else if ( key == "port" ) {
             config.port = std::atoi(option.Value().c_str());
         }

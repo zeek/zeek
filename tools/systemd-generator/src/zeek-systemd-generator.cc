@@ -376,8 +376,7 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    if ( config.IsEnabled() )
-        systemd_write_units(normal_dir, config);
+    systemd_write_units(normal_dir, config);
 
     return 0;
 }

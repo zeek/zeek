@@ -191,7 +191,7 @@ public:
 private:
     std::string tag;
     std::string interface;
-    int workers = 0;
+    int workers = -1;
 
     std::string args; // worker specific args to append
     std::vector<std::pair<const std::string, const std::string>> envs;
@@ -217,8 +217,6 @@ public:
     bool Exists() const noexcept { return exists; }
 
     bool IsValid() const noexcept { return errors.empty(); }
-
-    bool IsEnabled() const noexcept { return ! interface_worker_configs.empty(); }
 
     void Error(std::string msg) { errors.emplace_back(std::move(msg)); }
 

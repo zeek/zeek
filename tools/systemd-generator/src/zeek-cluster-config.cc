@@ -410,7 +410,7 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         }
         else if ( key == "workers" ) {
             auto result = parse_int(option.Value());
-            if ( result && *result >= 1 )
+            if ( result && *result >= 0 )
                 iwc.workers = *result;
             else {
                 return {iwc, "invalid workers value: '" + option.Value() + "'"};
@@ -464,27 +464,25 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         }
     }
 
-    // Verify interface and workers was set!
-    if ( iwc.Interface().empty() ) {
-        std::string message = "missing or empty interface option";
-        if ( ! section.Name().empty() )
-            message = message + " in section '" + section.Name() + "'";
-        return {iwc, message};
+    // This allows a simple zeek.conf that *only* contains the interface option
+    // to work and use just one worker. If interface isn't set, default to 0
+    // workers.
+    if ( section.Name().empty() && iwc.workers < 0 ) {
+        if ( ! iwc.Interface().empty() )
+            iwc.workers = 1;
+        else
+            iwc.workers = 0;
     }
 
-    if ( iwc.Workers() <= 0 ) {
-        // Tiny quirk: If this is section-less parsing and there's 0 workers,
-        // default to 1 workers so that a simple zeek.conf that *only* contains
-        // an interface works.
-        if ( iwc.Workers() == 0 && section_name.empty() ) {
-            iwc.workers = 1;
+    // Verify interface and workers was set in a named section!
+    if ( ! section.Name().empty() ) {
+        if ( iwc.Interface().empty() ) {
+            std::string message = "missing or empty interface option in section '" + section.Name() + "'";
+            return {iwc, message};
         }
-        else {
-            // Otherwise it is an error.
 
-            std::string message = "missing or bad workers option";
-            if ( ! section.Name().empty() )
-                message = message + " in section '" + section.Name() + "'";
+        if ( iwc.workers < 0 ) {
+            std::string message = "missing workers option in section '" + section.Name() + "'";
             return {iwc, message};
         }
     }

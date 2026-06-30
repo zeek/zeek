@@ -1,3 +1,11 @@
+8.2.0-47 | 2026-06-30 10:39:02 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Migrate cleaned version of CTU-SME pcap to release branch (Tim Wojtulewicz, Corelight)
+
+  * Extend timeout for two more cluster btests (Tim Wojtulewicz, Corelight)
+
 8.2.0-43 | 2026-06-24 10:45:34 -0700
 
   * NTP: Prevent len underflow in &enforce during extension parsing (Arne Welzel, Corelight)

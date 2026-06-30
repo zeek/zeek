@@ -627,6 +627,9 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         else if ( key == "cluster_backend_args" ) {
             config.cluster_backend_args = option.Value();
         }
+        else if ( key == "cluster_layout" ) {
+            config.cluster_layout = option.Value();
+        }
         else if ( key == "port" ) {
             config.port = std::atoi(option.Value().c_str());
         }
@@ -687,10 +690,27 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
     // Assume zeek-cluster-layout-generator is in /bin
     config.cluster_layout_generator = config.ZeekBaseDir() / "bin" / "zeek-cluster-layout-generator";
 
+    // If the manager is disabled, require an explicit cluster_layout configuration for now.
+    if ( ! config.manager && ! config.cluster_layout.has_value() )
+        config.Error("disabled manager requires cluster_layout");
+
     return config;
 }
 
-std::string ZeekClusterConfig::ClusterLayoutGeneratorCommand() const {
+std::string ZeekClusterConfig::ClusterLayoutCommand() const {
+    // If a cluster_layout is given in the configuration, copy that
+    // into the generated script directory.
+    if ( cluster_layout.has_value() ) {
+        std::vector<std::string> cmd_args = {
+            "cp",
+            "-f",
+            cluster_layout->string(),
+            (GeneratedScriptsDir() / "cluster-layout.zeek").string(),
+        };
+
+        return join(cmd_args);
+    }
+
     // First, construct the -W argument. Either it's a single number when
     // there's only a single non-tagged interface, or it's in eth0:2,eth1:2,...
     // form as to produce tagged worker names.

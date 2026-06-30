@@ -19,4 +19,6 @@
 # Do not run a manager!
 manager = 0
 interface = eth0
+cluster_layout = /test/etc/zeek/custom-cluster-layout.zeek
+base_dir = /test/opt/zeek
 # @TEST-END-FILE

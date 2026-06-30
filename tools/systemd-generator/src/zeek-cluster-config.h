@@ -330,8 +330,12 @@ public:
 
     /**
      * Generates string to run for generating cluster-layout.zeek
+     *
+     * This produces either an invocation of the zeek-cluster-layout-generator
+     * executable, or a command that copies the cluster_layout a specified
+     * in the configuration file.
      */
-    std::string ClusterLayoutGeneratorCommand() const;
+    std::string ClusterLayoutCommand() const;
 
     /**
      * Generate a command string for the zeek-archiver.
@@ -399,6 +403,9 @@ private:
     std::string archiver_args;
 
     std::filesystem::path cluster_layout_generator;
+
+    // Manually specify the cluster-layout.zeek
+    std::optional<std::filesystem::path> cluster_layout;
 
     std::vector<std::string> errors;
 };

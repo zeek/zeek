@@ -1,3 +1,7 @@
+9.0.0-dev.520 | 2026-07-01 12:38:36 +0200
+
+  * doc/troubleshooting: Fedora 44 has jemalloc profiling enabled [skip ci] (Arne Welzel, Corelight)
+
 9.0.0-dev.518 | 2026-06-30 13:48:02 +0200
 
   * CI: Reset auxil/spicy to origin/main in -spicy-head tasks, not -spicy tasks (Arne Welzel, Corelight)

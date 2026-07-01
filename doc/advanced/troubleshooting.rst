@@ -29,9 +29,9 @@ Jemalloc Memory Profiling
 
 For memory profiling with `jemalloc`_ you need jemalloc compiled with
 profiling enabled. Some Linux distributions provide a libjemalloc package that
-is configured this way. For example, Debian on the amd64 architecture
-has it enabled while Fedora 38 does not. You're advised to verify the
-``config.prof`` line in the jemalloc stats output as shown below.
+is configured this way. For example, Debian and Fedora on the amd64 architecture
+have it enabled by default. Please verify the ``config.prof`` line in the
+jemalloc stats output as shown below.
 
 .. note::
 

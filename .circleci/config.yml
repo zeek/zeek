@@ -1120,6 +1120,7 @@ workflows:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          store_install_tarball: true
           context:
             - zeek
           << : *FILTER_IF_SKIP_ALL

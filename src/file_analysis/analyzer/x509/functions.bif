@@ -867,6 +867,117 @@ zeek::StringValPtr x509_entity_hash(zeek::file_analysis::detail::X509Val *cert_h
 	}
 %%}
 
+## Get an accurate string representation of the subject’s distinguished name from
+## the given certificate. Unlike the value stored in the subject field of the
+## X509::Certificate record, this representation preserves the order of the
+## distinguished name components as they appear in the certificate's ASN.1 structure,
+## rather than sorting them according to rfc 2253. It also correctly extracts UTF-8 name
+## components instead of producing binary escape sequences for non ASCII names.
+##
+## cert: The X509 certificate opaque handle.
+##
+## Returns: The subject's distinguished name string as seen in the certificate.
+##
+## .. zeek:see:: x509_subject_name_hash
+function x509_get_subject_original_name%(cert: opaque of x509%): string
+	%{
+	if (!cert){
+		// Should never happen, but currently can due to missing error handling in x509_from_der().
+		// zeek::builtin_error is not be used here since it cannot be avoided from Zeek scripts.
+		// Returning a magic string instead of a error code to keep the return type simple.
+		return zeek::make_intrusive<zeek::StringVal>("<no certificate>");
+	}
+	char *buf;
+	BIO* bio = BIO_new(BIO_s_mem());
+	if (bio == NULL){
+		zeek::emit_builtin_error(zeek::util::fmt("Cannot allocate new BIO"));
+		return nullptr;
+	}
+	auto* cert_handle = static_cast<zeek::file_analysis::detail::X509Val*>(cert);
+	X509 *cert_x509 = cert_handle->GetCertificate();
+	if (!cert_x509){
+		zeek::reporter->Error("Cannot get certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<invalid certificate>");
+	}
+	X509_NAME *subject = X509_get_subject_name(cert_x509);
+	if (!subject){
+		zeek::reporter->Error("Cannot get subject from the certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<no subject>");
+	}
+
+	if (X509_NAME_print_ex(bio, subject, 0, XN_FLAG_SEP_CPLUS_SPC|ASN1_STRFLGS_UTF8_CONVERT) == 0){
+		zeek::reporter->Error("Cannot parse subject name of the certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<cannot parse subject>");
+	}
+	long len = BIO_get_mem_data(bio, &buf);
+	if (len < 0){
+		zeek::emit_builtin_error("Cannot get data from BIO's structure");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<cannot get data form openssl structure>");
+	}
+	auto ret_string = make_intrusive<StringVal>(len, buf);
+	BIO_free(bio);
+	return ret_string;
+	%}
+
+## Get an accurate string representation of the issuer’s distinguished name from
+## the given certificate. Unlike the value stored in the issuer field of the
+## X509::Certificate record, this representation preserves the order of the
+## distinguished name components as they appear in the certificate's ASN.1 structure,
+## rather than sorting them according to rfc 2253. It also correctly extracts UTF-8 name
+## components instead of producing binary escape sequences for non ASCII names.
+##
+## cert: The X509 certificate opaque handle.
+##
+## Returns: The issuer's name string as seen in the certificate.
+##
+## .. zeek:see:: x509_issuer_name_hash
+function x509_get_issuer_original_name%(cert: opaque of x509%): string
+	%{
+	if (!cert){
+		// Should never happen, but currently can due to missing error handling in x509_from_der().
+		// zeek::builtin_error is not be used here since it cannot be avoided from Zeek scripts.
+		// Returning a magic string instead of a error code to keep the return type simple.
+		return zeek::make_intrusive<zeek::StringVal>("<no certificate>");
+	}
+	char *buf;
+	BIO* bio = BIO_new(BIO_s_mem());
+	if (bio == NULL){
+		zeek::emit_builtin_error(zeek::util::fmt("Cannot allocate new BIO"));
+		return nullptr;
+	}
+	auto* cert_handle = static_cast<zeek::file_analysis::detail::X509Val*>(cert);
+	X509 *cert_x509 = cert_handle->GetCertificate();
+	if (!cert_x509){
+		zeek::reporter->Error("Cannot get certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<invalid certificate>");
+	}
+	X509_NAME *issuer = X509_get_issuer_name(cert_x509);
+	if (!issuer){
+		zeek::reporter->Error("Cannot get issuer from the certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<no issuer>");
+	}
+	if (X509_NAME_print_ex(bio, issuer, 0, XN_FLAG_SEP_CPLUS_SPC|ASN1_STRFLGS_UTF8_CONVERT) == 0){
+		zeek::emit_builtin_error("Cannot parse issuer name of the certificate");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("");
+	}
+	long len = BIO_get_mem_data(bio, &buf);
+	if (len < 0){
+		zeek::emit_builtin_error("Cannot get data from BIO's structure");
+		BIO_free(bio);
+		return zeek::make_intrusive<zeek::StringVal>("<cannot get data form openssl structure>");
+	}
+	auto ret_string = make_intrusive<StringVal>(len, buf);
+	BIO_free(bio);
+	return ret_string;
+	%}
+
 ## Get the hash of the subject's distinguished name.
 ##
 ## cert: The X509 certificate opaque handle.

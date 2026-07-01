@@ -1,3 +1,28 @@
+9.0.0-dev.524 | 2026-07-01 16:44:02 -0400
+
+  * Ensure no-return sort function doesn't crash (Evan Typanski, Corelight)
+
+    When you pass a comparison function into sort, it expects the result
+    to return an int. If you instead return *nothing*, then it would
+    segfault. Here we simply error and return, much like the warning when
+    the value is not present in a return.
+
+  * GH-5566: Add recursion depth to scripts (Evan Typanski, Corelight)
+
+    This helps avoid a segfault with infinite recursion. Configurable with a
+    BiF to mimic Python, which may be useful if you know only one function
+    can deeply recurse.
+
+    Fixes #5566
+
+  * Fix sparse index vector in scripting segfault (Evan Typanski, Corelight)
+
+    This seems like an undocumented feature. You can use a vector of integers
+    to index another vector. If that "index vector" is sparse (meaning one
+    of the elements was unset), then this would segfault.
+
+    Ensure it's set before accessing.
+
 9.0.0-dev.520 | 2026-07-01 12:38:36 +0200
 
   * doc/troubleshooting: Fedora 44 has jemalloc profiling enabled [skip ci] (Arne Welzel, Corelight)

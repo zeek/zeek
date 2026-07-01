@@ -2770,8 +2770,10 @@ VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1, const Vect
     // by excluding those elements.  Probably only do this if *all*
     // are negative.
     v_result->Resize(v2->Size());
-    for ( unsigned int i = 0; i < v2->Size(); ++i )
-        v_result->Assign(i, v1->ValAt(v2->ValAt(i)->CoerceToInt()));
+    for ( unsigned int i = 0; i < v2->Size(); ++i ) {
+        if ( auto idx_val = v2->ValAt(i) )
+            v_result->Assign(i, v1->ValAt(idx_val->CoerceToInt()));
+    }
 
     return v_result;
 }

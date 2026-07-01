@@ -6205,3 +6205,25 @@ function modulo%(a: int, b: int%): int
 	}
 	return zeek::val_mgr->Int(((a % b) + b) % b);
 	%}
+
+## Sets the maximum recursion depth for functions within Zeek's script execution.
+## A value of 0 means there is no limit.
+##
+## .. zeek:see:: get_max_recursion_depth
+function set_max_recursion_depth%(c: count%)
+	%{
+	zeek::detail::max_recursion_depth = c;
+
+	return nullptr;
+	%}
+
+## Gets the maximum recursion depth for functions within Zeek's script execution.
+## This is configurable by the user.
+##
+## Returns: The current max recursion depth
+##
+## .. zeek:see:: set_max_recursion_depth
+function get_max_recursion_depth%(%): count
+	%{
+	return zeek::val_mgr->Count(zeek::detail::max_recursion_depth);
+	%}

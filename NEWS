@@ -155,6 +155,12 @@ Changed Functionality
   revert to the previous behavior by setting
   ``FTP::log_at_least_one_command=F``.
 
+- Added a recursion limit to Zeek script function calls. This will trigger a runtime
+  error if the number of nested function calls exceeds the limit. This also adds two
+  new BiFs: ``set_max_recursion_depth`` to set the maximum number of function calls,
+  and ``get_max_recursion_depth`` to get that limit. Should the limit be set to 0, the
+  check is skipped, reverting to previous (unchecked) behavior.
+
 Deprecated Functionality
 ------------------------
 

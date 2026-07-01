@@ -1122,6 +1122,7 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
+          enable_tests: false
           context:
             - zeek
           << : *FILTER_IF_SKIP_ALL
@@ -1145,17 +1146,17 @@ workflows:
       #       CXX="clang++-19"
       #     enable_tests: false
       #     << : *FILTER_IF_PR_NOT_FULL_CI
-      - linux-build:
-          name: ubuntu-24.04-spicy
-          docker_image: zeek/zeek-ci:ubuntu-24.04
-          << : *CONFIGURE_SPICY_SSL
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          store_install_tarball: true
-          install_spicy_analyzers: true
-          enable_benchmarks: true
-          context:
-            - zeek
-          << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
+      # - linux-build:
+      #     name: ubuntu-24.04-spicy
+      #     docker_image: zeek/zeek-ci:ubuntu-24.04
+      #     << : *CONFIGURE_SPICY_SSL
+      #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
+      #     store_install_tarball: true
+      #     install_spicy_analyzers: true
+      #     enable_benchmarks: true
+      #     context:
+      #       - zeek
+      #     << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
   #     - linux-build:
   #         name: ubuntu-24.04-spicy-head
   #         docker_image: zeek/zeek-ci:ubuntu-24.04

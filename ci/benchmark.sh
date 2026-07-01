@@ -31,7 +31,7 @@ set +e
 
 # Make a request to the benchmark host.
 curl -sS -G --stderr - --fail --insecure -X POST \
-    -o "${ZEEK_CI_WORKING_DIRECTORY}/benchmark-${TIMESTAMP}.log" \
+    -o "${ZEEK_CI_WORKING_DIR}/benchmark-${TIMESTAMP}.log" \
     -H "Zeek-HMAC: ${HMAC_DIGEST}" \
     -H "Zeek-HMAC-Timestamp: ${TIMESTAMP}" \
     --data-urlencode "branch=${CIRCLE_BRANCH}" \
@@ -52,9 +52,9 @@ STATUS=$?
 # If we got a bad status back from the host, we want to make sure to mask the host
 # and port from the output.
 if [ $STATUS -ne 0 ]; then
-    cat ${ZEEK_CI_WORKING_DIRECTORY}/benchmark-${TIMESTAMP}.log | sed "s/${ZEEK_BENCHMARK_HOST}/<secret>/g" | sed "s/:${ZEEK_BENCHMARK_PORT}/:<secret>/g"
+    cat ${ZEEK_CI_WORKING_DIR}/benchmark-${TIMESTAMP}.log | sed "s/${ZEEK_BENCHMARK_HOST}/<secret>/g" | sed "s/:${ZEEK_BENCHMARK_PORT}/:<secret>/g"
 else
-    cat ${ZEEK_CI_WORKING_DIRECTORY}/benchmark-${TIMESTAMP}.log
+    cat ${ZEEK_CI_WORKING_DIR}/benchmark-${TIMESTAMP}.log
 fi
 
 exit $STATUS

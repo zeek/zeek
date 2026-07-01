@@ -2527,6 +2527,11 @@ std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const {
 const detail::AttrPtr& TableVal::GetAttr(detail::AttrTag t) const { return attrs ? attrs->Find(t) : detail::Attr::nil; }
 
 void TableVal::Describe(ODesc* d) const {
+    if ( ! d->PushVal(this) ) {
+        d->Add("<cycle>");
+        return;
+    }
+
     int n = table_val->Length();
 
     if ( d->IsBinary() ) {
@@ -2627,6 +2632,8 @@ void TableVal::Describe(ODesc* d) const {
         d->PopIndent();
         d->Add("}");
     }
+
+    d->PopVal(this);
 }
 
 void TableVal::InitDefaultFunc(detail::Frame* f) {
@@ -3150,6 +3157,11 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, bool allow_orphaning) {
 TableValPtr RecordVal::GetRecordFieldsVal() const { return GetType()->AsRecordType()->GetRecordFieldsVal(this); }
 
 void RecordVal::Describe(ODesc* d) const {
+    if ( ! d->PushVal(this) ) {
+        d->Add("<cycle>");
+        return;
+    }
+
     auto n = NumFields();
 
     if ( d->IsBinary() ) {
@@ -3180,6 +3192,8 @@ void RecordVal::Describe(ODesc* d) const {
 
     if ( d->IsReadable() )
         d->Add("]");
+
+    d->PopVal(this);
 }
 
 void RecordVal::DescribeReST(ODesc* d) const {
@@ -3773,6 +3787,11 @@ ValPtr VectorVal::DoClone(CloneState* state) {
 }
 
 void VectorVal::ValDescribe(ODesc* d) const {
+    if ( ! d->PushVal(this) ) {
+        d->Add("<cycle>");
+        return;
+    }
+
     d->Add("[");
 
     size_t vector_size = vector_val.size();
@@ -3792,6 +3811,8 @@ void VectorVal::ValDescribe(ODesc* d) const {
     }
 
     d->Add("]");
+
+    d->PopVal(this);
 }
 
 ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init, const detail::Location* expr_location) {

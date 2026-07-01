@@ -5,6 +5,7 @@
 #include <sys/types.h> // for u_char
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "zeek/IntrusivePtr.h"
@@ -17,6 +18,7 @@ class IPAddr;
 class IPPrefix;
 class File;
 class Type;
+class Val;
 
 enum DescType : uint8_t {
     DESC_READABLE,
@@ -154,6 +156,11 @@ public:
     bool PopType(const Type* type);
     bool FindType(const Type* type);
 
+    // Used to detect cycles when describing aggregate values. Returns true
+    // if the val was newly inserted (not already visited).
+    bool PushVal(const Val* v);
+    bool PopVal(const Val* v);
+
 protected:
     void Indent();
 
@@ -208,7 +215,8 @@ protected:
 
     File* f; // or the file we're using.
 
-    std::set<const Type*> encountered_types;
+    std::unordered_set<const Type*> encountered_types;
+    std::unordered_set<const Val*> encountered_vals;
 };
 
 // Returns a string representation of an object's description.  Used for

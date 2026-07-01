@@ -1,3 +1,14 @@
+8.2.1-16 | 2026-08-11 11:16:20 -0700
+
+  * CCI: Adapt ci/benchmark.sh to work with CircleCI (Tim Wojtulewicz, Corelight)
+
+    I had to drop the cirrus_pr_labels and github_check_suite_id options from the
+    request due to not having that data readily available. The check_suite one might
+    come back, but the PR labels one is more challenging and probably not that
+    useful.
+
+    (cherry picked from commit f9416f0921de08ce5a75117cf04051b2601b5304)
+
 8.2.1-15 | 2026-08-11 11:15:42 -0700
 
   * Fix cluster.websockets.ping-timeout btest when using websockets >= 17.0 (Tim Wojtulewicz, Corelight)

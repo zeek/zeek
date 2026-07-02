@@ -1,3 +1,10 @@
+9.0.0-dev.527 | 2026-07-02 09:25:25 +0200
+
+  * doc: A few more btest.rst additions and changes (Arne Welzel, Corelight)
+
+    Yes, this is based Opus 4.7's feedback what would've been useful to have
+    in btest.rst after adding the tests in #5599 and it's not unreasonable.
+
 9.0.0-dev.524 | 2026-07-01 16:44:02 -0400
 
   * Ensure no-return sort function doesn't crash (Evan Typanski, Corelight)

@@ -112,6 +112,7 @@ Functions
 :zeek:id:`get_current_packet_ts`: :zeek:type:`function`                     Returns the currently processed PCAP packet's timestamp or a 0 timestamp if
                                                                             there is no packet being processed at the moment.
 :zeek:id:`get_file_name`: :zeek:type:`function`                             Gets the filename associated with a file handle.
+:zeek:id:`get_max_recursion_depth`: :zeek:type:`function`                   Gets the maximum recursion depth for functions within Zeek's script execution.
 :zeek:id:`get_plugin_components`: :zeek:type:`function`                     Get a list of tags available for a plugin category.
 :zeek:id:`get_port_transport_proto`: :zeek:type:`function`                  Extracts the transport protocol from a :zeek:type:`port`.
 :zeek:id:`getenv`: :zeek:type:`function`                                    Returns a system environment variable.
@@ -220,6 +221,7 @@ Functions
 :zeek:id:`set_buf`: :zeek:type:`function`                                   Alters the buffering behavior of a file.
 :zeek:id:`set_inactivity_timeout`: :zeek:type:`function`                    Sets an individual inactivity timeout for a connection and thus
                                                                             overrides the global inactivity timeout.
+:zeek:id:`set_max_recursion_depth`: :zeek:type:`function`                   Sets the maximum recursion depth for functions within Zeek's script execution.
 :zeek:id:`set_network_time`: :zeek:type:`function`                          Sets the timestamp associated with the last packet processed.
 :zeek:id:`set_record_packets`: :zeek:type:`function`                        Controls whether packet contents belonging to a connection should be
                                                                             recorded (when ``-w`` option is provided on the command line).
@@ -1666,6 +1668,19 @@ Functions
    :returns: The filename associated with *f*.
 
    .. zeek:see:: open
+
+.. zeek:id:: get_max_recursion_depth
+   :source-code: base/bif/zeek.bif.zeek 3148 3148
+
+   :Type: :zeek:type:`function` () : :zeek:type:`count`
+
+   Gets the maximum recursion depth for functions within Zeek's script execution.
+   This is configurable by the user.
+
+
+   :returns: The current max recursion depth
+
+   .. zeek:see:: set_max_recursion_depth
 
 .. zeek:id:: get_plugin_components
    :source-code: base/bif/zeek.bif.zeek 3124 3124
@@ -3188,6 +3203,16 @@ Functions
 
 
    :returns: The previous timeout interval.
+
+.. zeek:id:: set_max_recursion_depth
+   :source-code: base/bif/zeek.bif.zeek 3139 3139
+
+   :Type: :zeek:type:`function` (c: :zeek:type:`count`) : :zeek:type:`void`
+
+   Sets the maximum recursion depth for functions within Zeek's script execution.
+   A value of 0 means there is no limit.
+
+   .. zeek:see:: get_max_recursion_depth
 
 .. zeek:id:: set_network_time
    :source-code: base/bif/zeek.bif.zeek 53 53

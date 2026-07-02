@@ -1,3 +1,169 @@
+8.2.0-82 | 2026-07-06 17:58:38 +0000
+
+  * CCI: Fix check for pushes to master to avoid double-builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e2466436605631a65d3e84296b7670c86c8c10c4)
+
+  * CCI: Rename yaml files for config.yml to contain dynamic config (Tim Wojtulewicz, Corelight)
+
+    (similar to 9fbb335da546ec9676b4882a16389c4b86f455b9)
+
+  * Regenerate docs for 8.2.1 release (Tim Wojtulewicz, Corelight)
+
+  * Add NEWS entries for 8.2.1 security patches (Tim Wojtulewicz, Corelight)
+
+  * GH-269: RPC: Limit calls map via rpc_max_pending_calls const redef (Arne Welzel, Corelight)
+
+    This is similar to what we do in the SMB analyzer to prevent unbounded
+    state growth. A configurable upper limit with 0 meaning unbounded,
+    raising a weird and an event if the limit is reached. Defaults to 1000.
+
+    Closes zeek/zeek-security#269.
+
+  * krb: Fix crash with Kerberos error handling (Evan Typanski, Corelight)
+
+    An attacker could craft a packet such that Kerberos enters "error" mode
+    but then forces data to parse from the non-error variable, causing a
+    nullptr dereference. This fixes that by just sending along the
+    placeholder string in the error path rather than trying to parse from
+    non-existent data.
+
+  * SerializationFormat: Avoid overflows in length check (Arne Welzel, Corelight)
+
+  * SerializationFormat: Handle negative string lengths (Arne Welzel, Corelight)
+
+    I don't know why this code uses int for string lengths, but it does and
+    it was reported that it's possible to send -1 as a length which for the
+    call to ReadData() is then promoted to size_t and overflowing a buffer.
+
+    Err on negative lengths or if string lengths exceed the available input.
+
+  * SerialTypes: Allocate sets/vectors incrementally during parsing (Arne Welzel, Corelight)
+
+    Parsing a malformed message's size field could cause an instant
+    out-of-memory situation when new Value*[size] is called. Switch
+    to incrementally allocating more than 1024 elements (which seems
+    very unlikely).
+
+  * SerialTypes/SerializationFormat: Remove abort()s from Read() paths (Arne Welzel, Corelight)
+
+    While we trust other processes to not inject malformed messages,
+    calling abort() when parsing these isn't good style. Remove some
+    and add a bit of doctest based testing.
+
+  * finger: Add limit to lines to avoid buffer growth (Evan Typanski, Corelight)
+
+    This adds a limit to all lines with the finger protocol. This way we can
+    prevent unbounded buffer growth.
+
+    Unfortunately, it's a little tricky to efficiently store the data in
+    Spicy without doing something hacky. This just uses `&max-size`, which
+    triggers a violation, rather than a weird. In the future this could
+    change to a weird, but it's almost certainly malicious or malformed input
+    anyway.
+
+  * websocket: Consume data past control frame max size (Evan Typanski, Corelight)
+
+    This will continue to consume the data, but it won't actually store the
+    data (which ends up going into the event). This is done via a per-chunk
+    remaining length indicator to cap that off.
+
+  * websocket: Add limit to control frame buffer (Evan Typanski, Corelight)
+
+    The hard limit is 125 in the protocol. This adds a configurable limit
+    to the WebSocket parsers control frames (CLOSE, PING, PONG). This way,
+    bytes will not accumulate in a buffer for a limit beyond the protocol's
+    hard-defined limit.
+
+    However, this will truncate the frame, leaving the stream out of sync.
+    That will be fixed in the following commit(s).
+
+  * nvt: Switch options to only allocate a needed byte (Evan Typanski, Corelight)
+
+    These two cases both only use one byte past the end of the offset. In
+    order to ensure nothing wasteful is done, and to guard against some
+    buffer growth if the analyzer changes, these should only grow to what's
+    necessary.
+
+    The doubling part is far more efficient when scanning lines, but here
+    it's potentially very wasteful, especially near the max buffer length.
+
+  * contentline: Fix unbounded state growth in lines (Evan Typanski, Corelight)
+
+    Multiple analyzers that used the ContentLine analyzer omitted the check
+    for max_line_length. This could result in unbounded state growth for
+    these cases if the line was too long.
+
+    One potential fix for this would be to simply check before growing the
+    buffer at each step. However, this adds a significant amount of friction
+    and encourages unsafe practice when overriding the content line analyzer.
+
+    Instead, this introduces a new way to grow the buffer, which will fail if
+    it would exceed the max line length. This way, callers can simply
+    continue to request buffer growth until it hits the limit, then fail in
+    whichever way they want. In most cases it means simply restarting
+    analysis with the now-large buffer.
+
+    There are multiple cases that still use the "unsafe" version, but the
+    first priority was obvious loops that would otherwise grow the buffer.
+    In those cases, they may double the buffer size, but not loop in the
+    same way based on user input.
+
+  * HTTP: zeek-testing-private baseline update for new weirds (Arne Welzel, Corelight)
+
+  * Traces/README: Update with a note about http/261 (Arne Welzel, Corelight)
+
+  * HTTP: Weird on Content-Length: 0 and Expect: usage (Arne Welzel, Corelight)
+
+  * HTTP: Weird on Transfer-Encoding: chunked, something (Arne Welzel, Corelight)
+
+  * HTTP: Weird on obsolete line folding (Arne Welzel, Corelight)
+
+    RFC 7230 (2014) has deprecated line folding. Create weirds when these
+    are observed as 12 years later they should be weird an possibly indicate
+    evasions
+
+  * HTTP: Weird on chunked mixed with Content-Length/Content-Range (Arne Welzel, Corelight)
+
+    This adds weirds that are raised when Transfer-Encoding: chunked is used
+    together with Content-Length or Content-Range. Minimally that's weird.
+
+  * HTTP: Weird on Content-Lengths that start with 0s (Arne Welzel, Corelight)
+
+  * HTTP: Weird for out of range Content-Length headers (Arne Welzel, Corelight)
+
+    ...and include the header value into weird's addl for more information.
+    Also do this for the chunk sizes.
+
+  * gnutella: Fix multiple header lines buffer growth (Evan Typanski, Corelight)
+
+    If there were multiple lines, they could grow uncontrollably. This adds
+    a limit to the amount the headers may grow.
+
+    Scapy generated script originally created by GPT, modified by Claude to
+    allow customizing its output.
+
+  * gnutella: Fix uncontrolled buffer growth on lines (Evan Typanski, Corelight)
+
+    This adds a check to ensure we don't uncontrollably grow a Gnutella
+    string that never encounters a CRLF. This analyzer is not enabled by
+    default; regardless, it is important if it is enabled.
+
+    Found by GPT-5.5. PCAP file produced from a GPT-5.5 scapy script.
+
+  * Add flag to IP_Hdr::ToPktHdrVal() to check for capture length (Tim Wojtulewicz, Corelight)
+
+  * SSH: Cap packet_length and string_length to 8MB and 2MB (Arne Welzel, Corelight)
+
+    When fuzzing the SSH analyzer, UBSAN complains about integer overflows
+    when lengths get close to INT_MAX (2G). There should never be SSH packets
+    or strings that big in normal SSH. Modify the parser to cap the values
+    to a configurable max lengths and raise weirds when these are observed.
+
+  * Check for valid length before outputting unknown IP packet contents (Tim Wojtulewicz, Corelight)
+
+  * ICMP: Add length checking before calling BuildNDOptionsVal (Tim Wojtulewicz, Corelight)
+
 8.2.0-53 | 2026-07-06 08:18:19 -0700
 
   * Bump auxil/spicy to latest patch release (Benjamin Bannier, Corelight)

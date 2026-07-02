@@ -198,8 +198,8 @@ jobs:
         - id: ubuntu-24.04-clang-libcpp
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            CC: clang-19
-            CXX: clang++-19
+            CC: clang-22
+            CXX: clang++-22
             CXXFLAGS: -stdlib=libc++
             # The libnode package is linked with the system's libstdc++, making
             # it incompatible with Zeek compiled using libc++.
@@ -212,8 +212,8 @@ jobs:
         - id: ubuntu-24.04-clang-tidy
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            CC: clang-19
-            CXX: clang++-19
+            CC: clang-22
+            CXX: clang++-22
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy'
           run: |
             ./ci/pre-build.sh
@@ -294,8 +294,8 @@ jobs:
         - id: ubsan-sanitizer
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            CC: clang-19
-            CXX: clang++-19
+            CC: clang-22
+            CXX: clang++-22
             CXXFLAGS: -DZEEK_DICT_DEBUG
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror'
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
@@ -310,8 +310,8 @@ jobs:
         - id: ubsan-sanitizer-zam
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            CC: clang-19
-            CXX: clang++-19
+            CC: clang-22
+            CXX: clang++-22
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror'
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
             ZEEK_TAILORED_UB_CHECKS: 1
@@ -329,8 +329,8 @@ jobs:
         - id: tsan-sanitizer
           file: ci/ubuntu-24.04/Dockerfile
           env:
-            CC: clang-19
-            CXX: clang++-19
+            CC: clang-22
+            CXX: clang++-22
             ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror'
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
             ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1

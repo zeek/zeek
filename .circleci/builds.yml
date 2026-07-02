@@ -1,0 +1,1310 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@5.1.1
+  aws-cli: circleci/aws-cli@5.4.1
+
+# These parameters are set via setup.yml. The PR ones are based on the labels for PRs
+# from Github. changes_only_docs is for PRs that only change docs.
+parameters:
+  pr_label_full:
+    type: boolean
+    default: false
+  pr_label_skip_all:
+    type: boolean
+    default: false
+  pr_label_benchmark:
+    type: boolean
+    default: false
+  pr_label_cluster_test:
+    type: boolean
+    default: false
+  pr_label_spicy:
+    type: boolean
+    default: false
+  pr_label_windows:
+    type: boolean
+    default: false
+  pr_label_zam:
+    type: boolean
+    default: false
+  pr_label_zeekctl:
+    type: boolean
+    default: false
+  changes_only_docs:
+    type: boolean
+    default: false
+  has_release_tag:
+    description: True if running for a tag of the form v1.2.3 or v1.2.3-rc1
+    type: boolean
+    default: false
+
+commands:
+  clone_repo:
+    parameters:
+      include_submodules:
+        description: Flag for whether to recursively update submodules after cloning
+        type: boolean
+        default: true
+      include_external_tests:
+        description: Flag for whether to include the external test repos/data after cloning
+        type: boolean
+        default: true
+    steps:
+      - checkout
+      - when:
+          condition: << parameters.include_submodules >>
+          steps:
+            - run:
+                name: Update submodules
+                command: git submodule update --recursive --init --recommend-shallow -j ${ZEEK_CI_CPUS}
+      - when:
+          condition: << parameters.include_external_tests >>
+          steps:
+            - attach_workspace:
+                name: Attach workspace with zeek-testing pcaps
+                at: .
+            - run:
+                name: Initialize external testing repos
+                command: ci/init-external-repos.sh
+
+  setup_ccache:
+    parameters:
+      max_size:
+        description: Flag that matches the max_size ccache argument
+        type: string
+        default: 1000M
+      max_files:
+        description: Flag that matches the max_files ccache argument
+        type: integer
+        default: 20000
+      path:
+        description: The path where cache files are stored
+        type: string
+    steps:
+      - run:
+          name: Setup ccache
+          command: |
+            mkdir -p "<< parameters.path >>"
+            ccache --set-config=max_size=<< parameters.max_size >>
+            ccache --set-config=max_files=<< parameters.max_files >>
+            ccache --set-config=compression=true
+            ccache --set-config=cache_dir="<< parameters.path >>"
+            ccache --zero-stats
+            ccache --show-stats
+          shell: bash
+
+jobs:
+  # Fetches the zeek-testing test traces either from a cache or the remote host
+  # and presents them in a workspace for other build jobs to use. This saves
+  # other jobs from having to download them.
+  fetch-test-traces:
+    # This is one of Circle's convenience images. See
+    # https://circleci.com/developer/images/image/cimg/base.
+    docker:
+      - image: cimg/base:current
+    environment:
+      # This has to be set here because it's a job definition and we're not reusing
+      # the environment from some other job. If it's not set, it redownloads the
+      # traces every time defeating the purpose of the caching.
+      ZEEK_CI: 1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - zeek-traces-v2
+      - add_ssh_keys:
+          fingerprints:
+            - SHA256:2YMeLODDB2fIteBZeIM6/4+OXfH1JFpURAMemyU78EY
+      - run:
+          name: Initializing external testing repos
+          command: ci/init-external-repos.sh
+      - save_cache:
+          key: zeek-traces-v2
+          paths:
+            - testing/external/zeek-testing-traces
+      - persist_to_workspace:
+          root: .
+          paths:
+            - testing/external/zeek-testing-traces
+
+  create-build-image:
+    parameters:
+      build_arm:
+        description: Flag for whether to build an ARM variant of the image
+        type: boolean
+        default: false
+    docker:
+      - image: cimg/base:current
+    resource_class: medium
+    steps:
+      # TODO: Add a step to flush old images out of the cache. Maybe loop through what's
+      # available for each image name and keep the last three versions minus what's on
+      # the master branch?
+      - checkout
+      - run:
+          name: Set extra environment variables
+          command: |
+            if << parameters.build_arm >>; then
+              echo "export PLATFORMS='linux/amd64,linux/arm64'" >> "$BASH_ENV"
+            else
+              echo "export PLATFORMS='linux/amd64'" >> "$BASH_ENV"
+            fi
+
+            IMAGE_NAME=$(echo $CIRCLE_JOB | cut -d- -f 3-)
+            DOCKERFILE_PATH=ci/$IMAGE_NAME/Dockerfile
+            IMAGE_VERSION=$(awk -F= '/DOCKERFILE_VERSION/ {print $2}' $DOCKERFILE_PATH)
+
+            if [ -z "${IMAGE_VERSION}" ]; then
+               echo "DOCKERFILE_VERSION environment variable was missing from ${DOCKERFILE_PATH}. This is"
+               echo "needed in order to build the images used later in the build process."
+               exit 1
+            fi
+
+            echo "export IMAGE_NAME=$IMAGE_NAME" >> "$BASH_ENV"
+            echo "export DOCKERFILE_PATH=$DOCKERFILE_PATH" >> "$BASH_ENV"
+            echo "export IMAGE_VERSION=$IMAGE_VERSION" >> "$BASH_ENV"
+            echo "export FULL_IMAGE_TAG=zeek/zeek-ci:$IMAGE_NAME-$IMAGE_VERSION" >> "$BASH_ENV"
+      # See https://circleci.com/docs/guides/execution-managed/building-docker-images/ for docs
+      # on what this does.
+      - setup_remote_docker
+      - run:
+          name: Set up Docker Buildx
+          command: |
+            docker buildx create --use --name multiarch-builder --driver docker-container
+            docker buildx inspect --bootstrap
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
+      - run:
+          name: Check if image exists remotely
+          command: |
+            # set +e prevents this script from exiting immediately if one of the commands fails.
+            # By default the commands use pipefail, which is overridden by set +e.
+            set +e
+
+            # If the image already exists for this version, we can just exit out of the job.
+            # See https://circleci.com/docs/reference/configuration-reference/#ending-a-job-from-within-a-step.
+            if << parameters.build_arm >>; then
+               NUM_LINES=$(docker manifest inspect $FULL_IMAGE_TAG 2>/dev/null | grep -c -E "amd64|arm64")
+               if [ $NUM_LINES -eq 2 ]; then
+                 echo "Both amd64 and arm64 images already exist for $FULL_IMAGE_TAG, exiting"
+                 circleci-agent step halt
+               else
+                 echo "Either amd64 or arm64 images are missing from $FULL_IMAGE_TAG, continuing with build"
+               fi
+            else
+               NUM_LINES=$(docker manifest inspect $FULL_IMAGE_TAG 2>/dev/null | grep -c -E "amd64")
+               if [ $NUM_LINES -eq 1 ]; then
+                 echo "$FULL_IMAGE_TAG already exists, exiting"
+                 circleci-agent step halt
+               else
+                 echo "$FULL_IMAGE_TAG is missing, continuing with build"
+               fi
+            fi
+      - run:
+          name: Build and push multi-arch image
+          command: |
+            docker buildx build \
+              --platform $PLATFORMS \
+              --file $DOCKERFILE_PATH \
+              --tag $FULL_IMAGE_TAG \
+              --push \
+              .
+
+  linux-build:
+    parameters:
+      docker_image:
+        description: The Docker image to be used as the base for building
+        type: string
+      resource_class:
+        description: The CircleCI resource class the Docker instance is run under
+        type: string
+        default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
+      configure_flags:
+        description: The flags passed to the Zeek configure script
+        type: string
+        default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+      extra_env:
+        description: A list of additional environment variables to set before building
+        type: string
+        default: ""
+      enable_tests:
+        description: Flag for whether Zeek's unit tests/btests should be run after building
+        type: boolean
+        default: true
+      enable_fuzzer_tests:
+        description: Flag for whether to run the fuzzer tests after the regular tests
+        type: boolean
+        default: false
+      enable_benchmarks:
+        description: Flag for whether the benchmarks should run after building. If this is true, the store_install_tarball parameter must be true as well.
+        type: boolean
+        default: false
+      store_install_tarball:
+        description: Flag for whether the build/install artifacts are stored. This flag also causes the build to install Zeek.
+        type: boolean
+        default: false
+      enable_coverage:
+        description: Flag for whether to update/upload coverage data after testing
+        type: boolean
+        default: false
+      install_spicy_analyzers:
+        description: Flag for whether to install the Spicy analyzers used for testing. If this is true, the store_install_tarball parameter must be true as well.
+        type: boolean
+        default: false
+      # The command run by this parameter requires the ZEEK_CI_COMPILER environment variable
+      # to be set via the extra_env parameter.
+      install_latest_compiler:
+        description: Flag for whether to install the latest compilers on the image before building
+        type: boolean
+        default: false
+      ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        type: string
+        default: "20260515"
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CONFIGURE_FLAGS: << parameters.configure_flags >>
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: linux
+      ZEEK_TEST_ULIMIT_OPEN_FILES: 256
+      ZEEK_CIRCLE_EXTRA_ENV: << parameters.extra_env >>
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+    docker:
+      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    resource_class: << parameters.resource_class >>
+    steps:
+      - run:
+          name: Set extra environment variables
+          command: |
+            echo "export ZEEK_CI_WORKING_DIR=${CIRCLE_WORKING_DIRECTORY}" >> "$BASH_ENV"
+
+            # This could be done in the environment block of the job definition, but
+            # we pass 0/1 for consistency with other environment variables in the rest
+            # of the config.
+            if [[ "<< parameters.store_install_tarball >>" == "true" ]]; then
+              echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=0" >> "$BASH_ENV"
+            fi
+
+            IFS=$'\n'
+            for line in ${ZEEK_CIRCLE_EXTRA_ENV}; do
+              echo "export ${line}" >> "$BASH_ENV"
+            done
+      - clone_repo
+      - restore_cache:
+          name: Restore ccache directory
+          # The cascade of keys here allows future jobs to look down the chain for an existing
+          # matching cache. Revision, then branch, then arch, then job. This allows it to
+          # potentially find a ccache entry that it can base off it instead of starting fresh
+          # every time.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: /root/.ccache
+      - when:
+          condition: << parameters.install_latest_compiler >>
+          steps:
+            - run:
+                name: Installing latest compiler version
+                command: ./ci/debian-unstable/prepare-weekly.sh
+      - run:
+          name: Build
+          command: ci/build.sh
+      - run:
+          name: Show ccache statistics and prune
+          command: |
+            ccache --show-stats
+            CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
+      - when:
+          condition: << parameters.enable_tests >>
+          steps:
+            - run:
+                name: Test
+                command: ci/test.sh
+            - store_test_results:
+                path: btest-results
+            - store_artifacts:
+                name: Upload btest artifacts
+                path: btest-results
+                destination: btest-results
+      - when:
+          condition: << parameters.enable_fuzzer_tests >>
+          steps:
+            - run:
+                name: Test fuzzers
+                command: ci/test-fuzzers.sh
+      - when:
+          condition: << parameters.enable_coverage >>
+          steps:
+            - run:
+                name: Run coverage
+                command: ci/upload-coverage.sh
+      - when:
+          condition: << parameters.store_install_tarball >>
+          steps:
+            - store_artifacts:
+                path: install.tgz
+                destination: install.tgz
+      - when:
+          condition: << parameters.install_spicy_analyzers >>
+          steps:
+            - run:
+                name: Install spicy analyzers
+                command: |
+                  set +e
+                  ci/spicy-install-analyzers.sh
+      - when:
+          condition: << parameters.enable_benchmarks >>
+          steps:
+            - run:
+                name: Run benchmarks
+                command: ci/benchmark.sh
+
+  windows-build:
+    environment:
+      ZEEK_CI: 1
+      # These values match the available CPUs for a windows.large instance, as specified below.
+      ZEEK_CI_CPUS: 8
+      ZEEK_CI_BTEST_JOBS: 6
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: windows
+      ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      CTEST_OUTPUT_ON_FAILURE: 1
+      VSINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\'
+    machine:
+      image: windows-server-2025-gui:edge
+    resource_class: windows.large
+    steps:
+      - run:
+          name: Install Chocolatey dependencies
+          command: |
+            choco install -y --no-progress sed winflexbison3 ccache ninja
+      - run:
+          name: Enable git symlinks
+          command: git config --global core.symlinks true
+      - clone_repo:
+          include_external_tests: false
+      - run:
+          name: Dump environment info
+          command: ci\windows\prepare.cmd
+          shell: cmd.exe
+      - restore_cache:
+          name: Restore ccache directory
+          # See above for reasoning for this cascade of cache keys.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: C:\ccache
+      - restore_cache:
+          name: Restore vcpkg cache
+          # See above for reasoning for this cascade of cache keys.
+          keys:
+            - vcpkg-v2-{{ .Branch }}-{{ .Revision }}
+            - vcpkg-v2-{{ .Branch }}-
+            - vcpkg-v2-
+      - run:
+          name: Configure
+          command: ci\windows\configure.cmd
+          shell: cmd.exe
+      - save_cache:
+          name: Saving vcpkg build cache
+          key: vcpkg-v2-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - auxil\vcpkg\installed
+            - auxil\vcpkg\downloads
+            - C:\Users\circleci\AppData\Local\vcpkg\archives
+      - run:
+          name: Build
+          command: ci\windows\build.cmd
+          shell: cmd.exe
+      - run:
+          name: Show ccache statistics and prune
+          command: |
+            ccache --show-stats
+            CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
+          shell: bash
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - C:\ccache
+      - run:
+          name: Test
+          command: ci\windows\test.cmd
+          shell: cmd.exe
+      - store_test_results:
+          name: Store btest results
+          path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
+
+  macos-build:
+    parameters:
+      configure_flags:
+        description: The flags passed to the Zeek configure script
+        type: string
+        default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 -D NODEJS_ROOT_DIR=/opt/homebrew/opt/node@24
+      xcode_version:
+        description: The version of Xcode used for the build
+        type: string
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CONFIGURE_FLAGS: << parameters.configure_flags >>
+      # This is based on the size of the m4pro.medium runner, as specified in Circle's docs at
+      # https://circleci.com/docs/guides/execution-managed/using-macos/#available-resource-classes.
+      ZEEK_CI_CPUS: 6
+      ZEEK_CI_BTEST_JOBS: 6
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: macos
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+    macos:
+      xcode: << parameters.xcode_version >>
+    resource_class: m4pro.medium
+    steps:
+      - run:
+          name: Set extra environment variables
+          command: |
+            echo "export ZEEK_CI_WORKING_DIR=${CIRCLE_WORKING_DIRECTORY}" >> "$BASH_ENV"
+      - clone_repo
+      - run:
+          name: Install dependencies
+          command: ci/macos/prepare.sh
+      - restore_cache:
+          name: Restore ccache directory
+          # See above for reasoning for this cascade of cache keys.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: ~/.ccache
+      - run:
+          name: Build
+          command: ci/build.sh
+      - run:
+          name: Show ccache statistics and prune
+          command: |
+            ccache --show-stats
+            CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ~/.ccache
+      - run:
+          name: Test
+          command: ci/test.sh
+      - store_test_results:
+          name: Store btest results
+          path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
+
+  release-image-build:
+    parameters:
+      arch:
+        type: string
+      resource_class:
+        type: string
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+    environment:
+      ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
+      BUILDKIT_PROGRESS: plain
+      IMAGE_TAG: zeek/zeek-multiarch:<< parameters.arch >>
+      IMAGE_ARCH: << parameters.arch >>
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      # These duplicate the default parameter values from the other jobs
+      CCACHE_MAXSIZE: 1000M
+      CCACHE_MAXFILES: 20000
+      # Fixes an issue with the ubuntu-2404 image not having the latest buildx and the
+      # manifest getting deleted mid-build, which causes errors.
+      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+    machine:
+      image: ubuntu-2404:current
+      docker_layer_caching: true
+    resource_class: << parameters.resource_class >>
+    steps:
+      - clone_repo:
+          include_external_tests: false
+      - run:
+          name: Create builder image
+          command: |
+            set -euxo pipefail
+
+            build_builder() {
+              (cd docker && docker build \
+                               --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                               -t zeek-builder:latest \
+                               -f builder.Dockerfile .)
+            }
+
+            LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null || true)
+            LAST_BUILDER_SHA=$(docker inspect -f "{{ index .Config.Labels "org.opencontainers.image.revision" }}" zeek-builder:latest 2>/dev/null || true)
+
+            # DLC can restore BuildKit cache without the tagged image or blobs.
+            if [ -z "${LAST_BUILDER_IMAGE_ID}" ]; then
+              docker builder prune -af || true
+            fi
+
+            # Attempt to build the image once. If it fails, do it again without the cache.
+            if ! build_builder; then
+              echo "Builder build failed; clearing build cache and retrying once with --no-cache..."
+              docker builder prune -af || true
+              (cd docker && docker build --no-cache \
+                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                -t zeek-builder:latest \
+                -f builder.Dockerfile .)
+            fi
+
+            NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
+
+            echo "Old Builder Image ID: ${LAST_BUILDER_IMAGE_ID}"
+            echo "New Builder Image ID: ${NEW_BUILDER_IMAGE_ID}"
+            echo "Old Commit SHA: ${LAST_BUILDER_SHA}"
+            echo "New Commit SHA: ${CIRCLE_SHA1}"
+
+            if [ -n "${LAST_BUILDER_IMAGE_ID}" ] &&
+               [ "${LAST_BUILDER_IMAGE_ID}" = "${NEW_BUILDER_IMAGE_ID}" ] &&
+               [ "${LAST_BUILDER_SHA}" = "${CIRCLE_SHA1}" ]; then
+              echo "Builder image was not rebuilt, no need to rebuild the rest."
+              circleci-agent step halt
+            fi
+      - restore_cache:
+          name: Restore ccache
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - run:
+          name: Build zeek in new image
+          command: |
+            docker run --name zeek-builder-container \
+                -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+                -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+                -e CCACHE_DIR=/tmp/ccache \
+                -e CCACHE_NOSTATS=1 \
+                -v ${CIRCLE_WORKING_DIRECTORY}:/src/zeek \
+                -v /tmp/ccache:/tmp/ccache \
+                -w /src/zeek zeek-builder:latest \
+                bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+
+            # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+            docker commit zeek-builder-container zeek-build
+      - run:
+          name: Build final image
+          command: |
+            ZEEK_VERSION=$(cat ${CIRCLE_WORKING_DIRECTORY}/VERSION)
+            CREATED_DATE=$(date -Iseconds)
+            echo "Building final image for ${ZEEK_VERSION} at ${CREATED_DATE}"
+
+            (cd docker && docker build \
+                                 --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                                 --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                                 --build-arg CREATED_DATE=${CREATED_DATE} \
+                                 -t ${IMAGE_TAG} \
+                                 -f final.Dockerfile .)
+
+            mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+            docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+      - run:
+          name: Run tests
+          command: |
+            docker tag ${IMAGE_TAG} zeek:latest
+            make -C docker/btest
+      - save_cache:
+          name: Save ccache
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /tmp/ccache
+      - persist_to_workspace:
+          name: Persist saved image to workspace
+          root: /tmp/zeek_images
+          paths:
+            - .
+
+  container-image-manifest-build:
+    environment:
+      BUILDKIT_PROGRESS: plain
+      AWS_REGION: us-east-1
+    docker:
+      - image: cimg/aws:2025.01
+    steps:
+      - run:
+          name: Output docker/buildx versions
+          command: docker version && docker buildx version
+      # See https://circleci.com/docs/guides/execution-managed/building-docker-images/ for docs
+      # on what this does.
+      - setup_remote_docker
+      - run:
+          name: Set up Docker Buildx
+          command: |
+            docker buildx create --use --name multiarch-builder --driver docker-container
+            docker buildx inspect --bootstrap
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
+      - aws-cli/setup:
+          # Defined in the zeek context on the CCI org
+          role_arn: ${AWS_ECR_ROLE_ARN}
+          region: ${AWS_REGION}
+          session_duration: "1800"
+          profile_name: "OIDC-PROFILE"
+      - run:
+          name: Log in to AWS ECR
+          command: |
+            aws ecr-public get-login-password --profile "OIDC-PROFILE" | docker login --username AWS --password-stdin public.ecr.aws
+      - attach_workspace:
+          name: Attach workspace with images
+          at: /tmp/zeek_images
+      - run:
+          name: Load images from workspace
+          command: |
+            set -x
+            ls -Rlha /tmp/zeek_images
+            docker load -i /tmp/zeek_images/amd64/final.image
+            docker load -i /tmp/zeek_images/arm64/final.image
+            docker image ls -a
+      # Clone the repo to get the CI scripts but don't include any of the extras
+      - clone_repo:
+          include_submodules: false
+          include_external_tests: false
+      - run:
+          name: Set image tag
+          command: |
+            # If we have a CIRCLE_TAG, use the value in VERSION to push the multiarch
+            # images, otherwise use latest. Basically we push the arch images as
+            #    zeek/zeek:1.2.3-<amd64|arm64> or
+            #    zeek/zeek-dev:latest-<amd64|arm64>
+            # and using these, create a manifest of the form zeek/zeek:${CIRCLE_TAG}
+            # for tags, or zeek/zeek-dev:latest for pushes to master.
+            set -x
+            if [ -n "${CIRCLE_TAG}" ]; then
+              echo "IMAGE_NAME=zeek"  >> $BASH_ENV
+              echo "IMAGE_TAG=$(cat VERSION)" >> $BASH_ENV
+              if [ "${CIRCLE_TAG}" != "v$(cat VERSION)" ]; then
+                echo "CIRCLE_TAG '${CIRCLE_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
+                exit 1
+              fi
+            elif [ "${CIRCLE_BRANCH}" = "master" ]; then
+              echo "IMAGE_NAME=zeek-dev"  >> $BASH_ENV
+              echo "IMAGE_TAG=latest" >> $BASH_ENV
+            # Hunk for testing and pushing into zeek/zeek-next. Make sure
+            # to allow the branch in the above only_if attribute of this task.
+            # elif [ "${CIRCLE_BRANCH}" = "topic/timw/circleci-docker-image-builds" ]; then
+            #   echo "IMAGE_NAME=zeek-next"  >> $BASH_ENV
+            #   echo "IMAGE_TAG=latest" >> $BASH_ENV
+            else
+              echo "Bad tag/branch for container_image_manifest"
+              env
+              exit 1
+            fi
+      - run:
+          name: Set additional manifest tags
+          command: |
+            set -x
+            if [ -z "${CIRCLE_TAG}" ]; then
+              exit 0
+            fi
+
+            # Populate the checkout with all the repository information we need
+            # to determine what the current feature and lts versions are.
+            git fetch --tags origin \
+                '+refs/heads/release/*:refs/remotes/origin/release/*' \
+                '+refs/heads/master:refs/remotes/origin/master'
+
+            ./ci/container-images-addl-tags.sh "${CIRCLE_TAG}" | tee -a $BASH_ENV
+      - run:
+          name: Push image tags
+          command: |
+            ./ci/container-images-tag-and-push.sh
+            REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
+
+  public-ecr-cleanup:
+    environment:
+      AWS_REGION: us-east-1
+    docker:
+      - image: cimg/base:current
+    steps:
+      - clone_repo:
+          include_submodules: false
+          include_external_tests: false
+      - aws-cli/setup:
+          # Defined in the zeek context on the CCI org
+          role_arn: ${AWS_ECR_ROLE_ARN}
+          region: ${AWS_REGION}
+          session_duration: "1800"
+          profile_name: "OIDC-PROFILE"
+      - run:
+          name: Log in to AWS ECR
+          command: |
+            aws ecr-public get-login-password --profile "OIDC-PROFILE" | docker login --username AWS --password-stdin public.ecr.aws
+      - run: ./ci/public-ecr-cleanup.sh
+
+  zeekctl-testing:
+    parameters:
+      docker_image:
+        description: The Docker image to be used as the base for building
+        type: string
+      ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        type: string
+        default: "20260515"
+      resource_class:
+        description: The CircleCI resource class the Docker instance is run under
+        type: string
+        default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: linux
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+    docker:
+      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    resource_class: << parameters.resource_class >>
+    steps:
+      - run:
+          name: Install iproute2
+          command: |
+            apt-get update && apt-get install -y --no-install-recommends iproute2
+      - clone_repo:
+          include_external_tests: false
+      - restore_cache:
+          name: Restore ccache directory
+          # The cascade of keys here allows future jobs to look down the chain for an existing
+          # matching cache. Revision, then branch, then arch, then job. This allows it to
+          # potentially find a ccache entry that it can base off it instead of starting fresh
+          # every time.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: /root/.ccache
+      - run:
+          name: Build
+          command: cd auxil/zeekctl/testing && ./Scripts/build-zeek
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
+      - run:
+          name: Test
+          command: cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
+      - store_artifacts:
+          path: auxil/zeekctl/testing/.tmp
+          destination: test_output
+          when: on_fail
+
+  include-plugins-testing:
+    parameters:
+      docker_image:
+        description: The Docker image to be used as the base for building
+        type: string
+      ci_image_date:
+        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+        type: string
+        default: "20260515"
+      resource_class:
+        description: The CircleCI resource class the Docker instance is run under
+        type: string
+        default: large
+      cpu_count:
+        description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
+        type: integer
+        default: 4
+    environment:
+      ZEEK_CI: 1
+      ZEEK_CI_CPUS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_JOBS: << parameters.cpu_count >>
+      ZEEK_CI_BTEST_RETRIES: 2
+      ZEEK_CI_RUNNER_OS: linux
+      ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+    docker:
+      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
+    resource_class: << parameters.resource_class >>
+    steps:
+      - run:
+          name: Set extra environment variables
+          command: |
+            echo "export ZEEK_CI_WORKING_DIR=${CIRCLE_WORKING_DIRECTORY}" >> "$BASH_ENV"
+      - clone_repo:
+          include_external_tests: false
+      - run:
+          name: Clone plugin repos
+          command: |
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git
+            cd zeek-perf-support && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git
+            cd zeek-more-hashes && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git
+            cd zeek-cluster-backend-nats && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+            cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git
+            cd zeek-kafka && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+      - restore_cache:
+          name: Restore ccache directory
+          # The cascade of keys here allows future jobs to look down the chain for an existing
+          # matching cache. Revision, then branch, then arch, then job. This allows it to
+          # potentially find a ccache entry that it can base off it instead of starting fresh
+          # every time.
+          keys:
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
+      - setup_ccache:
+          path: /root/.ccache
+      - run:
+          name: Build
+          command: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/protocol-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/py-lib-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/zeek-version-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-perf-support;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-more-hashes;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-cluster-backend-nats;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-kafka'" ./ci/build.sh
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
+      - run:
+          name: Test
+          command: cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+      - run:
+          name: External plugin tests
+          command: |
+            . ${ZEEK_CI_WORKING_DIR}/build/zeek-path-dev.sh
+            set -ex
+            # For now, just check if the external plugins are available.
+            zeek -N Zeek::PerfSupport
+            zeek -N Zeek::MoreHashes
+            zeek -N Zeek::Cluster_Backend_NATS
+            zeek -N Seiso::Kafka
+      - store_artifacts:
+          path: auxil/zeekctl/testing/.tmp
+          destination: test_output
+          when: on_fail
+
+
+# Workflow job filters control when a job runs based on the conditions passed. The
+# filters allow a job to run if the conditions in the filter are *true*, which seems
+# counter-intuitive to their name.
+_filter_if_skip_all: &FILTER_IF_SKIP_ALL
+  filters: not pipeline.parameters.pr_label_skip_all
+
+_filter_if_pr_not_full_ci: &FILTER_IF_PR_NOT_FULL_CI
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full))
+
+_filter_if_pr_not_full_or_benchmark: &FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_benchmark))
+
+_filter_if_pr_not_full_or_cluster_test: &FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_cluster_test))
+
+_filter_if_pr_not_full_or_zam: &FILTER_IF_PR_NOT_FULL_OR_ZAM
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_zam))
+
+_filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_zeekctl))
+
+_filter_nightly_or_tagged: &FILTER_NIGHTLY_OR_TAGGED
+  filters: |
+    pipeline.schedule.name == "nightly" or pipeline.parameters.has_release_tag
+
+
+_configure_binary_build: &CONFIGURE_BINARY_BUILD
+  configure_flags: --build-type=release --disable-broker-tests --binary-package --enable-static-broker --enable-static-binpac --prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --ccache --enable-werror
+
+_configure_static_build: &CONFIGURE_STATIC_BUILD
+  configure_flags: --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
+
+_configure_clang_tidy: &CONFIGURE_CLANG_TIDY
+  configure_flags: --build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
+
+_configure_spicy_ssl: &CONFIGURE_SPICY_SSL
+  configure_flags: --build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror
+
+_configure_asan: &CONFIGURE_ASAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+
+_configure_ubsan: &CONFIGURE_UBSAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror --disable-javascript
+
+_configure_tsan: &CONFIGURE_TSAN
+  configure_flags: --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror --disable-javascript
+
+workflows:
+  zeek_builds:
+    jobs:
+      - fetch-test-traces
+
+      # The job name is split up and used to map to the Dockerfile and final image
+      # name. Everything after "build-image-" should map to a directory in the ci
+      # directory in the repo.
+      - create-build-image:
+          name: build-image-alpine
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-centos-stream-9
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-centos-stream-10
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-debian-12
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-debian-13
+          build_arm: true
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-fedora-43
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-fedora-44
+          << : *FILTER_IF_SKIP_ALL
+      - create-build-image:
+          name: build-image-opensuse-leap-16.0
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-opensuse-tumbleweed
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-ubuntu-22.04
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-ubuntu-24.04
+          << : *FILTER_IF_SKIP_ALL
+      - create-build-image:
+          name: build-image-ubuntu-26.04
+          << : *FILTER_IF_PR_NOT_FULL_CI
+
+      - macos-build:
+          name: macOS-xcode-26.5
+          xcode_version: "26.5"
+          requires: [fetch-test-traces]
+          << : *FILTER_IF_SKIP_ALL
+      - macos-build:
+          name: macOS-xcode-16.4
+          xcode_version: "16.4"
+          requires: [fetch-test-traces]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: alpine
+          docker_image: zeek/zeek-ci:alpine
+          requires: [fetch-test-traces, build-image-alpine]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: centos-stream-9
+          docker_image: zeek/zeek-ci:centos-stream-9
+          requires: [fetch-test-traces, build-image-centos-stream-9]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: centos-stream-10
+          docker_image: zeek/zeek-ci:centos-stream-10
+          requires: [fetch-test-traces, build-image-centos-stream-10]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: debian-12
+          docker_image: zeek/zeek-ci:debian-12
+          requires: [fetch-test-traces, build-image-debian-12]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: debian-13
+          docker_image: zeek/zeek-ci:debian-13
+          requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: debian-13-arm
+          docker_image: zeek/zeek-ci:debian-13
+          resource_class: arm.large
+          requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: debian-13-binary
+          docker_image: zeek/zeek-ci:debian-13
+          << : *CONFIGURE_BINARY_BUILD
+          requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: debian-13-static
+          docker_image: zeek/zeek-ci:debian-13
+          << : *CONFIGURE_STATIC_BUILD
+          requires: [fetch-test-traces, build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: fedora-43
+          docker_image: zeek/zeek-ci:fedora-43
+          requires: [fetch-test-traces, build-image-fedora-43]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: fedora-44
+          docker_image: zeek/zeek-ci:fedora-44
+          << : *CONFIGURE_BINARY_BUILD
+          requires: [fetch-test-traces, build-image-fedora-44]
+          << : *FILTER_IF_SKIP_ALL
+      - linux-build:
+          name: opensuse-leap-16.0
+          docker_image: zeek/zeek-ci:opensuse-leap-16.0
+          requires: [fetch-test-traces, build-image-opensuse-leap-16.0]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: opensuse-tumbleweed
+          docker_image: zeek/zeek-ci:opensuse-tumbleweed
+          requires: [fetch-test-traces, build-image-opensuse-tumbleweed]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: ubuntu-22.04
+          docker_image: zeek/zeek-ci:ubuntu-22.04
+          requires: [fetch-test-traces, build-image-ubuntu-22.04]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: ubuntu-24.04
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          context:
+            - zeek
+          << : *FILTER_IF_SKIP_ALL
+      - linux-build:
+          name: ubuntu-24.04-clang-libcpp
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            CC="clang-19"
+            CXX="clang++-19"
+            CXXFLAGS="-stdlib=libc++"
+            ZEEK_CI_CONFIGURE_FLAGS_EXTRA="--disable-javascript"
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: ubuntu-24.04-clang-tidy
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          << : *CONFIGURE_CLANG_TIDY
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            CC="clang-19"
+            CXX="clang++-19"
+          enable_tests: false
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: ubuntu-24.04-spicy
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          << : *CONFIGURE_SPICY_SSL
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          store_install_tarball: true
+          install_spicy_analyzers: true
+          context:
+            - zeek
+          << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
+      - linux-build:
+          name: ubuntu-24.04-spicy-head
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
+          store_install_tarball: true
+          install_spicy_analyzers: true
+          context:
+            - zeek
+          << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
+      - linux-build:
+          name: ubuntu-24.04-zam
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            ZEEK_CI_SKIP_UNIT_TESTS=1
+            ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
+            ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
+            ZEEK_CI_BTEST_JOBS=3
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
+      - linux-build:
+          name: ubuntu-26.04
+          docker_image: zeek/zeek-ci:ubuntu-26.04
+          requires: [fetch-test-traces, build-image-ubuntu-26.04]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: asan-sanitizer
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          << : *CONFIGURE_ASAN
+          # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
+          resource_class: xlarge
+          enable_coverage: true
+          enable_fuzzer_tests: true
+          cpu_count: 8
+          context:
+            - zeek
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            CXXFLAGS=-DZEEK_DICT_DEBUG
+            ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
+          << : *FILTER_IF_SKIP_ALL
+      - linux-build:
+          name: asan-sanitizer-zam
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          << : *CONFIGURE_ASAN
+          # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
+          resource_class: xlarge
+          cpu_count: 8
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            CXXFLAGS=-DZEEK_DICT_DEBUG
+            ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
+            ZEEK_CI_SKIP_UNIT_TESTS=1
+            ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
+            ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
+      - linux-build:
+          name: ubsan-sanitizer
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          << : *CONFIGURE_UBSAN
+          extra_env: |
+            CC=clang-19
+            CXX=clang++-19
+            CXXFLAGS=-DZEEK_DICT_DEBUG
+            ZEEK_TAILORED_UB_CHECKS=1
+            UBSAN_OPTIONS=print_stacktrace=1
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: ubsan-sanitizer-zam
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          << : *CONFIGURE_UBSAN
+          extra_env: |
+            CC=clang-19
+            CXX=clang++-19
+            CXXFLAGS=-DZEEK_DICT_DEBUG
+            ZEEK_TAILORED_UB_CHECKS=1
+            UBSAN_OPTIONS=print_stacktrace=1
+            ZEEK_CI_SKIP_UNIT_TESTS=1
+            ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
+            ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
+            ZEEK_CI_BTEST_JOBS=3
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
+      - linux-build:
+          name: tsan-sanitizer
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          << : *CONFIGURE_TSAN
+          extra_env: |
+            CC=clang-19
+            CXX=clang++-19
+            ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
+            ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+          << : *FILTER_IF_PR_NOT_FULL_CI
+
+      - windows-build:
+          << : *FILTER_IF_SKIP_ALL
+
+      - release-image-build:
+          name: amd64-container-image
+          arch: amd64
+          resource_class: medium
+          cpu_count: 4
+          << : *FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+      - release-image-build:
+          name: arm64-container-image
+          arch: arm64
+          resource_class: arm.medium
+          cpu_count: 4
+          << : *FILTER_NIGHTLY_OR_TAGGED
+      - container-image-manifest-build:
+          requires: [amd64-container-image, arm64-container-image]
+          context:
+            - zeek
+          << : *FILTER_NIGHTLY_OR_TAGGED
+      - public-ecr-cleanup:
+          requires: [container-image-manifest-build]
+          context:
+            - zeek
+          << : *FILTER_NIGHTLY_OR_TAGGED
+
+      - zeekctl-testing:
+          docker_image: zeek/zeek-ci:debian-12
+          requires: [build-image-debian-12]
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
+
+      - include-plugins-testing:
+          docker_image: zeek/zeek-ci:debian-13
+          requires: [build-image-debian-13]
+          << : *FILTER_IF_PR_NOT_FULL_CI
+
+  weekly_compiler_builds:
+    when: pipeline.schedule.name == "weekly"
+    jobs:
+      - fetch-test-traces
+      - create-build-image:
+          name: build-image-debian-unstable
+
+      - linux-build:
+          name: latest-gcc-version
+          docker_image: zeek/zeek-ci:debian-unstable
+          install_latest_compiler: true
+          requires: [fetch-test-traces, build-image-debian-unstable]
+          extra_env: |
+            ZEEK_CI_COMPILER=gcc
+
+      - linux-build:
+          name: latest-clang-version
+          docker_image: zeek/zeek-ci:debian-unstable
+          install_latest_compiler: true
+          requires: [fetch-test-traces, build-image-debian-unstable]
+          extra_env: |
+            ZEEK_CI_COMPILER=clang

@@ -1,3 +1,7 @@
+9.0.0-dev.529 | 2026-07-02 14:49:52 -0700
+
+  * CCI: Rename yaml files for config.yml to contain dynamic config (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.527 | 2026-07-02 09:25:25 +0200
 
   * doc: A few more btest.rst additions and changes (Arne Welzel, Corelight)

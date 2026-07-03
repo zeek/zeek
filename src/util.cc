@@ -2875,7 +2875,7 @@ TEST_SUITE("util") {
 
         std::mutex m;
         std::condition_variable cv;
-        bool captured = false; // main thread has captured its fmt() pointer
+        bool captured = false;  // main thread has captured its fmt() pointer
         bool clobbered = false; // helper thread has completed its fmt() call
 
         const char* p = fmt("%s", a.c_str());

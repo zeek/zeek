@@ -1258,11 +1258,9 @@ const char* fmt_bytes(const char* data, int len) {
 }
 
 const char* vfmt(const char* format, va_list al) {
-    // Per-thread rather than a single process-global buffer: child threads
-    // (e.g. log writer/input reader backends) format concurrently with the
-    // main thread, which holds the returned pointer across a copy_string().
-    // A shared buffer would let one thread overwrite or reallocate it mid-copy.
-    // The std::vector frees itself at thread exit, so this leaks nothing.
+    // This function returns a pointer to an internal buffer. Use thread-local
+    // storage for the underlying value so invocations from different threads
+    // get a stable value.
     thread_local std::vector<char> buf(1024);
 
     va_list alc;

@@ -2,14 +2,19 @@
 
 #include "zeek-cluster-config.h"
 
+#include <unistd.h>
 #include <algorithm>
 #include <cctype>
+#include <cerrno>
+#include <climits>
+#include <cstring>
 #include <fstream>
 #include <iterator>
 #include <optional>
 #include <regex>
 #include <set>
 #include <stdexcept>
+#include <string> // strerror
 #include <string>
 #include <string_view>
 #include <vector>
@@ -172,22 +177,6 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
     return {sections, errors};
 }
 
-/**
- * " ".join(...) in C++, meh.
- */
-std::string join(const std::vector<std::string>& args, const std::string& sep = " ") {
-    std::string result;
-
-    for ( const auto& arg : args ) {
-        if ( ! result.empty() && ! sep.empty() )
-            result += sep;
-
-        result += arg;
-    }
-
-    return result;
-}
-
 bool validate_bool(const Option& opt) {
     auto val = opt.Value();
     tolower(val);
@@ -260,6 +249,20 @@ int validate_nice(const Option& opt) {
 } // namespace
 
 namespace zeek::detail {
+
+// " ".join(...) in C++, meh.
+std::string join(std::span<const std::string> args, const std::string& sep) {
+    std::string result;
+
+    for ( const auto& arg : args ) {
+        if ( ! result.empty() && ! sep.empty() && ! arg.empty() )
+            result += sep;
+
+        result += arg;
+    }
+
+    return result;
+}
 
 // Grumble. Feels like wrong to implement this by hand.
 std::optional<std::string> ZeekClusterConfig::SubstituteVars(const std::string& s,
@@ -399,10 +402,10 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         std::string key = option.Key();
         tolower(key);
 
-        // Only worker_env support multi-value
-        if ( key != "worker_env" && option.Values().size() > 1 )
-            return {iwc, "multiple values for '" + key + "' given"};
+        // Only env and args options support multiple values.
 
+        if ( ! key.ends_with("env") && ! key.ends_with("args") && option.Values().size() > 1 )
+            return {iwc, "multiple values for '" + key + "' given"};
 
         // When the next interface option is reached, stop interpreting any keys.
         if ( key == "interface" ) {
@@ -420,20 +423,11 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
             iwc.args = option.Value();
         }
         else if ( key == "worker_env" ) {
-            // Split all worker_env lines into key-value pairs and store
-            // them in env.
-            for ( const auto& value : option.Values() ) {
-                if ( value.empty() )
-                    continue;
+            auto [env, error] = option.AsEnvVars();
+            if ( ! error.empty() )
+                return {iwc, "error in worker_env: " + error};
 
-                auto idx = value.find('=');
-                if ( idx == std::string::npos )
-                    return {iwc, "missing equals in worker_env '" + key + "' = '" + value + "'"};
-
-                std::string k = value.substr(0, idx);
-                std::string v = value.substr(idx + 1);
-                iwc.envs.push_back({std::move(k), std::move(v)});
-            }
+            iwc.env = std::move(env);
         }
         else if ( key == "workers_cpu_list" ) {
             iwc.cpu_list = CpuList(option.Value());
@@ -579,7 +573,44 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         tolower(key);
 
         if ( key == "args" ) {
-            config.args = option.Value();
+            config.args = option.JoinedValues();
+        }
+        else if ( key == "manger_args" ) {
+            config.manager_args = option.JoinedValues();
+        }
+        else if ( key == "logger_args" ) {
+            config.logger_args = option.JoinedValues();
+        }
+        else if ( key == "proxy_args" ) {
+            config.proxy_args = option.JoinedValues();
+        }
+        else if ( key == "env" ) {
+            auto [env, error] = option.AsEnvVars();
+            if ( error.empty() )
+                config.env = std::move(env);
+            else
+                config.Error("error in env: " + error);
+        }
+        else if ( key == "manger_env" ) {
+            auto [env, error] = option.AsEnvVars();
+            if ( error.empty() )
+                config.manager_env = std::move(env);
+            else
+                config.Error("error in manager_env: " + error);
+        }
+        else if ( key == "logger_env" ) {
+            auto [env, error] = option.AsEnvVars();
+            if ( error.empty() )
+                config.logger_env = std::move(env);
+            else
+                config.Error("error in logger_env: " + error);
+        }
+        else if ( key == "proxy_env" ) {
+            auto [env, error] = option.AsEnvVars();
+            if ( error.empty() )
+                config.proxy_env = std::move(env);
+            else
+                config.Error("error in proxy_env: " + error);
         }
         else if ( key == "user" ) {
             config.user = option.Value();
@@ -623,7 +654,7 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
             config.ext_zeek_path = option.Value();
         }
         else if ( key == "cluster_backend_args" ) {
-            config.cluster_backend_args = option.Value();
+            config.cluster_backend_args = option.JoinedValues();
         }
         else if ( key == "cluster_layout" ) {
             config.cluster_layout = option.Value();
@@ -631,11 +662,11 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         else if ( key == "cluster_node_prefix" ) {
             config.cluster_node_prefix = option.Value();
         }
-        else if ( key == "port" ) {
-            config.port = std::atoi(option.Value().c_str());
+        else if ( key == "port" || key == "cluster_port" ) {
+            config.cluster_port = std::atoi(option.Value().c_str());
         }
-        else if ( key == "address" ) {
-            config.address = option.Value();
+        else if ( key == "address" || key == "cluster_address" ) {
+            config.cluster_address = option.Value();
         }
         else if ( key == "metrics_port" ) {
             config.metrics_port = std::atoi(option.Value().c_str());
@@ -647,7 +678,7 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
             config.enable_archiver = validate_bool(option);
         }
         else if ( key == "archiver_args" ) {
-            config.archiver_args = option.Value();
+            config.archiver_args = option.JoinedValues();
         }
         else if ( key == "manager_nice" ) {
             config.nice_manager = validate_nice(option);
@@ -691,11 +722,26 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
     // Assume zeek-cluster-layout-generator is in /bin
     config.cluster_layout_generator = config.ZeekBaseDir() / "bin" / "zeek-cluster-layout-generator";
 
-    // If the manager is disabled, require an explicit cluster_layout configuration for now.
-    if ( ! config.manager && ! config.cluster_layout.has_value() )
-        config.Error("disabled manager requires cluster_layout");
-
     return config;
+}
+
+bool ZeekClusterConfig::IsInClusterDir() const {
+    auto hostname = zeek::detail::gethostname();
+    if ( ! hostname.has_value() )
+        return false;
+
+    // Just some sanity checking.
+    auto stem = source_path.stem().stem(); // strip .zeek.conf
+    auto parent = source_path.parent_path().filename();
+    return parent == "cluster" && stem == *hostname;
+}
+
+std::filesystem::path ZeekClusterConfig::ClusterDir() const {
+    // Just some sanity checking.
+    if ( ! IsInClusterDir() )
+        throw std::logic_error("Do not call ClusterDir() for non-cluster config");
+
+    return source_path.parent_path();
 }
 
 std::string ZeekClusterConfig::ClusterLayoutCommand() const {
@@ -706,6 +752,21 @@ std::string ZeekClusterConfig::ClusterLayoutCommand() const {
             "cp",
             "-f",
             cluster_layout->string(),
+            (GeneratedScriptsDir() / "cluster-layout.zeek").string(),
+        };
+
+        return join(cmd_args);
+    }
+
+    // If this configuration is coming from /etc/zeek/cluster, use
+    // the zeek-cluster-layout-generator executable's -C argument to
+    // pass the directory.
+    if ( IsInClusterDir() ) {
+        std::vector<std::string> cmd_args = {
+            cluster_layout_generator.string(),
+            "-C",
+            ClusterDir(),
+            "-o",
             (GeneratedScriptsDir() / "cluster-layout.zeek").string(),
         };
 
@@ -744,9 +805,9 @@ std::string ZeekClusterConfig::ClusterLayoutCommand() const {
         "-W",
         worker_arg,
         "-p",
-        std::to_string(port),
+        std::to_string(cluster_port),
         "-a",
-        address,
+        cluster_address,
         "-m",
         std::to_string(metrics_port),
         "-b",
@@ -829,6 +890,17 @@ const std::string& ZeekClusterConfig::MemoryMaxFor(const std::string& node) cons
 
     std::fprintf(stderr, "invalid node '%s' in MemoryMaxFor()\n", node.c_str());
     abort();
+}
+
+std::optional<std::string> gethostname() {
+    char buf[HOST_NAME_MAX];
+
+    if ( ::gethostname(buf, sizeof(buf)) < 0 ) {
+        std::fprintf(stderr, "failed gethostname: %s", ::strerror(errno));
+        return std::nullopt;
+    }
+
+    return buf;
 }
 
 /**

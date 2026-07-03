@@ -17,7 +17,7 @@ ReadWritePaths=<...>/logger-%i <...>/var
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=c-mgr-logger-%i
-ExecStart=<...>/zeek policy<...>/systemd-generator local frameworks<...>/zeromq
+ExecStart=<...>/zeek frameworks<...>/zeromq policy<...>/systemd-generator local
 Slice=zeek-loggers.slice
 Restart=always
 RestartSec=1

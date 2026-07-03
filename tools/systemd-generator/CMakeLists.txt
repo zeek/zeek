@@ -11,11 +11,11 @@ if (NOT is_subproject)
     set(CMAKE_CXX_EXTENSIONS OFF)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-    set(_default_config_file "/usr/local/zeek/etc/zeek/zeek.conf")
     set(_default_base_dir "/usr/local/zeek/")
+    set(_default_etc_dir "/usr/local/zeek/etc/")
 else ()
-    set(_default_config_file "${ZEEK_ETC_INSTALL_DIR}/zeek/zeek.conf")
     set(_default_base_dir "${CMAKE_INSTALL_PREFIX}")
+    set(_default_etc_dir "${ZEEK_ETC_INSTALL_DIR}")
 endif ()
 
 set(_default ON)
@@ -35,12 +35,13 @@ if (ENABLE_ZEEK_SYSTEMD_GENERATOR)
 
     add_executable(zeek-systemd-generator src/zeek-systemd-generator.cc)
     target_compile_definitions(
-        zeek-systemd-generator PRIVATE DEFAULT_CONFIG_FILE=\"${_default_config_file}\"
+        zeek-systemd-generator PRIVATE DEFAULT_ETC_DIR=\"${_default_etc_dir}\"
                                        DEFAULT_BASE_DIR=\"${_default_base_dir}\")
 
     target_link_libraries(zeek-systemd-generator systemd-generator zeek-cluster-config)
 
     add_executable(zeek-cluster-layout-generator src/zeek-cluster-layout-generator.cc)
+    target_link_libraries(zeek-cluster-layout-generator zeek-cluster-config)
 
     install(TARGETS zeek-systemd-generator RUNTIME DESTINATION bin)
     install(TARGETS zeek-cluster-layout-generator RUNTIME DESTINATION bin)

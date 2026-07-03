@@ -49,11 +49,15 @@ public:
     void AddExecStart(const std::string& cmd, std::initializer_list<std::string> args = {}) {
         std::string add;
         for ( const auto& a : args ) {
-            add += " ";
+            if ( ! add.empty() && ! a.empty() )
+                add += " ";
             add += a;
         }
 
-        exec_start.emplace_back(cmd + add);
+        if ( add.empty() )
+            exec_start.emplace_back(cmd);
+        else
+            exec_start.emplace_back(cmd + " " + add);
     }
 
     /**

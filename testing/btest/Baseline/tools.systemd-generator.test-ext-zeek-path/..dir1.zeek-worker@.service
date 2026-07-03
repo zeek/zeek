@@ -22,7 +22,7 @@ AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/mypackages:<...>/morepackages:<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=worker-%i
-ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/systemd-generator local  frameworks<...>/zeromq
+ExecStart=<...>/zeek -i ${INTERFACE} frameworks<...>/zeromq policy<...>/systemd-generator local
 Slice=zeek-workers.slice
 Restart=always
 RestartSec=1

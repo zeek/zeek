@@ -20,7 +20,7 @@ MemoryMax=2000000000
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=proxy-%i
-ExecStart=<...>/zeek policy<...>/systemd-generator ignore_checksums=T the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ
+ExecStart=<...>/zeek the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ policy<...>/systemd-generator ignore_checksums=T
 Slice=zeek-proxies.slice
 Restart=always
 RestartSec=1

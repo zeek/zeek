@@ -18,6 +18,9 @@
 
 namespace zeek::detail {
 
+
+std::string join(std::span<const std::string> args, const std::string& sep = " ");
+
 class ZeekClusterConfig;
 
 /**
@@ -65,6 +68,21 @@ private:
 };
 
 /**
+ * Environment variable.
+ */
+class EnvVar {
+public:
+    EnvVar(std::string key, std::string value) : key(std::move(key)), value(std::move(value)) {}
+
+    const std::string& Key() const noexcept { return key; }
+    const std::string& Value() const noexcept { return value; }
+
+private:
+    std::string key;
+    std::string value;
+};
+
+/**
  * A single option.
  *
  * Most options have just a single value, but options can span multiple
@@ -75,11 +93,36 @@ public:
     Option(std::string key, std::string value) : key(std::move(key)) { values.push_back(std::move(value)); }
 
     const std::string& Key() const { return key; }
-    const std::string& Value() const { return values[0]; }
+    const std::string& Value() const {
+        if ( values.size() > 1 )
+            throw std::logic_error("ignoring extra values from " + key);
+
+        return values[0];
+    }
 
     void AddValue(std::string value) { values.push_back(std::move(value)); }
 
     std::span<const std::string> Values() const { return values; }
+
+    std::string JoinedValues() const { return join(values); };
+
+    std::pair<std::vector<EnvVar>, std::string> AsEnvVars() const {
+        std::vector<EnvVar> envs;
+        // Split all values into key-value pairs and return.
+        for ( const auto& value : values ) {
+            if ( value.empty() )
+                continue;
+
+            auto idx = value.find('=');
+            if ( idx == std::string::npos )
+                return {{}, "invalid env value '" + value + "'"};
+
+            std::string k = value.substr(0, idx);
+            std::string v = value.substr(idx + 1);
+            envs.emplace_back(EnvVar(std::move(k), std::move(v)));
+        }
+        return {std::move(envs), ""};
+    }
 
 private:
     std::string key;
@@ -111,6 +154,7 @@ private:
     std::string name;
     std::vector<Option> options;
 };
+
 
 /**
  * Hold info about an interface worker configuration.
@@ -186,7 +230,7 @@ public:
 
     std::optional<const std::string> NumaPolicy() const { return numa_policy; }
 
-    const std::span<const std::pair<const std::string, const std::string>> Envs() const { return envs; }
+    std::span<const EnvVar> Env() const { return std::span{env}; }
 
 private:
     std::string tag;
@@ -194,7 +238,7 @@ private:
     int workers = -1;
 
     std::string args; // worker specific args to append
-    std::vector<std::pair<const std::string, const std::string>> envs;
+    std::vector<EnvVar> env;
 
     std::optional<int> nice;
     std::string memory_max;
@@ -217,6 +261,16 @@ public:
     bool Exists() const noexcept { return exists; }
 
     bool IsValid() const noexcept { return errors.empty(); }
+
+    /**
+     * @return true if this config was found in <PREFIX>/etc/zeek/cluster/, rather than <PREFIX>/etc/zeek/
+     */
+    bool IsInClusterDir() const;
+
+    /**
+     * @return the path to the cluster directory if IsInClusterDir() is true. Just the parent of SourcePath().
+     */
+    std::filesystem::path ClusterDir() const;
 
     void Error(std::string msg) { errors.emplace_back(std::move(msg)); }
 
@@ -298,6 +352,14 @@ public:
      * @return The value of the args configuration.
      */
     const std::string& Args() const { return args; }
+    const std::string& ManagerArgs() const { return manager_args; }
+    const std::string& LoggerArgs() const { return logger_args; }
+    const std::string& ProxyArgs() const { return proxy_args; }
+
+    std::span<const EnvVar> Env() const { return std::span{env}; }
+    std::span<const EnvVar> ManagerEnv() const { return std::span{manager_env}; }
+    std::span<const EnvVar> LoggerEnv() const { return std::span{logger_env}; }
+    std::span<const EnvVar> ProxyEnv() const { return std::span{proxy_env}; }
 
     /**
      * @return The value of the cluster backend arguments.
@@ -345,6 +407,12 @@ public:
      */
     std::string ClusterLayoutCommand() const;
 
+    const std::string& ClusterAddress() const { return cluster_address; }
+    int ClusterPort() const { return cluster_port; }
+
+    const std::string& MetricsAddress() const { return cluster_address; }
+    int MetricsPort() const { return metrics_port; };
+
     /**
      * Generate a command string for the zeek-archiver.
      */
@@ -369,6 +437,14 @@ private:
     int proxies = 1;
 
     std::string args;
+    std::string manager_args;
+    std::string logger_args;
+    std::string proxy_args;
+
+    std::vector<EnvVar> env;
+    std::vector<EnvVar> manager_env;
+    std::vector<EnvVar> logger_env;
+    std::vector<EnvVar> proxy_env;
 
     std::string user = "zeek";
     std::string group = "zeek";
@@ -398,8 +474,8 @@ private:
     // Broker and ZeroMQ stuff
     std::string cluster_backend_args;
 
-    int port = 27760;
-    std::string address = "127.0.0.1";
+    int cluster_port = 27760;
+    std::string cluster_address = "127.0.0.1";
 
     // Metrics
     int metrics_port = 9991;
@@ -422,4 +498,9 @@ private:
 };
 
 ZeekClusterConfig parse_config(const std::filesystem::path& zeek_base_dir, const std::filesystem::path& source_path);
+
+/**
+ * Get the hostname via gethostname(), returning nullopt on error.
+ */
+std::optional<std::string> gethostname();
 } // namespace zeek::detail

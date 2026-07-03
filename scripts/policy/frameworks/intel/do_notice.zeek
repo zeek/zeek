@@ -30,7 +30,7 @@ event Intel::match(s: Seen, items: set[Item])
 	for ( item in items )
 		{
 		if ( item$meta$do_notice &&
-			(! item$meta?$if_in || s$where == item$meta$if_in) )
+			(! item$meta?$if_in || item$meta$if_in == IN_ANYWHERE || s$where == item$meta$if_in) )
 			{
 			local n = Notice::Info($note=Intel::Notice,
 				$msg = fmt("Intel hit on %s at %s", s$indicator, s$where),

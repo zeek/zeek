@@ -221,8 +221,8 @@ TEST_CASE("tests") {
         return broker::make_data_message(broker::topic{topic}, msg);
     };
 
-    auto expect_msg_timeout = 1000ms;
-    auto expect_no_msg_timeout = 150ms;
+    constexpr auto expect_msg_timeout = 2ms;
+    constexpr auto expect_no_msg_timeout = 5ms;
 
     SUBCASE("endpoint-publish") {
         // Publishing through the endpoint is visible to hubs, but not subscribers.

@@ -615,7 +615,15 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     if ( out ) {
         std::string s = "";
 
-        if ( (run_state::reading_live || run_state::reading_traces) && run_state::zeek_start_network_time != 0.0 ) {
+        // Prefix reporter messages that go to stdout/stderr with network time if
+        // network time has been initialized and this process's network time is either
+        // explicitly controlled (allow_network_time_forward=F), or the process is a
+        // worker that updates its network time from a packet source (interface or pcap).
+        //
+        // In other words, reporter messages to stdout/stderr from non-worker processes
+        // are not prefixed with the timestamp unless allow_network_time_forward=F.
+        if ( (run_state::reading_live || run_state::reading_traces || ! BifConst::allow_network_time_forward) &&
+             run_state::zeek_start_network_time != 0.0 ) {
             char tmp[32];
             snprintf(tmp, 32, "%.6f", run_state::network_time);
             s += std::string(tmp) + " ";

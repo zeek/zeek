@@ -1,3 +1,7 @@
+9.0.0-dev.533 | 2026-07-03 11:36:06 +0200
+
+  * Fix reporter logging without wallclock fallback (Jan Grashoefer, Corelight)
+
 9.0.0-dev.531 | 2026-07-02 15:26:37 -0700
 
   * CCI: Fix check for pushes to master to avoid double-builds (Tim Wojtulewicz, Corelight)

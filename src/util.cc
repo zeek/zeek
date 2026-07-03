@@ -2855,55 +2855,22 @@ TEST_SUITE("util") {
         CHECK_FALSE(approx_equal(qnan, -qnan));
     }
 
-    // Regression test for the copy_string() buffer-overflow crash. util::fmt()
-    // returns a pointer into a reused buffer; that buffer must be per-thread.
-    // The main thread captures fmt()'s result and, while still holding it, a
-    // second thread calls fmt() with different content. With a process-global
-    // static buffer the second call clobbers the first thread's string in
-    // place -- the root cause of the crash when the main thread holds a fmt()
-    // pointer across a scheduling point (e.g. a log writer backend starting).
-    // With a per-thread buffer the captured pointer is unaffected.
-    //
-    // The handshake makes the interleaving deterministic: the helper's fmt()
-    // always runs after the main thread has captured its pointer and before
-    // the main thread reads it. Both strings have the same length so the
-    // static buffer is overwritten in place (never reallocated), keeping the
-    // failure a clean assertion rather than a dangling-pointer crash.
-    TEST_CASE("vfmt_thread_safety") {
-        const std::string a(512, 'A');
-        const std::string b(512, 'B');
+    TEST_CASE("fmt_thread_safety") {
+        const auto* a = "AAAAA";
 
-        std::mutex m;
-        std::condition_variable cv;
-        bool captured = false;  // main thread has captured its fmt() pointer
-        bool clobbered = false; // helper thread has completed its fmt() call
+        // Capture a view into the buffer in `fmt`.
+        std::string_view p = fmt("%s", a);
+        REQUIRE_EQ(p, std::string_view(a));
 
-        const char* p = fmt("%s", a.c_str());
+        // Another thread uses `fmt` which updates its internal buffer.
         {
-            std::lock_guard<std::mutex> lk(m);
-            captured = true;
-        }
-        cv.notify_all();
-
-        std::thread helper([&] {
-            std::unique_lock<std::mutex> lk(m);
-            cv.wait(lk, [&] { return captured; });
-            fmt("%s", b.c_str());
-            clobbered = true;
-            lk.unlock();
-            cv.notify_all();
-        });
-
-        {
-            std::unique_lock<std::mutex> lk(m);
-            cv.wait(lk, [&] { return clobbered; });
+            std::jthread([=] { REQUIRE_NE(fmt("%s", "BBBBB"), std::string_view(a)); });
         }
 
-        CHECK(std::string(p) == a);
+        // Uses of `fmt` from different threads don't clobber each others internal buffers.
+        CHECK_EQ(p, std::string_view(a));
 
-        helper.join();
     }
-}
 
 } // namespace zeek::util
 

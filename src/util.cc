@@ -41,11 +41,14 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <condition_variable>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
 #include <ranges>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "zeek/3rdparty/ConvertUTF.h"
@@ -1255,27 +1258,27 @@ const char* fmt_bytes(const char* data, int len) {
 }
 
 const char* vfmt(const char* format, va_list al) {
-    static char* buf = nullptr;
-    static int buf_len = 1024;
-
-    if ( ! buf )
-        buf = reinterpret_cast<char*>(safe_malloc(buf_len));
+    // Per-thread rather than a single process-global buffer: child threads
+    // (e.g. log writer/input reader backends) format concurrently with the
+    // main thread, which holds the returned pointer across a copy_string().
+    // A shared buffer would let one thread overwrite or reallocate it mid-copy.
+    // The std::vector frees itself at thread exit, so this leaks nothing.
+    thread_local std::vector<char> buf(1024);
 
     va_list alc;
     va_copy(alc, al);
-    int n = vsnprintf(buf, buf_len, format, al);
+    int n = vsnprintf(buf.data(), buf.size(), format, al);
 
-    if ( n > 0 && buf_len <= n ) { // Not enough room, grow the buffer.
-        buf_len = n + 32;
-        buf = reinterpret_cast<char*>(safe_realloc(buf, buf_len));
-        n = vsnprintf(buf, buf_len, format, alc);
+    if ( n > 0 && static_cast<size_t>(n) >= buf.size() ) { // Not enough room, grow the buffer.
+        buf.resize(n + 32);
+        n = vsnprintf(buf.data(), buf.size(), format, alc);
     }
 
     if ( n < 0 )
         reporter->InternalError("confusion reformatting in fmt()");
 
     va_end(alc);
-    return buf;
+    return buf.data();
 }
 
 const char* fmt(const char* format, ...) {
@@ -2850,6 +2853,55 @@ TEST_SUITE("util") {
         CHECK_FALSE(approx_equal(qnan, qnan));
         CHECK_FALSE(approx_equal(-qnan, qnan));
         CHECK_FALSE(approx_equal(qnan, -qnan));
+    }
+
+    // Regression test for the copy_string() buffer-overflow crash. util::fmt()
+    // returns a pointer into a reused buffer; that buffer must be per-thread.
+    // The main thread captures fmt()'s result and, while still holding it, a
+    // second thread calls fmt() with different content. With a process-global
+    // static buffer the second call clobbers the first thread's string in
+    // place -- the root cause of the crash when the main thread holds a fmt()
+    // pointer across a scheduling point (e.g. a log writer backend starting).
+    // With a per-thread buffer the captured pointer is unaffected.
+    //
+    // The handshake makes the interleaving deterministic: the helper's fmt()
+    // always runs after the main thread has captured its pointer and before
+    // the main thread reads it. Both strings have the same length so the
+    // static buffer is overwritten in place (never reallocated), keeping the
+    // failure a clean assertion rather than a dangling-pointer crash.
+    TEST_CASE("vfmt_thread_safety") {
+        const std::string a(512, 'A');
+        const std::string b(512, 'B');
+
+        std::mutex m;
+        std::condition_variable cv;
+        bool captured = false; // main thread has captured its fmt() pointer
+        bool clobbered = false; // helper thread has completed its fmt() call
+
+        const char* p = fmt("%s", a.c_str());
+        {
+            std::lock_guard<std::mutex> lk(m);
+            captured = true;
+        }
+        cv.notify_all();
+
+        std::thread helper([&] {
+            std::unique_lock<std::mutex> lk(m);
+            cv.wait(lk, [&] { return captured; });
+            fmt("%s", b.c_str());
+            clobbered = true;
+            lk.unlock();
+            cv.notify_all();
+        });
+
+        {
+            std::unique_lock<std::mutex> lk(m);
+            cv.wait(lk, [&] { return clobbered; });
+        }
+
+        CHECK(std::string(p) == a);
+
+        helper.join();
     }
 }
 

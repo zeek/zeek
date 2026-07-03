@@ -249,6 +249,7 @@ void Ascii::InitConfigOptions() {
 
     json_timestamps = zeek::obj_desc_short(BifConst::LogAscii::json_timestamps);
     json_include_unset_fields = BifConst::LogAscii::json_include_unset_fields;
+    json_string_escape_policy = zeek::obj_desc_short(BifConst::LogAscii::json_string_escape_policy);
 
     gzip_file_extension.assign(reinterpret_cast<const char*>(BifConst::LogAscii::gzip_file_extension->Bytes()),
                                BifConst::LogAscii::gzip_file_extension->Len());
@@ -346,6 +347,9 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
+        else if ( strcmp(key, "json_string_escape_policy") == 0 )
+            json_string_escape_policy.assign(value);
+
         else if ( strcmp(key, "gzip_file_extension") == 0 )
             gzip_file_extension.assign(value);
     }
@@ -377,7 +381,21 @@ bool Ascii::InitFormatter() {
             return false;
         }
 
-        formatter = new threading::formatter::JSON(this, tf, json_include_unset_fields);
+        // Same pattern as for the timestamps above.
+        auto string_escape_policy = threading::formatter::JSON::STRING_ESCAPE_POLICY_HEX;
+
+        if ( strcmp(json_string_escape_policy.c_str(), "JSON::STRING_ESCAPE_POLICY_HEX") == 0 )
+            string_escape_policy = threading::formatter::JSON::STRING_ESCAPE_POLICY_HEX;
+        else if ( strcmp(json_string_escape_policy.c_str(), "JSON::STRING_ESCAPE_POLICY_PUA") == 0 )
+            string_escape_policy = threading::formatter::JSON::STRING_ESCAPE_POLICY_PUA;
+        else if ( strcmp(json_string_escape_policy.c_str(), "JSON::STRING_ESCAPE_POLICY_TSV") == 0 )
+            string_escape_policy = threading::formatter::JSON::STRING_ESCAPE_POLICY_TSV;
+        else {
+            Error(Fmt("Invalid JSON string escape policy: %s", json_string_escape_policy.c_str()));
+            return false;
+        }
+
+        formatter = new threading::formatter::JSON(this, tf, json_include_unset_fields, string_escape_policy);
         // Using JSON implicitly turns off the header meta fields.
         include_meta = false;
     }

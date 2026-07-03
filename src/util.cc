@@ -2024,6 +2024,64 @@ string escape_utf8(string_view val, int flags) {
         return utf_result;
 }
 
+std::string escape_string_for_json(std::string_view raw, std::string_view hex_prefix) {
+    std::string result;
+    const size_t n = raw.size();
+    result.reserve(n + 2); // minimally quoted
+    result.push_back('"');
+    auto raw_data = reinterpret_cast<const unsigned char*>(raw.data());
+
+    size_t idx = 0;
+
+    while ( idx < n ) {
+        const char ch = raw[idx];
+
+        // Deal with JSON escape sequences.
+        if ( ch == '"' || ch == '\\' || ch == '\b' || ch == '\f' || ch == '\n' || ch == '\r' || ch == '\t' ) {
+            result.push_back('\\');
+
+            switch ( ch ) {
+                case '"': result.push_back('"'); break;
+                case '\\': result.push_back('\\'); break;
+                case '\b': result.push_back('b'); break;
+                case '\f': result.push_back('f'); break;
+                case '\n': result.push_back('n'); break;
+                case '\r': result.push_back('r'); break;
+                case '\t': result.push_back('t'); break;
+                default: assert(false);
+            }
+
+            idx += 1;
+        }
+        else if ( ch >= 32 && ch < 127 ) {
+            // Just include printable ASCII as valid UTF-8.
+            result.push_back(ch);
+
+            idx += 1;
+        }
+        else {
+            // ch < 32 or ch > 0x80
+            unsigned int char_size = getNumBytesForUTF8(ch);
+
+            if ( idx + char_size > raw.size() || ! check_ok_utf8(raw_data + idx, raw_data + idx + char_size) ) {
+                // Not enough data remaining in input, or not a valid UTF-8 sequence.
+                result.append(hex_prefix);
+                result.resize(result.size() + 2); // grow to accommodate hex digits
+                bytetohex(ch, result.data() + result.size() - 2);
+                idx += 1;
+            }
+            else {
+                // It's a valid UTF-8 encoded character, append it.
+                result.append(raw.substr(idx, char_size));
+                idx += char_size;
+            }
+        }
+    }
+
+    result.push_back('"');
+    return result;
+}
+
 /**
  * Returns whether two double values are approximately equal within some tolerance value.
  */

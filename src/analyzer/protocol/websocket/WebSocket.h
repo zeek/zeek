@@ -26,12 +26,14 @@ public:
     void Init() override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
     void Undelivered(uint64_t seq, int len, bool orig) override;
+    void EnablePerMessageCompression() { permessage_deflate = true; }
 
     static zeek::analyzer::Analyzer* Instantiate(Connection* conn) { return new WebSocket_Analyzer(conn); }
-
+	
 private:
     std::unique_ptr<binpac::WebSocket::WebSocket_Conn> interp;
     bool had_gap = false;
+    bool permessage_deflate = false;
 };
 
 } // namespace zeek::analyzer::websocket

@@ -44,6 +44,8 @@ export {
 		client_key:        string &optional;
 		## The Sec-WebSocket-Accept header from the server.
 		server_accept:     string &optional;
+		## Indicates successful permessage_deflate negotiation.
+		permessage_deflate: bool &default=F;
 	};
 
 	## Event that can be handled to access the WebSocket record as it is
@@ -82,7 +84,7 @@ function set_websocket(c: connection)
 		$ts=network_time(),
 		$uid=c$uid,
 		$id=c$id,
-	);
+		);
 	}
 
 function expected_accept_for(key: string): string
@@ -140,6 +142,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 				ws$server_extensions = vector();
 
 			ws$server_extensions += split_string(value, / *, */);
+
+			# If the response we recieved from the server contains permessage-deflate then it would mean the 
+			# negotiation was successful. Otherwise the default would be to have the negotiation as unsuccessful (F).
+			if ( "permessage-deflate" in to_lower(value))
+				ws$permessage_deflate = T;
 			}
 		else if ( name == "SEC-WEBSOCKET-ACCEPT" )
 			{

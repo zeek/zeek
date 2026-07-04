@@ -499,9 +499,9 @@ This attribute provides an alternative state distribution primitive that works
 with any cluster backend, replacing the older and Broker-specific :zeek:attr:`&backend`
 and :zeek:attr:`&broker_store` attributes.
 
-You assign the ``&publish_on_change`` attribute an instance of a :zeek:see:`Cluster::PublishOnChangeAttr`
-record in ``[ ...field assignments... ]`` style to configure the publish behavior
-for a given table.
+You assign the ``&publish_on_change`` attribute an expression that evaluates to a
+:zeek:see:`Cluster::PublishOnChangeAttr` record to configure the publish behavior for
+a given table. This documentation uses the minimal ``[ ...field assignments... ]`` style.
 Minimally, you'll need to provide a non-empty :zeek:field:`Cluster::PublishOnChangeAttr$changes`
 field to select which type of changes Zeek will publish. The :zeek:field:`changes` field
 takes a :zeek:type:`set` of :zeek:type:`TableChange` values.

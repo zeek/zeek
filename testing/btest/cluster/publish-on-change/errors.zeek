@@ -53,3 +53,31 @@ global tbl5: table[string, string] of string &publish_on_change=[
 	$changes=set(TABLE_ELEMENT_NEW),
 	$unknown="unknown",
 ];
+
+# @TEST-START-NEXT
+global tbl6: table[string, string] of string &publish_on_change=[];
+
+# @TEST-START-NEXT
+global tbl7: table[string, string] of string &publish_on_change=42;
+
+# @TEST-START-NEXT
+type X: record { };
+global tbl8: table[string, string] of string &publish_on_change=X();
+
+# @TEST-START-NEXT
+global tbl9: table[string, string] of string &publish_on_change=record(
+	$changes=set(),
+);
+
+# @TEST-START-NEXT
+function make_attr_value(): Cluster::PublishOnChangeAttr
+	{
+	return Cluster::PublishOnChangeAttr($changes=set());
+	}
+
+global tbl10: table[string, string] of string &publish_on_change=make_attr_value();
+
+# @TEST-START-NEXT
+global attr_value = Cluster::PublishOnChangeAttr($changes=set());
+
+global tbl11: table[string, string] of string &publish_on_change=attr_value;

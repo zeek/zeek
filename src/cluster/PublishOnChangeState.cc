@@ -690,22 +690,39 @@ void PublishOnChangeState::InitPostScript() {
             reporter->InternalError("&publish_on_change attribute on non-table %s (%s)", id->Name(),
                                     id->GetType() ? obj_desc_short(id->GetType()).c_str() : "???");
 
-        // The &publish_on_change attribute is a expression list to construct a
-        // PublishOnChangeAttr script-level type.
-        auto list_expr = poc_attr->GetExpr()->AsListExprPtr();
-        auto constructor = make_intrusive<detail::RecordConstructorExpr>(poc_attr_rt, list_expr);
-        if ( constructor->IsError() )
+        auto expr = poc_attr->GetExpr();
+
+        // If the expression is an anonymous record constructor expression
+        // with its own type (identified by not having a name), replace it
+        // with a record constructor using the PublishOnChangeAttr type.
+        // This produces better errors than using coercion and allows to
+        // enforce concrete PublishOnChangeAttr instances after Eval().
+        if ( expr->Tag() == EXPR_RECORD_CONSTRUCTOR && expr->GetType()->GetName().empty() ) {
+            auto rce = cast_intrusive<RecordConstructorExpr>(expr);
+            expr = zeek::make_intrusive<RecordConstructorExpr>(poc_attr_rt, rce->Op());
+        }
+
+        ValPtr val;
+        try {
+            val = expr->Eval(nullptr);
+        } catch ( InterpreterException& ) {
+            // Should have reported the error in Eval()
+            continue;
+        }
+
+        if ( ! val || ! val->GetType() )
+            // Should have reported the error in Eval()
             continue;
 
-        // The poc_val is the ValPtr produced by evaluating the PublishOnChangeAttr
-        // constructor. If there's an error, we expect a nullptr and assume something
-        // is logged through reporter error.
-        auto poc_val = constructor->Eval(nullptr);
-        if ( ! poc_val || poc_val->GetType() != poc_attr_rt )
+        if ( val->GetType()->Tag() != TYPE_RECORD || val->GetType() != poc_attr_rt ) {
+            expr->Error("&publish_on_change expects a record value of type PublishOnChangeAttr");
             continue;
+        }
 
+        // Cast to RecordVal and adopt the location the whole table
+        // for any subsequent error reporting during Instantiate().
         auto table_val = cast_intrusive<TableVal>(id->GetVal());
-        auto poc_rec_val = with_location_of(cast_intrusive<RecordVal>(poc_val), table_val);
+        auto poc_rec_val = with_location_of(cast_intrusive<RecordVal>(val), table_val);
 
         auto poc_state = PublishOnChangeState::Instantiate(name, table_val.get(), *poc_rec_val);
         if ( poc_state )

@@ -1759,8 +1759,8 @@ attr:
 			{ $$ = new Attr(ATTR_DEL_FUNC, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_ON_CHANGE '=' expr
 			{ $$ = new Attr(ATTR_ON_CHANGE, {AdoptRef{}, $3}); }
-	|	TOK_ATTR_PUBLISH_ON_CHANGE '=' '[' field_assigns expr_list_opt_comma  ']'
-			{ $$ = new Attr(ATTR_PUBLISH_ON_CHANGE, {AdoptRef{}, $4}); }
+	|	TOK_ATTR_PUBLISH_ON_CHANGE '=' expr
+			{ $$ = new Attr(ATTR_PUBLISH_ON_CHANGE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_BROKER_STORE '=' expr
 			{ $$ = new Attr(ATTR_BROKER_STORE, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX

@@ -29,7 +29,7 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 
 	function EnablePerMessageCompression(): void
 		%{
-		permessage_compression_enabled = true;
+		permessage_compression_enabled_ = true;
 		%}
 	function HasPerMessageCompressionEnabled(): bool
 		%{

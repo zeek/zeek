@@ -1,3 +1,13 @@
+9.0.0-dev.579 | 2026-07-06 13:42:31 -0700
+
+  * krb: Fix crash with Kerberos error handling (Evan Typanski, Corelight)
+
+    An attacker could craft a packet such that Kerberos enters "error" mode
+    but then forces data to parse from the non-error variable, causing a
+    nullptr dereference. This fixes that by just sending along the
+    placeholder string in the error path rather than trying to parse from
+    non-existent data.
+
 9.0.0-dev.577 | 2026-07-06 13:40:00 -0700
 
   * SerializationFormat: Avoid overflows in length check (Arne Welzel, Corelight)

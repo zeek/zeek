@@ -1,3 +1,17 @@
+8.2.1-1 | 2026-08-11 10:15:29 -0700
+
+  * Intel: Make IN_ANYWHERE default for if_in (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit eccb68296830520737c476253caee58314cd7181)
+
+  * Intel: Support IN_ANYWHERE as wildcard for notices (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit eccb68296830520737c476253caee58314cd7181)
+
+  * Intel: Add btest for do_notice (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit eccb68296830520737c476253caee58314cd7181)
+
 8.2.1 | 2026-07-09 15:08:29 -0700
 
   * Release 8.2.1.

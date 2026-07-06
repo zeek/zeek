@@ -1,3 +1,12 @@
+9.0.0-dev.549 | 2026-07-06 13:26:17 -0700
+
+  * SSH: Cap packet_length and string_length to 8MB and 2MB (Arne Welzel, Corelight)
+
+    When fuzzing the SSH analyzer, UBSAN complains about integer overflows
+    when lengths get close to INT_MAX (2G). There should never be SSH packets
+    or strings that big in normal SSH. Modify the parser to cap the values
+    to a configurable max lengths and raise weirds when these are observed.
+
 9.0.0-dev.547 | 2026-07-06 13:25:57 -0700
 
   * Check for valid length before outputting unknown IP packet contents (Tim Wojtulewicz, Corelight)

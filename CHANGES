@@ -1,3 +1,9 @@
+8.0.8-58 | 2026-07-06 08:12:00 -0700
+
+  * Bump auxil/spicy to latest patch release (Benjamin Bannier, Corelight)
+
+  * Add release notes for 8.0.9 [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.8-55 | 2026-06-30 10:32:09 -0700
 
   * btest/cluster/zeromq: Stabilize drop tests, take two (Arne Welzel, Corelight)

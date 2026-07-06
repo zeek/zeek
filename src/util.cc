@@ -46,6 +46,7 @@
 #include <ranges>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "zeek/3rdparty/ConvertUTF.h"
@@ -1255,6 +1256,18 @@ const char* fmt_bytes(const char* data, int len) {
 }
 
 const char* vfmt(const char* format, va_list al) {
+#ifdef DEBUG
+    // buf is process-global, so vfmt() is not thread safe.
+    // By convention, it must be called only from the main thread.
+    // The first call is known to be performed by the main thread during single-threaded startup.
+    // Check subsequent calls against that baseline.
+    static const std::thread::id main_thread_id = std::this_thread::get_id();
+    if ( std::this_thread::get_id() != main_thread_id ) {
+        fprintf(stderr, "zeek::util::fmt() called off the main thread; use threading::BasicThread::Fmt() or std::format()\n");
+        abort();
+    }
+#endif
+
     static char* buf = nullptr;
     static int buf_len = 1024;
 

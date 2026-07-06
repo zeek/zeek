@@ -5,22 +5,98 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.9
 ==========
 
-Thank you to Jan Grashöfer (@J-Gras), Javid Khan (@dxbjavid), @jmestwa-coder, and
-@uwezkhan for their contributions to this release.
+Thank you to Jan Grashöfer (@J-Gras), h4r4kIR1, Javid Khan (@dxbjavid), @jmestwa-coder,
+and @uwezkhan for their contributions to this release.
 
 This release fixes the following security issues:
+
+- HIGH: The NVT, Rlogin, and RSH analyzers have received fixes to avoid unbounded state
+  growth. Due to the fact that these packets can be received from remote hosts, these are
+  considered DoS risks. The fixes include additional length-checking when processing
+  packets, as well as a new set of weirds for when the standard Content-Line limits are
+  exceeded.
+
+- HIGH: A specially crafted WebSocket payload can cause the Spicy WebSocket analyzer to
+  use excessive memory when processing close, ping, and pong frames. Due to the fact that
+  these packets can be received from remote hosts, these are considered a DoS risk. The
+  fix caps the size of those frames as per RFC 6455 (to 125 bytes) and adds a new weird
+  for when that limit is exceeded.
+
+- HIGH: A specially crafted series of Finger packets can cause the Spicy Finger analyzer
+  to use excessive amounts of memory and potentially crash Zeek. Due to the fact that
+  these packets can be received from remote hosts, this is considered a DoS risk. The fix
+  includes a new `Finger::max_line_length` script constant. Spicy will report protocol
+  violations if this limit is exceeded.
+
+- HIGH: A specially crafted Kerberos packet can cause the Kerberos analyzer to enter an
+  invalid state and potentially crash Zeek. Due to the fact that these packets can be
+  received from remote hosts, this is considered a DoS risk. The fix includes additional
+  checks for the state reported by the Kerberos packets.
+
+- HIGH: A specially crafted series of RDP packets can cause the RDP analyzer to use
+  excessive amounts of memory and potentially crash Zeek. Due to the fact that these
+  packets can be received from remote hosts, this is considered a DoS risk. The fix
+  includes a new `rpc_max_pending_calls` script constant. If this limit is exceeded, a
+  new `rpc_discarded_pending_calls` event is emitted and a weird is reported.
+
+- HIGH: A specially crafted IP packet can cause the IP analyzer to read past the end of
+  the contents of the packet when emitting the `packet_contents` event and possibly
+  crash. Due to the fact that these packets can be received from remote hosts, this is
+  considered a DoS risk. The fix changes how Zeek checks the remaining length of the
+  packet when emitting the event. The `packet_contents` event typically isn't used in
+  production setups.
+
+- HIGH: A specially crafted IP packet can cause the packet discarding code to read off the
+  end of the packet when looking for follow-on header data. This may potentially lead to a
+  crash of Zeek. Due to the fact that these packets can be received from remote hosts,
+  this is considered a DoS risk. Note that this only applies if the user enables the
+  discarder by implementing one of the `discarder_check_* script` functions. The fix
+  includes additional length checks to the `IP_HDr::ToPktHdrVal` method to skip looking
+  for additional headers if there isn’t enough data.
+
+- HIGH: A specially crafted series of Gnutella packets may cause Zeek to continue
+  accumulating memory and eventually crash. Due to the fact that these packets can be
+  received from remote hosts, this is considered a DoS risk. Note that the Gnutella
+  analyzer is disabled by default. The fix includes new `Gnutella::max_line_length` and
+  `Gnutella::max_header_length` script constant values to control the maximum size of data
+  processed, as well as new weirds for when the limits are exceeded.
+
+- MEDIUM: A specially crafted ICMPv6 packet can cause the ICMP analyzer to skip part of
+  the packet and not report corresponding events and logs. Due to the fact that these
+  packets can be received from remote hosts, this is considered an evasion risk. The fix
+  includes additional length-checking and five new weirds to cover the cases where the
+  checks fail.
+
+- MEDIUM: A specially crafted SSH packet can cause the SSH analyzer to throw BinPAC
+  exceptions for extremely large packets and skip logging them otherwise. Due to the fact
+  that these packets can be received from remote hosts, this is considered an evasion
+  risk. The fix includes new `SSH::max_packet_length` and `SSH::max_string_length` script
+  constants to control the maximum size of SSH packets and strings, as well as new weirds
+  for when the limits are exceeded.
+
+- MEDIUM: A number of issues with the HTTP analyzer were found involving unusual
+  Content-Length, Transfer-Encoding and Expect header usage. Due to the fact that these
+  packets can be received from remote hosts, this is considered an evasion risk. The fixes
+  add additional validity checks as well as a new set of weirds for violations.
+
+- MEDIUM: A series of fixes were applied to the serialization code in Zeek to avoid buffer
+  overreads with both Broker and ZeroMQ traffic. On debug builds, these hit various
+  `abort()` conditions and cause Zeek to exit. Due to the fact that all of these states
+  require direct access to the Broker/ZeroMQ ports (meaning access to the local network to
+  some degree), this isn’t considered a DoS risk. The fixes include additional checks for
+  message format validity and message lengths.
 
 This release fixes the following bugs:
 
 - Zeek now builds correctly with newer versions of LibreSSL.
 
-- ZeekJS was updated to v0.23.0, which brings compatiblity with Node v26.
+- ZeekJS was updated to v0.23.0, which brings compatibility with Node v26.
 
 - Spicy was updated to v1.14.1. This release includes a fix that resolves crashes when
   running on Fedora 44 ARM hosts.
 
 - The TCP analyzer now clamps the window scale to 14 bytes, which conforms with
-  RFC7323. If the limit is excceeded, a new ``TCP_scale_range`` weird is logged.
+  RFC7323. If the limit is excceeded, a new `TCP_scale_range` weird is logged.
 
 - The Geneve analyzer now properly parses encapsulated IPv6 packets.
 
@@ -42,9 +118,9 @@ This release fixes the following bugs:
 - A bug was fixed in the pcapng packet source with handling empty options blocks. This was
   a null-dereference that could potentially crash Zeek.
 
-- A potential segfault was fixed with the ``global_ids`` BIF if it was called during
+- A potential segfault was fixed with the `global_ids` BIF if it was called during
   startup before all of the script-level type data was fully parsed. The fix is to
-  disallow calling ``global_ids`` from the GLOBAL context. It must be called from a
+  disallow calling `global_ids` from the GLOBAL context. It must be called from a
   function, event handler, or hook instead.
 
 - The NTP analyzer gained some additional length checking when parsing extension fields to
@@ -57,12 +133,12 @@ This release fixes the following bugs:
   BinPAC-generated code when running under UBSan.
 
 - A few fixes were applied to the handling of HTTP Content-Range values to avoid integer
-  overflows. New weirds ``HTTP_content_range_cannot_parse``,
-  ``HTTP_content_range_cannot_parse``, ``HTTP_non_positive_content_range``, and
-  ``HTTP_content_range_invalid_instance`` were added for the various ways these checks can
+  overflows. New weirds `HTTP_content_range_cannot_parse`,
+  `HTTP_content_range_cannot_parse`, `HTTP_non_positive_content_range`, and
+  `HTTP_content_range_invalid_instance` were added for the various ways these checks can
   be violated.
 
-- The GENEVE and VXLAN analyzers now use the correct ``packet`` object when parsing the
+- The GENEVE and VXLAN analyzers now use the correct `packet` object when parsing the
   inner packet, avoiding a possible null pointer dereference. This would cause crashes
   when running under UBSan.
 

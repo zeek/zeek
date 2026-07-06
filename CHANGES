@@ -1,3 +1,28 @@
+9.0.0-dev.577 | 2026-07-06 13:40:00 -0700
+
+  * SerializationFormat: Avoid overflows in length check (Arne Welzel, Corelight)
+
+  * SerializationFormat: Handle negative string lengths (Arne Welzel, Corelight)
+
+    I don't know why this code uses int for string lengths, but it does and
+    it was reported that it's possible to send -1 as a length which for the
+    call to ReadData() is then promoted to size_t and overflowing a buffer.
+
+    Err on negative lengths or if string lengths exceed the available input.
+
+  * SerialTypes: Allocate sets/vectors incrementally during parsing (Arne Welzel, Corelight)
+
+    Parsing a malformed message's size field could cause an instant
+    out-of-memory situation when new Value*[size] is called. Switch
+    to incrementally allocating more than 1024 elements (which seems
+    very unlikely).
+
+  * SerialTypes/SerializationFormat: Remove abort()s from Read() paths (Arne Welzel, Corelight)
+
+    While we trust other processes to not inject malformed messages,
+    calling abort() when parsing these isn't good style. Remove some
+    and add a bit of doctest based testing.
+
 9.0.0-dev.572 | 2026-07-06 13:39:09 -0700
 
   * finger: Add limit to lines to avoid buffer growth (Evan Typanski, Corelight)

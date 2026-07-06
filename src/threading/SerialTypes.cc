@@ -2,6 +2,10 @@
 
 #include "zeek/threading/SerialTypes.h"
 
+#include <algorithm>
+#include <optional>
+#include <vector>
+
 #include "zeek/Reporter.h"
 #include "zeek/SerializationFormat.h"
 // The following are required for ValueToVal.
@@ -206,6 +210,31 @@ bool Value::IsCompatibleType(Type* t, bool atomic_only) {
     return false;
 }
 
+// Read size elements from fmt, allocating the pointer array dynamically. Returns nullopt on error.
+static std::optional<std::vector<Value*>> read_elements(detail::SerializationFormat* fmt, zeek_int_t size) {
+    if ( size < 0 )
+        return std::nullopt;
+
+    // Only reserve up to 1024 pointers and rely on dynamic
+    // reallocation of std::vector past that many elements.
+    std::vector<Value*> vec;
+    vec.reserve(static_cast<size_t>(std::min(size, zeek_int_t(1024))));
+
+    for ( zeek_int_t i = 0; i < size; ++i ) {
+        vec.emplace_back(new Value);
+        if ( ! vec.back()->Read(fmt) ) {
+            // Free on error.
+            for ( auto* v : vec )
+                delete v;
+
+            return std::nullopt;
+        }
+    }
+
+    assert(vec.size() == static_cast<size_t>(size));
+    return {std::move(vec)};
+}
+
 bool Value::Read(detail::SerializationFormat* fmt) {
     int ty;
     int sty;
@@ -251,11 +280,10 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             switch ( family ) {
                 case 4: val.addr_val.family = IPv4; return fmt->Read(&val.addr_val.in.in4, "addr-in4");
                 case 6: val.addr_val.family = IPv6; return fmt->Read(&val.addr_val.in.in6, "addr-in6");
-                default: reporter->Warning("Unknown family type %d when reading addr\n", family); break;
+                default: return false;
             }
 
             // Can't be reached.
-            abort();
         }
 
         case TYPE_SUBNET: {
@@ -275,11 +303,10 @@ bool Value::Read(detail::SerializationFormat* fmt) {
                     val.subnet_val.length = static_cast<uint8_t>(length);
                     val.subnet_val.prefix.family = IPv6;
                     return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
-                default: reporter->Warning("Unknown family type %d when reading subnet\n", family); break;
+                default: return false;
             }
 
             // Can't be reached.
-            abort();
         }
 
         case TYPE_DOUBLE:
@@ -295,15 +322,17 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             if ( ! fmt->Read(&val.set_val.size, "set_size") )
                 return false;
 
-            val.set_val.vals = new Value*[val.set_val.size];
+            // XXX: Why have we never checked the table's subtype?
 
-            for ( zeek_int_t i = 0; i < val.set_val.size; ++i ) {
-                val.set_val.vals[i] = new Value;
+            auto result = read_elements(fmt, val.set_val.size);
 
-                if ( ! val.set_val.vals[i]->Read(fmt) )
-                    return false;
+            if ( ! result ) {
+                val.set_val.size = 0;
+                return false;
             }
 
+            val.set_val.vals = new Value*[result->size()];
+            std::copy(result->data(), result->data() + result->size(), val.set_val.vals);
             return true;
         }
 
@@ -311,21 +340,28 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
                 return false;
 
-            val.vector_val.vals = new Value*[val.vector_val.size];
+            // XXX: Why have we never checked the vector's subtype?
 
-            for ( zeek_int_t i = 0; i < val.vector_val.size; ++i ) {
-                val.vector_val.vals[i] = new Value;
+            auto result = read_elements(fmt, val.vector_val.size);
 
-                if ( ! val.vector_val.vals[i]->Read(fmt) )
-                    return false;
+            if ( ! result ) {
+                val.vector_val.size = 0;
+                return false;
             }
 
+            val.vector_val.vals = new Value*[result->size()];
+            std::copy(result->data(), result->data() + result->size(), val.vector_val.vals);
             return true;
         }
 
-        default: reporter->InternalError("unsupported type %s in Value::Read", type_name(type));
+        default: {
+            reporter->InternalWarning("unsupported type %s (%d) in Value::Read", type_name(type),
+                                      static_cast<int>(type));
+            return false;
+        }
     }
 
+    // unreachable
     return false;
 }
 
@@ -414,7 +450,10 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
             return true;
         }
 
-        default: reporter->InternalError("unsupported type %s in Value::Write", type_name(type));
+        default: {
+            reporter->InternalWarning("unsupported type %s in Value::Write", type_name(type));
+            return false;
+        }
     }
 
     // unreachable

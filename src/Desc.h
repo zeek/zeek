@@ -80,6 +80,7 @@ public:
     int IndentSpaces() const { return indent_with_spaces; }
     void SetIndentSpaces(int i) { indent_with_spaces = i; }
 
+    void Add(std::string_view sv) { AddBytes(sv.data(), sv.size()); }
     void Add(const char* s, int do_indent = 1);
     void AddN(const char* s, int len) { AddBytes(s, len); }
     void Add(const std::string& s) { AddBytes(s.data(), s.size()); }

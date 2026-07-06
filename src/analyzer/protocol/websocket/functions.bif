@@ -41,13 +41,6 @@ function __configure_analyzer%(c: connection, aid: count, config: WebSocket::Ana
 
 	if ( ! ws_analyzer->Configure({zeek::NewRef{}, config->AsRecordVal()}) )
 		return zeek::val_mgr->False();
-
-	#Added permessage_deflate functionality.
-	auto pm_deflate_val = config->GetFieldOrDefault("permessage_deflate");
-	if ( pm_deflate_val && pm_deflate_val->AsBool())
-		{
-		a->EnablePerMessageCompression();
-		}
-
+	
 	return zeek::val_mgr->True();
 	%}

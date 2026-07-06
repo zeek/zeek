@@ -86,7 +86,13 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
 
         return false;
     }
-
+    auto pm_deflate_val = config->GetFieldOrDefault("permessage_deflate");
+    
+    // Checking the permessage_deflate boolean
+    if ( pm_deflate_val && pm_deflate_val->AsBool()){
+	// Inform BinPAC interpreter that compression is active. 
+    	interp->EnablePerMessageCompression();
+    }
     // Neither analyzer nor dpd was enabled, success.
     return true;
 }

@@ -1,3 +1,16 @@
+9.0.0-dev.572 | 2026-07-06 13:39:09 -0700
+
+  * finger: Add limit to lines to avoid buffer growth (Evan Typanski, Corelight)
+
+    This adds a limit to all lines with the finger protocol. This way we can
+    prevent unbounded buffer growth.
+
+    Unfortunately, it's a little tricky to efficiently store the data in
+    Spicy without doing something hacky. This just uses `&max-size`, which
+    triggers a violation, rather than a weird. In the future this could
+    change to a weird, but it's almost certainly malicious or malformed input
+    anyway.
+
 9.0.0-dev.570 | 2026-07-06 13:38:02 -0700
 
   * websocket: Consume data past control frame max size (Evan Typanski, Corelight)

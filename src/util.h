@@ -356,9 +356,11 @@ extern bool is_printable(const char* s, int len);
 
 extern const char* fmt_bytes(const char* data, int len);
 
-// Note: returns a pointer into a shared buffer.
+// Note: vfmt and fmt share the same global buffer and return a pointer to it.
+// - not thread-safe; call only from main thread or use threading::BasicThread::Fmt()
+// - returned buffer and potentially pointer invalidated by next fmt()/vfmt() call;
+//   consume or copy before next call
 extern const char* vfmt(const char* format, va_list args);
-// Note: returns a pointer into a shared buffer.
 extern const char* fmt(const char* format, ...) __attribute__((format(printf, 1, 2)));
 
 // Returns true if path exists and is a directory.

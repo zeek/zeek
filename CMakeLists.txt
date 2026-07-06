@@ -904,6 +904,11 @@ find_package(FLEX REQUIRED)
 find_package(BISON 2.5 REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(OpenSSL 3.0 REQUIRED)
+
+# Run OpenSSL check before sanitizer flags are set so macOS SIP does not cause
+# the test to stall.
+include(OpenSSLTests)
+
 find_package(ZLIB REQUIRED)
 
 if (NOT BINARY_PACKAGING_MODE)
@@ -1268,7 +1273,6 @@ include(CheckHeaders)
 include(CheckFunctions)
 include(MiscTests)
 include(PCAPTests)
-include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
 

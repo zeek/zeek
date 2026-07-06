@@ -1,3 +1,11 @@
+9.0.0-dev.537 | 2026-07-06 15:51:25 +0200
+
+  * Intel: Make IN_ANYWHERE default for if_in (Jan Grashoefer, Corelight)
+
+  * Intel: Support IN_ANYWHERE as wildcard for notices (Jan Grashoefer, Corelight)
+
+  * Intel: Add btest for do_notice (Jan Grashoefer, Corelight)
+
 9.0.0-dev.533 | 2026-07-03 11:36:06 +0200
 
   * Fix reporter logging without wallclock fallback (Jan Grashoefer, Corelight)

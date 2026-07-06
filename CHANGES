@@ -1,3 +1,18 @@
+8.0.9-2 | 2026-08-07 15:51:52 -0700
+
+  * util/fmt: Use thread-safe Fmt() in backend threads (Stefan Götz, Corelight)
+
+    util::fmt() uses a single process-global buffer, so it is only safe on
+    the main thread: a backend thread calling it can overwrite the buffer
+    while the main thread still holds a returned pointer (e.g. across the
+    copy_string() in Writer/ReaderFrontend), leading to corruption.
+
+    Switch three callers on Reader/WriterBackend (MsgThread) threads to
+    the per-thread BasicThread::Fmt(). Also switch a possibly concurrent
+    call to the non-reentrant strerror() to the thread-safe Strerror().
+
+    (cherry picked from commit f15c70e4747f81dd79617407405a273655e1d42b)
+
 8.0.9-1 | 2026-08-07 15:50:20 -0700
 
   * Intel: Make IN_ANYWHERE default for if_in (Jan Grashoefer, Corelight)

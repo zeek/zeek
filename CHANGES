@@ -1,3 +1,36 @@
+9.0.0-dev.567 | 2026-07-06 13:37:32 -0700
+
+  * nvt: Switch options to only allocate a needed byte (Evan Typanski, Corelight)
+
+    These two cases both only use one byte past the end of the offset. In
+    order to ensure nothing wasteful is done, and to guard against some
+    buffer growth if the analyzer changes, these should only grow to what's
+    necessary.
+
+    The doubling part is far more efficient when scanning lines, but here
+    it's potentially very wasteful, especially near the max buffer length.
+
+  * contentline: Fix unbounded state growth in lines (Evan Typanski, Corelight)
+
+    Multiple analyzers that used the ContentLine analyzer omitted the check
+    for max_line_length. This could result in unbounded state growth for
+    these cases if the line was too long.
+
+    One potential fix for this would be to simply check before growing the
+    buffer at each step. However, this adds a significant amount of friction
+    and encourages unsafe practice when overriding the content line analyzer.
+
+    Instead, this introduces a new way to grow the buffer, which will fail if
+    it would exceed the max line length. This way, callers can simply
+    continue to request buffer growth until it hits the limit, then fail in
+    whichever way they want. In most cases it means simply restarting
+    analysis with the now-large buffer.
+
+    There are multiple cases that still use the "unsafe" version, but the
+    first priority was obvious loops that would otherwise grow the buffer.
+    In those cases, they may double the buffer size, but not loop in the
+    same way based on user input.
+
 9.0.0-dev.564 | 2026-07-06 13:36:48 -0700
 
   * HTTP: zeek-testing-private baseline update for new weirds (Arne Welzel, Corelight)

@@ -1,3 +1,14 @@
+9.0.0-dev.543 | 2026-07-06 12:51:12 -0700
+
+  * CI: Temporarily disable cloning zeek-testing-private repo (Tim Wojtulewicz, Corelight)
+
+    CircleCI is having problems with the SSH keys related to cloning the
+    zeek-testing-private repo, which is causing all builds to fail. Until
+    that gets fixed, disable cloning the repo so that at least the rest
+    of the build continues working.
+
+  * CI: Remove Cirrus-isms from ci/init-external-repos.sh (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.540 | 2026-07-06 11:18:44 -0700
 
   * CCI: Remove unnecessary docs about how to get trigger IDs (Tim Wojtulewicz, Corelight)

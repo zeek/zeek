@@ -383,6 +383,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_RPC.consts.bif.zeek, <...>/Zeek_RPC.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek) -> -1
@@ -709,6 +710,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RPC.consts.bif.zeek, <...>/Zeek_RPC.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek) -> (-1, <no content>)
@@ -1354,6 +1356,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_RPC.consts.bif.zeek, <...>/Zeek_RPC.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek)
@@ -1680,6 +1683,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RFB.events.bif.zeek, <...>/Zeek_RFB.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RPC.consts.bif.zeek, <...>/Zeek_RPC.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RPC.events.bif.zeek, <...>/Zeek_RPC.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RawReader.raw.bif.zeek, <...>/Zeek_RawReader.raw.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SIP.events.bif.zeek, <...>/Zeek_SIP.events.bif.zeek)
@@ -2324,6 +2328,7 @@
 0.000000 | HookLoadFile  ./Zeek_RDP.events.bif.zeek <...>/Zeek_RDP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RDP.types.bif.zeek <...>/Zeek_RDP.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RFB.events.bif.zeek <...>/Zeek_RFB.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_RPC.consts.bif.zeek <...>/Zeek_RPC.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RPC.events.bif.zeek <...>/Zeek_RPC.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RawReader.raw.bif.zeek <...>/Zeek_RawReader.raw.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SIP.events.bif.zeek <...>/Zeek_SIP.events.bif.zeek
@@ -2650,6 +2655,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_RDP.events.bif.zeek <...>/Zeek_RDP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RDP.types.bif.zeek <...>/Zeek_RDP.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RFB.events.bif.zeek <...>/Zeek_RFB.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_RPC.consts.bif.zeek <...>/Zeek_RPC.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RPC.events.bif.zeek <...>/Zeek_RPC.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RawReader.raw.bif.zeek <...>/Zeek_RawReader.raw.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SIP.events.bif.zeek <...>/Zeek_SIP.events.bif.zeek

@@ -1979,6 +1979,15 @@ const dns_session_timeout = 10 sec &redef;
 ## Time to wait before timing out an RPC request.
 const rpc_timeout = 24 sec &redef;
 
+## Maximum number of pending RPC calls without replies.
+##
+## When a new RPC call needs to be stored that would exceed this value,
+## Zeek will discard all currently pending RPC calls and raise
+## a ``RPC_pending_calls_discarded`` weird as well as the
+## :zeek:see:`rpc_discarded_pending_calls` event. Setting this value
+## to 0 disables the limit. This may lead to unbounded state growth.
+const rpc_max_pending_calls = 1000 &redef;
+
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 5 min &redef;

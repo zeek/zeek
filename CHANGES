@@ -1,3 +1,11 @@
+9.0.0-dev.581 | 2026-07-06 13:44:55 -0700
+
+  * RPC: Limit calls map via rpc_max_pending_calls const redef (Arne Welzel, Corelight)
+
+    This is similar to what we do in the SMB analyzer to prevent unbounded
+    state growth. A configurable upper limit with 0 meaning unbounded,
+    raising a weird and an event if the limit is reached. Defaults to 1000.
+
 9.0.0-dev.579 | 2026-07-06 13:42:31 -0700
 
   * krb: Fix crash with Kerberos error handling (Evan Typanski, Corelight)

@@ -1,3 +1,33 @@
+9.0.0-dev.564 | 2026-07-06 13:36:48 -0700
+
+  * HTTP: zeek-testing-private baseline update for new weirds (Arne Welzel, Corelight)
+
+  * Traces/README: Update with a note about http/261 (Arne Welzel, Corelight)
+
+  * NEWS: Add note on new weirds (Arne Welzel, Corelight)
+
+  * HTTP: Weird on Content-Length: 0 and Expect: usage (Arne Welzel, Corelight)
+
+  * HTTP: Weird on Transfer-Encoding: chunked, something (Arne Welzel, Corelight)
+
+  * HTTP: Weird on obsolete line folding (Arne Welzel, Corelight)
+
+    RFC 7230 (2014) has deprecated line folding. Create weirds when these
+    are observed as 12 years later they should be weird an possibly indicate
+    evasions
+
+  * HTTP: Weird on chunked mixed with Content-Length/Content-Range (Arne Welzel, Corelight)
+
+    This adds weirds that are raised when Transfer-Encoding: chunked is used
+    together with Content-Length or Content-Range. Minimally that's weird.
+
+  * HTTP: Weird on Content-Lengths that start with 0s (Arne Welzel, Corelight)
+
+  * HTTP: Weird for out of range Content-Length headers (Arne Welzel, Corelight)
+
+    ...and include the header value into weird's addl for more information.
+    Also do this for the chunk sizes.
+
 9.0.0-dev.554 | 2026-07-06 13:27:36 -0700
 
   * gnutella: Fix multiple header lines buffer growth (Evan Typanski, Corelight)

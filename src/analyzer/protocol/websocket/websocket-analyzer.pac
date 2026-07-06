@@ -78,22 +78,35 @@ refine flow WebSocket_Flow += {
 			for ( int i = 0; i < data.length(); i++ )
 				d[i] = d[i] ^ masking_key_[masking_key_idx_++ % masking_key_.size()];
 			}
-
-		if ( websocket_frame_data )
+		
+		if (connection()->HasPerMessageCompressionEnabled() && rsv1_ )
 			{
-			auto data_val = zeek::make_intrusive<zeek::StringVal>(data.length(), reinterpret_cast<const char*>(data.data()));
-			zeek::BifEvent::enqueue_websocket_frame_data(connection()->zeek_analyzer(),
-			                                             connection()->zeek_analyzer()->Conn(),
-			                                             is_orig(),
-			                                             std::move(data_val));
+			printf("DEBUG: Decompressing frame. Enabled=true, RSV1=true\n");
+			connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length(), is_orig());
 			}
+		else
+			{
+			printf("DEBUG: Falling back to uncompressed. Enabled=%s, RSV1=%s\n", 
+                   	connection()->HasPerMessageCompressionEnabled() ? "true" : "false", rsv1_ ? "true" : "false");
+			
+			if ( websocket_frame_data )
+				{
+				auto data_val = zeek::make_intrusive<zeek::StringVal>(data.length(), reinterpret_cast<const char*>(data.data()));
+				zeek::BifEvent::enqueue_websocket_frame_data(connection()->zeek_analyzer(),
+									     connection()->zeek_analyzer()->Conn(),
+									     is_orig(),
+									     std::move(data_val));
+				
+				
+				}
 
-		// Forward text and binary data to downstream analyzers.
-		if ( effective_opcode_ == OPCODE_TEXT || effective_opcode_ == OPCODE_BINARY)
-			connection()->zeek_analyzer()->ForwardStream(data.length(),
-			                                             data.data(),
-			                                             is_orig());
 
+			// Forward text and binary data to downstream analyzers.
+			if ( effective_opcode_ == OPCODE_TEXT || effective_opcode_ == OPCODE_BINARY)
+				connection()->zeek_analyzer()->ForwardStream(data.length(),
+									     data.data(),
+									     is_orig());
+			}
 		return true;
 		%}
 };

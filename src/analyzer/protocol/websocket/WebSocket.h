@@ -26,8 +26,17 @@ public:
     void Init() override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
     void Undelivered(uint64_t seq, int len, bool orig) override;
-    void EnablePerMessageCompression() { permessage_deflate = true; }
-
+    void EnablePerMessageCompression() 
+        { 
+        permessage_deflate = true; 
+        
+        if ( interp ) {
+            fprintf(stderr, "DEBUG: C++ EnablePerMessageCompression called. Calling interp->Enable()...\n");
+            interp->EnablePerMessageCompression(); 
+        } else {
+            fprintf(stderr, "DEBUG: C++ EnablePerMessageCompression called, but INTERP IS NULL!\n");
+        }
+        }
     static zeek::analyzer::Analyzer* Instantiate(Connection* conn) { return new WebSocket_Analyzer(conn); }
 	
 private:

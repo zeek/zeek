@@ -146,7 +146,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			# If the response we recieved from the server contains permessage-deflate then it would mean the 
 			# negotiation was successful. Otherwise the default would be to have the negotiation as unsuccessful (F).
 			if ( "permessage-deflate" in to_lower(value))
+				{
+				print "DEBUG: Negotiating permessage-deflate!";
+				enable_compression(c);
 				ws$permessage_deflate = T;
+				}
 			}
 		else if ( name == "SEC-WEBSOCKET-ACCEPT" )
 			{

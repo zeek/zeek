@@ -41,11 +41,12 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 			}
 	%}
 
-	function EnablePerMessageCompression(): void
+	function EnablePerMessageCompression(): bool
 		%{
 		permessage_compression_enabled_ = true;
+		fprintf(stderr, "DEBUG: BinPAC EnablePerMessageCompression flag set to TRUE!\n");
+		return true;
 		%}
-
 	function HasPerMessageCompressionEnabled(): bool
 		%{
 		return permessage_compression_enabled_;
@@ -69,7 +70,7 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 		// Append 4-byte to payload according to RFC 7692
 		int input_len = len + 4;
 		unsigned char* input_buf = new unsigned char [input_len];
-		mem_cpy(input_buf, data, len);
+		memcpy(input_buf, data, len);
 		input_buf[len] = 0x00;
 		input_buf[len+1] = 0x00;
 		input_buf[len+2] = 0xff;

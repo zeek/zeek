@@ -1,5 +1,6 @@
 %%{
 #include "zeek/analyzer/protocol/websocket/WebSocket.h"
+#include "zeek/analyzer/Component.h"
 %%}
 
 module WebSocket;
@@ -44,3 +45,41 @@ function __configure_analyzer%(c: connection, aid: count, config: WebSocket::Ana
 	
 	return zeek::val_mgr->True();
 	%}
+
+function enable_compression%(c: connection%): bool
+    %{
+    // 1. Get the analyzer component by name.
+    // This returns the Component object which holds the Tag.
+    auto comp = zeek::analyzer::Component::FindAnalyzer("WebSocket");
+    
+    if ( ! comp )
+        {
+        fprintf(stderr, "DEBUG: BIF: Could not find analyzer component 'WebSocket'.\n");
+        return zeek::val_mgr->False();
+        }
+        
+    // 2. Extract the Tag from the component
+    auto tag = comp->Tag();
+    
+    // 3. Find the analyzer instance on the connection
+    zeek::analyzer::Analyzer* analyzer = c->FindAnalyzer(tag);
+    
+    if ( ! analyzer )
+        {
+        fprintf(stderr, "DEBUG: BIF: Could not find analyzer instance on this connection.\n");
+        return zeek::val_mgr->False();
+        }
+
+    // 4. Cast and enable
+    auto ws_analyzer = dynamic_cast<zeek::analyzer::websocket::WebSocket_Analyzer*>(analyzer);
+    
+    if ( ! ws_analyzer )
+        {
+        fprintf(stderr, "DEBUG: BIF: Found analyzer, but cast failed.\n");
+        return zeek::val_mgr->False();
+        }
+    
+    ws_analyzer->EnablePerMessageCompression();
+    fprintf(stderr, "DEBUG: BIF: SUCCESS! Compression enabled.\n");
+    return zeek::val_mgr->True();
+    %}

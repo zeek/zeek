@@ -84,6 +84,7 @@ flow WebSocket_Flow(is_orig: bool) {
 
 	%member{
 		bool has_mask_;
+		bool rsv1_;
 		uint64_t masking_key_idx_;
 		uint64_t frame_payload_len_;
 		std::array<uint8_t, 4> masking_key_;
@@ -92,6 +93,7 @@ flow WebSocket_Flow(is_orig: bool) {
 
 	%init{
 		has_mask_ = false;
+		rsv1_ = false;
 		masking_key_idx_ = 0;
 		frame_payload_len_ = 0;
 		effective_opcode_ = OPCODE_CONTINUATION;
@@ -109,6 +111,7 @@ flow WebSocket_Flow(is_orig: bool) {
 
 		frame_payload_len_ = ${hdr.payload_len};
 		has_mask_ = ${hdr.has_mask};
+		rsv1_ = (${hdr.reserved} & 0x04) != 0; //bit of a lazy/hacky way of doing this  
 		masking_key_idx_ = 0;
 		if ( has_mask_ ) {
 			assert(${hdr.masking_key}.length() == static_cast<int>(masking_key_.size()));
@@ -145,5 +148,9 @@ flow WebSocket_Flow(is_orig: bool) {
 			len = zeek::BifConst::WebSocket::payload_chunk_size;
 
 		return len;
+		%}
+	function EnablePerMessageCompression(): bool
+		%{
+		return true;
 		%}
 };

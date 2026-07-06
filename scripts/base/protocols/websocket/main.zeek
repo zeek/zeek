@@ -76,6 +76,11 @@ export {
 
 redef record connection += {
 	websocket: Info &optional;
+	ws_deflate_negotiated: bool &default=F;
+};
+
+redef record WebSocket::AnalyzerConfig += {
+    permessage_deflate: bool &default=F;
 };
 
 function set_websocket(c: connection)
@@ -143,16 +148,15 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 
 			ws$server_extensions += split_string(value, / *, */);
 
-			# If the response we recieved from the server contains permessage-deflate then it would mean the 
-			# negotiation was successful. Otherwise the default would be to have the negotiation as unsuccessful (F).
+			# if the response we recieved from the server contains permessage-deflate then it would mean the 
+			# negotiation was successful. otherwise the default would be to have the negotiation as unsuccessful (f).
 			if ( "permessage-deflate" in to_lower(value))
 				{
-				print "DEBUG: Negotiating permessage-deflate!";
-				enable_compression(c);
+				print "debug: negotiating permessage-deflate!";
 				ws$permessage_deflate = T;
 				}
 			}
-		else if ( name == "SEC-WEBSOCKET-ACCEPT" )
+		else if ( name == "sec-websocket-accept" )
 			{
 			if ( ws?$server_accept )
 				Reporter::conn_weird("websocket_multiple_accept_headers", c, "", "WebSocket");
@@ -227,6 +231,8 @@ event websocket_established(c: connection, aid: count) &priority=-5
 
 	if ( ws?$server_extensions )
 		config$server_extensions = ws$server_extensions;
+
+	config$permessage_deflate = ws$permessage_deflate;
 
 	# Give other scripts a chance to modify the analyzer configuration.
 	#

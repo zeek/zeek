@@ -81,13 +81,13 @@ refine flow WebSocket_Flow += {
 		
 		if (connection()->HasPerMessageCompressionEnabled() && rsv1_ )
 			{
-			printf("DEBUG: Decompressing frame. Enabled=true, RSV1=true\n");
+			//printf("DEBUG: Decompressing frame. Enabled=true, RSV1=true\n");
 			connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length(), is_orig());
 			}
 		else
 			{
-			printf("DEBUG: Falling back to uncompressed. Enabled=%s, RSV1=%s\n", 
-                   	connection()->HasPerMessageCompressionEnabled() ? "true" : "false", rsv1_ ? "true" : "false");
+			//printf("DEBUG: Falling back to uncompressed. Enabled=%s, RSV1=%s\n", 
+                   	//connection()->HasPerMessageCompressionEnabled() ? "true" : "false", rsv1_ ? "true" : "false");
 			
 			if ( websocket_frame_data )
 				{

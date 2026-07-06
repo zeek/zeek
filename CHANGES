@@ -1,3 +1,13 @@
+8.0.8-89 | 2026-07-06 18:27:48 +0000
+
+  * CCI: Remove unnecessary docs about how to get trigger IDs (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit eb52022971ac79716f8a64d2eb4a040381b09caa)
+
+  * CCI: Avoid double builds for tag pushes (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 92d75bb206e6d2a71e132576745716e01d30d8b6)
+
 8.0.8-87 | 2026-07-06 17:54:23 +0000
 
   * CCI: Fix check for pushes to master to avoid double-builds (Tim Wojtulewicz, Corelight)

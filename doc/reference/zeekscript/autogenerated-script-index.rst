@@ -183,6 +183,7 @@
    base/bif/plugins/Zeek_FTP.events.bif.zeek </scripts/base/bif/plugins/Zeek_FTP.events.bif.zeek>
    base/bif/plugins/Zeek_FTP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_FTP.functions.bif.zeek>
    base/bif/plugins/Zeek_Gnutella.events.bif.zeek </scripts/base/bif/plugins/Zeek_Gnutella.events.bif.zeek>
+   base/bif/plugins/Zeek_Gnutella.consts.bif.zeek </scripts/base/bif/plugins/Zeek_Gnutella.consts.bif.zeek>
    base/bif/plugins/Zeek_GSSAPI.events.bif.zeek </scripts/base/bif/plugins/Zeek_GSSAPI.events.bif.zeek>
    base/bif/plugins/Zeek_HTTP.events.bif.zeek </scripts/base/bif/plugins/Zeek_HTTP.events.bif.zeek>
    base/bif/plugins/Zeek_HTTP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_HTTP.functions.bif.zeek>
@@ -212,6 +213,7 @@
    base/bif/plugins/Zeek_RDP.events.bif.zeek </scripts/base/bif/plugins/Zeek_RDP.events.bif.zeek>
    base/bif/plugins/Zeek_RDP.types.bif.zeek </scripts/base/bif/plugins/Zeek_RDP.types.bif.zeek>
    base/bif/plugins/Zeek_RFB.events.bif.zeek </scripts/base/bif/plugins/Zeek_RFB.events.bif.zeek>
+   base/bif/plugins/Zeek_RPC.consts.bif.zeek </scripts/base/bif/plugins/Zeek_RPC.consts.bif.zeek>
    base/bif/plugins/Zeek_RPC.events.bif.zeek </scripts/base/bif/plugins/Zeek_RPC.events.bif.zeek>
    base/bif/plugins/Zeek_SIP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SIP.events.bif.zeek>
    base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek </scripts/base/bif/plugins/Zeek_SMB.smb1_com_check_directory.bif.zeek>
@@ -252,6 +254,7 @@
    base/bif/plugins/Zeek_SMTP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek>
    base/bif/plugins/Zeek_SNMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek>
    base/bif/plugins/Zeek_SOCKS.events.bif.zeek </scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek>
+   base/bif/plugins/Zeek_SSH.consts.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek>
    base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SSH.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek>
    base/bif/plugins/Zeek_SSL.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSL.types.bif.zeek>

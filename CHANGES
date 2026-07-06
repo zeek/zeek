@@ -1,3 +1,7 @@
+8.0.9 | 2026-07-06 19:53:25 +0000
+
+  * Release 8.0.9.
+
 8.0.8-91 | 2026-07-06 19:53:08 +0000
 
   * CI: Temporarily disable cloning zeek-testing-private repo (Tim Wojtulewicz, Corelight)

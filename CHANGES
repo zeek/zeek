@@ -1,3 +1,21 @@
+9.0.0-dev.570 | 2026-07-06 13:38:02 -0700
+
+  * websocket: Consume data past control frame max size (Evan Typanski, Corelight)
+
+    This will continue to consume the data, but it won't actually store the
+    data (which ends up going into the event). This is done via a per-chunk
+    remaining length indicator to cap that off.
+
+  * websocket: Add limit to control frame buffer (Evan Typanski, Corelight)
+
+    The hard limit is 125 in the protocol. This adds a configurable limit
+    to the WebSocket parsers control frames (CLOSE, PING, PONG). This way,
+    bytes will not accumulate in a buffer for a limit beyond the protocol's
+    hard-defined limit.
+
+    However, this will truncate the frame, leaving the stream out of sync.
+    That will be fixed in the following commit(s).
+
 9.0.0-dev.567 | 2026-07-06 13:37:32 -0700
 
   * nvt: Switch options to only allocate a needed byte (Evan Typanski, Corelight)

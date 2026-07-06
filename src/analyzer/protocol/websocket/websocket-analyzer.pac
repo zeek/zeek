@@ -81,7 +81,7 @@ refine flow WebSocket_Flow += {
 
 		if ( websocket_frame_data )
 			{
-			auto data_val = zeek::make_intrusive<zeek::StringVal>(data.length(), reinterpret_cast<const char*>(data.data()));
+			auto data_val = zeek::make_intrusive<zeek::StringVal>(chunk_emit_len_, reinterpret_cast<const char*>(data.data()));
 			zeek::BifEvent::enqueue_websocket_frame_data(connection()->zeek_analyzer(),
 			                                             connection()->zeek_analyzer()->Conn(),
 			                                             is_orig(),

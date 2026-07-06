@@ -27,35 +27,19 @@ workflows:
         - and:
           # The check for the trigger type here prevents us from doing double builds on
           # pushes to master. We only want to do them from the oauth trigger, which
-          # covers pushes to the default branch. The "All pushes" trigger in the second
-          # pipeline should ignore pushes to master.
+          # covers pushes to the default branch.
           - equal: [ master, << pipeline.git.branch >> ]
           - equal: [ github_oauth, << pipeline.trigger.type>> ]
         - matches:
             pattern: "^release/.*"
             value: << pipeline.git.branch >>
-        - matches:
-            pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"
-            value: << pipeline.git.tag >>
+        - and:
+          # Similar to above, we only want one build to trigger off tag pushes.
+          - matches:
+              pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"
+              value: << pipeline.git.tag >>
+          - equal: [ github_oauth, << pipeline.trigger.type>> ]
         - equal: [ "nightly", << pipeline.schedule.name >> ]
         - equal: [ "weekly", << pipeline.schedule.name >> ]
     jobs:
       - setup_job
-
-
-# To get the ID for the trigger above, you must go through the CircleCI API. It doesn't
-# show up anywhere on the UI that I have found. This requires a bit of gymnastics. You'll
-# need the following:
-# - A personal access token on your CircleCI account
-# - The project ID, available from the "Overview" page for the project on the site
-# - The pipeline ID, available from the "Project Setup" page for the project on the site.
-#   The ID is right under the title of the pipeline.
-#
-# Make a request to the API like such:
-#   curl --request GET \
-#     --url https://circleci.com/api/v2/projects/<project id>/pipeline-definitions/<pipeline id>/trigger \
-#     --header "Circle-Token: $CIRCLE_TOKEN"
-#
-# Find the ID for the "all-pushes" trigger in the output. Alternatively, you can use the
-# "only-build-prs" trigger. It doesn't really matter, because we're just using one of the
-# IDs to avoid doing builds for master from both triggers.

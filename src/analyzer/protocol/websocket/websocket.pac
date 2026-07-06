@@ -44,7 +44,7 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 	function EnablePerMessageCompression(): bool
 		%{
 		permessage_compression_enabled_ = true;
-		fprintf(stderr, "DEBUG: BinPAC EnablePerMessageCompression flag set to TRUE!\n");
+		//fprintf(stderr, "DEBUG: BinPAC EnablePerMessageCompression flag set to TRUE!\n");
 		return true;
 		%}
 	function HasPerMessageCompressionEnabled(): bool

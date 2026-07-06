@@ -8,6 +8,10 @@
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/websocket/events.bif.h"
 
+#include "analyzer/protocol/websocket/WebSocket.h"
+
+zeek::Tag zeek::analyzer::websocket::WebSocket_Analyzer::Tag;
+
 namespace zeek::analyzer::websocket {
 
 WebSocket_Analyzer::WebSocket_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("WebSocket", conn) {}
@@ -54,7 +58,16 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
         interp = std::make_unique<binpac::WebSocket::WebSocket_Conn>(this);
         effective_analyzer = this;
     }
-
+    auto pm_deflate_val = config->GetFieldOrDefault("permessage_deflate");
+    
+    // Checking the permessage_deflate boolean
+    if ( pm_deflate_val && pm_deflate_val->AsBool()){
+	//fprintf(stderr, "DEBUG: C++ Configure() saw permessage_deflate=T from Zeek script!\n");
+	// Inform BinPAC interpreter that compression is active. 
+    	interp->EnablePerMessageCompression();
+    }else{
+    	//fprintf(stderr, "DEBUG: C++ Configure() saw permessage_deflate=F from Zeek script!\n");
+    }
     if ( config->HasField(analyzer_idx) ) {
         const auto& analyzer_tag_val = config->GetField(analyzer_idx);
         auto analyzer_tag = analyzer_mgr->GetComponentTag(analyzer_tag_val.get());
@@ -86,13 +99,7 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
 
         return false;
     }
-    auto pm_deflate_val = config->GetFieldOrDefault("permessage_deflate");
-    
-    // Checking the permessage_deflate boolean
-    if ( pm_deflate_val && pm_deflate_val->AsBool()){
-	// Inform BinPAC interpreter that compression is active. 
-    	interp->EnablePerMessageCompression();
-    }
+   
     // Neither analyzer nor dpd was enabled, success.
     return true;
 }

@@ -6,6 +6,8 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/websocket/websocket_pac.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/Tag.h"
 
 namespace zeek::analyzer::websocket {
 
@@ -38,7 +40,7 @@ public:
         }
         }
     static zeek::analyzer::Analyzer* Instantiate(Connection* conn) { return new WebSocket_Analyzer(conn); }
-	
+    static zeek::Tag Tag;	
 private:
     std::unique_ptr<binpac::WebSocket::WebSocket_Conn> interp;
     bool had_gap = false;

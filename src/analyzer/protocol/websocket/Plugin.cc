@@ -10,7 +10,7 @@ namespace zeek::plugin::detail::Zeek_WebSocket {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
-    zeek::plugin::Configuration Configure() override {
+zeek::plugin::Configuration Configure() override {
         AddComponent(
             new zeek::analyzer::Component("WebSocket", zeek::analyzer::websocket::WebSocket_Analyzer::Instantiate));
 

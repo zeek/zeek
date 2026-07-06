@@ -27,16 +27,18 @@ workflows:
         - and:
           # The check for the trigger type here prevents us from doing double builds on
           # pushes to master. We only want to do them from the oauth trigger, which
-          # covers pushes to the default branch. The "All pushes" trigger in the second
-          # pipeline should ignore pushes to master.
+          # covers pushes to the default branch.
           - equal: [ master, << pipeline.git.branch >> ]
           - equal: [ github_oauth, << pipeline.trigger.type>> ]
         - matches:
             pattern: "^release/.*"
             value: << pipeline.git.branch >>
-        - matches:
-            pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"
-            value: << pipeline.git.tag >>
+        - and:
+          # Similar to above, we only want one build to trigger off tag pushes.
+          - matches:
+              pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"
+              value: << pipeline.git.tag >>
+          - equal: [ github_oauth, << pipeline.trigger.type>> ]
         - equal: [ "nightly", << pipeline.schedule.name >> ]
         - equal: [ "weekly", << pipeline.schedule.name >> ]
     jobs:

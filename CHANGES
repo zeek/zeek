@@ -1,3 +1,7 @@
+9.0.0-dev.551 | 2026-07-06 13:26:56 -0700
+
+  * Add flag to IP_Hdr::ToPktHdrVal() to check for capture length (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.549 | 2026-07-06 13:26:17 -0700
 
   * SSH: Cap packet_length and string_length to 8MB and 2MB (Arne Welzel, Corelight)

@@ -279,9 +279,10 @@ public:
      * @param arg_ip4 pointer to memory containing an IPv4 packet.
      * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
      * @param reassembled whether this header is for a reassembled packet.
+     * @param len number of bytes valid starting at at `ip4` header.
      */
-    IP_Hdr(const ip* arg_ip4, bool arg_del, bool reassembled = false)
-        : ip4(arg_ip4), del(arg_del), reassembled(reassembled) {}
+    IP_Hdr(const ip* arg_ip4, bool arg_del, bool reassembled = false, uint64_t len = 0)
+        : ip4(arg_ip4), len(len), del(arg_del), reassembled(reassembled) {}
 
     /**
      * Construct the header wrapper from an IPv6 packet.  Caller must have
@@ -297,7 +298,11 @@ public:
      */
     IP_Hdr(const ip6_hdr* arg_ip6, bool arg_del, uint64_t len, const IPv6_Hdr_Chain* c = nullptr,
            bool reassembled = false)
-        : ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)), del(arg_del), reassembled(reassembled) {}
+        : ip6(arg_ip6),
+          ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)),
+          len(len),
+          del(arg_del),
+          reassembled(reassembled) {}
 
     /**
      * Copy a header.  The internal buffer which contains the header data
@@ -504,6 +509,7 @@ private:
     const ip* ip4 = nullptr;
     const ip6_hdr* ip6 = nullptr;
     const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
+    uint64_t len = 0;
     bool del = false;
     bool reassembled = false;
 };

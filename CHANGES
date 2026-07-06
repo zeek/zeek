@@ -1,3 +1,7 @@
+9.0.0-dev.545 | 2026-07-06 13:25:26 -0700
+
+  * ICMP: Add length checking before calling BuildNDOptionsVal (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.543 | 2026-07-06 12:51:12 -0700
 
   * CI: Temporarily disable cloning zeek-testing-private repo (Tim Wojtulewicz, Corelight)

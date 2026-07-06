@@ -29,26 +29,12 @@ fi
 make update-traces
 cd ..
 
-# When running in Cirrus for the main repo, try to clone the private testsuite.
+# When running in CI for the main repo, try to clone the private testsuite.
 # Note that this script is also called when populating the public cache, so
-# the zeek-testing-private dir could have been created/populated already.
+# the zeek-testing-private dir could have been created/populated already. This
+# requires the host running the build to have access to an SSH key that grants
+# access to the repo, and it will fail otherwise.
 if [[ -n "${ZEEK_CI}" ]] && [[ ! -d zeek-testing-private ]]; then
-    # If we're running this on Cirrus, the SSH key won't be available to PRs,
-    # so don't make any of this fail the task in that case.  (But technically,
-    # the key is also available in PRs for people with write access to the
-    # repo, so we can still try for those cases).
-    if [[ -n "${CIRRUS_PR}" ]]; then
-        if [[ "${CIRRUS_USER_PERMISSION}" == "write" ]]; then
-            set -e
-        elif [[ "${CIRRUS_USER_PERMISSION}" == "admin" ]]; then
-            set -e
-        else
-            set +e
-        fi
-    else
-        set -e
-    fi
-
     banner "Trying to clone zeek-testing-private git repo"
     GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:zeek/zeek-testing-private
 fi

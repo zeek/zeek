@@ -21,7 +21,7 @@ export {
 		## Restrictions on when notices are created to only create
 		## them if the *do_notice* field is T and the notice was
 		## seen in the indicated location.
-		if_in: Intel::Where &optional;
+		if_in: Intel::Where &default=IN_ANYWHERE;
 	};
 }
 
@@ -30,7 +30,7 @@ event Intel::match(s: Seen, items: set[Item])
 	for ( item in items )
 		{
 		if ( item$meta$do_notice &&
-			(! item$meta?$if_in || item$meta$if_in == IN_ANYWHERE || s$where == item$meta$if_in) )
+			(item$meta$if_in == IN_ANYWHERE || s$where == item$meta$if_in) )
 			{
 			local n = Notice::Info($note=Intel::Notice,
 				$msg = fmt("Intel hit on %s at %s", s$indicator, s$where),

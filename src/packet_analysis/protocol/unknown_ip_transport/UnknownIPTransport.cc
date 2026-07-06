@@ -44,13 +44,14 @@ void UnknownIPTransportAnalyzer::DeliverPacket(Connection* c, double t, bool is_
 
     const u_char* data = pkt->ip_hdr->Payload();
     int len = pkt->ip_hdr->PayloadLen();
+
     // If segment offloading or similar is enabled, the payload len will return 0.
     // Thus, let's ignore that case.
     if ( len == 0 )
         len = remaining;
 
-    if ( packet_contents && len > 0 )
-        adapter->PacketContents(data + 8, std::min(len, remaining) - 8);
+    if ( packet_contents )
+        adapter->PacketContents(data, std::min(len, remaining));
 
     c->SetLastTime(run_state::current_timestamp);
 

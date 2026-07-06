@@ -1,3 +1,7 @@
+9.0.0-dev.547 | 2026-07-06 13:25:57 -0700
+
+  * Check for valid length before outputting unknown IP packet contents (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.545 | 2026-07-06 13:25:26 -0700
 
   * ICMP: Add length checking before calling BuildNDOptionsVal (Tim Wojtulewicz, Corelight)

@@ -103,7 +103,7 @@ bool Binary::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
         else
             path = path_prefix.substr(0, last + 1);
 
-        fname = util::fmt("%s/%s", path.c_str(), fname.c_str());
+        fname = Fmt("%s/%s", path.c_str(), fname.c_str());
     }
 
     if ( ! OpenInput() )

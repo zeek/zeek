@@ -6,11 +6,66 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.2.1
 ==========
 
-Thank you to ... for their contribution to this release.
+Thank you to Jan Grashöfer (@J-Gras), Javid Khan (@dxbjavid), @jmestwa-coder, and
+@uwezkhan for their contributions to this release.
 
 This release fixes the following security issues:
 
 This release fixes the following bugs:
+
+- Zeek now builds correctly with newer versions of LibreSSL.
+
+- ZeekJS was updated to v0.23.0, which brings compatiblity with Node v26.
+
+- Spicy was updated to v1.14.1. This release includes a fix that resolves crashes when
+  running on Fedora 44 ARM hosts.
+
+- The TCP analyzer now clamps the window scale to 14 bytes, which conforms with
+  RFC7323. If the limit is excceeded, a new ``TCP_scale_range`` weird is logged.
+
+- The Geneve analyzer now properly parses encapsulated IPv6 packets.
+
+- A regression in the management framework's handling of metrics-port collision avoidance
+  was fixed. The regression was originally added in 7.2.0.
+
+- A number of out-of-bounds reads where fixed in the following analyzers: BitTorrent,
+  DCE-RPC, GSS-API, GTPv1, IRC, KRB, Login, NetBIOS, NFLog, and SSL. These reads can
+  result in various protocol violations, included parsing evasions on release builds or
+  potential crashes under UBSan and ASan.
+
+- A number of signed bit-shifting issues were fixed in the following analyzers: ASN.1,
+  DNS, DTLS, FTP, Geneve, IP, NetBIOS, Null, RFB, SNAP, SMB, and VXLAN. These issues can
+  result in various protocol violations, included parsing evasions on release builds or
+  potential crashes under UBSan and ASan.
+
+- The Ident analyzer fixed a potential signed overflow when parsing port information.
+
+- A bug was fixed in the pcapng packet source with handling empty options blocks. This was
+  a null-dereference that could potentially crash Zeek.
+
+- A potential segfault was fixed with the ``global_ids`` BIF if it was called during
+  startup before all of the script-level type data was fully parsed. The fix is to
+  disallow calling ``global_ids`` from the GLOBAL context. It must be called from a
+  function, event handler, or hook instead.
+
+- The NTP analyzer gained some additional length checking when parsing extension fields to
+  avoid potential integer overflows. BinPAC exceptions will be reported in
+  analyzer_debug.log if the limits are exceeded. This also prevents signed integer
+  overflow reports from the BinPAC-generated code when running under UBSan.
+
+- Certain protocol fields in the RDP parser are capped to maximum values to prevent
+  unbounded buffering. This also prevents signed integer overflow reports from the
+  BinPAC-generated code when running under UBSan.
+
+- A few fixes were applied to the handling of HTTP Content-Range values to avoid integer
+  overflows. New weirds ``HTTP_content_range_cannot_parse``,
+  ``HTTP_content_range_cannot_parse``, ``HTTP_non_positive_content_range``, and
+  ``HTTP_content_range_invalid_instance`` were added for the various ways these checks can
+  be violated.
+
+- The GENEVE and VXLAN analyzers now use the correct ``packet`` object when parsing the
+  inner packet, avoiding a possible null pointer dereference. This would cause crashes
+  when running under UBSan.
 
 
 Zeek 8.2.0

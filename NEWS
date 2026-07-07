@@ -107,6 +107,22 @@ Changed Functionality
 - The proposed HTTP QUERY method from RFC 10008 does not produce a weird anymore.
   Zeek already parsed the QUERY method, but raised a weird.
 
+- The HTTP analyzer was extended with a number of new weirds to detect unusual
+  Content-Length, Transfer-Encoding and Expect header usage:
+
+	HTTP_bad_chunk_size
+	HTTP_chunked_multi
+	HTTP_content_length_0_and_expect_100_cont
+	HTTP_content_length_leading_zeros
+	HTTP_bad_content_length
+	HTTP_obsolete_line_folding
+	HTTP_content_length_and_chunked
+	HTTP_content_range_and_chunked
+	HTTP_expect_not_100_continue
+
+  If you observe an excessive number of these weirds, you may always
+  filter these out or report as false positives to us.
+
 - The options and redefinitions from ``zeromq/main.zeek`` were split into a separate
   file ``zeromq/options.zeek`` to enable standalone Zeek processes connect to the ZeroMQ
   layer, without partaking in cluster node events.
@@ -160,6 +176,11 @@ Changed Functionality
   new BiFs: ``set_max_recursion_depth`` to set the maximum number of function calls,
   and ``get_max_recursion_depth`` to get that limit. Should the limit be set to 0, the
   check is skipped, reverting to previous (unchecked) behavior.
+
+- The RPC analyzer resets its internal tracking table for RPC calls when more
+  than rpc_max_pending_calls (default 1000) calls are pending to prevent unbounded
+  state growth. This includes freeing the RPC_CallInfo values. The RPC analyzer
+  (used by the NFS and MOUNT analyzers) is not enabled in a default configuration.
 
 Deprecated Functionality
 ------------------------

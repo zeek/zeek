@@ -1,0 +1,29 @@
+# This tests some SSH connections and the output log.
+
+# @TEST-EXEC: touch weird.log
+# @TEST-EXEC: zeek -b -f 'port 22' -r $TRACES/ssh/ssh.pcap ./common.zeek %INPUT
+# @TEST-EXEC: btest-diff-cut -m uid id.orig_h id.resp_h name addl notice source weird.log
+# @TEST-EXEC: btest-diff-cut -m uid service history conn.log
+
+# Uncapped
+redef SSH::max_packet_length = 0;
+redef SSH::max_string_length = 0;
+
+# @TEST-START-NEXT
+redef SSH::max_packet_length = 1000;
+redef SSH::max_string_length = 0;
+
+# @TEST-START-NEXT
+redef SSH::max_packet_length = 0;
+redef SSH::max_string_length = 200;
+
+# @TEST-START-NEXT
+redef SSH::max_packet_length = 1000;
+redef SSH::max_string_length = 200;
+
+
+# @TEST-START-FILE common.zeek
+@load base/protocols/conn
+@load base/protocols/ssh
+@load base/frameworks/notice/weird
+# @TEST-END-FILE

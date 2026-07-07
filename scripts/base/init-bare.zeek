@@ -831,6 +831,12 @@ export {
 	## testing reasons.
 	const payload_chunk_size = 8192 &redef;
 
+	## The WebSocket analyzer will cap any control frames
+	## (CLOSE, PING, PONG) to this limit and emit a weird if
+	## exceeded. This is defined in the RFC as 125 bytes.
+	## Set to 0 to disable this check.
+	const max_control_frame_size = 125 &redef;
+
 	## Whether to enable DPD on WebSocket frame payload by default.
 	const use_dpd_default = T &redef;
 
@@ -1972,6 +1978,15 @@ const dns_session_timeout = 10 sec &redef;
 
 ## Time to wait before timing out an RPC request.
 const rpc_timeout = 24 sec &redef;
+
+## Maximum number of pending RPC calls without replies.
+##
+## When a new RPC call needs to be stored that would exceed this value,
+## Zeek will discard all currently pending RPC calls and raise
+## a ``RPC_pending_calls_discarded`` weird as well as the
+## :zeek:see:`rpc_discarded_pending_calls` event. Setting this value
+## to 0 disables the limit. This may lead to unbounded state growth.
+const rpc_max_pending_calls = 1000 &redef;
 
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
@@ -3995,6 +4010,29 @@ export {
 		## Are these the capabilities of the server?
 		is_server:                  bool;
 	};
+
+	## When the SSH analyzer observes packets with a packet length
+	## field that exceeds below value, it truncates the length to
+	## the limit and raises a ``SSH_max_packet_exceeded`` weird.
+	## Subsequent parsing will likely fail, but it's probable that
+	## this was not valid SSH traffic to begin with.
+	## According to RFC 4253, the minimum packet length all implementations
+	## must support is an arbitrary 35000 bytes. The default is 8MB,
+	## which is a roughly double and two magnitutes larger than that.
+	##
+	## Setting this value to zero disables the capping mechanism.
+	const max_packet_length = 8 * 1024 * 1024 &redef;
+
+	## When the SSH analyzer observes SSH string fields with lengths
+	## that exceeds below value, it truncates the length to
+	## the limit and raises a ``SSH_max_string_length_exceeded`` weird.
+	## Subsequent parsing will likely fail, but it's probable that
+	## this was not valid SSH traffic to begin with. Strings are used
+	## to exchange MAC and compression algorithms. A 2MB string listing
+	## such algorithms is weird.
+	##
+	## Setting this value to zero disables the capping mechanism.
+	const max_string_length = 2 * 1024 * 1024 &redef;
 }
 
 module NTLM;
@@ -6171,6 +6209,26 @@ export {
 	## payload information in :zeek:see:`mqtt_publish` events (and the
 	## default MQTT logs generated from that).
 	option max_payload_size = 100;
+}
+
+module Gnutella;
+
+export {
+	## Stop processing lines that exceed this byte limit before encountering
+	## a line terminator.
+	const max_line_length = 8192 &redef;
+
+	## Stop processing headers when the Gnutella headers hit this limit, with
+	## all included lines.
+	const max_header_length = 32768 &redef;
+}
+
+module Finger;
+
+export {
+	## The maximum line length for Finger requests and replies. If any lines
+	## exceed this limit, then this will trigger a violation.
+	option max_line_length = 1024;
 }
 
 module Cluster;

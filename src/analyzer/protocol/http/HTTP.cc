@@ -137,7 +137,8 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
                 ASSERT(Depth() == 0); // chunked transfer only allowed for top-level entity
                 ASSERT(trailing_CRLF);
                 if ( ! util::atoi_n(len, data, nullptr, 16, expect_data_length) ) {
-                    http_message->Weird("HTTP_bad_chunk_size");
+                    std::string addl(data, len);
+                    http_message->analyzer->Weird("HTTP_bad_chunk_size", addl.c_str());
                     expect_data_length = 0;
                 }
 
@@ -353,11 +354,35 @@ void HTTP_Entity::SetPlainDelivery(int64_t length) {
 }
 
 void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
+    if ( Depth() == 0 && h->get_fold_lines() > 1 ) {
+        // RFC 7230 (2014) deprecates line folding and calls it
+        // obsolete line folding (obs-fold) as it can be leveraged
+        // to smuggle requests. Some intermediaries may interpret the
+        // line folding differently.
+        //
+        // Start raising weirds for folded lines. It's 2026.
+        //
+        // https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4
+        auto hname = h->get_name();
+        std::string addl(hname.data, hname.length);
+        http_message->MyHTTP_Analyzer()->Weird("HTTP_obsolete_line_folding", addl.c_str());
+    }
+
     if ( analyzer::mime::istrequal(h->get_name(), "content-length") ) {
+        // First: If we've switched into chunked transfer, seeing
+        // a Content-Length header is weird.
+        if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
+
         data_chunk_t vt = h->get_value_token();
         if ( ! analyzer::mime::is_null_data_chunk(vt) ) {
             int64_t n;
-            if ( util::atoi_n(vt.length, vt.data, nullptr, 10, n) ) {
+            if ( util::atoi_n(vt.length, vt.data, nullptr, 10, n) && n >= 0 ) {
+                if ( n > 0 && vt.length > 0 && vt.data[0] == '0' ) {
+                    std::string addl(vt.data, vt.length);
+                    http_message->analyzer->Weird("HTTP_content_length_leading_zeros", addl.c_str());
+                }
+
                 content_length = n;
 
                 if ( is_partial_content && range_length != content_length ) {
@@ -368,15 +393,30 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                     if ( range_length > content_length )
                         content_length = range_length;
                 }
+
+                // Weird if Content-Length is 0 and Expect: 100-continue header used.
+                // This is replicated in the "expect" header processing.
+                if ( content_length == 0 && expect_100_cont )
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_0_and_expect_100_cont");
             }
-            else
+            else {
+                // atoi_n bailed on the content length
+                // value or it was negative.
+                std::string addl(vt.data, vt.length);
+                http_message->analyzer->Weird("HTTP_bad_content_length", addl.c_str());
                 content_length = 0;
+            }
         }
     }
 
     // Figure out content-length for HTTP 206 Partial Content response
     else if ( analyzer::mime::istrequal(h->get_name(), "content-range") &&
               http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 ) {
+        // First: If we've switched into chunked transfer, seeing
+        // a Content-Range header is weird.
+        if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_range_and_chunked");
+
         data_chunk_t vt = h->get_value_token();
         std::string byte_unit(vt.data, vt.length);
         vt = h->get_value_after_token();
@@ -486,8 +526,22 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                 http_version = http_message->analyzer->GetReplyVersionNumber();
 
             data_chunk_t vt = h->get_value_token();
-            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} )
+            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
                 chunked_transfer_state = BEFORE_CHUNK;
+
+                data_chunk_t rest = h->get_value_after_token();
+                if ( rest.length > 0 && rest.data != nullptr ) {
+                    // If something follows the chunked value in the header,
+                    // that's weird and might be an attempt to smuggle something.
+                    std::string addl(rest.data, rest.length);
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_chunked_multi", addl.c_str());
+                }
+
+                // Just switched into chunked transfer mode. If we previously parsed
+                // a valid Content-Length or Content-Range header, that's weird.
+                if ( content_length >= 0 )
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
+            }
         }
         else {
             http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");
@@ -500,6 +554,21 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             encoding = GZIP;
         if ( analyzer::mime::istrequal(vt, "deflate") )
             encoding = DEFLATE;
+    }
+    else if ( analyzer::mime::istrequal(h->get_name(), "expect") ) {
+        data_chunk_t vt = h->get_value_token();
+        // Expect: 100-continue should only have 100-continue as value.
+        if ( ! analyzer::mime::istrequal(vt, "100-continue") ) {
+            std::string addl(vt.data, vt.length);
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_expect_not_100_continue", addl.c_str());
+        }
+
+        expect_100_cont = true;
+
+        // Weird if Content-Length is 0 and Expect: 100-continue header used.
+        // This is replicated in the "content-length" header processing.
+        if ( content_length == 0 && expect_100_cont )
+            http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_0_and_expect_100_cont");
     }
 
     analyzer::mime::MIME_Entity::SubmitHeader(h);

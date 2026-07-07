@@ -201,6 +201,7 @@ export {
 		["repeated_SYN_with_ack"]               = ACTION_LOG,
 		["responder_RPC_call"]                  = ACTION_LOG_PER_ORIG,
 		["rlogin_text_after_rejected"]          = ACTION_LOG,
+		["RPC_pending_calls_discarded"]         = ACTION_LOG,
 		["RPC_rexmit_inconsistency"]            = ACTION_LOG,
 		["RPC_underflow"]                       = ACTION_LOG,
 		["RST_storm"]                           = ACTION_LOG,
@@ -260,6 +261,8 @@ export {
 		["internally_truncated_header"]         = ACTION_LOG,
 		["truncated_IP"]                        = ACTION_LOG,
 		["truncated_header"]                    = ACTION_LOG,
+		["SSH_max_packet_length_exceeded"]      = ACTION_LOG_PER_ORIG,
+		["SSH_max_string_length_exceeded"]      = ACTION_LOG_PER_ORIG,
 	} &default=ACTION_LOG &redef;
 
 	## To completely ignore a specific weird for a host, add the host

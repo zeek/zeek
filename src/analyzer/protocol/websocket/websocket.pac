@@ -9,6 +9,7 @@
 
 %extern{
 #include <array>
+#include <vector>
 
 #include "zeek/analyzer/protocol/websocket/consts.bif.h"
 #include "zeek/analyzer/protocol/websocket/events.bif.h"
@@ -26,6 +27,7 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 	%member{
 		bool permessage_compression_enabled_;	
 		z_stream* z_strm_;
+		std::vector<uint8_t> decompressed_buf_;
 	%}
 
 	%init{
@@ -44,7 +46,6 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 	function EnablePerMessageCompression(): bool
 		%{
 		permessage_compression_enabled_ = true;
-		//fprintf(stderr, "DEBUG: BinPAC EnablePerMessageCompression flag set to TRUE!\n");
 		return true;
 		%}
 	function HasPerMessageCompressionEnabled(): bool
@@ -52,8 +53,11 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 		return permessage_compression_enabled_;
 		%}
 
-	function DecompressPayload(data: const_byteptr, len: int, is_orig: bool): bool
+	function DecompressPayload(data: const_byteptr, len: int): bool
 		%{
+
+		decompressed_buf_.clear();
+
 		// Initialise zlib
 		if ( ! z_strm_ )
 			{
@@ -97,17 +101,9 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 			int have = sizeof(out_buf) - z_strm_->avail_out;
 			if ( have > 0 )
 				{
-				if ( websocket_frame_data )
-					{
-						zeek::BifEvent::enqueue_websocket_frame_data(
-							zeek_analyzer(),
-							zeek_analyzer()->Conn(),
-							is_orig,
-							zeek::make_intrusive<zeek::StringVal>(have, (const char*)out_buf));
-					}
-				// Forwards decompressed chunk to child analyzers
-				zeek_analyzer()->ForwardStream(have, out_buf, is_orig);
-				}
+				//Append decompressed bytes to buffer instead of raising events.
+				decompressed_buf_.insert(decompressed_buf_.end()), out_buf, out_buf + have);
+				}				}
 				
 		} while(z_strm_->avail_out == 0);
 		delete[] input_buf;

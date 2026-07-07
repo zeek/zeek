@@ -78,26 +78,34 @@ refine flow WebSocket_Flow += {
 			for ( int i = 0; i < data.length(); i++ )
 				d[i] = d[i] ^ masking_key_[masking_key_idx_++ % masking_key_.size()];
 			}
-		
+
+		const u_char* payload_data = reinterpret_cast<const u_char*>(data.data());
+		int payload_len = chunk_emit_len_;		
+
 		if (connection()->HasPerMessageCompressionEnabled() && rsv1_ )
 			{
-			//printf("DEBUG: Decompressing frame. Enabled=true, RSV1=true\n");
-			connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length(), is_orig());
+			if (connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length(), is_orig()))
+				{
+				// Overwrite pointer and length with decompressed data.
+				payload_data = connection()->decompressed_buf_.data();
+				payload_len= connection()->decompressed_buf_.size();
+				}
+			else
+				{
+				connection()->zeek_analyzer()->Weird("websocket_decompression_failed");
+				return false;
+				}
 			}
 		else
 			{
-			//printf("DEBUG: Falling back to uncompressed. Enabled=%s, RSV1=%s\n", 
-                   	//connection()->HasPerMessageCompressionEnabled() ? "true" : "false", rsv1_ ? "true" : "false");
 			
 			if ( websocket_frame_data )
 				{
-				auto data_val = zeek::make_intrusive<zeek::StringVal>(data.length(), reinterpret_cast<const char*>(data.data()));
+				auto data_val = zeek::make_intrusive<zeek::StringVal>(chunk_emit_len_, reinterpret_cast<const char*>(data.data()));
 				zeek::BifEvent::enqueue_websocket_frame_data(connection()->zeek_analyzer(),
-									     connection()->zeek_analyzer()->Conn(),
-									     is_orig(),
-									     std::move(data_val));
-				
-				
+			                                             connection()->zeek_analyzer()->Conn(),
+			                                             is_orig(),
+			                                             std::move(data_val));
 				}
 
 

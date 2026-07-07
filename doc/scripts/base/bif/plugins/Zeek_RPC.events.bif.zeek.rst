@@ -11,52 +11,54 @@ Summary
 ~~~~~~~
 Events
 ######
-========================================================= ==========================================================================
-:zeek:id:`mount_proc_mnt`: :zeek:type:`event`             Generated for MOUNT3 request/reply dialogues of type *mnt*.
-:zeek:id:`mount_proc_not_implemented`: :zeek:type:`event` Generated for MOUNT3 request/reply dialogues of a type that Zeek's MOUNTv3
-                                                          analyzer does not implement.
-:zeek:id:`mount_proc_null`: :zeek:type:`event`            Generated for MOUNT3 request/reply dialogues of type *null*.
-:zeek:id:`mount_proc_umnt`: :zeek:type:`event`            Generated for MOUNT3 request/reply dialogues of type *umnt*.
-:zeek:id:`mount_proc_umnt_all`: :zeek:type:`event`        Generated for MOUNT3 request/reply dialogues of type *umnt_all*.
-:zeek:id:`mount_reply_status`: :zeek:type:`event`         Generated for each MOUNT3 reply message received, reporting just the
-                                                          status included.
-:zeek:id:`nfs_proc_create`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *create*.
-:zeek:id:`nfs_proc_getattr`: :zeek:type:`event`           Generated for NFSv3 request/reply dialogues of type *getattr*.
-:zeek:id:`nfs_proc_link`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *link*.
-:zeek:id:`nfs_proc_lookup`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *lookup*.
-:zeek:id:`nfs_proc_mkdir`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *mkdir*.
-:zeek:id:`nfs_proc_not_implemented`: :zeek:type:`event`   Generated for NFSv3 request/reply dialogues of a type that Zeek's NFSv3
-                                                          analyzer does not implement.
-:zeek:id:`nfs_proc_null`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *null*.
-:zeek:id:`nfs_proc_read`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *read*.
-:zeek:id:`nfs_proc_readdir`: :zeek:type:`event`           Generated for NFSv3 request/reply dialogues of type *readdir*.
-:zeek:id:`nfs_proc_readlink`: :zeek:type:`event`          Generated for NFSv3 request/reply dialogues of type *readlink*.
-:zeek:id:`nfs_proc_remove`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *remove*.
-:zeek:id:`nfs_proc_rename`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *rename*.
-:zeek:id:`nfs_proc_rmdir`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *rmdir*.
-:zeek:id:`nfs_proc_sattr`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *sattr*.
-:zeek:id:`nfs_proc_symlink`: :zeek:type:`event`           Generated for NFSv3 request/reply dialogues of type *symlink*.
-:zeek:id:`nfs_proc_write`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *write*.
-:zeek:id:`nfs_reply_status`: :zeek:type:`event`           Generated for each NFSv3 reply message received, reporting just the
-                                                          status included.
-:zeek:id:`pm_attempt_callit`: :zeek:type:`event`          Generated for failed Portmapper requests of type *callit*.
-:zeek:id:`pm_attempt_dump`: :zeek:type:`event`            Generated for failed Portmapper requests of type *dump*.
-:zeek:id:`pm_attempt_getport`: :zeek:type:`event`         Generated for failed Portmapper requests of type *getport*.
-:zeek:id:`pm_attempt_null`: :zeek:type:`event`            Generated for failed Portmapper requests of type *null*.
-:zeek:id:`pm_attempt_set`: :zeek:type:`event`             Generated for failed Portmapper requests of type *set*.
-:zeek:id:`pm_attempt_unset`: :zeek:type:`event`           Generated for failed Portmapper requests of type *unset*.
-:zeek:id:`pm_bad_port`: :zeek:type:`event`                Generated for Portmapper requests or replies that include an invalid port
-                                                          number.
-:zeek:id:`pm_request_callit`: :zeek:type:`event`          Generated for Portmapper request/reply dialogues of type *callit*.
-:zeek:id:`pm_request_dump`: :zeek:type:`event`            Generated for Portmapper request/reply dialogues of type *dump*.
-:zeek:id:`pm_request_getport`: :zeek:type:`event`         Generated for Portmapper request/reply dialogues of type *getport*.
-:zeek:id:`pm_request_null`: :zeek:type:`event`            Generated for Portmapper requests of type *null*.
-:zeek:id:`pm_request_set`: :zeek:type:`event`             Generated for Portmapper request/reply dialogues of type *set*.
-:zeek:id:`pm_request_unset`: :zeek:type:`event`           Generated for Portmapper request/reply dialogues of type *unset*.
-:zeek:id:`rpc_call`: :zeek:type:`event`                   Generated for RPC *call* messages.
-:zeek:id:`rpc_dialogue`: :zeek:type:`event`               Generated for RPC request/reply *pairs*.
-:zeek:id:`rpc_reply`: :zeek:type:`event`                  Generated for RPC *reply* messages.
-========================================================= ==========================================================================
+========================================================== ==========================================================================
+:zeek:id:`mount_proc_mnt`: :zeek:type:`event`              Generated for MOUNT3 request/reply dialogues of type *mnt*.
+:zeek:id:`mount_proc_not_implemented`: :zeek:type:`event`  Generated for MOUNT3 request/reply dialogues of a type that Zeek's MOUNTv3
+                                                           analyzer does not implement.
+:zeek:id:`mount_proc_null`: :zeek:type:`event`             Generated for MOUNT3 request/reply dialogues of type *null*.
+:zeek:id:`mount_proc_umnt`: :zeek:type:`event`             Generated for MOUNT3 request/reply dialogues of type *umnt*.
+:zeek:id:`mount_proc_umnt_all`: :zeek:type:`event`         Generated for MOUNT3 request/reply dialogues of type *umnt_all*.
+:zeek:id:`mount_reply_status`: :zeek:type:`event`          Generated for each MOUNT3 reply message received, reporting just the
+                                                           status included.
+:zeek:id:`nfs_proc_create`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *create*.
+:zeek:id:`nfs_proc_getattr`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *getattr*.
+:zeek:id:`nfs_proc_link`: :zeek:type:`event`               Generated for NFSv3 request/reply dialogues of type *link*.
+:zeek:id:`nfs_proc_lookup`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *lookup*.
+:zeek:id:`nfs_proc_mkdir`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *mkdir*.
+:zeek:id:`nfs_proc_not_implemented`: :zeek:type:`event`    Generated for NFSv3 request/reply dialogues of a type that Zeek's NFSv3
+                                                           analyzer does not implement.
+:zeek:id:`nfs_proc_null`: :zeek:type:`event`               Generated for NFSv3 request/reply dialogues of type *null*.
+:zeek:id:`nfs_proc_read`: :zeek:type:`event`               Generated for NFSv3 request/reply dialogues of type *read*.
+:zeek:id:`nfs_proc_readdir`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *readdir*.
+:zeek:id:`nfs_proc_readlink`: :zeek:type:`event`           Generated for NFSv3 request/reply dialogues of type *readlink*.
+:zeek:id:`nfs_proc_remove`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *remove*.
+:zeek:id:`nfs_proc_rename`: :zeek:type:`event`             Generated for NFSv3 request/reply dialogues of type *rename*.
+:zeek:id:`nfs_proc_rmdir`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *rmdir*.
+:zeek:id:`nfs_proc_sattr`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *sattr*.
+:zeek:id:`nfs_proc_symlink`: :zeek:type:`event`            Generated for NFSv3 request/reply dialogues of type *symlink*.
+:zeek:id:`nfs_proc_write`: :zeek:type:`event`              Generated for NFSv3 request/reply dialogues of type *write*.
+:zeek:id:`nfs_reply_status`: :zeek:type:`event`            Generated for each NFSv3 reply message received, reporting just the
+                                                           status included.
+:zeek:id:`pm_attempt_callit`: :zeek:type:`event`           Generated for failed Portmapper requests of type *callit*.
+:zeek:id:`pm_attempt_dump`: :zeek:type:`event`             Generated for failed Portmapper requests of type *dump*.
+:zeek:id:`pm_attempt_getport`: :zeek:type:`event`          Generated for failed Portmapper requests of type *getport*.
+:zeek:id:`pm_attempt_null`: :zeek:type:`event`             Generated for failed Portmapper requests of type *null*.
+:zeek:id:`pm_attempt_set`: :zeek:type:`event`              Generated for failed Portmapper requests of type *set*.
+:zeek:id:`pm_attempt_unset`: :zeek:type:`event`            Generated for failed Portmapper requests of type *unset*.
+:zeek:id:`pm_bad_port`: :zeek:type:`event`                 Generated for Portmapper requests or replies that include an invalid port
+                                                           number.
+:zeek:id:`pm_request_callit`: :zeek:type:`event`           Generated for Portmapper request/reply dialogues of type *callit*.
+:zeek:id:`pm_request_dump`: :zeek:type:`event`             Generated for Portmapper request/reply dialogues of type *dump*.
+:zeek:id:`pm_request_getport`: :zeek:type:`event`          Generated for Portmapper request/reply dialogues of type *getport*.
+:zeek:id:`pm_request_null`: :zeek:type:`event`             Generated for Portmapper requests of type *null*.
+:zeek:id:`pm_request_set`: :zeek:type:`event`              Generated for Portmapper request/reply dialogues of type *set*.
+:zeek:id:`pm_request_unset`: :zeek:type:`event`            Generated for Portmapper request/reply dialogues of type *unset*.
+:zeek:id:`rpc_call`: :zeek:type:`event`                    Generated for RPC *call* messages.
+:zeek:id:`rpc_dialogue`: :zeek:type:`event`                Generated for RPC request/reply *pairs*.
+:zeek:id:`rpc_discarded_pending_calls`: :zeek:type:`event` Generated when Zeek cleared all pending RPC calls due to
+                                                           the tracking table exceeding :zeek:see:`rpc_max_pending_calls`.
+:zeek:id:`rpc_reply`: :zeek:type:`event`                   Generated for RPC *reply* messages.
+========================================================== ==========================================================================
 
 
 Detailed Interface
@@ -64,7 +66,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: mount_proc_mnt
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 929 929
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 936 936
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`, rep: :zeek:type:`MOUNT3::mnt_reply_t`)
 
@@ -95,7 +97,7 @@ Events
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_not_implemented
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 990 990
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 997 997
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, proc: :zeek:type:`MOUNT3::proc_t`)
 
@@ -120,7 +122,7 @@ Events
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_null
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 905 905
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 912 912
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`)
 
@@ -144,7 +146,7 @@ Events
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 950 950
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 957 957
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`)
 
@@ -171,7 +173,7 @@ Events
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_proc_umnt_all
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 971 971
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 978 978
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`, req: :zeek:type:`MOUNT3::dirmntargs_t`)
 
@@ -198,7 +200,7 @@ Events
       register a port for it or add a DPD payload signature.
 
 .. zeek:id:: mount_reply_status
-   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 1007 1007
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 1014 1014
 
    :Type: :zeek:type:`event` (n: :zeek:type:`connection`, info: :zeek:type:`MOUNT3::info_t`)
 
@@ -1284,6 +1286,17 @@ Events
       been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
       signature.
+
+.. zeek:id:: rpc_discarded_pending_calls
+   :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 893 893
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
+
+   Generated when Zeek cleared all pending RPC calls due to
+   the tracking table exceeding :zeek:see:`rpc_max_pending_calls`.
+
+
+   :param c: The connection.
 
 .. zeek:id:: rpc_reply
    :source-code: base/bif/plugins/Zeek_RPC.events.bif.zeek 886 886

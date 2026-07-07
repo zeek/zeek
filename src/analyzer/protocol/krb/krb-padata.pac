@@ -7,11 +7,12 @@
 %}
 
 %header{
-zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer, bool is_error);
+zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer);
 %}
 
 %code{
-zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer, bool is_error)
+
+zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnalyzer zeek_analyzer)
 {
 	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Type_Value_Vector"));
 
@@ -22,8 +23,15 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 		{
 		uint64_t data_type = element->data_type();
 
-		if ( is_error && ( data_type == PA_PW_AS_REQ || data_type == PA_PW_AS_REP ) )
-			data_type = 0;
+		// Do not try to parse errors, just send the placeholder data along.
+		if ( element->pkt_type() == KRB_ERROR )
+			{
+			auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
+			type_val->Assign(0, element->data_type());
+			type_val->Assign(1, to_stringval(element->pa_data_placeholder()));
+			vv->Assign(vv->Size(), type_val);
+			continue;
+			}
 
 		switch( data_type )
 			{
@@ -114,7 +122,7 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 				}
 			default:
 				{
-				if ( ! is_error && element->pa_data_element()->unknown()->meta()->length() > 0 )
+				if ( element->pa_data_element()->unknown()->meta()->length() > 0 )
 					{
 					auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
 					type_val->Assign(0, data_type);

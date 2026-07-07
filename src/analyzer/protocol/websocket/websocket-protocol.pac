@@ -49,7 +49,7 @@ type WebSocket_FramePayloadChunk(len: uint64, hdr: WebSocket_FrameHeader) = reco
 } &let {
 	consumed_payload = $context.flow.consumed_chunk_len(len);
 	payload_chunk = $context.flow.process_payload_chunk(this);  # unmasks if needed
-	close_payload: WebSocket_FramePayloadClose withinput data &length=len &if(hdr.opcode == OPCODE_CLOSE);
+	close_payload: WebSocket_FramePayloadClose withinput data &length=$context.flow.chunk_emit_len() &if(hdr.opcode == OPCODE_CLOSE);
 } &length=len;
 
 type WebSocket_Frame(first_frame: bool, msg: WebSocket_Message) = record {
@@ -87,6 +87,8 @@ flow WebSocket_Flow(is_orig: bool) {
 		bool rsv1_;
 		uint64_t masking_key_idx_;
 		uint64_t frame_payload_len_;
+		uint64_t frame_emit_remaining_;
+		uint64_t chunk_emit_len_;
 		std::array<uint8_t, 4> masking_key_;
 		uint8_t effective_opcode_;
 	%}
@@ -96,6 +98,8 @@ flow WebSocket_Flow(is_orig: bool) {
 		rsv1_ = false;
 		masking_key_idx_ = 0;
 		frame_payload_len_ = 0;
+		frame_emit_remaining_ = 0;
+		chunk_emit_len_ = 0;
 		effective_opcode_ = OPCODE_CONTINUATION;
 	%}
 
@@ -110,6 +114,19 @@ flow WebSocket_Flow(is_orig: bool) {
 			effective_opcode_ = ${hdr.opcode};
 
 		frame_payload_len_ = ${hdr.payload_len};
+		frame_emit_remaining_ = frame_payload_len_;
+
+		// Control frames cannot exceed 125 bytes, per RFC 6455 section 5.5. This limit can be
+		// configured. Cap the amount stored, but keep parsing to stay in-sync.
+		if ( zeek::BifConst::WebSocket::max_control_frame_size != 0 &&
+		     (effective_opcode_ == OPCODE_CLOSE || effective_opcode_ == OPCODE_PING || effective_opcode_ == OPCODE_PONG) &&
+		     frame_emit_remaining_ > zeek::BifConst::WebSocket::max_control_frame_size ) {
+			connection()->zeek_analyzer()->Weird("websocket_control_frame_size_exceeded",
+		                                         zeek::util::fmt("%" PRIu64 " > %" PRIu64, frame_payload_len_,
+		                                                         zeek::BifConst::WebSocket::max_control_frame_size));
+			frame_emit_remaining_ = zeek::BifConst::WebSocket::max_control_frame_size;
+		}
+
 		has_mask_ = ${hdr.has_mask};
 		rsv1_ = (${hdr.reserved} & 0x04) != 0; //bit of a lazy/hacky way of doing this  
 		masking_key_idx_ = 0;
@@ -133,7 +150,14 @@ flow WebSocket_Flow(is_orig: bool) {
 		}
 
 		frame_payload_len_ -= len;
+		chunk_emit_len_ = std::min(len, frame_emit_remaining_);
+		frame_emit_remaining_ -= chunk_emit_len_;
 		return len;
+		%}
+
+	function chunk_emit_len(): uint64
+		%{
+		return chunk_emit_len_;
 		%}
 
 	function next_chunk_len(): uint64

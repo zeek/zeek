@@ -4,6 +4,8 @@
 #include <string>
 #include "zeek/digest.h"
 #include "zeek/Base64.h"
+
+#include "zeek/analyzer/protocol/ssh/consts.bif.h"
 %}
 
 %header{
@@ -77,6 +79,36 @@ std::string fingerprint_sha256(const uint8_t* d)
 %}
 
 refine flow SSH_Flow += {
+	function cap_packet_length(len: uint32): uint32
+		%{
+		uint32_t max_len = zeek::BifConst::SSH::max_packet_length;
+
+		if ( max_len > 0 && len > max_len ) {
+			auto *a = connection()->zeek_analyzer();
+			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+			a->Weird("SSH_max_packet_length_exceeded", zeek::util::fmt("%u > %u", len, max_len));
+
+			len = max_len;
+		}
+
+		return len;
+		%}
+
+	function cap_string_length(len: uint32): uint32
+		%{
+		uint32_t max_len = zeek::BifConst::SSH::max_string_length;
+
+		if ( max_len > 0 && len > max_len ) {
+			auto *a = connection()->zeek_analyzer();
+			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+			a->Weird("SSH_max_string_length_exceeded", zeek::util::fmt("%u > %u", len, max_len));
+
+			len = max_len;
+		}
+
+		return len;
+		%}
+
 	function proc_ssh_version_client(msg: SSH_Version_Client): bool
 		%{
 		if ( ssh_client_version )

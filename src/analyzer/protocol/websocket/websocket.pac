@@ -105,7 +105,10 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 							is_orig,
 							zeek::make_intrusive<zeek::StringVal>(have, (const char*)out_buf));
 					}
-				}	
+				// Forwards decompressed chunk to child analyzers
+				zeek_analyzer()->ForwardStream(have, out_buf, is_orig);
+				}
+				
 		} while(z_strm_->avail_out == 0);
 		delete[] input_buf;
 		return true;

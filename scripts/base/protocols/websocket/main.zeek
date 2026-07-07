@@ -76,7 +76,6 @@ export {
 
 redef record connection += {
 	websocket: Info &optional;
-	ws_deflate_negotiated: bool &default=F;
 };
 
 redef record WebSocket::AnalyzerConfig += {
@@ -152,11 +151,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 			# negotiation was successful. otherwise the default would be to have the negotiation as unsuccessful (f).
 			if ( "permessage-deflate" in to_lower(value))
 				{
-				print "debug: negotiating permessage-deflate!";
+				#print "debug: negotiating permessage-deflate!";
 				ws$permessage_deflate = T;
 				}
 			}
-		else if ( name == "sec-websocket-accept" )
+		else if ( name == "SEC-WEBSOCKET-ACCEPT" )
 			{
 			if ( ws?$server_accept )
 				Reporter::conn_weird("websocket_multiple_accept_headers", c, "", "WebSocket");

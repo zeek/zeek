@@ -149,8 +149,5 @@ flow WebSocket_Flow(is_orig: bool) {
 
 		return len;
 		%}
-	function EnablePerMessageCompression(): bool
-		%{
-		return true;
-		%}
+
 };

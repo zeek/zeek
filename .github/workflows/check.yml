@@ -9,7 +9,7 @@ on:
     branches:
       - master
       - release/**
-    tags: ["*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
   pull_request:
     # Skip this workflow completely if only doc, markdown, or NEWS files were modified.
     paths-ignore:

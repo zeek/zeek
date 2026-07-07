@@ -8,7 +8,7 @@ on:
     branches:
       - master
       - release/**
-    tags: ["*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
   pull_request:
   workflow_dispatch:
 
@@ -29,12 +29,13 @@ env:
   ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror -D FETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON'
 
   ZEEK_CI_BTEST_RETRIES: 2
-  ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1 # TODO: enable this eventually
+  ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1  # TODO: enable this eventually
 
   # Prevent Docker build steps from posting to the summary.
   DOCKER_BUILD_SUMMARY: false
 
 jobs:
+
   # A job which only succeeds if we are running in a public repository.
   #
   # We use this below to skip all actual CI jobs in private repositories since
@@ -51,457 +52,155 @@ jobs:
       - run: |
           : # Need to add at least one step
 
-  linux:
+  generate-matrix:
     runs-on: ubuntu-latest
-    needs: is-public-repo
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # 6.0.2
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # 6.3.0
+        with:
+          python-version: '3.14'
+      - id: set-matrix
+        run: |
+          MATRIX=$(python .github/scripts/generate-gh-check-matrix.py)
+          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+
+  linux:
+    needs: [is-public-repo, generate-matrix]
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
-      matrix:
-        include:
-        - id: fedora-43
-          file: ci/fedora-43/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache -D FETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: fedora-44
-          file: ci/fedora-44/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: '--prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: centosstream9
-          file: ci/centos-stream-9/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: centosstream10
-          file: ci/centos-stream-10/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: debian13
-          file: ci/debian-13/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        # TODO: Somehow enable arm runner, maybe need to move to a separate setup
-        # - id: debian13
-        #   file: ci/debian-13/Dockerfile
-        #   run: |
-        #     ./ci/pre-build.sh
-        #     ./ci/build.sh
-        #     ./ci/test.sh
-
-        - id: debian13-static
-          file: ci/debian-13/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: debian13-binary
-          file: ci/debian-13/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: '--prefix=$ZEEK_CI_WORKING_DIR/install --libdir=$ZEEK_CI_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: debian12
-          file: ci/debian-12/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: opensuse-leap-16.0
-          file: ci/opensuse-leap-16.0/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: opensuse-tumbleweed
-          file: ci/opensuse-tumbleweed/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: weekly-current-gcc
-          file: ci/debian-unstable/Dockerfile
-          env:
-            ZEEK_CI_COMPILER: gcc
-          run: |
-            ./ci/debian-unstable/prepare-weekly.sh
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: weekly-current-clang
-          file: ci/debian-unstable/Dockerfile
-          env:
-            ZEEK_CI_COMPILER: clang
-          run: |
-            ./ci/debian-unstable/prepare-weekly.sh
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: ubuntu-26.04
-          file: ci/ubuntu-26.04/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: ubuntu-24.04
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-            ./ci/benchmark.sh
-
-        - id: ubuntu-24.04-zam
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            ZEEK_CI_SKIP_UNIT_TESTS: 1
-            ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
-            ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
-            # Use a lower number of jobs due to OOM issues with ZAM tasks
-            ZEEK_CI_BTEST_JOBS: 3
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: ubuntu-24.04-clang-libcpp
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-19
-            CXX: clang++-19
-            CXXFLAGS: -stdlib=libc++
-            # The libnode package is linked with the system's libstdc++, making
-            # it incompatible with Zeek compiled using libc++.
-            ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: ubuntu-24.04-clang-tidy
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-19
-            CXX: clang++-19
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            # Tests disabled for clang-tidy builds
-
-        - id: ubuntu-24.04-spicy
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-            ./ci/spicy-install-analyzers.sh
-
-        - id: ubuntu-24.04-spicy-head
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            ZEEK_CI_CREATE_INSTALL_TARBALL: 1
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror'
-            ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-            ./ci/benchmark.sh
-
-        - id: ubuntu-22.04
-          file: ci/ubuntu-22.04/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: alpine
-          file: ci/alpine/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-          # TODO: add missing tasks:
-          #   - container image building from
-
-        - id: asan-sanitizer
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CXXFLAGS: -DZEEK_DICT_DEBUG
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror'
-            ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
-            # Use absolute paths for coverage files.
-            CCACHE_BASEDIR: /
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-            ./ci/test-fuzzers.sh
-            ./ci/upload-coverage.sh
-
-        - id: asan-sanitizer-zam
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror'
-            ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
-            ZEEK_CI_SKIP_UNIT_TESTS: 1
-            ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
-            ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
-            # Use a lower number of jobs due to OOM issues with ZAM tasks
-            ZEEK_CI_BTEST_JOBS: 3
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: ubsan-sanitizer
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-19
-            CXX: clang++-19
-            CXXFLAGS: -DZEEK_DICT_DEBUG
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror'
-            ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
-            ZEEK_TAILORED_UB_CHECKS: 1
-            UBSAN_OPTIONS: print_stacktrace=1
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-            ./ci/test-fuzzers.sh
-
-        - id: ubsan-sanitizer-zam
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-19
-            CXX: clang++-19
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror'
-            ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
-            ZEEK_TAILORED_UB_CHECKS: 1
-            UBSAN_OPTIONS: print_stacktrace=1
-            ZEEK_CI_SKIP_UNIT_TESTS: 1
-            ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
-            ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
-            # Use a lower number of jobs due to OOM issues with ZAM tasks
-            ZEEK_CI_BTEST_JOBS: 3
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: tsan-sanitizer
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-19
-            CXX: clang++-19
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror'
-            ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
-            ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
-            # If this is defined directly in the environment, configure fails to find
-            # OpenSSL. Instead we define it with a different name and then give it
-            # the correct name in the testing scripts.
-            ZEEK_TSAN_OPTIONS: suppressions=/home/runner/work/zeek/zeek/ci/tsan_suppressions.txt
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
-        - id: zeekctl-debian13
-          file: ci/debian-13/Dockerfile
-          run: |
-            apt-get update
-            apt-get install -y --no-install-recommends iproute2
-
-            cd auxil/zeekctl/testing
-            ./Scripts/build-zeek
-            ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
-
-        - id: include-plugins-debian13
-          file: ci/debian-13/Dockerfile
-          env:
-            ZEEK_CI_CONFIGURE_FLAGS: "--include-plugins=$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/Files/protocol-plugin;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/Files/py-lib-plugin;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/Files/zeek-version-plugin;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external/zeek-perf-support;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external/zeek-more-hashes;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external/zeek-cluster-backend-nats;$ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external/zeek-kafka"
-          run: |
-            (cd $ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git)
-            (cd $ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git)
-            (cd $ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git)
-            (cd $ZEEK_CI_WORKING_DIR/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git)
-
-            ./ci/build.sh
-
-            (cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS})
-
-            . $ZEEK_CI_WORKING_DIR/build/zeek-path-dev.sh
-            set -ex
-            # For now, just check if the external plugins are available.
-            zeek -N Zeek::PerfSupport
-            zeek -N Zeek::MoreHashes
-            zeek -N Zeek::Cluster_Backend_NATS
-            zeek -N Seiso::Kafka
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
 
     name: ${{ matrix.id }}
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-      with:
-        submodules: recursive
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # 6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
 
-    # This step enables caching in `docker/build-push-action` below.
-    - name: Prepare Docker
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      # This step enables caching in `docker/build-push-action` below.
+      - name: Prepare Docker
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5  # v4.1.0
 
-    - name: Build Docker image
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-      with:
-        file: ${{ matrix.file }}
-        context: . # Reuse the current checkout instead of doing a full recursive clone again.
-        tags: zeek-ci-${{ hashFiles(matrix.file) }}
-        cache-to: type=gha
-        cache-from: type=gha
-        load: true
-        push: false
+      - name: Build Docker image
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f  # v7.1.0
+        with:
+          file: ${{ matrix.file }}
+          context: .  # Reuse the current checkout instead of doing a full recursive clone again.
+          tags: zeek-ci-${{ hashFiles(matrix.file) }}
+          cache-to: type=gha
+          cache-from: type=gha
+          load: true
+          push: false
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
-      with:
-        key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.id }}
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03  # v1.2.23
+        with:
+          key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.id }}
 
-    # TODO: add ./ci/init-external-repos.sh with caching, maybe in actual job below
-    # - name: Clone external test suites
-    #   run: |
-    #     make -C testing/external/ init
-    #     ./ci/init-external-repos.sh
+      # TODO: add ./ci/init-external-repos.sh with caching, maybe in actual job below
+      # - name: Clone external test suites
+      #   run: |
+      #     make -C testing/external/ init
+      #     ./ci/init-external-repos.sh
 
-    # TODO
-    # - name: Clone private test suite
-    #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      # TODO
+      # - name: Clone private test suite
+      #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # 6.0.2
 
-    - name: Run CI
-      env:
+      - name: Run CI
+        env:
           # We convert the environment variable dictionaries to JSON to work
           # around potential issues with shell quoting.
           _GHA_ENV: ${{ toJSON(env) }}
           _MATRIX_ENV: ${{ toJSON(matrix.env) }}
-      run: |
-        # Assemble environment variables for the script. We support both global
-        # as well as job variables with the latter taking precedence. We also
-        # allow either of them to be empty.
-        python3 -c '
-        import os, json
+        run: |
+          # Assemble environment variables for the script. We support both global
+          # as well as job variables with the latter taking precedence. We also
+          # allow either of them to be empty.
+          python3 -c '
+          import os, json
 
-        gha = json.loads(os.environ.get("_GHA_ENV") or "{}") or {}
-        mat = json.loads(os.environ.get("_MATRIX_ENV") or "{}") or {}
-        merged = {**gha, **mat}
-        with open("container.env", "w") as f:
-            for k, v in merged.items():
-                # Handle multiline flattening
-                val = " ".join(str(v).splitlines())
-                f.write(f"{k}={val}\n")
-        '
+          gha = json.loads(os.environ.get("_GHA_ENV") or "{}") or {}
+          mat = json.loads(os.environ.get("_MATRIX_ENV") or "{}") or {}
+          merged = {**gha, **mat}
+          with open("container.env", "w") as f:
+              for k, v in merged.items():
+                  # Handle multiline flattening
+                  val = " ".join(str(v).splitlines())
+                  f.write(f"{k}={val}\n")
+          '
 
-        docker run --rm \
-            --env-file container.env \
-            -v "${{ github.workspace }}":"${{ github.workspace }}" \
-            -v "${CCACHE_DIR}":"${CCACHE_DIR}" \
-            -w "${{ github.workspace }}" \
-            zeek-ci-${{ hashFiles(matrix.file) }} \
-            bash -c "set -e; ${{ matrix.run }}"
+          docker run --rm \
+              --env-file container.env \
+              -v "${{ github.workspace }}":"${{ github.workspace }}" \
+              -v "${CCACHE_DIR}":"${CCACHE_DIR}" \
+              -w "${{ github.workspace }}" \
+              zeek-ci-${{ hashFiles(matrix.file) }} \
+              bash -c "set -e; ${{ matrix.run }}"
 
   windows:
     runs-on: windows-2025
     needs: is-public-repo
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-      with:
-        submodules: recursive
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # 6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
 
-    - name: Set up MSVC Dev Cmd
-      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
-      with:
-        sdk: "10.0.26100.0"
+      - name: Set up MSVC Dev Cmd
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756  # v1.13.0
+        with:
+          sdk: "10.0.26100.0"
 
-    - name: Install dependencies
-      run: |
-        choco install -y --no-progress winflexbison3 ccache sed
-        choco install -y --no-progress openssl --version=3.1.1
+      - name: Install dependencies
+        run: |
+          choco install -y --no-progress winflexbison3 ccache sed
+          choco install -y --no-progress openssl --version=3.1.1
 
-    - name: Cache vcpkg dependencies
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-      with:
-        key: vcpkg-binary-cache-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
-        path: ~/AppData/Local/vcpkg/archives
+      - name: Cache vcpkg dependencies
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        with:
+          key: vcpkg-binary-cache-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          path: ~/AppData/Local/vcpkg/archives
 
-    - name: Set up environment
-      run: |
-        echo "C:\Program Files\Git\usr\bin" >> $env:GITHUB_PATH
-        mkdir build -Force
+      - name: Set up environment
+        run: |
+          echo "C:\Program Files\Git\usr\bin" >> $env:GITHUB_PATH
+          mkdir build -Force
 
-        # vcpkg binary package cache.
-        $VCPKG_CACHE_DIR = "$env:LOCALAPPDATA\vcpkg\archives"
-        if (!(Test-Path $VCPKG_CACHE_DIR)) {
-          New-Item -ItemType Directory -Force -Path $VCPKG_CACHE_DIR
-        }
-        echo "VCPKG_BINARY_SOURCES=clear;files,$VCPKG_CACHE_DIR,readwrite" >> $env:GITHUB_ENV
+          # vcpkg binary package cache.
+          $VCPKG_CACHE_DIR = "$env:LOCALAPPDATA\vcpkg\archives"
+          if (!(Test-Path $VCPKG_CACHE_DIR)) {
+            New-Item -ItemType Directory -Force -Path $VCPKG_CACHE_DIR
+          }
+          echo "VCPKG_BINARY_SOURCES=clear;files,$VCPKG_CACHE_DIR,readwrite" >> $env:GITHUB_ENV
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
-      with:
-        key: ${{ github.workflow }}-${{ github.job }}
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03  # v1.2.23
+        with:
+          key: ${{ github.workflow }}-${{ github.job }}
 
-    - name: Prepare
-      run: |
-        ./ci/windows/prepare.cmd
+      - name: Prepare
+        run: |
+          ./ci/windows/prepare.cmd
 
-    - name: Configure
-      run: |
-        ./ci/windows/configure.cmd
+      - name: Configure
+        run: |
+          ./ci/windows/configure.cmd
 
-    - name: Build
-      run: |
-        ./ci/windows/build.cmd
+      - name: Build
+        run: |
+          ./ci/windows/build.cmd
 
-    - name: Test
-      run: |
-        ./ci/windows/test.cmd
+      - name: Test
+        run: |
+          ./ci/windows/test.cmd
 
   macos:
     strategy:
@@ -521,28 +220,28 @@ jobs:
       ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-      with:
-        submodules: recursive
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # 6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
-      with:
-        key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.release }}
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03  # v1.2.23
+        with:
+          key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.release }}
 
-    - name: Prepare
-      run: |
-        ./ci/macos/prepare.sh
+      - name: Prepare
+        run: |
+          ./ci/macos/prepare.sh
 
-    - name: Pre-build
-      run: |
-        ./ci/pre-build.sh
+      - name: Pre-build
+        run: |
+          ./ci/pre-build.sh
 
-    - name: Build
-      run: |
-        ./ci/build.sh
+      - name: Build
+        run: |
+          ./ci/build.sh
 
-    - name: Test
-      run: |
-        ./ci/test.sh
+      - name: Test
+        run: |
+          ./ci/test.sh

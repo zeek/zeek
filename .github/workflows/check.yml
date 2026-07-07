@@ -8,7 +8,7 @@ on:
     branches:
       - master
       - release/**
-    tags: ["*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
   pull_request:
   workflow_dispatch:
 

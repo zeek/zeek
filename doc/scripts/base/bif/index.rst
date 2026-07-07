@@ -235,6 +235,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_Gnutella.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_Gnutella.consts.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_GSSAPI.events.bif.zeek`
 
 
@@ -320,6 +323,9 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_RFB.events.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_RPC.consts.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_RPC.events.bif.zeek`
@@ -440,6 +446,9 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek`

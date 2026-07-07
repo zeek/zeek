@@ -1,3 +1,16 @@
+9.0.0-dev.591 | 2026-07-07 16:21:30 -0400
+
+  * GH-5407: Fix infinite recursion in val describe (Evan Typanski, Corelight)
+
+    Fixes #5407
+
+    Values were able to recurse indefinitely when printed if they were
+    self-referential. Fix it in similar ways to type recursion and to
+    Footprint().
+
+    Also changes the `encountered_types` to use an unordered_set for
+    consistency.
+
 9.0.0-dev.589 | 2026-07-07 17:28:08 +0100
 
   * Update the documentation for SSL/TLS elliptic curves extension (Johanna Amann, Corelight)

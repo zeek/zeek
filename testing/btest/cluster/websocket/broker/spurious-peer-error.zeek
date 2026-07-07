@@ -8,6 +8,7 @@
 #
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: WEBSOCKET_PORT
+# @TEST-PORT: PEER_SCRATCH_PORT
 #
 # @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 # @TEST-EXEC: cp $FILES/ws/wstest.py .
@@ -55,7 +56,7 @@ event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions
 	{
 	print fmt("%s: Cluster::websocket_client_added %s", current_time(), subscriptions);
 
-	Broker::peer("127.0.0.1", 21/tcp);
+	Broker::peer("127.0.0.1", to_port(getenv("PEER_SCRATCH_PORT")));
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, reason: string)

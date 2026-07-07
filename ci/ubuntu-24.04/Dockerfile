@@ -4,16 +4,26 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20260702
+
+# This is needed before the rest of the apt installations below so that
+# the certificate for llvm.org exists.
+RUN apt-get update && apt-get -y install ca-certificates wget
+RUN update-ca-certificates
+
+# Add the official repository for LLVM 22, plus the key for the repository
+RUN echo deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main >> /etc/apt/sources.list.d/llvm.list
+RUN echo deb-src http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main >> /etc/apt/sources.list.d/llvm.list
+RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 
 RUN apt-get update && apt-get -y install \
     bc \
     bison \
     bsdmainutils \
     ccache \
-    clang-19 \
-    clang++-19 \
-    clang-tidy-19 \
+    clang-22 \
+    clang++-22 \
+    clang-tidy-22 \
     cmake \
     cppzmq-dev \
     curl \
@@ -53,7 +63,7 @@ RUN gem install coveralls-lcov
 
 # Ubuntu installs clang versions with the binaries having the version number
 # appended. Create a symlink for clang-tidy so cmake finds it correctly.
-RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 1000
+RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-22 1000
 
 # Download a newer pre-built ccache version that recognizes -fprofile-update=atomic
 # which is used when building with --coverage.

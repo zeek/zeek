@@ -1,3 +1,19 @@
+9.0.0-dev.593 | 2026-07-07 15:31:40 -0700
+
+  * Add Broker backpressure tests (Christian Kreibich, Corelight)
+
+    This adds backports of the corresponding backpressure disconnect tests in the
+    zeek-testing-cluster testsuite, and expands on these by also testing Broker's
+    other two overflow policies, "drop_oldest" and "drop_newest".
+
+    All tests use our usual btest-bg-run clusterization and operate similarly: they
+    launch a three-node cluster with a manager, worker, and proxy. The
+    sender (worker or proxy) sends pings to a receiver (proxy or worker), the
+    receiver locks up (by looping with sleeps in an event handler), the sender
+    watches out for the corresponding backpressure signal (via logs and/or
+    telemetry), once that happens it unlocks the receiver, and finally the receiver
+    looks for continuation of the ping stream.
+
 9.0.0-dev.591 | 2026-07-07 16:21:30 -0400
 
   * GH-5407: Fix infinite recursion in val describe (Evan Typanski, Corelight)

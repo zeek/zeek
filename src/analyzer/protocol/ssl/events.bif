@@ -110,9 +110,13 @@ event ssl_server_hello%(c: connection, version: count, record_version: count, po
 ##    ssl_extension_encrypted_client_hello
 event ssl_extension%(c: connection, is_client: bool, code: count, val: string%);
 
-## Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
-## defined in :rfc:`4492` and sent by the client in the initial handshake. It
-## gives the list of elliptic curves supported by the client.
+## Generated for a SSL/TLS Elliptic Curves or Supported Groups extension.
+## This extension was called Elliptic Curves till TLS 1.2, and is called Supported
+## Groups starting in TLS 1.3. It is defined in :rfc:`8422` for TLS 1.2 and earlier
+## and in :rfc:`8446` for TLS 1.3. The extension is sent by the client in the initial
+## handshake.
+## For TLS 1.2 and below it gives the list of elliptic curves supported by the client.
+## For TLS 1.3, it gives the named groups that the client supports for key exchange.
 ##
 ## c: The connection.
 ##
@@ -120,7 +124,7 @@ event ssl_extension%(c: connection, is_client: bool, code: count, val: string%);
 ##            (the side that sends the client hello). This is typically equivalent
 ##            with the originator, but does not have to be in all circumstances.
 ##
-## curves: List of supported elliptic curves.
+## curves: List of supported elliptic curves/named groups.
 ##
 ## .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
 ##    ssl_session_ticket_handshake ssl_extension

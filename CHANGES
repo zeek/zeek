@@ -1,3 +1,10 @@
+9.0.0-dev.589 | 2026-07-07 17:28:08 +0100
+
+  * Update the documentation for SSL/TLS elliptic curves extension (Johanna Amann, Corelight)
+
+    The extension is called supported groups in newer version. The
+    documentation should reflect this for findability.
+
 9.0.0-dev.587 | 2026-07-07 09:27:13 -0700
 
   * Update libkqueue submodule for libcpp hang fix (Tim Wojtulewicz, Corelight)

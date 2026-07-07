@@ -1,3 +1,7 @@
+9.0.0-dev.587 | 2026-07-07 09:27:13 -0700
+
+  * Update libkqueue submodule for libcpp hang fix (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.585 | 2026-07-07 18:25:41 +0200
 
   * btest/cluster/websocket: Do not assume port 21 is unused (Arne Welzel, Corelight)

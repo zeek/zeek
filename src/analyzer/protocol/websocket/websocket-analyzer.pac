@@ -84,11 +84,11 @@ refine flow WebSocket_Flow += {
 
 		if (connection()->HasPerMessageCompressionEnabled() && rsv1_ )
 			{
-			if (connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length(), is_orig()))
+			if (connection()->DecompressPayload(reinterpret_cast<const unsigned char*>(data.data()), data.length()))
 				{
 				// Overwrite pointer and length with decompressed data.
-				payload_data = connection()->decompressed_buf_.data();
-				payload_len= connection()->decompressed_buf_.size();
+				payload_data = connection()->decompressed_data();
+				payload_len= connection()->decompressed_len();
 				}
 			else
 				{

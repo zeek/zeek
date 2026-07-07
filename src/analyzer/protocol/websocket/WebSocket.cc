@@ -10,7 +10,6 @@
 
 #include "analyzer/protocol/websocket/WebSocket.h"
 
-zeek::Tag zeek::analyzer::websocket::WebSocket_Analyzer::Tag;
 
 namespace zeek::analyzer::websocket {
 
@@ -62,11 +61,8 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
     
     // Checking the permessage_deflate boolean
     if ( pm_deflate_val && pm_deflate_val->AsBool()){
-	//fprintf(stderr, "DEBUG: C++ Configure() saw permessage_deflate=T from Zeek script!\n");
 	// Inform BinPAC interpreter that compression is active. 
     	interp->EnablePerMessageCompression();
-    }else{
-    	//fprintf(stderr, "DEBUG: C++ Configure() saw permessage_deflate=F from Zeek script!\n");
     }
     if ( config->HasField(analyzer_idx) ) {
         const auto& analyzer_tag_val = config->GetField(analyzer_idx);

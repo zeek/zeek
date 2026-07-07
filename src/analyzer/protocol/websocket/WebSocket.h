@@ -29,15 +29,12 @@ public:
     void Undelivered(uint64_t seq, int len, bool orig) override;
     void EnablePerMessageCompression() 
         { 
-        permessage_deflate = true; 
+        	permessage_deflate = true; 
         
-        if ( interp ) {
-            fprintf(stderr, "DEBUG: C++ EnablePerMessageCompression called. Calling interp->Enable()...\n");
-            interp->EnablePerMessageCompression(); 
-        } else {
-            fprintf(stderr, "DEBUG: C++ EnablePerMessageCompression called, but INTERP IS NULL!\n");
-        }
-        }
+		if ( interp ) {
+		    interp->EnablePerMessageCompression(); 
+		}
+	}
     static zeek::analyzer::Analyzer* Instantiate(Connection* conn) { return new WebSocket_Analyzer(conn); }
 private:
     std::unique_ptr<binpac::WebSocket::WebSocket_Conn> interp;

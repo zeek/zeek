@@ -52,6 +52,14 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 		%{
 		return permessage_compression_enabled_;
 		%}
+	function decompressed_data(): const_byteptr
+		%{
+		return decompressed_buf_.data();
+		%}
+	function decompressed_len(): int
+		%{
+		return decompressed_buf_.size();
+		%}
 
 	function DecompressPayload(data: const_byteptr, len: int): bool
 		%{
@@ -102,8 +110,8 @@ connection WebSocket_Conn(zeek_analyzer: ZeekAnalyzer) {
 			if ( have > 0 )
 				{
 				//Append decompressed bytes to buffer instead of raising events.
-				decompressed_buf_.insert(decompressed_buf_.end()), out_buf, out_buf + have);
-				}				}
+				decompressed_buf_.insert(decompressed_buf_.end(), out_buf, out_buf + have);
+				}				
 				
 		} while(z_strm_->avail_out == 0);
 		delete[] input_buf;

@@ -462,6 +462,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./consts.bif.zeek, <...>/consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./contents, <...>/contents.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./control, <...>/control.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek) -> -1
@@ -789,6 +790,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./consts.bif.zeek, <...>/consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./contents, <...>/contents.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./control, <...>/control.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek) -> (-1, <no content>)
@@ -1435,6 +1437,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./consts.bif.zeek, <...>/consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./contents, <...>/contents.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./control, <...>/control.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek)
@@ -1762,6 +1765,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./consts.bif.zeek, <...>/consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./contents, <...>/contents.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./control, <...>/control.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek)
@@ -2409,6 +2413,7 @@
 0.000000 | HookLoadFile  ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFile  ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  ./const.bif.zeek <...>/const.bif.zeek
+0.000000 | HookLoadFile  ./consts.bif.zeek <...>/consts.bif.zeek
 0.000000 | HookLoadFile  ./contents <...>/contents.zeek
 0.000000 | HookLoadFile  ./control <...>/control.zeek
 0.000000 | HookLoadFile  ./data.bif.zeek <...>/data.bif.zeek
@@ -2736,6 +2741,7 @@
 0.000000 | HookLoadFileExtended ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFileExtended ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended ./const.bif.zeek <...>/const.bif.zeek
+0.000000 | HookLoadFileExtended ./consts.bif.zeek <...>/consts.bif.zeek
 0.000000 | HookLoadFileExtended ./contents <...>/contents.zeek
 0.000000 | HookLoadFileExtended ./control <...>/control.zeek
 0.000000 | HookLoadFileExtended ./data.bif.zeek <...>/data.bif.zeek

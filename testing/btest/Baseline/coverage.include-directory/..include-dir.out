@@ -1272,6 +1272,7 @@
 ./zeek/packet_analysis/Component.h
 ./zeek/packet_analysis/Dispatcher.h
 ./zeek/packet_analysis/Manager.h
+./zeek/packet_analysis/consts.bif.h
 ./zeek/packet_analysis/protocol
 ./zeek/packet_analysis/protocol/arp
 ./zeek/packet_analysis/protocol/arp/ARP.h

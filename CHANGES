@@ -1,3 +1,26 @@
+9.0.0-dev.599 | 2026-07-08 09:30:21 +0200
+
+  * util/fmt: guard fmt() misuse (Stefan Götz, Corelight)
+
+    util::fmt() uses a single process-global buffer, so it is only safe on
+    the main thread: a backend thread calling it can overwrite the buffer
+    while the main thread still holds a returned pointer (e.g. across the
+    copy_string() in Writer/ReaderFrontend), leading to corruption.
+
+    Add a DEBUG-only assertion in vfmt() that aborts if it is called off
+    the main thread. Make code comments more explicit about correct use.
+
+  * util/fmt: Use thread-safe Fmt() in backend threads (Stefan Götz, Corelight)
+
+    util::fmt() uses a single process-global buffer, so it is only safe on
+    the main thread: a backend thread calling it can overwrite the buffer
+    while the main thread still holds a returned pointer (e.g. across the
+    copy_string() in Writer/ReaderFrontend), leading to corruption.
+
+    Switch three callers on Reader/WriterBackend (MsgThread) threads to
+    the per-thread BasicThread::Fmt(). Also switch a possibly concurrent
+    call to the non-reentrant strerror() to the thread-safe Strerror().
+
 9.0.0-dev.596 | 2026-07-08 09:00:42 +0200
 
   * Bump zeekjs to v0.24.0 (Arne Welzel, Corelight)

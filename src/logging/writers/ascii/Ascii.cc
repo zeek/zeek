@@ -826,7 +826,7 @@ string Ascii::Timestamp(double t) {
     struct tm tmbuf;
     struct tm* tm = localtime_r(&teatime, &tmbuf);
     if ( tm == nullptr )
-        Error(util::fmt("localtime_r failed: %s", strerror(errno)));
+        Error(Fmt("localtime_r failed: %s", Strerror(errno)));
 
     char tmp[128];
     const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";

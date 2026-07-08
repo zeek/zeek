@@ -22,6 +22,17 @@ Breaking Changes
   Broker's native protocol and no longer accepts the optional ``BrokerProtocol``
   argument. The ``BrokerProtocol`` enum has been removed.
 
+- Calling the `zeek::util::fmt()` helper function from non-main threads will now
+  emit a warning of the following form once:
+
+	zeek::util::fmt() called off the main thread; use threading::BasicThread::Fmt() or std::format()
+
+  In a debug build, Zeek will also abort. If you see above message, it is likely that
+  an installed plugin spawned a thread and uses the API wrongly (likely input or logging
+  threads). When deploying custom plugins, you should optimally test Zeek and all plugins
+  separately with the thread and address sanitizers enabled (./configure --sanitizers=thread
+  or ./configure --sanitizers=address).
+
 New Functionality
 -----------------
 

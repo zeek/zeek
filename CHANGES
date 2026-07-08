@@ -1,3 +1,13 @@
+9.0.0-dev.604 | 2026-07-08 12:25:08 +0100
+
+  * Protocol/file analysis bif doc fixes (Johanna Amann, Corelight)
+
+    This commit applies a range of small documentation fixes to some of the
+    analyzer and file_analyzer bifs.
+
+    This includes minor formatting changes, fixed todos, typos, unfinished
+    sentences, and a couple of incorrect statements.
+
 9.0.0-dev.602 | 2026-07-08 11:19:14 +0200
 
   * Align RCPT TO comment with docs (Steven)

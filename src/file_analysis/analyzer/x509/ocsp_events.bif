@@ -23,6 +23,8 @@ event ocsp_request%(f: fa_file, version: count%);
 ##
 ## hashAlgorithm: The hash algorithm used for the issuerKeyHash.
 ##
+## issuerNameHash: Hash of the issuer's distinguished name.
+##
 ## issuerKeyHash: Hash of the issuers public key.
 ##
 ## serialNumber: Serial number of the certificate for which the status is requested.

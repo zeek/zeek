@@ -107,7 +107,7 @@ event dce_rpc_request%(c: connection, fid: count, ctx_id: count, opnum: count, s
 ##      not transported over a pipe.
 ##
 ## ctx_id: The context identifier of the data representation.
-###
+##
 ## opnum: Number of the RPC operation.
 ##
 ## stub_len: Length of the data for the response.
@@ -141,7 +141,7 @@ event dce_rpc_request_stub%(c: connection, fid: count, ctx_id: count, opnum: cou
 ##      not transported over a pipe.
 ##
 ## ctx_id: The context identifier of the data representation.
-###
+##
 ## opnum: Number of the RPC operation.
 ##
 ## stub: The data for the response.

@@ -32,7 +32,7 @@ event dnp3_application_response_header%(c: connection, is_orig: bool, applicatio
 ##
 ## qua_field: qualifier field.
 ##
-## number: TODO.
+## number: Number of objects (or items) carried by this object header.
 ##
 ## rf_low: the structure of the range field depends on the qualified field.
 ##         In some cases, the range field contains only one logic part, e.g.,

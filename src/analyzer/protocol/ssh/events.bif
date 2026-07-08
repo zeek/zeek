@@ -70,7 +70,6 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ## as a partial success.
 ##
 ## This event will often be raised multiple times per connection.
-## In almost all connections, it will be raised once unless
 ##
 ## c: The connection over which the :abbr:`SSH (Secure Shell)`
 ##    connection took place.

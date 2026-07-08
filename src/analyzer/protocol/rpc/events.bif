@@ -33,7 +33,7 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## fh: TODO.
+## fh: The file handle of the file whose attributes are requested.
 ##
 ## attrs: The attributes returned in the reply. The values may not be valid if
 ##       the request was unsuccessful.
@@ -229,7 +229,7 @@ event nfs_proc_link%(c: connection, info: NFS3::info_t, req: NFS3::linkargs_t, r
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -258,7 +258,7 @@ event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t,
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -286,7 +286,7 @@ event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -314,7 +314,7 @@ event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -342,7 +342,7 @@ event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -370,7 +370,7 @@ event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.
@@ -398,7 +398,7 @@ event nfs_proc_rename%(c: connection, info: NFS3::info_t, req: NFS3::renameoparg
 ##
 ## info: Reports the status of the dialogue, along with some meta information.
 ##
-## req: TODO.
+## req: The arguments passed in the request.
 ##
 ## rep: The response returned in the reply. The values may not be valid if the
 ##      request was unsuccessful.

@@ -32,7 +32,7 @@ Events
 :zeek:id:`ssl_extension_application_layer_protocol_negotiation`: :zeek:type:`event` Generated for an SSL/TLS Application-Layer Protocol Negotiation extension.
 :zeek:id:`ssl_extension_connection_id`: :zeek:type:`event`                          Generated for an DTLS Connection ID extension.
 :zeek:id:`ssl_extension_ec_point_formats`: :zeek:type:`event`                       Generated for an SSL/TLS Supported Point Formats extension.
-:zeek:id:`ssl_extension_elliptic_curves`: :zeek:type:`event`                        Generated for an SSL/TLS Elliptic Curves extension.
+:zeek:id:`ssl_extension_elliptic_curves`: :zeek:type:`event`                        Generated for a SSL/TLS Elliptic Curves or Supported Groups extension.
 :zeek:id:`ssl_extension_encrypted_client_hello`: :zeek:type:`event`                 Generated for the encrypted client hello extension.
 :zeek:id:`ssl_extension_key_share`: :zeek:type:`event`                              Generated for a Key Share extension.
 :zeek:id:`ssl_extension_pre_shared_key_client_hello`: :zeek:type:`event`            Generated for the pre-shared key extension as it is sent in the TLS 1.3 client hello.
@@ -130,7 +130,7 @@ Events
                  parse_distinguished_name
 
 .. zeek:id:: ssl_change_cipher_spec
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 829 829
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 833 833
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`)
 
@@ -220,7 +220,7 @@ Events
       ssl_handshake_message
 
 .. zeek:id:: ssl_dh_client_params
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 389 389
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 393 393
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, Yc: :zeek:type:`string`)
 
@@ -239,7 +239,7 @@ Events
       ssl_ecdh_server_params ssl_ecdh_client_params ssl_rsa_client_pms
 
 .. zeek:id:: ssl_dh_server_params
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 338 338
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 342 342
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`, Ys: :zeek:type:`string`)
 
@@ -265,7 +265,7 @@ Events
       ssl_rsa_client_pms
 
 .. zeek:id:: ssl_ecdh_client_params
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 375 375
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 379 379
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, point: :zeek:type:`string`)
 
@@ -346,7 +346,7 @@ Events
       ssl_extension_connection_id
 
 .. zeek:id:: ssl_established
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 615 615
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 619 619
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -403,7 +403,7 @@ Events
       ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_application_layer_protocol_negotiation
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 430 430
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 434 434
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, protocols: :zeek:type:`string_vec`)
 
@@ -436,7 +436,7 @@ Events
       ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_connection_id
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 564 564
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 568 568
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, cid: :zeek:type:`string`)
 
@@ -502,9 +502,13 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, curves: :zeek:type:`index_vec`)
 
-   Generated for an SSL/TLS Elliptic Curves extension. This TLS extension is
-   defined in :rfc:`4492` and sent by the client in the initial handshake. It
-   gives the list of elliptic curves supported by the client.
+   Generated for a SSL/TLS Elliptic Curves or Supported Groups extension.
+   This extension was called Elliptic Curves till TLS 1.2, and is called Supported
+   Groups starting in TLS 1.3. It is defined in :rfc:`8422` for TLS 1.2 and earlier
+   and in :rfc:`8446` for TLS 1.3. The extension is sent by the client in the initial
+   handshake.
+   For TLS 1.2 and below it gives the list of elliptic curves supported by the client.
+   For TLS 1.3, it gives the named groups that the client supports for key exchange.
 
 
    :param c: The connection.
@@ -515,7 +519,7 @@ Events
               with the originator, but does not have to be in all circumstances.
 
 
-   :param curves: List of supported elliptic curves.
+   :param curves: List of supported elliptic curves/named groups.
 
    .. zeek:see:: ssl_alert ssl_client_hello ssl_established ssl_server_hello
       ssl_session_ticket_handshake ssl_extension
@@ -574,7 +578,7 @@ Events
       ssl_extension_connection_id ssl_extension_signature_algorithms_cert
 
 .. zeek:id:: ssl_extension_key_share
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 253 253
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 257 257
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, curves: :zeek:type:`index_vec`)
 
@@ -604,7 +608,7 @@ Events
       ssl_extension_connection_id ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_pre_shared_key_client_hello
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 280 280
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 284 284
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, identities: :zeek:type:`psk_identity_vec`, binders: :zeek:type:`string_vec`)
 
@@ -638,7 +642,7 @@ Events
       ssl_extension_connection_id ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_pre_shared_key_server_hello
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 303 303
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 307 307
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, selected_identity: :zeek:type:`count`)
 
@@ -696,7 +700,7 @@ Events
       ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_server_name
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 457 457
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 461 461
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, names: :zeek:type:`string_vec`)
 
@@ -770,7 +774,7 @@ Events
       ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_signature_algorithms_cert
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 229 229
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 233 233
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, signature_schemes: :zeek:type:`index_vec`)
 
@@ -848,7 +852,7 @@ Events
       ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_extension_supported_versions
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 518 518
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 522 522
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, versions: :zeek:type:`index_vec`)
 
@@ -904,7 +908,7 @@ Events
       ssl_change_cipher_spec ssl_connection_flipped ssl_certificate_request
 
 .. zeek:id:: ssl_heartbeat
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 688 688
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 692 692
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, length: :zeek:type:`count`, heartbeat_type: :zeek:type:`count`, payload_length: :zeek:type:`count`, payload: :zeek:type:`string`)
 
@@ -972,7 +976,7 @@ Events
       ssl_alert ssl_heartbeat
 
 .. zeek:id:: ssl_probable_encrypted_handshake_message
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 782 782
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 786 786
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, length: :zeek:type:`count`)
 
@@ -1014,7 +1018,7 @@ Events
       ssl_encrypted_data
 
 .. zeek:id:: ssl_rsa_client_pms
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 403 403
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 407 407
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, pms: :zeek:type:`string`)
 
@@ -1089,7 +1093,7 @@ Events
       ssl_rsa_client_pms ssl_connection_flipped
 
 .. zeek:id:: ssl_server_signature
-   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 361 361
+   :source-code: base/bif/plugins/Zeek_SSL.events.bif.zeek 365 365
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, signature_and_hashalgorithm: :zeek:type:`SSL::SignatureAndHashAlgorithm`, signature: :zeek:type:`string`)
 

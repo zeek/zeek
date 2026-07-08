@@ -1,6 +1,9 @@
 # @TEST-DOC: Printing self-referential aggregate values via cycles does not crash and emits <cycle>. Regression test for GH #5407.
 #
-# @TEST-EXEC: zeek -b %INPUT >output
+# The test creates cycles. Since values are refcounted, that leaks memory.
+# Thus, we disable leak detection.
+#
+# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=0" zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # Record with redef self-ref

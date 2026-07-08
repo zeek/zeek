@@ -159,17 +159,17 @@ Types
 
    .. zeek:field:: helo :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Contents of the Helo header.
+      Contents of the HELO/EHLO SMTP command.
 
 
    .. zeek:field:: mailfrom :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Email addresses found in the From header.
+      Email address found in the MAIL FROM SMTP command.
 
 
    .. zeek:field:: rcptto :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Email addresses found in the Rcpt header.
+      Email addresses found in the RCPT TO SMTP commands.
 
 
    .. zeek:field:: date :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
@@ -194,12 +194,12 @@ Types
 
    .. zeek:field:: reply_to :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Contents of the ReplyTo header.
+      Contents of the Reply-To header.
 
 
    .. zeek:field:: msg_id :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Contents of the MsgID header.
+      Contents of the Message-ID header.
 
 
    .. zeek:field:: in_reply_to :zeek:type:`string` :zeek:attr:`&log` :zeek:attr:`&optional`

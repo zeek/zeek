@@ -24,11 +24,11 @@ export {
 		## A count to represent the depth of this message transaction in
 		## a single connection where multiple messages were transferred.
 		trans_depth:       count           &log;
-		## Contents of the Helo header.
+		## Contents of the HELO/EHLO SMTP command.
 		helo:              string          &log &optional;
-		## Email addresses found in the From header.
+		## Email address found in the MAIL FROM SMTP command.
 		mailfrom:          string          &log &optional;
-		## Email addresses found in the Rcpt header.
+		## Email addresses found in the RCPT TO SMTP command(s).
 		rcptto:            set[string]     &log &optional;
 		## Contents of the Date header.
 		date:              string          &log &optional;
@@ -38,9 +38,9 @@ export {
 		to:                set[string]     &log &optional;
 		## Contents of the CC header.
 		cc:                set[string]     &log &optional;
-		## Contents of the ReplyTo header.
+		## Contents of the Reply-To header.
 		reply_to:          string          &log &optional;
-		## Contents of the MsgID header.
+		## Contents of the Message-ID header.
 		msg_id:            string          &log &optional;
 		## Contents of the In-Reply-To header.
 		in_reply_to:       string          &log &optional;

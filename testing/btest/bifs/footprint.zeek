@@ -1,7 +1,7 @@
 # The ASAN leak detection complains (correctly!) about this script
 # leaking memory due to the script-level cycles it includes as
 # stress-tests, so just disable leak checking.
-# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS,detect_leaks=0" zeek -b %INPUT >out
+# @TEST-EXEC: ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=0" zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
 type r1: record {

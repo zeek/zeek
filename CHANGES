@@ -1,3 +1,11 @@
+9.0.0-dev.606 | 2026-07-08 08:25:48 -0400
+
+  * GH-5593: Disable leak checking on cycle test (Evan Typanski, Corelight)
+
+    I broke ASAN with #5593
+
+    Also switches other uses of `ASAN_OPTIONS` to use the correct separator.
+
 9.0.0-dev.604 | 2026-07-08 12:25:08 +0100
 
   * Protocol/file analysis bif doc fixes (Johanna Amann, Corelight)

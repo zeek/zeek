@@ -1,3 +1,19 @@
+9.0.0-dev.608 | 2026-07-08 15:10:33 +0200
+
+  * ci/NEWS: Skip installing libnode-dev on Debian 12 (Arne Welzel, Corelight)
+
+    The Debian 12 build fails because GCC 12.x doesn't yet have <format>.
+
+        <...>/zeek/auxil/zeekjs/src/Nodejs.cc:7:10: fatal error: format: No such file or directory
+            7 | #include <format>
+              |          ^~~~~~~~
+
+    And seems fine to me to require a more recent distribution when JavaScript
+    is enabled. Debian 13 has been released almost a year ago, JavaScript
+    does have the experimental sticker still, and I don't think this will affect
+    enough users to be worth a libfmt fallback. I'd be positively surprised if
+    that's wrong :-)
+
 9.0.0-dev.606 | 2026-07-08 08:25:48 -0400
 
   * GH-5593: Disable leak checking on cycle test (Evan Typanski, Corelight)

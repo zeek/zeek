@@ -21,7 +21,6 @@ RUN apt-get update && apt-get -y install \
     jq \
     libkrb5-dev \
     libnats-dev \
-    libnode-dev \
     libpcap-dev \
     librdkafka-dev \
     libssl-dev \

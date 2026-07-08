@@ -1,3 +1,20 @@
+9.0.0-dev.613 | 2026-07-08 12:54:03 -0700
+
+  * util/fmt: Remove non-main thread warning / abort() again (Arne Welzel, Corelight)
+
+    JavaScript code execution does not happen on the main thread. Execution
+    is offloaded to a separate thread while Zeek's main thread is fully
+    paused until JavaScript execution completes at which point the main
+    thread resumes.
+
+    The util::fmt() function is reachable through various paths from
+    JavaScript by using zeek.invoke() to execute Zeek script or builtin
+    functions. This triggers the just added fprintf() / abort() from commit
+    d6db4402db3bcdfdbd374ad70540d03e679d2d2b.
+
+    Revert this logic as it's a false positive for this particular case and
+    it wasn't the greatest idea.
+
 9.0.0-dev.611 | 2026-07-08 09:33:31 -0400
 
   * Bump cmake for OpenSSL includes (Evan Typanski, Corelight)

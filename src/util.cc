@@ -1256,22 +1256,6 @@ const char* fmt_bytes(const char* data, int len) {
 }
 
 const char* vfmt(const char* format, va_list al) {
-    // buf is process-global, so vfmt() is not thread safe.
-    // By convention, it must be called only from the main thread.
-    // The first call is known to be performed by the main thread during single-threaded startup.
-    // Check subsequent calls against that baseline.
-    static const std::thread::id main_thread_id = std::this_thread::get_id();
-    static bool wrong_thread_warned = false;
-
-    if ( std::this_thread::get_id() != main_thread_id && ! wrong_thread_warned ) {
-        fprintf(stderr,
-                "zeek::util::fmt() called off the main thread; use threading::BasicThread::Fmt() or std::format()\n");
-        wrong_thread_warned = true;
-#ifdef DEBUG
-        abort();
-#endif
-    }
-
     static char* buf = nullptr;
     static int buf_len = 1024;
 

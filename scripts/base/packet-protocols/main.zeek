@@ -30,6 +30,11 @@ export {
 	global register_for_port: function(parent: PacketAnalyzer::Tag,
 	                                   child: PacketAnalyzer::Tag,
 	                                   p: port) : bool;
+
+	## The maximum depth of the packet analyzer chains. If this limit is exceeded
+	## a ``max_packet_analyzer_depth_exceeded`` weird will be reported. Set this
+	## to zero to disable the limit.
+	const max_depth: count = 25 &redef;
 }
 
 function register_for_ports(parent: PacketAnalyzer::Tag,

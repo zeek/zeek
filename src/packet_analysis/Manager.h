@@ -195,6 +195,8 @@ public:
         analyzer_stack.push_back({analyzer, {data, len}});
     }
 
+    size_t AnalyzerStackDepth() const { return analyzer_stack.size(); }
+
     /**
      * Get all tracked data spans for a given analyzer instance.
      *

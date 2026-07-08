@@ -5,6 +5,7 @@
 #include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
+#include "zeek/packet_analysis/consts.bif.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
 
@@ -93,6 +94,14 @@ const AnalyzerPtr& Analyzer::DetectInnerAnalyzer(size_t len, const uint8_t* data
 }
 
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint64_t identifier) const {
+    if ( BifConst::PacketAnalyzer::max_depth > 0 &&
+         packet_mgr->AnalyzerStackDepth() == BifConst::PacketAnalyzer::max_depth ) {
+        if ( packet->session )
+            packet->session->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        Weird("max_packet_analyzer_depth_exceeded", packet);
+        return false;
+    }
+
     const auto& inner_analyzer = FindInnerAnalyzer(len, data, packet, identifier);
 
     if ( ! inner_analyzer ) {
@@ -119,6 +128,14 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
 }
 
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const {
+    if ( BifConst::PacketAnalyzer::max_depth > 0 &&
+         packet_mgr->AnalyzerStackDepth() == BifConst::PacketAnalyzer::max_depth ) {
+        if ( packet->session )
+            packet->session->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        Weird("max_packet_analyzer_depth_exceeded", packet);
+        return false;
+    }
+
     const auto& inner_analyzer = FindInnerAnalyzer(len, data, packet);
 
     if ( ! inner_analyzer ) {

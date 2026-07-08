@@ -1,3 +1,17 @@
+9.0.0-dev.611 | 2026-07-08 09:33:31 -0400
+
+  * Bump cmake for OpenSSL includes (Evan Typanski, Corelight)
+
+  * Fix stall with OpenSSL check on Mac with ASAN (Evan Typanski, Corelight)
+
+    Before, the OpenSSL check was stalling. This is due to MacOS SIP, which
+    causes the ASAN binaries to not load correctly. Instead, simply move the
+    check before the sanitizer flags are set. Then, explicitly include the
+    necessary directories so that the header is findable at this earlier
+    stage.
+
+    I used Claude to pin this down.
+
 9.0.0-dev.608 | 2026-07-08 15:10:33 +0200
 
   * ci/NEWS: Skip installing libnode-dev on Debian 12 (Arne Welzel, Corelight)

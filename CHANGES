@@ -1,3 +1,11 @@
+9.0.0-dev.602 | 2026-07-08 11:19:14 +0200
+
+  * Align RCPT TO comment with docs (Steven)
+
+  * Clarify SMTP documentation (Steven)
+    Remove email header label for SMTP commands
+    Expand Message-ID & Reply-To to match RFC822
+
 9.0.0-dev.599 | 2026-07-08 09:30:21 +0200
 
   * util/fmt: guard fmt() misuse (Stefan Götz, Corelight)

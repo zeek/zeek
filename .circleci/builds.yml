@@ -1065,6 +1065,7 @@ workflows:
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
+          ci_image_date: "20260708"
           requires: [fetch-test-traces, build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
@@ -1289,6 +1290,7 @@ workflows:
 
       - zeekctl-testing:
           docker_image: zeek/zeek-ci:debian-12
+          ci_image_date: "20260708"
           requires: [build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
 

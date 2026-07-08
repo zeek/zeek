@@ -28,7 +28,7 @@ export {
 		helo:              string          &log &optional;
 		## Email address found in the MAIL FROM SMTP command.
 		mailfrom:          string          &log &optional;
-		## Email addresses found in the RCPT TO SMTP command(s).
+		## Email addresses found in the RCPT TO SMTP commands.
 		rcptto:            set[string]     &log &optional;
 		## Contents of the Date header.
 		date:              string          &log &optional;

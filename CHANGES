@@ -1,3 +1,7 @@
+9.0.0-dev.596 | 2026-07-08 09:00:42 +0200
+
+  * Bump zeekjs to v0.24.0 (Arne Welzel, Corelight)
+
 9.0.0-dev.593 | 2026-07-07 15:31:40 -0700
 
   * Add Broker backpressure tests (Christian Kreibich, Corelight)

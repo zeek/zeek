@@ -33,6 +33,10 @@ Breaking Changes
   separately with the thread and address sanitizers enabled (./configure --sanitizers=thread
   or ./configure --sanitizers=address).
 
+- The ZeekJS plugin now requires ``std::format`` from C++20 which is not available
+  in older distributions using GCC 12.x like Debian 12. If you want to use JavaScript
+  support in Zeek, please update to a more recent distribution.
+
 New Functionality
 -----------------
 

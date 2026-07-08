@@ -7,6 +7,8 @@ zeek_add_subdir_library(
     Analyzer.cc
     Dispatcher.cc
     Manager.cc
-    Component.cc)
+    Component.cc
+    BIFS
+    consts.bif)
 
 add_subdirectory(protocol)

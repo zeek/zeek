@@ -1,0 +1,4 @@
+# @TEST-EXEC: zeek -C -b -r $TRACES/tcp-syslog.pcap %INPUT
+# @TEST-EXEC: btest-diff syslog.log
+
+@load base/protocols/syslog

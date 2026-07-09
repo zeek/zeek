@@ -1,3 +1,13 @@
+9.0.0-dev.617 | 2026-07-09 08:27:40 -0700
+
+  * Enable UBSan 'builtin' and 'pointer-overflow' checks (Tim Wojtulewicz, Corelight)
+
+    These two weren't implemented by various old versions
+    of GCC when we added UBSan support, but they're ok in
+    newer versions.
+
+  * Reformat list of enabled/disabled checks in CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.613 | 2026-07-08 12:54:03 -0700
 
   * util/fmt: Remove non-main thread warning / abort() again (Arne Welzel, Corelight)

@@ -390,7 +390,7 @@ Events
    :param command: The command.
 
 
-   :param message: TODO.
+   :param message: The parameters of the IRC command.
 
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
@@ -1087,10 +1087,10 @@ Events
             connection.
 
 
-   :param server: TODO.
+   :param server: Target of the WHOIS query, or an empty string if not specified.
 
 
-   :param users: TODO.
+   :param users: Comma-separated list of nicknames (or nickname masks).
 
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message

@@ -1278,6 +1278,7 @@ Events
 
    :param ctx_id: The context identifier of the data representation.
 
+
    :param opnum: Number of the RPC operation.
 
 
@@ -1328,6 +1329,7 @@ Events
 
 
    :param ctx_id: The context identifier of the data representation.
+
 
    :param opnum: Number of the RPC operation.
 
@@ -1759,7 +1761,7 @@ Events
    :param qua_field: qualifier field.
 
 
-   :param number: TODO.
+   :param number: Number of objects (or items) carried by this object header.
 
 
    :param rf_low: the structure of the range field depends on the qualified field.
@@ -2431,7 +2433,7 @@ Events
 
    :param a: The address returned by the reply.
 
-   .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2464,7 +2466,7 @@ Events
 
    :param a: The address returned by the reply.
 
-   .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2498,7 +2500,7 @@ Events
    :param name: The name returned by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_MX_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -2530,7 +2532,7 @@ Events
 
    :param name: The name returned by the reply.
 
-   .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -2564,7 +2566,7 @@ Events
    :param name: The name returned by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_MX_reply dns_NS_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -2576,7 +2578,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, soa: :zeek:type:`dns_soa`)
 
-   Generated for DNS replies of type *CNAME*. For replies with multiple answers,
+   Generated for DNS replies of type *SOA*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
 
    See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
@@ -2628,7 +2630,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout
@@ -2693,7 +2695,7 @@ Events
    :param preference: The preference for *name* specified by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -2727,7 +2729,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
+      dns_SRV_reply dns_TSIG_addl dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout
@@ -2760,7 +2762,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout
@@ -4215,7 +4217,7 @@ Events
    at the scripting layer by concatenating it to a successively growing
    string; and only perform further content analysis once the corresponding
    :zeek:id:`http_end_entity` event has been raised. Note, however, that doing so
-   can be quite expensive for HTTP tranders. At the very least, one should
+   can be quite expensive for HTTP transfers. At the very least, one should
    impose an upper size limit on how much data is being buffered.
 
    See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
@@ -4657,7 +4659,7 @@ Events
    :param command: The command.
 
 
-   :param message: TODO.
+   :param message: The parameters of the IRC command.
 
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
@@ -5310,10 +5312,10 @@ Events
             connection.
 
 
-   :param server: TODO.
+   :param server: Target of the WHOIS query, or an empty string if not specified.
 
 
-   :param users: TODO.
+   :param users: Comma-separated list of nicknames (or nickname masks).
 
    .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
       irc_global_users irc_invalid_nick irc_invite_message irc_join_message
@@ -7011,7 +7013,7 @@ Events
       configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
 
-   .. todo:: Zeeks's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload
@@ -7205,7 +7207,7 @@ Events
 
    :param display: The DISPLAY transmitted.
 
-   .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
+   .. zeek:see:: login_confused login_confused_text login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9732,7 +9734,7 @@ Events
    :param c: The connection.
 
 
-   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Negotiate` for more details.
 
    .. zeek:see:: ntlm_challenge ntlm_authenticate
 
@@ -9747,7 +9749,7 @@ Events
    :param c: The connection.
 
 
-   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param challenge: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Challenge` for more details.
 
    .. zeek:see:: ntlm_negotiate ntlm_authenticate
 
@@ -9762,7 +9764,7 @@ Events
    :param c: The connection.
 
 
-   :param request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Authenticate` for more details.
 
    .. zeek:see:: ntlm_negotiate ntlm_challenge
 
@@ -11760,7 +11762,10 @@ Events
    :param c: The connection record for the underlying transport-layer session/flow.
 
 
-   :param version: of the client's rfb library
+   :param major_version: The major version of the client's RFB library.
+
+
+   :param minor_version: The minor version of the client's RFB library.
 
 .. zeek:id:: rfb_server_version
    :source-code: base/protocols/rfb/main.zeek 124 129
@@ -11773,10 +11778,13 @@ Events
    :param c: The connection record for the underlying transport-layer session/flow.
 
 
-   :param version: of the server's rfb library
+   :param major_version: The major version of the server's RFB library.
+
+
+   :param minor_version: The minor version of the server's RFB library.
 
 .. zeek:id:: rfb_server_parameters
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 63 63
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 67 67
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
@@ -11884,7 +11892,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param fh: TODO.
+   :param fh: The file handle of the file whose attributes are requested.
 
 
    :param attrs: The attributes returned in the reply. The values may not be valid if
@@ -12136,7 +12144,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12173,7 +12181,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12209,7 +12217,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12245,7 +12253,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12281,7 +12289,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12317,7 +12325,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -12353,7 +12361,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -15202,7 +15210,7 @@ Events
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 
 
-   :param request: The parsed request data of the SMB message. See init-bare for more details.
+   :param request: The parsed request data of the SMB message. See :zeek:see:`SMB1::SessionSetupAndXRequest` for more details.
 
    .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
@@ -15223,7 +15231,7 @@ Events
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 
 
-   :param response: The parsed response data of the SMB message. See init-bare for more details.
+   :param response: The parsed response data of the SMB message. See :zeek:see:`SMB1::SessionSetupAndXResponse` for more details.
 
    .. zeek:see:: smb1_message smb1_session_setup_andx_request
 
@@ -16465,7 +16473,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
 
-   .. note:: Zeek does not support the newer ETRN extension yet.
+   .. note:: Zeek does not support the ETRN extension.
 
 .. zeek:id:: smtp_reply
    :source-code: base/bif/plugins/Zeek_SMTP.events.bif.zeek 59 59
@@ -16492,7 +16500,7 @@ Events
    :param code: The reply's numerical code.
 
 
-   :param cmd: TODO.
+   :param cmd: The SMTP command this reply pertains to.
 
 
    :param msg: The reply's textual description.
@@ -16506,7 +16514,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
 
-   .. note:: Zeek doesn't support the newer ETRN extension yet.
+   .. note:: Zeek doesn't support the ETRN extension.
 
 .. zeek:id:: smtp_data
    :source-code: base/bif/plugins/Zeek_SMTP.events.bif.zeek 85 85
@@ -17430,7 +17438,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_auth_attempted
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 93 93
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 92 92
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authenticated: :zeek:type:`bool`)
 
@@ -17449,7 +17457,6 @@ Events
    as a partial success.
 
    This event will often be raised multiple times per connection.
-   In almost all connections, it will be raised once unless
 
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
@@ -17497,7 +17504,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 136 136
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 135 135
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
 
@@ -17521,7 +17528,7 @@ Events
       ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh1_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 164 164
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 163 163
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, modulus: :zeek:type:`string`, exponent: :zeek:type:`string`)
 
@@ -17557,7 +17564,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 194 194
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 193 193
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hash: :zeek:type:`string`)
 
@@ -17618,7 +17625,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key
 
 .. zeek:id:: ssh_encrypted_packet
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 239 239
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 238 238
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
 
@@ -17648,7 +17655,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_dh_server_params
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 259 259
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 258 258
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`)
 
@@ -17674,7 +17681,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_gss_error
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 281 281
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 280 280
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_status: :zeek:type:`count`, minor_status: :zeek:type:`count`, err_msg: :zeek:type:`string`)
 
@@ -17703,7 +17710,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_ecc_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 303 303
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 302 302
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, q: :zeek:type:`string`)
 
@@ -17731,7 +17738,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_ecc_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 325 325
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 324 324
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -17758,7 +17765,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_dh_gex_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 343 343
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 342 342
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -17781,7 +17788,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_gss_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 360 360
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 359 359
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -17803,7 +17810,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_rsa_secret
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 378 378
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 377 377
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -17826,7 +17833,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_server_pre_banner_data
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 394 394
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 393 393
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
 
@@ -18565,7 +18572,7 @@ Events
    Generated for an TLS Supported Versions extension. This TLS extension
    is defined in :rfc:`8446` (TL1 1.3) and sent by the client in the initial handshake.
    It contains the TLS versions that it supports. This information can be used by
-   the server to choose the best TLS version o use.
+   the server to choose the best TLS version to use.
 
 
    :param c: The connection.
@@ -20083,7 +20090,7 @@ Events
 
    :param data: One data chunk of frame payload. The length of is at most
          :zeek:see:`WebSocket::payload_chunk_size` bytes. A frame with
-         a longer payload will result in multiple events events.
+         a longer payload will result in multiple events.
 
    .. zeek:see:: WebSocket::payload_chunk_size
 

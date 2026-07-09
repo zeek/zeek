@@ -62,7 +62,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: ssh1_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 164 164
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 163 163
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, modulus: :zeek:type:`string`, exponent: :zeek:type:`string`)
 
@@ -98,7 +98,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_dh_gex_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 343 343
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 342 342
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -121,7 +121,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_dh_server_params
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 259 259
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 258 258
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, p: :zeek:type:`string`, q: :zeek:type:`string`)
 
@@ -147,7 +147,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_ecc_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 325 325
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 324 324
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -174,7 +174,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_ecc_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 303 303
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 302 302
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, q: :zeek:type:`string`)
 
@@ -202,7 +202,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_gss_error
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 281 281
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 280 280
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, major_status: :zeek:type:`count`, minor_status: :zeek:type:`count`, err_msg: :zeek:type:`string`)
 
@@ -231,7 +231,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_gss_init
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 360 360
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 359 359
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -253,7 +253,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_rsa_secret
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 378 378
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 377 377
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`)
 
@@ -276,7 +276,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh2_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 136 136
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 135 135
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, key: :zeek:type:`string`)
 
@@ -300,7 +300,7 @@ Events
       ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_auth_attempted
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 93 93
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 92 92
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, authenticated: :zeek:type:`bool`)
 
@@ -319,7 +319,6 @@ Events
    as a partial success.
 
    This event will often be raised multiple times per connection.
-   In almost all connections, it will be raised once unless
 
 
    :param c: The connection over which the :abbr:`SSH (Secure Shell)`
@@ -418,7 +417,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_encrypted_packet
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 239 239
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 238 238
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, orig: :zeek:type:`bool`, len: :zeek:type:`count`)
 
@@ -448,7 +447,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_server_host_key
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 194 194
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 193 193
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hash: :zeek:type:`string`)
 
@@ -509,7 +508,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key
 
 .. zeek:id:: ssh_server_pre_banner_data
-   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 394 394
+   :source-code: base/bif/plugins/Zeek_SSH.events.bif.zeek 393 393
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`string`)
 

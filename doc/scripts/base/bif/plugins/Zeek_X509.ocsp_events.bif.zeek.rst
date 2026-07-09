@@ -27,7 +27,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: ocsp_extension
-   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 122 122
+   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 124 124
 
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, ext: :zeek:type:`X509::Extension`, global_resp: :zeek:type:`bool`)
 
@@ -69,7 +69,7 @@ Events
                 x509_ocsp_ext_signed_certificate_timestamp
 
 .. zeek:id:: ocsp_request_certificate
-   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 37 37
+   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 39 39
 
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, hashAlgorithm: :zeek:type:`string`, issuerNameHash: :zeek:type:`string`, issuerKeyHash: :zeek:type:`string`, serialNumber: :zeek:type:`string`)
 
@@ -87,6 +87,9 @@ Events
    :param hashAlgorithm: The hash algorithm used for the issuerKeyHash.
 
 
+   :param issuerNameHash: Hash of the issuer's distinguished name.
+
+
    :param issuerKeyHash: Hash of the issuers public key.
 
 
@@ -97,7 +100,7 @@ Events
                 x509_ocsp_ext_signed_certificate_timestamp
 
 .. zeek:id:: ocsp_response_bytes
-   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 77 77
+   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 79 79
 
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, status: :zeek:type:`string`, version: :zeek:type:`count`, responderId: :zeek:type:`string`, producedAt: :zeek:type:`time`, signatureAlgorithm: :zeek:type:`string`, certs: :zeek:type:`x509_opaque_vector`)
 
@@ -174,7 +177,7 @@ Events
                 x509_ocsp_ext_signed_certificate_timestamp
 
 .. zeek:id:: ocsp_response_status
-   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 52 52
+   :source-code: base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek 54 54
 
    :Type: :zeek:type:`event` (f: :zeek:type:`fa_file`, status: :zeek:type:`string`)
 

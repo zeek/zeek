@@ -107,7 +107,7 @@ Events
 
    :param data: One data chunk of frame payload. The length of is at most
          :zeek:see:`WebSocket::payload_chunk_size` bytes. A frame with
-         a longer payload will result in multiple events events.
+         a longer payload will result in multiple events.
 
    .. zeek:see:: WebSocket::payload_chunk_size
 

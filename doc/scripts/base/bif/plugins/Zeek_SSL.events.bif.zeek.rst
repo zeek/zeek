@@ -859,7 +859,7 @@ Events
    Generated for an TLS Supported Versions extension. This TLS extension
    is defined in :rfc:`8446` (TL1 1.3) and sent by the client in the initial handshake.
    It contains the TLS versions that it supports. This information can be used by
-   the server to choose the best TLS version o use.
+   the server to choose the best TLS version to use.
 
 
    :param c: The connection.

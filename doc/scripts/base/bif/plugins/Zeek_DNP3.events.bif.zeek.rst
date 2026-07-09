@@ -552,7 +552,7 @@ Events
    :param qua_field: qualifier field.
 
 
-   :param number: TODO.
+   :param number: Number of objects (or items) carried by this object header.
 
 
    :param rf_low: the structure of the range field depends on the qualified field.

@@ -79,10 +79,13 @@ Events
    :param c: The connection record for the underlying transport-layer session/flow.
 
 
-   :param version: of the client's rfb library
+   :param major_version: The major version of the client's RFB library.
+
+
+   :param minor_version: The minor version of the client's RFB library.
 
 .. zeek:id:: rfb_server_parameters
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 63 63
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 67 67
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
@@ -111,7 +114,10 @@ Events
    :param c: The connection record for the underlying transport-layer session/flow.
 
 
-   :param version: of the server's rfb library
+   :param major_version: The major version of the server's RFB library.
+
+
+   :param minor_version: The minor version of the server's RFB library.
 
 .. zeek:id:: rfb_share_flag
    :source-code: base/protocols/rfb/main.zeek 157 160

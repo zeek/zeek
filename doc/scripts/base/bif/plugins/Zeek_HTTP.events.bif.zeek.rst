@@ -177,7 +177,7 @@ Events
    at the scripting layer by concatenating it to a successively growing
    string; and only perform further content analysis once the corresponding
    :zeek:id:`http_end_entity` event has been raised. Note, however, that doing so
-   can be quite expensive for HTTP tranders. At the very least, one should
+   can be quite expensive for HTTP transfers. At the very least, one should
    impose an upper size limit on how much data is being buffered.
 
    See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__

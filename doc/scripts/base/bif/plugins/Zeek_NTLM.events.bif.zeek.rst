@@ -33,7 +33,7 @@ Events
    :param c: The connection.
 
 
-   :param request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param request: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Authenticate` for more details.
 
    .. zeek:see:: ntlm_negotiate ntlm_challenge
 
@@ -48,7 +48,7 @@ Events
    :param c: The connection.
 
 
-   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param challenge: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Challenge` for more details.
 
    .. zeek:see:: ntlm_negotiate ntlm_authenticate
 
@@ -63,7 +63,7 @@ Events
    :param c: The connection.
 
 
-   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See init-bare for more details.
+   :param negotiate: The parsed data of the :abbr:`NTLM (NT LAN Manager)` message. See :zeek:see:`NTLM::Negotiate` for more details.
 
    .. zeek:see:: ntlm_challenge ntlm_authenticate
 

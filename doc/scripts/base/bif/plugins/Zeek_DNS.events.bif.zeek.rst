@@ -37,7 +37,7 @@ Events
 :zeek:id:`dns_NS_reply`: :zeek:type:`event`           Generated for DNS replies of type *NS*.
 :zeek:id:`dns_PTR_reply`: :zeek:type:`event`          Generated for DNS replies of type *PTR*.
 :zeek:id:`dns_RRSIG`: :zeek:type:`event`              Generated for DNS replies of type *RRSIG*.
-:zeek:id:`dns_SOA_reply`: :zeek:type:`event`          Generated for DNS replies of type *CNAME*.
+:zeek:id:`dns_SOA_reply`: :zeek:type:`event`          Generated for DNS replies of type *SOA*.
 :zeek:id:`dns_SPF_reply`: :zeek:type:`event`          Generated for DNS replies of type *SPF*.
 :zeek:id:`dns_SRV_reply`: :zeek:type:`event`          Generated for DNS replies of type *SRV*.
 :zeek:id:`dns_SSHFP`: :zeek:type:`event`              Generated for DNS replies of type *BINDS*.
@@ -88,7 +88,7 @@ Events
 
    :param a: The address returned by the reply.
 
-   .. zeek:see::  dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_A_reply dns_AAAA_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -121,7 +121,7 @@ Events
 
    :param a: The address returned by the reply.
 
-   .. zeek:see::  dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_A_reply dns_A6_reply dns_CNAME_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -237,7 +237,7 @@ Events
 
    :param name: The name returned by the reply.
 
-   .. zeek:see:: dns_AAAA_reply dns_A_reply  dns_EDNS_addl dns_HINFO_reply dns_MX_reply
+   .. zeek:see:: dns_AAAA_reply dns_A_reply dns_EDNS_addl dns_HINFO_reply dns_MX_reply
       dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
       dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
       dns_mapping_lost_name dns_mapping_new_name dns_mapping_unverified
@@ -535,7 +535,7 @@ Events
    :param preference: The preference for *name* specified by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply  dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -659,7 +659,7 @@ Events
    :param name: The name returned by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply dns_MX_reply  dns_PTR_reply dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_MX_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -692,7 +692,7 @@ Events
    :param name: The name returned by the reply.
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-      dns_HINFO_reply dns_MX_reply dns_NS_reply  dns_SOA_reply dns_SRV_reply
+      dns_HINFO_reply dns_MX_reply dns_NS_reply dns_SOA_reply dns_SRV_reply
       dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
@@ -725,7 +725,7 @@ Events
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, soa: :zeek:type:`dns_soa`)
 
-   Generated for DNS replies of type *CNAME*. For replies with multiple answers,
+   Generated for DNS replies of type *SOA*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
 
    See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
@@ -780,7 +780,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout
@@ -967,7 +967,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl  dns_WKS_reply dns_end
+      dns_SRV_reply dns_TSIG_addl dns_WKS_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout
@@ -997,7 +997,7 @@ Events
 
    .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
       dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply  dns_end
+      dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_end
       dns_mapping_altered dns_mapping_lost_name dns_mapping_new_name
       dns_mapping_unverified dns_mapping_valid dns_message dns_query_reply
       dns_rejected dns_request dns_max_queries dns_session_timeout

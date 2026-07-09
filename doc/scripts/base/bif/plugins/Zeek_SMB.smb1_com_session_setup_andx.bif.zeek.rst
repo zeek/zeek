@@ -40,7 +40,7 @@ Events
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 
 
-   :param request: The parsed request data of the SMB message. See init-bare for more details.
+   :param request: The parsed request data of the SMB message. See :zeek:see:`SMB1::SessionSetupAndXRequest` for more details.
 
    .. zeek:see:: smb1_message smb1_session_setup_andx_response
 
@@ -61,7 +61,7 @@ Events
    :param hdr: The parsed header of the :abbr:`SMB (Server Message Block)` version 1 message.
 
 
-   :param response: The parsed response data of the SMB message. See init-bare for more details.
+   :param response: The parsed response data of the SMB message. See :zeek:see:`SMB1::SessionSetupAndXResponse` for more details.
 
    .. zeek:see:: smb1_message smb1_session_setup_andx_request
 

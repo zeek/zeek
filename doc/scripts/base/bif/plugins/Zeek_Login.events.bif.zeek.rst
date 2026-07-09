@@ -296,7 +296,7 @@ Events
 
    :param display: The DISPLAY transmitted.
 
-   .. zeek:see:: login_confused login_confused_text  login_failure login_input_line
+   .. zeek:see:: login_confused login_confused_text login_failure login_input_line
       login_output_line login_prompt login_success login_terminal
 
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -343,7 +343,7 @@ Events
       configuration has not yet been ported, and
       the analyzer is therefore not directly usable at the moment.
 
-   .. todo:: Zeeks's current default configuration does not activate the protocol
+   .. todo:: Zeek's current default configuration does not activate the protocol
       analyzer that generates this event; the corresponding script has not yet
       been ported. To still enable this event, one needs to add a
       call to :zeek:see:`Analyzer::register_for_ports` or a DPD payload

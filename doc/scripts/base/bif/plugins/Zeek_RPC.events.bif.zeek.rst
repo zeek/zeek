@@ -241,7 +241,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -277,7 +277,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param fh: TODO.
+   :param fh: The file handle of the file whose attributes are requested.
 
 
    :param attrs: The attributes returned in the reply. The values may not be valid if
@@ -385,7 +385,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -516,7 +516,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -588,7 +588,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -624,7 +624,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -660,7 +660,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the
@@ -768,7 +768,7 @@ Events
    :param info: Reports the status of the dialogue, along with some meta information.
 
 
-   :param req: TODO.
+   :param req: The arguments passed in the request.
 
 
    :param rep: The response returned in the reply. The values may not be valid if the

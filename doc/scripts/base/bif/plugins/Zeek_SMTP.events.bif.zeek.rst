@@ -81,7 +81,7 @@ Events
    :param code: The reply's numerical code.
 
 
-   :param cmd: TODO.
+   :param cmd: The SMTP command this reply pertains to.
 
 
    :param msg: The reply's textual description.
@@ -95,7 +95,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data  smtp_request
 
-   .. note:: Zeek doesn't support the newer ETRN extension yet.
+   .. note:: Zeek doesn't support the ETRN extension.
 
 .. zeek:id:: smtp_request
    :source-code: base/protocols/smtp/main.zeek 205 274
@@ -128,7 +128,7 @@ Events
       mime_end_entity mime_entity_data mime_event mime_one_header mime_segment_data
       smtp_data smtp_reply
 
-   .. note:: Zeek does not support the newer ETRN extension yet.
+   .. note:: Zeek does not support the ETRN extension.
 
 .. zeek:id:: smtp_starttls
    :source-code: base/protocols/smtp/main.zeek 407 414

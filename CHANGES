@@ -1,3 +1,9 @@
+9.0.0-dev.619 | 2026-07-09 17:42:23 +0200
+
+  * github/workflows/check: Skip check.yml workflow for docs only changes (Arne Welzel, Corelight)
+
+    Directly from the docs:  https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#example-excluding-paths
+
 9.0.0-dev.617 | 2026-07-09 08:27:40 -0700
 
   * Enable UBSan 'builtin' and 'pointer-overflow' checks (Tim Wojtulewicz, Corelight)

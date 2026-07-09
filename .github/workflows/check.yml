@@ -10,6 +10,9 @@ on:
       - release/**
     tags: ["*"]
   pull_request:
+    # Skip this workflow completely if only doc/ was modified.
+    paths-ignore:
+      - 'doc/**'
   workflow_dispatch:
 
 concurrency:

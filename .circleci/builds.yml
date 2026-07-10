@@ -1065,6 +1065,7 @@ workflows:
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
+          ci_image_date: "20260708"
           requires: [fetch-test-traces, build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
@@ -1119,6 +1120,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           context:
             - zeek
@@ -1126,26 +1128,29 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
-            CC="clang-19"
-            CXX="clang++-19"
+            CC="clang-22"
+            CXX="clang++-22"
             CXXFLAGS="-stdlib=libc++"
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA="--disable-javascript"
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           << : *CONFIGURE_CLANG_TIDY
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
-            CC="clang-19"
-            CXX="clang++-19"
+            CC="clang-22"
+            CXX="clang++-22"
           enable_tests: false
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
@@ -1156,6 +1161,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
@@ -1167,6 +1173,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_SKIP_UNIT_TESTS=1
@@ -1182,6 +1189,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1198,6 +1206,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1213,11 +1222,12 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
-            CC=clang-19
-            CXX=clang++-19
+            CC=clang-22
+            CXX=clang++-22
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ZEEK_TAILORED_UB_CHECKS=1
             UBSAN_OPTIONS=print_stacktrace=1
@@ -1225,11 +1235,12 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
-            CC=clang-19
-            CXX=clang++-19
+            CC=clang-22
+            CXX=clang++-22
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ZEEK_TAILORED_UB_CHECKS=1
             UBSAN_OPTIONS=print_stacktrace=1
@@ -1241,11 +1252,12 @@ workflows:
       - linux-build:
           name: tsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_TSAN
           extra_env: |
-            CC=clang-19
-            CXX=clang++-19
+            CC=clang-22
+            CXX=clang++-22
             ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
             ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
           << : *FILTER_IF_PR_NOT_FULL_CI
@@ -1278,6 +1290,7 @@ workflows:
 
       - zeekctl-testing:
           docker_image: zeek/zeek-ci:debian-12
+          ci_image_date: "20260708"
           requires: [build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
 

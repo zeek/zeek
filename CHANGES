@@ -1,3 +1,13 @@
+9.0.0-dev.624 | 2026-07-10 18:25:50 +0000
+
+  * CCI: Update date for debian-12 image (Tim Wojtulewicz, Corelight)
+
+  * Fix additional warning from clang-tidy-22 (Tim Wojtulewicz, Corelight)
+
+  * CI: Use newer ubuntu-24.04 image and clang-22 (Tim Wojtulewicz, Corelight)
+
+  * CI: Install clang-22 in ubuntu-24.04 Dockerfile (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.619 | 2026-07-09 17:42:23 +0200
 
   * github/workflows/check: Skip check.yml workflow for docs only changes (Arne Welzel, Corelight)

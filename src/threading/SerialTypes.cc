@@ -218,7 +218,7 @@ static std::optional<std::vector<Value*>> read_elements(detail::SerializationFor
     // Only reserve up to 1024 pointers and rely on dynamic
     // reallocation of std::vector past that many elements.
     std::vector<Value*> vec;
-    vec.reserve(static_cast<size_t>(std::min(size, zeek_int_t(1024))));
+    vec.reserve(std::min<size_t>(size, 1024));
 
     for ( zeek_int_t i = 0; i < size; ++i ) {
         vec.emplace_back(new Value);

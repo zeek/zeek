@@ -351,7 +351,7 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len) {
     // How many bytes do we want to process with this call?  Either the
     // all of the bytes available or the number of bytes that we are
     // still missing.
-    int64_t to_process = std::min(static_cast<int64_t>(len), (expected - processed));
+    auto to_process = std::min<int64_t>(len, (expected - processed));
 
     if ( fill < maxsize ) {
         // We haven't yet filled the buffer. How many bytes to copy

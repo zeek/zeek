@@ -1016,7 +1016,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len, String** p) {
     auto dlen = ExtractShort(data, len);
-    dlen = std::min(len, static_cast<int>(dlen));
+    dlen = std::min<int>(len, dlen);
 
     if ( p )
         *p = new String(data, dlen, false);

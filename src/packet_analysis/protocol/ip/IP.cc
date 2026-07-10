@@ -225,7 +225,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     len -= ip_hdr_len;
 
     if ( packet->ip_hdr->PayloadLen() != 0 )
-        len = std::min(len, static_cast<size_t>(packet->ip_hdr->PayloadLen()));
+        len = std::min<size_t>(len, packet->ip_hdr->PayloadLen());
 
     // Session analysis assumes that the header size stored in the packet does not include the IP
     // header size. There are two reasons for this: 1) Packet::ToRawPktHdrVal() wants to look at the

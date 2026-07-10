@@ -648,8 +648,7 @@ int64_t Raw::GetLine(FILE* arg_file) {
                     readbytes = 0; // no new data; search existing buffer below
                 }
                 else {
-                    unsigned int to_read =
-                        static_cast<unsigned int>((std::min)(bufsize - bufpos, static_cast<size_t>(avail)));
+                    unsigned int to_read = std::min<unsigned int>(bufsize - bufpos, avail);
                     int r = _read(fd, buf.get() + bufpos, to_read);
                     readbytes = (r > 0) ? static_cast<size_t>(r) : 0;
                     if ( r == 0 )

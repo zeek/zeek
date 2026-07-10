@@ -598,7 +598,7 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
     const uint8_t* record_ptr = data;
 
     auto vec = make_intrusive<VectorVal>(icmp6_mld_mar_vec_type);
-    vec->Reserve(std::min(static_cast<uint16_t>(32), num_multicast_records));
+    vec->Reserve(std::min<size_t>(32, num_multicast_records));
 
     for ( uint16_t i = 0; i < num_multicast_records && remaining > 0; i++ ) {
         if ( remaining < 4 ) {
@@ -625,7 +625,7 @@ void ICMPAnalyzer::MLDReportV2(double t, const struct icmp* icmpp, int len, int 
         remaining -= 16;
 
         auto source_vec = make_intrusive<VectorVal>(addr_vec_type);
-        source_vec->Reserve(std::min(static_cast<uint16_t>(32), num_sources));
+        source_vec->Reserve(std::min<size_t>(32, num_sources));
 
         for ( uint16_t src = 0; src < num_sources; src++ ) {
             source_vec->Append(make_intrusive<AddrVal>(IPAddr(*reinterpret_cast<const in6_addr*>(record_ptr))));
@@ -797,7 +797,7 @@ zeek::VectorValPtr ICMPAnalyzer::BuildNDOptionsVal(int caplen, const u_char* dat
         }
 
         if ( set_payload_field ) {
-            String* payload = new String(data, std::min(static_cast<int>(length), caplen), false);
+            String* payload = new String(data, std::min<int>(length, caplen), false);
             rv->Assign(6, make_intrusive<StringVal>(payload));
         }
 

@@ -69,7 +69,7 @@ function eq_illegal() { local a: OpRec; local b: OpRec; local r = a == b; }
 # Comparing a string vector with a pattern vector.
 function eq_string_pattern_vectors() { local vp: vector of pattern = vector(/a/); local vs: vector of string = vector("a"); local r = vp == vs; }
 
-# Vector conditional whose alternatives clash (both-vector path in CondExpr).
+# Vector conditional over same-typed non-arithmetic vector alternatives (the both-vector branch of CondExpr).
 function cond_vector_clash() { local cond: vector of bool = vector(T, F); local a: vector of string = vector("a", "b"); local b: vector of string = vector("c", "d"); local r = cond ? a : b; }
 
 # Conditional whose alternatives are of different types.

@@ -5,8 +5,11 @@
 
 type CR: record { a: count; };
 
-# RecordConstructorExpr: value of the wrong type for a field.
+# RecordConstructorExpr: a bare positional value where a $field assignment is required.
 function record_bad_type() { local x = CR(5); }
+
+# RecordConstructorExpr: a $field assigned a value of the wrong type.
+function record_bad_field_type() { local x = CR($a = "x"); }
 
 # RecordConstructorExpr: assignment to a field the record doesn't have.
 function record_no_such_field() { local x = CR($b = 5); }

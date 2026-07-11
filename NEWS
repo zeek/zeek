@@ -197,6 +197,15 @@ Changed Functionality
   state growth. This includes freeing the RPC_CallInfo values. The RPC analyzer
   (used by the NFS and MOUNT analyzers) is not enabled in a default configuration.
 
+- DNS messages sent to multicast destinations (i.e. mDNS and LLMNR) are
+  no longer associated as query/response pairs, since replies for these
+  protocols arrive on different connections than queries. Each multicast
+  message now produces its own independent log entry. This may result in
+  more dns.log entries for environments with multicast DNS traffic, but
+  the previous paired entries contained data from unrelated messages and
+  were not valid. To revert to the previous behavior:
+  ``redef DNS::multicast_subnets = {};``
+
 Deprecated Functionality
 ------------------------
 

@@ -1,3 +1,14 @@
+9.0.0-dev.637 | 2026-07-13 12:14:44 -0700
+
+  * Bump zeek-testing (Arne Welzel, Corelight)
+
+    This bumps after merging the dns.log changes from Eldon in zeek/zeek#5608.
+
+  * Bump zeek-testing-private (Arne Welzel, Corelight)
+
+    No dns.log related changes. This must have been missed during
+    the 8.2.1 release, it contains changes for the new HTTP weird.
+
 9.0.0-dev.634 | 2026-07-13 16:13:58 +0000
 
   * CCI: Fix issues with building from tags (Tim Wojtulewicz, Corelight)

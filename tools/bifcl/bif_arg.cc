@@ -102,10 +102,10 @@ void BuiltinFuncArg::PrintCImplCallArg(std::string& out) { appendf(out, "%s", na
 const char* BuiltinFuncArg::NativeReturnType() const { return bif_types[type].native_return_type; }
 const char* BuiltinFuncArg::NativeToVal() const { return bif_types[type].native_to_val; }
 
-// FILE* convenience overloads: format into a std::string, then fputs.
-// to_file resolves the std::string& overload at the lambda call site,
-// avoiding the ambiguity that a direct &PrintZeek member-pointer would have.
-
+// A helper that takes a lambda that formats elements of a BuiltinFuncArg
+// into a string, and then prints that string to the given FILE*. This gives
+// us a convenient way to retarget the purely-string-oriented BuiltinFuncArg
+// formatting member functions.
 template<typename F>
 static void to_file(FILE* fp, F&& fn) {
     std::string s;

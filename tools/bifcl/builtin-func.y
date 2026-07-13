@@ -165,15 +165,14 @@ std::vector<BuiltinFuncArg*> args;
 // been adapted to return native types.
 bool gen_native = false;
 
-// The current BiF's return type (its BuiltinFuncArg representation) or
-// nullptr for void. Captured at return_type, consumed at body_end so
-// the _native can use a native primitive return type when applicable.
+// The current BiF's return type (nullptr for void). We use this so
+// the native version of the BiF can return a native type; the wrapper
+// version then converts that to a ValPtr.
 std::unique_ptr<BuiltinFuncArg> return_type_arg;
 
-// While parsing a func body we accumulate captured C++ into body_buf:
-// the body_end action picks among natively-callable native+shim,
-// not-natively-callable native+shim, and the legacy single-function form
-// based on gen_native plus var_arg / uses_frame / uses_args_token.
+// While parsing a func body we accumulate captured C++ into body_buf,
+// enabling us to both the native version and the ValPtr shim version
+// (or just the latter for legacy .bif files).
 bool in_func_body = false;
 std::string body_buf;
 

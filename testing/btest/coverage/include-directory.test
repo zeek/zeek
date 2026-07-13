@@ -1,0 +1,19 @@
+# @TEST-DOC: Baseline all files in the ./include directory
+#
+# @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: have-zeromq
+#
+# @TEST-EXEC: chmod +x %INPUT; %INPUT
+#
+# @TEST-EXEC: btest-diff ./include-dir.out
+set -eux
+
+CWD=$(pwd)
+CMAKE_INSTALL_PREFIX=$(awk -F= '/^CMAKE_INSTALL_PREFIX/ { print $2 }' "${BUILD}/CMakeCache.txt")
+DESTDIR=./install-dir cmake --install "${BUILD}"
+
+cd "./install-dir/${CMAKE_INSTALL_PREFIX}/include"
+
+find . \
+  | grep -v 'zeek/builtin-plugins' \
+  | sort > "${CWD}/include-dir.out"

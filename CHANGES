@@ -1,3 +1,12 @@
+8.0.9-3 | 2026-08-07 16:15:27 -0700
+
+  * GH-5674: telemetry/services.json: Render IPv6 addresses as URI string (Arne Welzel, Corelight)
+
+    Test is based on the existing prometheus.zeek one with `can-listen-tcp 6 ::1`
+    guard and configuring Broker and Telemetry for IPv6 addresses.
+
+    (cherry picked from commit b18d992ddcd23da44f9da04b948150709a13ff34)
+
 8.0.9-2 | 2026-08-07 15:51:52 -0700
 
   * util/fmt: Use thread-safe Fmt() in backend threads (Stefan Götz, Corelight)

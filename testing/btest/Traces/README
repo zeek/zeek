@@ -148,3 +148,5 @@ Trace Index/Sources:
 - portmapper-many-unanswered-calls.pcapng.gz: Generated via portmapper-many-unanswered-calls.py
   produced by ChatGPT 5.5. Script slightly adapted to use deterministic packet timestamps,
   then gzip compressed.
+- tunnels/tunnel-direct-bypasses.pcap:
+  Generated via tunnels/tunnel-direct-bypasses.pcap.py produced by ChatGPT 5.5.

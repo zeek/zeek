@@ -28,6 +28,12 @@ zeek::RecordValPtr Connection::conn_id_ctx_singleton;
 void Connection::InitPostScript() {
     if ( id::conn_id_ctx->NumFields() == 0 )
         conn_id_ctx_singleton = zeek::make_intrusive<zeek::RecordVal>(id::conn_id_ctx);
+
+    // Double-check that the maximum tunnel changes script variable doesn't exceed the
+    // maximum value allowed due to it being a uint8_t.
+    if ( zeek::detail::tunnel_max_changes_per_connection > 255 )
+        reporter->Error("Tunnel::max_changes_per_connection is too large: %" PRIu64,
+                        zeek::detail::tunnel_max_changes_per_connection);
 }
 
 Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt)
@@ -110,31 +116,37 @@ void Connection::Init(uint32_t flow, const Packet* pkt) {
 }
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap) {
+    auto enqueue_tunnel_changed = [&](const auto& val) {
+        if ( ! tunnel_changed )
+            return;
+
+        if ( zeek::detail::tunnel_max_changes_per_connection != 0 &&
+             tunnel_changes >= zeek::detail::tunnel_max_changes_per_connection ) {
+            Weird("tunnel_max_changes_per_connection_exceeded",
+                  util::fmt("%" PRIu64, zeek::detail::tunnel_max_changes_per_connection));
+            CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            return;
+        }
+
+        tunnel_changes++;
+        EnqueueEvent(tunnel_changed, nullptr, GetVal(), val);
+    };
+
     if ( encapsulation && arg_encap ) {
         if ( *encapsulation != *arg_encap ) {
-            if ( tunnel_changed && (zeek::detail::tunnel_max_changes_per_connection == 0 ||
-                                    tunnel_changes < zeek::detail::tunnel_max_changes_per_connection) ) {
-                tunnel_changes++;
-                EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
-            }
-
+            enqueue_tunnel_changed(arg_encap->ToVal());
             encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
         }
     }
 
     else if ( encapsulation ) {
-        if ( tunnel_changed ) {
-            EncapsulationStack empty;
-            EnqueueEvent(tunnel_changed, nullptr, GetVal(), empty.ToVal());
-        }
-
+        EncapsulationStack empty;
+        enqueue_tunnel_changed(empty.ToVal());
         encapsulation = nullptr;
     }
 
     else if ( arg_encap ) {
-        if ( tunnel_changed )
-            EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
-
+        enqueue_tunnel_changed(arg_encap->ToVal());
         encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
     }
 }

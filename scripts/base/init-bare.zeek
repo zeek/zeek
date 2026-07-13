@@ -732,10 +732,10 @@ export {
 		uid: string &optional;
 	} &log;
 
-	## The number of tunnel_changed events that will be sent for a connection. Once this
-	## limit is hit, no more of those events will be sent to avoid a large number of events
-	## being sent for connections that regularly swap. This can be set to zero to disable
-	## this limiting.
+	## The number of tunnel_changed events that will be sent for a connection. Once
+	## this limit is hit, no more of those events will be sent to avoid a large number
+	## of events being sent for connections that regularly swap. This can be set to
+	## zero to disable this limiting. This has a maximum value of 255.
 	const max_changes_per_connection: count = 5 &redef;
 
 	## The maximum depth of a tunnel to decapsulate until giving up.

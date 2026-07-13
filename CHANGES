@@ -1,3 +1,10 @@
+9.0.0-dev.626 | 2026-07-13 11:10:59 +0200
+
+  * GH-5674: telemetry/services.json: Render IPv6 addresses as URI string (Arne Welzel, Corelight)
+
+    Test is based on the existing prometheus.zeek one with `can-listen-tcp 6 ::1`
+    guard and configuring Broker and Telemetry for IPv6 addresses.
+
 9.0.0-dev.624 | 2026-07-10 18:25:50 +0000
 
   * CCI: Update date for debian-12 image (Tim Wojtulewicz, Corelight)

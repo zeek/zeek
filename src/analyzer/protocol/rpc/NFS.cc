@@ -262,7 +262,7 @@ StringValPtr NFS_Interp::nfs3_file_data(const u_char*& buf, int& n, uint64_t off
 
     // Ok, so we want to return some data
     data_n = std::min(data_n, size);
-    data_n = std::min(data_n, static_cast<int>(BifConst::NFS3::return_data_max));
+    data_n = std::min<int>(data_n, BifConst::NFS3::return_data_max);
 
     if ( data && data_n > 0 )
         return make_intrusive<StringVal>(new String(data, data_n, false));

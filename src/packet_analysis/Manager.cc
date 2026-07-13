@@ -245,7 +245,7 @@ zeek::VectorValPtr Manager::BuildAnalyzerHistory() const {
 void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const uint8_t* data, size_t len) {
     if ( unknown_protocol ) {
         if ( PermitUnknownProtocol(analyzer, protocol) ) {
-            int bytes_len = std::min(unknown_first_bytes_count, static_cast<uint64_t>(len));
+            auto bytes_len = std::min<uint64_t>(unknown_first_bytes_count, len);
 
             event_mgr.Enqueue(unknown_protocol, make_intrusive<StringVal>(analyzer), val_mgr->Count(protocol),
                               make_intrusive<StringVal>(bytes_len, reinterpret_cast<const char*>(data)),

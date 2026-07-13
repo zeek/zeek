@@ -1,3 +1,7 @@
+9.0.0-dev.632 | 2026-07-13 16:13:21 +0000
+
+  * Use templated version of std::min vs casting arguments (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.630 | 2026-07-13 16:58:44 +0200
 
   * NEWS: Add entry for multicast DNS query/response association change (Eldon Koyle, Corelight)

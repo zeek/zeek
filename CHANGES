@@ -1,3 +1,31 @@
+9.0.0-dev.630 | 2026-07-13 16:58:44 +0200
+
+  * NEWS: Add entry for multicast DNS query/response association change (Eldon Koyle, Corelight)
+
+  * GH-5389: DNS: Skip query/response association for multicast destinations (Eldon Koyle, Corelight)
+
+    mDNS and LLMNR messages sent to multicast addresses cannot be
+    correlated by transaction ID because replies arrive on different
+    connections. Previously, unrelated queries and replies sharing the
+    same transaction ID (typically 0 per RFC 6762 section 18.1) were
+    incorrectly paired, contaminating log entries.
+
+    Skip the pending queue association logic when the responder address
+    is multicast (224.0.0.0/4 or ff00::/8) and log each message as a
+    standalone entry instead. Because multicast messages are now logged
+    immediately rather than waiting in the pending queue, they appear
+    earlier in dns.log relative to unicast entries from the same pcap.
+
+    Also fix dns_notify2.pcap which used anonymized IPs in multicast
+    space (234.x.x.x) — remapped to RFC 5737 documentation range
+    (203.0.113.0/24).
+
+  * testing/btest: Add test for mDNS transaction ID cross-contamination (Eldon Koyle, Corelight)
+
+    Demonstrates that mDNS queries sent to multicast destinations are
+    incorrectly associated with unrelated replies sharing the same
+    transaction ID (typically 0). Covers IPv4 and IPv6 multicast cases.
+
 9.0.0-dev.626 | 2026-07-13 11:10:59 +0200
 
   * GH-5674: telemetry/services.json: Render IPv6 addresses as URI string (Arne Welzel, Corelight)

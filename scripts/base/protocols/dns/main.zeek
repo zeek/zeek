@@ -125,6 +125,12 @@ export {
 	## DNS message query/transaction ID.
 	type PendingMessages: table[count] of Queue::Queue;
 
+	## Multicast subnets. DNS messages sent to multicast destinations
+	## (e.g. mDNS, LLMNR) cannot be correlated by transaction ID since
+	## replies arrive on different connections. Messages to these
+	## destinations are logged individually without query/response pairing.
+	option multicast_subnets: set[subnet] = { 224.0.0.0/4, [ff00::]/8 };
+
 	## Give up trying to match pending DNS queries or replies for a given
 	## query/transaction ID once this number of unmatched queries or replies
 	## is reached (this shouldn't happen unless either the DNS server/resolver
@@ -248,7 +254,19 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		Conn::register_removal_hook(c, finalize_dns);
 		}
 
-	if ( is_query )
+	# Skip query/response association for multicast destinations (mDNS,
+	# LLMNR, etc.) — replies arrive on different connections so correlation
+	# by transaction ID is impossible and causes incorrect pairing.
+	if ( c$id$resp_h in multicast_subnets )
+		{
+		c$dns = new_session(c, msg$id);
+		# Set both flags so dns_end logs this message immediately
+		# rather than waiting for a paired query/reply that will
+		# never arrive on a multicast connection.
+		c$dns$saw_query = T;
+		c$dns$saw_reply = T;
+		}
+	else if ( is_query )
 		{
 		if ( c$dns_state?$pending_replies && msg$id in c$dns_state$pending_replies &&
 		     Queue::len(c$dns_state$pending_replies[msg$id]) > 0 )

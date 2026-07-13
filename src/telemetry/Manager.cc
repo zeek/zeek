@@ -488,7 +488,7 @@ void Manager::BuildClusterJson() {
         auto ip = node->GetField<AddrVal>("ip");
         auto port = node->GetField<PortVal>("metrics_port");
         if ( ip && port && port->Port() != 0 )
-            writer.String(util::fmt("%s:%d", ip->Get().AsString().c_str(), port->Port()));
+            writer.String(util::fmt("%s:%d", ip->Get().AsURIString().c_str(), port->Port()));
     }
     writer.EndArray();
 

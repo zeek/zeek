@@ -1,3 +1,7 @@
+9.0.0-dev.634 | 2026-07-13 16:13:58 +0000
+
+  * CCI: Fix issues with building from tags (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.632 | 2026-07-13 16:13:21 +0000
 
   * Use templated version of std::min vs casting arguments (Tim Wojtulewicz, Corelight)

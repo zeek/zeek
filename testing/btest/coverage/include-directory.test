@@ -2,6 +2,10 @@
 #
 # @TEST-REQUIRES: have-spicy
 # @TEST-REQUIRES: have-zeromq
+# @TEST-REQUIRES: ! is-windows-ci
+# Enabling the Spicy SSL analyzer puts different files into the include
+# directory, so only run this for default builds for now.
+# @TEST-REQUIRES: ! have-spicy-ssl
 #
 # @TEST-EXEC: chmod +x %INPUT; %INPUT
 #
@@ -14,6 +18,9 @@ DESTDIR=./install-dir cmake --install "${BUILD}"
 
 cd "./install-dir/${CMAKE_INSTALL_PREFIX}/include"
 
+# Builtin-plugins are often Linux specific and also af_packet.bif.h
+# is only included on Linux. Filter these out.
 find . \
-  | grep -v 'zeek/builtin-plugins' \
+  | grep -v './zeek/builtin-plugins' \
+  | grep -v -F 'zeek/iosource/af_packet/af_packet.bif.h' \
   | sort > "${CWD}/include-dir.out"

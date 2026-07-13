@@ -1001,7 +1001,6 @@
 ./zeek/analyzer/protocol/ssl/events.bif.h
 ./zeek/analyzer/protocol/ssl/functions.bif.h
 ./zeek/analyzer/protocol/ssl/proc-certificate.pac
-./zeek/analyzer/protocol/ssl/spicy
 ./zeek/analyzer/protocol/ssl/ssl-analyzer.pac
 ./zeek/analyzer/protocol/ssl/ssl-defs.pac
 ./zeek/analyzer/protocol/ssl/ssl-dtls-analyzer.pac
@@ -1079,9 +1078,7 @@
 ./zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h
 ./zeek/cluster/backend/zeromq/ZeroMQ-ZAP.h
 ./zeek/cluster/backend/zeromq/ZeroMQ.h
-./zeek/cluster/backend/zeromq/auxil
 ./zeek/cluster/backend/zeromq/cluster_backend_zeromq.bif.h
-./zeek/cluster/backend/zeromq/cmake
 ./zeek/cluster/cluster.bif.h
 ./zeek/cluster/publish_on_change.bif.h
 ./zeek/cluster/serializer
@@ -1194,7 +1191,6 @@
 ./zeek/iosource/af_packet
 ./zeek/iosource/af_packet/AF_Packet.h
 ./zeek/iosource/af_packet/RX_Ring.h
-./zeek/iosource/af_packet/af_packet.bif.h
 ./zeek/iosource/pcap
 ./zeek/iosource/pcap/Dumper.h
 ./zeek/iosource/pcap/Source.h
@@ -1433,7 +1429,6 @@
 ./zeek/storage/backend
 ./zeek/storage/backend/redis
 ./zeek/storage/backend/redis/Redis.h
-./zeek/storage/backend/redis/cmake
 ./zeek/storage/backend/sqlite
 ./zeek/storage/backend/sqlite/SQLite.h
 ./zeek/storage/serializer

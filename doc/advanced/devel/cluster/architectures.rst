@@ -60,10 +60,10 @@ Proxy, logger and worker processes can all be scaled independently.
 .. note::
 
    These processes are also called nodes and their role called node type.
-   In this section we attempt to stick with the process terminology. Other systems
-   use the term node to describe a complete host instead. Zeek itself has a concept
-   of single-host and multi-host clusters (see below), too, so this can all be a
-   bit confusing initially.
+   Here, we'll stick with the the process terminology. These terms all get
+   used in different ways based on the system; some may use node to describe
+   a complete host instead. Zeek uses the concept of single-host and multi-host
+   deployments for this, since node is just a process!
 
    On the script-level, the :zeek:see:`Cluster::node` variable contains
    ``manager``, ``worker-1``, ``proxy-1``, ``logger-1``, etc., allowing to

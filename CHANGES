@@ -1,3 +1,18 @@
+8.0.10-20 | 2026-09-25 10:40:24 -0700
+
+  * Upgrade vcpkg submodule to commit including c-ares v1.34.8 (Tim Wojtulewicz, Corelight)
+
+    This also upgrades:
+    libpcap to v1.10.6
+    openssl to v3.6.3
+    zlib to v1.3.2
+
+    (cherry picked from commit 83a54d7ddebbc77a603edf427c220d1af9c4fe98)
+
+  * Upgrade c-ares submodule to v1.34.8 (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 83a54d7ddebbc77a603edf427c220d1af9c4fe98)
+
 8.0.10-19 | 2026-09-25 07:58:58 -0700
 
   * Fix tls-1.2-late-protocol-error test failure for Spicy SSL analyzer (Johanna Amann, Corelight)

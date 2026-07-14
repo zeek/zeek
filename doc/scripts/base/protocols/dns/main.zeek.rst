@@ -23,6 +23,7 @@ Runtime Options
 :zeek:id:`DNS::max_pending_query_ids`: :zeek:type:`count` :zeek:attr:`&redef` Give up trying to match pending DNS queries or replies across all
                                                                               query/transaction IDs once there is at least one unmatched query or
                                                                               reply across this number of different query IDs.
+:zeek:id:`DNS::multicast_subnets`: :zeek:type:`set` :zeek:attr:`&redef`       Multicast subnets.
 ============================================================================= =======================================================================
 
 Redefinable Options
@@ -81,7 +82,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DNS::max_pending_msgs
-   :source-code: base/protocols/dns/main.zeek 133 133
+   :source-code: base/protocols/dns/main.zeek 139 139
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -94,7 +95,7 @@ Runtime Options
    response is ongoing).
 
 .. zeek:id:: DNS::max_pending_query_ids
-   :source-code: base/protocols/dns/main.zeek 138 138
+   :source-code: base/protocols/dns/main.zeek 144 144
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -103,6 +104,26 @@ Runtime Options
    Give up trying to match pending DNS queries or replies across all
    query/transaction IDs once there is at least one unmatched query or
    reply across this number of different query IDs.
+
+.. zeek:id:: DNS::multicast_subnets
+   :source-code: base/protocols/dns/main.zeek 132 132
+
+   :Type: :zeek:type:`set` [:zeek:type:`subnet`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            224.0.0.0/4,
+            ff00::/8
+         }
+
+
+   Multicast subnets. DNS messages sent to multicast destinations
+   (e.g. mDNS, LLMNR) cannot be correlated by transaction ID since
+   replies arrive on different connections. Messages to these
+   destinations are logged individually without query/response pairing.
 
 Redefinable Options
 ###################
@@ -316,7 +337,7 @@ Types
    DNS message query/transaction ID.
 
 .. zeek:type:: DNS::State
-   :source-code: base/protocols/dns/main.zeek 142 157
+   :source-code: base/protocols/dns/main.zeek 148 163
 
    :Type: :zeek:type:`record`
 
@@ -380,7 +401,7 @@ Hooks
    :param reply: The specific response information according to RR type/class.
 
 .. zeek:id:: DNS::finalize_dns
-   :source-code: base/protocols/dns/main.zeek 705 720
+   :source-code: base/protocols/dns/main.zeek 723 738
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -394,7 +415,7 @@ Hooks
    A default logging policy hook for the stream.
 
 .. zeek:id:: DNS::set_session
-   :source-code: base/protocols/dns/main.zeek 242 356
+   :source-code: base/protocols/dns/main.zeek 248 374
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, is_query: :zeek:type:`bool`) : :zeek:type:`bool`
 

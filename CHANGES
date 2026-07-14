@@ -1,3 +1,14 @@
+9.0.0-dev.646 | 2026-07-14 08:40:46 -0700
+
+  * Upgrade vcpkg submodule to commit including c-ares v1.34.8 (Tim Wojtulewicz, Corelight)
+
+    This also upgrades:
+    libpcap to v1.10.6
+    openssl to v3.6.3
+    zlib to v1.3.2
+
+  * Upgrade c-ares submodule to v1.34.8 (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.643 | 2026-07-14 10:24:09 +0200
 
   * doc/devel/cluster: Use Evan's proposal in the note (Arne Welzel, Corelight)

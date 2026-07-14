@@ -59,16 +59,16 @@ Proxy, logger and worker processes can all be scaled independently.
 
 .. note::
 
-   These processes are also called nodes. And their role called node type. In this
-   chapter we attempt to stick with the process terminology. Many other systems
-   use the word node to describe a host running multiple services or processes and
-   Zeek itself has a concept of single-node and multi-node Zeek clusters (see below),
-   so this can be a bit confusing.
+   These processes are also called nodes and their role called node type.
+   Here, we'll stick with the the process terminology. These terms all get
+   used in different ways based on the system; some may use node to describe
+   a complete host instead. Zeek uses the concept of single-host and multi-host
+   deployments for this, since node is just a process!
 
    On the script-level, the :zeek:see:`Cluster::node` variable contains
    ``manager``, ``worker-1``, ``proxy-1``, ``logger-1``, etc., allowing to
    identify individual processes. The :zeek:see:`Cluster::local_node_type` function
-   allows to determine the role of the process a script executes on.
+   allows to determine the role of a Zeek process.
 
 
 Zeek processes normally create log files in their working directories.
@@ -123,14 +123,15 @@ Receiving and execution of remote events is implicit: The existence of a local
 event handler implies execution of received remote events with the same name.
 Publishing a remote event is asynchronous. The incurred latency between different
 processes depends on the cluster backend and whether all Zeek processes are located
-on the same node or distributed across multiple nodes.
+on the same host or distributed across multiple hosts.
 
 
-Single Node Examples
+Single Host Examples
 ====================
 
-A Zeek cluster can be deployed on a single hardware/virtual system.
-This looks as follows when the system has a single monitoring NIC.
+A Zeek cluster can be deployed on a single hardware/virtual system, simply
+referred to as a host. This looks as follows when the system has a single
+monitoring NIC.
 
 .. figure:: /images/cluster/single-system-one-nic.svg
 
@@ -158,12 +159,12 @@ loggers and proxies for a given hardware configuration and system.
    As of Zeek 8.0, there is no ready-to-use recipe for running a logger-less cluster.
 
 
-Multi Node Examples
+Multi Host Examples
 ===================
 
 Zeek was originally developed during a time in which multi-core CPUs weren't
 widely available and scaling and flow-balancing was actually done on the level
-of a full hardware system.
+of full hardware systems.
 This can still be useful today for deploying multiple smaller worker systems
 with 10G NICs compared to a single large system with hundreds of CPUs and a
 powerful 100G NIC. Such an architecture requires an external packet broker
@@ -249,7 +250,7 @@ Adding to the previous diagrams, this looks as follows:
 
 .. figure:: /images/cluster/single-system-prometheus.svg
 
-This should seamlessly work with multi-node clusters.
+This should seamlessly work with multi-host Zeek clusters, too.
 
 .. note::
 

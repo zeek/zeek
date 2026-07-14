@@ -1,3 +1,24 @@
+9.0.0-dev.643 | 2026-07-14 10:24:09 +0200
+
+  * doc/devel/cluster: Use Evan's proposal in the note (Arne Welzel, Corelight)
+
+  * doc/devel/cluster: Replace singe/multi node terminology with host (Arne Welzel, Corelight)
+
+    In conversations, I have often heard or said "multi-node cluster" to describe
+    a Zeek cluster spanning multiple hosts (either physical hosts, VMs or even
+    just containers in different network namespaces) and included this
+    terminology in the docs which today I find misleading.
+
+    Steer the single-node / multi-node terminology to say host instead.
+    In Zeek script, every Zeek process itself is termed a node and its name
+    is stored in CLUSTER_NODE / Cluster::node. Describing the host on which
+    a process runs also as node should be avoided IMO.
+
+    The management framework docs are pretty clear about process and node
+    being the same. There is a notion of an "instance" there, but that's
+    related to the agent and controller concepts IIUC and host seems
+    fitting.
+
 9.0.0-dev.640 | 2026-07-14 09:27:54 +0200
 
   * PublishOnChange: Allow arbitrary expressions for &publish_on_change (Arne Welzel, Corelight)

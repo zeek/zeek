@@ -1120,11 +1120,7 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::register_spicy_module_end", {});
 
     if ( ! preinit_body.empty() ) {
-#if SPICY_VERSION_NUMBER >= 11400
         constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Function;
-#else
-        constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Standard;
-#endif
         auto preinit_function =
             builder()->function(hilti::ID("zeek_preinit"),
                                 builder()->qualifiedType(builder()->typeVoid(), hilti::Constness::Const), {},
@@ -1341,15 +1337,9 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     body.addCall("zeek_rt::raise_event", {handler_expr, builder()->move(builder()->id("args"))}, meta);
 
-#if SPICY_VERSION_NUMBER >= 11300
     auto attrs = builder()->attributeSet(
         {builder()->attribute(hilti::attribute::kind::Priority, builder()->integer(ev->priority))});
-#elif SPICY_VERSION_NUMBER >= 11200
-    auto attrs = builder()->attributeSet(
-        {builder()->attribute(hilti::Attribute::Kind::Priority, builder()->integer(ev->priority))});
-#else
-    auto attrs = builder()->attributeSet({builder()->attribute("&priority", builder()->integer(ev->priority))});
-#endif
+
     auto parameters = ev->parameters | std::views::transform([](const auto& p) { return p.get(); });
     auto unit_hook = builder()->declarationHook(hilti::util::toVector(parameters), body.block(), attrs, meta);
     auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, std::move(meta));

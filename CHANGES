@@ -1,3 +1,13 @@
+9.0.0-dev.640 | 2026-07-14 09:27:54 +0200
+
+  * PublishOnChange: Allow arbitrary expressions for &publish_on_change (Arne Welzel, Corelight)
+
+    The initial implementation of &publish_on_change forced the usage of
+    the [] record initializers. @vpax strongly prefers it just becoming
+    an arbitrary expression than forcing a particularl style, so relax
+    this and rework the processing to test that the expression produces
+    a PublishOnChangeAttr record instance.
+
 9.0.0-dev.637 | 2026-07-13 12:14:44 -0700
 
   * Bump zeek-testing (Arne Welzel, Corelight)

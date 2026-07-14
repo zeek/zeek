@@ -1,3 +1,15 @@
+8.2.1-2 | 2026-08-11 10:16:43 -0700
+
+  * PublishOnChange: Allow arbitrary expressions for &publish_on_change (Arne Welzel, Corelight)
+
+    The initial implementation of &publish_on_change forced the usage of
+    the [] record initializers. @vpax strongly prefers it just becoming
+    an arbitrary expression than forcing a particularl style, so relax
+    this and rework the processing to test that the expression produces
+    a PublishOnChangeAttr record instance.
+
+    (cherry picked from commit 9d01cd704c2f0b56653748b15f0b12ec58889d61)
+
 8.2.1-1 | 2026-08-11 10:15:29 -0700
 
   * Intel: Make IN_ANYWHERE default for if_in (Jan Grashoefer, Corelight)

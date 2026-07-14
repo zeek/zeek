@@ -277,6 +277,7 @@ jobs:
       ZEEK_TEST_ULIMIT_OPEN_FILES: 256
       ZEEK_CIRCLE_EXTRA_ENV: << parameters.extra_env >>
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
         auth:
@@ -392,6 +393,7 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       CTEST_OUTPUT_ON_FAILURE: 1
       VSINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\'
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     machine:
       image: windows-server-2025-gui:edge
     resource_class: windows.large
@@ -482,6 +484,7 @@ jobs:
       ZEEK_CI_BTEST_RETRIES: 2
       ZEEK_CI_RUNNER_OS: macos
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     macos:
       xcode: << parameters.xcode_version >>
     resource_class: m4pro.medium

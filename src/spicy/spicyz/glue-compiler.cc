@@ -195,7 +195,11 @@ static int extract_int(const std::string& chunk, size_t* i) {
     *i = j;
 
     int integer = 0;
+#if SPICY_VERSION_NUMBER >= 11700
+    hilti::rt::atoi_n(x, 10, &integer);
+#else
     hilti::util::atoi_n(x.begin(), x.end(), 10, &integer);
+#endif
     return integer;
 }
 
@@ -271,7 +275,11 @@ static hilti::rt::Port extract_port(const std::string& chunk, size_t* i) {
     uint64_t port = std::numeric_limits<uint64_t>::max();
 
     s = chunk.substr(*i, j - *i);
+#if SPICY_VERSION_NUMBER >= 11700
+    hilti::rt::atoi_n(s, 10, &port);
+#else
     hilti::util::atoi_n(s.begin(), s.end(), 10, &port);
+#endif
 
     if ( port > 65535 )
         throw ParseError("port outside of valid range");

@@ -1125,6 +1125,7 @@ workflows:
           ci_image_date: "20260702"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
+          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_SKIP_ALL
@@ -1158,6 +1159,7 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           install_spicy_analyzers: true
+          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
@@ -1170,6 +1172,7 @@ workflows:
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
           install_spicy_analyzers: true
+          enable_benchmarks: true
           context:
             - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK

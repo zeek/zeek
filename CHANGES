@@ -1,3 +1,28 @@
+9.0.0-dev.657 | 2026-07-15 09:17:26 -0700
+
+  * CCI: Enable benchmarking for the usual tasks (Tim Wojtulewicz, Corelight)
+
+  * CCI: Adapt ci/benchmark.sh to work with CircleCI (Tim Wojtulewicz, Corelight)
+
+    I had to drop the cirrus_pr_labels and github_check_suite_id options from the
+    request due to not having that data readily available. The check_suite one might
+    come back, but the PR labels one is more challenging and probably not that
+    useful.
+
+  * CCI: Store the build artifact as part of the ubuntu-24.04 job (Tim Wojtulewicz, Corelight)
+
+  * CCI: Enable C++ compilation caching for Spicy artifacts (Benjamin Bannier, Corelight)
+
+    During the migration to CircleCI the caching of C++ compilation during
+    compilation of Spicy files via `HILTI_CXX_COMPILER_LAUNCER` seems to
+    have been lost. This patch adds it back.
+
+  * CCI: Only prune and upload ccache once all tasks are done (Benjamin Bannier, Corelight)
+
+    We previously would prune the ccache state right after building Zeek.
+    This made it impossible to e.g., cache any compiler invocation happening
+    during testing, so this patch moves the steps to the very end.
+
 9.0.0-dev.650 | 2026-07-15 09:27:40 +0200
 
   * CCI: Fix relative ccache dir used in OSX (Arne Welzel, Corelight)

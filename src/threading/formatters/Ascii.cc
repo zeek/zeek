@@ -4,6 +4,7 @@
 
 #include <cerrno>
 #include <sstream>
+#include <string_view>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
@@ -277,16 +278,37 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
 
         case TYPE_PATTERN: {
             string candidate = util::get_unescaped_string(s);
-            // A string is a candidate pattern iff it begins and ends with
-            // a '/'. Rather or not the rest of the string is legal will
-            // be determined later when it is given to the RE engine.
-            if ( candidate.size() >= 2 ) {
-                if ( candidate.front() == candidate.back() && candidate.back() == '/' ) {
-                    // Remove the '/'s
-                    candidate.erase(0, 1);
-                    candidate.erase(candidate.size() - 1);
-                    val->val.pattern_text_val = util::copy_string(candidate.c_str(), candidate.size());
-                    break;
+            // A string is a candidate pattern iff it is surrounded by '/'
+            // characters, with an optional suffix of the 'i' and/or 's' flags
+            // to denote case insensitive or single line matching, respectively.
+            // Whether the pattern is legal will be determined later by the RE
+            // engine.
+            if ( candidate.size() >= 2 && candidate.front() == '/' ) {
+                auto closing = candidate.rfind('/');
+                if ( closing > 0 && (candidate.size() - 1 - closing) <= 2 ) {
+                    auto flags = candidate.substr(closing + 1);
+                    bool valid_flags = true;
+                    bool flag_i = false;
+                    bool flag_s = false;
+
+                    for ( auto c : flags ) {
+                        if ( c == 'i' && ! flag_i )
+                            flag_i = true;
+                        else if ( c == 's' && ! flag_s )
+                            flag_s = true;
+                        else {
+                            valid_flags = false;
+                            break;
+                        }
+                    }
+
+                    if ( valid_flags ) {
+                        auto psv = std::string_view(candidate).substr(1, closing - 1);
+                        val->val.pattern_val.text = util::copy_string(psv.data(), psv.size());
+                        val->val.pattern_val.is_case_insensitive = flag_i;
+                        val->val.pattern_val.is_single_line = flag_s;
+                        break;
+                    }
                 }
             }
 

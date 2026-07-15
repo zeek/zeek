@@ -18,15 +18,15 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
     bool is_amsdu = false;
 
     // Skip non-data frame types (management & control).
-    if ( ! ((fc_80211 >> 2) & 0x02) )
+    if ( ! ((static_cast<uint32_t>(fc_80211) >> 2u) & 0x02u) )
         return false;
 
     // Skip subtypes without data.
-    if ( (fc_80211 >> 4) & 0x04 )
+    if ( (static_cast<uint32_t>(fc_80211) >> 4u) & 0x04u )
         return false;
 
     // 'To DS' and 'From DS' flags set indicate use of the 4th address field.
-    if ( (data[1] & 0x03) == 0x03 )
+    if ( (static_cast<uint32_t>(data[1]) & 0x03u) == 0x03u )
         len_80211 += packet->L2_ADDR_LEN;
 
     if ( len_80211 >= len ) {
@@ -35,14 +35,14 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
     }
 
     // Look for the QoS indicator bit.
-    if ( (fc_80211 >> 4) & 0x08 ) {
+    if ( (static_cast<uint32_t>(fc_80211) >> 4u) & 0x08u ) {
         // Store off whether this is an A-MSDU header, which indicates that there are
         // multiple packets following the 802.11 header.
-        is_amsdu = (data[len_80211] & 0x80) == 0x80;
+        is_amsdu = (static_cast<uint32_t>(data[len_80211]) & 0x80u) == 0x80u;
 
         // Check for the protected bit. This means the data is encrypted and we can't
         // do anything with it.
-        if ( data[1] & 0x40 )
+        if ( static_cast<uint32_t>(data[1]) & 0x40u )
             return true;
 
         len_80211 += 2;
@@ -54,7 +54,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
     }
 
     // Determine link-layer addresses based on 'To DS' and 'From DS' flags
-    switch ( data[1] & 0x03 ) {
+    switch ( static_cast<uint32_t>(data[1]) & 0x03u ) {
         case 0x00:
             packet->l2_src = data + 10;
             packet->l2_dst = data + 4;
@@ -94,7 +94,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
             }
 
             // This is the length of everything after the A-MSDU subframe header.
-            size_t amsdu_len = (data[12] << 8) + data[13];
+            size_t amsdu_len = (static_cast<uint32_t>(data[12]) << 8u) + data[13];
             if ( len < amsdu_len + 14 ) {
                 Weird("truncated_802_11_amsdu_packet", packet);
                 return false;
@@ -155,7 +155,7 @@ bool IEEE802_11Analyzer::HandleInnerPacket(size_t len, const uint8_t* data, Pack
     }
 
     // Get the protocol and skip the rest of the LLC header.
-    uint32_t protocol = (data[0] << 8) + data[1];
+    uint32_t protocol = (static_cast<uint32_t>(data[0]) << 8u) + data[1];
     data += 2;
     len -= 2;
 

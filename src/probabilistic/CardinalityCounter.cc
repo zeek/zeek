@@ -105,7 +105,7 @@ CardinalityCounter::CardinalityCounter(uint64_t arg_size, uint64_t arg_V, double
 }
 
 uint8_t CardinalityCounter::Rank(uint64_t hash_modified) const {
-    hash_modified = hash_modified >> p;
+    hash_modified = hash_modified >> static_cast<unsigned int>(p);
     int answer = 64 - p - CardinalityCounter::flsll(hash_modified) + 1;
     assert(answer > 0 && answer < 64);
 
@@ -265,7 +265,7 @@ int CardinalityCounter::flsll(uint64_t mask) {
     if ( mask == 0 )
         return (0);
     for ( bit = 1; mask != 1; bit++ )
-        mask = static_cast<uint64_t>(mask) >> 1;
+        mask = static_cast<uint64_t>(mask) >> 1u;
     return (bit);
 }
 

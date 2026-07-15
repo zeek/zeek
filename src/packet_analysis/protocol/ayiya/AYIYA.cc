@@ -34,8 +34,8 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
-    size_t identity_len = 1 << (data[0] >> 4);
-    uint8_t signature_len = (data[1] >> 4) * 4;
+    size_t identity_len = 1u << (static_cast<uint32_t>(data[0]) >> 4u);
+    uint8_t signature_len = static_cast<uint8_t>((static_cast<uint32_t>(data[1]) >> 4u) * 4u);
     hdr_size += identity_len + signature_len;
 
     // Double-check this one now that we know the actual full length of the header.
@@ -44,7 +44,7 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
-    uint8_t op_code = data[2] & 0x0F;
+    uint8_t op_code = static_cast<uint8_t>(static_cast<uint32_t>(data[2]) & 0x0Fu);
 
     // Check that op_code is the "forward" command. Everything else is ignored.
     // This isn't an error, it's just the end of our parsing.

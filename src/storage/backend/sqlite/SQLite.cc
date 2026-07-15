@@ -105,9 +105,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto pragma_wait_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
     pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_wait_val->Get() * 1000));
 
-    if ( auto open_res =
-             CheckError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
+    if ( auto open_res = CheckError(sqlite3_open_v2(full_path.c_str(), &db,
+                                                    static_cast<int>(static_cast<unsigned int>(SQLITE_OPEN_READWRITE) |
+                                                                     static_cast<unsigned int>(SQLITE_OPEN_CREATE) |
+                                                                     static_cast<unsigned int>(SQLITE_OPEN_NOMUTEX)),
+                                                    nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
@@ -140,9 +142,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     // Open a second connection to the database. This one is used for expiration and exists to prevent
     // simultaneous multi-threaded access to the same connection.
-    if ( auto open_res =
-             CheckError(sqlite3_open_v2(full_path.c_str(), &expire_db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
+    if ( auto open_res = CheckError(sqlite3_open_v2(full_path.c_str(), &expire_db,
+                                                    static_cast<int>(static_cast<unsigned int>(SQLITE_OPEN_READWRITE) |
+                                                                     static_cast<unsigned int>(SQLITE_OPEN_CREATE) |
+                                                                     static_cast<unsigned int>(SQLITE_OPEN_NOMUTEX)),
+                                                    nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         Close(nullptr);
         return open_res;

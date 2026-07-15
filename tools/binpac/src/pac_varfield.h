@@ -8,7 +8,7 @@
 // A private variable evaluated with parsing
 class ParseVarField : public Field {
 public:
-    ParseVarField(int is_class_member, ID* id, Type* type)
+    ParseVarField(unsigned int is_class_member, ID* id, Type* type)
         : Field(PARSE_VAR_FIELD, TYPE_TO_BE_PARSED | is_class_member | NOT_PUBLIC_READABLE, id, type) {}
     void GenPubDecls(Output* out, Env* env) override { /* do nothing */ }
 };

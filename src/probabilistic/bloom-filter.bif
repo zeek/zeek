@@ -127,7 +127,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DefaultHasher(k, seed);
 
 	uint16_t width = 1;
-	while ( max >>= 1 )
+	while ( max >>= 1u )
 		++width;
 
 	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::CountingBloomFilter(h, cells, width));

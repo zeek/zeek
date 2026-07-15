@@ -22,7 +22,7 @@ public:
 
     void ProcessAttr(Attr* a) override;
 
-    void Prepare(Env* env, int flags) override;
+    void Prepare(Env* env, unsigned int flags) override;
 
     void GenPubDecls(Output* out, Env* env) override;
     void GenPrivDecls(Output* out, Env* env) override;

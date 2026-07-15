@@ -785,9 +785,9 @@ void Redis::OnDisconnect(int status) {
 void Redis::ProcessFd(int fd, int flags) {
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
-    if ( (flags & IOSource::ProcessFlags::READ) != 0 )
+    if ( (static_cast<uint8_t>(flags) & IOSource::ProcessFlags::READ) != 0 )
         redisAsyncHandleRead(async_ctx);
-    if ( (flags & IOSource::ProcessFlags::WRITE) != 0 )
+    if ( (static_cast<uint8_t>(flags) & IOSource::ProcessFlags::WRITE) != 0 )
         redisAsyncHandleWrite(async_ctx);
 }
 

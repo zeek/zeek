@@ -1805,8 +1805,8 @@ bool is_unreserved_URI_char(unsigned char ch) { // see RFC 3986 (definition of U
 
 void escape_URI_char(unsigned char ch, unsigned char*& p) {
     *p++ = '%';
-    *p++ = util::encode_hex((ch >> 4) & 0xf);
-    *p++ = util::encode_hex(ch & 0xf);
+    *p++ = util::encode_hex((static_cast<uint32_t>(ch) >> 4u) & 0xfu);
+    *p++ = util::encode_hex(static_cast<uint32_t>(ch) & 0xfu);
 }
 
 String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analyzer* analyzer) {
@@ -1845,7 +1845,8 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
             }
 
             else if ( isxdigit(line[0]) && isxdigit(line[1]) ) {
-                *URI_p++ = (util::decode_hex(line[0]) << 4) + util::decode_hex(line[1]);
+                *URI_p++ = (static_cast<uint32_t>(util::decode_hex(line[0])) << 4u) +
+                           static_cast<uint32_t>(util::decode_hex(line[1]));
                 ++line; // place line at the last hex digit
             }
 
@@ -1865,9 +1866,11 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
                 // It could just be ASCII encoded into this
                 // unicode escaping structure.
                 if ( ! (line[1] == '0' && line[2] == '0') )
-                    *URI_p++ = (util::decode_hex(line[1]) << 4) + util::decode_hex(line[2]);
+                    *URI_p++ = (static_cast<uint32_t>(util::decode_hex(line[1])) << 4u) +
+                               static_cast<uint32_t>(util::decode_hex(line[2]));
 
-                *URI_p++ = (util::decode_hex(line[3]) << 4) + util::decode_hex(line[4]);
+                *URI_p++ = (static_cast<uint32_t>(util::decode_hex(line[3])) << 4u) +
+                           static_cast<uint32_t>(util::decode_hex(line[4]));
 
                 line += 4;
             }

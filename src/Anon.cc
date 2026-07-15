@@ -21,7 +21,8 @@ namespace zeek::detail {
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32() {
-    return ((util::detail::random_number() & 0xffff) << 16) | (util::detail::random_number() & 0xffff);
+    return ((static_cast<uint32_t>(util::detail::random_number()) & 0xffffu) << 16u) |
+           (static_cast<uint32_t>(util::detail::random_number()) & 0xffffu);
 }
 
 // From tcpdpriv.
@@ -29,7 +30,7 @@ static int bi_ffs(uint32_t value) {
     int add = 0;
     static uint8_t bvals[] = {0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1};
 
-    if ( (value & 0xFFFF0000) == 0 ) {
+    if ( (value & 0xFFFF0000u) == 0 ) {
         if ( value == 0 )
             // Zero input ==> zero output.
             return 0;
@@ -38,22 +39,22 @@ static int bi_ffs(uint32_t value) {
     }
 
     else
-        value >>= 16;
+        value >>= 16u;
 
-    if ( (value & 0xFF00) == 0 )
+    if ( (value & 0xFF00u) == 0 )
         add += 8;
     else
-        value >>= 8;
+        value >>= 8u;
 
-    if ( (value & 0xF0) == 0 )
+    if ( (value & 0xF0u) == 0 )
         add += 4;
     else
-        value >>= 4;
+        value >>= 4u;
 
-    return add + bvals[value & 0xf];
+    return add + bvals[value & 0xfu];
 }
 
-static inline uint64_t first_n_bit_mask(int n) { return ~(0xFFFFFFFFU >> n); }
+static inline uint64_t first_n_bit_mask(int n) { return ~(0xFFFFFFFFU >> static_cast<unsigned int>(n)); }
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr) {
     std::map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
@@ -101,7 +102,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input) {
 #endif
 
     for ( int i = 0; i < 4; ++i )
-        output = (output << 8) | digest[i];
+        output = (output << 8u) | digest[i];
 
     return output;
 }
@@ -120,7 +121,8 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
     for ( int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
+        prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<unsigned int>(i))) |
+                              (1u << (31u - static_cast<unsigned int>(i))));
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -133,7 +135,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
 #endif
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
+        ipaddr32_t bit_mask = (static_cast<unsigned int>(digest[0]) & 1u) << (31u - static_cast<unsigned int>(i));
 
         // x_i' = x_i ^ f_{i-1}.
         output ^= bit_mask;
@@ -177,8 +179,8 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
         n->output = input;
 
     else if ( num_bits > 0 ) {
-        assert((0xFFFFFFFFU >> 1) == 0x7FFFFFFFU);
-        uint32_t suffix_mask = (0xFFFFFFFFU >> num_bits);
+        assert((0xFFFFFFFFU >> 1u) == 0x7FFFFFFFU);
+        uint32_t suffix_mask = (0xFFFFFFFFU >> static_cast<unsigned int>(num_bits));
         uint32_t prefix_mask = ~suffix_mask;
         n->output = (input & prefix_mask) | (rand32() & suffix_mask);
     }
@@ -237,13 +239,14 @@ inline void AnonymizeIPAddr_A50::free_node(Node* n) {
 ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) const {
     // -A50 anonymization
     if ( swivel == 32 )
-        return old_output ^ 1;
+        return old_output ^ 1u;
     else {
         // Bits up to swivel are unchanged; bit swivel is flipped.
-        ipaddr32_t known_part = ((old_output >> (32 - swivel)) ^ 1) << (32 - swivel);
+        unsigned int us = static_cast<unsigned int>(swivel);
+        ipaddr32_t known_part = ((old_output >> (32u - us)) ^ 1u) << (32u - us);
 
         // Remainder of bits are random.
-        return known_part | ((rand32() & 0x7FFFFFFF) >> swivel);
+        return known_part | ((rand32() & 0x7FFFFFFFu) >> us);
     }
 }
 
@@ -274,7 +277,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
     ASSERT(swivel > 0);
 
     // bitvalue is the value of that bit of 'a'.
-    int bitvalue = (a >> (32 - swivel)) & 1;
+    int bitvalue = (a >> (32u - static_cast<unsigned int>(swivel))) & 1u;
 
     down[bitvalue]->input = a;
     down[bitvalue]->output = make_output(n->output, swivel);
@@ -294,7 +297,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
     // Watch out for special IP addresses, which never make it
     // into the tree.
     if ( a == 0 || a == 0xFFFFFFFFU )
-        return &special_nodes[a & 1];
+        return &special_nodes[a & 1u];
 
     if ( ! root ) {
         root = new_node();
@@ -327,7 +330,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
                 // Input differs earlier.
                 n = make_peer(a, n);
 
-            else if ( a & (1 << (32 - swivel)) )
+            else if ( a & (1u << (32u - static_cast<unsigned int>(swivel))) )
                 n = n->child[1];
 
             else
@@ -346,7 +349,7 @@ ipaddr32_t AnonymizeIPAddr_RandomSHA256::anonymize(ipaddr32_t input) {
     util::detail::hmac_sha256(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
 
     for ( int i = 0; i < 4; ++i )
-        output = (output << 8) | digest[i];
+        output = (output << 8u) | digest[i];
 
     return output;
 }
@@ -365,13 +368,14 @@ ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
     for ( int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
+        prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<unsigned int>(i))) |
+                              (1u << (31u - static_cast<unsigned int>(i))));
 
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_sha256(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
+        ipaddr32_t bit_mask = (static_cast<unsigned int>(digest[0]) & 1u) << (31u - static_cast<unsigned int>(i));
 
         // x_i' = x_i ^ f_{i-1}.
         output ^= bit_mask;

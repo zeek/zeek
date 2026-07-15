@@ -17,7 +17,7 @@ void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_
 
     remaining -= 8;
 
-    uint8_t all_opt_len = (data[0] & 0x3F) * 4;
+    uint8_t all_opt_len = static_cast<uint8_t>((static_cast<uint32_t>(data[0]) & 0x3Fu) * 4u);
 
     if ( remaining < all_opt_len )
         return;
@@ -31,9 +31,9 @@ void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_
             break;
 
         uint16_t opt_class = ntohs(reinterpret_cast<const uint16_t*>(p)[0]);
-        bool opt_critical = (p[2] & 0x80) == 0x80;
-        uint8_t opt_type = p[2] & 0x7F;
-        uint8_t opt_len = (p[3] & 0x1F) * 4;
+        bool opt_critical = (static_cast<uint32_t>(p[2]) & 0x80u) == 0x80u;
+        uint8_t opt_type = static_cast<uint8_t>(static_cast<uint32_t>(p[2]) & 0x7Fu);
+        uint8_t opt_len = static_cast<uint8_t>((static_cast<uint32_t>(p[3]) & 0x1Fu) * 4u);
 
         remaining -= 4;
         p += 4;
@@ -77,14 +77,14 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 
     // Validate that the version number is correct. According to the RFC, this
     // should always be zero, and anything else should be treated as an error.
-    auto version = data[0] >> 6;
+    auto version = static_cast<uint32_t>(data[0]) >> 6u;
     if ( version != 0 ) {
         Weird("geneve_invalid_version", packet, util::fmt("%d", version));
         return false;
     }
 
     // Option length is the number of bytes for options, expressed in 4-byte multiples.
-    uint8_t opt_len = (data[0] & 0x3F) * 4;
+    uint8_t opt_len = static_cast<uint8_t>((static_cast<uint32_t>(data[0]) & 0x3Fu) * 4u);
     hdr_size += opt_len;
 
     // Double-check this one now that we know the actual full length of the header.

@@ -6,8 +6,8 @@
 
 namespace zeek::analyzer::gnutella {
 
-constexpr int ORIG_OK = 0x1;
-constexpr int RESP_OK = 0x2;
+constexpr unsigned int ORIG_OK = 0x1;
+constexpr unsigned int RESP_OK = 0x2;
 
 constexpr int GNUTELLA_MSG_SIZE = 23;
 constexpr int GNUTELLA_MAX_PAYLOAD = 1024;
@@ -61,8 +61,8 @@ private:
     void DissectMessage(char* msg);
     void DeliverMessages(int len, const u_char* data, bool orig);
 
-    int state;
-    int new_state;
+    unsigned int state;
+    unsigned int new_state;
     int sent_establish;
 
     detail::GnutellaMsgState* orig_msg_state;

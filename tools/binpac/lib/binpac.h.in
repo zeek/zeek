@@ -61,7 +61,10 @@ static_assert(sizeof(unsigned int) == 4, "Unexpected size of unsigned int");
 
 namespace {
 
-inline uint16 pac_swap(const uint16 x) { return (x >> 8) | ((x & 0xff) << 8); }
+inline uint16 pac_swap(const uint16 x) {
+    unsigned int v = x;
+    return static_cast<uint16>((v >> 8u) | ((v & 0xffu) << 8u));
+}
 
 inline int16 pac_swap(const int16 x) {
     // Forward to unsigned version with argument/result casted
@@ -71,7 +74,7 @@ inline int16 pac_swap(const int16 x) {
 }
 
 inline uint32 pac_swap(const uint32 x) {
-    return (x >> 24) | ((x & 0xff0000) >> 8) | ((x & 0xff00) << 8) | ((x & 0xff) << 24);
+    return (x >> 24u) | ((x & 0xff0000u) >> 8u) | ((x & 0xff00u) << 8u) | ((x & 0xffu) << 24u);
 }
 
 inline int32 pac_swap(const int32 x) {
@@ -82,8 +85,8 @@ inline int32 pac_swap(const int32 x) {
 }
 
 inline uint64 pac_swap(const uint64 x) {
-    return x >> 56 | (x & 0xff000000000000) >> 40 | (x & 0xff0000000000) >> 24 | (x & 0xff00000000) >> 8 |
-           (x & 0xff000000) << 8 | (x & 0xff0000) << 24 | (x & 0xff00) << 40 | (x & 0xff) << 56;
+    return (x >> 56u) | ((x & 0xff000000000000u) >> 40u) | ((x & 0xff0000000000u) >> 24u) | ((x & 0xff00000000u) >> 8u) |
+           ((x & 0xff000000u) << 8u) | ((x & 0xff0000u) << 24u) | ((x & 0xff00u) << 40u) | ((x & 0xffu) << 56u);
 }
 
 inline int64 pac_swap(const int64 x) {

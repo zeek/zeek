@@ -952,7 +952,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data) {
                     int b = util::decode_hex(data[i + 2]);
 
                     if ( a >= 0 && b >= 0 ) {
-                        DataOctet((a << 4) + b);
+                        DataOctet((static_cast<uint32_t>(a) << 4u) + static_cast<uint32_t>(b));
                         legal = 1;
                         i += 2;
                     }

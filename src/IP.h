@@ -184,7 +184,9 @@ public:
      * If the header chain is a fragment, returns the offset in number of bytes
      * relative to the start of the Fragmentable Part of the original packet.
      */
-    uint16_t FragOffset() const { return IsFragment() ? (ntohs(GetFragHdr()->ip6f_offlg) & 0xfff8) : 0; }
+    uint16_t FragOffset() const {
+        return IsFragment() ? static_cast<uint16_t>(ntohs(GetFragHdr()->ip6f_offlg) & 0xfff8u) : 0;
+    }
 
     /**
      * If the header chain is a fragment, returns the identification field.
@@ -194,7 +196,9 @@ public:
     /**
      * If the header chain is a fragment, returns the M (more fragments) flag.
      */
-    int MF() const { return IsFragment() ? (ntohs(GetFragHdr()->ip6f_offlg) & 0x0001) != 0 : 0; }
+    int MF() const {
+        return IsFragment() ? (static_cast<uint32_t>(ntohs(GetFragHdr()->ip6f_offlg)) & 0x0001u) != 0 : 0;
+    }
 
     /**
      * If the chain contains a Destination Options header with a Home Address
@@ -452,13 +456,18 @@ public:
     /**
      * Returns whether the IP header indicates this packet is a fragment.
      */
-    bool IsFragment() const { return ip4 ? (ntohs(ip4->ip_off) & 0x3fff) != 0 : ip6_hdrs->IsFragment(); }
+    bool IsFragment() const {
+        return ip4 ? (static_cast<uint32_t>(ntohs(ip4->ip_off)) & 0x3fffu) != 0 : ip6_hdrs->IsFragment();
+    }
 
     /**
      * Returns the fragment packet's offset in relation to the original
      * packet in bytes.
      */
-    uint16_t FragOffset() const { return ip4 ? (ntohs(ip4->ip_off) & 0x1fff) * 8 : ip6_hdrs->FragOffset(); }
+    uint16_t FragOffset() const {
+        return ip4 ? static_cast<uint16_t>((static_cast<uint32_t>(ntohs(ip4->ip_off)) & 0x1fffu) * 8u) :
+                     ip6_hdrs->FragOffset();
+    }
 
     /**
      * Returns the fragment packet's identification field.
@@ -468,18 +477,18 @@ public:
     /**
      * Returns whether a fragment packet's "More Fragments" field is set.
      */
-    int MF() const { return ip4 ? (ntohs(ip4->ip_off) & 0x2000) != 0 : ip6_hdrs->MF(); }
+    int MF() const { return ip4 ? (static_cast<uint32_t>(ntohs(ip4->ip_off)) & 0x2000u) != 0 : ip6_hdrs->MF(); }
 
     /**
      * Returns whether a fragment packet's "Don't Fragment" field is set.
      * Note that IPv6 has no such field.
      */
-    int DF() const { return ip4 ? ((ntohs(ip4->ip_off) & 0x4000) != 0) : 0; }
+    int DF() const { return ip4 ? ((static_cast<uint32_t>(ntohs(ip4->ip_off)) & 0x4000u) != 0) : 0; }
 
     /**
      * Returns value of an IPv6 header's flow label field or 0 if it's IPv4.
      */
-    uint32_t FlowLabel() const { return ip4 ? 0 : (ntohl(ip6->ip6_flow) & 0x000fffff); }
+    uint32_t FlowLabel() const { return ip4 ? 0 : (static_cast<uint32_t>(ntohl(ip6->ip6_flow)) & 0x000fffffu); }
 
     /**
      * Returns number of IP headers in packet (includes IPv6 extension headers).

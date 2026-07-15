@@ -197,7 +197,7 @@ string Type::EvalByteOrder(Output* out_cc, Env* env) const {
     return env->RValue(byteorder_id);
 }
 
-void Type::Prepare(Env* env, int flags) {
+void Type::Prepare(Env* env, unsigned int flags) {
     env_ = env;
     ASSERT(env_);
 

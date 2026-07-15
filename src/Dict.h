@@ -1004,8 +1004,8 @@ private:
 
     void SetLog2Buckets(int value) {
         log2_buckets = value;
-        bucket_count = 1 << log2_buckets;
-        bucket_capacity = (1 << log2_buckets) + log2_buckets;
+        bucket_count = 1u << log2_buckets;
+        bucket_capacity = (1u << log2_buckets) + log2_buckets;
     }
 
     /// Buckets of the table, not including overflow size.
@@ -1044,7 +1044,7 @@ private:
         detail::hash_t hash = FibHash(h);
 #endif
 
-        int m = 64 - bit;
+        unsigned int m = static_cast<unsigned int>(64 - bit);
         hash <<= m;
         hash >>= m;
 

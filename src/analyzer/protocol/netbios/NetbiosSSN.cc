@@ -12,11 +12,12 @@
 #include "zeek/session/Manager.h"
 
 static constexpr void MAKE_INT16(uint16_t& dest, const u_char*& src) {
-    dest = *src;
-    dest <<= 8;
+    uint32_t v = *src;
+    v <<= 8u;
     src++;
-    dest |= *src;
+    v |= *src;
     src++;
+    dest = static_cast<uint16_t>(v);
 }
 
 namespace zeek::analyzer::netbios_ssn {
@@ -30,7 +31,7 @@ NetbiosSSN_RawMsgHdr::NetbiosSSN_RawMsgHdr(const u_char*& data, int& len) {
     length = *data;
     ++data, --len;
 
-    length <<= 8;
+    length = static_cast<uint16_t>(static_cast<uint32_t>(length) << 8u);
     length |= *data;
     ++data, --len;
 }
@@ -111,10 +112,10 @@ void NetbiosSSN_Interpreter::ParseBroadcast(const u_char* data, int len, bool is
 void NetbiosSSN_Interpreter::ParseMessageTCP(const u_char* data, int len, bool is_query) {
     NetbiosSSN_RawMsgHdr hdr(data, len);
 
-    if ( hdr.length > static_cast<unsigned>(len) )
+    if ( hdr.length > static_cast<unsigned int>(len) )
         analyzer->Weird("excess_netbios_hdr_len", util::fmt("(%d > %d)", hdr.length, len));
 
-    else if ( hdr.length < static_cast<unsigned>(len) ) {
+    else if ( hdr.length < static_cast<unsigned int>(len) ) {
         analyzer->Weird("deficit_netbios_hdr_len");
         len = hdr.length;
     }
@@ -134,10 +135,10 @@ void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool i
 
     NetbiosDGM_RawMsgHdr hdr(data, len);
 
-    if ( static_cast<unsigned>(hdr.length - 14) > static_cast<unsigned>(len) )
+    if ( static_cast<unsigned int>(hdr.length - 14) > static_cast<unsigned int>(len) )
         analyzer->Weird("excess_netbios_hdr_len", util::fmt("(%d > %d)", hdr.length, len));
 
-    else if ( hdr.length < static_cast<unsigned>(len) ) {
+    else if ( hdr.length < static_cast<unsigned int>(len) ) {
         analyzer->Weird("deficit_netbios_hdr_len", util::fmt("(%d < %d)", hdr.length, len));
         len = hdr.length;
     }
@@ -196,7 +197,8 @@ int NetbiosSSN_Interpreter::ConvertName(const u_char* name, int name_len, u_char
             return 0;
         }
 
-        *convert_name = ((name[0] - 'A') << 4) + (name[1] - 'A');
+        *convert_name =
+            static_cast<u_char>((static_cast<uint32_t>(name[0] - 'A') << 4u) + static_cast<uint32_t>(name[1] - 'A'));
         name += 2;
         ++convert_name;
     }
@@ -324,7 +326,7 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
     }
 
     if ( state == detail::NETBIOS_SSN_LEN_HI ) {
-        msg_size = (*data) << 8;
+        msg_size = static_cast<uint32_t>(*data) << 8u;
         state = detail::NETBIOS_SSN_LEN_LO;
 
         ++data;

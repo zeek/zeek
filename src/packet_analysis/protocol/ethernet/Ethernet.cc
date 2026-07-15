@@ -34,7 +34,7 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
     }
 
     // Get protocol being carried from the ethernet frame.
-    uint32_t protocol = (data[12] << 8) + data[13];
+    uint32_t protocol = (static_cast<uint32_t>(data[12]) << 8u) + data[13];
 
     packet->eth_type = protocol;
     packet->l2_dst = data;

@@ -15,4 +15,5 @@ Zeek::PacketSourceUDP - A packet source listening on a UDP socket. (built-in)
     [Constant] PacketSource::UDP::io_uring_cq_entries
     [Constant] PacketSource::UDP::io_uring_buffers
     [Constant] PacketSource::UDP::io_uring_buffer_shift
+    [Function] PacketSource::UDP::get_geneve_options
 

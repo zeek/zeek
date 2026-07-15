@@ -1,3 +1,10 @@
+9.0.0-dev.659 | 2026-07-15 19:40:53 +0200
+
+  * Bump zeek-packet-source-udp to v0.2.0 (Arne Welzel, Corelight)
+
+        2217895 Add PacketSource::UDP::get_geneve_options() bif
+        abb8d5f Fix typos, add crate-ci/typos to pre-commit
+
 9.0.0-dev.657 | 2026-07-15 09:17:26 -0700
 
   * CCI: Enable benchmarking for the usual tasks (Tim Wojtulewicz, Corelight)

@@ -101,7 +101,10 @@ TCPStats_Endpoint::TCPStats_Endpoint(TCP_Endpoint* e) {
     endian_type = ENDIAN_UNKNOWN;
 }
 
-int endian_flip(int n) { return ((n & 0xff) << 8) | ((n & 0xff00) >> 8); }
+int endian_flip(int n) {
+    uint32_t u = static_cast<uint32_t>(n);
+    return static_cast<int>(((u & 0xffu) << 8u) | ((u & 0xff00u) >> 8u));
+}
 
 bool TCPStats_Endpoint::DataSent(double /* t */, uint64_t seq, int len, int caplen, const u_char* /* data */,
                                  const IP_Hdr* ip, const struct tcphdr* /* tp */) {

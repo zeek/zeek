@@ -44,7 +44,7 @@ string RecordType::DataTypeStr() const {
     return strfmt("%s*", type_decl()->class_name().c_str());
 }
 
-void RecordType::Prepare(Env* env, int flags) {
+void RecordType::Prepare(Env* env, unsigned int flags) {
     ASSERT(flags & TO_BE_PARSED);
 
     RecordField* prev = nullptr;

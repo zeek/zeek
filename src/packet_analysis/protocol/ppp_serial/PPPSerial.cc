@@ -13,7 +13,7 @@ bool PPPSerialAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* p
     }
 
     // Extract protocol identifier
-    uint32_t protocol = (data[2] << 8) + data[3];
+    uint32_t protocol = (static_cast<uint32_t>(data[2]) << 8u) + data[3];
     // skip link header
     return ForwardPacket(len - 4, data + 4, packet, protocol);
 }

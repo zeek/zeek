@@ -60,7 +60,7 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2) {
     // https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
     // or
     // https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine
-    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    return h1 ^ (h2 + 0x9e3779b9u + (h1 << 6u) + (h1 >> 2u));
 }
 
 using AttrSet = std::unordered_set<const Attr*>;

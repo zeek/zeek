@@ -26,10 +26,10 @@ static uint16_t pcapng_extract_uint16(uint8_t* opt_data, uint16_t opt_length) {
     if ( ! validate_option_length(2, opt_length) )
         return 0;
 
-    uint16_t val = opt_data[0];
-    val <<= 8;
-    val |= opt_data[1];
-    return val;
+    unsigned int v = opt_data[0];
+    v <<= 8u;
+    v |= opt_data[1];
+    return static_cast<uint16_t>(v);
 }
 
 static uint32_t pcapng_extract_uint32(uint8_t* opt_data, uint16_t opt_length) {
@@ -37,7 +37,7 @@ static uint32_t pcapng_extract_uint32(uint8_t* opt_data, uint16_t opt_length) {
         return 0;
 
     uint32_t val = pcapng_extract_uint16(opt_data, opt_length);
-    val <<= 16;
+    val <<= 16u;
     val |= pcapng_extract_uint16(opt_data + 2, opt_length);
     return val;
 }
@@ -47,7 +47,7 @@ static uint64_t pcapng_extract_uint64(uint8_t* opt_data, uint16_t opt_length) {
         return 0;
 
     uint64_t val = pcapng_extract_uint32(opt_data, opt_length);
-    val <<= 32;
+    val <<= 32u;
     val |= pcapng_extract_uint32(opt_data + 4, opt_length);
     return val;
 }
@@ -175,10 +175,10 @@ void Source::ParseInterfaceBlock(light_block block) {
 
     light_option opt = light_find_option(block, LIGHT_OPTION_IF_TSRESOL);
     if ( opt && opt->length > 0 ) {
-        if ( (opt->data[0] & 0x80) == 0x80 )
-            intf.ts_resolution = 2 << (opt->data[0] & 0x7F);
+        if ( (static_cast<uint32_t>(opt->data[0]) & 0x80u) == 0x80u )
+            intf.ts_resolution = 2u << (static_cast<uint32_t>(opt->data[0]) & 0x7Fu);
         else
-            intf.ts_resolution = static_cast<uint32_t>(pow(10, (opt->data[0] & 0x7f)));
+            intf.ts_resolution = static_cast<uint32_t>(pow(10, (static_cast<uint32_t>(opt->data[0]) & 0x7fu)));
     }
 
     interfaces.emplace_back(intf);
@@ -193,7 +193,7 @@ Source::PacketBlock Source::ParseEnhancedPacketBlock(light_block block) {
     pb.interface = lepb->interface_id;
 
     uint64_t ts = lepb->timestamp_high;
-    ts <<= 32;
+    ts <<= 32u;
     ts += lepb->timestamp_low;
 
     // The timestamp is the number of "units" of time since unix epoch. The units are based on the

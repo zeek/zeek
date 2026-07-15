@@ -40,7 +40,7 @@ function decode_netbios_name%(name: string%): string
 		if ( c0 < 'A' || c0 > 'P' || c1 < 'A' || c1 > 'P' )
 			return val_mgr->EmptyString();
 
-		buf[i] = ((c0 - 'A') << 4) + (c1 - 'A');
+		buf[i] = static_cast<unsigned char>((static_cast<unsigned int>(c0 - 'A') << 4u) + static_cast<unsigned int>(c1 - 'A'));
 
 		if ( isalnum(buf[i]) || ispunct(buf[i]) || buf[i] == ' ' ||
 		     // \x01\x02 is seen in at least one case as the first two bytes.

@@ -150,17 +150,19 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf) 
             if ( buf + num_octets > *pbuf + blen )
                 break;
 
-            uint32_t bit32 = ((base64_group[0] & 0x3f) << 18) | ((base64_group[1] & 0x3f) << 12) |
-                             ((base64_group[2] & 0x3f) << 6) | ((base64_group[3] & 0x3f));
+            uint32_t bit32 = ((static_cast<uint32_t>(base64_group[0]) & 0x3fu) << 18u) |
+                             ((static_cast<uint32_t>(base64_group[1]) & 0x3fu) << 12u) |
+                             ((static_cast<uint32_t>(base64_group[2]) & 0x3fu) << 6u) |
+                             (static_cast<uint32_t>(base64_group[3]) & 0x3fu);
 
             if ( --num_octets >= 0 )
-                *buf++ = static_cast<char>((bit32 >> 16) & 0xff);
+                *buf++ = static_cast<char>((bit32 >> 16u) & 0xffu);
 
             if ( --num_octets >= 0 )
-                *buf++ = static_cast<char>((bit32 >> 8) & 0xff);
+                *buf++ = static_cast<char>((bit32 >> 8u) & 0xffu);
 
             if ( --num_octets >= 0 )
-                *buf++ = static_cast<char>((bit32) & 0xff);
+                *buf++ = static_cast<char>(bit32 & 0xffu);
 
             if ( base64_padding > 0 )
                 base64_after_padding = 1;

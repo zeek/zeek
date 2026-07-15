@@ -320,9 +320,9 @@ bool Raw::Execute() {
         return false;
     }
 
-    short spawn_flags = 0;
+    unsigned short spawn_flags = 0;
     // equivalent to setpgid(0,0) in the child
-    spawn_flags |= POSIX_SPAWN_SETPGROUP;
+    spawn_flags |= static_cast<unsigned short>(POSIX_SPAWN_SETPGROUP);
 
     posix_spawn_file_actions_t actions;
     if ( posix_spawn_file_actions_init(&actions) != 0 ) {
@@ -330,15 +330,19 @@ bool Raw::Execute() {
         return false;
     }
 
-    auto file_actions_res = posix_spawn_file_actions_addclose(&actions, pipes[stdout_in]);
-    file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stdout_out], stdout_fileno);
-    file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdout_out]);
-    file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdin_out]);
-    file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stdin_in], stdin_fileno);
-    file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdin_in]);
-    file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stderr_in]);
-    file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stderr_out], stderr_fileno);
-    file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stderr_out]);
+    unsigned int file_actions_res =
+        static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stdout_in]));
+    file_actions_res |=
+        static_cast<unsigned int>(posix_spawn_file_actions_adddup2(&actions, pipes[stdout_out], stdout_fileno));
+    file_actions_res |= static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stdout_out]));
+    file_actions_res |= static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stdin_out]));
+    file_actions_res |=
+        static_cast<unsigned int>(posix_spawn_file_actions_adddup2(&actions, pipes[stdin_in], stdin_fileno));
+    file_actions_res |= static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stdin_in]));
+    file_actions_res |= static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stderr_in]));
+    file_actions_res |=
+        static_cast<unsigned int>(posix_spawn_file_actions_adddup2(&actions, pipes[stderr_out], stderr_fileno));
+    file_actions_res |= static_cast<unsigned int>(posix_spawn_file_actions_addclose(&actions, pipes[stderr_out]));
 
     if ( file_actions_res != 0 ) {
         Error("Error during posix_spawn_file_actions_add");
@@ -363,11 +367,11 @@ bool Raw::Execute() {
     // code replicates this behavior.
     sigset_t mask;
     sigemptyset(&mask);
-    spawn_flags |= POSIX_SPAWN_SETSIGMASK;
+    spawn_flags |= static_cast<unsigned short>(POSIX_SPAWN_SETSIGMASK);
     // this can only fail with EINVAL - which is not fatal
     posix_spawnattr_setsigmask(&attrs, &mask);
 
-    spawn_flags |= POSIX_SPAWN_SETSIGDEF;
+    spawn_flags |= static_cast<unsigned short>(POSIX_SPAWN_SETSIGDEF);
     sigset_t sigdefault;
     sigemptyset(&sigdefault);
     sigaddset(&sigdefault, SIGPIPE);

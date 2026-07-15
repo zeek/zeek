@@ -187,7 +187,7 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen, const u
         // len);
         FILE* f = contents_file->Seek(seq - contents_start_seq);
 
-        if ( fwrite(data, 1, len, f) < static_cast<unsigned>(len) ) {
+        if ( fwrite(data, 1, len, f) < static_cast<unsigned int>(len) ) {
             char buf[256];
             util::zeek_strerror_r(errno, buf, sizeof(buf));
             reporter->Error("TCP contents write failed: %s", buf);
@@ -243,7 +243,7 @@ bool TCP_Endpoint::CheckHistory(uint32_t mask, char code) {
     }
 
     if ( ! IsOrig() ) {
-        mask <<= 16;
+        mask <<= 16u;
         code = tolower(code);
     }
 

@@ -245,14 +245,15 @@ void Manager::ConvertTimeout(double timeout, struct timespec& spec) {
 
 bool Manager::RegisterFd(int fd, IOSource* src, int flags) {
     std::vector<struct kevent> new_events;
+    uint32_t uflags = static_cast<uint32_t>(flags);
 
-    if ( (flags & IOSource::READ) != 0 ) {
+    if ( (uflags & IOSource::READ) != 0 ) {
         if ( ! fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_ADD, 0, 0, nullptr);
         }
     }
-    if ( (flags & IOSource::WRITE) != 0 ) {
+    if ( (uflags & IOSource::WRITE) != 0 ) {
         if ( ! write_fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_ADD, 0, 0, nullptr);
@@ -266,9 +267,9 @@ bool Manager::RegisterFd(int fd, IOSource* src, int flags) {
             for ( const auto& a : new_events )
                 events.push_back({});
 
-            if ( (flags & IOSource::READ) != 0 )
+            if ( (uflags & IOSource::READ) != 0 )
                 fd_map[fd] = src;
-            if ( (flags & IOSource::WRITE) != 0 )
+            if ( (uflags & IOSource::WRITE) != 0 )
                 write_fd_map[fd] = src;
 
             Wakeup("RegisterFd");
@@ -285,14 +286,15 @@ bool Manager::RegisterFd(int fd, IOSource* src, int flags) {
 
 bool Manager::UnregisterFd(int fd, IOSource* src, int flags) {
     std::vector<struct kevent> new_events;
+    uint32_t uflags = static_cast<uint32_t>(flags);
 
-    if ( (flags & IOSource::READ) != 0 ) {
+    if ( (uflags & IOSource::READ) != 0 ) {
         if ( fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
         }
     }
-    if ( (flags & IOSource::WRITE) != 0 ) {
+    if ( (uflags & IOSource::WRITE) != 0 ) {
         if ( write_fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
@@ -306,9 +308,9 @@ bool Manager::UnregisterFd(int fd, IOSource* src, int flags) {
             for ( const auto& a : new_events )
                 events.pop_back();
 
-            if ( (flags & IOSource::READ) != 0 )
+            if ( (uflags & IOSource::READ) != 0 )
                 fd_map.erase(fd);
-            if ( (flags & IOSource::WRITE) != 0 )
+            if ( (uflags & IOSource::WRITE) != 0 )
                 write_fd_map.erase(fd);
 
             Wakeup("UnregisterFd");

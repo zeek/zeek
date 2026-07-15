@@ -66,8 +66,8 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const {
             static auto ip6_hdr_type = id::find_type<RecordType>("ip6_hdr");
             rv = make_intrusive<RecordVal>(ip6_hdr_type);
             const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(data);
-            rv->Assign(0, static_cast<uint32_t>(ntohl(ip6->ip6_flow) & 0x0ff00000) >> 20);
-            rv->Assign(1, static_cast<uint32_t>(ntohl(ip6->ip6_flow) & 0x000fffff));
+            rv->Assign(0, (static_cast<uint32_t>(ntohl(ip6->ip6_flow)) & 0x0ff00000u) >> 20u);
+            rv->Assign(1, static_cast<uint32_t>(ntohl(ip6->ip6_flow)) & 0x000fffffu);
             rv->Assign(2, ntohs(ip6->ip6_plen));
             rv->Assign(3, ip6->ip6_nxt);
             rv->Assign(4, ip6->ip6_hlim);
@@ -125,9 +125,9 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const {
             const struct ip6_frag* frag = reinterpret_cast<const ip6_frag*>(data);
             rv->Assign(0, frag->ip6f_nxt);
             rv->Assign(1, frag->ip6f_reserved);
-            rv->Assign(2, (ntohs(frag->ip6f_offlg) & 0xfff8) >> 3);
-            rv->Assign(3, (ntohs(frag->ip6f_offlg) & 0x0006) >> 1);
-            rv->Assign(4, static_cast<bool>(ntohs(frag->ip6f_offlg) & 0x0001));
+            rv->Assign(2, (static_cast<uint32_t>(ntohs(frag->ip6f_offlg)) & 0xfff8u) >> 3u);
+            rv->Assign(3, (static_cast<uint32_t>(ntohs(frag->ip6f_offlg)) & 0x0006u) >> 1u);
+            rv->Assign(4, static_cast<bool>(static_cast<uint32_t>(ntohs(frag->ip6f_offlg)) & 0x0001u));
             rv->Assign(5, static_cast<uint32_t>(ntohl(frag->ip6f_ident)));
         } break;
 
@@ -258,14 +258,18 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const {
 
                     auto m = make_intrusive<RecordVal>(ip6_mob_bu_type);
                     m->Assign(0, ntohs(*reinterpret_cast<const uint16_t*>(msg_data)));
-                    m->Assign(1, static_cast<bool>(
-                                     ntohs(*reinterpret_cast<const uint16_t*>(msg_data + sizeof(uint16_t))) & 0x8000));
-                    m->Assign(2, static_cast<bool>(
-                                     ntohs(*reinterpret_cast<const uint16_t*>(msg_data + sizeof(uint16_t))) & 0x4000));
-                    m->Assign(3, static_cast<bool>(
-                                     ntohs(*reinterpret_cast<const uint16_t*>(msg_data + sizeof(uint16_t))) & 0x2000));
-                    m->Assign(4, static_cast<bool>(
-                                     ntohs(*reinterpret_cast<const uint16_t*>(msg_data + sizeof(uint16_t))) & 0x1000));
+                    m->Assign(1, static_cast<bool>(static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(
+                                                       msg_data + sizeof(uint16_t)))) &
+                                                   0x8000u));
+                    m->Assign(2, static_cast<bool>(static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(
+                                                       msg_data + sizeof(uint16_t)))) &
+                                                   0x4000u));
+                    m->Assign(3, static_cast<bool>(static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(
+                                                       msg_data + sizeof(uint16_t)))) &
+                                                   0x2000u));
+                    m->Assign(4, static_cast<bool>(static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(
+                                                       msg_data + sizeof(uint16_t)))) &
+                                                   0x1000u));
                     m->Assign(5, ntohs(*reinterpret_cast<const uint16_t*>(msg_data + 2 * sizeof(uint16_t))));
                     m->Assign(6, BuildOptionsVal(data + off, Length() - off));
                     msg->Assign(6, std::move(m));
@@ -279,8 +283,9 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const {
 
                     auto m = make_intrusive<RecordVal>(ip6_mob_back_type);
                     m->Assign(0, *(reinterpret_cast<const uint8_t*>(msg_data)));
-                    m->Assign(1,
-                              static_cast<bool>(*reinterpret_cast<const uint8_t*>(msg_data + sizeof(uint8_t)) & 0x80));
+                    m->Assign(1, static_cast<bool>(static_cast<uint32_t>(
+                                                       *reinterpret_cast<const uint8_t*>(msg_data + sizeof(uint8_t))) &
+                                                   0x80u));
                     m->Assign(2, ntohs(*reinterpret_cast<const uint16_t*>(msg_data + sizeof(uint16_t))));
                     m->Assign(3, ntohs(*reinterpret_cast<const uint16_t*>(msg_data + 2 * sizeof(uint16_t))));
                     m->Assign(4, BuildOptionsVal(data + off, Length() - off));

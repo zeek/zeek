@@ -480,7 +480,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig) {
         int xlen = len;
         frame_len = extract_XDR_uint32(xdata, xlen);
         last_frag = (frame_len & 0x80000000) != 0;
-        frame_len &= 0x7fffffff;
+        frame_len &= 0x7fffffffu;
         xid = extract_XDR_uint32(xdata, xlen);
         frame_type = extract_XDR_uint32(xdata, xlen);
 
@@ -593,7 +593,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                     }
 
                     last_frag = (marker & 0x80000000) != 0;
-                    marker &= 0x7fffffff;
+                    marker &= 0x7fffffffu;
                     // printf("%.6f %d marker= %u <> last_frag= %d <> expected=%llu <>
                     // processed= %llu <> len = %d\n", 		run_state::network_time, IsOrig(),
                     // marker,

@@ -30,16 +30,17 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state, const 
 
     auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
 
-    if ( tcpstates & RULE_STATE_STATELESS )
+    if ( static_cast<uint32_t>(tcpstates) & static_cast<uint32_t>(RULE_STATE_STATELESS) )
         return true;
 
-    if ( (tcpstates & RULE_STATE_ORIG) && ! state->IsOrig() )
+    if ( (static_cast<uint32_t>(tcpstates) & static_cast<uint32_t>(RULE_STATE_ORIG)) && ! state->IsOrig() )
         return false;
 
-    if ( (tcpstates & RULE_STATE_RESP) && state->IsOrig() )
+    if ( (static_cast<uint32_t>(tcpstates) & static_cast<uint32_t>(RULE_STATE_RESP)) && state->IsOrig() )
         return false;
 
-    if ( (tcpstates & RULE_STATE_ESTABLISHED) && ! (is_established(ta->Orig()) && is_established(ta->Resp())) )
+    if ( (static_cast<uint32_t>(tcpstates) & static_cast<uint32_t>(RULE_STATE_ESTABLISHED)) &&
+         ! (is_established(ta->Orig()) && is_established(ta->Resp())) )
         return false;
 
     return true;
@@ -53,13 +54,13 @@ bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state, const 
     if ( ! adapter || ! adapter->IsAnalyzer("UDP") )
         return false;
 
-    if ( states & RULE_STATE_STATELESS )
+    if ( static_cast<uint32_t>(states) & static_cast<uint32_t>(RULE_STATE_STATELESS) )
         return true;
 
-    if ( (states & RULE_STATE_ORIG) && ! state->IsOrig() )
+    if ( (static_cast<uint32_t>(states) & static_cast<uint32_t>(RULE_STATE_ORIG)) && ! state->IsOrig() )
         return false;
 
-    if ( (states & RULE_STATE_RESP) && state->IsOrig() )
+    if ( (static_cast<uint32_t>(states) & static_cast<uint32_t>(RULE_STATE_RESP)) && state->IsOrig() )
         return false;
 
     return true;

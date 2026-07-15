@@ -8,7 +8,7 @@
 #include "pac_id.h"
 #include "pac_type.h"
 
-Field::Field(FieldType tof, int flags, ID* id, Type* type)
+Field::Field(FieldType tof, unsigned int flags, ID* id, Type* type)
     : DataDepElement(DataDepElement::FIELD), tof_(tof), flags_(flags), id_(id), type_(type) {
     decl_id_ = current_decl_id;
     field_id_str_ = strfmt("%s:%s", decl_id()->Name(), id_->Name());

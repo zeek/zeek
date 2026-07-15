@@ -16,8 +16,8 @@
 #include "zeek/analyzer/protocol/tcp/types.bif.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 
-constexpr int ORIG = 1;
-constexpr int RESP = 2;
+constexpr unsigned int ORIG = 1;
+constexpr unsigned int RESP = 2;
 constexpr int32_t TOO_LARGE_SEQ_DELTA = 1048576;
 
 using namespace zeek;
@@ -245,7 +245,7 @@ static void update_window(analyzer::tcp::TCP_Endpoint* endpoint, unsigned int wi
     // whose window value is always unscaled.  However, we don't
     // check the window's value for recision in that case anyway, so
     // no-harm-no-foul.
-    int scale = endpoint->window_scale;
+    uint32_t scale = static_cast<uint32_t>(endpoint->window_scale);
     window = window << scale;
 
     // Zero windows are boring if either (1) they come with a RST packet
@@ -284,7 +284,7 @@ static void update_window(analyzer::tcp::TCP_Endpoint* endpoint, unsigned int wi
                 // because sometimes there will be an
                 // apparent recision due to the granularity
                 // of the scaling.
-                if ( (-advance) >= (1 << scale) )
+                if ( (-advance) >= static_cast<int32_t>(1u << scale) )
                     endpoint->Conn()->Weird("window_recision");
             }
 
@@ -339,7 +339,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
                 if ( opt_len < 4 )
                     break; // bad length
 
-                MSS = (options[2] << 8) | options[3];
+                MSS = static_cast<int>((static_cast<uint32_t>(options[2]) << 8u) | options[3]);
                 break;
 
             case 3: // TCPOPT_WSCALE
@@ -353,10 +353,10 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
                 if ( opt_len < 10 )
                     break; // bad length
 
-                TSval =
-                    (((((static_cast<uint64_t>(options[2]) << 8) | options[3]) << 8) | options[4]) << 8) | options[5];
-                TSecr =
-                    (((((static_cast<uint64_t>(options[6]) << 8) | options[7]) << 8) | options[8]) << 8) | options[9];
+                TSval = (((((static_cast<uint64_t>(options[2]) << 8u) | options[3]) << 8u) | options[4]) << 8u) |
+                        options[5];
+                TSecr = (((((static_cast<uint64_t>(options[6]) << 8u) | options[7]) << 8u) | options[8]) << 8u) |
+                        options[9];
                 break;
 
             default: // just skip over
@@ -1369,7 +1369,7 @@ void TCPSessionAdapter::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip) {
 bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt) {
     const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(pkt);
 
-    if ( static_cast<unsigned>(tp->th_off) < sizeof(struct tcphdr) / 4 )
+    if ( static_cast<uint32_t>(tp->th_off) < sizeof(struct tcphdr) / 4 )
         // Bogus header, don't interpret further.
         return false;
 

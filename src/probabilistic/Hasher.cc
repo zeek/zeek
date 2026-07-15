@@ -47,7 +47,7 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed) {
 std::optional<BrokerData> Hasher::Serialize() const {
     BrokerListBuilder builder;
     builder.Reserve(4);
-    builder.AddCount(static_cast<unsigned>(Type()));
+    builder.AddCount(static_cast<unsigned int>(Type()));
     builder.AddCount(k);
     builder.AddCount(seed.h[0]);
     builder.AddCount(seed.h[1]);

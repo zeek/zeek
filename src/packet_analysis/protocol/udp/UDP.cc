@@ -102,7 +102,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     constexpr auto eth_len = 14;
 
     if ( validate_checksum && len > (static_cast<int>(sizeof(struct udphdr)) + vxlan_len + eth_len) &&
-         (data[0] & 0x08) == 0x08 ) {
+         (static_cast<uint32_t>(data[0]) & 0x08u) == 0x08u ) {
         if ( std::ranges::find(vxlan_ports, ntohs(up->uh_dport)) != vxlan_ports.end() ) {
             // Looks like VXLAN on a well-known port, so the checksum should be
             // transmitted as zero, and we should accept that.  If not

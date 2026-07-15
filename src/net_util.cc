@@ -72,12 +72,12 @@ int ones_complement_checksum(const void* p, int b, uint32_t sum) {
 
     /* No need for endian conversions. */
     while ( --b >= 0 ) {
-        sum += *sp + (*(sp + 1) << 8);
+        sum += *sp + (static_cast<uint32_t>(*(sp + 1)) << 8u);
         sp += 2;
     }
 
     while ( sum > 0xffff )
-        sum = (sum & 0xffff) + (sum >> 16);
+        sum = (sum & 0xffffu) + (sum >> 16u);
 
     return sum;
 }
@@ -228,9 +228,9 @@ std::pair<std::unique_ptr<uint8_t[]>, int> fmt_mac_bytes(const unsigned char* m,
 uint32_t extract_uint32(const u_char* data) {
     uint32_t val;
 
-    val = static_cast<uint32_t>(data[0]) << 24;
-    val |= static_cast<uint32_t>(data[1]) << 16;
-    val |= static_cast<uint32_t>(data[2]) << 8;
+    val = static_cast<uint32_t>(data[0]) << 24u;
+    val |= static_cast<uint32_t>(data[1]) << 16u;
+    val |= static_cast<uint32_t>(data[2]) << 8u;
     val |= data[3];
 
     return val;

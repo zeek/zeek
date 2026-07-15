@@ -190,17 +190,17 @@ char* String::Render(int format, int* len) const {
     int tmp_len;
 
     for ( int i = 0; i < n; ++i ) {
-        if ( b[i] == '\\' && (format & ESC_ESC) ) {
+        if ( b[i] == '\\' && (static_cast<uint32_t>(format) & static_cast<uint32_t>(ESC_ESC)) ) {
             *sp++ = '\\';
             *sp++ = '\\';
         }
 
-        else if ( (b[i] == '\'' || b[i] == '"') && (format & ESC_QUOT) ) {
+        else if ( (b[i] == '\'' || b[i] == '"') && (static_cast<uint32_t>(format) & static_cast<uint32_t>(ESC_QUOT)) ) {
             *sp++ = '\\';
             *sp++ = b[i];
         }
 
-        else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_HEX) ) {
+        else if ( (b[i] < ' ' || b[i] > 126) && (static_cast<uint32_t>(format) & static_cast<uint32_t>(ESC_HEX)) ) {
             char hex_fmt[16];
 
             *sp++ = '\\';
@@ -210,7 +210,7 @@ char* String::Render(int format, int* len) const {
             *sp++ = hex_fmt[1];
         }
 
-        else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_DOT) ) {
+        else if ( (b[i] < ' ' || b[i] > 126) && (static_cast<uint32_t>(format) & static_cast<uint32_t>(ESC_DOT)) ) {
             *sp++ = '.';
         }
 
@@ -222,7 +222,7 @@ char* String::Render(int format, int* len) const {
     *sp++ = '\0'; // NUL-terminate.
     tmp_len = sp - s;
 
-    if ( (format & ESC_SER) ) {
+    if ( (static_cast<uint32_t>(format) & static_cast<uint32_t>(ESC_SER)) ) {
         char* result = new char[tmp_len + 16];
         snprintf(result, tmp_len + 16, "%u ", tmp_len - 1);
         tmp_len += strlen(result);
@@ -245,7 +245,7 @@ std::ostream& String::Render(std::ostream& os, int format) const {
 }
 
 std::istream& String::Read(std::istream& is, int format) {
-    if ( (format & String::ESC_SER) ) {
+    if ( (static_cast<uint32_t>(format) & static_cast<uint32_t>(String::ESC_SER)) ) {
         int len;
         is >> len; // Get the length of the string
 
@@ -558,7 +558,9 @@ TEST_CASE("rendering") {
     CHECK_EQ(std::string(r), "\\abcd\\\'\\\"");
     delete[] r;
 
-    r = s1.Render(zeek::String::ESC_ESC | zeek::String::ESC_QUOT | zeek::String::ESC_SER);
+    r = s1.Render(static_cast<int>(static_cast<uint32_t>(zeek::String::ESC_ESC) |
+                                   static_cast<uint32_t>(zeek::String::ESC_QUOT) |
+                                   static_cast<uint32_t>(zeek::String::ESC_SER)));
     CHECK_EQ(std::string(r), "10 \\\\abcd\\\'\\\"");
     delete[] r;
 

@@ -36,7 +36,7 @@ uint64_t zeek::analyzer::rpc::extract_XDR_uint64(const u_char*& buf, int& len) {
     uint64_t uhi = extract_XDR_uint32(buf, len);
     uint64_t ulo = extract_XDR_uint32(buf, len);
 
-    return (uhi << 32) + ulo;
+    return (uhi << 32u) + ulo;
 }
 
 double zeek::analyzer::rpc::extract_XDR_time(const u_char*& buf, int& len) {
@@ -65,7 +65,7 @@ const u_char* zeek::analyzer::rpc::extract_XDR_opaque(const u_char*& buf, int& l
         return nullptr;
     }
 
-    int n4 = ((n + 3) >> 2) << 2; // n rounded up to next multiple of 4
+    int n4 = static_cast<int>((static_cast<unsigned int>(n + 3) >> 2u) << 2u); // n rounded up to next multiple of 4
 
     len -= n4;
     const u_char* opaque = buf;
@@ -81,7 +81,7 @@ const u_char* zeek::analyzer::rpc::extract_XDR_opaque_fixed(const u_char*& buf, 
         buf = nullptr;
         return nullptr;
     }
-    int n4 = ((n + 3) >> 2) << 2; // n rounded up to next multiple of 4
+    int n4 = static_cast<int>((static_cast<unsigned int>(n + 3) >> 2u) << 2u); // n rounded up to next multiple of 4
 
     len -= n4;
     const u_char* opaque = buf;

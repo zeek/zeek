@@ -26,7 +26,7 @@ static inline uint32_t bit_mask32(int bottom_bits) {
     if ( bottom_bits >= 32 )
         return 0xffffffff;
 
-    return ((static_cast<uint32_t>(1)) << bottom_bits) - 1;
+    return (static_cast<uint32_t>(1) << static_cast<unsigned int>(bottom_bits)) - 1;
 }
 
 void IPAddr::Mask(int top_bits_to_keep) {
@@ -95,8 +95,8 @@ bool IPAddr::ConvertString(const char* s, in6_addr* result) {
         if ( num < 0 || num > 255 )
             return false;
 
-    uint32_t addr = (static_cast<uint32_t>(a[0]) << 24) | (static_cast<uint32_t>(a[1]) << 16) |
-                    (static_cast<uint32_t>(a[2]) << 8) | a[3];
+    uint32_t addr = (static_cast<uint32_t>(a[0]) << 24u) | (static_cast<uint32_t>(a[1]) << 16u) |
+                    (static_cast<uint32_t>(a[2]) << 8u) | static_cast<uint32_t>(a[3]);
     addr = htonl(addr);
     memcpy(result->s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
     memcpy(&result->s6_addr[12], &addr, sizeof(uint32_t));
@@ -149,10 +149,10 @@ std::string IPAddr::PtrName() const {
         char buf[256];
         const uint32_t* p = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
         uint32_t a = ntohl(*p);
-        uint32_t a3 = (a >> 24) & 0xff;
-        uint32_t a2 = (a >> 16) & 0xff;
-        uint32_t a1 = (a >> 8) & 0xff;
-        uint32_t a0 = a & 0xff;
+        uint32_t a3 = (a >> 24u) & 0xffu;
+        uint32_t a2 = (a >> 16u) & 0xffu;
+        uint32_t a1 = (a >> 8u) & 0xffu;
+        uint32_t a0 = a & 0xffu;
         snprintf(buf, sizeof(buf), "%u.%u.%u.%u.in-addr.arpa", a0, a1, a2, a3);
         return buf;
     }
@@ -165,7 +165,7 @@ std::string IPAddr::PtrName() const {
             uint32_t a = ntohl(p[i]);
             for ( unsigned int j = 1; j <= 8; ++j ) {
                 ptr_name.insert(0, 1, '.');
-                ptr_name.insert(0, 1, hex_digit[(a >> (32 - j * 4)) & 0x0f]);
+                ptr_name.insert(0, 1, hex_digit[(a >> (32u - j * 4u)) & 0x0fu]);
             }
         }
 

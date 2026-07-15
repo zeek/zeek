@@ -298,8 +298,8 @@ void delete_each(T* t) {
 
 inline void bytetohex(unsigned char byte, char* hex_out) {
     static constexpr char hex_chars[] = "0123456789abcdef";
-    hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
-    hex_out[1] = hex_chars[byte & 0x0f];
+    hex_out[0] = hex_chars[(static_cast<unsigned int>(byte) & 0xf0u) >> 4u];
+    hex_out[1] = hex_chars[static_cast<unsigned int>(byte) & 0x0fu];
 }
 
 std::string get_unescaped_string(const std::string& str);

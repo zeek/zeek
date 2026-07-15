@@ -8,8 +8,8 @@
 
 namespace zeek::analyzer::tcp {
 
-constexpr int CR_as_EOL = 1;
-constexpr int LF_as_EOL = 2;
+constexpr unsigned int CR_as_EOL = 1;
+constexpr unsigned int LF_as_EOL = 2;
 
 // Slightly smaller than 16MB so that the buffer is not unnecessarily resized to 32M.
 constexpr auto DEFAULT_MAX_LINE_LENGTH = 16 * 1024 * 1024 - 100;
@@ -31,9 +31,9 @@ public:
     void SetSkipPartial(bool enable) { skip_partial = enable; }
 
     // If true, single CR / LF are considered as EOL. Default on for both.
-    void SetCRLFAsEOL(int crlf = (CR_as_EOL | LF_as_EOL)) { CR_LF_as_EOL = crlf; }
+    void SetCRLFAsEOL(unsigned int crlf = (CR_as_EOL | LF_as_EOL)) { CR_LF_as_EOL = crlf; }
 
-    int CRLFAsEOL() { return CR_LF_as_EOL; }
+    unsigned int CRLFAsEOL() { return CR_LF_as_EOL; }
 
     bool HasPartialLine() const;
 

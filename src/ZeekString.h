@@ -106,20 +106,19 @@ public:
 
     enum render_style : uint8_t {
         ESC_NONE = 0,
-        ESC_ESC = (1 << 1),  // '\' -> "\\"
-        ESC_QUOT = (1 << 2), // '"' -> "\"", ''' -> "\'"
-        ESC_HEX = (1 << 3),  // Not in [32, 126]? -> "\xXX"
-        ESC_DOT = (1 << 4),  // Not in [32, 126]? -> "."
+        ESC_ESC = (1u << 1u),  // '\' -> "\\"
+        ESC_QUOT = (1u << 2u), // '"' -> "\"", ''' -> "\'"
+        ESC_HEX = (1u << 3u),  // Not in [32, 126]? -> "\xXX"
+        ESC_DOT = (1u << 4u),  // Not in [32, 126]? -> "."
 
         // For serialization: '<string len> <string>'
-        ESC_SER = (1 << 7),
+        ESC_SER = (1u << 7u),
     };
 
-    static constexpr int EXPANDED_STRING = // the original style
-        ESC_HEX;
+    static constexpr int EXPANDED_STRING = static_cast<int>(ESC_HEX);
 
-    static constexpr int ZEEK_STRING_LITERAL = // as in a Zeek string literal
-        ESC_ESC | ESC_QUOT | ESC_HEX;
+    static constexpr int ZEEK_STRING_LITERAL = static_cast<int>(
+        static_cast<uint32_t>(ESC_ESC) | static_cast<uint32_t>(ESC_QUOT) | static_cast<uint32_t>(ESC_HEX));
 
     // Renders a string into a newly allocated character array that
     // you have to delete[].  You can combine the render styles given

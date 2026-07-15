@@ -17,7 +17,6 @@ Checks: [-*,
          # Skipping these temporarily because they are very noisy
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
-         -bugprone-signed-bitwise,
          -bugprone-unchecked-optional-access,
          -bugprone-unchecked-string-to-number-conversion,
          -modernize-use-integer-sign-comparison,

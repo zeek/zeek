@@ -151,9 +151,10 @@ public:
 
     inline bool FlagEvent(ConnEventToFlag e) {
         if ( e >= 0 && e < NUM_EVENTS_TO_FLAG ) {
-            if ( suppress_event & (1 << e) )
+            if ( static_cast<uint32_t>(suppress_event) & (1u << static_cast<unsigned int>(e)) )
                 return false;
-            suppress_event |= 1 << e;
+            suppress_event =
+                static_cast<int>(static_cast<uint32_t>(suppress_event) | (1u << static_cast<unsigned int>(e)));
         }
 
         return true;

@@ -33,7 +33,7 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    if ( (data[0] & 0x08) == 0 ) {
+    if ( (static_cast<uint32_t>(data[0]) & 0x08u) == 0 ) {
         AnalyzerViolation("VXLAN 'I' flag not set", packet->session, reinterpret_cast<const char*>(data), len);
         return false;
     }

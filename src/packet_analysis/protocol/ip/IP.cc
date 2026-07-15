@@ -282,7 +282,7 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
 
         const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(pkt);
         inner = std::make_shared<zeek::IP_Hdr>(ip6, false, caplen);
-        if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
+        if ( (static_cast<uint32_t>(ip6->ip6_ctlun.ip6_un2_vfc) & 0xF0u) != 0x60u )
             return ParseResult::BAD_PROTOCOL;
     }
 

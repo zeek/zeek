@@ -21,12 +21,12 @@ using byte_buffer = std::vector<u_char>;
 
 template<std::integral T>
 static inline T MSB(const T a) {
-    return ((a >> 8) & 0xff);
+    return static_cast<T>((static_cast<uint32_t>(a) >> 8u) & 0xffu);
 }
 
 template<std::integral T>
 static inline T LSB(const T a) {
-    return (a & 0xff);
+    return static_cast<T>(static_cast<uint32_t>(a) & 0xffu);
 }
 
 static byte_buffer fmt_seq(uint32_t num) {

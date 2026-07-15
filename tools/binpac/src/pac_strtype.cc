@@ -106,7 +106,7 @@ void StringType::ProcessAttr(Attr* a) {
     }
 }
 
-void StringType::Prepare(Env* env, int flags) {
+void StringType::Prepare(Env* env, unsigned int flags) {
     if ( (flags & TO_BE_PARSED) && StaticSize(env) < 0 ) {
         ID* string_length_var = new ID(strfmt("%s_string_length", value_var() ? value_var()->Name() : "val"));
         string_length_var_field_ = new TempVarField(string_length_var, extern_type_int->Clone());

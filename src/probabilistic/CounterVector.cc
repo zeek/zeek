@@ -32,8 +32,9 @@ bool CounterVector::Increment(size_type cell, count_type value) {
 
     for ( size_t i = 0; i < width; ++i ) {
         bool b1 = (*bits)[lsb + i];
-        bool b2 = value & (1 << i);
-        (*bits)[lsb + i] = b1 ^ b2 ^ carry;
+        bool b2 = value & (1u << i);
+        (*bits)[lsb + i] =
+            static_cast<bool>(static_cast<uint32_t>(b1) ^ static_cast<uint32_t>(b2) ^ static_cast<uint32_t>(carry));
         carry = (b1 && b2) || (carry && (b1 != b2));
     }
 
@@ -55,8 +56,9 @@ bool CounterVector::Decrement(size_type cell, count_type value) {
 
     for ( size_t i = 0; i < width; ++i ) {
         bool b1 = (*bits)[lsb + i];
-        bool b2 = value & (1 << i);
-        (*bits)[lsb + i] = b1 ^ b2 ^ carry;
+        bool b2 = value & (1u << i);
+        (*bits)[lsb + i] =
+            static_cast<bool>(static_cast<uint32_t>(b1) ^ static_cast<uint32_t>(b2) ^ static_cast<uint32_t>(carry));
         carry = (b1 && b2) || (carry && (b1 != b2));
     }
 
@@ -74,7 +76,7 @@ CounterVector::count_type CounterVector::Count(size_type cell) const {
     size_t order = 1;
     size_t lsb = cell * width;
 
-    for ( size_t i = lsb; i < lsb + width; ++i, order <<= 1 )
+    for ( size_t i = lsb; i < lsb + width; ++i, order <<= 1u )
         if ( (*bits)[i] )
             cnt |= order;
 
@@ -100,7 +102,8 @@ CounterVector& CounterVector::Merge(const CounterVector& other) {
         for ( size_t i = 0; i < width; ++i ) {
             bool b1 = (*bits)[lsb + i];
             bool b2 = (*other.bits)[lsb + i];
-            (*bits)[lsb + i] = b1 ^ b2 ^ carry;
+            (*bits)[lsb + i] =
+                static_cast<bool>(static_cast<uint32_t>(b1) ^ static_cast<uint32_t>(b2) ^ static_cast<uint32_t>(carry));
             carry = (b1 && b2) || (carry && (b1 != b2));
         }
 

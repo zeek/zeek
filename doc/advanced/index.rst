@@ -11,5 +11,6 @@ user.
 
    troubleshooting
    scripting/index
+   deployment/index
    devel/index
-   subcomponents 
+   subcomponents

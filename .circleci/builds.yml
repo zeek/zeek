@@ -277,6 +277,7 @@ jobs:
       ZEEK_TEST_ULIMIT_OPEN_FILES: 256
       ZEEK_CIRCLE_EXTRA_ENV: << parameters.extra_env >>
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
         auth:
@@ -325,16 +326,6 @@ jobs:
       - run:
           name: Build
           command: ci/build.sh
-      - run:
-          name: Show ccache statistics and prune
-          command: |
-            ccache --show-stats
-            CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
-      - save_cache:
-          name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /root/.ccache
       - when:
           condition: << parameters.enable_tests >>
           steps:
@@ -379,6 +370,16 @@ jobs:
             - run:
                 name: Run benchmarks
                 command: ci/benchmark.sh
+      - run:
+          name: Show ccache statistics and prune
+          command: |
+            ccache --show-stats
+            CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
 
   windows-build:
     environment:
@@ -392,6 +393,7 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       CTEST_OUTPUT_ON_FAILURE: 1
       VSINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\'
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     machine:
       image: windows-server-2025-gui:edge
     resource_class: windows.large
@@ -442,6 +444,16 @@ jobs:
           command: ci\windows\build.cmd
           shell: cmd.exe
       - run:
+          name: Test
+          command: ci\windows\test.cmd
+          shell: cmd.exe
+      - store_test_results:
+          name: Store btest results
+          path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
+      - run:
           name: Show ccache statistics and prune
           command: |
             ccache --show-stats
@@ -452,16 +464,6 @@ jobs:
           key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
           paths:
             - C:\ccache
-      - run:
-          name: Test
-          command: ci\windows\test.cmd
-          shell: cmd.exe
-      - store_test_results:
-          name: Store btest results
-          path: btest-results
-      - store_artifacts:
-          path: btest-results
-          destination: btest-results
 
   macos-build:
     parameters:
@@ -482,6 +484,7 @@ jobs:
       ZEEK_CI_BTEST_RETRIES: 2
       ZEEK_CI_RUNNER_OS: macos
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
+      HILTI_CXX_COMPILER_LAUNCER: ccache
     macos:
       xcode: << parameters.xcode_version >>
     resource_class: m4pro.medium
@@ -508,6 +511,15 @@ jobs:
           name: Build
           command: ci/build.sh
       - run:
+          name: Test
+          command: ci/test.sh
+      - store_test_results:
+          name: Store btest results
+          path: btest-results
+      - store_artifacts:
+          path: btest-results
+          destination: btest-results
+      - run:
           name: Show ccache statistics and prune
           command: |
             ccache --show-stats
@@ -517,15 +529,6 @@ jobs:
           key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/ccache
-      - run:
-          name: Test
-          command: ci/test.sh
-      - store_test_results:
-          name: Store btest results
-          path: btest-results
-      - store_artifacts:
-          path: btest-results
-          destination: btest-results
 
   release-image-build:
     parameters:
@@ -823,11 +826,6 @@ jobs:
       - run:
           name: Build
           command: cd auxil/zeekctl/testing && ./Scripts/build-zeek
-      - save_cache:
-          name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /root/.ccache
       - run:
           name: Test
           command: cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
@@ -835,6 +833,11 @@ jobs:
           path: auxil/zeekctl/testing/.tmp
           destination: test_output
           when: on_fail
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
 
   include-plugins-testing:
     parameters:
@@ -901,11 +904,6 @@ jobs:
       - run:
           name: Build
           command: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/protocol-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/py-lib-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/zeek-version-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-perf-support;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-more-hashes;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-cluster-backend-nats;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-kafka'" ./ci/build.sh
-      - save_cache:
-          name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /root/.ccache
       - run:
           name: Test
           command: cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
@@ -923,7 +921,11 @@ jobs:
           path: auxil/zeekctl/testing/.tmp
           destination: test_output
           when: on_fail
-
+      - save_cache:
+          name: Save ccache directory
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/.ccache
 
 # Workflow job filters control when a job runs based on the conditions passed. The
 # filters allow a job to run if the conditions in the filter are *true*, which seems

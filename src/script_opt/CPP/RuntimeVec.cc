@@ -98,7 +98,7 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt, bool is_bool
 VEC_OP1_WITH_DOUBLE(pos, +)
 VEC_OP1_WITH_DOUBLE(neg, -)
 VEC_OP1(not, !, )
-VEC_OP1(comp, ~, )
+VEC_OP1(comp, ~, ) // NOLINT(bugprone-signed-bitwise)
 
 // A kernel for applying a binary operation element-by-element to two
 // vectors of a given low-level type.

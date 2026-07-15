@@ -503,7 +503,7 @@ jobs:
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
-          path: ~/.ccache
+          path: /tmp/ccache
       - run:
           name: Build
           command: ci/build.sh
@@ -516,7 +516,7 @@ jobs:
           name: Save ccache directory
           key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
           paths:
-            - ~/.ccache
+            - /tmp/ccache
       - run:
           name: Test
           command: ci/test.sh

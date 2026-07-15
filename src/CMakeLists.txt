@@ -668,29 +668,28 @@ if (WIN32)
         PATTERN "*.h")
 endif ()
 
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION include/zeek
-    FILES_MATCHING
-    PATTERN "*.h"
-    PATTERN "*.pac"
-    PATTERN "3rdparty/*" EXCLUDE
-    # Prevent installing header files from submodules.
-    PATTERN "cluster/backend/zeromq/auxil/*" EXCLUDE
-    PATTERN "cluster/websocket/auxil/*" EXCLUDE
-    PATTERN "iosource/pcapng/auxil/*" EXCLUDE
-    # Headers used only during build
-    PATTERN "threading/formatters/detail" EXCLUDE
-    # The "zeek -> ." symlink isn't needed in the install-tree
-    REGEX "${escaped_include_path}$" EXCLUDE
-    # FILES_MATCHING creates empty directories:
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/17122 Exclude the ones that
-    # this affects explicitly.
-    PATTERN "script_opt/CPP/maint" EXCLUDE
-    PATTERN "script_opt/ZAM/maint" EXCLUDE
-    PATTERN "script_opt/ZAM/OPs" EXCLUDE
-    PATTERN "fuzzers/corpora" EXCLUDE)
+# Find all header to install in the source tree.
+file(GLOB_RECURSE header_files ${CMAKE_CURRENT_SOURCE_DIR}/ RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/
+     *.h *.pac)
 
+# Post-process globbed headers to remove what we do not
+# want to install.
+list(FILTER header_files EXCLUDE REGEX ^3rdparty)
+list(FILTER header_files EXCLUDE REGEX ^threading/formatters/detail)
+list(FILTER header_files EXCLUDE REGEX ^iosource/pcapng/auxil)
+list(FILTER header_files EXCLUDE REGEX ^cluster/websocket/auxil)
+list(FILTER header_files EXCLUDE REGEX ^cluster/backend/zeromq/auxil)
+
+foreach (header_file ${header_files})
+    get_filename_component(header_dir "${header_file}" DIRECTORY)
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${header_file}"
+            DESTINATION "include/zeek/${header_dir}")
+endforeach ()
+
+# This cannot use file(GLOB_RECURSE, ...) because it needs the
+# build artifacts and globbing would run at configure time instead.
+# Maybe with install(CODE, but not sure that's worth it, the below
+# seems to work.
 install(
     DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     DESTINATION include/zeek

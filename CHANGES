@@ -1,3 +1,21 @@
+9.0.0-dev.650 | 2026-07-15 09:27:40 +0200
+
+  * CCI: Fix relative ccache dir used in OSX (Arne Welzel, Corelight)
+
+    The tilde isn't expanded and so ccache was putting cache files into a tilde
+    directory into the current directory. This showed in the new include-dir
+    test because it contained a bunch of files with a literal ~/.ccache in them.
+
+  * src/CMakeLists: Replace header installation with file(GLOB_RECURSE) (Arne Welzel, Corelight)
+
+    The install( with FILES_MATCHING creates an empty directory structure
+    even if there were not .h or .pac files found. Switch to explicit
+    GLOB_RECURSE. This allows to trim the filtering to only those
+    directories that actually contain header files. Update the include
+    directory baseline to reflect the updates.
+
+  * btest/coverage: Add btest for installation include dir (Arne Welzel, Corelight)
+
 9.0.0-dev.646 | 2026-07-14 08:40:46 -0700
 
   * Upgrade vcpkg submodule to commit including c-ares v1.34.8 (Tim Wojtulewicz, Corelight)

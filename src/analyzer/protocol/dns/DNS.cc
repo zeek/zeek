@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+// NOLINTBEGIN(bugprone-signed-bitwise)
+
 #include "zeek/analyzer/protocol/dns/DNS.h"
 
 #include <arpa/inet.h>
@@ -2397,3 +2399,5 @@ void DNS_Analyzer::ExpireTimer(double t) {
 }
 
 } // namespace zeek::analyzer::dns
+
+// NOLINTEND(bugprone-signed-bitwise)

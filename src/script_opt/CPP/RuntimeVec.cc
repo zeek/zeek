@@ -180,13 +180,13 @@ VEC_OP2_WITH_DOUBLE(sub, -, 0)
 VEC_OP2_WITH_DOUBLE(mul, *, 0)
 VEC_OP2_WITH_DOUBLE(div, /, 1)
 VEC_OP2_WITH_INT(mod, %, , 1)
-VEC_OP2_WITH_INT(and, &, , 0)
-VEC_OP2_WITH_INT(or, |, , 0)
-VEC_OP2_WITH_INT(xor, ^, , 0)
+VEC_OP2_WITH_INT(and, &, , 0) // NOLINT(bugprone-signed-bitwise)
+VEC_OP2_WITH_INT(or, |, , 0)  // NOLINT(bugprone-signed-bitwise)
+VEC_OP2_WITH_INT(xor, ^, , 0) // NOLINT(bugprone-signed-bitwise)
 VEC_OP2_WITH_BOOL(andand, &&, 0)
 VEC_OP2_WITH_BOOL(oror, ||, 0)
-VEC_OP2_WITH_INT(lshift, <<, , 0)
-VEC_OP2_WITH_INT(rshift, >>, , 0)
+VEC_OP2_WITH_INT(lshift, <<, , 0) // NOLINT(bugprone-signed-bitwise)
+VEC_OP2_WITH_INT(rshift, >>, , 0) // NOLINT(bugprone-signed-bitwise)
 
 // A version of VEC_OP2 that instead supports relational operations, so
 // the result type is always vector-of-bool.

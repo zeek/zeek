@@ -987,17 +987,18 @@ void ZeroMQBackend::Run() {
             for ( size_t i = 0; i < poll_items.size(); i++ ) {
                 const auto& item = poll_items[i];
                 ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: items[%lu]=%s %s %s\n", i, sockets[i].name.c_str(),
-                                           item.revents & ZMQ_POLLIN ? "pollin " : "",
-                                           item.revents & ZMQ_POLLERR ? "err" : "");
+                                           item.revents & ZMQ_POLLIN ? "pollin " : // NOLINT(bugprone-signed-bitwise)
+                                                                       "",
+                                           item.revents & ZMQ_POLLERR ? "err" : ""); // NOLINT(bugprone-signed-bitwise)
 
-                if ( item.revents & ZMQ_POLLERR ) {
+                if ( item.revents & ZMQ_POLLERR ) { // NOLINT(bugprone-signed-bitwise)
                     // What should we be doing? Re-open sockets? Terminate?
                     ZEROMQ_THREAD_PRINTF("poll: error: POLLERR on socket %zu %s %p revents=%x\n", i,
                                          sockets[i].name.c_str(), item.socket, item.revents);
                 }
 
                 // Nothing to do?
-                if ( (item.revents & ZMQ_POLLIN) == 0 )
+                if ( (item.revents & ZMQ_POLLIN) == 0 ) // NOLINT(bugprone-signed-bitwise)
                     continue;
 
                 bool consumed_one = false;

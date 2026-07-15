@@ -2406,9 +2406,10 @@ void ZAMGen::InitEmitTargets() {
 
     // Avoid bugprone-branch-clone warnings from clang-tidy in generated code.
     Emit(OpName, "// NOLINTBEGIN(bugprone-branch-clone)");
-    Emit(Eval, "// NOLINTBEGIN(bugprone-branch-clone)");
-    Emit(EvalMacros, "// NOLINTBEGIN(bugprone-macro-parentheses)");
-    Emit(EvalMacros, "// NOLINTBEGIN(cppcoreguidelines-macro-usage)");
+    Emit(Eval, "// NOLINTBEGIN(bugprone-branch-clone,bugprone-signed-bitwise)");
+    Emit(EvalMacros,
+         "// NOLINTBEGIN(cppcoreguidelines-macro-usage,bugprone-macro-parentheses,bugprone-signed-bitwise)");
+    Emit(Vec2Eval, "// NOLINTBEGIN(bugprone-signed-bitwise)");
 
     InitSwitch(C1Def, "C1 assignment");
     InitSwitch(C2Def, "C2 assignment");
@@ -2432,9 +2433,9 @@ void ZAMGen::CloseEmitTargets() {
     GenInverseMappings();
 
     Emit(OpName, "// NOLINTEND(bugprone-branch-clone)");
-    Emit(Eval, "// NOLINTEND(bugprone-branch-clone)");
-    Emit(EvalMacros, "// NOLINTEND(cppcoreguidelines-macro-usage)");
-    Emit(EvalMacros, "// NOLINTEND(bugprone-macro-parentheses)");
+    Emit(Eval, "// NOLINTEND(bugprone-branch-clone,bugprone-signed-bitwise)");
+    Emit(EvalMacros, "// NOLINTEND(cppcoreguidelines-macro-usage,bugprone-macro-parentheses,bugprone-signed-bitwise)");
+    Emit(Vec2Eval, "// NOLINTEND(bugprone-signed-bitwise)");
 
     for ( auto& gf : gen_files )
         fclose(gf.second);

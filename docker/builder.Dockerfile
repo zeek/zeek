@@ -22,13 +22,13 @@ RUN apt-get -q update \
      bison \
      ccache \
      cmake \
-     cppzmq-dev \
+    cppzmq-dev \
      flex \
      g++ \
      gcc \
-     git \
+    git \
      libfl2 \
-     libfl-dev \
+    libfl-dev \
      libmaxminddb-dev \
      libpcap-dev \
      libssl-dev \
@@ -39,7 +39,12 @@ RUN apt-get -q update \
      python3-dev \
      swig \
      ninja-build \
-     python3-pip \
+    python3-pip \
+    # These packages are needed for the node build
+    curl \
+    libcares2 \
+    libicu76 \
+    libicu-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -47,11 +52,36 @@ RUN apt-get -q update \
 # the Node packages included with Debian package a very old version of Node.
 # We want something newer in the image. The options passed to configure mirror
 # the ones that Debian passes to build the libnode-dev package.
-RUN NODE_VERSION=$(curl -s https://nodejs.org/dist/index.json | grep -Eo '"version":"v24\.[0-9]+\.[0-9]+"' | head -1 | cut -d'"' -f4)
- && curl -O https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}.tar.xz
- && tar -xzf node-${NODE_VERSION}.tar.gz
- && (cd node-${NODE_VERSION} && ./configure --shared --without-npm --use-openssl-ca --prefix/usr && make -j install )
- && rm -rf node-${NODE_VERSION}
+RUN NODE_VERSION=$(curl -s https://nodejs.org/dist/index.json | grep -Eo '"version":"v24\.[0-9]+\.[0-9]+"' | head -1 | cut -d'"' -f4) \
+ && curl -O https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}.tar.gz \
+ && tar -xzf node-${NODE_VERSION}.tar.gz \
+ && (cd node-${NODE_VERSION} && ./configure \
+         --verbose \
+         --without-npm \
+         --without-corepack \
+         --without-amaro \
+         --shared \
+         --shared-zlib \
+         # --shared-zstd \
+         # --shared-cares \
+         # --shared-http-parser \
+         # --shared-ngtcp2 \
+         # --shared-nghttp3 \
+         # --shared-nghttp2 \
+         # --shared-brotli \
+         # --shared-simdjson \
+         # --shared-sqlite \
+         # --shared-simdutf \
+         # --shared-builtin-undici/undici-path=/usr/share/nodejs/undici/undici-fetch.js \
+         # --shared-builtin-acorn-path=/usr/share/nodejs/acorn/dist/acorn.js \
+         # --shared-builtin-acorn_walk-path=/usr/share/nodejs/acorn-walk/dist/walk.js \
+         --shared-openssl \
+         --openssl-use-def-ca-store \
+         --with-intl=system-icu \
+         --prefix=/usr \
+         --dest-os=linux) \
+ && (cd node-${NODE_VERSION} && make -j install) \
+ && rm -rf node-${NODE_VERSION} \
  && rm node-${NODE_VERSION}.tar.gz
 
 # Tell git all the repositories are safe.

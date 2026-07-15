@@ -1,3 +1,23 @@
+8.2.1-9 | 2026-08-11 11:10:14 -0700
+
+  * CCI: Only prune and upload ccache once all tasks are done
+
+    We previously would prune the ccache state right after building Zeek.
+    This made it impossible to e.g., cache any compiler invocation happening
+    during testing, so this patch moves the steps to the very end.
+
+    (cherry picked from commit 707113e6bca2f420262d7833f65ef4afd852e938)
+
+  * CCI: Enable C++ compilation caching for Spicy artifacts
+
+    During the migration to CircleCI the caching of C++ compilation during
+    compilation of Spicy files via `HILTI_CXX_COMPILER_LAUNCER` seems to
+    have been lost. This patch adds it back.
+
+    (cherry picked from commit 707113e6bca2f420262d7833f65ef4afd852e938)
+
+  * Update NEWS for 8.2.2 [nomail] (Tim Wojtulewicz, Corelight)
+
 8.2.1-7 | 2026-08-11 10:46:24 -0700
 
   * UnknownIPTransport: Drop htons() on ip_hdr->NextProto() (Arne Welzel, Corelight)

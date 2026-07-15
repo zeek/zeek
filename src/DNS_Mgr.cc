@@ -126,7 +126,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
         // we're using the AF_UNSPEC family, we get both the ipv4 and ipv6 responses
         // back in the same request if use ares_getaddrinfo() so we can store them both
         // in the same mapping.
-        ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0};
+        ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0}; // NOLINT(bugprone-signed-bitwise)
         ares_getaddrinfo(channel, host.c_str(), nullptr, &hints, addrinfo_cb, req_data.release());
     }
     else {

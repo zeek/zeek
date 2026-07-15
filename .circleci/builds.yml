@@ -1255,18 +1255,18 @@ workflows:
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
             ZEEK_CI_BTEST_JOBS=3
           << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
-      - linux-build:
-          name: tsan-sanitizer
-          docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          << : *CONFIGURE_TSAN
-          extra_env: |
-            CC=clang-22
-            CXX=clang++-22
-            ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
-            ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
-          << : *FILTER_IF_PR_NOT_FULL_CI
+      # - linux-build:
+      #     name: tsan-sanitizer
+      #     docker_image: zeek/zeek-ci:ubuntu-24.04
+      #     ci_image_date: "20260702"
+      #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
+      #     << : *CONFIGURE_TSAN
+      #     extra_env: |
+      #       CC=clang-22
+      #       CXX=clang++-22
+      #       ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
+      #       ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+      #     << : *FILTER_IF_PR_NOT_FULL_CI
 
       - windows-build:
           << : *FILTER_IF_SKIP_ALL

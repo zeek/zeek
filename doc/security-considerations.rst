@@ -60,3 +60,10 @@ The following lists steps you can take to protect your Zeek cluster.
   systemd's `built-in capabilities management
   <https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#AmbientCapabilities=>`_
   to apply them.
+
+* Zeek logs often contain sensitive operational information, including internal
+  hostnames, URLs, protocol metadata, and other network‑derived information.
+  Ensure that both the log directory and the individual log files are not
+  world‑readable or writable, and restrict access to authorized users and
+  processes. Misconfigured permissions can expose sensitive network information
+  and undermine the confidentiality of security logs.

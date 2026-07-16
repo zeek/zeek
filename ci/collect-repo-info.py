@@ -70,7 +70,7 @@ def git_generic_info(d: pathlib.Path):
     try:
         info["describe"] = git("-C", str(d), "describe", "--tags").strip()
     except subprocess.CalledProcessError:
-        if "CIRRUS_CI" not in os.environ:
+        if "ZEEK_CI" not in os.environ:
             logger.warning("Could not git describe %s", d)
 
     return info

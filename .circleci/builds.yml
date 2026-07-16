@@ -174,9 +174,6 @@ jobs:
             docker buildx create --use --name multiarch-builder --driver docker-container
             docker buildx inspect --bootstrap
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
-      - run:
           name: Check if image exists remotely
           command: |
             # set +e prevents this script from exiting immediately if one of the commands fails.
@@ -202,6 +199,15 @@ jobs:
                  echo "$FULL_IMAGE_TAG is missing, continuing with build"
                fi
             fi
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            if [ -z "${DOCKER_LOGIN}" -o -z "${DOCKER_PASSWORD}" ]; then
+               echo "User doesn't have access to Docker credentials, later builds will fail"
+               circleci-agent step halt
+            fi
+
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
       - run:
           name: Build and push multi-arch image
           command: |
@@ -1004,40 +1010,52 @@ workflows:
       - create-build-image:
           name: build-image-alpine
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-centos-stream-9
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-centos-stream-10
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-debian-12
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-debian-13
           build_arm: true
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-fedora-43
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-fedora-44
           << : *FILTER_IF_SKIP_ALL
+          context: zeek
       - create-build-image:
           name: build-image-opensuse-leap-16.0
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-opensuse-tumbleweed
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-ubuntu-22.04
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
       - create-build-image:
           name: build-image-ubuntu-24.04
           << : *FILTER_IF_SKIP_ALL
+          context: zeek
       - create-build-image:
           name: build-image-ubuntu-26.04
           << : *FILTER_IF_PR_NOT_FULL_CI
+          context: zeek
 
       - macos-build:
           name: macOS-xcode-26.5
@@ -1052,78 +1070,106 @@ workflows:
       - linux-build:
           name: alpine
           docker_image: zeek/zeek-ci:alpine
-          requires: [fetch-test-traces, build-image-alpine]
+          requires:
+            - fetch-test-traces
+            - build-image-alpine: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-9
           docker_image: zeek/zeek-ci:centos-stream-9
-          requires: [fetch-test-traces, build-image-centos-stream-9]
+          requires:
+            - fetch-test-traces
+            - build-image-centos-stream-9: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-10
           docker_image: zeek/zeek-ci:centos-stream-10
-          requires: [fetch-test-traces, build-image-centos-stream-10]
+          requires:
+            - fetch-test-traces
+            - build-image-centos-stream-10: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
           ci_image_date: "20260708"
-          requires: [fetch-test-traces, build-image-debian-12]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-12: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13
           docker_image: zeek/zeek-ci:debian-13
-          requires: [fetch-test-traces, build-image-debian-13]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-13: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-arm
           docker_image: zeek/zeek-ci:debian-13
           resource_class: arm.large
-          requires: [fetch-test-traces, build-image-debian-13]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-13: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-binary
           docker_image: zeek/zeek-ci:debian-13
           << : *CONFIGURE_BINARY_BUILD
-          requires: [fetch-test-traces, build-image-debian-13]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-13: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-static
           docker_image: zeek/zeek-ci:debian-13
           << : *CONFIGURE_STATIC_BUILD
-          requires: [fetch-test-traces, build-image-debian-13]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-13: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-43
           docker_image: zeek/zeek-ci:fedora-43
-          requires: [fetch-test-traces, build-image-fedora-43]
+          requires:
+            - fetch-test-traces
+            - build-image-fedora-43: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-44
           docker_image: zeek/zeek-ci:fedora-44
           << : *CONFIGURE_BINARY_BUILD
-          requires: [fetch-test-traces, build-image-fedora-44]
+          requires:
+            - fetch-test-traces
+            - build-image-fedora-44: [success, unauthorized]
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: opensuse-leap-16.0
           docker_image: zeek/zeek-ci:opensuse-leap-16.0
-          requires: [fetch-test-traces, build-image-opensuse-leap-16.0]
+          requires:
+            - fetch-test-traces
+            - build-image-opensuse-leap-16.0: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: opensuse-tumbleweed
           docker_image: zeek/zeek-ci:opensuse-tumbleweed
-          requires: [fetch-test-traces, build-image-opensuse-tumbleweed]
+          requires:
+            - fetch-test-traces
+            - build-image-opensuse-tumbleweed: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-22.04
           docker_image: zeek/zeek-ci:ubuntu-22.04
-          requires: [fetch-test-traces, build-image-ubuntu-22.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-22.04: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           store_install_tarball: true
           enable_benchmarks: true
           context:
@@ -1133,7 +1179,9 @@ workflows:
           name: ubuntu-24.04-clang-libcpp
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           extra_env: |
             CC="clang-22"
             CXX="clang++-22"
@@ -1145,7 +1193,9 @@ workflows:
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
           << : *CONFIGURE_CLANG_TIDY
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           extra_env: |
             CC="clang-22"
             CXX="clang++-22"
@@ -1156,7 +1206,9 @@ workflows:
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
           << : *CONFIGURE_SPICY_SSL
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
@@ -1167,7 +1219,9 @@ workflows:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
@@ -1180,7 +1234,9 @@ workflows:
           name: ubuntu-24.04-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           extra_env: |
             ZEEK_CI_SKIP_UNIT_TESTS=1
             ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
@@ -1190,7 +1246,9 @@ workflows:
       - linux-build:
           name: ubuntu-26.04
           docker_image: zeek/zeek-ci:ubuntu-26.04
-          requires: [fetch-test-traces, build-image-ubuntu-26.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-26.04: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: asan-sanitizer
@@ -1217,7 +1275,9 @@ workflows:
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
           cpu_count: 8
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG
             ASAN_OPTIONS=detect_leaks=1:detect_odr_violation=0
@@ -1229,7 +1289,9 @@ workflows:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           << : *CONFIGURE_UBSAN
           extra_env: |
             CC=clang-22
@@ -1242,7 +1304,9 @@ workflows:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
           ci_image_date: "20260702"
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          requires:
+            - fetch-test-traces
+            - build-image-ubuntu-24.04: [success, unauthorized]
           << : *CONFIGURE_UBSAN
           extra_env: |
             CC=clang-22
@@ -1259,7 +1323,11 @@ workflows:
       #     name: tsan-sanitizer
       #     docker_image: zeek/zeek-ci:ubuntu-24.04
       #     ci_image_date: "20260702"
-      #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
+      #     requires:
+      #       - fetch-test-traces
+      #       - build-image-ubuntu-24.04:
+      #           - success
+      #           - unauthorized
       #     << : *CONFIGURE_TSAN
       #     extra_env: |
       #       CC=clang-22
@@ -1297,12 +1365,14 @@ workflows:
       - zeekctl-testing:
           docker_image: zeek/zeek-ci:debian-12
           ci_image_date: "20260708"
-          requires: [build-image-debian-12]
+          requires:
+            - build-image-debian-12: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
 
       - include-plugins-testing:
           docker_image: zeek/zeek-ci:debian-13
-          requires: [build-image-debian-13]
+          requires:
+            - build-image-debian-13: [success, unauthorized]
           << : *FILTER_IF_PR_NOT_FULL_CI
 
   weekly_compiler_builds:
@@ -1316,7 +1386,9 @@ workflows:
           name: latest-gcc-version
           docker_image: zeek/zeek-ci:debian-unstable
           install_latest_compiler: true
-          requires: [fetch-test-traces, build-image-debian-unstable]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-unstable: [success, unauthorized]
           extra_env: |
             ZEEK_CI_COMPILER=gcc
 
@@ -1324,6 +1396,8 @@ workflows:
           name: latest-clang-version
           docker_image: zeek/zeek-ci:debian-unstable
           install_latest_compiler: true
-          requires: [fetch-test-traces, build-image-debian-unstable]
+          requires:
+            - fetch-test-traces
+            - build-image-debian-unstable: [success, unauthorized]
           extra_env: |
             ZEEK_CI_COMPILER=clang

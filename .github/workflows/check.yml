@@ -329,22 +329,22 @@ jobs:
             ./ci/build.sh
             ./ci/test.sh
 
-        - id: tsan-sanitizer
-          file: ci/ubuntu-24.04/Dockerfile
-          env:
-            CC: clang-22
-            CXX: clang++-22
-            ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror'
-            ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
-            ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
-            # If this is defined directly in the environment, configure fails to find
-            # OpenSSL. Instead we define it with a different name and then give it
-            # the correct name in the testing scripts.
-            ZEEK_TSAN_OPTIONS: suppressions=/home/runner/work/zeek/zeek/ci/tsan_suppressions.txt
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
+        # - id: tsan-sanitizer
+        #   file: ci/ubuntu-24.04/Dockerfile
+        #   env:
+        #     CC: clang-22
+        #     CXX: clang++-22
+        #     ZEEK_CI_CONFIGURE_FLAGS: '--build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror'
+        #     ZEEK_CI_CONFIGURE_FLAGS_EXTRA: --disable-javascript
+        #     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+        #     # If this is defined directly in the environment, configure fails to find
+        #     # OpenSSL. Instead we define it with a different name and then give it
+        #     # the correct name in the testing scripts.
+        #     ZEEK_TSAN_OPTIONS: suppressions=/home/runner/work/zeek/zeek/ci/tsan_suppressions.txt
+        #   run: |
+        #     ./ci/pre-build.sh
+        #     ./ci/build.sh
+        #     ./ci/test.sh
 
         - id: zeekctl-debian13
           file: ci/debian-13/Dockerfile

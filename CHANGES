@@ -1,3 +1,18 @@
+9.0.0-dev.664 | 2026-07-16 09:10:17 -0700
+
+  * CI: Disable tsan builds temporarily (Tim Wojtulewicz, Corelight)
+
+  * Drop support for Spicy before v1.14 (Benjamin Bannier, Corelight)
+
+    The currently maintained LTS version of spicy is v1.14, so drop support
+    for older versions. We never properly test this support anyway, so
+    reducing our expose can only help.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    This requires slight adjustments to a Spicy change to its `atoi_n`
+    function.
+
 9.0.0-dev.659 | 2026-07-15 19:40:53 +0200
 
   * Bump zeek-packet-source-udp to v0.2.0 (Arne Welzel, Corelight)

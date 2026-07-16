@@ -1,5 +1,10 @@
 # @TEST-EXEC: zeek -b -C -r $TRACES/ncp.pcap %INPUT NCP::max_frame_size=150 >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff-cut -m uid service history conn.log
+# @TEST-EXEC: btest-diff-cut -m weird.log
+
+@load base/protocols/conn
+@load base/frameworks/notice/weird
 
 redef likely_server_ports += { 524/tcp };
 

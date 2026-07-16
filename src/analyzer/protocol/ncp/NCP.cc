@@ -181,6 +181,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
         else {
             // The rest of the data available in this delivery will
             // be discarded and will need to resync to a new frame header.
+            Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
             Weird("ncp_large_frame");
             buffer.Reset();
             resync = true;

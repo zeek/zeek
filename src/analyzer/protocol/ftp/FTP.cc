@@ -103,8 +103,10 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             // If the FTP command is unusually long, log a weird if the analyzer
             // has previously been confirmed, but otherwise just ignore the whole
             // line and move on to the next.
-            if ( AnalyzerConfirmed() )
+            if ( AnalyzerConfirmed() ) {
+                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
                 Weird("FTP_max_command_length_exceeded", util::fmt("%d", cmd_len));
+            }
 
             return;
         }

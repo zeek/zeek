@@ -1095,6 +1095,7 @@ void MIME_Entity::BeginChildEntity() {
     // current entity.
     if ( zeek::BifConst::MIME::max_depth > 0 && Depth() >= zeek::BifConst::MIME::max_depth ) {
         if ( message->GetAnalyzer() ) {
+            message->GetAnalyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
             const char* addl = zeek::util::fmt("%" PRIu64, Depth());
             message->GetAnalyzer()->Weird("exceeded_mime_max_depth", addl);
         }

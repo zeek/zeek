@@ -100,6 +100,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // There is a great deal of non-DNS traffic that runs on port 53.
     // This should weed out most of it.
     if ( zeek::detail::dns_max_queries > 0 && msg.qd_zo_count > zeek::detail::dns_max_queries ) {
+        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
         analyzer->AnalyzerViolation("DNS_Conn_count_too_large");
         analyzer->Weird("DNS_Conn_count_too_large");
         EndMessage(&msg);
@@ -469,6 +470,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name, int name_len, const u_char* msg_start,
                                      bool downcase, int compression_depth) {
     if ( compression_depth > zeek::detail::dns_max_compression_chain_depth ) {
+        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
         analyzer->Weird("DNS_max_compression_chain_depth_exceeded");
         return name;
     }

@@ -206,6 +206,18 @@ Changed Functionality
   were not valid. To revert to the previous behavior:
   ``redef DNS::multicast_subnets = {};``
 
+- The ``bifcl`` compiler can now split the generated functions into a shim with
+  the traditional calling sequence, and a new native function that takes and
+  returns C++ values. The shim does standard checking on the ``Args`` vector,
+  converts its ``ValPtr`` objects to C++ values (as before), calls the native
+  function, and converts its return value back to a ``ValPtr``. This simplifies
+  writing BiFs and allows script optimization to directly call the native
+  functions without going through the shim.
+
+  This change is not backward-compatible, so ``bifcl`` only makes the split for
+  source files that include a ``%gen-native`` directive. All ``.bif`` files in
+  the Zeek tree do so and have been converted to the native format.
+
 Deprecated Functionality
 ------------------------
 

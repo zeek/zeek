@@ -113,9 +113,6 @@ jobs:
       - restore_cache:
           keys:
             - zeek-traces-v2
-      - add_ssh_keys:
-          fingerprints:
-            - SHA256:2YMeLODDB2fIteBZeIM6/4+OXfH1JFpURAMemyU78EY
       - run:
           name: Initializing external testing repos
           command: ci/init-external-repos.sh

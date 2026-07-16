@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include <string>
 #include <utility>
@@ -55,18 +57,16 @@ function Cluster::make_event%(...%): Cluster::Event
 
 function Cluster::__subscribe%(topic_prefix: string%): bool
 	%{
-	ScriptLocationScope scope{frame};
+	ScriptLocationScope scope{@FRAME@};
 
-	auto rval = zeek::cluster::backend->Subscribe(topic_prefix->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::cluster::backend->Subscribe(topic_prefix->CheckString());
 	%}
 
 function Cluster::__unsubscribe%(topic_prefix: string%): bool
 	%{
-	ScriptLocationScope scope{frame};
+	ScriptLocationScope scope{@FRAME@};
 
-	auto rval = zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
 	%}
 
 ## Initialize the global cluster backend.
@@ -74,8 +74,7 @@ function Cluster::__unsubscribe%(topic_prefix: string%): bool
 ## Returns: true on success.
 function Cluster::Backend::__init%(nid: string%): bool
 	%{
-	auto rval = zeek::cluster::backend->Init(nid->ToStdString());
-	return zeek::val_mgr->Bool(rval);
+	return zeek::cluster::backend->Init(nid->ToStdString());
 	%}
 
 type Cluster::Pool: record;
@@ -104,14 +103,14 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! is_cluster_pool(pool) )
 		{
 		zeek::emit_builtin_error("expected type Cluster::Pool for pool");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return zeek::val_mgr->False();
+		return false;
 
 	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
 	return publish_event(topic, args);
@@ -141,14 +140,14 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! is_cluster_pool(pool) )
 		{
 		zeek::emit_builtin_error("expected type Cluster::Pool for pool");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
 	auto topic = topic_func->Invoke(&vl);
 
 	if ( ! topic->AsString()->Len() )
-		return zeek::val_mgr->False();
+		return false;
 
 	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
 
@@ -165,7 +164,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 
 	if ( options->GetType() != server_options_type ) {
 		zeek::emit_builtin_error("expected type Cluster::WebSocketServerOptions for options");
-		return zeek::val_mgr->False();
+		return false;
 	}
 
 	auto options_rec = zeek::IntrusivePtr<zeek::RecordVal>{zeek::NewRef{}, options->AsRecordVal()};
@@ -173,7 +172,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 
 	if ( tls_options_rec->GetType() != tls_options_type ) {
 		zeek::emit_builtin_error("expected type Cluster::WebSocketTLSOptions for tls_options");
-		return zeek::val_mgr->False();
+		return false;
 	}
 
 	bool have_cert = tls_options_rec->HasField("cert_file");
@@ -186,7 +185,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		else
 			error += "No cert_file field";
 		zeek::emit_builtin_error(error.c_str());
-		return zeek::val_mgr->False();
+		return false;
 	}
 
 	struct TLSOptions tls_options = {
@@ -203,13 +202,13 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	if ( options_rec->HasField("listen_host") ) {
 		if ( options_rec->HasField("listen_addr") ) {
 			zeek::emit_builtin_error("cannot use both listen_addr and listen_host");
-			return zeek::val_mgr->False();
+			return false;
 		}
 
 		auto host = options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString();
 		if ( ! zeek::IPAddr::IsValid(host.c_str()) ) {
 			zeek::emit_builtin_error("invalid listen_host");
-			return zeek::val_mgr->False();
+			return false;
 		}
 
 		listen_addr = std::move(host);
@@ -218,7 +217,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		listen_addr = options_rec->GetField<zeek::AddrVal>("listen_addr")->AsAddr().AsString();
 	} else {
 		zeek::emit_builtin_error("missing listen_host field");
-		return zeek::val_mgr->False();
+		return false;
 	}
 
 	struct ServerOptions server_options{
@@ -236,8 +235,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 
 	server_options.tls_options = std::move(tls_options);
 
-	auto result = zeek::cluster::manager->ListenWebSocket(server_options);
-	return zeek::val_mgr->Bool(result);
+	return zeek::cluster::manager->ListenWebSocket(server_options);
 	%}
 
 module Cluster::Backend;

@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Functions related to synchronous storage operations.
 
 %%{

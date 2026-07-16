@@ -1,8 +1,10 @@
 %{
 #include <cinttypes>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <vector>
 #include <set>
 #include <string>
@@ -111,7 +113,7 @@ void set_decl_name(const char* name) {
         case EVENT_DEF:
             decl.c_namespace_start = "";
             decl.c_namespace_end = "";
-            decl.c_fullname = "::"; // need this for namespace qualified events due do event_c_body
+            decl.c_fullname = "::"; // need this for namespace qualified events due to event_c_body
             decl.enqueue_c_namespace_start = "BifEvent";
             decl.enqueue_c_fullname = "zeek::BifEvent::";
             break;
@@ -152,35 +154,229 @@ const char* arg_list_name = "BiF_ARGS";
 
 #include "bif_arg.h"
 
-/* Map bif/zeek type names to C types for use in const declaration */
-static struct {
-	const char* bif_type;
-	const char* zeek_type;
-	const char* c_type;
-	const char* c_type_smart;
-	const char* accessor;
-	const char* accessor_smart;
-	const char* cast_smart;
-	const char* constructor;
-	const char* ctor_smatr;
-} builtin_types[] = {
-// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
-	{bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
-#include "bif_type.def"
-#undef DEFINE_BIF_TYPE
-};
+int var_arg; // whether the number of arguments is variable
+bool uses_frame; // whether the body references @FRAME@
+bool uses_args_token; // whether the body references @ARG@/@ARGS@/@ARGC@
+std::vector<BuiltinFuncArg*> args;
 
-int get_type_index(const char* type_name) {
-    for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i ) {
-        if ( strcmp(builtin_types[i].bif_type, type_name) == 0 )
-            return i;
-    }
-    return TYPE_OTHER;
+// Set when the input file contains a top-level "%gen-native" directive.
+// When false (the default), every BiF gets the legacy single-function
+// emission, preserving backward compatibility for .bif files that haven't
+// been adapted to return native types.
+bool gen_native = false;
+
+// The current BiF's return type (nullptr for void). We use this so
+// the native version of the BiF can return a native type; the wrapper
+// version then converts that to a ValPtr.
+std::unique_ptr<BuiltinFuncArg> return_type_arg;
+
+// While parsing a func body we accumulate captured C++ into body_buf,
+// enabling us to both the native version and the ValPtr shim version
+// (or just the latter for legacy .bif files).
+bool in_func_body = false;
+std::string body_buf;
+
+void emit_body(const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vappendf(body_buf, fmt, ap);
+    va_end(ap);
 }
 
-int var_arg; // whether the number of arguments is variable
-std::vector<BuiltinFuncArg*> args;
+void emit_body_line_directive() {
+    appendf(body_buf, "\n#line %d \"%s\"\n", line_number, input_filename_with_path);
+}
+
+// Route output to body_buf when we're parsing a func body, otherwise straight
+// to fp_func_def.
+void emit_def(const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    if ( in_func_body )
+        vappendf(body_buf, fmt, ap);
+    else
+        vfprintf(fp_func_def, fmt, ap);
+    va_end(ap);
+}
+
+void emit_def_line_directive() {
+    if ( in_func_body )
+        emit_body_line_directive();
+    else
+        print_line_directive(fp_func_def);
+}
+
+// Snapshot of decl state captured at head_1, for use when we materialize
+// the function definition at body_end.
+struct func_emit_state {
+    std::string c_namespace_start;
+    std::string c_namespace_end;
+    std::string c_fullname;
+    std::string zeek_fullname;
+    std::string bare_name;
+} func_emit;
+
+// Build a comma-separated list by invoking print_one() for each arg in the
+// `args` global. Used for native-function parameter lists ("type name")
+// and call-argument lists ("name"), both of which only differ in which
+// per-arg printer they use. Only meaningful for natively-callable BiFs;
+// not-natively-callable ones get (Frame*, Args*) instead.
+template<typename F> static std::string build_arg_list(F print_one) {
+    std::string s;
+    for ( auto* arg : args ) {
+        if ( ! s.empty() )
+            s += ", ";
+        print_one(arg, s);
+    }
+    return s;
+}
+
+static std::string build_native_param_list() {
+    return build_arg_list([](BuiltinFuncArg* a, std::string& s) { a->PrintCImplParam(s); });
+}
+
+static std::string build_native_call_arg_list() {
+    return build_arg_list([](BuiltinFuncArg* a, std::string& s) { a->PrintCImplCallArg(s); });
+}
+
+// Emit the argc check for the shim: "exactly N" for fixed-arity, or
+// "at least N" for var_arg. Returns nullptr (a ValPtr) on mismatch, which
+// is fine because this only runs in the shim, which always returns ValPtr.
+static void emit_argc_check(FILE* fp, int argc, bool at_least) {
+    const char* op = at_least ? "<" : "!=";
+    const char* word = at_least ? "at least" : "exactly";
+    fprintf(fp, "\t{\n");
+    fprintf(fp, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
+    fprintf(fp, "\tif ( %s->size() %s %d )\n", arg_list_name, op, argc);
+    fprintf(fp, "\t\t{\n");
+    fprintf(fp,
+            "\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes %s %d argument(s), got %%lu\", %s->size()));\n",
+            func_emit.zeek_fullname.c_str(), word, argc, arg_list_name);
+    fprintf(fp, "\t\treturn nullptr;\n");
+    fprintf(fp, "\t\t}\n");
+}
+
+// Emit per-arg local extraction. The runtime check is true for BiFs requiring
+// dynamic type-checking (due to being variadic).
+static void emit_arg_extraction(FILE* fp, int argc, bool runtime_type_check) {
+    std::string defs;
+    for ( int i = 0; i < argc; ++i )
+        args[i]->PrintCDef(defs, i, runtime_type_check);
+    fputs(defs.c_str(), fp);
+}
+
+// Emit the legacy single-function form: body inline in <name>_bif.
+static void emit_legacy_func(std::string captured, int argc) {
+    fprintf(fp_func_def,
+            "zeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)\n",
+            func_emit.c_fullname.c_str(), arg_list_name);
+
+    if ( ! var_arg ) {
+        emit_argc_check(fp_func_def, argc, /*at_least=*/false);
+        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/false);
+
+        // Strip the captured body's leading "{" so we don't double-open the
+        // brace block we just opened with emit_argc_check.
+        auto pos = captured.find('{');
+        if ( pos != std::string::npos )
+            captured.erase(pos, 1);
+    }
+
+    fputs(captured.c_str(), fp_func_def);
+}
+
+// Pick the native return type for the current BiF.
+struct native_ret_info {
+    bool has_native_ret;
+    const char* native_to_val; // fmt (one %s) wrapping native -> ValPtr
+    const char* native_ret_type; // C++ return type of the _native function
+};
+
+static native_ret_info compute_native_ret_info() {
+    const char* native_ret = (return_type_arg ? return_type_arg->NativeReturnType() : "");
+    const char* native_to_val = (return_type_arg ? return_type_arg->NativeToVal() : "");
+    bool has = *native_ret;
+    return {has, native_to_val, has ? native_ret : "zeek::ValPtr"};
+}
+
+// Emit the shim's body: argc-check + per-arg type-check + extraction;
+// then a call to _native via the supplied call_args list; and a
+// possibly-wrapped return.
+static void emit_shim(int argc, const std::string& call_args, const native_ret_info& nri) {
+    fprintf(fp_func_def,
+            "\nzeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)\n",
+            func_emit.c_fullname.c_str(), arg_list_name);
+
+    if ( argc > 0 || ! var_arg )
+        emit_argc_check(fp_func_def, argc, /*at_least=*/var_arg);
+    else
+        fprintf(fp_func_def, "\t{\n");
+
+    if ( argc > 0 )
+        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/var_arg);
+
+    std::string call;
+    appendf(call, "zeek::%s_native(%s)", func_emit.c_fullname.c_str(), call_args.c_str());
+
+    if ( nri.has_native_ret ) {
+        std::string wrapped;
+        appendf(wrapped, nri.native_to_val, call.c_str());
+        fprintf(fp_func_def, "\treturn %s;\n", wrapped.c_str());
+    }
+    else
+        fprintf(fp_func_def, "\treturn %s;\n", call.c_str());
+
+    fprintf(fp_func_def, "\t} // end of shim for %s\n", func_emit.c_fullname.c_str());
+}
+
+// Emit a natively-callable function along with its shim.
+static void emit_natively_callable(const std::string& captured, int argc) {
+    auto nri = compute_native_ret_info();
+    std::string params = build_native_param_list();
+
+    fprintf(fp_func_h, "namespace zeek::%s { extern %s %s_native(%s);%s }\n",
+            func_emit.c_namespace_start.c_str(), nri.native_ret_type, func_emit.bare_name.c_str(),
+            params.c_str(), func_emit.c_namespace_end.c_str());
+
+    fprintf(fp_func_def, "%s zeek::%s_native(%s)", nri.native_ret_type, func_emit.c_fullname.c_str(),
+            params.c_str());
+    fputs(captured.c_str(), fp_func_def);
+
+    emit_shim(argc, build_native_call_arg_list(), nri);
+}
+
+// Emit a not-natively-callable function along with its shim. The shim does
+// the argc + per-arg type check and the native's body opens with bare per-arg
+// extraction.
+static void emit_not_natively_callable(std::string captured, int argc) {
+    auto nri = compute_native_ret_info();
+
+    fprintf(fp_func_h,
+            "namespace zeek::%s { extern %s %s_native(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
+            func_emit.c_namespace_start.c_str(), nri.native_ret_type, func_emit.bare_name.c_str(),
+            func_emit.c_namespace_end.c_str());
+
+    fprintf(fp_func_def,
+            "%s zeek::%s_native(zeek::detail::Frame* frame, const zeek::Args* %s)\n",
+            nri.native_ret_type, func_emit.c_fullname.c_str(), arg_list_name);
+
+    if ( argc > 0 ) {
+        fprintf(fp_func_def, "\t{\n");
+        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/false);
+
+        // Strip the captured body's leading "{" so we don't double-open the
+        // brace block we just opened.
+        auto pos = captured.find('{');
+        if ( pos != std::string::npos )
+            captured.erase(pos, 1);
+    }
+
+    fputs(captured.c_str(), fp_func_def);
+
+    std::string call_args = "frame, ";
+    call_args += arg_list_name;
+    emit_shim(argc, call_args, nri);
+}
 
 extern int yyerror(const char[]);
 extern int yywarn(const char msg[]);
@@ -218,7 +414,7 @@ static void print_event_c_prototype_header(FILE * fp) {
     fprintf(fp, "; %s }\n", decl.enqueue_c_namespace_end.c_str());
 }
 
-static void print_event_c_prototype_impl(FILE * fp) {
+static void print_event_c_prototype_native(FILE * fp) {
     fprintf(fp, "void %s(zeek::analyzer::Analyzer* analyzer%s", decl.enqueue_c_fullname.c_str(),
             args.size() ? ", " : "");
 
@@ -265,7 +461,6 @@ static void print_event_c_body(FILE * fp) {
 
     fprintf(fp, ");\n");
     fprintf(fp, "\t}\n\n");
-    // fprintf(fp, "%s // end namespace\n", decl.enqueue_c_namespace_end.c_str());
 }
 
 void record_bif_item(const char* id, const char* type) {
@@ -275,13 +470,54 @@ void record_bif_item(const char* id, const char* type) {
     fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", zeek::plugin::BifItem::%s);\n", id, type);
 }
 
+// Begin a FUNC_DEF: emit the canonical _bif extern, register the BiF item,
+// snapshot the namespace info that the body action needs, and switch
+// fp_func_def writes over to body_buf.
+static void begin_func_def() {
+    fprintf(fp_func_h,
+            "namespace zeek::%s { extern zeek::ValPtr %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
+            decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
+    record_bif_item(decl.zeek_fullname.c_str(), "FUNCTION");
+
+    func_emit.c_namespace_start = decl.c_namespace_start;
+    func_emit.c_namespace_end = decl.c_namespace_end;
+    func_emit.c_fullname = decl.c_fullname;
+    func_emit.zeek_fullname = decl.zeek_fullname;
+    func_emit.bare_name = decl.bare_name;
+
+    in_func_body = true;
+    body_buf.clear();
+    emit_body_line_directive();
+}
+
+// Begin an EVENT_DEF: register the event handler the first time we see
+// this event name. (Repeat declarations from alternate event prototypes
+// only need to update the .zeek file, which happens elsewhere.)
+static void begin_event_def() {
+    if ( events.find(decl.zeek_fullname) != events.end() )
+        return;
+
+    fprintf(fp_netvar_h, "%sextern zeek::EventHandlerPtr %s; %s\n", decl.c_namespace_start.c_str(),
+            decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
+    fprintf(fp_netvar_def, "%szeek::EventHandlerPtr %s; %s\n", decl.c_namespace_start.c_str(),
+            decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+
+    fprintf(fp_netvar_init, "\t%s = zeek::event_registry->Register(\"%s\");\n", decl.c_fullname.c_str(),
+            decl.zeek_fullname.c_str());
+
+    record_bif_item(decl.zeek_fullname.c_str(), "EVENT");
+}
+
 %}
 
 %token TOK_LPP TOK_RPP TOK_LPB TOK_RPB TOK_LPPB TOK_RPPB TOK_VAR_ARG
 %token TOK_BOOL
 %token TOK_FUNCTION TOK_EVENT TOK_CONST TOK_ENUM TOK_OF
 %token TOK_TYPE TOK_RECORD TOK_SET TOK_VECTOR TOK_OPAQUE TOK_TABLE TOK_MODULE
-%token TOK_ARGS TOK_ARG TOK_ARGC
+%token TOK_ARGS TOK_ARG TOK_ARGC TOK_FRAME
+%token TOK_GEN_NATIVE
 %token TOK_ID TOK_ATTR TOK_CSTR TOK_LF TOK_WS TOK_COMMENT
 %token TOK_ATOM TOK_INT TOK_C_TOKEN
 
@@ -325,7 +561,12 @@ definition:	event_def
 	|	enum_def
 	|	const_def
 	|	type_def
-	|   module_def
+	|	module_def
+	|	gen_native_attr
+	;
+
+gen_native_attr: TOK_GEN_NATIVE
+			{ gen_native = true; }
 	;
 
 
@@ -386,7 +627,7 @@ event_def:	event_prefix opt_ws plain_head opt_ws opt_func_attrs
 			if ( events.find(decl.zeek_fullname) == events.end() )
 				{
 				print_event_c_prototype_header(fp_func_h);
-				print_event_c_prototype_impl(fp_func_def);
+				print_event_c_prototype_native(fp_func_def);
 				print_event_c_body(fp_func_def);
 				events.insert(decl.zeek_fullname);
 				}
@@ -460,27 +701,27 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			char accessor[1024];
 			char accessor_smart[1024];
 
-			snprintf(accessor, sizeof(accessor), builtin_types[typeidx].accessor, "");
-			snprintf(accessor_smart, sizeof(accessor_smart), builtin_types[typeidx].accessor_smart, "");
+			snprintf(accessor, sizeof(accessor), bif_types[typeidx].accessor, "");
+			snprintf(accessor_smart, sizeof(accessor_smart), bif_types[typeidx].accessor_smart, "");
 
 
 			fprintf(fp_netvar_h, "namespace zeek::%s { extern %s %s; }\n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str());
+					bif_types[typeidx].c_type_smart, decl.bare_name.c_str());
 
 			fprintf(fp_netvar_def, "namespace zeek::%s { %s %s; }\n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str());
+					bif_types[typeidx].c_type_smart, decl.bare_name.c_str());
 			fprintf(fp_netvar_def, "namespace %s { %s %s; } \n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type, decl.bare_name.c_str());
+					bif_types[typeidx].c_type, decl.bare_name.c_str());
 
 			if ( alternative_mode && ! plugin )
 				fprintf(fp_netvar_init, "\tzeek::detail::bif_initializers.emplace_back([]()\n");
 
 			fprintf(fp_netvar_init, "\t{\n");
 			fprintf(fp_netvar_init, "\tconst auto& v = zeek::id::find_const%s(\"%s\");\n",
-					builtin_types[typeidx].cast_smart, decl.zeek_fullname.c_str());
+					bif_types[typeidx].cast_smart, decl.zeek_fullname.c_str());
 			fprintf(fp_netvar_init, "\tzeek::%s = v%s;\n",
 					decl.c_fullname.c_str(), accessor_smart);
 			fprintf(fp_netvar_init, "\t}\n");
@@ -546,71 +787,29 @@ plain_head:	head_1 args arg_end
 
 head_1:		TOK_ID opt_ws arg_begin
 			{
-			const char* method_type = nullptr;
 			set_decl_name($1);
 
 			if ( definition_type == FUNC_DEF )
 				{
-				method_type = "function";
-				print_line_directive(fp_func_def);
+				fprintf(fp_zeek_init, "global %s: function(", decl.zeek_name.c_str());
+				begin_func_def();
 				}
-			else if ( definition_type == EVENT_DEF )
-				method_type = "event";
 
-			if ( method_type )
-				fprintf(fp_zeek_init,
-					"global %s: %s%s(",
-					decl.zeek_name.c_str(), method_type, $2);
-
-			if ( definition_type == FUNC_DEF )
-				{
-				fprintf(fp_func_init,
-					"\t(void) new zeek::detail::BuiltinFunc(zeek::%s_bif, \"%s\", false);\n",
-					decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
-
-				// This is the "canonical" version, with argument type and order
-				// mostly for historical reasons.  There's also no "zeek_" prefix
-				// in the function name itself, but does have a "_bif" suffix
-				// to potentially help differentiate from other functions
-				// (e.g. ones at global scope that may be used to implement
-				// the BIF itself).
-				fprintf(fp_func_h,
-					"namespace zeek::%s { extern zeek::ValPtr %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
-					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-
-				fprintf(fp_func_def,
-					"zeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)",
-					decl.c_fullname.c_str(), arg_list_name);
-
-				record_bif_item(decl.zeek_fullname.c_str(), "FUNCTION");
-				}
 			else if ( definition_type == EVENT_DEF )
 				{
-				if ( events.find(decl.zeek_fullname) == events.end() )
-					{
-					// TODO: add namespace for events here
-					fprintf(fp_netvar_h,
-						"%sextern zeek::EventHandlerPtr %s; %s\n",
-						decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-
-					fprintf(fp_netvar_def,
-					        "%szeek::EventHandlerPtr %s; %s\n",
-					        decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-
-					fprintf(fp_netvar_init,
-						"\t%s = zeek::event_registry->Register(\"%s\");\n",
-						decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
-
-					record_bif_item(decl.zeek_fullname.c_str(), "EVENT");
-					// C++ prototypes of zeek_event_* functions will
-					// be generated later.
-					}
+				fprintf(fp_zeek_init, "global %s: event(", decl.zeek_name.c_str());
+				begin_event_def();
 				}
 			}
 	;
 
 arg_begin:	TOK_LPP
-			{ args.clear(); var_arg = 0; }
+			{
+			args.clear();
+			var_arg = 0;
+			uses_frame = uses_args_token = false;
+			return_type_arg.reset();
+			}
 	;
 
 arg_end:	TOK_RPP
@@ -649,24 +848,48 @@ arg:		TOK_ID opt_ws ':' opt_ws type
 
 return_type:	':' opt_ws type opt_ws
 			{
-			BuiltinFuncArg* ret = new BuiltinFuncArg("", $3);
-			ret->PrintZeek(fp_zeek_init);
-			delete ret;
-			fprintf(fp_func_def, "%s", $4);
+			return_type_arg = std::make_unique<BuiltinFuncArg>("", $3);
+			return_type_arg->PrintZeek(fp_zeek_init);
+			emit_body("%s", $4);
 			}
 	;
 
 body:		body_start c_body body_end
 			{
-			fprintf(fp_func_def, " // end of %s\n", decl.c_fullname.c_str());
-			print_line_directive(fp_func_def);
+			emit_body(" // end of %s\n", decl.c_fullname.c_str());
+			emit_body_line_directive();
+
+			std::string captured = std::move(body_buf);
+			body_buf.clear();
+			in_func_body = false;
+
+			// natively_callable: gen_native files always produce
+			// a _native + _bif split. Those that can be called
+			// directly get a typed-parameter declaration,
+			// otherwise a (Frame*, Args*) native that the shim
+			// simply forwards to.
+			bool natively_callable = gen_native &&
+				! (var_arg || uses_args_token || uses_frame);
+			int argc = (int) args.size();
+
+			fprintf(fp_func_init,
+			        "\t(void) new zeek::detail::BuiltinFunc(zeek::%s_bif, \"%s\", false);\n",
+			        func_emit.c_fullname.c_str(),
+				func_emit.zeek_fullname.c_str());
+
+			if ( natively_callable )
+				emit_natively_callable(captured, argc);
+			else if ( gen_native )
+				emit_not_natively_callable(std::move(captured), argc);
+			else
+				emit_legacy_func(std::move(captured), argc);
 			}
 	;
 
 c_code_begin:	/* empty */
 			{
 			in_c_code = true;
-			print_line_directive(fp_func_def);
+			emit_def_line_directive();
 			}
 	;
 
@@ -676,47 +899,37 @@ c_code_end:	/* empty */
 
 body_start:	TOK_LPB c_code_begin
 			{
-			int implicit_arg = 0;
 			int argc = args.size();
 
-			fprintf(fp_func_def, "{");
+			emit_body("{");
 
-			if ( argc > 0 || ! var_arg )
-				fprintf(fp_func_def, "\n");
-
-			if ( ! var_arg )
+			// For var_arg BiFs the body needs to do the argc check
+			// check and per-arg local extractions. Under gen_native
+			// this work moves to the shim.
+			if ( ! gen_native && var_arg && argc > 0 )
 				{
-				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-				fprintf(fp_func_def, "\tif ( %s->size() != %d )\n", arg_list_name, argc);
-
-				fprintf(fp_func_def, "\t\t{\n");
-				fprintf(fp_func_def,
-					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes exactly %d argument(s), got %%lu\", %s->size()));\n",
-					decl.zeek_fullname.c_str(), argc, arg_list_name);
-				fprintf(fp_func_def, "\t\treturn nullptr;\n");
-				fprintf(fp_func_def, "\t\t}\n");
-				}
-			else if ( argc > 0 )
-				{
-				fprintf(fp_func_def, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-				fprintf(fp_func_def, "\tif ( %s->size() < %d )\n", arg_list_name, argc);
-				fprintf(fp_func_def, "\t\t{\n");
-				fprintf(fp_func_def,
+				emit_body("\n");
+				emit_body("\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
+				emit_body("\tif ( %s->size() < %d )\n", arg_list_name, argc);
+				emit_body("\t\t{\n");
+				emit_body(
 					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes at least %d argument(s), got %%lu\", %s->size()));\n",
 					decl.zeek_fullname.c_str(), argc, arg_list_name);
-				fprintf(fp_func_def, "\t\treturn nullptr;\n");
-				fprintf(fp_func_def, "\t\t}\n");
-				}
+				emit_body("\t\treturn nullptr;\n");
+				emit_body("\t\t}\n");
 
-			for ( int i = 0; i < (int) args.size(); ++i )
-				args[i]->PrintCDef(fp_func_def, i + implicit_arg, var_arg);
-			print_line_directive(fp_func_def);
+				std::string defs;
+				for ( int i = 0; i < argc; ++i )
+					args[i]->PrintCDef(defs, i, /*runtime_type_check=*/true);
+				body_buf += defs;
+				}
+			emit_body_line_directive();
 			}
 	;
 
 body_end:	TOK_RPB c_code_end
 			{
-			fprintf(fp_func_def, "}");
+			emit_body("}");
 			}
 	;
 
@@ -724,27 +937,29 @@ c_code_segment: TOK_LPPB c_code_begin c_body c_code_end TOK_RPPB
 	;
 
 c_body:		opt_ws
-			{ fprintf(fp_func_def, "%s", $1); }
+			{ emit_def("%s", $1); }
 	|	c_body c_atom opt_ws
-			{ fprintf(fp_func_def, "%s", $3); }
+			{ emit_def("%s", $3); }
 	;
 
 c_atom:		TOK_ID
-			{ fprintf(fp_func_def, "%s", $1); }
+			{ emit_def("%s", $1); }
 	|	TOK_C_TOKEN
-			{ fprintf(fp_func_def, "%s", $1); }
+			{ emit_def("%s", $1); }
 	|	TOK_ARG
-			{ fprintf(fp_func_def, "(*%s)", arg_list_name); }
+			{ emit_def("(*%s)", arg_list_name); uses_args_token = true; }
 	|	TOK_ARGS
-			{ fprintf(fp_func_def, "%s", arg_list_name); }
+			{ emit_def("%s", arg_list_name); uses_args_token = true; }
 	|	TOK_ARGC
-			{ fprintf(fp_func_def, "%s->size()", arg_list_name); }
+			{ emit_def("%s->size()", arg_list_name); uses_args_token = true; }
+	|	TOK_FRAME
+			{ emit_def("frame"); uses_frame = true; }
 	|	TOK_CSTR
-			{ fprintf(fp_func_def, "%s", $1); }
+			{ emit_def("%s", $1); }
 	|	TOK_ATOM
-			{ fprintf(fp_func_def, "%c", $1); }
+			{ emit_def("%c", $1); }
 	|	TOK_INT
-			{ fprintf(fp_func_def, "%s", $1); }
+			{ emit_def("%s", $1); }
 
 	;
 
@@ -771,8 +986,6 @@ opt_ws:		opt_ws TOK_WS
 %%
 
 extern char* yytext;
-extern char* input_filename;
-extern int line_number;
 void err_exit(void);
 
 void print_msg(const char msg[]) {

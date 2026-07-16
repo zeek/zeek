@@ -1,3 +1,4 @@
+%gen-native
 
 %%{
 #include "zeek/analyzer/protocol/login/Login.h"
@@ -28,13 +29,13 @@ function get_login_state%(cid: conn_id%): count
 	%{
 	zeek::Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->False();
+		return 0;
 
 	zeek::analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
-		return zeek::val_mgr->False();
+		return 0;
 
-	return zeek::val_mgr->Count(static_cast<int>(static_cast<zeek::analyzer::login::Login_Analyzer*>(la)->LoginState()));
+	return static_cast<int>(static_cast<zeek::analyzer::login::Login_Analyzer*>(la)->LoginState());
 	%}
 
 ## Sets the login state of a connection with a login analyzer.
@@ -52,13 +53,13 @@ function set_login_state%(cid: conn_id, new_state: count%): bool
 	%{
 	zeek::Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->False();
+		return false;
 
 	zeek::analyzer::Analyzer* la = c->FindAnalyzer("Login");
 	if ( ! la )
-		return zeek::val_mgr->False();
+		return false;
 
 	static_cast<zeek::analyzer::login::Login_Analyzer*>(la)->SetLoginState(
 		zeek::analyzer::login::login_state(new_state));
-	return zeek::val_mgr->True();
+	return true;
 	%}

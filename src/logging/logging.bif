@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Internal functions and types used by the logging framework.
 
 module Log;
@@ -19,56 +21,47 @@ enum PrintLogType %{
 
 function Log::__create_stream%(id: Log::ID, stream: Log::Stream%) : bool
 	%{
-	bool result = zeek::log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->CreateStream(id->AsEnumVal(), stream->AsRecordVal());
 	%}
 
 function Log::__remove_stream%(id: Log::ID%) : bool
 	%{
-	bool result = zeek::log_mgr->RemoveStream(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->RemoveStream(id->AsEnumVal());
 	%}
 
 function Log::__enable_stream%(id: Log::ID%) : bool
 	%{
-	bool result = zeek::log_mgr->EnableStream(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->EnableStream(id->AsEnumVal());
 	%}
 
 function Log::__disable_stream%(id: Log::ID%) : bool
 	%{
-	bool result = zeek::log_mgr->DisableStream(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->DisableStream(id->AsEnumVal());
 	%}
 
 function Log::__add_filter%(id: Log::ID, filter: Log::Filter%) : bool
 	%{
-	bool result = zeek::log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->AddFilter(id->AsEnumVal(), filter->AsRecordVal());
 	%}
 
 function Log::__remove_filter%(id: Log::ID, name: string%) : bool
 	%{
-	bool result = zeek::log_mgr->RemoveFilter(id->AsEnumVal(), name);
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->RemoveFilter(id->AsEnumVal(), name);
 	%}
 
 function Log::__write%(id: Log::ID, columns: any%) : bool
 	%{
-	bool result = zeek::log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 	%}
 
 function Log::__set_buf%(id: Log::ID, buffered: bool%): bool
 	%{
-	bool result = zeek::log_mgr->SetBuf(id->AsEnumVal(), buffered);
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->SetBuf(id->AsEnumVal(), buffered);
 	%}
 
 function Log::__flush%(id: Log::ID%): bool
 	%{
-	bool result = zeek::log_mgr->Flush(id->AsEnumVal());
-	return zeek::val_mgr->Bool(result);
+	return zeek::log_mgr->Flush(id->AsEnumVal());
 	%}
 
 %%{
@@ -131,37 +124,34 @@ function Log::__delay_finish%(id: Log::ID, rec: any, token: Log::DelayToken%): b
         auto idptr = enum_ref(id);
         auto recptr = record_ref(rec);
         if ( ! idptr || ! recptr )
-                return zeek::val_mgr->Bool(false);
+                return false;
 
-        bool result = zeek::log_mgr->DelayFinish(idptr, recptr, {zeek::NewRef{}, token});
-        return zeek::val_mgr->Bool(result);
+        return zeek::log_mgr->DelayFinish(idptr, recptr, {zeek::NewRef{}, token});
         %}
 
 function Log::__set_max_delay_interval%(id: Log::ID, max_delay: interval%): bool
         %{
         auto idptr = enum_ref(id);
         if ( ! idptr )
-                return zeek::val_mgr->Bool(false);
+                return false;
 
-        bool result = zeek::log_mgr->SetMaxDelayInterval(idptr, max_delay);
-        return zeek::val_mgr->Bool(result);
+        return zeek::log_mgr->SetMaxDelayInterval(idptr, max_delay);
         %}
 
 function Log::__set_max_delay_queue_size%(id: Log::ID, max_queue_size: count%): bool
         %{
         auto idptr = enum_ref(id);
         if ( ! idptr )
-                return zeek::val_mgr->Bool(false);
+                return false;
 
-        bool result = zeek::log_mgr->SetMaxDelayQueueSize(idptr, max_queue_size);
-        return zeek::val_mgr->Bool(result);
+        return zeek::log_mgr->SetMaxDelayQueueSize(idptr, max_queue_size);
         %}
 
 function Log::__get_delay_queue_size%(id: Log::ID%): int
         %{
         auto idptr = enum_ref(id);
         if ( ! idptr )
-                return zeek::val_mgr->Bool(false);
+                return 0;
 
-        return zeek::val_mgr->Int(zeek::log_mgr->GetDelayQueueSize(idptr));
+        return zeek::log_mgr->GetDelayQueueSize(idptr);
         %}

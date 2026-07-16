@@ -1,3 +1,4 @@
+%gen-native
 
 type ftp_port: record;
 
@@ -226,7 +227,7 @@ function fmt_ftp_port%(a: addr, p: port%): string
 	else
 		{
 		zeek::emit_builtin_error("conversion of non-IPv4 address in fmt_ftp_port",
-		                         @ARG@[0]);
+		                         a);
 		return zeek::val_mgr->EmptyString();
 		}
 	%}

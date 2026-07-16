@@ -1,3 +1,15 @@
+9.0.0-dev.671 | 2026-07-16 12:03:38 -0700
+
+  * fixed up some comments and removed a couple of vestigial definitions (Vern Paxson, Corelight)
+
+  * remove unnecessary (and in some cases deterimental) std::move's from BiF returns (Vern Paxson, Corelight)
+
+  * updated standard BiFs to be compatible with "native" bifcl generation (Vern Paxson, Corelight)
+
+  * extend bifcl to generate C++-native versions of BiFs as well as script-callable shims (Vern Paxson, Corelight)
+
+  * add value conversion functions that return C++ native types (Vern Paxson, Corelight)
+
 9.0.0-dev.664 | 2026-07-16 09:10:17 -0700
 
   * CI: Disable tsan builds temporarily (Tim Wojtulewicz, Corelight)

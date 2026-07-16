@@ -1,3 +1,5 @@
+%gen-native
+
 %%{
 #include "zeek/analyzer/protocol/websocket/WebSocket.h"
 %%}
@@ -26,7 +28,7 @@ function __configure_analyzer%(c: connection, aid: count, config: WebSocket::Ana
 	if ( ! ws_analyzer )
 		{
 		reporter->Warning("WebSocket analyzer to configure not found");
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	static const auto& config_type = zeek::id::find_type<zeek::RecordType>("WebSocket::AnalyzerConfig");
@@ -36,11 +38,11 @@ function __configure_analyzer%(c: connection, aid: count, config: WebSocket::Ana
 		reporter->Warning("config has wrong type %s, expected %s",
 		                  config->GetType()->GetName().c_str(),
 		                  config_type->GetName().c_str());
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	if ( ! ws_analyzer->Configure({zeek::NewRef{}, config->AsRecordVal()}) )
-		return zeek::val_mgr->False();
+		return false;
 
-	return zeek::val_mgr->True();
+	return true;
 	%}

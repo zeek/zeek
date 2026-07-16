@@ -1,3 +1,4 @@
+%gen-native
 
 %%{
 #include "zeek/File.h"
@@ -21,18 +22,18 @@ function get_orig_seq%(cid: conn_id%): count
 	%{
 	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
 	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->OrigSeq());
+		return static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->OrigSeq();
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return zeek::val_mgr->Count(0);
+		return 0;
 		}
 	%}
 
@@ -50,18 +51,18 @@ function get_resp_seq%(cid: conn_id%): count
 	%{
 	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
 	if ( c->ConnTransport() != TRANSPORT_TCP )
-		return zeek::val_mgr->Count(0);
+		return 0;
 
 	zeek::analyzer::Analyzer* tc = c->FindAnalyzer("TCP");
 	if ( tc )
-		return zeek::val_mgr->Count(static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->RespSeq());
+		return static_cast<zeek::packet_analysis::TCP::TCPSessionAdapter*>(tc)->RespSeq();
 	else
 		{
 		reporter->Error("connection does not have TCP analyzer");
-		return zeek::val_mgr->Count(0);
+		return 0;
 		}
 	%}
 
@@ -100,10 +101,10 @@ function set_contents_file%(cid: conn_id, direction: count, f: file%): bool
 	%{
 	zeek::Connection* c = zeek::session_mgr->FindConnection(cid);
 	if ( ! c )
-		return zeek::val_mgr->False();
+		return false;
 
 	c->GetSessionAdapter()->SetContentsFile(direction, {zeek::NewRef{}, f});
-	return zeek::val_mgr->True();
+	return true;
 	%}
 
 ## Returns the file handle of the contents file of a connection.

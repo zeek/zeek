@@ -1,3 +1,5 @@
+%gen-native
+
 ##! Definitions of built-in functions related to loading compiled-to-C++
 ##! scripts.
 
@@ -26,10 +28,10 @@ function load_CPP%(h: count%): bool
 	     ! detail::CPP_init_hook )
 		{
 		reporter->Error("load of non-existing C++ code (%" PRIu64 ")", h);
-		return zeek::val_mgr->False();
+		return false;
 		}
 
 	(*cb->second)();
 
-	return zeek::val_mgr->True();
+	return true;
 	%}

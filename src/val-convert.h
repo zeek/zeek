@@ -11,6 +11,14 @@ namespace zeek::detail {
 // Functions with an err parameter will set it to a non-empty error message
 // on failure.
 
+// These return native C++ types, or, if the optional value is missing,
+// an error occurred and has been populated in `err`.
+extern std::optional<double> convert_string_to_native_double(const StringVal* sv, std::string& err);
+extern std::optional<zeek_int_t> convert_string_to_native_int(const StringVal* sv, std::string& err, int base);
+extern std::optional<zeek_uint_t> convert_string_to_native_count(const StringVal* sv, std::string& err, int base);
+extern std::optional<zeek_uint_t> convert_int_to_native_count(zeek_int_t i, std::string& err);
+extern std::optional<zeek_uint_t> convert_double_to_native_count(double d, std::string& err);
+
 extern ValPtr convert_string_to_double(const StringVal* sv, std::string& err);
 extern ValPtr convert_string_to_time(const StringVal* sv, std::string& err);
 extern ValPtr convert_string_to_interval(const StringVal* sv, std::string& err);

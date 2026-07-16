@@ -7,10 +7,9 @@ protocol analyzer Syslog over UDP:
     parse with Syslog::Message;
 
 protocol analyzer Syslog_TCP over TCP:
-    parse with SyslogTCP::Messages;
+    parse with Syslog::Frames;
 
 import Syslog;
-import SyslogTCP; 
 
 on Syslog::Message -> event syslog_message($conn, self.facility, self.severity, self.msg);
-on SyslogTCP::NonTransparent -> event syslog_message($conn, self.facility, self.severity, self.msg);
+on Syslog::NonTransparent -> event syslog_message($conn, self.facility, self.severity, self.msg);

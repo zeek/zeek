@@ -23,7 +23,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: FileExtract::__set_limit
-   :source-code: base/bif/plugins/Zeek_FileExtract.functions.bif.zeek 12 12
+   :source-code: base/bif/plugins/Zeek_FileExtract.functions.bif.zeek 14 14
 
    :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, args: :zeek:type:`any`, n: :zeek:type:`count`) : :zeek:type:`bool`
 

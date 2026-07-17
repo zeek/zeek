@@ -24,7 +24,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Storage::is_forced_sync
-   :source-code: base/bif/storage.bif.zeek 26 26
+   :source-code: base/bif/storage.bif.zeek 28 28
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`bool`
 
@@ -38,7 +38,7 @@ Functions
             handle is invalid.
 
 .. zeek:id:: Storage::is_open
-   :source-code: base/bif/storage.bif.zeek 17 17
+   :source-code: base/bif/storage.bif.zeek 19 19
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`bool`
 

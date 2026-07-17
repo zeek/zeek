@@ -29,28 +29,28 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: PacketAnalyzer::__disable_analyzer
-   :source-code: base/bif/packet_analysis.bif.zeek 41 41
+   :source-code: base/bif/packet_analysis.bif.zeek 43 43
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PacketAnalyzer::Tag`) : :zeek:type:`bool`
 
    Internal function to disable a packet analyzer.
 
 .. zeek:id:: PacketAnalyzer::__enable_analyzer
-   :source-code: base/bif/packet_analysis.bif.zeek 45 45
+   :source-code: base/bif/packet_analysis.bif.zeek 47 47
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PacketAnalyzer::Tag`) : :zeek:type:`bool`
 
    Internal function to enable a packet analyzer.
 
 .. zeek:id:: PacketAnalyzer::__set_ignore_checksums_nets
-   :source-code: base/bif/packet_analysis.bif.zeek 29 29
+   :source-code: base/bif/packet_analysis.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (v: :zeek:type:`subnet_set`) : :zeek:type:`bool`
 
    Internal function that is used to update the core-mirror of the script-level ``ignore_checksums_nets`` variable.
 
 .. zeek:id:: PacketAnalyzer::register_packet_analyzer
-   :source-code: base/bif/packet_analysis.bif.zeek 15 15
+   :source-code: base/bif/packet_analysis.bif.zeek 17 17
 
    :Type: :zeek:type:`function` (parent: :zeek:type:`PacketAnalyzer::Tag`, identifier: :zeek:type:`count`, child: :zeek:type:`PacketAnalyzer::Tag`) : :zeek:type:`bool`
 
@@ -65,7 +65,7 @@ Functions
 
 
 .. zeek:id:: PacketAnalyzer::register_protocol_detection
-   :source-code: base/bif/packet_analysis.bif.zeek 37 37
+   :source-code: base/bif/packet_analysis.bif.zeek 39 39
 
    :Type: :zeek:type:`function` (parent: :zeek:type:`PacketAnalyzer::Tag`, child: :zeek:type:`PacketAnalyzer::Tag`) : :zeek:type:`bool`
 
@@ -78,7 +78,7 @@ Functions
    :param child: The analyzer that will use protocol detection
 
 .. zeek:id:: PacketAnalyzer::try_register_packet_analyzer_by_name
-   :source-code: base/bif/packet_analysis.bif.zeek 25 25
+   :source-code: base/bif/packet_analysis.bif.zeek 27 27
 
    :Type: :zeek:type:`function` (parent: :zeek:type:`string`, identifier: :zeek:type:`count`, child: :zeek:type:`string`) : :zeek:type:`bool`
 

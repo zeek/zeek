@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: PacketAnalyzer::PPPoE::session_id
-   :source-code: base/bif/plugins/Zeek_PPPoE.functions.bif.zeek 15 15
+   :source-code: base/bif/plugins/Zeek_PPPoE.functions.bif.zeek 17 17
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 

@@ -26,7 +26,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: ZAM::Prof::estimated_profiling_overhead
-   :source-code: base/bif/zam-prof.bif.zeek 64 64
+   :source-code: base/bif/zam-prof.bif.zeek 66 66
 
    :Type: :zeek:type:`function` () : :zeek:type:`interval`
 
@@ -44,7 +44,7 @@ Functions
    .. zeek:see:: ZAM::Prof::set_module_profiling ZAM::Prof::get_module_profile
 
 .. zeek:id:: ZAM::Prof::get_module_profile
-   :source-code: base/bif/zam-prof.bif.zeek 49 49
+   :source-code: base/bif/zam-prof.bif.zeek 51 51
 
    :Type: :zeek:type:`function` (mod: :zeek:type:`string`) : :zeek:type:`ZAM::Prof::Profile`
 
@@ -53,7 +53,7 @@ Functions
    .. zeek:see:: ZAM::Prof::set_module_profiling ZAM::Prof::estimated_profiling_overhead
 
 .. zeek:id:: ZAM::Prof::set_module_profiling
-   :source-code: base/bif/zam-prof.bif.zeek 43 43
+   :source-code: base/bif/zam-prof.bif.zeek 45 45
 
    :Type: :zeek:type:`function` (mod: :zeek:type:`string`, active: :zeek:type:`bool`) : :zeek:type:`count`
 

@@ -27,31 +27,31 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Storage::Sync::__close_backend
-   :source-code: base/bif/storage-sync.bif.zeek 14 14
+   :source-code: base/bif/storage-sync.bif.zeek 16 16
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`Storage::OperationResult`
 
 
 .. zeek:id:: Storage::Sync::__erase
-   :source-code: base/bif/storage-sync.bif.zeek 23 23
+   :source-code: base/bif/storage-sync.bif.zeek 25 25
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, key: :zeek:type:`any`) : :zeek:type:`Storage::OperationResult`
 
 
 .. zeek:id:: Storage::Sync::__get
-   :source-code: base/bif/storage-sync.bif.zeek 20 20
+   :source-code: base/bif/storage-sync.bif.zeek 22 22
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, key: :zeek:type:`any`) : :zeek:type:`Storage::OperationResult`
 
 
 .. zeek:id:: Storage::Sync::__open_backend
-   :source-code: base/bif/storage-sync.bif.zeek 11 11
+   :source-code: base/bif/storage-sync.bif.zeek 13 13
 
    :Type: :zeek:type:`function` (btype: :zeek:type:`Storage::Backend`, options: :zeek:type:`any`, key_type: :zeek:type:`any`, val_type: :zeek:type:`any`) : :zeek:type:`Storage::OperationResult`
 
 
 .. zeek:id:: Storage::Sync::__put
-   :source-code: base/bif/storage-sync.bif.zeek 17 17
+   :source-code: base/bif/storage-sync.bif.zeek 19 19
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, key: :zeek:type:`any`, value: :zeek:type:`any`, overwrite: :zeek:type:`bool`, expire_time: :zeek:type:`interval`) : :zeek:type:`Storage::OperationResult`
 

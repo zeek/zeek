@@ -37,91 +37,91 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Log::__add_filter
-   :source-code: base/bif/logging.bif.zeek 35 35
+   :source-code: base/bif/logging.bif.zeek 37 37
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, filter: :zeek:type:`Log::Filter`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__create_stream
-   :source-code: base/bif/logging.bif.zeek 23 23
+   :source-code: base/bif/logging.bif.zeek 25 25
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, stream: :zeek:type:`Log::Stream`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__delay
-   :source-code: base/bif/logging.bif.zeek 55 55
+   :source-code: base/bif/logging.bif.zeek 57 57
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, post_delay_cb: :zeek:type:`Log::PostDelayCallback`) : :zeek:type:`Log::DelayToken`
 
 
 .. zeek:id:: Log::__delay_finish
-   :source-code: base/bif/logging.bif.zeek 58 58
+   :source-code: base/bif/logging.bif.zeek 60 60
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, token: :zeek:type:`Log::DelayToken`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__disable_stream
-   :source-code: base/bif/logging.bif.zeek 32 32
+   :source-code: base/bif/logging.bif.zeek 34 34
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__enable_stream
-   :source-code: base/bif/logging.bif.zeek 29 29
+   :source-code: base/bif/logging.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__flush
-   :source-code: base/bif/logging.bif.zeek 47 47
+   :source-code: base/bif/logging.bif.zeek 49 49
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__get_delay_queue_size
-   :source-code: base/bif/logging.bif.zeek 67 67
+   :source-code: base/bif/logging.bif.zeek 69 69
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`int`
 
 
 .. zeek:id:: Log::__remove_filter
-   :source-code: base/bif/logging.bif.zeek 38 38
+   :source-code: base/bif/logging.bif.zeek 40 40
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, name: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__remove_stream
-   :source-code: base/bif/logging.bif.zeek 26 26
+   :source-code: base/bif/logging.bif.zeek 28 28
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__set_buf
-   :source-code: base/bif/logging.bif.zeek 44 44
+   :source-code: base/bif/logging.bif.zeek 46 46
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, buffered: :zeek:type:`bool`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__set_max_delay_interval
-   :source-code: base/bif/logging.bif.zeek 61 61
+   :source-code: base/bif/logging.bif.zeek 63 63
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_delay: :zeek:type:`interval`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__set_max_delay_queue_size
-   :source-code: base/bif/logging.bif.zeek 64 64
+   :source-code: base/bif/logging.bif.zeek 66 66
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_queue_size: :zeek:type:`count`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__write
-   :source-code: base/bif/logging.bif.zeek 41 41
+   :source-code: base/bif/logging.bif.zeek 43 43
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, columns: :zeek:type:`any`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::flush_all
-   :source-code: base/bif/logging.bif.zeek 52 52
+   :source-code: base/bif/logging.bif.zeek 54 54
 
    :Type: :zeek:type:`function` () : :zeek:type:`any`
 

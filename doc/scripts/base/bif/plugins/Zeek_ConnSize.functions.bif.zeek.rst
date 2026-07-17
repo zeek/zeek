@@ -28,7 +28,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: get_current_conn_bytes_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 63 63
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 65 65
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
@@ -47,7 +47,7 @@ Functions
                  get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_duration_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 87 87
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 89 89
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`interval`
 
@@ -63,7 +63,7 @@ Functions
                  get_current_conn_packets_threshold set_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_packets_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 76 76
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 78 78
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
@@ -82,7 +82,7 @@ Functions
                  get_current_conn_bytes_threshold set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_bytes_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 19 19
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 21 21
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
@@ -104,7 +104,7 @@ Functions
                  set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_duration_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 49 49
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 51 51
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`interval`) : :zeek:type:`bool`
 
@@ -123,7 +123,7 @@ Functions
                  get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_packets_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 35 35
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 37 37
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 

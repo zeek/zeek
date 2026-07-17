@@ -27,7 +27,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: TCP::raw_options
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 93 93
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 94 94
 
    :Type: :zeek:type:`function` (stop_at_eol: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`TCP::RawOptionList`
 
@@ -42,7 +42,7 @@ Functions
    .. zeek:see:: tcp_option tcp_options
 
 .. zeek:id:: get_contents_file
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 80 80
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 81 81
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`) : :zeek:type:`file`
 
@@ -64,7 +64,7 @@ Functions
    .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 
 .. zeek:id:: get_orig_seq
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 17 17
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -82,7 +82,7 @@ Functions
    .. zeek:see:: get_resp_seq
 
 .. zeek:id:: get_resp_seq
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 30 30
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -100,7 +100,7 @@ Functions
    .. zeek:see:: get_orig_seq
 
 .. zeek:id:: set_contents_file
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 64 64
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 65 65
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`, f: :zeek:type:`file`) : :zeek:type:`bool`
 

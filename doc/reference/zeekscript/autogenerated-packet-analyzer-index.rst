@@ -254,7 +254,7 @@ Functions
 +++++++++
 
 .. zeek:id:: PacketAnalyzer::Geneve::get_options
-   :source-code: base/bif/plugins/Zeek_Geneve.functions.bif.zeek 15 15
+   :source-code: base/bif/plugins/Zeek_Geneve.functions.bif.zeek 17 17
 
    :Type: :zeek:type:`function` () : :zeek:type:`geneve_options_vec_vec`
 
@@ -438,7 +438,7 @@ Functions
 +++++++++
 
 .. zeek:id:: PacketAnalyzer::GTPV1::remove_gtpv1_connection
-   :source-code: base/bif/plugins/Zeek_GTPv1.functions.bif.zeek 9 9
+   :source-code: base/bif/plugins/Zeek_GTPv1.functions.bif.zeek 11 11
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`bool`
 
@@ -708,7 +708,7 @@ Functions
 +++++++++
 
 .. zeek:id:: PacketAnalyzer::PPPoE::session_id
-   :source-code: base/bif/plugins/Zeek_PPPoE.functions.bif.zeek 15 15
+   :source-code: base/bif/plugins/Zeek_PPPoE.functions.bif.zeek 17 17
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
@@ -879,7 +879,7 @@ Functions
 +++++++++
 
 .. zeek:id:: PacketAnalyzer::TEREDO::remove_teredo_connection
-   :source-code: base/bif/plugins/Zeek_Teredo.functions.bif.zeek 9 9
+   :source-code: base/bif/plugins/Zeek_Teredo.functions.bif.zeek 11 11
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`bool`
 

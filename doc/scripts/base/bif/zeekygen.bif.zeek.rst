@@ -30,7 +30,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: get_identifier_comments
-   :source-code: base/bif/zeekygen.bif.zeek 17 17
+   :source-code: base/bif/zeekygen.bif.zeek 19 19
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -45,7 +45,7 @@ Functions
             script-level identifier, an empty string is returned.
 
 .. zeek:id:: get_identifier_declaring_script
-   :source-code: base/bif/zeekygen.bif.zeek 29 29
+   :source-code: base/bif/zeekygen.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -62,7 +62,7 @@ Functions
    .. zeek:see:: get_record_field_declaring_script
 
 .. zeek:id:: get_package_readme
-   :source-code: base/bif/zeekygen.bif.zeek 51 51
+   :source-code: base/bif/zeekygen.bif.zeek 53 53
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -77,7 +77,7 @@ Functions
             package, an empty string is returned.
 
 .. zeek:id:: get_record_field_comments
-   :source-code: base/bif/zeekygen.bif.zeek 62 62
+   :source-code: base/bif/zeekygen.bif.zeek 64 64
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -93,7 +93,7 @@ Functions
             a record type, an empty string is returned.
 
 .. zeek:id:: get_record_field_declaring_script
-   :source-code: base/bif/zeekygen.bif.zeek 78 78
+   :source-code: base/bif/zeekygen.bif.zeek 80 80
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -114,7 +114,7 @@ Functions
    .. zeek:see:: get_identifier_declaring_script
 
 .. zeek:id:: get_script_comments
-   :source-code: base/bif/zeekygen.bif.zeek 41 41
+   :source-code: base/bif/zeekygen.bif.zeek 43 43
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 

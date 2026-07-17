@@ -27,31 +27,31 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Input::__create_analysis_stream
-   :source-code: base/bif/input.bif.zeek 28 28
+   :source-code: base/bif/input.bif.zeek 30 30
 
    :Type: :zeek:type:`function` (description: :zeek:type:`Input::AnalysisDescription`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Input::__create_event_stream
-   :source-code: base/bif/input.bif.zeek 25 25
+   :source-code: base/bif/input.bif.zeek 27 27
 
    :Type: :zeek:type:`function` (description: :zeek:type:`Input::EventDescription`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Input::__create_table_stream
-   :source-code: base/bif/input.bif.zeek 22 22
+   :source-code: base/bif/input.bif.zeek 24 24
 
    :Type: :zeek:type:`function` (description: :zeek:type:`Input::TableDescription`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Input::__force_update
-   :source-code: base/bif/input.bif.zeek 34 34
+   :source-code: base/bif/input.bif.zeek 36 36
 
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Input::__remove_stream
-   :source-code: base/bif/input.bif.zeek 31 31
+   :source-code: base/bif/input.bif.zeek 33 33
 
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`bool`
 

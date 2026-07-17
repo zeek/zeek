@@ -24,19 +24,19 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Cluster::__publish_table
-   :source-code: base/bif/publish_on_change.bif.zeek 19 19
+   :source-code: base/bif/publish_on_change.bif.zeek 21 21
 
    :Type: :zeek:type:`function` (topic: :zeek:type:`string`, table_val: :zeek:type:`any`, batch_size: :zeek:type:`count`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Cluster::apply_table_change_infos
-   :source-code: base/bif/publish_on_change.bif.zeek 16 16
+   :source-code: base/bif/publish_on_change.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (tcheader: :zeek:type:`Cluster::TableChangeHeader`, table_change_infos: :zeek:type:`Cluster::TableChangeInfos`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Cluster::set_table_change_infos_forward_topic
-   :source-code: base/bif/publish_on_change.bif.zeek 13 13
+   :source-code: base/bif/publish_on_change.bif.zeek 15 15
 
    :Type: :zeek:type:`function` (topic: :zeek:type:`string`) : :zeek:type:`void`
 

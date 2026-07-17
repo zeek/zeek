@@ -54,7 +54,7 @@ Events
 Functions
 #########
 .. zeek:id:: Cluster::Backend::__init
-   :source-code: base/bif/cluster.bif.zeek 48 48
+   :source-code: base/bif/cluster.bif.zeek 50 50
 
    :Type: :zeek:type:`function` (nid: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -64,25 +64,25 @@ Functions
    :returns: true on success.
 
 .. zeek:id:: Cluster::__listen_websocket
-   :source-code: base/bif/cluster.bif.zeek 87 87
+   :source-code: base/bif/cluster.bif.zeek 89 89
 
    :Type: :zeek:type:`function` (options: :zeek:type:`Cluster::WebSocketServerOptions`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Cluster::__subscribe
-   :source-code: base/bif/cluster.bif.zeek 39 39
+   :source-code: base/bif/cluster.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Cluster::__unsubscribe
-   :source-code: base/bif/cluster.bif.zeek 42 42
+   :source-code: base/bif/cluster.bif.zeek 44 44
 
    :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Cluster::make_event
-   :source-code: base/bif/cluster.bif.zeek 36 36
+   :source-code: base/bif/cluster.bif.zeek 38 38
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`Cluster::Event`
 
@@ -99,7 +99,7 @@ Functions
             or :zeek:see:`Cluster::publish_hrw`.
 
 .. zeek:id:: Cluster::publish
-   :source-code: base/bif/cluster.bif.zeek 24 24
+   :source-code: base/bif/cluster.bif.zeek 26 26
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 
@@ -120,7 +120,7 @@ Functions
             the sending or receiving node.
 
 .. zeek:id:: Cluster::publish_hrw
-   :source-code: base/bif/cluster.bif.zeek 84 84
+   :source-code: base/bif/cluster.bif.zeek 86 86
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 
@@ -143,7 +143,7 @@ Functions
    :returns: true if the message is sent.
 
 .. zeek:id:: Cluster::publish_rr
-   :source-code: base/bif/cluster.bif.zeek 67 67
+   :source-code: base/bif/cluster.bif.zeek 69 69
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 

@@ -32,7 +32,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: bloomfilter_add
-   :source-code: base/bif/bloom-filter.bif.zeek 88 88
+   :source-code: base/bif/bloom-filter.bif.zeek 90 90
 
    :Type: :zeek:type:`function` (bf: :zeek:type:`opaque` of bloomfilter, x: :zeek:type:`any`) : :zeek:type:`any`
 
@@ -49,7 +49,7 @@ Functions
       bloomfilter_merge bloomfilter_decrement
 
 .. zeek:id:: bloomfilter_basic_init
-   :source-code: base/bif/bloom-filter.bif.zeek 28 28
+   :source-code: base/bif/bloom-filter.bif.zeek 30 30
 
    :Type: :zeek:type:`function` (fp: :zeek:type:`double`, capacity: :zeek:type:`count`, name: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`opaque` of bloomfilter
 
@@ -76,7 +76,7 @@ Functions
       bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 
 .. zeek:id:: bloomfilter_basic_init2
-   :source-code: base/bif/bloom-filter.bif.zeek 50 50
+   :source-code: base/bif/bloom-filter.bif.zeek 52 52
 
    :Type: :zeek:type:`function` (k: :zeek:type:`count`, cells: :zeek:type:`count`, name: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`opaque` of bloomfilter
 
@@ -105,7 +105,7 @@ Functions
       bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 
 .. zeek:id:: bloomfilter_clear
-   :source-code: base/bif/bloom-filter.bif.zeek 137 137
+   :source-code: base/bif/bloom-filter.bif.zeek 139 139
 
    :Type: :zeek:type:`function` (bf: :zeek:type:`opaque` of bloomfilter) : :zeek:type:`any`
 
@@ -121,7 +121,7 @@ Functions
       bloomfilter_merge
 
 .. zeek:id:: bloomfilter_counting_init
-   :source-code: base/bif/bloom-filter.bif.zeek 76 76
+   :source-code: base/bif/bloom-filter.bif.zeek 78 78
 
    :Type: :zeek:type:`function` (k: :zeek:type:`count`, cells: :zeek:type:`count`, max: :zeek:type:`count`, name: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`opaque` of bloomfilter
 
@@ -155,7 +155,7 @@ Functions
       bloomfilter_lookup bloomfilter_clear bloomfilter_merge global_hash_seed
 
 .. zeek:id:: bloomfilter_decrement
-   :source-code: base/bif/bloom-filter.bif.zeek 105 105
+   :source-code: base/bif/bloom-filter.bif.zeek 107 107
 
    :Type: :zeek:type:`function` (bf: :zeek:type:`opaque` of bloomfilter, x: :zeek:type:`any`) : :zeek:type:`bool`
 
@@ -178,7 +178,7 @@ Functions
       bloomfilter_merge
 
 .. zeek:id:: bloomfilter_internal_state
-   :source-code: base/bif/bloom-filter.bif.zeek 185 185
+   :source-code: base/bif/bloom-filter.bif.zeek 187 187
 
    :Type: :zeek:type:`function` (bf: :zeek:type:`opaque` of bloomfilter) : :zeek:type:`string`
 
@@ -192,7 +192,7 @@ Functions
    :returns: a string with a representation of a Bloom filter's internal state.
 
 .. zeek:id:: bloomfilter_intersect
-   :source-code: base/bif/bloom-filter.bif.zeek 176 176
+   :source-code: base/bif/bloom-filter.bif.zeek 178 178
 
    :Type: :zeek:type:`function` (bf1: :zeek:type:`opaque` of bloomfilter, bf2: :zeek:type:`opaque` of bloomfilter) : :zeek:type:`opaque` of bloomfilter
 
@@ -223,7 +223,7 @@ Functions
       bloomfilter_clear bloomfilter_merge
 
 .. zeek:id:: bloomfilter_lookup
-   :source-code: base/bif/bloom-filter.bif.zeek 125 125
+   :source-code: base/bif/bloom-filter.bif.zeek 127 127
 
    :Type: :zeek:type:`function` (bf: :zeek:type:`opaque` of bloomfilter, x: :zeek:type:`any`) : :zeek:type:`count`
 
@@ -248,7 +248,7 @@ Functions
       bloomfilter_merge
 
 .. zeek:id:: bloomfilter_merge
-   :source-code: base/bif/bloom-filter.bif.zeek 151 151
+   :source-code: base/bif/bloom-filter.bif.zeek 153 153
 
    :Type: :zeek:type:`function` (bf1: :zeek:type:`opaque` of bloomfilter, bf2: :zeek:type:`opaque` of bloomfilter) : :zeek:type:`opaque` of bloomfilter
 

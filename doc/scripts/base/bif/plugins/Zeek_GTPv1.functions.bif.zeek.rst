@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: PacketAnalyzer::GTPV1::remove_gtpv1_connection
-   :source-code: base/bif/plugins/Zeek_GTPv1.functions.bif.zeek 9 9
+   :source-code: base/bif/plugins/Zeek_GTPv1.functions.bif.zeek 11 11
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`bool`
 

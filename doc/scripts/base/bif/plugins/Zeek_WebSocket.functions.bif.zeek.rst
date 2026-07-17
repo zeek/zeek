@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: WebSocket::__configure_analyzer
-   :source-code: base/bif/plugins/Zeek_WebSocket.functions.bif.zeek 24 24
+   :source-code: base/bif/plugins/Zeek_WebSocket.functions.bif.zeek 26 26
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, aid: :zeek:type:`count`, config: :zeek:type:`WebSocket::AnalyzerConfig`) : :zeek:type:`bool`
 

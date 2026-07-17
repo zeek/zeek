@@ -868,7 +868,7 @@ Functions
 +++++++++
 
 .. zeek:id:: set_current_conn_bytes_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 19 19
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 21 21
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
@@ -890,7 +890,7 @@ Functions
                  set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_packets_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 35 35
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 37 37
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`count`, is_orig: :zeek:type:`bool`) : :zeek:type:`bool`
 
@@ -912,7 +912,7 @@ Functions
                  set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: set_current_conn_duration_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 49 49
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 51 51
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, threshold: :zeek:type:`interval`) : :zeek:type:`bool`
 
@@ -931,7 +931,7 @@ Functions
                  get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_bytes_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 63 63
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 65 65
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
@@ -950,7 +950,7 @@ Functions
                  get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_packets_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 76 76
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 78 78
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, is_orig: :zeek:type:`bool`) : :zeek:type:`count`
 
@@ -969,7 +969,7 @@ Functions
                  get_current_conn_bytes_threshold set_current_conn_duration_threshold get_current_conn_duration_threshold
 
 .. zeek:id:: get_current_conn_duration_threshold
-   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 87 87
+   :source-code: base/bif/plugins/Zeek_ConnSize.functions.bif.zeek 89 89
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`interval`
 
@@ -3753,7 +3753,7 @@ Functions
 +++++++++
 
 .. zeek:id:: parse_ftp_port
-   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 17 17
+   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
@@ -3769,7 +3769,7 @@ Functions
    .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 
 .. zeek:id:: parse_eftp_port
-   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 30 30
+   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (s: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
@@ -3787,7 +3787,7 @@ Functions
    .. zeek:see:: parse_ftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 
 .. zeek:id:: parse_ftp_pasv
-   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 40 40
+   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
@@ -3802,7 +3802,7 @@ Functions
    .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_epsv fmt_ftp_port
 
 .. zeek:id:: parse_ftp_epsv
-   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 52 52
+   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 53 53
 
    :Type: :zeek:type:`function` (str: :zeek:type:`string`) : :zeek:type:`ftp_port`
 
@@ -3819,7 +3819,7 @@ Functions
    .. zeek:see:: parse_ftp_port parse_eftp_port parse_ftp_pasv fmt_ftp_port
 
 .. zeek:id:: fmt_ftp_port
-   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 65 65
+   :source-code: base/bif/plugins/Zeek_FTP.functions.bif.zeek 66 66
 
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`, p: :zeek:type:`port`) : :zeek:type:`string`
 
@@ -4371,7 +4371,7 @@ Functions
 +++++++++
 
 .. zeek:id:: skip_http_entity_data
-   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 14 14
+   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 15 15
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`any`
 
@@ -4386,7 +4386,7 @@ Functions
    .. zeek:see:: skip_smtp_data
 
 .. zeek:id:: unescape_URI
-   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 30 30
+   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (URI: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -7429,7 +7429,7 @@ Functions
 +++++++++
 
 .. zeek:id:: get_login_state
-   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 26 26
+   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 27 27
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -7456,7 +7456,7 @@ Functions
    .. zeek:see:: set_login_state
 
 .. zeek:id:: set_login_state
-   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 40 40
+   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, new_state: :zeek:type:`count`) : :zeek:type:`bool`
 
@@ -9364,7 +9364,7 @@ Functions
 +++++++++
 
 .. zeek:id:: decode_netbios_name
-   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 16 16
+   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -9382,7 +9382,7 @@ Functions
    .. zeek:see:: decode_netbios_name_type
 
 .. zeek:id:: decode_netbios_name_type
-   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 27 27
+   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 29 29
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`count`
 
@@ -16593,7 +16593,7 @@ Functions
 +++++++++
 
 .. zeek:id:: skip_smtp_data
-   :source-code: base/bif/plugins/Zeek_SMTP.functions.bif.zeek 12 12
+   :source-code: base/bif/plugins/Zeek_SMTP.functions.bif.zeek 13 13
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`any`
 
@@ -19048,7 +19048,7 @@ Functions
 +++++++++
 
 .. zeek:id:: set_ssl_established
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 13 13
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 14 14
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`bool`
 
@@ -19062,7 +19062,7 @@ Functions
    :returns: T on success, F on failure.
 
 .. zeek:id:: set_secret
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 24 24
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 25 25
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, secret: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -19079,7 +19079,7 @@ Functions
    :returns: T on success, F on failure.
 
 .. zeek:id:: set_keys
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 35 35
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 36 36
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, keys: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -19096,7 +19096,7 @@ Functions
    :returns: T on success, F on failure.
 
 .. zeek:id:: parse_distinguished_name
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 46 46
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 47 47
 
    :Type: :zeek:type:`function` (dn: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -19836,7 +19836,7 @@ Functions
 +++++++++
 
 .. zeek:id:: get_orig_seq
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 17 17
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -19854,7 +19854,7 @@ Functions
    .. zeek:see:: get_resp_seq
 
 .. zeek:id:: get_resp_seq
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 30 30
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -19872,7 +19872,7 @@ Functions
    .. zeek:see:: get_orig_seq
 
 .. zeek:id:: set_contents_file
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 64 64
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 65 65
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`, f: :zeek:type:`file`) : :zeek:type:`bool`
 
@@ -19913,7 +19913,7 @@ Functions
    .. zeek:see:: get_contents_file set_record_packets contents_file_write_failure
 
 .. zeek:id:: get_contents_file
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 80 80
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 81 81
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, direction: :zeek:type:`count`) : :zeek:type:`file`
 
@@ -19935,7 +19935,7 @@ Functions
    .. zeek:see:: set_contents_file set_record_packets contents_file_write_failure
 
 .. zeek:id:: TCP::raw_options
-   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 93 93
+   :source-code: base/bif/plugins/Zeek_TCP.functions.bif.zeek 94 94
 
    :Type: :zeek:type:`function` (stop_at_eol: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`TCP::RawOptionList`
 
@@ -20137,7 +20137,7 @@ Functions
 +++++++++
 
 .. zeek:id:: WebSocket::__configure_analyzer
-   :source-code: base/bif/plugins/Zeek_WebSocket.functions.bif.zeek 24 24
+   :source-code: base/bif/plugins/Zeek_WebSocket.functions.bif.zeek 26 26
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, aid: :zeek:type:`count`, config: :zeek:type:`WebSocket::AnalyzerConfig`) : :zeek:type:`bool`
 

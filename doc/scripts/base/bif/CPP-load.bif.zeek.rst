@@ -23,7 +23,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: load_CPP
-   :source-code: base/bif/CPP-load.bif.zeek 16 16
+   :source-code: base/bif/CPP-load.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (h: :zeek:type:`count`) : :zeek:type:`bool`
 

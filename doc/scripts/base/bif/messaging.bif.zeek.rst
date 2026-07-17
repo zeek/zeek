@@ -30,37 +30,37 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Broker::__flush_logs
-   :source-code: base/bif/messaging.bif.zeek 37 37
+   :source-code: base/bif/messaging.bif.zeek 38 38
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
 
 .. zeek:id:: Broker::__forward
-   :source-code: base/bif/messaging.bif.zeek 46 46
+   :source-code: base/bif/messaging.bif.zeek 47 47
 
    :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Broker::__publish_id
-   :source-code: base/bif/messaging.bif.zeek 40 40
+   :source-code: base/bif/messaging.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (topic: :zeek:type:`string`, id: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Broker::__subscribe
-   :source-code: base/bif/messaging.bif.zeek 43 43
+   :source-code: base/bif/messaging.bif.zeek 44 44
 
    :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Broker::__unsubscribe
-   :source-code: base/bif/messaging.bif.zeek 49 49
+   :source-code: base/bif/messaging.bif.zeek 50 50
 
    :Type: :zeek:type:`function` (topic_prefix: :zeek:type:`string`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Broker::make_event
-   :source-code: base/bif/messaging.bif.zeek 22 22
+   :source-code: base/bif/messaging.bif.zeek 23 23
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`Broker::Event`
 
@@ -76,7 +76,7 @@ Functions
             event.
 
 .. zeek:id:: Broker::publish
-   :source-code: base/bif/messaging.bif.zeek 34 34
+   :source-code: base/bif/messaging.bif.zeek 35 35
 
    :Type: :zeek:type:`function` (...) : :zeek:type:`bool`
 

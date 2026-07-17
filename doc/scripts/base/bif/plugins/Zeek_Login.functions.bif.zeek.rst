@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: get_login_state
-   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 26 26
+   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 27 27
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`) : :zeek:type:`count`
 
@@ -49,7 +49,7 @@ Functions
    .. zeek:see:: set_login_state
 
 .. zeek:id:: set_login_state
-   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 40 40
+   :source-code: base/bif/plugins/Zeek_Login.functions.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, new_state: :zeek:type:`count`) : :zeek:type:`bool`
 

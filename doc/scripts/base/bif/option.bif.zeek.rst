@@ -27,7 +27,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Option::any_set_to_any_vec
-   :source-code: base/bif/option.bif.zeek 65 65
+   :source-code: base/bif/option.bif.zeek 67 67
 
    :Type: :zeek:type:`function` (v: :zeek:type:`any`) : :zeek:type:`any_vec`
 
@@ -41,7 +41,7 @@ Functions
    :returns: a vector-of-any with one element for each member of v.
 
 .. zeek:id:: Option::set
-   :source-code: base/bif/option.bif.zeek 29 29
+   :source-code: base/bif/option.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (ID: :zeek:type:`string`, val: :zeek:type:`any`, location: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 
@@ -68,7 +68,7 @@ Functions
              lower-level function.
 
 .. zeek:id:: Option::set_change_handler
-   :source-code: base/bif/option.bif.zeek 56 56
+   :source-code: base/bif/option.bif.zeek 58 58
 
    :Type: :zeek:type:`function` (ID: :zeek:type:`string`, on_change: :zeek:type:`any`, priority: :zeek:type:`int` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 

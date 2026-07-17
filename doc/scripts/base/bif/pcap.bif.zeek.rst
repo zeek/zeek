@@ -30,7 +30,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: Pcap::error
-   :source-code: base/bif/pcap.bif.zeek 71 71
+   :source-code: base/bif/pcap.bif.zeek 72 72
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
 
@@ -51,13 +51,13 @@ Functions
                 uninstall_dst_net_filter
 
 .. zeek:id:: Pcap::findalldevs
-   :source-code: base/bif/pcap.bif.zeek 101 101
+   :source-code: base/bif/pcap.bif.zeek 102 102
 
    :Type: :zeek:type:`function` () : :zeek:type:`Pcap::Interfaces`
 
 
 .. zeek:id:: Pcap::get_filter_state
-   :source-code: base/bif/pcap.bif.zeek 84 84
+   :source-code: base/bif/pcap.bif.zeek 85 85
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`) : :zeek:type:`Pcap::filter_state`
 
@@ -75,7 +75,7 @@ Functions
                  Pcap::install_pcap_filter
 
 .. zeek:id:: Pcap::get_filter_state_string
-   :source-code: base/bif/pcap.bif.zeek 98 98
+   :source-code: base/bif/pcap.bif.zeek 99 99
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`) : :zeek:type:`string`
 
@@ -94,7 +94,7 @@ Functions
                  Pcap::install_pcap_filter
 
 .. zeek:id:: Pcap::install_pcap_filter
-   :source-code: base/bif/pcap.bif.zeek 54 54
+   :source-code: base/bif/pcap.bif.zeek 55 55
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`) : :zeek:type:`bool`
 
@@ -120,7 +120,7 @@ Functions
                 Pcap::error
 
 .. zeek:id:: Pcap::precompile_pcap_filter
-   :source-code: base/bif/pcap.bif.zeek 33 33
+   :source-code: base/bif/pcap.bif.zeek 34 34
 
    :Type: :zeek:type:`function` (id: :zeek:type:`PcapFilterID`, s: :zeek:type:`string`) : :zeek:type:`bool`
 

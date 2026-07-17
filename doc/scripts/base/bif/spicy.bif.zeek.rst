@@ -37,13 +37,13 @@ Events
 Functions
 #########
 .. zeek:id:: Spicy::__resource_usage
-   :source-code: base/bif/spicy.bif.zeek 37 37
+   :source-code: base/bif/spicy.bif.zeek 39 39
 
    :Type: :zeek:type:`function` () : :zeek:type:`Spicy::ResourceUsage`
 
 
 .. zeek:id:: Spicy::__toggle_analyzer
-   :source-code: base/bif/spicy.bif.zeek 32 32
+   :source-code: base/bif/spicy.bif.zeek 34 34
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`any`, enable: :zeek:type:`bool`) : :zeek:type:`bool`
 

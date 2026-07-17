@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: decode_netbios_name
-   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 16 16
+   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 18 18
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -40,7 +40,7 @@ Functions
    .. zeek:see:: decode_netbios_name_type
 
 .. zeek:id:: decode_netbios_name_type
-   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 27 27
+   :source-code: base/bif/plugins/Zeek_NetBIOS.functions.bif.zeek 29 29
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`count`
 

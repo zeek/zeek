@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: PacketAnalyzer::Geneve::get_options
-   :source-code: base/bif/plugins/Zeek_Geneve.functions.bif.zeek 15 15
+   :source-code: base/bif/plugins/Zeek_Geneve.functions.bif.zeek 17 17
 
    :Type: :zeek:type:`function` () : :zeek:type:`geneve_options_vec_vec`
 

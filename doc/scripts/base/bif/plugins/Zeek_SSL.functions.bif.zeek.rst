@@ -27,7 +27,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: parse_distinguished_name
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 46 46
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 47 47
 
    :Type: :zeek:type:`function` (dn: :zeek:type:`string`) : :zeek:type:`string`
 
@@ -43,7 +43,7 @@ Functions
    .. zeek:see:: ssl_certificate_request
 
 .. zeek:id:: set_keys
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 35 35
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 36 36
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, keys: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -60,7 +60,7 @@ Functions
    :returns: T on success, F on failure.
 
 .. zeek:id:: set_secret
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 24 24
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 25 25
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, secret: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -77,7 +77,7 @@ Functions
    :returns: T on success, F on failure.
 
 .. zeek:id:: set_ssl_established
-   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 13 13
+   :source-code: base/bif/plugins/Zeek_SSL.functions.bif.zeek 14 14
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`) : :zeek:type:`bool`
 

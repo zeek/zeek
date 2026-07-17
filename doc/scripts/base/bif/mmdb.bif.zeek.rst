@@ -24,7 +24,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: lookup_autonomous_system
-   :source-code: base/bif/mmdb.bif.zeek 47 47
+   :source-code: base/bif/mmdb.bif.zeek 49 49
 
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`) : :zeek:type:`geo_autonomous_system`
 
@@ -40,7 +40,7 @@ Functions
    .. zeek:see:: lookup_location
 
 .. zeek:id:: lookup_location
-   :source-code: base/bif/mmdb.bif.zeek 36 36
+   :source-code: base/bif/mmdb.bif.zeek 38 38
 
    :Type: :zeek:type:`function` (a: :zeek:type:`addr`) : :zeek:type:`geo_location`
 
@@ -56,7 +56,7 @@ Functions
    .. zeek:see:: lookup_autonomous_system
 
 .. zeek:id:: mmdb_open_asn_db
-   :source-code: base/bif/mmdb.bif.zeek 25 25
+   :source-code: base/bif/mmdb.bif.zeek 27 27
 
    :Type: :zeek:type:`function` (f: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -72,7 +72,7 @@ Functions
    .. zeek:see:: lookup_autonomous_system
 
 .. zeek:id:: mmdb_open_location_db
-   :source-code: base/bif/mmdb.bif.zeek 14 14
+   :source-code: base/bif/mmdb.bif.zeek 16 16
 
    :Type: :zeek:type:`function` (f: :zeek:type:`string`) : :zeek:type:`bool`
 

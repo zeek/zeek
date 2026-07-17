@@ -21,7 +21,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: community_id_v1
-   :source-code: base/bif/communityid.bif.zeek 12 12
+   :source-code: base/bif/communityid.bif.zeek 14 14
 
    :Type: :zeek:type:`function` (cid: :zeek:type:`conn_id`, seed: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`, do_base64: :zeek:type:`bool` :zeek:attr:`&default` = ``T`` :zeek:attr:`&optional`) : :zeek:type:`string`
 

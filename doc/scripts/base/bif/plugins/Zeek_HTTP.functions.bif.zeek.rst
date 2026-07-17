@@ -22,7 +22,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: skip_http_entity_data
-   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 14 14
+   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 15 15
 
    :Type: :zeek:type:`function` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`) : :zeek:type:`any`
 
@@ -37,7 +37,7 @@ Functions
    .. zeek:see:: skip_smtp_data
 
 .. zeek:id:: unescape_URI
-   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 30 30
+   :source-code: base/bif/plugins/Zeek_HTTP.functions.bif.zeek 31 31
 
    :Type: :zeek:type:`function` (URI: :zeek:type:`string`) : :zeek:type:`string`
 

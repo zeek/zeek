@@ -27,7 +27,7 @@ Detailed Interface
 Functions
 #########
 .. zeek:id:: hll_cardinality_add
-   :source-code: base/bif/cardinality-counter.bif.zeek 35 35
+   :source-code: base/bif/cardinality-counter.bif.zeek 37 37
 
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality, elem: :zeek:type:`any`) : :zeek:type:`bool`
 
@@ -46,7 +46,7 @@ Functions
       hll_cardinality_init hll_cardinality_copy
 
 .. zeek:id:: hll_cardinality_copy
-   :source-code: base/bif/cardinality-counter.bif.zeek 73 73
+   :source-code: base/bif/cardinality-counter.bif.zeek 75 75
 
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality) : :zeek:type:`opaque` of cardinality
 
@@ -62,7 +62,7 @@ Functions
       hll_cardinality_init
 
 .. zeek:id:: hll_cardinality_estimate
-   :source-code: base/bif/cardinality-counter.bif.zeek 62 62
+   :source-code: base/bif/cardinality-counter.bif.zeek 64 64
 
    :Type: :zeek:type:`function` (handle: :zeek:type:`opaque` of cardinality) : :zeek:type:`double`
 
@@ -78,7 +78,7 @@ Functions
       hll_cardinality_init hll_cardinality_copy
 
 .. zeek:id:: hll_cardinality_init
-   :source-code: base/bif/cardinality-counter.bif.zeek 22 22
+   :source-code: base/bif/cardinality-counter.bif.zeek 24 24
 
    :Type: :zeek:type:`function` (err: :zeek:type:`double`, confidence: :zeek:type:`double`) : :zeek:type:`opaque` of cardinality
 
@@ -98,7 +98,7 @@ Functions
       hll_cardinality_copy
 
 .. zeek:id:: hll_cardinality_merge_into
-   :source-code: base/bif/cardinality-counter.bif.zeek 51 51
+   :source-code: base/bif/cardinality-counter.bif.zeek 53 53
 
    :Type: :zeek:type:`function` (handle1: :zeek:type:`opaque` of cardinality, handle2: :zeek:type:`opaque` of cardinality) : :zeek:type:`bool`
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <unistd.h>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>

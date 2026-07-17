@@ -1,3 +1,7 @@
+9.0.0-dev.676 | 2026-07-17 17:48:00 +0000
+
+  * Fix Windows breakage caused by recent bifcl changes (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.674 | 2026-07-17 15:40:45 +0200
 
   * GH-4100: Add btest covering the Python bytecode file signatures (eduardokohn)

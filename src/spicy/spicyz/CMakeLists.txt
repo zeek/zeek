@@ -4,7 +4,15 @@ configure_file(config.h.in config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION include/zeek/spicy/spicyz)
 
 add_executable(spicyz driver.cc glue-compiler.cc main.cc zeek-version.cc)
-target_compile_options(spicyz PRIVATE "-Wall")
+
+# Don't enable /Wall on Windows because it also enables a bunch of very obnoxious
+# warnings by default. Turn it down to a smaller-but-still-loud subset.
+if (MSVC)
+    target_compile_options(spicyz PRIVATE "/W4")
+else ()
+    target_compile_options(spicyz PRIVATE "-Wall")
+endif ()
+
 target_compile_features(spicyz PRIVATE "${ZEEK_CXX_STD}")
 set_target_properties(spicyz PROPERTIES CXX_EXTENSIONS OFF)
 # We do not compile spicyz's own sources with sanitizers — the global linker

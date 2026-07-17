@@ -1,3 +1,22 @@
+9.0.0-dev.674 | 2026-07-17 15:40:45 +0200
+
+  * GH-4100: Add btest covering the Python bytecode file signatures (eduardokohn)
+
+    GH-4095 added and reorganized the Python bytecode magic numbers in
+    scripts/base/frameworks/files/magic/python.sig, but they shipped without
+    any functional tests, and the file signatures in general are only
+    exercised incidentally.
+
+    Add a table-driven btest that feeds each signature's minimal magic-byte
+    prefix to file_magic() and records the returned mime_matches vector. It
+    covers all 17 signatures in python.sig (file-pyc-1, file-pyc-2, and
+    file-pyc-3-0 through file-pyc-3-14), each identifying
+    application/x-python-bytecode. Driving file_magic() exercises the
+    FILE_MAGIC rule-matcher path the signatures compile into directly, with
+    no pcap or protocol analyzer required, so a regression in any single
+    signature shows up as a one-line diff. Sibling files under file-magic/
+    can cover the remaining magic/*.sig families with the same harness.
+
 9.0.0-dev.671 | 2026-07-16 12:03:38 -0700
 
   * fixed up some comments and removed a couple of vestigial definitions (Vern Paxson, Corelight)

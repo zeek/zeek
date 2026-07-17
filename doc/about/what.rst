@@ -75,3 +75,9 @@ traffic at the frame level, or a system for storing traffic in packet capture
 (PCAP) form. Rather, Zeek sits at the “happy medium” representing compact yet
 high fidelity network logs, generating better understanding of network traffic
 and usage.
+
+Zeek does not participate in packet-forwarding decisions and cannot block,
+drop, or modify network traffic. It is an observation and analysis platform,
+not an inline enforcement system. Preventing malicious traffic is the
+responsibility of intrusion prevention systems (IPS), such as Suricata
+operating in IPS mode.

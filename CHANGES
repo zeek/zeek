@@ -1,3 +1,19 @@
+9.0.0-dev.678 | 2026-07-17 14:55:19 -0400
+
+  * Clarify Zeek’s passive operation, non‑inline enforcement, and IDS/IPS correlation (Sujala Vasanthasena Nelavai)
+
+    This update refines the “What Is Zeek?” documentation to better explain how
+    Zeek complements IDS/IPS systems such as Suricata. The original issue aimed
+    to describe Zeek–Suricata complementarity; based on maintainer feedback, the
+    changes focus on clarifying Zeek’s passive operation model and its
+    relationship to signature-based detection and inline prevention.
+
+    A new subsection explains that Zeek does not block, drop, or modify traffic
+    and does not participate in packet-forwarding decisions. Inline enforcement
+    is the domain of IPS engines (e.g., Suricata in NFQUEUE, AF_PACKET, or XDP
+    modes). This reinforces Zeek’s role as a passive, semantic network analysis
+    platform.
+
 9.0.0-dev.676 | 2026-07-17 17:48:00 +0000
 
   * Fix Windows breakage caused by recent bifcl changes (Tim Wojtulewicz, Corelight)

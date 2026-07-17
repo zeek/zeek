@@ -924,7 +924,7 @@ glue::Export GlueCompiler::parseExport(const std::string& chunk) {
     }
 
     bool expect_fields = false;
-    bool include_fields;
+    bool include_fields = true;
 
     if ( looking_at(chunk, i, "without") ) {
         eat_token(chunk, &i, "without");
@@ -933,7 +933,6 @@ glue::Export GlueCompiler::parseExport(const std::string& chunk) {
     }
     else if ( looking_at(chunk, i, "with") ) {
         eat_token(chunk, &i, "with");
-        include_fields = true;
         expect_fields = true;
     }
 

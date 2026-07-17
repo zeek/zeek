@@ -1,3 +1,19 @@
+9.0.0-dev.680 | 2026-07-17 14:55:38 -0400
+
+  * docs: add log-permissions guidance to Security Considerations (Sujala Vasanthasena Nelavai)
+
+    This update adds a new protective measure highlighting the importance of
+    restricting permissions on Zeek’s log directory and log files. Zeek’s logs
+    can contain sensitive operational metadata such as internal hostnames, URLs,
+    and protocol details derived from network traffic. If these files are left
+    world-readable or writable, they may unintentionally expose information that
+    should remain confidential.
+
+    The added guidance reflects common security practice and aligns with widely
+    accepted log-management recommendations, including those outlined in NIST
+    SP 800-92. The goal is to help operators avoid accidental data exposure by
+    ensuring that only authorized users and processes can access Zeek’s logs.
+
 9.0.0-dev.678 | 2026-07-17 14:55:19 -0400
 
   * Clarify Zeek’s passive operation, non‑inline enforcement, and IDS/IPS correlation (Sujala Vasanthasena Nelavai)

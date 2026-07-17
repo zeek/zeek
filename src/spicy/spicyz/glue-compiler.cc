@@ -1458,7 +1458,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
         return *x;
     }
 
-    void operator()(hilti::type::Address* t) final { result(base_type("zeek_rt::ZeekTypeTag::Addr")); }
+    void operator()([[maybe_unused]] hilti::type::Address* t) final { result(base_type("zeek_rt::ZeekTypeTag::Addr")); }
 
     void operator()(hilti::type::Bitfield* t) final {
         hilti::Expressions fields;
@@ -1492,15 +1492,15 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
         result(create_record_type(ns, local, fields));
     }
 
-    void operator()(hilti::type::Bool* t) final { result(base_type("zeek_rt::ZeekTypeTag::Bool")); }
-    void operator()(hilti::type::Bytes* t) final { result(base_type("zeek_rt::ZeekTypeTag::String")); }
-    void operator()(hilti::type::Interval* t) final { result(base_type("zeek_rt::ZeekTypeTag::Interval")); }
-    void operator()(hilti::type::Port* t) final { result(base_type("zeek_rt::ZeekTypeTag::Port")); }
-    void operator()(hilti::type::Real* t) final { result(base_type("zeek_rt::ZeekTypeTag::Double")); }
-    void operator()(hilti::type::SignedInteger* t) final { result(base_type("zeek_rt::ZeekTypeTag::Int")); }
-    void operator()(hilti::type::String* t) final { result(base_type("zeek_rt::ZeekTypeTag::String")); }
-    void operator()(hilti::type::Time* t) final { result(base_type("zeek_rt::ZeekTypeTag::Time")); }
-    void operator()(hilti::type::UnsignedInteger* t) final { result(base_type("zeek_rt::ZeekTypeTag::Count")); }
+    void operator()(hilti::type::Bool* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Bool")); }
+    void operator()(hilti::type::Bytes* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::String")); }
+    void operator()(hilti::type::Interval* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Interval")); }
+    void operator()(hilti::type::Port* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Port")); }
+    void operator()(hilti::type::Real* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Double")); }
+    void operator()(hilti::type::SignedInteger* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Int")); }
+    void operator()(hilti::type::String* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::String")); }
+    void operator()(hilti::type::Time* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Time")); }
+    void operator()(hilti::type::UnsignedInteger* /*t*/) final { result(base_type("zeek_rt::ZeekTypeTag::Count")); }
 
     void operator()(hilti::type::Enum* t) final {
         assert(id());

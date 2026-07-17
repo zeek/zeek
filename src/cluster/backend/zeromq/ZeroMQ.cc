@@ -986,7 +986,7 @@ void ZeroMQBackend::Run() {
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {
                 const auto& item = poll_items[i];
-                ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: items[%lu]=%s %s %s\n", i, sockets[i].name.c_str(),
+                ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: items[%zu]=%s %s %s\n", i, sockets[i].name.c_str(),
                                            item.revents & ZMQ_POLLIN ? "pollin " : "",
                                            item.revents & ZMQ_POLLERR ? "err" : "");
 

@@ -1037,16 +1037,8 @@ else ()
         set(ENABLE_STATIC_ONLY true)
     endif ()
 
-    # Set linker flags so broker executables/shared libs get the ASan runtime.
-    if (_sanitizer_flags)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
-    endif ()
-
     add_subdirectory(auxil/broker)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-    zeek_target_enable_sanitizers(broker)
 
     if (BUILD_STATIC_BROKER)
         list(APPEND zeekdeps broker_static)
@@ -1067,6 +1059,12 @@ else ()
     # Tell plugins where to find the Broker CMake package in the source tree. This
     # variable is picked up in ZeekPluginConfig.cmake.in.
     set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+endif ()
+
+# Set linker flags so later executables/shared libs get the ASan runtime.
+if (_sanitizer_flags)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
 endif ()
 
 if (NOT DISABLE_SPICY)

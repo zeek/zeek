@@ -1,0 +1,6 @@
+# @TEST-EXEC: zeek -C -b -r $TRACES/tcp-syslog.pcap %INPUT
+# @TEST-EXEC: btest-diff-cut -m syslog.log
+# @TEST-EXEC: btest-diff-cut -m uid service history duration orig_pkts resp_pkts conn.log
+
+@load base/protocols/syslog
+@load base/protocols/conn

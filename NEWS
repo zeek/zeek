@@ -66,6 +66,9 @@ New Functionality
   units to GSSAPI and NTLM parsers to extract additional information into the
   the ``ntlm.log`` or ``kerberos.log`` logs.
 
+- The Syslog analyzer has been extended to support TCP using Octet Counting and
+  Non-Transparent-Framing, registered on port 514/tcp by default.
+
 - Imported the zeek/spicy-zip file analyzer into the main tree. This analyzer outputs
   information about ZIP files found in other protocols, including information about the
   contents of such archives. It will recursive search zip files, so there is the

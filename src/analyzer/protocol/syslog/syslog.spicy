@@ -16,8 +16,8 @@ public type Message = unit {
         spicy::accept_input();
 
         if (self?.prio) {
-            self.severity = (self.prio.value & 0x07);
-            self.facility = (self.prio.value & 0x03f8) >> 3;
+            self.severity = self.prio.severity;
+            self.facility = self.prio.facility;
         }
     }
 
@@ -29,4 +29,52 @@ type Priority = unit {
     : b"<";
     value: /[[:digit:]]+/ &convert=$$.to_uint();
     : b">";
+
+    on %done {
+        self.severity = (self.value & 0x07);
+        self.facility = (self.value & 0x03f8) >> 3;
+    }
+
+    var severity: uint64 = 0;
+    var facility: uint64 = 0;
+};
+
+# Use Frames for TCP - RFC 6587
+public type Frames = unit {
+    : Frame[] &eod;
+};
+
+type Frame = unit {
+    # RFC 6587 mentions Octet Counting starts with Non-Zero digit
+    # and Non-Transparent begins with the character <
+
+    switch {
+        -> octet_counting: OctetCounting;
+        -> non_transparent: NonTransparent;
+    };
+};
+
+type OctetCounting = unit {
+    len: /[1-9][0-9]*/;
+    : b" ";
+
+    syslog_msg: Message &size=self.len.to_uint();
+};
+
+type NonTransparent = unit {
+    prio: Priority;
+    msg: /[^\x00\n\r]+/;
+    : skip /[\x00\n\r]+/;
+
+    on %done {
+        spicy::accept_input();
+
+        if (self?.prio) {
+            self.severity = self.prio.severity;
+            self.facility = self.prio.facility;
+        }
+    }
+
+    var facility: uint64 = 999;
+    var severity: uint64 = 999;
 };

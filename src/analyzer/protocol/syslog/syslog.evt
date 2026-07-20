@@ -1,11 +1,15 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 %doc-id= Zeek::Syslog;
-%doc-description = "Syslog analyzer UDP-only";
+%doc-description = "Syslog analyzer UDP and TCP";
 
 protocol analyzer Syslog over UDP:
     parse with Syslog::Message;
 
+protocol analyzer Syslog_TCP over TCP:
+    parse with Syslog::Frames;
+
 import Syslog;
 
 on Syslog::Message -> event syslog_message($conn, self.facility, self.severity, self.msg);
+on Syslog::NonTransparent -> event syslog_message($conn, self.facility, self.severity, self.msg);

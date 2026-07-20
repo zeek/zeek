@@ -10,6 +10,7 @@ export {
 
 	## Well-known ports for Syslog.
 	const ports = { 514/udp } &redef;
+	const tcp_ports = { 514/tcp } &redef;
 
 	global log_policy: Log::PolicyHook;
 
@@ -40,6 +41,7 @@ event zeek_init() &priority=5
 	{
 	Log::create_stream(Syslog::LOG, Log::Stream($columns=Info, $path="syslog", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SYSLOG_TCP, tcp_ports);
 	}
 
 event syslog_message(c: connection, facility: count, severity: count, msg: string) &priority=5

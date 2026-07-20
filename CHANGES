@@ -1,3 +1,9 @@
+9.0.0-dev.683 | 2026-07-20 11:44:52 +0200
+
+  * Integrated TCP Syslog into existing Syslog module (VasuBhakt)
+
+  * Added TCP Support for Syslog (VasuBhakt)
+
 9.0.0-dev.680 | 2026-07-17 14:55:38 -0400
 
   * docs: add log-permissions guidance to Security Considerations (Sujala Vasanthasena Nelavai)

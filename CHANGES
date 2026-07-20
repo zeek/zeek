@@ -1,3 +1,11 @@
+9.0.0-dev.689 | 2026-07-20 09:22:52 -0700
+
+  * CI: Switch CIRRUS_CI to ZEEK_CI in collect-repo-info script (Tim Wojtulewicz, Corelight)
+
+  * CI: Fix coverage script to remove Cirrus checks (Tim Wojtulewicz, Corelight)
+
+  * Update zeek-testing commit hash to last merge commit (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.685 | 2026-07-20 09:18:30 -0700
 
   * Revert "CI: Temporarily disable cloning zeek-testing-private repo" (Tim Wojtulewicz, Corelight)

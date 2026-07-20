@@ -1,3 +1,7 @@
+9.0.0-dev.694 | 2026-07-20 12:51:52 -0700
+
+  * Remove zeek-testing-cluster commit-hash file (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.692 | 2026-07-20 18:31:47 +0200
 
   * IntSet: Drop Clear() method (Arne Welzel, Corelight)

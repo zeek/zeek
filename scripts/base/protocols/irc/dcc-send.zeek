@@ -76,10 +76,15 @@ function log_dcc(f: fa_file)
 
 		local irc = dcc_expected_transfers[cid$resp_h, cid$resp_p];
 
-		local tmp = irc$command;
+		local tmp_cmd: string = "";
+		if ( irc?$command )
+			tmp_cmd = irc$command;
+
 		irc$command = "DCC";
 		Log::write(IRC::LOG, irc);
-		irc$command = tmp;
+
+		if ( |tmp_cmd| != 0 )
+			irc$command = tmp_cmd;
 
 		# Delete these values in case another DCC transfer
 		# happens during the IRC session.

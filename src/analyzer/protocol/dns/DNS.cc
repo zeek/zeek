@@ -102,7 +102,8 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     if ( zeek::detail::dns_max_queries > 0 && msg.qd_zo_count > zeek::detail::dns_max_queries ) {
         analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
         analyzer->AnalyzerViolation("DNS_Conn_count_too_large");
-        analyzer->Weird("DNS_Conn_count_too_large");
+        analyzer->Weird("DNS_Conn_count_too_large",
+                        util::fmt("%d > %d", msg.qd_zo_count, zeek::detail::dns_max_queries));
         EndMessage(&msg);
         return;
     }

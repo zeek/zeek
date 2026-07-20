@@ -1,3 +1,24 @@
+9.0.0-dev.692 | 2026-07-20 18:31:47 +0200
+
+  * IntSet: Drop Clear() method (Arne Welzel, Corelight)
+
+    Users should probably just use std::vector<bool> instead these days, but
+    avoid the footgun.
+
+  * NFA: Drop the static closuremap (Arne Welzel, Corelight)
+
+    Since 54b687a83adb5c97437d02c1cdb2e523f1fdfbdb, the closuremap is
+    cleared and identifiers re-used, but remained a static instance.
+
+    @initconf reports the memset() call within Clear() of the IntSet becomes
+    significant overhead for subsequent trivial string_to_pattern() calls once
+    the closuremap grew large. This is due to always zeroing out all of
+    the allocated memory.
+
+    Seem easiest to just use a new instance and select the initial size to be
+    the number of NFA states and rely on the allocator to be fast, rather
+    than trying to find some magic constant.
+
 9.0.0-dev.689 | 2026-07-20 09:22:52 -0700
 
   * CI: Switch CIRRUS_CI to ZEEK_CI in collect-repo-info script (Tim Wojtulewicz, Corelight)

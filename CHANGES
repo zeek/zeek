@@ -1,3 +1,9 @@
+8.0.9-10 | 2026-08-10 16:43:05 -0700
+
+  * Revert "CI: Temporarily disable cloning zeek-testing-private repo" (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit ddc6c608d0ab10705f7391f9b073ca9f1dc267a0)
+
 8.0.9-9 | 2026-08-10 16:42:05 -0700
 
   * CI: Switch CIRRUS_CI to ZEEK_CI in collect-repo-info script (Tim Wojtulewicz, Corelight)

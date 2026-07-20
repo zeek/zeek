@@ -560,19 +560,26 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                 }
             }
 
-            // Calculate IP address.
-            uint32_t raw_ip = 0;
-            for ( size_t i = 0; i < parts[3].size(); ++i ) {
-                string s = parts[3].substr(i, 1);
-                raw_ip = (10 * raw_ip) + atoi(s.c_str());
+            // Extract IP address.
+            uint32_t dcc_host = 0;
+            if ( util::atoi_n(parts[3].size(), parts[3].c_str(), nullptr, 10, dcc_host) == 0 ) {
+                Weird("irc_invalid_dcc_host");
+                return;
+            }
+
+            // Extract port number.
+            uint32_t dcc_port = 0;
+            if ( util::atoi_n(parts[4].size(), parts[4].c_str(), nullptr, 10, dcc_port) == 0 || dcc_port > 65535 ) {
+                Weird("irc_invalid_dcc_port", util::fmt("%d", dcc_port));
+                return;
             }
 
             if ( irc_dcc_message )
                 EnqueueConnEvent(irc_dcc_message, ConnVal(), val_mgr->Bool(orig),
                                  make_intrusive<StringVal>(prefix.c_str()), make_intrusive<StringVal>(target.c_str()),
                                  make_intrusive<StringVal>(parts[1].c_str()),
-                                 make_intrusive<StringVal>(parts[2].c_str()), make_intrusive<AddrVal>(htonl(raw_ip)),
-                                 val_mgr->Count(atoi(parts[4].c_str())),
+                                 make_intrusive<StringVal>(parts[2].c_str()), make_intrusive<AddrVal>(htonl(dcc_host)),
+                                 val_mgr->Count(dcc_port),
                                  parts.size() >= 6 ? val_mgr->Count(atoi(parts[5].c_str())) : val_mgr->Count(0));
         }
 

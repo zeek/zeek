@@ -1,3 +1,9 @@
+9.0.0-dev.685 | 2026-07-20 09:18:30 -0700
+
+  * Revert "CI: Temporarily disable cloning zeek-testing-private repo" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 742f42feb124075cb8d39a0856aa590e2c78f925.
+
 9.0.0-dev.683 | 2026-07-20 11:44:52 +0200
 
   * Integrated TCP Syslog into existing Syslog module (VasuBhakt)

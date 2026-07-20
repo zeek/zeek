@@ -34,15 +34,10 @@ cd ..
 # the zeek-testing-private dir could have been created/populated already. This
 # requires the host running the build to have access to an SSH key that grants
 # access to the repo, and it will fail otherwise.
-#
-# TODO: Uncomment this and delete the message once the CI issues are resolved.
-#
-# if [[ -n "${ZEEK_CI}" ]] && [[ ! -d zeek-testing-private ]]; then
-#     banner "Trying to clone zeek-testing-private git repo"
-#     GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:zeek/zeek-testing-private
-# fi
-
-echo "NOTE: zeek-testing-private currently disabled due to CI issues"
+if [[ -n "${ZEEK_CI}" ]] && [[ ! -d zeek-testing-private ]]; then
+    banner "Trying to clone zeek-testing-private git repo"
+    GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:zeek/zeek-testing-private
+fi
 
 set -e
 

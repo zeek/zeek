@@ -87,6 +87,12 @@ refine connection SMB_Conn += {
 		return true;
 		%}
 
+	function proc_smb_andx_offset_not_advancing(h: SMB_Header): bool
+		%{
+		zeek_analyzer()->Weird("smb_andx_offset_not_advancing");
+		return true;
+		%}
+
 };
 
 type SMB_dos_error = record {

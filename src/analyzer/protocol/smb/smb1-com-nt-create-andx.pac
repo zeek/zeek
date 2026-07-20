@@ -71,8 +71,10 @@ type SMB1_nt_create_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command        : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
+	andx_command        : SMB_andx_command(header, true, offset+offsetof(andx_command), (andx.offset > offset) ? andx.command : 0xff);
 } &let {
+	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
+		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
 	proc : bool = $context.connection.proc_smb1_nt_create_andx_request(header, this);
 };
 
@@ -97,7 +99,9 @@ type SMB1_nt_create_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command       : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
+	andx_command       : SMB_andx_command(header, false, offset+offsetof(andx_command), (andx.offset > offset) ? andx.command : 0xff);
 } &let {
+	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
+		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
 	proc : bool = $context.connection.proc_smb1_nt_create_andx_response(header, this);
 };

@@ -1,3 +1,13 @@
+8.2.1-10 | 2026-08-11 11:12:21 -0700
+
+  * CI: Switch CIRRUS_CI to ZEEK_CI in collect-repo-info script (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5acb5755121d4c500b5dea7d04ffb145b09feb5c)
+
+  * CI: Fix coverage script to remove Cirrus checks (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5acb5755121d4c500b5dea7d04ffb145b09feb5c)
+
 8.2.1-9 | 2026-08-11 11:10:14 -0700
 
   * CCI: Only prune and upload ccache once all tasks are done

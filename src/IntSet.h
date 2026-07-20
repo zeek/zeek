@@ -22,8 +22,6 @@ public:
     void Remove(unsigned int i);
     bool Contains(unsigned int i) const;
 
-    void Clear();
-
 private:
     void Expand(unsigned int i);
 
@@ -54,7 +52,5 @@ inline void IntSet::Remove(unsigned int i) {
 }
 
 inline bool IntSet::Contains(unsigned int i) const { return i / 8 < size ? set[i / 8] & (1 << (i % 8)) : false; }
-
-inline void IntSet::Clear() { memset(set, 0, size); }
 
 } // namespace zeek::detail

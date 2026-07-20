@@ -136,7 +136,7 @@ else
     COVERAGE_FILE_CLEAN="${COVERAGE_FILE}.clean"
     verify_run "testing/coverage/coverage_cleanup.py ${COVERAGE_FILE} > ${COVERAGE_FILE_CLEAN} 2>&1"
 
-    if [ "${CIRRUS_BRANCH}" == "master" ] && [ -n "${COVERALLS_REPO_TOKEN}" ]; then
+    if [ "${CIRCLE_BRANCH}" == "master" ] && [ -n "${ZEEK_COVERALLS_REPO_TOKEN}" ] && [ "${CIRCLE_PR_REPONAME}" == "zeek" ]; then
         echo -n "Reporting to Coveralls..."
         coveralls_cmd="coveralls-lcov -t ${COVERALLS_REPO_TOKEN}"
     else
@@ -144,9 +144,9 @@ else
         coveralls_cmd="coveralls-lcov --dry-run"
     fi
 
-    # If we're being called by Cirrus, add some additional information to the output.
-    if [ -n "${CIRRUS_BUILD_ID}" ]; then
-        coveralls_cmd="${coveralls_cmd} --service-name=cirrus --service-job-id=${CIRRUS_BUILD_ID}"
+    # If we're being called by CircleCI, add some additional information to the output.
+    if [ -n "${CIRCLE_WORKFLOW_ID}" ]; then
+        coveralls_cmd="${coveralls_cmd} --service-name=circleci --service-job-id=${CIRCLE_WORKFLOW_ID}"
     else
         coveralls_cmd="${coveralls_cmd} --service-name=local"
     fi

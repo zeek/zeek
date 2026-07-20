@@ -282,9 +282,7 @@ NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2) {
 }
 
 NFA_state_list* epsilon_closure(NFA_state_list* states) {
-    // We just keep one of this as it may get quite large.
-    static IntSet closuremap;
-    closuremap.Clear();
+    IntSet closuremap(states->size());
 
     NFA_state_list* closure = new NFA_state_list;
 

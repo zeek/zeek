@@ -268,6 +268,12 @@ Changed Functionality
   by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
   just the next protocol byte.
 
+- The number of data channels per worker is now capped at a configurable
+  maximum FTP::max_expected_data_channels (default 100000). When the limit
+  is reached, FTP data connection correlation across a Zeek cluster is
+  disabled to prevent unbounded state growth and cluster overload until
+  expiration removes old entries.
+
 Deprecated Functionality
 ------------------------
 

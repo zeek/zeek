@@ -14,9 +14,10 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-============================================================== ============================
-:zeek:id:`Syslog::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for Syslog.
-============================================================== ============================
+================================================================== ============================
+:zeek:id:`Syslog::ports`: :zeek:type:`set` :zeek:attr:`&redef`     Well-known ports for Syslog.
+:zeek:id:`Syslog::tcp_ports`: :zeek:type:`set` :zeek:attr:`&redef`
+================================================================== ============================
 
 Types
 #####
@@ -64,10 +65,25 @@ Redefinable Options
 
    Well-known ports for Syslog.
 
+.. zeek:id:: Syslog::tcp_ports
+   :source-code: base/protocols/syslog/main.zeek 13 13
+
+   :Type: :zeek:type:`set` [:zeek:type:`port`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            514/tcp
+         }
+
+
+
 Types
 #####
 .. zeek:type:: Syslog::Info
-   :source-code: base/protocols/syslog/main.zeek 17 32
+   :source-code: base/protocols/syslog/main.zeek 18 33
 
    :Type: :zeek:type:`record`
 
@@ -112,7 +128,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Syslog::log_policy
-   :source-code: base/protocols/syslog/main.zeek 14 14
+   :source-code: base/protocols/syslog/main.zeek 15 15
 
    :Type: :zeek:type:`Log::PolicyHook`
 

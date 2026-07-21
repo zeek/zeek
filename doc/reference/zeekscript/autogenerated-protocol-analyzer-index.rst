@@ -133,6 +133,8 @@ Protocol Analyzers
 
       .. zeek:enum:: Analyzer::ANALYZER_SYSLOG Analyzer::Tag
 
+      .. zeek:enum:: Analyzer::ANALYZER_SYSLOG_TCP Analyzer::Tag
+
       .. zeek:enum:: Analyzer::ANALYZER_SPICY_WEBSOCKET Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_SSH Analyzer::Tag
@@ -364,6 +366,8 @@ Protocol Analyzers
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_REDIS AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SYSLOG AllAnalyzers::Tag
+
+      .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SYSLOG_TCP AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SPICY_WEBSOCKET AllAnalyzers::Tag
 
@@ -19180,15 +19184,41 @@ Events
 Zeek::Syslog
 ------------
 
-Syslog analyzer UDP-only
+Syslog analyzer UDP and TCP
 
 Components
 ++++++++++
 
 :zeek:enum:`Analyzer::ANALYZER_SYSLOG`
 
+:zeek:enum:`Analyzer::ANALYZER_SYSLOG_TCP`
+
 Events
 ++++++
+
+.. zeek:id:: syslog_message
+   :source-code: base/protocols/syslog/spicy-events.zeek 19 19
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, facility: :zeek:type:`count`, severity: :zeek:type:`count`, msg: :zeek:type:`string`)
+
+   Generated for monitored Syslog messages.
+
+   See `Wikipedia <https://en.wikipedia.org/wiki/Syslog>`__ for more
+   information about the Syslog protocol.
+
+
+   :param c: The connection record for the underlying transport-layer session/flow.
+
+
+   :param facility: The "facility" included in the message.
+
+
+   :param severity: The "severity" included in the message.
+
+
+   :param msg: The message logged.
+
+   .. note:: Zeek currently parses only UDP syslog traffic.
 
 .. zeek:id:: syslog_message
    :source-code: base/protocols/syslog/spicy-events.zeek 19 19

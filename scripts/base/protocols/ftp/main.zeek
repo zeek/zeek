@@ -78,6 +78,15 @@ export {
 	## Truncate the reply_msg field in the log to that many bytes to avoid
 	## excessive logging volume.
 	option max_reply_msg_length = 4096;
+
+	## The maximum number of expected data channels to track. This caps the
+	## size of the ftp_data_expected table. When reached, workers will cease
+	## storing additional entries and skip publishing to other nodes to
+	## prevent unbounded state growth and unreasonable cluster load.
+	## A FTP_too_many_expected_data_channels weird is produced every time
+	## the limit is reached, but will be subject to weird rate-limiting.
+	## Setting this variable to 0 disables the limit.
+	option max_expected_data_channels = 100000;
 }
 
 # Add the state tracking information variable to the connection record
@@ -227,6 +236,13 @@ event sync_add_expected_data(s: Info, chan: ExpectedDataChannel) &is_used
       Cluster::local_node_type() == Cluster::MANAGER )
 	Cluster::publish(Cluster::worker_topic, sync_add_expected_data, minimize_info(s), chan);
 @else
+	if ( [chan$resp_h, chan$resp_p] !in ftp_data_expected &&
+	     max_expected_data_channels > 0 && |ftp_data_expected| >= max_expected_data_channels )
+		{
+		Reporter::net_weird("FTP_too_many_expected_data_channels", cat(|ftp_data_expected|), "FTP");
+		return;
+		}
+
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
 	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
 	                            Analyzer::ANALYZER_FTP_DATA,
@@ -246,6 +262,13 @@ event sync_remove_expected_data(resp_h: addr, resp_p: port) &is_used
 
 function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	{
+	if ( [chan$resp_h, chan$resp_p] !in ftp_data_expected &&
+	     max_expected_data_channels > 0 && |ftp_data_expected| >= max_expected_data_channels )
+		{
+		Reporter::net_weird("FTP_too_many_expected_data_channels", cat(|ftp_data_expected|), "FTP");
+		return;
+		}
+
 	s$passive = chan$passive;
 	s$data_channel = chan;
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;

@@ -235,6 +235,10 @@ Changed Functionality
   source files that include a ``%gen-native`` directive. All ``.bif`` files in
   the Zeek tree do so and have been converted to the native format.
 
+- Multiple weirds associated with configurable limits will now mark the
+  connection history with 'X' if Zeek will stop processing traffic after
+  the limit was hit. This is in line with other, similar weirds.
+
 Deprecated Functionality
 ------------------------
 

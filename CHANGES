@@ -1,3 +1,26 @@
+9.0.0-dev.705 | 2026-07-22 16:49:10 -0400
+
+  * Use `%d > %d` for weirds in a few limits (Evan Typanski, Corelight)
+
+    There are some cases where we have a configurable limit weird to prevent
+    increasing some buffer or recursion too much. When the amount we would
+    recurse/allocate is known beforehand, it's useful to have the requested
+    amount and limit in the weird.
+
+    This could likely also apply to other cases, but some are just
+    incrementing a count, then once it exceeds the weird is triggered. Those
+    seem less beneficial.
+
+  * Add `X` to conn history when exceeding limits (Evan Typanski, Corelight)
+
+    Generally, we tried to use `X` in conn history to show that a connection
+    hit a configurable limit. This goes through and adds that.
+
+    Note, I'm only touching cases that throw a weird here. I did not touch
+    Spicy parsers, as the history is a bit harder to get to.
+
+    Claude found these and I just did the monkey coding part.
+
 9.0.0-dev.701 | 2026-07-22 17:49:11 +0200
 
   * GH-5548: logging: Stash vector of Field* into LogWriteHeader, use for plugin hooks (Arne Welzel, Corelight)

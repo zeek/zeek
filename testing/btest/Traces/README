@@ -205,3 +205,9 @@ Trace Index/Sources:
 - portmapper-many-unanswered-calls.pcapng.gz: Generated via portmapper-many-unanswered-calls.py
   produced by ChatGPT 5.5. Script slightly adapted to use deterministic packet timestamps,
   then gzip compressed.
+- dns/conn-count-too-large.pcap
+  Generated via corresponding Claude-generated scapy script dns/conn-count-too-large.pcap.py.
+  Contains a DNS query with QDCOUNT exceeding dns_max_queries.
+- dns/max-compression-depth.pcap
+  Generated via corresponding Claude-generated scapy script dns/max-compression-depth.pcap.py.
+  Contains a DNS response whose answer RRs form a chain of backward compression pointers.

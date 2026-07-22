@@ -22,8 +22,16 @@ protected:
 
 private:
     int round;
+
+    // Check that the WriterInfo pointer via HookLogInit() is the same
+    // as the one observed via HookLogWrite()
     const zeek::logging::WriterBackend::WriterInfo* info_addr_init = nullptr;
     const zeek::logging::WriterBackend::WriterInfo* info_addr_write = nullptr;
+
+    // Check that the fields pointer via HookLogInit() is the same
+    // as the one observed via HookLogWrite()
+    const zeek::threading::Field* const* fields_init = nullptr;
+    const zeek::threading::Field* const* fields_write = nullptr;
 };
 
 extern Plugin plugin;

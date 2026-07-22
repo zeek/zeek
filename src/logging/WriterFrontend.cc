@@ -148,9 +148,15 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
 
     initialized = true;
 
+    // Initialize the LogWriterHeader fields and field_pointers.
     header.fields.reserve(arg_num_fields);
     for ( int i = 0; i < arg_num_fields; i++ )
         header.fields.emplace_back(*arg_fields[i]);
+
+    // Now populate field_pointers with stable pointers.
+    header.field_pointers.reserve(arg_num_fields);
+    for ( int i = 0; i < arg_num_fields; i++ )
+        header.field_pointers.emplace_back(&header.fields[i]);
 
     if ( remote ) {
         broker_mgr->PublishLogCreate(header.stream_id.get(), header.writer_id.get(), *info, arg_num_fields, arg_fields);

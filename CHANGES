@@ -1,3 +1,23 @@
+8.2.1-6 | 2026-08-11 10:45:43 -0700
+
+  * GH-5548: logging: Stash vector of Field* into LogWriteHeader, use for plugin hooks (Arne Welzel, Corelight)
+
+    @pbcullen reports that WriterFrontend::Init() frees the fields array
+    when local logging is disabled, but then logging::Manager happily passes
+    on that pointer to HookLogInit(), resulting in use-after-free accesses.
+
+    Keep a separate vector of threading::Field* pointers in the
+    LogWriteHeader held by each WriterFrontend and use its .data()
+    attribute for HookLogInit() and HookLogWrite().
+
+    Extend the logging-hooks-plugin to verify that the fields pointer
+    is the same for either hook invocation and also add a logging-hooks-no-local
+    test disabling local logging as that would have tickled the issue.
+
+    (cherry picked from commit abcc93f700028f28896466fe6c7ea02d271f7dd9)
+
+  * Update broker submodule for JSON address fix (Tim Wojtulewicz, Corelight)
+
 8.2.1-4 | 2026-08-11 10:38:22 -0700
 
   * GH-5674: telemetry/services.json: Render IPv6 addresses as URI string (Arne Welzel, Corelight)

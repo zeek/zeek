@@ -40,6 +40,8 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now includes a simple DHCPv6 analyzer, producing dhcpv6.log.
+
 - The zeek-packet-source-udp (https://github.com/zeek/zeek-packet-source-udp)
   plugin is now included and enabled by default on Linux and FreeBSD.
 

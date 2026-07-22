@@ -1,0 +1,247 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+#
+# Dynamic Host Configuration Protocol for IPv6 (DHCPv6)
+#
+# https://datatracker.ietf.org/doc/html/rfc8415
+
+module DHCPv6;
+
+import spicy;
+
+type MessageType = enum {
+    SOLICIT = 1,
+    ADVERTISE = 2,
+    REQUEST = 3,
+    CONFIRM = 4,
+    RENEW = 5,
+    REBIND = 6,
+    REPLY = 7,
+    RELEASE = 8,
+    DECLINE = 9,
+    RECONFIGURE = 10,
+    INFORMATION_REQUEST = 11,
+    RELAY_FORW = 12, 
+    RELAY_REPL = 13,
+};
+
+type DUIDType = enum {
+    LLT = 1, # Link-Layer Address Plus Time https://datatracker.ietf.org/doc/html/rfc8415#section-11.2
+    EN = 2, # Enterprise Number https://datatracker.ietf.org/doc/html/rfc8415#section-11.3
+    LL = 3, # Link-Layer Address https://datatracker.ietf.org/doc/html/rfc8415#section-11.4
+    UUID = 4, # Universally Unique Identifier https://datatracker.ietf.org/doc/html/rfc8415#section-11.5
+};
+
+type DUIDOption_LLT = unit {
+    hw_type: uint16;
+    time_: uint32;
+    ll_addr: bytes &eod &convert=spicy::bytes_to_mac($$);
+};
+
+type DUIDOption_EN = unit {
+    enterprise_number: uint32; # https://www.iana.org/assignments/enterprise-numbers/
+    identifier: bytes &eod;
+};
+
+type DUIDOption_LL = unit {
+    hw_type: uint16;
+    ll_addr: bytes &eod &convert=spicy::bytes_to_mac($$);
+};
+
+type DUIDOption_UUID = unit {
+    uuid: bytes &size=16; # 128 bit UUID
+};
+
+type DUIDOption = unit {
+    duid_type: uint16 &convert=DUIDType($$);
+    data: bytes &eod;
+
+    switch (self.duid_type) {
+        DUIDType::LLT -> llt: DUIDOption_LLT;
+        DUIDType::EN -> en: DUIDOption_EN;
+        DUIDType::LL -> ll: DUIDOption_LL;
+        DUIDType::UUID -> uuid: DUIDOption_UUID;
+    } &parse-from=self.data;
+};
+
+type StatusCode = enum {
+    Success = 0,
+    UnspecFail = 1,
+    NoAddrsAvail = 2,
+    NoBinding = 3,
+    NotOnLink = 4,
+    UseMulticast = 5,
+    NoPrefixAvail = 6,
+};
+
+type StatusCodeOption = unit {
+    code: uint16 &convert=StatusCode($$);
+    message: bytes &eod;
+};
+
+type IA_NAOption = unit {
+    iaid: uint32;
+    t1: uint32; # seconds
+    t2: uint32; # seconds
+    options: Option(False)[] &eod;
+};
+
+type IAADDROption = unit {
+    addr6: addr &ipv6;
+    preferred_lifetime: uint32;
+    valid_lifetime: uint32;
+    options: Option(False)[] &eod;
+};
+
+type RequestOption = unit {
+    requested_options: uint16[] &eod;
+};
+
+# DNS Label without compression.
+# https://datatracker.ietf.org/doc/html/rfc1035#section-3.1
+type Label = unit {
+    len: uint8 &requires=(($$ & 0xC0) == 0);
+    label: bytes &size=self.len;
+} &convert=self.label;
+
+# https://datatracker.ietf.org/doc/html/rfc4704#section-4
+type ClientFQDNOption = unit {
+    var domain_name: bytes;
+    flags: bitfield(8) {
+        mbz: 0..4;
+        n: 5 &convert=($$ == 1);
+        o: 6 &convert=($$ == 1);
+        s: 7 &convert=($$ == 1);
+    } &bit-order=spicy::BitOrder::MSB0;
+
+    labels: Label[] &eod {
+        self.domain_name = b".".join($$);
+    }
+};
+
+type OptionCode = enum {
+    CLIENTID = 1,
+    SERVERID = 2,
+    IA_NA = 3,
+    IA_TA = 4,
+    IAADDR = 5,
+    REQUEST = 6,
+    RELAY_MSG = 9,
+    STATUS_CODE = 13,
+    CLIENT_FQDN = 39,
+};
+
+type Option = unit(top_level: bool) {
+    var top_level: bool = top_level;
+    code: uint16 &convert=OptionCode($$);
+    len: uint16;
+
+    switch (self.code) {
+        OptionCode::CLIENTID -> client_id: DUIDOption;
+        OptionCode::SERVERID -> server_id: DUIDOption;
+        OptionCode::IA_NA -> ia_na: IA_NAOption;
+        OptionCode::IAADDR -> iaaddr: IAADDROption;
+        OptionCode::REQUEST -> request_option: RequestOption;
+        OptionCode::RELAY_MSG -> relay_msg: Message;
+        OptionCode::STATUS_CODE -> status_code: StatusCodeOption;
+        OptionCode::CLIENT_FQDN -> client_fqdn: ClientFQDNOption;
+        * -> unknown: bytes &eod;
+    } &size=self.len;
+};
+
+# The DHCPv6 message header shares a 1-byte message type across all forms; the
+# remaining bytes differ between client/server messages (transaction ID +
+# options) and relay messages (hop count + link/peer addresses + options).
+# https://datatracker.ietf.org/doc/html/rfc8415#section-8
+
+# Client/server message body, following the 1-byte msg_type read by Message.
+# https://datatracker.ietf.org/doc/html/rfc8415#section-8
+type ClientServerMessage = unit {
+    transaction_id: uint8[3] &convert=uint32((uint32($$[0]) << 16) + (uint32($$[1]) << 8) + uint32($$[2]));
+    options: Option(True)[] &eod;
+};
+
+# Relay-forward / relay-reply message body.
+# https://datatracker.ietf.org/doc/html/rfc8415#section-9
+type RelayMessage = unit {
+    hop_count: uint8;
+    link_address: addr &ipv6;
+    peer_address: addr &ipv6;
+    options: Option(True)[] &eod;
+};
+
+public type Message = unit {
+    msg_type: uint8 &convert=MessageType($$);
+
+    switch (self.msg_type) {
+        MessageType::RELAY_FORW, MessageType::RELAY_REPL -> relay: RelayMessage;
+        * -> client_server: ClientServerMessage;
+    };
+};
+
+# A flat, non-recursive summary of a parsed message that is handed to Zeek as a
+# single record. The grammar's option types are self-recursive (IA_NA options
+# contain sub-options), which Zeek records cannot represent, so the interesting
+# fields are extracted here instead.
+type MessageInfo = struct {
+    msg_type: uint8;
+    transaction_id: uint32;
+    client_duid_type: optional<uint8> &default=Null;
+    client_duid: optional<bytes> &default=Null;
+    server_duid_type: optional<uint8> &default=Null;
+    server_duid: optional<bytes> &default=Null;
+    requested_options: optional<vector<uint16>> &default=Null;
+    iaid: optional<uint32> &default=Null;
+    t1: optional<uint32> &default=Null;
+    t2: optional<uint32> &default=Null;
+    assigned_addr: optional<addr> &default=Null;
+    preferred_lifetime: optional<uint32> &default=Null;
+    valid_lifetime: optional<uint32> &default=Null;
+    status_code: optional<uint16> &default=Null;
+    status_message: optional<bytes> &default=Null;
+    client_fqdn: optional<bytes> &default=Null;
+};
+
+# Only called for non-relay messages; the .evt guard ensures we never see a
+# RELAY_FORW/RELAY_REPL here, so msg.client_server is always populated.
+public function make_message_info(msg: Message): MessageInfo {
+    local info: MessageInfo = [
+        $msg_type = cast<uint8>(msg.msg_type),
+        $transaction_id = msg.client_server.transaction_id
+    ];
+
+    for ( o in msg.client_server.options ) {
+        switch ( o.code ) {
+            case OptionCode::CLIENTID: {
+                info.client_duid_type = cast<uint8>(o.client_id.duid_type);
+                info.client_duid = o.client_id.data;
+            }
+            case OptionCode::SERVERID: {
+                info.server_duid_type = cast<uint8>(o.server_id.duid_type);
+                info.server_duid = o.server_id.data;
+            }
+            case OptionCode::REQUEST:
+                info.requested_options = o.request_option.requested_options;
+            case OptionCode::STATUS_CODE: {
+                info.status_code = cast<uint16>(o.status_code.code);
+                info.status_message = o.status_code.message;
+            }
+            case OptionCode::CLIENT_FQDN:
+                info.client_fqdn = o.client_fqdn.domain_name;
+            case OptionCode::IA_NA: {
+                info.iaid = o.ia_na.iaid;
+                info.t1 = o.ia_na.t1;
+                info.t2 = o.ia_na.t2;
+                for ( so in o.ia_na.options ) {
+                    if ( so.code == OptionCode::IAADDR ) {
+                        info.assigned_addr = so.iaaddr.addr6;
+                        info.preferred_lifetime = so.iaaddr.preferred_lifetime;
+                        info.valid_lifetime = so.iaaddr.valid_lifetime;
+                    }
+                }
+            }
+            default: ();
+        }
+    }
+
+    return info;
+}

@@ -10,11 +10,13 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reassem.h"
 #include "zeek/Timer.h"
+#include "zeek/session/Key.h"
 #include "zeek/util-types.h"
 
 namespace zeek {
 
 class IP_Hdr;
+class Packet;
 
 namespace session {
 class Manager;
@@ -25,12 +27,12 @@ namespace detail {
 class FragReassembler;
 class FragTimer;
 
-using FragReassemblerKey = std::tuple<IPAddr, IPAddr, zeek_uint_t>;
+using FragReassemblerKey = zeek::session::detail::Key;
 
 class FragReassembler : public Reassembler {
 public:
     FragReassembler(session::Manager* s, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt,
-                    const FragReassemblerKey& k, double t);
+                    FragReassemblerKey k, double t);
     ~FragReassembler() override;
 
     void AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
@@ -77,7 +79,7 @@ public:
     FragmentManager() = default;
     ~FragmentManager();
 
-    FragReassembler* NextFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
+    FragReassembler* NextFragment(double t, const Packet& packet, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
     void Clear();
     void Remove(detail::FragReassembler* f);
 

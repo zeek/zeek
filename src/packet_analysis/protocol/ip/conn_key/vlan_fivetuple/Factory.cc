@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "zeek/Desc.h"
+#include "zeek/IP.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Packet.h"
@@ -125,6 +126,29 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
         k->key.inner_vlan = vlan_unset_val;
 
     return ck;
+}
+
+zeek::session::detail::Key Factory::DoFragmentKey(const zeek::Packet& pkt, const zeek::IP_Hdr& ip) const {
+    struct FragmentKeyData {
+        in6_addr src;
+        in6_addr dst;
+        uint32_t id = 0;
+        uint32_t vlan = vlan_unset_val;
+        uint32_t inner_vlan = vlan_unset_val;
+    } __attribute__((packed, aligned));
+
+    FragmentKeyData key;
+    ip.SrcAddr().CopyIPv6(&key.src);
+    ip.DstAddr().CopyIPv6(&key.dst);
+    key.id = ip.ID();
+
+    if ( pkt.vlan )
+        key.vlan = pkt.vlan->id;
+
+    if ( pkt.inner_vlan )
+        key.inner_vlan = pkt.inner_vlan->id;
+
+    return {&key, sizeof(key), zeek::session::detail::Key::FRAGMENT_KEY_TYPE, true};
 }
 
 } // namespace zeek::conn_key::vlan_fivetuple

@@ -2,11 +2,13 @@
 #pragma once
 
 #include "zeek/ConnKey.h"
+#include "zeek/session/Key.h"
 #include "zeek/util-types.h"
 
 namespace zeek {
 
 class Packet;
+class IP_Hdr;
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
@@ -42,6 +44,14 @@ public:
         return DoConnKeyFromVal(v);
     }
 
+    /**
+     * Creates a fragment-reassembly key for the current IP fragment.
+     *
+     * ConnKey factories may override this to keep fragment reassembly aligned
+     * with their connection-key semantics, e.g. by including VLAN metadata.
+     */
+    zeek::session::detail::Key FragmentKey(const Packet& pkt, const IP_Hdr& ip) const { return DoFragmentKey(pkt, ip); }
+
 protected:
     /**
      * Hook for Factory::NewConnKey.
@@ -56,6 +66,11 @@ protected:
      * @return A unique pointer to the ConnKey instance, or an error message.
      */
     virtual zeek::expected<zeek::ConnKeyPtr, std::string> DoConnKeyFromVal(const zeek::Val& v) const = 0;
+
+    /**
+     * Hook for Factory::FragmentKey.
+     */
+    virtual zeek::session::detail::Key DoFragmentKey(const Packet& pkt, const IP_Hdr& ip) const;
 };
 
 } // namespace conn_key

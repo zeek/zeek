@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "zeek/Desc.h"
+#include "zeek/IP.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
@@ -46,5 +47,9 @@ zeek::ConnKeyPtr FooFactory::DoNewConnKey() const {
 zeek::expected<zeek::ConnKeyPtr, std::string> FooFactory::DoConnKeyFromVal(const zeek::Val& v) const {
     std::printf("DoConnKeyFromVal for %s\n", zeek::obj_desc_short(&v).c_str());
     return zeek::conn_key::fivetuple::Factory::DoConnKeyFromVal(v);
+}
+zeek::session::detail::Key FooFactory::DoFragmentKey(const zeek::Packet& pkt, const zeek::IP_Hdr& ip) const {
+    std::printf("DoFragmentKey (%u)\n", ip.ID());
+    return zeek::conn_key::fivetuple::Factory::DoFragmentKey(pkt, ip);
 }
 zeek::conn_key::FactoryPtr FooFactory::Instantiate() { return std::make_unique<FooFactory>(); }

@@ -66,6 +66,10 @@ export {
 	## the following field to T includes the key, with a null value.
 	const json_include_unset_fields = F &redef;
 
+	## How to escape non-printable / non-UTF8 sequences in strings
+	## when :zeek:see:`LogAscii::use_json` is set.
+	const json_string_escape_policy = JSON::STRING_ESCAPE_POLICY_HEX &redef;
+
 	## If true, include lines with log meta information such as column names
 	## with types, the values of ASCII logging options that are in use, and
 	## the time when the file was opened and closed (the latter at the end).

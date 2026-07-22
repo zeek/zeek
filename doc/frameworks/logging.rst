@@ -1004,6 +1004,93 @@ of the :file:`conn.log` only:
       Log::add_filter(Conn::LOG, f);
       }
 
+
+JSON and Binary Data in Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Zeek's default escaping mechanism for non-printable bytes in JSON strings has
+historically been non-reversible in certain cases.
+Concretely, the byte value `\x07` and the literal string `\x07` both result in
+``"\\x07"`` in the final string in JSON, making it impossible to determine the
+original value as observed on the wire.
+
+As a script writer, if a field you're logging is knowingly binary data (raw packet
+data, crypto material, binary hash or checksum), use :zeek:see:`encode_base64` or
+:zeek:see:`bytestring_to_hexstr` explicitly on the field before logging it and
+document it as base64 or hex encoded for downstream consumers. This is the most
+robust approach dealing with binary data.
+
+However, for the occasional binary byte in a string field, this is overkill and
+by default Zeek will ``\xXX`` escape such bytes, but with the shortcoming being
+indistinguishable from a literal ``\xXX`` string.
+
+Since version 9.0, Zeek's JSON string escaping mechanism is configurable via the
+:zeek:see:`LogAscii::json_string_escape_policy` variable and also on a per-filter
+basis using "json_string_escape_policy" entry in the :zeek:see:`Log::Filter`
+config map.
+
+The currently supported policies are (from :zeek:see:`JSON::StringEscapePolicy`):
+
+HEX:
+    Zeek's original behavior continues to be the default.
+
+PUA:
+    All control characters and non-printable bytes not part of valid UTF-8
+    sequences are mapped into Unicode Supplementary Private Use Area-A
+    (U+F0000..U+FFFFF) and encoded as surrogate pair:
+
+    In a JSON string, the byte value ``\x07`` will become ``"\udb80\udc07"``.
+    The literal string ``\x07`` will become ``"\\x07"``.
+
+TSV:
+    Strings are first escaped as in TSV logs: all control characters
+    and non-printable bytes not part of valid UTF-8 sequences are ``\xXX`` escaped.
+    Lone backslashes are backslash escaped. Then, standard JSON escaping is applied,
+    escaping all backslashes again.
+
+    In a JSON string, the byte value ``\x07`` will become ``"\\x07"``.
+    The literal string ``\x07`` will become ``"\\\\x07"``.
+
+You will need to evaluate capabilities of your downstream tooling and adapt
+queries for raw byte values accordingly. If you're working with both, TSV and
+JSON logs, using the TSV escaping policy might be easiest as you can take the
+string from the parsed JSON and pass it to the same pipeline that'd expect
+TSV strings. Note that fields containing Windows paths will show a lot more
+backslashes in the raw JSON when using TSV policy compared to HEX.
+
+**Example Usages**
+
+To globally switch to TSV escaping policy for JSON, place the following into ``local.zeek``:
+
+.. code-block:: zeek
+
+   redef LogAscii::json_string_escape_policy = JSON::STRING_ESCAPE_POLICY_TSV;
+
+
+Attach a second filter using the TSV escaping policy to the :zeek:see:`HTTP::LOG`
+stream . This will create a separate ``http-tsv.log`` file:
+
+.. code-block:: zeek
+
+   event zeek_init()
+       {
+       local new_filter = copy(Log::get_filter(HTTP::LOG, "default"));
+       new_filter$name = "tsv";
+       new_filter$path = "http-tsv";
+       new_filter$config = table(
+           ["json_string_escape_policy"] = cat(JSON::STRING_ESCAPE_POLICY_TSV),
+       )
+       Log::add_filter(HTTP::LOG, new_filter);
+       }
+
+.. note::
+
+   References:
+
+   * GitHub discussion `#5240 <https://github.com/zeek/zeek/discussions/5240>`_.
+   * Issue `#3948 <https://github.com/zeek/zeek/issues/3948>`_
+
+
 .. _logging-sqlite-writer:
 
 SQLite Writer

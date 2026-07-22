@@ -60,8 +60,15 @@ bool safe_gmtime(time_t ts, struct tm* result) {
 
 namespace zeek::threading::formatter {
 
-JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
-    : Formatter(t), timestamps(tf), include_unset_fields(arg_include_unset_fields) {}
+JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields, StringEscapePolicy string_escape_policy)
+    : Formatter(t),
+      timestamps(tf),
+      include_unset_fields(arg_include_unset_fields),
+      string_escape_policy(string_escape_policy) {
+    // This is for the TSV escaping policy.
+    desc.EnableUTF8();
+    desc.EnableEscaping();
+}
 
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const {
     rapidjson::StringBuffer buffer;
@@ -180,8 +187,33 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
             break;
         }
 
+        case TYPE_STRING: {
+            std::string_view sv = {val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)};
+
+            switch ( string_escape_policy ) {
+                case STRING_ESCAPE_POLICY_HEX: {
+                    writer.String(util::escape_utf8(sv, util::ESCAPE_UNPRINTABLE_CONTROLS));
+                    break;
+                }
+                case STRING_ESCAPE_POLICY_PUA: {
+                    auto s = util::escape_string_for_json(sv, "\\udb80\\udc");
+                    writer.RawValue(s.data(), s.size(), rapidjson::kStringType);
+                    break;
+                }
+                case STRING_ESCAPE_POLICY_TSV: {
+                    desc.Clear();
+                    desc.Add(sv);
+
+                    writer.String(desc.Description(), desc.Size());
+                    break;
+                }
+                default: reporter->Warning("Unhandled string escape policy in JSON::BuildJSON"); break;
+            }
+
+            break;
+        }
+
         case TYPE_ENUM:
-        case TYPE_STRING:
         case TYPE_FILE:
         case TYPE_FUNC: {
             writer.String(util::escape_utf8({val->val.string_val.data, static_cast<size_t>(val->val.string_val.length)},

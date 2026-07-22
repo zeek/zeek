@@ -557,6 +557,23 @@ enum UTF8EscapingFlags : uint8_t {
  */
 std::string escape_utf8(std::string_view val, int flags);
 
+/**
+ * Escape a raw string (just some bytes) to a quoted string that may be safely
+ * included in JSON.
+ *
+ * All non-printable characters not part of a valid UTF-8 sequence will be rendered
+ * as lower-case hex digits with the hex_prefix string prepended.
+ *
+ * This further acts differently from escape_utf8() in that it'll pass through valid
+ * UTF-8 sequences even if elsewhere in the string invalid UTF-8 sequences exist.
+ * This keeps more UTF-8 intact when, e.g., there's garbage at the end of a string.
+
+ * @param raw The raw bytes to escape
+ * @param escape_prefix The prefix to place before hex digits for escaping ("\\u00" or "\udb80\udc")
+ * @return escaped string with quotes around
+ */
+std::string escape_string_for_json(std::string_view raw, std::string_view escape_prefix);
+
 [[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
 inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
     return escape_utf8(std::string_view{val, val_size},

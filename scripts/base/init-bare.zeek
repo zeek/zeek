@@ -5824,6 +5824,28 @@ export {
 		## to cope with that.
 		TS_ISO8601,
 	};
+
+	## Escaping policy for non-printable non-UTF8 sequences.
+	type StringEscapePolicy: enum {
+		## By default, Zeek escapes bytes of non-UTF8 sequences as \\xXX
+		## without backslash escaping, resulting in non-reversible encodings.
+		## Byte \x07 becomes \\x07 and literal string \x07 also becomes \\x07
+		## in the resulting JSON string.
+		STRING_ESCAPE_POLICY_HEX,
+		## All control characters and non-printable bytes not part of valid UTF-8
+		## sequences are mapped into Unicode Supplementary Private Use Area-A
+		## (U+F0000..U+FFFFF) and encoded as surrogate pair:
+		## In a JSON string, the byte value \x07 will become "\udb80\udc07".
+		## The literal string \x07 will become "\\x07".
+		STRING_ESCAPE_POLICY_PUA,
+		## Strings are first escaped as in TSV logs: all control characters
+		## and non-printable bytes not part of valid UTF-8 sequences are ``\xXX`` escaped.
+		## Lone backslashes are backslash escaped. Then, standard JSON escaping is applied,
+		## escaping all backslashes again.
+		## Byte \x07 becomes \\x07 and literal string \x07 becomes \\\\x07
+		## in the resulting JSON string.
+		STRING_ESCAPE_POLICY_TSV,
+	};
 }
 
 module Reporter;

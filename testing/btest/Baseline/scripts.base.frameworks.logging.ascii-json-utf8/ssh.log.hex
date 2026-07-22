@@ -37,6 +37,14 @@
 {"s":"\\xff"}
 {"s":"\\\\x\\abc\\x.exe"}
 {"s":"\\xf9\\xf9"}
+{"s":"byte 9f vs literal backslash x9f: \\xf9 vs \\xf9"}
+{"s":"a rocket 🚀!"}
 {"s":"a rocket \\xf0\\x9f\\x9a\\x80!\\x00 NUL\\x00"}
+{"s":"a rocket 🚀!"}
+{"s":"a rocket \\xf0\\x9f\\x9a\\x80!\\x00 NUL\\x00"}
+{"s":"half-a-rocket rocket \\xf0\\x9f!"}
+{"s":"half-a-rocket rocket \\xf0\\x9f!\\x00 NUL\\x00"}
+{"s":"half-a-rocket rocket \\xf0\\x9f and a rocket\\xf0\\x9f\\x9a\\x80!"}
+{"s":"half-a-rocket rocket \\xf0\\x9f and a rocket\\xf0\\x9f\\x9a\\x80!\\x00 NUL\\x00"}
 {"s":"\\x07\b"}
 {"s":"\\a=\\x07 \\b=\b \\t=\t \\n=\n"}

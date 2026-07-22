@@ -1,3 +1,11 @@
+9.0.0-dev.699 | 2026-07-22 10:24:33 +0200
+
+  * doc: Updates for logging / JSON (Arne Welzel, Corelight)
+
+  * GH-3948 GH-5643: logging/ascii: Support json_string_escape_policy (Arne Welzel, Corelight)
+
+  * Desc: Add Add(std::string_view sv) (Arne Welzel, Corelight)
+
 9.0.0-dev.694 | 2026-07-20 12:51:52 -0700
 
   * Remove zeek-testing-cluster commit-hash file (Tim Wojtulewicz, Corelight)

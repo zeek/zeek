@@ -502,6 +502,7 @@ Types
 :zeek:type:`GapStats`: :zeek:type:`record`                                       Statistics about number of gaps in TCP connections.
 :zeek:type:`IPAddrAnonymization`: :zeek:type:`enum`                              ..
 :zeek:type:`IPAddrAnonymizationClass`: :zeek:type:`enum`                         ..
+:zeek:type:`JSON::StringEscapePolicy`: :zeek:type:`enum`                         Escaping policy for non-printable non-UTF8 sequences.
 :zeek:type:`JSON::TimestampFormat`: :zeek:type:`enum`
 :zeek:type:`KRB::AP_Options`: :zeek:type:`record`                                AP Options.
 :zeek:type:`KRB::Encrypted_Data`: :zeek:type:`record`
@@ -921,7 +922,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: Cluster::default_table_publish_on_change_max_batch_delay
-   :source-code: base/init-bare.zeek 6256 6256
+   :source-code: base/init-bare.zeek 6278 6278
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -930,7 +931,7 @@ Runtime Options
    Default maximum delay size for the the :zeek:attr:`&publish_on_change` attribute.
 
 .. zeek:id:: Cluster::default_table_publish_on_change_max_batch_size
-   :source-code: base/init-bare.zeek 6253 6253
+   :source-code: base/init-bare.zeek 6275 6275
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -939,7 +940,7 @@ Runtime Options
    Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
 
 .. zeek:id:: Finger::max_line_length
-   :source-code: base/init-bare.zeek 6231 6231
+   :source-code: base/init-bare.zeek 6253 6253
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -949,7 +950,7 @@ Runtime Options
    exceed this limit, then this will trigger a violation.
 
 .. zeek:id:: MQTT::max_payload_size
-   :source-code: base/init-bare.zeek 6211 6211
+   :source-code: base/init-bare.zeek 6233 6233
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -960,7 +961,7 @@ Runtime Options
    default MQTT logs generated from that).
 
 .. zeek:id:: Weird::sampling_duration
-   :source-code: base/init-bare.zeek 6368 6368
+   :source-code: base/init-bare.zeek 6390 6390
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -979,7 +980,7 @@ Runtime Options
    threshold.
 
 .. zeek:id:: Weird::sampling_global_list
-   :source-code: base/init-bare.zeek 6344 6344
+   :source-code: base/init-bare.zeek 6366 6366
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -988,7 +989,7 @@ Runtime Options
    Rate-limits weird names in the table globally instead of per connection/flow.
 
 .. zeek:id:: Weird::sampling_rate
-   :source-code: base/init-bare.zeek 6355 6355
+   :source-code: base/init-bare.zeek 6377 6377
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1000,7 +1001,7 @@ Runtime Options
    will disable all output of rate-limited weirds.
 
 .. zeek:id:: Weird::sampling_threshold
-   :source-code: base/init-bare.zeek 6349 6349
+   :source-code: base/init-bare.zeek 6371 6371
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1011,7 +1012,7 @@ Runtime Options
    raise events for script-layer handling before being rate-limited.
 
 .. zeek:id:: Weird::sampling_whitelist
-   :source-code: base/init-bare.zeek 6341 6341
+   :source-code: base/init-bare.zeek 6363 6363
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -1091,7 +1092,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: AF_Packet::block_size
-   :source-code: base/init-bare.zeek 5923 5923
+   :source-code: base/init-bare.zeek 5945 5945
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1100,7 +1101,7 @@ Redefinable Options
    Size of an individual block. Needs to be a multiple of page size.
 
 .. zeek:id:: AF_Packet::block_timeout
-   :source-code: base/init-bare.zeek 5925 5925
+   :source-code: base/init-bare.zeek 5947 5947
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -1109,7 +1110,7 @@ Redefinable Options
    Retire timeout for a single block.
 
 .. zeek:id:: AF_Packet::buffer_size
-   :source-code: base/init-bare.zeek 5921 5921
+   :source-code: base/init-bare.zeek 5943 5943
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1118,7 +1119,7 @@ Redefinable Options
    Size of the ring-buffer.
 
 .. zeek:id:: AF_Packet::checksum_validation_mode
-   :source-code: base/init-bare.zeek 5939 5939
+   :source-code: base/init-bare.zeek 5961 5961
 
    :Type: :zeek:type:`AF_Packet::ChecksumMode`
    :Attributes: :zeek:attr:`&redef`
@@ -1127,7 +1128,7 @@ Redefinable Options
    Checksum validation mode.
 
 .. zeek:id:: AF_Packet::enable_defrag
-   :source-code: base/init-bare.zeek 5931 5931
+   :source-code: base/init-bare.zeek 5953 5953
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1136,7 +1137,7 @@ Redefinable Options
    Toggle defragmentation of IP packets using PACKET_FANOUT_FLAG_DEFRAG.
 
 .. zeek:id:: AF_Packet::enable_fanout
-   :source-code: base/init-bare.zeek 5929 5929
+   :source-code: base/init-bare.zeek 5951 5951
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1145,7 +1146,7 @@ Redefinable Options
    Toggle whether to use PACKET_FANOUT.
 
 .. zeek:id:: AF_Packet::enable_hw_timestamping
-   :source-code: base/init-bare.zeek 5927 5927
+   :source-code: base/init-bare.zeek 5949 5949
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1154,7 +1155,7 @@ Redefinable Options
    Toggle whether to use hardware timestamps.
 
 .. zeek:id:: AF_Packet::fanout_id
-   :source-code: base/init-bare.zeek 5935 5935
+   :source-code: base/init-bare.zeek 5957 5957
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1163,7 +1164,7 @@ Redefinable Options
    Fanout ID.
 
 .. zeek:id:: AF_Packet::fanout_mode
-   :source-code: base/init-bare.zeek 5933 5933
+   :source-code: base/init-bare.zeek 5955 5955
 
    :Type: :zeek:type:`AF_Packet::FanoutMode`
    :Attributes: :zeek:attr:`&redef`
@@ -1172,7 +1173,7 @@ Redefinable Options
    Fanout mode.
 
 .. zeek:id:: AF_Packet::link_type
-   :source-code: base/init-bare.zeek 5937 5937
+   :source-code: base/init-bare.zeek 5959 5959
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1181,7 +1182,7 @@ Redefinable Options
    Link type (default Ethernet).
 
 .. zeek:id:: BinPAC::flowbuffer_capacity_max
-   :source-code: base/init-bare.zeek 6399 6399
+   :source-code: base/init-bare.zeek 6421 6421
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1191,7 +1192,7 @@ Redefinable Options
    grow to for use with incremental parsing of a given connection/analyzer.
 
 .. zeek:id:: BinPAC::flowbuffer_capacity_min
-   :source-code: base/init-bare.zeek 6404 6404
+   :source-code: base/init-bare.zeek 6426 6426
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1202,7 +1203,7 @@ Redefinable Options
    later contracted, its capacity is also reduced to this size.
 
 .. zeek:id:: BinPAC::flowbuffer_contract_threshold
-   :source-code: base/init-bare.zeek 6412 6412
+   :source-code: base/init-bare.zeek 6434 6434
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1216,7 +1217,7 @@ Redefinable Options
    than this value, it will be contracted.
 
 .. zeek:id:: Cluster::backend
-   :source-code: base/init-bare.zeek 6240 6240
+   :source-code: base/init-bare.zeek 6262 6262
 
    :Type: :zeek:type:`Cluster::BackendTag`
    :Attributes: :zeek:attr:`&redef`
@@ -1243,7 +1244,7 @@ Redefinable Options
    Cluster backend to use. Default is the None backend.
 
 .. zeek:id:: Cluster::event_serializer
-   :source-code: base/init-bare.zeek 6245 6245
+   :source-code: base/init-bare.zeek 6267 6267
 
    :Type: :zeek:type:`Cluster::EventSerializerTag`
    :Attributes: :zeek:attr:`&redef`
@@ -1254,7 +1255,7 @@ Redefinable Options
    This currently has no effect for backend BROKER.
 
 .. zeek:id:: Cluster::log_serializer
-   :source-code: base/init-bare.zeek 6250 6250
+   :source-code: base/init-bare.zeek 6272 6272
 
    :Type: :zeek:type:`Cluster::LogSerializerTag`
    :Attributes: :zeek:attr:`&redef`
@@ -1286,7 +1287,7 @@ Redefinable Options
    record to represent additional connection tuple members.
 
 .. zeek:id:: ConnThreshold::generic_packet_thresholds
-   :source-code: base/init-bare.zeek 6772 6772
+   :source-code: base/init-bare.zeek 6794 6794
 
    :Type: :zeek:type:`set` [:zeek:type:`count`]
    :Attributes: :zeek:attr:`&redef`
@@ -1300,7 +1301,7 @@ Redefinable Options
    .. zeek:see:: conn_generic_packet_threshold_crossed
 
 .. zeek:id:: DCE_RPC::max_cmd_reassembly
-   :source-code: base/init-bare.zeek 5948 5948
+   :source-code: base/init-bare.zeek 5970 5970
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1311,7 +1312,7 @@ Redefinable Options
    a weird and skip further input.
 
 .. zeek:id:: DCE_RPC::max_frag_data
-   :source-code: base/init-bare.zeek 5953 5953
+   :source-code: base/init-bare.zeek 5975 5975
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1363,7 +1364,7 @@ Redefinable Options
    raise a FTP_max_command_length_exceeded weird and are discarded.
 
 .. zeek:id:: Gnutella::max_header_length
-   :source-code: base/init-bare.zeek 6223 6223
+   :source-code: base/init-bare.zeek 6245 6245
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1373,7 +1374,7 @@ Redefinable Options
    all included lines.
 
 .. zeek:id:: Gnutella::max_line_length
-   :source-code: base/init-bare.zeek 6219 6219
+   :source-code: base/init-bare.zeek 6241 6241
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1401,7 +1402,7 @@ Redefinable Options
    uses dynamic protocol detection for the upgraded to protocol instead.
 
 .. zeek:id:: IP::protocol_names
-   :source-code: base/init-bare.zeek 6552 6552
+   :source-code: base/init-bare.zeek 6574 6574
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
@@ -1696,7 +1697,7 @@ Redefinable Options
    Setting this value to 0 removes the limit.
 
 .. zeek:id:: NCP::max_frame_size
-   :source-code: base/init-bare.zeek 5960 5960
+   :source-code: base/init-bare.zeek 5982 5982
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1762,7 +1763,7 @@ Redefinable Options
    Setting this value to 0 removes the limit.
 
 .. zeek:id:: Pcap::bufsize
-   :source-code: base/init-bare.zeek 5856 5856
+   :source-code: base/init-bare.zeek 5878 5878
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1772,7 +1773,7 @@ Redefinable Options
    interfaces.
 
 .. zeek:id:: Pcap::bufsize_offline_bytes
-   :source-code: base/init-bare.zeek 5861 5861
+   :source-code: base/init-bare.zeek 5883 5883
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1783,7 +1784,7 @@ Redefinable Options
    as chosen by fopen().
 
 .. zeek:id:: Pcap::non_fd_timeout
-   :source-code: base/init-bare.zeek 5887 5887
+   :source-code: base/init-bare.zeek 5909 5909
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -1815,7 +1816,7 @@ Redefinable Options
 
 
 .. zeek:id:: Pcap::snaplen
-   :source-code: base/init-bare.zeek 5852 5852
+   :source-code: base/init-bare.zeek 5874 5874
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1824,7 +1825,7 @@ Redefinable Options
    Number of bytes per packet to capture from live interfaces.
 
 .. zeek:id:: Reporter::errors_to_stderr
-   :source-code: base/init-bare.zeek 5845 5845
+   :source-code: base/init-bare.zeek 5867 5867
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1835,7 +1836,7 @@ Redefinable Options
    external harness and shouldn't output anything to the console.
 
 .. zeek:id:: Reporter::info_to_stderr
-   :source-code: base/init-bare.zeek 5835 5835
+   :source-code: base/init-bare.zeek 5857 5857
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1846,7 +1847,7 @@ Redefinable Options
    external harness and shouldn't output anything to the console.
 
 .. zeek:id:: Reporter::warnings_to_stderr
-   :source-code: base/init-bare.zeek 5840 5840
+   :source-code: base/init-bare.zeek 5862 5862
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -1996,7 +1997,7 @@ Redefinable Options
    TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
 
 .. zeek:id:: Storage::expire_interval
-   :source-code: base/init-bare.zeek 6711 6711
+   :source-code: base/init-bare.zeek 6733 6733
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -2007,7 +2008,7 @@ Redefinable Options
    using expiration while reading pcap files.
 
 .. zeek:id:: Telemetry::callback_timeout
-   :source-code: base/init-bare.zeek 6542 6542
+   :source-code: base/init-bare.zeek 6564 6564
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -2017,7 +2018,7 @@ Redefinable Options
    wait for metric callbacks to complete on the IO loop.
 
 .. zeek:id:: Telemetry::civetweb_threads
-   :source-code: base/init-bare.zeek 6545 6545
+   :source-code: base/init-bare.zeek 6567 6567
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -2109,7 +2110,7 @@ Redefinable Options
    may choose whether to perform the validation.
 
 .. zeek:id:: UnknownProtocol::first_bytes_count
-   :source-code: base/init-bare.zeek 6391 6391
+   :source-code: base/init-bare.zeek 6413 6413
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -2119,7 +2120,7 @@ Redefinable Options
    first bytes field.
 
 .. zeek:id:: UnknownProtocol::sampling_duration
-   :source-code: base/init-bare.zeek 6387 6387
+   :source-code: base/init-bare.zeek 6409 6409
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -2130,7 +2131,7 @@ Redefinable Options
    before the rate-limiting for a pair expires and is reset.
 
 .. zeek:id:: UnknownProtocol::sampling_rate
-   :source-code: base/init-bare.zeek 6382 6382
+   :source-code: base/init-bare.zeek 6404 6404
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -2142,7 +2143,7 @@ Redefinable Options
    will disable all output of rate-limited pairs.
 
 .. zeek:id:: UnknownProtocol::sampling_threshold
-   :source-code: base/init-bare.zeek 6376 6376
+   :source-code: base/init-bare.zeek 6398 6398
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -3992,7 +3993,7 @@ State Variables
    .. zeek:see:: dns_skip_all_auth dns_skip_addl
 
 .. zeek:id:: done_with_network
-   :source-code: base/init-bare.zeek 6815 6815
+   :source-code: base/init-bare.zeek 6837 6837
 
    :Type: :zeek:type:`bool`
    :Default: ``F``
@@ -4438,7 +4439,7 @@ Types
    A pool used for distributing data/work among a set of cluster nodes.
 
 .. zeek:type:: Cluster::PublishOnChangeAttr
-   :source-code: base/init-bare.zeek 6259 6271
+   :source-code: base/init-bare.zeek 6281 6293
 
    :Type: :zeek:type:`record`
 
@@ -4469,7 +4470,7 @@ Types
    The record type used for the :zeek:attr:`&publish_on_change` attribute.
 
 .. zeek:type:: Cluster::TableChangeHeader
-   :source-code: base/init-bare.zeek 6298 6305
+   :source-code: base/init-bare.zeek 6320 6327
 
    :Type: :zeek:type:`record`
 
@@ -4494,7 +4495,7 @@ Types
    :zeek:see:`Cluster::TableChangeInfo` records.
 
 .. zeek:type:: Cluster::TableChangeInfo
-   :source-code: base/init-bare.zeek 6275 6290
+   :source-code: base/init-bare.zeek 6297 6312
 
    :Type: :zeek:type:`record`
 
@@ -4532,7 +4533,7 @@ Types
    distribution to other Zeek processes in a cluster.
 
 .. zeek:type:: Cluster::TableChangeInfos
-   :source-code: base/init-bare.zeek 6293 6293
+   :source-code: base/init-bare.zeek 6315 6315
 
    :Type: :zeek:type:`vector` of :zeek:type:`Cluster::TableChangeInfo`
 
@@ -5155,6 +5156,37 @@ Types
 
    .. zeek:see:: anonymize_addr
 
+.. zeek:type:: JSON::StringEscapePolicy
+   :source-code: base/init-bare.zeek 5829 5849
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: JSON::STRING_ESCAPE_POLICY_HEX JSON::StringEscapePolicy
+
+         By default, Zeek escapes bytes of non-UTF8 sequences as \\xXX
+         without backslash escaping, resulting in non-reversible encodings.
+         Byte \x07 becomes \\x07 and literal string \x07 also becomes \\x07
+         in the resulting JSON string.
+
+      .. zeek:enum:: JSON::STRING_ESCAPE_POLICY_PUA JSON::StringEscapePolicy
+
+         All control characters and non-printable bytes not part of valid UTF-8
+         sequences are mapped into Unicode Supplementary Private Use Area-A
+         (U+F0000..U+FFFFF) and encoded as surrogate pair:
+         In a JSON string, the byte value \x07 will become "\udb80\udc07".
+         The literal string \x07 will become "\\x07".
+
+      .. zeek:enum:: JSON::STRING_ESCAPE_POLICY_TSV JSON::StringEscapePolicy
+
+         Strings are first escaped as they would for TSV logs: all control characters
+         and non-printable bytes not part of valid UTF-8 sequences are ``\xXX`` escaped.
+         Lone backslashes are backslash escaped. Then, standard JSON escaping is applied,
+         escaping all backslashes again.
+         Byte \x07 becomes \\x07 and literal string \x07 becomes \\\\x07
+         in the resulting JSON string.
+
+   Escaping policy for non-printable non-UTF8 sequences.
+
 .. zeek:type:: JSON::TimestampFormat
    :source-code: base/init-bare.zeek 5807 5827
 
@@ -5745,7 +5777,7 @@ Types
    .. zeek:see:: mount_proc_mnt
 
 .. zeek:type:: MQTT::ConnectAckMsg
-   :source-code: base/init-bare.zeek 6173 6182
+   :source-code: base/init-bare.zeek 6195 6204
 
    :Type: :zeek:type:`record`
 
@@ -5765,7 +5797,7 @@ Types
 
 
 .. zeek:type:: MQTT::ConnectMsg
-   :source-code: base/init-bare.zeek 6141 6171
+   :source-code: base/init-bare.zeek 6163 6193
 
    :Type: :zeek:type:`record`
 
@@ -5830,7 +5862,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishMsg
-   :source-code: base/init-bare.zeek 6184 6206
+   :source-code: base/init-bare.zeek 6206 6228
 
    :Type: :zeek:type:`record`
 
@@ -7164,7 +7196,7 @@ Types
 
 
 .. zeek:type:: NTP::ControlMessage
-   :source-code: base/init-bare.zeek 6027 6061
+   :source-code: base/init-bare.zeek 6049 6083
 
    :Type: :zeek:type:`record`
 
@@ -7236,7 +7268,7 @@ Types
    for control operations.
 
 .. zeek:type:: NTP::Message
-   :source-code: base/init-bare.zeek 6108 6135
+   :source-code: base/init-bare.zeek 6130 6157
 
    :Type: :zeek:type:`record`
 
@@ -7287,7 +7319,7 @@ Types
    for commands such as "monlist".
 
 .. zeek:type:: NTP::Mode7Message
-   :source-code: base/init-bare.zeek 6070 6103
+   :source-code: base/init-bare.zeek 6092 6125
 
    :Type: :zeek:type:`record`
 
@@ -7351,7 +7383,7 @@ Types
    project <https://www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
 
 .. zeek:type:: NTP::StandardMessage
-   :source-code: base/init-bare.zeek 5969 6022
+   :source-code: base/init-bare.zeek 5991 6044
 
    :Type: :zeek:type:`record`
 
@@ -7846,7 +7878,7 @@ Types
    Properties of an I/O packet source being read by Zeek.
 
 .. zeek:type:: Pcap::Interface
-   :source-code: base/init-bare.zeek 5890 5905
+   :source-code: base/init-bare.zeek 5912 5927
 
    :Type: :zeek:type:`record`
 
@@ -7885,13 +7917,13 @@ Types
    The definition of a "pcap interface".
 
 .. zeek:type:: Pcap::Interfaces
-   :source-code: base/init-bare.zeek 5907 5907
+   :source-code: base/init-bare.zeek 5929 5929
 
    :Type: :zeek:type:`set` [:zeek:type:`Pcap::Interface`]
 
 
 .. zeek:type:: Pcap::filter_state
-   :source-code: base/init-bare.zeek 5910 5915
+   :source-code: base/init-bare.zeek 5932 5937
 
    :Type: :zeek:type:`enum`
 
@@ -10308,7 +10340,7 @@ Types
    .. zeek:see:: connection_SYN_packet
 
 .. zeek:type:: Storage::OperationResult
-   :source-code: base/init-bare.zeek 6749 6760
+   :source-code: base/init-bare.zeek 6771 6782
 
    :Type: :zeek:type:`record`
 
@@ -10335,7 +10367,7 @@ Types
    Returned as the result of the various storage operations.
 
 .. zeek:type:: Storage::ReturnCode
-   :source-code: base/init-bare.zeek 6715 6747
+   :source-code: base/init-bare.zeek 6737 6769
 
    :Type: :zeek:type:`enum`
 
@@ -10497,7 +10529,7 @@ Types
    The full list of TCP option fields in a TCP header.
 
 .. zeek:type:: Telemetry::HistogramMetric
-   :source-code: base/init-bare.zeek 6496 6520
+   :source-code: base/init-bare.zeek 6518 6542
 
    :Type: :zeek:type:`record`
 
@@ -10541,13 +10573,13 @@ Types
    Histograms returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
 
 .. zeek:type:: Telemetry::HistogramMetricVector
-   :source-code: base/init-bare.zeek 6538 6538
+   :source-code: base/init-bare.zeek 6560 6560
 
    :Type: :zeek:type:`vector` of :zeek:type:`Telemetry::HistogramMetric`
 
 
 .. zeek:type:: Telemetry::Metric
-   :source-code: base/init-bare.zeek 6473 6493
+   :source-code: base/init-bare.zeek 6495 6515
 
    :Type: :zeek:type:`record`
 
@@ -10583,7 +10615,7 @@ Types
    Metrics returned by the :zeek:see:`Telemetry::collect_metrics` function.
 
 .. zeek:type:: Telemetry::MetricOpts
-   :source-code: base/init-bare.zeek 6422 6470
+   :source-code: base/init-bare.zeek 6444 6492
 
    :Type: :zeek:type:`record`
 
@@ -10655,7 +10687,7 @@ Types
    Type that captures options used to create metrics.
 
 .. zeek:type:: Telemetry::MetricVector
-   :source-code: base/init-bare.zeek 6537 6537
+   :source-code: base/init-bare.zeek 6559 6559
 
    :Type: :zeek:type:`vector` of :zeek:type:`Telemetry::Metric`
 
@@ -10945,7 +10977,7 @@ Types
 
 
 .. zeek:type:: ZAM::Prof::Profile
-   :source-code: base/init-bare.zeek 6779 6808
+   :source-code: base/init-bare.zeek 6801 6830
 
    :Type: :zeek:type:`record`
 
@@ -15832,7 +15864,7 @@ Events
 Hooks
 #####
 .. zeek:id:: Cluster::apply_table_change_infos_policy
-   :source-code: base/init-bare.zeek 6334 6334
+   :source-code: base/init-bare.zeek 6356 6356
 
    :Type: :zeek:type:`hook` (tcheader: :zeek:type:`Cluster::TableChangeHeader`, tcinfos: :zeek:type:`Cluster::TableChangeInfos`) : :zeek:type:`bool`
 
@@ -15850,7 +15882,7 @@ Hooks
    :param table_change_infos: vector of changes as batched by the remote Zeek process.
 
 .. zeek:id:: Telemetry::sync
-   :source-code: base/init-bare.zeek 6535 6535
+   :source-code: base/init-bare.zeek 6557 6557
 
    :Type: :zeek:type:`hook` () : :zeek:type:`bool`
 

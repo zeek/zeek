@@ -73,6 +73,7 @@ private:
     bool enable_utf_8;
     std::string json_timestamps;
     bool json_include_unset_fields;
+    std::string json_string_escape_policy;
     std::string logdir;
 
     threading::Formatter* formatter;

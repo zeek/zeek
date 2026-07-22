@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "zeek/Desc.h"
 #include "zeek/threading/Formatter.h"
 
 namespace zeek::json::detail {
@@ -26,7 +27,14 @@ public:
         TS_MILLIS_UNSIGNED // Unsigned milliseconds from the UNIX epoch, overflowing.
     };
 
-    JSON(MsgThread* t, TimeFormat tf, bool include_unset_fields = false);
+    enum StringEscapePolicy : uint8_t {
+        STRING_ESCAPE_POLICY_HEX,
+        STRING_ESCAPE_POLICY_PUA,
+        STRING_ESCAPE_POLICY_TSV,
+    };
+
+    JSON(MsgThread* t, TimeFormat tf, bool include_unset_fields = false,
+         StringEscapePolicy string_escape_policy = STRING_ESCAPE_POLICY_HEX);
 
     bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
     bool Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const override;
@@ -38,6 +46,10 @@ private:
 
     TimeFormat timestamps;
     bool include_unset_fields;
+    StringEscapePolicy string_escape_policy;
+
+    // Mutable because used in const BuildJSON() for string rendering.
+    mutable ODesc desc;
 };
 
 } // namespace zeek::threading::formatter

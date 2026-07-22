@@ -69,6 +69,20 @@ New Functionality
 - The Syslog analyzer has been extended to support TCP using Octet Counting and
   Non-Transparent-Framing, registered on port 514/tcp by default.
 
+- Escaping of control characters and invalid UTF-8 sequences for JSON logging has
+  been made configurable. See the updated ASCII writer's online documentation for
+  more details:
+
+	https://docs.zeek.org/en/master/frameworks/logging.html#json-and-binary-data-in-strings
+
+  To change the escaping behavior globally, redefine the new ``LogAscii::json_string_escape_policy``:
+
+	redef Log::json_string_escape_policy = JSON::STRING_ESCAPE_POLICY_TSV;
+
+  The default behavior continues to be ``JSON::STRING_ESCAPE_POLICY_HEX`` which
+  can result in non-reversible encodings. Discussion #5240 on GitHub has a lot
+  more details on the topic: https://github.com/zeek/zeek/discussions/5240
+
 - Imported the zeek/spicy-zip file analyzer into the main tree. This analyzer outputs
   information about ZIP files found in other protocols, including information about the
   contents of such archives. It will recursive search zip files, so there is the

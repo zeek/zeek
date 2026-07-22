@@ -87,6 +87,7 @@ struct LogWriteHeader {
     std::string filter_name;              // The name of the filter.
     std::string path;                     // The path as configured or produced by the filter's path_func.
     std::vector<threading::Field> fields; // The schema describing a log record.
+    std::vector<const threading::Field*> field_pointers; // Pointers into fields.
 };
 
 /**

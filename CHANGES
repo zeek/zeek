@@ -1,3 +1,19 @@
+9.0.0-dev.701 | 2026-07-22 17:49:11 +0200
+
+  * GH-5548: logging: Stash vector of Field* into LogWriteHeader, use for plugin hooks (Arne Welzel, Corelight)
+
+    @pbcullen reports that WriterFrontend::Init() frees the fields array
+    when local logging is disabled, but then logging::Manager happily passes
+    on that pointer to HookLogInit(), resulting in use-after-free accesses.
+
+    Keep a separate vector of threading::Field* pointers in the
+    LogWriteHeader held by each WriterFrontend and use its .data()
+    attribute for HookLogInit() and HookLogWrite().
+
+    Extend the logging-hooks-plugin to verify that the fields pointer
+    is the same for either hook invocation and also add a logging-hooks-no-local
+    test disabling local logging as that would have tickled the issue.
+
 9.0.0-dev.699 | 2026-07-22 10:24:33 +0200
 
   * doc: Updates for logging / JSON (Arne Welzel, Corelight)

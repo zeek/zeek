@@ -1,3 +1,7 @@
+9.0.0-dev.707 | 2026-07-22 17:06:53 -0700
+
+  * Temporarily put a band-aid over broken coverage script so builds complete (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.705 | 2026-07-22 16:49:10 -0400
 
   * Use `%d > %d` for weirds in a few limits (Evan Typanski, Corelight)

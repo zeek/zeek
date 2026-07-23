@@ -56,7 +56,7 @@ std::optional<zeek_uint_t> convert_double_to_native_count(double d, std::string&
         err = "bad conversion to count";
         return std::nullopt;
     }
-    return rint(d);
+    return llrint(d);
 }
 
 ValPtr convert_string_to_double(const StringVal* sv, std::string& err) {

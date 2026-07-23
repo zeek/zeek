@@ -1,3 +1,19 @@
+9.0.0-dev.715 | 2026-07-22 17:09:57 -0700
+
+  * Remove additional compiler-warning flags for spicyz (Tim Wojtulewicz, Corelight)
+
+  * Mark some variables in spicyz/glue-compiler as maybe_unused (Tim Wojtulewicz, Corelight)
+
+  * Initialize variable potentially used uninitialized (Tim Wojtulewicz, Corelight)
+
+  * Fix warning about implicit conversion from double to uint64_t (Tim Wojtulewicz, Corelight)
+
+  * Fix Windows warning about unused parameter (Tim Wojtulewicz, Corelight)
+
+  * Fix warning about printf type in ZeroMQ backend (Tim Wojtulewicz, Corelight)
+
+  * Use /W4 when building spicyz on Windows instead of /Wall (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.707 | 2026-07-22 17:06:53 -0700
 
   * Temporarily put a band-aid over broken coverage script so builds complete (Tim Wojtulewicz, Corelight)

@@ -38,3 +38,5 @@ const Storage::expire_interval: interval;
 
 const EventMetadata::add_network_timestamp: bool;
 const EventMetadata::add_missing_remote_network_timestamp: bool;
+
+const SMB::max_andx_depth: count;

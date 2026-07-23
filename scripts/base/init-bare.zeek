@@ -4224,6 +4224,15 @@ export {
 	##
 	## .. zeek:see:: smb_discarded_dce_rpc_analyzers
 	const max_dce_rpc_analyzers = 1000 &redef;
+
+	## Maximum number of AndX commands that are allowed in a chain.
+	## When the limit is reached, a
+	## :zeek:see:`smb_andx_depth_exceeded` is raised. Setting this
+	## to zero will disable the functionality.
+	##
+	##
+	## .. zeek:see:: smb_andx_depth_exceeded
+	const SMB::max_andx_depth = 10 &redef;
 }
 
 module SMB1;

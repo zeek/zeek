@@ -1829,7 +1829,7 @@ int Manager::GetValueLength(const Value* val) const {
         } break;
 
         case TYPE_PATTERN: {
-            length += strlen(val->val.pattern_text_val) + 1;
+            length += strlen(val->val.pattern_val.text) + 1;
             break;
         }
 
@@ -1937,8 +1937,8 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
 
         case TYPE_PATTERN: {
             // include null-terminator
-            int length = strlen(val->val.pattern_text_val) + 1;
-            memcpy(data + startpos, val->val.pattern_text_val, length);
+            int length = strlen(val->val.pattern_val.text) + 1;
+            memcpy(data + startpos, val->val.pattern_val.text, length);
             return length;
         }
 
@@ -2076,7 +2076,11 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
         }
 
         case TYPE_PATTERN: {
-            auto* re = new RE_Matcher(val->val.pattern_text_val);
+            auto* re = new RE_Matcher(val->val.pattern_val.text);
+            if ( val->val.pattern_val.is_case_insensitive )
+                re->MakeCaseInsensitive();
+            if ( val->val.pattern_val.is_single_line )
+                re->MakeSingleLine();
             re->Compile();
             return new PatternVal(re);
         }

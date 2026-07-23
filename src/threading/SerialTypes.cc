@@ -103,7 +103,7 @@ Value::Value(const Value& other) {
         }
 
         case TYPE_PATTERN: {
-            val.pattern_text_val = util::copy_string(val.pattern_text_val);
+            val.pattern_val.text = util::copy_string(val.pattern_val.text);
             break;
         }
         case TYPE_TABLE: {
@@ -149,7 +149,7 @@ Value::~Value() {
         delete[] val.string_val.data;
 
     else if ( type == TYPE_PATTERN )
-        delete[] val.pattern_text_val;
+        delete[] val.pattern_val.text;
 
     else if ( type == TYPE_TABLE ) {
         for ( zeek_int_t i = 0; i < val.set_val.size; i++ )
@@ -526,7 +526,11 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
         }
 
         case TYPE_PATTERN: {
-            auto* re = new RE_Matcher(val->val.pattern_text_val);
+            auto* re = new RE_Matcher(val->val.pattern_val.text);
+            if ( val->val.pattern_val.is_case_insensitive )
+                re->MakeCaseInsensitive();
+            if ( val->val.pattern_val.is_single_line )
+                re->MakeSingleLine();
             re->Compile();
             return new PatternVal(re);
         }

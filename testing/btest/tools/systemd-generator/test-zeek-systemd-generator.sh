@@ -6,6 +6,7 @@
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config1 normal-dir
 # @TEST-EXEC: find normal-dir | sort > out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stderr
 #
 # @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
 # @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done

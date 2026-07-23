@@ -5178,7 +5178,7 @@ Types
 
       .. zeek:enum:: JSON::STRING_ESCAPE_POLICY_TSV JSON::StringEscapePolicy
 
-         Strings are first escaped as they would for TSV logs: all control characters
+         Strings are first escaped as in TSV logs: all control characters
          and non-printable bytes not part of valid UTF-8 sequences are ``\xXX`` escaped.
          Lone backslashes are backslash escaped. Then, standard JSON escaping is applied,
          escaping all backslashes again.

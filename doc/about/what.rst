@@ -20,8 +20,8 @@ post-processing with external software. Users can also choose to have external
 databases or SIEM products consume, store, process, and present the data for
 querying.
 
-In addition to the logs, Zeek comes with built-in functionality for a range of
-analysis and detection tasks, including extracting files from HTTP sessions,
+Zeek also comes with built-in functionality for a range of additional
+analysis and detection tasks, including extracting files from network sessions,
 detecting malware by interfacing to external registries, reporting vulnerable
 versions of software seen on the network, identifying popular web applications,
 detecting SSH brute-forcing, validating SSL certificate chains, and much more.
@@ -67,17 +67,19 @@ Zeek within one system for as long as possible, and then transparently add more
 systems when necessary.
 
 In brief, Zeek is optimized for interpreting network traffic and generating
-logs based on that traffic. It is not optimized for byte matching, and users
+logs based on that traffic. It is not optimized for byte-matching, and users
 seeking signature detection approaches would be better served by trying
-intrusion detection systems such as Suricata. Zeek is also not a protocol
-analyzer in the sense of Wireshark, seeking to depict every element of network
-traffic at the frame level, or a system for storing traffic in packet capture
-(PCAP) form. Rather, Zeek sits at the “happy medium” representing compact yet
-high fidelity network logs, generating better understanding of network traffic
-and usage.
+intrusion detection systems such as Snort and Suricata.
 
-Zeek does not participate in packet-forwarding decisions and cannot block,
-drop, or modify network traffic. It is an observation and analysis platform,
-not an inline enforcement system. Preventing malicious traffic is the
-responsibility of intrusion prevention systems (IPS), such as Suricata
-operating in IPS mode.
+Zeek is also not a protocol analyzer in the sense of Wireshark, seeking to
+depict every element of network traffic at the frame level, or a system for
+storing traffic in packet capture (PCAP) form at scale. Rather, Zeek sits at the “happy
+medium” representing compact yet high fidelity network logs, generating better
+understanding of network traffic and usage.
+
+Finally, Zeek does not participate in the kernel's packet-forwarding decisions
+and cannot directly block, drop, or modify network traffic. However, it does
+provide script-layer APIs to interact with other network infrastructure, such as
+switches and firewalls, to implement such policies. For dedicated, in-path
+intrustion prevention systems (IPSs), consider Snort or Suricata in their
+respective IPS modes.

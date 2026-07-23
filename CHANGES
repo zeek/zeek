@@ -1,3 +1,7 @@
+9.0.0-dev.722 | 2026-07-23 15:59:51 -0700
+
+  * GH-5679: Docs: edits on top of #5679 (Christian Kreibich, Corelight)
+
 9.0.0-dev.720 | 2026-07-23 19:09:15 +0200
 
   * src/CMakeLists: Switch bif header installation to GLOB_RECURSE (Arne Welzel, Corelight)

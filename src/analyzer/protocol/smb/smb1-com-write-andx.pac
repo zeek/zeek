@@ -34,7 +34,7 @@ refine connection SMB_Conn += {
 
 };
 
-type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
+type SMB1_write_andx_request(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
 	word_count    : uint8;
 	andx          : SMB_andx;
 	file_id       : uint16;
@@ -56,10 +56,12 @@ type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), (andx.offset > offset) ? andx.command : 0xff);
+	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
 } &let {
 	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
 		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
+	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
+		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, true) &if(header.is_pipe);
 
 	data_len    : uint32 = (data_len_high << 16) + data_len_low;
@@ -68,7 +70,7 @@ type SMB1_write_andx_request(header: SMB_Header, offset: uint16) = record {
 	proc        : bool   = $context.connection.proc_smb1_write_andx_request(header, this);
 };
 
-type SMB1_write_andx_response(header: SMB_Header, offset: uint16) = record {
+type SMB1_write_andx_response(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
 	word_count   : uint8;
 	andx         : SMB_andx;
 	written_low  : uint16;
@@ -80,10 +82,12 @@ type SMB1_write_andx_response(header: SMB_Header, offset: uint16) = record {
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, false, offset+offsetof(andx_command), (andx.offset > offset) ? andx.command : 0xff);
+	andx_command    : SMB_andx_command(header, false, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
 } &let {
 	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
 		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
+	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
+		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
 	written_bytes : uint32 = (written_high << 16) + written_low;
 	proc          : bool   = $context.connection.proc_smb1_write_andx_response(header, this);
 };

@@ -93,6 +93,12 @@ refine connection SMB_Conn += {
 		return true;
 		%}
 
+	function proc_smb_andx_depth_exceeded(h: SMB_Header): bool
+		%{
+		zeek_analyzer()->Weird("smb_andx_depth_exceeded");
+		return true;
+		%}
+
 };
 
 type SMB_dos_error = record {
@@ -118,7 +124,7 @@ type SMB_PDU(is_orig: bool, msg_len: uint32) = record {
 		# Message length of 35 means that the actual message is
 		# only three bytes which means it's an empty response.
 		35      -> no_msg : SMB_No_Message(header, is_orig);
-		default -> msg    : SMB_Message(header, SMB_Header_length, header.command, is_orig);
+		default -> msg    : SMB_Message(header, SMB_Header_length, header.command, is_orig, 0);
 	};
 };
 
@@ -135,27 +141,27 @@ type SMB_empty_response(header: SMB_Header) = record {
 	proc : bool = $context.connection.proc_smb_empty_response(header);
 };
 
-type SMB_Message(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case is_orig of {
-	true    ->  request   : SMB_Message_Request(header, offset, command, is_orig);
-	false   ->  response  : SMB_Message_Response(header, offset, command, is_orig);
+type SMB_Message(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool, andx_depth: uint8) = case is_orig of {
+	true    ->  request   : SMB_Message_Request(header, offset, command, is_orig, andx_depth);
+	false   ->  response  : SMB_Message_Response(header, offset, command, is_orig, andx_depth);
 };
 
-type SMB_andx_command(header: SMB_Header, is_orig: bool, offset: uint16, command: uint8) = case command of {
+type SMB_andx_command(header: SMB_Header, is_orig: bool, offset: uint16, command: uint8, andx_depth: uint8) = case command of {
 	0xff    -> no_further_commands : empty;
-	default -> message             : SMB_Message(header, offset, command, is_orig);
+	default -> message             : SMB_Message(header, offset, command, is_orig, andx_depth);
 };
 
-type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case command of {
+type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool, andx_depth: uint8) = case command of {
 	# SMB1 Command Extensions
 	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB1_open_andx_request(header);
-	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_request(header, offset);
-	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_request(header, offset);
+	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_request(header, offset, andx_depth);
+	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_request(header, offset, andx_depth);
 	SMB_COM_TRANSACTION2             -> transaction2           : SMB1_transaction2_request(header);
 	SMB_COM_NEGOTIATE                -> negotiate              : SMB1_negotiate_request(header);
-	SMB_COM_SESSION_SETUP_ANDX       -> session_setup_andx     : SMB1_session_setup_andx_request(header, offset);
-	SMB_COM_TREE_CONNECT_ANDX        -> tree_connect_andx      : SMB1_tree_connect_andx_request(header, offset);
+	SMB_COM_SESSION_SETUP_ANDX       -> session_setup_andx     : SMB1_session_setup_andx_request(header, offset, andx_depth);
+	SMB_COM_TREE_CONNECT_ANDX        -> tree_connect_andx      : SMB1_tree_connect_andx_request(header, offset, andx_depth);
 	SMB_COM_NT_TRANSACT              -> nt_transact            : SMB1_nt_transact_request(header);
-	SMB_COM_NT_CREATE_ANDX           -> nt_create_andx         : SMB1_nt_create_andx_request(header, offset);
+	SMB_COM_NT_CREATE_ANDX           -> nt_create_andx         : SMB1_nt_create_andx_request(header, offset, andx_depth);
 
 #	SMB_COM_CREATE_DIRECTORY         -> create_directory       : SMB1_create_directory_request(header);
 #	#SMB_COM_DELETE_DIRECTORY         -> delete_directory       : SMB_delete_directory_request(header);
@@ -188,7 +194,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_QUERY_SERVER             -> query_server           : SMB_query_server_request(header);
 #	#SMB_COM_SET_INFORMATION2         -> set_information2       : SMB_set_information2_request(header);
 #	#SMB_COM_QUERY_INFORMATION2       -> query_information2     : SMB_query_information2_request(header);
-	SMB_COM_LOCKING_ANDX             -> locking_andx           : SMB1_locking_andx_request(header, offset);
+	SMB_COM_LOCKING_ANDX             -> locking_andx           : SMB1_locking_andx_request(header, offset, andx_depth);
 	SMB_COM_TRANSACTION              -> transaction            : SMB1_transaction_request(header);
 	SMB_COM_TRANSACTION_SECONDARY     -> transaction_secondary  : SMB1_transaction_secondary_request(header);
 #	#SMB_COM_IOCTL                    -> ioctl                  : SMB_ioctl_request(header);
@@ -204,7 +210,7 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 #	#SMB_COM_FIND_NOTIFY_CLOSE        -> find_notify_close      : SMB_find_notify_close_request(header);
 #	#SMB_COM_TREE_CONNECT             -> tree_connect           : SMB_tree_connect_request(header);
 	SMB_COM_TREE_DISCONNECT          -> tree_disconnect        : SMB1_tree_disconnect(header, is_orig);
-	SMB_COM_LOGOFF_ANDX              -> logoff_andx            : SMB1_logoff_andx(header, offset, is_orig);
+	SMB_COM_LOGOFF_ANDX              -> logoff_andx            : SMB1_logoff_andx(header, offset, is_orig, andx_depth);
 #	#SMB_COM_QUERY_INFORMATION_DISK   -> query_information_disk : SMB_query_information_disk_request(header);
 #	#SMB_COM_SEARCH                   -> search                 : SMB_search_request(header);
 #	#SMB_COM_FIND                     -> find                   : SMB_find_request(header);
@@ -223,17 +229,17 @@ type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_
 	default                          -> unknown_msg            : bytestring &restofdata; # TODO: do something different here!
 } &byteorder = littleendian;
 
-type SMB_Message_Response(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case command of {
+type SMB_Message_Response(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool, andx_depth: uint8) = case command of {
 	# SMB1 Command Extensions
 	#SMB_COM_OPEN_ANDX                -> open_andx              : SMB1_open_andx_response(header, offset);
-	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_response(header, offset);
-	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_response(header, offset);
+	SMB_COM_READ_ANDX                -> read_andx              : SMB1_read_andx_response(header, offset, andx_depth);
+	SMB_COM_WRITE_ANDX               -> write_andx             : SMB1_write_andx_response(header, offset, andx_depth);
 	SMB_COM_TRANSACTION2             -> transaction2           : SMB1_transaction2_response(header);
 	SMB_COM_NEGOTIATE                -> negotiate              : SMB1_negotiate_response(header);
-	SMB_COM_SESSION_SETUP_ANDX       -> session_setup_andx     : SMB1_session_setup_andx_response(header, offset);
-	SMB_COM_TREE_CONNECT_ANDX        -> tree_connect_andx      : SMB1_tree_connect_andx_response(header, offset);
+	SMB_COM_SESSION_SETUP_ANDX       -> session_setup_andx     : SMB1_session_setup_andx_response(header, offset, andx_depth);
+	SMB_COM_TREE_CONNECT_ANDX        -> tree_connect_andx      : SMB1_tree_connect_andx_response(header, offset, andx_depth);
 	SMB_COM_NT_TRANSACT              -> nt_transact            : SMB1_nt_transact_response(header);
-	SMB_COM_NT_CREATE_ANDX           -> nt_create_andx         : SMB1_nt_create_andx_response(header, offset);
+	SMB_COM_NT_CREATE_ANDX           -> nt_create_andx         : SMB1_nt_create_andx_response(header, offset, andx_depth);
 
 #	SMB_COM_CREATE_DIRECTORY         -> create_directory       : SMB1_create_directory_response(header);
 #	#SMB_COM_DELETE_DIRECTORY         -> delete_directory       : SMB_delete_directory_response(header);
@@ -281,7 +287,7 @@ type SMB_Message_Response(header: SMB_Header, offset: uint16, command: uint8, is
 #	#SMB_COM_FIND_NOTIFY_CLOSE        -> find_notify_close      : SMB_find_notify_close_response(header);
 #	#SMB_COM_TREE_CONNECT             -> tree_connect           : SMB_tree_connect_response(header);
 	SMB_COM_TREE_DISCONNECT          -> tree_disconnect        : SMB1_tree_disconnect(header, is_orig);
-	SMB_COM_LOGOFF_ANDX              -> logoff_andx            : SMB1_logoff_andx(header, offset, is_orig);
+	SMB_COM_LOGOFF_ANDX              -> logoff_andx            : SMB1_logoff_andx(header, offset, is_orig, andx_depth);
 #	#SMB_COM_QUERY_INFORMATION_DISK   -> query_information_disk : SMB_query_information_disk_response(header);
 #	#SMB_COM_SEARCH                   -> search                 : SMB_search_response(header);
 #	#SMB_COM_FIND                     -> find                   : SMB_find_response(header);
@@ -326,21 +332,28 @@ type SMB_Header(is_orig: bool) = record {
 # let SMB_Header_length = sizeof(SMB_Header);
 let SMB_Header_length = 32;
 
-
 refine connection SMB_Conn += {
 
 	%member{
 		int offset_len;
+        uint64_t max_andx_depth;
 	%}
 
 	%init{
 		// This needs to be set to some actual value.
 		// TODO: figure out where the hell to get this value from...
 		offset_len = 64;
+
+        max_andx_depth = zeek::BifConst::SMB::max_andx_depth;
 	%}
 
 	function get_offset_len(): int
 		%{
 		return offset_len;
+		%}
+
+	function get_max_andx_depth(): int
+		%{
+		return max_andx_depth;
 		%}
 };

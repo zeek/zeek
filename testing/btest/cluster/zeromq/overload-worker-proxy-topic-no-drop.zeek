@@ -1,4 +1,4 @@
-# @TEST-DOC: Workers and proxy publish to the worker and proxy topics. They publish so fast that messages are dropped a) on their end and b) their own onloop queue as well. The test checks that metrics are incremented and there's no lockup. The manager only coordinates startup and shutdown.
+# @TEST-DOC: Workers and proxy publish to the worker and proxy topics. They publish as fast as possible for a short period so that messages would likely be dropped by sender or receiver due to HWM. The HWM settings are 0 so nothing is dropped at the expense of using more memory.
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: ! is-windows-ci
@@ -21,7 +21,7 @@
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../other.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../other.zeek >out"
 #
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager/out
 # @TEST-EXEC: btest-diff proxy/out
 # @TEST-EXEC: btest-diff worker-1/out
@@ -32,16 +32,11 @@
 @load ./zeromq-metrics
 
 global tick: event() &is_used;
-global done: event(name: string) &is_used;
 global finish: event(name: string) &is_used;
 global ping: event(sender: string, c: count) &is_used;
+global done: event(sender: string, c: count) &is_used;
 
-# How many messages each node publishes in total.
-const total_publishes = 100000;
-# How many events to publish per tick()
-const batch = 100;
-
-# Lower HWMs to provoke drops
+# Unlimited buffering.
 redef Cluster::Backend::ZeroMQ::xpub_sndhwm = 0;
 redef Cluster::Backend::ZeroMQ::onloop_queue_hwm = 0;
 
@@ -91,7 +86,7 @@ event Cluster::node_down(name: string, id: string)
 		terminate();
 	}
 
-event done(sender: string)
+event done(sender: string, c: count)
 	{
 	add nodes_done[sender];
 	print "nodes_done", |nodes_done|;
@@ -114,7 +109,9 @@ event zeek_done()
 global last_c: table[string] of count &default=0;
 global drop_c: table[string] of count &default=0;
 
-global sent_done = F;
+global nodes_done: set[string] = set();
+
+global publishes = 0;
 
 event ping(sender: string, c: count)
 	{
@@ -123,28 +120,50 @@ event ping(sender: string, c: count)
 		drop_c[sender] += dropped;
 
 	last_c[sender] = c;
-
-	# Check if all senders sent enough messages. If not,
-	# wait for the next ping to arrive.
-	if ( |last_c| < |test_nodes|  - 1 )
-		return;
-
-	for ( _, lc in last_c )
-		if ( lc < total_publishes )
-			return;
-
-	# If all nodes sent enough pings, send "done" to the manager.
-	if ( ! sent_done )
-		{
-		Cluster::publish(Cluster::manager_topic, done, Cluster::node);
-		sent_done = T;
-		}
 	}
 
-global publishes = 0;
+event done(sender: string, c: count)
+	{
+	add nodes_done[sender];
+	print "nodes_done", |nodes_done|;
+
+	# Ensure the last ping() and this done()
+	# of the same sender have identical values.
+	if ( last_c[sender] != c )
+		print "ERROR", sender, c, last_c;
+
+	if ( drop_c[sender] != 0 )
+		print "ERROR", sender, "had drops";
+
+	if ( |nodes_done| == |test_nodes| )
+		Cluster::publish(Cluster::manager_topic, done, Cluster::node, publishes);
+	}
+
+# Publish state tracking.
+global publish_start_time: time = 0;
+const publish_duration = 5sec;
+
+# How many events to publish per tick() event.
+const batch = 500;
+const tick_interval = 1msec;
 
 event tick()
 	{
+	if ( publish_start_time == 0.0 )
+		publish_start_time = current_time();
+
+	if ( (publish_start_time + publish_duration) < current_time() )
+		{
+		Cluster::publish(Cluster::worker_topic, done, Cluster::node, publishes);
+		Cluster::publish(Cluster::proxy_topic, done, Cluster::node, publishes);
+
+		# Populate our own data.
+		last_c[Cluster::node] = publishes;
+		drop_c[Cluster::node] = 0;
+		event done(Cluster::node, publishes);
+		return;
+		}
+
 	local i = batch;
 	while ( i > 0 )
 		{
@@ -152,14 +171,9 @@ event tick()
 		++publishes;
 		Cluster::publish(Cluster::worker_topic, ping, Cluster::node, publishes);
 		Cluster::publish(Cluster::proxy_topic, ping, Cluster::node, publishes);
-
-		# Return once all messages were published. Nothing's supposed
-		# to be dropped, so that should be fine.
-		if ( publishes >= total_publishes )
-			return;
 		}
 
-	schedule 0sec { tick() };
+	schedule tick_interval { tick() };
 	}
 
 event finish(name: string)
@@ -173,10 +187,11 @@ event zeek_done()
 	local onloop_drops = Cluster::Backend::ZeroMQ::onloop_drops();
 	print "had xpub_drops?", xpub_drops > 0;
 	print "had onloop_drops?", onloop_drops > 0;
+	print "sent more than 5k?", publishes > 5000;
 
 	for ( n in test_nodes )
 		if ( n != Cluster::node )
-			print fmt("node %s dropped=%s count=%s", n, drop_c[n], last_c[n]);
+			print fmt("node %s dropped=%s got more than 5k? %s", n, drop_c[n], last_c[n] > 5000);
 
 	}
 # @TEST-END-FILE

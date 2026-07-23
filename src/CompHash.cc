@@ -87,6 +87,10 @@ std::unique_ptr<HashKey> CompositeHash::MakeHashKey(const Val& argv, bool type_c
     if ( type_check && argv.GetType()->Tag() != TYPE_LIST )
         return nullptr;
 
+    // Otherwise the loops below read past the end of the key list.
+    if ( type_check && argv.AsListVal()->Length() != static_cast<int>(tl.size()) )
+        return nullptr;
+
     if ( ! ReserveKeySize(*res, &argv, type_check, false) )
         return nullptr;
 

@@ -3273,8 +3273,11 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
         // Promote LHS
         ExprPList& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
-        if ( idx_exprs.length() != static_cast<int>(indices.size()) )
-            continue;
+        if ( idx_exprs.length() != static_cast<int>(indices.size()) ) {
+            expr->Error("indexing mismatch in table constructor");
+            SetError();
+            return;
+        }
 
         loop_over_list(idx_exprs, j) {
             ExprPtr idx = {NewRef{}, idx_exprs[j]};

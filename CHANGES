@@ -1,3 +1,22 @@
+9.0.0-dev.720 | 2026-07-23 19:09:15 +0200
+
+  * src/CMakeLists: Switch bif header installation to GLOB_RECURSE (Arne Welzel, Corelight)
+
+    Saw in #5712 that a new empty dhcpv6 include directory was created due to the
+    use of install(DIRECTORY ...). Switch this to GLOB_RECURSE in a CODE section
+    to run at installation time.
+
+    As can be seen in the baseline changes, this removes a few more
+    spuriously empty directories as well as the cyclic symlink
+    <PREFIX>/include/zeek/include/zeek construct.
+
+  * btest/cluster/zeromq: Attempt to make no-drop tests less flaky (Arne Welzel, Corelight)
+
+    Instead of publishing a fixed number of messages (which could sometimes lead
+    to timeouts on slow systems), publish for a fixed duration of 5 seconds and
+    ensure a certain minimum amount of messages made it through and no drops
+    observed.
+
 9.0.0-dev.715 | 2026-07-22 17:09:57 -0700
 
   * Remove additional compiler-warning flags for spicyz (Tim Wojtulewicz, Corelight)

@@ -769,7 +769,6 @@
 ./zeek/analyzer/protocol/krb/krb.pac
 ./zeek/analyzer/protocol/krb/krb_TCP.pac
 ./zeek/analyzer/protocol/krb/types.bif.h
-./zeek/analyzer/protocol/ldap
 ./zeek/analyzer/protocol/login
 ./zeek/analyzer/protocol/login/Login.h
 ./zeek/analyzer/protocol/login/NVT.h
@@ -845,8 +844,6 @@
 ./zeek/analyzer/protocol/pop3/POP3.h
 ./zeek/analyzer/protocol/pop3/consts.bif.h
 ./zeek/analyzer/protocol/pop3/events.bif.h
-./zeek/analyzer/protocol/postgresql
-./zeek/analyzer/protocol/quic
 ./zeek/analyzer/protocol/radius
 ./zeek/analyzer/protocol/radius/RADIUS.h
 ./zeek/analyzer/protocol/radius/events.bif.h
@@ -864,7 +861,6 @@
 ./zeek/analyzer/protocol/rdp/rdpeudp-protocol.pac
 ./zeek/analyzer/protocol/rdp/rdpeudp.pac
 ./zeek/analyzer/protocol/rdp/types.bif.h
-./zeek/analyzer/protocol/redis
 ./zeek/analyzer/protocol/rfb
 ./zeek/analyzer/protocol/rfb/RFB.h
 ./zeek/analyzer/protocol/rfb/events.bif.h
@@ -1072,7 +1068,6 @@
 ./zeek/cluster/Serializer.h
 ./zeek/cluster/Telemetry.h
 ./zeek/cluster/backend
-./zeek/cluster/backend/none
 ./zeek/cluster/backend/zeromq
 ./zeek/cluster/backend/zeromq/Plugin.h
 ./zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h
@@ -1091,8 +1086,6 @@
 ./zeek/cluster/websocket
 ./zeek/cluster/websocket/Plugin.h
 ./zeek/cluster/websocket/WebSocket.h
-./zeek/cluster/websocket/auxil
-./zeek/cluster/websocket/auxil/IXWebSocket
 ./zeek/cluster/websocket/events.bif.h
 ./zeek/communityid.bif.func_h
 ./zeek/communityid.bif.netvar_h
@@ -1145,13 +1138,10 @@
 ./zeek/file_analysis/analyzer/x509/types.bif.h
 ./zeek/file_analysis/analyzer/x509/x509-extension.pac
 ./zeek/file_analysis/analyzer/x509/x509-signed_certificate_timestamp.pac
-./zeek/file_analysis/analyzer/zip
 ./zeek/file_analysis/file_analysis.bif.h
 ./zeek/fuzzers
 ./zeek/fuzzers/FuzzBuffer.h
 ./zeek/fuzzers/fuzzer-setup.h
-./zeek/include
-./zeek/include/zeek
 ./zeek/input
 ./zeek/input.h
 ./zeek/input/Component.h
@@ -1197,8 +1187,6 @@
 ./zeek/iosource/pcap/pcap.bif.h
 ./zeek/iosource/pcapng
 ./zeek/iosource/pcapng/Source.h
-./zeek/iosource/pcapng/auxil
-./zeek/iosource/pcapng/auxil/LightPcapNg
 ./zeek/logging
 ./zeek/logging/Component.h
 ./zeek/logging/Manager.h
@@ -1260,7 +1248,6 @@
 ./zeek/packet_analysis/protocol/ieee802_11/IEEE802_11.h
 ./zeek/packet_analysis/protocol/ieee802_11_radio
 ./zeek/packet_analysis/protocol/ieee802_11_radio/IEEE802_11_Radio.h
-./zeek/packet_analysis/protocol/igmp
 ./zeek/packet_analysis/protocol/ip
 ./zeek/packet_analysis/protocol/ip/IP.h
 ./zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h

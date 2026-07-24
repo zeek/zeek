@@ -1,3 +1,9 @@
+8.2.1-12 | 2026-08-11 11:13:22 -0700
+
+  * CI: Return/use additional tags as a bash array during image creation (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 01315ab356a6770eff138f9a6249626325421687)
+
 8.2.1-11 | 2026-08-11 11:12:56 -0700
 
   * Revert "CI: Temporarily disable cloning zeek-testing-private repo" (Tim Wojtulewicz, Corelight)

@@ -6,6 +6,7 @@
 
 @load base/misc/version
 @load base/bif/telemetry_functions.bif
+@load base/frameworks/telemetry/options
 
 module Telemetry;
 
@@ -467,6 +468,14 @@ global version_gauge_family = Telemetry::register_gauge_family(Telemetry::Metric
 
 event zeek_init()
 	{
+	if ( getenv("ZEEKCTL_CHECK_CONFIG") == "" && (Telemetry::metrics_port as count) != 0 )
+		{
+		local expose_services_json = Cluster::local_node_type() == Cluster::MANAGER;
+		local listen_addr = |Telemetry::metrics_address| > 0 ? Telemetry::metrics_address : "0.0.0.0";
+
+		Telemetry::listen_prometheus(listen_addr, Telemetry::metrics_port, expose_services_json);
+		}
+
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),
 	                      cat(v$major), cat(v$minor), cat (v$patch),

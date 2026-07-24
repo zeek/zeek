@@ -59,6 +59,7 @@ global finish: event(name: string);
 # @TEST-END-FILE
 
 # @TEST-START-FILE manager.zeek
+@load base/frameworks/telemetry
 @load ./common.zeek
 @load ./query-prometheus.js
 

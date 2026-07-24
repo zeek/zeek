@@ -1,3 +1,7 @@
+9.0.0-dev.728 | 2026-07-24 14:52:38 -0700
+
+  * Upgrade GitPython to 3.1.55 to fix dependabot warnings (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.726 | 2026-07-24 13:18:42 -0700
 
   * Upgrade GitPython to 3.1.51 to fix dependabot warnings (Tim Wojtulewicz, Corelight)

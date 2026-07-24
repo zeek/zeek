@@ -1,3 +1,7 @@
+9.0.0-dev.724 | 2026-07-24 17:20:49 +0000
+
+  * CI: Return/use additional tags as a bash array during image creation (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.722 | 2026-07-23 15:59:51 -0700
 
   * GH-5679: Docs: edits on top of #5679 (Christian Kreibich, Corelight)

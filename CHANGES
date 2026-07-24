@@ -1,3 +1,7 @@
+9.0.0-dev.726 | 2026-07-24 13:18:42 -0700
+
+  * Upgrade GitPython to 3.1.51 to fix dependabot warnings (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.724 | 2026-07-24 17:20:49 +0000
 
   * CI: Return/use additional tags as a bash array during image creation (Tim Wojtulewicz, Corelight)

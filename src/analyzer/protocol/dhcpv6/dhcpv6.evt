@@ -1,0 +1,19 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+%doc-id = Zeek::DHCPv6;
+%doc-description = "DHCPv6 analyzer";
+
+import DHCPv6;
+
+export DHCPv6::MessageInfo;
+
+protocol analyzer DHCPV6 over UDP:
+    parse originator with DHCPv6::Message,
+    parse responder with DHCPv6::Message;
+
+# A single event carrying a flat summary of the whole DHCPv6 message. Emitted
+# once the message unit has been parsed.
+# Relay messages (RELAY-FORW/RELAY-REPL) are skipped here
+on DHCPv6::Message if ( self.msg_type != DHCPv6::MessageType::RELAY_FORW &&
+                        self.msg_type != DHCPv6::MessageType::RELAY_REPL )
+    -> event DHCPv6::dhcpv6_message($conn, $is_orig, DHCPv6::make_message_info(self));

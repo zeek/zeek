@@ -247,8 +247,7 @@ static void append_argc_check(std::string& s, int argc, bool at_least) {
     const char* op = at_least ? "<" : "!=";
     const char* word = at_least ? "at least" : "exactly";
     appendf(s, "\t{\n");
-    appendf(s, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-    appendf(s, "\tif ( %s->size() %s %d )\n", arg_list_name, op, argc);
+    appendf(s, "\tif ( %s->size() %s %d ) // NOLINT(readability-container-size-empty)\n", arg_list_name, op, argc);
     appendf(s, "\t\t{\n");
     appendf(s,
             "\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes %s %d argument(s), got %%lu\", %s->size()));\n",
@@ -939,9 +938,7 @@ body_start:	TOK_LPB c_code_begin
 			// this work moves to the shim.
 			if ( ! gen_native && var_arg && argc > 0 )
 				{
-				emit_body("\n");
-				emit_body("\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-				emit_body("\tif ( %s->size() < %d )\n", arg_list_name, argc);
+				emit_body("\tif ( %s->size() < %d ) // NOLINT(readability-container-size-empty)\n", arg_list_name, argc);
 				emit_body("\t\t{\n");
 				emit_body(
 					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes at least %d argument(s), got %%lu\", %s->size()));\n",

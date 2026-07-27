@@ -1,3 +1,14 @@
+9.0.0-dev.730 | 2026-07-27 13:22:27 +0200
+
+  * Speed up WebSocketShim unit tests (Benjamin Bannier, Corelight)
+
+    These tests were using pretty large timeout values which made them the
+    main contributors to the unit test suite's runtime. There is no reason
+    for them to be so large, so we can decrease them substantially to speed
+    up the test suite (on my machine before: 2.2s, after: 0.8s). With that
+    change the runtime of the unit test suite is limited by how fast Zeek
+    can set itself up (parse scripts, set up globals, ...).
+
 9.0.0-dev.728 | 2026-07-24 14:52:38 -0700
 
   * Upgrade GitPython to 3.1.55 to fix dependabot warnings (Tim Wojtulewicz, Corelight)

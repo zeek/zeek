@@ -114,6 +114,17 @@ jobs:
       ZEEK_CI: 1
     steps:
       - checkout
+      - run:
+          name: Set extra environment variables
+          command: |
+            # This could be done in the environment block of the job definition, but
+            # we pass 0/1 for consistency with other environment variables in the rest
+            # of the config.
+            if [[ "<< pipeline.parameters.is_internal_build >>" == "true" ]]; then
+              echo "export ZEEK_CI_INTERNAL_BUILD=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_INTERNAL_BUILD=0" >> "$BASH_ENV"
+            fi
       - restore_cache:
           keys:
             - zeek-traces-v2

@@ -214,6 +214,7 @@ struct func_emit_state {
     std::string c_fullname;
     std::string zeek_fullname;
     std::string bare_name;
+    int head_line_number;
 } func_emit;
 
 // Build a comma-separated list by invoking print_one() for each arg in the
@@ -239,30 +240,44 @@ static std::string build_native_call_arg_list() {
     return build_arg_list([](BuiltinFuncArg* a, std::string& s) { a->PrintCImplCallArg(s); });
 }
 
-// Emit the argc check for the shim: "exactly N" for fixed-arity, or
+// Append the argc check for the shim: "exactly N" for fixed-arity, or
 // "at least N" for var_arg. Returns nullptr (a ValPtr) on mismatch, which
 // is fine because this only runs in the shim, which always returns ValPtr.
-static void emit_argc_check(FILE* fp, int argc, bool at_least) {
+static void append_argc_check(std::string& s, int argc, bool at_least) {
     const char* op = at_least ? "<" : "!=";
     const char* word = at_least ? "at least" : "exactly";
-    fprintf(fp, "\t{\n");
-    fprintf(fp, "\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-    fprintf(fp, "\tif ( %s->size() %s %d )\n", arg_list_name, op, argc);
-    fprintf(fp, "\t\t{\n");
-    fprintf(fp,
+    appendf(s, "\t{\n");
+    appendf(s, "\tif ( %s->size() %s %d ) // NOLINT(readability-container-size-empty)\n", arg_list_name, op, argc);
+    appendf(s, "\t\t{\n");
+    appendf(s,
             "\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes %s %d argument(s), got %%lu\", %s->size()));\n",
             func_emit.zeek_fullname.c_str(), word, argc, arg_list_name);
-    fprintf(fp, "\t\treturn nullptr;\n");
-    fprintf(fp, "\t\t}\n");
+    appendf(s, "\t\treturn nullptr;\n");
+    appendf(s, "\t\t}\n");
 }
 
-// Emit per-arg local extraction. The runtime check is true for BiFs requiring
+// Append per-arg local extraction. The runtime check is true for BiFs requiring
 // dynamic type-checking (due to being variadic).
-static void emit_arg_extraction(FILE* fp, int argc, bool runtime_type_check) {
-    std::string defs;
+static void append_arg_extraction(std::string& s, int argc, bool runtime_type_check) {
     for ( int i = 0; i < argc; ++i )
-        args[i]->PrintCDef(defs, i, runtime_type_check);
-    fputs(defs.c_str(), fp);
+        args[i]->PrintCDef(s, i, runtime_type_check);
+}
+
+// Emit `content` to fp, prefacing each source line with a #line directive
+// that anchors it to `anchor` in the input .bif file. The directive itself
+// consumes an output line but doesn't count against the .bif line
+// numbering, so each real source line ends up attributed to `anchor`.
+static void emit_anchored(FILE* fp, const std::string& content, int anchor) {
+    std::string directive;
+    appendf(directive, "#line %d \"%s\"\n", anchor, input_filename_with_path);
+    size_t start = 0;
+    while ( start < content.size() ) {
+        size_t nl = content.find('\n', start);
+        size_t end = (nl == std::string::npos) ? content.size() : nl + 1;
+        fputs(directive.c_str(), fp);
+        fwrite(content.data() + start, 1, end - start, fp);
+        start = end;
+    }
 }
 
 // Emit the legacy single-function form: body inline in <name>_bif.
@@ -272,11 +287,13 @@ static void emit_legacy_func(std::string captured, int argc) {
             func_emit.c_fullname.c_str(), arg_list_name);
 
     if ( ! var_arg ) {
-        emit_argc_check(fp_func_def, argc, /*at_least=*/false);
-        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/false);
+        std::string prelude;
+        append_argc_check(prelude, argc, /*at_least=*/false);
+        append_arg_extraction(prelude, argc, /*runtime_type_check=*/false);
+        fputs(prelude.c_str(), fp_func_def);
 
         // Strip the captured body's leading "{" so we don't double-open the
-        // brace block we just opened with emit_argc_check.
+        // brace block we just opened with append_argc_check.
         auto pos = captured.find('{');
         if ( pos != std::string::npos )
             captured.erase(pos, 1);
@@ -303,30 +320,40 @@ static native_ret_info compute_native_ret_info() {
 // then a call to _native via the supplied call_args list; and a
 // possibly-wrapped return.
 static void emit_shim(int argc, const std::string& call_args, const native_ret_info& nri) {
-    fprintf(fp_func_def,
-            "\nzeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)\n",
+    // Anchor the shim signature + marshalling to the head of the .bif function,
+    // and the return to its tail. Every emitted shim line is preceded by a
+    // #line directive so the .bif line count doesn't advance across the
+    // shim's own body.
+    std::string prelude;
+    appendf(prelude, "zeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)\n",
             func_emit.c_fullname.c_str(), arg_list_name);
 
     if ( argc > 0 || ! var_arg )
-        emit_argc_check(fp_func_def, argc, /*at_least=*/var_arg);
+        append_argc_check(prelude, argc, /*at_least=*/var_arg);
     else
-        fprintf(fp_func_def, "\t{\n");
+        appendf(prelude, "\t{\n");
 
     if ( argc > 0 )
-        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/var_arg);
+        append_arg_extraction(prelude, argc, /*runtime_type_check=*/var_arg);
+
+    fputc('\n', fp_func_def);
+    emit_anchored(fp_func_def, prelude, func_emit.head_line_number);
 
     std::string call;
     appendf(call, "zeek::%s_native(%s)", func_emit.c_fullname.c_str(), call_args.c_str());
 
+    std::string tail;
     if ( nri.has_native_ret ) {
         std::string wrapped;
         appendf(wrapped, nri.native_to_val, call.c_str());
-        fprintf(fp_func_def, "\treturn %s;\n", wrapped.c_str());
+        appendf(tail, "\treturn %s;\n", wrapped.c_str());
     }
     else
-        fprintf(fp_func_def, "\treturn %s;\n", call.c_str());
+        appendf(tail, "\treturn %s;\n", call.c_str());
 
-    fprintf(fp_func_def, "\t} // end of shim for %s\n", func_emit.c_fullname.c_str());
+    appendf(tail, "\t} // end of shim for %s\n", func_emit.c_fullname.c_str());
+
+    emit_anchored(fp_func_def, tail, line_number);
 }
 
 // Emit a natively-callable function along with its shim.
@@ -362,7 +389,9 @@ static void emit_not_natively_callable(std::string captured, int argc) {
 
     if ( argc > 0 ) {
         fprintf(fp_func_def, "\t{\n");
-        emit_arg_extraction(fp_func_def, argc, /*runtime_type_check=*/false);
+        std::string extract;
+        append_arg_extraction(extract, argc, /*runtime_type_check=*/false);
+        fputs(extract.c_str(), fp_func_def);
 
         // Strip the captured body's leading "{" so we don't double-open the
         // brace block we just opened.
@@ -485,6 +514,7 @@ static void begin_func_def() {
     func_emit.c_fullname = decl.c_fullname;
     func_emit.zeek_fullname = decl.zeek_fullname;
     func_emit.bare_name = decl.bare_name;
+    func_emit.head_line_number = line_number;
 
     in_func_body = true;
     body_buf.clear();
@@ -908,9 +938,7 @@ body_start:	TOK_LPB c_code_begin
 			// this work moves to the shim.
 			if ( ! gen_native && var_arg && argc > 0 )
 				{
-				emit_body("\n");
-				emit_body("\t// NOLINTNEXTLINE(readability-container-size-empty)\n");
-				emit_body("\tif ( %s->size() < %d )\n", arg_list_name, argc);
+				emit_body("\tif ( %s->size() < %d ) // NOLINT(readability-container-size-empty)\n", arg_list_name, argc);
 				emit_body("\t\t{\n");
 				emit_body(
 					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes at least %d argument(s), got %%lu\", %s->size()));\n",

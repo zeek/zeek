@@ -1,3 +1,15 @@
+9.0.0-dev.735 | 2026-07-28 03:53:28 +0000
+
+  * Restore checking for mismatches in coverage commands (Tim Wojtulewicz, Corelight)
+
+    This partially reverts https://github.com/zeek/zeek/commit/ce9cd1d5a46e885a6d03b867731bd5febf4ee3ca
+
+  * Fix clang-tidy warning from bifcl changes (Tim Wojtulewicz, Corelight)
+
+  * fix bifcl to provide #line information in BiF shims as well as BiF natives (Vern Paxson, Corelight)
+
+  * typo in Val.h comment (Vern Paxson, Corelight)
+
 9.0.0-dev.730 | 2026-07-27 13:22:27 +0200
 
   * Speed up WebSocketShim unit tests (Benjamin Bannier, Corelight)

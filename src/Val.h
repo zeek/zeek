@@ -1058,7 +1058,7 @@ protected:
     // Returns true if item expiration is enabled.
     bool ExpirationEnabled() { return expire_time != nullptr; }
 
-    // Returns the expiration time defined by %{create,read,write}_expire
+    // Returns the expiration time defined by &{create,read,write}_expire
     // attribute, or -1 for unset/invalid values. In the invalid case, an
     // error will have been reported.
     double GetExpireTime();

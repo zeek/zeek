@@ -1,3 +1,7 @@
+9.0.0-dev.741 | 2026-07-28 11:46:32 -0700
+
+  * Initialize the Prometheus listener via zeek_init() (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.739 | 2026-07-28 15:04:48 +0100
 
   * Fix CMP0219 warning for newer cmake versions (Johanna Amann, Corelight)

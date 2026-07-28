@@ -298,3 +298,9 @@ function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%):
 	%{
 	return telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
 	%}
+
+function Telemetry::listen_prometheus%(listen_addr: string, metrics_port: port, expose_services_json: bool%): bool
+    %{
+    telemetry_mgr->ListenPrometheus(sv(listen_addr), metrics_port->Port(), expose_services_json);
+    return true;
+    %}

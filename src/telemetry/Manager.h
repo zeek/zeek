@@ -53,12 +53,20 @@ public:
     ~Manager() override; // = default;
 
     /**
-     * Initialization of the manager. This is called late during Zeek's
-     * initialization after any scripts are processed. Sets up the Prometheus
-     * server and the process stats metrics, and on a manager node will enable
-     * the Prometheus service discovery endpoint.
+     * Initialization of the manager. This is called late during Zeek's initialization
+     * after any scripts are processed. Sets up the process stats metrics.
      */
     void InitPostScript();
+
+    /**
+     * Initializes the Prometheus server. This is called during Zeek startup via
+     * zeek_init().
+     *
+     * @param metrics_addr Address the server will listen on
+     * @param metrics_port Port number the server will listen on
+     * @param expose_services_json Whether services.json will be exposed on this server
+     */
+    void ListenPrometheus(std::string_view metrics_addr, int port, bool expose_services_json);
 
     void Terminate();
 

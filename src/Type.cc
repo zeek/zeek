@@ -2681,7 +2681,9 @@ bool is_atomic_type(const Type& t) {
 const TypePtr& base_type(TypeTag tag) {
     static TypePtr base_types[NUM_TYPES];
 
-    // We could check here that "tag" actually corresponds to a basic type.
+    if ( tag >= NUM_TYPES )
+        reporter->InternalError("base_type() called with invalid tag %d", tag);
+
     if ( ! base_types[tag] ) {
         base_types[tag] = make_intrusive<Type>(tag, true);
         // Give the base types a pseudo-location for easier identification.

@@ -158,7 +158,12 @@ TypePtr OpaqueVal::UnserializeType(BrokerDataView data) {
     if ( ! v[1].IsCount() )
         return nullptr;
 
-    return base_type(static_cast<TypeTag>(v[1].ToCount()));
+    // Avoid making an out-of-range TypeTag
+    auto tag_raw = v[1].ToCount();
+    if ( tag_raw >= NUM_TYPES )
+        return nullptr;
+
+    return base_type(static_cast<TypeTag>(tag_raw));
 }
 
 ValPtr OpaqueVal::DoClone(CloneState* state) {

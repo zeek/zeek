@@ -38,6 +38,10 @@ parameters:
     description: True if running for a tag of the form v1.2.3 or v1.2.3-rc1
     type: boolean
     default: false
+  is_internal_build:
+    description: True if the requesting user is a member of the Zeek Github organization
+    type: boolean
+    default: false
 
 commands:
   clone_repo:
@@ -297,6 +301,13 @@ jobs:
               echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=1" >> "$BASH_ENV"
             else
               echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=0" >> "$BASH_ENV"
+            fi
+
+            # Same here
+            if [[ "<< pipeline.parameters.is_internal_build >>" == "true" ]]; then
+              echo "export ZEEK_CI_INTERNAL_BUILD=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_INTERNAL_BUILD=0" >> "$BASH_ENV"
             fi
 
             IFS=$'\n'

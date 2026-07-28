@@ -1,3 +1,9 @@
+9.0.0-dev.739 | 2026-07-28 15:04:48 +0100
+
+  * Fix CMP0219 warning for newer cmake versions (Johanna Amann, Corelight)
+
+    This pulls in zeek/cmake#153
+
 9.0.0-dev.737 | 2026-07-28 15:50:40 +0200
 
   * add support for trailing pattern flags in Input Framework (Yacin Nadji, Corelight)

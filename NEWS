@@ -83,6 +83,9 @@ New Functionality
   can result in non-reversible encodings. Discussion #5240 on GitHub has a lot
   more details on the topic: https://github.com/zeek/zeek/discussions/5240
 
+- The Input Framework now supports reading pattern values containing case-insensitive
+  and single-line modifiers (/foo/i, /bar/s or /foobar/is).
+
 - Imported the zeek/spicy-zip file analyzer into the main tree. This analyzer outputs
   information about ZIP files found in other protocols, including information about the
   contents of such archives. It will recursive search zip files, so there is the

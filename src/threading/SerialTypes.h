@@ -182,14 +182,21 @@ struct Value {
         vec_t vector_val;
         addr_t addr_val;
         subnet_t subnet_val;
-        const char* pattern_text_val;
+        struct {
+            [[deprecated("Remove in v9.1. Use pattern_val.text instead.")]] const char* pattern_text_val;
+        };
+        struct {
+            const char* text;
+            bool is_case_insensitive;
+            bool is_single_line;
+        } pattern_val;
 
         struct {
             char* data;
             int length;
         } string_val;
 
-        _val() { memset(this, 0, sizeof(_val)); }
+        _val() { memset(static_cast<void*>(this), 0, sizeof(_val)); }
     } val;
 
     /**

@@ -1,3 +1,7 @@
+9.0.0-dev.737 | 2026-07-28 15:50:40 +0200
+
+  * add support for trailing pattern flags in Input Framework (Yacin Nadji, Corelight)
+
 9.0.0-dev.735 | 2026-07-28 03:53:28 +0000
 
   * Restore checking for mismatches in coverage commands (Tim Wojtulewicz, Corelight)

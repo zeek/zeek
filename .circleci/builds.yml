@@ -1120,8 +1120,6 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
@@ -1154,8 +1152,6 @@ workflows:
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-spicy-head
@@ -1167,8 +1163,6 @@ workflows:
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-zam
@@ -1196,8 +1190,6 @@ workflows:
           enable_coverage: true
           enable_fuzzer_tests: true
           cpu_count: 8
-          context:
-            - zeek
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG

@@ -5,7 +5,7 @@ set -o pipefail
 
 export MSYS=disable_pcon
 
-BTEST="python ../../auxil/btest/btest"
+BTEST="winpty python ../../auxil/btest/btest"
 JOBS=${ZEEK_CI_CPUS:-8}
 RETRIES=${ZEEK_CI_BTEST_RETRIES:-3}
 

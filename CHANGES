@@ -1,3 +1,7 @@
+9.0.0-dev.751 | 2026-07-29 18:36:53 +0200
+
+  * doc/systemd: Add missing manager = 1 in two examples (Arne Welzel, Corelight)
+
 9.0.0-dev.749 | 2026-07-29 13:10:10 +0200
 
   * NEWS: Add multi-interface and multi-host zeek.conf additions (Arne Welzel, Corelight)

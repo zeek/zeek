@@ -226,6 +226,7 @@ section, conventionally put at the top of the file:
 .. code:: ini
 
     [zeek]
+    manager = 1
     loggers = 3
     proxies = 7
 
@@ -328,6 +329,7 @@ in the ``worker_env``:
 .. code:: ini
 
     [zeek]
+    manager = 1
     loggers = 3
     proxies = 7
 

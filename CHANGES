@@ -1,3 +1,10 @@
+9.0.0-dev.753 | 2026-07-29 09:42:12 -0700
+
+  * Reduce size of scripts.base.protocols.modbus.events baseline (Tim Wojtulewicz, Corelight)
+
+    The original baseline was 20MB which was sort of excessive. This reduces it
+    to ~350KB.
+
 9.0.0-dev.751 | 2026-07-29 18:36:53 +0200
 
   * doc/systemd: Add missing manager = 1 in two examples (Arne Welzel, Corelight)

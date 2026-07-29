@@ -5,7 +5,8 @@
 # @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus-eit.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >>output
 # @TEST-EXEC: mv conn.log conn-second.log
 # @TEST-EXEC: cat weird.log >> weird-combined.log
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: cat output | sed -E 's/tid=[0-9]+/tid=XXX/' | sed -E 's/function_code=[0-9]+/function_code=XXX/' | sort | uniq > compressed-output
+# @TEST-EXEC: btest-diff compressed-output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage

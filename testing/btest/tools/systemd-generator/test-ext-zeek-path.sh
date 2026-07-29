@@ -11,8 +11,10 @@
 # @TEST-START-FILE config1
 interface = eth0
 workers = 1
-proxies = 1
+manager = 1
 loggers = 1
+proxies = 1
+
 ext_zeek_path = /opt/myzeek/mypackages:/opt/morepackages
 
 base_dir = /opt/zeek

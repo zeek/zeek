@@ -9,9 +9,7 @@
 #
 # @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
 # @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.d/*; do btest-diff $f || exit 1; done
 
 # @TEST-START-FILE config1
-interface = eth0
 base_dir = /opt/zeek
 # @TEST-END-FILE

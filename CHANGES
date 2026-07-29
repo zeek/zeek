@@ -1,3 +1,22 @@
+9.0.0-dev.749 | 2026-07-29 13:10:10 +0200
+
+  * NEWS: Add multi-interface and multi-host zeek.conf additions (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Make a pass over the default zeek.conf (Arne Welzel, Corelight)
+
+    This isn't complete, but ressembles the multi-interface idea more. Move
+    the sectionless format mention to the end.
+
+  * doc: Add section about running Zeek with systemd (Arne Welzel, Corelight)
+
+  * policy/misc: Add helper script for easier ZeroMQ multi-host setup (Arne Welzel, Corelight)
+
+  * pre-commit: Skip formatting systemd-generator env test (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Add multi-host and multi-interface support (Arne Welzel, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.0.0-dev.741 | 2026-07-28 11:46:32 -0700
 
   * Initialize the Prometheus listener via zeek_init() (Tim Wojtulewicz, Corelight)

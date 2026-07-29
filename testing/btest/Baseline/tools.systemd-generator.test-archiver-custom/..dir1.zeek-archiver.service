@@ -9,13 +9,13 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=exec
-Nice=0
-MemoryMax=
 User=zeek
 Group=zeek
 WorkingDirectory=
-ReadWritePaths=<...>/log-queue <...>/zeek 
-ExecStart=<...>/zeek-archiver  <...>/log-queue <...>/zeek
+ReadWritePaths=<...>/log-queue <...>/zeek
+Environment=LD_PRELOAD=<...>/libjemalloc.so
+Environment=I_AM_ARCHIVER=1
+ExecStart=<...>/my-archiver my custom args -d
 Slice=zeek-archiver.slice
 Restart=always
 RestartSec=1

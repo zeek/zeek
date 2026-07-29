@@ -62,6 +62,17 @@ New Functionality
 
 	./configure -D ENABLE_PACKET_SOURCE_UDP=no
 
+- The ``zeek.conf`` configuration file and ``zeek-systemd-generator`` have been extended
+  to support multiple interfaces as well as support for multi-host deployments. For
+  more details and examples, see Zeek's online documentation:
+
+	https://docs.zeek.org/en/master/advanced/deployment/systemd.html
+
+  While the ``zeek-systemd-generator`` is (obviously) Linux and systemd specific,
+  the ``zeek.conf`` file (and the code reading the file) are meant to be operating
+  system agnostic and we're open for suggestions and contributions for alternative
+  generators.
+
 - The LDAP analyzer now forwards the SASL payload from bindRequest and bindResponse
   units to GSSAPI and NTLM parsers to extract additional information into the
   the ``ntlm.log`` or ``kerberos.log`` logs.

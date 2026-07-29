@@ -1420,6 +1420,15 @@ private:
         for ( int i = prev_capacity; i < capacity; i++ )
             table[i].SetEmpty();
 
+        // If iterator exist while increasing the capacity, they won't reach into the new section
+        // of data. Upgrade the capacity on all of the existing iterators.
+        if ( iterators && ! iterators->empty() ) {
+            for ( auto c : *iterators ) {
+                if ( c->next >= prev_capacity )
+                    c->next = capacity;
+            }
+        }
+
         // REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one
         // of which is that the last space in the table is occupied and there's nowhere to put new
         // items. In this case, the table doubles in capacity and the item is put at the
@@ -1500,15 +1509,6 @@ private:
             iter->next = Next(-1);
 
         if ( iter->next < Capacity() && table[iter->next].Empty() ) {
-            // [Robin] I believe this means that the table has resized in a way
-            // that we're now inside the overflow area where elements are empty,
-            // because elsewhere empty slots aren't allowed. Assuming that's right,
-            // then it means we'll always be at the end of the table now and could
-            // also just set `next` to capacity. However, just to be sure, we
-            // instead reuse logic from below to move forward "to a valid position"
-            // and then double check, through an assertion in debug mode, that it's
-            // actually the end. If this ever triggered, the above assumption would
-            // be wrong (but the Next() call would probably still be right).
             iter->next = Next(iter->next);
             ASSERT(iter->next == Capacity());
         }

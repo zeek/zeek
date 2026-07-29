@@ -30,7 +30,7 @@ const FuncTypePtr& EventHandler::GetType(bool check_export) {
 
     const auto& id = detail::lookup_ID(name.data(), detail::current_module.c_str(), false, false, check_export);
 
-    if ( ! id )
+    if ( ! id || ! id->GetType() )
         return FuncType::nil;
 
     if ( id->GetType()->Tag() != TYPE_FUNC )

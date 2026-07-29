@@ -29,6 +29,7 @@ Functions
 :zeek:id:`Telemetry::__histogram_metric_get_or_add`: :zeek:type:`function`
 :zeek:id:`Telemetry::__histogram_observe`: :zeek:type:`function`
 :zeek:id:`Telemetry::__histogram_sum`: :zeek:type:`function`
+:zeek:id:`Telemetry::listen_prometheus`: :zeek:type:`function`
 ========================================================================== =
 
 
@@ -124,6 +125,12 @@ Functions
    :source-code: base/bif/telemetry_functions.bif.zeek 55 55
 
    :Type: :zeek:type:`function` (val: :zeek:type:`opaque` of histogram_metric) : :zeek:type:`double`
+
+
+.. zeek:id:: Telemetry::listen_prometheus
+   :source-code: base/bif/telemetry_functions.bif.zeek 64 64
+
+   :Type: :zeek:type:`function` (listen_addr: :zeek:type:`string`, metrics_port: :zeek:type:`port`, expose_services_json: :zeek:type:`bool`) : :zeek:type:`bool`
 
 
 

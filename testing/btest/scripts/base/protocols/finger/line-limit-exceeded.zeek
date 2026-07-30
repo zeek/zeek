@@ -1,10 +1,10 @@
 # @TEST-DOC: Ensures if the line limit is exceeded, there is a violation.
 #
 # @TEST-EXEC: zeek -r $TRACES/finger/long-request.pcapng %INPUT >out-request
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff out-request
+# @TEST-EXEC: btest-diff-remove-abspath out-request
 #
 # @TEST-EXEC: zeek -r $TRACES/finger/long-reply-line.pcapng %INPUT >out-reply
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff out-reply
+# @TEST-EXEC: btest-diff-remove-abspath out-reply
 
 @load base/protocols/finger
 

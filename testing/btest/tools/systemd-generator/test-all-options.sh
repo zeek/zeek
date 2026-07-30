@@ -8,17 +8,17 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-setup.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-manager.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-logger@.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-proxy@.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-archiver.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth0@.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth0@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth0@2.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth1@.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth1@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker-eth1@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-setup.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-manager.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-logger@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-proxy@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-archiver.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth0@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth0@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth0@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth1@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth1@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker-eth1@2.service.d/*conf
 #
 # @TEST-START-FILE config1
 [zeek]

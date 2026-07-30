@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >output 2>err
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
+# @TEST-EXEC: btest-diff-remove-abspath output
+# @TEST-EXEC: btest-diff-remove-abspath err
 
 type X: record  {
     a: addr;

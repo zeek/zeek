@@ -4,7 +4,7 @@
 #
 # @TEST-DOC: ``zeek -a -u`` should detect usage issues without executing code
 # @TEST-EXEC: zeek -b -a -u %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 event zeek_init()
 	{

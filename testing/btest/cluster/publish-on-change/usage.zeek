@@ -1,7 +1,7 @@
 # @TEST-DOC: Test some valid &publish_on_change usages.
 #
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # @TEST-START-NEXT
 global tbl1: table[string] of string &publish_on_change=[

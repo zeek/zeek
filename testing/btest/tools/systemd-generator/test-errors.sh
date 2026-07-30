@@ -4,7 +4,7 @@
 #
 # @TEST-EXEC: rm -rf output_dir && mkdir output_dir
 # @TEST-EXEC-FAIL: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config %INPUT output_dir
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 manager_nice =
 proxy_nice = 100
 logger_nice = abc

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test metrics for storage/sqlite in a sync context
 # @TEST-EXEC: zeek -b %INPUT > out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath out
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 @load base/frameworks/telemetry
 @load base/frameworks/storage/sync

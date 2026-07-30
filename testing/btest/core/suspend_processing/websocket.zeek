@@ -12,8 +12,8 @@
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 # @TEST-EXEC: btest-bg-wait 30
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff client/.stdout
+# @TEST-EXEC: btest-diff-remove-abspath worker/.stdout
+# @TEST-EXEC: btest-diff-remove-abspath client/.stdout
 
 @load frameworks/cluster/backend/broker
 

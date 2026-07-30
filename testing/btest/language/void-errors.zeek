@@ -1,7 +1,7 @@
 # @TEST-DOC: Zeek does not have a script land void type, but internally it does exist (indexing a set, or a function returning no result). Regression test #3640.
 #
 # @TEST-EXEC-FAIL: zeek -b %INPUT >output 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 # identifier void not defined...
 global x: void = 1;

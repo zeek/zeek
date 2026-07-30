@@ -5,4 +5,4 @@
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: cp -R build build_backup
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd`/build_backup:`pwd`/build zeek -NN Demo::Foo  >output 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output

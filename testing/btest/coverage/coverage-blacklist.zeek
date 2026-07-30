@@ -3,7 +3,7 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: ZEEK_PROFILER_FILE=coverage zeek -b %INPUT
 # @TEST-EXEC: grep %INPUT coverage | sort -k2 >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 print "first";
 

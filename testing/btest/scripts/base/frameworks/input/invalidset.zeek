@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
+# @TEST-EXEC: btest-diff-remove-abspath .stderrwithoutfirstline
 
 # @TEST-START-FILE input.log
 #separator \x09

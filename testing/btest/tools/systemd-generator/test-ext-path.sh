@@ -8,9 +8,9 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-setup.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-manager.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-setup.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-manager.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker@.service
 
 # @TEST-START-FILE config1
 interface = eth0

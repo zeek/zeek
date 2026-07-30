@@ -1,7 +1,7 @@
 # @TEST-DOC: Previously, the zeek_post() event would have access to the first packet's network_time, even if suspend_processing() was called in zeek_init(). This changed in Zeek 6.0 to return 0.0 as network_time_init() is now available.
 # @TEST-EXEC: echo "first line" > raw_file
 # @TEST-EXEC: zeek -b -C -r $TRACES/tunnels/vxlan.pcap %INPUT >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 type OneLine: record {
 	s: string;

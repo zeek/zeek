@@ -1,6 +1,6 @@
 # @TEST-DOC: Test @pragma directive
 # @TEST-EXEC: zeek -b %INPUT >out 2>&1; echo "exit_code=$?" >> out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 # @TEST-START-FILE unbalanced-push.zeek
 @pragma push ignore-deprecations

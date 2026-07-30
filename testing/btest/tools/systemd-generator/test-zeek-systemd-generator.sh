@@ -8,9 +8,9 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 #
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.d/*; do btest-diff $f || exit 1; done
+# @TEST-EXEC: for f in normal-dir/*.service ; do btest-diff-remove-abspath $f || exit 1; done
+# @TEST-EXEC: for f in normal-dir/*.service ; do btest-diff-remove-abspath $f || exit 1; done
+# @TEST-EXEC: for f in normal-dir/*.d/*; do btest-diff-remove-abspath $f || exit 1; done
 
 # @TEST-START-FILE config1
 interface = af_packet::eth0

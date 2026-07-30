@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 # @TEST-DOC: Mismatched type-constructor initializations fail with reasonable error message
 
 type R: record { a: bool &default=T; };

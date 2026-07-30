@@ -3,7 +3,7 @@
 #
 # See below for an explanation of this convoluted invocation line.
 # @TEST-EXEC: zeek -b -O ZAM -O dump-xform --optimize-func='AST_opt_test_.*' %INPUT >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 # This is a subtle & extensive test of the AST optimizer used by ZAM, in
 # particular its CSE = Common Subexpression Elimination functionality, whereby

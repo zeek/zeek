@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b valid.zeek >valid.out
 # @TEST-EXEC: btest-diff valid.out
 # @TEST-EXEC-FAIL: zeek -b invalid.zeek > invalid.out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff invalid.out
+# @TEST-EXEC: btest-diff-remove-abspath invalid.out
 
 # hook functions must be called using the "hook" keyword as an operator...
 

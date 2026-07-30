@@ -7,8 +7,8 @@
 # @TEST-EXEC: find normal-dir | sort > out
 # @TEST-EXEC: btest-diff out
 #
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
-# @TEST-EXEC: export TEST_DIFF_CANONIFIER=diff-remove-abspath; for f in normal-dir/*.service ; do btest-diff $f || exit 1; done
+# @TEST-EXEC: for f in normal-dir/*.service ; do btest-diff-remove-abspath $f || exit 1; done
+# @TEST-EXEC: for f in normal-dir/*.service ; do btest-diff-remove-abspath $f || exit 1; done
 
 # @TEST-START-FILE config1
 base_dir = /opt/zeek

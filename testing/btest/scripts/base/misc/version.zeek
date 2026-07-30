@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b base/misc/version.zeek %INPUT
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # good versions
 print Version::parse("1.5");

@@ -6,7 +6,7 @@
 #
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN && zeek -X zeekygen.conf test.hlto %INPUT
 # @TEST-EXEC: cat protocol.rst  | sed -n '/_plugin-foo-bar/,/_plugin/p' | sed '$d' >output2
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output2
+# @TEST-EXEC: btest-diff-remove-abspath output2
 #
 # @TEST-DOC: Check that Spicy tells Zeekygen about its analyzers.
 

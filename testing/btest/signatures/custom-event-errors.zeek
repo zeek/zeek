@@ -1,7 +1,7 @@
 # @TEST-DOC: Using the wrong paramters for custom signature events.
 #
 # @TEST-EXEC-FAIL: zeek -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # @TEST-START-FILE id.sig
 signature udp-proto {

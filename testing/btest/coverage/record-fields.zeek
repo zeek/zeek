@@ -2,9 +2,9 @@
 #
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
 # @TEST-EXEC: zeek -b %INPUT >out.bare
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out.bare
+# @TEST-EXEC: btest-diff-remove-abspath out.bare
 # @TEST-EXEC: zeek %INPUT >out.default
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out.default
+# @TEST-EXEC: btest-diff-remove-abspath out.default
 
 global record_types_seen: set[string];
 

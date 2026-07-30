@@ -2,7 +2,7 @@
 # error message to stderr and shouldn't be replaced internally.
 #
 # @TEST-EXEC-FAIL: zeek -b %INPUT >output 2>&1
-# @TEST-EXEC:      TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 event zeek_init()
 	{

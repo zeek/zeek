@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # Errors that happen during runtime.  At least at the moment we are not
 # checking these early enough that Zeek will bail out during startup. Perhaps

@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # Tests for various mismatches in initializations.
 

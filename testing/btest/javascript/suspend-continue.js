@@ -2,7 +2,7 @@
  * @TEST-DOC: Demo suspend and continue processing from JavaScript
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
  * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.pcap base/protocols/http %INPUT > out
- * @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+ * @TEST-EXEC: btest-diff-remove-abspath out
  */
 zeek.on('zeek_init', () => {
   const nt = zeek.invoke('network_time');

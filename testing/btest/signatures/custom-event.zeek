@@ -1,7 +1,7 @@
 # @TEST-DOC: Test the [event_name] notation within the event keyword of rules.
 #
 # @TEST-EXEC: zeek -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 # @TEST-EXEC: btest-diff out
 
 # @TEST-START-FILE id.sig

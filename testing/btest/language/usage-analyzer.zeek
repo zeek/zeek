@@ -1,6 +1,6 @@
 # @TEST-DOC: Simple testing for unused function/event detection to ensure nothing breaks when modifying it.
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 module MyModule;
 

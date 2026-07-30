@@ -3,9 +3,9 @@
 # compilation.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -b %INPUT >out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 # @TEST-EXEC: zeek -b ./pathtest.zeek >out2
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out2
+# @TEST-EXEC: btest-diff-remove-abspath out2
 
 print @DIR;
 

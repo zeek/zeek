@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek --parse-only -b %INPUT
 # @TEST-EXEC-FAIL: zeek -b %INPUT frameworks/cluster/backend/zeromq
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 event zeek_init()
 	{

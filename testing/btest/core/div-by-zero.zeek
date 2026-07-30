@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 global v1 = vector(10, 20, 30);
 global v2 = vector(5, 2, 0);

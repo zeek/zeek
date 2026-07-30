@@ -11,7 +11,7 @@
 # @TEST-EXEC: CLUSTER_NODE=logger-1 zeek %INPUT
 # @TEST-EXEC: CLUSTER_NODE=proxy-1 zeek %INPUT
 # @TEST-EXEC: CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath' btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 @load base/frameworks/cluster
 @load misc/loaded-scripts

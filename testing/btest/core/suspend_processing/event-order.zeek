@@ -1,7 +1,7 @@
 # @TEST-DOC: Previously, suspend_processing() within zeek_init() would not prevent packets and connection processing, it does with Zeek 6.0 and later.
 # @TEST-EXEC: echo "first line" > raw_file
 # @TEST-EXEC: zeek -b -C -r $TRACES/tunnels/vxlan.pcap %INPUT >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 type OneLine: record {
 	s: string;

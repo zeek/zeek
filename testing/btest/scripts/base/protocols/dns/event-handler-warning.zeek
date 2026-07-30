@@ -1,7 +1,7 @@
 # Check that warnings are for events that will not be raised
 
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 @load base/protocols/dns
 

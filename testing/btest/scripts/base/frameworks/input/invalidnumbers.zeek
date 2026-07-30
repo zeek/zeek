@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
+# @TEST-EXEC: btest-diff-remove-abspath .stderrwithoutfirstline
 
 # Note the tab+space separator in the last line of the following is
 # intentional. It verifies our whitespace handling.

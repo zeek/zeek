@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC-FAIL: spicyz -d -o test.hlto test.spicy %INPUT 2>output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 #
 # @TEST-DOC: Check that we catch various cases of invalid unit types in event definitions; regression test for #3988.
 

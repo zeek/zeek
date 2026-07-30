@@ -61,6 +61,10 @@ type DUIDOption = unit {
         DUIDType::LL -> ll: DUIDOption_LL;
         DUIDType::UUID -> uuid: DUIDOption_UUID;
     } &parse-from=self.data;
+
+    on %done {
+        spicy::accept_input();
+    }
 };
 
 type StatusCode = enum {

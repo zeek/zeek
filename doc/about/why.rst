@@ -45,6 +45,28 @@ that job is best suited for packages like the open source Snort or Suricata
 engines. Zeek has other capabilities however that are capable of providing
 judgements in the form of alerts, through its notice mechanism.
 
+.. _why-zeek-in-the-soc:
+
+Zeek in the SOC
+===============
+
+Zeek is often deployed alongside other security tools in Security Operations
+Centers. Tools like Suricata complement Zeek by providing signature-based
+detection, while Zeek generates detailed protocol metadata and behavioral
+context for investigation.
+
+When Suricata raises an alert, analysts can use `Community ID
+<https://github.com/corelight/community-id-spec>`_ to correlate the alert
+with Zeek's transaction logs (``conn.log``, ``http.log``, ``dns.log``,
+``ssl.log``, etc.) for deeper investigation. Community ID provides a common
+hash across tools, enabling analysts to pivot between Suricata alerts and
+Zeek's rich protocol context without manual correlation.
+
+Platforms like `Security Onion <https://securityonionsolutions.com/>`_ and
+`Malcolm <https://github.com/cisagov/Malcolm>`_ provide this correlation out
+of the box, but it can also be achieved through custom pipelines using
+Community ID as the primary correlation key.
+
 Zeek is not optimized for writing traffic to disk in the spirit of a full
 content data collection, and that task is best handled by software written to
 fulfill that requirement.

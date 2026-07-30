@@ -567,15 +567,22 @@ bool WhileStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(
 StmtPtr ForStmt::Duplicate() {
     auto expr_copy = e->Duplicate();
 
-    auto new_loop_vars = new IDPList;
-    for ( auto id : *loop_vars )
-        new_loop_vars->emplace_back(std::move(id));
-
     ForStmt* f;
-    if ( value_var )
-        f = new ForStmt(new_loop_vars, expr_copy, value_var);
-    else
-        f = new ForStmt(new_loop_vars, expr_copy);
+    if ( loop_vars->empty() && index_var && value_var )
+        // Whole-index for-loop - rebuild via the matching 3-arg ctor
+        // so the vanilla loop_vars / index-size check doesn't trip.
+        f = new ForStmt(index_var, value_var, expr_copy);
+
+    else {
+        auto new_loop_vars = new IDPList;
+        for ( auto id : *loop_vars )
+            new_loop_vars->emplace_back(std::move(id));
+
+        if ( value_var )
+            f = new ForStmt(new_loop_vars, expr_copy, value_var);
+        else
+            f = new ForStmt(new_loop_vars, expr_copy);
+    }
 
     f->AddBody(body->Duplicate());
 

@@ -303,8 +303,14 @@ protected:
 class ForStmt final : public ExprStmt {
 public:
     ForStmt(IDPList* loop_vars, ExprPtr loop_expr);
-    // Special constructor for key value for loop.
+
+    // Build a key-value loop.
     ForStmt(IDPList* loop_vars, ExprPtr loop_expr, IDPtr val_var);
+
+    // Build a loop with a single index variable that holds a ListVal
+    // giving the different key components.
+    ForStmt(IDPtr index_var, IDPtr val_var, ExprPtr loop_expr);
+
     ~ForStmt() override;
 
     void AddBody(StmtPtr arg_body) { body = std::move(arg_body); }
@@ -337,9 +343,13 @@ protected:
 
     IDPList* loop_vars;
     StmtPtr body;
+
     // Stores the value variable being used for a key value for loop.
     // Always set to nullptr unless special constructor is called.
     IDPtr value_var;
+
+    // Stores the "whole index as one ListVal" variable.
+    IDPtr index_var;
 };
 
 class NextStmt final : public Stmt {

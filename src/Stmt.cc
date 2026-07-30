@@ -1012,7 +1012,6 @@ ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow) {
 
 ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR, std::move(loop_expr)) {
     loop_vars = arg_loop_vars;
-    body = nullptr;
 
     if ( e->GetType()->Tag() == TYPE_TABLE ) {
         const auto& indices = e->GetType()->AsTableType()->GetIndexTypes();
@@ -1124,6 +1123,36 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
         add_local(value_var, yield_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 }
 
+ForStmt::ForStmt(IDPtr idx_var, IDPtr val_var, ExprPtr loop_expr) : ExprStmt(STMT_FOR, std::move(loop_expr)) {
+    loop_vars = new IDPList;
+    index_var = std::move(idx_var);
+    value_var = std::move(val_var);
+
+    auto t = e->GetType();
+    if ( ! t->IsTable() ) {
+        e->Error("whole-index for loop requires a table/set iterable");
+        return;
+    }
+
+    auto* tt = t->AsTableType();
+    TypePtr idx_type = tt->GetIndices();
+    TypePtr yield_type = tt->Yield();
+
+    if ( index_var->GetType() ) {
+        if ( ! same_type(index_var->GetType(), idx_type) )
+            e->Error("type clash in iteration", index_var->GetType().get());
+    }
+    else
+        add_local(index_var, idx_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
+
+    if ( value_var->GetType() ) {
+        if ( ! same_type(value_var->GetType(), yield_type) )
+            e->Error("type clash in iteration", value_var->GetType().get());
+    }
+    else
+        add_local(value_var, yield_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
+}
+
 ForStmt::~ForStmt() { delete loop_vars; }
 
 ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
@@ -1149,7 +1178,10 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
             if ( value_var )
                 f->SetElement(value_var, current_tev->GetVal());
 
-            if ( ! all_loop_vars_blank ) {
+            if ( index_var )
+                f->SetElement(index_var, tv->RecreateIndex(*k));
+
+            else if ( ! all_loop_vars_blank ) {
                 auto ind_lv = tv->RecreateIndex(*k);
                 for ( int i = 0; i < ind_lv->Length(); i++ ) {
                     const auto& lv = (*loop_vars)[i];

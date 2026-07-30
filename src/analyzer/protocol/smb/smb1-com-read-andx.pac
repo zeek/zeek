@@ -64,13 +64,11 @@ type SMB1_read_andx_request(header: SMB_Header, offset: uint16, andx_depth: uint
 
 	extra_byte_parameters : bytestring &transient &length=((andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters))));
 
-	andx_command   : SMB_andx_command(header, true, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command   : SMB_andx_command(header, true, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
-  offset_high_64 : uint64 = offset_high;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
+    offset_high_64 : uint64 = offset_high;
 	offset_high : uint32 = (word_count == 0x0C && offset_high_tmp != 0xffffffff) ? offset_high_tmp : 0;
 	read_offset : uint64 = ( offset_high_64 * 0x10000) + offset_low &requires(offset_high_64);
 	max_count_high_64 : uint64 = max_count_high == 0xffffffff ? 0 : max_count_high;
@@ -95,12 +93,10 @@ type SMB1_read_andx_response(header: SMB_Header, offset: uint16, andx_depth: uin
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command      : SMB_andx_command(header, false, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command      : SMB_andx_command(header, false, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	pipe_proc   : bool   = $context.connection.forward_dce_rpc(data, 0, false) &if(header.is_pipe);
 
 	padding_len : uint8  = (header.unicode == 1) ? 1 : 0;

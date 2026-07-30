@@ -163,12 +163,10 @@ type SMB1_session_setup_andx_request_lanman(header: SMB_Header, offset: uint16, 
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command     : SMB_andx_command(header, true, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command     : SMB_andx_command(header, true, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 };
 
 type SMB1_session_setup_andx_response_lanman(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
@@ -182,12 +180,10 @@ type SMB1_session_setup_andx_response_lanman(header: SMB_Header, offset: uint16,
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command   : SMB_andx_command(header, false, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command   : SMB_andx_command(header, false, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	is_guest: bool = ( action & 0x1 ) > 0;
 };
 
@@ -223,12 +219,10 @@ type SMB1_session_setup_andx_request_ntlm_nonextended_security(header: SMB_Heade
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command                 : SMB_andx_command(header, true, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command                 : SMB_andx_command(header, true, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 };
 
 type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
@@ -248,12 +242,10 @@ type SMB1_session_setup_andx_request_ntlm_extended_security(header: SMB_Header, 
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command         : SMB_andx_command(header, true, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command         : SMB_andx_command(header, true, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	pipe_proc : bool = $context.connection.forward_gssapi(security_blob, true);
 };
 
@@ -269,12 +261,10 @@ type SMB1_session_setup_andx_response_ntlm(header: SMB_Header, offset: uint16, a
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command         : SMB_andx_command(header, false, offset+offsetof(andx_command), (($context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) || andx.offset <= offset) ? 0xff : andx.command, andx_depth + 1);
+	andx_command         : SMB_andx_command(header, false, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
-	andx_offset_check : bool = (andx.command != 0xff && andx.offset <= offset) ?
-		$context.connection.proc_smb_andx_offset_not_advancing(header) : true;
-	andx_depth_check : bool = (andx.command != 0xff && $context.connection.get_max_andx_depth() > 0 && andx_depth >= $context.connection.get_max_andx_depth()) ?
-		$context.connection.proc_smb_andx_depth_exceeded(header) : true;
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	is_guest    : bool = ( action & 0x1 ) > 0;
 	gssapi_proc : bool = $context.connection.forward_gssapi(security_blob, false);
 };

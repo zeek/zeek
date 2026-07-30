@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+Creates a pcap file containing a longer-than-expected Finger request. Created by Codex gpt-5.5.
+"""
 
 from pathlib import Path
 

@@ -20,24 +20,23 @@ All btests run in CI on various platforms with and without ZAM enabled.
 Packet Traces (PCAP Files)
 --------------------------
 
-We store packet traces in testing/btest/Traces/ which is mostly structured
-by protocol. The README file represents an index where PCAPs came from or how
-they were created to keep a bit of lineage available. PCAP filenames always
-end with ``.pcap`` or ``.pcapng``. Usually PCAP files are stored uncompressed,
-except for some larger but highly compressible examples.
+We store packet traces in testing/btest/Traces/ which is mostly structured by
+protocol. The README file represents an index of where PCAPs came from if they were
+sourced externally to keep a bit of lineage available. PCAP filenames always end with
+``.pcap`` or ``.pcapng``. Usually PCAP files are stored uncompressed, except for some
+larger but highly compressible examples.
 
-There are generally two approaches to create new packet traces in isolation
-if you cannot share a packet capture from a production network.
-Either install and run the software yourself and capture the traffic
-with ``tcpdump`` in a lab or virtual environment, or
-create a Python script that produces packet traces using
-`Scapy <https://github.com/secdev/scapy>`_. LLM agents are very
-effective for the latter. Including packet traces from real software or
-actual production networks is more realistic and if available, preferred
-over Scapy-generated traces. For edge case testing of parsers, Scapy-generated,
-Scapy-edited, or hex-edited capture files are all fair game. Keep a note in
-the README what was done to create a certain trace.
-
+There are generally two approaches to create new packet traces in isolation if you cannot
+share a packet capture from a production network.  Either install and run the software
+yourself and capture the traffic with ``tcpdump`` in a lab or virtual environment, or
+create a Python script that produces packet traces using `Scapy
+<https://github.com/secdev/scapy>`_. LLM agents are very effective for the
+latter. Including packet traces from real software or actual production networks is more
+realistic and if available, preferred over Scapy-generated traces. For edge case testing
+of parsers, Scapy-generated, Scapy-edited, or hex-edited capture files are all fair
+game. Scapy scripts must include a doc string at the start with a description of what kind
+of traffic is generated. Scapy scripts created by LLMs must include a line in the doc
+string that indicates what model was used to create them.
 
 When adding a Scapy-generated trace, ``<name>.pcap``, put a ``<name>.pcap.py``
 file next to it. Running the Python script should generate the ``<name>.pcap``

@@ -233,6 +233,9 @@ public function make_message_info(msg: Message): MessageInfo {
                         info.assigned_addr = so.iaaddr.addr6;
                         info.preferred_lifetime = so.iaaddr.preferred_lifetime;
                         info.valid_lifetime = so.iaaddr.valid_lifetime;
+                    } else if (so.code == OptionCode::STATUS_CODE) {
+                        info.status_code = cast<uint16>(so.status_code.code);
+                        info.status_message = so.status_code.message;
                     }
                 }
             }

@@ -357,8 +357,15 @@ void do_print_stmt(const std::vector<ValPtr>& vals) {
     }
 }
 
+// Tags for which "expression value ignored" is fine.
+static std::set<ExprTag> ignorable_expr_tags = {EXPR_CALL, EXPR_INLINE};
+
+void add_ignorable_expr_tag(ExprTag t) { ignorable_expr_tags.insert(t); }
+
+void add_ignorable_expr_tags(const std::set<ExprTag>& tags) { ignorable_expr_tags.insert(tags.begin(), tags.end()); }
+
 ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e)) {
-    if ( e && e->Tag() != EXPR_CALL && e->Tag() != EXPR_INLINE && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
+    if ( e && ! ignorable_expr_tags.contains(e->Tag()) && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
         Warn("expression value ignored");
 
     SetLocationInfo(e->GetLocationInfo());

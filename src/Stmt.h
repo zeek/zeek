@@ -4,6 +4,8 @@
 
 // Zeek statements.
 
+#include <set>
+
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
 #include "zeek/ID.h"
@@ -783,5 +785,10 @@ public:
 private:
     std::function<void(const zeek::Args&, StmtFlowType&)> func;
 };
+
+// Register additional Expr tags for which ExprStmt should suppress its
+// "expression value ignored" warning.
+extern void add_ignorable_expr_tag(ExprTag t);
+extern void add_ignorable_expr_tags(const std::set<ExprTag>& tags);
 
 } // namespace zeek::detail

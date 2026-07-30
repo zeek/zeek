@@ -471,6 +471,12 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname, std::u
 
         case TYPE_VECTOR: return is_supported_index_type(t->AsVectorType()->Yield(), tname, seen);
 
+        case TYPE_OPAQUE:
+            if ( t->AsOpaqueType()->SupportsHashing() )
+                return true;
+            *tname = type_name(tag);
+            return false;
+
         default: *tname = type_name(tag); return false;
     }
 }
@@ -1580,6 +1586,31 @@ void OpaqueType::DoDescribe(ODesc* d) const {
 void OpaqueType::DescribeReST(ODesc* d, bool roles_only) const {
     d->Add(util::fmt(":zeek:type:`%s` of %s", type_name(Tag()), name.c_str()));
 }
+
+bool OpaqueType::HashSingleValue(const detail::CompositeHash* /*ch*/, detail::HashKey& /*hk*/, const Val* /*v*/,
+                                 bool /*type_check*/, bool /*singleton*/) const {
+    reporter->InternalError("opaque type '%s' does not support hashing (HashSingleValue)", name.c_str());
+    return false;
+}
+
+bool OpaqueType::RecoverValFromHash(const detail::CompositeHash* /*ch*/, const detail::HashKey& /*hk*/,
+                                    ValPtr* /*pval*/, bool /*singleton*/) const {
+    reporter->InternalError("opaque type '%s' does not support hashing (RecoverValFromHash)", name.c_str());
+    return false;
+}
+
+bool OpaqueType::ReserveHashKeySize(const detail::CompositeHash* /*ch*/, detail::HashKey& /*hk*/, const Val* /*v*/,
+                                    bool /*type_check*/, bool /*calc_static_size*/, bool /*singleton*/) const {
+    reporter->InternalError("opaque type '%s' does not support hashing (ReserveHashKeySize)", name.c_str());
+    return false;
+}
+
+ValPtr OpaqueType::CastValueTo(const ValPtr& /*v*/, const Type* /*t*/, std::string& err) const {
+    err = "opaque type does not support this cast";
+    return nullptr;
+}
+
+ValPtr OpaqueType::DefaultVal() const { return nullptr; }
 
 EnumType::EnumType(const string& name) : Type(TYPE_ENUM) {
     counter = 0;

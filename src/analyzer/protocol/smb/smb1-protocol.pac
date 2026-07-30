@@ -86,19 +86,6 @@ refine connection SMB_Conn += {
 			}
 		return true;
 		%}
-
-	function proc_smb_andx_offset_not_advancing(h: SMB_Header): bool
-		%{
-		zeek_analyzer()->Weird("smb_andx_offset_not_advancing");
-		return true;
-		%}
-
-	function proc_smb_andx_depth_exceeded(h: SMB_Header): bool
-		%{
-		zeek_analyzer()->Weird("smb_andx_depth_exceeded");
-		return true;
-		%}
-
 };
 
 type SMB_dos_error = record {
@@ -336,15 +323,6 @@ refine connection SMB_Conn += {
 
 	%member{
 		int offset_len;
-        uint64_t max_andx_depth;
-	%}
-
-	%init{
-		// This needs to be set to some actual value.
-		// TODO: figure out where the hell to get this value from...
-		offset_len = 64;
-
-        max_andx_depth = zeek::BifConst::SMB::max_andx_depth;
 	%}
 
 	function get_offset_len(): int
@@ -352,8 +330,39 @@ refine connection SMB_Conn += {
 		return offset_len;
 		%}
 
-	function get_max_andx_depth(): int
-		%{
-		return max_andx_depth;
-		%}
+    ## Calculates a new command value for AndX headers based on the last/current offsets
+    ## and the current depth. This will return 0xff if any of the conditions are false
+    ## so that parsing will end with the current packet.
+    function adjust_andx_command(depth: uint8, last_offset: uint16, current_offset: uint16,
+                                 current_command: uint8): uint8
+        %{
+        return (zeek::BifConst::SMB::max_andx_depth > 0 && depth > zeek::BifConst::SMB::max_andx_depth) ||
+                current_offset <= last_offset ?
+            0xff : current_command;
+        %}
+
+    ## Checks the validity of the AndX depth, raising a weird if the depth exceeds the
+    ## maximum. Always returns true so that processing continues.
+    function check_andx_depth(depth: uint8, command: uint8): bool
+        %{
+        if ( command != 0xff && zeek::BifConst::SMB::max_andx_depth > 0 &&
+             depth >= zeek::BifConst::SMB::max_andx_depth) {
+            zeek_analyzer()->Weird("smb_andx_depth_exceeded");
+            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        }
+
+        return true;
+        %}
+
+    ## Checks whether the AndX offset advances. Always returns true so that processing
+    ## continues.
+    function check_offset_advancing(command: uint8, last_offset: uint16, current_offset: uint16): bool
+        %{
+        if (command != 0xff && current_offset <= last_offset) {
+            zeek_analyzer()->Weird("smb_andx_offset_not_advancing");
+            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        }
+
+        return true;
+        %}
 };

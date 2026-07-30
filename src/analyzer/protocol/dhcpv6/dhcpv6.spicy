@@ -7,6 +7,7 @@
 module DHCPv6;
 
 import spicy;
+import zeek;
 
 type MessageType = enum {
     SOLICIT = 1,
@@ -131,6 +132,7 @@ type OptionCode = enum {
     REQUEST = 6,
     RELAY_MSG = 9,
     STATUS_CODE = 13,
+    IA_PD = 25,
     CLIENT_FQDN = 39,
 };
 
@@ -149,6 +151,13 @@ type Option = unit {
         OptionCode::CLIENT_FQDN -> client_fqdn: ClientFQDNOption;
         * -> unknown: bytes &eod;
     } &size=self.len;
+
+    on %done {
+        if (self.code == OptionCode::IA_TA)
+            zeek::weird("dhcpv6_ia_ta", "");
+        else if (self.code == OptionCode::IA_PD)
+            zeek::weird("dhcpv6_ia_pd", "");
+    }
 };
 
 # The DHCPv6 message header shares a 1-byte message type across all forms; the
@@ -232,16 +241,22 @@ public function make_message_info(msg: Message): MessageInfo {
                 info.iaid = o.ia_na.iaid;
                 info.t1 = o.ia_na.t1;
                 info.t2 = o.ia_na.t2;
+                local iaaddr_count: uint32 = 0;
                 for (so in o.ia_na.options) {
                     if (so.code == OptionCode::IAADDR) {
-                        info.assigned_addr = so.iaaddr.addr6;
-                        info.preferred_lifetime = so.iaaddr.preferred_lifetime;
-                        info.valid_lifetime = so.iaaddr.valid_lifetime;
+                        ++iaaddr_count;
+                        if (iaaddr_count == 1) {
+                            info.assigned_addr = so.iaaddr.addr6;
+                            info.preferred_lifetime = so.iaaddr.preferred_lifetime;
+                            info.valid_lifetime = so.iaaddr.valid_lifetime;
+                        }
                     } else if (so.code == OptionCode::STATUS_CODE) {
                         info.status_code = cast<uint16>(so.status_code.code);
                         info.status_message = so.status_code.message;
                     }
                 }
+                if (iaaddr_count > 1)
+                    zeek::weird("dhcpv6_multi_iaaddr", "");
             }
             default: ();
         }

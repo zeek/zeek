@@ -53,7 +53,13 @@ import wstest
 
 from websockets.sync.client import connect
 from websockets.sync.client import ClientConnection
-from websockets.frames import OP_PONG
+
+# Try importing the PONG operation from webosckets 17.0 first. If that fails,
+# fall back to OP_PONG from prior to 17.0.
+try:
+	from websockets.frames import PONG as OP_PONG
+except ImportError:
+	from websockets.frames import OP_PONG
 
 class MyClientConnection(ClientConnection):
     """

@@ -1,3 +1,10 @@
+9.0.0-dev.759 | 2026-07-30 16:54:50 +0000
+
+  * Fix cluster.websockets.ping-timeout btest when using websockets >= 17.0 (Tim Wojtulewicz, Corelight)
+
+    The newly released websockets 17.0 removed the OP_* operations and
+    replaced them with versions without the OP_ prefix.
+
 9.0.0-dev.757 | 2026-07-30 12:03:47 +0200
 
   * Switch Docker layer cache from GHA to GHCR (Benjamin Bannier, Corelight)

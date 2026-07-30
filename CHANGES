@@ -1,3 +1,12 @@
+8.0.9-14 | 2026-08-10 17:25:57 -0700
+
+  * Fix cluster.websockets.ping-timeout btest when using websockets >= 17.0 (Tim Wojtulewicz, Corelight)
+
+    The newly released websockets 17.0 removed the OP_* operations and
+    replaced them with versions without the OP_ prefix.
+
+    (cherry picked from commit f96d5c75830e76d90ab89b6cd34b169e69c429a6)
+
 8.0.9-13 | 2026-08-10 16:46:22 -0700
 
   * CCI: Use the right endpoint for requesting GH API info (Tim Wojtulewicz, Corelight)

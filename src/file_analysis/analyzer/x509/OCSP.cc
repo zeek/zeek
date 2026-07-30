@@ -367,6 +367,7 @@ void OCSP::ParseRequest(OCSP_REQUEST* req) {
         event_mgr.Enqueue(ocsp_request, GetFile()->ToVal(), val_mgr->Count(version));
 
     BIO* bio = BIO_new(BIO_s_mem());
+    BIO_set_mem_eof_return(bio, 0); // don't return -1 if empty
 
     int req_count = OCSP_request_onereq_count(req);
     for ( int i = 0; i < req_count; i++ ) {
@@ -415,6 +416,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     //	}
 
     BIO* bio = BIO_new(BIO_s_mem());
+    BIO_set_mem_eof_return(bio, 0); // don't return -1 if empty
     // i2a_ASN1_OBJECT(bio, resp_bytes->responseType);
     // int len = BIO_read(bio, buf, sizeof(buf));
     // BIO_reset(bio);

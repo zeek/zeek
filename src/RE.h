@@ -195,6 +195,54 @@ protected:
     int current_pos;
 };
 
+// Incremental matcher that can be used for shorted or longest match/prefix.
+// You feed in bytes in chunks and the matcher tracks the last accepting
+// position seen so far.
+class Streaming_RE_Matcher {
+public:
+    enum Status : uint8_t {
+        // DFA is still live; more input could yield a (longer) match.
+        ALIVE,
+
+        // DFA has jammed. No further input can produce a match.
+        JAMMED,
+    };
+
+    explicit Streaming_RE_Matcher(Specific_RE_Matcher* matcher);
+
+    // Feed n more bytes for longest-prefix matching. bol=true is honored
+    // only on the first call (or the first after Clear()). eol=true signals
+    // end of input, after which the returned status is always JAMMED.
+    Status Feed(const u_char* bv, int n, bool bol, bool eol);
+
+    // Feed n more bytes with first-match semantics: as soon as the DFA
+    // reaches an accepting state, latch last_accept_pos and return JAMMED,
+    // ignoring any subsequent longer accept that might arise from feeding
+    // more bytes.  Same eol / bol semantics as Feed().
+    Status FeedForFirstMatch(const u_char* bv, int n, bool bol, bool eol);
+
+    // Longest accepting prefix seen so far, or -1 if none yet.
+    // Valid in either status.
+    int LastAccept() const { return last_accept_pos; }
+
+    // Total bytes fed so far, whether or not they extended the last accept.
+    int Length() const { return current_pos < 0 ? 0 : current_pos; }
+
+    // Resets the matcher for fresh use.
+    void Clear() {
+        current_state = nullptr;
+        current_pos = -1;
+        last_accept_pos = -1;
+    }
+
+protected:
+    DFA_Machine* dfa;
+    int* ecs;
+    DFA_State* current_state;
+    int current_pos;
+    int last_accept_pos;
+};
+
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 extern RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 
@@ -244,6 +292,13 @@ public:
 
     const char* PatternText() const { return re_exact->PatternText(); }
     const char* AnywherePatternText() const { return re_anywhere->PatternText(); }
+
+    // Underlying exact-match DFA. Exposed for streaming callers that build
+    // a Streaming_RE_Matcher on top of it. Const-callable because the
+    // caller intends to walk the DFA, not mutate the RE_Matcher itself,
+    // but Streaming_RE_Matcher's ctor takes non-const (it caches the
+    // equivalence class map on itself).
+    detail::Specific_RE_Matcher* ExactMatcher() const { return re_exact; }
 
     // Original text used to construct this matcher.  Empty unless
     // the main ("explicit") constructor was used.

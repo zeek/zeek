@@ -349,6 +349,136 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
     return accepted_matches.size() != old_matches;
 }
 
+Streaming_RE_Matcher::Streaming_RE_Matcher(Specific_RE_Matcher* matcher) {
+    dfa = matcher->DFA();
+    ecs = matcher->EC()->EquivClasses();
+    current_state = nullptr;
+    current_pos = -1;
+    last_accept_pos = -1;
+}
+
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::FeedForFirstMatch(const u_char* bv, int n, bool bol, bool eol) {
+    if ( ! dfa ) {
+        if ( current_pos == -1 ) {
+            current_pos = 0;
+            last_accept_pos = 0;
+        }
+        return JAMMED;
+    }
+
+    if ( current_pos == -1 ) {
+        current_pos = 0;
+        current_state = dfa->StartState();
+
+        if ( bol ) {
+            current_state = current_state->Xtion(ecs[SYM_BOL], dfa);
+            if ( ! current_state )
+                return JAMMED;
+        }
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = 0;
+            current_state = nullptr;
+            return JAMMED;
+        }
+    }
+
+    if ( ! current_state )
+        return JAMMED;
+
+    for ( int i = 0; i < n; ++i ) {
+        int ec = ecs[bv[i]];
+        DFA_State* next_state = current_state->Xtion(ec, dfa);
+
+        if ( ! next_state ) {
+            current_state = nullptr;
+            return JAMMED;
+        }
+
+        current_state = next_state;
+        ++current_pos;
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = current_pos;
+            current_state = nullptr;
+            return JAMMED;
+        }
+    }
+
+    if ( eol ) {
+        DFA_State* eol_state = current_state->Xtion(ecs[SYM_EOL], dfa);
+        if ( eol_state && eol_state->Accept() )
+            last_accept_pos = current_pos;
+        current_state = nullptr;
+        return JAMMED;
+    }
+
+    return ALIVE;
+}
+
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::Feed(const u_char* bv, int n, bool bol, bool eol) {
+    if ( ! dfa ) {
+        if ( current_pos == -1 ) {
+            current_pos = 0;
+            last_accept_pos = 0;
+        }
+        return JAMMED;
+    }
+
+    if ( current_pos == -1 ) {
+        current_pos = 0;
+        current_state = dfa->StartState();
+
+        if ( bol ) {
+            current_state = current_state->Xtion(ecs[SYM_BOL], dfa);
+            if ( ! current_state )
+                return JAMMED;
+        }
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = 0;
+            if ( current_state->IsTerminal() ) {
+                current_state = nullptr;
+                return JAMMED;
+            }
+        }
+    }
+
+    if ( ! current_state )
+        return JAMMED;
+
+    for ( int i = 0; i < n; ++i ) {
+        int ec = ecs[bv[i]];
+        DFA_State* next_state = current_state->Xtion(ec, dfa);
+
+        if ( ! next_state ) {
+            current_state = nullptr;
+            return JAMMED;
+        }
+
+        current_state = next_state;
+        ++current_pos;
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = current_pos;
+            if ( current_state->IsTerminal() ) {
+                current_state = nullptr;
+                return JAMMED;
+            }
+        }
+    }
+
+    if ( eol ) {
+        DFA_State* eol_state = current_state->Xtion(ecs[SYM_EOL], dfa);
+        if ( eol_state && eol_state->Accept() )
+            last_accept_pos = current_pos;
+        current_state = nullptr;
+        return JAMMED;
+    }
+
+    return ALIVE;
+}
+
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n, bool bol, bool eol) {
     if ( ! dfa )
         // An empty pattern matches anything.

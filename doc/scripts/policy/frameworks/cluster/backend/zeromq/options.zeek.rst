@@ -234,6 +234,12 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"tcp://127.0.0.1:5556"``
+   :Redefinition: from :doc:`/scripts/policy/misc/zeromq-multi-host-auto-setup.zeek`
+
+      ``=``::
+
+         fmt(tcp://%s:%s, Cluster::Backend::ZeroMQ::manager_addr_uri, Cluster::Backend::ZeroMQ::xsub_port as count)
+
 
    The central broker's XPUB endpoint to connect to.
 
@@ -265,6 +271,12 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"tcp://127.0.0.1:5555"``
+   :Redefinition: from :doc:`/scripts/policy/misc/zeromq-multi-host-auto-setup.zeek`
+
+      ``=``::
+
+         fmt(tcp://%s:%s, Cluster::Backend::ZeroMQ::manager_addr_uri, Cluster::Backend::ZeroMQ::xpub_port as count)
+
 
    The central broker's XSUB endpoint to connect to.
 
@@ -369,6 +381,12 @@ Redefinable Options
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
+   :Redefinition: from :doc:`/scripts/policy/misc/zeromq-multi-host-auto-setup.zeek`
+
+      ``=``::
+
+         is_v6_addr(Cluster::Backend::ZeroMQ::manager_addr) || is_v6_addr(Cluster::Backend::ZeroMQ::my_addr)
+
 
    Sets the ZMQ_IPV6 option on ZeroMQ contexts created by Zeek.
 
@@ -418,6 +436,12 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"tcp://127.0.0.1:5555"``
+   :Redefinition: from :doc:`/scripts/policy/misc/zeromq-multi-host-auto-setup.zeek`
+
+      ``=``::
+
+         ````
+
 
    XPUB listen endpoint for the central broker.
 
@@ -449,6 +473,12 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``"tcp://127.0.0.1:5556"``
+   :Redefinition: from :doc:`/scripts/policy/misc/zeromq-multi-host-auto-setup.zeek`
+
+      ``=``::
+
+         ````
+
 
    XSUB listen endpoint for the central broker.
 

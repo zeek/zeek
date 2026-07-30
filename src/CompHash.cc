@@ -370,6 +370,11 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                     *pval = std::move(lv);
                 } break;
 
+                case TYPE_OPAQUE:
+                    if ( ! t->AsOpaqueType()->RecoverValFromHash(this, hk, pval, singleton) )
+                        return false;
+                    break;
+
                 default: {
                     reporter->InternalError("bad index type in CompositeHash::RecoverOneVal");
                     *pval = nullptr;
@@ -580,6 +585,13 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
                     }
                 } break;
 
+                case TYPE_OPAQUE:
+                    if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+                        return false;
+                    if ( ! bt->AsOpaqueType()->HashSingleValue(this, hk, v, type_check, singleton) )
+                        return false;
+                    break;
+
                 default: {
                     reporter->InternalError("bad index type in CompositeHash::SingleValHash");
                     return false;
@@ -758,6 +770,12 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
 
                     break;
                 }
+
+                case TYPE_OPAQUE:
+                    if ( ! bt->AsOpaqueType()->ReserveHashKeySize(this, hk, v, type_check, calc_static_size,
+                                                                  singleton) )
+                        return false;
+                    break;
 
                 default: {
                     reporter->InternalError("bad index type in CompositeHash::ReserveSingleTypeKeySize");

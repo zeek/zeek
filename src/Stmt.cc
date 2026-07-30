@@ -1522,6 +1522,7 @@ ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) {
             case TYPE_RECORD: v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t)); break;
             case TYPE_VECTOR: v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t)); break;
             case TYPE_TABLE: v = make_intrusive<TableVal>(cast_intrusive<TableType>(t), aggr->GetAttrs()); break;
+            case TYPE_OPAQUE: v = t->AsOpaqueType()->DefaultVal(); break;
             default: break;
         }
 

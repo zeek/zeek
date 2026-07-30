@@ -4185,6 +4185,12 @@ ValPtr attempt_to_cast_value_to_type(Val* v, Type* t, std::string& err) {
                 result = detail::convert_port_to_count(v->AsPortVal()->Port());
             break;
 
+        case TYPE_OPAQUE: {
+            auto opaque_t = v->GetType<OpaqueType>();
+            result = opaque_t->CastValueTo({NewRef{}, v}, t, err);
+            break;
+        }
+
         default: break;
     }
 
@@ -4302,6 +4308,9 @@ bool can_cast_type_to_type(const Type* s, Type* t) {
     // Allow basic type conversions. This is different than what
     // can_cast_any_to_type() allows.
     if ( can_cast_basic_types(s, t) )
+        return true;
+
+    if ( s && s->Tag() == TYPE_OPAQUE && s->AsOpaqueType()->CanCastTo(t) )
         return true;
 
     if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )

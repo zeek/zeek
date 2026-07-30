@@ -136,6 +136,17 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, server_ports, client_ports);
 	}
 
+function write_log(info: Info)
+	{
+	# If client didn't send client-identifier option and we didn't see
+	# a response from a server to use its chaddr field, then fill in mac
+	# from the client's chaddr field.
+	if ( ! info?$mac && info?$client_chaddr )
+		info$mac = info$client_chaddr;
+
+	Log::write(LOG, info);
+	}
+
 function join_data_expiration(t: table[count] of Info, idx: count): interval
 	{
 	local info = t[idx];
@@ -149,14 +160,7 @@ function join_data_expiration(t: table[count] of Info, idx: count): interval
 	     (now - info$ts) > max_txid_watch_time ||
 	     zeek_is_terminating() )
 		{
-		# If client didn't send client-identifier option and we didn't see
-		# a response from a server to use its chaddr field, then fill in mac
-		# from the client's chaddr field.
-		if ( ! info?$mac && info?$client_chaddr )
-			info$mac = info$client_chaddr;
-
-		Log::write(LOG, info);
-
+		write_log(info);
 		# Go ahead and expire the data now that the log
 		# entry has been written.
 		return 0secs;

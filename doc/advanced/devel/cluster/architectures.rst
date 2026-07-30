@@ -204,23 +204,15 @@ publish/subscribe layer will not have these limitations.
 WebSocket API to the Publish/Subscribe Layer
 ============================================
 
-Interacting with Zeek's publish/subscribe layer using external non-Zeek
-applications is possible using :ref:`Zeek's WebSocket API <websocket-api>`.
-The WebSocket API provides a cluster backend agnostic entry point for non-Zeek
-processes to publish and receive Zeek events.
-
-Starting with version 8.1, the Zeek manager process listens for incoming
-WebSocket connections on::
-
-        ws://127.0.0.1:27759
-
+External non-Zeek applications can interact with Zeek's publish/subscribe
+layer via :ref:`Zeek's WebSocket API <websocket-api>`, which provides a
+cluster backend agnostic entry point for publishing and receiving Zeek events.
 The following diagram sketches the idea.
 
 .. figure:: /images/cluster/single-system-websocket.svg
 
-It is possible to start WebSocket entrypoints on other Zeek processes in
-a cluster (even workers) using the :zeek:see:`Cluster::listen_websocket`
-function explicitly.
+For details on setup, the protocol format, security considerations, and
+language bindings, see :ref:`websocket-api`.
 
 
 Operational Metrics via Prometheus

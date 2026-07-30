@@ -224,7 +224,7 @@ Golang
 Rust
 ^^^^
 
-* `Rust types for interacting with Zeek over WebSocket <https://github.com/bbannier/zeek-websocket-rs>`_ (not an official Zeek project)
+* `Rust types for interacting with Zeek over WebSocket <https://github.com/zeek/zeek-websocket-rs>`_
 
 Python
 ^^^^^^

@@ -1,3 +1,16 @@
+9.0.0-dev.757 | 2026-07-30 12:03:47 +0200
+
+  * Switch Docker layer cache from GHA to GHCR (Benjamin Bannier, Corelight)
+
+    The GHA cache has a 10 GB limit shared across all workflows, causing
+    frequent evictions and poor hit rates for our large CI matrix. GHCR
+    container storage is currently free with no stated cap (GitHub commits
+    to one month notice before changing this).
+
+  * Bump docker actions in CI workflow to latest (Benjamin Bannier, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.0.0-dev.753 | 2026-07-29 09:42:12 -0700
 
   * Reduce size of scripts.base.protocols.modbus.events baseline (Tim Wojtulewicz, Corelight)

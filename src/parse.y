@@ -572,7 +572,7 @@ expr:
 				// Script optimization assumes that each AST
 				// node is distinct, hence the call to
 				// Duplicate() here.
-				ExprPtr sum = make_intrusive<AddExpr>(lhs->Duplicate(), rhs);
+				ExprPtr sum = make_intrusive<AddExpr>(lhs->Duplicate(identity_am), rhs);
 
 				if ( sum->GetType()->Tag() != tag1 )
 					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);

@@ -8,6 +8,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include "zeek/ASTMorpher.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"
@@ -116,7 +117,8 @@ public:
     // return references to themselves - but since we associate
     // information for script optimization with individual statements
     // nodes, even these need to be duplicated.
-    virtual StmtPtr Duplicate() = 0;
+    virtual StmtPtr Duplicate(ASTMorpher* am) { return ThisPtr(); }
+    virtual StmtPtr Duplicate() { return Duplicate(identity_am); }
 
     // Recursively traverses the AST to inline eligible function calls.
     virtual void Inline(Inliner* inl) {}

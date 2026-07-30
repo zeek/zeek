@@ -57,7 +57,7 @@ public:
     explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l)) {}
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr DoExec(std::vector<ValPtr> vals, StmtFlowType& flow) override;
@@ -88,7 +88,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -115,7 +115,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -187,7 +187,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -245,7 +245,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     StmtPtr DoReduce(Reducer* c) override;
 
@@ -265,7 +265,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -321,7 +321,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -354,7 +354,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override { return SetSucc(new NextStmt()); }
+    StmtPtr Duplicate(ASTMorpher* am) override { return SetSucc(new NextStmt()); }
 
     bool NoFlowAfter(bool ignore_break) const override { return true; }
 
@@ -373,7 +373,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override { return SetSucc(new BreakStmt()); }
+    StmtPtr Duplicate(ASTMorpher* am) override { return SetSucc(new BreakStmt()); }
 
     bool NoFlowAfter(bool ignore_break) const override { return ! ignore_break; }
     bool CouldReturn(bool ignore_break) const override { return ! ignore_break; }
@@ -393,7 +393,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override { return SetSucc(new FallthroughStmt()); }
+    StmtPtr Duplicate(ASTMorpher* am) override { return SetSucc(new FallthroughStmt()); }
 
 protected:
 };
@@ -407,7 +407,7 @@ public:
     void StmtDescribe(ODesc* d) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     // Constructor used internally, for when we've already done
     // all of the type-checking.
@@ -435,7 +435,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
     void Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -479,7 +479,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     StmtPtr DoReduce(Reducer* c) override;
@@ -500,7 +500,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
+    StmtPtr Duplicate(ASTMorpher* am) override { return SetSucc(new NullStmt()); }
 
     // Returns true if this NullStmt represents a directive (@if..., @else, @endif)
     bool IsDirective() const { return is_directive; };
@@ -524,7 +524,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     StmtPtr DoReduce(Reducer* c) override;
@@ -685,7 +685,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     StmtPtr DoReduce(Reducer* c) override;
@@ -724,7 +724,7 @@ public:
     // has "NoFlowAfter" inside the body still gets caught and we
     // continue afterwards.  Same goes for CouldReturn().
 
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     void StmtDescribe(ODesc* d) const override;
 
@@ -756,7 +756,7 @@ public:
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-    StmtPtr Duplicate() override;
+    StmtPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     StmtPtr DoReduce(Reducer* c) override;
@@ -776,7 +776,7 @@ public:
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-    StmtPtr Duplicate() override { return make_intrusive<StdFunctionStmt>(func); }
+    StmtPtr Duplicate(ASTMorpher* am) override { return make_intrusive<StdFunctionStmt>(func); }
 
     TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 

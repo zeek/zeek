@@ -1754,7 +1754,7 @@ WhenInfo::WhenInfo(const WhenInfo* orig) {
     if ( orig->cl )
         *cl = *orig->cl;
 
-    cond = orig->OrigCond()->Duplicate();
+    cond = orig->OrigCond()->Duplicate(identity_am);
 
     // We don't duplicate these, as they'll be compiled separately.
     s = orig->OrigBody();
@@ -1762,9 +1762,9 @@ WhenInfo::WhenInfo(const WhenInfo* orig) {
 
     timeout = orig->OrigTimeout();
     if ( timeout )
-        timeout = timeout->Duplicate();
+        timeout = timeout->Duplicate(identity_am);
 
-    lambda = cast_intrusive<LambdaExpr>(orig->Lambda()->Duplicate());
+    lambda = cast_intrusive<LambdaExpr>(orig->Lambda()->Duplicate(identity_am));
 
     is_return = orig->IsReturn();
 

@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "zeek/ASTMorpher.h"
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/StmtBase.h"
@@ -262,8 +263,12 @@ public:
 
     virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
-    // Returns a duplicate of the expression.
-    virtual ExprPtr Duplicate() = 0;
+    // Returns a duplicate of the expression. The morpher-taking form lets
+    // a caller substitute selected nodes as the deep-clone descends.
+    // The no-argument form is provided for a degree of backward compatibility
+    // for third-party code that calls and/or declares Duplicate() methods.
+    virtual ExprPtr Duplicate(ASTMorpher* am) { return ThisPtr(); }
+    virtual ExprPtr Duplicate() { return Duplicate(identity_am); }
 
     // Recursively traverses the AST to inline eligible function calls.
     virtual ExprPtr Inline(Inliner* inl) { return ThisPtr(); }
@@ -454,7 +459,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool HasNoSideEffects() const override { return true; }
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override { return IsReduced(c); }
@@ -485,7 +490,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     ValPtr FoldVal() const override {
         if ( type->Tag() == TYPE_OPAQUE )
@@ -633,7 +638,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -648,7 +653,7 @@ public:
     bool IsPure() const override { return false; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool HasNoSideEffects() const override;
     bool WillTransform(Reducer* c) const override { return true; }
     bool IsReduced(Reducer* c) const override;
@@ -662,7 +667,7 @@ public:
     explicit ComplementExpr(ExprPtr op);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -675,7 +680,7 @@ public:
     explicit NotExpr(ExprPtr op);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -688,7 +693,7 @@ public:
     explicit PosExpr(ExprPtr op);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -701,7 +706,7 @@ public:
     explicit NegExpr(ExprPtr op);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -715,7 +720,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -727,7 +732,7 @@ public:
     void Canonicalize() override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -753,7 +758,7 @@ public:
     explicit AggrAddExpr(ExprPtr e);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Eval(Frame* f) const override;
@@ -764,7 +769,7 @@ public:
     explicit AggrDelExpr(ExprPtr e);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Eval(Frame* f) const override;
@@ -779,7 +784,7 @@ public:
 
     // Optimization-related:
     bool IsPure() const override { return false; }
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool HasReducedOps(Reducer* c) const override { return false; }
     bool WillTransform(Reducer* c) const override { return true; }
     bool IsReduced(Reducer* c) const override;
@@ -798,7 +803,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool HasReducedOps(Reducer* c) const override { return false; }
     bool WillTransform(Reducer* c) const override { return true; }
     bool IsReduced(Reducer* c) const override;
@@ -811,7 +816,7 @@ public:
     SubExpr(ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
@@ -822,7 +827,7 @@ public:
     void Canonicalize() override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
@@ -832,7 +837,7 @@ public:
     DivideExpr(ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -843,7 +848,7 @@ public:
     MaskExpr(ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
 
 protected:
@@ -856,7 +861,7 @@ public:
     ModExpr(ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
 };
 
@@ -868,7 +873,7 @@ public:
     ValPtr DoSingleEval(Frame* f, ValPtr v1, Expr* op2) const;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     bool WillTransformInConditional(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -884,7 +889,7 @@ public:
     BitExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override;
     bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -911,7 +916,7 @@ public:
     EqExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     bool InvertSense() override;
 
@@ -924,7 +929,7 @@ public:
     RelExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     bool InvertSense() override;
 };
@@ -943,7 +948,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool WillTransform(Reducer* c) const override;
@@ -979,7 +984,7 @@ public:
     ExprPtr MakeLvalue() override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool WillTransform(Reducer* c) const override;
     bool IsReduced(Reducer* c) const override;
@@ -1003,7 +1008,7 @@ public:
     bool IsPure() const override { return false; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool HasNoSideEffects() const override;
     bool WillTransform(Reducer* c) const override { return true; }
@@ -1041,7 +1046,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 };
 
 class IndexExpr : public BinaryExpr {
@@ -1065,7 +1070,7 @@ public:
     bool IsInsideWhen() const { return is_inside_when; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool HasReducedOps(Reducer* c) const override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
@@ -1138,7 +1143,7 @@ public:
     }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 };
 
 class FieldExpr final : public UnaryExpr {
@@ -1157,7 +1162,7 @@ public:
     ExprPtr MakeLvalue() override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     void Assign(ValPtr lhs, ValPtr rhs);
@@ -1181,7 +1186,7 @@ public:
     int Field() const { return field; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1215,7 +1220,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool HasReducedOps(Reducer* c) const override;
@@ -1242,7 +1247,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1267,7 +1272,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1286,7 +1291,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool HasReducedOps(Reducer* c) const override;
 
@@ -1311,7 +1316,7 @@ public:
     bool IsRecordElement(TypeDecl* td) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool WillTransform(Reducer* c) const override { return true; }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -1326,7 +1331,7 @@ public:
     ArithCoerceExpr(ExprPtr op, TypeTag t);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1342,7 +1347,7 @@ public:
     RecordCoerceExpr(ExprPtr op, RecordTypePtr r);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     bool WillTransform(Reducer* c) const override;
@@ -1365,7 +1370,7 @@ public:
     TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -1376,7 +1381,7 @@ public:
     VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     bool WillTransform(Reducer* c) const override;
@@ -1411,7 +1416,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -1436,7 +1441,7 @@ public:
     InExpr(ExprPtr op1, ExprPtr op2);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
@@ -1463,7 +1468,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -1511,7 +1516,7 @@ public:
     ScopePtr GetScope() const;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     const ScriptFuncPtr& PrimaryFunc() const { return primary_func; }
 
@@ -1583,7 +1588,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -1610,7 +1615,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
@@ -1640,7 +1645,7 @@ public:
     const TypePtr& ConversionType() const { return conversion_type; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -1654,7 +1659,7 @@ public:
     CastExpr(ExprPtr op, TypePtr t);
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
 
 protected:
@@ -1673,7 +1678,7 @@ public:
     const TypePtr& TestType() const { return t; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -1695,7 +1700,7 @@ public:
 protected:
     ValPtr Fold(Val* v) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 };
 
 // Same, but for conversion from an "any" type.
@@ -1706,7 +1711,7 @@ public:
 protected:
     ValPtr Fold(Val* v) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 };
 
 // Assigns v1[v2] = v3.  Returns an error message, or nullptr on success.

@@ -100,7 +100,7 @@ private:
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
                        const std::set<std::string>& caller_modules) const;
 
-    StmtPtr Duplicate() override { return {NewRef{}, this}; }
+    StmtPtr Duplicate(ASTMorpher* am) override { return {NewRef{}, this}; }
 
     void StmtDescribe(ODesc* d) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;

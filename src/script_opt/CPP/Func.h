@@ -49,7 +49,7 @@ public:
 protected:
     // This method being called means that the inliner is running
     // on compiled code, which shouldn't happen.
-    StmtPtr Duplicate() override {
+    StmtPtr Duplicate(ASTMorpher* am) override {
         ASSERT(0);
         return ThisPtr();
     }

@@ -4421,7 +4421,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const {
         // distinct, and we inform script optimization so it can track
         // the alias we're introducing.
         auto orig_body = body;
-        body = body->Duplicate();
+        body = body->Duplicate(identity_am);
         register_lambda_alias(orig_body, body);
     }
 
@@ -4994,7 +4994,7 @@ bool check_and_promote_args(ListExpr* const args, const RecordType* types) {
             // one instance inheriting the transformed version
             // from another.
             const auto& e = def_attr->GetExpr();
-            def_elements.emplace_back(e->Duplicate());
+            def_elements.emplace_back(e->Duplicate(identity_am));
         }
 
         auto ne = def_elements.size();

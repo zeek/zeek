@@ -317,6 +317,7 @@ set(MAIN_SRCS
     val-convert.cc
     zeek-affinity.cc
     zeek-setup.cc
+    ASTMorpher.cc
     Anon.cc
     Attr.cc
     Base64.cc

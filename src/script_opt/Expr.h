@@ -17,7 +17,7 @@ public:
 
     ValPtr Eval(Frame* f) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override { return false; }
@@ -44,7 +44,7 @@ public:
     AppendToExpr(ExprPtr op1, ExprPtr op2);
     ValPtr Eval(Frame* f) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsPure() const override { return false; }
     bool IsReduced(Reducer* c) const override;
@@ -60,7 +60,7 @@ public:
 
     ValPtr Eval(Frame* f) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsPure() const override { return false; }
     bool IsReduced(Reducer* c) const override;
@@ -97,7 +97,7 @@ public:
 
     ValPtr Eval(Frame* f) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsPure() const override { return false; }
     bool IsReduced(Reducer* c) const override;
@@ -146,7 +146,7 @@ public:
     AssignRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
         : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, stmts, stmt_pool) {}
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     // Used for duplicating.
@@ -171,7 +171,7 @@ public:
     // to leverage.
     static IDPtr FindMostCommonRecordSource(const ListExprPtr& exprs);
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
@@ -196,7 +196,7 @@ public:
     AddRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
         : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, stmts, stmt_pool) {}
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
 protected:
     AddRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
@@ -217,7 +217,7 @@ public:
     ValPtr Eval(Frame* f) const override;
 
 protected:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 };
 
 // Expression used to explicitly capture [a, b, c, ...] = x assignments.
@@ -232,7 +232,7 @@ protected:
 
     void ExprDescribe(ODesc* d) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     int index;
@@ -268,7 +268,7 @@ protected:
     bool IsPure() const override;
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override { return IsReduced(c); }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -289,7 +289,7 @@ public:
 
     ValPtr Eval(Frame* f) const override;
 
-    ExprPtr Duplicate() override;
+    ExprPtr Duplicate(ASTMorpher* am) override;
 
     TraversalCode Traverse(TraversalCallback* cb) const override;
 

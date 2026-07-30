@@ -410,7 +410,7 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     num_stmts += oi->num_stmts;
     num_exprs += oi->num_exprs;
 
-    auto body_dup = body->Duplicate();
+    auto body_dup = body->Duplicate(identity_am);
     body_dup->GetOptInfo()->num_stmts = oi->num_stmts;
     body_dup->GetOptInfo()->num_exprs = oi->num_exprs;
 

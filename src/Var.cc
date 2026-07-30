@@ -734,7 +734,7 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals) 
         //
         // We duplicate twice to make sure that the AST produced
         // by duplicating can itself be correctly duplicated.
-        body = body->Duplicate()->Duplicate();
+        body = body->Duplicate(identity_am)->Duplicate(identity_am);
 
     auto oi = body->GetOptInfo();
     oi->is_free_of_conditionals = free_of_conditionals;

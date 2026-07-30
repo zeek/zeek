@@ -92,13 +92,13 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c) {
     }
 }
 
-StmtPtr PrintStmt::Duplicate() { return SetSucc(new PrintStmt(l->Duplicate()->AsListExprPtr())); }
+StmtPtr PrintStmt::Duplicate(ASTMorpher* am) { return SetSucc(new PrintStmt(am->MorphExpr(l)->AsListExprPtr())); }
 
 StmtPtr PrintStmt::DoSubclassReduce(ListExprPtr singletons, Reducer* c) {
     return with_location_of(make_intrusive<PrintStmt>(singletons), this);
 }
 
-StmtPtr ExprStmt::Duplicate() { return SetSucc(new ExprStmt(e ? e->Duplicate() : nullptr)); }
+StmtPtr ExprStmt::Duplicate(ASTMorpher* am) { return SetSucc(new ExprStmt(e ? am->MorphExpr(e) : nullptr)); }
 
 void ExprStmt::Inline(Inliner* inl) {
     if ( e )
@@ -159,7 +159,9 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
         return ThisPtr();
 }
 
-StmtPtr IfStmt::Duplicate() { return SetSucc(new IfStmt(e->Duplicate(), s1->Duplicate(), s2->Duplicate())); }
+StmtPtr IfStmt::Duplicate(ASTMorpher* am) {
+    return SetSucc(new IfStmt(am->MorphExpr(e), am->MorphStmt(s1), am->MorphStmt(s2)));
+}
 
 void IfStmt::Inline(Inliner* inl) {
     ExprStmt::Inline(inl);
@@ -200,7 +202,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto a = e->GetOp1();
         auto b = e->GetOp2();
 
-        auto s1_dup = s1 ? s1->Duplicate() : nullptr;
+        auto s1_dup = s1 ? s1->Duplicate(identity_am) : nullptr;
         s2 = with_location_of(make_intrusive<IfStmt>(b, s1_dup, s2), s2);
         e = a;
 
@@ -217,7 +219,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto a = e->GetOp1();
         auto b = e->GetOp2();
 
-        auto s2_dup = s2 ? s2->Duplicate() : nullptr;
+        auto s2_dup = s2 ? s2->Duplicate(identity_am) : nullptr;
         s1 = with_location_of(make_intrusive<IfStmt>(b, s1, s2_dup), s1);
         e = a;
 
@@ -362,8 +364,8 @@ StmtPtr IfStmt::ConvertToMinMaxConstruct() {
 
 IntrusivePtr<Case> Case::Duplicate() {
     if ( expr_cases ) {
-        auto new_exprs = expr_cases->Duplicate()->AsListExprPtr();
-        return make_intrusive<Case>(new_exprs, nullptr, s->Duplicate());
+        auto new_exprs = expr_cases->Duplicate(identity_am)->AsListExprPtr();
+        return make_intrusive<Case>(new_exprs, nullptr, s->Duplicate(identity_am));
     }
 
     IDPList* new_type_cases = nullptr;
@@ -375,15 +377,15 @@ IntrusivePtr<Case> Case::Duplicate() {
             new_type_cases->emplace_back(std::move(tc));
     }
 
-    return make_intrusive<Case>(nullptr, new_type_cases, s->Duplicate());
+    return make_intrusive<Case>(nullptr, new_type_cases, s->Duplicate(identity_am));
 }
 
-StmtPtr SwitchStmt::Duplicate() {
+StmtPtr SwitchStmt::Duplicate(ASTMorpher* am) {
     auto new_cases = new case_list;
 
     loop_over_list(*cases, i) new_cases->append((*cases)[i]->Duplicate().release());
 
-    return SetSucc(new SwitchStmt(e->Duplicate(), new_cases));
+    return SetSucc(new SwitchStmt(am->MorphExpr(e), new_cases));
 }
 
 void SwitchStmt::Inline(Inliner* inl) {
@@ -493,7 +495,7 @@ bool SwitchStmt::CouldReturn(bool ignore_break) const {
     return false;
 }
 
-StmtPtr EventStmt::Duplicate() { return SetSucc(new EventStmt(e->Duplicate()->AsEventExprPtr())); }
+StmtPtr EventStmt::Duplicate(ASTMorpher* am) { return SetSucc(new EventStmt(am->MorphExpr(e)->AsEventExprPtr())); }
 
 StmtPtr EventStmt::DoReduce(Reducer* c) {
     if ( c->Optimizing() ) {
@@ -515,7 +517,9 @@ StmtPtr EventStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-StmtPtr WhileStmt::Duplicate() { return SetSucc(new WhileStmt(loop_condition->Duplicate(), body->Duplicate())); }
+StmtPtr WhileStmt::Duplicate(ASTMorpher* am) {
+    return SetSucc(new WhileStmt(am->MorphExpr(loop_condition), am->MorphStmt(body)));
+}
 
 void WhileStmt::Inline(Inliner* inl) {
     loop_condition = loop_condition->Inline(inl);
@@ -564,20 +568,33 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
 
 bool WhileStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
 
-StmtPtr ForStmt::Duplicate() {
-    auto expr_copy = e->Duplicate();
+StmtPtr ForStmt::Duplicate(ASTMorpher* am) {
+    auto expr_copy = am->MorphExpr(e);
 
+    ForStmt* f;
+#if 0
+    // This block will be needed if/when GH-5734 is merged.
+    if ( loop_vars->empty() && index_var && value_var ) {
+        // Whole-index for-loop (bland's table-for shape). Rebuild
+        // via the matching 3-arg ctor so the vanilla loop_vars /
+        // index-size check doesn't trip.
+        f = new ForStmt(index_var, value_var, expr_copy);
+    }
+    else {
+#endif
     auto new_loop_vars = new IDPList;
     for ( auto id : *loop_vars )
         new_loop_vars->emplace_back(std::move(id));
 
-    ForStmt* f;
     if ( value_var )
         f = new ForStmt(new_loop_vars, expr_copy, value_var);
     else
         f = new ForStmt(new_loop_vars, expr_copy);
+#if 0
+    }
+#endif
 
-    f->AddBody(body->Duplicate());
+    f->AddBody(am->MorphStmt(body));
 
     return SetSucc(f);
 }
@@ -632,7 +649,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c) {
 
 bool ForStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
 
-StmtPtr ReturnStmt::Duplicate() { return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true)); }
+StmtPtr ReturnStmt::Duplicate(ASTMorpher* am) { return SetSucc(new ReturnStmt(e ? am->MorphExpr(e) : nullptr, true)); }
 
 ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored) : ExprStmt(STMT_RETURN, std::move(arg_e)) {}
 
@@ -677,11 +694,11 @@ StmtList::StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3) : Stmt(STMT_LIST) {
         stmts.push_back(std::move(s3));
 }
 
-StmtPtr StmtList::Duplicate() {
+StmtPtr StmtList::Duplicate(ASTMorpher* am) {
     auto new_sl = new StmtList();
 
     for ( auto& stmt : stmts )
-        new_sl->stmts.push_back(stmt->Duplicate());
+        new_sl->stmts.push_back(am->MorphStmt(stmt));
 
     return SetSucc(new_sl);
 }
@@ -1045,7 +1062,7 @@ bool StmtList::CouldReturn(bool ignore_break) const {
     return false;
 }
 
-StmtPtr InitStmt::Duplicate() {
+StmtPtr InitStmt::Duplicate(ASTMorpher* am) {
     // Need to duplicate the initializer list since later reductions
     // can modify it in place.
     std::vector<IDPtr> new_inits;
@@ -1064,7 +1081,9 @@ StmtPtr InitStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-StmtPtr AssertStmt::Duplicate() { return SetSucc(new AssertStmt(e->Duplicate(), msg ? msg->Duplicate() : nullptr)); }
+StmtPtr AssertStmt::Duplicate(ASTMorpher* am) {
+    return SetSucc(new AssertStmt(am->MorphExpr(e), msg ? am->MorphExpr(msg) : nullptr));
+}
 
 bool AssertStmt::IsReduced(Reducer* c) const {
     if ( ! analysis_options.keep_asserts )
@@ -1121,7 +1140,7 @@ void WhenInfo::UpdateIDs(Reducer* c) {
         l = c->UpdateID(l);
 }
 
-StmtPtr WhenStmt::Duplicate() { return SetSucc(new WhenStmt(std::make_shared<WhenInfo>(wi.get()))); }
+StmtPtr WhenStmt::Duplicate(ASTMorpher* am) { return SetSucc(new WhenStmt(std::make_shared<WhenInfo>(wi.get()))); }
 
 bool WhenStmt::IsReduced(Reducer* c) const {
     if ( wi->HasUnreducedIDs(c) )
@@ -1189,10 +1208,10 @@ bool CatchReturnStmt::IsPure() const {
     return block->IsPure();
 }
 
-StmtPtr CatchReturnStmt::Duplicate() {
-    auto rv_dup = ret_var->Duplicate();
+StmtPtr CatchReturnStmt::Duplicate(ASTMorpher* am) {
+    auto rv_dup = am->MorphExpr(ret_var);
     auto rv_dup_ptr = rv_dup->AsNameExprPtr();
-    return SetSucc(new CatchReturnStmt(sf, block->Duplicate(), rv_dup_ptr));
+    return SetSucc(new CatchReturnStmt(sf, am->MorphStmt(block), rv_dup_ptr));
 }
 
 StmtPtr CatchReturnStmt::DoReduce(Reducer* c) {
@@ -1211,8 +1230,8 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c) {
             return TransformMe(make_intrusive<NullStmt>(), c);
         }
 
-        auto rv_dup = ret_var->Duplicate();
-        auto ret_e_dup = ret_e->Duplicate();
+        auto rv_dup = ret_var->Duplicate(identity_am);
+        auto ret_e_dup = ret_e->Duplicate(identity_am);
 
         auto assign = with_location_of(make_intrusive<AssignExpr>(rv_dup, ret_e_dup, false), this);
         assign_stmt = with_location_of(make_intrusive<ExprStmt>(assign), this);
@@ -1266,7 +1285,9 @@ ValPtr CheckAnyLenStmt::Exec(Frame* f, StmtFlowType& flow) {
     return nullptr;
 }
 
-StmtPtr CheckAnyLenStmt::Duplicate() { return SetSucc(new CheckAnyLenStmt(e->Duplicate(), expected_len)); }
+StmtPtr CheckAnyLenStmt::Duplicate(ASTMorpher* am) {
+    return SetSucc(new CheckAnyLenStmt(am->MorphExpr(e), expected_len));
+}
 
 bool CheckAnyLenStmt::IsReduced(Reducer* c) const { return true; }
 

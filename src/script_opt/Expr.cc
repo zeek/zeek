@@ -379,7 +379,7 @@ ExprPtr Expr::AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt) {
     // information with Expr's need to not misassociate that
     // information with both the assignment creating the temporary,
     // and the subsequent use of the temporary.
-    return result_tmp->Duplicate();
+    return result_tmp->Duplicate(identity_am);
 }
 
 ExprPtr Expr::TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt) {
@@ -428,7 +428,7 @@ ConstExprPtr Expr::MakeZeroExpr(TypeTag t) const {
     return z;
 }
 
-ExprPtr NameExpr::Duplicate() { return SetSucc(new NameExpr(id, in_const_init)); }
+ExprPtr NameExpr::Duplicate(ASTMorpher* am) { return SetSucc(new NameExpr(id, in_const_init)); }
 
 bool NameExpr::IsReduced(Reducer* c) const {
     if ( FoldableGlobal() )
@@ -466,7 +466,7 @@ bool NameExpr::FoldableGlobal() const {
            ! id->GetAttr(ATTR_REDEF);
 }
 
-ExprPtr ConstExpr::Duplicate() { return SetSucc(new ConstExpr(val)); }
+ExprPtr ConstExpr::Duplicate(ASTMorpher* am) { return SetSucc(new ConstExpr(val)); }
 
 ExprPtr UnaryExpr::Inline(Inliner* inl) {
     op = op->Inline(inl);
@@ -564,12 +564,12 @@ bool BinaryExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
     return false;
 }
 
-ExprPtr CloneExpr::Duplicate() {
+ExprPtr CloneExpr::Duplicate(ASTMorpher* am) {
     // oh the irony
-    return SetSucc(new CloneExpr(op->Duplicate()));
+    return SetSucc(new CloneExpr(am->MorphExpr(op)));
 }
 
-ExprPtr IncrExpr::Duplicate() { return SetSucc(new IncrExpr(tag, op->Duplicate())); }
+ExprPtr IncrExpr::Duplicate(ASTMorpher* am) { return SetSucc(new IncrExpr(tag, am->MorphExpr(op))); }
 
 bool IncrExpr::HasNoSideEffects() const { return false; }
 
@@ -626,17 +626,17 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     // Build a duplicate version of the original to use as the result.
     if ( orig_target->Tag() == EXPR_NAME )
-        orig_target = orig_target->Duplicate();
+        orig_target = orig_target->Duplicate(identity_am);
 
     else if ( orig_target->Tag() == EXPR_INDEX ) {
-        auto dup1 = orig_target->GetOp1()->Duplicate();
-        auto dup2 = orig_target->GetOp2()->Duplicate();
+        auto dup1 = orig_target->GetOp1()->Duplicate(identity_am);
+        auto dup2 = orig_target->GetOp2()->Duplicate(identity_am);
         auto index = dup2->AsListExprPtr();
         orig_target = with_location_of(make_intrusive<IndexExpr>(dup1, index), this);
     }
 
     else if ( orig_target->Tag() == EXPR_FIELD ) {
-        auto dup1 = orig_target->GetOp1()->Duplicate();
+        auto dup1 = orig_target->GetOp1()->Duplicate(identity_am);
         auto field_name = orig_target->AsFieldExpr()->FieldName();
         orig_target = with_location_of(make_intrusive<FieldExpr>(dup1, field_name), this);
     }
@@ -663,7 +663,7 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     auto target = ref_op->GetOp1();
 
     if ( target->Tag() == EXPR_NAME && IsIntegral(target->GetType()->Tag()) ) {
-        ExprPtr incr_expr = Duplicate();
+        ExprPtr incr_expr = Duplicate(identity_am);
         red_stmt = with_location_of(make_intrusive<ExprStmt>(incr_expr), this)->Reduce(c);
 
         StmtPtr targ_red_stmt;
@@ -678,7 +678,7 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
         return UnaryExpr::ReduceToSingleton(c, red_stmt);
 }
 
-ExprPtr ComplementExpr::Duplicate() { return SetSucc(new ComplementExpr(op->Duplicate())); }
+ExprPtr ComplementExpr::Duplicate(ASTMorpher* am) { return SetSucc(new ComplementExpr(am->MorphExpr(op))); }
 
 bool ComplementExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_COMPLEMENT; }
 
@@ -689,7 +689,7 @@ ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr NotExpr::Duplicate() { return SetSucc(new NotExpr(op->Duplicate())); }
+ExprPtr NotExpr::Duplicate(ASTMorpher* am) { return SetSucc(new NotExpr(am->MorphExpr(op))); }
 
 bool NotExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL; }
 
@@ -700,7 +700,7 @@ ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr PosExpr::Duplicate() { return SetSucc(new PosExpr(op->Duplicate())); }
+ExprPtr PosExpr::Duplicate(ASTMorpher* am) { return SetSucc(new PosExpr(am->MorphExpr(op))); }
 
 bool PosExpr::WillTransform(Reducer* c) const { return op->GetType()->Tag() != TYPE_COUNT; }
 
@@ -714,7 +714,7 @@ ExprPtr PosExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return op->ReduceToSingleton(c, red_stmt);
 }
 
-ExprPtr NegExpr::Duplicate() { return SetSucc(new NegExpr(op->Duplicate())); }
+ExprPtr NegExpr::Duplicate(ASTMorpher* am) { return SetSucc(new NegExpr(am->MorphExpr(op))); }
 
 bool NegExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_NEGATE; }
 
@@ -725,11 +725,11 @@ ExprPtr NegExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr SizeExpr::Duplicate() { return SetSucc(new SizeExpr(op->Duplicate())); }
+ExprPtr SizeExpr::Duplicate(ASTMorpher* am) { return SetSucc(new SizeExpr(am->MorphExpr(op))); }
 
-ExprPtr AddExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr AddExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new AddExpr(op1_d, op2_d));
 }
 
@@ -770,13 +770,13 @@ ExprPtr AggrAddDelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return ThisPtr();
 }
 
-ExprPtr AggrAddExpr::Duplicate() { return SetSucc(new AggrAddExpr(op->Duplicate())); }
+ExprPtr AggrAddExpr::Duplicate(ASTMorpher* am) { return SetSucc(new AggrAddExpr(am->MorphExpr(op))); }
 
-ExprPtr AggrDelExpr::Duplicate() { return SetSucc(new AggrDelExpr(op->Duplicate())); }
+ExprPtr AggrDelExpr::Duplicate(ASTMorpher* am) { return SetSucc(new AggrDelExpr(am->MorphExpr(op))); }
 
-ExprPtr AddToExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr AddToExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new AddToExpr(op1_d, op2_d));
 }
 
@@ -820,7 +820,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
             red_stmt = MergeStmts(red_stmt1, red_stmt2);
 
             if ( is_vector_elem_append ) {
-                auto append = with_location_of(make_intrusive<AppendToExpr>(op1->Duplicate(), op2), this);
+                auto append = with_location_of(make_intrusive<AppendToExpr>(op1->Duplicate(identity_am), op2), this);
                 auto append_stmt = with_location_of(make_intrusive<ExprStmt>(append), this);
 
                 red_stmt = MergeStmts(red_stmt, append_stmt);
@@ -833,7 +833,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
         default: {
             auto rhs = op1->AsRefExprPtr()->GetOp1();
-            auto do_incr = with_location_of(make_intrusive<AddExpr>(rhs->Duplicate(), op2), this);
+            auto do_incr = with_location_of(make_intrusive<AddExpr>(rhs->Duplicate(identity_am), op2), this);
             auto assign =
                 with_location_of(make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false), this);
 
@@ -843,14 +843,14 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 }
 
 ExprPtr AddToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
-    auto at_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate()), this);
+    auto at_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate(identity_am)), this);
     red_stmt = at_stmt->Reduce(c);
     return op1;
 }
 
-ExprPtr SubExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr SubExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new SubExpr(op1_d, op2_d));
 }
 
@@ -888,9 +888,9 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr RemoveFromExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr RemoveFromExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new RemoveFromExpr(op1_d, op2_d));
 }
 
@@ -918,21 +918,21 @@ ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     auto lhs = op1->AsRefExprPtr()->GetOp1();
-    auto do_decr = with_location_of(make_intrusive<SubExpr>(lhs->Duplicate(), op2), this);
+    auto do_decr = with_location_of(make_intrusive<SubExpr>(lhs->Duplicate(identity_am), op2), this);
     auto assign = with_location_of(make_intrusive<AssignExpr>(op1, do_decr, false, nullptr, nullptr, false), this);
 
     return assign->Reduce(c, red_stmt);
 }
 
 ExprPtr RemoveFromExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
-    auto rf_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate()), this);
+    auto rf_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate(identity_am)), this);
     red_stmt = rf_stmt->Reduce(c);
     return op1;
 }
 
-ExprPtr TimesExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr TimesExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new TimesExpr(op1_d, op2_d));
 }
 
@@ -959,9 +959,9 @@ ExprPtr TimesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr DivideExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr DivideExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new DivideExpr(op1_d, op2_d));
 }
 
@@ -976,9 +976,9 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 bool DivideExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
 
-ExprPtr MaskExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr MaskExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new MaskExpr(op1_d, op2_d));
 }
 
@@ -986,9 +986,9 @@ bool MaskExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
     return GetMask(v2.get()) <= (v1->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 }
 
-ExprPtr ModExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr ModExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new ModExpr(op1_d, op2_d));
 }
 
@@ -1043,9 +1043,9 @@ static ExprPtr build_disjunction(std::vector<ConstExprPtr>& patterns, const Obj*
     return e;
 }
 
-ExprPtr BoolExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr BoolExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new BoolExpr(tag, op1_d, op2_d));
 }
 
@@ -1152,9 +1152,9 @@ bool BoolExpr::IsFalse(const ExprPtr& e) const {
     return c_e->Value()->IsZero();
 }
 
-ExprPtr BitExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr BitExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new BitExpr(tag, op1_d, op2_d));
 }
 
@@ -1285,9 +1285,9 @@ ExprPtr CmpExpr::BuildHasElementsTest() const {
     return he;
 }
 
-ExprPtr EqExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr EqExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new EqExpr(tag, op1_d, op2_d));
 }
 
@@ -1322,9 +1322,9 @@ ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr RelExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr RelExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new RelExpr(tag, op1_d, op2_d));
 }
 
@@ -1349,10 +1349,10 @@ ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr CondExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
-    auto op3_d = op3->Duplicate();
+ExprPtr CondExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
+    auto op3_d = am->MorphExpr(op3);
     return SetSucc(new CondExpr(op1_d, op2_d, op3_d));
 }
 
@@ -1475,7 +1475,8 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
         if ( ! red3_stmt )
             red3_stmt = with_location_of(make_intrusive<NullStmt>(), this);
 
-        if_else = with_location_of(make_intrusive<IfStmt>(op1->Duplicate(), std::move(red2_stmt), std::move(red3_stmt)),
+        if_else = with_location_of(make_intrusive<IfStmt>(op1->Duplicate(identity_am), std::move(red2_stmt),
+                                                          std::move(red3_stmt)),
                                    this);
     }
 
@@ -1512,7 +1513,7 @@ ExprPtr CondExpr::TransformToMinOrMax() const {
     return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), this);
 }
 
-ExprPtr RefExpr::Duplicate() { return SetSucc(new RefExpr(op->Duplicate())); }
+ExprPtr RefExpr::Duplicate(ASTMorpher* am) { return SetSucc(new RefExpr(am->MorphExpr(op))); }
 
 bool RefExpr::IsReduced(Reducer* c) const {
     if ( op->Tag() == EXPR_NAME )
@@ -1565,10 +1566,17 @@ StmtPtr RefExpr::ReduceToLHS(Reducer* c) {
     return MergeStmts(red_stmt1, red_stmt2);
 }
 
-ExprPtr AssignExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
-    return SetSucc(new AssignExpr(op1_d, op2_d, is_init, val));
+ExprPtr AssignExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
+
+    // The morpher may have adjusted op1/op2 such that they no longer
+    // type check. If so, it's up to the morpher to ensure that they are
+    // still semantically correct, so we skip type-checking in creating
+    // the new AssignExpr. This is correct even if the morpher didn't do
+    // anything, since the AssignExpr we're duplicating has passed
+    // type-checking originally.
+    return SetSucc(new AssignExpr(op1_d, op2_d, is_init, val, nullptr, false));
 }
 
 bool AssignExpr::HasNoSideEffects() const { return false; }
@@ -1731,7 +1739,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         red_stmt = MergeStmts(rhs_reduce, rhs_stmt, check_stmt);
 
         loop_over_list(lhs_list, i) {
-            auto rhs_dup = rhs_e->Duplicate();
+            auto rhs_dup = rhs_e->Duplicate(identity_am);
             auto rhs = with_location_of(make_intrusive<AnyIndexExpr>(rhs_dup, i), this);
             auto lhs = lhs_list[i]->ThisPtr();
             lhs->SetLocationInfo(GetLocationInfo());
@@ -1784,7 +1792,7 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     if ( op1->Tag() != EXPR_REF )
         Internal("Confusion in AssignExpr::ReduceToSingleton");
 
-    ExprPtr assign_expr = Duplicate();
+    ExprPtr assign_expr = Duplicate(identity_am);
     auto ae_stmt = with_location_of(make_intrusive<ExprStmt>(assign_expr), this);
     red_stmt = ae_stmt->Reduce(c);
 
@@ -1799,15 +1807,15 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     return new_op1;
 }
 
-ExprPtr IndexSliceAssignExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr IndexSliceAssignExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new IndexSliceAssignExpr(op1_d, op2_d, is_init));
 }
 
-ExprPtr IndexExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_l = op2->Duplicate()->AsListExprPtr();
+ExprPtr IndexExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_l = am->MorphExpr(op2)->AsListExprPtr();
     return SetSucc(new IndexExpr(op1_d, op2_l, is_slice, is_inside_when));
 }
 
@@ -1835,15 +1843,17 @@ StmtPtr IndexExpr::ReduceToSingletons(Reducer* c) {
     return MergeStmts(red1_stmt, std::move(red2_stmt));
 }
 
-ExprPtr IndexExprWhen::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_l = op2->Duplicate()->AsListExprPtr();
+ExprPtr IndexExprWhen::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_l = am->MorphExpr(op2)->AsListExprPtr();
     return SetSucc(new IndexExprWhen(op1_d, op2_l, is_slice));
 }
 
-ExprPtr FieldExpr::Duplicate() { return SetSucc(new FieldExpr(op->Duplicate(), field_name)); }
+ExprPtr FieldExpr::Duplicate(ASTMorpher* am) { return SetSucc(new FieldExpr(am->MorphExpr(op), field_name)); }
 
-ExprPtr HasFieldExpr::Duplicate() { return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name))); }
+ExprPtr HasFieldExpr::Duplicate(ASTMorpher* am) {
+    return SetSucc(new HasFieldExpr(am->MorphExpr(op), util::copy_string(field_name)));
+}
 
 bool HasFieldExpr::IsReduced(Reducer* c) const { return op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL); }
 
@@ -1856,8 +1866,8 @@ ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr RecordConstructorExpr::Duplicate() {
-    auto op_l = op->Duplicate()->AsListExprPtr();
+ExprPtr RecordConstructorExpr::Duplicate(ASTMorpher* am) {
+    auto op_l = am->MorphExpr(op)->AsListExprPtr();
 
     if ( map ) {
         auto rt = cast_intrusive<RecordType>(type);
@@ -1927,8 +1937,8 @@ StmtPtr RecordConstructorExpr::ReduceToSingletons(Reducer* c) {
     return red_stmt;
 }
 
-ExprPtr TableConstructorExpr::Duplicate() {
-    auto op_l = op->Duplicate()->AsListExprPtr();
+ExprPtr TableConstructorExpr::Duplicate(ASTMorpher* am) {
+    auto op_l = am->MorphExpr(op)->AsListExprPtr();
 
     TypePtr t;
     if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
@@ -2011,8 +2021,8 @@ StmtPtr TableConstructorExpr::ReduceToSingletons(Reducer* c) {
     return red_stmt;
 }
 
-ExprPtr SetConstructorExpr::Duplicate() {
-    auto op_l = op->Duplicate()->AsListExprPtr();
+ExprPtr SetConstructorExpr::Duplicate(ASTMorpher* am) {
+    auto op_l = am->MorphExpr(op)->AsListExprPtr();
 
     TypePtr t;
     if ( (type && ! type->GetName().empty()) || ! op->AsListExpr()->Exprs().empty() )
@@ -2042,8 +2052,8 @@ ExprPtr SetConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 StmtPtr SetConstructorExpr::ReduceToSingletons(Reducer* c) { return op->ReduceToSingletons(c); }
 
-ExprPtr VectorConstructorExpr::Duplicate() {
-    auto op_l = op->Duplicate()->AsListExprPtr();
+ExprPtr VectorConstructorExpr::Duplicate(ASTMorpher* am) {
+    auto op_l = am->MorphExpr(op)->AsListExprPtr();
 
     if ( op->AsListExpr()->Exprs().empty() )
         return SetSucc(new VectorConstructorExpr(op_l, nullptr));
@@ -2053,8 +2063,8 @@ ExprPtr VectorConstructorExpr::Duplicate() {
 
 bool VectorConstructorExpr::HasReducedOps(Reducer* c) const { return Op()->HasReducedOps(c); }
 
-ExprPtr FieldAssignExpr::Duplicate() {
-    auto op_dup = op->Duplicate();
+ExprPtr FieldAssignExpr::Duplicate(ASTMorpher* am) {
+    auto op_dup = am->MorphExpr(op);
     return SetSucc(new FieldAssignExpr(field_name.c_str(), op_dup));
 }
 
@@ -2074,8 +2084,8 @@ ExprPtr FieldAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return AssignToTemporary(c, red_stmt);
 }
 
-ExprPtr ArithCoerceExpr::Duplicate() {
-    auto op_dup = op->Duplicate();
+ExprPtr ArithCoerceExpr::Duplicate(ASTMorpher* am) {
+    auto op_dup = am->MorphExpr(op);
 
     TypeTag tag;
 
@@ -2160,8 +2170,8 @@ bool ArithCoerceExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) cons
     return true;
 }
 
-ExprPtr RecordCoerceExpr::Duplicate() {
-    auto op_dup = op->Duplicate();
+ExprPtr RecordCoerceExpr::Duplicate(ASTMorpher* am) {
+    auto op_dup = am->MorphExpr(op);
     return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 }
 
@@ -2187,13 +2197,13 @@ ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr TableCoerceExpr::Duplicate() {
-    auto op_dup = op->Duplicate();
+ExprPtr TableCoerceExpr::Duplicate(ASTMorpher* am) {
+    auto op_dup = am->MorphExpr(op);
     return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
 }
 
-ExprPtr VectorCoerceExpr::Duplicate() {
-    auto op_dup = op->Duplicate();
+ExprPtr VectorCoerceExpr::Duplicate(ASTMorpher* am) {
+    auto op_dup = am->MorphExpr(op);
     return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 }
 
@@ -2221,9 +2231,9 @@ ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return UnaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr ScheduleExpr::Duplicate() {
-    auto when_d = when->Duplicate();
-    auto event_d = event->Duplicate()->AsEventExprPtr();
+ExprPtr ScheduleExpr::Duplicate(ASTMorpher* am) {
+    auto when_d = am->MorphExpr(when);
+    auto event_d = am->MorphExpr(event)->AsEventExprPtr();
     return SetSucc(new ScheduleExpr(when_d, event_d));
 }
 
@@ -2275,9 +2285,9 @@ ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return ThisPtr();
 }
 
-ExprPtr InExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr InExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new InExpr(op1_d, op2_d));
 }
 
@@ -2297,9 +2307,9 @@ ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr CallExpr::Duplicate() {
-    auto func_d = func->Duplicate();
-    auto args_d = args->Duplicate()->AsListExprPtr();
+ExprPtr CallExpr::Duplicate(ASTMorpher* am) {
+    auto func_d = am->MorphExpr(func);
+    auto args_d = am->MorphExpr(args)->AsListExprPtr();
     auto func_type = func->GetType();
     auto in_hook = func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK;
 
@@ -2458,7 +2468,7 @@ bool CallExpr::IsEmptyHook() const {
     return ! func_val->AsFuncVal()->Get()->HasBodies();
 }
 
-ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }
+ExprPtr LambdaExpr::Duplicate(ASTMorpher* am) { return SetSucc(new LambdaExpr(this)); }
 
 bool LambdaExpr::IsReduced(Reducer* c) const {
     if ( ! captures )
@@ -2503,8 +2513,8 @@ void LambdaExpr::UpdateCaptures(Reducer* c) {
     }
 }
 
-ExprPtr EventExpr::Duplicate() {
-    auto args_d = args->Duplicate()->AsListExprPtr();
+ExprPtr EventExpr::Duplicate(ASTMorpher* am) {
+    auto args_d = am->MorphExpr(args)->AsListExprPtr();
     return SetSucc(new EventExpr(name.c_str(), args_d));
 }
 
@@ -2533,10 +2543,10 @@ ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 StmtPtr EventExpr::ReduceToSingletons(Reducer* c) { return args->ReduceToSingletons(c); }
 
-ExprPtr ListExpr::Duplicate() {
+ExprPtr ListExpr::Duplicate(ASTMorpher* am) {
     auto new_l = new ListExpr();
 
-    loop_over_list(exprs, i) new_l->Append(exprs[i]->Duplicate());
+    loop_over_list(exprs, i) new_l->Append(am->MorphExpr({NewRef{}, exprs[i]}));
 
     return SetSucc(new_l);
 }
@@ -2621,15 +2631,17 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
     return red_stmt;
 }
 
-ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Duplicate(), conversion_type)); }
+ExprPtr CanConvertExpr::Duplicate(ASTMorpher* am) {
+    return SetSucc(new CanConvertExpr(am->MorphExpr(op), conversion_type));
+}
 
-ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
+ExprPtr CastExpr::Duplicate(ASTMorpher* am) { return SetSucc(new CastExpr(am->MorphExpr(op), type)); }
 
 bool CastExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
     return attempt_to_cast_value_to_type(v.get(), type.get()) != nullptr;
 }
 
-ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
+ExprPtr IsExpr::Duplicate(ASTMorpher* am) { return SetSucc(new IsExpr(am->MorphExpr(op), t)); }
 
 InlineExpr::InlineExpr(ScriptFuncPtr arg_sf, ListExprPtr arg_args, std::vector<IDPtr> arg_params,
                        std ::vector<bool> arg_param_is_modified, StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
@@ -2673,9 +2685,9 @@ ValPtr InlineExpr::Eval(Frame* f) const {
     return result;
 }
 
-ExprPtr InlineExpr::Duplicate() {
-    auto args_d = args->Duplicate()->AsListExprPtr();
-    auto body_d = body->Duplicate();
+ExprPtr InlineExpr::Duplicate(ASTMorpher* am) {
+    auto args_d = am->MorphExpr(args)->AsListExprPtr();
+    auto body_d = am->MorphStmt(body);
     return SetSucc(new InlineExpr(sf, args_d, params, param_is_modified, body_d, frame_offset, type));
 }
 
@@ -2727,7 +2739,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(red_stmt, catch_ret);
 
-    return ret_val ? ret_val->Duplicate() : nullptr;
+    return ret_val ? ret_val->Duplicate(identity_am) : nullptr;
 }
 
 TraversalCode InlineExpr::Traverse(TraversalCallback* cb) const {
@@ -2790,9 +2802,9 @@ ValPtr AppendToExpr::Eval(Frame* f) const {
     return v1;
 }
 
-ExprPtr AppendToExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr AppendToExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
     return SetSucc(new AppendToExpr(op1_d, op2_d));
 }
 
@@ -2811,7 +2823,7 @@ ExprPtr AppendToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 }
 
 ExprPtr AppendToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
-    auto at_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate()), this);
+    auto at_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate(identity_am)), this);
     red_stmt = at_stmt->Reduce(c);
     return op1->AsRefExprPtr()->GetOp1();
 }
@@ -2859,7 +2871,7 @@ ExprPtr IndexAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     StmtPtr op1_red_stmt;
     op1 = op1->Reduce(c, op1_red_stmt);
 
-    auto assign_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate()), this);
+    auto assign_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate(identity_am)), this);
 
     auto index = op2->AsListExprPtr();
     auto res = with_location_of(make_intrusive<IndexExpr>(GetOp1(), index, false), this);
@@ -2870,10 +2882,10 @@ ExprPtr IndexAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     return final_res;
 }
 
-ExprPtr IndexAssignExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
-    auto op3_d = op3->Duplicate();
+ExprPtr IndexAssignExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
+    auto op3_d = am->MorphExpr(op3);
 
     return SetSucc(new IndexAssignExpr(op1_d, op2_d, op3_d));
 }
@@ -2928,9 +2940,9 @@ ValPtr FieldLHSAssignExpr::Eval(Frame* f) const {
     return nullptr;
 }
 
-ExprPtr FieldLHSAssignExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
+ExprPtr FieldLHSAssignExpr::Duplicate(ASTMorpher* am) {
+    auto op1_d = am->MorphExpr(op1);
+    auto op2_d = am->MorphExpr(op2);
 
     return SetSucc(new FieldLHSAssignExpr(op1_d, op2_d, field_name, field));
 }
@@ -2960,7 +2972,7 @@ ExprPtr FieldLHSAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     StmtPtr op1_red_stmt;
     op1 = op1->Reduce(c, op1_red_stmt);
 
-    auto assign_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate()), this);
+    auto assign_stmt = with_location_of(make_intrusive<ExprStmt>(Duplicate(identity_am)), this);
 
     auto field_res = with_location_of(make_intrusive<FieldExpr>(op1, field_name), this);
     StmtPtr field_res_stmt;
@@ -3085,9 +3097,9 @@ ExprPtr RecordFieldUpdatesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return ThisPtr();
 }
 
-ExprPtr AssignRecordFieldsExpr::Duplicate() {
-    auto e1 = op1->Duplicate();
-    auto e2 = op2->Duplicate();
+ExprPtr AssignRecordFieldsExpr::Duplicate(ASTMorpher* am) {
+    auto e1 = am->MorphExpr(op1);
+    auto e2 = am->MorphExpr(op2);
     return SetSucc(new AssignRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
@@ -3166,9 +3178,9 @@ FieldExprPtr ConstructFromRecordExpr::FindRecordSource(const Expr* const_e) {
     return cast_intrusive<FieldExpr>(std::move(fa_rhs));
 }
 
-ExprPtr ConstructFromRecordExpr::Duplicate() {
-    auto e1 = op1->Duplicate();
-    auto e2 = op2->Duplicate();
+ExprPtr ConstructFromRecordExpr::Duplicate(ASTMorpher* am) {
+    auto e1 = am->MorphExpr(op1);
+    auto e2 = am->MorphExpr(op2);
     return SetSucc(new ConstructFromRecordExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
@@ -3199,9 +3211,9 @@ ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return AssignToTemporary(c, red_stmt);
 }
 
-ExprPtr AddRecordFieldsExpr::Duplicate() {
-    auto e1 = op1->Duplicate();
-    auto e2 = op2->Duplicate();
+ExprPtr AddRecordFieldsExpr::Duplicate(ASTMorpher* am) {
+    auto e1 = am->MorphExpr(op1);
+    auto e2 = am->MorphExpr(op2);
     return SetSucc(new AddRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
@@ -3246,7 +3258,7 @@ ExprPtr CoerceToAnyExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 ValPtr CoerceToAnyExpr::Fold(Val* v) const { return {NewRef{}, v}; }
 
-ExprPtr CoerceToAnyExpr::Duplicate() { return SetSucc(new CoerceToAnyExpr(op->Duplicate())); }
+ExprPtr CoerceToAnyExpr::Duplicate(ASTMorpher* am) { return SetSucc(new CoerceToAnyExpr(am->MorphExpr(op))); }
 
 CoerceFromAnyExpr::CoerceFromAnyExpr(ExprPtr arg_op, TypePtr to_type)
     : UnaryExpr(EXPR_FROM_ANY_COERCE, std::move(arg_op)) {
@@ -3263,7 +3275,7 @@ ValPtr CoerceFromAnyExpr::Fold(Val* v) const {
     return {NewRef{}, v};
 }
 
-ExprPtr CoerceFromAnyExpr::Duplicate() { return SetSucc(new CoerceFromAnyExpr(op->Duplicate(), type)); }
+ExprPtr CoerceFromAnyExpr::Duplicate(ASTMorpher* am) { return SetSucc(new CoerceFromAnyExpr(am->MorphExpr(op), type)); }
 
 CoerceFromAnyVecExpr::CoerceFromAnyVecExpr(ExprPtr arg_op, TypePtr to_type)
     : UnaryExpr(EXPR_FROM_ANY_VEC_COERCE, std::move(arg_op)) {
@@ -3286,7 +3298,9 @@ ValPtr CoerceFromAnyVecExpr::Eval(Frame* f) const {
     return v;
 }
 
-ExprPtr CoerceFromAnyVecExpr::Duplicate() { return SetSucc(new CoerceFromAnyVecExpr(op->Duplicate(), type)); }
+ExprPtr CoerceFromAnyVecExpr::Duplicate(ASTMorpher* am) {
+    return SetSucc(new CoerceFromAnyVecExpr(am->MorphExpr(op), type));
+}
 
 AnyIndexExpr::AnyIndexExpr(ExprPtr arg_op, int _index) : UnaryExpr(EXPR_ANY_INDEX, std::move(arg_op)) {
     index = _index;
@@ -3295,7 +3309,7 @@ AnyIndexExpr::AnyIndexExpr(ExprPtr arg_op, int _index) : UnaryExpr(EXPR_ANY_INDE
 
 ValPtr AnyIndexExpr::Fold(Val* v) const { return v->AsListVal()->Idx(index); }
 
-ExprPtr AnyIndexExpr::Duplicate() { return SetSucc(new AnyIndexExpr(op->Duplicate(), index)); }
+ExprPtr AnyIndexExpr::Duplicate(ASTMorpher* am) { return SetSucc(new AnyIndexExpr(am->MorphExpr(op), index)); }
 
 ExprPtr AnyIndexExpr::Reduce(Reducer* c, StmtPtr& red_stmt) { return ThisPtr(); }
 
@@ -3326,9 +3340,9 @@ ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, CallExprPtr _call)
     ASSERT(args.size() <= 2);
 
     if ( ! args.empty() ) {
-        arg1 = args[0]->Duplicate();
+        arg1 = args[0]->Duplicate(identity_am);
         if ( args.size() > 1 ) {
-            arg2 = args[1]->Duplicate();
+            arg2 = args[1]->Duplicate(identity_am);
         }
     }
 
@@ -3376,7 +3390,7 @@ TraversalCode ScriptOptBuiltinExpr::Traverse(TraversalCallback* cb) const {
 
 bool ScriptOptBuiltinExpr::IsPure() const { return arg1->IsPure() && (! arg2 || arg2->IsPure()); }
 
-ExprPtr ScriptOptBuiltinExpr::Duplicate() {
+ExprPtr ScriptOptBuiltinExpr::Duplicate(ASTMorpher* am) {
     auto new_me = make_intrusive<ScriptOptBuiltinExpr>(tag, arg1, arg2);
     return with_location_of(std::move(new_me), this);
 }
@@ -3470,7 +3484,7 @@ void NopExpr::ExprDescribe(ODesc* d) const {
 
 ValPtr NopExpr::Eval(Frame* /* f */) const { return nullptr; }
 
-ExprPtr NopExpr::Duplicate() { return SetSucc(new NopExpr()); }
+ExprPtr NopExpr::Duplicate(ASTMorpher* am) { return SetSucc(new NopExpr()); }
 
 TraversalCode NopExpr::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreExpr(this);

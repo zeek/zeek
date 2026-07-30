@@ -1,3 +1,20 @@
+9.0.0-dev.761 | 2026-07-30 19:09:52 +0200
+
+  * ContentLine: Prevent plain_delivery_length truncation (Arne Welzel, Corelight)
+
+    plain_delivery_length is int64_t and for Content-Length > INT_MAX,
+    would be truncated and result in a negative value, crashing later
+    in DoDeliver(). Do the min with the wider type to prevent this.
+    Cast to int is safe as len is a positive int here.
+
+    Added testcase would segfault on current master.
+
+    Fixup for a8069fcfa75582da15f11f72813c280f2efcd89e.
+
+    Reported by @JordanBarnartt, test case created and fix suggested by Claude.
+
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 9.0.0-dev.759 | 2026-07-30 16:54:50 +0000
 
   * Fix cluster.websockets.ping-timeout btest when using websockets >= 17.0 (Tim Wojtulewicz, Corelight)

@@ -211,3 +211,6 @@ Trace Index/Sources:
 - dns/max-compression-depth.pcap
   Generated via corresponding Claude-generated scapy script dns/max-compression-depth.pcap.py.
   Contains a DNS response whose answer RRs form a chain of backward compression pointers.
+- http/content-length-overflow.pcap
+  Generated via scapy script http/content-length-overflow.pcap.py. Contains a HTTP response
+  with a Content-Length >2G that resulted in overflows.

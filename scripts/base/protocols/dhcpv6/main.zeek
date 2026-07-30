@@ -36,9 +36,13 @@ export {
 		## All message types observed in this transaction, in order.
 		msg_types:          vector of string &log &default=vector();
 
-		## The client DUID, formatted as ``<type>:<hex>``.
+		## The type of the client DUID (e.g., ``LLT``, ``LL``, ``EN``, ``UUID``).
+		client_duid_type:   string           &log &optional;
+		## The client DUID as a hex string.
 		client_duid:        string           &log &optional;
-		## The server DUID, formatted as ``<type>:<hex>``.
+		## The type of the server DUID (e.g., ``LLT``, ``LL``, ``EN``, ``UUID``).
+		server_duid_type:   string           &log &optional;
+		## The server DUID as a hex string.
 		server_duid:        string           &log &optional;
 		## Option names requested by the client (option ORO).
 		requested_options:  vector of string &log &optional;
@@ -95,11 +99,6 @@ event zeek_init() &priority=5
 
 @if ( ! Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
 
-function format_duid(duid_type: count, duid: string): string
-	{
-	return fmt("%s:%s", DHCPv6::duid_types[duid_type], bytestring_to_hexstr(duid));
-	}
-
 function write_transaction(t: table[count] of Info, transaction_id: count): interval
 	{
 	Log::write(DHCPv6::LOG, t[transaction_id]);
@@ -129,13 +128,19 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 		{
 		info$server_msg_type = DHCPv6::message_types[msg$msg_type];
 		if ( msg?$server_duid_type && msg?$server_duid )
-			info$server_duid = format_duid(msg$server_duid_type, msg$server_duid);
+			{
+			info$server_duid_type = duid_types[msg$server_duid_type];
+			info$server_duid = bytestring_to_hexstr(msg$server_duid);
+			}
 		}
 	else
 		{
 		info$client_msg_type = DHCPv6::message_types[msg$msg_type];
 		if ( msg?$client_duid_type && msg?$client_duid )
-			info$client_duid = format_duid(msg$client_duid_type, msg$client_duid);
+			{
+			info$client_duid_type = duid_types[msg$client_duid_type];
+			info$client_duid = bytestring_to_hexstr(msg$client_duid);
+			}
 		if ( msg?$client_fqdn )
 			info$client_fqdn = msg$client_fqdn;
 		if ( msg?$requested_options )
@@ -169,12 +174,8 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 event zeek_done() &priority=-5
 	{
 	# Flush any transactions that never expired
-	local recs: vector of Info;
 	for ( id in transactions )
 		Log::write(DHCPv6::LOG, transactions[id]);
-
-	for ( _, r in recs )
-		Log::write(DHCPv6::LOG, r);
 	}
 
 @endif

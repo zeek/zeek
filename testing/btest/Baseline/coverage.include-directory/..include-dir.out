@@ -583,6 +583,7 @@
 ./zeek/3rdparty/setsignal.h
 ./zeek/3rdparty/sqlite3.h
 ./zeek/3rdparty/zeek_inet_ntop.h
+./zeek/ASTMorpher.h
 ./zeek/Anon.h
 ./zeek/Attr.h
 ./zeek/Base64.h

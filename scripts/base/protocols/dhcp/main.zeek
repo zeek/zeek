@@ -104,6 +104,13 @@ export {
 	## The maximum number of msg_types allowed in a single log entry.
 	option DHCP::max_msg_types_per_log_entry = 50;
 
+	## The maximum number of transactions the manager will keep
+	## track of in the join_data table before starting to forcefully
+	## evict and log the oldest entry from the table to make room for
+	## newer entries. When reached, Zeek will raise a
+	## ``DHCP_max_tracked_transactions_exceeded`` weird.
+	option DHCP::max_tracked_transactions = 100000;
+
 	## This event is used internally to distribute data around clusters
 	## since DHCP doesn't follow the normal "connection" model used by
 	## most protocols. It can also be handled to extend the DHCP log.
@@ -147,6 +154,20 @@ function write_log(info: Info)
 	Log::write(LOG, info);
 	}
 
+# Function prototype for &expire_func on join_data
+global join_data_expiration: function(t: table[count] of Info, idx: count): interval;
+
+# This is where the data is stored as it's centralized. All data for a log must
+# arrive within the expiration interval if it's to be logged fully. On a cluster,
+# this data is only maintained on the manager.
+global join_data: table[count] of Info = table()
+	&create_expire=10secs &expire_func=join_data_expiration;
+
+# Keeps txid values in insert order within this set to quickly find the least
+# recently inserted one when hitting the max_tracked_transactions limit.
+# &ordered and &create_expire together errors (#5740), so use this instead.
+global join_data_ordered: set[count] &ordered;
+
 function join_data_expiration(t: table[count] of Info, idx: count): interval
 	{
 	local info = t[idx];
@@ -163,6 +184,7 @@ function join_data_expiration(t: table[count] of Info, idx: count): interval
 		write_log(info);
 		# Go ahead and expire the data now that the log
 		# entry has been written.
+		delete join_data_ordered[idx];
 		return 0secs;
 		}
 	else
@@ -170,14 +192,6 @@ function join_data_expiration(t: table[count] of Info, idx: count): interval
 		return 5secs;
 		}
 	}
-
-# This is where the data is stored as it's centralized. All data for a log must
-# arrive within the expiration interval if it's to be logged fully. On a cluster,
-# this data is only maintained on the manager.
-global join_data: table[count] of Info = table()
-	&create_expire=10secs &expire_func=join_data_expiration;
-
-
 
 @if ( ! Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
 # We are handling this event at priority 1000 because we really want
@@ -187,8 +201,31 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 	{
 	if ( msg$xid !in join_data )
 		{
+		# Check if we've reached the limit of tracked DHCP
+		# transactions in the join_data table.
+		if ( max_tracked_transactions > 0 && |join_data| >= max_tracked_transactions )
+			{
+			Reporter::net_weird("DHCP_max_tracked_transactions_exceeded", cat(|join_data|), "DHCP");
+
+			# Remove the least recently inserted entry to make room
+			# for the new one using for-one-entry-then-break over
+			# the join_data_ordered auxiliary set.
+			local txid_to_delete = 0;
+
+			for ( txid in join_data_ordered )
+				{
+				txid_to_delete = txid;
+				write_log(join_data[txid]);
+				break;
+				}
+
+			delete join_data[txid_to_delete];
+			delete join_data_ordered[txid_to_delete];
+			}
+
 		join_data[msg$xid] = Info($ts=ts,
 		                          $uids=set(uid));
+		add join_data_ordered[msg$xid];
 		}
 
 	log_info = join_data[msg$xid];
@@ -297,6 +334,7 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 		{
 		Log::write(LOG, log_info);
 		delete join_data[msg$xid];
+		delete join_data_ordered[msg$xid];
 		}
 	}
 @endif

@@ -175,6 +175,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
 
             if ( ip_hdr_len > total_len ) {
                 Weird("invalid_IP_header_size", packet);
+                zeek::detail::fragment_mgr->Remove(f);
                 return false;
             }
 

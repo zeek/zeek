@@ -267,10 +267,11 @@ event ssh_auth_attempted(c: connection, authenticated: bool) &priority=-5
 # Determine the negotiated algorithm
 function find_alg(client_algorithms: vector of string, server_algorithms: vector of string): string
 	{
-	for ( i in client_algorithms )
-		for ( j in server_algorithms )
-			if ( client_algorithms[i] == server_algorithms[j] )
-				return client_algorithms[i];
+	local server_algorithms_set = server_algorithms as set[string];
+	for ( _, client_algorithm in client_algorithms )
+		if ( client_algorithm in server_algorithms_set )
+			return client_algorithm;
+
 	return "Algorithm negotiation failed";
 	}
 

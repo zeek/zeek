@@ -470,73 +470,78 @@ refine connection SSH_Conn += {
 		else if ( kex_orig_ == orig )
 			return false;
 
-		auto client_list = name_list_to_vector(orig ? algs             : kex_algs_cache_);
-		auto server_list = name_list_to_vector(orig ? kex_algs_cache_  : algs);
+		auto to_sv = [](const auto& bs) -> std::string_view {
+			return std::string_view(reinterpret_cast<const char*>(bs.begin()),
+			                        static_cast<size_t>(bs.length()));
+		};
 
-		for ( unsigned int i = 0; i < client_list->Size(); ++i )
-			{
-			for ( unsigned int j = 0; j < server_list->Size(); ++j )
-				{
-				if ( *(client_list->StringAt(i)) == *(server_list->StringAt(j)) )
-					{
-					kex_algorithm_.free();
-					kex_algorithm_.init(reinterpret_cast<const uint8*>(client_list->StringAt(i)->Bytes()),
-						client_list->StringAt(i)->Len());
+		auto client_algs_vec = zeek::util::tokenize_string(to_sv(orig ? algs : kex_algs_cache_), ',');
+		auto server_algs_vec = zeek::util::tokenize_string(to_sv(orig ? kex_algs_cache_ : algs), ',');
 
-					// UNTESTED
-					if ( update_kex_state_if_equal("rsa1024-sha1", KEX_RSA) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_equal("rsa2048-sha256", KEX_RSA) )
-						return true;
+		std::set server_algs_set(server_algs_vec.begin(), server_algs_vec.end());
 
-					// UNTESTED
-					if ( update_kex_state_if_equal("diffie-hellman-group1-sha1", KEX_DH) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_equal("diffie-hellman-group14-sha1", KEX_DH) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_equal("diffie-hellman-group14-sha256", KEX_DH) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
-						return true;
+		for ( auto client_alg : client_algs_vec ) {
+			if ( server_algs_set.contains(client_alg) ) {
+				kex_algorithm_.free();
+				kex_algorithm_.init(reinterpret_cast<const uint8*>(client_alg.data()), static_cast<int>(client_alg.size()));
 
-					if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha1", KEX_DH_GEX) )
-						return true;
-					if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha256", KEX_DH_GEX) )
-						return true;
+				// XXX: This code is a bit strange. We should switch the below
+				// to a table[pattern] of enum/count in script-land so
+				// that it's configurable from there.
 
-					if ( update_kex_state_if_startswith("gss-group1-sha1-", KEX_GSS) )
-						return true;
-					if ( update_kex_state_if_startswith("gss-group14-sha1-", KEX_GSS) )
-						return true;
-					if ( update_kex_state_if_startswith("gss-gex-sha1-", KEX_GSS) )
-						return true;
-					if ( update_kex_state_if_startswith("gss-", KEX_GSS) )
-						return true;
-
-					if ( update_kex_state_if_startswith("ecdh-sha2-", KEX_ECC) )
-						return true;
-					if ( update_kex_state_if_equal("ecmqv-sha2", KEX_ECC) )
-						return true;
-					if ( update_kex_state_if_startswith("curve25519-sha256", KEX_ECC) )
-						return true;
-					// UNTESTED
-					if ( update_kex_state_if_startswith("sntrup761x25519-sha512", KEX_ECC) )
-						return true;
-
-					if ( update_kex_state_if_startswith("mlkem", KEX_ECC) )
-						return true;
-
-					zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
+				// UNTESTED
+				if ( update_kex_state_if_equal("rsa1024-sha1", KEX_RSA) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_equal("rsa2048-sha256", KEX_RSA) )
 					return true;
 
-					}
+				// UNTESTED
+				if ( update_kex_state_if_equal("diffie-hellman-group1-sha1", KEX_DH) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_equal("diffie-hellman-group14-sha1", KEX_DH) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_equal("diffie-hellman-group14-sha256", KEX_DH) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
+					return true;
+
+				if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha1", KEX_DH_GEX) )
+					return true;
+				if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha256", KEX_DH_GEX) )
+					return true;
+
+				if ( update_kex_state_if_startswith("gss-group1-sha1-", KEX_GSS) )
+					return true;
+				if ( update_kex_state_if_startswith("gss-group14-sha1-", KEX_GSS) )
+					return true;
+				if ( update_kex_state_if_startswith("gss-gex-sha1-", KEX_GSS) )
+					return true;
+				if ( update_kex_state_if_startswith("gss-", KEX_GSS) )
+					return true;
+
+				if ( update_kex_state_if_startswith("ecdh-sha2-", KEX_ECC) )
+					return true;
+				if ( update_kex_state_if_equal("ecmqv-sha2", KEX_ECC) )
+					return true;
+				if ( update_kex_state_if_startswith("curve25519-sha256", KEX_ECC) )
+					return true;
+				// UNTESTED
+				if ( update_kex_state_if_startswith("sntrup761x25519-sha512", KEX_ECC) )
+					return true;
+
+				if ( update_kex_state_if_startswith("mlkem", KEX_ECC) )
+					return true;
+
+				zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
+				return true;
+
 				}
 			}
 

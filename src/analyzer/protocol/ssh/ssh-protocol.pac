@@ -478,6 +478,19 @@ refine connection SSH_Conn += {
 		auto client_algs_vec = zeek::util::tokenize_string(to_sv(orig ? algs : kex_algs_cache_), ',');
 		auto server_algs_vec = zeek::util::tokenize_string(to_sv(orig ? kex_algs_cache_ : algs), ',');
 
+		const size_t max_algs = zeek::BifConst::SSH::max_kexinit_kex_algorithms;
+
+		// Cap before creating the lookup table below. This creates
+		// weirds in ssh-analyzer when creating the ssh_capabilities
+		// event parameters.
+		if ( max_algs > 0 ) {
+			if ( client_algs_vec.size() > max_algs )
+				client_algs_vec.resize(max_algs);
+
+			if ( server_algs_vec.size() > max_algs )
+				server_algs_vec.resize(max_algs);
+		}
+
 		std::set server_algs_set(server_algs_vec.begin(), server_algs_vec.end());
 
 		for ( auto client_alg : client_algs_vec ) {

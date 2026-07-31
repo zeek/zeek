@@ -1,3 +1,7 @@
+9.0.0-dev.765 | 2026-07-31 19:42:48 +0200
+
+  * CI: Avoid restoring the wrong ccache (Arne Welzel, Corelight)
+
 9.0.0-dev.763 | 2026-07-31 09:29:41 +0200
 
   * tweaks to be more tolerant to missing type information (Vern Paxson, Corelight)

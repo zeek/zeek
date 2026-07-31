@@ -411,7 +411,7 @@ jobs:
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
       with:
-        key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.id }}
+        key: ${{ matrix.id }}-${{ github.workflow }}-${{ github.job }}
 
     # TODO: add ./ci/init-external-repos.sh with caching, maybe in actual job below
     # - name: Clone external test suites

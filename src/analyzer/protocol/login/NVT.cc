@@ -418,6 +418,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
                 buf[buf_len - 1] = '\0';
                 ForwardStream(buf_len - 1, buf, IsOrig());
                 offset = 0;
+                last_char = 0;
 
                 // Keep parsing, but just use the buffer we have here.
                 continue;
@@ -445,7 +446,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
                     if ( CRLFAsEOL() & tcp::CR_as_EOL )
                         // we already emitted, skip
                         ;
-                    else {
+                    else if ( offset > 0 ) {
                         --offset; // remove '\r'
                         buf[offset] = '\0';
                         ForwardStream(offset, buf, IsOrig());
@@ -573,6 +574,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
                 pending_IAC = false;
                 is_suboption = false;
                 offset = 0;
+                last_char = 0;
                 return;
             }
         }

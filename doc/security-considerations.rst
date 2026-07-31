@@ -27,6 +27,13 @@ Hardening your setup against these threats is an advanced topic, and you don't
 need to figure out all of this right away. For now, just keep in mind that Zeek
 is security-critical infrastructure and you'll need to treat it as such.
 
+This page focuses on deployment hardening. The
+`Zeek Security Model <https://github.com/zeek/zeek/blob/master/SECURITY_MODEL.md>`_
+describes the actors, trust boundaries, and protected properties used for
+engineering and vulnerability assessment. To report a suspected vulnerability,
+follow Zeek's `security reporting process
+<https://zeek.org/security-reporting/>`_.
+
 Protective Measures
 ===================
 

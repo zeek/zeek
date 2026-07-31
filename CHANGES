@@ -1,3 +1,13 @@
+9.0.0-dev.770 | 2026-07-31 20:02:22 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Fix spicyz build-directory detection when invoked without path (Benjamin Bannier, Corelight)
+
+    If one would invoke spicyz without path (lookup via `PATH`) we wouldn't
+    initialize the compiler infra correctly. This only affects running from
+    the build tree (i.e., tests).
+
 9.0.0-dev.767 | 2026-07-31 10:52:39 -0700
 
   * Fix assertion when inserting Dict elements while under robust iteration (Tim Wojtulewicz, Corelight)

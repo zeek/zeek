@@ -1,2 +1,8 @@
 const SSH::max_packet_length: count;
 const SSH::max_string_length: count;
+const SSH::max_kexinit_kex_algorithms: count;
+const SSH::max_kexinit_hostkey_algorithms: count;
+const SSH::max_kexinit_encryption_algorithms: count;
+const SSH::max_kexinit_mac_algorithms: count;
+const SSH::max_kexinit_compression_algorithms: count;
+const SSH::max_kexinit_languages: count;

@@ -1,3 +1,7 @@
+9.0.0-dev.767 | 2026-07-31 10:52:39 -0700
+
+  * Fix assertion when inserting Dict elements while under robust iteration (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.765 | 2026-07-31 19:42:48 +0200
 
   * CI: Avoid restoring the wrong ccache (Arne Welzel, Corelight)

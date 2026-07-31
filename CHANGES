@@ -1,3 +1,7 @@
+9.0.0-dev.763 | 2026-07-31 09:29:41 +0200
+
+  * tweaks to be more tolerant to missing type information (Vern Paxson, Corelight)
+
 9.0.0-dev.761 | 2026-07-30 19:09:52 +0200
 
   * ContentLine: Prevent plain_delivery_length truncation (Arne Welzel, Corelight)

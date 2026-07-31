@@ -43,7 +43,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
         auto& id = gpair.second;
         auto& t = id->GetType();
 
-        if ( t->Tag() != TYPE_FUNC )
+        if ( ! t || t->Tag() != TYPE_FUNC )
             continue;
 
         if ( auto gv = id->GetVal() )
@@ -131,7 +131,9 @@ public:
         if ( attr_depth > 0 )
             ids.insert(id);
 
-        id->GetType()->Traverse(this);
+        auto& t = id->GetType();
+        if ( t )
+            t->Traverse(this);
 
         if ( auto& attrs = id->GetAttrs() )
             attrs->Traverse(this);
@@ -179,7 +181,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
 
 const Func* UsageAnalyzer::GetFuncIfAny(const IDPtr& id) const {
     auto& t = id->GetType();
-    if ( t->Tag() != TYPE_FUNC )
+    if ( ! t || t->Tag() != TYPE_FUNC )
         return nullptr;
 
     auto fv = cast_intrusive<FuncVal>(id->GetVal());
@@ -248,7 +250,9 @@ TraversalCode UsageAnalyzer::PreID(const ID* raw_id) {
         // Haven't seen this function before.
         new_reachables.insert(id);
 
-    id->GetType()->Traverse(this);
+    auto& t = id->GetType();
+    if ( t )
+        t->Traverse(this);
 
     auto& attrs = id->GetAttrs();
     if ( attrs )

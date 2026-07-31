@@ -4895,7 +4895,7 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
         return nullptr;
     }
 
-    if ( ! same_type(t, et) ) {
+    if ( ! same_type(t, et, false, false) ) {
         if ( t->Tag() == TYPE_TABLE && et->Tag() == TYPE_TABLE && et->AsTableType()->IsUnspecifiedTable() ) {
             if ( e->Tag() == EXPR_TABLE_CONSTRUCTOR ) {
                 auto& attrs = cast_intrusive<TableConstructorExpr>(e)->GetAttrs();

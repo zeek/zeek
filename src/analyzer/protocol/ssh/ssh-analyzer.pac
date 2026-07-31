@@ -9,45 +9,35 @@
 %}
 
 %header{
-zeek::VectorValPtr name_list_to_vector(const bytestring& nl);
+// max_size = 0 is unlimited, otherwise extract at most max_size elements into the result
+// and if reached raise a weird with weird_name.
+zeek::VectorValPtr name_list_to_vector(const bytestring& nl, size_t max_size,
+                                       const char* weird_name,
+                                       zeek::analyzer::Analyzer* a);
 const char* fingerprint_md5(const unsigned char* d);
 %}
 
 %code{
-// Copied from IRC_Analyzer::SplitWords
-zeek::VectorValPtr name_list_to_vector(const bytestring& nl)
+zeek::VectorValPtr name_list_to_vector(const bytestring& nl, size_t max_size,
+                                       const char* weird_name,
+                                       zeek::analyzer::Analyzer* a)
 	{
 	auto vv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
-	string name_list = std_str(nl);
-	if ( name_list.size() < 1 )
-		return vv;
+	std::string_view sv{reinterpret_cast<const char*>(nl.begin()), static_cast<size_t>(nl.length())};
+	auto sv_words = zeek::util::tokenize_string(sv, ',');
 
-	unsigned int start = 0;
-	unsigned int split_pos = 0;
-
-	while ( name_list[start] == ',' )
-		{
-		++start;
-		++split_pos;
+	for ( auto word : sv_words ) {
+		if ( max_size == 0 || vv->Size() < max_size ) {
+			vv->Append(zeek::make_intrusive<zeek::StringVal>(word));
+		} else {
+			const char* addl = max_size > 0 ? zeek::util::fmt("%zu > %zu", sv_words.size(), max_size) : zeek::util::fmt("%zu", sv_words.size());
+			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+			a->Weird(weird_name, addl);
+			break;
 		}
+	}
 
-	string word;
-	while ( (split_pos = name_list.find(',', start)) < name_list.size() )
-		{
-		word = name_list.substr(start, split_pos - start);
-		if ( word.size() > 0 && word[0] != ',' )
-			vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
-
-		start = split_pos + 1;
-		}
-
-	// Add line end if needed.
-	if ( start < name_list.size() )
-		{
-		word = name_list.substr(start, name_list.size() - start);
-		vv->Assign(vv->Size(), zeek::make_intrusive<zeek::StringVal>(word));
-		}
 	return vv;
 	}
 
@@ -122,32 +112,63 @@ refine flow SSH_Flow += {
 			return false;
 
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Capabilities);
-		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val}));
-		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val}));
+		result->Assign(0, name_list_to_vector(${msg.kex_algorithms.val},
+		                                      zeek::BifConst::SSH::max_kexinit_kex_algorithms,
+		                                      "SSH_max_kexinit_kex_algorithms_exceeded",
+		                                      connection()->zeek_analyzer()));
+
+		result->Assign(1, name_list_to_vector(${msg.server_host_key_algorithms.val},
+		                                      zeek::BifConst::SSH::max_kexinit_hostkey_algorithms,
+		                                      "SSH_max_kexinit_hostkey_algorithms_exceeded",
+		                                      connection()->zeek_analyzer()));
+
 
 		auto encryption_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
-		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val}));
-		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val}));
+		encryption_algs->Assign(0, name_list_to_vector(${msg.encryption_algorithms_client_to_server.val},
+		                                               zeek::BifConst::SSH::max_kexinit_encryption_algorithms,
+		                                               "SSH_max_kexinit_encryption_algorithms_exceeded",
+		                                               connection()->zeek_analyzer()));
+		encryption_algs->Assign(1, name_list_to_vector(${msg.encryption_algorithms_server_to_client.val},
+		                                               zeek::BifConst::SSH::max_kexinit_encryption_algorithms,
+		                                               "SSH_max_kexinit_encryption_algorithms_exceeded",
+		                                               connection()->zeek_analyzer()));
 		result->Assign(2, std::move(encryption_algs));
 
 		auto mac_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
-		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val}));
-		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val}));
+		mac_algs->Assign(0, name_list_to_vector(${msg.mac_algorithms_client_to_server.val},
+		                                        zeek::BifConst::SSH::max_kexinit_mac_algorithms,
+		                                        "SSH_max_kexinit_mac_algorithms_exceeded",
+		                                        connection()->zeek_analyzer()));
+		mac_algs->Assign(1, name_list_to_vector(${msg.mac_algorithms_server_to_client.val},
+		                                        zeek::BifConst::SSH::max_kexinit_mac_algorithms,
+		                                        "SSH_max_kexinit_mac_algorithms_exceeded",
+		                                        connection()->zeek_analyzer()));
 		result->Assign(3, std::move(mac_algs));
 
 		auto compression_algs = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
-		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val}));
-		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val}));
+		compression_algs->Assign(0, name_list_to_vector(${msg.compression_algorithms_client_to_server.val},
+		                                                zeek::BifConst::SSH::max_kexinit_compression_algorithms,
+		                                                "SSH_max_kexinit_compression_algorithms_exceeded",
+		                                                connection()->zeek_analyzer()));
+		compression_algs->Assign(1, name_list_to_vector(${msg.compression_algorithms_server_to_client.val},
+		                                                zeek::BifConst::SSH::max_kexinit_compression_algorithms,
+		                                                "SSH_max_kexinit_compression_algorithms_exceeded",
+		                                                connection()->zeek_analyzer()));
 		result->Assign(4, std::move(compression_algs));
 
 		if ( ${msg.languages_client_to_server.len} || ${msg.languages_server_to_client.len} )
 			{
 			auto languages = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSH::Algorithm_Prefs);
 			if ( ${msg.languages_client_to_server.len} )
-				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val}));
+				languages->Assign(0, name_list_to_vector(${msg.languages_client_to_server.val},
+		                                                         zeek::BifConst::SSH::max_kexinit_languages,
+		                                                         "SSH_max_kexinit_languages_exceeded",
+		                                                         connection()->zeek_analyzer()));
 			if ( ${msg.languages_server_to_client.len} )
-				languages->Assign(1, name_list_to_vector(${msg.languages_server_to_client.val}));
-
+				languages->Assign(1, name_list_to_vector(${msg.languages_server_to_client.val},
+		                                                         zeek::BifConst::SSH::max_kexinit_languages,
+		                                                         "SSH_max_kexinit_languages_exceeded",
+		                                                         connection()->zeek_analyzer()));
 			result->Assign(5, std::move(languages));
 			}
 

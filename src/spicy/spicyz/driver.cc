@@ -78,24 +78,20 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
     : ::spicy::Driver("<Spicy support for Zeek>"), _glue(std::move(glue)) {
     _glue->init(this, zeek_version);
 
-    // The parent constructor calls hilti::configuration().initLocation(false),
-    // which sets uses_build_directory=false. That's wrong when running from
-    // the zeek build tree: the default detection in the HILTI configuration
-    // compares argv0 against the spicy submodule's PROJECT_BINARY_DIR, which
-    // doesn't match because the zeek-integrated spicyz lives outside that
-    // subtree. Re-detect here using the top-level zeek build directory.
-    if ( argv0 && *argv0 ) {
-        try {
-            auto exec = hilti::rt::normalizePath(hilti::rt::filesystem::canonical(argv0)).generic_string();
-            auto build_prefix =
-                hilti::rt::normalizePath(hilti::rt::filesystem::canonical(configuration::BuildDir)).generic_string();
-            if ( hilti::util::startsWith(exec, build_prefix) ) {
-                hilti::configuration().initLocation(true);
-                _using_build_directory = true;
-            }
-        } catch ( const hilti::rt::filesystem::filesystem_error& ) {
-            // Fall through to default (install) mode.
+    // The HILTI configuration compares `argv0` against the spicy submodule's
+    // `PROJECT_BINARY_DIR` which doesn't match because zeek's `spicyz` lives
+    // outside that subtree. Re-detect here using the top-level zeek build dir.
+    try {
+        auto exec = hilti::rt::normalizePath(hilti::rt::filesystem::canonical(hilti::util::currentExecutable()))
+                        .generic_string();
+        auto build_prefix =
+            hilti::rt::normalizePath(hilti::rt::filesystem::canonical(configuration::BuildDir)).generic_string() + "/";
+        if ( hilti::util::startsWith(exec, build_prefix) ) {
+            hilti::configuration().initLocation(true);
+            _using_build_directory = true;
         }
+    } catch ( const hilti::rt::filesystem::filesystem_error& ) {
+        // Fall through to default (install) mode.
     }
 
     ::spicy::Configuration::extendHiltiConfiguration();

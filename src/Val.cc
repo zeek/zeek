@@ -1088,10 +1088,19 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
             if ( candidate.back() == ']' )
                 candidate.erase(candidate.size() - 1);
 
+            // Validate here so bad input becomes an error result, not a crash.
+            if ( ! IPAddr::IsValid(candidate.c_str()) )
+                return zeek::unexpected<std::string>(
+                    util::fmt("invalid value for %s: '%s'", type_name(t->Tag()), j.GetString()));
+
             if ( t->Tag() == TYPE_ADDR )
                 return make_intrusive<AddrVal>(candidate);
-            else
-                return make_intrusive<SubNetVal>(candidate.c_str(), width);
+
+            // Likewise validate the prefix width.
+            if ( ! IPAddr(candidate).CheckPrefixLength(width) )
+                return zeek::unexpected<std::string>(util::fmt("invalid value for subnet: '%s'", j.GetString()));
+
+            return make_intrusive<SubNetVal>(candidate.c_str(), width);
         }
 
         case TYPE_ENUM: {

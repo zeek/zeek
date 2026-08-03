@@ -384,10 +384,11 @@ public:
     const std::string& ClusterBackendArgs() const { return cluster_backend_args; }
 
     /**
-     * If cluster_node_prefix is set, return the given string prepended with the prefix and a dash, else return s.
+     * @return s if cluster_node_prefix is unset or empty, else s prefixed with
+     *         cluster_node_prefix + "-".
      */
     std::string PrefixedClusterNode(const std::string& s) const {
-        if ( cluster_node_prefix )
+        if ( cluster_node_prefix && ! cluster_node_prefix->empty() )
             return *cluster_node_prefix + "-" + s;
 
         return s;

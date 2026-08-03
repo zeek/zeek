@@ -470,10 +470,11 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         }
         else if ( key == "cluster_node_prefix" ) {
             std::regex re_cluster_node_prefix("^[a-z0-0][-a-z0-9_]*");
-            if ( std::regex_match(option.Value(), re_cluster_node_prefix) )
+            if ( option.Value().empty() || std::regex_match(option.Value(), re_cluster_node_prefix) )
                 config.cluster_node_prefix = option.Value();
             else
-                config.Error("invalid cluster_node_prefix '" + option.Value() + "' (must match /[a-z0-9][-_a-z0-9]+/)");
+                config.Error("invalid cluster_node_prefix '" + option.Value() +
+                             "' (must be empty or match /[a-z0-9][-_a-z0-9]+/)");
         }
         else if ( key == "port" || key == "cluster_port" ) {
             config.cluster_port = std::atoi(option.Value().c_str());

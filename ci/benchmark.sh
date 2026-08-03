@@ -6,7 +6,7 @@ ZEEK_BENCHMARK_ENDPOINT="/zeek"
 set -e
 
 # Skip running benchmarks for jobs from forks, third-parties, or non-Circle builds.
-if [ ${ZEEK_IS_INTERNAL_JOB:-0} -ne 1 -o "${CIRCLE_PROJECT_REPONAME}" != "zeek" ]; then
+if [[ ${ZEEK_CI_INTERNAL_BUILD:-0} != 1 || "${CIRCLE_PROJECT_REPONAME}" != "zeek" ]]; then
     echo "Benchmarking skipped for jobs from forks"
     exit 0
 fi

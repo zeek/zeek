@@ -1,3 +1,28 @@
+8.2.1-18 | 2026-08-11 11:18:53 -0700
+
+  * CI: Only clone zeek-testing-private for internal builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
+  * CCI: Fix typo in Hilti env variable (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
+  * CCI: Add pipeline parameter tracking internal builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
+  * CCI: Remove context from coverage/benchmark builds (Tim Wojtulewicz, Corelight)
+
+    The environment variables for these moved into the non-context side, since
+    we want external people to be able to run those jobs.
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
+  * CCI: Use different environment variable for access to build images (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
 8.2.1-17 | 2026-08-11 11:17:20 -0700
 
   * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)

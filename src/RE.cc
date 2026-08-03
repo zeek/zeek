@@ -3,6 +3,7 @@
 #include "zeek/RE.h"
 
 #include <cstdlib>
+#include <memory>
 #include <utility>
 
 #include "zeek/CCL.h"
@@ -707,6 +708,100 @@ TEST_SUITE("re_matcher") {
 
         RE_Matcher match9("a\\\"b");
         CHECK(match9.Compile());
+    }
+}
+
+TEST_SUITE("streaming_re_matcher") {
+    using detail::Streaming_RE_Matcher::ALIVE;
+    using detail::Streaming_RE_Matcher::JAMMED;
+
+    // easy "a"_b for a the uchar* type
+    inline const u_char* operator""_b(const char* s, std::size_t) { return reinterpret_cast<const u_char*>(s); }
+
+    auto make_streaming_matcher = [](const char* pat) {
+        // Use MATCH_ANYWHERE so ^ or $ must be explicit in pattern when wanted.
+        auto specific_re_matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_ANYWHERE);
+        specific_re_matcher->AddPat(pat);
+        REQUIRE(specific_re_matcher->Compile());
+        auto streaming_re_matcher = std::make_unique<detail::Streaming_RE_Matcher>(specific_re_matcher.get());
+        return std::pair{std::move(specific_re_matcher), std::move(streaming_re_matcher)};
+    };
+
+    TEST_CASE("feed eol jams") {
+        auto [m, sm] = make_streaming_matcher("^ab$");
+        auto r = sm->Feed("a"_b, 1, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 1);
+        CHECK_EQ(sm->LastAccept(), -1);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), -1);
+
+        // eol completes the match and jams.
+        r = sm->Feed(""_b, 0, /*bol=*/false, /*eol=*/true);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+    }
+
+    TEST_CASE("feed longer match") {
+        auto [m, sm] = make_streaming_matcher("^(ab)+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("a"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 3);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+    }
+
+    TEST_CASE("feed longer match eol jams") {
+        auto [m, sm] = make_streaming_matcher("^(ab)+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("a"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 3);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/true);
+        CHECK_EQ(r, JAMMED); // eol always jams
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+
+        // once jammed, won't make progress anymore
+        r = sm->Feed("ab"_b, 2, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+    }
+
+    TEST_CASE("feed bol without bol in pattern") {
+        auto [m, sm] = make_streaming_matcher("ab+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+    }
+
+    TEST_CASE("feed for first match jams after match") {
+        auto [m, sm] = make_streaming_matcher("^ab+");
+        auto r = sm->FeedForFirstMatch("abb"_b, 3, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 2); // only 2 bytes consumed, then jammed.
+        CHECK_EQ(sm->LastAccept(), 2);
     }
 }
 

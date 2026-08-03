@@ -1,3 +1,18 @@
+9.0.0-dev.783 | 2026-08-03 12:18:49 -0700
+
+  * CI: Only clone zeek-testing-private for internal builds (Tim Wojtulewicz, Corelight)
+
+  * CCI: Fix typo in Hilti env variable (Tim Wojtulewicz, Corelight)
+
+  * CCI: Add pipeline parameter tracking internal builds (Tim Wojtulewicz, Corelight)
+
+  * CCI: Remove context from coverage/benchmark builds (Tim Wojtulewicz, Corelight)
+
+    The environment variables for these moved into the non-context side, since
+    we want external people to be able to run those jobs.
+
+  * CCI: Use different environment variable for access to build images (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.777 | 2026-08-03 20:09:22 +0200
 
   * Add auth_type and auth_level mappings (Mohan Dhawan, Corelight)

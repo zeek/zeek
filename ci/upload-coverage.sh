@@ -4,7 +4,7 @@
 # correctly. On Circle, this is provided via the Zeek context.
 
 # Only do this on the main repo to avoid having a ton of data in Coveralls.
-if [ ${ZEEK_IS_INTERNAL_JOB:-0} -ne 1 ]; then
+if [ ${ZEEK_CI_INTERNAL_BUILD:-0} -ne 1 ]; then
     echo "Coverage upload skipped for jobs from forks"
     exit 0
 fi

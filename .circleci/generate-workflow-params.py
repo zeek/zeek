@@ -8,13 +8,13 @@ import urllib.request
 PR_NUMBER = os.getenv("CIRCLE_PULL_REQUEST", "")
 GH_API_TOKEN = os.getenv("GH_TOKEN", "")
 GIT_TAG = os.getenv("CIRCLE_TAG", "")
+GIT_BRANCH = os.getenv("CIRCLE_BRANCH", "")
 
 params = {}
 if PR_NUMBER:
     url = PR_NUMBER
     url = url.replace("https://github.com", "https://api.github.com/repos")
     url = url.replace("/pull/", "/issues/")
-    url += "/labels"
 
     print(f"Requesting {url} to get PR labels from GitHub")
 
@@ -29,7 +29,7 @@ if PR_NUMBER:
     response = urllib.request.urlopen(req)
     resp_json = json.loads(response.read().decode("utf8"))
 
-    for label in resp_json:
+    for label in resp_json.get("labels", []):
         name = label.get("name", "")
         print(f"Found GitHub label {name} on PR, enabling flag")
         if name == "CI: Benchmark":
@@ -51,6 +51,15 @@ if PR_NUMBER:
 
     if not params:
         print("No GitHub labels found on PR")
+
+    # This field will be set to MEMBER if the user that opened a PR is a member of the
+    # Zeek github organization. This lets us track internal builds.
+    if resp_json.get("author_association", "NONE") == "MEMBER":
+        params["is_internal_build"] = True
+
+elif GIT_BRANCH == "master" or re.match(r"^release/.*$", GIT_BRANCH):
+    # Builds from master should always be considered internal builds.
+    params["is_internal_build"] = True
 
 if GIT_TAG and re.match(r"^v\d+\.\d+\.\d+(-rc[0-9]+)?$", GIT_TAG):
     params["has_release_tag"] = True

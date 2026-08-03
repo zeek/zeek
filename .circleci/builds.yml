@@ -38,6 +38,10 @@ parameters:
     description: True if running for a tag of the form v1.2.3 or v1.2.3-rc1
     type: boolean
     default: false
+  is_internal_build:
+    description: True if the requesting user is a member of the Zeek Github organization
+    type: boolean
+    default: false
 
 commands:
   clone_repo:
@@ -110,6 +114,17 @@ jobs:
       ZEEK_CI: 1
     steps:
       - checkout
+      - run:
+          name: Set extra environment variables
+          command: |
+            # This could be done in the environment block of the job definition, but
+            # we pass 0/1 for consistency with other environment variables in the rest
+            # of the config.
+            if [[ "<< pipeline.parameters.is_internal_build >>" == "true" ]]; then
+              echo "export ZEEK_CI_INTERNAL_BUILD=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_INTERNAL_BUILD=0" >> "$BASH_ENV"
+            fi
       - restore_cache:
           keys:
             - zeek-traces-v2
@@ -171,9 +186,6 @@ jobs:
             docker buildx create --use --name multiarch-builder --driver docker-container
             docker buildx inspect --bootstrap
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_LOGIN" --password-stdin
-      - run:
           name: Check if image exists remotely
           command: |
             # set +e prevents this script from exiting immediately if one of the commands fails.
@@ -199,6 +211,15 @@ jobs:
                  echo "$FULL_IMAGE_TAG is missing, continuing with build"
                fi
             fi
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            if [ -z "${DOCKER_BUILDIMAGE_LOGIN}" -o -z "${DOCKER_BUILDIMAGE_PASSWORD}" ]; then
+               echo "User doesn't have access to Docker credentials, later builds will fail"
+               circleci-agent step halt
+            fi
+
+            echo "$DOCKER_BUILDIMAGE_PASSWORD" | docker login -u "$DOCKER_BUILDIMAGE_LOGIN" --password-stdin
       - run:
           name: Build and push multi-arch image
           command: |
@@ -274,12 +295,9 @@ jobs:
       ZEEK_TEST_ULIMIT_OPEN_FILES: 256
       ZEEK_CIRCLE_EXTRA_ENV: << parameters.extra_env >>
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
-      HILTI_CXX_COMPILER_LAUNCER: ccache
+      HILTI_CXX_COMPILER_LAUNCHER: ccache
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -294,6 +312,13 @@ jobs:
               echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=1" >> "$BASH_ENV"
             else
               echo "export ZEEK_CI_CREATE_INSTALL_TARBALL=0" >> "$BASH_ENV"
+            fi
+
+            # Same here
+            if [[ "<< pipeline.parameters.is_internal_build >>" == "true" ]]; then
+              echo "export ZEEK_CI_INTERNAL_BUILD=1" >> "$BASH_ENV"
+            else
+              echo "export ZEEK_CI_INTERNAL_BUILD=0" >> "$BASH_ENV"
             fi
 
             IFS=$'\n'
@@ -390,7 +415,7 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       CTEST_OUTPUT_ON_FAILURE: 1
       VSINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\'
-      HILTI_CXX_COMPILER_LAUNCER: ccache
+      HILTI_CXX_COMPILER_LAUNCHER: ccache
     machine:
       image: windows-server-2025-gui:edge
     resource_class: windows.large
@@ -481,7 +506,7 @@ jobs:
       ZEEK_CI_BTEST_RETRIES: 2
       ZEEK_CI_RUNNER_OS: macos
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
-      HILTI_CXX_COMPILER_LAUNCER: ccache
+      HILTI_CXX_COMPILER_LAUNCHER: ccache
     macos:
       xcode: << parameters.xcode_version >>
     resource_class: m4pro.medium
@@ -796,9 +821,6 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -863,9 +885,6 @@ jobs:
       ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
     docker:
       - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -1123,8 +1142,6 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
@@ -1157,8 +1174,6 @@ workflows:
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-spicy-head
@@ -1170,8 +1185,6 @@ workflows:
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
-          context:
-            - zeek
           << : *FILTER_IF_PR_NOT_FULL_OR_BENCHMARK
       - linux-build:
           name: ubuntu-24.04-zam
@@ -1199,8 +1212,6 @@ workflows:
           enable_coverage: true
           enable_fuzzer_tests: true
           cpu_count: 8
-          context:
-            - zeek
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CXXFLAGS=-DZEEK_DICT_DEBUG

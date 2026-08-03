@@ -31,10 +31,11 @@ event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count
 ##      message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
 ##      not transported over a pipe.
 ##
-## auth_type: Numeric security provider identifier, e.g. 9 for GSSAPI, 10 for NTLM, 16 for Kerberos.
+## auth_type: Numeric security provider identifier, e.g. 9 for SPNEGO, 10 for NTLM, 16 for Kerberos.
+##            See :zeek:see:`DCE_RPC::auth_types` for a mapping to the MS-RPCE names.
 ##
 ## auth_level: Numeric protection level requested for the RPC traffic, e.g. 6 for privacy (sealed) or 5 for
-##             integrity (signed).
+##             integrity (signed). See :zeek:see:`DCE_RPC::auth_levels` for a mapping to the MS-RPCE names.
 ##
 ## auth_context_id: Identifier tying this verifier to a security context, allowing multiple concurrent contexts on one
 ##                  connection to be distinguished.

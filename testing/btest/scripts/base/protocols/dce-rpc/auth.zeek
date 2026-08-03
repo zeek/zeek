@@ -35,7 +35,9 @@
 event dce_rpc_auth(c: connection, is_orig: bool, fid: count, auth_type: count, auth_level: count, auth_context_id: count) &priority=-5
 	{
 	print fmt("dce_rpc_auth :: is_orig == %s, fid == %s", is_orig, fid);
-	print fmt("dce_rpc_auth :: auth_type == %s, auth_level == %s, auth_context_id == %s", auth_type, auth_level, auth_context_id);
+	print fmt("dce_rpc_auth :: auth_type == %s (%s), auth_level == %s (%s), auth_context_id == %s",
+	          auth_type, DCE_RPC::auth_types[auth_type], auth_level, DCE_RPC::auth_levels[auth_level],
+	          auth_context_id);
 	}
 
 event dce_rpc_message(c: connection, is_orig: bool, fid: count, ptype_id: count, ptype: DCE_RPC::PType) &priority=5

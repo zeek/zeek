@@ -1,3 +1,9 @@
+9.0.0-dev.777 | 2026-08-03 20:09:22 +0200
+
+  * Add auth_type and auth_level mappings (Mohan Dhawan, Corelight)
+
+  * Add event to access DCERPC AuthInfo from Zeek scripts (Mohan Dhawan, Corelight)
+
 9.0.0-dev.774 | 2026-08-03 19:37:22 +0200
 
   * UnknownIPTransport: Drop htons() on ip_hdr->NextProto() (Arne Welzel, Corelight)

@@ -36,6 +36,19 @@ refine connection DCE_RPC_Conn += {
 
 	function forward_auth(auth: DCE_RPC_Auth, is_orig: bool): bool
 		%{
+		// Report the negotiated provider and protection level before we hand the blob
+		// off below. Both come from the verifier header, so we get them for every
+		// provider -- including Kerberos, where the AP-REQ is buried in the blob and
+		// never surfaces at this layer.
+		if ( dce_rpc_auth )
+			zeek::BifEvent::enqueue_dce_rpc_auth(zeek_analyzer(),
+			                                     zeek_analyzer()->Conn(),
+			                                     is_orig,
+			                                     fid,
+			                                     ${auth.type},
+			                                     ${auth.level},
+			                                     ${auth.context_id});
+
 		switch ( ${auth.type} )  // https://social.msdn.microsoft.com/Forums/en-US/44212c32-a4f6-4960-8799-0e00821650f4/msrpc-and-dcerpc-security?forum=os_windowsprotocols
 			{
 			case 0x09:
@@ -77,5 +90,5 @@ refine connection DCE_RPC_Conn += {
 };
 
 refine typeattr DCE_RPC_Auth += &let {
-	proc = $context.connection.forward_auth(this, true);
+	proc = $context.connection.forward_auth(this, header.is_orig);
 }

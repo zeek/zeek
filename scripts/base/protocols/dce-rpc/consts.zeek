@@ -245,6 +245,30 @@ export {
 		["srvsvc"] = "4b324fc8-1670-01d3-1278-5a47bf6ee188",
 	} &redef;
 
+	## ``auth_type`` numeric codes as listed in
+	## MS-RPCE Security Providers <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/d4097450-c62f-484b-872f-ddf59a7a0d36>.
+	const auth_types: table[count] of string = {
+		[0x00] = "RPC_C_AUTHN_NONE",
+		[0x09] = "RPC_C_AUTHN_GSS_NEGOTIATE",
+		[0x0A] = "RPC_C_AUTHN_WINNT",
+		[0x0E] = "RPC_C_AUTHN_GSS_SCHANNEL",
+		[0x10] = "RPC_C_AUTHN_GSS_KERBEROS",
+		[0x44] = "RPC_C_AUTHN_NETLOGON",
+		[0xFF] = "RPC_C_AUTHN_DEFAULT",
+	} &redef &default=function(i: count): string { return fmt("unknown-%d", i); };
+
+	## ``auth_level`` numeric codes as listed in
+	## MS-RPCE Authentication Levels <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/425a7c53-c33a-4868-8e5b-2a850d40dc73>`.
+	const auth_levels: table[count] of string = {
+		[0x00] = "RPC_C_AUTHN_LEVEL_DEFAULT",
+		[0x01] = "RPC_C_AUTHN_LEVEL_NONE",
+		[0x02] = "RPC_C_AUTHN_LEVEL_CONNECT",
+		[0x03] = "RPC_C_AUTHN_LEVEL_CALL",
+		[0x04] = "RPC_C_AUTHN_LEVEL_PKT",
+		[0x05] = "RPC_C_AUTHN_LEVEL_PKT_INTEGRITY",
+		[0x06] = "RPC_C_AUTHN_LEVEL_PKT_PRIVACY",
+	} &redef &default=function(i: count): string { return fmt("unknown-%d", i); };
+
 	const operations: table[string,count] of string = {
 		# atsvc
 		["1ff70682-0a51-30e8-076d-740be8cee98b",0x00] = "NetrJobAdd",

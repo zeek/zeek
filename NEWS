@@ -134,6 +134,10 @@ New Functionality
 - The ``kerberos.log`` log entries now contains ``AP`` entries with filled ``service``
   and ``cipher`` columns. Previously, the log entries had all columns unset.
 
+- A new event ``dce_rpc_auth()`` was added for script-level access to the selected
+  security provider, per-message protection and authentication context contained
+  in DCE-RPC PDUs.
+
 Changed Functionality
 ---------------------
 

@@ -1,3 +1,19 @@
+8.0.9-5 | 2026-08-07 16:18:20 -0700
+
+  * UnknownIPTransport: Drop htons() on ip_hdr->NextProto() (Arne Welzel, Corelight)
+
+    @ekoyle reports unknown_protocols.log showing a two byte protocol field
+    (e.g. 0x200 or 0x8400) instead of a single byte in the protocol_id column
+    for when an IP-based protocol isn't supported.
+
+    This was due to a spurious htons() call in the UnknownIPTransportAnalyzer
+    promoting the protocol byte to 16 bit and flipping the byte order before
+    creating a script-level count value from it.
+
+    (cherry picked from commit dbc6a35da9eeeb4b0ec2e38c34b2e85a7686be8e)
+
+  * Update broker submodule for JSON address fix (Tim Wojtulewicz, Corelight)
+
 8.0.9-3 | 2026-08-07 16:15:27 -0700
 
   * GH-5674: telemetry/services.json: Render IPv6 addresses as URI string (Arne Welzel, Corelight)

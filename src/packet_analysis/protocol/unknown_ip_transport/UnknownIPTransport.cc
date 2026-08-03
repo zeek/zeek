@@ -19,7 +19,7 @@ bool UnknownIPTransportAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, 
     packet->processed = false;
 
     if ( report_unknown_protocols )
-        packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), htons(packet->ip_hdr->NextProto()), data, len);
+        packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), packet->ip_hdr->NextProto(), data, len);
 
     return false;
 }

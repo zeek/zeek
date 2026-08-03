@@ -8,10 +8,11 @@ PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
+SyslogIdentifier=zeek-archiver
 Type=exec
 User=zeek
 Group=zeek
-WorkingDirectory=
+WorkingDirectory=<...>/zeek
 ReadWritePaths=<...>/log-queue <...>/zeek
 CPUAffinity=1,2,3,4
 Nice=3

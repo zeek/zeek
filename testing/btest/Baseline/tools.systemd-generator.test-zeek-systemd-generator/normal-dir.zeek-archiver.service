@@ -8,10 +8,11 @@ PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]
+SyslogIdentifier=zeek-archiver
 Type=exec
 User=test-zeek-user
 Group=test-zeek-group
-WorkingDirectory=
+WorkingDirectory=<...>/zeek
 ReadWritePaths=<...>/log-queue <...>/zeek
 ExecStart=<...>/zeek-archiver <...>/log-queue <...>/zeek
 Slice=zeek-archiver.slice

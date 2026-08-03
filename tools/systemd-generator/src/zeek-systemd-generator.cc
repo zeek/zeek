@@ -347,6 +347,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     if ( config.IsArchiverEnabled() ) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());
         archiver_unit.SetPartOf("zeek.target");
+        archiver_unit.SetSyslogIdentifier("zeek-archiver");
+        archiver_unit.SetWorkingDirectory(config.SpoolDir());
         archiver_unit.SetStartLimitIntervalSec("0");
         archiver_unit.SetExecStart(config.ArchiverCommand());
         archiver_unit.SetUser(config.User());

@@ -1,3 +1,7 @@
+9.0.0-dev.785 | 2026-08-03 13:46:17 -0700
+
+  * CCI: Use the right endpoint for requesting GH API info (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.783 | 2026-08-03 12:18:49 -0700
 
   * CI: Only clone zeek-testing-private for internal builds (Tim Wojtulewicz, Corelight)

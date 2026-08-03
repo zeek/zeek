@@ -73,6 +73,10 @@ export {
 	# we'll piggyback on that.
 	option max_pending_commands = 10000;
 
+	## Maximum total child values retained while parsing one RESP aggregate.
+	## A value of zero disables the limit.
+	option max_aggregate_elements = 20000;
+
 	# These commands enter subscribed mode
 	global enter_subscribed_mode = [RedisCommand_PSUBSCRIBE,
 	    RedisCommand_SSUBSCRIBE, RedisCommand_SUBSCRIBE];

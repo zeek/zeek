@@ -1,3 +1,17 @@
+8.2.1-7 | 2026-08-11 10:46:24 -0700
+
+  * UnknownIPTransport: Drop htons() on ip_hdr->NextProto() (Arne Welzel, Corelight)
+
+    @ekoyle reports unknown_protocols.log showing a two byte protocol field
+    (e.g. 0x200 or 0x8400) instead of a single byte in the protocol_id column
+    for when an IP-based protocol isn't supported.
+
+    This was due to a spurious htons() call in the UnknownIPTransportAnalyzer
+    promoting the protocol byte to 16 bit and flipping the byte order before
+    creating a script-level count value from it.
+
+    (cherry picked from commit dbc6a35da9eeeb4b0ec2e38c34b2e85a7686be8e)
+
 8.2.1-6 | 2026-08-11 10:45:43 -0700
 
   * GH-5548: logging: Stash vector of Field* into LogWriteHeader, use for plugin hooks (Arne Welzel, Corelight)

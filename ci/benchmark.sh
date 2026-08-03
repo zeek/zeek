@@ -5,9 +5,9 @@ ZEEK_BENCHMARK_ENDPOINT="/zeek"
 # Setting this causes any command failures to immediately cause the script to fail.
 set -e
 
-# Skip running benchmarks for jobs from forks.
-if [ ${ZEEK_IS_INTERNAL_JOB:-0} -ne 1 ]; then
-    echo "Coverage upload skipped for jobs from forks"
+# Skip running benchmarks for jobs from forks, third-parties, or non-Circle builds.
+if [[ ${ZEEK_CI_INTERNAL_BUILD:-0} != 1 || "${CIRCLE_PROJECT_REPONAME}" != "zeek" ]]; then
+    echo "Benchmarking skipped for jobs from forks"
     exit 0
 fi
 

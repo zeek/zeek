@@ -359,65 +359,15 @@ Streaming_RE_Matcher::Streaming_RE_Matcher(Specific_RE_Matcher* matcher) {
 }
 
 Streaming_RE_Matcher::Status Streaming_RE_Matcher::FeedForFirstMatch(const u_char* bv, int n, bool bol, bool eol) {
-    if ( ! dfa ) {
-        if ( current_pos == -1 ) {
-            current_pos = 0;
-            last_accept_pos = 0;
-        }
-        return JAMMED;
-    }
-
-    if ( current_pos == -1 ) {
-        current_pos = 0;
-        current_state = dfa->StartState();
-
-        if ( bol ) {
-            current_state = current_state->Xtion(ecs[SYM_BOL], dfa);
-            if ( ! current_state )
-                return JAMMED;
-        }
-
-        if ( current_state->Accept() ) {
-            last_accept_pos = 0;
-            current_state = nullptr;
-            return JAMMED;
-        }
-    }
-
-    if ( ! current_state )
-        return JAMMED;
-
-    for ( int i = 0; i < n; ++i ) {
-        int ec = ecs[bv[i]];
-        DFA_State* next_state = current_state->Xtion(ec, dfa);
-
-        if ( ! next_state ) {
-            current_state = nullptr;
-            return JAMMED;
-        }
-
-        current_state = next_state;
-        ++current_pos;
-
-        if ( current_state->Accept() ) {
-            last_accept_pos = current_pos;
-            current_state = nullptr;
-            return JAMMED;
-        }
-    }
-
-    if ( eol ) {
-        DFA_State* eol_state = current_state->Xtion(ecs[SYM_EOL], dfa);
-        if ( eol_state && eol_state->Accept() )
-            last_accept_pos = current_pos;
-        current_state = nullptr;
-        return JAMMED;
-    }
-
-    return ALIVE;
+    return DoFeed</*JamOnFirstMatch=*/true>(bv, n, bol, eol);
 }
 
 Streaming_RE_Matcher::Status Streaming_RE_Matcher::Feed(const u_char* bv, int n, bool bol, bool eol) {
+    return DoFeed</*JamOnFirstMatch=*/false>(bv, n, bol, eol);
+}
+
+template<bool JamOnFirstMatch>
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::DoFeed(const u_char* bv, int n, bool bol, bool eol) {
     if ( ! dfa ) {
         if ( current_pos == -1 ) {
             current_pos = 0;
@@ -438,7 +388,7 @@ Streaming_RE_Matcher::Status Streaming_RE_Matcher::Feed(const u_char* bv, int n,
 
         if ( current_state->Accept() ) {
             last_accept_pos = 0;
-            if ( current_state->IsTerminal() ) {
+            if ( JamOnFirstMatch || current_state->IsTerminal() ) {
                 current_state = nullptr;
                 return JAMMED;
             }
@@ -462,7 +412,7 @@ Streaming_RE_Matcher::Status Streaming_RE_Matcher::Feed(const u_char* bv, int n,
 
         if ( current_state->Accept() ) {
             last_accept_pos = current_pos;
-            if ( current_state->IsTerminal() ) {
+            if ( JamOnFirstMatch || current_state->IsTerminal() ) {
                 current_state = nullptr;
                 return JAMMED;
             }

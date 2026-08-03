@@ -241,6 +241,10 @@ protected:
     DFA_State* current_state;
     int current_pos;
     int last_accept_pos;
+
+private:
+    template<bool JamOnFirstMatch>
+    Status DoFeed(const u_char* bv, int n, bool bol, bool eol);
 };
 
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);

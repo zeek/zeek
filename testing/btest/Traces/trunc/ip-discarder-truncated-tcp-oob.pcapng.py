@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-"""Generate the truncated IPv4/TCP pcapng used for the IP discarder crash path.
+"""
+Generate the truncated IPv4/TCP pcapng used for the IP discarder crash path.
 
 The packet's wire length is Ethernet + IPv4 + TCP (54 bytes), but the capture
 contains only Ethernet + IPv4 (34 bytes).  This lets Zeek see an IP total length

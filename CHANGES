@@ -1,3 +1,7 @@
+9.0.0-dev.772 | 2026-08-03 10:03:27 -0700
+
+  * Rewrite Traces/README file for Python generator scripts (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.770 | 2026-07-31 20:02:22 +0200
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

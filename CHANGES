@@ -1,3 +1,15 @@
+9.0.0-dev.774 | 2026-08-03 19:37:22 +0200
+
+  * UnknownIPTransport: Drop htons() on ip_hdr->NextProto() (Arne Welzel, Corelight)
+
+    @ekoyle reports unknown_protocols.log showing a two byte protocol field
+    (e.g. 0x200 or 0x8400) instead of a single byte in the protocol_id column
+    for when an IP-based protocol isn't supported.
+
+    This was due to a spurious htons() call in the UnknownIPTransportAnalyzer
+    promoting the protocol byte to 16 bit and flipping the byte order before
+    creating a script-level count value from it.
+
 9.0.0-dev.772 | 2026-08-03 10:03:27 -0700
 
   * Rewrite Traces/README file for Python generator scripts (Tim Wojtulewicz, Corelight)

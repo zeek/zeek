@@ -252,6 +252,11 @@ Changed Functionality
   connection history with 'X' if Zeek will stop processing traffic after
   the limit was hit. This is in line with other, similar weirds.
 
+- The ``unknown_protocols.log`` previously included the IP next protocol field
+  as a 16 bit value, with the first byte value set to the next protocol followed
+  by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
+  just the next protocol byte.
+
 Deprecated Functionality
 ------------------------
 

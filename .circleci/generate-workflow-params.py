@@ -14,7 +14,7 @@ params = {}
 if PR_NUMBER:
     url = PR_NUMBER
     url = url.replace("https://github.com", "https://api.github.com/repos")
-    url = url.replace("/pull/", "/issues/")
+    url = url.replace("/pull/", "/pulls/")
 
     print(f"Requesting {url} to get PR labels from GitHub")
 

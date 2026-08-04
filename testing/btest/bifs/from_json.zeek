@@ -238,3 +238,12 @@ event zeek_init()
 	print result$valid;
 	print result$v;
 	}
+
+# @TEST-START-NEXT
+# invalid addr/subnet strings must return a result error, not a fatal Zeek error
+event zeek_init()
+	{
+	print from_json("\"not-an-address\"", addr);
+	print from_json("\"not-an-address/24\"", subnet);
+	print from_json("\"192.168.0.1/64\"", subnet);
+	}

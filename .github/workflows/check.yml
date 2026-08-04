@@ -403,7 +403,7 @@ jobs:
         file: ${{ matrix.file }}
         context: . # Reuse the current checkout instead of doing a full recursive clone again.
         tags: zeek-ci-${{ hashFiles(matrix.file) }}
-        cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/zeek-ci:${{ matrix.id }},mode=max
+        cache-to: ${{ github.event.pull_request.head.repo.full_name == github.repository && format('type=registry,ref=ghcr.io/{0}/zeek-ci:{1},mode=max', github.repository, matrix.id) || '' }}
         cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/zeek-ci:${{ matrix.id }}
         load: true
         push: false

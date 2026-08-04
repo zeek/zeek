@@ -828,6 +828,14 @@ export {
 	};
 }
 
+module ZIP;
+
+export {
+	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
+	## Set to 0 to disable the limit.
+	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
+}
+
 module GLOBAL;
 
 ## A type alias for a vector of encapsulating "connections", i.e. for when

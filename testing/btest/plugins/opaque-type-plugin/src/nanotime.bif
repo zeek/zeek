@@ -1,0 +1,16 @@
+%%{
+#include <zeek/util.h>
+#include <zeek/RunState.h>
+
+#include "NanoTime.h"
+%%}
+
+module GLOBAL;
+
+## For testing returns a fixed value.
+function nanotime%(%): NanoTime
+	%{
+	// time.time() from Python on Aug 4, 2026  1785856683.3503187
+	uint64_t nanos = 1785856683350318700UL;
+	return zeek::make_intrusive<btest::type::NanoTimeVal>(nanos);
+	%}

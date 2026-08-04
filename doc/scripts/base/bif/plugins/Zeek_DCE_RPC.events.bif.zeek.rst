@@ -14,6 +14,8 @@ Events
 ========================================================= ==============================================================================================================================
 :zeek:id:`dce_rpc_alter_context`: :zeek:type:`event`      Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context request message.
 :zeek:id:`dce_rpc_alter_context_resp`: :zeek:type:`event` Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` alter context response message.
+:zeek:id:`dce_rpc_auth`: :zeek:type:`event`               Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` PDU that carries an
+                                                          authentication verifier, i.e.
 :zeek:id:`dce_rpc_bind`: :zeek:type:`event`               Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request message.
 :zeek:id:`dce_rpc_bind_ack`: :zeek:type:`event`           Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` bind request ack message.
 :zeek:id:`dce_rpc_message`: :zeek:type:`event`            Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` message.
@@ -75,6 +77,44 @@ Events
         not transported over a pipe.
 
    .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response dce_rpc_alter_context
+
+.. zeek:id:: dce_rpc_auth
+   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 48 48
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, fid: :zeek:type:`count`, auth_type: :zeek:type:`count`, auth_level: :zeek:type:`count`, auth_context_id: :zeek:type:`count`)
+
+   Generated for every :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` PDU that carries an
+   authentication verifier, i.e. one whose ``auth_length`` header field is non-zero. This is typically a bind,
+   alter_context, auth3, or their responses, but any PDU may carry a verifier once a security context is established.
+
+   Keep in mind that the client's ``auth_level`` is only what it asked for; a server unwilling to honor it rejects the
+   bind instead. To find out what the two sides actually settled on, look at the responder's own occurrence of this
+   event, or at the bind_ack that follows.
+
+
+   :param c: The connection.
+
+
+   :param is_orig: True if the PDU was sent by the originator of the TCP connection.
+
+
+   :param fid: File ID of the PIPE that carried the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)`
+        message. Zero will be used if the :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)` was
+        not transported over a pipe.
+
+
+   :param auth_type: Numeric security provider identifier, e.g. 9 for SPNEGO, 10 for NTLM, 16 for Kerberos.
+              See :zeek:see:`DCE_RPC::auth_types` for a mapping to the MS-RPCE names.
+
+
+   :param auth_level: Numeric protection level requested for the RPC traffic, e.g. 6 for privacy (sealed) or 5 for
+               integrity (signed). See :zeek:see:`DCE_RPC::auth_levels` for a mapping to the MS-RPCE names.
+
+
+   :param auth_context_id: Identifier tying this verifier to a security context, allowing multiple concurrent contexts on one
+                    connection to be distinguished.
+
+   .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack ntlm_negotiate krb_ap_request
 
 .. zeek:id:: dce_rpc_bind
    :source-code: base/protocols/dce-rpc/main.zeek 123 135
@@ -180,7 +220,7 @@ Events
    .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response dce_rpc_request_stub
 
 .. zeek:id:: dce_rpc_request_stub
-   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 143 143
+   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 172 172
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub: :zeek:type:`string`)
 
@@ -206,7 +246,7 @@ Events
    .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_response_stub dce_rpc_request
 
 .. zeek:id:: dce_rpc_response
-   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 125 125
+   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 154 154
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub_len: :zeek:type:`count`)
 
@@ -232,7 +272,7 @@ Events
    .. zeek:see:: dce_rpc_message dce_rpc_bind dce_rpc_bind_ack dce_rpc_request dce_rpc_response_stub
 
 .. zeek:id:: dce_rpc_response_stub
-   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 161 161
+   :source-code: base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek 190 190
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fid: :zeek:type:`count`, ctx_id: :zeek:type:`count`, opnum: :zeek:type:`count`, stub: :zeek:type:`string`)
 

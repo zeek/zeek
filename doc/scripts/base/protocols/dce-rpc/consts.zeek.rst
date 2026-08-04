@@ -11,20 +11,70 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-=========================================================================================================================== ==================================================
+=========================================================================================================================== ============================================================================================================================================
+:zeek:id:`DCE_RPC::auth_levels`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`       ``auth_level`` numeric codes as listed in
+                                                                                                                            MS-RPCE Authentication Levels <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/425a7c53-c33a-4868-8e5b-2a850d40dc73>`.
+:zeek:id:`DCE_RPC::auth_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`        ``auth_type`` numeric codes as listed in
+                                                                                                                            MS-RPCE Security Providers <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/d4097450-c62f-484b-872f-ddf59a7a0d36>.
 :zeek:id:`DCE_RPC::operations`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
 :zeek:id:`DCE_RPC::pipe_name_to_common_uuid`: :zeek:type:`table` :zeek:attr:`&redef`                                        This table is to map pipe names to the most common
                                                                                                                             service used over that pipe.
 :zeek:id:`DCE_RPC::uuid_endpoint_map`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
-=========================================================================================================================== ==================================================
+=========================================================================================================================== ============================================================================================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
+.. zeek:id:: DCE_RPC::auth_levels
+   :source-code: base/protocols/dce-rpc/consts.zeek 262 262
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [2] = "RPC_C_AUTHN_LEVEL_CONNECT",
+            [3] = "RPC_C_AUTHN_LEVEL_CALL",
+            [5] = "RPC_C_AUTHN_LEVEL_PKT_INTEGRITY",
+            [0] = "RPC_C_AUTHN_LEVEL_DEFAULT",
+            [6] = "RPC_C_AUTHN_LEVEL_PKT_PRIVACY",
+            [4] = "RPC_C_AUTHN_LEVEL_PKT",
+            [1] = "RPC_C_AUTHN_LEVEL_NONE"
+         }
+
+
+   ``auth_level`` numeric codes as listed in
+   MS-RPCE Authentication Levels <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/425a7c53-c33a-4868-8e5b-2a850d40dc73>`.
+
+.. zeek:id:: DCE_RPC::auth_types
+   :source-code: base/protocols/dce-rpc/consts.zeek 250 250
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [68] = "RPC_C_AUTHN_NETLOGON",
+            [9] = "RPC_C_AUTHN_GSS_NEGOTIATE",
+            [0] = "RPC_C_AUTHN_NONE",
+            [10] = "RPC_C_AUTHN_WINNT",
+            [14] = "RPC_C_AUTHN_GSS_SCHANNEL",
+            [16] = "RPC_C_AUTHN_GSS_KERBEROS",
+            [255] = "RPC_C_AUTHN_DEFAULT"
+         }
+
+
+   ``auth_type`` numeric codes as listed in
+   MS-RPCE Security Providers <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rpce/d4097450-c62f-484b-872f-ddf59a7a0d36>.
+
 .. zeek:id:: DCE_RPC::operations
-   :source-code: base/protocols/dce-rpc/consts.zeek 248 248
+   :source-code: base/protocols/dce-rpc/consts.zeek 272 272
 
    :Type: :zeek:type:`table` [:zeek:type:`string`, :zeek:type:`count`] of :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`

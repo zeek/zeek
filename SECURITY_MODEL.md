@@ -8,8 +8,8 @@ when designing Zeek and assessing potential vulnerabilities.
 
 This model guides engineering and triage. It does not replace the
 [security reporting process](SECURITY.md) or the Security Release Process. The
-Zeek Security Team (ZST) makes final decisions about scope, severity,
-disclosure, and supported-version impact.
+Zeek Team makes final decisions about scope, severity, disclosure, and
+supported-version impact.
 
 For deployment hardening, see the
 [Security Considerations](doc/security-considerations.rst).
@@ -92,7 +92,7 @@ input is not treated as a remote boundary crossing.
 
 A defect rooted in a third-party component can still affect Zeek when that
 component is shipped or reachable through a supported Zeek deployment. Report
-it privately so the ZST can coordinate ownership and disclosure. Zeek-owned
+it privately so the team can coordinate ownership and disclosure. Zeek-owned
 integration, configuration, and validation errors remain within Zeek's
 boundary.
 
@@ -125,9 +125,9 @@ When handling untrusted or restricted input, Zeek should preserve:
    unrelated analysis.
 
 A deviation from these properties is a candidate for assessment, not
-automatically a vulnerability. Actor, reachability, configuration,
-materiality, and the support status of the affected functionality determine
-classification.
+automatically a vulnerability. Actor, reachability, materiality, and whether
+the affected functionality is supported or experimental inform classification.
+Configuration and default exposure inform severity.
 
 ## Assessment Principles
 
@@ -138,7 +138,7 @@ A security assessment should:
 2. State the actor, required access, deployment assumptions, and
    configuration.
 3. Confirm reachability in a supported production-style build when practical.
-   A sanitizer can establish a reachable memory-safety defect even when a
+   AddressSanitizer can establish a reachable memory-safety defect even when a
    release build does not visibly fail; the sanitizer termination itself does
    not establish operational impact or severity. A fatal condition present in
    a production build and reached from the assessed untrusted or restricted
@@ -151,11 +151,10 @@ A security assessment should:
    sustained traffic volume.
 6. For analysis differences, identify the event, log, state, or security
    signal that is lost or falsified.
-7. Record whether affected functionality is enabled by default, supported but
-   optional, or explicitly experimental. Supported optional functionality
-   remains assessable. Experimental, preliminary, or work-in-progress
-   functionality that is inactive by default generally has lower exposure and
-   may receive Low or no-risk treatment.
+7. Record whether the affected functionality is supported or explicitly
+   experimental. Supported functionality remains in scope whether or not it is
+   enabled by default; default configuration and experimental status inform
+   exposure and severity.
 8. Identify whether the root cause belongs to Zeek, a shipped integration, a
    generator, or a third-party component.
 9. Separate confirmed observations from assumptions and provisional severity.
@@ -165,7 +164,7 @@ establish a security issue. Neither does a harmless output difference without
 demonstrated operational or analysis impact.
 
 When classification is uncertain but a plausible boundary and material impact
-exist, report the issue privately and allow the ZST to classify it.
+exist, report the issue privately and allow the team to classify it.
 
 ## Classification Boundaries
 

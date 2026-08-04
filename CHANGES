@@ -1,3 +1,15 @@
+9.0.0-dev.790 | 2026-08-04 12:54:14 +0200
+
+  * doc/advanced/deployment: Add archiver and custom address/prefix usage (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Set archiver WorkingDirectory and SyslogIdentifier (Arne Welzel, Corelight)
+
+    Think this was just forgotten. Set the working directory of the archiver
+    to <PREFIX>/var/spool/zeek, so it can easily see the log-queue, but also
+    the individual logger directories.
+
+  * tools/cluster-layout-generator: Support empty cluster_node_prefix (Arne Welzel, Corelight)
+
 9.0.0-dev.785 | 2026-08-03 13:46:17 -0700
 
   * CCI: Use the right endpoint for requesting GH API info (Tim Wojtulewicz, Corelight)

@@ -468,6 +468,66 @@ you should see each of the Zeek nodes saying hello to each other node.
 You successfully started up a multi-host Zeek cluster!
 
 
+Archiver Support
+================
+
+Besides the Zeek processes participating in a cluster, support for log archiving is
+enabled by default on hosts that run least one logger process or run the manager process:
+This functionality is provided by `zeek-archiver <https://github.com/zeek/zeek-aux/tree/master/zeek-archiver>`_
+and is visible earlier in the ``zeek.slice`` output:
+
+.. code:: console
+
+     CGroup: /zeek.slice
+             ├─zeek-archiver.slice
+             │ └─zeek-archiver.service
+             │   └─2601102 /opt/zeek/bin/zeek-archiver /opt/zeek/var/spool/zeek/log-queue /opt/zeek/var/logs/zeek
+
+
+To customize this functionality, you may set the ``archiver`` option in ``zeek.conf``
+to ``0`` (disabled), ``1`` (enabled using ``zeek-archiver``),
+or a path to a custom archiver executable that is expected to run continuously.
+The latter may be used to run a log shipper that follows log files
+created within the working directories of loggers.
+
+The working directory for the archiver process is ``<PREFIX>/var/spool/zeek``
+such that ``./logger-*/`` can be used to find the loggers' working directories,
+or the ``./log-queue/`` directory into which loggers rotate their completed
+logs by default.
+
+``zeek-archiver``'s implementation is currently poll-based, listing the contents
+of the ``log-queue`` directory in regular intervals, then compressing and rotating any
+found logs into ``<PREFIX>/var/log/zeek/<date>/``. Further parameters to the archiver
+can be given via ``archiver_args``.
+
+.. code:: ini
+
+   [zeek]
+   ...
+   archiver = 1
+   # Enable verbose logging and reduce the polling interval from 30 to 3 seconds.
+   archiver_args = -v -i 3
+
+
+Using a custom archiver, like filebeat, looks as follows:
+
+.. code:: ini
+
+   [zeek]
+   ...
+   # Switch to using solely corelight/json-streaming-logs for logging.
+   args = corelight/json-streaming-logs JSONStreaming::disable_default_logs=T
+
+   # Switch to filebeat and cap resources a bit.
+   archiver = /path/to/filebeat
+   archiver_args = run -c /path/to/filebeat.yml --modules zeek
+   archiver_cpu_set = 15,16
+   archiver_memory_max = 2G
+
+You'll need to adapt the logging logic of Zeek and provide a matching ``filebeat.yml``
+file for this to work properly.
+
+
 Cluster Layout Notes
 ====================
 
@@ -516,8 +576,65 @@ addresses of the involved hosts.
 This means that each Zeek process will determine the addresses of all other
 hosts in a cluster when loading the generated ``cluster-layout.zeek`` script
 during startup. That's why it is important to have a functional ``/etc/hosts``
-or DNS setup. Alternatively, set ``cluster_address`` to the host's address
-in the respective ``<hostname>.zeek.conf``.
+or DNS setup.
+
+If you want to control IP addresses and cluster node prefixes used,
+set ``cluster_address`` and ``cluster_node_prefix`` explicitly for every
+host as in the following example. Setting ``cluster_node_prefix`` to an
+empty string unsets the prefix for that host.
+
+.. code:: ini
+
+   # <PREFIX>/etc/zeek/cluster/c-mgr.zeek.conf
+   [zeek]
+   manager  = 1
+   loggers  = 3
+   proxies  = 2
+   archiver = 1
+   
+   cluster_node_prefix =
+   cluster_address = 10.0.0.1
+   cluster_backend_args = misc/zeromq-multi-host-auto-setup
+
+.. code:: ini
+
+   # <PREFIX>/etc/zeek/cluster/c-w-01.zeek.conf
+   [zeek]
+   cluster_node_prefix = worker-01
+   cluster_address = 10.0.0.2
+   cluster_backend_args = misc/zeromq-multi-host-auto-setup
+   
+   [interface eth1]
+   interface = af_packet::eth1
+   workers = 4
+
+.. code:: ini
+
+   # <PREFIX>/etc/zeek/cluster/c-w-02.zeek.conf
+   [zeek]
+   cluster_node_prefix = worker-02
+   cluster_address = 10.0.0.3
+   cluster_backend_args = misc/zeromq-multi-host-auto-setup
+   
+   [interface eth1]
+   interface = af_packet::eth1
+   workers = 4
+
+
+If you want to use your own completely-custom ``cluster-layout.zeek`` file,
+it is possible to set the ``cluster_layout`` option to a path. The generated
+``zeek-setup.service`` will copy the file into ``<PREFIX>/var/spool/zeek/generated-scripts``
+instead of dynamically creating a layout.
+
+.. code:: ini
+
+   [zeek]
+   cluster_layout = /path/to/custom-cluster-layout.zeek
+   cluster_backend_args = misc/zeromq-multi-host-auto-setup
+   ...
+
+Cluster Layout Debugging
+------------------------
 
 You can debug the resulting layout using Zeek itself:
 
@@ -549,6 +666,3 @@ explicit logger, proxy, worker counts rather than reading ``zeek.conf`` files:
 
 You can use the ``zeek-cluster-layout-generator`` executable in non-Linux
 and non-systemd environments as well.
-
-If you want to use a custom ``cluster-layout.zeek`` file, it is possible
-to use ``cluster_layout = /path/to/cluster-layout.zeek`` within ``zeek.conf``.

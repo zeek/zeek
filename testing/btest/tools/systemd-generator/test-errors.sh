@@ -31,7 +31,7 @@ interface = eth0
 workers = 8
 
 # @TEST-START-NEXT
-cluster_node_prefix =
+cluster_node_prefix = /a
 
 # @TEST-START-NEXT
 cluster_node_prefix = a b

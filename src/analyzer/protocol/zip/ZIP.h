@@ -20,10 +20,13 @@ public:
     void DeliverStream(int len, const u_char* data, bool orig) override;
 
 protected:
+    bool ForwardDecompressed(uint64_t len, const Bytef* data);
+
     enum : uint8_t { NONE, ZIP_OK, ZIP_FAIL };
     z_stream* zip;
     int zip_status;
     Method method;
+    uint64_t uncompressed_size = 0;
 };
 
 } // namespace zeek::analyzer::zip

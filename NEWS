@@ -350,6 +350,11 @@ Changed Functionality
   crashing if it sees TCP traffic. This is possible for DNS, including the
   spicy-dns analyzer (which is an optional, separate component from Zeek).
 
+- The HTTP and IRC analyzers now limit decompressed bytes for compressed HTTP
+  bodies and IRC server-to-server links, respectively. This will stop analysis
+  and raise a ``zip_inflate_output_size_exceeded`` weird if the limit is hit.
+  Configure the limit by redefining ``ZIP::max_uncompressed_size``.
+
 Deprecated Functionality
 ------------------------
 

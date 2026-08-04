@@ -31,3 +31,6 @@ function hasfield_non_record() { local x = 5; local b = x ?$ foo; }
 
 # HasFieldExpr (?$) for a field the record doesn't have.
 function hasfield_no_field() { local r: FR; local b = r ?$ nope; }
+
+# Indexing a value whose type cannot be indexed.
+function index_non_indexable() { local x = 5; print x[0]; }

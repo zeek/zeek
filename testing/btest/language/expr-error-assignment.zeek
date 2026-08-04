@@ -40,3 +40,9 @@ function init_bad_record() { local r: AR; r = [1, 2]; }
 
 # List-assignment target with a non-identifier element.
 function assign_list_non_identifier() { local a: count; [a, 1 + 1] = [1, 2]; }
+
+type CoerceSmall: record { a: count; };
+type CoerceLarge: record { a: count; b: count; };
+
+# Coercing a record that lacks a required target field.
+function coerce_missing_required_field() { local small = CoerceSmall($a=1); local large: CoerceLarge = small; }

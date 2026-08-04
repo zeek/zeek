@@ -11,3 +11,4 @@ error in <...>/expr-error-assignment.zeek, line 36: not a valid initializer ((a_
 error in <...>/expr-error-assignment.zeek, line 39: bad record initializer (1, 2)
 warning in <...>/expr-error-assignment.zeek, line 39: expression value ignored ()
 error in <...>/expr-error-assignment.zeek, line 42: can only assign to list of identifiers (a, 1 + 1)
+error in <...>/expr-error-assignment.zeek, line 48: non-optional field "b" missing ((coerce small to CoerceLarge))

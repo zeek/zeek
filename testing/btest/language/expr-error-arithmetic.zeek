@@ -39,3 +39,6 @@ function mix_vector_and_scalar() { local v = vector(1, 2, 3); local a = v + 1; }
 
 # AddToExpr (+=): appending a non-arithmetic element to an arithmetic vector.
 function append_non_arith_to_vector() { local v = vector(1, 2); v += "s"; }
+
+# AddToExpr (+=): appending an incompatible non-arithmetic element.
+function append_incompatible_to_vector() { local v = vector("s"); v += /p/; }

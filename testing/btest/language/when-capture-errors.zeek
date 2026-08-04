@@ -91,4 +91,10 @@ event zeek_init()
 		local l2 = network_time();
 		print l2;
 		}
+
+	# A local may only appear once in the capture list.
+	when [orig1, orig1] ( g > 0 )
+		{
+		print orig1;
+		}
 	}

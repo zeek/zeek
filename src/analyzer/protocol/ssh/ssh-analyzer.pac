@@ -85,8 +85,7 @@ refine flow SSH_Flow += {
 
 		if ( max_len > 0 && len > max_len ) {
 			auto *a = connection()->zeek_analyzer();
-			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-			a->Weird("SSH_max_packet_length_exceeded", zeek::util::fmt("%u > %u", len, max_len));
+			a->LimitReachedWeird("SSH_max_packet_length_exceeded", len, max_len);
 
 			len = max_len;
 		}
@@ -100,8 +99,7 @@ refine flow SSH_Flow += {
 
 		if ( max_len > 0 && len > max_len ) {
 			auto *a = connection()->zeek_analyzer();
-			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-			a->Weird("SSH_max_string_length_exceeded", zeek::util::fmt("%u > %u", len, max_len));
+			a->LimitReachedWeird("SSH_max_string_length_exceeded", len, max_len);
 
 			len = max_len;
 		}

@@ -4,6 +4,17 @@
 Management Framework
 ====================
 
+.. note::
+
+  Development of the Management Framework has been discontinued and its scripting
+  code will be moved into an external package with Zeek 9.1. If you've been deploying
+  Zeek clusters using the Management Framework, you can continue to do so with Zeek 9.0,
+  but should consider moving to :ref:`ZeekControl <cluster-configuration>`, or preferably
+  explore the newer :ref:`zeek.conf and zeek-systemd-generator approach <deploy-systemd>`.
+
+  More details and background on this decision are available on the
+  `Zeek blog <https://zeek.org/2026/08/beyond-zeekcontrol/>`_.
+
 .. rst-class:: opening
 
    The management framework provides a Zeek-based, service-oriented architecture

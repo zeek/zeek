@@ -410,8 +410,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
     for ( ; len > 0; --len, ++data ) {
         if ( offset >= buf_len ) {
             if ( ! InitBufferSafe(buf_len * 2) ) {
-                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-                Weird("nvt_line_size_exceeded", util::fmt("%u", buf_len));
+                LimitReachedWeird("nvt_line_size_exceeded", buf_len);
 
                 // Reset the offset to keep going. Try to forward the data, since
                 // it's handling lines.
@@ -566,8 +565,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
     for ( ; len > 0; --len, ++data ) {
         if ( offset >= buf_len ) {
             if ( ! InitBufferSafe(buf_len * 2) ) {
-                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-                Weird("nvt_option_size_exceeded", util::fmt("%u", buf_len));
+                LimitReachedWeird("nvt_option_size_exceeded", buf_len);
 
                 // Just abort suboption parsing; we aren't getting anything useful anyway.
                 pending_IAC = false;

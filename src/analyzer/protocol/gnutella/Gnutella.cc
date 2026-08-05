@@ -92,9 +92,7 @@ bool Gnutella_Analyzer::NextLine(const u_char* data, int len) {
 
         if ( zeek::BifConst::Gnutella::max_line_length > 0 &&
              ms->buffer.length() >= zeek::BifConst::Gnutella::max_line_length ) {
-            Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-            const char* addl = zeek::util::fmt("%lu", ms->buffer.length());
-            Weird("exceeded_gnutella_max_line_length", addl);
+            LimitReachedWeird("exceeded_gnutella_max_line_length", ms->buffer.length());
 
             return false;
         }
@@ -172,9 +170,7 @@ void Gnutella_Analyzer::DeliverLines(int len, const u_char* data, bool orig) {
             auto new_headers_len = ms->headers.length() + 2 + ms->buffer.length();
             if ( zeek::BifConst::Gnutella::max_header_length > 0 &&
                  new_headers_len >= zeek::BifConst::Gnutella::max_header_length ) {
-                Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-                const char* addl = zeek::util::fmt("%lu", new_headers_len);
-                Weird("exceeded_gnutella_max_headers_length", addl);
+                LimitReachedWeird("exceeded_gnutella_max_headers_length", new_headers_len);
                 return;
             }
 

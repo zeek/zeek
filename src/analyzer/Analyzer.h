@@ -635,6 +635,20 @@ public:
      */
     void Weird(const char* name, const char* addl = "");
 
+    /**
+     * Convenience wrapper around Weird() for reporting that a protocol
+     * analysis limit was reached.
+     *
+     * Formats the addl string as "limit" when limit_max is zero, or
+     * "limit > limit_max" when limit_max is non-zero, and adds the 'X'
+     * character to the connection's history.
+     *
+     * @param name Name of the weird.
+     * @param limit The observed value for which the weird is raised.
+     * @param limit_max The maximum allowed value (0 to omit from output).
+     */
+    void LimitReachedWeird(const char* name, size_t limit, size_t limit_max = 0);
+
 protected:
     friend class AnalyzerTimer;
     friend class Manager;

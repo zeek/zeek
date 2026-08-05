@@ -639,11 +639,9 @@ void MIME_Entity::ContHeader(int len, const char* data) {
 
     if ( zeek::BifConst::MIME::max_header_bytes > 0 &&
          current_header_line->get_total_bytes() >= zeek::BifConst::MIME::max_header_bytes ) {
-        if ( message->GetAnalyzer() ) {
-            message->GetAnalyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-            const char* addl = zeek::util::fmt("%" PRIu64, current_header_line->get_total_bytes());
-            message->GetAnalyzer()->Weird("exceeded_mime_max_header_bytes", addl);
-        }
+        if ( message->GetAnalyzer() )
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_header_bytes",
+                                                      current_header_line->get_total_bytes());
 
         return;
     }
@@ -1094,11 +1092,8 @@ void MIME_Entity::BeginChildEntity() {
     // child entity. Instead, its header/body will be delivered to the
     // current entity.
     if ( zeek::BifConst::MIME::max_depth > 0 && Depth() >= zeek::BifConst::MIME::max_depth ) {
-        if ( message->GetAnalyzer() ) {
-            message->GetAnalyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-            const char* addl = zeek::util::fmt("%" PRIu64, Depth());
-            message->GetAnalyzer()->Weird("exceeded_mime_max_depth", addl);
-        }
+        if ( message->GetAnalyzer() )
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_depth", Depth());
 
         return;
     }

@@ -108,6 +108,29 @@ export {
 	## Disable the SMTP analyzer when that many invalid transactions
 	## have been observed in an SMTP session.
 	option max_invalid_mail_transactions = 25;
+
+	## Maximum number of unique ``rcptto`` addresses allowed for a single
+	## transaction. Exceeding this limit will report a
+	## ``smtp_too_many_rcptto_addresses`` weird and stop adding such addresses to the
+	## transaction. Setting this to zero disables the limit.
+	const max_rcptto_addresses: count = 1000 &redef;
+
+	## Maximum number of unique ``to`` addresses allowed for a single
+	## transaction. Exceeding this limit will report a ``smtp_too_many_to_addresses``
+	## weird and stop adding such addresses to the transaction. Setting this to zero
+	## disables the limit.
+	const max_to_addresses: count = 1000 &redef;
+
+	## Maximum number of unique ``cc`` addresses allowed for a single
+	## transaction. Exceeding this limit will report a ``smtp_too_many_cc_addresses``
+	## weird and stop adding such addresses to the transaction. Setting this to zero
+	## disables the limit.
+	const max_cc_addresses: count = 1000 &redef;
+
+	## Maximum size of the path for a single transaction.  Exceeding this limit will
+	## report a ``smtp_max_path_length_exceeded`` weird and stop adding entries to the
+	## path. Setting this to zero disables the limit.
+	const max_path_length: count = 1000 &redef;
 }
 
 redef record connection += {
@@ -221,6 +244,12 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		local rcptto_addrs = extract_email_addrs_set(arg);
 		for ( rcptto_addr in rcptto_addrs )
 			{
+			if ( max_rcptto_addresses > 0 && |c$smtp$rcptto| >= max_rcptto_addresses )
+				{
+				Reporter::conn_weird("smtp_too_many_rcptto_addresses", c);
+				break;
+				}
+
 			rcptto_addr = gsub(rcptto_addr, /ORCPT=rfc822;?/, "");
 			add c$smtp$rcptto[rcptto_addr];
 			}
@@ -333,6 +362,12 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		local to_email_addrs = split_mime_email_addresses(h$value);
 		for ( to_email_addr in to_email_addrs )
 			{
+			if ( max_to_addresses > 0 && |c$smtp$to| >= max_to_addresses )
+				{
+				Reporter::conn_weird("smtp_too_many_to_addresses", c);
+				break;
+				}
+
 			add c$smtp$to[to_email_addr];
 			}
 		}
@@ -344,7 +379,15 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 
 		local cc_parts = split_mime_email_addresses(h$value);
 		for ( cc_part in cc_parts )
+			{
+			if ( max_cc_addresses > 0 && |c$smtp$cc| >= max_cc_addresses )
+				{
+				Reporter::conn_weird("smtp_too_many_cc_addresses", c);
+				break;
+				}
+
 			add c$smtp$cc[cc_part];
+			}
 		}
 
 	else if ( h$name == "X-ORIGINATING-IP" )
@@ -381,8 +424,17 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=3
 		{
 		c$smtp$process_received_from = F;
 		}
+
 	if ( c$smtp$path[|c$smtp$path|-1] != ip )
+		{
+		if ( max_path_length > 0 && |c$smtp$path| >= max_path_length )
+			{
+			Reporter::conn_weird("smtp_max_path_length_exceeded", c);
+			return;
+			}
+
 		c$smtp$path += ip;
+		}
 	}
 
 # This event handler sets the flag to stop processing SMTP headers if

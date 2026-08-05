@@ -3,7 +3,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: zeek -r ${TRACES}/ldap/asn1-max-recursion.pcap %INPUT >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-locations" btest-diff output
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag,
     info: AnalyzerViolationInfo)

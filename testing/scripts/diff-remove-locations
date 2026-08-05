@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+#
+# Replace source location line/column numbers (e.g. from Spicy error messages)
+# with a placeholder so baselines don't depend on them. Only the specific
+# ":line:col-line:col" range form is canonified to avoid clobbering unrelated
+# ":n:n" sequences such as timestamps.
+
+sed -E 's#:[0-9]+:[0-9]+-[0-9]+:[0-9]+#:<location>#g'

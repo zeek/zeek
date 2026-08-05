@@ -1,3 +1,15 @@
+9.0.0-dev.804 | 2026-08-05 19:31:15 +0200
+
+  * btest/plugins/opaque-type: Skip with ZAM enabled (Arne Welzel, Corelight)
+
+    I had made the test to actually be able to reference NanoTime in script
+    and the default initialization path works with the tree-walking interpreter,
+    but the ZAM side isn't hooked up, so skip for now to prevent this error:
+
+        error: <...>/zeek/testing/btest/.tmp/plugins.opaque-type/opaque-type.zeek,
+        line 23: value used but not set: nanos
+        fatal error: Optimized script execution aborted due to errors
+
 9.0.0-dev.802 | 2026-08-05 11:02:55 +0200
 
   * Streaming_RE_Matcher: Switch to unified templated DoFeed() helper (Arne Welzel, Corelight)

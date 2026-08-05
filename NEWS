@@ -138,6 +138,13 @@ New Functionality
   security provider, per-message protection and authentication context contained
   in DCE-RPC PDUs.
 
+- The ``OpaqueType`` class has been made non-final and extended with hooks for hashing,
+  casting and default initialization. This allows adding new scripting types that may be
+  stored in sets or tables and casted to existing Zeek types, something that wasn't
+  previously possible without introducing BIF functions. While the ``OpaqueType`` class isn't
+  in the ``zeek::detail`` namespace, deriving and implementing the new hooks is  considered
+  experimental and not subject to the usual deprecation policies.
+
 Changed Functionality
 ---------------------
 

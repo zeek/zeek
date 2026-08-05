@@ -33,6 +33,7 @@ namespace detail {
 class Attributes;
 class CompositeHash;
 class Expr;
+class HashKey;
 class ListExpr;
 class ZAMCompiler;
 class CPPRuntime;
@@ -807,7 +808,7 @@ protected:
     TypePtr yield;
 };
 
-class OpaqueType final : public Type {
+class OpaqueType : public Type {
 public:
     explicit OpaqueType(const std::string& name);
     TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
@@ -815,6 +816,24 @@ public:
     const std::string& Name() const { return name; }
 
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
+
+    // Support for hashing as table/set indices.
+    virtual bool SupportsHashing() const { return false; }
+    virtual bool HashSingleValue(const detail::CompositeHash* ch, detail::HashKey& hk, const Val* v, bool type_check,
+                                 bool singleton) const;
+    virtual bool RecoverValFromHash(const detail::CompositeHash* ch, const detail::HashKey& hk, ValPtr* pval,
+                                    bool singleton) const;
+    virtual bool ReserveHashKeySize(const detail::CompositeHash* ch, detail::HashKey& hk, const Val* v, bool type_check,
+                                    bool calc_static_size, bool singleton) const;
+
+    // Support for casting. We might in the future want casting *to* the
+    // opaque type.
+    virtual bool CanCastTo(const Type* /*t*/) const { return false; }
+    virtual ValPtr CastValueTo(const ValPtr& v, const Type* t, std::string& err) const;
+
+    // Default-value construction for `local x: <this opaque>;`.
+    // Default returns nullptr, which leaves the slot unset.
+    virtual ValPtr DefaultVal() const;
 
 protected:
     OpaqueType() = default;

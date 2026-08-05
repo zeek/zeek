@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(Zeek-Plugin-Demo-Foo)
+
+if (NOT ZEEK_DIST)
+    message(FATAL_ERROR "ZEEK_DIST not set")
+endif ()
+
+set(CMAKE_MODULE_PATH ${ZEEK_DIST}/cmake)
+
+include(ZeekPlugin)
+
+zeek_plugin_begin(Demo Foo)
+zeek_plugin_cc(src/Plugin.cc)
+zeek_plugin_cc(src/NanoTime.cc)
+zeek_plugin_bif(src/nanotime.bif)
+zeek_plugin_end()

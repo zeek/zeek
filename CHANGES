@@ -1,3 +1,7 @@
+9.0.0-dev.794 | 2026-08-05 10:58:50 +0200
+
+  * GHCI: Skip cache-to of Build Docker image for forks (Arne Welzel, Corelight)
+
 9.0.0-dev.792 | 2026-08-04 11:21:36 -0400
 
   * Fix `from_json` fatal error on bad addr/subnet (Evan Typanski, Corelight)

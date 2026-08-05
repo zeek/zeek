@@ -1,3 +1,25 @@
+9.0.0-dev.802 | 2026-08-05 11:02:55 +0200
+
+  * Streaming_RE_Matcher: Switch to unified templated DoFeed() helper (Arne Welzel, Corelight)
+
+    Instead of having nearly two identical implementations, re-use the fact
+    that the IsTerminal() condition is already checked and extend it with a
+    JamOnFirstMatch template parameter.
+
+  * Streaming_RE_Matcher: Add some doctest based tests (Arne Welzel, Corelight)
+
+  * added streaming interface to RegEx matching (Vern Paxson, Corelight)
+
+  * NEWS: Add entry about OpaqueType extensions (Arne Welzel, Corelight)
+
+  * btest/plugin: Custom OpaqueType testing (Arne Welzel, Corelight)
+
+    Just a plugin test that creates a custom OpaqueType to see what's
+    possible and how the API looks like. In this case its NanoTime storing
+    nanoseconds.
+
+  * support for extensible OpaqueTypes/values (Vern Paxson, Corelight)
+
 9.0.0-dev.794 | 2026-08-05 10:58:50 +0200
 
   * GHCI: Skip cache-to of Build Docker image for forks (Arne Welzel, Corelight)

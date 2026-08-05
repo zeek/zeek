@@ -52,11 +52,14 @@ void DFA_State::SymPartition(const EquivClass* ec) {
                 sym = ec->SymEquivClass(sym);
                 meta_ec->UniqueChar(sym);
             }
+            if ( n->TransSym() != SYM_BOL && n->TransSym() != SYM_EOL )
+                has_byte_xtion = true;
             continue;
         }
 
         // Character class.
         meta_ec->CCL_Use(n->TransCCL());
+        has_byte_xtion = true;
     }
 
     meta_ec->BuildECs();

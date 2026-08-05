@@ -33,6 +33,13 @@ public:
     inline DFA_State* Xtion(int sym, DFA_Machine* machine);
 
     const AcceptingSet* Accept() const { return accept; }
+
+    // True when no byte-driven out-transition leaves this state: the only
+    // surviving transitions (if any) are on SYM_BOL / SYM_EOL. Once a
+    // stream matcher is in this state, no further input byte can extend
+    // or resurrect the match, allowing immediate recognition of being done.
+    bool IsTerminal() const { return ! has_byte_xtion; }
+
     void SymPartition(const EquivClass* ec);
 
     // ec_sym is an equivalence class, not a character.
@@ -65,6 +72,10 @@ protected:
     NFA_state_list* nfa_states;
     EquivClass* meta_ec; // which ec's make same transition
     DFA_State* mark;
+
+    // True if the state has a transition that's not on an anchor
+    // (i.e., not SYM_BOL/SYM_EOL);
+    bool has_byte_xtion = false;
 };
 
 using DigestStr = std::string;

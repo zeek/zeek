@@ -3,6 +3,7 @@
 #include "zeek/RE.h"
 
 #include <cstdlib>
+#include <memory>
 #include <utility>
 
 #include "zeek/CCL.h"
@@ -349,6 +350,86 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
     return accepted_matches.size() != old_matches;
 }
 
+Streaming_RE_Matcher::Streaming_RE_Matcher(Specific_RE_Matcher* matcher) {
+    dfa = matcher->DFA();
+    ecs = matcher->EC()->EquivClasses();
+    current_state = nullptr;
+    current_pos = -1;
+    last_accept_pos = -1;
+}
+
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::FeedForFirstMatch(const u_char* bv, int n, bool bol, bool eol) {
+    return DoFeed</*JamOnFirstMatch=*/true>(bv, n, bol, eol);
+}
+
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::Feed(const u_char* bv, int n, bool bol, bool eol) {
+    return DoFeed</*JamOnFirstMatch=*/false>(bv, n, bol, eol);
+}
+
+template<bool JamOnFirstMatch>
+Streaming_RE_Matcher::Status Streaming_RE_Matcher::DoFeed(const u_char* bv, int n, bool bol, bool eol) {
+    if ( ! dfa ) {
+        if ( current_pos == -1 ) {
+            current_pos = 0;
+            last_accept_pos = 0;
+        }
+        return JAMMED;
+    }
+
+    if ( current_pos == -1 ) {
+        current_pos = 0;
+        current_state = dfa->StartState();
+
+        if ( bol ) {
+            current_state = current_state->Xtion(ecs[SYM_BOL], dfa);
+            if ( ! current_state )
+                return JAMMED;
+        }
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = 0;
+            if ( JamOnFirstMatch || current_state->IsTerminal() ) {
+                current_state = nullptr;
+                return JAMMED;
+            }
+        }
+    }
+
+    if ( ! current_state )
+        return JAMMED;
+
+    for ( int i = 0; i < n; ++i ) {
+        int ec = ecs[bv[i]];
+        DFA_State* next_state = current_state->Xtion(ec, dfa);
+
+        if ( ! next_state ) {
+            current_state = nullptr;
+            return JAMMED;
+        }
+
+        current_state = next_state;
+        ++current_pos;
+
+        if ( current_state->Accept() ) {
+            last_accept_pos = current_pos;
+            if ( JamOnFirstMatch || current_state->IsTerminal() ) {
+                current_state = nullptr;
+                return JAMMED;
+            }
+        }
+    }
+
+    if ( eol ) {
+        DFA_State* eol_state = current_state->Xtion(ecs[SYM_EOL], dfa);
+        if ( eol_state && eol_state->Accept() )
+            last_accept_pos = current_pos;
+        current_state = nullptr;
+        return JAMMED;
+    }
+
+    return ALIVE;
+}
+
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n, bool bol, bool eol) {
     if ( ! dfa )
         // An empty pattern matches anything.
@@ -577,6 +658,100 @@ TEST_SUITE("re_matcher") {
 
         RE_Matcher match9("a\\\"b");
         CHECK(match9.Compile());
+    }
+}
+
+TEST_SUITE("streaming_re_matcher") {
+    using detail::Streaming_RE_Matcher::ALIVE;
+    using detail::Streaming_RE_Matcher::JAMMED;
+
+    // easy "a"_b for a the uchar* type
+    inline const u_char* operator""_b(const char* s, std::size_t) { return reinterpret_cast<const u_char*>(s); }
+
+    auto make_streaming_matcher = [](const char* pat) {
+        // Use MATCH_ANYWHERE so ^ or $ must be explicit in pattern when wanted.
+        auto specific_re_matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_ANYWHERE);
+        specific_re_matcher->AddPat(pat);
+        REQUIRE(specific_re_matcher->Compile());
+        auto streaming_re_matcher = std::make_unique<detail::Streaming_RE_Matcher>(specific_re_matcher.get());
+        return std::pair{std::move(specific_re_matcher), std::move(streaming_re_matcher)};
+    };
+
+    TEST_CASE("feed eol jams") {
+        auto [m, sm] = make_streaming_matcher("^ab$");
+        auto r = sm->Feed("a"_b, 1, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 1);
+        CHECK_EQ(sm->LastAccept(), -1);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), -1);
+
+        // eol completes the match and jams.
+        r = sm->Feed(""_b, 0, /*bol=*/false, /*eol=*/true);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+    }
+
+    TEST_CASE("feed longer match") {
+        auto [m, sm] = make_streaming_matcher("^(ab)+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("a"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 3);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+    }
+
+    TEST_CASE("feed longer match eol jams") {
+        auto [m, sm] = make_streaming_matcher("^(ab)+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("a"_b, 1, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 3);
+        CHECK_EQ(sm->LastAccept(), 2);
+
+        r = sm->Feed("b"_b, 1, /*bol=*/false, /*eol=*/true);
+        CHECK_EQ(r, JAMMED); // eol always jams
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+
+        // once jammed, won't make progress anymore
+        r = sm->Feed("ab"_b, 2, /*bol=*/false, /*eol=*/false);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 4);
+        CHECK_EQ(sm->LastAccept(), 4);
+    }
+
+    TEST_CASE("feed bol without bol in pattern") {
+        auto [m, sm] = make_streaming_matcher("ab+");
+        auto r = sm->Feed("ab"_b, 2, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, ALIVE);
+        CHECK_EQ(sm->Length(), 2);
+        CHECK_EQ(sm->LastAccept(), 2);
+    }
+
+    TEST_CASE("feed for first match jams after match") {
+        auto [m, sm] = make_streaming_matcher("^ab+");
+        auto r = sm->FeedForFirstMatch("abb"_b, 3, /*bol=*/true, /*eol=*/false);
+        CHECK_EQ(r, JAMMED);
+        CHECK_EQ(sm->Length(), 2); // only 2 bytes consumed, then jammed.
+        CHECK_EQ(sm->LastAccept(), 2);
     }
 }
 

@@ -1,3 +1,23 @@
+8.0.10-10 | 2026-09-24 04:52:54 +0000
+
+  * Analyzer: Add LimitReachedWeird() helper (Arne Welzel, Corelight)
+
+    There is this evolving pattern of limiting protocol analysis to certain
+    configurable limits. When such limits are reached, Zeek raises a weird
+    mentioning the analyzer name, the limit's variable name and "exceeded" or
+    "reached" and also places a big X into the connection's history. This hasn't
+    been around for very long and only started with the Tunnel::max_depth setting,
+    but has been extended to more protocol analyzers (MIME depth, FTP command length, ...)
+    recently and we're introducing more and more limits.
+
+    This change adds a new LimitReachedWeird() method to the protocol Analyzer class
+    to do both steps at the same time and updates all existing protocol analyzer
+    users where the limit is known. We have some users in packet analysis, too,
+    but it's not always clear if there's a session/connection, so skipping it
+    there for now.
+
+    (cherry picked from commit df2bb72ac515027021e3a276eaffd66b0c31c5fb)
+
 8.0.10-9 | 2026-09-08 17:11:05 -0700
 
   * GH-3787: GH-5793: tcp: Error on mismatched analyzer transport (Evan Typanski, Corelight)

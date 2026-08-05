@@ -104,7 +104,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             // has previously been confirmed, but otherwise just ignore the whole
             // line and move on to the next.
             if ( AnalyzerConfirmed() )
-                Weird("FTP_max_command_length_exceeded", util::fmt("%d", cmd_len));
+                LimitReachedWeird("FTP_max_command_length_exceeded", cmd_len, BifConst::FTP::max_command_length);
 
             return;
         }

@@ -99,7 +99,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // This should weed out most of it.
     if ( zeek::detail::dns_max_queries > 0 && msg.qdcount > zeek::detail::dns_max_queries ) {
         analyzer->AnalyzerViolation("DNS_Conn_count_too_large");
-        analyzer->Weird("DNS_Conn_count_too_large");
+        analyzer->LimitReachedWeird("DNS_Conn_count_too_large", msg.qdcount, zeek::detail::dns_max_queries);
         EndMessage(&msg);
         return;
     }
@@ -349,7 +349,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 u_char* DNS_Interpreter::ExtractName(const u_char*& data, int& len, u_char* name, int name_len, const u_char* msg_start,
                                      bool downcase, int compression_depth) {
     if ( compression_depth > zeek::detail::dns_max_compression_chain_depth ) {
-        analyzer->Weird("DNS_max_compression_chain_depth_exceeded");
+        analyzer->LimitReachedWeird("DNS_max_compression_chain_depth_exceeded", compression_depth);
         return name;
     }
 

@@ -1,8 +1,13 @@
+# @TEST-DOC: The plugin installs a new NanoTime type that is a derived OpaqueType with custom hashing, cast and default value implementations.
+#
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Foo
 # @TEST-EXEC: cp -r %DIR/opaque-type-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
-# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/socks.pcap %INPUT >>output;
+# @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek %INPUT >>output;
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
+#
+# The OpaqueType::DefaultVal() isn't handled by ZAM at this point.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 
 event zeek_init()
 	{
@@ -31,6 +36,6 @@ event zeek_init() &priority=-2
 	local tbl: table[NanoTime] of count;
 	tbl[nanos1] = 1;
 	tbl[nanos2] = 2;
-	tbl[nanos1] = 3;  # overwerite the entry with 1
+	tbl[nanos1] = 3;  # overwrite nanos1 entry with value 3
 	print "zeek_init tbl:", |tbl|, tbl;
 	}

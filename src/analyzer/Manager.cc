@@ -293,10 +293,19 @@ void Manager::ExpireScheduledAnalyzers() {
     while ( conns_by_timeout.size() ) {
         ScheduledAnalyzer* a = conns_by_timeout.top();
 
-        if ( a->timeout > run_state::network_time )
+        if ( a->queue_timeout > run_state::network_time )
             return;
 
         conns_by_timeout.pop();
+
+        // If we scheduled the same analyzer more than once, the *real* timeout might not
+        // have expired. Push it back if so.
+        assert(a->queue_timeout <= a->timeout);
+        if ( a->timeout > run_state::network_time ) {
+            a->queue_timeout = a->timeout;
+            conns_by_timeout.push(a);
+            continue;
+        }
 
         std::pair<conns_map::iterator, conns_map::iterator> all = conns.equal_range(a->conn);
 
@@ -333,10 +342,32 @@ void Manager::ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t 
     // Use the chance to see if the oldest entry is already expired.
     ExpireScheduledAnalyzers();
 
+    ConnIndex conn(orig, resp, resp_p, proto);
+    const double expiration = run_state::network_time + timeout;
+    const auto scheduled = conns.equal_range(conn);
+
+    // Find any previously scheduled analyzer entry for the connection with a matching
+    // tag and update its timeout in place. This does not change its queue position.
+    // Instead, the analyzer will get re-queued on expiration, if necessary.
+    for ( auto it = scheduled.first; it != scheduled.second; ++it ) {
+        ScheduledAnalyzer* a = it->second;
+
+        if ( a->analyzer != analyzer )
+            continue;
+
+        // It's the same, so adjust the real timeout and return.
+        // This does NOT change the queue position!
+        if ( a->timeout < expiration )
+            a->timeout = expiration;
+
+        return;
+    }
+
     ScheduledAnalyzer* a = new ScheduledAnalyzer;
-    a->conn = ConnIndex(orig, resp, resp_p, proto);
+    a->conn = conn;
     a->analyzer = analyzer;
-    a->timeout = run_state::network_time + timeout;
+    a->timeout = expiration;
+    a->queue_timeout = expiration;
 
     conns.insert(std::make_pair(a->conn, a));
     conns_by_timeout.push(a);

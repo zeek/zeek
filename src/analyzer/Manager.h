@@ -358,10 +358,12 @@ private:
     struct ScheduledAnalyzer {
         ConnIndex conn;
         zeek::Tag analyzer;
-        double timeout;
+        double timeout;       // The real timeout for the analyzer
+        double queue_timeout; // The timeout for queueing, this might differ from
+                              // timeout if the same analyzer is scheduled twice.
 
         struct Comparator {
-            bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b) { return a->timeout > b->timeout; }
+            bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b) { return a->queue_timeout > b->queue_timeout; }
         };
     };
 

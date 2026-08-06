@@ -289,6 +289,9 @@ Contents_NetbiosSSN::~Contents_NetbiosSSN() { delete[] msg_buf; }
 
 void Contents_NetbiosSSN::Flush() {
     if ( buf_n > 0 ) { // Deliver partial message.
+        if ( buf_n < msg_size )
+            Weird("truncated_netbios_message", util::fmt("(%d < %d)", buf_n, msg_size));
+
         interp->ParseMessage(type, flags, msg_buf, buf_n, IsOrig());
         msg_size = 0;
     }

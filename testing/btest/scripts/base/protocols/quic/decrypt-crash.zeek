@@ -5,6 +5,6 @@
 # @TEST-EXEC: zeek-cut -m ts uid proto history service < conn.log > conn.log.cut
 # @TEST-EXEC: zeek-cut -m ts cause uid analyzer_kind analyzer_name failure_reason < analyzer_debug.log > analyzer_debug.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='sed -E "s/\((.+)\.spicy:[0-9]+:[0-9]+(-[0-9]+:[0-9]+)?\)/(\1.spicy:<location>)/g" | $SCRIPTS/diff-remove-abspath' btest-diff analyzer_debug.log.cut
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-locations" btest-diff analyzer_debug.log.cut
 
 @load frameworks/analyzer/debug-logging.zeek

@@ -3,6 +3,11 @@
 # @TEST-REQUIRES: have-spicy
 # @TEST-REQUIRES: test "$($BUILD/zeek-config --build_type)" = "debug"
 
-# @TEST-EXEC: zeek -B spicy -r ${TRACES}/ldap/ldap-max-recursion.pcap
-# @TEST-EXEC: grep "max filter recursion depth" debug.log > debug-filtered.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff debug-filtered.log
+# @TEST-EXEC: zeek -B spicy -r ${TRACES}/ldap/ldap-max-recursion.pcap %INPUT >output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-locations" btest-diff output
+
+event analyzer_violation_info(atype: AllAnalyzers::Tag,
+    info: AnalyzerViolationInfo)
+	{
+	print info$c$uid, info$reason;
+	}

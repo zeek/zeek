@@ -80,7 +80,7 @@ refine connection SMB_Conn += {
 			}
 
 		if ( pipe_dcerpc )
-			pipe_dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
+			pipe_dcerpc->NextStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
 
 		return true;
 		%}

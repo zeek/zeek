@@ -1,3 +1,7 @@
+9.0.0-dev.808 | 2026-08-06 08:26:59 -0400
+
+  * GH-5759: Fix test failure from #5759 (Evan Typanski, Corelight)
+
 9.0.0-dev.806 | 2026-08-05 20:36:58 +0200
 
   * Analyzer: Add LimitReachedWeird() helper (Arne Welzel, Corelight)

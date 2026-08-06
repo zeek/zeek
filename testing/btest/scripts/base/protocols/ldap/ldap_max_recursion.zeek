@@ -3,10 +3,10 @@
 # @TEST-REQUIRES: have-spicy
 
 # @TEST-EXEC: zeek -B spicy -r ${TRACES}/ldap/ldap-max-recursion.pcap %INPUT >output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-locations" btest-diff output
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag,
     info: AnalyzerViolationInfo)
 	{
-	print info$c$uid, gsub(info$reason, /:[0-9]+:[0-9]+-[0-9]+:[0-9]+/, ":XXX:XXX-XXX:XXX");
+	print info$c$uid, info$reason;
 	}

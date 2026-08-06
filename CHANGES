@@ -1,3 +1,13 @@
+9.0.0-dev.810 | 2026-08-06 13:50:05 -0400
+
+  * Canonify Spicy locations in tests as `<location>` (Evan Typanski, Corelight)
+
+    Many locations had exact line numbers, which are brittle in tests. This
+    removes those in favor of a new line/column number canonifier.
+
+    A number of tests had workarounds already, so this replaces them with the
+    new canonifier.
+
 9.0.0-dev.808 | 2026-08-06 08:26:59 -0400
 
   * GH-5759: Fix test failure from #5759 (Evan Typanski, Corelight)

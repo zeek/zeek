@@ -29,7 +29,7 @@
 
 # @TEST-EXEC: echo "=== Not enough data, regular FINs (expect analyzer error)" >>output-1024-fins
 # @TEST-EXEC: rm -f analyzer_debug.log && zeek -b -r ${TRACES}/http/get.pcap Zeek::Spicy foo-1024.hlto %INPUT >>output-1024-fins
-# @TEST-EXEC: test -f analyzer_debug.log && zeek-cut failure_reason <analyzer_debug.log | diff-remove-abspath >>output-1024-fins
+# @TEST-EXEC: test -f analyzer_debug.log && zeek-cut failure_reason <analyzer_debug.log | diff-remove-abspath | diff-remove-locations >>output-1024-fins
 # @TEST-EXEC: btest-diff output-1024-fins
 
 # @TEST-EXEC: echo "=== Not enough data, missing FINs (expect no output)" >>output-1024-no-fins

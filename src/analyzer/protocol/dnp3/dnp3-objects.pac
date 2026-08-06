@@ -1165,11 +1165,6 @@ type Last_AbsTime = record {
 # g51v1 and g51v2 are the same structure of g50v1. so reuse it
 
 # g70v1
-type Record_Obj = record {
-	record_size: uint16;
-	record_oct: bytestring &length = record_size;
-} &byteorder = littleendian;
-
 type File_Control_ID = record {
 	name_size: uint16;
 	type_code: uint8;
@@ -1185,7 +1180,10 @@ type File_Control_ID = record {
 	function_code: uint8;
 	status_code: uint8;
 	file_name: bytestring &length = name_size;
-	records: Record_Obj[];
+    # The records are a structured type, but lots of empty records end up allocating
+    # a lot of additional memory for those empty records. Store them as a byte array
+    # and let consumers do additional processing instead.
+    records: bytestring &restofdata &transient;
 } &byteorder = littleendian;
 
 # g70v2

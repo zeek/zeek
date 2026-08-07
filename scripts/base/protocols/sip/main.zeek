@@ -93,6 +93,22 @@ export {
 
 	## SIP finalization hook.  Remaining SIP info may get logged when it's called.
 	global finalize_sip: Conn::RemovalHook;
+
+	## The maximum chain of VIA requests allowed. If this is limit is exceeded a
+	## ``sip_max_request_path_length_exceeded`` weird is reported and any further
+	## requests are not appended to the path. Set this value to zero to disable the
+	## check. This value shouldn't exceed the value of
+	## ``Log::default_max_field_container_elements`` or a weird will be reported from
+	## that as well, unless that value is set to zero.
+	const max_request_path_length: count = 100 &redef;
+
+	## The maximum chain of VIA responses allowed. If this is limit is exceeded a
+	## ``sip_max_response_path_length_exceeded`` weird is reported and any further
+	## responses are not appended to the path. Set this value to zero to disable the
+	## check. This value shouldn't exceed the value of
+	## ``Log::default_max_field_container_elements`` or a weird will be reported from
+	## that as well, unless that value is set to zero.
+	const max_response_path_length: count = 100 &redef;
 }
 
 # Add the sip state tracking fields to the connection record.
@@ -234,7 +250,10 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$user_agent = value;
 				break;
 			case "VIA", "V":
-				c$sip$request_path += split_string1(value, /;[ ]?branch/)[0];
+				if ( max_request_path_length > 0 && |c$sip$request_path| >= max_request_path_length )
+					Reporter::conn_weird("sip_max_request_path_length_exceeded", c);
+				else
+					c$sip$request_path += split_string1(value, /;[ ]?branch/)[0];
 				break;
 			}
 
@@ -264,7 +283,10 @@ event sip_header(c: connection, is_request: bool, name: string, value: string) &
 				c$sip$response_to = value;
 				break;
 			case "VIA", "V":
-				c$sip$response_path += split_string1(value, /;[ ]?branch/)[0];
+				if ( max_response_path_length > 0 && |c$sip$response_path| >= max_response_path_length )
+					Reporter::conn_weird("sip_max_response_path_length_exceeded", c);
+				else
+					c$sip$response_path += split_string1(value, /;[ ]?branch/)[0];
 				break;
 			}
 
@@ -307,4 +329,3 @@ hook finalize_sip(c: connection)
 			}
 		}
 	}
-

@@ -373,7 +373,7 @@ void NVT_Analyzer::AuthenticationRejected() {
 
 const char* NVT_Analyzer::PeerAuthName() const {
     assert(peer);
-    return peer->AuthName();
+    return peer->AuthName() ? peer->AuthName() : "<empty>";
 }
 
 void NVT_Analyzer::SetTerminal(const u_char* terminal, int len) {

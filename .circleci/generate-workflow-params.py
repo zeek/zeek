@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import hashlib
 import json
 import os
 import re
@@ -63,6 +64,28 @@ elif GIT_BRANCH == "master" or re.match(r"^release/.*$", GIT_BRANCH):
 
 if GIT_TAG and re.match(r"^v\d+\.\d+\.\d+(-rc[0-9]+)?$", GIT_TAG):
     params["has_release_tag"] = True
+
+# Build up a set of hashes on the Dockerfiles for the build images to be used as version
+# numbers in the dockerhub repo.
+platforms = [
+    "alpine",
+    "centos-stream-10",
+    "centos-stream-9",
+    "debian-12",
+    "debian-13",
+    "debian-unstable",
+    "fedora-43",
+    "fedora-44",
+    "opensuse-leap-16.0",
+    "opensuse-tumbleweed",
+    "ubuntu-22.04",
+    "ubuntu-24.04",
+    "ubuntu-26.04",
+]
+
+for p in platforms:
+    with open(f"ci/{p}/Dockerfile", "rb") as df:
+        params[f"{p}-hash"] = hashlib.file_digest(df, "sha256").hexdigest()
 
 with open("/tmp/parameters.json", "w") as params_file:
     json.dump(params, params_file)

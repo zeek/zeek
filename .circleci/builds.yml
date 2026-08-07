@@ -42,6 +42,45 @@ parameters:
     description: True if the requesting user is a member of the Zeek Github organization
     type: boolean
     default: false
+  alpine-hash:
+    type: string
+    default: ""
+  centos-stream-10-hash:
+    type: string
+    default: ""
+  centos-stream-9-hash:
+    type: string
+    default: ""
+  debian-12-hash:
+    type: string
+    default: ""
+  debian-13-hash:
+    type: string
+    default: ""
+  debian-unstable-hash:
+    type: string
+    default: ""
+  fedora-43-hash:
+    type: string
+    default: ""
+  fedora-44-hash:
+    type: string
+    default: ""
+  opensuse-leap-16.0-hash:
+    type: string
+    default: ""
+  opensuse-tumbleweed-hash:
+    type: string
+    default: ""
+  ubuntu-22.04-hash:
+    type: string
+    default: ""
+  ubuntu-24.04-hash:
+    type: string
+    default: ""
+  ubuntu-26.04-hash:
+    type: string
+    default: ""
 
 commands:
   clone_repo:
@@ -146,6 +185,9 @@ jobs:
         description: Flag for whether to build an ARM variant of the image
         type: boolean
         default: false
+      docker_image_version:
+        description: The hash of the Dockerfile used to create the image for this job. The hash is used to version the Docker images.
+        type: string
     docker:
       - image: cimg/base:current
     resource_class: medium
@@ -163,20 +205,9 @@ jobs:
               echo "export PLATFORMS='linux/amd64'" >> "$BASH_ENV"
             fi
 
-            IMAGE_NAME=$(echo $CIRCLE_JOB | cut -d- -f 3-)
-            DOCKERFILE_PATH=ci/$IMAGE_NAME/Dockerfile
-            IMAGE_VERSION=$(awk -F= '/DOCKERFILE_VERSION/ {print $2}' $DOCKERFILE_PATH)
-
-            if [ -z "${IMAGE_VERSION}" ]; then
-               echo "DOCKERFILE_VERSION environment variable was missing from ${DOCKERFILE_PATH}. This is"
-               echo "needed in order to build the images used later in the build process."
-               exit 1
-            fi
-
             echo "export IMAGE_NAME=$IMAGE_NAME" >> "$BASH_ENV"
             echo "export DOCKERFILE_PATH=$DOCKERFILE_PATH" >> "$BASH_ENV"
-            echo "export IMAGE_VERSION=$IMAGE_VERSION" >> "$BASH_ENV"
-            echo "export FULL_IMAGE_TAG=zeek/zeek-ci:$IMAGE_NAME-$IMAGE_VERSION" >> "$BASH_ENV"
+            echo "export FULL_IMAGE_TAG=zeek/zeek-ci:$IMAGE_NAME-<< parameters.docker_image_version >>" >> "$BASH_ENV"
       # See https://circleci.com/docs/guides/execution-managed/building-docker-images/ for docs
       # on what this does.
       - setup_remote_docker
@@ -235,6 +266,9 @@ jobs:
       docker_image:
         description: The Docker image to be used as the base for building
         type: string
+      docker_image_version:
+        description: The hash of the Dockerfile used to create the image for this job. The hash is used to version the Docker images.
+        type: string
       resource_class:
         description: The CircleCI resource class the Docker instance is run under
         type: string
@@ -281,10 +315,6 @@ jobs:
         description: Flag for whether to install the latest compilers on the image before building
         type: boolean
         default: false
-      ci_image_date:
-        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
-        type: string
-        default: "20260515"
     environment:
       ZEEK_CI: 1
       ZEEK_CI_CONFIGURE_FLAGS: << parameters.configure_flags >>
@@ -297,7 +327,7 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       HILTI_CXX_COMPILER_LAUNCHER: ccache
     docker:
-      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+      - image: << parameters.docker_image >>-<< parameters.docker_image_version >>
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -800,10 +830,9 @@ jobs:
       docker_image:
         description: The Docker image to be used as the base for building
         type: string
-      ci_image_date:
-        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+      docker_image_version:
+        description: The hash of the Dockerfile used to create the image for this job. The hash is used to version the Docker images.
         type: string
-        default: "20260515"
       resource_class:
         description: The CircleCI resource class the Docker instance is run under
         type: string
@@ -820,7 +849,7 @@ jobs:
       ZEEK_CI_RUNNER_OS: linux
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
     docker:
-      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+      - image: << parameters.docker_image >>-<< parameters.docker_image_version >>
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -863,10 +892,9 @@ jobs:
       docker_image:
         description: The Docker image to be used as the base for building
         type: string
-      ci_image_date:
-        description: The date in DOCKERFILE_VERSION in the Dockerfile for the image in the docker_image parameter
+      docker_image_version:
+        description: The hash of the Dockerfile used to create the image for this job. The hash is used to version the Docker images.
         type: string
-        default: "20260515"
       resource_class:
         description: The CircleCI resource class the Docker instance is run under
         type: string
@@ -884,7 +912,7 @@ jobs:
       ZEEK_CI_CCACHE_PRUNE_SIZE: 700M
       ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror
     docker:
-      - image: << parameters.docker_image >>-<< parameters.ci_image_date >>
+      - image: << parameters.docker_image >>-<< parameters.docker_image_version >>
     resource_class: << parameters.resource_class >>
     steps:
       - run:
@@ -1019,40 +1047,52 @@ workflows:
       # directory in the repo.
       - create-build-image:
           name: build-image-alpine
+          docker_image_version: << pipeline.parameters.alpine-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-centos-stream-9
+          docker_image_version: << pipeline.parameters.centos-stream-9-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-centos-stream-10
+          docker_image_version: << pipeline.parameters.centos-stream-10-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-debian-12
+          docker_image_version: << pipeline.parameters.debian-12-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           build_arm: true
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-fedora-43
+          docker_image_version: << pipeline.parameters.fedora-43-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-fedora-44
+          docker_image_version: << pipeline.parameters.fedora-44-hash >>
           << : *FILTER_IF_SKIP_ALL
       - create-build-image:
           name: build-image-opensuse-leap-16.0
+          docker_image_version: << pipeline.parameters.opensuse-leap-16.0-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-opensuse-tumbleweed
+          docker_image_version: << pipeline.parameters.opensuse-tumbleweed-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-ubuntu-22.04
+          docker_image_version: << pipeline.parameters.ubuntu-22.04-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-ubuntu-24.04
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           << : *FILTER_IF_SKIP_ALL
       - create-build-image:
           name: build-image-ubuntu-26.04
+          docker_image_version: << pipeline.parameters.ubuntu-26.04-hash >>
           << : *FILTER_IF_PR_NOT_FULL_CI
 
       - macos-build:
@@ -1068,77 +1108,89 @@ workflows:
       - linux-build:
           name: alpine
           docker_image: zeek/zeek-ci:alpine
+          docker_image_version: << pipeline.parameters.alpine-hash >>
           requires: [fetch-test-traces, build-image-alpine]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-9
           docker_image: zeek/zeek-ci:centos-stream-9
+          docker_image_version: << pipeline.parameters.centos-stream-9-hash >>
           requires: [fetch-test-traces, build-image-centos-stream-9]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: centos-stream-10
           docker_image: zeek/zeek-ci:centos-stream-10
+          docker_image_version: << pipeline.parameters.centos-stream-10-hash >>
           requires: [fetch-test-traces, build-image-centos-stream-10]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
-          ci_image_date: "20260708"
+          docker_image_version: << pipeline.parameters.debian-12-hash >>
           requires: [fetch-test-traces, build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13
           docker_image: zeek/zeek-ci:debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-arm
           docker_image: zeek/zeek-ci:debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           resource_class: arm.large
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-binary
           docker_image: zeek/zeek-ci:debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           << : *CONFIGURE_BINARY_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-static
           docker_image: zeek/zeek-ci:debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           << : *CONFIGURE_STATIC_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-43
           docker_image: zeek/zeek-ci:fedora-43
+          docker_image_version: << pipeline.parameters.fedora-43-hash >>
           requires: [fetch-test-traces, build-image-fedora-43]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: fedora-44
           docker_image: zeek/zeek-ci:fedora-44
+          docker_image_version: << pipeline.parameters.fedora-44-hash >>
           << : *CONFIGURE_BINARY_BUILD
           requires: [fetch-test-traces, build-image-fedora-44]
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: opensuse-leap-16.0
           docker_image: zeek/zeek-ci:opensuse-leap-16.0
+          docker_image_version: << pipeline.parameters.opensuse-leap-16.0-hash >>
           requires: [fetch-test-traces, build-image-opensuse-leap-16.0]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: opensuse-tumbleweed
           docker_image: zeek/zeek-ci:opensuse-tumbleweed
+          docker_image_version: << pipeline.parameters.opensuse-tumbleweed-hash >>
           requires: [fetch-test-traces, build-image-opensuse-tumbleweed]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-22.04
           docker_image: zeek/zeek-ci:ubuntu-22.04
+          docker_image_version: << pipeline.parameters.ubuntu-22.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-22.04]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
@@ -1146,7 +1198,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CC="clang-22"
@@ -1157,7 +1209,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           << : *CONFIGURE_CLANG_TIDY
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
@@ -1168,7 +1220,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
@@ -1178,7 +1230,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
@@ -1189,7 +1241,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_SKIP_UNIT_TESTS=1
@@ -1200,12 +1252,13 @@ workflows:
       - linux-build:
           name: ubuntu-26.04
           docker_image: zeek/zeek-ci:ubuntu-26.04
+          docker_image_version: << pipeline.parameters.ubuntu-26.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-26.04]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1220,7 +1273,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1236,7 +1289,7 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
@@ -1249,7 +1302,7 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          docker_image_version: << pipeline.parameters.ubuntu-24.04-hash >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
@@ -1304,12 +1357,13 @@ workflows:
 
       - zeekctl-testing:
           docker_image: zeek/zeek-ci:debian-12
-          ci_image_date: "20260708"
+          docker_image_version: << pipeline.parameters.debian-12-hash >>
           requires: [build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
 
       - include-plugins-testing:
           docker_image: zeek/zeek-ci:debian-13
+          docker_image_version: << pipeline.parameters.debian-13-hash >>
           requires: [build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
 
@@ -1319,10 +1373,12 @@ workflows:
       - fetch-test-traces
       - create-build-image:
           name: build-image-debian-unstable
+          docker_image_version: << pipeline.parameters.debian-unstable-hash >>
 
       - linux-build:
           name: latest-gcc-version
           docker_image: zeek/zeek-ci:debian-unstable
+          docker_image_version: << pipeline.parameters.debian-unstable-hash >>
           install_latest_compiler: true
           requires: [fetch-test-traces, build-image-debian-unstable]
           extra_env: |
@@ -1331,6 +1387,7 @@ workflows:
       - linux-build:
           name: latest-clang-version
           docker_image: zeek/zeek-ci:debian-unstable
+          docker_image_version: << pipeline.parameters.debian-unstable-hash >>
           install_latest_compiler: true
           requires: [fetch-test-traces, build-image-debian-unstable]
           extra_env: |

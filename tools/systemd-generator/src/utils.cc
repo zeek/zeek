@@ -3,6 +3,7 @@
 #include "utils.h"
 
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <algorithm>
 #include <charconv>

@@ -19,21 +19,22 @@ else ()
     set(DOCTEST_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src/3rdparty/")
 endif ()
 
+# The systemd generator only does something where systemd runs, and working on
+# it needs a Linux container or VM anyway, so it is off by default elsewhere.
 set(_default ON)
-if (MSVC)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_default OFF)
 endif ()
 
-# Build the generator everywhere unless explicitly disabled. Mostly
-# for developer testing.
 option(ENABLE_ZEEK_SYSTEMD_GENERATOR "Enable building and installing zeek-systemd-generator"
        ${_default})
-if (ENABLE_ZEEK_SYSTEMD_GENERATOR)
 
-    # Separate supporting libraries in preparation for if there's
-    # ever a non-systemd generator split out from this.
+# zeek-cluster-layout-generator and the parsing it shares with the systemd
+# generator are not systemd-specific and are useful on their own, so they are
+# built wherever the sources compile.  They need unistd.h and friends, which
+# rules out MSVC.
+if (NOT MSVC)
     add_library(utils OBJECT src/utils.cc)
-    add_library(systemd-unit OBJECT src/systemd-unit.cc)
     add_library(zeek-cluster-config OBJECT src/zeek-cluster-config.cc)
 
     if (DOCTEST_INCLUDE_DIR)
@@ -42,18 +43,22 @@ if (ENABLE_ZEEK_SYSTEMD_GENERATOR)
         target_link_libraries(utils-test utils)
     endif ()
 
-    add_executable(zeek-systemd-generator src/zeek-systemd-generator.cc)
-    target_compile_definitions(
-        zeek-systemd-generator PRIVATE DEFAULT_ETC_DIR=\"${_default_etc_dir}\"
-                                       DEFAULT_BASE_DIR=\"${_default_base_dir}\")
-
-    target_link_libraries(zeek-systemd-generator zeek-cluster-config systemd-unit utils)
-
     add_executable(zeek-cluster-layout-generator src/zeek-cluster-layout-generator.cc)
     target_link_libraries(zeek-cluster-layout-generator zeek-cluster-config utils)
-
-    install(TARGETS zeek-systemd-generator RUNTIME DESTINATION bin)
     install(TARGETS zeek-cluster-layout-generator RUNTIME DESTINATION bin)
+
+    if (ENABLE_ZEEK_SYSTEMD_GENERATOR)
+        add_library(systemd-unit OBJECT src/systemd-unit.cc)
+
+        add_executable(zeek-systemd-generator src/zeek-systemd-generator.cc)
+        target_compile_definitions(
+            zeek-systemd-generator PRIVATE DEFAULT_ETC_DIR=\"${_default_etc_dir}\"
+                                           DEFAULT_BASE_DIR=\"${_default_base_dir}\")
+
+        target_link_libraries(zeek-systemd-generator zeek-cluster-config systemd-unit utils)
+
+        install(TARGETS zeek-systemd-generator RUNTIME DESTINATION bin)
+    endif ()
 
     if (is_subproject)
         # Install a default configuration at <PREFXI>etc/default/zeek

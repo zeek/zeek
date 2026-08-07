@@ -45,6 +45,8 @@ refine flow DHCP_Flow += {
 		if ( ${msg.cookie} != 0x63825363 )
 			{
 			connection()->zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("bad cookie (%d)", ${msg.cookie}));
+			options = nullptr;
+			all_options = nullptr;
 			return false;
 			}
 

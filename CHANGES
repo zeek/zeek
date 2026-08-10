@@ -1,3 +1,7 @@
+9.0.0-dev.814 | 2026-08-10 08:59:08 +0200
+
+  * tools/systemd-generator: build the systemd generator on Linux only (neil)
+
 9.0.0-dev.812 | 2026-08-07 15:33:12 -0700
 
   * Bump version of GitPython used by docs builds (Tim Wojtulewicz, Corelight)

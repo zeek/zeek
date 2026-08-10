@@ -2,6 +2,24 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.10
+===========
+
+Thank you to Stefan Goetz (@stefangoetzcorelight), Jan Grashöfer (@J-Gras), and Eldon
+Koyle (@ekoyle) for their contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- `IN_ANYWHERE` is now allowed as a wildcard in Intel files for the interface field.
+
+- The Prometheus service discovery endpoint for the telemetry framework was not rendering
+  IPv6 addresses correctly.
+
+- The `protocol_id` field in `unknown_protocols.log` no longer incorrectly renders as a
+  2-byte field.
+
 Zeek 8.0.9
 ==========
 

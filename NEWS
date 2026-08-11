@@ -17,8 +17,10 @@ This release fixes the following bugs:
 - The Prometheus service discovery endpoint for the telemetry framework was not rendering
   IPv6 addresses correctly.
 
-- The `protocol_id` field in `unknown_protocols.log` no longer incorrectly renders as a
-  2-byte field.
+- The ``unknown_protocols.log`` previously included the IP next protocol field
+  as a 16 bit value, with the first byte value set to the next protocol followed
+  by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
+  just the next protocol byte.
 
 Zeek 8.0.9
 ==========

@@ -16,6 +16,18 @@ export {
   ## UDP ports which should be considered for analysis.
   const ports_udp = { 389/udp } &redef;
 
+  ## The maximum number of outstanding LDAP requests to allow for a single
+  ## connection. Once reached, all pending requests will be logged and a
+  ## LDAP_max_pending_messages_exceeded weird raised. Setting this variable
+  ## to 0 disables the limit.
+  const max_pending_messages = 10 &redef;
+
+  ## The maximum number of outstanding LDAP search requests to allow for a single
+  ## connection. Once reached, all pending search requests will be logged and a
+  ## LDAP_max_pending_searches_exceeded weird raised. Setting this variable to 0
+  ## disables the limit.
+  const max_pending_searches = 10 &redef;
+
   ## Whether clear text passwords are captured or not.
   option default_capture_password = F;
 
@@ -149,6 +161,10 @@ event zeek_init() &priority=5 {
 }
 
 #############################################################################
+global log_messages: function(messages: table[int] of MessageInfo);
+global log_searches: function(messages: table[int] of SearchInfo);
+
+#############################################################################
 function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcode) {
 
   if (! c?$ldap ) {
@@ -163,6 +179,14 @@ function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcod
     c$ldap$searches = table();
 
   if ((opcode in OPCODES_SEARCH) && (message_id !in c$ldap$searches)) {
+
+    if ( max_pending_searches > 0 && |c$ldap$searches| >= max_pending_searches ) {
+      Reporter::conn_weird("LDAP_max_pending_searches_exceeded", c,
+                           cat(|c$ldap$searches|), "LDAP");
+      log_searches(c$ldap$searches);
+      clear_table(c$ldap$searches);
+    }
+
     c$ldap$searches[message_id] = SearchInfo($ts=network_time(),
                                              $uid=c$uid,
                                              $id=c$id,
@@ -170,6 +194,14 @@ function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcod
                                              $result_count=0);
 
   } else if ((opcode !in OPCODES_SEARCH) && (message_id !in c$ldap$messages)) {
+
+    if ( max_pending_messages > 0 && |c$ldap$messages| >= max_pending_messages ) {
+      Reporter::conn_weird("LDAP_max_pending_messages_exceeded", c,
+                           cat(|c$ldap$messages|), "LDAP");
+      log_messages(c$ldap$messages);
+      clear_table(c$ldap$messages);
+    }
+
     c$ldap$messages[message_id] = MessageInfo($ts=network_time(),
                                               $uid=c$uid,
                                               $id=c$id,
@@ -397,23 +429,33 @@ event LDAP::bind_request(c: connection,
 }
 
 #############################################################################
+function log_messages(messages: table[int] of MessageInfo) {
+  for ( [mid], msg in messages) {
+    if (mid > 0)
+      Log::write(LDAP::LDAP_LOG, msg);
+  }
+}
+
+#############################################################################
+function log_searches(messages: table[int] of SearchInfo) {
+  for ( [mid], msg in messages) {
+    if (mid > 0) {
+      Log::write(LDAP::LDAP_SEARCH_LOG, msg);
+    }
+  }
+}
+
+#############################################################################
 hook finalize_ldap(c: connection) {
   # log any "pending" unlogged LDAP messages/searches
 
   if ( c$ldap?$messages && (|c$ldap$messages| > 0) ) {
-    for ( [mid], m in c$ldap$messages ) {
-      if (mid > 0)
-        Log::write(LDAP::LDAP_LOG, m);
-    }
+    log_messages(c$ldap$messages);
     delete c$ldap$messages;
   }
 
   if ( c$ldap?$searches && (|c$ldap$searches| > 0) ) {
-    for ( [mid], s in c$ldap$searches ) {
-      if (mid > 0) {
-        Log::write(LDAP::LDAP_SEARCH_LOG, s);
-      }
-    }
+    log_searches(c$ldap$searches);
     delete c$ldap$searches;
   }
 

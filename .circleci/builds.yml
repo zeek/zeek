@@ -599,14 +599,11 @@ jobs:
         description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
         type: integer
     environment:
-      ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
+      ZEEK_CONFIGURE_FLAGS: --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
       BUILDKIT_PROGRESS: plain
       IMAGE_TAG: zeek/zeek-multiarch:<< parameters.arch >>
       IMAGE_ARCH: << parameters.arch >>
       ZEEK_CI_CPUS: << parameters.cpu_count >>
-      # These duplicate the default parameter values from the other jobs
-      CCACHE_MAXSIZE: 1000M
-      CCACHE_MAXFILES: 20000
       # Fixes an issue with the ubuntu-2404 image not having the latest buildx and the
       # manifest getting deleted mid-build, which causes errors.
       BUILDX_NO_DEFAULT_ATTESTATIONS: 1
@@ -618,83 +615,30 @@ jobs:
       - clone_repo:
           include_external_tests: false
       - run:
-          name: Create builder image
+          name: Check if image already exists
           command: |
             set -euxo pipefail
 
-            build_builder() {
-              (cd docker && docker build \
-                               --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                               -t zeek-builder:latest \
-                               -f builder.Dockerfile .)
-            }
+            LAST_SHA=$(docker inspect -f "{{ index .Config.Labels \"org.opencontainers.image.revision\" }}" ${IMAGE_TAG} 2>/dev/null || true)
 
-            LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null || true)
-            LAST_BUILDER_SHA=$(docker inspect -f "{{ index .Config.Labels "org.opencontainers.image.revision" }}" zeek-builder:latest 2>/dev/null || true)
-
-            # DLC can restore BuildKit cache without the tagged image or blobs.
-            if [ -z "${LAST_BUILDER_IMAGE_ID}" ]; then
-              docker builder prune -af || true
-            fi
-
-            # Attempt to build the image once. If it fails, do it again without the cache.
-            if ! build_builder; then
-              echo "Builder build failed; clearing build cache and retrying once with --no-cache..."
-              docker builder prune -af || true
-              (cd docker && docker build --no-cache \
-                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                -t zeek-builder:latest \
-                -f builder.Dockerfile .)
-            fi
-
-            NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
-
-            echo "Old Builder Image ID: ${LAST_BUILDER_IMAGE_ID}"
-            echo "New Builder Image ID: ${NEW_BUILDER_IMAGE_ID}"
-            echo "Old Commit SHA: ${LAST_BUILDER_SHA}"
-            echo "New Commit SHA: ${CIRCLE_SHA1}"
-
-            if [ -n "${LAST_BUILDER_IMAGE_ID}" ] &&
-               [ "${LAST_BUILDER_IMAGE_ID}" = "${NEW_BUILDER_IMAGE_ID}" ] &&
-               [ "${LAST_BUILDER_SHA}" = "${CIRCLE_SHA1}" ]; then
-              echo "Builder image was not rebuilt, no need to rebuild the rest."
+            if [ "${LAST_SHA}" = "${CIRCLE_SHA1}" ]; then
+              echo "Image already built for this commit, skipping."
               circleci-agent step halt
             fi
-      - restore_cache:
-          name: Restore ccache
-          keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - run:
-          name: Build zeek in new image
+          name: Build image
           command: |
-            docker run --name zeek-builder-container \
-                -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
-                -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
-                -e CCACHE_DIR=/tmp/ccache \
-                -e CCACHE_NOSTATS=1 \
-                -v ${CIRCLE_WORKING_DIRECTORY}:/src/zeek \
-                -v /tmp/ccache:/tmp/ccache \
-                -w /src/zeek zeek-builder:latest \
-                bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+            set -euxo pipefail
 
-            # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
-            docker commit zeek-builder-container zeek-build
-      - run:
-          name: Build final image
-          command: |
-            ZEEK_VERSION=$(cat ${CIRCLE_WORKING_DIRECTORY}/VERSION)
-            CREATED_DATE=$(date -Iseconds)
-            echo "Building final image for ${ZEEK_VERSION} at ${CREATED_DATE}"
+            ZEEK_VERSION=$(cat VERSION)
 
-            (cd docker && docker build \
-                                 --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
-                                 --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                                 --build-arg CREATED_DATE=${CREATED_DATE} \
-                                 -t ${IMAGE_TAG} \
-                                 -f final.Dockerfile .)
+            docker build \
+                --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
+                --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                --build-arg CREATED_DATE=$(date -Iseconds) \
+                -t ${IMAGE_TAG} \
+                -f docker/Dockerfile .
 
             mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
             docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
@@ -703,11 +647,6 @@ jobs:
           command: |
             docker tag ${IMAGE_TAG} zeek:latest
             make -C docker/btest
-      - save_cache:
-          name: Save ccache
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/ccache
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images

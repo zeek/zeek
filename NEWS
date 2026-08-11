@@ -268,6 +268,12 @@ Changed Functionality
   by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
   just the next protocol byte.
 
+- The LDAP analyzer now limits the number of pending request and search messages
+  for correlation to a configurable limit (default 10) to prevent unbounded
+  state growth. When reached, all pending requests and messages will be flushed
+  and logged and one of the new weirds ``LDAP_max_pending_messages_exceeded`` or
+  ``LDAP_max_pending_searches_exceeded`` raised.
+
 Deprecated Functionality
 ------------------------
 

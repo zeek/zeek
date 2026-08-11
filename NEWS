@@ -3,6 +3,26 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.2.2
+==========
+
+Thank you to Peter Cullen (@pbcullen), Stefan Goetz (@stefangoetzcorelight), Jan Grashöfer
+(@J-Gras), and Eldon Koyle (@ekoyle) for their contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- `IN_ANYWHERE` is now allowed as a wildcard in Intel files for the interface field.
+
+- The Prometheus service discovery endpoint for the telemetry framework was not rendering
+  IPv6 addresses correctly.
+
+- The ``unknown_protocols.log`` previously included the IP next protocol field
+  as a 16 bit value, with the first byte value set to the next protocol followed
+  by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
+  just the next protocol byte.
+
 Zeek 8.2.1
 ==========
 

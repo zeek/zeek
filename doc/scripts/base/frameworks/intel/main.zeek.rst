@@ -227,7 +227,7 @@ Types
       is notice worthy.
 
 
-   .. zeek:field:: if_in :zeek:type:`Intel::Where` :zeek:attr:`&optional`
+   .. zeek:field:: if_in :zeek:type:`Intel::Where` :zeek:attr:`&default` = ``Intel::IN_ANYWHERE`` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/frameworks/intel/do_notice.zeek` is loaded)
 

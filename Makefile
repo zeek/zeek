@@ -11,6 +11,19 @@ VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
 GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
 REALPATH=$$($$(realpath --relative-to=$(shell pwd) . >/dev/null 2>&1) && echo 'realpath' || echo 'grealpath')
 
+# Paths to exclude from the distribution tarball. These are not exercised by
+# the top-level Zeek build (test frameworks, standalone-only dependencies,
+# duplicate vendored copies).
+DIST_EXCLUDE = \
+	auxil/broker/auxil/prometheus-cpp/3rdparty/googletest \
+	auxil/prometheus-cpp/3rdparty/googletest \
+	auxil/rapidjson/thirdparty/gtest \
+	auxil/spicy/3rdparty/benchmark \
+	auxil/spicy/3rdparty/doctest \
+	auxil/spicy/3rdparty/justrx/3rdparty/benchmark \
+	auxil/spicy/3rdparty/libunistd \
+	auxil/spicy/3rdparty/vcpkg
+
 all: configured
 	$(MAKE) -C $(BUILD) $@
 
@@ -44,6 +57,7 @@ dist:
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)
+	@for i in $(DIST_EXCLUDE); do rm -rf ../$(VERSION_FULL)/$$i; done
 	@python3 ./ci/collect-repo-info.py --only-git > ../$(VERSION_FULL)/repo-info.json
 	@mv ../$(VERSION_FULL) .
 	@COPYFILE_DISABLE=true tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)

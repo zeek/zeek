@@ -1155,6 +1155,23 @@ else ()
 endif ()
 
 set(USE_SPICY_ANALYZERS "${USE_SPICY_ANALYZERS}" CACHE BOOL "Use built-in Spicy analyzers")
+
+# Plugin code can transitively reach HILTI runtime headers (e.g., via
+# zeek/spicy/manager.h), so plugins need the HILTI include paths.
+if (HAVE_SPICY)
+    if (SPICY_ROOT_DIR)
+        target_include_directories(zeek_dynamic_plugin_base SYSTEM
+                                   INTERFACE ${SPICY_INCLUDE_DIRS_RUNTIME})
+    else ()
+        add_zeek_dynamic_plugin_build_interface_include_directories(
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/hilti/runtime/include
+            ${PROJECT_SOURCE_DIR}/auxil/spicy/3rdparty)
+    endif ()
+
+    target_include_directories(zeek_dynamic_plugin_base SYSTEM
+                               INTERFACE $<INSTALL_INTERFACE:include/hilti/rt/3rdparty>)
+endif ()
+
 include(BuiltInSpicyAnalyzer)
 
 include_directories(BEFORE ${PCAP_INCLUDE_DIR} ${BIND_INCLUDE_DIR} ${BinPAC_INCLUDE_DIR}

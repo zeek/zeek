@@ -1,3 +1,18 @@
+9.0.0-dev.816 | 2026-08-12 10:33:26 +0200
+
+  * GH-5769: Expose HILTI runtime include paths to dynamic plugins (Benjamin Bannier, Corelight)
+
+    Out-of-tree plugins that transitively include HILTI runtime headers
+    (e.g., `hilti/rt/fmt.h` via `zeek/spicy/manager.h`) fail to compile
+    because `zeek_dynamic_plugin_base` did not propagate the necessary
+    include paths. Add both the HILTI runtime include directory and its
+    3rdparty subdirectory to the dynamic plugin interface target.
+
+    The issue was introduced by zeek/spicy@307d94c43, first pulled into
+    Zeek via 1f85a507d4.
+
+    Closes #5769.
+
 9.0.0-dev.814 | 2026-08-10 08:59:08 +0200
 
   * tools/systemd-generator: build the systemd generator on Linux only (neil)

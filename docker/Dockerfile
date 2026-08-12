@@ -42,8 +42,9 @@ RUN git config --global --add safe.directory '*'
 ARG ZEEK_CONFIGURE_FLAGS="--ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-broker-tests --disable-cpp-tests"
 
 # We bind mount the build context as `/src/zeek` source directory,
-# and locally # cache ccache state in a cache layer.
-RUN --mount=type=bind,target=/src/zeek,readonly \
+# and locally # cache ccache state in a cache layer. We need to mount the
+# source tree `readwrite` since the build needs to set up a symlink.
+RUN --mount=type=bind,target=/src/zeek,readwrite \
     --mount=type=cache,target=/tmp/ccache \
     cd /src/zeek \
     && CCACHE_DIR=/tmp/ccache \

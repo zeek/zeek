@@ -78,8 +78,11 @@ event krb_tgs_response%(c: connection, msg: KRB::KDC_Response%);
 ##
 ## opts: A Kerberos AP options data structure.
 ##
+## in_kdc_padata: T if this AP request was wrapped in the PADATA of a KDC request.
+##
 ## .. zeek:see:: krb_as_request krb_as_response krb_tgs_request krb_tgs_response
 ##    krb_ap_response krb_priv krb_safe krb_cred krb_error
+event krb_ap_request%(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options, in_kdc_padata: bool%);
 event krb_ap_request%(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options%);
 
 ## A Kerberos 5 ``Authentication Header (AP) Response`` as defined

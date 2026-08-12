@@ -275,7 +275,7 @@ refine connection KRB_Conn += {
 				rvticket->Assign(5, authenticationinfo);
 
 			zeek::BifEvent::enqueue_krb_ap_request(zeek_analyzer(), zeek_analyzer()->Conn(),
-						      std::move(rvticket), std::move(rv));
+						      std::move(rvticket), std::move(rv), ${msg.in_kdc_padata});
 			}
 		return true;
 		%}

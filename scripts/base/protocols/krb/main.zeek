@@ -111,11 +111,6 @@ function do_log(c: connection)
 		}
 	}
 
-function is_kdc_conn(c: connection): bool
-	{
-	return c$id$resp_p in tcp_ports || c$id$resp_p in udp_ports;
-	}
-
 event krb_error(c: connection, msg: Error_Msg) &priority=5
 	{
 	if ( set_session(c) )
@@ -196,13 +191,13 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 	do_log(c);
 	}
 
-event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) &priority=5
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options, in_kdc_padata: bool) &priority=5
 	{
 	if ( set_session(c) )
 		return;
 
-	# AP messages can be part of PADATA, so omit them if exchanged with the KDC.
-	if ( is_kdc_conn(c) )
+	# Ignore AP requests part of the PADATA in the AS/TGS messages.
+	if ( in_kdc_padata )
 		return;
 
 	c$krb$request_type = "AP";
@@ -212,17 +207,14 @@ event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) 
 	if ( ticket?$cipher )
 		c$krb$cipher = cipher_name[ticket$cipher];
 
-	# AP-REQ does not have a client name, so we use the realm alone.
+	# An AP request does not carry a client name, so log the realm alone.
 	if ( ticket?$realm )
-		c$krb$client = fmt("%s/%s", "", ticket$realm);	
+		c$krb$client = fmt("/%s", ticket$realm);
 	}
 
 event krb_ap_response(c: connection) &priority=5
 	{
 	if ( set_session(c) )
-		return;
-
-	if ( is_kdc_conn(c) )
 		return;
 
 	# AP-REP indicates that mutual authentication succeeded. A failure would be
@@ -232,9 +224,6 @@ event krb_ap_response(c: connection) &priority=5
 
 event krb_ap_response(c: connection) &priority=-5
 	{
-	if ( is_kdc_conn(c) )
-		return;
-
 	do_log(c);
 	}
 

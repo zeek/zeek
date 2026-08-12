@@ -211,7 +211,7 @@ type KRB_PA_AP_REQ_wrapper(is_orig: bool) = record {
 	# here for pre-auth ap-req messages.
 	some_meta1 : ASN1EncodingMeta;
 	some_meta2 : ASN1EncodingMeta;
-	req        : KRB_AP_REQ(is_orig);
+	req        : KRB_AP_REQ(is_orig, true);
 };
 
 # The PKINIT certificate structure for a request

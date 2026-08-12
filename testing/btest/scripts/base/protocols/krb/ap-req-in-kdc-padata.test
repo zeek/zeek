@@ -1,0 +1,17 @@
+# @TEST-DOC: An AP request wrapped in the PADATA of a TGS request is flagged via in_kdc_padata.
+#
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.pcap %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+@load base/protocols/krb
+
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options, in_kdc_padata: bool)
+	{
+	print "krb_ap_request", c$uid, c$id$resp_p, in_kdc_padata, ticket?$realm ? ticket$realm : "<no realm>";
+	}
+
+# The old prototype without in_kdc_padata continues to work.
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options)
+	{
+	print "krb_ap_request (old prototype)", c$uid;
+	}

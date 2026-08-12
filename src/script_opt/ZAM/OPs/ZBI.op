@@ -253,8 +253,13 @@ macro Cat1Op(lhs, val)
 
 internal-op Cat1
 classes VV VC
-eval	Cat1Op($$, $1)
-	zeek::Ref(v1.AsString());
+# Ref the source before deleting the destination, in case they alias the
+# same frame slot (e.g. "s = cat(s)"); otherwise the delete could free the
+# string before we re-reference it.
+eval	auto v = $1;
+	zeek::Ref(v.AsString());
+	ZVal::DeleteManagedType($$);
+	$$ = v;
 
 internal-op Cat1Full
 classes VV VC

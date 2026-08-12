@@ -19,7 +19,9 @@ const io_poll_interval_live: count;
 
 const FTP::max_command_length: count;
 
-const ZIP::max_uncompressed_size: count;
+const HTTP::max_uncompressed_size: count;
+
+const IRC::max_uncompressed_size: count;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;

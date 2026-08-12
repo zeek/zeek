@@ -1223,13 +1223,13 @@ workflows:
           arch: amd64
           resource_class: medium
           cpu_count: 4
-          << : *FILTER_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+          << : *FILTER_IF_SKIP_ALL
       - release-image-build:
           name: arm64-container-image
           arch: arm64
           resource_class: arm.medium
           cpu_count: 4
-          << : *FILTER_NIGHTLY_OR_TAGGED
+          << : *FILTER_IF_SKIP_ALL
       - container-image-manifest-build:
           requires: [amd64-container-image, arm64-container-image]
           context:

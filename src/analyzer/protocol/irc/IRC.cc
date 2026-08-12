@@ -964,8 +964,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
          resp_zip_status == ACCEPT_ZIP ) {
         orig_zip_status = ZIP_LOADED;
         resp_zip_status = ZIP_LOADED;
-        AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), true));
-        AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), false));
+        AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), BifConst::IRC::max_uncompressed_size, true));
+        AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), BifConst::IRC::max_uncompressed_size, false));
     }
 }
 

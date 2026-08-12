@@ -208,7 +208,8 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
 
         if ( ! zip ) {
             // We don't care about the direction here.
-            zip = new analyzer::zip::ZIP_Analyzer(http_message->MyHTTP_Analyzer()->Conn(), false, method);
+            zip = new analyzer::zip::ZIP_Analyzer(http_message->MyHTTP_Analyzer()->Conn(),
+                                                  BifConst::HTTP::max_uncompressed_size, false, method);
             zip->SetOutputHandler(new UncompressedOutput(this));
         }
 

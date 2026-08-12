@@ -12,7 +12,8 @@ class ZIP_Analyzer final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
     enum Method : uint8_t { GZIP, DEFLATE };
 
-    ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP);
+    ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP) : ZIP_Analyzer(conn, 0, orig, method) {}
+    ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, bool orig, Method method = GZIP);
     ~ZIP_Analyzer() override;
 
     void Done() override;
@@ -26,6 +27,7 @@ protected:
     z_stream* zip;
     int zip_status;
     Method method;
+    uint64_t max_uncompressed_size;
     uint64_t uncompressed_size = 0;
 };
 

@@ -9,7 +9,7 @@
 @load base/protocols/conn
 @load base/protocols/http
 
-redef ZIP::max_uncompressed_size = 1024 * 1000;
+redef HTTP::max_uncompressed_size = 1024 * 1000;
 
 global body_bytes = 0;
 

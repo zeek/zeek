@@ -7,8 +7,8 @@
 
 namespace zeek::analyzer::zip {
 
-ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
-    : analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig) {
+ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, bool orig, Method arg_method)
+    : analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig), max_uncompressed_size(max_uncompressed_size) {
     zip = nullptr;
     zip_status = Z_OK;
     method = arg_method;
@@ -44,13 +44,12 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
     if ( len == 0 )
         return true;
 
-    const auto limit = BifConst::ZIP::max_uncompressed_size;
-    if ( limit == 0 ) {
+    if ( max_uncompressed_size == 0 ) {
         ForwardStream(static_cast<int>(len), data, IsOrig());
         return true;
     }
 
-    const auto remaining = limit > uncompressed_size ? limit - uncompressed_size : 0;
+    const auto remaining = max_uncompressed_size > uncompressed_size ? max_uncompressed_size - uncompressed_size : 0;
     const auto forward_len = std::min(len, remaining);
     if ( forward_len > 0 ) {
         uncompressed_size += forward_len;
@@ -60,8 +59,8 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
     if ( forward_len == len )
         return true;
 
-    Weird("zip_inflate_output_size_exceeded",
-          zeek::util::fmt("limit=%" PRIu64 " in=%zu out=%" PRIu64, limit, zip->total_in, uncompressed_size));
+    Weird("zip_inflate_output_size_exceeded", zeek::util::fmt("limit=%" PRIu64 " in=%zu out=%" PRIu64,
+                                                              max_uncompressed_size, zip->total_in, uncompressed_size));
     Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
     zip_status = Z_MEM_ERROR;
     return false;

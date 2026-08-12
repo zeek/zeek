@@ -149,7 +149,7 @@ function Reporter::conn_weird%(name: string, c: connection, addl: string &defaul
 ## addl: additional information to accompany the weird.
 ##
 ## Returns: true if the file was still valid, else false.
-function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="", source: string&default=""%): bool
+function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="", source: string &default=""%): bool
 	%{
 	auto fuid = f->AsRecordVal()->GetFieldAs<zeek::StringVal>(0);
 	auto file = zeek::file_mgr->LookupFile(fuid->CheckString());
@@ -158,6 +158,27 @@ function Reporter::file_weird%(name: string, f: fa_file, addl: string &default="
 		return false;
 
 	reporter->Weird(file, name->CheckString(), addl->CheckString(), source->CheckString());
+	return true;
+	%}
+
+## Generates a "limit reached" weird for the current analyzer.
+##
+## Formats the addl string as "limit" when limit_max is zero, or
+## "limit > limit_max" when limit_max is non-zero, and adds the 'X'
+## character to the connection's history.
+##
+## name: the name of the weird.
+##
+## c: the connection associated with the weird.
+##
+## limit: the observed value for which the weird is raised.
+##
+## limit_max: The maximum allowed value (0 to omit from output)
+##
+## Returns: Always true.
+function Reporter::limit_reached_weird%(name: string, c: connection, limit: count, limit_max: count &default=0, source: string &default=""%): bool
+	%{
+	c->LimitReachedWeird(name->CheckString(), limit, limit_max, source->CheckString());
 	return true;
 	%}
 

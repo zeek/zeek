@@ -68,7 +68,7 @@ The following lists steps you can take to protect your Zeek cluster.
   processes. Misconfigured permissions can expose sensitive network information
   and undermine the confidentiality of security logs.
 
-*  Core dumps contain a snapshot of a process's memory at the time of a crash
+* Core dumps contain a snapshot of a process's memory at the time of a crash
   and may therefore include sensitive information handled by Zeek. Because
   Zeek processes network traffic, its process memory may contain network‑derived
   data or other sensitive information from the monitored environment. If core

@@ -1,3 +1,19 @@
+9.0.0-dev.823 | 2026-08-13 14:00:18 -0700
+
+  * Exclude unused submodule paths from dist tarball (Benjamin Bannier, Corelight)
+
+    This adds `DIST_EXCLUDE` to remove paths not exercised by the top-level
+    Zeek build from the release tarball (test frameworks, standalone-only
+    dependencies, duplicate vendored copies). Currently we use it to exclude
+    unused Git submodules, but the variable should also be useful to exclude
+    certain directories like 3rdparty test files from the release tarball.
+
+    We do not attempt to move rarely used dependencies like `auxil/vcpkg`
+    out of the tarball and require out-of-band manual installation, but this
+    seems like a natural extension on top of the changes here.
+
+    Closes #5698.
+
 9.0.0-dev.821 | 2026-08-13 12:42:13 +0200
 
   * added a new signature for AP request event per the comments (Mohan Dhawan, Corelight)

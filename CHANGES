@@ -1,3 +1,9 @@
+9.0.0-dev.821 | 2026-08-13 12:42:13 +0200
+
+  * added a new signature for AP request event per the comments (Mohan Dhawan, Corelight)
+
+  * update AP message logging (Mohan Dhawan, Corelight)
+
 9.0.0-dev.818 | 2026-08-12 09:51:21 -0400
 
   * ZAM: Fix `cat()` self-assignment corrupted refcount (Evan Typanski, Corelight)

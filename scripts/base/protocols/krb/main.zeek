@@ -191,22 +191,36 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 	do_log(c);
 	}
 
-event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) &priority=5
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options, in_kdc_padata: bool) &priority=5
 	{
-	set_session(c);
+	if ( set_session(c) )
+		return;
+
+	# Ignore AP requests part of the PADATA in the AS/TGS messages.
+	if ( in_kdc_padata )
+		return;
+
 	c$krb$request_type = "AP";
+
 	if ( ticket?$service_name )
 		c$krb$service = ticket$service_name;
 	if ( ticket?$cipher )
 		c$krb$cipher = cipher_name[ticket$cipher];
+
+	# An AP request does not carry a client name, so log the realm alone.
+	if ( ticket?$realm )
+		c$krb$client = fmt("/%s", ticket$realm);
 	}
 
-# event krb_ap_response(c: connection) &priority=5
-#   {
-#   if ( set_session(c) )
-#        return;
-#   ...
-#   }
+event krb_ap_response(c: connection) &priority=5
+	{
+	if ( set_session(c) )
+		return;
+
+	# AP-REP indicates that mutual authentication succeeded. A failure would be
+	# a KRB-ERROR instead, which krb_error handles.
+	c$krb$success = T;
+	}
 
 event krb_ap_response(c: connection) &priority=-5
 	{

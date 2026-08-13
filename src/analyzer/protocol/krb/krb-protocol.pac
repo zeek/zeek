@@ -23,7 +23,7 @@ type KRB_PDU(is_orig: bool) = record {
 		AS_REP    -> as_rep   : KRB_AS_REP(is_orig);
 		TGS_REQ   -> tgs_req  : KRB_TGS_REQ(is_orig);
 		TGS_REP   -> tgs_rep  : KRB_TGS_REP(is_orig);
-		AP_REQ    -> ap_req   : KRB_AP_REQ(is_orig);
+		AP_REQ    -> ap_req   : KRB_AP_REQ(is_orig, false);
 		AP_REP    -> ap_rep   : KRB_AP_REP(is_orig);
 		KRB_SAFE  -> krb_safe : KRB_SAFE_MSG(is_orig);
 		KRB_PRIV  -> krb_priv : KRB_PRIV_MSG(is_orig);
@@ -125,7 +125,7 @@ type KRB_KDC_REP(is_orig: bool, pkt_type: uint8) = record {
 
 ### AP_REQ
 
-type KRB_AP_REQ(is_orig: bool) = record {
+type KRB_AP_REQ(is_orig: bool, in_kdc_padata: bool) = record {
 	seq_meta    : ASN1EncodingMeta;
 	pvno 	    : SequenceElement(true);
 	msg_type    : SequenceElement(true);

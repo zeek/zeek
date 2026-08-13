@@ -134,6 +134,9 @@ New Functionality
 - The ``kerberos.log`` log entries now contains ``AP`` entries with filled ``service``
   and ``cipher`` columns. Previously, the log entries had all columns unset.
 
+- The ``krb_ap_request()`` event was extended with an ``in_kdc_padata`` parameter to
+  recognize if the corresponding AP-REQ is contained within KDC/TGS pre-authentication data.
+
 - A new event ``dce_rpc_auth()`` was added for script-level access to the selected
   security provider, per-message protection and authentication context contained
   in DCE-RPC PDUs.
@@ -267,6 +270,15 @@ Changed Functionality
   as a 16 bit value, with the first byte value set to the next protocol followed
   by a zero byte due to a spurious use of ``htons()``. This has been fixed to be
   just the next protocol byte.
+
+- The ``kerberos.log`` was updated to set the ``client`` column to ``/<realm>``
+  for AP requests that do not otherwise carry a client name.
+
+- The ``success`` column of the ``kerberos.log`` is now updated to ``T``
+  when an AP-REP is observed.
+
+- AP-REQ contained with KDC/TGS pre-authentication are now ignored for purposes
+  of logging to ``kerberos.log``.
 
 Deprecated Functionality
 ------------------------

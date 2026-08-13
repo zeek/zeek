@@ -216,6 +216,11 @@ New Functionality
   limits are not being exceeded. The BIF reports a named weird and adds a ``X`` to the
   connection's ``history`` field when the connection is available.
 
+- The ZIP analyzer (which is used for HTTP and IRC) will now emit a ``zip_analyzer_stats``
+  event once per analyzer, if any compressed input was seen. This can give insight into
+  the ZIP analyzer's compression ratios and how often it reaches the max uncompressed
+  limits (``HTTP::max_uncompressed_size`` or ``IRC::max_uncompressed_size``).
+
 Changed Functionality
 ---------------------
 

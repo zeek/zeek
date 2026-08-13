@@ -20,6 +20,11 @@ event irc_message(c: connection, is_orig: bool, prefix: string, command: string,
 		++msg_count;
 	}
 
+event zip_analyzer_stats(c: connection, aid: count, total_in: count, total_out: count, exceeded: bool)
+	{
+	print fmt("zip stats: in=%d out=%d exceeded=%s", total_in, total_out, exceeded);
+	}
+
 event zeek_done()
 	{
 	print msg_count;

@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260708
+ENV DOCKERFILE_VERSION=20260813
 
 RUN apt-get update && apt-get -y install \
     bison \
@@ -29,6 +29,7 @@ RUN apt-get update && apt-get -y install \
     python3 \
     python3-dev \
     python3-pip\
+    python3-venv \
     sqlite3 \
     swig \
     wget \

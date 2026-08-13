@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cinttypes>
 
+#include "zeek/analyzer/protocol/zip/events.bif.h"
+
 namespace zeek::analyzer::zip {
 
 ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, bool orig, Method arg_method)
@@ -36,8 +38,12 @@ ZIP_Analyzer::~ZIP_Analyzer() { delete zip; }
 void ZIP_Analyzer::Done() {
     Analyzer::Done();
 
-    if ( zip )
+    if ( zip ) {
+        if ( zip->total_in > 0 )
+            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size,
+                                                       size_exceeded);
         inflateEnd(zip);
+    }
 }
 
 bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
@@ -45,6 +51,7 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
         return true;
 
     if ( max_uncompressed_size == 0 ) {
+        uncompressed_size += len;
         ForwardStream(static_cast<int>(len), data, IsOrig());
         return true;
     }
@@ -93,7 +100,8 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
             allow_restart = 0;
 
             uint64_t have = unzip_size - zip->avail_out;
-            if ( ! ForwardDecompressed(have, unzipbuf.get()) )
+            size_exceeded |= ! ForwardDecompressed(have, unzipbuf.get());
+            if ( size_exceeded )
                 return;
 
             if ( zip_status == Z_STREAM_END ) {

@@ -29,6 +29,7 @@ protected:
     Method method;
     uint64_t max_uncompressed_size;
     uint64_t uncompressed_size = 0;
+    bool size_exceeded = false;
 };
 
 } // namespace zeek::analyzer::zip

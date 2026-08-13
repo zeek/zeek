@@ -19,6 +19,11 @@ event http_entity_data(c: connection, is_orig: bool, length: count, data: string
 		body_bytes += length;
 	}
 
+event zip_analyzer_stats(c: connection, aid: count, total_in: count, total_out: count, exceeded: bool)
+	{
+	print fmt("zip stats: in=%d out=%d exceeded=%s", total_in, total_out, exceeded);
+	}
+
 event zeek_done()
 	{
 	print body_bytes;

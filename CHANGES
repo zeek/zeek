@@ -1,3 +1,22 @@
+8.0.9-18 | 2026-08-19 04:38:27 +0000
+
+  * GH-5782: Fix crash in `TableVal::Remove` for tables with `&on_change` and singleton keys (Benjamin Bannier, Corelight)
+
+    `Remove(const Val&, ...)` called `RecreateIndex` on the hash key returned by
+    `MakeHashKey`. For singleton key types (e.g. a plain `count`), `MakeHashKey`
+    stores the value inline in the `HashKey` union rather than heap-allocating it.
+    `RecoverVals` (called by `RecreateIndex`) asserts the key is heap-allocated,
+    triggering an internal error.
+
+    We use the already-available `index` parameter directly instead of
+    round-tripping through the hash key representation.
+
+    Introduced in b027b69f5d (v6.0.3).
+
+    (cherry picked from commit 4d614bf82ce83f1eb7456010672695887bde3871)
+
+  * Update NEWS for 8.0.10 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.9-16 | 2026-08-10 18:33:42 -0700
 
   * testing/btest: Skip large-cluster under ASAN, bump some timeouts (Arne Welzel, Corelight)

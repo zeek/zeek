@@ -2401,11 +2401,9 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
     if ( broker_forward && ! broker_store.empty() )
         SendToStore(&index, nullptr, ELEMENT_REMOVED);
 
-    if ( change_func && k ) {
-        // this is totally cheating around the fact that we need a Intrusive pointer.
-        ValPtr changefunc_val = RecreateIndex(*(k.get()));
-        CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
-    }
+    if ( change_func )
+        // const_cast is safe: Clone() is logically const.
+        CallChangeFunc(const_cast<Val&>(index).Clone(), va, ELEMENT_REMOVED);
 
     return va;
 }

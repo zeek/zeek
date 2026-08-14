@@ -1,5 +1,6 @@
-## Generated when the ZIP support analyzer is done, once per analyzer that sees compressed traffic.
-## This is not a ZIP file analyzer, instead used by some analyzers (HTTP, IRC) for certain content.
+## Generated when the ZIP support analyzer is done forwarding data, once per analyzer that sees
+## compressed traffic. This is not a ZIP file analyzer, instead used by some analyzers (HTTP, IRC)
+## for compressed content.
 ##
 ## c: The connection.
 ##

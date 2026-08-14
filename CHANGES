@@ -1,3 +1,7 @@
+9.0.0-dev.826 | 2026-08-14 12:54:13 +0200
+
+  * doc/NEWS/policy: Deprecate the Management Framework (Arne Welzel, Corelight)
+
 9.0.0-dev.823 | 2026-08-13 14:00:18 -0700
 
   * Exclude unused submodule paths from dist tarball (Benjamin Bannier, Corelight)

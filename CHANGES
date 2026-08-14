@@ -1,3 +1,7 @@
+9.0.0-dev.833 | 2026-08-14 11:27:35 -0700
+
+  * Refresh CT/CA lists to the latest versions (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.831 | 2026-08-14 16:54:22 +0200
 
   * GH-5787: Guard `hilti/rt/3rdparty` include path against absent Spicy headers (Benjamin Bannier, Corelight)

@@ -1,3 +1,53 @@
+8.2.1-23 | 2026-08-19 04:32:56 +0000
+
+  * Fix use-after-free in `TableVal::Assign` when `&on_change` handler deletes the new entry (Benjamin Bannier, Corelight)
+
+    `CallChangeFunc` invokes user script code which could delete the entry that was
+    just inserted. After it returns, `new_entry_val` is a dangling pointer, but
+    `poc_state->OnChange` still dereferences it via `new_entry_val->GetVal()`.
+
+    We capture the value in an owning `ValPtr` before invoking user code so it
+    remains valid regardless of what the handler does to the table.
+
+    Introduced in a96ede7476 (v8.2.0).
+
+    (cherry picked from commit 1aa734357db2323c569b381a20ed4f74757b854f)
+
+  * GH-5782: Fix crash in `TableVal::Remove` for tables with `&on_change` and singleton keys (Benjamin Bannier, Corelight)
+
+    `Remove(const Val&, ...)` called `RecreateIndex` on the hash key returned by
+    `MakeHashKey`. For singleton key types (e.g. a plain `count`), `MakeHashKey`
+    stores the value inline in the `HashKey` union rather than heap-allocating it.
+    `RecoverVals` (called by `RecreateIndex`) asserts the key is heap-allocated,
+    triggering an internal error.
+
+    We use the already-available `index` parameter directly instead of
+    round-tripping through the hash key representation.
+
+    Introduced in b027b69f5d (v6.0.3).
+
+    (cherry picked from commit 1aa734357db2323c569b381a20ed4f74757b854f)
+
+  * Update docs for 8.2.2 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Merge remote-tracking branch 'origin/topic/timw/circleci-use-correct-github-endpoint' (Tim Wojtulewicz, Corelight)
+
+    * origin/topic/timw/circleci-use-correct-github-endpoint:
+      CCI: Use the right endpoint for requesting GH API info
+
+    (cherry picked from commit 534734f53fa6234b593e0c1163bf8f69a366e36a)
+
+  * Merge remote-tracking branch 'origin/topic/timw/circleci-use-separate-token-for-build-images' (Tim Wojtulewicz, Corelight)
+
+    * origin/topic/timw/circleci-use-separate-token-for-build-images:
+      CI: Only clone zeek-testing-private for internal builds
+      CCI: Fix typo in Hilti env variable
+      CCI: Add pipeline parameter tracking internal builds
+      CCI: Remove context from coverage/benchmark builds
+      CCI: Use different environment variable for access to build images
+
+    (cherry picked from commit 7ea2f0355560be28f726b749595aa907007da1b5)
+
 8.2.1-19 | 2026-08-11 11:19:29 -0700
 
   * CCI: Use the right endpoint for requesting GH API info (Tim Wojtulewicz, Corelight)

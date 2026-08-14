@@ -1,3 +1,25 @@
+9.0.0-dev.831 | 2026-08-14 16:54:22 +0200
+
+  * GH-5787: Guard `hilti/rt/3rdparty` include path against absent Spicy headers (Benjamin Bannier, Corelight)
+
+    Zeek's install tree may split Spicy development headers into a
+    separate component (e.g., a dedicated `-spicy-devel` package). When
+    only the core development files are installed, the
+    `include/hilti/rt/3rdparty` directory does not exist. Previously,
+    `9dbcbc7c08` baked this path into `Zeek::DynamicPluginBase`'s
+    `INTERFACE_INCLUDE_DIRECTORIES` via an `INSTALL_INTERFACE` generator
+    expression. CMake validates all such paths at configure time, so
+    external plugins failed to configure when the Spicy headers were not
+    present.
+
+    Move the include path addition from the exported target into
+    `ZeekConfig.cmake` where we can check whether the directory actually
+    exists before appending it. Plugins that do need HILTI runtime headers
+    still get the path when available; plugins that do not (or installs
+    without Spicy development files) no longer fail at configure time.
+
+    Closes #5787.
+
 9.0.0-dev.829 | 2026-08-14 13:36:51 +0200
 
   * Fix use-after-free in `TableVal::Assign` when `&on_change` handler deletes the new entry (Benjamin Bannier, Corelight)

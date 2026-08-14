@@ -34,6 +34,17 @@ endforeach (  )
 
 include("${CMAKE_CURRENT_LIST_DIR}/ZeekTargets.cmake")
 
+# Spicy's 3rdparty headers may not be installed alongside Zeek's core
+# development files. Only add the include path if it is actually present.
+if (TARGET Zeek::DynamicPluginBase)
+    set(_hilti_3rdparty "${PACKAGE_PREFIX_DIR}/include/hilti/rt/3rdparty")
+    if (IS_DIRECTORY "${_hilti_3rdparty}")
+        set_property(TARGET Zeek::DynamicPluginBase APPEND PROPERTY
+            INTERFACE_INCLUDE_DIRECTORIES "${_hilti_3rdparty}")
+    endif ()
+    unset(_hilti_3rdparty)
+endif ()
+
 # On Windows/MSVC, dynamic plugins (DLLs) must link against the zeek
 # executable's import library to resolve symbols at link time.
 if (MSVC AND TARGET Zeek::DynamicPluginBase)

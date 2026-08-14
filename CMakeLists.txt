@@ -1168,8 +1168,6 @@ if (HAVE_SPICY)
             ${PROJECT_SOURCE_DIR}/auxil/spicy/3rdparty)
     endif ()
 
-    target_include_directories(zeek_dynamic_plugin_base SYSTEM
-                               INTERFACE $<INSTALL_INTERFACE:include/hilti/rt/3rdparty>)
 endif ()
 
 include(BuiltInSpicyAnalyzer)

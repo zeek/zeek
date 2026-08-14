@@ -149,6 +149,8 @@ public:
     void Weird(const char* name, const char* addl = "", const char* source = "");
     bool DidWeird() const { return weird; }
 
+    void LimitReachedWeird(const char* name, size_t limit, size_t limit_max = 0, const char* source = "");
+
     inline bool FlagEvent(ConnEventToFlag e) {
         if ( e >= 0 && e < NUM_EVENTS_TO_FLAG ) {
             if ( suppress_event & (1 << e) )

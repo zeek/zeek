@@ -293,6 +293,12 @@ void Connection::Weird(const char* name, const char* addl, const char* source) {
     reporter->Weird(this, name, addl ? addl : "", source ? source : "");
 }
 
+void Connection::LimitReachedWeird(const char* name, size_t limit, size_t limit_max, const char* source) {
+    const char* addl = limit_max > 0 ? util::fmt("%zu > %zu", limit, limit_max) : util::fmt("%zu", limit);
+    Weird(name, addl, source);
+    CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+}
+
 void Connection::FlipRoles() {
     IPAddr tmp_addr = resp_addr;
     resp_addr = orig_addr;

@@ -26,7 +26,8 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-static constexpr void BINPAC_ASSERT(bool val) { assert(val); }
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define BINPAC_ASSERT(val) assert(val)
 
 using namespace std;
 

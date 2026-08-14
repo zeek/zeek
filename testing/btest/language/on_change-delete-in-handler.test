@@ -1,0 +1,26 @@
+# Regression test for #5782: removing entries from a table with a singleton
+# key type and &on_change should not crash.
+#
+# @TEST-EXEC: zeek -b %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+global t: table[count] of string
+    &on_change=function(tbl: table[count] of string, tpe: TableChange, k: count, v: string) {
+        print "change", tpe, k, v;
+    };
+
+global t2: table[count] of string
+    &on_change=function(tbl: table[count] of string, tpe: TableChange, k: count, v: string) {
+        if ( tpe == TABLE_ELEMENT_NEW )
+            delete tbl[k];
+    };
+
+event zeek_init()
+    {
+    t[1] = "one";
+    delete t[1];
+    print |t|;
+
+    t2[1] = "one";
+    print |t2|;
+    }

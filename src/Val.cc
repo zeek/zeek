@@ -1869,18 +1869,22 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
     if ( change_func || poc_state || (broker_forward && ! broker_store.empty()) ) {
         auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
+        // CallChangeFunc could delete new_entry_val from the table, so
+        // hold an owning reference to the value before invoking user code.
+        auto new_val_copy = new_entry_val->GetVal();
+
         if ( broker_forward && ! broker_store.empty() )
             SendToStore(change_index.get(), new_entry_val, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 
         if ( change_func ) {
-            const auto& v = old_entry_val ? old_entry_val->GetVal() : new_entry_val->GetVal();
+            const auto& v = old_entry_val ? old_entry_val->GetVal() : new_val_copy;
             CallChangeFunc(change_index, v, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
         }
 
         if ( poc_state ) {
             auto change = old_entry_val ? BifEnum::TABLE_ELEMENT_CHANGED : BifEnum::TABLE_ELEMENT_NEW;
             zeek::ValPtr previous_value = old_entry_val ? old_entry_val->GetVal() : nullptr;
-            poc_state->OnChange(change, *change_index, new_entry_val->GetVal(), previous_value);
+            poc_state->OnChange(change, *change_index, new_val_copy, previous_value);
         }
     }
 
@@ -2421,11 +2425,9 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
     if ( broker_forward && ! broker_store.empty() )
         SendToStore(&index, nullptr, ELEMENT_REMOVED);
 
-    if ( change_func && k ) {
-        // this is totally cheating around the fact that we need a Intrusive pointer.
-        ValPtr changefunc_val = RecreateIndex(*(k.get()));
-        CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);
-    }
+    if ( change_func )
+        // const_cast is safe: Clone() is logically const.
+        CallChangeFunc(const_cast<Val&>(index).Clone(), va, ELEMENT_REMOVED);
 
     if ( poc_state ) {
         // This is a bit strange. The code above sets va to {NewRef{}, this}

@@ -1,3 +1,31 @@
+9.0.0-dev.829 | 2026-08-14 13:36:51 +0200
+
+  * Fix use-after-free in `TableVal::Assign` when `&on_change` handler deletes the new entry (Benjamin Bannier, Corelight)
+
+    `CallChangeFunc` invokes user script code which could delete the entry that was
+    just inserted. After it returns, `new_entry_val` is a dangling pointer, but
+    `poc_state->OnChange` still dereferences it via `new_entry_val->GetVal()`.
+
+    We capture the value in an owning `ValPtr` before invoking user code so it
+    remains valid regardless of what the handler does to the table.
+
+    Introduced in a96ede7476 (v8.2.0).
+
+  * GH-5782: Fix crash in `TableVal::Remove` for tables with `&on_change` and singleton keys (Benjamin Bannier, Corelight)
+
+    `Remove(const Val&, ...)` called `RecreateIndex` on the hash key returned by
+    `MakeHashKey`. For singleton key types (e.g. a plain `count`), `MakeHashKey`
+    stores the value inline in the `HashKey` union rather than heap-allocating it.
+    `RecoverVals` (called by `RecreateIndex`) asserts the key is heap-allocated,
+    triggering an internal error.
+
+    We use the already-available `index` parameter directly instead of
+    round-tripping through the hash key representation.
+
+    Introduced in b027b69f5d (v6.0.3).
+
+    Closes #5782.
+
 9.0.0-dev.826 | 2026-08-14 12:54:13 +0200
 
   * doc/NEWS/policy: Deprecate the Management Framework (Arne Welzel, Corelight)

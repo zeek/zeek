@@ -8,6 +8,7 @@
 @load base/frameworks/notice/weird
 @load base/protocols/conn
 @load base/protocols/http
+@load base/misc/zip-analyzer-limit
 
 redef HTTP::max_uncompressed_size = 1024 * 1000;
 

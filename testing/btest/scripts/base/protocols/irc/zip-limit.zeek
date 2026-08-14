@@ -8,6 +8,7 @@
 @load base/frameworks/notice/weird
 @load base/protocols/conn
 @load base/protocols/irc
+@load base/misc/zip-analyzer-limit
 
 redef IRC::max_uncompressed_size = 1024 * 1000;
 

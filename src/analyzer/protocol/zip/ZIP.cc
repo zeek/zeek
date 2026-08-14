@@ -39,9 +39,9 @@ void ZIP_Analyzer::Done() {
     Analyzer::Done();
 
     if ( zip ) {
-        if ( zip->total_in > 0 )
-            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size,
-                                                       size_exceeded);
+        // Only trigger if we have data and the limit wasn't exceeded (meaning we already triggered the event).
+        if ( zip->total_in > 0 && ! limit_exceeded )
+            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, false);
         inflateEnd(zip);
     }
 }
@@ -66,9 +66,8 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
     if ( forward_len == len )
         return true;
 
-    Weird("zip_inflate_output_size_exceeded", zeek::util::fmt("limit=%" PRIu64 " in=%zu out=%" PRIu64,
-                                                              max_uncompressed_size, zip->total_in, uncompressed_size));
-    Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+    zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, true);
+    limit_exceeded = true;
     zip_status = Z_MEM_ERROR;
     return false;
 }
@@ -100,8 +99,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
             allow_restart = 0;
 
             uint64_t have = unzip_size - zip->avail_out;
-            size_exceeded |= ! ForwardDecompressed(have, unzipbuf.get());
-            if ( size_exceeded )
+            if ( ! ForwardDecompressed(have, unzipbuf.get()) )
                 return;
 
             if ( zip_status == Z_STREAM_END ) {

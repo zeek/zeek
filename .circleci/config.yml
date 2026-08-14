@@ -9,9 +9,23 @@ jobs:
     docker:
       - image: cimg/python:3.10
     steps:
-      # TODO: this needs to skip the job entirely if the only files that changed were
-      # docs.
       - checkout
+      - run:
+          # This could be done with the path-filtering orb, but it would require rewriting
+          # everything else about the dynamic config and skip using the continuation
+          # orb. Checking the paths as part of the setup is a more surgical way to go
+          # about it.
+          name: Skip CI for doc- and markdown-only changes
+          command: |
+            if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+              FILES=$(git diff --name-only origin/master...HEAD)
+              if [ -n "$FILES" ] && echo "$FILES" | grep -qvE '(^doc/|.*\.md$)'; then
+                echo "Non-doc/markdown changes found, continuing."
+              else
+                echo "Only doc/markdown changes, halting pipeline."
+                circleci-agent step halt
+              fi
+            fi
       - run:
           name: Generate workflow parameters
           command: .circleci/generate-workflow-params.py

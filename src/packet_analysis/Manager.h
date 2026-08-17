@@ -4,6 +4,7 @@
 
 #include <span>
 
+#include "zeek/IP.h"
 #include "zeek/PacketFilter.h"
 #include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
@@ -198,6 +199,16 @@ public:
     size_t AnalyzerStackDepth() const { return analyzer_stack.size(); }
 
     /**
+     * Stash an IP_Hdr instance to keep it alive until the next ProcessPacket() invocation.
+     *
+     * This is needed to keep data pointers in the analyzer_stack valid for
+     * reassembled IP packets that would otherwise be destructed pre-maturely.
+     *
+     * @param hdr IP_Hdr shared_ptr to keep alive until the next ProcessPacket() invocation.
+     */
+    void TrackReassembledHeader(std::shared_ptr<IP_Hdr> ip_hdr) { reassembled_ip_headers.push_back(std::move(ip_hdr)); }
+
+    /**
      * Get all tracked data spans for a given analyzer instance.
      *
      * @analyzer The analyzer instance.
@@ -261,6 +272,10 @@ private:
     };
 
     std::vector<StackEntry> analyzer_stack;
+
+    // Vector to keep IP_Hdrs of reassembled IP packets alive.
+    // Reset upon re-entering the stack.
+    std::vector<std::shared_ptr<IP_Hdr>> reassembled_ip_headers;
 };
 
 } // namespace packet_analysis

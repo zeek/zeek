@@ -169,6 +169,16 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
             // fragmented packet.
             packet->ip_hdr = std::move(ih);
 
+            // Keep the reassembled packet alive until the next packet is processed.
+            //
+            // If this packet was created via IPTunnel::build_inner_packet(), it
+            // is freed as soon as the recursive packet analysis returns and
+            // because packet->ip_hdr set above is the only reference keeping
+            // the reassembled buffer alive, we pin it also in the packet manager
+            // to keep it from being freed so that the pointers in the
+            // analyzer_stack remain valid.
+            zeek::packet_mgr->TrackReassembledHeader(packet->ip_hdr);
+
             len = total_len = packet->ip_hdr->TotalLen();
             ip_hdr_len = packet->ip_hdr->HdrLen();
 

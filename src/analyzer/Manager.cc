@@ -189,6 +189,13 @@ bool Manager::RegisterAnalyzerForPort(EnumVal* val, PortVal* port) {
     if ( ! p )
         return false;
 
+    // If a disabled analyzer was remapped to a replacement that only handles a
+    // different transport, keep this port with the original analyzer.
+    if ( p->Transport() != TRANSPORT_UNKNOWN && p->Transport() != port->PortType() ) {
+        if ( auto* orig = Lookup(val, false) )
+            p = orig;
+    }
+
     return RegisterAnalyzerForPort(p->Tag(), port->PortType(), port->Port());
 }
 
@@ -261,7 +268,19 @@ Analyzer* Manager::InstantiateAnalyzer(const zeek::Tag& tag, Connection* conn) {
         return nullptr;
     }
 
-    if ( ! c->Enabled() )
+    // A replaced analyzer is disabled and remapped to its replacement. If the
+    // remap redirected us to a replacement that only handles a different
+    // transport than this connection, fall back to the replaced analyzer,
+    // which is disabled solely because it was replaced.
+    bool replaced_fallback = false;
+    if ( conn && c->Transport() != TRANSPORT_UNKNOWN && c->Transport() != conn->ConnTransport() ) {
+        if ( Component* orig = Lookup(tag, false); orig && orig != c ) {
+            c = orig;
+            replaced_fallback = true;
+        }
+    }
+
+    if ( ! replaced_fallback && ! c->Enabled() )
         return nullptr;
 
     if ( ! c->Factory() ) {
@@ -269,14 +288,25 @@ Analyzer* Manager::InstantiateAnalyzer(const zeek::Tag& tag, Connection* conn) {
         return nullptr;
     }
 
-    Analyzer* a = c->Factory()(conn);
+    Analyzer* a;
+    if ( replaced_fallback ) {
+        // HACK: The built-in's name-based constructor resolves its own name
+        // through the remap and would tag itself with the (disabled)
+        // replacement's tag. Enable it across construction so it tags itself
+        // with its own tag.
+        c->SetEnabled(true);
+        a = c->Factory()(conn);
+        c->SetEnabled(false);
+    }
+    else
+        a = c->Factory()(conn);
 
     if ( ! a ) {
         reporter->InternalWarning("analyzer instantiation failed");
         return nullptr;
     }
 
-    a->SetAnalyzerTag(tag);
+    a->SetAnalyzerTag(replaced_fallback ? c->Tag() : tag);
 
     return a;
 }

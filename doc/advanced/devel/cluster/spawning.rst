@@ -104,9 +104,13 @@ individual cluster processes as follows:
   * Change into the working directory and set the ``CLUSTER_NODE`` environment
     variable to the name of the cluster process.
 
-  * Execute the ``zeek`` process, passing arguments as needed. Record its PID.
-    All processes should receive ``local`` by default to load the ``local.zeek``
-    file. Workers will generally also receive the ``-i <interface>`` argument,
+  * Execute the ``zeek`` process, passing process arguments as needed.
+    All processes should minimally receive the cluster backend policy script
+    (e.g. ``policy/frameworks/cluster/backend/zeromq``) as first script argument,
+    followed by ``local`` to load the ``local.zeek`` file. Loading the cluster
+    backend script first allows users to tweak cluster backend specific options
+    using :zeek:keyword:`redef` within ``local.zeek``.
+    Worker processes will also receive the ``-i <interface>`` argument,
     with the interface possibly prefixed by the packet source plugin to use.
     On Linux, using AF_PACKET and interface ``eth0``, this would then end up
     as ``-i af_packet::eth0``.
@@ -138,15 +142,15 @@ cluster process tree you might be used to from elsewhere.
 
     $ ZEEK_WORKERS=2 ZEEK_INTERFACE=af_packet::lo ./supervisor.sh
 
-    $ pstree -acT  44168
+    $ pstree -A -acT 1163012
     bash
-      └─supervisor.sh ./supervisor.sh
-          ├─zeek local policy/frameworks/cluster/backend/zeromq
-          ├─zeek local policy/frameworks/cluster/backend/zeromq
-          ├─zeek local policy/frameworks/cluster/backend/zeromq
-          ├─zeek local policy/frameworks/cluster/backend/zeromq
-          ├─zeek -C -i af_packet::lo local policy/frameworks/cluster/backend/zeromq
-          └─zeek -C -i af_packet::lo local policy/frameworks/cluster/backend/zeromq
+      `-supervisor.sh ./supervisor.sh
+          |-zeek policy/frameworks/cluster/backend/zeromq local Log::default_rotation_interval=0sec
+          |-zeek policy/frameworks/cluster/backend/zeromq local Log::default_rotation_interval=0sec
+          |-zeek policy/frameworks/cluster/backend/zeromq local Log::default_rotation_interval=0sec
+          |-zeek policy/frameworks/cluster/backend/zeromq local Log::default_rotation_interval=0sec
+          |-zeek policy/frameworks/cluster/backend/zeromq -C -i lo local Log::default_rotation_interval=0sec
+          |-zeek policy/frameworks/cluster/backend/zeromq -C -i lo local Log::default_rotation_interval=0sec
 
 Hopefully this removes some of the magic around what a Zeek cluster is, how
 it is spawned, etc. If you're now tempted to write systemd service units,

@@ -1,3 +1,37 @@
+9.0.0-dev.836 | 2026-08-17 14:48:35 -0400
+
+  * dnp3: Fix binpac assertion due to lack of cleanup (Evan Typanski, Corelight)
+
+    DNP3 is special. It manually drives the binpac flow buffer. But, it did
+    not properly clean it up. If a DNP3 buffer tries to grow beyond binpac's
+    `flowbuffer_capacity_max`, it would cause an exception. DNP3 would not
+    reset this buffer, so binpac asserted:
+
+    Assertion failed: (buffer_n_ == 0), function ClearPreviousData,
+        file binpac_buffer.cc, line 222.
+
+    The fix simply makes sure to reset the flow buffer when an exception
+    happens.
+
+    Generated binpac code does this discard anyway, it's just here where
+    DNP3 owns the flow buffer that we hit this assertion.
+
+  * Use macro for `BINPAC_ASSERT` (Evan Typanski, Corelight)
+
+    This preserves the source location when an assertion happens. Otherwise
+    it'd always point to the line in binpac.h.
+
+    Example:
+
+    zeek: <...>/tools/binpac/lib/binpac.h:29: void BINPAC_ASSERT(bool):
+        Assertion `val' failed.
+
+    vs.
+
+    zeek: <...>/tools/binpac/lib/binpac_buffer.cc:230: void
+        binpac::FlowBuffer::ClearPreviousData(): Assertion `buffer_n_ == 0'
+        failed.
+
 9.0.0-dev.833 | 2026-08-14 11:27:35 -0700
 
   * Refresh CT/CA lists to the latest versions (Tim Wojtulewicz, Corelight)

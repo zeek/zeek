@@ -32,6 +32,7 @@ protected:
 
     bool ProcessData(int len, const u_char* data, bool orig);
     void ClearEndpointState(bool orig);
+    void DiscardFlowBuffer(bool orig);
 
     /**
      * Buffers packet data until it reaches a specified length.

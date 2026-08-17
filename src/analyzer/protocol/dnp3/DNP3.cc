@@ -324,6 +324,11 @@ void DNP3_Base::ClearEndpointState(bool orig) {
     endp->pkt_cnt = 0;
 }
 
+void DNP3_Base::DiscardFlowBuffer(bool orig) {
+    auto* flow = orig ? Interpreter()->upflow() : Interpreter()->downflow();
+    flow->flow_buffer()->DiscardData();
+}
+
 bool DNP3_Base::CheckCRC(int len, const u_char* data, const u_char* crc16, const char* where) {
     unsigned int crc = CalcCRC(len, data);
 
@@ -379,6 +384,7 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     }
 
     catch ( const binpac::Exception& e ) {
+        DiscardFlowBuffer(orig);
         SetSkip(true);
         throw;
     }
@@ -406,6 +412,7 @@ void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, ui
     }
 
     catch ( const binpac::Exception& e ) {
+        DiscardFlowBuffer(orig);
         SetSkip(true);
         throw;
     }

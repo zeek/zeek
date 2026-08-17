@@ -116,6 +116,7 @@ void Manager::ProcessPacket(Packet* packet) {
 
     // Start packet analysis
     analyzer_stack.clear();
+    reassembled_ip_headers.clear();
     root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type);
 
     if ( ! packet->processed ) {

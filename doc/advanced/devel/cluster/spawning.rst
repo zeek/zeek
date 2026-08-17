@@ -154,6 +154,5 @@ cluster process tree you might be used to from elsewhere.
           |-zeek policy/frameworks/cluster/backend/zeromq -C -i lo local Log::default_rotation_interval=0sec
 
 Hopefully this removes some of the magic around what a Zeek cluster is, how
-it is spawned, etc. If you're now tempted to write systemd service units,
-take a look at the `zeek-systemd-generator <https://github.com/zeek/zeek/tree/master/tools/systemd-generator>`_
-first!
+it is spawned, etc. If you're now tempted to write systemd unit files,
+take a look at the :ref:`zeek-systemd-generator <deploy-systemd>` first!

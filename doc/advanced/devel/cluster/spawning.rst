@@ -117,7 +117,8 @@ individual cluster processes as follows:
 
   * For pinning processes to CPUs, one common approach is to use the
     `taskset <https://man7.org/linux/man-pages/man1/taskset.1.html>`_
-    utility and execute ``zeek`` using it instead.
+    utility and execute ``zeek`` using it instead, or, to also control
+    memory allocation policies , use `numactl <https://linux.die.net/man/8/numactl>`_.
 
 
 Minimal Shell-Based Supervisor

@@ -164,10 +164,16 @@ event tick()
 		Cluster::publish(Cluster::proxy_topic, ping, Cluster::node, publishes);
 		}
 
-	# Whenver a node detects that it had xpub and onloop drops itself, it
-	# sends done() to the manager. Other nodes will see xpub_drops() in
-	# drop_c as gaps.
-	if ( xpub_drops() > 0 && onloop_drops() > 0 )
+	# Only report done() once this node had its own xpub and onloop drops
+	# *and* observed gaps in every other node's ping stream. The latter is
+	# exactly what the baseline asserts, so tying done() to it prevents
+	# teardown from racing ahead of the observation.
+	local observed_all_peers = T;
+	for ( n in test_nodes )
+		if ( n != Cluster::node && drop_c[n] == 0 )
+			observed_all_peers = F;
+
+	if ( xpub_drops() > 0 && onloop_drops() > 0 && observed_all_peers )
 		Cluster::publish(Cluster::manager_topic, done, Cluster::node);
 
 	schedule 1msec { tick() };

@@ -67,3 +67,9 @@ The following lists steps you can take to protect your Zeek cluster.
   world‑readable or writable, and restrict access to authorized users and
   processes. Misconfigured permissions can expose sensitive network information
   and undermine the confidentiality of security logs.
+
+* In a multi-host cluster, ZeekControl uses SSH from the manager to run commands
+  and deploy configuration and policy files on the other cluster hosts. The account
+  used by ZeekControl therefore has administrative access across the cluster. 
+  Protect its SSH credentials and restrict the account's access to the systems 
+  and operations required to manage the Zeek cluster.

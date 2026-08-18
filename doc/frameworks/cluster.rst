@@ -213,38 +213,42 @@ to aggregate results across workers to see if that count crosses a threshold,
 such as using scan detection. Finally, you might want to extract URLs from
 emails and then redistribute the extracted URLs to all workers to be able to
 find which of these extracted URLs got clicked on. All these examples tend to
-introduce challenges in a Zeek cluster setup due to data centrality issues. In
-other words, the very advantageous divide-and-conquer approach of
-clusterization also introduces complexity in Zeek scripts. However, with the
-introduction of the Broker communication framework and additional helper
-functions, data centrality complexities can be addressed efficiently. One must
-rely on clusterization techniques provided by Zeek scripting, the Broker API,
-and clusterization components.
+introduce challenges in a Zeek cluster setup due to data centrality issues.
+
+In other words, the very advantageous divide-and-conquer approach of
+clusterization also introduces complexity in Zeek scripts. Using such scripting,
+you can use topic-based publish/subscribe communication of Zeek events to
+communicate state: Zeek nodes first *subscribe* to events published to a given
+*topic*. Another node may now *publish* a Zeek event to this topic, and all of
+the subscribed nodes will receive it. Zeek provides explicit APIs to this
+effect, but also provides built-in language primitives such as
+:zeek:attr:`&publish_on_change` to communicate state automatically.
 
 When clustering your scripts, the fundamental work to move data or events in
 the context of a cluster falls primarily on few high level abstractions of
-communication patterns:
-
-  1. Manager-to-worker
-  2. Worker-to-manager
-  3. Worker-to-proxy
-  4. Worker-to-manager-to-worker
-  5. Manager-to-worker-to-manager
+communication patterns, such as manager-to-worker, worker-to-manager, etc.
 
 All the communication between workers, proxies and manager is established by
-Zeek via the Broker framework. The Broker framework provides basic facilities
-for connecting Zeek instances to each other and exchanging messages, events or
-data.
+Zeek via a *cluster backend*. Zeek ships with two such backends, :ref:`ZeroMQ
+<cluster_backend_zeromq>` and :ref:`Broker <broker-framework>`, and users may
+implement their own via Zeek plugins.
+
+Importantly, the ZeroMQ backend provides a logically fully meshed network over
+which it provides pub/sub messaging, while Broker only establishes a partial
+point-to-point topology among the nodes. This means that ZeroMQ permits certain
+topic-based communication patterns that Broker does not, such as direct
+worker-to-worker broadcasts. See the Broker framework documentation for more
+details on its physical connectivity.
 
 Cluster Topics
 --------------
 
-All Broker-based messaging involves two components: the information you want to
+All messaging involves two components: the information you want to
 send, such as an event with its arguments, along with an associated topic name
-string. The topic strings are used as a filtering mechanism: Broker uses a
+string. The topic strings are used as a filtering mechanism: the backends use a
 publish-subscribe communication pattern where peers advertise interest in topic
 prefixes and only receive messages which match one of their prefix
-subscriptions. Broker itself supports arbitrary topic strings. However, Zeek
+subscriptions. Zeek supports arbitrary topic strings, but
 generally follows certain conventions in choosing these topics to help avoid
 conflicts and generally make them easier to remember.
 
@@ -323,8 +327,7 @@ the proxies of a cluster. Examples of its use are listed in the following table.
 Publishing Events Across the Cluster
 ------------------------------------
 
-Broker, as well as Zeek’s higher-level cluster framework, provide a set of
-function to publish events, including:
+Zeek’s cluster framework provides a set of functions to publish events:
 
 .. list-table::
   :header-rows: 1
@@ -379,12 +382,9 @@ An example sending an event from worker to manager:
 
   event some_event_handled_on_worker()
       {
-      Broker::publish(Cluster::manager_topic, worker_to_manager,
-                      Cluster::node);
+      Cluster::publish(Cluster::manager_topic, worker_to_manager,
+                       Cluster::node);
       }
-
-More details and code snippets and documentation on Broker communication
-frameworks are available at :ref:`broker-framework`.
 
 
 .. _cluster-framework-proxies-uniform:
@@ -451,9 +451,8 @@ when working with aggregate and threshold functions.
   scoping.  See :ref:`event-namespacing-pitfall` for further explanation and
   examples.
 
-Clusterization of Zeek scripts can be an intimidating task for beginners.
-However, with reliance on the new Broker framework, clusterization has become
-simpler and straightforward.  Consider the following:
+Clusterization of Zeek scripts can be an intimidating task for beginners,
+but topic-based pub/sub quickly feels natural.  Consider the following:
 
 1. Communication overhead: Be sure not to generate unnecessary communication
    overhead. For example, scan detection is one of the worst cases for

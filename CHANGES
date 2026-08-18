@@ -1,3 +1,9 @@
+9.0.0-dev.855 | 2026-08-18 12:50:59 -0700
+
+  * Add Broker deprecation note to NEWS (Christian Kreibich, Corelight)
+
+  * Docs: add Broker deprecation messaging and de-Brokerize cluster docs (Christian Kreibich, Corelight)
+
 9.0.0-dev.852 | 2026-08-18 20:35:03 +0200
 
   * GH-5798: cluster/websocket: Set FD_CLOEXEC for WebSocket file descriptors (Arne Welzel, Corelight)

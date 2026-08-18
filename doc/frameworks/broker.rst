@@ -6,20 +6,27 @@
 Broker Communication Framework
 ==============================
 
+.. note::
+
+   As of Zeek 9.0 this framework is deprecated, for removal during the Zeek 10
+   release cycle. Clusters managed via zeekctl have used the alternative
+   :ref:`ZeroMQ backend <cluster_backend_zeromq>` by default since Zeek 8.1. We
+   encourage all users to switch their clusters to the ZeroMQ backend at this
+   time.
+
 .. rst-class:: opening
 
-    Zeek uses the `Broker Library
-    <https://docs.zeek.org/projects/broker>`_ to exchange information with
-    other Zeek processes.  Broker itself uses CAF_ (C++ Actor Framework)
-    internally for connecting nodes and exchanging arbitrary data over
-    networks.  Broker then introduces, on top of CAF, a topic-based
-    publish/subscribe communication pattern using a data model that is
-    compatible to Zeek's.  Broker itself can be utilized outside the
-    context of Zeek, with Zeek itself making use of only a few predefined
-    Broker message formats that represent Zeek events, log entries, etc.
+    The `Broker Library <https://docs.zeek.org/projects/broker>`_ is Zeek's
+    legacy framework for exchanging information with other Zeek processes.  It
+    uses CAF_ (C++ Actor Framework) internally for connecting nodes and
+    exchanging data.  Broker then introduces, on top of CAF's physical topology,
+    a topic-based publish/subscribe communication pattern using its own data
+    model.  Broker can be utilized outside the context of Zeek, with Zeek itself
+    making use of only a few predefined Broker message formats that represent
+    Zeek events, log entries, etc.
 
-    In summary, the Zeek's Broker framework provides basic facilities for
-    connecting broker-enabled peers (e.g. Zeek instances) to each other
+    In summary, Zeek's Broker framework provides basic facilities for
+    connecting Broker-enabled peers (e.g. Zeek instances) to each other
     and exchanging messages (e.g. events and logs).
 
 Cluster Layout / API

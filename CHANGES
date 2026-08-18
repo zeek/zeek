@@ -1,3 +1,9 @@
+8.2.1-25 | 2026-08-19 04:35:47 +0000
+
+  * Harden `overload-worker-proxy-topic-drop` test (Evan Typanski, Corelight)
+
+    (cherry picked from commit 4fd9eac264a0e10cfde12f7e348e4b6063480a6d)
+
 8.2.1-24 | 2026-08-19 04:34:19 +0000
 
   * Guard against missing backend-specific options in storage DoOpen (Benjamin Bannier, Corelight)

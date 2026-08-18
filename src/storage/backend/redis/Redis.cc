@@ -262,6 +262,8 @@ std::string Redis::DoGetConfigMetricsLabel() const {
  */
 OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     RecordValPtr backend_options = options->GetField<RecordVal>("redis");
+    if ( ! backend_options )
+        return {ReturnCode::INITIALIZATION_FAILED, "redis backend options not provided"};
 
     key_prefix = backend_options->GetField<StringVal>("key_prefix")->ToStdString();
 

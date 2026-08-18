@@ -198,6 +198,13 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn) {
 
             if ( ports ) {
                 for ( const auto& port : *ports ) {
+                    if ( ! analyzer_mgr->AnalyzerTransportMatches(port, conn->ConnTransport()) ) {
+                        reporter->Error("refusing to attach analyzer %s to %s connection with incompatible transport",
+                                        analyzer_mgr->GetComponentName(port).c_str(),
+                                        transport_proto_string(conn->ConnTransport()));
+                        continue;
+                    }
+
                     analyzer::Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(port, conn);
 
                     if ( ! analyzer )

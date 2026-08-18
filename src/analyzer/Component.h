@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/Tag.h"
+#include "zeek/net_util.h"
 #include "zeek/plugin/Component.h"
 
 namespace zeek {
@@ -54,9 +55,13 @@ public:
      *
      * @param adapter If true, this analyzer is a session adapter from
      * the packet analyzer framework.
+     *
+     * @param transport The transport-layer protocol the analyzer expects,
+     * or TRANSPORT_UNKNOWN for any. Used to keep an analyzer replacement
+     * from claiming ports of a transport it can't handle.
      */
     Component(const std::string& name, factory_callback factory, zeek::Tag::subtype_t subtype = 0, bool enabled = true,
-              bool partial = false, bool adapter = false);
+              bool partial = false, bool adapter = false, TransportProto transport = TRANSPORT_UNKNOWN);
 
     /**
      * Initialization function. This function has to be called before any
@@ -77,6 +82,12 @@ public:
      */
     bool Partial() const { return partial; }
 
+    /**
+     * Returns the transport-layer protocol the analyzer expects.
+     * TRANSPORT_UNKNOWN if any.
+     */
+    TransportProto Transport() const { return transport; }
+
 protected:
     /**
      * Overridden from plugin::Component.
@@ -86,6 +97,7 @@ protected:
 private:
     factory_callback factory; // The analyzer's factory callback.
     bool partial;             // True if the analyzer supports partial connections.
+    TransportProto transport; // Transport the analyzer expects, TRANSPORT_UNKNOWN for any.
 };
 
 } // namespace analyzer

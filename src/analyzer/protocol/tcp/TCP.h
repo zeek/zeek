@@ -33,6 +33,8 @@ public:
 
     void SetTCP(packet_analysis::TCP::TCPSessionAdapter* arg_tcp) { tcp = arg_tcp; }
 
+    tcp::TCP_ApplicationAnalyzer* GetAsTCPApplicationAnalyzer() override { return this; }
+
     // The given endpoint's data delivery is complete.
     virtual void EndpointEOF(bool is_orig);
 

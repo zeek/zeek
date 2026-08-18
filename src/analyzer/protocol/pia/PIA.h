@@ -68,6 +68,10 @@ public:
     // as pointer to an Analyzer.
     analyzer::Analyzer* AsAnalyzer() { return as_analyzer; }
 
+    // The transport this DPD engine analyzes. May differ from the underlying
+    // connection's transport for nested use (e.g. Spicy's protocol_begin()).
+    virtual TransportProto GetTransportProto() const = 0;
+
 protected:
     void PIA_Done();
     void PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen,
@@ -127,6 +131,8 @@ public:
 
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new PIA_UDP(conn); }
 
+    TransportProto GetTransportProto() const override { return TRANSPORT_UDP; }
+
 protected:
     void Done() override {
         Analyzer::Done();
@@ -158,6 +164,8 @@ public:
     void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
 
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new PIA_TCP(conn); }
+
+    TransportProto GetTransportProto() const override { return TRANSPORT_TCP; }
 
 protected:
     void Done() override {

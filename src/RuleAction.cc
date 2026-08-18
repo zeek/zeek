@@ -152,8 +152,16 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state, co
         if ( ! analyzer_mgr->IsEnabled(Analyzer()) )
             return;
 
-        if ( state->PIA() )
+        if ( state->PIA() ) {
+            TransportProto transport = state->PIA()->GetTransportProto();
+            if ( ! analyzer_mgr->AnalyzerTransportMatches(Analyzer(), transport) ) {
+                reporter->Error("refusing to attach analyzer %s to %s DPD context with incompatible transport",
+                                analyzer_mgr->GetComponentName(Analyzer()).c_str(), transport_proto_string(transport));
+                return;
+            }
+
             state->PIA()->ActivateAnalyzer(Analyzer(), parent);
+        }
     }
     else {
         if ( ! analyzer_mgr->IsEnabled(ChildAnalyzer()) )

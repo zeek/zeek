@@ -286,6 +286,11 @@ Analyzer* Manager::InstantiateAnalyzer(const char* name, Connection* conn) {
     return tag ? InstantiateAnalyzer(tag, conn) : nullptr;
 }
 
+bool Manager::AnalyzerTransportMatches(const zeek::Tag& tag, TransportProto transport) const {
+    Component* c = Lookup(tag);
+    return ! c || c->Transport() == TRANSPORT_UNKNOWN || c->Transport() == transport;
+}
+
 void Manager::ExpireScheduledAnalyzers() {
     if ( ! run_state::network_time )
         return;
@@ -420,6 +425,12 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, packet_analys
     tag_set expected = GetScheduled(conn);
 
     for ( const auto& tag : expected ) {
+        if ( ! AnalyzerTransportMatches(tag, conn->ConnTransport()) ) {
+            reporter->Error("refusing to attach analyzer %s to %s connection with incompatible transport",
+                            GetComponentName(tag).c_str(), transport_proto_string(conn->ConnTransport()));
+            continue;
+        }
+
         Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(tag, conn);
 
         if ( ! analyzer )

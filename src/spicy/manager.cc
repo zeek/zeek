@@ -101,14 +101,21 @@ void Manager::registerProtocolAnalyzer(const hilti::rt::String& name, hilti::rt:
     }
 
     analyzer::Component::factory_callback factory = nullptr;
+    TransportProto transport = TRANSPORT_UNKNOWN;
 
     switch ( proto.value() ) {
-        case hilti::rt::Protocol::TCP: factory = spicy::rt::TCP_Analyzer::InstantiateAnalyzer; break;
-        case hilti::rt::Protocol::UDP: factory = spicy::rt::UDP_Analyzer::InstantiateAnalyzer; break;
+        case hilti::rt::Protocol::TCP:
+            factory = spicy::rt::TCP_Analyzer::InstantiateAnalyzer;
+            transport = TRANSPORT_TCP;
+            break;
+        case hilti::rt::Protocol::UDP:
+            factory = spicy::rt::UDP_Analyzer::InstantiateAnalyzer;
+            transport = TRANSPORT_UDP;
+            break;
         default: reporter->Error("unsupported protocol in analyzer"); return;
     }
 
-    auto c = new ::zeek::analyzer::Component(std::string(info.name_zeek), factory, 0);
+    auto c = new ::zeek::analyzer::Component(std::string(info.name_zeek), factory, 0, true, false, false, transport);
     AddComponent(c);
 
     if ( _module_info )

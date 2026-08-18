@@ -1,3 +1,7 @@
+9.0.0-dev.844 | 2026-08-18 10:45:20 -0400
+
+  * Harden `overload-worker-proxy-topic-drop` test (Evan Typanski, Corelight)
+
 9.0.0-dev.842 | 2026-08-18 12:03:06 +0200
 
   * testing/btest: Fix @TeST-EXEC to @TEST-EXEC and use btest-diff-remove-abspath (Arne Welzel, Corelight)

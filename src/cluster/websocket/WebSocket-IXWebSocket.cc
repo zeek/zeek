@@ -163,6 +163,16 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
 
     server->setOnConnectionCallback(connection_callback);
 
+
+    // Set sockets as SOCK_CLOEXEC such that child processes spawned by
+    // system() in script land or raw readers do not inherit the WebSocket
+    // server or client FDs.
+    //
+    // XXX: Not implemented on Windows and using it makes listen() fail.
+#ifndef _MSC_VER
+    server->setCloseOnExec();
+#endif
+
     const auto [success, reason] = server->listen();
     if ( ! success ) {
         zeek::reporter->Error("WebSocket: Unable to listen on %s:%d: %s", options.host.c_str(), options.port,

@@ -280,6 +280,10 @@ Changed Functionality
 - AP-REQ contained with KDC/TGS pre-authentication are now ignored for purposes
   of logging to ``kerberos.log``.
 
+- Fixed file descriptors of the WebSocket server and WebSocket client connections
+  (Cluster::listen_websocket()) being inherited by child processes. E.g., when using
+  ``system()`` in Zeek scripts or the Input Framework's raw reader functionality.
+
 Deprecated Functionality
 ------------------------
 

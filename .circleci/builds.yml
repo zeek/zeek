@@ -1028,7 +1028,7 @@ workflows:
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
           name: build-image-debian-12
-          << : *FILTER_IF_PR_NOT_FULL_CI
+          << : *FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
       - create-build-image:
           name: build-image-debian-13
           build_arm: true

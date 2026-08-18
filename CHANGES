@@ -1,3 +1,15 @@
+9.0.0-dev.850 | 2026-08-18 20:13:51 +0200
+
+  * doc/cluster/spawning: Link to systemd-generator docs, not sources (Arne Welzel, Corelight)
+
+  * doc/cluster/spawning: Include numactl mention (Arne Welzel, Corelight)
+
+  * doc/cluster/spawning: Mention CLUSTER_BACKEND_ARGS coming first (Arne Welzel, Corelight)
+
+  * CCI: Fix filter on the debian-12 image that's used by the zeekctl job (Arne Welzel, Corelight)
+
+  * GH-108: Bump zeekctl for zeek/zeekctl#108 (Arne Welzel, Corelight)
+
 9.0.0-dev.844 | 2026-08-18 10:45:20 -0400
 
   * Harden `overload-worker-proxy-topic-drop` test (Evan Typanski, Corelight)

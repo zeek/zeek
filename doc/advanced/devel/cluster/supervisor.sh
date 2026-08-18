@@ -28,7 +28,8 @@ CLUSTER_BACKEND_ARGS=${ZEEK_CLUSTER_BACKEND_ARGS:-policy/frameworks/cluster/back
 # spawn_process <name> <args...>
 #
 # Creates the working directory and launches a Zeek process in
-# the background the given cluster name, passing args to it.
+# the background the given cluster name, passing $CLUSTER_BACKEND_ARGS
+# followed by args to it.
 function spawn_process {
     local name=$1
     shift # make "$@" in the sub shell work
@@ -41,7 +42,7 @@ function spawn_process {
     (
         cd $wdir
         export CLUSTER_NODE=$name
-        exec zeek "$@" $CLUSTER_BACKEND_ARGS
+        exec zeek $CLUSTER_BACKEND_ARGS "$@"
     ) &
 }
 

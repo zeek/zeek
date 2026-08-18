@@ -4,7 +4,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp-destunreach-no-context.pcap %INPUT
 # @TEST-EXEC: zeek -b -r $TRACES/icmp/icmp-destunreach-udp.pcap %INPUT
 
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 event new_connection(c: connection)
 	{

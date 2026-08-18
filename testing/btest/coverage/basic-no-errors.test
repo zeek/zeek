@@ -2,7 +2,7 @@
 # @TEST-EXEC: zeek -r $TRACES/http/get.pcap %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-canonifier' btest-diff reporter.log
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 redef Reporter::info_to_stderr = T;
 redef Reporter::errors_to_stderr = T;

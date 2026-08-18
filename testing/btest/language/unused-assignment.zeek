@@ -5,7 +5,7 @@
 # across all of the default scripts.
 # @TEST-EXEC: ZEEK_USAGE_ISSUES=1 zeek %INPUT >out 2>&1
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 # @TEST-DOC: The "-u" flag should warn about unused assignments and &is_used suppresses it.
 
 event zeek_init()

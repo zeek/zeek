@@ -1,7 +1,7 @@
 # @TEST-DOC: Test lookup_connection() and connection_exists()
 #
 # @TEST-EXEC: zeek -b -r $TRACES/http/get.pcap %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 event new_connection(c: connection)
 	{

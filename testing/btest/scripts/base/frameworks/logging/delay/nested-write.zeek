@@ -1,8 +1,8 @@
 # @TEST-DOC: Test the behavior when a Log::write() happens within Log::log_stream_policy(), or within a post_delay_cb hook.
 
 # @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stdout
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # @TEST-EXEC: touch test.log && zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut

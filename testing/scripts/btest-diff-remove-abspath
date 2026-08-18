@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Trivial helper to remove some noise from test files that look
+# at .stderr a lot
+set -eu
+
+TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath exec btest-diff "$@"

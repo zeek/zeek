@@ -1,6 +1,6 @@
 # @TEST-DOC: check for errors for negative vector indexes that are too small
 # @TEST-EXEC: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 event zeek_init()
 {

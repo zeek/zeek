@@ -6,10 +6,10 @@
 #
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN && zeek -X zeekygen.conf test.hlto %INPUT
 # @TEST-EXEC: cat protocol.rst  | sed -n '/_plugin-foo-bar/,/_plugin/p' | sed '$d' >output2
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output2
+# @TEST-EXEC: btest-diff-remove-abspath output2
 #
 # @TEST-EXEC: zeek test.hlto %INPUT >output3
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output3
+# @TEST-EXEC: btest-diff-remove-abspath output3
 
 # @TEST-DOC: Enumeration Compression is exported in .evt file *and* defined on the Zeek side. Result in Zeekygen output is from the Zeek side. Encryption is only exported from Spicy.
 

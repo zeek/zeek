@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 global my_event: event(s: string, c: count);
 global my_event: event(nope: string, cantdothis: count);

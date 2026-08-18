@@ -1,6 +1,6 @@
 # @TEST-DOC: Tests that a capture in a function that doesn't exist doesn't crash
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TeST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 function f() {
         local x = 1;

@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b -r $TRACES/wikipedia.pcap %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 @load base/protocols/conn
 

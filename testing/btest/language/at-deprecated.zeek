@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b foo
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # @TEST-START-FILE foo.zeek
 @deprecated

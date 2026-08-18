@@ -1,7 +1,7 @@
 # @TEST-DOC: Disallow mixing different enum types.
 #
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 type color: enum { Red, White, Blue, };
 type city: enum { Rome, Paris};

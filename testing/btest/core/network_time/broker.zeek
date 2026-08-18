@@ -4,8 +4,8 @@
 # @TEST-EXEC: btest-bg-run worker "zeek -b ../worker.zeek"
 # @TEST-EXEC: btest-bg-wait 5
 
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff manager/.stdout
+# @TEST-EXEC: btest-diff-remove-abspath worker/.stdout
+# @TEST-EXEC: btest-diff-remove-abspath manager/.stdout
 
 # @TEST-START-FILE worker.zeek
 

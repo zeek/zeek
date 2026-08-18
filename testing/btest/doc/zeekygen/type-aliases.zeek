@@ -1,5 +1,5 @@
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b -X zeekygen.config %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff autogen-reST-type-aliases.rst
+# @TEST-EXEC: btest-diff-remove-abspath autogen-reST-type-aliases.rst
 
 # @TEST-START-FILE zeekygen.config
 identifier	ZeekygenTest::*	autogen-reST-type-aliases.rst

@@ -1,7 +1,7 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: sed -e 1d -e '/received termination/d' .stderr > .stderrwithoutfirstline
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
+# @TEST-EXEC: btest-diff-remove-abspath .stderrwithoutfirstline
 
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_invalid_lines = F;

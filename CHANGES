@@ -1,3 +1,28 @@
+9.0.0-dev.842 | 2026-08-18 12:03:06 +0200
+
+  * testing/btest: Fix @TeST-EXEC to @TEST-EXEC and use btest-diff-remove-abspath (Arne Welzel, Corelight)
+
+    This wasn't covered by the sed, but Opus found it reviewing the changes.
+
+  * testing/btest: Use btest-diff-remove-abspath where applicable (Arne Welzel, Corelight)
+
+    This was done with a few variations of the following in-place sed
+    script. The variations were mostly about not including `$SCRIPTS` and also
+    double or single quotes. The 6 or so export TEST_DIFF_CANONIFIER cases
+    in the systemd tests were hand-edited.
+
+        sed -i -E 's/(@TEST-EXEC:)[[:space:]]+TEST_DIFF_CANONIFIER=\$SCRIPTS\/diff-remove-abspath[[:space:]]+btest-diff\s+([^[:space:]]+)$/\1 btest-diff-remove-abspath \2/g' \
+            $(git grep --files-with-matches -E 'TEST-EXEC:[[:space:]]+TEST_DIFF_CANONIFIER=\$SCRIPTS\/diff-remove-abspath[[:space:]]+btest-diff\s+([^[:space:]]+)$')
+
+  * testing/scripts: Introduce btest-diff-remove-abspath (Arne Welzel, Corelight)
+
+  * GH-5779: Guard against missing backend-specific options in storage `DoOpen` (Benjamin Bannier, Corelight)
+
+    `Storage::Sync::open_backend` with a default `BackendOptions` record
+    (backend-specific field unset) dereferences a null pointer from
+    `GetField`. Add a null check in both `SQLite::DoOpen` and
+    `Redis::DoOpen` to return `INITIALIZATION_FAILED` instead of crashing.
+
 9.0.0-dev.836 | 2026-08-17 14:48:35 -0400
 
   * dnp3: Fix binpac assertion due to lack of cleanup (Evan Typanski, Corelight)

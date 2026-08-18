@@ -1,7 +1,7 @@
 # @TEST-DOC: checks for type-checking for add/delete expressions
 #
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 global my_set: set[count];
 

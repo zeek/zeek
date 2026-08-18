@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b -C -r $TRACES/dnssec/dnskey.pcap %INPUT > output
 # @TEST-EXEC: zeek -b -C -r $TRACES/dnssec/dnskey2.pcap %INPUT >> output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 
 @load base/protocols/dns
 

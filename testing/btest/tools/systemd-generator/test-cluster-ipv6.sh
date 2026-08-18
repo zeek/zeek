@@ -12,9 +12,9 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./mgr-dir/zeek-setup.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./worker-1-dir/zeek-setup.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./worker-2-dir/zeek-setup.service
+# @TEST-EXEC: btest-diff-remove-abspath ./mgr-dir/zeek-setup.service
+# @TEST-EXEC: btest-diff-remove-abspath ./worker-1-dir/zeek-setup.service
+# @TEST-EXEC: btest-diff-remove-abspath ./worker-2-dir/zeek-setup.service
 #
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-cluster-layout-generator -C etc/cluster -o cluster-layout.zeek
 # @TEST-EXEC: zeek --parse-only ./cluster-layout.zeek

@@ -1,7 +1,7 @@
 # @TEST-DOC: Bad &default_insert usage.
 #
 # @TEST-EXEC-FAIL: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # Not applicable to record fields.
 type R: record {

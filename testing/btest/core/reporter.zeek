@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: zeek -b %INPUT >output 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: btest-diff-remove-abspath output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff logger-test.log
 
 event zeek_init()

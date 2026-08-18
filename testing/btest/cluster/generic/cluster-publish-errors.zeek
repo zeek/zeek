@@ -2,8 +2,8 @@
 #
 # @TEST-EXEC: zeek --parse-only -b %INPUT
 # @TEST-EXEC: zeek -b %INPUT frameworks/cluster/backend/broker
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stdout
 
 module Cluster;
 

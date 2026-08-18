@@ -1,8 +1,8 @@
 # @TEST-EXEC: zeek -b no-warnings.zeek >no-warnings.out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff no-warnings.out
+# @TEST-EXEC: btest-diff-remove-abspath no-warnings.out
 
 # @TEST-EXEC: zeek -b warnings.zeek >warnings.out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff warnings.out
+# @TEST-EXEC: btest-diff-remove-abspath warnings.out
 
 # @TEST-START-FILE no-warnings.zeek
 type blah: string &deprecated;

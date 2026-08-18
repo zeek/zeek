@@ -7,7 +7,7 @@
 #
 # @TEST-EXEC: touch test.rst
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b -X zeekygen.config %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff test.rst
+# @TEST-EXEC: btest-diff-remove-abspath test.rst
 
 # @TEST-START-FILE zeekygen.config
 identifier	Log::WRITER_ASCII	test.rst

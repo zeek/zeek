@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 # Record coercion attempt should report mismatched field types.
 global wrong = "80/tcp";
 

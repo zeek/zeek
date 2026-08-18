@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 local i_min = -9223372036854775808;
 local i_min_p1 = -9223372036854775807;

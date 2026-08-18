@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b %INPUT -e "redef funcb = func2;" > out
 # @TEST-EXEC-FAIL: zeek -b %INPUT -e "redef funca = func2;" >> out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath out
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 export {
 	global func1: function();

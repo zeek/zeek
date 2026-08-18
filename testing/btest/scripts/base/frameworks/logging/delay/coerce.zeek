@@ -2,7 +2,7 @@
 
 # @TEST-EXEC: zeek -B tm,logging -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff-cut -m -F'|' test.log
 
 # @TEST-START-FILE test.zeek

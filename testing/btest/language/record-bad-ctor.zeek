@@ -1,5 +1,5 @@
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 
 # At least shouldn't crash Zeek, just report the invalid record ctor.
 

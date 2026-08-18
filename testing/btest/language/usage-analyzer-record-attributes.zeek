@@ -1,6 +1,6 @@
 # @TEST-DOC: Usage analyzer marked lambdas and functions in attribute expressions of unused tables or record types as unused. That is a bit confusing. Regression test for #3122.
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 module MyModule;
 

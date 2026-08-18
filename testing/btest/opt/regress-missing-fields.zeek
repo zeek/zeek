@@ -1,7 +1,7 @@
 # @TEST-DOC: Regression test for specialized operations checking for missing record fields
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -O ZAM -b %INPUT >error-messages 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff error-messages
+# @TEST-EXEC: btest-diff-remove-abspath error-messages
 
 @load base/utils/conn-ids.zeek
 

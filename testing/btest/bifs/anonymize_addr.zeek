@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # Basic test for non-prefix-preserving and non-random modes
 global orig_addr_anonymization: IPAddrAnonymization = KEEP_ORIG_ADDR;

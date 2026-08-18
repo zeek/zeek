@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff valid.stdout
 
 # @TEST-EXEC-FAIL: zeek -b invalid.zeek 2>invalid.stderr 1>invalid.stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff invalid.stderr
+# @TEST-EXEC: btest-diff-remove-abspath invalid.stderr
 # @TEST-EXEC: btest-diff invalid.stdout
 
 # @TEST-START-FILE valid.zeek

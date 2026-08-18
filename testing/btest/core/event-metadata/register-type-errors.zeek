@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: unset ZEEK_ALLOW_INIT_ERRORS; zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 module App;
 

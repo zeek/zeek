@@ -1,6 +1,6 @@
 # @TEST-DOC: redef record Record$field testing
 # @TEST-EXEC-FAIL: zeek -b setup.zeek %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # Bad syntax
 redef record M::Info$ts -= &log;

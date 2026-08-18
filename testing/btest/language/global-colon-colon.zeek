@@ -2,7 +2,7 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 module GLOBAL;
 

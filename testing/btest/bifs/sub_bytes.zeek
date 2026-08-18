@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 # These tests are to ensure that script optimization gets all the permutations
 # correct, for varying combinations of constant and variable arguments.

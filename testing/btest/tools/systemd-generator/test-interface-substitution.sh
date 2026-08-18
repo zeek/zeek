@@ -5,24 +5,24 @@
 # @TEST-EXEC: mkdir dir1
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config1 dir1
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker@2.service.d/*conf
 #
 # @TEST-EXEC: mkdir dir2
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config2 dir2
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir2/zeek-worker@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir2/zeek-worker@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir2/zeek-worker@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir2/zeek-worker@2.service.d/*conf
 #
 # @TEST-EXEC: mkdir dir3
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config3 dir3
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth1@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth1@2.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth1@3.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth2@1.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth2@2.service.d/*conf
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir3/zeek-worker-eth2@3.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth1@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth1@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth1@3.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth2@1.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth2@2.service.d/*conf
+# @TEST-EXEC: btest-diff-remove-abspath ./dir3/zeek-worker-eth2@3.service.d/*conf
 
 # @TEST-START-FILE config1
 # You usually want to use worker_index0

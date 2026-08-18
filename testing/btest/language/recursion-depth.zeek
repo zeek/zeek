@@ -4,7 +4,7 @@
 #
 # Keep the baseline diffs separate for ordering on all platforms
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 function recurse(n: count): count
 	{

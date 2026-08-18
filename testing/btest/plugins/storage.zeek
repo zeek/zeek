@@ -5,8 +5,8 @@
 # @TEST-EXEC: cp -r %DIR/storage-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=$(pwd) zeek -b Testing::StorageDummy %INPUT >> output 2>zeek-stderr
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff zeek-stderr
+# @TEST-EXEC: btest-diff-remove-abspath output
+# @TEST-EXEC: btest-diff-remove-abspath zeek-stderr
 
 @load base/frameworks/storage/async
 @load base/frameworks/storage/sync

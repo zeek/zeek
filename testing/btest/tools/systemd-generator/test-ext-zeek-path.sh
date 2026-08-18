@@ -5,8 +5,8 @@
 # @TEST-EXEC: mkdir dir1
 # @TEST-EXEC: ${BUILD}/tools/systemd-generator/zeek-systemd-generator --config config1 dir1
 #
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-manager.service
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff ./dir1/zeek-worker@.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-manager.service
+# @TEST-EXEC: btest-diff-remove-abspath ./dir1/zeek-worker@.service
 
 # @TEST-START-FILE config1
 interface = eth0

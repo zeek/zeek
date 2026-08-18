@@ -6,9 +6,9 @@
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb-backup
 # @TEST-EXEC: zeek -b -r $TRACES/rotation.pcap %INPUT mmdb_dir=./mmdb >out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: btest-diff-remove-abspath out
 # @TEST-EXEC: zeek-cut -m < reporter.log > reporter.log.tmp && mv reporter.log.tmp reporter.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff reporter.log
+# @TEST-EXEC: btest-diff-remove-abspath reporter.log
 
 @load base/frameworks/reporter
 

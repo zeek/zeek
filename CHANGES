@@ -1,3 +1,9 @@
+8.0.9-19 | 2026-08-19 04:40:31 +0000
+
+  * Guard against missing backend-specific options in storage DoOpen (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit da19f6a07345168adc8646071abf8f960251a9ee)
+
 8.0.9-18 | 2026-08-19 04:38:27 +0000
 
   * GH-5782: Fix crash in `TableVal::Remove` for tables with `&on_change` and singleton keys (Benjamin Bannier, Corelight)

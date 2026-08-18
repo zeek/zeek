@@ -101,6 +101,9 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 #endif
 
     RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
+    if ( ! backend_options )
+        return {ReturnCode::INITIALIZATION_FAILED, "sqlite backend options not provided"};
+
     StringValPtr path = backend_options->GetField<StringVal>("database_path");
     full_path = std::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();

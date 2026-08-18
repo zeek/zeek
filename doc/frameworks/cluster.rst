@@ -213,11 +213,15 @@ to aggregate results across workers to see if that count crosses a threshold,
 such as using scan detection. Finally, you might want to extract URLs from
 emails and then redistribute the extracted URLs to all workers to be able to
 find which of these extracted URLs got clicked on. All these examples tend to
-introduce challenges in a Zeek cluster setup due to data centrality issues. In
-other words, the very advantageous divide-and-conquer approach of
+introduce challenges in a Zeek cluster setup due to data centrality issues.
+
+In other words, the very advantageous divide-and-conquer approach of
 clusterization also introduces complexity in Zeek scripts. Using such scripting,
 you can use topic-based publish/subscribe communication of Zeek events to
-communicate state. Zeek also provides language primitives such as
+communicate state: Zeek nodes first *subscribe* to events published to a given
+*topic*. Another node may now *publish* a Zeek event to this topic, and all of
+the subscribed nodes will receive it. Zeek provides explicit APIs to this
+effect, but also provides built-in language primitives such as
 :zeek:attr:`&publish_on_change` to communicate state automatically.
 
 When clustering your scripts, the fundamental work to move data or events in
@@ -226,14 +230,15 @@ communication patterns, such as manager-to-worker, worker-to-manager, etc.
 
 All the communication between workers, proxies and manager is established by
 Zeek via a *cluster backend*. Zeek ships with two such backends, :ref:`ZeroMQ
-<cluster_backend_zeromq>` and :ref:`Broker <broker-framework>`.  They differ in
-their underlying connectivity but provide conceptually similar high-level
-pub/sub messaging.
+<cluster_backend_zeromq>` and :ref:`Broker <broker-framework>`, and users may
+implement their own via Zeek plugins.
 
-Importantly, the ZeroMQ backend provides a logically fully meshed network, while
-Broker only establishes a partial, physical point-to-point topology among the
-nodes. This means that ZeroMQ allows certain communication patterns that Broker
-does not, such as direct worker-to-worker broadcasts.
+Importantly, the ZeroMQ backend provides a logically fully meshed network over
+which it provides pub/sub messaging, while Broker only establishes a partial
+point-to-point topology among the nodes. This means that ZeroMQ permits certain
+topic-based communication patterns that Broker does not, such as direct
+worker-to-worker broadcasts. See the Broker framework documentation for more
+details on its physical connectivity.
 
 Cluster Topics
 --------------
@@ -322,7 +327,7 @@ the proxies of a cluster. Examples of its use are listed in the following table.
 Publishing Events Across the Cluster
 ------------------------------------
 
-Zeek’s cluster framework provides a set of function to publish events, including:
+Zeek’s cluster framework provides a set of functions to publish events:
 
 .. list-table::
   :header-rows: 1

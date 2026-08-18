@@ -287,6 +287,16 @@ Changed Functionality
 Deprecated Functionality
 ------------------------
 
+- The Broker messaging backend is now deprecated. ZeroMQ has been the default
+  cluster messaging backend used by zeekctl since Zeek 8.1, and we encourage
+  everyone to switch their clusters over to ZeroMQ at this time. We are not
+  going to remove Broker with 9.1, but Broker will become a build-time opt-in
+  feature over the course of the 9.x cycle and likely see removal in 10.1.
+
+  Third-party applications should focus on Zeek's WebSocket stack for connecting
+  into the Zeek cluster, while JavaScript offers support for reaching out to
+  HTTP APIs from Zeek scripts.
+
 - Development of the Management Framework has been discontinued and its scripting
   code will be moved into an external package with Zeek 9.1. If you've been deploying
   Zeek clusters using the Management Framework, you can continue to do so with Zeek 9.0,

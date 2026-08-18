@@ -140,6 +140,16 @@ public:
     virtual void Done();
 
     /**
+     * Retrieves the TCP application analyzer, if possible. This is in lieu of a proper RTTI
+     * replacement, since multiple places rely on the TCP analyzer. We could use dynamic_cast,
+     * but C++'s RTTI has its own number of issues.
+     *
+     * TCP_ApplicationAnalyzer should override this to return the TCP application analyzer if 'this'
+     * is a TCP application analyzer.
+     */
+    virtual tcp::TCP_ApplicationAnalyzer* GetAsTCPApplicationAnalyzer() { return nullptr; }
+
+    /**
      * Passes packet input to the analyzer for processing. The analyzer
      * will process the input with any support analyzers first and then
      * forward the data to DeliverPacket(), which derived classes can

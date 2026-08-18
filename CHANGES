@@ -1,3 +1,19 @@
+8.0.9-55 | 2026-08-19 06:45:39 -0700
+
+  * GH-5798: cluster/websocket: Set FD_CLOEXEC for WebSocket file descriptors (Arne Welzel, Corelight)
+
+    Bump ixwebsocket, use server->setCloseOnExec(), add test which would
+    previously fail because the looping bash process would inherit the
+    websocket server's file descriptor and surive its parent being killed.
+
+    Test adapted from reproducer script provided in #5798.
+
+    (cherry picked from commit e94b18813cb7bb23b6df28c576afc1811da009bb)
+
+  * Switch `as port` to `to_port()` during cherry-pick. (Arne Welzel, Corelight)
+
+    (cherry picked from commit 42f05c1defbd09849194c4cf5cfd3c786d698885)
+
 8.0.9-54 | 2026-08-19 05:18:59 +0000
 
   * Update NEWS for v8.0.10 [nomail] (Tim Wojtulewicz, Corelight)

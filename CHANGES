@@ -1,3 +1,28 @@
+9.0.0-dev.878 | 2026-08-19 07:26:45 -0700
+
+  * Fix potential segfault in malformed opaque vals (Evan Typanski, Corelight)
+
+    This is entirely internal, only "exploitable" from within Zeek. Since we
+    treat broker communication as internal, this is not exploitable by our
+    metrics. Regardless, it's a potential segfault that should have a guard
+    in case malformed input comes through.
+
+    If an opaque val is serialized and provides an out-of-bounds type tag,
+    when it is unserialized, that type tag is assumed to be valid. This
+    causes an out of bounds read.
+
+    The fix comes in two parts. First, we should stop trying to make the
+    base_type if the tag is out of bounds. Thus, we will now internal error
+    if it gets to that point.
+
+    Second, we should not unserialize to an OOB type tag in the first place.
+
+    The provided reproducer simply created an opaque val, then gave an OOB
+    type tag. Zeek happily assumed it was valid.
+
+    Found by Anthropic using agents to study the security of open-source
+    projects, with Ada Logics validating and reporting.
+
 9.0.0-dev.876 | 2026-08-19 07:26:26 -0700
 
   * Set l2_src/l2_dst fields for inner tunnel packet to empty (Tim Wojtulewicz, Corelight)

@@ -113,20 +113,11 @@ and @uwezkhan for their contributions to this release.
 
 This release fixes the following security issues:
 
-<<<<<<< HEAD
 - HIGH: The NVT, Rlogin, and RSH analyzers have received fixes to avoid unbounded state
   growth. Due to the fact that these packets can be received from remote hosts, these are
   considered DoS risks. The fixes include additional length-checking when processing
   packets, as well as a new set of weirds for when the standard Content-Line limits are
   exceeded.
-=======
-- Fixed file descriptors of the WebSocket server and WebSocket client connections
-  (Cluster::listen_websocket()) being inherited by child processes. E.g., when using
-  ``system()`` in Zeek scripts or the Input Framework's raw reader functionality.
-
-Deprecated Functionality
-------------------------
->>>>>>> e94b18813c (Merge remote-tracking branch 'origin/topic/awelzel/5798-ixwebsocket-close-on-exec')
 
 - HIGH: A specially crafted WebSocket payload can cause the Spicy WebSocket analyzer to
   use excessive memory when processing close, ping, and pong frames. Due to the fact that

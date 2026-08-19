@@ -1,3 +1,7 @@
+9.0.0-dev.859 | 2026-08-19 07:19:06 -0700
+
+  * Add const to control maximum packet analyzer chain depth (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.857 | 2026-08-18 20:51:36 -0700
 
   * CCI: Skip builds that only change docs or markdown files (Tim Wojtulewicz, Corelight)

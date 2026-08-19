@@ -290,6 +290,12 @@ Changed Functionality
   and logged and one of the new weirds ``LDAP_max_pending_messages_exceeded`` or
   ``LDAP_max_pending_searches_exceeded`` raised.
 
+- The number of data channels per worker is now capped at a configurable
+  maximum FTP::max_expected_data_channels (default 100000). When the limit
+  is reached, FTP data connection correlation across a Zeek cluster is
+  disabled to prevent unbounded state growth and cluster overload until
+  expiration removes old entries.
+
 Deprecated Functionality
 ------------------------
 

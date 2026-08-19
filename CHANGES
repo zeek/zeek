@@ -1,3 +1,7 @@
+9.0.0-dev.871 | 2026-08-19 07:25:43 -0700
+
+  * ftp: Cap ftp_data_expected via new FTP::max_expected_data_channels (Arne Welzel, Corelight)
+
 9.0.0-dev.869 | 2026-08-19 07:25:00 -0700
 
   * ldap: Cap pending searches and messages (Arne Welzel, Corelight)

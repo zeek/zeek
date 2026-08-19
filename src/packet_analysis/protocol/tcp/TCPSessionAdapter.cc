@@ -45,17 +45,8 @@ TCPSessionAdapter::TCPSessionAdapter(Connection* conn) : packet_analysis::IP::Se
 }
 
 TCPSessionAdapter::~TCPSessionAdapter() {
-    for ( Analyzer* a : packet_children )
-        delete a;
-
     delete orig;
     delete resp;
-}
-
-void TCPSessionAdapter::Init() {
-    Analyzer::Init();
-    for ( Analyzer* a : packet_children )
-        a->Init();
 }
 
 void TCPSessionAdapter::Done() {
@@ -63,9 +54,6 @@ void TCPSessionAdapter::Done() {
 
     if ( run_state::terminating && connection_pending && is_active && ! BothClosed() )
         Event(connection_pending);
-
-    for ( Analyzer* a : packet_children )
-        a->Done();
 
     orig->Done();
     resp->Done();
@@ -651,43 +639,6 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len, 
     CheckRecording(need_contents, flags);
 }
 
-analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::ID arg_id) {
-    analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_id);
-
-    if ( child )
-        return child;
-
-    for ( Analyzer* a : packet_children ) {
-        if ( analyzer::Analyzer* child = a->FindChild(arg_id) )
-            return child;
-    }
-
-    return nullptr;
-}
-
-analyzer::Analyzer* TCPSessionAdapter::FindChild(zeek::Tag arg_tag) {
-    analyzer::Analyzer* child = packet_analysis::IP::SessionAdapter::FindChild(arg_tag);
-
-    if ( child )
-        return child;
-
-    for ( Analyzer* a : packet_children ) {
-        if ( analyzer::Analyzer* child = a->FindChild(arg_tag) )
-            return child;
-    }
-
-    return nullptr;
-}
-
-bool TCPSessionAdapter::RemoveChildAnalyzer(analyzer::ID id) {
-    auto rval = packet_analysis::IP::SessionAdapter::RemoveChildAnalyzer(id);
-
-    if ( rval )
-        return rval;
-
-    return RemoveChild(packet_children, id);
-}
-
 void TCPSessionAdapter::EnableReassembly() {
     SetReassembler(new analyzer::tcp::TCP_Reassembler(this, this, analyzer::tcp::TCP_Reassembler::Forward, orig),
                    new analyzer::tcp::TCP_Reassembler(this, this, analyzer::tcp::TCP_Reassembler::Forward, resp));
@@ -1042,9 +993,6 @@ void TCPSessionAdapter::Undelivered(uint64_t seq, int len, bool is_orig) { Analy
 void TCPSessionAdapter::FlipRoles() {
     Analyzer::FlipRoles();
 
-    for ( auto* pc : packet_children )
-        pc->FlipRoles();
-
     TCPAnalyzer::GetStats().FlipState(orig->state, resp->state);
     analyzer::tcp::TCP_Endpoint* tmp_ep = resp;
     resp = orig;
@@ -1069,10 +1017,6 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
 
     // Call children's UpdateConnVal
     SessionAdapter::UpdateConnVal(conn_val);
-
-    // Have to do packet_children ourselves.
-    for ( Analyzer* a : packet_children )
-        a->UpdateConnVal(conn_val);
 }
 
 void TCPSessionAdapter::AttemptTimer(double /* t */) {

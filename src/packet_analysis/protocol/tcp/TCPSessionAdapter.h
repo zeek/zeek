@@ -37,10 +37,6 @@ public:
     [[deprecated("Remove in v10.1: Use AddChildAnalyzer() directly. The internal processing has been unified.")]]
     void AddChildPacketAnalyzer(analyzer::Analyzer* a);
 
-    Analyzer* FindChild(analyzer::ID id) override;
-    Analyzer* FindChild(zeek::Tag tag) override;
-    bool RemoveChildAnalyzer(analyzer::ID id) override;
-
     // True if the connection has closed in some sense, false otherwise.
     bool IsClosed() const { return orig->did_close || resp->did_close; }
     bool BothClosed() const { return orig->did_close && resp->did_close; }
@@ -85,7 +81,6 @@ protected:
     friend class packet_analysis::TCP::TCPAnalyzer;
 
     // Analyzer interface.
-    void Init() override;
     void Done() override;
     void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
@@ -158,7 +153,6 @@ private:
     analyzer::tcp::TCP_Endpoint* orig;
     analyzer::tcp::TCP_Endpoint* resp;
 
-    analyzer::analyzer_list packet_children;
     uint64_t rel_data_seq = 0;
 
     unsigned int first_packet_seen : 2;

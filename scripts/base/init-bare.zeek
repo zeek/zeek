@@ -4033,6 +4033,50 @@ export {
 	##
 	## Setting this value to zero disables the capping mechanism.
 	const max_string_length = 2 * 1024 * 1024 &redef;
+
+	## The maximum number of KEX algorithms extracted from a KEXINIT packet
+	## and included in the ``ssh_capabilities`` event. As a consequence, this
+	## also limits the number of KEX algorithms used to determine which one
+	## was chosen.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_kex_algorithms_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_kex_algorithms = 100 &redef;
+
+	## The maximum number of hostkey algorithms extracted from a
+	## KEXINIT packet and included in the ``ssh_capabilities`` event.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_hostkey_algorithms_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_hostkey_algorithms = 100 &redef;
+
+	## The maximum number of encryption algorithms extracted from a
+	## KEXINIT packet and included in the ``ssh_capabilities`` event.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_encryption_algorithms_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_encryption_algorithms = 100 &redef;
+
+	## The maximum number of mac algorithms extracted from a
+	## KEXINIT packet and included in the ``ssh_capabilities`` event.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_mac_algorithms_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_mac_algorithms = 100 &redef;
+
+	## The maximum number of compression algorithms extracted from a
+	## KEXINIT packet and included in the ``ssh_capabilities`` event.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_compression_algorithms_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_compression_algorithms = 100 &redef;
+
+	## The maximum number of languages extracted from a
+	## KEXINIT packet and included in the ``ssh_capabilities`` event.
+	## Setting this value to zero disables the limit. If the limit
+	## is reached, a ``SSH_max_kexinit_languages_exceeded``
+	## weird is raised and an X added to the connection's history.
+	const max_kexinit_languages = 100 &redef;
 }
 
 module NTLM;

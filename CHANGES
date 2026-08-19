@@ -1,3 +1,24 @@
+9.0.0-dev.888 | 2026-08-19 07:28:38 -0700
+
+  * ssh: Cap name lists in KEXINIT packets to configurable limits (Arne Welzel, Corelight)
+
+    Also modernizes name_list_to_vector() using tokenize_string and
+    string_views instead of the manual wrangling. I don't think one
+    limit per list scales, but lets have it here and see what happens
+    in other analyzers.
+
+    If we ever port this analyzer to SSH, we may just have a single limit
+    of each of the namelists. For fine-grained protocol weird/violation
+    individual weird names are kind of nice.
+
+  * ssh: Avoid O(n^2) by placing server algs into set for lookup (Arne Welzel, Corelight)
+
+    Done in both script land and the BinPAC parser.
+
+    Also switch to using std::string_view and std::set<std::string_view>
+    in the BinPAC parser instead of creating the intermediate VectorVal and
+    StringVal instances that name_list_to_vector() does.
+
 9.0.0-dev.885 | 2026-08-19 07:28:15 -0700
 
   * nvt: Fix heap buffer overflow for NVT length limit (Evan Typanski, Corelight)

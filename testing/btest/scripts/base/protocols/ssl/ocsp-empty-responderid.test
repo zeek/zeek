@@ -1,0 +1,9 @@
+# This that OCSP can correctly deal with empty responder ids
+
+# @TEST-EXEC: zeek -r $TRACES/tls/ocsp-empty-responderid.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event ocsp_response_bytes(f: fa_file, status: string, version: count, responderId: string, producedAt: time, signatureAlgorithm: string, certs: x509_opaque_vector)
+	{
+	print status, version, responderId, |responderId|, producedAt, signatureAlgorithm, |certs|;
+	}

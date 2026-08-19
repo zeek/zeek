@@ -1,3 +1,22 @@
+9.0.0-dev.880 | 2026-08-19 07:27:05 -0700
+
+  * OCSP: Empty byName responder ID crashes Zeek (Johanna Amann, Corelight)
+
+    Zeek's OCSP analyzer uses an in-memory OpenSSL BIO and copies data into
+    a Zeek string. With an empty name, the bio contains zero bytes. By
+    default, a read from an empty memory bio returns a length of -1, which
+    is passed on as the length into a Zeek StringVal, which leads to a crash
+    when trying to copy SIZE_MAX bytes from a small buffer.
+
+    The patch uses the OpenSSL function BIO_set_mem_eof_return to set the
+    return value for empty bios to 0.
+
+    Found by Anthropic using agents to study the security of open-source
+    projects, with Ada Logics validating and reporting.
+
+    Pcap created with code supplied by Anthropic/Ada Logics, rewritten by
+    Tim Wojtulewicz.
+
 9.0.0-dev.878 | 2026-08-19 07:26:45 -0700
 
   * Fix potential segfault in malformed opaque vals (Evan Typanski, Corelight)

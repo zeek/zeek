@@ -1,3 +1,7 @@
+8.0.10 | 2026-08-19 16:41:33 +0000
+
+  * Fix clang-tidy warnings from recent merges (Tim Wojtulewicz, Corelight)
+
 8.0.9-56 | 2026-08-19 06:47:08 -0700
 
   * testing/scripts: Include is-windows-ci (Arne Welzel, Corelight)

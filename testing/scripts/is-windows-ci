@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Returns true (exit 0) when running on Windows inside a CI environment.
+# Use with @TEST-REQUIRES to skip flaky tests in Windows CI while still
+# allowing them to run on developer machines.
+
+is-windows && test -n "$CI"

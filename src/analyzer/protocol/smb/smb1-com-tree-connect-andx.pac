@@ -33,7 +33,7 @@ refine connection SMB_Conn += {
 
 };
 
-type SMB1_tree_connect_andx_request(header: SMB_Header, offset: uint16) = record {
+type SMB1_tree_connect_andx_request(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
 	word_count      : uint8;
 	andx            : SMB_andx;
 	flags           : uint16;
@@ -46,12 +46,14 @@ type SMB1_tree_connect_andx_request(header: SMB_Header, offset: uint16) = record
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), andx.command);
+	andx_command    : SMB_andx_command(header, true, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	proc : bool = $context.connection.proc_smb1_tree_connect_andx_request(header, this);
 };
 
-type SMB1_tree_connect_andx_response(header: SMB_Header, offset: uint16) = record {
+type SMB1_tree_connect_andx_response(header: SMB_Header, offset: uint16, andx_depth: uint8) = record {
 	word_count         : uint8;
 	andx               : SMB_andx;
 	optional_support   : uint16[word_count<3 ? 0 : 1];
@@ -63,7 +65,9 @@ type SMB1_tree_connect_andx_response(header: SMB_Header, offset: uint16) = recor
 
 	extra_byte_parameters : bytestring &transient &length=(andx.offset == 0 || andx.offset >= (offset+offsetof(extra_byte_parameters))+2) ? 0 : (andx.offset-(offset+offsetof(extra_byte_parameters)));
 
-	andx_command       : SMB_andx_command(header, false, offset+offsetof(andx_command), andx.command);
+	andx_command       : SMB_andx_command(header, false, offset+offsetof(andx_command), $context.connection.adjust_andx_command(andx_depth, offset, andx.offset, andx.command), andx_depth + 1);
 } &let {
+	andx_offset_check : bool = $context.connection.check_offset_advancing(andx.command, offset, andx.offset);
+	andx_depth_check : bool = $context.connection.check_andx_depth(andx_depth, andx.command);
 	proc : bool = $context.connection.proc_smb1_tree_connect_andx_response(header, this);
 };

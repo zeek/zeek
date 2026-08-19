@@ -1,3 +1,11 @@
+9.0.0-dev.867 | 2026-08-19 07:23:47 -0700
+
+  * Reduce code duplication for the SMB AndX changes (Tim Wojtulewicz, Corelight)
+
+  * SMB: Add checks/weird for a maximum depth of AndX recursion (Tim Wojtulewicz, Corelight)
+
+  * SMB: Add checks/weird for non-advancing AndX offsets (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.863 | 2026-08-19 07:23:26 -0700
 
   * Add const to control the maximum number of pending IRC dcc send commands (Tim Wojtulewicz, Corelight)

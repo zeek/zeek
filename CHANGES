@@ -1,3 +1,23 @@
+9.0.0-dev.902 | 2026-08-19 07:30:36 -0700
+
+  * udp: Fix OOB read when using `udp_contents` (Evan Typanski, Corelight)
+
+    If udp_contents was enabled (off-by-default), then an attacker could
+    force an out of bounds read by sending a large IP-declared payload
+    without that size on the wire. If the event has a handler and should be
+    triggered, then Zeek would try to create a string of that size, which
+    would cause reading past the end of data.
+
+    The fix just caps the length of the `udp_contents` string to the actual
+    payload size.
+
+    This is only actionable if the victim is using `udp_contents`, which we
+    discourage. Because of that, the impact should be relatively minimal in
+    production Zeek instances.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them. Verified by me.
+
 9.0.0-dev.900 | 2026-08-19 07:30:14 -0700
 
   * analyzer: Do not reschedule equivalent analyzers (Evan Typanski, Corelight)

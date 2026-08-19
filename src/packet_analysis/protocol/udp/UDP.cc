@@ -173,7 +173,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( do_udp_contents )
             adapter->EnqueueConnEvent(udp_contents, adapter->ConnVal(), val_mgr->Bool(is_orig),
-                                      make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
+                                      make_intrusive<StringVal>(std::min(len, remaining),
+                                                                reinterpret_cast<const char*>(data)));
     }
 
     if ( is_orig ) {

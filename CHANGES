@@ -1,3 +1,15 @@
+9.0.0-dev.926 | 2026-08-19 18:46:35 +0000
+
+  * Fix docs issue with AndX security patch (Tim Wojtulewicz, Corelight)
+
+  * Fix missing python3-venv in a few builds (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy warning from recent security patches (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs after security patch merges [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Bump `auxil/spicy/` to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.920 | 2026-08-19 09:25:36 -0700
 
   * Bump `auxil/spicy/` to latest development snapshot (Benjamin Bannier, Corelight)

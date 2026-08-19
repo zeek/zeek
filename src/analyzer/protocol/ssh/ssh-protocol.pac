@@ -521,8 +521,7 @@ refine connection SSH_Conn += {
 				// UNTESTED
 				if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
 					return true;
-				// UNTESTED
-				if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
+				if ( update_kex_state_if_equal("diffie-hellman-group18-sha512", KEX_DH) )
 					return true;
 
 				if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha1", KEX_DH_GEX) )

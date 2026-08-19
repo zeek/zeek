@@ -1,3 +1,20 @@
+9.0.0-dev.892 | 2026-08-19 07:29:22 -0700
+
+  * redis: Cap total RESP aggregates (Evan Typanski, Corelight)
+
+    Redis is made up of recursive types, which gets expensive quick. One byte
+    on the wire ends up as many in the parser. This can be exercised in many
+    ways, even if you have a cap on any individual array, since it's all
+    recursive.
+
+    This fix adds a total tally to cap *all* nested elements. This way, the
+    analyzer will throw a violation if we get too far along and use too much
+    memory.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI using GPT 5.6 sol. Initial patch also provided
+    by them. Further edits by me with guidance from Claude Opus 4.8.
+
 9.0.0-dev.890 | 2026-08-19 07:29:07 -0700
 
   * Limit the number of IGMP groups and sources-per-group (Tim Wojtulewicz, Corelight)

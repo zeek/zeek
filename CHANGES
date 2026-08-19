@@ -1,3 +1,7 @@
+9.0.0-dev.908 | 2026-08-19 07:32:28 -0700
+
+  * Fill a dummy name in for Telnet AUTH if missing (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.906 | 2026-08-19 07:32:10 -0700
 
   * Skip creating a record object for DNP3 g70v1 record fields (Tim Wojtulewicz, Corelight)

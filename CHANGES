@@ -1,3 +1,15 @@
+8.2.2 | 2026-08-19 16:54:13 +0000
+
+  * Regenerate docs after security patch merges [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy warnings from recent merges (Tim Wojtulewicz, Corelight)
+
+  * cluster/websocket: Set FD_CLOEXEC for WebSocket file descriptors (Arne Welzel, Corelight)
+
+    (cherry picked from commit e94b18813cb7bb23b6df28c576afc1811da009bb)
+
+  * Update NEWS for v8.2.2 [nomail] (Tim Wojtulewicz, Corelight)
+
 8.2.1-57 | 2026-08-19 06:41:30 -0700
 
   * GH-5798: cluster/websocket: Set FD_CLOEXEC for WebSocket file descriptors (Arne Welzel, Corelight)

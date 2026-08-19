@@ -19,10 +19,14 @@ Runtime Options
 
 Redefinable Options
 ###################
-================================================================ ==================================================
-:zeek:id:`LDAP::ports_tcp`: :zeek:type:`set` :zeek:attr:`&redef` TCP ports which should be considered for analysis.
-:zeek:id:`LDAP::ports_udp`: :zeek:type:`set` :zeek:attr:`&redef` UDP ports which should be considered for analysis.
-================================================================ ==================================================
+============================================================================= ============================================================================
+:zeek:id:`LDAP::max_pending_messages`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of outstanding LDAP requests to allow for a single
+                                                                              connection.
+:zeek:id:`LDAP::max_pending_searches`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of outstanding LDAP search requests to allow for a single
+                                                                              connection.
+:zeek:id:`LDAP::ports_tcp`: :zeek:type:`set` :zeek:attr:`&redef`              TCP ports which should be considered for analysis.
+:zeek:id:`LDAP::ports_udp`: :zeek:type:`set` :zeek:attr:`&redef`              UDP ports which should be considered for analysis.
+============================================================================= ============================================================================
 
 Types
 #####
@@ -68,7 +72,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: LDAP::default_capture_password
-   :source-code: base/protocols/ldap/main.zeek 20 20
+   :source-code: base/protocols/ldap/main.zeek 32 32
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -77,7 +81,7 @@ Runtime Options
    Whether clear text passwords are captured or not.
 
 .. zeek:id:: LDAP::default_log_search_attributes
-   :source-code: base/protocols/ldap/main.zeek 23 23
+   :source-code: base/protocols/ldap/main.zeek 35 35
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -87,6 +91,30 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: LDAP::max_pending_messages
+   :source-code: base/protocols/ldap/main.zeek 23 23
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10``
+
+   The maximum number of outstanding LDAP requests to allow for a single
+   connection. Once reached, all pending requests will be logged and a
+   LDAP_max_pending_messages_exceeded weird raised. Setting this variable
+   to 0 disables the limit.
+
+.. zeek:id:: LDAP::max_pending_searches
+   :source-code: base/protocols/ldap/main.zeek 29 29
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10``
+
+   The maximum number of outstanding LDAP search requests to allow for a single
+   connection. Once reached, all pending search requests will be logged and a
+   LDAP_max_pending_searches_exceeded weird raised. Setting this variable to 0
+   disables the limit.
+
 .. zeek:id:: LDAP::ports_tcp
    :source-code: base/protocols/ldap/main.zeek 14 14
 
@@ -123,7 +151,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: LDAP::MessageInfo
-   :source-code: base/protocols/ldap/main.zeek 37 67
+   :source-code: base/protocols/ldap/main.zeek 49 79
 
    :Type: :zeek:type:`record`
 
@@ -160,7 +188,7 @@ Types
 
 
 .. zeek:type:: LDAP::SearchInfo
-   :source-code: base/protocols/ldap/main.zeek 72 106
+   :source-code: base/protocols/ldap/main.zeek 84 118
 
    :Type: :zeek:type:`record`
 
@@ -203,7 +231,7 @@ Types
 
 
 .. zeek:type:: LDAP::State
-   :source-code: base/protocols/ldap/main.zeek 108 111
+   :source-code: base/protocols/ldap/main.zeek 120 123
 
    :Type: :zeek:type:`record`
 
@@ -218,13 +246,13 @@ Types
 Events
 ######
 .. zeek:id:: LDAP::log_ldap
-   :source-code: base/protocols/ldap/main.zeek 115 115
+   :source-code: base/protocols/ldap/main.zeek 127 127
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`LDAP::MessageInfo`)
 
 
 .. zeek:id:: LDAP::log_ldap_search
-   :source-code: base/protocols/ldap/main.zeek 116 116
+   :source-code: base/protocols/ldap/main.zeek 128 128
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`LDAP::SearchInfo`)
 
@@ -232,21 +260,21 @@ Events
 Hooks
 #####
 .. zeek:id:: LDAP::finalize_ldap
-   :source-code: base/protocols/ldap/main.zeek 398 417
+   :source-code: base/protocols/ldap/main.zeek 447 459
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
    LDAP finalization hook.
 
 .. zeek:id:: LDAP::log_policy
-   :source-code: base/protocols/ldap/main.zeek 26 26
+   :source-code: base/protocols/ldap/main.zeek 38 38
 
    :Type: :zeek:type:`Log::PolicyHook`
 
    Default logging policy hook for LDAP_LOG.
 
 .. zeek:id:: LDAP::log_policy_search
-   :source-code: base/protocols/ldap/main.zeek 29 29
+   :source-code: base/protocols/ldap/main.zeek 41 41
 
    :Type: :zeek:type:`Log::PolicyHook`
 

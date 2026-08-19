@@ -1,3 +1,14 @@
+9.0.0-dev.883 | 2026-08-19 07:27:31 -0700
+
+  * dhcp: Cap size of DHCP::join_data to DHCP::max_tracked_transactions (Arne Welzel, Corelight)
+
+    Introduce a new option named max_tracked_transactions, track DHCP transactions
+    in a least-recently-inserted ordered set for the eviction logic.
+
+    Scapy script for PCAP from the report and produced by GPT 5.5.
+
+  * dhcp: Factor log writing from expiration function (Arne Welzel, Corelight)
+
 9.0.0-dev.880 | 2026-08-19 07:27:05 -0700
 
   * OCSP: Empty byName responder ID crashes Zeek (Johanna Amann, Corelight)

@@ -1,3 +1,7 @@
+9.0.0-dev.890 | 2026-08-19 07:29:07 -0700
+
+  * Limit the number of IGMP groups and sources-per-group (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.888 | 2026-08-19 07:28:38 -0700
 
   * ssh: Cap name lists in KEXINIT packets to configurable limits (Arne Welzel, Corelight)

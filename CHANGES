@@ -1,3 +1,7 @@
+9.0.0-dev.894 | 2026-08-19 07:29:41 -0700
+
+  * Remove temporary IP fragment if header size is invalid (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.892 | 2026-08-19 07:29:22 -0700
 
   * redis: Cap total RESP aggregates (Evan Typanski, Corelight)

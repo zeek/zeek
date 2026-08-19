@@ -248,12 +248,16 @@ jobs:
       - run:
           name: Log in to Docker Hub
           command: |
-            if [ -z "${DOCKER_BUILDIMAGE_LOGIN}" -o -z "${DOCKER_BUILDIMAGE_PASSWORD}" ]; then
+            if [ -z "${DOCKER_BUILDIMAGE_PASSWORD}" ]; then
                echo "User doesn't have access to Docker credentials, later builds will fail"
                circleci-agent step halt
             fi
 
-            echo "$DOCKER_BUILDIMAGE_PASSWORD" | docker login -u "$DOCKER_BUILDIMAGE_LOGIN" --password-stdin
+            # The username here is the name of the organization we're logging into since
+            # the password is a scoped token within that org. The token isn't associated
+            # with an actual user account. This also keeps the word "zeek" from being
+            # masked by CircleCI logs since it's not an environment variable.
+            echo "$DOCKER_BUILDIMAGE_PASSWORD" | docker login -u zeek --password-stdin
       - run:
           name: Build and push multi-arch image
           command: |

@@ -1,3 +1,9 @@
+9.0.0-dev.929 | 2026-08-19 14:43:32 -0700
+
+  * Add 9.0 contributors to NEWS file (Christian Kreibich, Corelight)
+
+  * CCI: Ignore PRs that only include changes to NEWS (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.926 | 2026-08-19 18:46:35 +0000
 
   * Fix docs issue with AndX security patch (Tim Wojtulewicz, Corelight)

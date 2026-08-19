@@ -5,7 +5,25 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.0
 ==========
 
-We'd like to thank ... their contributions to this release.
+We'd like to thank Aaron J. Scantlin (@scantlina), @airshelley, Alexey Rubanik
+(@Rubanik-Alexei), Azil (@achill06), Bauti Peirone (@bautipeirone), Blair
+McCormick (@blairSmcc03), Craig Leres (@leres), Craig P (@detection-labs),
+@Cxiyuan, Dragon Roar (@lczllx), @eb-anssi, Eduardo Kohn (@eagle-head), Eldon
+Koyle (@ekoyle), @franky-m, Jan Grashöfer (@J-Gras), Javid Khan (@dxbjavid), Jie
+(Link) Zheng (@chillancezen), @jmestwa-coder, Julio César Suástegui
+(@juliosuas), Keith J. Jones (@keithjjones), Kevin Harrington (@ke5C2Fin), Maor
+Hamami (@mamaorha), Mario D (@mari0d), Matthias Vallentin (@mavam), Mohan Dhawan
+(@mdhawan, @Mohan-Dhawan), neil (@neilpang), Otto Fowler (@ottobackwards), Peter
+Cullen (@pbcullen), Seth Grover (@mmguero), Shubham Kumar (@chmodshubham),
+Simeon Miteff (@simeonmiteff), Smoot (@stevesmoot), Stefan Götz
+(@stefangoetzcorelight), Steven (@malvidin), Sujala Vasanthasena Nelavai
+(@sujalavnelavai), Swastik Bose (@VasuBhakt), @tim-cyb, Urval (@urvalkheni),
+@uwezkhan and Yacin Nadji (@ynadji) for their contributions to this release.
+
+In addition, we're grateful to Kara Zaffarano and Kyle Elliott of Trail of Bits
+in collaboration with OpenAI, AdaLogics in collaboration with Anthropic, and the
+Canadian Communications Security Establishment for their code-scanning efforts
+and resulting bug reports.
 
 Breaking Changes
 ----------------

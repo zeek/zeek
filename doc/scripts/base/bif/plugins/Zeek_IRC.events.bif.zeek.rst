@@ -110,7 +110,7 @@ Events
       irc_password_message irc_dcc_send_ack
 
 .. zeek:id:: irc_dcc_message
-   :source-code: base/protocols/irc/dcc-send.zeek 109 123
+   :source-code: base/protocols/irc/dcc-send.zeek 119 143
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, prefix: :zeek:type:`string`, target: :zeek:type:`string`, dcc_type: :zeek:type:`string`, argument: :zeek:type:`string`, address: :zeek:type:`addr`, dest_port: :zeek:type:`count`, size: :zeek:type:`count`)
 

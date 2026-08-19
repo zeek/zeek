@@ -85,7 +85,7 @@ Events
    .. zeek:see:: sip_request sip_reply sip_header sip_all_headers sip_begin_entity
 
 .. zeek:id:: sip_header
-   :source-code: base/protocols/sip/main.zeek 193 273
+   :source-code: base/protocols/sip/main.zeek 209 295
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, name: :zeek:type:`string`, value: :zeek:type:`string`)
 
@@ -109,7 +109,7 @@ Events
    .. zeek:see:: sip_request sip_reply sip_all_headers sip_begin_entity sip_end_entity
 
 .. zeek:id:: sip_reply
-   :source-code: base/protocols/sip/main.zeek 181 191
+   :source-code: base/protocols/sip/main.zeek 197 207
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
@@ -135,7 +135,7 @@ Events
    .. zeek:see:: sip_request sip_header sip_all_headers sip_begin_entity sip_end_entity
 
 .. zeek:id:: sip_request
-   :source-code: base/protocols/sip/main.zeek 170 179
+   :source-code: base/protocols/sip/main.zeek 186 195
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, method: :zeek:type:`string`, original_URI: :zeek:type:`string`, version: :zeek:type:`string`)
 

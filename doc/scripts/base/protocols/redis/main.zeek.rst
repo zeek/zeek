@@ -12,9 +12,10 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================== =
-:zeek:id:`Redis::max_pending_commands`: :zeek:type:`count` :zeek:attr:`&redef` 
-============================================================================== =
+================================================================================ =====================================================================
+:zeek:id:`Redis::max_aggregate_elements`: :zeek:type:`count` :zeek:attr:`&redef` Maximum total child values retained while parsing one RESP aggregate.
+:zeek:id:`Redis::max_pending_commands`: :zeek:type:`count` :zeek:attr:`&redef`   
+================================================================================ =====================================================================
 
 Redefinable Options
 ###################
@@ -67,6 +68,16 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
+.. zeek:id:: Redis::max_aggregate_elements
+   :source-code: base/protocols/redis/main.zeek 78 78
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``20000``
+
+   Maximum total child values retained while parsing one RESP aggregate.
+   A value of zero disables the limit.
+
 .. zeek:id:: Redis::max_pending_commands
    :source-code: base/protocols/redis/main.zeek 74 74
 
@@ -96,7 +107,7 @@ Redefinable Options
 State Variables
 ###############
 .. zeek:id:: Redis::enter_subscribed_mode
-   :source-code: base/protocols/redis/main.zeek 77 77
+   :source-code: base/protocols/redis/main.zeek 81 81
 
    :Type: :zeek:type:`set` [:zeek:type:`Redis::RedisCommand`]
    :Default:
@@ -112,7 +123,7 @@ State Variables
 
 
 .. zeek:id:: Redis::exit_subscribed_mode
-   :source-code: base/protocols/redis/main.zeek 81 81
+   :source-code: base/protocols/redis/main.zeek 85 85
 
    :Type: :zeek:type:`set` [:zeek:type:`Redis::RedisCommand`]
    :Default:
@@ -127,7 +138,7 @@ State Variables
 
 
 .. zeek:id:: Redis::no_response_commands
-   :source-code: base/protocols/redis/main.zeek 84 84
+   :source-code: base/protocols/redis/main.zeek 88 88
 
    :Type: :zeek:type:`set` [:zeek:type:`Redis::RedisCommand`]
    :Default:
@@ -265,7 +276,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Redis::finalize_redis
-   :source-code: base/protocols/redis/main.zeek 339 364
+   :source-code: base/protocols/redis/main.zeek 343 368
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

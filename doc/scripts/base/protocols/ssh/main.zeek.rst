@@ -282,7 +282,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SSH::finalize_ssh
-   :source-code: base/protocols/ssh/main.zeek 312 336
+   :source-code: base/protocols/ssh/main.zeek 313 337
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

@@ -19,6 +19,10 @@ Runtime Options
 ###############
 ==================================================================================== ================================================================
 :zeek:id:`DHCP::max_msg_types_per_log_entry`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of msg_types allowed in a single log entry.
+:zeek:id:`DHCP::max_tracked_transactions`: :zeek:type:`count` :zeek:attr:`&redef`    The maximum number of transactions the manager will keep
+                                                                                     track of in the join_data table before starting to forcefully
+                                                                                     evict and log the oldest entry from the table to make room for
+                                                                                     newer entries.
 :zeek:id:`DHCP::max_txid_watch_time`: :zeek:type:`interval` :zeek:attr:`&redef`      The maximum amount of time that a transaction ID will be watched
                                                                                      for to try and tie messages together into a single DHCP
                                                                                      transaction narrative.
@@ -87,6 +91,19 @@ Runtime Options
 
    The maximum number of msg_types allowed in a single log entry.
 
+.. zeek:id:: DHCP::max_tracked_transactions
+   :source-code: base/protocols/dhcp/main.zeek 105 105
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100000``
+
+   The maximum number of transactions the manager will keep
+   track of in the join_data table before starting to forcefully
+   evict and log the oldest entry from the table to make room for
+   newer entries. When reached, Zeek will raise a
+   ``DHCP_max_tracked_transactions_exceeded`` weird.
+
 .. zeek:id:: DHCP::max_txid_watch_time
    :source-code: base/protocols/dhcp/main.zeek 92 92
 
@@ -110,7 +127,7 @@ Runtime Options
 State Variables
 ###############
 .. zeek:id:: DHCP::log_info
-   :source-code: base/protocols/dhcp/main.zeek 110 110
+   :source-code: base/protocols/dhcp/main.zeek 117 117
 
    :Type: :zeek:type:`DHCP::Info`
    :Default:
@@ -332,7 +349,7 @@ Types
 Events
 ######
 .. zeek:id:: DHCP::aggregate_msgs
-   :source-code: base/protocols/dhcp/main.zeek 104 104
+   :source-code: base/protocols/dhcp/main.zeek 111 111
 
    :Type: :zeek:type:`event` (ts: :zeek:type:`time`, id: :zeek:type:`conn_id`, uid: :zeek:type:`string`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCP::Msg`, options: :zeek:type:`DHCP::Options`)
 

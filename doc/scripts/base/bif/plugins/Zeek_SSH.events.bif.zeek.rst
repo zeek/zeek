@@ -363,7 +363,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret
 
 .. zeek:id:: ssh_capabilities
-   :source-code: base/protocols/ssh/main.zeek 287 310
+   :source-code: base/protocols/ssh/main.zeek 288 311
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, capabilities: :zeek:type:`SSH::Capabilities`)
 

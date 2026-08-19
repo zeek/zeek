@@ -17,6 +17,12 @@ analyzed on a different worker.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+================================================================================== ======================================================
+:zeek:id:`IRC::max_dcc_expected_transfers`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of expected DCC transfers to track.
+================================================================================== ======================================================
+
 Redefinitions
 #############
 =========================================== =============================================================================
@@ -43,10 +49,23 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: IRC::max_dcc_expected_transfers
+   :source-code: base/protocols/irc/dcc-send.zeek 36 36
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``5000``
+
+   The maximum number of expected DCC transfers to track. If this limit is
+   exceeded, a ``irc_max_dcc_expected_transfers_exceeded`` weird will be
+   reported. Set this to zero to disable the check.
+
 Hooks
 #####
 .. zeek:id:: IRC::finalize_irc_data
-   :source-code: base/protocols/irc/dcc-send.zeek 135 146
+   :source-code: base/protocols/irc/dcc-send.zeek 155 166
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

@@ -1,3 +1,21 @@
+9.0.0-dev.904 | 2026-08-19 07:31:50 -0700
+
+  * smb: Honor `skip` in dce-rpc named-pipe delivery (Evan Typanski, Corelight)
+
+    DCE/RPC already had a "skip" state. The analyzer gives up on the
+    connection when "skip" is set. SMB was using DeliverStream, which
+    bypassed the skip check. This meant the analyzer would accumulate
+    unbounded state and keep emitting the relevant weird.
+
+    This fix just makes sure the SMB analyzer honors the skip check.
+
+    The DeliverStream call was added before any skip state was around, so it
+    was equivalent, but soon after it became a bug.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them. Edited by me with
+    Claude.
+
 9.0.0-dev.902 | 2026-08-19 07:30:36 -0700
 
   * udp: Fix OOB read when using `udp_contents` (Evan Typanski, Corelight)

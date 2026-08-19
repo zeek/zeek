@@ -1,3 +1,7 @@
+9.0.0-dev.910 | 2026-08-19 07:33:23 -0700
+
+  * Add limits to various SMTP address set lengths (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.908 | 2026-08-19 07:32:28 -0700
 
   * Fill a dummy name in for Telnet AUTH if missing (Tim Wojtulewicz, Corelight)

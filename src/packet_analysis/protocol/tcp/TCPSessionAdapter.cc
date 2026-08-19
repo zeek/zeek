@@ -635,8 +635,7 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len, 
     rel_data_seq = flags.SYN() ? rel_seq + 1 : rel_seq;
 
     bool need_contents = false;
-    if ( len > 0 && (remaining >= len || ! packet_children.empty()) && ! flags.RST() && ! Skipping() &&
-         ! seq_underflow )
+    if ( len > 0 && ! flags.RST() && ! Skipping() && ! seq_underflow )
         need_contents =
             endpoint->DataSent(run_state::current_timestamp, rel_data_seq, len, remaining, data, ip.get(), tp);
 

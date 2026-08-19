@@ -29,6 +29,11 @@ export {
 	## IRC DCC data finalization hook.  Remaining expected IRC DCC state may be
 	## purged when it's called.
 	global finalize_irc_data: Conn::RemovalHook;
+
+	## The maximum number of expected DCC transfers to track. If this limit is
+	## exceeded, a ``irc_max_dcc_expected_transfers_exceeded`` weird will be
+	## reported. Set this to zero to disable the check.
+	const max_dcc_expected_transfers: count = 5000 &redef;
 }
 
 global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
@@ -111,10 +116,20 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	set_session(c);
 	if ( dcc_type != "SEND" )
 		return;
+
+
+	if ( max_dcc_expected_transfers > 0 &&
+	     |dcc_expected_transfers| >= max_dcc_expected_transfers )
+		{
+		Reporter::conn_weird("irc_max_dcc_expected_transfers_exceeded", c);
+		return;
+		}
+
 	c$irc$dcc_file_name = argument;
 	c$irc$dcc_file_size = size;
 	local p = count_to_port(dest_port, tcp);
 	Analyzer::schedule_analyzer(0.0.0.0, address, p, Analyzer::ANALYZER_IRC_DATA, 5 min);
+
 	dcc_expected_transfers[address, p] = c$irc;
 
 @if ( Cluster::is_enabled() )

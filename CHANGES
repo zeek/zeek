@@ -1,3 +1,7 @@
+9.0.0-dev.863 | 2026-08-19 07:23:26 -0700
+
+  * Add const to control the maximum number of pending IRC dcc send commands (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.861 | 2026-08-19 07:23:04 -0700
 
   * Ensure tunnel changes are counted in all cases (Tim Wojtulewicz, Corelight)

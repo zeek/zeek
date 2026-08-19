@@ -1,3 +1,31 @@
+9.0.0-dev.900 | 2026-08-19 07:30:14 -0700
+
+  * analyzer: Do not reschedule equivalent analyzers (Evan Typanski, Corelight)
+
+    Given certain network traffic, an attacker could force-schedule
+    analyzers. For many of these, we would add caps for *distinct* analyzers,
+    but if it's the same analyzer repeated, no current cap would catch that.
+    This makes it so the same analyzer scheduled multiple times will simply
+    bump its timeout.
+
+    This does not come with a test because there's no easy accessor in
+    scriptland. Instead, I ran the patched/unpatched version with 500k
+    scheduled analyzers and 1M scheduled analyzers. Patched saw no increase
+    in peak RSS between the two. Unpatched had ~475MB greater peak RSS at 1M.
+    Unpatched also grew ~247MB from 500k->1M while the patched version stayed
+    flat.
+
+    The fix in question separates the timeout from the queued timeout in
+    order to not mess with the priority queue. This way, we have a
+    queue_timeout that is used for ordering, but if multiple of the same
+    analyzer get scheduled, the real timeout will be different. In that case,
+    push the analyzer back on with the new queue_timeout value rather than
+    expiring.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them and taken almost
+    verbatim, with added comments and assertion. Generated with GPT-5.6 sol.
+
 9.0.0-dev.898 | 2026-08-19 07:29:57 -0700
 
   * netbios: Add weird for truncated netbios body (Evan Typanski, Corelight)

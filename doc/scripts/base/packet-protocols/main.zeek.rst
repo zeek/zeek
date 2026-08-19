@@ -10,6 +10,12 @@ base/packet-protocols/main.zeek
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+============================================================================ ================================================
+:zeek:id:`PacketAnalyzer::max_depth`: :zeek:type:`count` :zeek:attr:`&redef` The maximum depth of the packet analyzer chains.
+============================================================================ ================================================
+
 Functions
 #########
 ==================================================================== ========================================================
@@ -20,10 +26,23 @@ Functions
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: PacketAnalyzer::max_depth
+   :source-code: base/packet-protocols/main.zeek 45 45
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``25``
+
+   The maximum depth of the packet analyzer chains. If this limit is exceeded
+   a ``max_packet_analyzer_depth_exceeded`` weird will be reported. Set this
+   to zero to disable the limit.
+
 Functions
 #########
 .. zeek:id:: PacketAnalyzer::register_for_port
-   :source-code: base/packet-protocols/main.zeek 70 79
+   :source-code: base/packet-protocols/main.zeek 75 84
 
    :Type: :zeek:type:`function` (parent: :zeek:type:`PacketAnalyzer::Tag`, child: :zeek:type:`PacketAnalyzer::Tag`, p: :zeek:type:`port`) : :zeek:type:`bool`
 
@@ -42,7 +61,7 @@ Functions
    :returns: True if the port was successfully registered.
 
 .. zeek:id:: PacketAnalyzer::register_for_ports
-   :source-code: base/packet-protocols/main.zeek 46 66
+   :source-code: base/packet-protocols/main.zeek 51 71
 
    :Type: :zeek:type:`function` (parent: :zeek:type:`PacketAnalyzer::Tag`, child: :zeek:type:`PacketAnalyzer::Tag`, server_ports: :zeek:type:`set` [:zeek:type:`port`], non_server_ports: :zeek:type:`set` [:zeek:type:`port`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`) : :zeek:type:`bool`
 

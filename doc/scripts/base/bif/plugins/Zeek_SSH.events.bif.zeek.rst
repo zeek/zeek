@@ -364,7 +364,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_capabilities
-   :source-code: base/protocols/ssh/main.zeek 288 311
+   :source-code: base/protocols/ssh/main.zeek 289 312
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cookie: :zeek:type:`string`, capabilities: :zeek:type:`SSH::Capabilities`)
 
@@ -482,7 +482,7 @@ Events
       ssh2_gss_init ssh2_rsa_secret ssh_server_host_key_fingerprint
 
 .. zeek:id:: ssh_server_host_key_fingerprint
-   :source-code: base/protocols/ssh/main.zeek 351 357
+   :source-code: base/protocols/ssh/main.zeek 352 358
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, fingerprint: :zeek:type:`string`)
 

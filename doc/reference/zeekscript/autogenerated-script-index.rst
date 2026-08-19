@@ -158,6 +158,7 @@
    base/frameworks/telemetry/options.zeek </scripts/base/frameworks/telemetry/options.zeek>
    base/bif/__load__.zeek </scripts/base/bif/__load__.zeek>
    base/bif/telemetry_consts.bif.zeek </scripts/base/bif/telemetry_consts.bif.zeek>
+   base/bif/consts.bif.zeek </scripts/base/bif/consts.bif.zeek>
    base/bif/zeekygen.bif.zeek </scripts/base/bif/zeekygen.bif.zeek>
    base/bif/pcap.bif.zeek </scripts/base/bif/pcap.bif.zeek>
    base/bif/bloom-filter.bif.zeek </scripts/base/bif/bloom-filter.bif.zeek>

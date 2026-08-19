@@ -205,7 +205,7 @@ Events
    :param command: The AUTH command sent to the server and its data.
 
 .. zeek:id:: Redis::command
-   :source-code: base/protocols/redis/main.zeek 161 240
+   :source-code: base/protocols/redis/main.zeek 165 244
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cmd: :zeek:type:`Redis::Command`)
 
@@ -218,7 +218,7 @@ Events
    :param cmd: The command sent to the server.
 
 .. zeek:id:: Redis::error
-   :source-code: base/protocols/redis/main.zeek 327 339
+   :source-code: base/protocols/redis/main.zeek 331 343
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 
@@ -245,7 +245,7 @@ Events
    :param command: The GET command sent to the server and its data.
 
 .. zeek:id:: Redis::hello_command
-   :source-code: base/protocols/redis/main.zeek 152 159
+   :source-code: base/protocols/redis/main.zeek 156 163
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, command: :zeek:type:`Redis::HelloCommand`)
 
@@ -258,7 +258,7 @@ Events
    :param command: The HELLO command sent to the server and its data.
 
 .. zeek:id:: Redis::reply
-   :source-code: base/protocols/redis/main.zeek 296 325
+   :source-code: base/protocols/redis/main.zeek 300 329
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 

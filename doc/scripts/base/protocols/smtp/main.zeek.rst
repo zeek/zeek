@@ -24,9 +24,16 @@ Runtime Options
 
 Redefinable Options
 ###################
-============================================================ ==========================
-:zeek:id:`SMTP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SMTP.
-============================================================ ==========================
+============================================================================= ==================================================================
+:zeek:id:`SMTP::max_cc_addresses`: :zeek:type:`count` :zeek:attr:`&redef`     Maximum number of unique ``cc`` addresses allowed for a single
+                                                                              transaction.
+:zeek:id:`SMTP::max_path_length`: :zeek:type:`count` :zeek:attr:`&redef`      Maximum size of the path for a single transaction.
+:zeek:id:`SMTP::max_rcptto_addresses`: :zeek:type:`count` :zeek:attr:`&redef` Maximum number of unique ``rcptto`` addresses allowed for a single
+                                                                              transaction.
+:zeek:id:`SMTP::max_to_addresses`: :zeek:type:`count` :zeek:attr:`&redef`     Maximum number of unique ``to`` addresses allowed for a single
+                                                                              transaction.
+:zeek:id:`SMTP::ports`: :zeek:type:`set` :zeek:attr:`&redef`                  Well-known ports for SMTP.
+============================================================================= ==================================================================
 
 Types
 #####
@@ -111,6 +118,53 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: SMTP::max_cc_addresses
+   :source-code: base/protocols/smtp/main.zeek 131 131
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1000``
+
+   Maximum number of unique ``cc`` addresses allowed for a single
+   transaction. Exceeding this limit will report a ``smtp_too_many_cc_addresses``
+   weird and stop adding such addresses to the transaction. Setting this to zero
+   disables the limit.
+
+.. zeek:id:: SMTP::max_path_length
+   :source-code: base/protocols/smtp/main.zeek 136 136
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1000``
+
+   Maximum size of the path for a single transaction.  Exceeding this limit will
+   report a ``smtp_max_path_length_exceeded`` weird and stop adding entries to the
+   path. Setting this to zero disables the limit.
+
+.. zeek:id:: SMTP::max_rcptto_addresses
+   :source-code: base/protocols/smtp/main.zeek 119 119
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1000``
+
+   Maximum number of unique ``rcptto`` addresses allowed for a single
+   transaction. Exceeding this limit will report a
+   ``smtp_too_many_rcptto_addresses`` weird and stop adding such addresses to the
+   transaction. Setting this to zero disables the limit.
+
+.. zeek:id:: SMTP::max_to_addresses
+   :source-code: base/protocols/smtp/main.zeek 125 125
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1000``
+
+   Maximum number of unique ``to`` addresses allowed for a single
+   transaction. Exceeding this limit will report a ``smtp_too_many_to_addresses``
+   weird and stop adding such addresses to the transaction. Setting this to zero
+   disables the limit.
+
 .. zeek:id:: SMTP::ports
    :source-code: base/protocols/smtp/main.zeek 13 13
 
@@ -352,7 +406,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SMTP::finalize_smtp
-   :source-code: base/protocols/smtp/main.zeek 401 405
+   :source-code: base/protocols/smtp/main.zeek 453 457
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -367,7 +421,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: SMTP::describe
-   :source-code: base/protocols/smtp/main.zeek 416 441
+   :source-code: base/protocols/smtp/main.zeek 468 493
 
    :Type: :zeek:type:`function` (rec: :zeek:type:`SMTP::Info`) : :zeek:type:`string`
 

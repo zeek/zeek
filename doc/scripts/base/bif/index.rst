@@ -148,6 +148,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/telemetry_consts.bif.zeek`
 
 
+:doc:`/scripts/base/bif/consts.bif.zeek`
+
+
 :doc:`/scripts/base/bif/zeekygen.bif.zeek`
 
    Functions for querying script, package, or variable documentation.

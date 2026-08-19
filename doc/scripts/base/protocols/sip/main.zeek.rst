@@ -21,9 +21,11 @@ Runtime Options
 
 Redefinable Options
 ###################
-=========================================================== =========================
-:zeek:id:`SIP::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for SIP.
-=========================================================== =========================
+================================================================================ ===========================================
+:zeek:id:`SIP::max_request_path_length`: :zeek:type:`count` :zeek:attr:`&redef`  The maximum chain of VIA requests allowed.
+:zeek:id:`SIP::max_response_path_length`: :zeek:type:`count` :zeek:attr:`&redef` The maximum chain of VIA responses allowed.
+:zeek:id:`SIP::ports`: :zeek:type:`set` :zeek:attr:`&redef`                      Well-known ports for SIP.
+================================================================================ ===========================================
 
 Types
 #####
@@ -93,6 +95,34 @@ Runtime Options
 
 Redefinable Options
 ###################
+.. zeek:id:: SIP::max_request_path_length
+   :source-code: base/protocols/sip/main.zeek 106 106
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100``
+
+   The maximum chain of VIA requests allowed. If this is limit is exceeded a
+   ``sip_max_request_path_length_exceeded`` weird is reported and any further
+   requests are not appended to the path. Set this value to zero to disable the
+   check. This value shouldn't exceed the value of
+   ``Log::default_max_field_container_elements`` or a weird will be reported from
+   that as well, unless that value is set to zero.
+
+.. zeek:id:: SIP::max_response_path_length
+   :source-code: base/protocols/sip/main.zeek 114 114
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100``
+
+   The maximum chain of VIA responses allowed. If this is limit is exceeded a
+   ``sip_max_response_path_length_exceeded`` weird is reported and any further
+   responses are not appended to the path. Set this value to zero to disable the
+   check. This value shouldn't exceed the value of
+   ``Log::default_max_field_container_elements`` or a weird will be reported from
+   that as well, unless that value is set to zero.
+
 .. zeek:id:: SIP::ports
    :source-code: base/protocols/sip/main.zeek 15 15
 
@@ -279,7 +309,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SIP::finalize_sip
-   :source-code: base/protocols/sip/main.zeek 306 315
+   :source-code: base/protocols/sip/main.zeek 328 337
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

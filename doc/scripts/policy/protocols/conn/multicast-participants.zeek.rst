@@ -10,6 +10,13 @@ policy/protocols/conn/multicast-participants.zeek
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+=================================================================================== =============================================================
+:zeek:id:`Conn::max_igmp_groups`: :zeek:type:`count` :zeek:attr:`&redef`            The maximum number of IGMP groups that Zeek will track.
+:zeek:id:`Conn::max_igmp_sources_per_group`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of IGMP sources Zeek will track per group.
+=================================================================================== =============================================================
+
 Types
 #####
 ================================================================= =
@@ -45,6 +52,32 @@ Hooks
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
+Redefinable Options
+###################
+.. zeek:id:: Conn::max_igmp_groups
+   :source-code: policy/protocols/conn/multicast-participants.zeek 43 43
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``500``
+
+   The maximum number of IGMP groups that Zeek will track. If this limit is hit a
+   ``igmp_max_groups_exceeded`` weird will be reported and new groups will be
+   dropped and not tracked in the list of connections. Set this to zero to disable
+   the limiting.
+
+.. zeek:id:: Conn::max_igmp_sources_per_group
+   :source-code: policy/protocols/conn/multicast-participants.zeek 49 49
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``500``
+
+   The maximum number of IGMP sources Zeek will track per group. If this limit is
+   hit a ``igmp_max_sources_exceeded`` weird will be reported and new sources
+   for that group will be dropped and not tracked in the list of connections. Set
+   this to zero to disable the limiting.
+
 Types
 #####
 .. zeek:type:: Conn::MulticastParticipantsInfo

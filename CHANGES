@@ -1,3 +1,11 @@
+9.0.0-dev.869 | 2026-08-19 07:25:00 -0700
+
+  * ldap: Cap pending searches and messages (Arne Welzel, Corelight)
+
+    Prevent unbounded state growth for the messages and searches tables
+    by flushing and logging all non-correlated entries when reaching the
+    configurable limit.
+
 9.0.0-dev.867 | 2026-08-19 07:23:47 -0700
 
   * Reduce code duplication for the SMB AndX changes (Tim Wojtulewicz, Corelight)

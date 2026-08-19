@@ -284,6 +284,12 @@ Changed Functionality
   (Cluster::listen_websocket()) being inherited by child processes. E.g., when using
   ``system()`` in Zeek scripts or the Input Framework's raw reader functionality.
 
+- The LDAP analyzer now limits the number of pending request and search messages
+  for correlation to a configurable limit (default 10) to prevent unbounded
+  state growth. When reached, all pending requests and messages will be flushed
+  and logged and one of the new weirds ``LDAP_max_pending_messages_exceeded`` or
+  ``LDAP_max_pending_searches_exceeded`` raised.
+
 Deprecated Functionality
 ------------------------
 

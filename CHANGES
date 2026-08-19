@@ -1,3 +1,7 @@
+9.0.0-dev.914 | 2026-08-19 07:34:00 -0700
+
+  * SIP: Add checks/weirds for excessive request/response path lengths (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.912 | 2026-08-19 07:33:40 -0700
 
   * dhcp: Clear options after bad-cookie violation (Evan Typanski, Corelight)

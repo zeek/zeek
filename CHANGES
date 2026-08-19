@@ -1,3 +1,14 @@
+9.0.0-dev.918 | 2026-08-19 07:53:48 -0700
+
+  * CI: Add python3-venv to all of the Ubuntu/Debian dockerfiles (Tim Wojtulewicz, Corelight)
+
+  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update tunnel baselines after merge of tunnel security patch. (Tim Wojtulewicz, Corelight)
+
+    This should have been part of 1e8f9de1ee713ef3407f61a1a384099b9025cb0c, but was
+    missed because that branch needed to be rebased to catch it.
+
 9.0.0-dev.914 | 2026-08-19 07:34:00 -0700
 
   * SIP: Add checks/weirds for excessive request/response path lengths (Tim Wojtulewicz, Corelight)

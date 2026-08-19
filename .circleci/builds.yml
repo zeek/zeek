@@ -1083,29 +1083,33 @@ workflows:
       - linux-build:
           name: debian-12
           docker_image: zeek/zeek-ci:debian-12
-          ci_image_date: "20260708"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-debian-12]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13
           docker_image: zeek/zeek-ci:debian-13
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-arm
           docker_image: zeek/zeek-ci:debian-13
+          ci_image_date: "20260813"
           resource_class: arm.large
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-binary
           docker_image: zeek/zeek-ci:debian-13
+          ci_image_date: "20260813"
           << : *CONFIGURE_BINARY_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: debian-13-static
           docker_image: zeek/zeek-ci:debian-13
+          ci_image_date: "20260813"
           << : *CONFIGURE_STATIC_BUILD
           requires: [fetch-test-traces, build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
@@ -1133,12 +1137,13 @@ workflows:
       - linux-build:
           name: ubuntu-22.04
           docker_image: zeek/zeek-ci:ubuntu-22.04
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-22.04]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
@@ -1146,7 +1151,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             CC="clang-22"
@@ -1157,7 +1162,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           << : *CONFIGURE_CLANG_TIDY
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
@@ -1168,7 +1173,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
@@ -1178,7 +1183,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy-head
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
@@ -1189,7 +1194,7 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           extra_env: |
             ZEEK_CI_SKIP_UNIT_TESTS=1
@@ -1200,12 +1205,13 @@ workflows:
       - linux-build:
           name: ubuntu-26.04
           docker_image: zeek/zeek-ci:ubuntu-26.04
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-26.04]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: asan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1220,7 +1226,7 @@ workflows:
       - linux-build:
           name: asan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           << : *CONFIGURE_ASAN
           # https://circleci.com/changelog/introducing-gen2-docker-x86-resource-classes/
           resource_class: xlarge
@@ -1236,7 +1242,7 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
@@ -1249,7 +1255,7 @@ workflows:
       - linux-build:
           name: ubsan-sanitizer-zam
           docker_image: zeek/zeek-ci:ubuntu-24.04
-          ci_image_date: "20260702"
+          ci_image_date: "20260813"
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           << : *CONFIGURE_UBSAN
           extra_env: |
@@ -1266,7 +1272,7 @@ workflows:
       # - linux-build:
       #     name: tsan-sanitizer
       #     docker_image: zeek/zeek-ci:ubuntu-24.04
-      #     ci_image_date: "20260702"
+      #     ci_image_date: "20260813"
       #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
       #     << : *CONFIGURE_TSAN
       #     extra_env: |

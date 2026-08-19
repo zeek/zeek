@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260702
+ENV DOCKERFILE_VERSION=20260813
 
 # This is needed before the rest of the apt installations below so that
 # the certificate for llvm.org exists.
@@ -46,6 +46,7 @@ RUN apt-get update && apt-get -y install \
     python3-git \
     python3-pip \
     python3-semantic-version \
+    python3-venv \
     redis-server \
     ruby \
     sqlite3 \

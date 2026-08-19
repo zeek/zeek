@@ -1,3 +1,261 @@
+8.2.1-56 | 2026-08-19 05:20:45 +0000
+
+  * Update NEWS for v8.2.2 [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update zeek-testing-private commit hash (Tim Wojtulewicz, Corelight)
+
+  * netbios: Add weird for truncated netbios body (Evan Typanski, Corelight)
+
+    The weird triggers when the current buffer `n` flushes below the stated
+    size. Note that this only occurs when it actually flushes at the end of
+    the stream.
+
+    This is necessary to test the previous eager allocation failure, but it's
+    technically different. Kept is a separate commit to show that.
+
+    (cherry picked from commit 1249863359659ae92e2c2667d8e4f92910f60298)
+
+  * netbios: Fix eager allocation from protocol data (Evan Typanski, Corelight)
+
+    The attacker could say they have a 64KB message, but then not send any.
+    Zeek would happily allocate and move on. If you keep that connection
+    alive, it's a large amplification over multiple connections.
+
+    This switches to allocating-as-needed instead.
+
+    Patch provided by Trail of Bits.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+    (cherry picked from commit e8387b399103ff12628b13910b5517d49b17ef95)
+
+  * netbios: Add test for split body (Evan Typanski, Corelight)
+
+    The netbios analyzer can retain a buffer across multiple TCP deliveries.
+    This makes sure the buffering works. Adding this to have a regression
+    test for changes to that mechanism.
+
+    (cherry picked from commit e14bd7bfdd7b2258d8c3acf964777f3cf9460be2)
+
+  * ssh: Cap name lists in KEXINIT packets to configurable limits (Arne Welzel, Corelight)
+
+    Also modernizes name_list_to_vector() using tokenize_string and
+    string_views instead of the manual wrangling. I don't think one
+    limit per list scales, but lets have it here and see what happens
+    in other analyzers.
+
+    If we ever port this analyzer to SSH, we may just have a single limit
+    of each of the namelists. For fine-grained protocol weird/violation
+    individual weird names are kind of nice.
+
+  * ssh: Avoid O(n^2) by placing server algs into set for lookup (Arne Welzel, Corelight)
+
+    Done in both script land and the BinPAC parser.
+
+    Also switch to using std::string_view and std::set<std::string_view>
+    in the BinPAC parser instead of creating the intermediate VectorVal and
+    StringVal instances that name_list_to_vector() does.
+
+    Reported-by: GPT 5.5 (Codex)
+
+    Closes #312
+
+  * analyzer: Do not reschedule equivalent analyzers (Evan Typanski, Corelight)
+
+    Given certain network traffic, an attacker could force-schedule
+    analyzers. For many of these, we would add caps for *distinct* analyzers,
+    but if it's the same analyzer repeated, no current cap would catch that.
+    This makes it so the same analyzer scheduled multiple times will simply
+    bump its timeout.
+
+    This does not come with a test because there's no easy accessor in
+    scriptland. Instead, I ran the patched/unpatched version with 500k
+    scheduled analyzers and 1M scheduled analyzers. Patched saw no increase
+    in peak RSS between the two. Unpatched had ~475MB greater peak RSS at 1M.
+    Unpatched also grew ~247MB from 500k->1M while the patched version stayed
+    flat.
+
+    The fix in question separates the timeout from the queued timeout in
+    order to not mess with the priority queue. This way, we have a
+    queue_timeout that is used for ordering, but if multiple of the same
+    analyzer get scheduled, the real timeout will be different. In that case,
+    push the analyzer back on with the new queue_timeout value rather than
+    expiring.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them and taken almost
+    verbatim, with added comments and assertion. Generated with GPT-5.6 sol.
+
+  * Add limits to various SMTP address set lengths (Tim Wojtulewicz, Corelight)
+
+  * redis: Cap total RESP aggregates (Evan Typanski, Corelight)
+
+    Redis is made up of recursive types, which gets expensive quick. One byte
+    on the wire ends up as many in the parser. This can be exercised in many
+    ways, even if you have a cap on any individual array, since it's all
+    recursive.
+
+    This fix adds a total tally to cap *all* nested elements. This way, the
+    analyzer will throw a violation if we get too far along and use too much
+    memory.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI using GPT 5.6 sol. Initial patch also provided
+    by them. Further edits by me with guidance from Claude Opus 4.8.
+
+  * smb: Honor `skip` in dce-rpc named-pipe delivery (Evan Typanski, Corelight)
+
+    DCE/RPC already had a "skip" state. The analyzer gives up on the
+    connection when "skip" is set. SMB was using DeliverStream, which
+    bypassed the skip check. This meant the analyzer would accumulate
+    unbounded state and keep emitting the relevant weird.
+
+    This fix just makes sure the SMB analyzer honors the skip check.
+
+    The DeliverStream call was added before any skip state was around, so it
+    was equivalent, but soon after it became a bug.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them. Edited by me with
+    Claude.
+
+  * Skip creating a record object for DNP3 g70v1 record fields (Tim Wojtulewicz, Corelight)
+
+  * Fill a dummy name in for Telnet AUTH if missing (Tim Wojtulewicz, Corelight)
+
+  * SIP: Add checks/weirds for excessive request/response path lengths (Tim Wojtulewicz, Corelight)
+
+  * ldap: Cap pending searches and messages (Arne Welzel, Corelight)
+
+    Prevent unbounded state growth for the messages and searches tables
+    by flushing and logging all non-correlated entries when reaching the
+    configurable limit.
+
+  * ftp: Cap ftp_data_expected via new FTP::max_expected_data_channels (Arne Welzel, Corelight)
+
+  * udp: Fix OOB read when using `udp_contents` (Evan Typanski, Corelight)
+
+    If udp_contents was enabled (off-by-default), then an attacker could
+    force an out of bounds read by sending a large IP-declared payload
+    without that size on the wire. If the event has a handler and should be
+    triggered, then Zeek would try to create a string of that size, which
+    would cause reading past the end of data.
+
+    The fix just caps the length of the `udp_contents` string to the actual
+    payload size.
+
+    This is only actionable if the victim is using `udp_contents`, which we
+    discourage. Because of that, the impact should be relatively minimal in
+    production Zeek instances.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them. Verified by me.
+
+  * Remove temporary IP fragment if header size is invalid (Tim Wojtulewicz, Corelight)
+
+  * dhcp: Clear options after bad-cookie violation (Evan Typanski, Corelight)
+
+    A DHCP packet with an invalid cookie could retain parsed options until
+    the analyzer/connection was torn down. Many flows may each trigger this
+    violation. This would accumulate memory before Zeek has a chance to clear
+    the connection state.
+
+    The fix just clears the options on that violation, matching the normal
+    cleanup done later.
+
+    The test was generated by Claude; it simply makes sure the state isn't
+    retained.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them. Test generated by
+    Claude Opus 4.8.
+
+  * Add const to control maximum packet analyzer chain depth (Tim Wojtulewicz, Corelight)
+
+  * dhcp: Cap size of DHCP::join_data to DHCP::max_tracked_transactions (Arne Welzel, Corelight)
+
+    Introduce a new option named max_tracked_transactions, track DHCP transactions
+    in a least-recently-inserted ordered set for the eviction logic.
+
+    Scapy script for PCAP from the report and produced by GPT 5.5.
+
+    Closes #311
+
+  * dhcp: Factor log writing from expiration function (Arne Welzel, Corelight)
+
+  * nvt: Fix heap buffer overflow for NVT length limit (Evan Typanski, Corelight)
+
+    If you hit the content line length limit (introduced in a security patch
+    4229161ae17cc6b85ebbd8c64f5200e536ae065e), then the last character was a
+    CR, if the analyzer sees a LF, it will then decrement the offset in order
+    to get to the CR. Since offset was reset to 0, we attempt to access the
+    buffer at index -1.
+
+    Just reset that last character so we'll never hit the CRLF case. Then,
+    add an extra check to make sure we never hit similar problems again (from
+    assuming offset is valid).
+
+    Patch provided by Trail of Bits, modified by me. Vulnerability found by
+    Trail of Bits using GPT-5.6-sol.
+
+  * OCSP: Empty byName responder ID crashes Zeek (Johanna Amann, Corelight)
+
+    Zeek's OCSP analyzer uses an in-memory OpenSSL BIO and copies data into
+    a Zeek string. With an empty name, the bio contains zero bytes. By
+    default, a read from an empty memory bio returns a length of -1, which
+    is passed on as the length into a Zeek StringVal, which leads to a crash
+    when trying to copy SIZE_MAX bytes from a small buffer.
+
+    The patch uses the OpenSSL function BIO_set_mem_eof_return to set the
+    return value for empty bios to 0.
+
+    Found by Anthropic using agents to study the security of open-source
+    projects, with Ada Logics validating and reporting.
+
+    Pcap created with code supplied by Anthropic/Ada Logics, rewritten by
+    Tim Wojtulewicz.
+
+  * Fix potential segfault in malformed opaque vals (Evan Typanski, Corelight)
+
+    This is entirely internal, only "exploitable" from within Zeek. Since we
+    treat broker communication as internal, this is not exploitable by our
+    metrics. Regardless, it's a potential segfault that should have a guard
+    in case malformed input comes through.
+
+    If an opaque val is serialized and provides an out-of-bounds type tag,
+    when it is unserialized, that type tag is assumed to be valid. This
+    causes an out of bounds read.
+
+    The fix comes in two parts. First, we should stop trying to make the
+    base_type if the tag is out of bounds. Thus, we will now internal error
+    if it gets to that point.
+
+    Second, we should not unserialize to an OOB type tag in the first place.
+
+    The provided reproducer simply created an opaque val, then gave an OOB
+    type tag. Zeek happily assumed it was valid.
+
+    Found by Anthropic using agents to study the security of open-source
+    projects, with Ada Logics validating and reporting.
+
+  * Set l2_src/l2_dst fields for inner tunnel packet to empty (Tim Wojtulewicz, Corelight)
+
+    For tunnels that include packets that aren't Ethernet, the L2 source and
+    destination fields would be set to null. This sets them to empty by default,
+    avoiding a crash. If there is an Ethernet header in the inner packet, it'll
+    reset the fields later.
+
+  * Check for valid IRC hosts/ports when processing IRC DCC packets (Tim Wojtulewicz, Corelight)
+
+  * Check for valid command field when processing IRC DCC commands (Tim Wojtulewicz, Corelight)
+
+  * Reduce code duplication for the SMB AndX changes (Tim Wojtulewicz, Corelight)
+
+  * SMB: Add checks/weird for a maximum depth of AndX recursion (Tim Wojtulewicz, Corelight)
+
+  * SMB: Add checks/weird for non-advancing AndX offsets (Tim Wojtulewicz, Corelight)
+
 8.2.1-25 | 2026-08-19 04:35:47 +0000
 
   * Harden `overload-worker-proxy-topic-drop` test (Evan Typanski, Corelight)

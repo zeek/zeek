@@ -7,9 +7,86 @@ Zeek 8.2.2
 ==========
 
 Thank you to Peter Cullen (@pbcullen), Stefan Goetz (@stefangoetzcorelight), Jan Grashöfer
-(@J-Gras), and Eldon Koyle (@ekoyle) for their contributions to this release.
+(@J-Gras), Eldon Koyle (@ekoyle), Kara Zaffarano and Kyle Elliott of Trail of Bits in
+collaboration with OpenAI, AdaLogics in collaboration with Anthropic, and the Canadian
+Communications Security Establishment for their contributions to this release.
 
 This release fixes the following security issues:
+
+- HIGH: SMB: Chains of AndX messages can crash Zeek
+  Advisory: [GHSA-2xc9-g36m-w7jh](https://github.com/zeek/zeek/security/advisories/GHSA-2xc9-g36m-w7jh)
+
+- HIGH: DNP3: Memory exhaustion via file control (g70v1) fields
+  Advisory: [GHSA-px95-jfxw-4jw2](https://github.com/zeek/zeek/security/advisories/GHSA-px95-jfxw-4jw2)
+
+- HIGH: SIP: Memory exhaustion from long request/response paths
+  Advisory: [GHSA-wjf9-326g-m9h3](https://github.com/zeek/zeek/security/advisories/GHSA-wjf9-326g-m9h3)
+
+- HIGH: DHCP: Memory exhaustion from retained options after analyzer violation
+  Advisory: [GHSA-hxj7-pcq9-c949](https://github.com/zeek/zeek/security/advisories/GHSA-hxj7-pcq9-c949)
+
+- HIGH: SMTP: Memory exhaustion from large numbers of rcptto/to/cc/path entries
+  Advisory: [GHSA-49x5-fmqq-4ccv](https://github.com/zeek/zeek/security/advisories/GHSA-49x5-fmqq-4ccv)
+
+- HIGH: SMB: DCE/RPC memory exhaustion from fragment state
+  Advisory: [GHSA-rmc2-mqq6-wcw9](https://github.com/zeek/zeek/security/advisories/GHSA-rmc2-mqq6-wcw9)
+
+- HIGH: Analyzer manager: Equivalent scheduled analyzers could exhaust memory
+  Advisory: [GHSA-3gxr-8f49-vrgr](https://github.com/zeek/zeek/security/advisories/GHSA-3gxr-8f49-vrgr)
+
+- HIGH: ZIP: Unbounded decompression
+  Advisory: [GHSA-2prm-q48h-m96w](https://github.com/zeek/zeek/security/advisories/GHSA-2prm-q48h-m96w)
+
+- HIGH: Redis: Parsed Redis traffic memory exhaustion
+  Advisory: [GHSA-c573-w89f-fpxm](https://github.com/zeek/zeek/security/advisories/GHSA-c573-w89f-fpxm)
+
+- HIGH: Invalid IPv6 fragments can lead to unbounded state growth
+  Advisory: [GHSA-84jg-cwr7-4p6w](https://github.com/zeek/zeek/security/advisories/GHSA-84jg-cwr7-4p6w)
+
+- HIGH: SSH: Quadratic KEX algorithm CPU exhaustion
+  Advisory: [GHSA-5v93-pm35-5mq6](https://github.com/zeek/zeek/security/advisories/GHSA-5v93-pm35-5mq6)
+
+- HIGH: NVT: Oversized line recovery writes before heap buffer
+  Advisory: [GHSA-hww6-p5xp-6rqv](https://github.com/zeek/zeek/security/advisories/GHSA-hww6-p5xp-6rqv)
+
+- HIGH: DHCP: Unbounded state growth via join_data
+  Advisory: [GHSA-qf53-234m-7vhq](https://github.com/zeek/zeek/security/advisories/GHSA-qf53-234m-7vhq)
+
+- HIGH: FTP: Unbounded state growth via ftp_data_expected
+  Advisory: [GHSA-9m23-gwjx-p3j8](https://github.com/zeek/zeek/security/advisories/GHSA-9m23-gwjx-p3j8)
+
+- HIGH: OCSP: Empty byName responder ID crashes Zeek
+  Advisory: [GHSA-j48p-9pm3-pgpx](https://github.com/zeek/zeek/security/advisories/GHSA-j48p-9pm3-pgpx)
+
+- HIGH: ARP: Tunneled ARP traffic crashes Zeek
+  Advisory: [GHSA-924m-g9gv-45xc](https://github.com/zeek/zeek/security/advisories/GHSA-924m-g9gv-45xc)
+
+- HIGH: LDAP: Unbounded per-connection script state
+  Advisory: [GHSA-pxc9-fc9v-r39q](https://github.com/zeek/zeek/security/advisories/GHSA-pxc9-fc9v-r39q)
+
+- HIGH: IRC DCC SEND has unbounded state growth
+  Advisory: [GHSA-5h5v-fcxr-f223](https://github.com/zeek/zeek/security/advisories/GHSA-5h5v-fcxr-f223)
+
+- HIGH: tunnel_changed event limit bypass on direct/tunneled toggles
+  Advisory: [GHSA-72qh-gpq9-cj8w](https://github.com/zeek/zeek/security/advisories/GHSA-72qh-gpq9-cj8w)
+
+- HIGH: Recursive stack exhaustion from deep packet analyzer chains
+  Advisory: [GHSA-vh6p-7vxf-m7rh](https://github.com/zeek/zeek/security/advisories/GHSA-vh6p-7vxf-m7rh)
+
+- MEDIUM: Telnet: AUTH STATUS options before a NAME is received results in event argument mismatch
+  Advisory: [GHSA-qjhc-rfmf-3vgp](https://github.com/zeek/zeek/security/advisories/GHSA-qjhc-rfmf-3vgp)
+
+- MEDIUM: UDP: udp_contents events could trigger out-of-bounds reads
+  Advisory: [GHSA-q48f-3qm2-j875](https://github.com/zeek/zeek/security/advisories/GHSA-q48f-3qm2-j875)
+
+- MEDIUM: NetBIOS: Memory exhaustion from declared session lengths
+  Advisory: [GHSA-gq9q-85wf-mq48](https://github.com/zeek/zeek/security/advisories/GHSA-gq9q-85wf-mq48)
+
+- MEDIUM: IRC: Single DCC Send packet can result in scripting error
+  Advisory: [GHSA-6566-755c-7mwq](https://github.com/zeek/zeek/security/advisories/GHSA-6566-755c-7mwq)
+
+- MEDIUM: IRC: Invalid DCC Send host/port fields can lead to unexpected parsing results
+  Advisory: [GHSA-q6c5-95ff-cwr9](https://github.com/zeek/zeek/security/advisories/GHSA-q6c5-95ff-cwr9)
 
 This release fixes the following bugs:
 

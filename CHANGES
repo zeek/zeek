@@ -1,3 +1,20 @@
+9.0.0-dev.885 | 2026-08-19 07:28:15 -0700
+
+  * nvt: Fix heap buffer overflow for NVT length limit (Evan Typanski, Corelight)
+
+    If you hit the content line length limit (introduced in a security patch
+    4229161ae17cc6b85ebbd8c64f5200e536ae065e), then the last character was a
+    CR, if the analyzer sees a LF, it will then decrement the offset in order
+    to get to the CR. Since offset was reset to 0, we attempt to access the
+    buffer at index -1.
+
+    Just reset that last character so we'll never hit the CRLF case. Then,
+    add an extra check to make sure we never hit similar problems again (from
+    assuming offset is valid).
+
+    Patch provided by Trail of Bits, modified by me. Vulnerability found by
+    Trail of Bits using GPT-5.6-sol.
+
 9.0.0-dev.883 | 2026-08-19 07:27:31 -0700
 
   * dhcp: Cap size of DHCP::join_data to DHCP::max_tracked_transactions (Arne Welzel, Corelight)

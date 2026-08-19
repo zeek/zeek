@@ -1,3 +1,7 @@
+9.0.0-dev.906 | 2026-08-19 07:32:10 -0700
+
+  * Skip creating a record object for DNP3 g70v1 record fields (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.904 | 2026-08-19 07:31:50 -0700
 
   * smb: Honor `skip` in dce-rpc named-pipe delivery (Evan Typanski, Corelight)

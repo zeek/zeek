@@ -1,3 +1,7 @@
+9.0.0-dev.857 | 2026-08-18 20:51:36 -0700
+
+  * CCI: Skip builds that only change docs or markdown files (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.855 | 2026-08-18 12:50:59 -0700
 
   * Add Broker deprecation note to NEWS (Christian Kreibich, Corelight)

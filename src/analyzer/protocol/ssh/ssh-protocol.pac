@@ -471,8 +471,8 @@ refine connection SSH_Conn += {
 			return false;
 
 		auto to_sv = [](const auto& bs) -> std::string_view {
-			return std::string_view(reinterpret_cast<const char*>(bs.begin()),
-			                        static_cast<size_t>(bs.length()));
+			return {reinterpret_cast<const char*>(bs.begin()),
+			        static_cast<size_t>(bs.length())};
 		};
 
 		auto client_algs_vec = zeek::util::tokenize_string(to_sv(orig ? algs : kex_algs_cache_), ',');

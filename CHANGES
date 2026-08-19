@@ -1,3 +1,33 @@
+9.0.0-dev.898 | 2026-08-19 07:29:57 -0700
+
+  * netbios: Add weird for truncated netbios body (Evan Typanski, Corelight)
+
+    The weird triggers when the current buffer `n` flushes below the stated
+    size. Note that this only occurs when it actually flushes at the end of
+    the stream.
+
+    This is necessary to test the previous eager allocation failure, but it's
+    technically different. Kept is a separate commit to show that.
+
+  * netbios: Fix eager allocation from protocol data (Evan Typanski, Corelight)
+
+    The attacker could say they have a 64KB message, but then not send any.
+    Zeek would happily allocate and move on. If you keep that connection
+    alive, it's a large amplification over multiple connections.
+
+    This switches to allocating-as-needed instead.
+
+    Patch provided by Trail of Bits.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * netbios: Add test for split body (Evan Typanski, Corelight)
+
+    The netbios analyzer can retain a buffer across multiple TCP deliveries.
+    This makes sure the buffering works. Adding this to have a regression
+    test for changes to that mechanism.
+
 9.0.0-dev.894 | 2026-08-19 07:29:41 -0700
 
   * Remove temporary IP fragment if header size is invalid (Tim Wojtulewicz, Corelight)

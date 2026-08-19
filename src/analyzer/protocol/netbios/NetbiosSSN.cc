@@ -2,9 +2,10 @@
 
 #include "zeek/analyzer/protocol/netbios/NetbiosSSN.h"
 
+#include <algorithm>
 #include <cctype>
+#include <cstring>
 
-#include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/netbios/events.bif.h"
@@ -288,6 +289,9 @@ Contents_NetbiosSSN::~Contents_NetbiosSSN() { delete[] msg_buf; }
 
 void Contents_NetbiosSSN::Flush() {
     if ( buf_n > 0 ) { // Deliver partial message.
+        if ( buf_n < msg_size )
+            Weird("truncated_netbios_message", util::fmt("(%d < %d)", buf_n, msg_size));
+
         interp->ParseMessage(type, flags, msg_buf, buf_n, IsOrig());
         msg_size = 0;
     }
@@ -340,19 +344,6 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
 
         buf_n = 0;
 
-        if ( msg_buf ) {
-            if ( buf_len < msg_size ) {
-                delete[] msg_buf;
-                buf_len = msg_size;
-                msg_buf = new u_char[buf_len];
-            }
-        }
-        else {
-            buf_len = msg_size;
-            if ( buf_len > 0 )
-                msg_buf = new u_char[buf_len];
-        }
-
         ++data;
         --len;
 
@@ -363,15 +354,34 @@ void Contents_NetbiosSSN::ProcessChunk(int& len, const u_char*& data, bool orig)
     if ( state != detail::NETBIOS_SSN_BUF )
         Conn()->Internal("state inconsistency in Contents_NetbiosSSN::Deliver");
 
-    int n;
-    for ( n = 0; buf_n < msg_size && n < len; ++n )
-        msg_buf[buf_n++] = data[n];
+    const auto copy_len = std::min(msg_size - buf_n, len); // Body bytes to append from this chunk
+    const auto required_len = buf_n + copy_len;            // Needed capacity for this append
 
-    data += n;
-    len -= n;
+    if ( required_len > buf_len ) {
+        // Grow geometrically, capped at the declared message size, while still
+        // allocating enough space for the copy
+        const auto len_to_allow_copy = std::max(required_len, buf_len * 2);
+        const auto new_len = std::min(msg_size, len_to_allow_copy);
+        auto* new_buf = new u_char[new_len];
+        // Preserve any partial message bytes already buffered
+        if ( buf_n > 0 )
+            memcpy(new_buf, msg_buf, buf_n);
+        delete[] msg_buf;
+        msg_buf = new_buf;
+        buf_len = new_len;
+    }
+
+    // Add the seen bytes to buffer, then adjust accounting
+    if ( copy_len > 0 )
+        memcpy(msg_buf + buf_n, data, copy_len);
+
+    buf_n += copy_len;
+    data += copy_len;
+    len -= copy_len;
 
     if ( buf_n < msg_size )
-        // Haven't filled up the message buffer yet, no more to do.
+        // Body spans multiple TCP deliveries. Keep state as NETBIOS_SSN_BUF so
+        // the next ProcessChunk() call goes directly to body bytes.
         return;
 
     interp->ParseMessage(type, flags, msg_buf, msg_size, IsOrig());

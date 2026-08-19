@@ -180,6 +180,8 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
     uint32_t inner_wire_len = outer_pkt->len - consumed_len;
 
     auto inner_pkt = std::make_unique<Packet>(link_type, &outer_pkt->ts, inner_cap_len, inner_wire_len, data);
+    inner_pkt->l2_src = Packet::L2_EMPTY_ADDR;
+    inner_pkt->l2_dst = Packet::L2_EMPTY_ADDR;
 
     *encap_index = 0;
     if ( outer_pkt->session ) {

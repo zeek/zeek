@@ -1,3 +1,12 @@
+9.0.0-dev.876 | 2026-08-19 07:26:26 -0700
+
+  * Set l2_src/l2_dst fields for inner tunnel packet to empty (Tim Wojtulewicz, Corelight)
+
+    For tunnels that include packets that aren't Ethernet, the L2 source and
+    destination fields would be set to null. This sets them to empty by default,
+    avoiding a crash. If there is an Ethernet header in the inner packet, it'll
+    reset the fields later.
+
 9.0.0-dev.874 | 2026-08-19 07:26:08 -0700
 
   * Check for valid IRC hosts/ports when processing IRC DCC packets (Tim Wojtulewicz, Corelight)

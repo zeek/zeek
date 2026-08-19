@@ -19,7 +19,7 @@ jobs:
           command: |
             if [ -n "$CIRCLE_PULL_REQUEST" ]; then
               FILES=$(git diff --name-only origin/master...HEAD)
-              if [ -n "$FILES" ] && echo "$FILES" | grep -qvE '(^doc/|.*\.md$)'; then
+              if [ -n "$FILES" ] && echo "$FILES" | grep -qvE '(^doc/|.*\.md$|NEWS)'; then
                 echo "Non-doc/markdown changes found, continuing."
               else
                 echo "Only doc/markdown changes, halting pipeline."

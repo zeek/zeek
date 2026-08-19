@@ -1,3 +1,9 @@
+9.0.0-dev.874 | 2026-08-19 07:26:08 -0700
+
+  * Check for valid IRC hosts/ports when processing IRC DCC packets (Tim Wojtulewicz, Corelight)
+
+  * Check for valid command field when processing IRC DCC commands (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.871 | 2026-08-19 07:25:43 -0700
 
   * ftp: Cap ftp_data_expected via new FTP::max_expected_data_channels (Arne Welzel, Corelight)

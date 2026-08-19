@@ -1,3 +1,7 @@
+9.0.0-dev.920 | 2026-08-19 09:25:36 -0700
+
+  * Bump `auxil/spicy/` to latest development snapshot (Benjamin Bannier, Corelight)
+
 9.0.0-dev.918 | 2026-08-19 07:53:48 -0700
 
   * CI: Add python3-venv to all of the Ubuntu/Debian dockerfiles (Tim Wojtulewicz, Corelight)

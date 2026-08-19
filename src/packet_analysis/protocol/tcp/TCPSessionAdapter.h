@@ -34,6 +34,7 @@ public:
 
     // Add a child analyzer that will always get the packets,
     // independently of whether we do any reassembly.
+    [[deprecated("Remove in v10.1: Use AddChildAnalyzer() directly. The internal processing has been unified.")]]
     void AddChildPacketAnalyzer(analyzer::Analyzer* a);
 
     Analyzer* FindChild(analyzer::ID id) override;

@@ -997,29 +997,40 @@ bool TCPSessionAdapter::DeliverData(double t, const u_char* data, int len, int c
 
 void TCPSessionAdapter::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
                                       int caplen) {
-    // Handle child_packet analyzers.  Note: This happens *after* the
+    // Handle child analyzers. Note: This happens *after* the
     // packet has been processed and the TCP state updated.
-    analyzer::analyzer_list::iterator next;
+    AppendNewChildren();
 
-    for ( auto i = packet_children.begin(); i != packet_children.end(); /* nop */ ) {
-        auto child = *i;
+    for ( const auto& c : GetChildren() ) {
+        // Skip over child analyzers that are finished or being removed.
+        // CleanupChildren() below will take care of those.
+        if ( c->IsFinished() || c->Removing() )
+            continue;
 
-        if ( child->IsFinished() || child->Removing() ) {
-            if ( child->Removing() )
-                child->Done();
+        // For historical reasons, if the child analyzer is an instance of
+        // TCP_ApplicationAnalyzer, only forward packets to it when reassembly
+        // is disabled. When reassembly is enabled, TCP_ApplicationAnalyzer
+        // instances only receive stream data via the reassembler callbacks,
+        // but do not see individual packets.
 
-            DBG_LOG(DBG_ANALYZER, "%s deleted child %s", fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
-            i = packet_children.erase(i);
-            delete child;
+        // This logic was copied from when TCPSessionAdapter had a separate
+        // packet_children list for child analyzers only receiving packets.
+        //
+        // XXX: This seems a bit quirky. Does that actually make sense? Should
+        // we maybe just always forward packets also to TCP_ApplicationAnalyzer
+        // instances? In which case we could drop the whole DeliverPacket()
+        // implementation here.
+        if ( c->GetAsTCPApplicationAnalyzer() ) {
+            if ( ! reassembling )
+                c->NextPacket(len, data, is_orig, seq, ip, caplen);
         }
         else {
-            child->NextPacket(len, data, is_orig, seq, ip, caplen);
-            ++i;
+            // Non-TCP_ApplicationAnalyzer's always see packets.
+            c->NextPacket(len, data, is_orig, seq, ip, caplen);
         }
     }
 
-    if ( ! reassembling )
-        ForwardPacket(len, data, is_orig, seq, ip, caplen);
+    CleanupChildren();
 }
 
 void TCPSessionAdapter::DeliverStream(int len, const u_char* data, bool orig) {
@@ -1313,9 +1324,9 @@ bool TCPSessionAdapter::HadGap(bool is_orig) const {
 
 void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a) {
     DBG_LOG(DBG_ANALYZER, "%s added packet child %s", this->GetAnalyzerName(), a->GetAnalyzerName());
-
-    packet_children.push_back(a);
-    a->SetParent(this);
+    // Does /*init=*/false to keep the prior behavior. But the method
+    // is now deprecated anyhow in favor of AddChildAnalyzer()
+    AddChildAnalyzer(a, /*init=*/false);
 }
 
 bool TCPSessionAdapter::DataPending(analyzer::tcp::TCP_Endpoint* closing_endp) {
@@ -1458,11 +1469,11 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
     if ( analyzer_mgr->IsEnabled(analyzer_tcpstats) )
         // Add TCPStats analyzer. This needs to see packets so
         // we cannot add it as a normal child.
-        AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn));
+        AddChildAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn), /*init=*/false);
 
     if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
         // Add ConnSize analyzer. Needs to see packets, not stream.
-        AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
+        AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn), /*init=*/false);
 }
 
 void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,

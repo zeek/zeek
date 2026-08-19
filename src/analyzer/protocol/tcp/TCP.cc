@@ -197,7 +197,7 @@ RecordVal* TCPStats_Endpoint::BuildStats() {
     return stats;
 }
 
-TCPStats_Analyzer::TCPStats_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("TCPSTATS", c) {}
+TCPStats_Analyzer::TCPStats_Analyzer(Connection* c) : Analyzer("TCPSTATS", c) {}
 
 TCPStats_Analyzer::~TCPStats_Analyzer() {
     delete orig_stats;
@@ -205,14 +205,17 @@ TCPStats_Analyzer::~TCPStats_Analyzer() {
 }
 
 void TCPStats_Analyzer::Init() {
-    TCP_ApplicationAnalyzer::Init();
+    Analyzer::Init();
+    auto* tcp = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(Conn()->FindAnalyzer("TCP"));
+    if ( ! tcp )
+        reporter->InternalError("TCPStats_Analyzer attached to non TCP connection");
 
-    orig_stats = new TCPStats_Endpoint(TCP()->Orig());
-    resp_stats = new TCPStats_Endpoint(TCP()->Resp());
+    orig_stats = new TCPStats_Endpoint(tcp->Orig());
+    resp_stats = new TCPStats_Endpoint(tcp->Resp());
 }
 
 void TCPStats_Analyzer::Done() {
-    TCP_ApplicationAnalyzer::Done();
+    Analyzer::Done();
 
     if ( conn_stats )
         EnqueueConnEvent(conn_stats, ConnVal(), IntrusivePtr{AdoptRef{}, orig_stats->BuildStats()},
@@ -221,7 +224,7 @@ void TCPStats_Analyzer::Done() {
 
 void TCPStats_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
                                       int caplen) {
-    TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
+    Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
 
     if ( is_orig )
         orig_stats->DataSent(run_state::network_time, seq, len, caplen, data, ip, nullptr);

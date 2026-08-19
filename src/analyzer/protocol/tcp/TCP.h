@@ -102,7 +102,7 @@ protected:
     int endian_type;
 };
 
-class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer {
+class TCPStats_Analyzer : public analyzer::Analyzer {
 public:
     explicit TCPStats_Analyzer(Connection* c);
     ~TCPStats_Analyzer() override;

@@ -1,3 +1,9 @@
+9.0.0-dev.861 | 2026-08-19 07:23:04 -0700
+
+  * Ensure tunnel changes are counted in all cases (Tim Wojtulewicz, Corelight)
+
+    Co-authored-by: Codex <codex@openai.com>
+
 9.0.0-dev.859 | 2026-08-19 07:19:06 -0700
 
   * Add const to control maximum packet analyzer chain depth (Tim Wojtulewicz, Corelight)

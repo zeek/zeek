@@ -1,3 +1,22 @@
+9.0.0-dev.940 | 2026-08-20 09:26:12 -0700
+
+  * tools/systemd-generator: Add multi-user.target.wants/zeek.target symlink (Arne Welzel, Corelight)
+
+    This is needed to make systemd start the zeek.target together with
+    multi-user.target automatically, instead of requiring and extra
+    symlink in /etc/systemd/system/ or so.
+
+  * doc/systemd: Document AmbientCapabilities default and customization options (Arne Welzel, Corelight)
+
+  * tools/systemd-generator: Set working directory for zeek-setup.service (Arne Welzel, Corelight)
+
+    Run zeek-setup.service within the configured base_dir. This allows to
+    use relative paths in drop-in files for zeek-setup.service.
+
+  * tools/systemd-generator: Drop setting CapabilityBoundingSet (Arne Welzel, Corelight)
+
+    Closes #5806
+
 9.0.0-dev.935 | 2026-08-20 09:17:25 -0700
 
   * Bump `auxil/package-manager` (Benjamin Bannier, Corelight)

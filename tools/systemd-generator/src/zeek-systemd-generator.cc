@@ -126,6 +126,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath());
     setup_unit.SetPartOf("zeek.target");
     setup_unit.SetServiceType("oneshot");
+    setup_unit.SetWorkingDirectory(config.ZeekBaseDir());
     setup_unit.SetStartLimitIntervalSec("0");
     setup_unit.AddExecStart("mkdir -p " + config.GeneratedScriptsDir().string());
     setup_unit.AddExecStart(config.ClusterLayoutCommand());
@@ -273,8 +274,12 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             if ( config.Proxies() > 0 )
                 worker_interface_unit.AddAfter("zeek-proxy@.service");
 
+            // Add CAP_NET_RAW to a worker's effective capability set
+            // by default for ease of use. This can be disabled by a
+            // drop-in file that resets AmbientCapabilities= to an empty
+            // string to remove all capabilities from the effective set.
             worker_interface_unit.SetAmbientCapabilities("CAP_NET_RAW");
-            worker_interface_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
+
             worker_interface_unit.SetSlice("zeek-workers.slice");
             if ( auto memory_max = iwc.MemoryMax(); memory_max )
                 worker_interface_unit.SetMemoryMax(*memory_max);
@@ -377,6 +382,19 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         ensure_symlink("../zeek-archiver.service", zeek_target_wants / "zeek-archiver.service");
     }
+
+    // Now that all unit files have been created, add a symlink from multi-user.target.wants
+    // to include zeek.target for automatic startup together with multi-user.target.
+    auto multi_user_target_wants = dir / "multi-user.target.wants";
+    if ( std::filesystem::create_directory(multi_user_target_wants, ec); ec ) {
+        if ( ec.value() != EEXIST ) {
+            std::fprintf(stderr, "failed to create directory %s: %s\n", multi_user_target_wants.string().c_str(),
+                         ec.message().c_str());
+            std::exit(1);
+        }
+    }
+
+    ensure_symlink("../zeek.target", multi_user_target_wants / "zeek.target");
 }
 
 

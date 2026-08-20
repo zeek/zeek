@@ -22,4 +22,5 @@ manager = 1
 loggers = 1
 proxies = 1
 archiver = 1
+base_dir = /opt/zeek
 # @TEST-END-FILE

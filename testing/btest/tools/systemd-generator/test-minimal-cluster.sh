@@ -26,6 +26,7 @@ proxies  = 2
 archiver = 1
 
 address = 10.0.0.1
+base_dir = /opt/zeek
 # @TEST-END-FILE
 #
 # @TEST-START-FILE etc/cluster/wkr-1.zeek.conf
@@ -38,6 +39,7 @@ workers = 4
 interface = eth0
 
 address = 10.0.0.2
+base_dir = /opt/zeek
 # @TEST-END-FILE
 #
 # @TEST-START-FILE etc/cluster/wkr-2.zeek.conf
@@ -50,4 +52,5 @@ workers = 4
 interface = eth0
 
 address = 10.0.0.3
+base_dir = /opt/zeek
 # @TEST-END-FILE

@@ -528,6 +528,72 @@ You'll need to adapt the logging logic of Zeek and provide a matching ``filebeat
 file for this to work properly.
 
 
+Process Capabilities
+====================
+
+This section is about Linux capabilities as they apply to Zeek processes. See the
+`capabilities <https://man7.org/linux/man-pages/man7/capabilities.7.html>`_ manpage
+for details. systemd supports the
+`AmbientCapabilities and CapabilityBoundingSet <https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#Capabilities>`_
+settings. For usability reasons, systemd units for Zeek workers default the ``AmbientCapabilities``
+to ``CAP_NET_RAW``. The ``CapabilityBoundingSet`` setting is left alone.
+
+If you want to control process capabilities yourself, for example to switch to file-based
+capabilities or add additional ambient capabilities, do so using systemd drop-in files.
+
+Concretely, to modify the ``AmbientCapabilities`` for all Zeek worker processes,
+place a drop-in unit file either into the ``zeek-worker@.service.d`` drop-in directory
+when using the section-less format, or into a prefix drop-in directory named
+``zeek-worker-.service.d`` when using the INI-like format. The latter is a bit magic:
+systemd searches for drop-in directories using all dash-separated prefixes of a unit
+name followed by ``.service.d``. Worker unit files have the ``zeek-worker-`` prefix
+when using the INI-like format as for ``zeek-worker-eth1@.service`` and
+``zeek-worker-eth2@.service`` with interface section names ``eth1`` and ``eth2``.
+
+.. code:: console
+
+    # cat /etc/systemd/system/zeek-worker-.service.d/10-drop-capabilities.conf
+    [Service]
+    # Remove all ambient capabilities from all worker processes.
+    AmbientCapabilities=
+
+    # cat /etc/systemd/system/zeek-worker-.service.d/10-more-capabilities.conf
+    [Service]
+    # Set capabilities for worker processes to add CAP_NET_ADMIN and
+    # CAP_IPC_LOCK in addition to CAP_NET_RAW
+    AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN CAP_IPC_LOCK
+
+When unsetting ``AmbientCapabilities`` as on the first line, Zeek workers listening
+on a real interface will fail to start because they are not permitted to read raw
+packets anymore. If you have previously used file-based capabilities, you can
+continue doing, either by ``setcap`` the executable during installation, or update
+the ``zeek`` file capabilities by placing a drop-in file for the ``zeek-setup.service``
+unit that adds an ``ExecStart`` command to run ``setcap``. This is shown below, ``setcap``
+is used to add ``CAP_NET_RAW`` and ``CAP_NET_ADMIN`` to the effective and permissible
+capability sets:
+
+.. code:: console
+
+    # cat /etc/systemd/system/zeek-setup.service.d/10-setcap-zeek.conf
+    [Service]
+    # Add file-based capabilities during zeek-setup.service execution
+    ExecStart=/usr/sbin/setcap cap_net_raw,cap_net_admin+ep ./bin/zeek
+
+The ``zeek-setup.service`` runs with a working directory of ``zeek.conf``'s ``base_dir``
+option (PREFIX by default) and so using the relative path to ``./bin/zeek`` works out.
+Note that if you do this, the manager, logger and proxy processes will also receive
+``CAP_NET_RAW`` and ``CAP_NET_ADMIN`` capabilities, even though they likely do not need
+those.
+
+To verify the final capabilities of a running process, find its PID via
+``systemctl status zeek.slice`` and use ``getpcaps`` on it:
+
+.. code:: console
+
+   # getpcaps 129003
+   129003: cap_net_admin,cap_net_raw=ep
+
+
 Cluster Layout Notes
 ====================
 

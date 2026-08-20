@@ -19,7 +19,6 @@ WorkingDirectory=<...>/worker-eth0-%i
 ReadWritePaths=<...>/worker-eth0-%i
 Nice=-1
 MemoryMax=256M
-CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins

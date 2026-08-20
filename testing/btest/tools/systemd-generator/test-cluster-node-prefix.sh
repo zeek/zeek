@@ -19,4 +19,5 @@ loggers  = 1
 proxies  = 1
 archiver = 1
 cluster_node_prefix = c-mgr
+base_dir = /opt/zeek
 # @TEST-END-FILE

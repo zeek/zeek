@@ -223,17 +223,21 @@ OperationResult Backend::DoSize(ResultCallback* /* cb */) {
 }
 
 OperationResult Backend::GetAll(ResultCallback* cb, uint64_t max_entries) {
+    cb->Init(get_all_metrics.get());
+
     auto ret = DoGetAll(cb, max_entries);
     if ( cb->IsSyncCallback() )
-        CompleteCallback(cb, ret);
+        cb->UpdateOperationMetrics(ret.code);
 
     return ret;
 }
 
 OperationResult Backend::Size(ResultCallback* cb) {
+    cb->Init(size_metrics.get());
+
     auto ret = DoSize(cb);
     if ( cb->IsSyncCallback() )
-        CompleteCallback(cb, ret);
+        cb->UpdateOperationMetrics(ret.code);
 
     return ret;
 }
@@ -283,6 +287,10 @@ void Backend::InitMetrics() {
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "get", Tag(), metrics_config);
     erase_metrics =
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "erase", Tag(), metrics_config);
+    get_all_metrics =
+        std::make_unique<detail::OperationMetrics>(results_family, latency_family, "get_all", Tag(), metrics_config);
+    size_metrics =
+        std::make_unique<detail::OperationMetrics>(results_family, latency_family, "size", Tag(), metrics_config);
 
     bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
                                                           {{"type", Tag()}, {"config", metrics_config}},

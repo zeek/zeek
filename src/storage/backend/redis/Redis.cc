@@ -518,6 +518,12 @@ void Redis::DoExpire(double current_network_time) {
     // Expire always happens in a synchronous fashion. Block here until we've received
     // a response.
     Poll();
+
+    if ( reply_queue.empty() ) {
+        expire_running = false;
+        return;
+    }
+
     redisReply* reply = reply_queue.front();
     reply_queue.pop_front();
 
@@ -543,10 +549,12 @@ void Redis::DoExpire(double current_network_time) {
         ++active_ops;
         Poll();
 
+        if ( reply_queue.empty() )
+            break;
+
         redisReply* del_reply = reply_queue.front();
         reply_queue.pop_front();
         freeReplyObject(del_reply);
-        // TODO: do we care if this failed?
     }
 
     IncExpiredEntriesMetric(elements.size());
@@ -560,10 +568,11 @@ void Redis::DoExpire(double current_network_time) {
     ++active_ops;
     Poll();
 
-    redisReply* rem_range_reply = reply_queue.front();
-    reply_queue.pop_front();
-    freeReplyObject(rem_range_reply);
-    // TODO: do we care if this failed?
+    if ( ! reply_queue.empty() ) {
+        redisReply* rem_range_reply = reply_queue.front();
+        reply_queue.pop_front();
+        freeReplyObject(rem_range_reply);
+    }
 }
 
 void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {

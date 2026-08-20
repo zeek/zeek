@@ -16,7 +16,6 @@ User=zeek
 Group=zeek
 WorkingDirectory=<...>/worker-%i
 ReadWritePaths=<...>/worker-%i
-CapabilityBoundingSet=CAP_NET_RAW
 AmbientCapabilities=CAP_NET_RAW
 Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins

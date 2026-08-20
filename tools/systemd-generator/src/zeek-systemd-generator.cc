@@ -273,8 +273,12 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             if ( config.Proxies() > 0 )
                 worker_interface_unit.AddAfter("zeek-proxy@.service");
 
+            // Add CAP_NET_RAW to a worker's effective capability set
+            // by default for ease of use. This can be disabled by a
+            // drop-in file that resets AmbientCapabilities= to an empty
+            // string to remove all capabilities from the effective set.
             worker_interface_unit.SetAmbientCapabilities("CAP_NET_RAW");
-            worker_interface_unit.SetCapabilityBoundingSet("CAP_NET_RAW");
+
             worker_interface_unit.SetSlice("zeek-workers.slice");
             if ( auto memory_max = iwc.MemoryMax(); memory_max )
                 worker_interface_unit.SetMemoryMax(*memory_max);

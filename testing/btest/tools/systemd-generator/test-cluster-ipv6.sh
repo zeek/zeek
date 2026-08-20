@@ -28,11 +28,13 @@ proxies = 2
 archiver = 1
 
 address = [2001:400:211::121]
+base_dir = /opt/zeek
 # @TEST-END-FILE
 
 # @TEST-START-FILE etc/cluster/wkr-1.zeek.conf
 [zeek]
 address = [2001:400:211::122]
+base_dir = /opt/zeek
 
 [interface eth0]
 interface = eth0
@@ -42,6 +44,7 @@ workers = 4
 # @TEST-START-FILE etc/cluster/wkr-2.zeek.conf
 [zeek]
 address = [2001:400:211::123]
+base_dir = /opt/zeek
 
 [interface eth0]
 workers = 4

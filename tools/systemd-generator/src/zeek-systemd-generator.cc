@@ -126,6 +126,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath());
     setup_unit.SetPartOf("zeek.target");
     setup_unit.SetServiceType("oneshot");
+    setup_unit.SetWorkingDirectory(config.ZeekBaseDir());
     setup_unit.SetStartLimitIntervalSec("0");
     setup_unit.AddExecStart("mkdir -p " + config.GeneratedScriptsDir().string());
     setup_unit.AddExecStart(config.ClusterLayoutCommand());

@@ -382,6 +382,19 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         ensure_symlink("../zeek-archiver.service", zeek_target_wants / "zeek-archiver.service");
     }
+
+    // Now that all unit files have been created, add a symlink from multi-user.target.wants
+    // to include zeek.target for automatic startup together with multi-user.target.
+    auto multi_user_target_wants = dir / "multi-user.target.wants";
+    if ( std::filesystem::create_directory(multi_user_target_wants, ec); ec ) {
+        if ( ec.value() != EEXIST ) {
+            std::fprintf(stderr, "failed to create directory %s: %s\n", multi_user_target_wants.string().c_str(),
+                         ec.message().c_str());
+            std::exit(1);
+        }
+    }
+
+    ensure_symlink("../zeek.target", multi_user_target_wants / "zeek.target");
 }
 
 

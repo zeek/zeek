@@ -1,3 +1,15 @@
+9.0.0-dev.948 | 2026-08-20 14:56:23 -0700
+
+  * docs: add security guidance for ZeekControl SSH access (Sujala Vasanthasena Nelavai)
+
+    ZeekControl uses SSH from the manager to manage nodes in a
+    multi-host cluster, including deploying configuration and running
+    management commands.
+    
+    Document the need to protect the SSH account and credentials used
+    for cluster management, since compromise of this access can affect
+    multiple cluster hosts.
+
 9.0.0-dev.943 | 2026-08-20 09:53:50 -0700
 
   * Remove DOCKER_BUILDIMAGE_LOGIN environment variable (Tim Wojtulewicz, Corelight)

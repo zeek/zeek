@@ -221,7 +221,8 @@ function add_to_history(c: connection, is_client: bool, char: string)
 		c$ssl$ssl_history = c$ssl$ssl_history+to_lower(char);
 
 	if ( |c$ssl$ssl_history| == max_ssl_history_length )
-		Reporter::conn_weird("SSL_max_ssl_history_length_reached", c);
+		Reporter::limit_reached_weird("SSL_max_ssl_history_length_reached", c, |c$ssl$ssl_history|,
+		                              0, "SSL");
 	}
 
 function delay_log(info: Info, token: string)

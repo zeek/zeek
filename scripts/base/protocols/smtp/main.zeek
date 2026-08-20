@@ -201,7 +201,9 @@ function mail_transaction_invalid(c: connection, addl: string)
 	     && c$smtp_state$invalid_transactions > max_invalid_mail_transactions
 	     && c$smtp_state?$analyzer_id )
 		{
-		Reporter::conn_weird("smtp_excessive_invalid_mail_transactions", c, "", "SMTP");
+		Reporter::limit_reached_weird("smtp_excessive_invalid_mail_transactions", c,
+		                              c$smtp_state$invalid_transactions, max_invalid_mail_transactions,
+		                              "SMTP");
 		if ( disable_analyzer(c$id, c$smtp_state$analyzer_id) )
 			delete c$smtp_state$analyzer_id;
 		}

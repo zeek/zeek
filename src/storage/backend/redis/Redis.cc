@@ -538,11 +538,8 @@ void Redis::DoExpire(double current_network_time) {
     // and passing the array as a block somehow. There's no guarantee it'd be faster
     // anyways.
     for ( const auto& e : elements ) {
-        // redisAsyncCommand usually takes a printf-style string, except the parser used by
-        // hiredis doesn't handle lengths passed with strings correctly (it hangs indefinitely).
-        // Use util::fmt here instead it handles it.
-        status = redisAsyncCommand(async_ctx, redisGeneric, nullptr,
-                                   util::fmt("DEL %s:%.*s", key_prefix.data(), static_cast<int>(e.size()), e.data()));
+        status =
+            redisAsyncCommand(async_ctx, redisGeneric, nullptr, "DEL %s:%b", key_prefix.data(), e.data(), e.size());
         ++active_ops;
         Poll();
 

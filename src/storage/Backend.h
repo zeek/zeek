@@ -426,6 +426,8 @@ private:
     std::unique_ptr<detail::OperationMetrics> put_metrics;
     std::unique_ptr<detail::OperationMetrics> get_metrics;
     std::unique_ptr<detail::OperationMetrics> erase_metrics;
+    std::unique_ptr<detail::OperationMetrics> get_all_metrics;
+    std::unique_ptr<detail::OperationMetrics> size_metrics;
 
     telemetry::CounterPtr bytes_written_metric;
     telemetry::CounterPtr bytes_read_metric;

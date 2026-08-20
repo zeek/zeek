@@ -1,3 +1,7 @@
+9.0.0-dev.935 | 2026-08-20 09:17:25 -0700
+
+  * Bump `auxil/package-manager` (Benjamin Bannier, Corelight)
+
 9.0.0-dev.933 | 2026-08-20 09:08:26 -0700
 
   * SSH: Recognize diffie-hellman-group18-sha512 as fixed-group DH KEX (Johanna Amann, Corelight)

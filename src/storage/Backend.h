@@ -199,6 +199,19 @@ public:
     OperationResult Erase(ResultCallback* cb, ValPtr key);
 
     /**
+     * Retrieve all key/value pairs from the backend as a table.
+     *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
+     * @param max_entries The maximum number of entries to retrieve. If the backend
+     * contains more entries than this, the operation returns RESULT_TOO_LARGE. Pass
+     * 0 for no limit.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr containing the table on success.
+     */
+    OperationResult GetAll(ResultCallback* cb, uint64_t max_entries);
+
+    /**
      * Returns whether the backend is opened.
      */
     virtual bool IsOpen() = 0;
@@ -362,6 +375,13 @@ private:
      * documentation of the arguments. This must be overridden by all backends.
      */
     virtual OperationResult DoErase(ResultCallback* cb, ValPtr key) = 0;
+
+    /**
+     * Workhorse method for calls to `Backend::GetAll()`. See that method for
+     * documentation of the arguments. Backends that support this operation should
+     * override this method.
+     */
+    virtual OperationResult DoGetAll(ResultCallback* cb, uint64_t max_entries);
 
     /**
      * Optional method for backends to override to provide direct polling. This should be

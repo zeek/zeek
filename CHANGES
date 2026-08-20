@@ -1,3 +1,12 @@
+9.0.0-dev.943 | 2026-08-20 09:53:50 -0700
+
+  * Remove DOCKER_BUILDIMAGE_LOGIN environment variable (Tim Wojtulewicz, Corelight)
+
+  * CCI: Add hashes of Dockerfiles to setup parameters (Tim Wojtulewicz, Corelight)
+
+    Instead of using a string in each Dockerfile to force rebuilds of the
+    images, this uses the hash of the Dockerfile to version the images.
+
 9.0.0-dev.940 | 2026-08-20 09:26:12 -0700
 
   * tools/systemd-generator: Add multi-user.target.wants/zeek.target symlink (Arne Welzel, Corelight)

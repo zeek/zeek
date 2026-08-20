@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import glob
+import hashlib
 import json
 import os
 import re
@@ -63,6 +65,31 @@ elif GIT_BRANCH == "master" or re.match(r"^release/.*$", GIT_BRANCH):
 
 if GIT_TAG and re.match(r"^v\d+\.\d+\.\d+(-rc[0-9]+)?$", GIT_TAG):
     params["has_release_tag"] = True
+
+# Build up a set of hashes on the Dockerfiles for the build images to be used as version
+# numbers in the dockerhub repo. Remove windows because it's not used, but we keep the
+# Dockerfile for historical reasons.
+platforms = sorted([p.split("/")[1] for p in glob.glob("ci/*/Dockerfile")])
+if "windows" in platforms:
+    platforms.remove("windows")
+
+# Build a version string for each platform. For release branches, we prepend the version number so
+# the cleanup task doesn't nuke versions from the release branches.
+image_version = ""
+m = re.match(r"^release/(\d+\.\d+)$", GIT_BRANCH)
+if m:
+    image_version = m.group(1)
+else:
+    image_version = "master"
+
+for p in platforms:
+    with open(f"ci/{p}/Dockerfile", "rb") as df:
+        # I tried to use hashlib.file_digest here, but apparently the standard python on Circle's
+        # runners is old enough that it doesn't support that.
+        df_str = df.read()
+        params[f"{p.replace('-', '_').replace('.', '_')}_image_version"] = (
+            f"{image_version}-{hashlib.sha256(df_str).hexdigest()[:7]}"
+        )
 
 with open("/tmp/parameters.json", "w") as params_file:
     json.dump(params, params_file)

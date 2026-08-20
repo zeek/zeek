@@ -214,6 +214,18 @@ OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
     return ret;
 }
 
+OperationResult Backend::DoGetAll(ResultCallback* /* cb */, uint64_t /* max_entries */) {
+    return {ReturnCode::NOT_SUPPORTED, "backend does not support get_all"};
+}
+
+OperationResult Backend::GetAll(ResultCallback* cb, uint64_t max_entries) {
+    auto ret = DoGetAll(cb, max_entries);
+    if ( cb->IsSyncCallback() )
+        CompleteCallback(cb, ret);
+
+    return ret;
+}
+
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
     if ( data.code == ReturnCode::TIMEOUT )
         cb->Timeout();

@@ -135,3 +135,23 @@ function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key:
 
 	return op_result.BuildVal();
 	%}
+
+function Storage::Sync::__get_all%(backend: opaque of Storage::BackendHandle, max_entries: count%): Storage::OperationResult
+	%{
+	OperationResult op_result;
+
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
+	if ( ! b )
+		op_result = b.error();
+	else {
+		auto cb = new ResultCallback();
+		op_result = (*b)->backend->GetAll(cb, max_entries);
+
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
+
+		delete cb;
+	}
+
+	return op_result.BuildVal();
+	%}

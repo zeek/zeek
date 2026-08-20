@@ -1,3 +1,16 @@
+8.0.10-1 | 2026-08-21 16:34:31 -0700
+
+  * Remove DOCKER_BUILDIMAGE_LOGIN environment variable (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 728e258066aee44daaaaa472a80b79b25295b4f0)
+
+  * CCI: Add hashes of Dockerfiles to setup parameters (Tim Wojtulewicz, Corelight)
+
+    Instead of using a string in each Dockerfile to force rebuilds of the
+    images, this uses the hash of the Dockerfile to version the images.
+
+    (cherry picked from commit 728e258066aee44daaaaa472a80b79b25295b4f0)
+
 8.0.10 | 2026-08-19 16:41:33 +0000
 
   * Fix clang-tidy warnings from recent merges (Tim Wojtulewicz, Corelight)

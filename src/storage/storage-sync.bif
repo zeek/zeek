@@ -155,3 +155,23 @@ function Storage::Sync::__get_all%(backend: opaque of Storage::BackendHandle, ma
 
 	return op_result.BuildVal();
 	%}
+
+function Storage::Sync::__size%(backend: opaque of Storage::BackendHandle%): Storage::OperationResult
+	%{
+	OperationResult op_result;
+
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
+	if ( ! b )
+		op_result = b.error();
+	else {
+		auto cb = new ResultCallback();
+		op_result = (*b)->backend->Size(cb);
+
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
+
+		delete cb;
+	}
+
+	return op_result.BuildVal();
+	%}

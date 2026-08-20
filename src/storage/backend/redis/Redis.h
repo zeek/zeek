@@ -59,6 +59,7 @@ private:
     OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
     OperationResult DoGetAll(ResultCallback* cb, uint64_t max_entries) override;
+    OperationResult DoSize(ResultCallback* cb) override;
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
     std::string DoGetConfigMetricsLabel() const override;

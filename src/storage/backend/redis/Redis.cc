@@ -676,6 +676,19 @@ OperationResult Redis::DoGetAll(ResultCallback* /* cb */, uint64_t max_entries) 
     return {ReturnCode::SUCCESS, "", table};
 }
 
+OperationResult Redis::DoSize(ResultCallback* /* cb */) {
+    if ( ! connected && ! async_ctx )
+        return {ReturnCode::NOT_CONNECTED};
+
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
+    auto scan_result = ScanKeys(0);
+    if ( ! scan_result )
+        return scan_result.error();
+
+    return {ReturnCode::SUCCESS, "", val_mgr->Count(scan_result->size())};
+}
+
 void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {
     --active_ops;
 

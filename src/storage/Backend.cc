@@ -218,8 +218,20 @@ OperationResult Backend::DoGetAll(ResultCallback* /* cb */, uint64_t /* max_entr
     return {ReturnCode::NOT_SUPPORTED, "backend does not support get_all"};
 }
 
+OperationResult Backend::DoSize(ResultCallback* /* cb */) {
+    return {ReturnCode::NOT_SUPPORTED, "backend does not support size"};
+}
+
 OperationResult Backend::GetAll(ResultCallback* cb, uint64_t max_entries) {
     auto ret = DoGetAll(cb, max_entries);
+    if ( cb->IsSyncCallback() )
+        CompleteCallback(cb, ret);
+
+    return ret;
+}
+
+OperationResult Backend::Size(ResultCallback* cb) {
+    auto ret = DoSize(cb);
     if ( cb->IsSyncCallback() )
         CompleteCallback(cb, ret);
 

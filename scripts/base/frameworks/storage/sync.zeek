@@ -85,6 +85,16 @@ export {
 	##          to :zeek:see:`Storage::Sync::open_backend`.
 	global get_all: function(backend: opaque of Storage::BackendHandle,
 	    max_entries: count): Storage::OperationResult;
+
+	## Returns the number of non-expired entries in the backend.
+	##
+	## backend: A handle to a backend connection.
+	##
+	## Returns: A record containing the status of the operation, an optional error
+	##          string for failures, and an optional value containing the count on
+	##          success.
+	global size: function(backend: opaque of Storage::BackendHandle)
+	    : Storage::OperationResult;
 }
 
 function open_backend(btype: Storage::Backend, options: Storage::BackendOptions,
@@ -122,4 +132,10 @@ function get_all(backend: opaque of Storage::BackendHandle, max_entries: count)
     : Storage::OperationResult
 	{
 	return Storage::Sync::__get_all(backend, max_entries);
+	}
+
+function size(backend: opaque of Storage::BackendHandle)
+    : Storage::OperationResult
+	{
+	return Storage::Sync::__size(backend);
 	}

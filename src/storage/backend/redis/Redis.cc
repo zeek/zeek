@@ -575,6 +575,107 @@ void Redis::DoExpire(double current_network_time) {
     }
 }
 
+zeek::expected<std::vector<std::string>, OperationResult> Redis::ScanKeys(uint64_t max_keys) {
+    using ReplyPtr = std::unique_ptr<redisReply, decltype(&freeReplyObject)>;
+
+    std::string match_pattern = key_prefix + ":*";
+    std::vector<std::string> keys;
+    std::string cursor = "0";
+    uint64_t count = 0;
+
+    do {
+        int status = redisAsyncCommand(async_ctx, redisGeneric, nullptr, "SCAN %s MATCH %s COUNT 100", cursor.c_str(),
+                                       match_pattern.c_str());
+        if ( connected && status == REDIS_ERR )
+            return zeek::unexpected<OperationResult>(
+                OperationResult{ReturnCode::OPERATION_FAILED, util::fmt("SCAN failed: %s", async_ctx->errstr)});
+
+        ++active_ops;
+        Poll();
+
+        if ( reply_queue.empty() )
+            return zeek::unexpected<OperationResult>(
+                OperationResult{ReturnCode::OPERATION_FAILED, "no reply from SCAN"});
+
+        ReplyPtr reply{reply_queue.front(), freeReplyObject};
+        reply_queue.pop_front();
+
+        if ( ! reply || reply->type != REDIS_REPLY_ARRAY || reply->elements != 2 )
+            return zeek::unexpected<OperationResult>(
+                OperationResult{ReturnCode::OPERATION_FAILED, "unexpected SCAN reply format"});
+
+        cursor = std::string(reply->element[0]->str, reply->element[0]->len);
+        auto* key_array = reply->element[1];
+
+        for ( size_t i = 0; i < key_array->elements; i++ ) {
+            ++count;
+            if ( max_keys > 0 && count > max_keys )
+                return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::RESULT_TOO_LARGE});
+            keys.emplace_back(key_array->element[i]->str, key_array->element[i]->len);
+        }
+    } while ( cursor != "0" );
+
+    return keys;
+}
+
+OperationResult Redis::DoGetAll(ResultCallback* /* cb */, uint64_t max_entries) {
+    if ( ! connected && ! async_ctx )
+        return {ReturnCode::NOT_CONNECTED};
+
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
+    auto scan_result = ScanKeys(max_entries);
+    if ( ! scan_result )
+        return scan_result.error();
+
+    using ReplyPtr = std::unique_ptr<redisReply, decltype(&freeReplyObject)>;
+
+    auto indices = make_intrusive<TypeList>(key_type);
+    indices->Append(key_type);
+    auto ttype = make_intrusive<TableType>(std::move(indices), val_type);
+    auto table = make_intrusive<TableVal>(std::move(ttype));
+
+    size_t prefix_len = key_prefix.size() + 1; // "prefix:"
+
+    for ( const auto& full_key : *scan_result ) {
+        int status = redisAsyncCommand(async_ctx, redisGeneric, nullptr, "GET %b", full_key.data(), full_key.size());
+        if ( connected && status == REDIS_ERR )
+            return {ReturnCode::OPERATION_FAILED, util::fmt("GET failed: %s", async_ctx->errstr)};
+
+        ++active_ops;
+        Poll();
+
+        if ( reply_queue.empty() )
+            continue;
+
+        ReplyPtr reply{reply_queue.front(), freeReplyObject};
+        reply_queue.pop_front();
+
+        if ( ! reply || reply->type == REDIS_REPLY_NIL )
+            continue;
+
+        if ( reply->type == REDIS_REPLY_ERROR )
+            return ParseReplyError("get_all", reply->str);
+
+        std::string_view raw_key(full_key.data() + prefix_len, full_key.size() - prefix_len);
+        auto key =
+            serializer->Unserialize({reinterpret_cast<const std::byte*>(raw_key.data()), raw_key.size()}, key_type);
+        if ( ! key )
+            return {ReturnCode::UNSERIALIZATION_FAILED, key.error()};
+
+        auto val =
+            serializer->Unserialize({reinterpret_cast<const std::byte*>(reply->str), static_cast<size_t>(reply->len)},
+                                    val_type);
+        if ( ! val )
+            return {ReturnCode::UNSERIALIZATION_FAILED, val.error()};
+
+        IncBytesReadMetric(raw_key.size() + reply->len);
+        table->Assign(key.value(), val.value());
+    }
+
+    return {ReturnCode::SUCCESS, "", table};
+}
+
 void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {
     --active_ops;
 

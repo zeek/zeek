@@ -58,9 +58,12 @@ private:
                           double expiration_time) override;
     OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
+    OperationResult DoGetAll(ResultCallback* cb, uint64_t max_entries) override;
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
     std::string DoGetConfigMetricsLabel() const override;
+
+    zeek::expected<std::vector<std::string>, OperationResult> ScanKeys(uint64_t max_keys);
 
     OperationResult ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const;
     OperationResult CheckServerVersion();

@@ -240,6 +240,14 @@ public:
     Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
     /**
+     * Returns true if an analyzer's declared transport is compatible with the
+     * given transport (i.e. matches it or the analyzer declares none). Used to
+     * keep automatic attachment (port, DPD, scheduling) from binding an
+     * analyzer to a transport it can't handle.
+     */
+    bool AnalyzerTransportMatches(const zeek::Tag& tag, TransportProto transport) const;
+
+    /**
      * Schedules a particular analyzer for an upcoming connection. Once
      * the connection is seen, BuildInitAnalyzerTree() will add the
      * specified analyzer to its tree.

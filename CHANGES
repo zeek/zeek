@@ -1,3 +1,23 @@
+9.0.0-dev.950 | 2026-08-21 09:39:41 -0400
+
+  * GH-3787: GH-5793: tcp: Error on mismatched analyzer transport (Evan Typanski, Corelight)
+
+    When a Spicy analyzer `replace`'d a TCP analyzer with a UDP analyzer,
+    Zeek would happily `static_cast` it into a TCP analyzer, thus crashing.
+    This does two things:
+
+    1) Guard those casts behind a guard that ensures it's TCP
+    2) Prevent the analyzer from attaching to that port in the first place
+
+    This should still allow the analyzer to function, but it will error and
+    avoid registering if we're replacing TCP with UDP. This way we don't
+    need any silent behavior. Note that the analyzer will still function
+    with UDP traffic, but it will emit an error for TCP traffic.
+
+    Fixes #3787
+
+    Fixes #5793
+
 9.0.0-dev.948 | 2026-08-20 14:56:23 -0700
 
   * docs: add security guidance for ZeekControl SSH access (Sujala Vasanthasena Nelavai)
@@ -5,7 +25,7 @@
     ZeekControl uses SSH from the manager to manage nodes in a
     multi-host cluster, including deploying configuration and running
     management commands.
-    
+
     Document the need to protect the SSH account and credentials used
     for cluster management, since compromise of this access can affect
     multiple cluster hosts.

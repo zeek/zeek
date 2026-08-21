@@ -314,6 +314,10 @@ Changed Functionality
   disabled to prevent unbounded state growth and cluster overload until
   expiration removes old entries.
 
+- A UDP Spicy analyzer which replaces a Zeek analyzer will now error instead of
+  crashing if it sees TCP traffic. This is possible for DNS, including the
+  spicy-dns analyzer (which is an optional, separate component from Zeek).
+
 Deprecated Functionality
 ------------------------
 

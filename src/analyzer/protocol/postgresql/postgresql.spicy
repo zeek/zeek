@@ -9,6 +9,7 @@
 module PostgreSQL;
 
 import spicy;
+import zeek;
 
 type SSLFrontendState = enum {
     Requested,
@@ -286,14 +287,30 @@ type ReadyForQuery = unit {
     transaction_status: uint8 &requires=($$ == 'I' || $$ == 'T' || $$ == 'E');
 };
 
-type NoticeIdentifiedField = unit {
-    code: uint8;
+type NoticeIdentifiedField = unit(seen_codes: set<uint8>&) {
+    var duplicate: bool = False;
+    code: uint8 {
+        self.duplicate = self.code in *seen_codes;
+        add(*seen_codes)[self.code];
+    }
     value: bytes &until=b"\x00";
 };
 
 type NoticeResponse = unit {
-    : NoticeIdentifiedField[];
+    var duplicates: uint64 = 0;
+    var seen_codes: set<uint8>&= new set<uint8>;
+    : NoticeIdentifiedField(self.seen_codes)[] foreach {
+        if ($$.duplicate)
+            self.duplicates += 1;
+    }
+
     : skip b"\x00";
+
+    : void {
+        if (self.duplicates > 0) {
+            zeek::weird("PostgreSQL_ignored_duplicate_notice_identified_fields", "%s" % self.duplicates);
+        }
+    }
 };
 
 # Just for counting right now.
@@ -304,14 +321,30 @@ type DataRow = unit {
 
 # Fields with a 1 byte field as documented here:
 # https://www.postgresql.org/docs/current/protocol-error-fields.html
-type ErrorIdentifiedField = unit {
-    code: uint8;
+type ErrorIdentifiedField = unit(seen_codes: set<uint8>&) {
+    var duplicate: bool = False;
+    code: uint8 {
+        self.duplicate = self.code in *seen_codes;
+        add(*seen_codes)[self.code];
+    }
     value: bytes &until=b"\x00";
 };
 
 type ErrorResponse = unit {
-    : ErrorIdentifiedField[];
+    var duplicates: uint64 = 0;
+    var seen_codes: set<uint8>&= new set<uint8>;
+    : ErrorIdentifiedField(self.seen_codes)[] foreach {
+        if ($$.duplicate)
+            self.duplicates += 1;
+    }
+
     : skip b"\x00";
+
+    : void {
+        if (self.duplicates > 0) {
+            zeek::weird("PostgreSQL_ignored_duplicate_error_identified_fields", "%s" % self.duplicates);
+        }
+    }
 };
 
 type AuthenticationRequest = unit(length: uint32) {

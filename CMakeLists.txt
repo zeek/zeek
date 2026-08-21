@@ -1496,10 +1496,21 @@ endif ()
 include(CheckOptionalBuildSources)
 
 checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
-checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
 checkoptionalbuildsources(auxil/zeekctl ZeekControl INSTALL_ZEEKCTL)
 checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
+
+# Building zkg requires network access.
+if (INSTALL_ZKG)
+    file(DOWNLOAD "https://pypi.org/" "${CMAKE_BINARY_DIR}/pypi_check" TIMEOUT 5
+         STATUS _pypi_reachable)
+    file(REMOVE "${CMAKE_BINARY_DIR}/pypi_check")
+    if (NOT _pypi_reachable EQUAL 0)
+        message(WARNING "pypi.org unreachable; disabling zkg")
+        set(INSTALL_ZKG OFF)
+    endif ()
+endif ()
+checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
 # set Spicy-side environment variables to run it out of the build directory.

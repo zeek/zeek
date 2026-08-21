@@ -136,9 +136,9 @@ else
     COVERAGE_FILE_CLEAN="${COVERAGE_FILE}.clean"
     verify_run "testing/coverage/coverage_cleanup.py ${COVERAGE_FILE} > ${COVERAGE_FILE_CLEAN} 2>&1"
 
-    if [ "${CIRCLE_BRANCH}" == "master" ] && [ -n "${ZEEK_COVERALLS_REPO_TOKEN}" ] && [ "${CIRCLE_PR_REPONAME}" == "zeek" ]; then
+    if [ "${CIRCLE_BRANCH}" == "master" ] && [ -n "${ZEEK_COVERALLS_REPO_TOKEN}" ] && [ "${CIRCLE_PROJECT_REPONAME}" == "zeek" ]; then
         echo -n "Reporting to Coveralls..."
-        coveralls_cmd="coveralls-lcov -t ${COVERALLS_REPO_TOKEN}"
+        coveralls_cmd="coveralls-lcov -t ${ZEEK_COVERALLS_REPO_TOKEN}"
     else
         echo "Reporting to Coveralls in --dry-run mode"
         coveralls_cmd="coveralls-lcov --dry-run"

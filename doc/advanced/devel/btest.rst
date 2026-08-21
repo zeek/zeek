@@ -175,6 +175,15 @@ Sometimes tests exists only to execute Zeek and observe no crashes or ASAN
 or UBSAN violations, but often these handle a specific event and the ``out``
 pattern is used, even if not strictly needed.
 
+Non-PCAP Tests
+--------------
+
+Note that not all tests are packet trace based. Many of the cluster tests instead
+use ``btest-bg-run``, ``btest-bg-wait`` and remote events for testing. Review them
+first if you work on cluster functionality. There are also the ``./bifs`` and
+``./language`` directories that usually do not involve packet traces unless
+required for driving network time for timer or table expiration testing.
+Deep dive into tests if you need to learn how exactly they work.
 
 Verification
 ------------
@@ -303,13 +312,3 @@ failed tests* with ``btest -r``:
         all 1 tests successful
 
 Those are the standard tools to diagnose and fix test failures with ``btest``.
-
-Non-PCAP Tests
---------------
-
-Note that not all tests are packet trace based. Many of the cluster tests instead
-use ``btest-bg-run``, ``btest-bg-wait`` and remote events for testing. Review them
-first if you work on cluster functionality. There are also the ``./bifs`` and
-``./language`` directories that usually do not involve packet traces unless
-required for driving network time for timer or table expiration testing.
-Deep dive into tests if you need to learn how exactly they work.

@@ -9,11 +9,12 @@
 namespace zeek::analyzer {
 
 Component::Component(const std::string& name, factory_callback arg_factory, zeek::Tag::subtype_t arg_subtype,
-                     bool arg_enabled, bool arg_partial, bool arg_adapter)
+                     bool arg_enabled, bool arg_partial, bool arg_adapter, TransportProto arg_transport)
     : plugin::Component(arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name,
                         arg_subtype, analyzer_mgr->GetTagType()) {
     factory = arg_factory;
     partial = arg_partial;
+    transport = arg_transport;
     SetEnabled(arg_enabled);
 }
 

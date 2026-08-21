@@ -1198,11 +1198,10 @@ void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, 
                                          bool gen_event) {
     const analyzer::analyzer_list& children(GetChildren());
 
-    for ( Analyzer* a : children )
-        // Using this type of cast here is nasty (will crash if
-        // we inadvertently have a child analyzer that's not a
-        // TCP_ApplicationAnalyzer), but we have to ...
-        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionClosed(endpoint, peer, gen_event);
+    for ( Analyzer* a : children ) {
+        if ( auto* tcp_analyzer = a->GetAsTCPApplicationAnalyzer() )
+            tcp_analyzer->ConnectionClosed(endpoint, peer, gen_event);
+    }
 
     if ( DataPending(endpoint) ) {
         // Don't close out the connection yet, there's still data to
@@ -1283,9 +1282,10 @@ void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, 
 void TCPSessionAdapter::ConnectionFinished(bool half_finished) {
     const analyzer::analyzer_list& children(GetChildren());
 
-    for ( Analyzer* a : children )
-        // Again, nasty - see TCPSessionAdapter::ConnectionClosed.
-        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionFinished(half_finished);
+    for ( Analyzer* a : children ) {
+        if ( auto* tcp_analyzer = a->GetAsTCPApplicationAnalyzer() )
+            tcp_analyzer->ConnectionFinished(half_finished);
+    }
 
     if ( half_finished )
         Event(connection_half_finished);
@@ -1299,8 +1299,10 @@ void TCPSessionAdapter::ConnectionReset() {
     Event(connection_reset);
 
     const analyzer::analyzer_list& children(GetChildren());
-    for ( Analyzer* a : children )
-        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionReset();
+    for ( Analyzer* a : children ) {
+        if ( auto* tcp_analyzer = a->GetAsTCPApplicationAnalyzer() )
+            tcp_analyzer->ConnectionReset();
+    }
 
     is_active = 0;
 }
@@ -1329,8 +1331,10 @@ void TCPSessionAdapter::EndpointEOF(analyzer::tcp::TCP_Reassembler* endp) {
         EnqueueConnEvent(connection_EOF, ConnVal(), val_mgr->Bool(endp->IsOrig()));
 
     const analyzer::analyzer_list& children(GetChildren());
-    for ( Analyzer* a : children )
-        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->EndpointEOF(endp->IsOrig());
+    for ( Analyzer* a : children ) {
+        if ( auto* tcp_analyzer = a->GetAsTCPApplicationAnalyzer() )
+            tcp_analyzer->EndpointEOF(endp->IsOrig());
+    }
 
     if ( close_deferred ) {
         if ( DataPending(endp->Endpoint()) ) {
@@ -1348,8 +1352,10 @@ void TCPSessionAdapter::EndpointEOF(analyzer::tcp::TCP_Reassembler* endp) {
 
 void TCPSessionAdapter::PacketWithRST() {
     const analyzer::analyzer_list& children(GetChildren());
-    for ( Analyzer* a : children )
-        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->PacketWithRST();
+    for ( Analyzer* a : children ) {
+        if ( auto* tcp_analyzer = a->GetAsTCPApplicationAnalyzer() )
+            tcp_analyzer->PacketWithRST();
+    }
 }
 
 void TCPSessionAdapter::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip) {

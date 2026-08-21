@@ -23,7 +23,7 @@ on PostgreSQL::StartupParameter -> event PostgreSQL::startup_parameter($conn, se
 
 on PostgreSQL::StartupMessage -> event PostgreSQL::startup_message($conn, self.version.major, self.version.minor);
 
-on PostgreSQL::ErrorIdentifiedField -> event PostgreSQL::error_response_identified_field($conn, ("%c" % self.code), self.value);
+on PostgreSQL::ErrorIdentifiedField if ( ! self.duplicate ) -> event PostgreSQL::error_response_identified_field($conn, ("%c" % self.code), self.value);
 
 on PostgreSQL::ErrorResponse -> event PostgreSQL::error_response($conn);
 
@@ -31,7 +31,7 @@ on PostgreSQL::SimpleQuery -> event PostgreSQL::simple_query($conn, self.query);
 
 on PostgreSQL::ReadyForQuery -> event PostgreSQL::ready_for_query($conn, "%c" % self.transaction_status);
 
-on PostgreSQL::NoticeIdentifiedField -> event PostgreSQL::notice_response_identified_field($conn, ("%c" % self.code), self.value);
+on PostgreSQL::NoticeIdentifiedField if ( ! self.duplicate ) -> event PostgreSQL::notice_response_identified_field($conn, ("%c" % self.code), self.value);
 
 on PostgreSQL::NoticeResponse -> event PostgreSQL::notice_response($conn);
 

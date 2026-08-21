@@ -1,3 +1,19 @@
+9.0.0-dev.956 | 2026-08-21 10:51:35 -0700
+
+  * Guard against empty `reply_queue` in Redis `DoExpire` (Benjamin Bannier, Corelight)
+
+    If the connection drops between issuing a command and polling for the
+    reply, `HandleGeneric` receives a NULL reply and does not push to
+    `reply_queue`. The previous code called `.front()` unconditionally,
+    which is undefined behavior on an empty deque. We now bail out early
+    instead.
+
+  * Use binary-safe `DEL` in Redis `DoExpire` (Benjamin Bannier, Corelight)
+
+    The expire path used `%.*s` via `util::fmt` to construct the `DEL`
+    command, which truncates keys containing null bytes. We now use `%b`
+    directly, matching what `DoErase` already does.
+
 9.0.0-dev.953 | 2026-08-21 09:59:56 -0700
 
   * doc/btest: Move non-pcap tests earlier (Evan Typanski, Corelight)

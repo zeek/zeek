@@ -518,6 +518,12 @@ void Redis::DoExpire(double current_network_time) {
     // Expire always happens in a synchronous fashion. Block here until we've received
     // a response.
     Poll();
+
+    if ( reply_queue.empty() ) {
+        expire_running = false;
+        return;
+    }
+
     redisReply* reply = reply_queue.front();
     reply_queue.pop_front();
 
@@ -538,18 +544,17 @@ void Redis::DoExpire(double current_network_time) {
     // and passing the array as a block somehow. There's no guarantee it'd be faster
     // anyways.
     for ( const auto& e : elements ) {
-        // redisAsyncCommand usually takes a printf-style string, except the parser used by
-        // hiredis doesn't handle lengths passed with strings correctly (it hangs indefinitely).
-        // Use util::fmt here instead it handles it.
-        status = redisAsyncCommand(async_ctx, redisGeneric, nullptr,
-                                   util::fmt("DEL %s:%.*s", key_prefix.data(), static_cast<int>(e.size()), e.data()));
+        status =
+            redisAsyncCommand(async_ctx, redisGeneric, nullptr, "DEL %s:%b", key_prefix.data(), e.data(), e.size());
         ++active_ops;
         Poll();
+
+        if ( reply_queue.empty() )
+            break;
 
         redisReply* del_reply = reply_queue.front();
         reply_queue.pop_front();
         freeReplyObject(del_reply);
-        // TODO: do we care if this failed?
     }
 
     IncExpiredEntriesMetric(elements.size());
@@ -563,10 +568,11 @@ void Redis::DoExpire(double current_network_time) {
     ++active_ops;
     Poll();
 
-    redisReply* rem_range_reply = reply_queue.front();
-    reply_queue.pop_front();
-    freeReplyObject(rem_range_reply);
-    // TODO: do we care if this failed?
+    if ( ! reply_queue.empty() ) {
+        redisReply* rem_range_reply = reply_queue.front();
+        reply_queue.pop_front();
+        freeReplyObject(rem_range_reply);
+    }
 }
 
 void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {

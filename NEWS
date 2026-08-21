@@ -55,6 +55,13 @@ Breaking Changes
   in older distributions using GCC 12.x like Debian 12. If you want to use JavaScript
   support in Zeek, please update to a more recent distribution.
 
+- Beginning with Zeek 9.0, the Zeek team is sunsetting our official support of FreeBSD.
+  This is primarily because of our move to a new CI provider and the lack of good support
+  for FreeBSD. We are moving FreeBSD support to the same model as OpenBSD where we will
+  accept patches from external contributors if we break something, but not build and run
+  the test suite on FreeBSD ourselves. This will simplify our maintenance a bit, as well
+  as reduce the amount of time spent on CI jobs.
+
 New Functionality
 -----------------
 
@@ -165,6 +172,11 @@ New Functionality
   previously possible without introducing BIF functions. While the ``OpaqueType`` class isn't
   in the ``zeek::detail`` namespace, deriving and implementing the new hooks is  considered
   experimental and not subject to the usual deprecation policies.
+
+- A new ``Reporter::limit_reached_weird`` BIF was added for reporting cases where a size
+  limit was reached. This is typically used in security patches to ensure that memory
+  limits are not being exceeded. The BIF reports a named weird and adds a ``X`` to the
+  connection's ``history`` field when the connection is available.
 
 Changed Functionality
 ---------------------

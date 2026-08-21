@@ -175,6 +175,15 @@ Sometimes tests exists only to execute Zeek and observe no crashes or ASAN
 or UBSAN violations, but often these handle a specific event and the ``out``
 pattern is used, even if not strictly needed.
 
+Non-PCAP Tests
+--------------
+
+Note that not all tests are packet trace based. Many of the cluster tests instead
+use ``btest-bg-run``, ``btest-bg-wait`` and remote events for testing. Review them
+first if you work on cluster functionality. There are also the ``./bifs`` and
+``./language`` directories that usually do not involve packet traces unless
+required for driving network time for timer or table expiration testing.
+Deep dive into tests if you need to learn how exactly they work.
 
 Verification
 ------------
@@ -202,13 +211,104 @@ To run all tests with ZAM, use ``btest -d -j -a zam``. Look into btest's
 environment concept and check ``testing/btest/btest.cfg`` for the extra
 environment variables and settings used for running tests under ZAM.
 
+Diagnosing Test Failures
+------------------------
 
-Non-PCAP Tests
---------------
+When tests fail, no diagnostics get printed to the console. Use the ``-d`` flag
+in the ``btest`` invocation to print diagnostics. Alternatively, you may use
+``-f diag``, which will place all diagnostic output to a file named ``diag``.
 
-Note that not all tests are packet trace based. Many of the cluster tests instead
-use ``btest-bg-run``, ``btest-bg-wait`` and remote events for testing. Review them
-first if you work on cluster functionality. There are also the ``./bifs`` and
-``./language`` directories that usually do not involve packet traces unless
-required for driving network time for timer or table expiration testing.
-Deep dive into tests if you need to learn how exactly they work.
+We will use the following failing test for a couple examples, placed in
+``language/will-fail.zeek``:
+
+.. code-block:: shell
+
+        # @TEST-DOC: A test designed to fail once the baseline drifts.
+        #
+        # @TEST-EXEC: zeek -b %INPUT >out
+        # @TEST-EXEC: btest-diff out
+
+        event zeek_init() {
+            print "Hello, world!";
+        }
+
+The baseline was recorded with the comma. So, if we remove the comma, we get the
+following diagnostics with ``-d``:
+
+.. code-block:: shell
+
+        $ btest -d language.will-fail
+        [  0%] language.will-fail ... failed
+          % 'btest-diff out' failed unexpectedly (exit code 1)
+          % cat .diag
+          == File ===============================
+          Hello world!
+          == Diff ===============================
+          --- /dev/fd/63        2026-08-21 14:47:33
+          +++ /dev/fd/62        2026-08-21 14:47:33
+          @@ -1 +1 @@
+          -Hello, world!
+          +Hello world!
+          =======================================
+
+          % cat .stderr
+
+        1 of 1 test failed
+
+This is the same diagnostic output that would go in ``diag`` when invoked like
+``btest -f diag language/will-fail.zeek``, which may be preferable for large
+diffs.
+
+For any given run, you may also want to see all of the failed tests. ``btest``,
+by default, creates a ``.btest.failed.dat`` file with all failed tests. We can
+read that file and see the failed test:
+
+.. code-block:: shell
+
+        $ cat .btest.failed.dat
+        language.will-fail
+
+Then, you can get extra information in the ``.tmp`` directory for that test. For
+example, the ``out`` file is saved:
+
+.. code-block:: shell
+
+        $ cat .tmp/language.will-fail/out
+        Hello world!
+
+Alongside the relevant ``.zeek`` file:
+
+.. code-block:: shell
+
+        $ cat .tmp/language.will-fail/will-fail.zeek
+        # @TEST-DOC: A test designed to fail once the baseline drifts.
+        #
+        # @TEST-EXEC: zeek -b %INPUT >out
+        # @TEST-EXEC: btest-diff out
+
+        event zeek_init() {
+            print "Hello world!";
+        }
+
+Some tests use directives such as ``@TEST-START-FILE x.zeek``. If that was used
+here, we would see a separate ``x.zeek`` as ``.tmp/language.will-fail/x.zeek``.
+This could be useful for reproducing results when a test creates multiple files.
+
+There are a number of dotfiles in the corresponding ``.tmp`` directory, such as
+``.diag``, ``.stdout``, ``.stderr``, and ``.log``. Note that ``.stdout`` and
+``.stderr`` may not contain full standard out/error if the test output was
+redirected (such as in this case, where ``.stdout`` is empty).
+
+By default, a passing test will delete the corresponding ``.tmp`` directory. Use
+``-t`` in order to keep it around.
+
+With this, we can clearly diagnose that the missing ``,`` is the culprit for the
+test failure. Now, you can go into the test, add the comma, and run *only the
+failed tests* with ``btest -r``:
+
+.. code-block:: shell
+
+        $ btest -r
+        all 1 tests successful
+
+Those are the standard tools to diagnose and fix test failures with ``btest``.

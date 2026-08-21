@@ -1,3 +1,23 @@
+9.0.0-dev.953 | 2026-08-21 09:59:56 -0700
+
+  * doc/btest: Move non-pcap tests earlier (Evan Typanski, Corelight)
+
+    This section was moving further and further away from the content it was
+    contrasting. I think it makes sense here.
+
+  * doc/btest: Add "Diagnosing Test Failures" section (Evan Typanski, Corelight)
+
+    We don't ever talk about btest failures. In fact, I tend to diagnose
+    failures poorly, overly rely on `-U`, and remember struggling with
+    multi-file tests. This hopefully clarifies most of these points with a
+    simple example for users.
+
+    There are some caveats. `btest -U` seems to struggle with the
+    `.btest.failed.dat` file, probably from some lack of use. I would rather
+    we clean that up than describe the annoying behavior here. So, here it
+    clarifies intent. Then, users can use their human brain judgement to
+    figure out if what's happening actually makes sense.
+
 9.0.0-dev.950 | 2026-08-21 09:39:41 -0400
 
   * GH-3787: GH-5793: tcp: Error on mismatched analyzer transport (Evan Typanski, Corelight)

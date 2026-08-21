@@ -35,6 +35,7 @@ Functions
 :zeek:id:`Reporter::get_weird_sampling_threshold`: :zeek:type:`function`   Gets the current weird sampling threshold
 :zeek:id:`Reporter::get_weird_sampling_whitelist`: :zeek:type:`function`   Gets the weird sampling whitelist
 :zeek:id:`Reporter::info`: :zeek:type:`function`                           Generates an informational message.
+:zeek:id:`Reporter::limit_reached_weird`: :zeek:type:`function`            Generates a "limit reached" weird for the current analyzer.
 :zeek:id:`Reporter::net_weird`: :zeek:type:`function`                      Generates a "net" weird.
 :zeek:id:`Reporter::set_weird_sampling_duration`: :zeek:type:`function`    Sets the current weird sampling duration.
 :zeek:id:`Reporter::set_weird_sampling_global_list`: :zeek:type:`function` Sets the weird sampling global list
@@ -151,7 +152,7 @@ Functions
    :returns: Always true.
 
 .. zeek:id:: Reporter::get_weird_sampling_duration
-   :source-code: base/bif/reporter.bif.zeek 173 173
+   :source-code: base/bif/reporter.bif.zeek 191 191
 
    :Type: :zeek:type:`function` () : :zeek:type:`interval`
 
@@ -161,7 +162,7 @@ Functions
    :returns: weird sampling duration.
 
 .. zeek:id:: Reporter::get_weird_sampling_global_list
-   :source-code: base/bif/reporter.bif.zeek 130 130
+   :source-code: base/bif/reporter.bif.zeek 148 148
 
    :Type: :zeek:type:`function` () : :zeek:type:`string_set`
 
@@ -171,7 +172,7 @@ Functions
    :returns: Current weird sampling global list
 
 .. zeek:id:: Reporter::get_weird_sampling_rate
-   :source-code: base/bif/reporter.bif.zeek 159 159
+   :source-code: base/bif/reporter.bif.zeek 177 177
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
@@ -181,7 +182,7 @@ Functions
    :returns: weird sampling rate.
 
 .. zeek:id:: Reporter::get_weird_sampling_threshold
-   :source-code: base/bif/reporter.bif.zeek 144 144
+   :source-code: base/bif/reporter.bif.zeek 162 162
 
    :Type: :zeek:type:`function` () : :zeek:type:`count`
 
@@ -191,7 +192,7 @@ Functions
    :returns: current weird sampling threshold.
 
 .. zeek:id:: Reporter::get_weird_sampling_whitelist
-   :source-code: base/bif/reporter.bif.zeek 116 116
+   :source-code: base/bif/reporter.bif.zeek 134 134
 
    :Type: :zeek:type:`function` () : :zeek:type:`string_set`
 
@@ -215,6 +216,32 @@ Functions
 
    .. zeek:see:: reporter_info
 
+.. zeek:id:: Reporter::limit_reached_weird
+   :source-code: base/bif/reporter.bif.zeek 128 128
+
+   :Type: :zeek:type:`function` (name: :zeek:type:`string`, c: :zeek:type:`connection`, limit: :zeek:type:`count`, limit_max: :zeek:type:`count` :zeek:attr:`&default` = ``0`` :zeek:attr:`&optional`, source: :zeek:type:`string` :zeek:attr:`&default` = ``""`` :zeek:attr:`&optional`) : :zeek:type:`bool`
+
+   Generates a "limit reached" weird for the current analyzer.
+
+   Formats the addl string as "limit" when limit_max is zero, or
+   "limit > limit_max" when limit_max is non-zero, and adds the 'X'
+   character to the connection's history.
+
+
+   :param name: the name of the weird.
+
+
+   :param c: the connection associated with the weird.
+
+
+   :param limit: the observed value for which the weird is raised.
+
+
+   :param limit_max: The maximum allowed value (0 to omit from output)
+
+
+   :returns: Always true.
+
 .. zeek:id:: Reporter::net_weird
    :source-code: base/bif/reporter.bif.zeek 74 74
 
@@ -229,7 +256,7 @@ Functions
    :returns: Always true.
 
 .. zeek:id:: Reporter::set_weird_sampling_duration
-   :source-code: base/bif/reporter.bif.zeek 182 182
+   :source-code: base/bif/reporter.bif.zeek 200 200
 
    :Type: :zeek:type:`function` (weird_sampling_duration: :zeek:type:`interval`) : :zeek:type:`bool`
 
@@ -243,7 +270,7 @@ Functions
    :returns: always returns True
 
 .. zeek:id:: Reporter::set_weird_sampling_global_list
-   :source-code: base/bif/reporter.bif.zeek 138 138
+   :source-code: base/bif/reporter.bif.zeek 156 156
 
    :Type: :zeek:type:`function` (weird_sampling_global_list: :zeek:type:`string_set`) : :zeek:type:`bool`
 
@@ -256,7 +283,7 @@ Functions
    :returns: Always true.
 
 .. zeek:id:: Reporter::set_weird_sampling_rate
-   :source-code: base/bif/reporter.bif.zeek 167 167
+   :source-code: base/bif/reporter.bif.zeek 185 185
 
    :Type: :zeek:type:`function` (weird_sampling_rate: :zeek:type:`count`) : :zeek:type:`bool`
 
@@ -269,7 +296,7 @@ Functions
    :returns: Always returns true.
 
 .. zeek:id:: Reporter::set_weird_sampling_threshold
-   :source-code: base/bif/reporter.bif.zeek 152 152
+   :source-code: base/bif/reporter.bif.zeek 170 170
 
    :Type: :zeek:type:`function` (weird_sampling_threshold: :zeek:type:`count`) : :zeek:type:`bool`
 
@@ -282,7 +309,7 @@ Functions
    :returns: Always returns true;
 
 .. zeek:id:: Reporter::set_weird_sampling_whitelist
-   :source-code: base/bif/reporter.bif.zeek 124 124
+   :source-code: base/bif/reporter.bif.zeek 142 142
 
    :Type: :zeek:type:`function` (weird_sampling_whitelist: :zeek:type:`string_set`) : :zeek:type:`bool`
 

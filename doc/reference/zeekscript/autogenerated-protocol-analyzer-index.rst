@@ -4103,7 +4103,7 @@ Events
       truncate_http_URI http_connection_upgrade
 
 .. zeek:id:: http_reply
-   :source-code: base/protocols/http/main.zeek 277 316
+   :source-code: base/protocols/http/main.zeek 278 317
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, version: :zeek:type:`string`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
@@ -11669,7 +11669,7 @@ Events
    :param command: The HELLO command sent to the server and its data.
 
 .. zeek:id:: Redis::command
-   :source-code: base/protocols/redis/main.zeek 165 244
+   :source-code: base/protocols/redis/main.zeek 165 245
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, cmd: :zeek:type:`Redis::Command`)
 
@@ -11682,7 +11682,7 @@ Events
    :param cmd: The command sent to the server.
 
 .. zeek:id:: Redis::reply
-   :source-code: base/protocols/redis/main.zeek 300 329
+   :source-code: base/protocols/redis/main.zeek 301 330
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 
@@ -11700,7 +11700,7 @@ Events
    .. zeek:see:: Redis::server_push
 
 .. zeek:id:: Redis::error
-   :source-code: base/protocols/redis/main.zeek 331 343
+   :source-code: base/protocols/redis/main.zeek 332 344
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, data: :zeek:type:`Redis::ReplyData`)
 
@@ -16489,7 +16489,7 @@ Events
 ++++++
 
 .. zeek:id:: smtp_request
-   :source-code: base/protocols/smtp/main.zeek 228 303
+   :source-code: base/protocols/smtp/main.zeek 230 305
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, command: :zeek:type:`string`, arg: :zeek:type:`string`)
 
@@ -16623,7 +16623,7 @@ Events
    .. zeek:see:: smtp_data  smtp_request smtp_reply
 
 .. zeek:id:: smtp_starttls
-   :source-code: base/protocols/smtp/main.zeek 459 466
+   :source-code: base/protocols/smtp/main.zeek 461 468
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -18445,7 +18445,7 @@ Events
       ssl_extension_connection_id ssl_extension_encrypted_client_hello
 
 .. zeek:id:: ssl_ecdh_server_params
-   :source-code: base/protocols/ssl/main.zeek 330 335
+   :source-code: base/protocols/ssl/main.zeek 331 336
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, curve: :zeek:type:`count`, point: :zeek:type:`string`)
 
@@ -18845,7 +18845,7 @@ Events
       ssl_session_ticket_handshake x509_certificate
 
 .. zeek:id:: ssl_alert
-   :source-code: base/protocols/ssl/main.zeek 487 493
+   :source-code: base/protocols/ssl/main.zeek 488 494
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, level: :zeek:type:`count`, desc: :zeek:type:`count`)
 
@@ -18940,7 +18940,7 @@ Events
       ssl_alert ssl_encrypted_data
 
 .. zeek:id:: ssl_plaintext_data
-   :source-code: base/protocols/ssl/main.zeek 538 546
+   :source-code: base/protocols/ssl/main.zeek 539 547
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, record_version: :zeek:type:`count`, content_type: :zeek:type:`count`, length: :zeek:type:`count`)
 
@@ -19076,7 +19076,7 @@ Events
    :param response: OCSP data.
 
 .. zeek:id:: ssl_handshake_message
-   :source-code: base/protocols/ssl/main.zeek 376 458
+   :source-code: base/protocols/ssl/main.zeek 377 459
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_client: :zeek:type:`bool`, msg_type: :zeek:type:`count`, length: :zeek:type:`count`)
 
@@ -19121,7 +19121,7 @@ Events
       ssl_handshake_message
 
 .. zeek:id:: ssl_connection_flipped
-   :source-code: base/protocols/ssl/main.zeek 369 374
+   :source-code: base/protocols/ssl/main.zeek 370 375
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 

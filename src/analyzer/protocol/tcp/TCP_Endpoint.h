@@ -206,7 +206,7 @@ public:
         HIST_WIN0 = 0x200,
     };
 
-    // #define HIST_UNKNOWN_PKT 0x400  (do not use - used in Session.h)
+    // #define HIST_ANALYZER_LIMIT_REACHED 0x400  (do not use - used in Session.h)
     bool CheckHistory(uint32_t mask, char code);
     void AddHistory(char code);
 

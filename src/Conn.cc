@@ -107,7 +107,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
              tunnel_changes >= zeek::detail::tunnel_max_changes_per_connection ) {
             Weird("tunnel_max_changes_per_connection_exceeded",
                   util::fmt("%" PRIu64, zeek::detail::tunnel_max_changes_per_connection));
-            CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
             return;
         }
 
@@ -296,7 +296,7 @@ void Connection::Weird(const char* name, const char* addl, const char* source) {
 void Connection::LimitReachedWeird(const char* name, size_t limit, size_t limit_max, const char* source) {
     const char* addl = limit_max > 0 ? util::fmt("%zu > %zu", limit, limit_max) : util::fmt("%zu", limit);
     Weird(name, addl, source);
-    CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+    CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
 }
 
 void Connection::FlipRoles() {

@@ -77,7 +77,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // NetBIOS registration and release messages look like regular DNS requests, so parse them as such
     if ( opcode != DNS_OP_QUERY && opcode != DNS_OP_DYNAMIC_UPDATE && ! is_netbios && opcode != DNS_OP_NOTIFY ) {
         analyzer->Weird("DNS_unknown_opcode", util::fmt("%d", opcode));
-        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         return;
     }
 

@@ -99,7 +99,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
     if ( BifConst::PacketAnalyzer::max_depth > 0 &&
          packet_mgr->AnalyzerStackDepth() == BifConst::PacketAnalyzer::max_depth ) {
         if ( packet->session )
-            packet->session->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            packet->session->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         Weird("max_packet_analyzer_depth_exceeded", packet);
         return false;
     }
@@ -133,7 +133,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
     if ( BifConst::PacketAnalyzer::max_depth > 0 &&
          packet_mgr->AnalyzerStackDepth() == BifConst::PacketAnalyzer::max_depth ) {
         if ( packet->session )
-            packet->session->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            packet->session->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         Weird("max_packet_analyzer_depth_exceeded", packet);
         return false;
     }

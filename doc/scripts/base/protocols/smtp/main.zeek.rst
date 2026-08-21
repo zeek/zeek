@@ -406,7 +406,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SMTP::finalize_smtp
-   :source-code: base/protocols/smtp/main.zeek 453 457
+   :source-code: base/protocols/smtp/main.zeek 455 459
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -421,7 +421,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: SMTP::describe
-   :source-code: base/protocols/smtp/main.zeek 468 493
+   :source-code: base/protocols/smtp/main.zeek 470 495
 
    :Type: :zeek:type:`function` (rec: :zeek:type:`SMTP::Info`) : :zeek:type:`string`
 

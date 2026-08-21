@@ -18,6 +18,7 @@ public:
 protected:
     zeek::ConnKeyPtr DoNewConnKey() const override;
     zeek::expected<zeek::ConnKeyPtr, std::string> DoConnKeyFromVal(const zeek::Val& v) const override;
+    zeek::session::detail::Key DoFragmentKey(const zeek::Packet& pkt, const zeek::IP_Hdr& ip) const override;
 
 private:
 };

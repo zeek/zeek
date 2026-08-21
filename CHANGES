@@ -1,3 +1,9 @@
+9.0.0-rc1 | 2026-08-21 11:57:28 -0700
+
+  * Regenerate docs to include limit_reached_weird [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Add a few additional entries to the 9.0 NEWS (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.962 | 2026-08-21 11:15:10 -0700
 
   * Fix environment variable usage in coverage upload (Tim Wojtulewicz, Corelight)

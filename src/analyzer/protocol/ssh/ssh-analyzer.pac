@@ -31,9 +31,7 @@ zeek::VectorValPtr name_list_to_vector(const bytestring& nl, size_t max_size,
 		if ( max_size == 0 || vv->Size() < max_size ) {
 			vv->Append(zeek::make_intrusive<zeek::StringVal>(word));
 		} else {
-			const char* addl = max_size > 0 ? zeek::util::fmt("%zu > %zu", sv_words.size(), max_size) : zeek::util::fmt("%zu", sv_words.size());
-			a->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
-			a->Weird(weird_name, addl);
+            a->LimitReachedWeird(weird_name, sv_words.size(), max_size);
 			break;
 		}
 	}

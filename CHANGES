@@ -1,3 +1,21 @@
+8.0.10-11 | 2026-09-24 05:14:44 +0000
+
+  * Rename HIST_UNKNOWN_PKT to HIST_ANALYZER_LIMIT_REACHED (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c77e9c2aa04ce18db12da7cffaf896cc9e340f01)
+
+  * Use limit_reached_weird in a few instances (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c77e9c2aa04ce18db12da7cffaf896cc9e340f01)
+
+  * Add a BIF to exercise Reporter::LimitReachedWeird() from scripts (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c77e9c2aa04ce18db12da7cffaf896cc9e340f01)
+
+  * Move LimitReachedWeird() to Conn, delegate to it from Analyzer (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c77e9c2aa04ce18db12da7cffaf896cc9e340f01)
+
 8.0.10-10 | 2026-09-24 04:52:54 +0000
 
   * Analyzer: Add LimitReachedWeird() helper (Arne Welzel, Corelight)

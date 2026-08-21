@@ -348,7 +348,7 @@ refine connection SMB_Conn += {
         if ( command != 0xff && zeek::BifConst::SMB::max_andx_depth > 0 &&
              depth >= zeek::BifConst::SMB::max_andx_depth) {
             zeek_analyzer()->Weird("smb_andx_depth_exceeded");
-            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         }
 
         return true;
@@ -360,7 +360,7 @@ refine connection SMB_Conn += {
         %{
         if (command != 0xff && current_offset <= last_offset) {
             zeek_analyzer()->Weird("smb_andx_offset_not_advancing");
-            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+            zeek_analyzer()->Conn()->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         }
 
         return true;

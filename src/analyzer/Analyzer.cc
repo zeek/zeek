@@ -730,9 +730,7 @@ void Analyzer::EnqueueConnEvent(EventHandlerPtr f, Args args) { conn->EnqueueEve
 void Analyzer::Weird(const char* name, const char* addl) { conn->Weird(name, addl, GetAnalyzerName()); }
 
 void Analyzer::LimitReachedWeird(const char* name, size_t limit, size_t limit_max) {
-    const char* addl = limit_max > 0 ? util::fmt("%zu > %zu", limit, limit_max) : util::fmt("%zu", limit);
-    conn->Weird(name, addl, GetAnalyzerName());
-    conn->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+    conn->LimitReachedWeird(name, limit, limit_max, GetAnalyzerName());
 }
 
 SupportAnalyzer* SupportAnalyzer::Sibling(bool only_active) const {

@@ -241,7 +241,8 @@ event http_request(c: connection, method: string, original_URI: string,
 	# responses is most likely totally off anyhow.
 	if ( max_pending_requests > 0 && |c$http_state$pending| > max_pending_requests )
 		{
-		Reporter::conn_weird("HTTP_excessive_pipelining", c);
+		Reporter::limit_reached_weird("HTTP_excessive_pipelining", c, |c$http_state$pending|,
+		                              max_pending_requests, "HTTP");
 
 		if ( c$http_state$current_response == 0 )
 			++c$http_state$current_response;

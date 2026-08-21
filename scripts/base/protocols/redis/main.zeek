@@ -170,7 +170,8 @@ event command(c: connection, cmd: Command)
 	if ( max_pending_commands > 0
 	    && |c$redis_state$pending| > max_pending_commands )
 		{
-		Reporter::conn_weird("Redis_excessive_pipelining", c);
+		Reporter::limit_reached_weird("Redis_excessive_pipelining", c, |c$redis_state$pending|,
+		                              max_pending_commands, "REDIS");
 		# Delete the current state and restart later. We'll be in a weird state, but
 		# really we want to abort. I don't quite get how to register this as a
 		# violation. :)

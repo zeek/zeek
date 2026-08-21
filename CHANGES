@@ -1,3 +1,13 @@
+9.0.0-dev.961 | 2026-08-21 11:12:33 -0700
+
+  * Rename HIST_UNKNOWN_PKT to HIST_ANALYZER_LIMIT_REACHED (Tim Wojtulewicz, Corelight)
+
+  * Use limit_reached_weird in a few instances (Tim Wojtulewicz, Corelight)
+
+  * Add a BIF to exercise Reporter::LimitReachedWeird() from scripts (Tim Wojtulewicz, Corelight)
+
+  * Move LimitReachedWeird() to Conn, delegate to it from Analyzer (Tim Wojtulewicz, Corelight)
+
 9.0.0-dev.956 | 2026-08-21 10:51:35 -0700
 
   * Guard against empty `reply_queue` in Redis `DoExpire` (Benjamin Bannier, Corelight)

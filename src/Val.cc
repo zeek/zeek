@@ -1300,7 +1300,7 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
 zeek::expected<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
                                                         const FuncPtr& key_func) {
     rapidjson::Document doc;
-    rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
+    rapidjson::ParseResult ok = doc.Parse<rapidjson::kParseFullPrecisionFlag>(json_str.data(), json_str.length());
 
     if ( ! ok )
         return zeek::unexpected<std::string>(

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/SerialTypes.h"
 
@@ -133,7 +135,7 @@ private:
     int num_fields;                        // Information as passed to Init().
     bool disabled;                         // True if disabled.
     bool initialized;                      // True if initialized.
-    const char* name;                      // Descriptive name.
+    std::string name;                      // Descriptive name.
 };
 
 } // namespace input

@@ -46,6 +46,7 @@ development headers for libraries:
     * Make
     * OpenSSL (https://www.openssl.org)
     * Python 3.9 or greater (https://www.python.org/)
+    * RapidJSON (https://rapidjson.org/)
     * SWIG (https://www.swig.org)
     * ZeroMQ 4.3.0 or greater (https://zeromq.org)
     * Zlib (https://zlib.net/)
@@ -56,7 +57,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-     sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel python3-venv swig zlib-devel
+     sudo dnf install bison cmake cppzmq-devel gcc gcc-c++ flex libpcap-devel make openssl-devel python3 python3-devel python3-venv rapidjson-devel swig zlib-devel
 
   Additionally, on RHEL/CentOS 9, you can install and activate a devtoolset_ to get access
   to recent GCC versions. For example:
@@ -78,7 +79,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-     sudo apt-get install bison cmake cppzmq-dev gcc g++ flex libfl-dev libpcap-dev libssl-dev make python3 python3-dev python3-venv swig zlib1g-dev
+     sudo apt-get install bison cmake cppzmq-dev gcc g++ flex libfl-dev libpcap-dev libssl-dev make python3 python3-dev python3-venv rapidjson-dev swig zlib1g-dev
 
   If your platform doesn't offer ``cppzmq-dev``, try ``libzmq3-dev``
   instead. Zeek's build will fall back to an in-tree version of C++
@@ -91,7 +92,7 @@ To install these, you can use:
 
   .. code-block:: console
 
-      sudo pkg install -y base64 bash bison cmake cppzmq git python3 swig
+      sudo pkg install -y base64 bash bison cmake cppzmq git python3 rapidjson swig
       pyver=`python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")'`
       sudo pkg install -y $pyver-sqlite3
 
@@ -115,7 +116,7 @@ To install these, you can use:
   MacPorts_, or Fink_). Specifically for Homebrew, the ``bison``, ``cmake``,
   ``cppzmq``, ``flex``, ``swig``, and ``openssl`` packages
   provide the required dependencies.  For MacPorts, use the ``bison``, ``cmake``,
-  ``cppzmq``, ``flex``, ``swig``, ``swig-python``, and ``openssl`` packages.
+  ``cppzmq``, ``flex``, ``swig``, ``swig-python``, ``rapidjson`` and ``openssl`` packages.
 
 * Windows
 

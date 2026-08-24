@@ -26,8 +26,6 @@
 #include <windows.h>
 #endif
 
-// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>

@@ -115,7 +115,7 @@ Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag t
 
 void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, const std::string& name) const {
     if ( ! name.empty() )
-        writer.Key(name);
+        writer.Key(name.c_str(), static_cast<rapidjson::SizeType>(name.size()));
 
     if ( ! val->present ) {
         writer.Null();

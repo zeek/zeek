@@ -916,6 +916,7 @@ find_package(OpenSSL 3.0 REQUIRED)
 # the test to stall.
 include(OpenSSLTests)
 
+find_package(RapidJSON REQUIRED)
 find_package(ZLIB REQUIRED)
 
 if (NOT BINARY_PACKAGING_MODE)
@@ -1172,8 +1173,14 @@ endif ()
 
 include(BuiltInSpicyAnalyzer)
 
-include_directories(BEFORE ${PCAP_INCLUDE_DIR} ${BIND_INCLUDE_DIR} ${BinPAC_INCLUDE_DIR}
-                    ${ZLIB_INCLUDE_DIR} ${JEMALLOC_INCLUDE_DIR})
+include_directories(
+    BEFORE
+    ${PCAP_INCLUDE_DIR}
+    ${BIND_INCLUDE_DIR}
+    ${BinPAC_INCLUDE_DIR}
+    ${RAPIDJSON_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIR}
+    ${JEMALLOC_INCLUDE_DIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/prometheus
         DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
@@ -1269,7 +1276,6 @@ endif ()
 include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
 
 set(zeekdeps
     ${zeekdeps}

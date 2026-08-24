@@ -25,6 +25,7 @@ RUN zypper refresh \
     python313 \
     python313-devel \
     python313-pip \
+    rapidjson-devel \
     swig \
     tar \
     which \

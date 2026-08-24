@@ -32,6 +32,7 @@ RUN zypper refresh \
     python3 \
     python3-devel \
     python3-pip \
+    rapidjson-devel \
     swig \
     tar \
     util-linux \

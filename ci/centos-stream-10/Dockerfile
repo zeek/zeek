@@ -36,6 +36,7 @@ RUN dnf -y --nobest install \
     python3 \
     python3-devel \
     python3-pip\
+    rapidjson-devel \
     sqlite \
     swig \
     tar \

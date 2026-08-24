@@ -29,6 +29,7 @@ RUN apk add --no-cache \
   py3-pip \
   python3 \
   python3-dev \
+  rapidjson-dev \
   swig \
   zlib-dev
 

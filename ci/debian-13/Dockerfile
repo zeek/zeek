@@ -32,6 +32,7 @@ RUN apt-get update && apt-get -y install \
     python3-pip\
     python3-venv \
     python3-websockets \
+    rapidjson-dev \
     sqlite3 \
     swig \
     wget \

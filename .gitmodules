@@ -19,9 +19,6 @@
 [submodule "auxil/paraglob"]
 	path = auxil/paraglob
 	url = https://github.com/zeek/paraglob
-[submodule "auxil/rapidjson"]
-	path = auxil/rapidjson
-	url = https://github.com/zeek/rapidjson
 [submodule "auxil/libkqueue"]
 	path = auxil/libkqueue
 	url = https://github.com/zeek/libkqueue

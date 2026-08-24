@@ -350,7 +350,7 @@ static bool UsesJSONStringType(const TypePtr& t) {
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
                       RE_Matcher* re = nullptr, const string& key = "", bool interval_as_double = false) {
     if ( ! key.empty() )
-        writer.Key(key);
+        writer.Key(key.c_str(), static_cast<rapidjson::SizeType>(key.size()));
 
     // If the value wasn't set, write a null into the stream and return.
     if ( ! val ) {

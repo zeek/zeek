@@ -39,6 +39,7 @@ RUN apt-get -q update \
      python3-minimal \
      python3-dev \
      python3-venv \
+     rapidjson-dev \
      swig \
      ninja-build \
      python3-pip \

@@ -10,6 +10,11 @@ We'd like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- Zeek now has a build dependency on rapidjson instead of vendoring RapidJSON's
+  source code. On Linux, install the rapidjson-dev (Debian, Ubuntu, ...)
+  or rapidjson-devel (Fedora, OpenSuSE, ...) package. On FreeBSD, there's the
+  devel/rapidjson port. Homebrew and vcpkg provide ``rapidjson`` as well.
+
 New Functionality
 -----------------
 

@@ -80,4 +80,3 @@ The following lists steps you can take to protect your Zeek cluster.
   trusted configuration source. Ensure that access to ``zeek.conf`` is restricted
   and that configuration values are validated to avoid unintended effects in the
   generated unit files.
-

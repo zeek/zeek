@@ -1,3 +1,7 @@
+9.1.0-dev.12 | 2026-08-25 17:12:34 -0400
+
+  * Fix some Clang 23 transitive includes (Evan Typanski, Corelight)
+
 9.1.0-dev.10 | 2026-08-25 13:14:12 -0700
 
   * Revert exclusion of doctest from tarballs (Tim Wojtulewicz, Corelight)

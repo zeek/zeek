@@ -1,3 +1,9 @@
+9.0.0-rc1.1 | 2026-08-25 13:14:56 -0700
+
+  * Revert exclusion of doctest from tarballs (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3f58369e2e048e908b24ca0d79e712bf348e836c)
+
 9.0.0-rc1 | 2026-08-21 11:57:28 -0700
 
   * Regenerate docs to include limit_reached_weird [nomail] (Tim Wojtulewicz, Corelight)

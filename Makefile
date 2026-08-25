@@ -19,7 +19,6 @@ DIST_EXCLUDE = \
 	auxil/prometheus-cpp/3rdparty/googletest \
 	auxil/rapidjson/thirdparty/gtest \
 	auxil/spicy/3rdparty/benchmark \
-	auxil/spicy/3rdparty/doctest \
 	auxil/spicy/3rdparty/justrx/3rdparty/benchmark \
 	auxil/spicy/3rdparty/libunistd \
 	auxil/spicy/3rdparty/vcpkg

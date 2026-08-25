@@ -303,6 +303,23 @@ all of the documentation for the latest Zeek release is available at
 https://docs.zeek.org), there are instructions in ``doc/README`` in the source
 distribution.
 
+Offline Builds
+--------------
+
+Some build steps download dependencies from the internet (e.g., Python packages
+for ``zkg``). For air-gapped environments, you can pre-download these on a
+machine with network access and then build offline:
+
+.. code-block:: console
+
+    # On a machine with network access:
+    python3 tools/fetch-vendor.py
+
+    # Transfer the source tree (including vendor/) to the target, then:
+    ./configure --with-vendor
+    make
+    make install
+
 Cross Compiling
 ---------------
 

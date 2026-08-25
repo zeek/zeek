@@ -100,6 +100,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-python=PATH     path to Python executable
 
   Optional Packages in Non-Standard Locations:
+    --with-vendor          use vendored dependencies from vendor/ subdirectory
     --with-geoip=PATH      path to the libmaxminddb install root
     --with-jemalloc=PATH   path to jemalloc install root
     --with-krb5=PATH       path to krb5 install root
@@ -369,6 +370,9 @@ while [ $# -ne 0 ]; do
             ;;
         --with-flex=*)
             append_cache_entry FLEX_EXECUTABLE PATH $optarg
+            ;;
+        --with-vendor)
+            append_cache_entry ZEEK_VENDOR_DIR PATH "${sourcedir}/vendor"
             ;;
         --with-geoip=*)
             append_cache_entry LibMMDB_ROOT_DIR PATH $optarg

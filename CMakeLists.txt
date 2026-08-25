@@ -79,6 +79,7 @@ option(INSTALL_BTEST_PCAPS "Install pcap files for testing." ${ZEEK_INSTALL_TOOL
 option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+set(ZEEK_VENDOR_DIR "" CACHE PATH "Root of vendored dependencies (subdirs per component)")
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary." ON)
 option(ZEEK_ENABLE_FUZZERS "Build Zeek fuzzing targets." OFF)

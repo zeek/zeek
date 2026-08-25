@@ -1,3 +1,7 @@
+9.1.0-dev.10 | 2026-08-25 13:14:12 -0700
+
+  * Revert exclusion of doctest from tarballs (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.8 | 2026-08-25 10:51:00 -0400
 
   * GH-2283: Cover remaining expression and composite-key error paths (eduardokohn)

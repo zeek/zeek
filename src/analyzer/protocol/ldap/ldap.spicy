@@ -784,28 +784,35 @@ public function string_representation(search_filter: SearchFilter): string {
             #
             # # Construct the nested structure, like (1)
             # for ( SF in nestedObj.searchfilters ) {
-            #    self.stringRepresentation = self.stringRepresentation + SF.stringRepresentation
+            #    segments.push_back("(%s)" % SF.stringRepresentation);
             # }
             # # Close it with brackets and put the correct printChar for AND/OR in the statement
-            # self.stringRepresentation =  "(%s" % printChar + self.stringRepresentation + ")";
+            # self.stringRepresentation = "(%s%s) % (printChar, b"".join(segments).decode());
             #
 
-            local i = 0;
-            for (searchFilter in nestedObj.searchfilters) {
-                switch (i) {
-                    case 0: {
-                        repr = "(%s%s%s" % (printChar, searchFilter.stringRepresentation,
-                        # If we have exactly one element immediately close the statement since we are done.
-                        |nestedObj.searchfilters| == 1 ? ")" : "");
+            local segments: vector<string>;
+            local open = "(%s" % printChar;
+            local n = |nestedObj.searchfilters|;
+
+            if (n == 1) {
+                repr = "(%s%s)" % (printChar, nestedObj.searchfilters[0].stringRepresentation);
+            } else if (n >= 2) {
+                local i = 0;
+                for (searchFilter in nestedObj.searchfilters) {
+                    if (i == 0) {
+                        # Push (n-1) open prefixes then the first element
+                        local j = 0;
+                        while (j < n - 1) {
+                            segments.push_back(open);
+                            j += 1;
+                        }
+                        segments.push_back(searchFilter.stringRepresentation);
+                    } else {
+                        segments.push_back(searchFilter.stringRepresentation + ")");
                     }
-                    case 1: {
-                        repr = repr + searchFilter.stringRepresentation + ")";
-                    }
-                    default: {
-                        repr = "(%s" % printChar + repr + searchFilter.stringRepresentation + ")";
-                    }
+                    i += 1;
                 }
-                i += 1;
+                repr = b"".join(segments).decode();
             }
         }
 

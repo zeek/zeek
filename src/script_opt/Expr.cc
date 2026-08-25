@@ -1781,6 +1781,15 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     // Yields a statement performing the assignment and for the
     // expression the LHS (but turned into an RHS), or the assignment
     // value if present.
+
+    // An initialization assignment has no lvalue, so the invariant below does
+    // not hold for it; using one as a value is an error (AssignExpr::Eval).
+    if ( is_init ) {
+        if ( ! IsError() ) // revisited by later reduction passes
+            ExprError("illegal assignment in initialization");
+        return ThisPtr();
+    }
+
     if ( op1->Tag() != EXPR_REF )
         Internal("Confusion in AssignExpr::ReduceToSingleton");
 

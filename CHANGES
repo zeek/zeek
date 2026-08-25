@@ -1,3 +1,62 @@
+9.1.0-dev.8 | 2026-08-25 10:51:00 -0400
+
+  * GH-2283: Cover remaining expression and composite-key error paths (eduardokohn)
+
+    Addresses GH-2283.
+
+  * GH-2283: Don't abort script optimization on an assignment used as a value (eduardokohn)
+
+    AssignExpr::ReduceToSingleton assumed op1 is always a RefExpr, which holds
+    for real assignments but not for is_init nodes -- those are structural and
+    carry no lvalue. A script that uses an assignment as a constructor value
+    reaches the generic path and tripped the invariant, aborting with an
+    internal error under -O ZAM. Table, vector and record constructors are all
+    affected.
+
+    Report the condition instead, so optimization stops through the existing
+    error handling. AssignExpr::Eval already rejects such nodes unconditionally,
+    so they can never yield a value and are never legitimately reducible.
+
+    Addresses GH-2283.
+
+  * GH-2283: Reject table constructors whose key arity doesn't match the index (eduardokohn)
+
+    TableConstructorExpr's constructor detected a key whose arity differs from
+    the declared composite index and then skipped the element, deferring any
+    diagnosis to evaluation time. Only the interpreter checks there, so a
+    compiled body accepted the constructor silently: ZAM discarded Assign's
+    result and could glue key components together into invented keys, and the
+    "+=" and named-constructor forms crashed outright.
+
+    Report it where the two sibling guards in the same loop already report,
+    matching what SetConstructorExpr and the indexing path have always done.
+    Unreachable code is now diagnosed as well.
+
+    Addresses GH-2283.
+
+  * GH-2283: Fix out-of-bounds read hashing a wrong-arity composite table key (eduardokohn)
+
+    CompositeHash::MakeHashKey checked the key length only on the singleton
+    path. On the composite path the reservation and hashing loops iterate over
+    the declared index types and index the key list directly, so a key with
+    fewer elements was read past its end. This was benign on glibc release
+    builds but crashed under ASan, musl and Windows.
+
+    Apply the same length check the singleton path already performs. Index
+    lists built outside the script parser -- the input framework, Broker
+    deserialization, BiFs -- reach this code without passing through
+    TableConstructorExpr, so the guard is needed independently of type-checking.
+
+    Addresses GH-2283.
+
+  * GH-2283: Make the expr-error runtime tests robust under ZAM (eduardokohn)
+
+    Addresses GH-2283.
+
+  * GH-2283: Add btests exercising the error cases in expression handling (eduardokohn)
+
+    Addresses GH-2283.
+
 9.0.0-dev.962 | 2026-08-21 11:15:10 -0700
 
   * Fix environment variable usage in coverage upload (Tim Wojtulewicz, Corelight)

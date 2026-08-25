@@ -6,3 +6,4 @@ error in <...>/when-capture-errors.zeek, lines 66-70: orig2 is used inside "when
 error in <...>/when-capture-errors.zeek, lines 76-80: orig3 is captured but not used inside "when" statement (when [orig1, orig2, orig3](0 < g) { print orig1} timeout 1.0 sec { print orig2})
 error in <...>/when-capture-errors.zeek, line 83: no such local identifier: l1
 error in <...>/when-capture-errors.zeek, line 89: no such local identifier: l2
+error in <...>/when-capture-errors.zeek, lines 96-99: orig1 listed multiple times in capture (when [orig1, orig1](0 < g) { print orig1})

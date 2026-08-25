@@ -4,6 +4,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 const bif_type_info bif_types[] = {

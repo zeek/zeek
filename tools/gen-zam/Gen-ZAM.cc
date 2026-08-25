@@ -2,6 +2,7 @@
 
 #include "Gen-ZAM.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstring>
 #include <map>

@@ -4,6 +4,10 @@
 # <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>
 #
 
+%extern{
+#include "zeek/analyzer/protocol/mysql/consts.bif.h"
+%}
+
 # Basic Types
 
 type uint24le = record {
@@ -501,7 +505,7 @@ type Attributes(count: int) = record {
 };
 
 type Query_Attributes = record {
-	count    : LengthEncodedInteger;
+	count    : LengthEncodedInteger &enforce(to_int()(count) >= 0 && to_int()(count) <= $context.connection.max_com_query_attributes());
 	set_count: LengthEncodedInteger;
 	have_attr: case ( attr_count > 0 ) of {
 		true  -> attrs: Attributes(attr_count);
@@ -953,6 +957,17 @@ refine connection MySQL_Conn += {
 		%{
 		++results_seen_;
 		return true;
+		%}
+
+	function max_com_query_attributes(): int
+		%{
+		// Hard-code 2^16-1 as maximum here just to avoid running
+		// into potential INT_MAX overflows elsewhere.
+		const auto limit = zeek::BifConst::MySQL::max_com_query_attributes;
+		if ( limit == 0 || limit > 65535 )
+			return 65535;
+
+		return static_cast<int>(limit);
 		%}
 
 	function query_attr_idx(): int

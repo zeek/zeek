@@ -1,3 +1,12 @@
+9.1.0-dev.19 | 2026-08-26 09:44:22 -0700
+
+  * Remove GitPython dependency from docs builds (Tim Wojtulewicz, Corelight)
+
+    This is a holdover from when zeek-docs was a separate repo and the
+    build might have to use the version tag from that repo instead of
+    Zeek's VERSION. Now that we merged them, the VERSION file should
+    always exist. Report an error if it doesn't and exit the build.
+
 9.1.0-dev.17 | 2026-08-26 17:38:39 +0200
 
   * Update security-considerations.rst (Sujala Vasanthasena Nelavai)

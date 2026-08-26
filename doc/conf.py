@@ -65,32 +65,8 @@ try:
     with open("../VERSION") as f:
         version = f.readline().strip()
 except:
-    try:
-        import re
-
-        import git
-
-        repo = git.Repo(os.path.abspath("."))
-        version = "git/master"
-
-        version_tag_re = r"v\d+\.\d+(\.\d+)?"
-        version_tags = [
-            t
-            for t in repo.tags
-            if t.commit == repo.head.commit and re.match(version_tag_re, str(t))
-        ]
-        # Note: sorting by tag date doesn't necessarily give correct
-        # order in terms of version numbers, but doubtful that will ever be
-        # a problem (if we ever do re-tag an old version number on a given
-        # commit such that it is incorrectly found as the most recent version,
-        # we can just re-tag all the other version numbers on that same commit)
-        version_tags = sorted(version_tags, key=lambda t: t.tag.tagged_date)
-
-        if version_tags:
-            version = str(version_tags[-1])
-
-    except:
-        pass
+    print("VERSION file is missing")
+    sys.exit(1)
 
 # The full version, including alpha/beta/rc tags.
 release = version

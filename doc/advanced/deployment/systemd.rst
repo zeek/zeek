@@ -594,6 +594,98 @@ To verify the final capabilities of a running process, find its PID via
    129003: cap_net_admin,cap_net_raw=ep
 
 
+Using PF_RING with the zeek-systemd-generator
+=============================================
+
+In contrast to ZeekControl's convenience option ``lb_method`` for setting
+up PF_RING, the ``zeek-systemd-generator`` approach exposes you directly to
+PF_RING's underlying libpcap configuration.
+
+As a prerequisite, ensure you have PF_RING installed. You can do this by either
+compiling from source as shown in the :ref:`cluster-pf-ring`, or by installing
+the `packages from packages.ntop.org <https://packages.ntop.org/index.php>`_.
+PF_RING provides a custom ``libpcap`` version that Zeek can use. Either compile Zeek
+using ``--with-pcap=/usr/local``, or set ``LD_PRELOAD=/usr/local/lib/libpcap.so``
+to preload PF_RING's libpcap version. The following configuration does the latter:
+
+.. code:: ini
+
+   # zeek.conf
+   [zeek]
+   manager = 1
+   loggers = 1
+   proxies = 2
+
+   [interface enp8s0]
+   interface = enp8s0
+   workers = 4
+   # Preload PF_RING's libpcap.so library and setup the environment for
+   # flow-balancing on inner five tuples. Find more environment variables
+   # recognized by PF_RING's libpcap version here:
+   #
+   #    https://www.ntop.org/guides/pf_ring/api/libpcap.html
+   #
+   worker_env =
+     LD_PRELOAD=/usr/local/lib/libpcap.so
+     PCAP_PF_RING_APPNAME=zeek-${interface_section_name}
+     PCAP_PF_RING_CLUSTER_ID=42
+     PCAP_PF_RING_USE_CLUSTER_PER_INNER_FLOW_5_TUPLE=1
+
+.. note::
+
+   The ``LD_PRELOAD`` environment variable is ignored if the Zeek executable
+   has file-based capabilities set. Compile Zeek using ``--with-pcap`` if you
+   need file-based capabilities.
+
+After running ``systemctl daemon-reload`` and ``systemctl start zeek.target``,
+check with ``journalctl`` for any error. Check ``/proc/net/pf_ring/`` for the
+status files for the Zeek workers:
+
+.. code:: console
+
+   # ls -l /proc/net/pf_ring/[0-9]*
+   -r--r--r-- 1 root root 0 Aug 26 11:16 /proc/net/pf_ring/4710-enp8s0.31
+   -r--r--r-- 1 root root 0 Aug 26 11:16 /proc/net/pf_ring/4711-enp8s0.30
+   -r--r--r-- 1 root root 0 Aug 26 11:16 /proc/net/pf_ring/4717-enp8s0.29
+   -r--r--r-- 1 root root 0 Aug 26 11:16 /proc/net/pf_ring/4720-enp8s0.32
+
+   # grep 'Appl' /proc/net/pf_ring/[0-9]*
+   /proc/net/pf_ring/4710-enp8s0.31:Appl. Name             : zeek-enp8s0
+   /proc/net/pf_ring/4711-enp8s0.30:Appl. Name             : zeek-enp8s0
+   /proc/net/pf_ring/4717-enp8s0.29:Appl. Name             : zeek-enp8s0
+   /proc/net/pf_ring/4720-enp8s0.32:Appl. Name             : zeek-enp8s0
+
+As you can see, the Application Name setting from the ``PCAP_PF_RING_APPNAME``
+environment variable has been applied. You'll also find the ``Cluster Id`` and
+various other status information in these files. If you use multiple interfaces,
+you must set a different ``PCAP_PF_RING_CLUSTER_ID`` for each of them:
+
+.. code:: ini
+
+   [zeek]
+   manager = 1
+   loggers = 1
+   proxies = 2
+
+   [interface enp7s0]
+   interface = enp7s0
+   workers = 4
+   worker_env =
+     PCAP_PF_RING_APPNAME=zeek-${interface_section_name}
+     PCAP_PF_RING_CLUSTER_ID=21
+     PCAP_PF_RING_USE_CLUSTER_PER_INNER_FLOW_5_TUPLE=1
+
+   [interface enp8s0]
+   interface = enp8s0
+   workers = 4
+   worker_env =
+     PCAP_PF_RING_APPNAME=zeek-${interface_section_name}
+     PCAP_PF_RING_CLUSTER_ID=42
+     PCAP_PF_RING_USE_CLUSTER_PER_INNER_FLOW_5_TUPLE=1
+
+This example does not use ``LD_PRELOAD`` and assumes the Zeek executable
+is linked to PF_RING's ``libpcap.so`` library instead.
+
 Cluster Layout Notes
 ====================
 

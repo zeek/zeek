@@ -1,3 +1,9 @@
+9.0.0-rc1.4 | 2026-08-26 13:05:39 -0700
+
+  * doc/deployment/systemd: Add a section about using PF_RING (Arne Welzel, Corelight)
+
+    (cherry picked from commit 30743ccaa369ba37564bf116d3d611c52170d1d2)
+
 9.0.0-rc1.3 | 2026-08-26 13:05:03 -0700
 
   * tools/systemd-generator: Ensure short hostname is used (Arne Welzel, Corelight)

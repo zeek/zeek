@@ -31,7 +31,7 @@
 
       ``=``::
 
-         ``F``
+         F
 
 
    A boolean.
@@ -46,7 +46,7 @@
 
       ``=``::
 
-         ``42``
+         42
 
 
    A count.
@@ -61,7 +61,7 @@
 
       ``=``::
 
-         ``15.0 secs``
+         15.0 secs
 
 
    An interval.
@@ -76,7 +76,7 @@
 
       ``=``::
 
-         ``"redefined"``
+         "redefined"
 
 
    A string.
@@ -91,7 +91,7 @@
 
       ``=``::
 
-         ``""``
+         ""
 
 
    A string that gets redef'd to the empty string.
@@ -106,7 +106,7 @@
 
       ``=``::
 
-         ``TestRedef::GREEN``
+         TestRedef::GREEN
 
 
    An enum.

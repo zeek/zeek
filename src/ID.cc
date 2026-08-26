@@ -536,7 +536,14 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
             expr_desc.SetQuotes(true);
             if ( ir->init_expr->IsConst() ) {
                 const auto* val = ir->init_expr->ExprVal();
-                val->DescribeReST(&expr_desc);
+
+                // The value ends up inside a literal block below, so avoid
+                // Val::DescribeReST() for anything it would decorate with
+                // inline ReST markup (that markup would show up verbatim).
+                if ( val->GetType()->InternalType() == TYPE_INTERNAL_OTHER )
+                    val->DescribeReST(&expr_desc);
+                else
+                    val->Describe(&expr_desc);
             }
             else {
                 ir->init_expr->Describe(&expr_desc);

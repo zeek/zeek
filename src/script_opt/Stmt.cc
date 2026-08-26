@@ -106,7 +106,7 @@ void ExprStmt::Inline(Inliner* inl) {
 }
 
 bool ExprStmt::IsReduced(Reducer* c) const {
-    if ( ! e || e->IsReduced(c) )
+    if ( ! e || detail::IsReduced(e.get(), c) )
         return true;
 
     return NonReduced(e.get());
@@ -133,12 +133,12 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
 
     if ( (t == EXPR_ASSIGN || t == EXPR_CALL || t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
           t == EXPR_APPEND_TO || t == EXPR_ADD_TO || t == EXPR_REMOVE_FROM) &&
-         e->IsReduced(c) )
+         detail::IsReduced(e.get(), c) )
         return ThisPtr();
 
     StmtPtr red_e_stmt;
 
-    if ( t == EXPR_CALL && ! e->WillTransform(c) )
+    if ( t == EXPR_CALL && ! WillTransform(e.get(), c) )
         // A bare call.  If we reduce it regularly, if it has a non-void
         // type it'll generate an assignment to a temporary.
         red_e_stmt = e->ReduceToSingletons(c);
@@ -180,7 +180,7 @@ bool IfStmt::IsReduced(Reducer* c) const {
 StmtPtr IfStmt::DoReduce(Reducer* c) {
     StmtPtr red_e_stmt;
 
-    if ( e->WillTransformInConditional(c) )
+    if ( WillTransformInConditional(e.get(), c) )
         e = ReduceToConditional(e.get(), c, red_e_stmt);
 
     // First, assess some fundamental transformations.
@@ -397,14 +397,14 @@ void SwitchStmt::Inline(Inliner* inl) {
 }
 
 bool SwitchStmt::IsReduced(Reducer* r) const {
-    if ( ! e->IsReduced(r) )
+    if ( ! detail::IsReduced(e.get(), r) )
         return NonReduced(e.get());
 
     if ( cases->empty() )
         return false;
 
     for ( const auto& c : *cases ) {
-        if ( c->ExprCases() && ! c->ExprCases()->IsReduced(r) )
+        if ( c->ExprCases() && ! detail::IsReduced(c->ExprCases(), r) )
             return false;
 
         if ( c->TypeCases() && ! r->IDsAreReduced(c->TypeCases()) )
@@ -588,7 +588,7 @@ void ForStmt::Inline(Inliner* inl) {
 }
 
 bool ForStmt::IsReduced(Reducer* c) const {
-    if ( ! e->IsReduced(c) )
+    if ( ! detail::IsReduced(e.get(), c) )
         return NonReduced(e.get());
 
     if ( ! c->IDsAreReduced(loop_vars) )
@@ -1127,13 +1127,13 @@ bool WhenStmt::IsReduced(Reducer* c) const {
     if ( wi->HasUnreducedIDs(c) )
         return false;
 
-    if ( ! wi->Lambda()->IsReduced(c) )
+    if ( ! detail::IsReduced(wi->Lambda().get(), c) )
         return false;
 
     if ( ! wi->TimeoutExpr() )
         return true;
 
-    return wi->TimeoutExpr()->IsReduced(c);
+    return detail::IsReduced(wi->TimeoutExpr().get(), c);
 }
 
 StmtPtr WhenStmt::DoReduce(Reducer* c) {

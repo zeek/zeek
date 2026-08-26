@@ -99,23 +99,19 @@ void Expr::SetOp1(ExprPtr) {}
 void Expr::SetOp2(ExprPtr) {}
 void Expr::SetOp3(ExprPtr) {}
 
-bool Expr::IsReduced(Reducer* c) const { return true; }
-
-bool Expr::HasReducedOps(Reducer* c) const { return true; }
-
 bool IsSingleton(const Expr* e, Reducer* c) {
     auto tag = e->Tag();
-    return (tag == EXPR_NAME && e->IsReduced(c)) || tag == EXPR_CONST;
+    return (tag == EXPR_NAME && IsReduced(e, c)) || tag == EXPR_CONST;
 }
 
 bool IsReducedConditional(const Expr* e, Reducer* c) {
     switch ( e->Tag() ) {
         case EXPR_CONST: return true;
 
-        case EXPR_NAME: return e->IsReduced(c);
+        case EXPR_NAME: return IsReduced(e, c);
 
         case EXPR_CALL: {
-            if ( ! e->HasReducedOps(c) )
+            if ( ! HasReducedOps(e, c) )
                 return false;
 
             return IsZAM_BuiltInCond(static_cast<const CallExpr*>(e));
@@ -133,7 +129,7 @@ bool IsReducedConditional(const Expr* e, Reducer* c) {
                 return NonReduced(e);
 
             if ( t1 == EXPR_LIST ) {
-                if ( ! op1->IsReduced(c) )
+                if ( ! IsReduced(op1.get(), c) )
                     return NonReduced(e);
 
                 auto l1 = op1->AsListExpr();
@@ -155,7 +151,7 @@ bool IsReducedConditional(const Expr* e, Reducer* c) {
         case EXPR_LT:
         case EXPR_GT:
         case EXPR_CAN_CONVERT:
-        case EXPR_HAS_FIELD: return e->HasReducedOps(c);
+        case EXPR_HAS_FIELD: return HasReducedOps(e, c);
 
         default: return false;
     }
@@ -169,9 +165,9 @@ bool IsReducedFieldAssignment(const Expr* e, Reducer* c) {
         return true;
 
     if ( e->Tag() == EXPR_NAME )
-        return e->IsReduced(c);
+        return IsReduced(e, c);
 
-    return e->HasReducedOps(c);
+    return HasReducedOps(e, c);
 }
 
 bool IsFieldAssignable(const Expr* e) {
@@ -245,7 +241,7 @@ StmtPtr Expr::ReduceToSingletons(Reducer* c) {
 }
 
 ExprPtr ReduceToConditional(Expr* e, Reducer* c, StmtPtr& red_stmt) {
-    if ( e->WillTransformInConditional(c) ) {
+    if ( WillTransformInConditional(e, c) ) {
         auto new_me = e->TransformToConditional(c, red_stmt);
 
         // Now that we've transformed, reduce the result for use in a
@@ -302,7 +298,7 @@ ExprPtr ReduceToConditional(Expr* e, Reducer* c, StmtPtr& red_stmt) {
                     return e->Reduce(c, red_stmt);
             }
 
-            if ( ! op1->IsReduced(c) || ! IsSingleton(op2, c) ) {
+            if ( ! IsReduced(op1.get(), c) || ! IsSingleton(op2, c) ) {
                 auto red2_stmt = e->ReduceToSingletons(c);
                 auto res = ReduceToConditional(e, c, red_stmt);
                 red_stmt = MergeStmts(e, std::move(red2_stmt), red_stmt);
@@ -439,13 +435,6 @@ ConstExprPtr MakeZeroExpr(const Obj* o, TypeTag t) {
 
 ExprPtr NameExpr::Duplicate() { return SetSucc(new NameExpr(id, in_const_init)); }
 
-bool NameExpr::IsReduced(Reducer* c) const {
-    if ( FoldableGlobal() )
-        return false;
-
-    return c->NameIsReduced(this);
-}
-
 ExprPtr NameExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = nullptr;
 
@@ -484,10 +473,6 @@ ExprPtr UnaryExpr::Inline(Inliner* inl) {
 
 bool UnaryExpr::HasNoSideEffects() const { return op->HasNoSideEffects(); }
 
-bool UnaryExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
-
-bool UnaryExpr::HasReducedOps(Reducer* c) const { return IsSingleton(op, c); }
-
 ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
         op = c->UpdateExpr(op, this);
@@ -518,10 +503,6 @@ ExprPtr BinaryExpr::Inline(Inliner* inl) {
 }
 
 bool BinaryExpr::HasNoSideEffects() const { return op1->HasNoSideEffects() && op2->HasNoSideEffects(); }
-
-bool BinaryExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
-
-bool BinaryExpr::HasReducedOps(Reducer* c) const { return IsSingleton(op1, c) && IsSingleton(op2, c); }
 
 ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
@@ -559,20 +540,6 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return AssignToTemporary(this, c, red_stmt);
 }
 
-bool BinaryExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
-    // It's always safe if we still have a non-constant operand.
-    // If both operands are constant than we use our own version
-    // of IsSafeSubstitution to finalize.
-    if ( e == op1 )
-        return op2->IsConst() ? IsSafeSubstitution(v, op2->AsConstExpr()->ValuePtr()) : true;
-    if ( e == op2 )
-        return op1->IsConst() ? IsSafeSubstitution(op1->AsConstExpr()->ValuePtr(), v) : true;
-    // Weird - doesn't match either of our operands. In principle this
-    // might happen if we're substituting after doing some reduce logic;
-    // decline the substitution to be safe.
-    return false;
-}
-
 ExprPtr CloneExpr::Duplicate() {
     // oh the irony
     return SetSucc(new CloneExpr(op->Duplicate()));
@@ -581,16 +548,6 @@ ExprPtr CloneExpr::Duplicate() {
 ExprPtr IncrExpr::Duplicate() { return SetSucc(new IncrExpr(tag, op->Duplicate())); }
 
 bool IncrExpr::HasNoSideEffects() const { return false; }
-
-bool IncrExpr::IsReduced(Reducer* c) const {
-    auto ref_op = op->AsRefExprPtr();
-    auto target = ref_op->GetOp1();
-
-    if ( target->Tag() != EXPR_NAME || ! IsIntegral(target->GetType()->Tag()) )
-        return NonReduced(this);
-
-    return ref_op->IsReduced(c);
-}
 
 ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->Tag() != EXPR_REF )
@@ -689,7 +646,6 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
 
 ExprPtr ComplementExpr::Duplicate() { return SetSucc(new ComplementExpr(op->Duplicate())); }
 
-bool ComplementExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_COMPLEMENT; }
 
 ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->Tag() == EXPR_COMPLEMENT )
@@ -700,7 +656,6 @@ ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 ExprPtr NotExpr::Duplicate() { return SetSucc(new NotExpr(op->Duplicate())); }
 
-bool NotExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL; }
 
 ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->Tag() == EXPR_NOT )
@@ -711,7 +666,6 @@ ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 ExprPtr PosExpr::Duplicate() { return SetSucc(new PosExpr(op->Duplicate())); }
 
-bool PosExpr::WillTransform(Reducer* c) const { return op->GetType()->Tag() != TYPE_COUNT; }
 
 ExprPtr PosExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->GetType()->Tag() == TYPE_COUNT )
@@ -725,7 +679,6 @@ ExprPtr PosExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
 ExprPtr NegExpr::Duplicate() { return SetSucc(new NegExpr(op->Duplicate())); }
 
-bool NegExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_NEGATE; }
 
 ExprPtr NegExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->Tag() == EXPR_NEGATE )
@@ -742,9 +695,6 @@ ExprPtr AddExpr::Duplicate() {
     return SetSucc(new AddExpr(op1_d, op2_d));
 }
 
-bool AddExpr::WillTransform(Reducer* c) const {
-    return op1->IsZero() || op2->IsZero() || op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
-}
 
 ExprPtr AddExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op1->IsZero() )
@@ -787,22 +737,6 @@ ExprPtr AddToExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new AddToExpr(op1_d, op2_d));
-}
-
-bool AddToExpr::IsReduced(Reducer* c) const {
-    auto t = op1->GetType();
-    auto tag = t->Tag();
-
-    if ( tag == TYPE_PATTERN )
-        return op1->HasReducedOps(c) && IsSingleton(op2, c);
-
-    if ( tag == TYPE_TABLE )
-        return op1->IsReduced(c) && IsSingleton(op2, c);
-
-    if ( tag == TYPE_VECTOR && IsVector(op2->GetType()->Tag()) && same_type(t, op2->GetType()) )
-        return op1->IsReduced(c) && IsSingleton(op2, c);
-
-    return NonReduced(this);
 }
 
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -863,11 +797,6 @@ ExprPtr SubExpr::Duplicate() {
     return SetSucc(new SubExpr(op1_d, op2_d));
 }
 
-bool SubExpr::WillTransform(Reducer* c) const {
-    return op2->IsZero() || op2->Tag() == EXPR_NEGATE ||
-           (type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE && op1->Tag() == EXPR_NAME &&
-            op2->Tag() == EXPR_NAME && op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id());
-}
 
 ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->IsZero() )
@@ -901,13 +830,6 @@ ExprPtr RemoveFromExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new RemoveFromExpr(op1_d, op2_d));
-}
-
-bool RemoveFromExpr::IsReduced(Reducer* c) const {
-    if ( op1->GetType()->Tag() == TYPE_TABLE )
-        return op1->IsReduced(c) && IsSingleton(op2, c);
-
-    return NonReduced(this);
 }
 
 ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -945,9 +867,6 @@ ExprPtr TimesExpr::Duplicate() {
     return SetSucc(new TimesExpr(op1_d, op2_d));
 }
 
-bool TimesExpr::WillTransform(Reducer* c) const {
-    return op1->IsZero() || op2->IsZero() || op1->IsOne() || op2->IsOne();
-}
 
 ExprPtr TimesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op1->IsOne() )
@@ -974,7 +893,6 @@ ExprPtr DivideExpr::Duplicate() {
     return SetSucc(new DivideExpr(op1_d, op2_d));
 }
 
-bool DivideExpr::WillTransform(Reducer* c) const { return op2->IsOne(); }
 
 ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->IsOne() )
@@ -983,16 +901,10 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-bool DivideExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
-
 ExprPtr MaskExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new MaskExpr(op1_d, op2_d));
-}
-
-bool MaskExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
-    return GetMask(v2.get()) <= (v1->AsAddr().GetFamily() == IPv4 ? 32 : 128);
 }
 
 ExprPtr ModExpr::Duplicate() {
@@ -1000,8 +912,6 @@ ExprPtr ModExpr::Duplicate() {
     auto op2_d = op2->Duplicate();
     return SetSucc(new ModExpr(op1_d, op2_d));
 }
-
-bool ModExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return ! v2->IsZero(); }
 
 // Helper functions used by BoolExpr.
 
@@ -1058,13 +968,6 @@ ExprPtr BoolExpr::Duplicate() {
     return SetSucc(new BoolExpr(tag, op1_d, op2_d));
 }
 
-bool BoolExpr::WillTransform(Reducer* c) const { return ! IsVector(op1->GetType()->Tag()); }
-
-bool BoolExpr::WillTransformInConditional(Reducer* c) const {
-    IDPtr common_id;
-    std::vector<ConstExprPtr> patterns;
-    return tag == EXPR_OR_OR && is_pattern_cascade(this, common_id, patterns);
-}
 
 ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // First, look for a common idiom of "/foo/ in x || /bar/ in x"
@@ -1167,10 +1070,6 @@ ExprPtr BitExpr::Duplicate() {
     return SetSucc(new BitExpr(tag, op1_d, op2_d));
 }
 
-bool BitExpr::WillTransform(Reducer* c) const {
-    return GetType()->Tag() == TYPE_COUNT &&
-           (op1->IsZero() || op2->IsZero() || (same_singletons(op1, op2) && op1->Tag() == EXPR_NAME));
-}
 
 ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! IsIntegral(GetType()->Tag()) )
@@ -1207,13 +1106,6 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     return BinaryExpr::Reduce(c, red_stmt);
-}
-
-bool BitExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
-    // The only such operation that can potentially have problems is
-    // left-shift. Rather than analyzing whether this particular instance
-    // is okay, we assume these are rare and just go by the tag.
-    return tag != EXPR_LSHIFT;
 }
 
 static std::map<ExprTag, ExprTag> has_elements_swap_tag = {
@@ -1253,20 +1145,6 @@ static bool IsHasElementsTest(const CmpExpr* e) {
     };
 
     return zero_req[t] ? op2->IsZero() : op2->IsOne();
-}
-
-bool CmpExpr::WillTransform(Reducer* c) const {
-    if ( IsHasElementsTest(this) )
-        return true;
-    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
-}
-
-bool CmpExpr::WillTransformInConditional(Reducer* c) const { return WillTransform(c); }
-
-bool CmpExpr::IsReduced(Reducer* c) const {
-    if ( IsHasElementsTest(this) )
-        return NonReduced(this);
-    return true;
 }
 
 
@@ -1409,18 +1287,6 @@ static ExprPtr TransformToMinOrMax(const CondExpr* e) {
     return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), e);
 }
 
-bool CondExpr::IsReduced(Reducer* c) const {
-    if ( ! IsVector(op1->GetType()->Tag()) || ! HasReducedOps(c) || same_singletons(op2, op3) )
-        return NonReduced(this);
-
-    return true;
-}
-
-bool CondExpr::HasReducedOps(Reducer* c) const {
-    return ! IsMinOrMax(this) && IsSingleton(op1, c) && IsSingleton(op2, c) && IsSingleton(op3, c) && ! op1->IsConst();
-}
-
-bool CondExpr::WillTransform(Reducer* c) const { return ! HasReducedOps(c); }
 
 ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
@@ -1529,32 +1395,6 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
 
 ExprPtr RefExpr::Duplicate() { return SetSucc(new RefExpr(op->Duplicate())); }
 
-bool RefExpr::IsReduced(Reducer* c) const {
-    if ( op->Tag() == EXPR_NAME )
-        return op->IsReduced(c);
-
-    return NonReduced(this);
-}
-
-bool RefExpr::HasReducedOps(Reducer* c) const {
-    switch ( op->Tag() ) {
-        case EXPR_NAME: return op->IsReduced(c);
-
-        case EXPR_FIELD: return op->AsFieldExpr()->Op()->IsReduced(c);
-
-        case EXPR_INDEX: {
-            auto ind = op->AsIndexExpr();
-            return ind->Op1()->IsReduced(c) && ind->Op2()->IsReduced(c);
-        }
-
-        case EXPR_LIST: return op->IsReduced(c);
-
-        default: Internal("bad operand in RefExpr::IsReduced"); return true;
-    }
-}
-
-bool RefExpr::WillTransform(Reducer* c) const { return op->Tag() != EXPR_NAME; }
-
 ExprPtr RefExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op->Tag() == EXPR_NAME )
         op = op->Reduce(c, red_stmt);
@@ -1587,50 +1427,6 @@ ExprPtr AssignExpr::Duplicate() {
 }
 
 bool AssignExpr::HasNoSideEffects() const { return false; }
-
-bool AssignExpr::IsReduced(Reducer* c) const {
-    if ( op2->Tag() == EXPR_ASSIGN )
-        // Cascaded assignments are never reduced.
-        return false;
-
-    if ( val )
-        // Initializations of "local" variables in "when" statements
-        // are never reduced.
-        return false;
-
-    const auto& t1 = op1->GetType();
-    const auto& t2 = op2->GetType();
-
-    auto lhs_is_any = t1->Tag() == TYPE_ANY;
-    auto rhs_is_any = t2->Tag() == TYPE_ANY;
-
-    if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
-        return NonReduced(this);
-
-    if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
-        return NonReduced(this);
-
-    if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
-        // We are not reduced because we should instead
-        // be folded.
-        return NonReduced(this);
-
-    if ( IsTemp() )
-        return true;
-
-    if ( ! op2->HasReducedOps(c) )
-        return NonReduced(this);
-
-    if ( IsSingleton(op1, c) )
-        return true;
-
-    if ( op1->Tag() == EXPR_REF )
-        return op1->AsRefExprPtr()->IsReduced(c);
-
-    return NonReduced(this);
-}
-
-bool AssignExpr::HasReducedOps(Reducer* c) const { return op1->IsReduced(c) && IsSingleton(op2, c); }
 
 ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // Yields a fully reduced assignment expression.
@@ -1759,7 +1555,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return TransformMe(this, make_intrusive<NopExpr>());
     }
 
-    if ( op2->WillTransform(c) ) {
+    if ( WillTransform(op2.get(), c) ) {
         StmtPtr xform_stmt;
         StmtPtr lhs_stmt = lhs_ref->ReduceToLHS(c);
         op2 = op2->ReduceToSingleton(c, xform_stmt);
@@ -1777,7 +1573,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // always first reduce the operands, because for expressions
     // like && and ||, that's incorrect.
 
-    if ( op2->WillTransform(c) ) {
+    if ( WillTransform(op2.get(), c) ) {
         StmtPtr xform_stmt;
         op2 = op2->ReduceToSingleton(c, xform_stmt);
         red_stmt = MergeStmts(this, rhs_reduce, red_stmt, xform_stmt);
@@ -1835,20 +1631,6 @@ ExprPtr IndexExpr::Duplicate() {
     return SetSucc(new IndexExpr(op1_d, op2_l, is_slice, is_inside_when));
 }
 
-bool IndexExpr::HasReducedOps(Reducer* c) const {
-    if ( ! IsSingleton(op1, c) )
-        return NonReduced(this);
-
-    if ( op2->Tag() == EXPR_LIST )
-        return op2->HasReducedOps(c);
-    else {
-        if ( IsSingleton(op2, c) )
-            return true;
-
-        return NonReduced(this);
-    }
-}
-
 StmtPtr IndexExpr::ReduceToSingletons(Reducer* c) {
     StmtPtr red1_stmt;
     if ( ! IsSingleton(op1, c) )
@@ -1868,8 +1650,6 @@ ExprPtr IndexExprWhen::Duplicate() {
 ExprPtr FieldExpr::Duplicate() { return SetSucc(new FieldExpr(op->Duplicate(), field_name)); }
 
 ExprPtr HasFieldExpr::Duplicate() { return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name))); }
-
-bool HasFieldExpr::IsReduced(Reducer* c) const { return op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL); }
 
 ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL) ) {
@@ -1894,18 +1674,6 @@ ExprPtr RecordConstructorExpr::Duplicate() {
 ExprPtr RecordConstructorExpr::Inline(Inliner* inl) {
     op = op->Inline(inl)->AsListExprPtr();
     return ThisPtr();
-}
-
-bool RecordConstructorExpr::HasReducedOps(Reducer* c) const {
-    auto& exprs = op->AsListExpr()->Exprs();
-
-    loop_over_list(exprs, i) {
-        auto e_i = exprs[i];
-        if ( ! IsSingleton(e_i->AsFieldAssignExprPtr()->Op(), c) )
-            return false;
-    }
-
-    return true;
 }
 
 ExprPtr RecordConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -1963,31 +1731,6 @@ ExprPtr TableConstructorExpr::Duplicate() {
         t = nullptr;
 
     return SetSucc(new TableConstructorExpr(op_l, nullptr, t, attrs));
-}
-
-bool TableConstructorExpr::HasReducedOps(Reducer* c) const {
-    const auto& exprs = op->AsListExpr()->Exprs();
-
-    for ( const auto& expr : exprs ) {
-        auto a = expr->AsAssignExpr();
-        auto lhs = a->GetOp1();
-        auto rhs = a->GetOp2();
-
-        // LHS is a list, not a singleton.
-        if ( ! lhs->HasReducedOps(c) )
-            return NonReduced(this);
-
-        // RHS might also be a list, if it's a table-of-sets or such.
-        if ( rhs->Tag() == EXPR_LIST ) {
-            if ( ! rhs->HasReducedOps(c) )
-                return NonReduced(this);
-        }
-
-        else if ( ! IsSingleton(rhs, c) )
-            return NonReduced(this);
-    }
-
-    return true;
 }
 
 ExprPtr TableConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -2049,8 +1792,6 @@ ExprPtr SetConstructorExpr::Duplicate() {
     return SetSucc(new SetConstructorExpr(op_l, nullptr, t, attrs));
 }
 
-bool SetConstructorExpr::HasReducedOps(Reducer* c) const { return op->IsReduced(c); }
-
 ExprPtr SetConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // We rely on the fact that ListExpr's don't change into
     // temporaries.
@@ -2075,8 +1816,6 @@ ExprPtr VectorConstructorExpr::Duplicate() {
         return SetSucc(new VectorConstructorExpr(op_l, type));
 }
 
-bool VectorConstructorExpr::HasReducedOps(Reducer* c) const { return Op()->HasReducedOps(c); }
-
 ExprPtr FieldAssignExpr::Duplicate() {
     auto op_dup = op->Duplicate();
     return SetSucc(new FieldAssignExpr(field_name.c_str(), op_dup));
@@ -2090,7 +1829,7 @@ ExprPtr FieldAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = nullptr;
 
-    if ( ! op->IsReduced(c) )
+    if ( ! IsReduced(op.get(), c) )
         op = op->ReduceToSingleton(c, red_stmt);
 
     // Doesn't seem worth checking for constant folding.
@@ -2111,15 +1850,6 @@ ExprPtr ArithCoerceExpr::Duplicate() {
     return SetSucc(new ArithCoerceExpr(op_dup, tag));
 }
 
-bool ArithCoerceExpr::WillTransform(Reducer* c) const {
-    if ( op->Tag() != EXPR_CONST )
-        return false;
-
-    if ( IsArithmetic(GetType()->Tag()) )
-        return true;
-
-    return IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
-}
 
 ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
@@ -2160,46 +1890,14 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return AssignToTemporary(this, c, red_stmt);
 }
 
-bool ArithCoerceExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
-    // We check for the issues assessed by check_and_promote() that are
-    // not due to type clashes.
-    const auto& vt = v->GetType();
-    TypeTag v_tag = vt->Tag();
-    TypeTag t_tag = type->Tag();
-
-    if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) && max_type(t_tag, v_tag) != t_tag )
-        return false;
-
-    InternalTypeTag it = type->InternalType();
-    InternalTypeTag vit = vt->InternalType();
-
-    if ( it == TYPE_INTERNAL_INT && (vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE) &&
-         detail::would_overflow(vt.get(), type.get(), v.get()) )
-        return false;
-
-    if ( it == TYPE_INTERNAL_UNSIGNED && (vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) &&
-         detail::would_overflow(vt.get(), type.get(), v.get()) )
-        return false;
-
-    return true;
-}
-
 ExprPtr RecordCoerceExpr::Duplicate() {
     auto op_dup = op->Duplicate();
     return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 }
 
-bool RecordCoerceExpr::IsReduced(Reducer* c) const {
-    if ( WillTransform(c) )
-        return NonReduced(this);
-
-    return UnaryExpr::IsReduced(c);
-}
-
-bool RecordCoerceExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_RECORD_CONSTRUCTOR; }
 
 ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( WillTransform(c) ) {
+    if ( WillTransform(this, c) ) {
         auto rt = cast_intrusive<RecordType>(type);
         ASSERT(op->Tag() == EXPR_RECORD_CONSTRUCTOR);
         auto rc_op = static_cast<const RecordConstructorExpr*>(op.get());
@@ -2221,19 +1919,9 @@ ExprPtr VectorCoerceExpr::Duplicate() {
     return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 }
 
-bool VectorCoerceExpr::IsReduced(Reducer* c) const {
-    if ( WillTransform(c) )
-        return NonReduced(this);
-
-    return UnaryExpr::IsReduced(c);
-}
-
-bool VectorCoerceExpr::WillTransform(Reducer* c) const {
-    return op->Tag() == EXPR_VECTOR_CONSTRUCTOR && op->GetType<VectorType>()->IsUnspecifiedVector();
-}
 
 ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( WillTransform(c) ) {
+    if ( WillTransform(this, c) ) {
         auto op1_list = op->GetOp1();
         ASSERT(op1_list->Tag() == EXPR_LIST);
         auto empty_list = cast_intrusive<ListExpr>(op1_list);
@@ -2269,15 +1957,6 @@ void ScheduleExpr::SetOp1(ExprPtr op) { when = op; }
 
 void ScheduleExpr::SetOp2(ExprPtr op) { event = op->AsEventExprPtr(); }
 
-bool ScheduleExpr::IsReduced(Reducer* c) const { return when->IsReduced(c) && event->IsReduced(c); }
-
-bool ScheduleExpr::HasReducedOps(Reducer* c) const {
-    if ( IsSingleton(when, c) && IsSingleton(event, c) )
-        return true;
-
-    return NonReduced(this);
-}
-
 ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
         when = c->UpdateExpr(when, this);
@@ -2287,7 +1966,7 @@ ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = nullptr;
 
-    if ( ! when->IsReduced(c) )
+    if ( ! IsReduced(when.get(), c) )
         when = when->Reduce(c, red_stmt);
 
     StmtPtr red2_stmt;
@@ -2304,15 +1983,6 @@ ExprPtr InExpr::Duplicate() {
     auto op2_d = op2->Duplicate();
     return SetSucc(new InExpr(op1_d, op2_d));
 }
-
-bool InExpr::IsReduced(Reducer* c) const {
-    if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
-        return NonReduced(this);
-
-    return BinaryExpr::IsReduced(c);
-}
-
-bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && IsSingleton(op2, c); }
 
 ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
@@ -2403,29 +2073,6 @@ static bool IsEmptyHook(const CallExpr* e) {
     return ! func_val->AsFuncVal()->Get()->HasBodies();
 }
 
-bool CallExpr::IsReduced(Reducer* c) const { return IsSingleton(func, c) && args->IsReduced(c) && ! WillTransform(c); }
-
-bool CallExpr::WillTransform(Reducer* c) const {
-    return CheckForBuiltin(this) || IsFoldableBiF(this) || IsEmptyHook(this);
-}
-
-bool CallExpr::HasReducedOps(Reducer* c) const {
-    if ( WillTransform(c) )
-        return false;
-
-    if ( ! IsSingleton(func, c) )
-        return NonReduced(this);
-
-    // We don't use args->HasReducedOps() here because for ListExpr's
-    // the method has some special-casing that isn't germane for calls.
-
-    for ( const auto& expr : args->Exprs() )
-        if ( ! IsSingleton(expr, c) )
-            return false;
-
-    return true;
-}
-
 ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
         func = c->UpdateExpr(func, this);
@@ -2483,22 +2130,6 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
 
 ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }
 
-bool LambdaExpr::IsReduced(Reducer* c) const {
-    if ( ! captures )
-        return true;
-
-    for ( auto& cp : *captures ) {
-        auto& cid = cp.Id();
-
-        if ( ! private_captures.contains(cid) && ! c->ID_IsReduced(cid) )
-            return NonReduced(this);
-    }
-
-    return true;
-}
-
-bool LambdaExpr::HasReducedOps(Reducer* c) const { return IsReduced(c); }
-
 ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
         return ThisPtr();
@@ -2536,8 +2167,6 @@ ExprPtr EventExpr::Inline(Inliner* inl) {
     return ThisPtr();
 }
 
-bool EventExpr::IsReduced(Reducer* c) const { return Args()->IsReduced(c); }
-
 ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
         auto e = c->UpdateExpr(args, this);
@@ -2547,7 +2176,7 @@ ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = nullptr;
 
-    if ( ! Args()->IsReduced(c) )
+    if ( ! IsReduced(Args(), c) )
         // We assume that ListExpr won't transform itself fundamentally.
         (void)Args()->Reduce(c, red_stmt);
 
@@ -2572,30 +2201,6 @@ ExprPtr ListExpr::Inline(Inliner* inl) {
     }
 
     return ThisPtr();
-}
-
-bool ListExpr::IsReduced(Reducer* c) const {
-    for ( const auto& expr : exprs )
-        if ( ! IsSingleton(expr, c) ) {
-            if ( expr->Tag() != EXPR_LIST || ! expr->IsReduced(c) )
-                return NonReduced(expr);
-        }
-
-    return true;
-}
-
-bool ListExpr::HasReducedOps(Reducer* c) const {
-    for ( const auto& expr : exprs ) {
-        // Ugly hack for record and complex table constructors.
-        if ( expr->Tag() == EXPR_FIELD_ASSIGN || expr->Tag() == EXPR_LIST ) {
-            if ( ! expr->HasReducedOps(c) )
-                return false;
-        }
-        else if ( ! IsSingleton(expr, c) )
-            return false;
-    }
-
-    return true;
 }
 
 ExprPtr ListExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -2648,10 +2253,6 @@ ExprPtr CanConvertExpr::Duplicate() { return SetSucc(new CanConvertExpr(op->Dupl
 
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
 
-bool CastExpr::IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const {
-    return attempt_to_cast_value_to_type(v.get(), type.get()) != nullptr;
-}
-
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 
 InlineExpr::InlineExpr(ScriptFuncPtr arg_sf, ListExprPtr arg_args, std::vector<IDPtr> arg_params,
@@ -2701,8 +2302,6 @@ ExprPtr InlineExpr::Duplicate() {
     auto body_d = body->Duplicate();
     return SetSucc(new InlineExpr(sf, args_d, params, param_is_modified, body_d, frame_offset, type));
 }
-
-bool InlineExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
 
 ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // We have to be careful regarding the order in which we evaluate
@@ -2819,11 +2418,6 @@ ExprPtr AppendToExpr::Duplicate() {
     return SetSucc(new AppendToExpr(op1_d, op2_d));
 }
 
-bool AppendToExpr::IsReduced(Reducer* c) const {
-    // These are created reduced.
-    return true;
-}
-
 ExprPtr AppendToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
         op1 = c->UpdateExpr(op1, this);
@@ -2854,14 +2448,6 @@ ValPtr IndexAssignExpr::Eval(Frame* f) const {
 
     return nullptr;
 }
-
-bool IndexAssignExpr::IsReduced(Reducer* c) const {
-    // op2 is a ListExpr, not a singleton expression.
-    ASSERT(IsSingleton(op1, c) && op2->IsReduced(c) && IsSingleton(op3, c));
-    return true;
-}
-
-bool IndexAssignExpr::HasReducedOps(Reducer* c) const { return true; }
 
 ExprPtr IndexAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
@@ -2957,13 +2543,6 @@ ExprPtr FieldLHSAssignExpr::Duplicate() {
 
     return SetSucc(new FieldLHSAssignExpr(op1_d, op2_d, field_name, field));
 }
-
-bool FieldLHSAssignExpr::IsReduced(Reducer* c) const {
-    ASSERT(IsSingleton(op1, c) && IsReducedFieldAssignment(op2.get(), c));
-    return true;
-}
-
-bool FieldLHSAssignExpr::HasReducedOps(Reducer* c) const { return true; }
 
 ExprPtr FieldLHSAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
@@ -3080,8 +2659,6 @@ ValPtr RecordFieldUpdatesExpr::Fold(Val* v1, Val* v2) const {
     return nullptr;
 }
 
-bool RecordFieldUpdatesExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
-
 void RecordFieldUpdatesExpr::ExprDescribe(ODesc* d) const {
     op1->Describe(d);
     d->Add(expr_name(tag));
@@ -3195,10 +2772,6 @@ ExprPtr ConstructFromRecordExpr::Duplicate() {
     return SetSucc(new ConstructFromRecordExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
-bool ConstructFromRecordExpr::IsReduced(Reducer* c) const { return op1->HasReducedOps(c) && op2->IsReduced(c); }
-
-bool ConstructFromRecordExpr::HasReducedOps(Reducer* c) const { return IsReduced(c); }
-
 ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() ) {
         op1 = c->UpdateExpr(op1, this);
@@ -3207,7 +2780,7 @@ ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = nullptr;
 
-    if ( ! op1->HasReducedOps(c) )
+    if ( ! HasReducedOps(op1.get(), c) )
         red_stmt = op1->ReduceToSingletons(c);
 
     StmtPtr red2_stmt;
@@ -3249,8 +2822,6 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {
     type = base_type(TYPE_ANY);
 }
-
-bool CoerceToAnyExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
 
 ExprPtr CoerceToAnyExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( c->Optimizing() )
@@ -3404,19 +2975,6 @@ ExprPtr ScriptOptBuiltinExpr::Duplicate() {
     return with_location_of(std::move(new_me), this);
 }
 
-bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const {
-    if ( ! arg1->IsReduced(c) )
-        return NonReduced(arg1.get());
-
-    if ( arg2 && ! arg2->IsReduced(c) )
-        return NonReduced(arg2.get());
-
-    if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) )
-        return NonReduced(this);
-
-    return true;
-}
-
 ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto orig_arg1 = arg1;
     auto orig_arg2 = arg2;
@@ -3528,5 +3086,621 @@ static bool same_singletons(ExprPtr e1, ExprPtr e2) {
 
     return i1 == i2;
 }
+
+
+bool WillTransform(const Expr* e, Reducer* c) {
+    switch ( e->Tag() ) {
+        case EXPR_NAME: return ! IsReduced(e, c);
+
+        case EXPR_INCR:
+        case EXPR_DECR: return true;
+
+        case EXPR_COMPLEMENT: return e->GetOp1()->Tag() == EXPR_COMPLEMENT;
+
+        case EXPR_NOT: return e->GetOp1()->Tag() == EXPR_NOT && e->GetOp1()->GetType()->Tag() == TYPE_BOOL;
+
+        case EXPR_POSITIVE: return e->GetOp1()->GetType()->Tag() != TYPE_COUNT;
+
+        case EXPR_NEGATE: return e->GetOp1()->Tag() == EXPR_NEGATE;
+
+        case EXPR_ADD: {
+            auto op1 = e->GetOp1();
+            auto op2 = e->GetOp2();
+            return op1->IsZero() || op2->IsZero() || op1->Tag() == EXPR_NEGATE || op2->Tag() == EXPR_NEGATE;
+        }
+
+        case EXPR_SUB: {
+            auto op1 = e->GetOp1();
+            auto op2 = e->GetOp2();
+            auto t = e->GetType()->Tag();
+            return op2->IsZero() || op2->Tag() == EXPR_NEGATE ||
+                   (t != TYPE_VECTOR && t != TYPE_TABLE && op1->Tag() == EXPR_NAME && op2->Tag() == EXPR_NAME &&
+                    op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id());
+        }
+
+        case EXPR_ADD_TO:
+        case EXPR_REMOVE_FROM: return true;
+
+        case EXPR_TIMES: {
+            auto op1 = e->GetOp1();
+            auto op2 = e->GetOp2();
+            return op1->IsZero() || op2->IsZero() || op1->IsOne() || op2->IsOne();
+        }
+
+        case EXPR_DIVIDE: return e->GetOp2()->IsOne();
+
+        case EXPR_AND:
+        case EXPR_OR:
+        case EXPR_XOR:
+        case EXPR_LSHIFT:
+        case EXPR_RSHIFT: {
+            auto op1 = e->GetOp1();
+            auto op2 = e->GetOp2();
+            return e->GetType()->Tag() == TYPE_COUNT &&
+                   (op1->IsZero() || op2->IsZero() || (same_singletons(op1, op2) && op1->Tag() == EXPR_NAME));
+        }
+
+        case EXPR_AND_AND:
+        case EXPR_OR_OR: return ! IsVector(e->GetOp1()->GetType()->Tag());
+
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_EQ:
+        case EXPR_NE:
+        case EXPR_GE:
+        case EXPR_GT:
+            if ( IsHasElementsTest(static_cast<const CmpExpr*>(e)) )
+                return true;
+            return e->GetType()->Tag() == TYPE_BOOL && same_singletons(e->GetOp1(), e->GetOp2());
+
+        case EXPR_COND: return ! HasReducedOps(e, c);
+
+        case EXPR_REF: return e->GetOp1()->Tag() != EXPR_NAME;
+
+        case EXPR_ASSIGN:
+        case EXPR_FIELD_ASSIGN: return true;
+
+        case EXPR_ARITH_COERCE: {
+            auto op = e->GetOp1();
+            if ( op->Tag() != EXPR_CONST )
+                return false;
+            if ( IsArithmetic(e->GetType()->Tag()) )
+                return true;
+            return IsArithmetic(op->AsConstExpr()->Value()->GetType()->Tag());
+        }
+
+        case EXPR_RECORD_COERCE: return e->GetOp1()->Tag() == EXPR_RECORD_CONSTRUCTOR;
+
+        case EXPR_VECTOR_COERCE: {
+            auto op = e->GetOp1();
+            return op->Tag() == EXPR_VECTOR_CONSTRUCTOR && op->GetType<VectorType>()->IsUnspecifiedVector();
+        }
+
+        case EXPR_CALL: {
+            auto ce = static_cast<const CallExpr*>(e);
+            return CheckForBuiltin(ce) || IsFoldableBiF(ce) || IsEmptyHook(ce);
+        }
+
+        case EXPR_INLINE: return true;
+
+        default: return false;
+    }
+}
+
+bool WillTransformInConditional(const Expr* e, Reducer* c) {
+    switch ( e->Tag() ) {
+        case EXPR_OR_OR: {
+            IDPtr common_id;
+            std::vector<ConstExprPtr> patterns;
+            return is_pattern_cascade(e, common_id, patterns);
+        }
+
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_EQ:
+        case EXPR_NE:
+        case EXPR_GE:
+        case EXPR_GT: return WillTransform(e, c);
+
+        default: return false;
+    }
+}
+
+// For a binary expression whose operands are now both constants, true if
+// folding them can't run into trouble.
+static bool IsSafeFold(const Expr* e, const ValPtr& v1, const ValPtr& v2) {
+    switch ( e->Tag() ) {
+        case EXPR_DIVIDE:
+        case EXPR_MOD: return ! v2->IsZero();
+
+        case EXPR_MASK: return MaskExpr::GetMask(v2.get()) <= (v1->AsAddr().GetFamily() == IPv4 ? 32 : 128);
+
+        // The only bitwise operation that can potentially have problems is
+        // left-shift. Rather than analyzing whether this particular instance
+        // is okay, we assume these are rare and just go by the tag.
+        case EXPR_LSHIFT: return false;
+
+        default: return true;
+    }
+}
+
+static bool IsSafeBinarySubstitution(const Expr* parent, const ExprPtr& e, const ValPtr& v) {
+    auto op1 = parent->GetOp1();
+    auto op2 = parent->GetOp2();
+
+    // It's always safe if we still have a non-constant operand.  If both
+    // operands are constant then we check whether the fold is safe.
+    if ( e == op1 )
+        return op2->IsConst() ? IsSafeFold(parent, v, op2->AsConstExpr()->ValuePtr()) : true;
+    if ( e == op2 )
+        return op1->IsConst() ? IsSafeFold(parent, op1->AsConstExpr()->ValuePtr(), v) : true;
+
+    // Weird - doesn't match either of our operands. In principle this
+    // might happen if we're substituting after doing some reduce logic;
+    // decline the substitution to be safe.
+    return false;
+}
+
+static bool IsSafeArithCoercion(const Expr* parent, const ValPtr& v) {
+    const auto& t = parent->GetType();
+    // We check for the issues assessed by check_and_promote() that are
+    // not due to type clashes.
+    const auto& vt = v->GetType();
+    TypeTag v_tag = vt->Tag();
+    TypeTag t_tag = t->Tag();
+
+    if ( t_tag != TYPE_TIME && ! BothArithmetic(t_tag, v_tag) && max_type(t_tag, v_tag) != t_tag )
+        return false;
+
+    InternalTypeTag it = t->InternalType();
+    InternalTypeTag vit = vt->InternalType();
+
+    if ( it == TYPE_INTERNAL_INT && (vit == TYPE_INTERNAL_UNSIGNED || vit == TYPE_INTERNAL_DOUBLE) &&
+         detail::would_overflow(vt.get(), t.get(), v.get()) )
+        return false;
+
+    if ( it == TYPE_INTERNAL_UNSIGNED && (vit == TYPE_INTERNAL_DOUBLE || vit == TYPE_INTERNAL_INT) &&
+         detail::would_overflow(vt.get(), t.get(), v.get()) )
+        return false;
+
+    return true;
+}
+
+bool IsSafeSubstitution(const Expr* parent, const ExprPtr& e, const ValPtr& v) {
+    switch ( parent->Tag() ) {
+        case EXPR_ARITH_COERCE: return IsSafeArithCoercion(parent, v);
+
+        case EXPR_CAST: return attempt_to_cast_value_to_type(v.get(), parent->GetType().get()) != nullptr;
+
+        // This is a BinaryExpr, but the check below would return false when
+        // "e" is not one of op1/op2 (in particular, when it is op3).  Given
+        // there's no folding possible for these nodes, substitutions are
+        // always safe.
+        case EXPR_INDEX_ASSIGN: return true;
+
+        case EXPR_ADD:
+        case EXPR_SUB:
+        case EXPR_ADD_TO:
+        case EXPR_REMOVE_FROM:
+        case EXPR_TIMES:
+        case EXPR_DIVIDE:
+        case EXPR_MASK:
+        case EXPR_MOD:
+        case EXPR_AND:
+        case EXPR_OR:
+        case EXPR_XOR:
+        case EXPR_LSHIFT:
+        case EXPR_RSHIFT:
+        case EXPR_AND_AND:
+        case EXPR_OR_OR:
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_EQ:
+        case EXPR_NE:
+        case EXPR_GE:
+        case EXPR_GT:
+        case EXPR_ASSIGN:
+        case EXPR_INDEX:
+        case EXPR_IN:
+        case EXPR_INDEX_SLICE_ASSIGN:
+        case EXPR_APPEND_TO:
+        case EXPR_FIELD_LHS_ASSIGN:
+        case EXPR_REC_ASSIGN_FIELDS:
+        case EXPR_REC_ADD_FIELDS:
+        case EXPR_REC_CONSTRUCT_WITH_REC: return IsSafeBinarySubstitution(parent, e, v);
+
+        default: return true;
+    }
+}
+
+// Helpers for HasReducedOps(), for the expressions whose operands need more
+// than a singleton check.
+
+static bool HasReducedRefOps(const Expr* e, Reducer* c) {
+    auto op = e->GetOp1();
+
+    switch ( op->Tag() ) {
+        case EXPR_NAME: return IsReduced(op.get(), c);
+
+        case EXPR_FIELD: return IsReduced(op->AsFieldExpr()->Op(), c);
+
+        case EXPR_INDEX: {
+            auto ind = op->AsIndexExpr();
+            return IsReduced(ind->Op1(), c) && IsReduced(ind->Op2(), c);
+        }
+
+        case EXPR_LIST: return IsReduced(op.get(), c);
+
+        default: e->Internal("bad operand in HasReducedRefOps");
+    }
+}
+
+static bool HasReducedIndexOps(const Expr* e, Reducer* c) {
+    auto op1 = e->GetOp1();
+    auto op2 = e->GetOp2();
+
+    if ( ! IsSingleton(op1, c) )
+        return NonReduced(e);
+
+    if ( op2->Tag() == EXPR_LIST )
+        return HasReducedOps(op2.get(), c);
+
+    if ( IsSingleton(op2, c) )
+        return true;
+
+    return NonReduced(e);
+}
+
+static bool HasReducedRecordConstructorOps(const Expr* e, Reducer* c) {
+    auto& exprs = static_cast<const RecordConstructorExpr*>(e)->Op()->Exprs();
+
+    loop_over_list(exprs, i) {
+        auto e_i = exprs[i];
+        if ( ! IsSingleton(e_i->AsFieldAssignExprPtr()->Op(), c) )
+            return false;
+    }
+
+    return true;
+}
+
+static bool HasReducedTableConstructorOps(const Expr* e, Reducer* c) {
+    for ( const auto& expr : e->GetOp1()->AsListExpr()->Exprs() ) {
+        auto a = expr->AsAssignExpr();
+        auto lhs = a->GetOp1();
+        auto rhs = a->GetOp2();
+
+        // LHS is a list, not a singleton.
+        if ( ! HasReducedOps(lhs.get(), c) )
+            return NonReduced(e);
+
+        // RHS might also be a list, if it's a table-of-sets or such.
+        if ( rhs->Tag() == EXPR_LIST ) {
+            if ( ! HasReducedOps(rhs.get(), c) )
+                return NonReduced(e);
+        }
+
+        else if ( ! IsSingleton(rhs, c) )
+            return NonReduced(e);
+    }
+
+    return true;
+}
+
+static bool HasReducedCallOps(const Expr* e, Reducer* c) {
+    if ( WillTransform(e, c) )
+        return false;
+
+    auto ce = static_cast<const CallExpr*>(e);
+
+    if ( ! IsSingleton(ce->Func(), c) )
+        return NonReduced(e);
+
+    // We don't use HasReducedOps() on the arguments here because for
+    // ListExpr's it has some special-casing that isn't germane for calls.
+
+    for ( const auto& expr : ce->Args()->Exprs() )
+        if ( ! IsSingleton(expr, c) )
+            return false;
+
+    return true;
+}
+
+static bool HasReducedListOps(const Expr* e, Reducer* c) {
+    for ( const auto& expr : static_cast<const ListExpr*>(e)->Exprs() ) {
+        // Ugly hack for record and complex table constructors.
+        if ( expr->Tag() == EXPR_FIELD_ASSIGN || expr->Tag() == EXPR_LIST ) {
+            if ( ! HasReducedOps(expr, c) )
+                return false;
+        }
+        else if ( ! IsSingleton(expr, c) )
+            return false;
+    }
+
+    return true;
+}
+
+bool HasReducedOps(const Expr* e, Reducer* c) {
+    switch ( e->Tag() ) {
+        case EXPR_NAME: return IsReduced(e, c);
+
+        case EXPR_INCR:
+        case EXPR_DECR:
+        case EXPR_ADD_TO:
+        case EXPR_REMOVE_FROM:
+        case EXPR_INLINE: return false;
+
+        case EXPR_INDEX_ASSIGN:
+        case EXPR_FIELD_LHS_ASSIGN: return true;
+
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL:
+        case EXPR_VECTOR_CONSTRUCTOR: return HasReducedOps(e->GetOp1().get(), c);
+
+        case EXPR_LAMBDA:
+        case EXPR_REC_CONSTRUCT_WITH_REC:
+        case EXPR_SCRIPT_OPT_BUILTIN: return IsReduced(e, c);
+
+        case EXPR_SET_CONSTRUCTOR: return IsReduced(e->GetOp1().get(), c);
+
+        case EXPR_ASSIGN:
+        case EXPR_INDEX_SLICE_ASSIGN: return IsReduced(e->GetOp1().get(), c) && IsSingleton(e->GetOp2(), c);
+
+        case EXPR_IN: return HasReducedOps(e->GetOp1().get(), c) && IsSingleton(e->GetOp2(), c);
+
+        case EXPR_COND: {
+            auto op1 = e->GetOp1();
+            return ! IsMinOrMax(static_cast<const CondExpr*>(e)) && IsSingleton(op1, c) &&
+                   IsSingleton(e->GetOp2(), c) && IsSingleton(e->GetOp3(), c) && ! op1->IsConst();
+        }
+
+        case EXPR_SCHEDULE:
+            if ( IsSingleton(e->GetOp1(), c) && IsSingleton(e->GetOp2(), c) )
+                return true;
+
+            return NonReduced(e);
+
+        case EXPR_REF: return HasReducedRefOps(e, c);
+        case EXPR_INDEX: return HasReducedIndexOps(e, c);
+        case EXPR_RECORD_CONSTRUCTOR: return HasReducedRecordConstructorOps(e, c);
+        case EXPR_TABLE_CONSTRUCTOR: return HasReducedTableConstructorOps(e, c);
+        case EXPR_CALL: return HasReducedCallOps(e, c);
+        case EXPR_LIST: return HasReducedListOps(e, c);
+
+        // EventExpr exposes its argument list via GetOp1(), but that's not
+        // an operand for reduction purposes, so the default below would give
+        // the wrong answer.
+        case EXPR_EVENT: return true;
+
+        default: {
+            // Unary and binary expressions require singleton operands.
+            // Anything without operands is trivially reduced.
+            auto op1 = e->GetOp1();
+            if ( ! op1 )
+                return true;
+
+            auto op2 = e->GetOp2();
+            return IsSingleton(op1, c) && (! op2 || IsSingleton(op2, c));
+        }
+    }
+}
+
+// Helpers for IsReduced(), for the expressions needing more than a line or two.
+
+static bool IsReducedAddTo(const Expr* e, Reducer* c) {
+    auto op1 = e->GetOp1();
+    auto op2 = e->GetOp2();
+    auto t = op1->GetType();
+
+    switch ( t->Tag() ) {
+        case TYPE_PATTERN: return HasReducedOps(op1.get(), c) && IsSingleton(op2, c);
+
+        case TYPE_TABLE: return IsReduced(op1.get(), c) && IsSingleton(op2, c);
+
+        case TYPE_VECTOR:
+            if ( IsVector(op2->GetType()->Tag()) && same_type(t, op2->GetType()) )
+                return IsReduced(op1.get(), c) && IsSingleton(op2, c);
+            break;
+
+        default: break;
+    }
+
+    return NonReduced(e);
+}
+
+static bool IsReducedAssign(const Expr* e, Reducer* c) {
+    auto ae = static_cast<const AssignExpr*>(e);
+    auto op1 = e->GetOp1();
+    auto op2 = e->GetOp2();
+
+    if ( op2->Tag() == EXPR_ASSIGN )
+        // Cascaded assignments are never reduced.
+        return false;
+
+    if ( ae->AssignVal() )
+        // Initializations of "local" variables in "when" statements
+        // are never reduced.
+        return false;
+
+    const auto& t1 = op1->GetType();
+    const auto& t2 = op2->GetType();
+
+    auto lhs_is_any = t1->Tag() == TYPE_ANY;
+    auto rhs_is_any = t2->Tag() == TYPE_ANY;
+
+    if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
+        return NonReduced(e);
+
+    if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
+        return NonReduced(e);
+
+    if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
+        // We are not reduced because we should instead
+        // be folded.
+        return NonReduced(e);
+
+    if ( ae->IsTemp() )
+        return true;
+
+    if ( ! HasReducedOps(op2.get(), c) )
+        return NonReduced(e);
+
+    if ( IsSingleton(op1, c) )
+        return true;
+
+    if ( op1->Tag() == EXPR_REF )
+        return IsReduced(op1.get(), c);
+
+    return NonReduced(e);
+}
+
+static bool IsReducedLambda(const Expr* e, Reducer* c) {
+    auto le = static_cast<const LambdaExpr*>(e);
+    const auto& captures = le->GetCaptures();
+
+    if ( ! captures )
+        return true;
+
+    for ( auto& cp : *captures ) {
+        auto& cid = cp.Id();
+
+        if ( ! le->PrivateCaptures().contains(cid) && ! c->ID_IsReduced(cid) )
+            return NonReduced(e);
+    }
+
+    return true;
+}
+
+static bool IsReducedList(const Expr* e, Reducer* c) {
+    for ( const auto& expr : static_cast<const ListExpr*>(e)->Exprs() )
+        if ( ! IsSingleton(expr, c) ) {
+            if ( expr->Tag() != EXPR_LIST || ! IsReduced(expr, c) )
+                return NonReduced(expr);
+        }
+
+    return true;
+}
+
+static bool IsReducedScriptOptBuiltin(const Expr* e, Reducer* c) {
+    auto arg1 = e->GetOp1();
+    auto arg2 = e->GetOp2();
+
+    if ( ! IsReduced(arg1.get(), c) )
+        return NonReduced(arg1.get());
+
+    if ( arg2 && ! IsReduced(arg2.get(), c) )
+        return NonReduced(arg2.get());
+
+    if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) )
+        return NonReduced(e);
+
+    return true;
+}
+
+bool IsReduced(const Expr* e, Reducer* c) {
+    switch ( e->Tag() ) {
+        case EXPR_NAME: {
+            auto ne = static_cast<const NameExpr*>(e);
+            if ( ne->FoldableGlobal() )
+                return false;
+
+            return c->NameIsReduced(ne);
+        }
+
+        // These are created reduced.
+        case EXPR_APPEND_TO: return true;
+
+        // Inlined bodies always need further reduction, and don't expose
+        // their operands, so the default below wouldn't catch them.
+        case EXPR_INLINE: return NonReduced(e);
+
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL:
+        case EXPR_TO_ANY_COERCE:
+        case EXPR_REC_ASSIGN_FIELDS:
+        case EXPR_REC_ADD_FIELDS: return HasReducedOps(e, c);
+
+        case EXPR_INCR:
+        case EXPR_DECR: {
+            auto ref_op = e->GetOp1();
+            auto target = ref_op->GetOp1();
+
+            if ( target->Tag() != EXPR_NAME || ! IsIntegral(target->GetType()->Tag()) )
+                return NonReduced(e);
+
+            return IsReduced(ref_op.get(), c);
+        }
+
+        case EXPR_ADD_TO: return IsReducedAddTo(e, c);
+
+        case EXPR_REMOVE_FROM:
+            if ( e->GetOp1()->GetType()->Tag() == TYPE_TABLE )
+                return IsReduced(e->GetOp1().get(), c) && IsSingleton(e->GetOp2(), c);
+
+            return NonReduced(e);
+
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_EQ:
+        case EXPR_NE:
+        case EXPR_GE:
+        case EXPR_GT: return IsHasElementsTest(static_cast<const CmpExpr*>(e)) ? NonReduced(e) : true;
+
+        case EXPR_COND: {
+            auto op1 = e->GetOp1();
+            if ( ! IsVector(op1->GetType()->Tag()) || ! HasReducedOps(e, c) ||
+                 same_singletons(e->GetOp2(), e->GetOp3()) )
+                return NonReduced(e);
+
+            return true;
+        }
+
+        case EXPR_REF:
+            if ( e->GetOp1()->Tag() == EXPR_NAME )
+                return IsReduced(e->GetOp1().get(), c);
+
+            return NonReduced(e);
+
+        case EXPR_ASSIGN:
+        case EXPR_INDEX_SLICE_ASSIGN: return IsReducedAssign(e, c);
+
+        case EXPR_HAS_FIELD: {
+            auto hfe = static_cast<const HasFieldExpr*>(e);
+            return hfe->GetOp1()->GetType<RecordType>()->FieldHasAttr(hfe->Field(), ATTR_OPTIONAL);
+        }
+
+        case EXPR_SCHEDULE: return IsReduced(e->GetOp1().get(), c) && IsReduced(e->GetOp2().get(), c);
+
+        case EXPR_CALL: {
+            auto ce = static_cast<const CallExpr*>(e);
+            return IsSingleton(ce->Func(), c) && IsReduced(ce->Args(), c) && ! WillTransform(e, c);
+        }
+
+        case EXPR_LAMBDA: return IsReducedLambda(e, c);
+
+        case EXPR_EVENT: return IsReduced(static_cast<const EventExpr*>(e)->Args(), c);
+
+        case EXPR_LIST: return IsReducedList(e, c);
+
+        case EXPR_INDEX_ASSIGN:
+            // op2 is a ListExpr, not a singleton expression.
+            ASSERT(IsSingleton(e->GetOp1(), c) && IsReduced(e->GetOp2().get(), c) && IsSingleton(e->GetOp3(), c));
+            return true;
+
+        case EXPR_FIELD_LHS_ASSIGN:
+            ASSERT(IsSingleton(e->GetOp1(), c) && IsReducedFieldAssignment(e->GetOp2().get(), c));
+            return true;
+
+        case EXPR_REC_CONSTRUCT_WITH_REC: return HasReducedOps(e->GetOp1().get(), c) && IsReduced(e->GetOp2().get(), c);
+
+        case EXPR_SCRIPT_OPT_BUILTIN: return IsReducedScriptOptBuiltin(e, c);
+
+        default:
+            // Unary and binary expressions have to say for themselves whether
+            // they're reduced; if we get here they haven't, so they aren't.
+            // Anything without operands is a singleton, hence reduced.
+            return e->GetOp1() ? NonReduced(e) : true;
+    }
+}
+
 
 } // namespace zeek::detail

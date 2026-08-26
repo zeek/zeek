@@ -271,36 +271,12 @@ public:
     // True if the expression has no side effects, false otherwise.
     virtual bool HasNoSideEffects() const { return IsPure(); }
 
-    // True if the expression is in fully reduced form: a singleton
-    // or an assignment to an operator with singleton operands.
-    virtual bool IsReduced(Reducer* c) const;
-
-    // True if the expression's operands are singletons.
-    virtual bool HasReducedOps(Reducer* c) const;
-
     // True if (a) the expression has at least one operand, and (b) all
     // of its operands are constant.
     virtual bool HasConstantOps() const {
         return GetOp1() && GetOp1()->IsConst() &&
                (! GetOp2() || (GetOp2()->IsConst() && (! GetOp3() || GetOp3()->IsConst())));
     }
-
-    // True if the expression will transform to one of another AST node
-    // (perhaps of the same type) upon reduction, for non-constant
-    // operands.  "Transform" means something beyond assignment to a
-    // temporary.  Necessary so that we know to fully reduce such
-    // expressions if they're the RHS of an assignment.
-    virtual bool WillTransform(Reducer* c) const { return false; }
-
-    // The same, but for the expression when used in a conditional context.
-    virtual bool WillTransformInConditional(Reducer* c) const { return false; }
-
-    // True if substituting the given value for the given expression is
-    // "safe", i.e. will not lead to compile-time errors if the value is
-    // then used to fold the expression. The expression will be one of the
-    // this expression's operands. Used for the AST optimizer's constant
-    // propagation.
-    virtual bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const { return true; }
 
     // Returns a set of predecessor statements in red_stmt (which might
     // be nil if no reduction necessary), and the reduced version of
@@ -418,18 +394,15 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
     bool HasNoSideEffects() const override { return true; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override { return IsReduced(c); }
-    bool WillTransform(Reducer* c) const override { return ! IsReduced(c); }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ValPtr FoldVal() const override;
-
-protected:
-    void ExprDescribe(ODesc* d) const override;
 
     // Returns true if our identifier is a global with a constant value
     // that can be propagated; used for optimization.
     bool FoldableGlobal() const;
+
+protected:
+    void ExprDescribe(ODesc* d) const override;
 
     IDPtr id;
     bool in_const_init;
@@ -481,8 +454,6 @@ public:
     ExprPtr Inline(Inliner* inl) override;
 
     bool HasNoSideEffects() const override;
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     ExprPtr GetOp1() const final { return op; }
@@ -517,14 +488,7 @@ public:
     ExprPtr Inline(Inliner* inl) override;
 
     bool HasNoSideEffects() const override;
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-
-    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
-
-    // A version of IsSafeSubstitution() where we now know both operands.
-    virtual bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const { return true; }
 
     ExprPtr GetOp1() const final { return op1; }
     ExprPtr GetOp2() const final { return op2; }
@@ -612,9 +576,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
     bool HasNoSideEffects() const override;
-    bool WillTransform(Reducer* c) const override { return true; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override { return false; }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 };
@@ -625,7 +586,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -638,7 +598,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -651,7 +610,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -664,7 +622,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -690,7 +647,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -705,8 +661,6 @@ public:
     bool IsPure() const override { return false; }
 
     // Optimization-related:
-    bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
-    bool HasReducedOps(Reducer* c) const override { return op->HasReducedOps(c); }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -742,9 +696,6 @@ public:
     // Optimization-related:
     bool IsPure() const override { return false; }
     ExprPtr Duplicate() override;
-    bool HasReducedOps(Reducer* c) const override { return false; }
-    bool WillTransform(Reducer* c) const override { return true; }
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -761,9 +712,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool HasReducedOps(Reducer* c) const override { return false; }
-    bool WillTransform(Reducer* c) const override { return true; }
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 };
@@ -774,7 +722,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -785,7 +732,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -795,8 +741,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
-    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -806,11 +750,12 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
+
+    // Returns the subnet prefix length that the given value specifies.
+    static uint32_t GetMask(const Val* v);
 
 protected:
     ValPtr AddrFold(Val* v1, Val* v2) const override;
-    uint32_t GetMask(const Val* v) const;
 };
 
 class ModExpr final : public BinaryExpr {
@@ -819,7 +764,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
 };
 
 class BoolExpr final : public BinaryExpr {
@@ -831,8 +775,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
-    bool WillTransformInConditional(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -847,8 +789,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
-    bool IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
@@ -859,9 +799,6 @@ protected:
 
     void Canonicalize() override;
 
-    bool WillTransform(Reducer* c) const override;
-    bool WillTransformInConditional(Reducer* c) const override;
-    bool IsReduced(Reducer* c) const override;
     ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt) override;
 
     ExprPtr BuildHasElementsTest() const;
@@ -907,9 +844,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool WillTransform(Reducer* c) const override;
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -940,9 +874,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool WillTransform(Reducer* c) const override;
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     // Reduce to simplified LHS form, i.e., a reference to only a name.
@@ -965,9 +896,6 @@ public:
     ExprPtr Duplicate() override;
 
     bool HasNoSideEffects() const override;
-    bool WillTransform(Reducer* c) const override { return true; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -1026,7 +954,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool HasReducedOps(Reducer* c) const override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
@@ -1142,7 +1069,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -1177,7 +1103,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1203,7 +1128,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1228,7 +1152,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1246,8 +1169,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-
-    bool HasReducedOps(Reducer* c) const override;
 
 protected:
     void ExprDescribe(ODesc* d) const override;
@@ -1271,7 +1192,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override { return true; }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -1287,9 +1207,7 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
 
 protected:
     ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
@@ -1303,8 +1221,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     const std::vector<int>& Map() const { return map; }
@@ -1337,8 +1253,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool WillTransform(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -1373,8 +1287,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     ExprPtr GetOp1() const final;
@@ -1397,8 +1309,6 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -1425,9 +1335,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool WillTransform(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1459,6 +1366,12 @@ public:
     using CaptureList = std::vector<FuncType::Capture>;
     const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
+    // "Private" captures are captures that correspond to "when" condition
+    // locals.  These aren't true captures in that they don't come from the
+    // outer frame when the lambda is constructed, but they otherwise behave
+    // like captures in that they persist across function invocations.
+    const IDSet& PrivateCaptures() const { return private_captures; }
+
     ValPtr Eval(Frame* f) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1473,8 +1386,6 @@ public:
 
     void ReplaceBody(StmtPtr new_body);
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1487,11 +1398,6 @@ protected:
 private:
     friend class WhenInfo;
 
-    // "Private" captures are captures that correspond to "when"
-    // condition locals.  These aren't true captures in that they
-    // don't come from the outer frame when the lambda is constructed,
-    // but they otherwise behave like captures in that they persist
-    // across function invocations.
     void SetPrivateCaptures(const IDSet& pcaps) { private_captures = pcaps; }
 
     bool CheckCaptures(StmtPtr when_parent);
@@ -1540,8 +1446,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1567,7 +1471,6 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
@@ -1609,7 +1512,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override;
 
 protected:
     ValPtr Fold(Val* v) const override;
@@ -1643,7 +1545,6 @@ class CoerceToAnyExpr : public UnaryExpr {
 public:
     CoerceToAnyExpr(ExprPtr op);
 
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:

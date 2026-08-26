@@ -531,6 +531,9 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
 
             std::string redef_str;
             ODesc expr_desc;
+            // Quotes keep empty strings from describing to nothing, which would
+            // leave the literal block below empty and thus invalid ReST.
+            expr_desc.SetQuotes(true);
             if ( ir->init_expr->IsConst() ) {
                 const auto* val = ir->init_expr->ExprVal();
                 val->DescribeReST(&expr_desc);

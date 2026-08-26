@@ -1,3 +1,14 @@
+9.1.0-dev.21 | 2026-08-26 19:29:52 +0200
+
+  * tools/systemd-generator: Ensure short hostname is used (Arne Welzel, Corelight)
+
+    @dopheide-esnet reports that he needed to set the hostname part
+    of `etc/zeek/cluster/<hostname>.zeek.conf` to the FQDN of their
+    systems. That wasn't the intention and instead should've only
+    used the short name. There's no guarantee that gethostname()
+    returns the short name as that depends on what the hostname
+    was actually set to and it's valid to include the domain part.
+
 9.1.0-dev.19 | 2026-08-26 09:44:22 -0700
 
   * Remove GitPython dependency from docs builds (Tim Wojtulewicz, Corelight)

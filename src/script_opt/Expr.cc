@@ -391,7 +391,7 @@ ExprPtr AssignToTemporary(Expr* e, Reducer* c, StmtPtr& red_stmt) {
     return AssignToTemporary(e, e->ThisPtr(), c, red_stmt);
 }
 
-ExprPtr TransformMe(Expr* e, ExprPtr new_me, Reducer* c, StmtPtr& red_stmt) {
+ExprPtr TransformMe(Expr* e, ExprPtr new_me) {
     if ( new_me == e )
         return new_me;
 
@@ -455,7 +455,7 @@ ExprPtr NameExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( FoldableGlobal() ) {
         ValPtr v = id->GetVal();
         ASSERT(v);
-        return TransformMe(this, make_intrusive<ConstExpr>(v), c, red_stmt);
+        return TransformMe(this, make_intrusive<ConstExpr>(v));
     }
 
     return c->UpdateName({NewRef{}, this});
@@ -501,7 +501,7 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op_val ) {
         auto fold = Fold(op_val.get());
         if ( fold->GetType()->Tag() != TYPE_OPAQUE )
-            return TransformMe(this, make_intrusive<ConstExpr>(fold), c, red_stmt);
+            return TransformMe(this, make_intrusive<ConstExpr>(fold));
     }
 
     if ( c->Optimizing() )
@@ -550,7 +550,7 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
         if ( fold->GetType()->Tag() != TYPE_OPAQUE )
-            return TransformMe(this, make_intrusive<ConstExpr>(fold), c, red_stmt);
+            return TransformMe(this, make_intrusive<ConstExpr>(fold));
     }
 
     if ( c->Optimizing() )
@@ -890,7 +890,7 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto n2 = op2->AsNameExpr();
         if ( n1->Id() == n2->Id() ) {
             auto zero = MakeZeroExpr(this, type->Tag());
-            return TransformMe(this, zero, c, red_stmt);
+            return TransformMe(this, zero);
         }
     }
 
@@ -1125,7 +1125,7 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         cond = with_location_of(make_intrusive<CondExpr>(op1, else_e, op2), this);
 
     auto cond_red = cond->ReduceToSingleton(c, red_stmt);
-    return TransformMe(this, cond_red, c, red_stmt);
+    return TransformMe(this, cond_red);
 }
 
 ExprPtr BoolExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) {
@@ -1440,7 +1440,7 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
             return op1;
 
         // Instead we have "var ? F : T".
-        return TransformMe(this, make_intrusive<NotExpr>(op1), c, red_stmt);
+        return TransformMe(this, make_intrusive<NotExpr>(op1));
     }
 
     if ( c->Optimizing() )
@@ -1453,7 +1453,7 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(this, op1_red_stmt, red_stmt, assign_stmt);
 
-    return TransformMe(this, res, c, red_stmt);
+    return TransformMe(this, res);
 }
 
 StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
@@ -1704,7 +1704,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         red_stmt = MergeStmts(this, MergeStmts(this, rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
 
         auto index_assign = make_intrusive<IndexAssignExpr>(ind1_e, ind2_e, rhs_e);
-        return TransformMe(this, index_assign, c, red_stmt);
+        return TransformMe(this, index_assign);
     }
 
     if ( lhs_expr->Tag() == EXPR_FIELD ) {
@@ -1725,7 +1725,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto field = field_e->Field();
         auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
 
-        return TransformMe(this, field_assign, c, red_stmt);
+        return TransformMe(this, field_assign);
     }
 
     if ( lhs_expr->Tag() == EXPR_LIST ) {
@@ -1750,7 +1750,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
             red_stmt = MergeStmts(this, red_stmt, assign_stmt);
         }
 
-        return TransformMe(this, make_intrusive<NopExpr>(), c, red_stmt);
+        return TransformMe(this, make_intrusive<NopExpr>());
     }
 
     if ( op2->WillTransform(c) ) {
@@ -1807,7 +1807,7 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = ae_stmt->Reduce(c);
 
     if ( val )
-        return TransformMe(this, make_intrusive<ConstExpr>(val), c, red_stmt);
+        return TransformMe(this, make_intrusive<ConstExpr>(val));
 
     auto lhs = op1->AsRefExprPtr()->GetOp1();
     StmtPtr lhs_stmt;
@@ -1868,7 +1868,7 @@ bool HasFieldExpr::IsReduced(Reducer* c) const { return op->GetType<RecordType>(
 ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL) ) {
         auto true_constant = make_intrusive<ConstExpr>(val_mgr->True());
-        return TransformMe(this, std::move(true_constant), c, red_stmt);
+        return TransformMe(this, std::move(true_constant));
     }
 
     return UnaryExpr::Reduce(c, red_stmt);
@@ -2130,7 +2130,7 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
         if ( IsArithmetic(t->Tag()) || IsArithmetic(ct->Tag()) ) {
             if ( auto v = FoldSingleVal(cv, t) )
-                return TransformMe(this, make_intrusive<ConstExpr>(v), c, red_stmt);
+                return TransformMe(this, make_intrusive<ConstExpr>(v));
             // else there was a coercion error, fall through
         }
     }
@@ -2199,7 +2199,7 @@ ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto rc_op = static_cast<const RecordConstructorExpr*>(op.get());
         auto known_constr = with_location_of(make_intrusive<RecordConstructorExpr>(rt, rc_op->Op()), this);
         auto red_e = known_constr->Reduce(c, red_stmt);
-        return TransformMe(this, std::move(red_e), c, red_stmt);
+        return TransformMe(this, std::move(red_e));
     }
 
     return UnaryExpr::Reduce(c, red_stmt);
@@ -2233,7 +2233,7 @@ ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto empty_list = cast_intrusive<ListExpr>(op1_list);
         auto new_me = with_location_of(make_intrusive<VectorConstructorExpr>(empty_list, type), this);
         auto red_e = new_me->Reduce(c, red_stmt);
-        return TransformMe(this, std::move(red_e), c, red_stmt);
+        return TransformMe(this, std::move(red_e));
     }
 
     return UnaryExpr::Reduce(c, red_stmt);

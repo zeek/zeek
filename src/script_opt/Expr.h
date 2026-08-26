@@ -24,7 +24,7 @@ extern bool IsReducedFieldAssignment(const Expr* e, Reducer* c);
 extern bool IsFieldAssignable(const Expr* e);
 
 // Returns the expression transformed into "new_me".
-extern ExprPtr TransformMe(Expr* e, ExprPtr new_me, Reducer* c, StmtPtr& red_stmt);
+extern ExprPtr TransformMe(Expr* e, ExprPtr new_me);
 
 // Reduces the expression to one that can appear as a conditional.
 extern ExprPtr ReduceToConditional(Expr* e, Reducer* c, StmtPtr& red_stmt);

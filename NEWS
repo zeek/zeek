@@ -13,6 +13,10 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The input framework now supports optional records in its input files. The
+  fields of absent records, including potential nested records, should be
+  listed with the configured ``Input::unset_field`` character (normally "-").
+
 Changed Functionality
 ---------------------
 

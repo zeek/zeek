@@ -133,8 +133,52 @@
 
    A set that gets appended to.
 
-.. zeek:id:: TestRedef::an_expr
+.. zeek:id:: TestRedef::an_empty_set
    :source-code: declare-them.zeek 21 21
+
+   :Type: :zeek:type:`set` [:zeek:type:`count`]
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            1
+         }
+
+   :Redefinition: from :doc:`<...>/redef-them.zeek`
+
+      ``=``::
+
+         set()
+
+
+   A set that gets emptied out.
+
+.. zeek:id:: TestRedef::an_empty_table
+   :source-code: declare-them.zeek 23 23
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef`
+   :Default:
+
+      ::
+
+         {
+            [1] = "one"
+         }
+
+   :Redefinition: from :doc:`<...>/redef-them.zeek`
+
+      ``=``::
+
+         table()
+
+
+   A table that gets emptied out.
+
+.. zeek:id:: TestRedef::an_expr
+   :source-code: declare-them.zeek 25 25
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -149,7 +193,7 @@
    Redefined with a non-constant expression.
 
 .. zeek:id:: TestRedef::omitted
-   :source-code: declare-them.zeek 23 23
+   :source-code: declare-them.zeek 27 27
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`

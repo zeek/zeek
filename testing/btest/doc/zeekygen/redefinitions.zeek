@@ -30,6 +30,10 @@ export {
 	const a_color: Color = RED &redef;
 	## A set that gets appended to.
 	const a_set: set[count] = { 1 } &redef;
+	## A set that gets emptied out.
+	const an_empty_set: set[count] = { 1 } &redef;
+	## A table that gets emptied out.
+	const an_empty_table: table[count] of string = { [1] = "one" } &redef;
 	## Redefined with a non-constant expression.
 	const an_expr: string = "original" &redef;
 	## Redefined, but with the value omitted from the docs.
@@ -47,6 +51,8 @@ redef a_string = "redefined";
 redef an_empty_string = "";
 redef a_color = GREEN;
 redef a_set += { 2, 3 };
+redef an_empty_set = set();
+redef an_empty_table = table();
 redef an_expr = fmt("%s-%s", "a", "b");
 ## @docs-omit-value
 redef omitted = 1;

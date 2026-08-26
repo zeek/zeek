@@ -545,6 +545,14 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
                 else
                     val->Describe(&expr_desc);
             }
+            else if ( auto tag = ir->init_expr->Tag(); tag == EXPR_SET_CONSTRUCTOR || tag == EXPR_TABLE_CONSTRUCTOR ) {
+                // These constructors carry the identifier's own attributes, which
+                // Expr::Describe() would append to the value. They're documented
+                // separately under :Attributes:, so describe just the value here.
+                expr_desc.Add(tag == EXPR_SET_CONSTRUCTOR ? "set(" : "table(");
+                ir->init_expr->GetOp1()->Describe(&expr_desc);
+                expr_desc.Add(")");
+            }
             else {
                 ir->init_expr->Describe(&expr_desc);
             }

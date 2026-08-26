@@ -4092,6 +4092,14 @@ export {
 	const max_kexinit_languages = 100 &redef;
 }
 
+module MySQL;
+
+export {
+	## The maximum number of query attributes allowed in a COM_QUERY
+	## command. Parsing aborts with an analyzer violation if exceeded.
+	const max_com_query_attributes = 65535 &redef;
+}
+
 module NTLM;
 
 export {

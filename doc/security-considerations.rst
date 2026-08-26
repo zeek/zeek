@@ -73,3 +73,10 @@ The following lists steps you can take to protect your Zeek cluster.
   account used by ZeekControl therefore must have administrative access across the
   cluster. Protect its SSH credentials and restrict the account's access to the systems
   and operations required to manage the Zeek cluster.
+
+* When using the systemd generator, configuration values from ``zeek.conf`` are
+  incorporated directly into generated systemd unit files. Because these values
+  influence how Zeek services are launched, ``zeek.conf`` must be treated as a
+  trusted configuration source. Ensure that access to ``zeek.conf`` is restricted
+  and that configuration values are validated to avoid unintended effects in the
+  generated unit files.

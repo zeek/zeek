@@ -1,3 +1,28 @@
+9.1.0-dev.17 | 2026-08-26 17:38:39 +0200
+
+  * Update security-considerations.rst (Sujala Vasanthasena Nelavai)
+
+    Removed 2 extra blank lines.
+
+  * Update security-considerations.rst (Sujala Vasanthasena Nelavai)
+
+    Changed the framing of sentences.
+
+  * Update security-considerations.rst (Sujala Vasanthasena Nelavai)
+
+    Corrected markdown lint spacing.
+
+  * Add a security consideration for the systemd generator configuration (Sujala Vasanthasena Nelavai)
+
+    Add a security consideration describing how configuration values from ``zeek.conf`` are
+    used by the systemd generator when constructing systemd unit files. Newline characters
+    in configuration values can escape the intended directive and introduce unintended
+    systemd properties in the generated unit file.
+    
+    This note highlights the trust boundary between Zeek’s configuration parser and the
+    systemd generator, and recommends protecting access to ``zeek.conf`` and validating
+    configuration values to prevent injection into generated unit files.
+
 9.1.0-dev.12 | 2026-08-25 17:12:34 -0400
 
   * Fix some Clang 23 transitive includes (Evan Typanski, Corelight)

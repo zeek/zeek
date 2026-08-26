@@ -770,6 +770,12 @@ std::optional<std::string> gethostname() {
         return std::nullopt;
     }
 
+    // Use the short hostname only. The system's hostname as returned by
+    // gethostname() may contain a domain part if that was included in a
+    // call to sethostname(). Truncate by replacing the first dot with 0.
+    if ( auto* dot = strchr(buf, '.'); dot )
+        *dot = '\0';
+
     return buf;
 }
 

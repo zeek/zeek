@@ -1216,34 +1216,20 @@ bool BitExpr::IsSafeSubstitution(const ValPtr& v1, const ValPtr& v2) const {
     return tag != EXPR_LSHIFT;
 }
 
-bool CmpExpr::WillTransform(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return true;
-    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
-}
-
-bool CmpExpr::WillTransformInConditional(Reducer* c) const { return WillTransform(c); }
-
-bool CmpExpr::IsReduced(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return NonReduced(this);
-    return true;
-}
-
 static std::map<ExprTag, ExprTag> has_elements_swap_tag = {
     {EXPR_EQ, EXPR_EQ}, {EXPR_NE, EXPR_NE}, {EXPR_LT, EXPR_GT},
     {EXPR_LE, EXPR_GE}, {EXPR_GE, EXPR_LE}, {EXPR_GT, EXPR_LT},
 };
 
-bool CmpExpr::IsHasElementsTest() const {
+static bool IsHasElementsTest(const CmpExpr* e) {
     static std::set<ExprTag> rel_tags = {EXPR_EQ, EXPR_NE, EXPR_LT, EXPR_LE, EXPR_GE, EXPR_GT};
 
-    auto t = Tag(); // note, we may invert t below
+    auto t = e->Tag(); // note, we may invert t below
     if ( ! rel_tags.contains(t) )
         return false;
 
-    auto op1 = GetOp1();
-    auto op2 = GetOp2();
+    auto op1 = e->GetOp1();
+    auto op2 = e->GetOp2();
 
     ASSERT(op1 && op2);
 
@@ -1268,6 +1254,21 @@ bool CmpExpr::IsHasElementsTest() const {
 
     return zero_req[t] ? op2->IsZero() : op2->IsOne();
 }
+
+bool CmpExpr::WillTransform(Reducer* c) const {
+    if ( IsHasElementsTest(this) )
+        return true;
+    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
+}
+
+bool CmpExpr::WillTransformInConditional(Reducer* c) const { return WillTransform(c); }
+
+bool CmpExpr::IsReduced(Reducer* c) const {
+    if ( IsHasElementsTest(this) )
+        return NonReduced(this);
+    return true;
+}
+
 
 ExprPtr CmpExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) { return BuildHasElementsTest(); }
 
@@ -1301,7 +1302,7 @@ ExprPtr EqExpr::Duplicate() {
 }
 
 ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( IsHasElementsTest() )
+    if ( IsHasElementsTest(this) )
         return BuildHasElementsTest()->Reduce(c, red_stmt);
 
     if ( GetType()->Tag() == TYPE_BOOL ) {
@@ -1338,7 +1339,7 @@ ExprPtr RelExpr::Duplicate() {
 }
 
 ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( IsHasElementsTest() )
+    if ( IsHasElementsTest(this) )
         return BuildHasElementsTest()->Reduce(c, red_stmt);
 
     if ( GetType()->Tag() == TYPE_BOOL ) {
@@ -1373,6 +1374,41 @@ ExprPtr CondExpr::Inline(Inliner* inl) {
     return ThisPtr();
 }
 
+static bool IsMinOrMax(const CondExpr* e) {
+    auto op1 = e->GetOp1();
+
+    switch ( op1->Tag() ) {
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_GE:
+        case EXPR_GT: break;
+
+        default: return false;
+    }
+
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+    auto op2 = e->GetOp2();
+    auto op3 = e->GetOp3();
+
+    return (same_expr(relop1, op2) && same_expr(relop2, op3)) || (same_expr(relop1, op3) && same_expr(relop2, op2));
+}
+
+static ExprPtr TransformToMinOrMax(const CondExpr* e) {
+    auto op1 = e->GetOp1();
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+
+    auto is_min = (op1->Tag() == EXPR_LT || op1->Tag() == EXPR_LE);
+
+    if ( same_expr(relop1, e->GetOp3()) )
+        is_min = ! is_min;
+
+    auto built_in = is_min ? ScriptOptBuiltinExpr::MINIMUM : ScriptOptBuiltinExpr::MAXIMUM;
+
+    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), e);
+}
+
 bool CondExpr::IsReduced(Reducer* c) const {
     if ( ! IsVector(op1->GetType()->Tag()) || ! HasReducedOps(c) || same_singletons(op2, op3) )
         return NonReduced(this);
@@ -1381,7 +1417,7 @@ bool CondExpr::IsReduced(Reducer* c) const {
 }
 
 bool CondExpr::HasReducedOps(Reducer* c) const {
-    return ! IsMinOrMax(c) && IsSingleton(op1, c) && IsSingleton(op2, c) && IsSingleton(op3, c) && ! op1->IsConst();
+    return ! IsMinOrMax(this) && IsSingleton(op1, c) && IsSingleton(op2, c) && IsSingleton(op3, c) && ! op1->IsConst();
 }
 
 bool CondExpr::WillTransform(Reducer* c) const { return ! HasReducedOps(c); }
@@ -1398,8 +1434,8 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         std::swap(op2, op3);
     }
 
-    if ( IsMinOrMax(c) ) {
-        auto res = TransformToMinOrMax();
+    if ( IsMinOrMax(this) ) {
+        auto res = TransformToMinOrMax(this);
         return res->Reduce(c, red_stmt);
     }
 
@@ -1489,36 +1525,6 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
     }
 
     return MergeStmts(this, red1_stmt, if_else);
-}
-
-bool CondExpr::IsMinOrMax(Reducer* c) const {
-    switch ( op1->Tag() ) {
-        case EXPR_LT:
-        case EXPR_LE:
-        case EXPR_GE:
-        case EXPR_GT: break;
-
-        default: return false;
-    }
-
-    auto relop1 = op1->GetOp1();
-    auto relop2 = op1->GetOp2();
-
-    return (same_expr(relop1, op2) && same_expr(relop2, op3)) || (same_expr(relop1, op3) && same_expr(relop2, op2));
-}
-
-ExprPtr CondExpr::TransformToMinOrMax() const {
-    auto relop1 = op1->GetOp1();
-    auto relop2 = op1->GetOp2();
-
-    auto is_min = (op1->Tag() == EXPR_LT || op1->Tag() == EXPR_LE);
-
-    if ( same_expr(relop1, op3) )
-        is_min = ! is_min;
-
-    auto built_in = is_min ? ScriptOptBuiltinExpr::MINIMUM : ScriptOptBuiltinExpr::MAXIMUM;
-
-    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), this);
 }
 
 ExprPtr RefExpr::Duplicate() { return SetSucc(new RefExpr(op->Duplicate())); }
@@ -2341,9 +2347,67 @@ ExprPtr CallExpr::Inline(Inliner* inl) {
     return ThisPtr();
 }
 
+static std::map<std::string, ScriptOptBuiltinExpr::SOBuiltInTag> known_funcs = {
+    {"id_string", ScriptOptBuiltinExpr::FUNC_ID_STRING}};
+
+static bool AllConstArgs(const CallExpr* e) {
+    for ( auto a : e->Args()->Exprs() )
+        if ( a->Tag() != EXPR_CONST )
+            return false;
+
+    return true;
+}
+
+static bool IsFoldableBiF(const CallExpr* e) {
+    if ( IsAggr(e->GetType()) )
+        return false;
+
+    if ( ! AllConstArgs(e) )
+        return false;
+
+    auto func = e->Func();
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    return is_foldable(func->AsNameExpr()->Id()->Name());
+}
+
+static bool CheckForBuiltin(const CallExpr* e) {
+    auto func = e->Func();
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    return known_funcs.contains(func->AsNameExpr()->Id()->Name());
+}
+
+static ExprPtr TransformToBuiltin(CallExpr* e) {
+    auto kf = known_funcs[e->Func()->AsNameExpr()->Id()->Name()];
+    CallExprPtr e_ptr = {NewRef{}, e};
+    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(kf, e_ptr), e);
+}
+
+static bool IsEmptyHook(const CallExpr* e) {
+    auto func = e->Func();
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    auto func_id = func->AsNameExpr()->IdPtr();
+    auto func_val = func_id->GetVal();
+
+    if ( ! func_val || ! func_id->IsGlobal() )
+        return false;
+
+    if ( func_id->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
+        return false;
+
+    return ! func_val->AsFuncVal()->Get()->HasBodies();
+}
+
 bool CallExpr::IsReduced(Reducer* c) const { return IsSingleton(func, c) && args->IsReduced(c) && ! WillTransform(c); }
 
-bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin() || IsFoldableBiF() || IsEmptyHook(); }
+bool CallExpr::WillTransform(Reducer* c) const {
+    return CheckForBuiltin(this) || IsFoldableBiF(this) || IsEmptyHook(this);
+}
 
 bool CallExpr::HasReducedOps(Reducer* c) const {
     if ( WillTransform(c) )
@@ -2374,7 +2438,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! IsSingleton(func, c) )
         func = func->ReduceToSingleton(c, red_stmt);
 
-    if ( IsEmptyHook() && analysis_options.usage_issues == 0 ) {
+    if ( IsEmptyHook(this) && analysis_options.usage_issues == 0 ) {
         // Reduce the arguments to pick up any side effects they include.
         // However we skip doing this if we're doing usage analysis, because
         // we might remove a conceptual usage of a variable even if in
@@ -2387,14 +2451,14 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(this, red_stmt, std::move(red2_stmt));
 
-    if ( CheckForBuiltin() ) {
+    if ( CheckForBuiltin(this) ) {
         StmtPtr red3_stmt;
-        auto res = TransformToBuiltin()->Reduce(c, red3_stmt);
+        auto res = TransformToBuiltin(this)->Reduce(c, red3_stmt);
         red_stmt = MergeStmts(this, red_stmt, std::move(red3_stmt));
         return res;
     }
 
-    if ( IsFoldableBiF() ) {
+    if ( IsFoldableBiF(this) ) {
         auto res = eval_in_isolation(this);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
@@ -2415,65 +2479,6 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
     auto args_stmt = args->ReduceToSingletons(c);
 
     return MergeStmts(this, func_stmt, args_stmt);
-}
-
-bool CallExpr::IsFoldableBiF() const {
-    if ( IsAggr(type) )
-        return false;
-
-    if ( ! AllConstArgs() )
-        return false;
-
-    if ( func->Tag() != EXPR_NAME )
-        return false;
-
-    return is_foldable(func->AsNameExpr()->Id()->Name());
-}
-
-bool CallExpr::AllConstArgs() const {
-    for ( auto e : Args()->Exprs() )
-        if ( e->Tag() != EXPR_CONST )
-            return false;
-
-    return true;
-}
-
-static std::map<std::string, ScriptOptBuiltinExpr::SOBuiltInTag> known_funcs = {
-    {"id_string", ScriptOptBuiltinExpr::FUNC_ID_STRING}};
-
-bool CallExpr::CheckForBuiltin() const {
-    if ( func->Tag() != EXPR_NAME )
-        return false;
-
-    auto f_id = func->AsNameExpr()->Id();
-
-    auto kf = known_funcs.find(f_id->Name());
-    if ( kf == known_funcs.end() )
-        return false;
-
-    return true;
-}
-
-ExprPtr CallExpr::TransformToBuiltin() {
-    auto kf = known_funcs[func->AsNameExpr()->Id()->Name()];
-    CallExprPtr this_ptr = {NewRef{}, this};
-    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(kf, this_ptr), this);
-}
-
-bool CallExpr::IsEmptyHook() const {
-    if ( func->Tag() != EXPR_NAME )
-        return false;
-
-    auto func_id = func->AsNameExpr()->IdPtr();
-    auto func_val = func_id->GetVal();
-
-    if ( ! func_val || ! func_id->IsGlobal() )
-        return false;
-
-    if ( func_id->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
-        return false;
-
-    return ! func_val->AsFuncVal()->Get()->HasBodies();
 }
 
 ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }

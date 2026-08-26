@@ -864,7 +864,6 @@ protected:
     bool IsReduced(Reducer* c) const override;
     ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt) override;
 
-    bool IsHasElementsTest() const;
     ExprPtr BuildHasElementsTest() const;
 };
 
@@ -925,8 +924,6 @@ public:
 protected:
     void ExprDescribe(ODesc* d) const override;
 
-    bool IsMinOrMax(Reducer* c) const;
-    ExprPtr TransformToMinOrMax() const;
 
     ExprPtr op1;
     ExprPtr op2;
@@ -1437,11 +1434,6 @@ public:
 protected:
     void ExprDescribe(ODesc* d) const override;
 
-    bool IsFoldableBiF() const;
-    bool AllConstArgs() const;
-    bool CheckForBuiltin() const;
-    bool IsEmptyHook() const;
-    ExprPtr TransformToBuiltin();
 
     ExprPtr func;
     ListExprPtr args;

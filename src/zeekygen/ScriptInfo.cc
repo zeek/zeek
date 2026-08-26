@@ -8,6 +8,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Type.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
+#include "zeek/zeekygen/IdentifierReST.h"
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/ReStructuredTextTable.h"
 #include "zeek/zeekygen/utils.h"
@@ -72,7 +73,7 @@ static string make_summary(const string& heading, char underline, char border, c
         auto* id = info->GetID();
         ODesc d;
         d.SetQuotes(true);
-        id->DescribeReSTShort(&d);
+        describe_id_rest_short(id, &d);
         add_summary_rows(d, summary_comment(info->GetComments()), &table);
     }
 
@@ -90,7 +91,7 @@ static string make_redef_summary(const string& heading, char underline, char bor
         auto* id = info->GetID();
         ODesc d;
         d.SetQuotes(true);
-        id->DescribeReSTShort(&d);
+        describe_id_rest_short(id, &d);
 
         using redef_list = std::list<IdentifierInfo::Redefinition>;
         redef_list redefs = info->GetRedefs(from_script);

@@ -1529,6 +1529,7 @@
 ./zeek/zeekygen
 ./zeek/zeekygen/Configuration.h
 ./zeek/zeekygen/IdentifierInfo.h
+./zeek/zeekygen/IdentifierReST.h
 ./zeek/zeekygen/Info.h
 ./zeek/zeekygen/Manager.h
 ./zeek/zeekygen/PackageInfo.h

@@ -6,6 +6,7 @@ zeek_add_subdir_library(
     PackageInfo.cc
     ScriptInfo.cc
     IdentifierInfo.cc
+    IdentifierReST.cc
     Target.cc
     Configuration.cc
     ReStructuredTextTable.cc

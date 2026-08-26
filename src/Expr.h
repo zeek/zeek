@@ -268,10 +268,6 @@ public:
     // Recursively traverses the AST to inline eligible function calls.
     virtual ExprPtr Inline(Inliner* inl) { return ThisPtr(); }
 
-    // True if the expression can serve as an operand to a reduced
-    // expression.
-    bool IsSingleton(Reducer* r) const { return (tag == EXPR_NAME && IsReduced(r)) || tag == EXPR_CONST; }
-
     // True if the expression has no side effects, false otherwise.
     virtual bool HasNoSideEffects() const { return IsPure(); }
 
@@ -288,17 +284,6 @@ public:
         return GetOp1() && GetOp1()->IsConst() &&
                (! GetOp2() || (GetOp2()->IsConst() && (! GetOp3() || GetOp3()->IsConst())));
     }
-
-    // True if the expression is reduced to a form that can be
-    // used in a conditional.
-    bool IsReducedConditional(Reducer* c) const;
-
-    // True if the expression is reduced to a form that can be
-    // used in a field assignment.
-    bool IsReducedFieldAssignment(Reducer* c) const;
-
-    // True if this expression can be the RHS for a field assignment.
-    bool IsFieldAssignable(const Expr* e) const;
 
     // True if the expression will transform to one of another AST node
     // (perhaps of the same type) upon reduction, for non-constant
@@ -317,9 +302,6 @@ public:
     // propagation.
     virtual bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const { return true; }
 
-    // Returns the current expression transformed into "new_me".
-    ExprPtr TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt);
-
     // Returns a set of predecessor statements in red_stmt (which might
     // be nil if no reduction necessary), and the reduced version of
     // the expression, suitable for replacing previous uses.  The
@@ -334,35 +316,18 @@ public:
     // Returns a predecessor statement (which might be a StmtList), if any.
     virtual StmtPtr ReduceToSingletons(Reducer* c);
 
-    // Reduces the expression to one that can appear as a conditional.
-    ExprPtr ReduceToConditional(Reducer* c, StmtPtr& red_stmt);
-
     // Transforms the expression into its form suitable for use in
     // a conditional. Only meaningful for expressions that return true
     // for WillTransformInConditional().
     virtual ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt);
 
-    // Reduces the expression to one that can appear as a field
-    // assignment.
-    ExprPtr ReduceToFieldAssignment(Reducer* c, StmtPtr& red_stmt);
-
     // Helper function for factoring out complexities related to
     // index-based assignment.
     void AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const;
 
-    // Returns a new expression corresponding to a temporary
-    // that's been assigned to the given expression via red_stmt.
-    ExprPtr AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt);
-    // Same but for this expression.
-    ExprPtr AssignToTemporary(Reducer* c, StmtPtr& red_stmt) { return AssignToTemporary(ThisPtr(), c, red_stmt); }
-
     // If the expression always evaluates to the same value, returns
     // that value.  Otherwise, returns nullptr.
     virtual ValPtr FoldVal() const { return nullptr; }
-
-    // Returns a Val or a constant Expr corresponding to zero.
-    ValPtr MakeZero(TypeTag t) const;
-    ConstExprPtr MakeZeroExpr(TypeTag t) const;
 
     // Returns the expression's operands, or nil if it doesn't
     // have the given operand.
@@ -374,9 +339,6 @@ public:
     virtual void SetOp1(ExprPtr new_op);
     virtual void SetOp2(ExprPtr new_op);
     virtual void SetOp3(ExprPtr new_op);
-
-    // Helper function to reduce boring code runs.
-    StmtPtr MergeStmts(StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr) const;
 
     // A convenience function for taking a newly-created Expr,
     // making it point to us as the successor, and returning it.

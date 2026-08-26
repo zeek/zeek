@@ -4,6 +4,49 @@
 
 namespace zeek::detail {
 
+// Reduction helpers.  These are free functions rather than Expr methods
+// because they're specific to script optimization and need nothing beyond
+// Expr's public interface.
+
+// True if the expression can serve as an operand to a reduced expression.
+extern bool IsSingleton(const Expr* e, Reducer* c);
+inline bool IsSingleton(const ExprPtr& e, Reducer* c) { return IsSingleton(e.get(), c); }
+
+// True if the expression is reduced to a form that can be used in a
+// conditional.
+extern bool IsReducedConditional(const Expr* e, Reducer* c);
+
+// True if the expression is reduced to a form that can be used in a field
+// assignment.
+extern bool IsReducedFieldAssignment(const Expr* e, Reducer* c);
+
+// True if the expression can be the RHS for a field assignment.
+extern bool IsFieldAssignable(const Expr* e);
+
+// Returns the expression transformed into "new_me".
+extern ExprPtr TransformMe(Expr* e, ExprPtr new_me, Reducer* c, StmtPtr& red_stmt);
+
+// Reduces the expression to one that can appear as a conditional.
+extern ExprPtr ReduceToConditional(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Reduces the expression to one that can appear as a field assignment.
+extern ExprPtr ReduceToFieldAssignment(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Returns a new expression corresponding to a temporary that's been assigned
+// to "target" via red_stmt, using "e" for type and location information.
+extern ExprPtr AssignToTemporary(Expr* e, ExprPtr target, Reducer* c, StmtPtr& red_stmt);
+// Same, but assigning "e" itself.
+extern ExprPtr AssignToTemporary(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Returns a Val or a constant Expr corresponding to zero.  The latter takes
+// the object to draw location information from.
+extern ValPtr MakeZero(TypeTag t);
+extern ConstExprPtr MakeZeroExpr(const Obj* o, TypeTag t);
+
+// Helper function to reduce boring code runs.  Uses "o" for location
+// information.
+extern StmtPtr MergeStmts(const Obj* o, StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr);
+
 class InlineExpr : public Expr {
 public:
     InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,

@@ -11,9 +11,11 @@ on:
       - release/**
     tags: ["*"]
   pull_request:
-    # Skip this workflow completely if only doc/ was modified.
+    # Skip this workflow completely if only doc, markdown, or NEWS files were modified.
     paths-ignore:
       - 'doc/**'
+      - '**.md'
+      - NEWS
   workflow_dispatch:
 
 concurrency:

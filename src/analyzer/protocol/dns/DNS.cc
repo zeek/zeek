@@ -59,6 +59,18 @@ DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) : analyzer(ar
 }
 
 void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
+    // Check for non-multicast mDNS or LLMNR on their standard ports. Some systems get a
+    // lot of non-DNS on these ports from non-multicast IPs, and it results in a ton of
+    // additional weirds. Don't bother reporting a weird, just return. Typically mDNS
+    // comes in with port set to 5353 on both source and destination, and only the
+    // destination address set to a multicast address. We check for both here just to
+    // avoid dumping random data into the DNS analyzer.
+    uint16_t orig_port = ntohs(analyzer->Conn()->OrigPort());
+    uint16_t resp_port = ntohs(analyzer->Conn()->RespPort());
+    if ( (! analyzer->Conn()->OrigAddr().IsMulticast() && (orig_port == 5353 || orig_port == 5355)) ||
+         (! analyzer->Conn()->RespAddr().IsMulticast() && (resp_port == 5353 || resp_port == 5355)) )
+        return;
+
     // Every packet for every opcode starts with same size header.
     int hdr_len = sizeof(detail::DNS_RawMsgHdr);
 

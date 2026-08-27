@@ -34,6 +34,10 @@ export {
   ## Whether to log LDAP search attributes or not.
   option default_log_search_attributes = F;
 
+  ## Maximum total ASN.1 aggregate child values retained while parsing one
+  ## LDAP message. A value of zero disables the limit.
+  option max_asn1_aggregate_elements = 20000;
+
   ## Default logging policy hook for LDAP_LOG.
   global log_policy: Log::PolicyHook;
 

@@ -15,20 +15,21 @@ const MAX_CRYPTO_DATA_SIZE: uint64 = 2**14 + 256; # 16640 bytes
 public function decrypt_crypto_payload(version: uint32, data: bytes, connection_id: bytes, encrypted_offset: uint64, payload_offset: uint64, from_client: bool): bytes &cxxname="QUIC_decrypt_crypto_payload";
 
 # Can we decrypt?
-function can_decrypt(long_header: LongHeaderPacket, context: Context, crypto: CryptoSinkUnit&): bool {
+function can_decrypt(long_header: LongHeaderPacket, context: Context, from_client: bool): bool {
 
     if (!long_header.is_initial)
         return False;
 
-    if (crypto == Null)
-        return False;
-
     # Can only decrypt the responder if we've seen the initial destination conn id.
-    if (!crypto.is_orig && !context.initial_destination_conn_id)
+    if (!from_client && !context.initial_destination_conn_id)
         return False;
 
-    # Only attempt decryption if we haven't flushed some SSL data yet.
-    return !crypto.finished;
+    # Only decrypt something if either there's no crypto state yet, or if
+    # there is crypto state, it hasn't been completed.
+    if (from_client)
+        return context.client_crypto == Null || !context.client_crypto.finished;
+
+    return context.server_crypto == Null || !context.server_crypto.finished;
 }
 
 function reset_crypto(context: Context&) {
@@ -97,6 +98,12 @@ type CryptoSinkUnit = unit(is_orig: bool, context: Context&) {
         #
         # https://datatracker.ietf.org/doc/html/rfc8446#section-5.1
         local length_bytes = pack(cast<uint16>(self.length), spicy::ByteOrder::Big);
+
+        # Instantiate SSL handle lazily just before forwarding some of the
+        # crypto data.
+        if (!context?.ssl_handle)
+            context.ssl_handle = zeek::protocol_handle_get_or_create("SSL");
+
         zeek::protocol_data_in(is_orig, b"\x16\x03\x03" + length_bytes + self.buffered, context.ssl_handle);
     }
 
@@ -483,36 +490,13 @@ type Packet = unit(from_client: bool, context: Context&) {
     var packet_size: uint64 = 0;
     var start: iterator<stream>;
 
-    var crypto: CryptoSinkUnit&;
-    var crypto_sink: sink&;
+    var crypto: CryptoSinkUnit& = Null;
+    var crypto_sink: sink& = Null;
+    var raise_discarded_packet: bool = False;
+    var total_decrypted: uint64;
 
-    # Attach an SSL analyzer to this connection once.
     on %init {
-        if (!context?.ssl_handle) {
-            context.ssl_handle = zeek::protocol_handle_get_or_create("SSL");
-        }
-
         self.start = self.input();
-
-        # Initialize crypto state in context for both sides if not already done.
-        if (context.client_crypto == Null) {
-            assert !context.server_crypto;
-            context.client_crypto = new CryptoSinkUnit(True, context);
-            context.client_sink = new sink;
-            context.client_sink.connect(context.client_crypto);
-
-            context.server_crypto = new CryptoSinkUnit(False, context);
-            context.server_sink = new sink;
-            context.server_sink.connect(context.server_crypto);
-        }
-
-        if (from_client) {
-            self.crypto = context.client_crypto;
-            self.crypto_sink = context.client_sink;
-        } else {
-            self.crypto = context.server_crypto;
-            self.crypto_sink = context.server_sink;
-        }
     }
 
     # Peek into the first byte and determine the header type.
@@ -546,17 +530,13 @@ type Packet = unit(from_client: bool, context: Context&) {
 
                     # If we see a retry packet from the responder, reset the decryption
                     # context such that the next DCID from the client is used for decryption.
-                    if (self.long_header.is_retry) {
+                    if (self.long_header.is_retry)
                         reset_crypto(context);
-
-                        self.crypto = Null;
-                        self.crypto_sink = Null;
-                    }
                 }
             };
 
             : void {
-                if (self?.long_header && can_decrypt(self.long_header, context, self.crypto))
+                if (self?.long_header && can_decrypt(self.long_header, context, from_client))
                     # If we have parsed an initial packet that we can decrypt the payload,
                     # determine the size to store into a buffer.
                     self.packet_size = self.offset();
@@ -586,6 +566,15 @@ type Packet = unit(from_client: bool, context: Context&) {
                         self.long_header.payload_length,
                         from_client
                     );
+
+                    if (|self.decrypted_data| > 0 && context.client_crypto == Null) {
+                        context.client_crypto = new CryptoSinkUnit(True, context);
+                        context.client_sink = new sink;
+                        context.client_sink.connect(context.client_crypto);
+                    }
+
+                    self.crypto = context.client_crypto;
+                    self.crypto_sink = context.client_sink;
                 } else {
                     context.server_cid_len = self.long_header.src_conn_id_len;
                     context.client_cid_len = self.long_header.dest_conn_id_len;
@@ -598,6 +587,15 @@ type Packet = unit(from_client: bool, context: Context&) {
                         self.long_header.payload_length,
                         from_client
                     );
+
+                    if (|self.decrypted_data| > 0 && context.server_crypto == Null) {
+                        context.server_crypto = new CryptoSinkUnit(False, context);
+                        context.server_sink = new sink;
+                        context.server_sink.connect(context.server_crypto);
+                    }
+
+                    self.crypto = context.server_crypto;
+                    self.crypto_sink = context.server_sink;
                 }
 
                 # We attempted decryption, but it failed. Just reject the

@@ -116,10 +116,10 @@ public type ResultCode = enum {
 };
 
 #-----------------------------------------------------------------------------
-public type Result = unit {
-    code: ASN1::ASN1Message(True) &convert=cast<ResultCode>(cast<uint8>($$.body.num_value)) &default=ResultCode::Undef;
-    matchedDN: ASN1::ASN1Message(True) &convert=$$.body.str_value &default="";
-    diagnosticMessage: ASN1::ASN1Message(True) &convert=$$.body.str_value &default="";
+public type Result = unit(asn1_elements_seen: uint64&) {
+    code: ASN1::ASN1Message(True, asn1_elements_seen) &convert=cast<ResultCode>(cast<uint8>($$.body.num_value)) &default=ResultCode::Undef;
+    matchedDN: ASN1::ASN1Message(True, asn1_elements_seen) &convert=$$.body.str_value &default="";
+    diagnosticMessage: ASN1::ASN1Message(True, asn1_elements_seen) &convert=$$.body.str_value &default="";
 
     # TODO: if we want to parse referral URIs in result
     # https://tools.ietf.org/html/rfc4511#section-4.1.10
@@ -292,6 +292,7 @@ type SaslMsKrb5Stripper = unit(ctx: Ctx&) {
 
 #-----------------------------------------------------------------------------
 public type Message = unit(ctx: Ctx&) {
+    var asn1_elements_seen: uint64& = new uint64;
     var messageID: int64;
     var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
     var unsetResultDefault: Result;
@@ -313,7 +314,7 @@ public type Message = unit(ctx: Ctx&) {
     }
 
     messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
-    : ASN1::ASN1Body(self.messageID_header, False, 0) {
+    : ASN1::ASN1Body(self.messageID_header, False, 0, self.asn1_elements_seen) {
         self.messageID = $$.num_value;
     }
 
@@ -405,8 +406,8 @@ type GSS_SPNEGO_Init = unit {
     spnegoInitial: skip GSS_SPNEGO_negTokenInit if(self?.spnegoInitByte);
 };
 
-type SaslCredentials = unit {
-    mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+type SaslCredentials = unit(asn1_elements_seen: uint64&) {
+    mechanism: ASN1::ASN1Message(False, asn1_elements_seen) &convert=$$.body.str_value;
 
     # Peak into GSS-SPNEGO payload if we have any.
     switch (self.mechanism) {
@@ -422,23 +423,23 @@ type SicilyMessage = unit {
     var signature_decoded: string = "NTLMSSP";
 };
 
-type GSS_SPNEGO_Subsequent = unit {
+type GSS_SPNEGO_Subsequent = unit(asn1_elements_seen: uint64&) {
     switch {
         -> spnegoChoiceByte: uint8(0xa1);
         -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
     };
 
     spnegoChoiceLen: skip ASN1::LengthType if(self?.spnegoChoiceByte);
-    negTokenResp: GSS_SPNEGO_negTokenResp if(self?.spnegoChoiceByte);
+    negTokenResp: GSS_SPNEGO_negTokenResp(asn1_elements_seen) if(self?.spnegoChoiceByte);
 };
 
-type GSS_SPNEGO_negTokenResp = unit {
+type GSS_SPNEGO_negTokenResp = unit(asn1_elements_seen: uint64&) {
     var accepted: bool;
     var supportedMech: ASN1::ASN1Message;
     var responseToken: optional<bytes>;
 
     # Parse the contained Sequence.
-    seq: ASN1::ASN1Message(True) {
+    seq: ASN1::ASN1Message(True, asn1_elements_seen) {
         for (msg in $$.body.seq.submessages) {
             # https://www.rfc-editor.org/rfc/rfc4178#section-4.2.2
             if (msg.application_id == 0) {
@@ -456,7 +457,7 @@ type GSS_SPNEGO_negTokenResp = unit {
     }
 
     switch (self?.supportedMech) {
-        True -> supportedMechOid: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+        True -> supportedMechOid: ASN1::ASN1Message(False, asn1_elements_seen) &convert=$$.body.str_value;
         * -> : void;
     } &parse-from=self.supportedMech.application_data;
 };
@@ -468,15 +469,15 @@ type NotImplemented = unit(inout message: Message) {
 };
 
 type BindRequest = unit(inout message: Message, ctx: Ctx&) {
-    version: ASN1::ASN1Message(True) &convert=$$.body.num_value;
-    name: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+    version: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.num_value;
+    name: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.str_value {
         message.obj = self.name;
     }
     var authType: BindAuthType = BindAuthType::Undef;
     var authData: bytes = b"";
     var simpleCreds: string = "";
 
-    : ASN1::ASN1Message(True) {
+    : ASN1::ASN1Message(True, message.asn1_elements_seen) {
         if ($$?.application_id) {
             self.authType = cast<BindAuthType>(cast<uint8>($$.application_id));
             self.authData = $$.application_data;
@@ -489,7 +490,7 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
                 self.simpleCreds = self.authData.decode();
                 message.arg = self.simpleCreds;
             }
-            BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials {
+            BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials(message.asn1_elements_seen) {
                 message.arg = self.saslCreds.mechanism;
                 ctx.saslMechanism = self.saslCreds.mechanism;
             }
@@ -508,7 +509,7 @@ type ServerSaslCreds = unit {
 };
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
 
         # The SASL authentication was successful. We do not actually
@@ -537,7 +538,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
 
     # If the client requested GSS-SPNEGO, try to parse the server's response
     # to switch message mode.
-    gss_spnego: GSS_SPNEGO_Subsequent &parse-from=self.serverSaslCreds[0].payload if(ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
+    gss_spnego: GSS_SPNEGO_Subsequent(message.asn1_elements_seen) &parse-from=self.serverSaslCreds[0].payload if(ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
 
         if ($$?.negTokenResp) {
             local token = $$.negTokenResp;
@@ -589,13 +590,13 @@ type FilterType = enum {
     FILTER_INVALID = 254,
 };
 
-public type AttributeSelection = unit {
+public type AttributeSelection = unit(asn1_elements_seen: uint64&) {
     var attributes: vector<string>;
 
     # TODO: parse AttributeSelection as per
     # https://tools.ietf.org/html/rfc4511#section-4.5.1
     # and decide how deep that should be fleshed out.
-    : ASN1::ASN1Message(True) {
+    : ASN1::ASN1Message(True, asn1_elements_seen) {
         if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) && ($$.body?.seq)) {
             for (i in $$.body.seq.submessages) {
                 if (i.body?.str_value) {
@@ -606,11 +607,11 @@ public type AttributeSelection = unit {
     }
 };
 
-type AttributeValueAssertion = unit {
+type AttributeValueAssertion = unit(asn1_elements_seen: uint64&) {
     var desc: string = "";
     var val: string = "";
 
-    : ASN1::ASN1Message(True) {
+    : ASN1::ASN1Message(True, asn1_elements_seen) {
         if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) && ($$.body?.seq) && (|$$.body.seq.submessages| >= 2)) {
             if ($$.body.seq.submessages[0].body?.str_value) {
                 self.desc = $$.body.seq.submessages[0].body.str_value;
@@ -623,12 +624,12 @@ type AttributeValueAssertion = unit {
 };
 
 # An AND or OR search filter can consist of many sub-searchfilters, so we try to parse these
-type ParseNestedAndOr = unit(depth: uint8) {
-    searchfilters: SearchFilter(depth + 1)[] &eod;
+type ParseNestedAndOr = unit(depth: uint8, asn1_elements_seen: uint64&) {
+    searchfilters: SearchFilter(depth + 1, asn1_elements_seen)[] &eod;
 };
 
-type ParseNestedNot = unit(depth: uint8) {
-    searchfilter: SearchFilter(depth + 1);
+type ParseNestedNot = unit(depth: uint8, asn1_elements_seen: uint64&) {
+    searchfilter: SearchFilter(depth + 1, asn1_elements_seen);
 };
 
 # Helper functions to properly format some custom data structures
@@ -881,7 +882,7 @@ type DecodedAttributeValue = unit(fType: FilterType) {
     }
 };
 
-type SubstringFilter = unit {
+type SubstringFilter = unit(asn1_elements_seen: uint64&) {
     var initial: string;
     var final: string;
     var anys: vector<string>;
@@ -894,7 +895,7 @@ type SubstringFilter = unit {
     #
     # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
     header: ASN1::ASN1Header;
-    : ASN1::ASN1Message(False)[] &size=self.header.len.len foreach {
+    : ASN1::ASN1Message(False, asn1_elements_seen)[] &size=self.header.len.len foreach {
         local data = escape_filter_string($$.application_data);
         if ($$.application_id == 0) {
             self.initial = data;
@@ -908,13 +909,13 @@ type SubstringFilter = unit {
     }
 };
 
-type SearchFilter = unit(depth: uint8 = 0) {
+type SearchFilter = unit(depth: uint8, asn1_elements_seen: uint64&) {
     var filterType: FilterType = FilterType::Undef;
     var filterBytes: bytes = b"";
     var filterLen: uint64 = 0;
     var stringRepresentation: string = "";
 
-    : ASN1::ASN1Message(True) {
+    : ASN1::ASN1Message(True, asn1_elements_seen) {
         if ($$?.application_id) {
             self.filterType = cast<FilterType>(cast<uint8>($$.application_id));
             self.filterBytes = $$.application_data;
@@ -927,13 +928,13 @@ type SearchFilter = unit(depth: uint8 = 0) {
     switch (self.filterType) {
 
         # FilterTypes that hold one or more SearchFilters inside them
-        FilterType::FILTER_AND -> FILTER_AND: ParseNestedAndOr(depth) &parse-from=self.filterBytes;
-        FilterType::FILTER_OR -> FILTER_OR: ParseNestedAndOr(depth) &parse-from=self.filterBytes;
-        FilterType::FILTER_NOT -> FILTER_NOT: ParseNestedNot(depth) &parse-from=self.filterBytes;
+        FilterType::FILTER_AND -> FILTER_AND: ParseNestedAndOr(depth, asn1_elements_seen) &parse-from=self.filterBytes;
+        FilterType::FILTER_OR -> FILTER_OR: ParseNestedAndOr(depth, asn1_elements_seen) &parse-from=self.filterBytes;
+        FilterType::FILTER_NOT -> FILTER_NOT: ParseNestedNot(depth, asn1_elements_seen) &parse-from=self.filterBytes;
 
         # FilterTypes that we can actually convert to a string
         FilterType::FILTER_EQ -> FILTER_EQ: DecodedAttributeValue(FilterType::FILTER_EQ) &parse-from=self.filterBytes;
-        FilterType::FILTER_SUBSTR -> FILTER_SUBSTR: SubstringFilter &parse-from=self.filterBytes;
+        FilterType::FILTER_SUBSTR -> FILTER_SUBSTR: SubstringFilter(asn1_elements_seen) &parse-from=self.filterBytes;
         FilterType::FILTER_GE -> FILTER_GE: DecodedAttributeValue(FilterType::FILTER_GE) &parse-from=self.filterBytes;
         FilterType::FILTER_LE -> FILTER_LE: DecodedAttributeValue(FilterType::FILTER_LE) &parse-from=self.filterBytes;
         FilterType::FILTER_APPROX -> FILTER_APPROX: DecodedAttributeValue(FilterType::FILTER_APPROX) &parse-from=self.filterBytes;
@@ -959,30 +960,30 @@ type SearchFilter = unit(depth: uint8 = 0) {
 };
 
 public type SearchRequest = unit(inout message: Message) {
-    baseObject: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+    baseObject: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.str_value {
         message.obj = self.baseObject;
     }
-    scope: ASN1::ASN1Message(True) &convert=cast<SearchScope>(cast<uint8>($$.body.num_value)) &default=SearchScope::Undef {
+    scope: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=cast<SearchScope>(cast<uint8>($$.body.num_value)) &default=SearchScope::Undef {
         message.arg = "%s" % self.scope;
     }
-    deref: ASN1::ASN1Message(True) &convert=cast<SearchDerefAlias>(cast<uint8>($$.body.num_value)) &default=SearchDerefAlias::Undef;
-    sizeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
-    timeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
-    typesOnly: ASN1::ASN1Message(True) &convert=$$.body.bool_value &default=False;
-    filter: SearchFilter(0) &convert=$$.stringRepresentation;
-    attributes: AttributeSelection &convert=$$.attributes;
+    deref: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=cast<SearchDerefAlias>(cast<uint8>($$.body.num_value)) &default=SearchDerefAlias::Undef;
+    sizeLimit: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.num_value &default=0;
+    timeLimit: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.num_value &default=0;
+    typesOnly: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.bool_value &default=False;
+    filter: SearchFilter(0, message.asn1_elements_seen) &convert=$$.stringRepresentation;
+    attributes: AttributeSelection(message.asn1_elements_seen) &convert=$$.attributes;
 };
 
 type SearchResultEntry = unit(inout message: Message) {
-    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+    objectName: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.str_value {
         message.obj = self.objectName;
     }
     # TODO: if we want to descend down into PartialAttributeList
-    attributes: ASN1::ASN1Message(True);
+    attributes: ASN1::ASN1Message(True, message.asn1_elements_seen);
 };
 
 type SearchResultDone = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1064,17 +1065,17 @@ public function stringify_changes(mr: ModifyRequest): string {
 # Modify Operation
 # https://datatracker.ietf.org/doc/html/rfc4511#section-4.6
 type ModifyRequest = unit(inout message: Message) {
-    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+    objectName: ASN1::ASN1Message(True, message.asn1_elements_seen) &convert=$$.body.str_value {
         message.obj = self.objectName;
     }
 
-    changes: ASN1::ASN1Message(True) &requires=($$.head.tag.type_ == ASN1::ASN1Type::Sequence) {
+    changes: ASN1::ASN1Message(True, message.asn1_elements_seen) &requires=($$.head.tag.type_ == ASN1::ASN1Type::Sequence) {
         message.arg = stringify_changes(self);
     }
 };
 
 type ModifyResponse = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1090,7 +1091,7 @@ type ModifyResponse = unit(inout message: Message) {
 # };
 
 type AddResponse = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1106,7 +1107,7 @@ type DelRequest = unit(inout message: Message) {
 };
 
 type DelResponse = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1121,7 +1122,7 @@ type DelResponse = unit(inout message: Message) {
 # };
 
 type ModDNResponse = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1136,7 +1137,7 @@ type ModDNResponse = unit(inout message: Message) {
 # };
 
 type CompareResponse = unit(inout message: Message) {
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 };
@@ -1164,7 +1165,7 @@ type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
     }
 
     # If there's more byte to parse, it's the requestValue.
-    : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) if(message.opLen > self.offset()) {
+    : ASN1::ASN1Message(False, message.asn1_elements_seen) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) if(message.opLen > self.offset()) {
 
         self.requestValue = $$.application_data;
     }
@@ -1179,8 +1180,8 @@ type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
 };
 
 #-----------------------------------------------------------------------------
-type ExtendedResponseEntry = unit(inout r: ExtendedResponse) {
-    : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
+type ExtendedResponseEntry = unit(inout r: ExtendedResponse, asn1_elements_seen: uint64&) {
+    : ASN1::ASN1Message(False, asn1_elements_seen) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
         if ($$.head.tag.type_ == ASN1::ASN1Type(10))
             r.responseName = $$.application_data;
         else if ($$.head.tag.type_ == ASN1::ASN1Type(11))
@@ -1194,14 +1195,14 @@ type ExtendedResponseEntry = unit(inout r: ExtendedResponse) {
 type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
     var responseName: bytes;
     var responseValue: bytes;
-    : Result {
+    : Result(message.asn1_elements_seen) {
         message.result_ = $$;
     }
 
     # Try to parse two ASN1 entries if there are bytes left in the unit.
     # Both are optional and identified by context specific tagging.
-    : ExtendedResponseEntry(self) if(message.opLen > self.offset());
-    : ExtendedResponseEntry(self) if(message.opLen > self.offset());
+    : ExtendedResponseEntry(self, message.asn1_elements_seen) if(message.opLen > self.offset());
+    : ExtendedResponseEntry(self, message.asn1_elements_seen) if(message.opLen > self.offset());
 
     on %done {
         # Client had requested StartTLS and it was successful? Switch to SSL.

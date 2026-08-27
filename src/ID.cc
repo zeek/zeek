@@ -531,9 +531,27 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
 
             std::string redef_str;
             ODesc expr_desc;
+            // Quotes keep empty strings from describing to nothing, which would
+            // leave the literal block below empty and thus invalid ReST.
+            expr_desc.SetQuotes(true);
             if ( ir->init_expr->IsConst() ) {
                 const auto* val = ir->init_expr->ExprVal();
-                val->DescribeReST(&expr_desc);
+
+                // The value ends up inside a literal block below, so avoid
+                // Val::DescribeReST() for anything it would decorate with
+                // inline ReST markup (that markup would show up verbatim).
+                if ( val->GetType()->InternalType() == TYPE_INTERNAL_OTHER )
+                    val->DescribeReST(&expr_desc);
+                else
+                    val->Describe(&expr_desc);
+            }
+            else if ( auto tag = ir->init_expr->Tag(); tag == EXPR_SET_CONSTRUCTOR || tag == EXPR_TABLE_CONSTRUCTOR ) {
+                // These constructors carry the identifier's own attributes, which
+                // Expr::Describe() would append to the value. They're documented
+                // separately under :Attributes:, so describe just the value here.
+                expr_desc.Add(tag == EXPR_SET_CONSTRUCTOR ? "set(" : "table(");
+                ir->init_expr->GetOp1()->Describe(&expr_desc);
+                expr_desc.Add(")");
             }
             else {
                 ir->init_expr->Describe(&expr_desc);

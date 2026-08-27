@@ -4,19 +4,16 @@
 
 #include "zeek/packet_analysis/protocol/gtpv1/events.bif.h"
 #include "zeek/packet_analysis/protocol/ip/IP.h"
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 namespace zeek::packet_analysis::gtpv1 {
-GTPv1_Analyzer::GTPv1_Analyzer() : zeek::packet_analysis::Analyzer("GTPV1") {}
+GTPv1_Analyzer::GTPv1_Analyzer() : zeek::packet_analysis::SessionTunnelAnalyzer("GTPV1") {}
 
 bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
-    // GTPv1 always comes from a UDP connection, which means that session should always
-    // be valid and always be a connection. Return a weird if we didn't have a session
-    // stored.
-    if ( ! packet->session ) {
-        Analyzer::Weird("gtpv1_missing_connection");
+    if ( ! ValidateSession(packet) )
         return false;
-    }
+
+    if ( ! CheckTunnelDepth(packet) )
+        return false;
 
     auto conn = static_cast<Connection*>(packet->session);
     const auto& key = conn->Key();
@@ -87,11 +84,9 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    int encap_index = 0;
-    auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_RAW,
-                                                                      BifEnum::Tunnel::GTPv1, GetAnalyzerTag());
+    auto inner_pkt = BuildInnerPacket(packet, len, data, DLT_RAW, BifEnum::Tunnel::GTPv1);
 
-    return ForwardPacket(len, data, inner_packet.get());
+    return ForwardPacket(len, data, inner_pkt.packet.get());
 }
 
 } // namespace zeek::packet_analysis::gtpv1

@@ -10,6 +10,11 @@ We'd like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- Broker's identifier update messages now apply only to non-const global
+  identifiers. Updating constants or config framework options now triggers
+  reporter warnings and has no effect. This enforcement happens on the receiving
+  side of the Broker message since senders may or may not be Zeek nodes.
+
 New Functionality
 -----------------
 

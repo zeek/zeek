@@ -1751,6 +1751,23 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::IdentifierUpdate& i
         return false;
     }
 
+    // Prevent updates of constant values. Many sensitive values assume
+    // constness after launch & redefing.
+    if ( id->IsConst() ) {
+        reporter->Warning("Received id-update request for constant id: %s", id_name.c_str());
+        return false;
+    }
+
+    // Prevent updates of config framework options. Identifier updates do not
+    // trigger change handlers, undermining the framework.
+    if ( id->IsOption() ) {
+        reporter->Warning("Received id-update request for config option id: %s", id_name.c_str());
+        return false;
+    }
+
+    // Redefinable IDs are okay; &redefinable is valid on non-const globals.
+    // Their typical constness is already covered above.
+
     auto val = detail::data_to_val(id_value, id->GetType().get());
 
     if ( ! val ) {

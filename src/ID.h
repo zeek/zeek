@@ -135,9 +135,6 @@ public:
     void Describe(ODesc* d) const override;
     // Adds type and value to description.
     void DescribeExtended(ODesc* d) const;
-    // Produces a description that's reST-ready.
-    void DescribeReST(ODesc* d, bool roles_only = false) const;
-    void DescribeReSTShort(ODesc* d) const;
 
     bool DoInferReturnType() const { return infer_return_type; }
     void SetInferReturnType(bool infer) { infer_return_type = infer; }

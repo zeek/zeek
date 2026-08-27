@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Val.h"
+#include "zeek/zeekygen/IdentifierReST.h"
 #include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/zeekygen/utils.h"
 
@@ -110,7 +111,7 @@ string IdentifierInfo::DoReStructuredText(bool roles_only) const {
     ODesc d;
     d.SetIndentSpaces(3);
     d.SetQuotes(true);
-    id->DescribeReST(&d, roles_only);
+    describe_id_rest(id.get(), &d, roles_only);
 
     if ( comments.empty() )
         return d.Description();

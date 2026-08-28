@@ -60,6 +60,22 @@
 
 refine connection NTLM_Conn += {
 
+	function validate_target_info_offset(field_offset: uint32, absolute_offset: uint16,
+	                                     payload_length: uint32): bool
+		%{
+		bool valid = field_offset >= absolute_offset;
+		if ( valid )
+			{
+			auto relative_offset = field_offset - absolute_offset;
+			valid = relative_offset <= payload_length;
+			}
+
+		if ( ! valid )
+			zeek_analyzer()->AnalyzerViolation("invalid NTLM target info offset");
+
+		return valid;
+		%}
+
 	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): ZeekVal
 		%{
 		zeek::RecordVal* result = new zeek::RecordVal(zeek::BifType::Record::NTLM::AVs);

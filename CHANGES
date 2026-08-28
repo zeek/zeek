@@ -1,3 +1,17 @@
+9.0.0-rc1.5 | 2026-08-28 09:55:07 -0700
+
+  * Revert "Fix missing python3-venv in a few builds" (Arne Welzel, Corelight)
+
+    This reverts commit d2cd5e2c69f0990143f79bb20b4d06ff82911619.
+
+    (cherry picked from commit 848ace1af13490a018a59cf5a87a5f88745ce49f)
+
+  * Revert "CI: Add python3-venv to all of the Ubuntu/Debian dockerfiles" (Arne Welzel, Corelight)
+
+    This reverts commit ea4971d3b0b3d2aa55da0c129d90d5cfa20fdbe0.
+
+    (cherry picked from commit 848ace1af13490a018a59cf5a87a5f88745ce49f)
+
 9.0.0-rc1.4 | 2026-08-26 13:05:39 -0700
 
   * doc/deployment/systemd: Add a section about using PF_RING (Arne Welzel, Corelight)

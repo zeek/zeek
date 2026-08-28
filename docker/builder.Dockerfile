@@ -38,7 +38,6 @@ RUN apt-get -q update \
      make \
      python3-minimal \
      python3-dev \
-     python3-venv \
      swig \
      ninja-build \
      python3-pip \

@@ -46,7 +46,6 @@ RUN apt-get update && apt-get -y install \
     python3-git \
     python3-pip \
     python3-semantic-version \
-    python3-venv \
     redis-server \
     ruby \
     sqlite3 \

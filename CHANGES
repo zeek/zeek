@@ -1,3 +1,7 @@
+9.1.0-dev.41 | 2026-08-28 19:56:05 +0200
+
+  * README.md: Fix build status badge (Arne Welzel, Corelight)
+
 9.1.0-dev.39 | 2026-08-28 09:54:22 -0700
 
   * Revert "Fix missing python3-venv in a few builds" (Arne Welzel, Corelight)

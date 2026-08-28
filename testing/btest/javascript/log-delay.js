@@ -1,7 +1,7 @@
 /*
  * @TEST-DOC: Test delaying a log record from JavaScript
  * @TEST-REQUIRES: $SCRIPTS/have-javascript
- * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.pcap main.zeek exit_only_after_terminate=T
+ * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.pcap main.zeek
  * @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
  * @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.resp_h new_field < http.log > http.log.cut
  * @TEST-EXEC: btest-diff http.log.cut
@@ -27,6 +27,7 @@ zeek.hook('Log::log_stream_policy', (rec, id) => {
 
   // Log::delay() of the in-flight write.
   let token = zeek.invoke('Log::delay', [id, rec]);
+  zeek.invoke('suspend_processing');
 
   // 10msec delayed record enrichment
   setTimeout(() => {
@@ -34,9 +35,7 @@ zeek.hook('Log::log_stream_policy', (rec, id) => {
     rec.new_field = "JS: after delay";
     console.log(nt, 'delay finish');
     zeek.invoke('Log::delay_finish', [id, rec, token]);
-
-    // Shutdown, too.
-    zeek.invoke('terminate');
+    zeek.invoke('continue_processing');
   }, 10);
 
 });

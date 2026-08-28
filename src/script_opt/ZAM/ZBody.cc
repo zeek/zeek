@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/ZAM/ZBody.h"
 
+#include <limits>
+
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -152,6 +154,9 @@ void report_ZOP_profile() {
 // true otherwise.
 
 bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
+    if ( ind >= std::numeric_limits<unsigned int>::max() )
+        reporter->RuntimeError(vv->GetLocationInfo(), "vector index is out of bounds");
+
     if ( vv->Size() <= ind )
         vv->Resize(ind + 1);
 

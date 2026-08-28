@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
 #include <memory>
 #include <set>
 
@@ -3378,6 +3379,9 @@ bool VectorVal::Assign(unsigned int index, ValPtr element) {
 
     unsigned int n = vector_val.size();
 
+    if ( index >= std::numeric_limits<unsigned int>::max() )
+        reporter->RuntimeError(GetLocationInfo(), "vector index is out of bounds");
+
     if ( index >= n ) {
         if ( index > n )
             AddHoles(index - n);
@@ -3460,12 +3464,12 @@ bool VectorVal::Insert(unsigned int index, ValPtr element) {
     return true;
 }
 
-void VectorVal::AddHoles(int nholes) {
+void VectorVal::AddHoles(unsigned int nholes) {
     TypePtr fill_t = yield_type;
     if ( yield_type->Tag() == TYPE_VOID )
         fill_t = base_type(TYPE_ANY);
 
-    for ( auto i = 0; i < nholes; ++i )
+    for ( auto i = 0u; i < nholes; ++i )
         vector_val.emplace_back(std::nullopt);
 }
 

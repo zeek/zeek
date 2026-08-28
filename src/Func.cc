@@ -976,6 +976,19 @@ zeek::VectorValPtr get_current_script_backtrace() {
     return rval;
 }
 
+const zeek::detail::Location* get_current_script_location() {
+    if ( call_stack.empty() )
+        return nullptr;
+
+    const auto& ci = call_stack.back();
+
+    if ( ! ci.frame )
+        return nullptr;
+
+    const auto* next_stmt = ci.frame->GetNextStmt();
+    return next_stmt ? next_stmt->GetLocationInfo() : nullptr;
+}
+
 static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
     auto emit = [=](const CallExpr* ce) {
         if ( ce ) {

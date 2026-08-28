@@ -61,12 +61,6 @@ void HTTP_Entity::EndOfData() {
         DEBUG_MSG("%.6f HTTP_Entity::EndOfData[%p, %" PRId64 "] is_orig=%d\n", run_state::network_time, this, Depth(),
                   http_message->IsOrig());
 
-    if ( zip ) {
-        zip->Done();
-        zip.reset();
-        encoding = IDENTITY;
-    }
-
     zeek::detail::Rule::PatternType rule =
         http_message->IsOrig() ? zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
 
@@ -212,7 +206,19 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             zip->SetOutputHandler(new UncompressedOutput(this));
         }
 
-        zip->NextStream(len, (const u_char*)data, false);
+        zip->NextStream(len, reinterpret_cast<const u_char*>(data), false);
+
+        // zip->NextStream() may call EndOfData() for this entity. This happens when a multipart end
+        // boundary was observed in the uncompressed content, or all expected data was consumed by
+        // the entity. We can just tear down now for those cases. Otherwise, it'll just teardown at
+        // destruction time.
+        //
+        // Previously this was done in EndOfData(), but would cause a UAF since it's called from the
+        // ZIP analyzer.
+        if ( end_of_data ) {
+            zip->Done();
+            zip.reset();
+        }
     }
     else
         DeliverBodyClear(len, data, trailing_CRLF);

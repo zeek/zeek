@@ -579,8 +579,11 @@ public:
             // execution. If called elsewhere, Zeek will likely abort due to an unhandled
             // exception. This is all entirely intentional. since if you got to this point
             // something went really wrong with your input data.
-            auto loc = detail::GetCurrentLocation();
-            reporter->RuntimeError(&loc,
+            const auto* loc = detail::get_current_script_location();
+            if ( ! loc )
+                loc = &detail::no_location;
+
+            reporter->RuntimeError(loc,
                                    "Attempted to create DictEntry with excessively large key, "
                                    "truncating key (%" PRIu64 " > %u)",
                                    key_size, detail::DictEntry<T>::MAX_KEY_SIZE);

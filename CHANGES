@@ -1,3 +1,15 @@
+9.1.0-dev.39 | 2026-08-28 09:54:22 -0700
+
+  * Revert "Fix missing python3-venv in a few builds" (Arne Welzel, Corelight)
+
+    This reverts commit d2cd5e2c69f0990143f79bb20b4d06ff82911619.
+
+  * Revert "CI: Add python3-venv to all of the Ubuntu/Debian dockerfiles" (Arne Welzel, Corelight)
+
+    This reverts commit ea4971d3b0b3d2aa55da0c129d90d5cfa20fdbe0.
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.1.0-dev.35 | 2026-08-27 16:10:58 -0700
 
   * Adjust btest directory and file ignore lists (Tim Wojtulewicz, Corelight)

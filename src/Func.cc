@@ -83,7 +83,7 @@ uint64_t max_recursion_depth = 1000;
 
 namespace zeek {
 
-std::string render_call_stack() {
+std::string render_call_stack(bool include_args) {
     std::string rval;
     int lvl = 0;
 
@@ -97,16 +97,18 @@ std::string render_call_stack() {
         const auto& name = ci.frame->GetFunction()->GetName();
         std::string arg_desc;
 
-        const auto& args = ci.frame->GetFuncArgs();
-        for ( const auto& arg : *args ) {
-            ODesc d;
-            d.SetShort();
-            arg->Describe(&d);
+        if ( include_args ) {
+            const auto& args = ci.frame->GetFuncArgs();
+            for ( const auto& arg : *args ) {
+                ODesc d;
+                d.SetShort();
+                arg->Describe(&d);
 
-            if ( ! arg_desc.empty() )
-                arg_desc += ", ";
+                if ( ! arg_desc.empty() )
+                    arg_desc += ", ";
 
-            arg_desc += d.Description();
+                arg_desc += d.Description();
+            }
         }
 
         rval += util::fmt("#%d %s(%s)", lvl, name.c_str(), arg_desc.data());

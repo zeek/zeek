@@ -454,7 +454,7 @@ extern void emit_builtin_exception(const char* msg, Obj* arg);
 
 } // namespace detail
 
-extern std::string render_call_stack();
+extern std::string render_call_stack(bool include_args = true);
 
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);

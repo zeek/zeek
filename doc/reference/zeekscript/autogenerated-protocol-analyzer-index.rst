@@ -13331,7 +13331,7 @@ Options/Constants
 
       ``=``::
 
-         spoolss, winreg, samr, srvsvc, netdfs, lsarpc, wkssvc, MsFteWds
+         "spoolss", "winreg", "samr", "srvsvc", "netdfs", "lsarpc", "wkssvc", "MsFteWds"
 
 
    A set of file names used as named pipes over SMB. This

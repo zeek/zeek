@@ -95,7 +95,7 @@ State Variables
 
       ``=``::
 
-         Cluster::PoolSpec($topic=zeek.cluster.pool.logger, $node_type=Cluster::LOGGER)
+         Cluster::PoolSpec($topic="zeek.cluster.pool.logger", $node_type=Cluster::LOGGER)
 
 
    The specification for :zeek:see:`Cluster::logger_pool`.
@@ -148,7 +148,7 @@ State Variables
 
       ``=``::
 
-         Cluster::PoolSpec($topic=zeek.cluster.pool.proxy, $node_type=Cluster::PROXY)
+         Cluster::PoolSpec($topic="zeek.cluster.pool.proxy", $node_type=Cluster::PROXY)
 
 
    The specification for :zeek:see:`Cluster::proxy_pool`.
@@ -201,7 +201,7 @@ State Variables
 
       ``=``::
 
-         Cluster::PoolSpec($topic=zeek.cluster.pool.worker, $node_type=Cluster::WORKER)
+         Cluster::PoolSpec($topic="zeek.cluster.pool.worker", $node_type=Cluster::WORKER)
 
 
    The specification for :zeek:see:`Cluster::worker_pool`.

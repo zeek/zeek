@@ -99,7 +99,7 @@ Runtime Options
 
       ``=``::
 
-         ``ALL_HOSTS``
+         ALL_HOSTS
 
 
    The hosts whose existence should be logged and tracked.

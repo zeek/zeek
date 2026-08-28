@@ -76,7 +76,7 @@ Redefinable Options
 
       ``=``::
 
-         ``T``
+         T
 
 
    If true, detect log files that did not get properly rotated
@@ -237,7 +237,7 @@ Redefinable Options
 
       ``=``::
 
-         ``T``
+         T
 
 
    If true, the default will be to write logs in a JSON format.

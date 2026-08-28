@@ -167,13 +167,13 @@ Runtime Options
 
       ``=``::
 
-         build_path(Management::get_spool_dir(), log-queue)
+         build_path(Management::get_spool_dir(), "log-queue")
 
    :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
 
       ``=``::
 
-         ``../log-queue``
+         "../log-queue"
 
 
    Default rotation directory to use for the *dir* field of
@@ -243,7 +243,7 @@ Redefinable Options
 
       ``=``::
 
-         ``1.0 day``
+         1.0 day
 
 
    Default alarm summary mail interval. Zero disables alarm summary
@@ -295,7 +295,7 @@ Redefinable Options
 
       ``=``::
 
-         ``1.0 hr``
+         1.0 hr
 
 
    Default rotation interval to use for filters that do not specify
@@ -314,13 +314,13 @@ Redefinable Options
 
       ``=``::
 
-         ``archive-log``
+         "archive-log"
 
    :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
 
       ``=``::
 
-         ````
+         ""
 
 
    Default shell command to run on rotated files. Empty for none.
@@ -389,7 +389,7 @@ Redefinable Options
 
       ``=``::
 
-         ``T``
+         T
 
 
    If true, local logging is by default enabled for all filters.
@@ -404,7 +404,7 @@ Redefinable Options
 
       ``=``::
 
-         ``F``
+         F
 
 
    If true, remote logging is by default enabled for all filters.

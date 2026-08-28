@@ -112,6 +112,8 @@ Package: policy/frameworks/cluster/backend/zeromq
    You may generate the keys as follows. Use :zeek:see:`to_json` when there's
    a need to consume the key material elsewhere.
 
+   .. code-block:: console
+
        $ zeek -e 'print to_json(Cluster::Backend::ZeroMQ::generate_keypair())'
        {"public":"l2A9cf[>&X7u=.GZFdHI=nz6QT6{$u^weYPEWJb/","secret":"Z0eCkbrKkQBkO90Qb[j5mngd[0%Cl*bo}0<D+&vp"}
 

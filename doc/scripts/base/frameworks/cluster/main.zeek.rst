@@ -207,7 +207,7 @@ Redefinable Options
 
       ``=``::
 
-         ``zeek.cluster.logger``
+         "zeek.cluster.logger"
 
 
    The topic name used for exchanging messages that are relevant to
@@ -235,7 +235,7 @@ Redefinable Options
 
       ``=``::
 
-         ``zeek.cluster.manager``
+         "zeek.cluster.manager"
 
 
    The topic name used for exchanging messages that are relevant to
@@ -295,7 +295,7 @@ Redefinable Options
 
       ``=``::
 
-         ``zeek.cluster.proxy``
+         "zeek.cluster.proxy"
 
 
    The topic name used for exchanging messages that are relevant to
@@ -322,7 +322,7 @@ Redefinable Options
 
       ``=``::
 
-         ``zeek.cluster.worker``
+         "zeek.cluster.worker"
 
 
    The topic name used for exchanging messages that are relevant to
@@ -640,7 +640,7 @@ Functions
    Write a message to the cluster logging stream.
 
 .. zeek:id:: Cluster::node_id
-   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 450 452
+   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 452 454
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -652,7 +652,7 @@ Functions
    a short lived identifier that resets when a node is restarted.
 
 .. zeek:id:: Cluster::node_topic
-   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 435 437
+   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 437 439
 
    :Type: :zeek:type:`function` (name: :zeek:type:`string`) : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -682,7 +682,7 @@ Functions
             known, otherwise a "null" instance with an empty name field.
 
 .. zeek:id:: Cluster::nodeid_topic
-   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 439 441
+   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 441 443
 
    :Type: :zeek:type:`function` (id: :zeek:type:`string`) : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`

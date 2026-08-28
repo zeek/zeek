@@ -102,7 +102,7 @@ Runtime Options
 
       ``=``::
 
-         ``ALL_HOSTS``
+         ALL_HOSTS
 
 
    Hosts whose software should be detected and tracked.

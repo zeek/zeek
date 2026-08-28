@@ -1239,19 +1239,19 @@ Redefinable Options
 
       ``=``::
 
-         ``Cluster::CLUSTER_BACKEND_BROKER``
+         Cluster::CLUSTER_BACKEND_BROKER
 
    :Redefinition: from :doc:`/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek`
 
       ``=``::
 
-         ``Cluster::CLUSTER_BACKEND_ZEROMQ``
+         Cluster::CLUSTER_BACKEND_ZEROMQ
 
    :Redefinition: from :doc:`/scripts/test-all-policy.zeek`
 
       ``=``::
 
-         ``Cluster::CLUSTER_BACKEND_NONE``
+         Cluster::CLUSTER_BACKEND_NONE
 
 
    Cluster backend to use. Default is the None backend.
@@ -1288,7 +1288,7 @@ Redefinable Options
 
       ``=``::
 
-         ``ConnKey::CONNKEY_VLAN_FIVETUPLE``
+         ConnKey::CONNKEY_VLAN_FIVETUPLE
 
 
    The connection key factory to use for Zeek's internal connection
@@ -1406,7 +1406,7 @@ Redefinable Options
 
       ``+=``::
 
-         websocket = Analyzer::ANALYZER_WEBSOCKET
+         "websocket" = Analyzer::ANALYZER_WEBSOCKET
 
 
    Lookup table for Upgrade analyzers. First, a case sensitive lookup
@@ -1919,7 +1919,7 @@ Redefinable Options
 
       ``=``::
 
-         spoolss, winreg, samr, srvsvc, netdfs, lsarpc, wkssvc, MsFteWds
+         "spoolss", "winreg", "samr", "srvsvc", "netdfs", "lsarpc", "wkssvc", "MsFteWds"
 
 
    A set of file names used as named pipes over SMB. This
@@ -2418,7 +2418,7 @@ Redefinable Options
 
       ``=``::
 
-         ``T``
+         T
 
 
    If true, stops signature matching after a late match. A late match may occur
@@ -2442,7 +2442,7 @@ Redefinable Options
 
       ``=``::
 
-         ``F``
+         F
 
 
    If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
@@ -2514,7 +2514,7 @@ Redefinable Options
 
       ``=``::
 
-         ``20``
+         20
 
 
    Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
@@ -2859,7 +2859,7 @@ Redefinable Options
 
       ``=``::
 
-         ``15.0 secs``
+         15.0 secs
 
 
    Update interval for profiling (0 disables).  The easiest way to activate
@@ -2972,13 +2972,13 @@ Redefinable Options
 
       ``=``::
 
-         ``2.0 secs``
+         2.0 secs
 
    :Redefinition: from :doc:`/scripts/policy/frameworks/management/controller/main.zeek`
 
       ``=``::
 
-         ``2.0 secs``
+         2.0 secs
 
 
    Check for expired table entries after this amount of time.
@@ -4060,7 +4060,7 @@ State Variables
 
       ``=``::
 
-         ``F``
+         F
 
 
    If true, all DNS ADDL records are skipped.
@@ -4077,7 +4077,7 @@ State Variables
 
       ``=``::
 
-         ``F``
+         F
 
 
    If true, all DNS AUTH records are skipped.
@@ -4216,7 +4216,7 @@ State Variables
 
       ``=``::
 
-         open(fmt(prof.%s, Profiling::log_suffix()))
+         open(fmt("prof.%s", Profiling::log_suffix()))
 
 
    Write profiling info into this file in regular intervals. The easiest way to

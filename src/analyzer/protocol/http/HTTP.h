@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <memory>
 #include <queue>
 #include <string>
 
@@ -33,10 +34,8 @@ class HTTP_Entity final : public analyzer::mime::MIME_Entity {
 public:
     HTTP_Entity(HTTP_Message* msg, analyzer::mime::MIME_Entity* parent_entity, int expect_body);
     ~HTTP_Entity() override {
-        if ( zip ) {
+        if ( zip )
             zip->Done();
-            delete zip;
-        }
     }
 
     void EndOfData() override;
@@ -60,7 +59,7 @@ protected:
     int64_t body_length;
     int64_t header_length;
     enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
-    analyzer::zip::ZIP_Analyzer* zip;
+    std::unique_ptr<analyzer::zip::ZIP_Analyzer> zip;
     bool deliver_body;
     bool is_partial_content;
     uint64_t offset;

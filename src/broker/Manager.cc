@@ -502,6 +502,7 @@ void Manager::DoInitPostScript() {
     writer_id_type = id::find_type("Log::Writer")->AsEnumType();
     zeek_table_manager = get_option("Broker::table_store_master")->AsBool();
     zeek_table_db_directory = get_option("Broker::table_store_db_directory")->AsString()->CheckString();
+    enable_identifier_updates = get_option("Broker::enable_identifier_updates")->AsBool();
 
     // If Zeek's forwarding of network time to wallclock time was disabled,
     // assume that also Broker does not use realtime and instead receives
@@ -898,6 +899,11 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
 }
 
 bool Manager::PublishIdentifier(std::string topic, std::string id) {
+    if ( ! enable_identifier_updates ) {
+        reporter->Error("Not publishing ID update, feature disabled: %s", id.c_str());
+        return false;
+    }
+
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
@@ -1743,6 +1749,12 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::IdentifierUpdate& i
 
     num_ids_incoming_metric->Inc();
     auto id_name = std::string{iu.id_name()};
+
+    if ( ! enable_identifier_updates ) {
+        reporter->Error("Received id-update request, feature disabled: %s", id_name.c_str());
+        return false;
+    }
+
     auto id_value = iu.id_value().to_data();
     const auto& id = zeek::detail::global_scope()->Find(id_name);
 

@@ -9,6 +9,10 @@
 
 @load base/frameworks/control
 
+# Configuration updates require Broker's identifier update feature, which is
+# disabled by default. Re-enable it:
+redef Broker::enable_identifier_updates = T;
+
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 
 # @TEST-START-FILE test-redef.zeek
@@ -20,7 +24,7 @@ event zeek_init()
 	print test_var;
 	Reporter::info("handle zeek_init");
 	}
-	
+
 event zeek_done()
 	{
 	print test_var;

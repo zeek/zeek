@@ -263,14 +263,14 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
 				                      reinterpret_cast<const std::byte*>(frag.end()));
 
-				if ( fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
+				if ( zeek::BifConst::DCE_RPC::max_cmd_reassembly > 0 && fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
 					connection()->zeek_analyzer()->LimitReachedWeird("too_many_dce_rpc_msgs_in_reassembly", fb.size(),
 					                                                 zeek::BifConst::DCE_RPC::max_cmd_reassembly);
 					connection()->zeek_analyzer()->SetSkip(true);
 					}
 
-				if ( buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
+				if ( zeek::BifConst::DCE_RPC::max_frag_data > 0 && buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 					{
 					connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
 					                                                 zeek::BifConst::DCE_RPC::max_frag_data);
@@ -287,7 +287,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
 			           reinterpret_cast<const std::byte*>(frag.end()));
 
-			if ( buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
+			if ( zeek::BifConst::DCE_RPC::max_frag_data > 0 && buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 				{
 				connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
 				                                                 zeek::BifConst::DCE_RPC::max_frag_data);

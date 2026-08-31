@@ -6010,11 +6010,15 @@ export {
 	## The maximum number of simultaneous fragmented commands that
 	## the DCE_RPC analyzer will tolerate before the it will generate
 	## a weird and skip further input.
+	##
+	## Setting this variable to 0 disables the limit.
 	const max_cmd_reassembly = 20 &redef;
 
 	## The maximum number of fragmented bytes that the DCE_RPC analyzer
 	## will tolerate on a command before the analyzer will generate a weird
 	## and skip further input.
+	##
+	## Setting this variable to 0 disables the limit.
 	const max_frag_data = 64 * 1024 &redef;
 }
 

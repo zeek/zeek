@@ -27,11 +27,13 @@ type GSSAPI_NEG_TOKEN(is_orig: bool, is_init: bool) = record {
 
 type GSSAPI_NEG_TOKEN_INIT = record {
 	seq_meta : ASN1EncodingMeta;
-	args     : GSSAPI_NEG_TOKEN_INIT_Arg[];
+	args     : GSSAPI_NEG_TOKEN_INIT_Arg[] &length=seq_meta.length &transient &requires(reset_neg_token_args);
+} &let {
+    reset_neg_token_args: bool = $context.connection.reset_neg_token_args();
 };
 
 type GSSAPI_NEG_TOKEN_INIT_Arg = record {
-	seq_meta : ASN1EncodingMeta;
+	seq_meta : ASN1EncodingMeta &enforce($context.connection.validate_neg_token_arg(seq_meta.index));
 	args     : GSSAPI_NEG_TOKEN_INIT_Arg_Data(seq_meta.index) &length=seq_meta.length;
 };
 
@@ -44,11 +46,13 @@ type GSSAPI_NEG_TOKEN_INIT_Arg_Data(index: uint8) = case index of {
 
 type GSSAPI_NEG_TOKEN_RESP = record {
 	seq_meta : ASN1EncodingMeta;
-	args     : GSSAPI_NEG_TOKEN_RESP_Arg[];
+	args     : GSSAPI_NEG_TOKEN_RESP_Arg[] &length=seq_meta.length &transient &requires(reset_neg_token_args);
+} &let {
+    reset_neg_token_args: bool = $context.connection.reset_neg_token_args();
 };
 
 type GSSAPI_NEG_TOKEN_RESP_Arg = record {
-	seq_meta : ASN1EncodingMeta;
+	seq_meta : ASN1EncodingMeta &enforce($context.connection.validate_neg_token_arg(seq_meta.index));
 	args     : case seq_meta.index of {
 		0       -> neg_state      : ASN1Integer;
 		1       -> supported_mech : ASN1Encoding;
@@ -72,7 +76,35 @@ type KRB_BLOB = record {
 	blob     : bytestring &restofdata;
 };
 
+%extern{
+	#include <string.h>
+	#include <array>
+%}
+
 refine connection GSSAPI_Conn += {
+	%member{
+        std::array<bool, 4> neg_token_args;
+	%}
+
+	%init{
+        memset(neg_token_args.data(), 0, sizeof(neg_token_args));
+	%}
+
+	function reset_neg_token_args(): bool
+		%{
+        memset(neg_token_args.data(), 0, sizeof(neg_token_args));
+		return true;
+		%}
+
+	function validate_neg_token_arg(index: uint8): bool
+		%{
+		if ( index > 3 || neg_token_args[index] )
+			throw binpac::Exception("invalid duplicate or unknown SPNEGO argument");
+
+		neg_token_args[index] = true;
+		return true;
+		%}
+
 	function is_first_byte(token: bytestring, byte: uint8): bool
 		%{
 		return token.length() > 0 && token[0] == byte;

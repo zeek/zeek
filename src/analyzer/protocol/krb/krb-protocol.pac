@@ -56,11 +56,13 @@ type KRB_KDC_REQ(is_orig: bool, pkt_type: uint8) = record {
 	msg_type   : SequenceElement(true);
 	padata	   : KRB_PA_Data_Optional(is_orig, pkt_type, 3);
 	body_meta  : ASN1EncodingMeta;
-	body_args  : KRB_REQ_Arg[];
+	body_args  : KRB_REQ_Arg[] &length=body_meta.length &requires(reset_kdc_req_args);
+} &let {
+	reset_kdc_req_args: bool = $context.connection.reset_kdc_req_args();
 };
 
 type KRB_REQ_Arg = record {
-	seq_meta   : ASN1EncodingMeta;
+	seq_meta   : ASN1EncodingMeta &enforce($context.connection.validate_kdc_req_arg(seq_meta.index));
 	data	   : KRB_REQ_Arg_Data(seq_meta.index) &length=seq_meta.length;
 };
 

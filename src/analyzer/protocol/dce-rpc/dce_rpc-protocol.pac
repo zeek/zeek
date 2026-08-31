@@ -2,6 +2,10 @@
 
 # Reference: https://pubs.opengroup.org/onlinepubs/9629399/toc.pdf, 12.6.4
 
+%extern{
+#include <zeek/util.h>
+%}
+
 enum dce_rpc_ptype {
 	DCE_RPC_REQUEST,
 	DCE_RPC_PING,
@@ -185,6 +189,12 @@ type DCE_RPC_Body(header: DCE_RPC_Header, frag_header: DCE_RPC_Fragment_Header) 
 	default                    -> other         : bytestring &restofdata;
 };
 
+
+# XXX: According to 12.6.2 Fragmentation and Reassembly, for bind, bind_ack,
+#      alter_context and alter_context_response, the auth data part can be
+#      fragmented across multiple PDUs when minor version is 1.
+#
+#      This is currently not implemented.
 type DCE_RPC_Auth_wrapper(header: DCE_RPC_Header) = case header.auth_length of {
 	0       -> none : empty;
 	default -> auth : DCE_RPC_Auth(header);
@@ -210,6 +220,20 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	# Fragment reassembly.
 	function reassemble_fragment(header: DCE_RPC_Header, frag_header: DCE_RPC_Fragment_Header, frag: bytestring): bool
 		%{
+		// Do not attempt to reassemble anything that's not a request
+		// or a response with potentially fragmented stub data.
+		if ( ${header.PTYPE} != DCE_RPC_REQUEST && ${header.PTYPE} != DCE_RPC_RESPONSE )
+			{
+			// Weird if we see minor version 1 with fragmentation used.
+			if ( ${header.rpc_vers_minor} == 1 && ! (${header.firstfrag} && ${header.lastfrag}) )
+				{
+				std::string addl = zeek::util::fmt("%d", ${header.PTYPE});
+				connection()->zeek_analyzer()->Weird("unsupported_dce_rpc_reassembly_ptype", addl.c_str());
+				}
+
+			return true;
+			}
+
 		auto it = fb.find(${header.call_id});
 
 		// XXX: Technically it'd be good to check that the frag_header.request
@@ -280,6 +304,9 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	function reassembled_body(h: DCE_RPC_Header, body: bytestring): const_bytestring
 		%{
 		const_bytestring bd = body;
+		if ( ${h.PTYPE} != DCE_RPC_REQUEST && ${h.PTYPE} != DCE_RPC_RESPONSE )
+			return bd;
+
 		auto it = fb.find(${h.call_id});
 
 		if ( it == fb.end() )

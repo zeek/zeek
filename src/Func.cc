@@ -94,7 +94,11 @@ std::string render_call_stack(bool include_args) {
         if ( lvl > 0 )
             rval += " | ";
 
-        const auto& name = ci.frame->GetFunction()->GetName();
+        // Except for top-level global statements, there should always be
+        // a non-nil function, otherwise use <top-level> as function name.
+        const auto* func = ci.frame->GetFunction();
+        const std::string name = func ? func->GetName() : "<top-level>";
+
         std::string arg_desc;
 
         if ( include_args ) {

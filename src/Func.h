@@ -426,6 +426,16 @@ zeek::RecordValPtr make_backtrace_element(std::string_view name, const VectorVal
  */
 zeek::VectorValPtr get_current_script_backtrace();
 
+/**
+ * Return the location of the currently executing statement.
+ *
+ * This pokes at the call_stack's top Frame and uses Frame.next_stmt
+ * if available. When running under ZAM, returns nullptr currently.
+ *
+ * @return The location of the currently executing statement.
+ */
+const zeek::detail::Location* get_current_script_location();
+
 // This is set to true after the built-in functions have been initialized.
 ZEEK_EXTERN_DATA bool did_builtin_init;
 ZEEK_EXTERN_DATA std::vector<void (*)()> bif_initializers;
@@ -444,7 +454,7 @@ extern void emit_builtin_exception(const char* msg, Obj* arg);
 
 } // namespace detail
 
-extern std::string render_call_stack();
+extern std::string render_call_stack(bool include_args = true);
 
 // These methods are used by BIFs, so they're in the public namespace.
 extern void emit_builtin_error(const char* msg);

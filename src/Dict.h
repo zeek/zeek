@@ -28,6 +28,9 @@ using dict_delete_func = void (*)(void*);
 
 namespace zeek {
 
+// from Func.h, renders the script call stack.
+extern std::string render_call_stack(bool include_args);
+
 template<typename T>
 class Dictionary;
 
@@ -37,6 +40,9 @@ enum DictOrder : uint8_t { ORDERED, UNORDERED };
 extern void generic_delete_func(void*);
 
 namespace detail {
+
+// from Func.h, gets the top Frame's next_stmt location, if any.
+extern const zeek::detail::Location* get_current_script_location();
 
 // Default number of hash buckets in dictionary.  The dictionary will increase the size
 // of the hash table as needed.
@@ -573,8 +579,11 @@ public:
             // execution. If called elsewhere, Zeek will likely abort due to an unhandled
             // exception. This is all entirely intentional. since if you got to this point
             // something went really wrong with your input data.
-            auto loc = detail::GetCurrentLocation();
-            reporter->RuntimeError(&loc,
+            const auto* loc = detail::get_current_script_location();
+            if ( ! loc )
+                loc = &detail::no_location;
+
+            reporter->RuntimeError(loc,
                                    "Attempted to create DictEntry with excessively large key, "
                                    "truncating key (%" PRIu64 " > %u)",
                                    key_size, detail::DictEntry<T>::MAX_KEY_SIZE);
@@ -1202,9 +1211,17 @@ private:
         if ( insert_distance ) {
             *insert_distance = i - begin;
 
-            if ( *insert_distance >= detail::TOO_FAR_TO_REACH )
-                reporter->FatalErrorWithCore("Dictionary (size %d) insertion distance too far: %d", Length(),
-                                             *insert_distance);
+            if ( *insert_distance >= detail::TOO_FAR_TO_REACH ) {
+                const auto* loc = detail::get_current_script_location();
+                if ( ! loc )
+                    loc = &detail::no_location;
+
+                auto rcs = render_call_stack(/*include_args=*/false);
+                reporter->PushLocation(loc);
+                reporter->FatalErrorWithCore("Dictionary (size %d) insertion distance too far: %d script_call_stack=%s",
+                                             Length(), *insert_distance, rcs.c_str());
+                reporter->PopLocation(); // not reached.
+            }
         }
 
         return -1;

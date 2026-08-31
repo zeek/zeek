@@ -1,3 +1,9 @@
+9.1.0-dev.54 | 2026-08-31 12:31:02 -0700
+
+  * Document Zeek security model (kyle-elliott-tob)
+
+  * GHCI: Skip builds for branches on changing Markdown files and NEWS (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.51 | 2026-08-31 19:51:56 +0200
 
   * Func/render_call_stack: Avoid null dereferences for global statements (Arne Welzel, Corelight)

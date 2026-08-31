@@ -1,3 +1,9 @@
+9.1.0-dev.45 | 2026-08-31 12:51:54 -0400
+
+  * Fix flaky timing test (hopefully) (Evan Typanski, Corelight)
+
+    Coded by GPT-5.5.
+
 9.1.0-dev.43 | 2026-08-31 09:16:14 -0700
 
   * Disable Broker's identifier updates by default (Christian Kreibich, Corelight)

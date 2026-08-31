@@ -1,8 +1,10 @@
 # @TEST-DOC: Ensure named-pipe delivery honors skip state (so it doesn't accumulate memory)
 #
 # @TEST-EXEC: zeek -br $TRACES/smb/fragment-state-exhaustion.pcap %INPUT >output
+# @TEST-EXEC: btest-diff-cut -m uid service history conn.log
 # @TEST-EXEC: btest-diff-cut -m weird.log
 
+@load base/protocols/conn
 @load base/protocols/dce-rpc
 @load base/protocols/smb
 @load base/frameworks/notice/weird

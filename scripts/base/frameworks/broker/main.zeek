@@ -126,6 +126,11 @@ export {
 	## Forward all received messages to subscribing peers.
 	const forward_messages = F &redef;
 
+	## Whether to process Broker's IdentifierUpdate messages to update
+	## script-layer globals at runtime. You almost certainly want to use the
+	## configuration framework instead.
+	const enable_identifier_updates = F &redef;
+
 	## Whether calling :zeek:see:`Broker::peer` will register the Broker
 	## system as an I/O source that will block the process from shutting
 	## down.  For example, set this to false when you are reading pcaps,

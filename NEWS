@@ -330,6 +330,13 @@ Changed Functionality
   crashing if it sees TCP traffic. This is possible for DNS, including the
   spicy-dns analyzer (which is an optional, separate component from Zeek).
 
+- Broker's ``IdentifierUpdate`` messages are now disabled by default, to prevent
+  one class of unintended runtime updates to Zeek configuration settings.
+  Zeek drops attempts to send or receive such messages and triggers reporter
+  errors. The new ``Broker::enable_identifier_updates`` toggle, defaulting to
+  false, controls the behavior. Consider using the config framework instead of
+  re-enabling identifier updates.
+
 Deprecated Functionality
 ------------------------
 

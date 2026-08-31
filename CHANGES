@@ -1,3 +1,15 @@
+9.0.0-rc2 | 2026-08-31 16:58:19 +0000
+
+  * Release 9.0.0-rc2.
+
+9.0.0-rc1.7 | 2026-08-31 16:57:59 +0000
+
+  * Disable Broker's identifier updates by default (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 936cb291447a0bb682288f4167d05f05ae4a3b75)
+
+  * Fix version tag in docs script for release/9.0 (Tim Wojtulewicz, Corelight)
+
 9.0.0-rc1.5 | 2026-08-28 09:55:07 -0700
 
   * Revert "Fix missing python3-venv in a few builds" (Arne Welzel, Corelight)

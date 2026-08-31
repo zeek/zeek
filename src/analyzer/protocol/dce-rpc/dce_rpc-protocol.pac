@@ -241,13 +241,15 @@ flow DCE_RPC_Flow(is_orig: bool) {
 
 				if ( fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
-					connection()->zeek_analyzer()->Weird("too_many_dce_rpc_msgs_in_reassembly");
+					connection()->zeek_analyzer()->LimitReachedWeird("too_many_dce_rpc_msgs_in_reassembly", fb.size(),
+					                                                 zeek::BifConst::DCE_RPC::max_cmd_reassembly);
 					connection()->zeek_analyzer()->SetSkip(true);
 					}
 
 				if ( buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 					{
-					connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
+					connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
+					                                                 zeek::BifConst::DCE_RPC::max_frag_data);
 					connection()->zeek_analyzer()->SetSkip(true);
 					}
 
@@ -263,7 +265,8 @@ flow DCE_RPC_Flow(is_orig: bool) {
 
 			if ( buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 				{
-				connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
+				connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
+				                                                 zeek::BifConst::DCE_RPC::max_frag_data);
 				connection()->zeek_analyzer()->SetSkip(true);
 				}
 

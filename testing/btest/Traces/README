@@ -163,3 +163,5 @@ Trace Index/Sources:
 - ssh/rssh.pcap
   Captured in a lab while running an rssh 2.8.1 client against an rssh server on port 2222.
   The client sends the non-RFC 4253 version string "SSH-v2.8.1-linux_amd64".
+- dce-rpc/lookupsid-plaintext.pcap.gz
+  Lab traffic provided by Mohan Dhawan containing fragmented DCE-RPC traffic.

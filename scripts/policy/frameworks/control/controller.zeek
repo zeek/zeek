@@ -59,7 +59,7 @@ function configurable_ids(): id_table
 
 	for ( id in globals )
 		{
-        if ( id in ignore_ids )
+		if ( id in ignore_ids )
 			next;
 
 		local t = globals[id];
@@ -116,6 +116,9 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 
 	if ( cmd == "configuration_update" )
 		{
+		if ( ! Broker::enable_identifier_updates )
+			Reporter::fatal("Identifier updates are disabled.");
+
 		# Send all &redef'able consts to the peer.
 		local ids = configurable_ids();
 		local publish_count = 0;

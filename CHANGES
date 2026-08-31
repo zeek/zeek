@@ -1,3 +1,7 @@
+9.1.0-dev.43 | 2026-08-31 09:16:14 -0700
+
+  * Disable Broker's identifier updates by default (Christian Kreibich, Corelight)
+
 9.1.0-dev.41 | 2026-08-28 19:56:05 +0200
 
   * README.md: Fix build status badge (Arne Welzel, Corelight)

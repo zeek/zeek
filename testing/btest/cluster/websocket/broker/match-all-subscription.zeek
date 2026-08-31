@@ -30,6 +30,7 @@
 # @TEST-START-FILE common.zeek
 @load frameworks/cluster/experimental
 redef Broker::disable_ssl = T;
+redef Broker::enable_identifier_updates = T;
 
 redef Log::default_rotation_interval = 0sec;
 

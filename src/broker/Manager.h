@@ -495,6 +495,7 @@ private:
     EnumType* writer_id_type;
     bool zeek_table_manager = false;
     std::string zeek_table_db_directory;
+    bool enable_identifier_updates = false;
 
     static int script_scope;
 

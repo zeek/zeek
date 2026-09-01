@@ -21,12 +21,18 @@ The search and the unbind after the delete are there on purpose: Zeek's violatio
 on the delete disables LDAP_TCP for the whole connection, so neither of them is
 logged either and no ldap_search.log is written at all.
 
-Generated with Claude Opus 5 (model claude-opus-5) via Claude Code.
+Ethernet/IP/TCP framing and the pcap file are produced with high-level Scapy
+primitives (Ether/IP/TCP/wrpcap). The LDAP protocolOps are still assembled from
+small BER helpers because Scapy's LDAP layer offers no representation for the
+IMPLICIT-tagged, primitive DelRequest this trace exists to exercise.
+
+Generated with Claude Opus 5 (model claude-opus-5) via Claude Code; rewritten to
+use high-level Scapy primitives with Claude Opus 4.8 (model claude-opus-4-8).
 """
 
-import os
-import struct
-import sys
+import argparse
+
+from scapy.all import IP, TCP, Ether, wrpcap
 
 # --- BER -------------------------------------------------------------------
 
@@ -136,127 +142,81 @@ def del_response(message_id, code=0):
     return ldap_message(message_id, tlv(APP_DEL_RESPONSE, _result(code)))
 
 
-# --- Ethernet / IPv4 / TCP / pcap ------------------------------------------
+# --- TCP session -----------------------------------------------------------
 
-CLIENT_MAC = bytes.fromhex("020000000001")
-SERVER_MAC = bytes.fromhex("020000000002")
+CLIENT_MAC = "02:00:00:00:00:01"
+SERVER_MAC = "02:00:00:00:00:02"
 CLIENT_IP = "10.10.10.50"
 SERVER_IP = "10.10.10.10"
 CLIENT_PORT = 47122
 SERVER_PORT = 389
 
-FIN = 0x01
-SYN = 0x02
-PSH = 0x08
-ACK = 0x10
-
-
-def checksum(data):
-    if len(data) % 2:
-        data += b"\x00"
-    total = 0
-    for i in range(0, len(data), 2):
-        total += (data[i] << 8) | data[i + 1]
-    while total >> 16:
-        total = (total & 0xFFFF) + (total >> 16)
-    return (~total) & 0xFFFF
-
-
-def ipv4(src, dst, payload, ident):
-    src_b = bytes(int(x) for x in src.split("."))
-    dst_b = bytes(int(x) for x in dst.split("."))
-    header = struct.pack(
-        "!BBHHHBBH4s4s",
-        0x45,
-        0,
-        20 + len(payload),
-        ident,
-        0x4000,
-        64,
-        6,
-        0,
-        src_b,
-        dst_b,
-    )
-    return header[:10] + struct.pack("!H", checksum(header)) + header[12:] + payload
-
-
-def tcp(src_ip, dst_ip, sport, dport, seq, ack, flags, payload=b""):
-    header = struct.pack("!HHIIBBHHH", sport, dport, seq, ack, 0x50, flags, 65535, 0, 0)
-    src_b = bytes(int(x) for x in src_ip.split("."))
-    dst_b = bytes(int(x) for x in dst_ip.split("."))
-    pseudo = struct.pack("!4s4sBBH", src_b, dst_b, 0, 6, len(header) + len(payload))
-    csum = checksum(pseudo + header + payload)
-    return header[:16] + struct.pack("!H", csum) + header[18:] + payload
-
-
-def ethernet(src_mac, dst_mac, payload):
-    return dst_mac + src_mac + struct.pack("!H", 0x0800) + payload
-
 
 class Session:
-    """A single client/server TCP session written into a pcap file."""
+    """A single client/server TCP session collected as Scapy packets."""
 
-    def __init__(self, path, start_ts=1755000000.0):
-        self.fh = open(path, "wb")
-        self.fh.write(struct.pack("<IHHiIII", 0xA1B2C3D4, 2, 4, 0, 0, 262144, 1))
+    def __init__(self, start_ts=1755000000.0):
+        self.packets = []
         self.ts = start_ts
-        self.ident = 1
         self.c_seq = 1000
         self.s_seq = 5000
 
-    def _write(self, frame):
-        self.ts += 0.000250
-        sec = int(self.ts)
-        usec = int(round((self.ts - sec) * 1_000_000))
-        self.fh.write(struct.pack("<IIII", sec, usec, len(frame), len(frame)))
-        self.fh.write(frame)
-
     def _send(self, from_client, flags, payload=b""):
         if from_client:
-            src_ip, dst_ip = CLIENT_IP, SERVER_IP
-            src_mac, dst_mac = CLIENT_MAC, SERVER_MAC
-            sport, dport = CLIENT_PORT, SERVER_PORT
-            seq, ack = self.c_seq, self.s_seq
+            eth = Ether(src=CLIENT_MAC, dst=SERVER_MAC)
+            ip = IP(src=CLIENT_IP, dst=SERVER_IP)
+            tcp = TCP(
+                sport=CLIENT_PORT,
+                dport=SERVER_PORT,
+                flags=flags,
+                seq=self.c_seq,
+                ack=self.s_seq,
+            )
         else:
-            src_ip, dst_ip = SERVER_IP, CLIENT_IP
-            src_mac, dst_mac = SERVER_MAC, CLIENT_MAC
-            sport, dport = SERVER_PORT, CLIENT_PORT
-            seq, ack = self.s_seq, self.c_seq
+            eth = Ether(src=SERVER_MAC, dst=CLIENT_MAC)
+            ip = IP(src=SERVER_IP, dst=CLIENT_IP)
+            tcp = TCP(
+                sport=SERVER_PORT,
+                dport=CLIENT_PORT,
+                flags=flags,
+                seq=self.s_seq,
+                ack=self.c_seq,
+            )
 
-        self.ident += 1
-        segment = tcp(src_ip, dst_ip, sport, dport, seq, ack, flags, payload)
-        self._write(
-            ethernet(src_mac, dst_mac, ipv4(src_ip, dst_ip, segment, self.ident))
-        )
+        pkt = eth / ip / tcp
+        if payload:
+            pkt = pkt / payload
+        self.ts += 0.000250
+        pkt.time = self.ts
+        self.packets.append(pkt)
 
-        consumed = len(payload) + (1 if flags & (SYN | FIN) else 0)
+        consumed = len(payload) + (1 if "S" in tcp.flags or "F" in tcp.flags else 0)
         if from_client:
             self.c_seq += consumed
         else:
             self.s_seq += consumed
 
     def handshake(self):
-        self._send(True, SYN)
-        self._send(False, SYN | ACK)
-        self._send(True, ACK)
+        self._send(True, "S")
+        self._send(False, "SA")
+        self._send(True, "A")
 
     def client_data(self, payload):
-        self._send(True, PSH | ACK, payload)
-        self._send(False, ACK)
+        self._send(True, "PA", payload)
+        self._send(False, "A")
 
     def server_data(self, payload):
-        self._send(False, PSH | ACK, payload)
-        self._send(True, ACK)
+        self._send(False, "PA", payload)
+        self._send(True, "A")
 
     def teardown(self):
-        self._send(True, FIN | ACK)
-        self._send(False, ACK)
-        self._send(False, FIN | ACK)
-        self._send(True, ACK)
+        self._send(True, "FA")
+        self._send(False, "A")
+        self._send(False, "FA")
+        self._send(True, "A")
 
-    def close(self):
-        self.fh.close()
+    def write(self, path):
+        wrpcap(path, self.packets)
 
 
 # --- Trace -----------------------------------------------------------------
@@ -268,15 +228,13 @@ TARGET_DN = "uid=jdoe,ou=People,dc=example,dc=com"
 
 
 def main():
-    path = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "ldap-delete.pcap"
-        )
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-o", "--output", default="ldap-delete.pcap", help="output pcap path"
     )
+    args = parser.parse_args()
 
-    s = Session(path)
+    s = Session()
     s.handshake()
     s.client_data(bind_request(1, BIND_DN, BIND_PW))
     s.server_data(bind_response(1))
@@ -287,7 +245,7 @@ def main():
     s.server_data(search_result_done(3))
     s.client_data(unbind_request(4))
     s.teardown()
-    s.close()
+    s.write(args.output)
 
 
 if __name__ == "__main__":

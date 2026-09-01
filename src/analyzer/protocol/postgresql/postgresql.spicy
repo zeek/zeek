@@ -287,18 +287,49 @@ type ReadyForQuery = unit {
     transaction_status: uint8 &requires=($$ == 'I' || $$ == 'T' || $$ == 'E');
 };
 
-type NoticeIdentifiedField = unit(seen_codes: set<uint8>&) {
+# Bitset for 256 IdentifiedField entries. Use with get_and_set() helper.
+type SeenCodes = struct {
+    word0: uint64;
+    word1: uint64;
+    word2: uint64;
+    word3: uint64;
+};
+
+# Sets value of bit code in the SeenCodes bitmap. Returns False when set first, followed by returning True.
+function get_and_set(sc: SeenCodes&, code: uint8): bool {
+    local word = code / 64;
+    assert word < 4;
+    local mask = uint64(1) << (code % 64);
+    local ret = False;
+
+    if (word == 0) {
+        ret = (sc.word0 & mask) != 0;
+        sc.word0 = sc.word0 | mask;
+    } else if (word == 1) {
+        ret = (sc.word1 & mask) != 0;
+        sc.word1 = sc.word1 | mask;
+    } else if (word == 2) {
+        ret = (sc.word2 & mask) != 0;
+        sc.word2 = sc.word2 | mask;
+    } else if (word == 3) {
+        ret = (sc.word3 & mask) != 0;
+        sc.word3 = sc.word3 | mask;
+    }
+
+    return ret;
+}
+
+type NoticeIdentifiedField = unit(seen_codes: SeenCodes&) {
     var duplicate: bool = False;
     code: uint8 {
-        self.duplicate = self.code in *seen_codes;
-        add(*seen_codes)[self.code];
+        self.duplicate = get_and_set(seen_codes, self.code);
     }
     value: bytes &until=b"\x00";
 };
 
 type NoticeResponse = unit {
     var duplicates: uint64 = 0;
-    var seen_codes: set<uint8>&= new set<uint8>;
+    var seen_codes: SeenCodes& = new SeenCodes;
     : NoticeIdentifiedField(self.seen_codes)[] foreach {
         if ($$.duplicate)
             self.duplicates += 1;
@@ -321,18 +352,17 @@ type DataRow = unit {
 
 # Fields with a 1 byte field as documented here:
 # https://www.postgresql.org/docs/current/protocol-error-fields.html
-type ErrorIdentifiedField = unit(seen_codes: set<uint8>&) {
+type ErrorIdentifiedField = unit(seen_codes: SeenCodes&) {
     var duplicate: bool = False;
     code: uint8 {
-        self.duplicate = self.code in *seen_codes;
-        add(*seen_codes)[self.code];
+        self.duplicate = get_and_set(seen_codes, self.code);
     }
     value: bytes &until=b"\x00";
 };
 
 type ErrorResponse = unit {
     var duplicates: uint64 = 0;
-    var seen_codes: set<uint8>&= new set<uint8>;
+    var seen_codes: SeenCodes& = new SeenCodes;
     : ErrorIdentifiedField(self.seen_codes)[] foreach {
         if ($$.duplicate)
             self.duplicates += 1;

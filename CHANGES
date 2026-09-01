@@ -1,3 +1,17 @@
+9.0.0-10 | 2026-09-25 10:28:03 -0700
+
+  * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Arne Welzel, Corelight)
+
+    When sender peers too early, it produces the following output on stderr:
+
+        Broker error (Broker::PEER_UNAVAILABLE): (00000000-0000-0000-0000-000000000000, *127.0.0.1:1618, "unable to connect to remote peer")
+
+    Remove it via TEST_DIFF_CANONIFIER from stderr as done elsewhere.
+
+    (cherry picked from commit d95f3843951fe7036b68acc27d0ce88994d049a8)
+
+  * Update zeekctl submodule for websocket module fixes (Tim Wojtulewicz, Corelight)
+
 9.0.0-8 | 2026-09-22 08:53:35 -0700
 
   * Val.h: bool to 0/1 in assignments (Sergey Fedorov)

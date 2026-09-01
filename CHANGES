@@ -1,3 +1,13 @@
+9.1.0-dev.61 | 2026-09-01 18:54:05 +0200
+
+  * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Arne Welzel, Corelight)
+
+    When sender peers too early, it produces the following output on stderr:
+
+        Broker error (Broker::PEER_UNAVAILABLE): (00000000-0000-0000-0000-000000000000, *127.0.0.1:1618, "unable to connect to remote peer")
+
+    Remove it via TEST_DIFF_CANONIFIER from stderr as done elsewhere.
+
 9.1.0-dev.59 | 2026-09-01 16:45:37 +0200
 
   * Modernize ReaderFrontend::name to std::string (Devendra Modium, Corelight)

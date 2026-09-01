@@ -15,7 +15,7 @@
 #
 # @TEST-EXEC: btest-diff send/.stdout
 # @TEST-EXEC: btest-diff recv/.stdout
-# @TEST-EXEC: btest-diff send/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v PEER_UNAVAILABLE' btest-diff send/.stderr
 # @TEST-EXEC: btest-diff recv/.stderr
 
 # @TEST-START-FILE send.zeek

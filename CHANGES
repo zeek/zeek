@@ -1,3 +1,11 @@
+9.1.0-dev.59 | 2026-09-01 16:45:37 +0200
+
+  * Modernize ReaderFrontend::name to std::string (Devendra Modium, Corelight)
+
+    Replace the raw char* name member with std::string, removing the
+    manual copy_string/delete[] lifecycle and the dependency on
+    util::fmt()'s static buffer.
+
 9.1.0-dev.56 | 2026-08-31 12:32:22 -0700
 
   * Clarify AI-assisted contribution guidance (Tim Wojtulewicz, Corelight)

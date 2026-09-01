@@ -31,7 +31,7 @@ ReaderFrontend::ReaderFrontend(const ReaderBackend::ReaderInfo& arg_info, EnumVa
     info = new ReaderBackend::ReaderInfo(arg_info);
 
     const char* t = type->GetType()->AsEnumType()->Lookup(type->InternalInt());
-    name = util::copy_string(util::fmt("%s/%s", arg_info.source, t));
+    name = std::string(arg_info.source ? arg_info.source : "") + "/" + (t ? t : "");
 
     backend = input_mgr->CreateBackend(this, type);
     assert(backend);
@@ -45,10 +45,7 @@ void ReaderFrontend::Stop() {
     }
 }
 
-ReaderFrontend::~ReaderFrontend() {
-    delete[] name;
-    delete info;
-}
+ReaderFrontend::~ReaderFrontend() { delete info; }
 
 void ReaderFrontend::Init(const int arg_num_fields, const threading::Field* const* arg_fields) {
     if ( disabled )
@@ -76,6 +73,6 @@ void ReaderFrontend::Update() {
     backend->SendIn(new UpdateMessage(backend));
 }
 
-const char* ReaderFrontend::Name() const { return name; }
+const char* ReaderFrontend::Name() const { return name.c_str(); }
 
 } // namespace zeek::input

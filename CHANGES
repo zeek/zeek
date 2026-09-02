@@ -1,3 +1,24 @@
+9.1.0-dev.63 | 2026-09-02 11:52:32 +0200
+
+  * Use regular Dockerfile instead of shell-orchestrated build pipeline (Benjamin Bannier, Corelight)
+
+    We previously used a rather complicated setup of building multiple
+    Docker images, all orchestrated by a `Makefile`. This seems to have been
+    done to be able to use ccache when building the images in CI. At the
+    same time, this made local running without the `Makefile` hard and
+    pretty obscure (e.g., exact sequence of shell commands required, but
+    `docker` hardcoded in `Makefile` and little regard for existing tags or
+    tag pollution).
+
+    This patch replaces what we have with a less unusual setup where on can
+    directly invoke e.g., `docker build -f docker/Dockerfile ...` to produce
+    a working container image. The only feature we loose is reliable caching of
+    compiler artifacts in CI, but we keep that functionality for local runs
+    by using a layer cache. Given that we only rebuild the Docker image for
+    merges to `master` this seems an acceptable trade-off to me, especially
+    since the local workflow becomes less awkward. Other than caching this
+    should produce identical images.
+
 9.1.0-dev.61 | 2026-09-01 18:54:05 +0200
 
   * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Arne Welzel, Corelight)

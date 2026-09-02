@@ -12,6 +12,10 @@ export {
 		PUBLISH_LOG,
 	};
 
+	## Maximum number of unacknowledged subscription messages retained per
+	## connection. A value of zero removes the limit.
+	const max_pending_subscriptions: count = 100 &redef;
+
 	global log_policy_connect: Log::PolicyHook;
 	global log_policy_subscribe: Log::PolicyHook;
 	global log_policy_publish: Log::PolicyHook;
@@ -307,6 +311,13 @@ event mqtt_subscribe(c: connection, msg_id: count, topics: string_vec, requested
 	{
 	local info = set_session(c);
 
+	if ( max_pending_subscriptions > 0 && msg_id !in c$mqtt_state$subscribe &&
+	     |c$mqtt_state$subscribe| >= max_pending_subscriptions )
+		{
+		Reporter::limit_reached_weird("mqtt_excessive_pending_subscriptions", c, |c$mqtt_state$subscribe|);
+		return;
+		}
+
 	local si = SubscribeInfo($ts  = network_time(),
 	                         $uid = c$uid,
 	                         $id  = c$id,
@@ -335,6 +346,13 @@ event mqtt_suback(c: connection, msg_id: count, granted_qos: count) &priority=5
 event mqtt_unsubscribe(c: connection, msg_id: count, topics: string_vec) &priority=5
 	{
 	set_session(c);
+
+	if ( max_pending_subscriptions > 0 && msg_id !in c$mqtt_state$subscribe &&
+	     |c$mqtt_state$subscribe| >= max_pending_subscriptions )
+		{
+		Reporter::limit_reached_weird("mqtt_excessive_pending_subscriptions", c, |c$mqtt_state$subscribe|);
+		return;
+		}
 
 	local si = SubscribeInfo($ts  = network_time(),
 	                         $uid = c$uid,
@@ -371,4 +389,3 @@ event mqtt_unsuback(c: connection, msg_id: count) &priority=-5
 #	{
 #	Log::write(MQTT::CONNECT_LOG, info);
 #	}
-

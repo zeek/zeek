@@ -1904,7 +1904,7 @@ private:
     bool CheckElementType(const ValPtr& element);
 
     // Add the given number of "holes" to the end of a vector.
-    void AddHoles(int nholes);
+    void AddHoles(unsigned int nholes);
 
     std::vector<std::optional<ZVal>> vector_val;
 

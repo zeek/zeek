@@ -1,3 +1,7 @@
+9.1.0-dev.65 | 2026-09-02 15:20:22 -0400
+
+  * vector: Fix OOB assignment leading to crash in VectorVal::Assign (JumpToSkyFree)
+
 9.1.0-dev.63 | 2026-09-02 11:52:32 +0200
 
   * Use regular Dockerfile instead of shell-orchestrated build pipeline (Benjamin Bannier, Corelight)

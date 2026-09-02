@@ -936,9 +936,8 @@ void TCPSessionAdapter::UpdateClosedState(double t, analyzer::tcp::TCP_Endpoint*
             // RST after FIN.
             do_close = true;
 
-        if ( connection_reset )
-            ADD_ANALYZER_TIMER(&TCPSessionAdapter::ResetTimer, t + zeek::detail::tcp_reset_delay, true,
-                               zeek::detail::TIMER_TCP_RESET);
+        ADD_ANALYZER_TIMER(&TCPSessionAdapter::ResetTimer, t + zeek::detail::tcp_reset_delay, true,
+                           zeek::detail::TIMER_TCP_RESET);
     }
 }
 

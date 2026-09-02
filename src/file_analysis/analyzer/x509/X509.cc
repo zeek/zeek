@@ -20,6 +20,7 @@
 #include "zeek/digest.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/x509/consts.bif.h"
 #include "zeek/file_analysis/analyzer/x509/events.bif.h"
 #include "zeek/file_analysis/analyzer/x509/types.bif.h"
 
@@ -31,6 +32,11 @@ X509::X509(RecordValPtr args, file_analysis::File* file)
 }
 
 bool X509::DeliverStream(const u_char* data, uint64_t len) {
+    if ( zeek::BifConst::X509::max_bytes > 0 && cert_data.size() + len > zeek::BifConst::X509::max_bytes ) {
+        reporter->Weird(GetFile(), "x509_response_too_large");
+        return false;
+    }
+
     // just add it to the data we have so far, since we cannot do anything else anyways...
     cert_data.append(reinterpret_cast<const char*>(data), len);
     return true;

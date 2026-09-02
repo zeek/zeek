@@ -5219,6 +5219,20 @@ export {
 		## References to the final certificate chain, if verification successful. End-host certificate is first.
 		chain_certs: vector of opaque of x509 &optional;
 	};
+
+	## The maximum size of an X509 file in bytes. If this limit is exceeded, a
+	## x509_response_too_large weird will be reported. Setting this value to zero
+	## disables the limitation.
+	const max_bytes: count = 4194304 &redef;
+}
+
+module OCSP;
+
+export {
+	## The maximum size of an OCSP file in bytes. If this limit is exceeded, a
+	## ocsp_response_too_large weird will be reported. Setting this value to zero
+	## disables the limitation.
+	const max_bytes: count = 1048576 &redef;
 }
 
 module SOCKS;

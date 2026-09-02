@@ -14,6 +14,7 @@
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/analyzer/x509/X509.h"
+#include "zeek/file_analysis/analyzer/x509/consts.bif.h"
 #include "zeek/file_analysis/analyzer/x509/ocsp_events.bif.h"
 
 // helper function of sk_X509_value to avoid namespace problem
@@ -114,6 +115,11 @@ OCSP::OCSP(RecordValPtr args, file_analysis::File* file, bool arg_request)
     : X509Common::X509Common(file_mgr->GetComponentTag("OCSP"), std::move(args), file), request(arg_request) {}
 
 bool OCSP::DeliverStream(const u_char* data, uint64_t len) {
+    if ( zeek::BifConst::OCSP::max_bytes > 0 && ocsp_data.size() + len > zeek::BifConst::OCSP::max_bytes ) {
+        reporter->Weird(GetFile(), "ocsp_response_too_large");
+        return false;
+    }
+
     ocsp_data.append(reinterpret_cast<const char*>(data), len);
     return true;
 }

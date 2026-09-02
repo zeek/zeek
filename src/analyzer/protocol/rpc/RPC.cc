@@ -20,9 +20,6 @@ const bool DEBUG_rpc_resync = false;
 
 // TODO: Should we add start_time and last_time to the rpc_* events??
 
-// TODO: make this configurable
-constexpr uint32_t MAX_RPC_LEN = 65536;
-
 namespace zeek::analyzer::rpc {
 namespace detail {
 
@@ -497,7 +494,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig) {
 
         // Make sure the frame isn't too long.
         // TODO: Could possible even reduce this number even further.
-        if ( frame_len > MAX_RPC_LEN )
+        if ( frame_len > zeek::BifConst::rpc_max_length )
             discard_this_chunk = true;
 
         if ( discard_this_chunk ) {
@@ -576,7 +573,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                 // We want at most 64KB of message data and we don't
                 // know yet how much we expect, so we set expected to
                 // 0.
-                msg_buf.Init(MAX_RPC_LEN, 0);
+                msg_buf.Init(zeek::BifConst::rpc_max_length, 0);
                 state = WAIT_FOR_MARKER;
                 start_time = run_state::network_time;
                 [[fallthrough]];

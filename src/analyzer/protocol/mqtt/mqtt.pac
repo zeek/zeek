@@ -5,6 +5,7 @@
 
 %extern{
 	#include "zeek/analyzer/protocol/mqtt/MQTT.h"
+	#include "zeek/analyzer/protocol/mqtt/consts.bif.h"
 	#include "zeek/analyzer/protocol/mqtt/events.bif.h"
 	#include "zeek/analyzer/protocol/mqtt/types.bif.h"
 %}
@@ -25,6 +26,27 @@ connection MQTT_Conn(zeek_analyzer: ZeekAnalyzer) {
 flow MQTT_Flow(is_orig: bool) {
 	#flowunit = MQTT_PDU(is_orig) withcontext(connection, this);
 	datagram = MQTT_PDU(is_orig) withcontext(connection, this);
+
+	%member{
+		uint64_t subscription_topic_count_;
+	%}
+
+	%init{
+		subscription_topic_count_ = 0;
+	%}
+
+	function reset_subscription_topic_count(): bool
+		%{
+		subscription_topic_count_ = 0;
+		return true;
+		%}
+
+	function subscription_topic_limit_reached(): bool
+		%{
+		++subscription_topic_count_;
+		return zeek::BifConst::MQTT::max_topics_per_subscription > 0 &&
+		       subscription_topic_count_ >= zeek::BifConst::MQTT::max_topics_per_subscription;
+		%}
 };
 
 %include commands/connect.pac

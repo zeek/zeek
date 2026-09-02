@@ -858,6 +858,7 @@
 ./zeek/analyzer/protocol/mqtt/commands/subscribe.pac
 ./zeek/analyzer/protocol/mqtt/commands/unsuback.pac
 ./zeek/analyzer/protocol/mqtt/commands/unsubscribe.pac
+./zeek/analyzer/protocol/mqtt/consts.bif.h
 ./zeek/analyzer/protocol/mqtt/events.bif.h
 ./zeek/analyzer/protocol/mqtt/mqtt-protocol.pac
 ./zeek/analyzer/protocol/mqtt/mqtt.pac

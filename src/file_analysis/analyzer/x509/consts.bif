@@ -1,0 +1,2 @@
+const X509::max_bytes: count;
+const OCSP::max_bytes: count;

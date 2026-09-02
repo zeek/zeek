@@ -1,7 +1,7 @@
 zeek_add_plugin(
     Zeek MQTT
     SOURCES MQTT.cc Plugin.cc
-    BIFS types.bif events.bif
+    BIFS types.bif events.bif consts.bif
     PAC mqtt.pac
         mqtt-protocol.pac
         commands/connect.pac

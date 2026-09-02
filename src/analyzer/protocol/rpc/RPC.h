@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rpc {
@@ -142,24 +144,17 @@ protected:
  * We can extend "expected" (by calling AddToExpected()), but maxsize is
  * fixed.
  *
- * TODO: grow buffer dynamically
+ * Storage grows with bytes actually copied, up to maxsize.
  */
 class RPC_Reasm_Buffer {
 public:
-    RPC_Reasm_Buffer() {
-        maxsize = expected = 0;
-        fill = processed = 0;
-        buf = nullptr;
-    };
-
-    ~RPC_Reasm_Buffer() {
-        if ( buf )
-            delete[] buf;
-    }
+    RPC_Reasm_Buffer() = default;
+    ~RPC_Reasm_Buffer() { Reset(); }
 
     void Init(int64_t arg_maxsize, int64_t arg_expected);
+    void Reset();
 
-    const u_char* GetBuf() { return buf; }            // Pointer to the buffer
+    const u_char* GetBuf() { return buf.data(); }     // Pointer to the buffer
     int64_t GetFill() { return fill; }                // Number of bytes in buf
     int64_t GetSkipped() { return processed - fill; } // How many bytes did we skipped?
     int64_t GetExpected() { return expected; }        // How many bytes are we expecting?
@@ -180,11 +175,11 @@ public:
     bool ConsumeChunk(const u_char*& data, int& len);
 
 protected:
-    int64_t fill;      // how many bytes we currently have in the buffer
-    int64_t maxsize;   // maximum buffer size we want to allocate
-    int64_t processed; // number of bytes we have processed so far
-    int64_t expected;  // number of input bytes we expect
-    u_char* buf;
+    int64_t fill = 0;      // how many bytes we currently have in the buffer
+    int64_t maxsize = 0;   // maximum buffer size we want to allocate
+    int64_t processed = 0; // number of bytes we have processed so far
+    int64_t expected = 0;  // number of input bytes we expect
+    std::vector<u_char> buf;
 };
 
 } // namespace detail
@@ -218,6 +213,8 @@ protected:
     void Undelivered(uint64_t seq, int len, bool orig) override;
 
     void NeedResync() {
+        marker_buf.Reset();
+        msg_buf.Reset();
         resync_state = NEED_RESYNC;
         resync_toskip = 0;
         state = WAIT_FOR_MESSAGE;

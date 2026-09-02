@@ -337,13 +337,15 @@ void RPC_Interpreter::Event_RPC_Reply(uint32_t xid, BifEnum::rpc_status status, 
 void RPC_Interpreter::Weird(const char* msg, const char* addl) { analyzer->Weird(msg, addl); }
 
 void RPC_Reasm_Buffer::Init(int64_t arg_maxsize, int64_t arg_expected) {
-    if ( buf )
-        delete[] buf;
+    Reset();
     expected = arg_expected;
     maxsize = arg_maxsize;
-    fill = processed = 0;
-    buf = new u_char[maxsize];
-};
+}
+
+void RPC_Reasm_Buffer::Reset() {
+    buf.clear();
+    fill = maxsize = processed = expected = 0;
+}
 
 bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len) {
     // How many bytes do we want to process with this call?  Either the
@@ -356,8 +358,11 @@ bool RPC_Reasm_Buffer::ConsumeChunk(const u_char*& data, int& len) {
         // into the buff. Either all of the bytes we want to process
         // or the number of bytes until we reach maxsize.
         int64_t to_copy = std::min(to_process, (maxsize - fill));
-        if ( to_copy )
-            memcpy(buf + fill, data, to_copy);
+        if ( to_copy ) {
+            const auto required = fill + to_copy;
+            buf.resize(required);
+            memcpy(buf.data() + fill, data, to_copy);
+        }
 
         fill += to_copy;
     }
@@ -620,11 +625,17 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                     // coming or whether we just finished the
                     // last fragment.
                     if ( state == WAIT_FOR_LAST_DATA ) {
-                        const u_char* dummy_p = msg_buf.GetBuf();
-                        int dummy_len = (int)msg_buf.GetFill();
+                        const u_char* rpc = msg_buf.GetBuf();
+                        int n = static_cast<int>(msg_buf.GetFill());
+                        const auto total = static_cast<int>(msg_buf.GetExpected());
+                        const auto orig = IsOrig();
+                        const auto start = start_time;
+                        const auto last = last_time;
 
-                        if ( ! interp->DeliverRPC(dummy_p, dummy_len, (int)msg_buf.GetExpected(), IsOrig(), start_time,
-                                                  last_time) )
+                        const auto delivered = interp->DeliverRPC(rpc, n, total, orig, start, last);
+                        msg_buf.Reset();
+
+                        if ( ! delivered )
                             Conn()->Weird("partial_RPC");
 
                         state = WAIT_FOR_MESSAGE;

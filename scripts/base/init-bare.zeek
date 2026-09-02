@@ -1886,6 +1886,9 @@ const rpc_timeout = 24 sec &redef;
 ## to 0 disables the limit. This may lead to unbounded state growth.
 const rpc_max_pending_calls = 1000 &redef;
 
+## Maximum length of an RPC message.
+const rpc_max_length = 65536 &redef;
+
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
 const frag_timeout = 5 min &redef;

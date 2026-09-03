@@ -2,3 +2,4 @@
 uid	name	addl	source
 CHhAvVGS1DHFjwGM9	possible_split_routing	-	-
 CHhAvVGS1DHFjwGM9	data_before_established	-	TCP
+CHhAvVGS1DHFjwGM9	LDAP_sasl_client_message_before_bind_response	-	LDAP_TCP

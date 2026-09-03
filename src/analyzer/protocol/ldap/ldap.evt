@@ -4,10 +4,12 @@
 %doc-description = "LDAP analyzer";
 
 protocol analyzer LDAP_TCP over TCP:
-    parse with LDAP::Messages;
+    parse originator with LDAP::OriginatorMessages,
+    parse responder with LDAP::ResponderMessages;
 
 protocol analyzer LDAP_UDP over UDP:
-    parse with LDAP::Messages;
+    parse originator with LDAP::OriginatorMessages,
+    parse responder with LDAP::ResponderMessages;
 
 import LDAP;
 

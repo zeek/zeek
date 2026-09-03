@@ -627,6 +627,12 @@ const io_poll_interval_default = 100 &redef;
 ## .. zeek:see:: io_poll_interval_default
 const io_poll_interval_live = 10 &redef;
 
+## The maximum number of events queued before Zeek will drain the
+## event queue outside of the usual drain points.
+##
+## Set this value to 0 for unlimited queue size.
+const max_event_queue_size = 2000 &redef;
+
 ## Whether Zeek is being run under test. This can be used to alter functionality
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;

@@ -1102,10 +1102,10 @@ type AddResponse = unit(inout message: Message) {
 #-----------------------------------------------------------------------------
 # Delete Operation
 # https://datatracker.ietf.org/doc/html/rfc4511#section-4.8
-
+# Implicitly tagged as LDAPDN (just a octet string)
 type DelRequest = unit(inout message: Message) {
-    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-        message.obj = self.objectName;
+    objectName: bytes &size=message.opLen {
+        message.arg = "%s" % self.objectName;
     }
 };
 
@@ -1150,8 +1150,10 @@ type CompareResponse = unit(inout message: Message) {
 # https://datatracker.ietf.org/doc/html/rfc4511#section-4.11
 
 type AbandonRequest = unit(inout message: Message) {
-    messageID: ASN1::ASN1Message(True) &convert=$$.body.num_value {
-        message.obj = "%d" % (self.messageID);
+    # messageID is at most 32bit
+    : void &requires=(message.opLen >= 1 && message.opLen <= 4);
+    messageID: bytes &size=message.opLen &convert=$$.to_uint(spicy::ByteOrder::Big) {
+        message.arg = "%s" % self.messageID;
     }
 };
 

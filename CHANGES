@@ -1,3 +1,21 @@
+9.1.0-dev.69 | 2026-09-03 16:27:39 +0200
+
+  * btest/Traces: Use Scapy for new ldap generator scripts (Arne Welzel, Corelight)
+
+    This was done by Opus 4.8. There's a Scapy API for LDAP, but it said the
+    Abandon and Delete requests didn't work out.
+
+  * GH-5795: ldap: Fix DelRequest using implicit tagging (Arne Welzel, Corelight)
+
+    Similar to AbandonRequest, the DelRequest directly contains the LDAPDN
+    octetstring. PCAP generator script taken from #5795 directly.
+
+  * GH-5795: ldap: Fix AbandonRequest using implicit tagging (Arne Welzel, Corelight)
+
+    The integer is encoded directly within an AbandonRequest. The included
+    messageId is at most 4 bytes long (32 bit). PCAP generator script taken
+    from #5795 directly.
+
 9.1.0-dev.65 | 2026-09-02 15:20:22 -0400
 
   * vector: Fix OOB assignment leading to crash in VectorVal::Assign (JumpToSkyFree)

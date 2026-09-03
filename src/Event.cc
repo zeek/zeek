@@ -6,11 +6,14 @@
 
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
 #include "const.bif.netvar_h"
@@ -193,6 +196,9 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
     }
 
     QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
+
+    if ( ! IsDraining() && MaxQueueSizeReached() )
+        OverflowDrain(h);
 }
 
 void EventMgr::Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, Args vl,
@@ -242,6 +248,9 @@ void EventMgr::Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPt
     }
 
     QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
+
+    if ( ! IsDraining() && MaxQueueSizeReached() )
+        OverflowDrain(h);
 }
 
 void EventMgr::QueueEvent(Event* event) {
@@ -269,6 +278,41 @@ void EventMgr::Dispatch(Event* event, bool no_remote) {
     Unref(event);
 }
 
+bool EventMgr::MaxQueueSizeReached() const {
+    // zeek_init_done is set to true in zeek-setup.cc::setup() after
+    // the first Drain() of zeek_init() and other events enqueued
+    // during the InitPostScript() phase. Ignore the max_event_queue_size
+    // limit before this happened.
+    if ( ! zeek::run_state::detail::zeek_init_done )
+        return false;
+
+    return BifConst::max_event_queue_size > 0 && static_cast<uint64_t>(Size()) > BifConst::max_event_queue_size;
+}
+
+void EventMgr::OverflowDrain(const EventHandlerPtr& h) {
+    // Low-level construct a net_weird) event by hand and use QueueEvent() instead
+    // of going through Reporter::Weird() which raises the event via EnqueueEvent()
+    // and would result in recursion.
+    //
+    // event net_weird(name: string, addl: string, source: string)
+    detail::EventMetadataVectorPtr weird_meta;
+    if ( BifConst::EventMetadata::add_network_timestamp )
+        weird_meta = detail::MakeEventMetadataVector(run_state::network_time);
+
+    Args weird_vl = {
+        make_intrusive<StringVal>("event_queue_overflow_drain"),
+        make_intrusive<StringVal>(h->Name()),
+        val_mgr->EmptyString(),
+    };
+
+    QueueEvent(new Event(std::move(weird_meta), net_weird, std::move(weird_vl), util::detail::SOURCE_LOCAL,
+                         /*arg_aid=*/0, /*arg_obj=*/nullptr));
+
+    event_queue_overflow_drains_metric->Inc();
+
+    Drain();
+}
+
 void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
     detail::EventMetadataVectorPtr meta;
 
@@ -292,6 +336,8 @@ void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
 }
 
 void EventMgr::Drain() {
+    draining = true;
+
     if ( event_queue_flush_point )
         Enqueue(event_queue_flush_point, Args{});
 
@@ -324,6 +370,8 @@ void EventMgr::Drain() {
     // Note: we might eventually need a general way to specify things to
     // do after draining events.
     current = nullptr;
+
+    draining = false;
 
     // Make sure all of the triggers get processed every time the events
     // drain.
@@ -371,6 +419,21 @@ void EventMgr::InitPostScript() {
             "Setting EventMetadata::add_missing_remote_network_timestamp is only valid together with "
             "EventMetadata::add_network_timestamp");
 
+    events_queued_metric =
+        telemetry_mgr->CounterInstance("zeek", "events_queued", {}, "Total number of events queued", "", []() {
+            // XXX: This will get a bit lossy after 2**53 events.
+            return static_cast<double>(event_mgr.num_events_queued);
+        });
+
+    events_dispatched_metric =
+        telemetry_mgr->CounterInstance("zeek", "events_dispatched", {}, "Total number of events dispatched", "", []() {
+            // XXX: This will get a bit lossy after 2**53 events.
+            return static_cast<double>(event_mgr.num_events_dispatched);
+        });
+
+    event_queue_overflow_drains_metric =
+        telemetry_mgr->CounterInstance("zeek", "event_queue_overflow_drains", {},
+                                       "Number of event queue overflows resulting in a drain.", "");
 
     iosource_mgr->Register(this, true, false);
 }

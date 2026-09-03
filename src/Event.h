@@ -19,6 +19,11 @@ extern double network_time;
 
 class EventMgr;
 
+namespace telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
 namespace detail {
 
 /**
@@ -159,7 +164,7 @@ public:
     void Dispatch(const EventHandlerPtr& h, zeek::Args vl);
 
     void Drain();
-    bool IsDraining() const { return current != nullptr; }
+    bool IsDraining() const { return draining; }
 
     bool HasEvents() const { return head != nullptr; }
 
@@ -217,10 +222,17 @@ private:
     };
 
     void QueueEvent(Event* event);
+    bool MaxQueueSizeReached() const;
+    void OverflowDrain(const EventHandlerPtr& h); // The maximum queue size was reached, force drain the queue.
 
     Event* current = nullptr;
     Event* head = nullptr;
     Event* tail = nullptr;
+    bool draining = false;
+
+    telemetry::CounterPtr events_queued_metric;
+    telemetry::CounterPtr events_dispatched_metric;
+    telemetry::CounterPtr event_queue_overflow_drains_metric;
 };
 
 extern EventMgr event_mgr;

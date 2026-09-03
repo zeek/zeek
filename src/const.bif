@@ -17,6 +17,8 @@ const netbios_ssn_session_timeout: interval;
 const io_poll_interval_default: count;
 const io_poll_interval_live: count;
 
+const max_event_queue_size: count;
+
 const FTP::max_command_length: count;
 
 const HTTP::max_uncompressed_size: count;

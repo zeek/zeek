@@ -105,8 +105,14 @@ void TimerMgr::InitPostScript() {
 
     lag_time_metric =
         telemetry_mgr->GaugeInstance("zeek", "timers_lag_time", {},
-                                     "Lag between current network time and last expired timer", "seconds",
-                                     []() { return run_state::network_time - timer_mgr->last_timestamp; });
+                                     "Lag between current network time and last expired timer", "seconds", []() {
+                                         // If there were no timers to expire last time around,
+                                         // last_timestamp will be 0.0, report zero lag.
+                                         if ( timer_mgr->last_timestamp == 0.0 )
+                                             return 0.0;
+
+                                         return run_state::network_time - timer_mgr->last_timestamp;
+                                     });
 
     std::shared_ptr<telemetry::GaugeFamily> family =
         telemetry_mgr->GaugeFamily("zeek", "timers_pending", {"type"}, "Number of timers for a certain type");

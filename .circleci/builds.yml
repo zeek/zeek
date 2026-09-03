@@ -957,6 +957,13 @@ _filter_if_pr_not_full_or_zeekctl: &FILTER_IF_PR_NOT_FULL_OR_ZEEKCTL
              and not pipeline.parameters.pr_label_full
              and not pipeline.parameters.pr_label_zeekctl))
 
+_filter_if_pr_not_full_or_windows: &FILTER_IF_PR_NOT_FULL_OR_WINDOWS
+  filters: |
+    not (pipeline.parameters.pr_label_skip_all
+         or (pipeline.event.name == "pull_request"
+             and not pipeline.parameters.pr_label_full
+             and not pipeline.parameters.pr_label_windows))
+
 _filter_nightly_or_tagged: &FILTER_NIGHTLY_OR_TAGGED
   filters: |
     pipeline.schedule.name == "nightly" or pipeline.parameters.has_release_tag
@@ -1276,7 +1283,7 @@ workflows:
       #     << : *FILTER_IF_PR_NOT_FULL_CI
 
       - windows-build:
-          << : *FILTER_IF_SKIP_ALL
+          << : *FILTER_IF_PR_NOT_FULL_OR_WINDOWS
 
       - release-image-build:
           name: amd64-container-image

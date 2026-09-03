@@ -4,6 +4,71 @@
 
 namespace zeek::detail {
 
+// Reduction helpers.  These are free functions rather than Expr methods
+// because they're specific to script optimization and need nothing beyond
+// Expr's public interface.
+
+// True if the expression can serve as an operand to a reduced expression.
+extern bool IsSingleton(const Expr* e, Reducer* c);
+inline bool IsSingleton(const ExprPtr& e, Reducer* c) { return IsSingleton(e.get(), c); }
+
+// True if the expression is in fully reduced form: a singleton or an
+// assignment to an operator with singleton operands.
+extern bool IsReduced(const Expr* e, Reducer* c);
+
+// True if the expression's operands are singletons.
+extern bool HasReducedOps(const Expr* e, Reducer* c);
+
+// True if the expression is reduced to a form that can be used in a
+// conditional.
+extern bool IsReducedConditional(const Expr* e, Reducer* c);
+
+// True if the expression is reduced to a form that can be used in a field
+// assignment.
+extern bool IsReducedFieldAssignment(const Expr* e, Reducer* c);
+
+// True if the expression can be the RHS for a field assignment.
+extern bool IsFieldAssignable(const Expr* e);
+
+// True if the expression will transform to one of another AST node (perhaps
+// of the same type) upon reduction, for non-constant operands.  "Transform"
+// means something beyond assignment to a temporary.  Necessary so that we
+// know to fully reduce such expressions if they're the RHS of an assignment.
+extern bool WillTransform(const Expr* e, Reducer* c);
+
+// The same, but for the expression when used in a conditional context.
+extern bool WillTransformInConditional(const Expr* e, Reducer* c);
+
+// True if substituting the value "v" for the expression "e" is "safe", i.e.
+// will not lead to compile-time errors if the value is then used to fold
+// "parent".  "e" should be one of "parent"'s operands.  Used for the AST
+// optimizer's constant propagation.
+extern bool IsSafeSubstitution(const Expr* parent, const ExprPtr& e, const ValPtr& v);
+
+// Returns the expression transformed into "new_me".
+extern ExprPtr TransformMe(Expr* e, ExprPtr new_me);
+
+// Reduces the expression to one that can appear as a conditional.
+extern ExprPtr ReduceToConditional(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Reduces the expression to one that can appear as a field assignment.
+extern ExprPtr ReduceToFieldAssignment(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Returns a new expression corresponding to a temporary that's been assigned
+// to "target" via red_stmt, using "e" for type and location information.
+extern ExprPtr AssignToTemporary(Expr* e, ExprPtr target, Reducer* c, StmtPtr& red_stmt);
+// Same, but assigning "e" itself.
+extern ExprPtr AssignToTemporary(Expr* e, Reducer* c, StmtPtr& red_stmt);
+
+// Returns a Val or a constant Expr corresponding to zero.  The latter takes
+// the object to draw location information from.
+extern ValPtr MakeZero(TypeTag t);
+extern ConstExprPtr MakeZeroExpr(const Obj* o, TypeTag t);
+
+// Helper function to reduce boring code runs.  Uses "o" for location
+// information.
+extern StmtPtr MergeStmts(const Obj* o, StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr);
+
 class InlineExpr : public Expr {
 public:
     InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,
@@ -19,9 +84,6 @@ public:
 
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override { return false; }
-    bool WillTransform(Reducer* c) const override { return true; }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -47,7 +109,6 @@ public:
     ExprPtr Duplicate() override;
 
     bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 };
@@ -63,16 +124,8 @@ public:
     ExprPtr Duplicate() override;
 
     bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-
-    // The BinaryExpr version of IsSafeSubstitution() will return false for
-    // these objects when the passed `e` is not one of op1/op2 (in particular,
-    // when it is our op3). So we need to override that. Given there's no
-    // folding possible for this nodes, substitutions are always safe.
-    bool IsSafeSubstitution(const ExprPtr& e, const ValPtr& v) const override { return true; }
 
     ExprPtr GetOp3() const final { return op3; }
     void SetOp3(ExprPtr _op) final { op3 = std::move(_op); }
@@ -100,8 +153,6 @@ public:
     ExprPtr Duplicate() override;
 
     bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -123,7 +174,6 @@ public:
     ValPtr Fold(Val* v1, Val* v2) const override;
 
     bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -173,8 +223,6 @@ public:
 
     ExprPtr Duplicate() override;
 
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
@@ -269,8 +317,6 @@ protected:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override { return IsReduced(c); }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
     void BuildEvalExpr();

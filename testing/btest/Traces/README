@@ -20,6 +20,9 @@ Trace Index/Sources:
   - the LDAP flow selected (filtered out the Kerberos packets)
   - truncated to 10 packets (where packet 10 contains the SASL encrypted LDAP message)
   - one `\x30` byte in the ciphertext changed to `\x00`
+- ldap/ldap-extended-request-dpd.pcap: provided with
+  <https://github.com/zeek/zeek/issues/5853> to test DPD for an LDAP connection
+  beginning with an ExtendedRequest on a non-standard port.
 - ldap/issue-32.pcapng: Provided by GH user martinvanhensbergen,
   <https://github.com/zeek/spicy-ldap/issues/23>
 - ldap/ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap: Harvested from CTU-SME-11

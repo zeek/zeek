@@ -5,6 +5,15 @@ module LDAP_Zeek;
 import LDAP;
 import zeek;
 
+# Create a weird if messageMode is SASL_PENDING and we see a next message
+# from the originator (meaning there was no message from in response to a
+# BindRequest).
+on LDAP::MessageDispatch::%init {
+    if (ctx.messageMode == LDAP::MessageMode::SASL_PENDING && zeek::is_orig()) {
+        zeek::weird("LDAP_sasl_client_message_before_bind_response");
+    }
+}
+
 on LDAP::TlsForward::%init {
     zeek::protocol_begin("SSL");
 }

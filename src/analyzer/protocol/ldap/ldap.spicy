@@ -135,6 +135,7 @@ type MessageMode = enum {
     MAYBE_ENCRYPTED = 3, # Use a heuristic to determine encrypted traffic.
     CLEARTEXT = 4, # Assume cleartext.
     ENCRYPTED = 5, # Assume encrypted.
+    SASL_PENDING = 6, # SASL BindRequest seen, BindResponse outcome unknown.
 };
 
 type Ctx = struct {
@@ -155,6 +156,7 @@ public type MessageDispatch = unit(ctx: Ctx&) {
         MessageMode::Undef -> : Message(ctx);
         MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
         MessageMode::TLS -> : TlsForward; # never returns
+        MessageMode::SASL_PENDING,
         MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
         MessageMode::CLEARTEXT -> : Message(ctx);
         MessageMode::ENCRYPTED -> : EncryptedMessage;
@@ -489,6 +491,15 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
         }
     }
 
+    # A new BindRequest abandons any ongoing SASL negotiation unless it
+    # explicitly carries another SASL authentication step. Reset the previous
+    # mechanism before parsing the new authentication choice; the SASL branch
+    # below restores it and switches back to SASL_PENDING as needed.
+    : void {
+        ctx.saslMechanism = "";
+        ctx.messageMode = MessageMode::Undef;
+    }
+
     if (|self.authData| > 0) {
         switch (self.authType) {
             BindAuthType::BIND_AUTH_SIMPLE -> : void {
@@ -498,6 +509,7 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
             BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials {
                 message.arg = self.saslCreds.mechanism;
                 ctx.saslMechanism = self.saslCreds.mechanism;
+                ctx.messageMode = MessageMode::SASL_PENDING;
             }
             BindAuthType::SICILY_NEGOTIATE,
             BindAuthType::SICILY_RESPONSE -> sicilyMessage: SicilyMessage {
@@ -533,6 +545,10 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
         # MS_KRB5 below.
         if (|ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS) {
             ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
+        }
+        # Make sure to reset SASL_PENDING.
+        if (ctx.messageMode == MessageMode::SASL_PENDING) {
+            ctx.messageMode = MessageMode::Undef;
         }
     }
 

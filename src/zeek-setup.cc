@@ -809,6 +809,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         telemetry_mgr->InitPostScript();
         thread_mgr->InitPostScript();
         iosource_mgr->InitPostScript();
+        timer_mgr->InitPostScript();
+        event_mgr.InitPostScript();
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();
         zeekygen_mgr->InitPostScript();
@@ -869,8 +871,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             }
         }
 
-        timer_mgr->InitPostScript();
-        event_mgr.InitPostScript();
         storage_mgr->InitPostScript();
 
         if ( supervisor_mgr )

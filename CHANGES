@@ -1,3 +1,56 @@
+9.1.0-dev.69 | 2026-09-03 16:27:39 +0200
+
+  * btest/Traces: Use Scapy for new ldap generator scripts (Arne Welzel, Corelight)
+
+    This was done by Opus 4.8. There's a Scapy API for LDAP, but it said the
+    Abandon and Delete requests didn't work out.
+
+  * GH-5795: ldap: Fix DelRequest using implicit tagging (Arne Welzel, Corelight)
+
+    Similar to AbandonRequest, the DelRequest directly contains the LDAPDN
+    octetstring. PCAP generator script taken from #5795 directly.
+
+  * GH-5795: ldap: Fix AbandonRequest using implicit tagging (Arne Welzel, Corelight)
+
+    The integer is encoded directly within an AbandonRequest. The included
+    messageId is at most 4 bytes long (32 bit). PCAP generator script taken
+    from #5795 directly.
+
+9.1.0-dev.65 | 2026-09-02 15:20:22 -0400
+
+  * vector: Fix OOB assignment leading to crash in VectorVal::Assign (JumpToSkyFree)
+
+9.1.0-dev.63 | 2026-09-02 11:52:32 +0200
+
+  * Use regular Dockerfile instead of shell-orchestrated build pipeline (Benjamin Bannier, Corelight)
+
+    We previously used a rather complicated setup of building multiple
+    Docker images, all orchestrated by a `Makefile`. This seems to have been
+    done to be able to use ccache when building the images in CI. At the
+    same time, this made local running without the `Makefile` hard and
+    pretty obscure (e.g., exact sequence of shell commands required, but
+    `docker` hardcoded in `Makefile` and little regard for existing tags or
+    tag pollution).
+
+    This patch replaces what we have with a less unusual setup where on can
+    directly invoke e.g., `docker build -f docker/Dockerfile ...` to produce
+    a working container image. The only feature we loose is reliable caching of
+    compiler artifacts in CI, but we keep that functionality for local runs
+    by using a layer cache. Given that we only rebuild the Docker image for
+    merges to `master` this seems an acceptable trade-off to me, especially
+    since the local workflow becomes less awkward. Other than caching this
+    should produce identical images.
+
+9.1.0-dev.61 | 2026-09-01 18:54:05 +0200
+
+  * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Arne Welzel, Corelight)
+
+    When sender peers too early, it produces the following output on stderr:
+
+        Broker error (Broker::PEER_UNAVAILABLE): (00000000-0000-0000-0000-000000000000, *127.0.0.1:1618, "unable to connect to remote peer")
+
+    Remove it via TEST_DIFF_CANONIFIER from stderr as done elsewhere.
+
 9.1.0-dev.59 | 2026-09-01 16:45:37 +0200
 
   * Modernize ReaderFrontend::name to std::string (Devendra Modium, Corelight)

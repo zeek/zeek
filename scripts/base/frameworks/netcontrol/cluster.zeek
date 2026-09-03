@@ -132,7 +132,7 @@ event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_error_impl(r, p, msg);
 
-	Cluster::publish(Cluster::worker_topic, rule_error, r, msg);
+	Cluster::publish(Cluster::worker_topic, rule_error, r, p, msg);
 	}
 
 event rule_new(r: Rule)

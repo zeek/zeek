@@ -5,12 +5,20 @@ module LDAP_Zeek;
 import LDAP;
 import zeek;
 
+on LDAP::MessageDispatch::%init {
+    self.is_orig = zeek::is_orig();
+}
+
 on LDAP::TlsForward::%init {
     zeek::protocol_begin("SSL");
 }
 
 on LDAP::TlsForward::chunk {
     zeek::protocol_data_in(zeek::is_orig(), self.chunk);
+}
+
+on LDAP::SaslMessageBeforeResponse::%done {
+    zeek::weird("LDAP_sasl_client_message_before_bind_response");
 }
 
 on LDAP::BindRequest::%done {

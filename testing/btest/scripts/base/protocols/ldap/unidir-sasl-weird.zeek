@@ -6,8 +6,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ldap/unidir-sasl-weird.pcap %INPUT
 # @TEST-EXEC: btest-diff-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p history service conn.log
 # @TEST-EXEC: btest-diff-cut -m uid name addl source weird.log
-# @TEST-EXEC: zeek-cut uid analyzer_name failure_reason failure_data < analyzer.log | sed "s#$(realpath "$DIST")/##g" > analyzer.cut
-# @TEST-EXEC: btest-diff analyzer.cut
+# @TEST-EXEC: test ! -f analyzer.log
 
 
 

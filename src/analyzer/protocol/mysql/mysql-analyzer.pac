@@ -198,10 +198,11 @@ refine flow MySQL_Flow += {
 
 	function proc_auth_more_data(msg: AuthMoreData): bool
 		%{
-		zeek::BifEvent::enqueue_mysql_auth_more_data(connection()->zeek_analyzer(),
-		                                             connection()->zeek_analyzer()->Conn(),
-		                                             ${is_orig},
-		                                             to_stringval(${msg.data}));
+		if ( mysql_auth_more_data )
+			zeek::BifEvent::enqueue_mysql_auth_more_data(connection()->zeek_analyzer(),
+								     connection()->zeek_analyzer()->Conn(),
+								     ${is_orig},
+								     to_stringval(${msg.data}));
 		return true;
 		%}
 

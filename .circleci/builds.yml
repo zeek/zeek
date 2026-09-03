@@ -1158,7 +1158,7 @@ workflows:
             CXX="clang++-22"
             CXXFLAGS="-stdlib=libc++"
             ZEEK_CI_CONFIGURE_FLAGS_EXTRA="--disable-javascript"
-          << : *FILTER_IF_PR_NOT_FULL_CI
+          << : *FILTER_NIGHTLY_OR_TAGGED
       - linux-build:
           name: ubuntu-24.04-clang-tidy
           docker_image: zeek/zeek-ci:ubuntu-24.04
@@ -1169,7 +1169,7 @@ workflows:
             CC="clang-22"
             CXX="clang++-22"
           enable_tests: false
-          << : *FILTER_IF_PR_NOT_FULL_CI
+          << : *FILTER_NIGHTLY_OR_TAGGED
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04

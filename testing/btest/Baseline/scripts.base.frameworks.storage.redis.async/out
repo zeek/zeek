@@ -16,10 +16,18 @@ Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config,
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get, fail, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get, success, Storage::STORAGE_BACKEND_REDIS], 1.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get, timeout, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get_all, error, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get_all, fail, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get_all, success, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, get_all, timeout, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, error, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, fail, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, success, Storage::STORAGE_BACKEND_REDIS], 1.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, timeout, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, size, error, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, size, fail, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, size, success, Storage::STORAGE_BACKEND_REDIS], 0.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, size, timeout, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_data_written_bytes_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 34.0
 
 close result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]

@@ -1,3 +1,9 @@
+9.0.0-3 | 2026-09-21 16:51:08 -0700
+
+  * netcontrol: Pass PluginState when publishing rule_error (Aashish Sharma)
+
+    (cherry picked from commit 2a7b41051c6ea0d66cdd819883412931d1e23dc8)
+
 9.0.0-2 | 2026-09-21 16:50:32 -0700
 
   * Timer: Report zero lag when no timers were expired (Arne Welzel, Corelight)

@@ -5842,6 +5842,11 @@ export {
 		## The encrypted session key for the client
 		enc_part		: KRB::Encrypted_Data;
 	};
+
+	## The maximum number of PA_DATA records that will be processed from a single
+	## connection. If the limit is reached, a "krb_max_pa_data_records_exceeded" weird
+	## will be reported. Setting this to zero will disable the limitation.
+	const max_pa_data_records: count = 5000 &redef;
 }
 
 module JSON;

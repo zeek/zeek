@@ -170,6 +170,31 @@ bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>
 
 refine connection KRB_Conn += {
 
+	%member{
+		uint64_t pa_data_index = 0;
+	%}
+
+	function next_pa_data_index(): uint64
+		%{
+		pa_data_index++;
+		return pa_data_index;
+		%}
+
+	function check_pa_data_index(index: uint64): bool
+		%{
+		if ( zeek::BifConst::KRB::max_pa_data_records > 0 && index >= zeek::BifConst::KRB::max_pa_data_records ) {
+		   zeek_analyzer()->LimitReachedWeird("krb_max_pa_data_records_exceeded", zeek::BifConst::KRB::max_pa_data_records);
+		   return true;
+		}
+
+		return false;
+		%}
+
+	function max_pa_data_index(): int
+		%{
+		return zeek::BifConst::KRB::max_pa_data_records;
+		%}
+
 	function proc_krb_kdc_req_msg(msg: KRB_KDC_REQ): bool
 		%{
 		zeek_analyzer()->AnalyzerConfirmation();

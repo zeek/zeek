@@ -20,6 +20,9 @@ Trace Index/Sources:
   - the LDAP flow selected (filtered out the Kerberos packets)
   - truncated to 10 packets (where packet 10 contains the SASL encrypted LDAP message)
   - one `\x30` byte in the ciphertext changed to `\x00`
+- ldap/krb5-sign-seal-01-server-only.pcap: derived from ldap/krb5-sign-seal-01.pcap
+  using `tcpdump -r krb5-sign-seal-01.pcap -w krb5-sign-seal-01-server-only.pcap
+  'src host 172.31.1.101'` to retain only server-to-client packets for LDAP issue #5866.
 - ldap/issue-32.pcapng: Provided by GH user martinvanhensbergen,
   <https://github.com/zeek/spicy-ldap/issues/23>
 - ldap/ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap: Harvested from CTU-SME-11

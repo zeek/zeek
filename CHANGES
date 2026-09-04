@@ -1,3 +1,13 @@
+8.0.10-4 | 2026-09-08 16:33:20 -0700
+
+  * Timer: Report zero lag when no timers were expired (Arne Welzel, Corelight)
+
+    @pbcullen observes seeing large values for zeek_timers_lag_time_seconds.
+    This seems to happen when Advance() sets last_timestamp to 0.0 and
+    there are no timers to expire. Report a zero-lag for that case.
+
+    (cherry picked from commit c1456ac6287d52273dc3dfbdfda19cab7e3849be)
+
 8.0.10-3 | 2026-09-08 16:32:35 -0700
 
   * btest/Traces: Use Scapy for new ldap generator scripts (Arne Welzel, Corelight)

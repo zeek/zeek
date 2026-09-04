@@ -815,6 +815,7 @@
 ./zeek/analyzer/protocol/krb
 ./zeek/analyzer/protocol/krb/KRB.h
 ./zeek/analyzer/protocol/krb/KRB_TCP.h
+./zeek/analyzer/protocol/krb/consts.bif.h
 ./zeek/analyzer/protocol/krb/events.bif.h
 ./zeek/analyzer/protocol/krb/krb-analyzer.pac
 ./zeek/analyzer/protocol/krb/krb-asn1.pac

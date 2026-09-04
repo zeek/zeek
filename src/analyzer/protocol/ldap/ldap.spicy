@@ -135,6 +135,7 @@ type MessageMode = enum {
     MAYBE_ENCRYPTED = 3, # Use a heuristic to determine encrypted traffic.
     CLEARTEXT = 4, # Assume cleartext.
     ENCRYPTED = 5, # Assume encrypted.
+    SASL_PENDING = 6, # SASL BindRequest seen, BindResponse outcome unknown.
 };
 
 type Ctx = struct {
@@ -144,21 +145,39 @@ type Ctx = struct {
 };
 
 #-----------------------------------------------------------------------------
-public type Messages = unit {
+public type OriginatorMessages = unit {
+    %context = Ctx;
+    : MessageDispatch(self.context())[];
+};
+
+public type ResponderMessages = unit {
     %context = Ctx;
     : MessageDispatch(self.context())[];
 };
 
 #-----------------------------------------------------------------------------
-public type MessageDispatch = unit(ctx: Ctx&) {
+type MessageDispatch = unit(ctx: Ctx&) {
+    var is_orig: bool;  # initialized in ldap_zeek.spicy
     switch (ctx.messageMode) {
         MessageMode::Undef -> : Message(ctx);
+
+        MessageMode::SASL_PENDING -> switch (self.is_orig) {
+            True -> : SaslMessageBeforeResponse(ctx);
+            False -> : Message(ctx);
+        };
+
         MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
-        MessageMode::TLS -> : TlsForward; # never returns
+        MessageMode::TLS -> : TlsForward;
         MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
         MessageMode::CLEARTEXT -> : Message(ctx);
         MessageMode::ENCRYPTED -> : EncryptedMessage;
     };
+};
+
+# Provides a hook for an originator message received while the response to the
+# previous SASL BindRequest is still pending.
+type SaslMessageBeforeResponse = unit(ctx: Ctx&) {
+    : MaybeEncrypted(ctx);
 };
 
 #-----------------------------------------------------------------------------
@@ -489,6 +508,15 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
         }
     }
 
+    # A new BindRequest abandons any ongoing SASL negotiation unless it
+    # explicitly carries another SASL authentication step. Reset the previous
+    # mechanism before parsing the new authentication choice; the SASL branch
+    # below restores it and switches back to SASL_PENDING as needed.
+    : void {
+        ctx.saslMechanism = "";
+        ctx.messageMode = MessageMode::CLEARTEXT;
+    }
+
     if (|self.authData| > 0) {
         switch (self.authType) {
             BindAuthType::BIND_AUTH_SIMPLE -> : void {
@@ -498,6 +526,7 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
             BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials {
                 message.arg = self.saslCreds.mechanism;
                 ctx.saslMechanism = self.saslCreds.mechanism;
+                ctx.messageMode = MessageMode::SASL_PENDING;
             }
             BindAuthType::SICILY_NEGOTIATE,
             BindAuthType::SICILY_RESPONSE -> sicilyMessage: SicilyMessage {
@@ -531,8 +560,23 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
         #
         # Note, messageMode may be changed to something more specific like
         # MS_KRB5 below.
-        if (|ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS) {
-            ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
+        if (ctx.messageMode == MessageMode::SASL_PENDING) {
+            switch ($$.code) {
+                case ResultCode::SUCCESS: {
+                    ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
+                }
+
+                case ResultCode::SASL_BIND_IN_PROGRESS: {
+                    # The next SASL step is carried by another plaintext LDAP
+                    # BindRequest. We are no longer waiting for the previous response.
+                    ctx.messageMode = MessageMode::CLEARTEXT;
+                }
+
+                default: {
+                    ctx.messageMode = MessageMode::CLEARTEXT;
+                    ctx.saslMechanism = "";
+                }
+            }
         }
     }
 

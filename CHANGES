@@ -1,3 +1,10 @@
+9.1.0-dev.75 | 2026-09-04 15:45:23 +0200
+
+  * mysql: Skip enqueueing mysql_auth_more_data() if not implemented (Arne Welzel, Corelight)
+
+    This seems and oversight. If there's no mysql_auth_more_data() handler,
+    no need to enqueue any events for this.
+
 9.1.0-dev.73 | 2026-09-04 11:54:45 +0200
 
   * netcontrol: Pass PluginState when publishing rule_error (Aashish Sharma)

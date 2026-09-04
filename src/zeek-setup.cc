@@ -403,7 +403,10 @@ RETSIGTYPE sig_handler(int signo) {
     return RETSIGVAL;
 }
 
-static void atexit_handler() { util::detail::set_processing_status("TERMINATED", "atexit"); }
+static void atexit_handler() {
+    run_state::terminated = true;
+    util::detail::set_processing_status("TERMINATED", "atexit");
+}
 
 static void zeek_new_handler() { out_of_memory("new"); }
 

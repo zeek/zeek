@@ -101,6 +101,9 @@ ZEEK_EXTERN_DATA double network_time;
 // True if we're a in the process of cleaning-up just before termination.
 ZEEK_EXTERN_DATA bool terminating;
 
+// True if we're running in exit handlers.
+ZEEK_EXTERN_DATA bool terminated;
+
 // True if Zeek is currently parsing scripts.
 ZEEK_EXTERN_DATA bool is_parsing;
 

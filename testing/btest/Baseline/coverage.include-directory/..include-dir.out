@@ -1270,7 +1270,10 @@
 ./zeek/packet_analysis/Analyzer.h
 ./zeek/packet_analysis/Component.h
 ./zeek/packet_analysis/Dispatcher.h
+./zeek/packet_analysis/IPLayerTunnelAnalyzer.h
 ./zeek/packet_analysis/Manager.h
+./zeek/packet_analysis/SessionTunnelAnalyzer.h
+./zeek/packet_analysis/TunnelAnalyzer.h
 ./zeek/packet_analysis/consts.bif.h
 ./zeek/packet_analysis/protocol
 ./zeek/packet_analysis/protocol/arp
@@ -1278,6 +1281,8 @@
 ./zeek/packet_analysis/protocol/arp/events.bif.h
 ./zeek/packet_analysis/protocol/ayiya
 ./zeek/packet_analysis/protocol/ayiya/AYIYA.h
+./zeek/packet_analysis/protocol/erspan
+./zeek/packet_analysis/protocol/erspan/ERSPAN.h
 ./zeek/packet_analysis/protocol/ethernet
 ./zeek/packet_analysis/protocol/ethernet/Ethernet.h
 ./zeek/packet_analysis/protocol/fddi
@@ -1313,8 +1318,8 @@
 ./zeek/packet_analysis/protocol/ip/conn_key/fivetuple/Factory.h
 ./zeek/packet_analysis/protocol/ip/conn_key/vlan_fivetuple
 ./zeek/packet_analysis/protocol/ip/conn_key/vlan_fivetuple/Factory.h
-./zeek/packet_analysis/protocol/iptunnel
-./zeek/packet_analysis/protocol/iptunnel/IPTunnel.h
+./zeek/packet_analysis/protocol/ipinip
+./zeek/packet_analysis/protocol/ipinip/IPInIP.h
 ./zeek/packet_analysis/protocol/linux_sll
 ./zeek/packet_analysis/protocol/linux_sll/LinuxSLL.h
 ./zeek/packet_analysis/protocol/linux_sll2

@@ -213,6 +213,12 @@ bool File::Close() {
 }
 
 void File::Unlink() {
+    // Don't unlink from the open_files list if we're in exit handlers. Doing so
+    // risks Zeek crashes due to ordering of static variable cleanup. Our own
+    // list cleanup occurs during orderly shutdown via CloseOpenFiles().
+    if ( run_state::terminated )
+        return;
+
     for ( auto it = open_files.begin(); it != open_files.end(); ++it ) {
         if ( (*it).second == this ) {
             open_files.erase(it);

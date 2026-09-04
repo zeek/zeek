@@ -424,6 +424,7 @@ double processing_start_time = 0.0; // time started working on current pkt
 double zeek_start_time = 0.0;       // time Zeek started.
 double zeek_start_network_time;     // timestamp of first packet
 bool terminating = false;           // whether we're done reading and finishing up
+bool terminated = false;            // whether we're running atexit handlers
 bool is_parsing = false;
 
 const Packet* current_pkt = nullptr;

@@ -317,7 +317,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
                     {"host_worker_index0", std::to_string(host_worker_index - 1)},
                 };
 
-                std::string cpu = iwc.AffinityFor(host_worker_index);
+                std::string cpu = iwc.AffinityFor(index);
                 if ( ! cpu.empty() )
                     vars["worker_cpu"] = cpu;
 

@@ -1,3 +1,14 @@
+9.1.0-dev.79 | 2026-09-07 10:37:10 +0200
+
+  * Fix null check for localtime_r and add newline (BoxStrikesTeam)
+
+9.1.0-dev.77 | 2026-09-07 10:33:40 +0200
+
+  * tools/systemd-generator: Fix CPUAffinity using global worker index (Arne Welzel, Corelight)
+
+    Found while demoing to @retr0h and being confused about the CPU pinning
+    when multiple interfaces are used.
+
 9.1.0-dev.75 | 2026-09-04 15:45:23 +0200
 
   * mysql: Skip enqueueing mysql_auth_more_data() if not implemented (Arne Welzel, Corelight)

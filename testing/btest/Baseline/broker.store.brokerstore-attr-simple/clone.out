@@ -5,9 +5,9 @@ Peer added
 [hi, there]
 }
 [[key=a, val=[a=1, b=c, c={
-elem1,
-elem2
+elem2,
+elem1
 }]], [key=b, val=[a=2, b=d, c={
-elem1,
-elem2
+elem2,
+elem1
 }]]]

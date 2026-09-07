@@ -16,8 +16,8 @@
 F
 T
 T
-[bye] = 37,
-[bye] = 7,
+[bye] = 37
+[bye] = 7
 [data=<uninitialized>]
 [data=<uninitialized>]
 [data=<uninitialized>]
@@ -26,8 +26,8 @@ T
 [data=broker::data{{bye -> 37, hi -> 42}}], {
 [data=broker::data{{bye -> 7, hi -> 42}}], {
 [data=broker::data{{}}], {
-[hi] = 42
-[hi] = 42
+[hi] = 42,
+[hi] = 42,
 | [key=[data=broker::data{bye}], val=[data=broker::data{7}]]
 | [key=[data=broker::data{hi}], val=[data=broker::data{42}]]
 }

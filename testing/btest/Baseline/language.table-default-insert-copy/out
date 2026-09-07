@@ -2,8 +2,8 @@
 copy_tbl[0], no-default
 copy_tbl[1], <default>
 copy_tbl, {
-[0] = no-default,
-[1] = <default>
+[1] = <default>,
+[0] = no-default
 }
 tbl, {
 [0] = no-default

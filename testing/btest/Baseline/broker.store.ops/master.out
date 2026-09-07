@@ -22,6 +22,6 @@
 keys, [status=Broker::SUCCESS, result=[data=broker::data{{four, one, set, str, table, three, two, vec, {x, y}}}]]
 keys, [status=Broker::SUCCESS, result=[data=broker::data{{one, set, str, table, three, two, vec, {x, y}}}]]
 keys, [status=Broker::SUCCESS, result=[data=broker::data{{}}]]
-x,
-y
+x
+y,
 }, Broker::SUCCESS, [data=broker::data{(1/tcp, 2/tcp, 3/tcp)}]

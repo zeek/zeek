@@ -4,11 +4,11 @@
 ==========SERVERS============
 done
 {
-[-43] = [b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
-4,
-2,
+[-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
 1,
-3
+2,
+3,
+4
 }, ss={
 CC,
 AA,
@@ -16,11 +16,11 @@ BB
 }, se={
 
 }, vc=[10, 20, 30], ve=[]],
-[-44] = [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
-4,
-2,
+[-43] = [b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
 1,
-3
+2,
+3,
+4
 }, ss={
 CC,
 AA,

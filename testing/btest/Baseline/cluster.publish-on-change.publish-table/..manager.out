@@ -5,7 +5,7 @@ publish_table, {
 [x] = from manager
 }
 tbl1 now contains y, {
-[x] = from manager,
-[y] = from worker
+[y] = from worker,
+[x] = from manager
 }
 node_down, worker-1

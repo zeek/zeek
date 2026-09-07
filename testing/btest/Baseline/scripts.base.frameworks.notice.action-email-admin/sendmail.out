@@ -4,7 +4,7 @@
 ----------- stdin --------------
 From: Zeek <zeek@localhost>
 Subject: [Zeek] Test_Notice
-To: postmaster@the.cloud, cloudflare@example.net
+To: 2_dot@example.net
 User-Agent: Zeek/$zeek_version()
 
 Message: test
@@ -23,7 +23,7 @@ Email Extensions
 ----------- stdin --------------
 From: Zeek <zeek@localhost>
 Subject: [Zeek] Test_Notice
-To: 2_dot@example.net
+To: postmaster@the.cloud, cloudflare@example.net
 User-Agent: Zeek/$zeek_version()
 
 Message: test

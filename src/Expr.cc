@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #include "zeek/Expr.h"
 
+#include <cinttypes>
 #include <exception>
 
 #include "zeek/DebugLogger.h"

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <cinttypes>
 #include <csignal>
 #include <cstdlib>
 #include <ranges>

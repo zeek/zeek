@@ -2,6 +2,7 @@
 //
 #include "zeek/cluster/PublishOnChangeState.h"
 
+#include <cinttypes>
 #include <cstdio>
 #include <optional>
 

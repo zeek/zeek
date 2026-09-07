@@ -3,6 +3,7 @@
 #include "zeek/logging/Manager.h"
 
 #include <broker/endpoint_info.hh>
+#include <cinttypes>
 #include <functional>
 #include <optional>
 #include <utility>

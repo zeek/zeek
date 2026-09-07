@@ -3,8 +3,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
-#include <cinttypes>
 #include <functional>
 #include <list>
 #include <memory>

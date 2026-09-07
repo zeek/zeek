@@ -2,6 +2,7 @@
 
 #include "zeek/file_analysis/File.h"
 
+#include <cinttypes>
 #include <utility>
 
 #include "zeek/Conn.h"

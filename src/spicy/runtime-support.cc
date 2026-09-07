@@ -2,6 +2,7 @@
 
 #include "zeek/spicy/runtime-support.h"
 
+#include <cinttypes>
 #include <memory>
 #include <ranges>
 

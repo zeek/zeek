@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 # @TEST-START-FILE input.log
 #separator \x09

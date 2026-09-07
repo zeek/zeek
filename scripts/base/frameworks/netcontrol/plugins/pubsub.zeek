@@ -130,7 +130,7 @@ event NetControl::pubsub_rule_removed(id: count, r: Rule, msg: string)
 	{
 	if ( id !in netcontrol_pubsub_id )
 		{
-		Reporter::error(fmt("NetControl acld plugin with id %d not found, aborting", id));
+		Reporter::error(fmt("NetControl PubSub plugin with id %d not found, aborting", id));
 		return;
 		}
 
@@ -139,11 +139,11 @@ event NetControl::pubsub_rule_removed(id: count, r: Rule, msg: string)
 	event NetControl::rule_removed(r, p, msg);
 	}
 
-event NetControl::acld_rule_error(id: count, r: Rule, msg: string)
+event NetControl::pubsub_rule_error(id: count, r: Rule, msg: string)
 	{
 	if ( id !in netcontrol_pubsub_id )
 		{
-		Reporter::error(fmt("NetControl acld plugin with id %d not found, aborting", id));
+		Reporter::error(fmt("NetControl PubSub plugin with id %d not found, aborting", id));
 		return;
 		}
 

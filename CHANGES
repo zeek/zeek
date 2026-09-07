@@ -1,3 +1,9 @@
+9.0.0-4 | 2026-09-21 16:51:55 -0700
+
+  * Fix null check for localtime_r and add newline (BoxStrikesTeam)
+
+    (cherry picked from commit efb55bc60c78155b34113fbdd2287d2b96fa1477)
+
 9.0.0-3 | 2026-09-21 16:51:08 -0700
 
   * netcontrol: Pass PluginState when publishing rule_error (Aashish Sharma)

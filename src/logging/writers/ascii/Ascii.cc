@@ -843,8 +843,10 @@ string Ascii::Timestamp(double t) {
 
     struct tm tmbuf;
     struct tm* tm = localtime_r(&teatime, &tmbuf);
-    if ( tm == nullptr )
+    if ( tm == nullptr ) {
         Error(Fmt("localtime_r failed: %s", Strerror(errno)));
+        return string("unknown-timestamp");
+    }
 
     char tmp[128];
     const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";

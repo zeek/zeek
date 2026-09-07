@@ -152,3 +152,7 @@ Trace Index/Sources:
   Manually captured with tcpdump while connecting from OpenSSH 10.3 to an
   OpenSSH 10.2 server on a VM, restricting the client to a single key exchange
   algorithm with `ssh -o KexAlgorithms=diffie-hellman-group18-sha512`.
+- ldap/starttls-off-port.pcap
+  From Arkime pcap tests "tests/pcap/ldap_ssl.pcap" with only the port numbers slightly modified.
+  Two IPv6 loopback TCP packets on port 6521: an LDAP StartTLS extended request
+  and its response, without a preceding Bind or subsequent TLS handshake.

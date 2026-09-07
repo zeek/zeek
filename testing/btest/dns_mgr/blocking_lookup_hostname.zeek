@@ -7,7 +7,7 @@
 # @TEST-EXEC: unset ZEEK_DNS_FAKE; ZEEK_DNS_RESOLVER=127.0.0.1:${DNSMASQ_PORT%/tcp} zeek -b %INPUT >out
 # @TEST-EXEC: btest-bg-wait -k 0
 
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
 const caddrs = blocking_lookup_hostname("dns.example.com");
 

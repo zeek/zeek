@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <sys/types.h>
+#include <cinttypes>
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <ctime>

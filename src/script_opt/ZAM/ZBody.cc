@@ -2,6 +2,7 @@
 
 #include "zeek/script_opt/ZAM/ZBody.h"
 
+#include <cinttypes>
 #include <limits>
 
 #include "zeek/Conn.h"

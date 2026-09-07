@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cinttypes>
 #include <cstdint>
 #include <ostream>
 #include <string>

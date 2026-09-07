@@ -52,6 +52,7 @@ WS4_URL_V1 = f"ws://127.0.0.1:{WS_PORT}/v1/messages/json"
 WS6_URL_V1 = f"ws://[::1]:{WS_PORT}/v1/messages/json"
 
 DEFAULT_RECV_TIMEOUT = 0.1
+DEFAULT_HELLO_RECV_TIMEOUT = 3.0
 OWN_TOPIC_PREFIX = "/zeek/wstest"
 
 MAIN_TRIES = 200
@@ -75,9 +76,11 @@ class TestClient:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.__cc.__exit__(exc_type, exc_value, traceback)
 
-    def hello_v1(self, topics: list[str]):
+    def hello_v1(
+        self, topics: list[str], recv_timeout: float = DEFAULT_HELLO_RECV_TIMEOUT
+    ):
         self.send_json([self.__own_topic] + topics[:])
-        ack = self.recv_json()
+        ack = self.recv_json(timeout=recv_timeout)
         assert "type" in ack, repr(ack)
         assert ack["type"] == "ack", repr(ack)
         assert "endpoint" in ack, repr(ack)

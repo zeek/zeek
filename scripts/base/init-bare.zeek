@@ -6814,6 +6814,10 @@ export {
 		## Returned from async operations when the backend is waiting
 		## for a result.
 		IN_PROGRESS,
+		## Backend does not support the requested operation.
+		NOT_SUPPORTED,
+		## Result exceeds the requested maximum number of entries.
+		RESULT_TOO_LARGE,
 	} &redef;
 
 	## Returned as the result of the various storage operations.

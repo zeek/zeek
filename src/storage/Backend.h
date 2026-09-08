@@ -199,6 +199,29 @@ public:
     OperationResult Erase(ResultCallback* cb, ValPtr key);
 
     /**
+     * Retrieve all key/value pairs from the backend as a table.
+     *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
+     * @param max_entries The maximum number of entries to retrieve. If the backend
+     * contains more entries than this, the operation returns RESULT_TOO_LARGE. Pass
+     * 0 for no limit.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr containing the table on success.
+     */
+    OperationResult GetAll(ResultCallback* cb, uint64_t max_entries);
+
+    /**
+     * Query the number of non-expired entries in the backend.
+     *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr containing the count on success.
+     */
+    OperationResult Size(ResultCallback* cb);
+
+    /**
      * Returns whether the backend is opened.
      */
     virtual bool IsOpen() = 0;
@@ -363,6 +386,9 @@ private:
      */
     virtual OperationResult DoErase(ResultCallback* cb, ValPtr key) = 0;
 
+    virtual OperationResult DoGetAll(ResultCallback* cb, uint64_t max_entries);
+    virtual OperationResult DoSize(ResultCallback* cb);
+
     /**
      * Optional method for backends to override to provide direct polling. This should be
      * implemented to support synchronous operations on backends that only provide
@@ -400,6 +426,8 @@ private:
     std::unique_ptr<detail::OperationMetrics> put_metrics;
     std::unique_ptr<detail::OperationMetrics> get_metrics;
     std::unique_ptr<detail::OperationMetrics> erase_metrics;
+    std::unique_ptr<detail::OperationMetrics> get_all_metrics;
+    std::unique_ptr<detail::OperationMetrics> size_metrics;
 
     telemetry::CounterPtr bytes_written_metric;
     telemetry::CounterPtr bytes_read_metric;

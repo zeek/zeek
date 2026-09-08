@@ -23,6 +23,7 @@
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek"
+# @TEST-EXEC: wait-for-file ./manager/ready 10
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 #
 # @TEST-EXEC: btest-bg-wait 30
@@ -75,10 +76,15 @@ event Cluster::node_up(name: string, id: string)
 
 	# Delay listening on WebSocket clients until worker-1 is around.
 	if ( name == "worker-1" )
+		{
 		Cluster::listen_websocket([
 			$listen_addr=127.0.0.1,
 			$listen_port=to_port(getenv("WEBSOCKET_PORT"))
 		]);
+
+		# Create ./manager/ready marker that's being awaited.
+		system("touch ready");
+		}
 	}
 
 global added = 0;

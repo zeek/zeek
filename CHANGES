@@ -1,3 +1,15 @@
+9.1.0-dev.87 | 2026-09-08 15:02:04 -0700
+
+  * CCI: Move libcpp and clang-tidy builds to nightly (Tim Wojtulewicz, Corelight)
+
+    These two builds don't need to happen with every push to master.
+
+  * CCI: Move Windows out of PR builds (Tim Wojtulewicz, Corelight)
+
+    Windows builds use a lot of credits on CircleCI, and doing them with every
+    PR build doesn't really gain us anything. Having it fail on merges to
+    master is enough signal that we need to fix something.
+
 9.1.0-dev.84 | 2026-09-08 11:40:11 +0200
 
   * GH-1: btest/cluster/websocket: Use ready file in manager-worker-ping-pong tests (Arne Welzel, Corelight)

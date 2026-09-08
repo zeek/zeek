@@ -149,14 +149,11 @@ public:
 
         auto [new_it, inserted] = map_.emplace(std::string(sv), MapEntry{val, hash, {}});
 
-        if ( is_ordered_ ) {
-            order_.push_back(&*new_it);
-            new_it->second.order_it = std::prev(order_.end());
-        }
-        else {
-            auto pos = std::ranges::find_if(order_, [hash](void* p) { return ToNode(p)->second.hash > hash; });
-            new_it->second.order_it = order_.insert(pos, &*new_it);
-        }
+        order_.push_back(&*new_it);
+        new_it->second.order_it = std::prev(order_.end());
+
+        if ( ! is_ordered_ )
+            order_dirty_ = true;
 
         return nullptr;
     }
@@ -248,6 +245,7 @@ public:
 
         map_.clear();
         order_.clear();
+        order_dirty_ = false;
     }
 
     // --- Iteration ---
@@ -256,18 +254,33 @@ public:
     using iterator = DictIterator<T>;
     using const_iterator = iterator;
 
-    iterator begin() const { return {this, order_.begin()}; }
+    iterator begin() const {
+        SortOrderIfNeeded();
+        return {this, order_.begin()};
+    }
     iterator end() const { return {this, order_.end()}; }
 
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }
 
-    RobustDictIterator<T> begin_robust() { return {this}; }
+    RobustDictIterator<T> begin_robust() {
+        SortOrderIfNeeded();
+        return {this};
+    }
     RobustDictIterator<T> end_robust() { return {}; }
 
 private:
     friend class DictIterator<T>;
     friend class RobustDictIterator<T>;
+
+    void SortOrderIfNeeded() const {
+        if ( ! order_dirty_ )
+            return;
+        order_.sort([](void* a, void* b) { return (ToNode(a)->second.hash) < (ToNode(b)->second.hash); });
+        for ( auto it = order_.begin(); it != order_.end(); ++it )
+            ToNode(*it)->second.order_it = it;
+        order_dirty_ = false;
+    }
 
     void WarnIfNonRobustIterators(bool* iterators_invalidated) {
         if ( num_iterators_ > static_cast<int>(robust_iterators_.size()) ) {
@@ -279,8 +292,9 @@ private:
     }
 
     Map map_;
-    OrderList order_;
+    mutable OrderList order_;
     bool is_ordered_ = false;
+    mutable bool order_dirty_ = false;
     dict_delete_func delete_func_ = nullptr;
     mutable int num_iterators_ = 0;
     std::vector<RobustDictIterator<T>*> robust_iterators_;

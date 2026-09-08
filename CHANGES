@@ -1,3 +1,28 @@
+9.0.0-rc2.4 | 2026-09-14 09:17:28 -0700
+
+  * GH-1: btest/cluster/websocket: Use ready file in manager-worker-ping-pong tests (Arne Welzel, Corelight)
+
+    Seems these tests fail now and then in CI with:
+
+        [ 99%] cluster.websocket.zeromq.manager-worker-ping-pong [zam] ... failed on retry #1
+        File "/usr/local/lib/python3.12/dist-packages/websockets/sync/messages.py", line 89, in get_next_frame
+          raise TimeoutError(f"timed out in {timeout:.1f}s") from None
+        TimeoutError: timed out in 0.1s
+
+    Delay running the client until the Zeek manager actually created the
+    WebSocket server to avoid this. Additionally, the next commit will also
+    increases the receive timeout for hello_v1()
+
+    (cherry picked from commit 587c6f3648f56561ec5a9d0771f080b998c746dd)
+
+  * btest/wstest: Extend receive timeout for TestClient.hello_v1() to 3 seconds (Arne Welzel, Corelight)
+
+    For the first interaction during the WebSocket hello handshake, increase
+    the default receive timeout to 3 seconds to avoid spurious timeouts,
+    hopefully.
+
+    (cherry picked from commit 587c6f3648f56561ec5a9d0771f080b998c746dd)
+
 9.0.0-rc2.3 | 2026-09-14 09:13:51 -0700
 
   * Bump `auxil/spicy/` to latest release (Benjamin Bannier, Corelight)

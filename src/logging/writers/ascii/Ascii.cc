@@ -806,7 +806,7 @@ string Ascii::Timestamp(double t) {
     struct tm* tm = localtime_r(&teatime, &tmbuf);
     if ( tm == nullptr ) {
         Error(Fmt("localtime_r failed: %s", Strerror(errno)));
-        return string("unknown-timestamp");
+        return "unknown-timestamp";
     }
 
     char tmp[128];

@@ -1,3 +1,9 @@
+8.0.10-7 | 2026-09-08 16:49:10 -0700
+
+  * writers/acii: Fix clang-tidy repeated return type warning (Arne Welzel, Corelight)
+
+    (cherry picked from commit c1e6065941cc8e935407b3c8a098402111dfaf99)
+
 8.0.10-6 | 2026-09-08 16:48:41 -0700
 
   * Fix null check for localtime_r and add newline (BoxStrikesTeam)

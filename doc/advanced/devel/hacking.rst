@@ -120,6 +120,21 @@ running Zeek.
 
 See also :ref:`Troubleshooting <troubleshooting>`.
 
+clang-tidy
+^^^^^^^^^^
+
+To run Zeek's configured `clang-tidy <https://clang.llvm.org/extra/clang-tidy/>`_
+checks changes in your branch (after committing), use the ``ci/run-clang-tidy-diff.sh``
+helper script to run ``clang-tidy-diff.py``:
+
+.. code-block:: shell
+
+    # ./ci/run-clang-tidy-diff.sh
+    <...>/src/logging/writers/ascii/Ascii.cc:848:16: error: avoid repeating the return type from the declaration; use a braced initializer list instead [modernize-return-braced-init-list,-warnings-as-errors]
+      848 |         return string("unknown-timestamp");
+          |                ^
+
+
 Compile Commands
 ^^^^^^^^^^^^^^^^
 

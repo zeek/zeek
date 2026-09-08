@@ -300,6 +300,10 @@ jobs:
         description: Flag for whether to run the fuzzer tests after the regular tests
         type: boolean
         default: false
+      enable_clang_tidy_diff:
+        description: Flag for whether to run clang-tidy-diff after the build on the changes in a branch.
+        type: boolean
+        default: false
       enable_benchmarks:
         description: Flag for whether the benchmarks should run after building. If this is true, the store_install_tarball parameter must be true as well.
         type: boolean
@@ -429,6 +433,12 @@ jobs:
             - run:
                 name: Run benchmarks
                 command: ci/benchmark.sh
+      - when:
+          condition: << parameters.enable_clang_tidy_diff >>
+          steps:
+            - run:
+                name: Run clang-tidy-diff.py on the changes between origin/master and HEAD
+                command: ci/run-clang-tidy-diff.sh
       - run:
           name: Show ccache statistics and prune
           command: |
@@ -1140,6 +1150,7 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
+          enable_clang_tidy_diff: true
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp

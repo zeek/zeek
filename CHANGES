@@ -1,3 +1,7 @@
+9.1.0-dev.89 | 2026-09-08 15:02:39 -0700
+
+  * Fix missing size check for TunnelEncapsulation connections (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.87 | 2026-09-08 15:02:04 -0700
 
   * CCI: Move libcpp and clang-tidy builds to nightly (Tim Wojtulewicz, Corelight)

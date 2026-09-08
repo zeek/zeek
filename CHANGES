@@ -1,3 +1,19 @@
+9.0.0-rc2.1 | 2026-09-08 15:06:06 -0700
+
+  * CCI: Move libcpp and clang-tidy builds to nightly (Tim Wojtulewicz, Corelight)
+
+    These two builds don't need to happen with every push to master.
+
+    (cherry picked from commit 952c9428fc2ccb00081895303d96c6ff33e128d9)
+
+  * CCI: Move Windows out of PR builds (Tim Wojtulewicz, Corelight)
+
+    Windows builds use a lot of credits on CircleCI, and doing them with every
+    PR build doesn't really gain us anything. Having it fail on merges to
+    master is enough signal that we need to fix something.
+
+    (cherry picked from commit 952c9428fc2ccb00081895303d96c6ff33e128d9)
+
 9.0.0-rc2 | 2026-08-31 16:58:19 +0000
 
   * Release 9.0.0-rc2.

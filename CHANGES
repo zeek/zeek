@@ -1,3 +1,19 @@
+8.0.10-2 | 2026-09-08 16:31:19 -0700
+
+  * CCI: Move libcpp and clang-tidy builds to nightly (Tim Wojtulewicz, Corelight)
+
+    These two builds don't need to happen with every push to master.
+
+    (cherry picked from commit 952c9428fc2ccb00081895303d96c6ff33e128d9)
+
+  * CCI: Move Windows out of PR builds (Tim Wojtulewicz, Corelight)
+
+    Windows builds use a lot of credits on CircleCI, and doing them with every
+    PR build doesn't really gain us anything. Having it fail on merges to
+    master is enough signal that we need to fix something.
+
+    (cherry picked from commit 952c9428fc2ccb00081895303d96c6ff33e128d9)
+
 8.0.10-1 | 2026-08-21 16:34:31 -0700
 
   * Remove DOCKER_BUILDIMAGE_LOGIN environment variable (Tim Wojtulewicz, Corelight)

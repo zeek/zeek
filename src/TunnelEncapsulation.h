@@ -192,7 +192,7 @@ public:
      * Return the tunnel type of the inner-most tunnel.
      */
     BifEnum::Tunnel::Type LastType() const {
-        return conns ? (*conns)[conns->size() - 1].Type() : BifEnum::Tunnel::NONE;
+        return conns && ! conns->empty() ? conns->back().Type() : BifEnum::Tunnel::NONE;
     }
 
     /**

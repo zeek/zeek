@@ -1,3 +1,9 @@
+8.0.10-8 | 2026-09-08 17:06:20 -0700
+
+  * Fix missing size check for TunnelEncapsulation connections (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit bb4f001ae4336cc788061c4ef5c3a6eef8ae6b24)
+
 8.0.10-7 | 2026-09-08 16:49:10 -0700
 
   * writers/acii: Fix clang-tidy repeated return type warning (Arne Welzel, Corelight)

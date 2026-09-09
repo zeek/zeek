@@ -622,7 +622,10 @@ jobs:
             LAST_SHA=$(docker inspect -f "{{ index .Config.Labels \"org.opencontainers.image.revision\" }}" ${IMAGE_TAG} 2>/dev/null || true)
 
             if [ "${LAST_SHA}" = "${CIRCLE_SHA1}" ]; then
-              echo "Image already built for this commit, skipping."
+              echo "Image already built for this commit, saving existing image."
+              mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+              docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+
               circleci-agent step halt
             fi
       - run:

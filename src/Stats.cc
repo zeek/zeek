@@ -5,6 +5,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <cinttypes>
 
 #include "zeek/Conn.h"
 #include "zeek/DNS_Mgr.h"

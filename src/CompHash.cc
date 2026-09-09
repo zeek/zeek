@@ -2,6 +2,7 @@
 
 #include "zeek/CompHash.h"
 
+#include <cinttypes>
 #include <cstring>
 #include <map>
 #include <vector>

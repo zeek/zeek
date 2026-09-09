@@ -3,7 +3,7 @@ tbl1 now contains x, {
 [x] = from manager
 }
 tbl1 now contains z, too, {
-[x] = from manager,
+[y] = from worker,
 [z] = from manager, take two!,
-[y] = from worker
+[x] = from manager
 }

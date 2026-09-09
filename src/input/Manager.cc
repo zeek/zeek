@@ -2,6 +2,7 @@
 
 #include "zeek/input/Manager.h"
 
+#include <cinttypes>
 #include <string>
 #include <utility>
 

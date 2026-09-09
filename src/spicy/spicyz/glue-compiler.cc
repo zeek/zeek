@@ -2,6 +2,7 @@
 
 #include "glue-compiler.h"
 
+#include <cinttypes>
 #include <limits>
 #include <stdexcept>
 

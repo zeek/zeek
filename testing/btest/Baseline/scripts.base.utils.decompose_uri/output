@@ -51,7 +51,7 @@ www.bro.org/?foo=bar
     -> [scheme=<uninitialized>, netlocation=www.bro.org, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[foo] = bar\x0a}]
 
 http://[::1]:8080/?foo=bar&baz=qux
-    -> [scheme=http, netlocation=[::1], portnum=8080, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[foo] = bar,\x0a\x09[baz] = qux\x0a}]
+    -> [scheme=http, netlocation=[::1], portnum=8080, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[baz] = qux,\x0a\x09[foo] = bar\x0a}]
 
 http://[::1]/foo/bar
     -> [scheme=http, netlocation=[::1], portnum=<uninitialized>, path=/foo/bar, file_name=bar, file_base=bar, file_ext=<uninitialized>, params=<uninitialized>]

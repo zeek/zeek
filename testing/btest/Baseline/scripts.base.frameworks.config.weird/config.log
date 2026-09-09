@@ -10,5 +10,5 @@
 0.000000	Weird::sampling_duration	10.0 mins	5.0 secs	-
 0.000000	Weird::sampling_threshold	25	10	-
 0.000000	Weird::sampling_rate	1000	10	-
-0.000000	Weird::sampling_whitelist	(empty)	whitelisted_net_weird,whitelisted_flow_weird,whitelisted_conn_weird	-
+0.000000	Weird::sampling_whitelist	(empty)	whitelisted_flow_weird,whitelisted_net_weird,whitelisted_conn_weird	-
 #close XXXX-XX-XX-XX-XX-XX

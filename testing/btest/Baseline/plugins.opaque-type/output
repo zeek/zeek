@@ -7,7 +7,7 @@ zeek_init: nanos as time, 1785856683.350319, 2026-08-04 15:08
 zeek_init: nanos cannot be converted to a string
 zeek_init: default nanos=, 0
 zeek_init tbl:, 2, {
-[<opaque of NanoTime>] = 3,
-[<opaque of NanoTime>] = 2
+[<opaque of NanoTime>] = 2,
+[<opaque of NanoTime>] = 3
 }
 Plugin::Done()

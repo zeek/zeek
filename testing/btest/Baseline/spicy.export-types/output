@@ -34,9 +34,9 @@ type_record_u2, {
 }
 ---
 [a=1.2.3.4, b=bytes, e=Test::type_enum_B, i=-10, iv=5.0 secs, j=10, m={
-[4.3.2.1] = addr1,
-[4.3.2.2] = addr2
+[4.3.2.2] = addr2,
+[4.3.2.1] = addr1
 }, o=string, p=42/tcp, r=3.14, s={
-Test::type_enum_A,
-Test::type_enum_B
+Test::type_enum_B,
+Test::type_enum_A
 }, t=0.0, u=[s=S, b=T, u2=[t=[x=S, y=T]]], v=[1, 2, 3]]

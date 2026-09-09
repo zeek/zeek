@@ -2,11 +2,11 @@
 [[key=a, val=3], [key=b, val=3], [key=whatever, val=5]]
 [hi]
 [[key=a, val=[a=1, b=c, c={
-elem1,
-elem2
+elem2,
+elem1
 }]], [key=b, val=[a=2, b=d, c={
-elem1,
-elem2
+elem2,
+elem1
 }]]]
 {
 [a, 1, 2] = 2

@@ -2,20 +2,20 @@
 vector to set
 [1, 1, 1, 2, 2, 3, 3, 4]
 {
-4,
+1,
 2,
 3,
-1
+4
 }
 
 set to vector (count)
 {
-4,
+1,
 2,
 3,
-1
+4
 }
-[4, 2, 3, 1]
+[1, 2, 3, 4]
 
 set to vector (port)
 {
@@ -26,14 +26,14 @@ set to vector (port)
 
 set to vector (record)
 {
-[a=a, b=b],
-[a=a1, b=b1]
+[a=a1, b=b1],
+[a=a, b=b]
 }
 {
-[a=a, b=b],
-[a=a1, b=b1]
+[a=a1, b=b1],
+[a=a, b=b]
 }
 
 vector to set (record)
 [[a=a, b=b], [a=a1, b=b1]]
-[[a=a, b=b], [a=a1, b=b1]]
+[[a=a1, b=b1], [a=a, b=b]]

@@ -9,6 +9,6 @@ three, Broker::SUCCESS, [data=broker::data{330}]
 four, Broker::SUCCESS, [data=broker::data{{1, 2, 3}}]
 five, Broker::FAILURE, [data=<uninitialized>]
 {
-x,
-y
+y,
+x
 }, Broker::SUCCESS, [data=broker::data{(1/tcp, 2/tcp, 3/tcp)}]

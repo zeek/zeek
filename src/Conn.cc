@@ -4,6 +4,7 @@
 
 #include <binpac.h>
 #include <cctype>
+#include <cinttypes>
 #include <memory>
 
 #include "zeek/Desc.h"

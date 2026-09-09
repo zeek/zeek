@@ -2,6 +2,8 @@
 
 #include "zeek/spicy/packet-analyzer.h"
 
+#include <cinttypes>
+
 #include "zeek/spicy/manager.h"
 #include "zeek/spicy/runtime-support.h"
 

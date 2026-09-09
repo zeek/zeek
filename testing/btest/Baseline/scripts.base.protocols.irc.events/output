@@ -14,8 +14,8 @@ mode_message:  tim2 +i
 mode_message: tim2!tim@10.0.0.7 tim2 :+i
 join_message: [nick=, channel=#testing, password=, usermode=]
 join_message: [nick=tim2, channel=#testing, password=*, usermode=]
-names_info: = #testing: tim1
 names_info: = #testing: tim2
+names_info: = #testing: tim1
 mode_message:  #testing
 who_message: #testing 0
 mode_message:  #testing b

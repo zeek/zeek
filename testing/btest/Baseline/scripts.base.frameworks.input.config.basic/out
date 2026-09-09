@@ -11,11 +11,11 @@ testaddr, 2607:f8b0:4005:801::200e
 testinterval, 1.0 min
 testtime, XXXXXXXXXX.XXXXXX
 test_set, {
-a,
 d,
-b,
+a,
 c,
-erdbeerschnitzel
+erdbeerschnitzel,
+b
 }
 test_vector, [1, 2, 3, 4, 5, 6]
 test_set, {

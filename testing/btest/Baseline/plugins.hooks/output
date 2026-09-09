@@ -193,6 +193,37 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33280, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33296, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33312, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33328, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33344, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33360, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33376, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33392, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33408, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33424, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33440, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33456, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33472, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33488, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33504, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33520, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33536, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33552, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33568, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33584, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33600, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33616, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33632, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33648, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 34887, PacketAnalyzer::ANALYZER_MPLS)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 35006, PacketAnalyzer::ANALYZER_ERSPAN)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 36864, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 8939, PacketAnalyzer::ANALYZER_ERSPAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -200,35 +231,11 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPINIP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPINIP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33280, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33296, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33312, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33328, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33344, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33360, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33376, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33392, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33408, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33424, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33440, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33456, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33472, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33488, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33504, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33520, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33536, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33552, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33568, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33584, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33600, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33616, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33632, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33648, PacketAnalyzer::ANALYZER_IEEE802_11)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -558,6 +565,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/const.bif, <...>/const.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/control, <...>/control) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/data.bif, <...>/data.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/erspan, <...>/erspan) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ethernet, <...>/ethernet) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/fddi, <...>/fddi) -> -1
@@ -578,7 +586,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/input, <...>/input) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/input.bif, <...>/input.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ip, <...>/ip) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/iptunnel, <...>/iptunnel) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ipinip, <...>/ipinip) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/linux_sll, <...>/linux_sll) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/linux_sll2, <...>/linux_sll2) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/llc, <...>/llc) -> -1
@@ -886,6 +894,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/const.bif, <...>/const.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/control, <...>/control) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/data.bif, <...>/data.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/erspan, <...>/erspan) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ethernet, <...>/ethernet) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/fddi, <...>/fddi) -> (-1, <no content>)
@@ -906,7 +915,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input, <...>/input) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ip, <...>/ip) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ipinip, <...>/ipinip) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/linux_sll2, <...>/linux_sll2) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/llc, <...>/llc) -> (-1, <no content>)
@@ -1168,6 +1177,37 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GENEVE, 34525, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 2048, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 25944, PacketAnalyzer::ANALYZER_ETHERNET))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33280, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33296, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33312, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33328, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33344, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33360, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33376, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33392, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33408, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33424, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33440, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33456, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33472, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33488, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33504, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33520, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33536, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33552, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33568, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33584, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33600, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33616, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33632, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 33648, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 34525, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 34887, PacketAnalyzer::ANALYZER_MPLS))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 35006, PacketAnalyzer::ANALYZER_ERSPAN))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 36864, PacketAnalyzer::ANALYZER_IEEE802_11))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_GRE, 8939, PacketAnalyzer::ANALYZER_ERSPAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -1175,35 +1215,11 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPINIP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPINIP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33280, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33296, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33312, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33328, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33344, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33360, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33376, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33392, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33408, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33424, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33440, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33456, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33472, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33488, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33504, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33520, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33536, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33552, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33568, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33584, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33600, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33616, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33632, PacketAnalyzer::ANALYZER_IEEE802_11))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_IPTUNNEL, 33648, PacketAnalyzer::ANALYZER_IEEE802_11))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -1533,6 +1549,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/const.bif, <...>/const.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/control, <...>/control)
 0.000000   MetaHookPre   LoadFile(0, base<...>/data.bif, <...>/data.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/erspan, <...>/erspan)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/fddi, <...>/fddi)
@@ -1553,7 +1570,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/input, <...>/input)
 0.000000   MetaHookPre   LoadFile(0, base<...>/input.bif, <...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ip, <...>/ip)
-0.000000   MetaHookPre   LoadFile(0, base<...>/iptunnel, <...>/iptunnel)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ipinip, <...>/ipinip)
 0.000000   MetaHookPre   LoadFile(0, base<...>/linux_sll, <...>/linux_sll)
 0.000000   MetaHookPre   LoadFile(0, base<...>/linux_sll2, <...>/linux_sll2)
 0.000000   MetaHookPre   LoadFile(0, base<...>/llc, <...>/llc)
@@ -1861,6 +1878,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/const.bif, <...>/const.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/control, <...>/control)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/data.bif, <...>/data.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/erspan, <...>/erspan)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/fddi, <...>/fddi)
@@ -1881,7 +1899,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input, <...>/input)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/input.bif, <...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ip, <...>/ip)
-0.000000   MetaHookPre   LoadFileExtended(0, base<...>/iptunnel, <...>/iptunnel)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ipinip, <...>/ipinip)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/linux_sll, <...>/linux_sll)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/linux_sll2, <...>/linux_sll2)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/llc, <...>/llc)
@@ -2142,6 +2160,37 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 34525, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 2048, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 25944, PacketAnalyzer::ANALYZER_ETHERNET)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33280, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33296, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33312, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33328, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33344, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33360, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33376, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33392, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33408, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33424, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33440, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33456, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33472, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33488, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33504, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33520, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33536, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33552, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33568, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33584, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33600, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33616, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33632, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 33648, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 34525, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 34887, PacketAnalyzer::ANALYZER_MPLS)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 35006, PacketAnalyzer::ANALYZER_ERSPAN)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 36864, PacketAnalyzer::ANALYZER_IEEE802_11)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GRE, 8939, PacketAnalyzer::ANALYZER_ERSPAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -2149,35 +2198,11 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IEEE802_11_RADIO, 105, PacketAnalyzer::ANALYZER_IEEE802_11)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 1, PacketAnalyzer::ANALYZER_ICMP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 17, PacketAnalyzer::ANALYZER_UDP)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPTUNNEL)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPTUNNEL)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 4, PacketAnalyzer::ANALYZER_IPINIP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 41, PacketAnalyzer::ANALYZER_IPINIP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 47, PacketAnalyzer::ANALYZER_GRE)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 58, PacketAnalyzer::ANALYZER_ICMP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, 6, PacketAnalyzer::ANALYZER_TCP)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33280, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33296, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33312, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33328, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33344, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33360, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33376, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33392, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33408, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33424, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33440, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33456, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33472, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33488, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33504, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33520, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33536, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33552, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33568, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33584, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33600, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33616, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33632, PacketAnalyzer::ANALYZER_IEEE802_11)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IPTUNNEL, 33648, PacketAnalyzer::ANALYZER_IEEE802_11)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_LINUXSLL, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -2520,6 +2545,7 @@
 0.000000 | HookLoadFile  base<...>/const.bif <...>/const.bif.zeek
 0.000000 | HookLoadFile  base<...>/control <...>/control
 0.000000 | HookLoadFile  base<...>/data.bif <...>/data.bif.zeek
+0.000000 | HookLoadFile  base<...>/erspan <...>/erspan
 0.000000 | HookLoadFile  base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFile  base<...>/event.bif <...>/event.bif.zeek
 0.000000 | HookLoadFile  base<...>/fddi <...>/fddi
@@ -2540,7 +2566,7 @@
 0.000000 | HookLoadFile  base<...>/input <...>/input
 0.000000 | HookLoadFile  base<...>/input.bif <...>/input.bif.zeek
 0.000000 | HookLoadFile  base<...>/ip <...>/ip
-0.000000 | HookLoadFile  base<...>/iptunnel <...>/iptunnel
+0.000000 | HookLoadFile  base<...>/ipinip <...>/ipinip
 0.000000 | HookLoadFile  base<...>/linux_sll <...>/linux_sll
 0.000000 | HookLoadFile  base<...>/linux_sll2 <...>/linux_sll2
 0.000000 | HookLoadFile  base<...>/llc <...>/llc
@@ -2848,6 +2874,7 @@
 0.000000 | HookLoadFileExtended base<...>/const.bif <...>/const.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/control <...>/control
 0.000000 | HookLoadFileExtended base<...>/data.bif <...>/data.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/erspan <...>/erspan
 0.000000 | HookLoadFileExtended base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFileExtended base<...>/event.bif <...>/event.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/fddi <...>/fddi
@@ -2868,7 +2895,7 @@
 0.000000 | HookLoadFileExtended base<...>/input <...>/input
 0.000000 | HookLoadFileExtended base<...>/input.bif <...>/input.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/ip <...>/ip
-0.000000 | HookLoadFileExtended base<...>/iptunnel <...>/iptunnel
+0.000000 | HookLoadFileExtended base<...>/ipinip <...>/ipinip
 0.000000 | HookLoadFileExtended base<...>/linux_sll <...>/linux_sll
 0.000000 | HookLoadFileExtended base<...>/linux_sll2 <...>/linux_sll2
 0.000000 | HookLoadFileExtended base<...>/llc <...>/llc

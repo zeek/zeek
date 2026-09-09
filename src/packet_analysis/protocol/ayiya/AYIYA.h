@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "zeek/iosource/Packet.h"
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/SessionTunnelAnalyzer.h"
 
 namespace zeek::packet_analysis::AYIYA {
 
-class AYIYAAnalyzer : public zeek::packet_analysis::Analyzer {
+class AYIYAAnalyzer : public zeek::packet_analysis::SessionTunnelAnalyzer {
 public:
     AYIYAAnalyzer();
 

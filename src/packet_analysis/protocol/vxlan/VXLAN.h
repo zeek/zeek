@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "zeek/iosource/Packet.h"
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/SessionTunnelAnalyzer.h"
 
 namespace zeek::packet_analysis::VXLAN {
 
-class VXLAN_Analyzer : public zeek::packet_analysis::Analyzer {
+class VXLAN_Analyzer : public zeek::packet_analysis::SessionTunnelAnalyzer {
 public:
     VXLAN_Analyzer();
 

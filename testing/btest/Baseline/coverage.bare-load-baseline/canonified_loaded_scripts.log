@@ -84,10 +84,12 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/novell_802_3/main.zeek
     scripts/base/packet-protocols/snap/__load__.zeek
       scripts/base/packet-protocols/snap/main.zeek
+    scripts/base/packet-protocols/erspan/__load__.zeek
+      scripts/base/packet-protocols/erspan/main.zeek
     scripts/base/packet-protocols/gre/__load__.zeek
       scripts/base/packet-protocols/gre/main.zeek
-    scripts/base/packet-protocols/iptunnel/__load__.zeek
-      scripts/base/packet-protocols/iptunnel/main.zeek
+    scripts/base/packet-protocols/ipinip/__load__.zeek
+      scripts/base/packet-protocols/ipinip/main.zeek
     scripts/base/packet-protocols/ayiya/__load__.zeek
       scripts/base/packet-protocols/ayiya/main.zeek
     scripts/base/packet-protocols/geneve/__load__.zeek

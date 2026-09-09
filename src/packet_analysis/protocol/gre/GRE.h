@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "zeek/iosource/Packet.h"
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/IPLayerTunnelAnalyzer.h"
 
 namespace zeek::packet_analysis::GRE {
 
-class GREAnalyzer : public Analyzer {
+class GREAnalyzer : public IPLayerTunnelAnalyzer {
 public:
     GREAnalyzer();
 

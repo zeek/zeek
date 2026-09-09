@@ -69,9 +69,6 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
     ip_hdr.reset();
 
     proto = -1;
-    tunnel_type = BifEnum::Tunnel::NONE;
-    gre_version = -1;
-    gre_link_type = DLT_RAW;
     session = nullptr;
 }
 
@@ -231,9 +228,6 @@ TEST_SUITE("Packet") {
         p.encap = std::make_shared<zeek::EncapsulationStack>();
         p.ip_hdr = std::make_shared<zeek::IP_Hdr>(nullptr, false);
         p.proto = 1;
-        p.tunnel_type = zeek::BifEnum::Tunnel::IP;
-        p.gre_version = 1;
-        p.gre_link_type = DLT_EN10MB;
         p.session = reinterpret_cast<zeek::session::Session*>(1);
 
         // Re-initialize the packet and verify that these fields now match
@@ -261,9 +255,6 @@ TEST_SUITE("Packet") {
         CHECK(p.encap.get() == p_clean.encap.get());
         CHECK(p.ip_hdr.get() == p_clean.ip_hdr.get());
         CHECK(p.proto == p_clean.proto);
-        CHECK(p.tunnel_type == p_clean.tunnel_type);
-        CHECK(p.gre_version == p_clean.gre_version);
-        CHECK(p.gre_link_type == p_clean.gre_link_type);
         CHECK(p.session == p_clean.session);
     }
 }

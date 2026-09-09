@@ -723,7 +723,7 @@ ExprPtr Reducer::GetExprUpdate(ExprPtr e) {
 
 ExprPtr Reducer::UpdateExpr(ExprPtr e, const Expr* parent) {
     auto update = GetExprUpdate(e);
-    if ( parent && update->Tag() == EXPR_CONST && ! parent->IsSafeSubstitution(e, update->AsConstExpr()->ValuePtr()) )
+    if ( parent && update->Tag() == EXPR_CONST && ! IsSafeSubstitution(parent, e, update->AsConstExpr()->ValuePtr()) )
         return e;
     return update;
 }

@@ -209,8 +209,9 @@ Source::PacketBlock Source::ParseEnhancedPacketBlock(light_block block) {
     pb.ts_tval.tv_sec = ts / ts_res;
     pb.ts_tval.tv_usec = ((ts % ts_res) * 1e6) / ts_res;
 
-    pb.caplen = lepb->capture_packet_length;
-    pb.origlen = lepb->original_capture_length;
+    uint32_t avail = (block->total_length > 32) ? block->total_length - 32 : 0;
+    pb.caplen = std::min(lepb->capture_packet_length, avail);
+    pb.origlen = std::min(pb.caplen, lepb->original_capture_length);
     pb.data = lepb->packet_data;
 
     light_option opt = light_find_option(block, LIGHT_OPTION_EPB_DROPCOUNT);

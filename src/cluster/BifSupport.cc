@@ -47,6 +47,21 @@ std::optional<zeek::cluster::Event> to_cluster_event(const zeek::cluster::Backen
 
 namespace zeek::cluster::detail::bif {
 
+bool raise_event(const zeek::RecordValPtr& rec) {
+    auto unpacked = unpack_event_record(rec);
+    if ( ! unpacked )
+        return false;
+
+    auto [func, args] = *std::move(unpacked);
+
+    const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
+    if ( ! eh )
+        return false;
+
+    zeek::event_mgr.Enqueue(eh, std::move(args));
+    return true;
+}
+
 zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
     static const auto& any_vec_type = zeek::id::find_type<zeek::VectorType>("any_vec");
     static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");

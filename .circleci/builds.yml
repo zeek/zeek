@@ -625,31 +625,38 @@ jobs:
               echo "Image already built for this commit, saving existing image."
               mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
               docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
-
-              circleci-agent step halt
+              echo "export IMAGE_EXISTS=1" >> "$BASH_ENV"
             fi
       - run:
           name: Build image
           command: |
-            set -euxo pipefail
+            if [ ${IMAGE_EXISTS:-0} -eq 0 ]; then
+              set -euxo pipefail
 
-            ZEEK_VERSION=$(cat VERSION)
+              ZEEK_VERSION=$(cat VERSION)
 
-            docker build \
-                --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
-                --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
-                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                --build-arg CREATED_DATE=$(date -Iseconds) \
-                -t ${IMAGE_TAG} \
-                -f docker/Dockerfile .
+              docker build \
+                  --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
+                  --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                  --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                  --build-arg CREATED_DATE=$(date -Iseconds) \
+                  -t ${IMAGE_TAG} \
+                  -f docker/Dockerfile .
 
-            mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
-            docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+              mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+              docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+            else
+              echo "Image already exists, skipping step."
+            fi
       - run:
           name: Run tests
           command: |
-            docker tag ${IMAGE_TAG} zeek:latest
-            make -C docker/btest
+            if [ ${IMAGE_EXISTS:-0} -eq 0 ]; then
+              docker tag ${IMAGE_TAG} zeek:latest
+              make -C docker/btest
+            else
+              echo "Image already exists, skipping step."
+            fi
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images

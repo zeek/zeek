@@ -175,10 +175,15 @@ void Source::ParseInterfaceBlock(light_block block) {
 
     light_option opt = light_find_option(block, LIGHT_OPTION_IF_TSRESOL);
     if ( opt && opt->length > 0 ) {
-        if ( (opt->data[0] & 0x80) == 0x80 )
-            intf.ts_resolution = 2 << (opt->data[0] & 0x7F);
+        uint8_t b = opt->data[0];
+        uint8_t e = b & 0x7f;
+        if ( b & 0x80 )
+            intf.ts_resolution = (e < 32) ? (1u << e) : 100000u;
         else
-            intf.ts_resolution = static_cast<uint32_t>(pow(10, (opt->data[0] & 0x7f)));
+            intf.ts_resolution = (e <= 9) ? static_cast<uint32_t>(pow(10, e)) : 100000u;
+
+        if ( intf.ts_resolution == 0 )
+            intf.ts_resolution = 1000000u;
     }
 
     interfaces.emplace_back(intf);

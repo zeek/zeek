@@ -366,12 +366,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find
+          # a ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -436,7 +434,7 @@ jobs:
             CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 
@@ -474,8 +472,7 @@ jobs:
           name: Restore ccache directory
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -484,8 +481,7 @@ jobs:
           name: Restore vcpkg cache
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - vcpkg-v2-{{ .Branch }}-{{ .Revision }}
-            - vcpkg-v2-{{ .Branch }}-
+            - vcpkg-v2-{{ .Branch }}
             - vcpkg-v2-
       - run:
           name: Configure
@@ -493,7 +489,7 @@ jobs:
           shell: cmd.exe
       - save_cache:
           name: Saving vcpkg build cache
-          key: vcpkg-v2-{{ .Branch }}-{{ .Revision }}
+          key: vcpkg-v2-{{ .Branch }}
           paths:
             - auxil\vcpkg\installed
             - auxil\vcpkg\downloads
@@ -520,7 +516,7 @@ jobs:
           shell: bash
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - C:\ccache
 
@@ -560,8 +556,7 @@ jobs:
           name: Restore ccache directory
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -585,7 +580,7 @@ jobs:
             CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /tmp/ccache
 
@@ -810,12 +805,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find a
+          # ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -832,7 +825,7 @@ jobs:
           when: on_fail
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 
@@ -884,12 +877,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find a
+          # ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -916,7 +907,7 @@ jobs:
           when: on_fail
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 

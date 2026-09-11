@@ -1,3 +1,15 @@
+9.1.0-dev.93 | 2026-09-11 16:32:40 +0200
+
+  * TCPSessionAdapter: Schedule ResetTimer() independent of connection_reset (Arne Welzel, Corelight)
+
+    A connection with history ShADadtFRfr (resets after fins) would expire
+    only after tcp_inactivity_timeout (5mins) during replay instead of
+    tcp_reset_delay (5s). The behavior would change to the expected 5s when
+    loading a script implementing a connection_reset() handler. That seems
+    strange and always scheduling the ResetTimer call appears more appropriate.
+    The ResetTimer() does more than just raise connection_reset() event, so
+    unclear why that guard was there.
+
 9.1.0-dev.91 | 2026-09-09 15:45:06 -0700
 
   * Save existing docker image during multiarch builds (Tim Wojtulewicz, Corelight)

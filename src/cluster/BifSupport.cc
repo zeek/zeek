@@ -17,26 +17,50 @@
 
 namespace {
 
-// Convert a script-level Cluster::Event to a cluster::Event.
-std::optional<zeek::cluster::Event> to_cluster_event(const zeek::cluster::Backend* backend,
-                                                     const zeek::RecordValPtr& rec) {
-    const auto& func = rec->GetField<zeek::FuncVal>(0);
+// Extract handler and arguments from a script-level Cluster::Event record.
+std::optional<std::pair<zeek::FuncValPtr, zeek::Args>> unpack_event_record(const zeek::RecordValPtr& rec) {
+    auto func = rec->GetField<zeek::FuncVal>(0);
     const auto& vargs = rec->GetField<zeek::VectorVal>(1);
 
     if ( ! func )
-        return std::nullopt;
+        return {};
 
     // Need to copy from VectorVal to zeek::Args
     zeek::Args args(vargs->Size());
     for ( size_t i = 0; i < vargs->Size(); i++ )
         args[i] = vargs->ValAt(i);
 
-    return backend->MakeClusterEvent(func, std::span{args});
+    return {{std::move(func), std::move(args)}};
+}
+
+std::optional<zeek::cluster::Event> to_cluster_event(const zeek::cluster::Backend* backend,
+                                                     const zeek::RecordValPtr& rec) {
+    auto unpacked = unpack_event_record(rec);
+    if ( ! unpacked )
+        return {};
+
+    auto [func, args] = *std::move(unpacked);
+    return backend->MakeClusterEvent(std::move(func), std::move(args));
 }
 } // namespace
 
 
 namespace zeek::cluster::detail::bif {
+
+bool raise_event(const zeek::RecordValPtr& rec) {
+    auto unpacked = unpack_event_record(rec);
+    if ( ! unpacked )
+        return false;
+
+    auto [func, args] = *std::move(unpacked);
+
+    const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
+    if ( ! eh )
+        return false;
+
+    zeek::event_mgr.Enqueue(eh, std::move(args));
+    return true;
+}
 
 zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
     static const auto& any_vec_type = zeek::id::find_type<zeek::VectorType>("any_vec");

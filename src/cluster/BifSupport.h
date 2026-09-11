@@ -50,6 +50,15 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args);
  */
 bool publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args);
 
+/**
+ * Raise a Cluster::Event locally.
+ *
+ * @param rec A Cluster::Event record instance.
+ *
+ * @return True if the event was enqueued, else false.
+ */
+bool raise_event(const zeek::RecordValPtr& rec);
+
 bool is_cluster_pool(const zeek::Val* pool);
 
 /**

@@ -45,14 +45,29 @@ function Cluster::publish%(topic: string, ...%): bool
 ## args: an event, followed by a list of argument values that may be used
 ##       to call it.
 ##
-## Returns: A :zeek:type:`Cluster::Event` instance that can be published via
-##          :zeek:see:`Cluster::publish`, :zeek:see:`Cluster::publish_rr`
-##          or :zeek:see:`Cluster::publish_hrw`.
+## Returns: A :zeek:type:`Cluster::Event` instance that can be used with
+##          :zeek:see:`Cluster::publish`, :zeek:see:`Cluster::publish_rr`,
+##          :zeek:see:`Cluster::publish_hrw`, or :zeek:see:`Cluster::raise_event`.
 function Cluster::make_event%(...%): Cluster::Event
 	%{
 	ScriptLocationScope scope{frame};
 
 	return make_event(zeek::ArgsSpan{*@ARGS@});
+	%}
+
+## Raise a :zeek:type:`Cluster::Event` locally.
+##
+## This enqueues the event as if it had been received from a cluster peer,
+## but without requiring an active cluster backend or network round-trip.
+## See :zeek:see:`Cluster::publish` for sending to remote nodes instead.
+##
+## e: A :zeek:type:`Cluster::Event` instance as created by
+##    :zeek:see:`Cluster::make_event`.
+##
+## Returns: T if the event was enqueued successfully.
+function Cluster::raise_event%(e: Cluster::Event%): bool
+	%{
+	return raise_event({zeek::NewRef{}, e->AsRecordVal()});
 	%}
 
 function Cluster::__subscribe%(topic_prefix: string%): bool

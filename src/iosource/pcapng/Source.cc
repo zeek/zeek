@@ -175,10 +175,15 @@ void Source::ParseInterfaceBlock(light_block block) {
 
     light_option opt = light_find_option(block, LIGHT_OPTION_IF_TSRESOL);
     if ( opt && opt->length > 0 ) {
-        if ( (opt->data[0] & 0x80) == 0x80 )
-            intf.ts_resolution = 2 << (opt->data[0] & 0x7F);
+        uint8_t b = opt->data[0];
+        uint8_t e = b & 0x7f;
+        if ( b & 0x80 )
+            intf.ts_resolution = (e < 32) ? (1u << e) : 100000u;
         else
-            intf.ts_resolution = static_cast<uint32_t>(pow(10, (opt->data[0] & 0x7f)));
+            intf.ts_resolution = (e <= 9) ? static_cast<uint32_t>(pow(10, e)) : 100000u;
+
+        if ( intf.ts_resolution == 0 )
+            intf.ts_resolution = 1000000u;
     }
 
     interfaces.emplace_back(intf);
@@ -204,8 +209,9 @@ Source::PacketBlock Source::ParseEnhancedPacketBlock(light_block block) {
     pb.ts_tval.tv_sec = ts / ts_res;
     pb.ts_tval.tv_usec = ((ts % ts_res) * 1e6) / ts_res;
 
-    pb.caplen = lepb->capture_packet_length;
-    pb.origlen = lepb->original_capture_length;
+    uint32_t avail = (block->total_length > 32) ? block->total_length - 32 : 0;
+    pb.caplen = std::min(lepb->capture_packet_length, avail);
+    pb.origlen = std::min(pb.caplen, lepb->original_capture_length);
     pb.data = lepb->packet_data;
 
     light_option opt = light_find_option(block, LIGHT_OPTION_EPB_DROPCOUNT);

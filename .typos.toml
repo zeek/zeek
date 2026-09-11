@@ -95,3 +95,6 @@ helo = "helo"
 requestor = "requestor"
 # `inout` is used as a keyword in Spicy, but looks like a typo of `input`.
 inout = "inout"
+# IANA DHCPv6 option names; not typos.
+haa = "haa"      # MIP6 Home Agent Address, RFC 6610
+mape = "mape"    # S46 MAP-E Container, RFC 7597

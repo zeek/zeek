@@ -8,6 +8,7 @@ config
 conn
 dce_rpc
 dhcp
+dhcpv6
 dnp3
 dns
 files

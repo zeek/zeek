@@ -1,3 +1,11 @@
+9.1.0-dev.95 | 2026-09-11 23:58:56 +0200
+
+  * CCI: Run clang-tidy-diff.py on changes during ubuntu-24.04 job (Arne Welzel, Corelight)
+
+    Motivated by #5874. If only a few files are changed, I don't think the
+    job will take a lot more time. And for shotgun changes it might, but
+    maybe that's okay or we can explicitly do an opt-out if it's annoying?
+
 9.1.0-dev.93 | 2026-09-11 16:32:40 +0200
 
   * TCPSessionAdapter: Schedule ResetTimer() independent of connection_reset (Arne Welzel, Corelight)

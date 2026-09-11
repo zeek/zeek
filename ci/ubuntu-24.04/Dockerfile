@@ -64,6 +64,7 @@ RUN gem install coveralls-lcov
 # Ubuntu installs clang versions with the binaries having the version number
 # appended. Create a symlink for clang-tidy so cmake finds it correctly.
 RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-22 1000
+RUN update-alternatives --install /usr/bin/clang-tidy-diff.py clang-tidy-diff.py /usr/bin/clang-tidy-diff-22.py 1000
 
 # Download a newer pre-built ccache version that recognizes -fprofile-update=atomic
 # which is used when building with --coverage.

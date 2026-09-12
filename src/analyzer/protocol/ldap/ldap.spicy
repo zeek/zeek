@@ -138,7 +138,9 @@ type MessageMode = enum {
 };
 
 type Ctx = struct {
-    messageMode: MessageMode; # Message dispatching mode
+    # Start in trial mode so captures that begin with a server-to-client SASL
+    # message can be classified before attempting to parse it as LDAP.
+    messageMode: MessageMode = MessageMode::MAYBE_ENCRYPTED; # Message dispatching mode
     saslMechanism: string; # The SASL mechanism selected by the client.
     startTlsRequested: bool; # Did the client use the StartTLS extended request?
 };

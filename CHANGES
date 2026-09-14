@@ -1,3 +1,12 @@
+9.1.0-dev.100 | 2026-09-14 09:51:13 -0700
+
+  * CCI: Remove commit hash from cache keys (Tim Wojtulewicz, Corelight)
+
+    Using the revision in the cache keys results in a lot of extra cache usage
+    for no gain. We're not going to rebuild a revision for a branch, so loading
+    the cache for just the branch and letting the cache misses happen works
+    better.
+
 9.1.0-dev.98 | 2026-09-14 09:13:03 -0700
 
   * Bump `auxil/spicy/` to latest release (Benjamin Bannier, Corelight)

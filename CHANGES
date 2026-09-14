@@ -1,3 +1,11 @@
+9.1.0-dev.102 | 2026-09-14 16:45:49 -0700
+
+  * Add missing documentation to BinPAC readme (Tim Wojtulewicz, Corelight)
+
+    This was entirely written by Claude after consulting with it about
+    what was missing and adding a couple of additional things that it
+    missed.
+
 9.1.0-dev.100 | 2026-09-14 09:51:13 -0700
 
   * CCI: Remove commit hash from cache keys (Tim Wojtulewicz, Corelight)

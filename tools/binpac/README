@@ -57,9 +57,19 @@ BinPAC language consists of:
 
     - analyzer
     - type - data structure like definition describing parsing unit. Types can built on each other to form more complex type similar to yacc productions.
+    - enum - a set of named integer constants (see `enum`_).
+    - extern type - a reference to a type defined outside binpac (see `extern type`_).
     - flow - "flow" defines how data will be fed into the analyzer and the top level parsing unit.
     - Keywords
     - Built-in macros
+
+Files may pull in other grammar files with the "%include" directive::
+
+ %include another-grammar.pac
+
+The path is resolved relative to the including file (for names starting with
+"." or "/") or searched in the include directories passed to binpac with the
+``-I`` option.
 
 Defining an analyzer
 --------------------
@@ -254,6 +264,33 @@ Array can also be used directly inside of "record". For example:
   additional:  DNS_rr(this, DNS_ADDITIONAL)[header.arcount];
  }&byteorder = bigendian, &exportsourcedata
 
+enum
+----
+
+An "enum" declares a set of named integer constants that can be used anywhere
+an expression is expected (for example in "case" labels). Values may be given
+explicitly; otherwise they auto-increment from the previous value.
+
+.. code::
+
+ enum PE_File_Format {
+    UNKNOWN_VERSION = 0,
+    PE32            = 1,
+    PE32_PLUS       = 2,
+ };
+
+extern type
+-----------
+
+An "extern type" declares that a type is defined outside of the binpac
+grammar (in C++), so it can be referenced (e.g. as a field or parameter type)
+without binpac generating a parser for it.
+
+.. code::
+
+ extern type ZeekAnalyzer;
+ extern type ZeekVal;
+
 flow
 ----
 
@@ -302,8 +339,39 @@ Byte Ordering and Alignment
 Byte Ordering
 ~~~~~~~~~~~~~
 
+Multi-byte integer fields (uint16, uint32, int16, int32) are decoded
+according to the byte order in effect for the enclosing type. The byte
+order is controlled with the "&byteorder" attribute on a record (or other
+type), whose value is either "bigendian" or "littleendian":
+
+.. code::
+
+ type DNS_message = record {
+    ...
+ } &byteorder = bigendian;
+
+ type SMB_header = record {
+    ...
+ } &byteorder = littleendian;
+
+The attribute may also be written without spaces and combined with other
+attributes, e.g. ``&byteorder=littleendian &length=16``. If no byteorder is
+specified, the host byte order is used, so it is good practice to set it
+explicitly for any protocol with a defined wire byte order.
+
 Byte Alignment
 ~~~~~~~~~~~~~~
+
+The "padding" field type skips over bytes without producing a parsed value.
+It comes in three forms:
+
+* ``padding [<expr>]`` -- skip exactly ``<expr>`` bytes.
+
+* ``padding to <expr>`` -- skip forward until the offset (relative to the
+  start of the enclosing record) equals ``<expr>``.
+
+* ``padding align <expr>`` -- skip forward to the next multiple of ``<expr>``
+  bytes (i.e. align to an ``<expr>``-byte boundary).
 
 .. code::
 
@@ -311,6 +379,12 @@ Byte Alignment
     length: uint32;
     data:   uint8[length];
     pad:    padding align 4;    # pad to 4-byte boundary
+ };
+
+ type Header = record {
+    fields: SomeFields;
+    pad1:   padding to fields.offset;   # skip up to a computed offset
+    rest:   bytestring &restofdata;
  };
 
 Functions
@@ -422,6 +496,12 @@ Source code embedding
 C++ code can be embedded within the .pac file using the following
 directives. These code will be copied into the final generated code.
 
+- %extern{...%}
+
+  Code to be inserted near the top of the generated header file, before the
+  binpac-generated declarations. Useful for ``#include`` directives and
+  forward declarations that the rest of the header depends on.
+
 - %header{...%}
 
   Code to be inserted in binpac generated header file.
@@ -429,6 +509,12 @@ directives. These code will be copied into the final generated code.
 - %code{...%}
 
   Code to be inserted at the beginning of binpac generated C++ file.
+
+- %eof{...%}
+
+  Code to be executed when the end of the flow is reached (i.e. when the
+  connection/flow is finished). Useful for flushing or finalizing any state
+  accumulated during parsing.
 
 .. _%member:
 
@@ -447,15 +533,34 @@ directives. These code will be copied into the final generated code.
 Embedded pac primitive
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- ${
+Within embedded C++ code (%{ %}, %member{ %}, function bodies, etc.), the
+following ``$`` primitives let you refer to PAC-level expressions and types
+and have binpac translate them into the corresponding generated C++. Each
+primitive is closed with a matching "}".
 
-- $set{
+- ``${ <pac-expr> }``
 
-- $type{
+  Evaluate the PAC expression and emit its value as C++. This is the most
+  common primitive; it lets embedded code read parsed fields, parameters, and
+  ``&let`` values by their PAC names. Example::
 
-- $typeof{
+    printf("word count = %d\n", ${body.word_count});
 
-- $const_def{
+- ``$set{ <pac-expr> }``
+
+  Emit the setter (assignment target) for the PAC expression, allowing
+  embedded code to assign to a parsed value rather than read it.
+
+- ``$type{ <pac-expr> }``
+
+  Emit the C++ data type of the PAC expression as a type name (e.g. for use
+  in a declaration or cast).
+
+- ``$const_def{ <name> = <pac-expr> }``
+
+  Declare a C++ constant/temporary named ``<name>`` initialized to the value
+  of the PAC expression, with the type inferred from the expression. The name
+  becomes visible to subsequent embedded code.
 
 Condition checking
 ~~~~~~~~~~~~~~~~~~
@@ -609,6 +714,26 @@ can gain access to the "flow" object and "analyzer" object.
 Other keywords
 ~~~~~~~~~~~~~~
 
+sizeof and offsetof
+...................
+
+These operators take a field (or type) name and evaluate to an integer:
+
+* ``sizeof(<name>)`` -- the size in bytes of the named field or type.
+
+* ``offsetof(<name>)`` -- the byte offset of the named field from the start of
+  the enclosing record.
+
+.. code::
+
+ length: uint32 = file_header.SizeOfOptionalHeader + offsetof(have_opt_header);
+
+nullptr
+.......
+
+The literal ``nullptr`` denotes a null pointer and may be used in expressions,
+for example as a default value or in comparisons against pointer-typed fields.
+
 &transient
 ..........
 
@@ -673,8 +798,37 @@ PAC source::
     t_value__size = t_value_string_length;
     value_.init((t_begin_of_data + 1), t_value_string_length);
 
-&length
-.......
+&restofflow
+...........
+
+Like &restofdata, but grabs the rest of the data in the entire flow rather
+than just the current FlowBuffer. This only works when the type is parsed as
+part of a "flow" (see `flow`_).
+
+&oneline
+........
+
+Restricts a record to exactly one line of input. The record is parsed against
+a single line taken from the flow buffer; the trailing line terminator
+(CR, LF, or CRLF) is consumed but not included in the parsed data. This is the
+usual way to parse line-oriented, text-based protocols such as HTTP headers.
+
+.. code::
+
+ type MIME_Line = record {
+    line:   bytestring &restofdata &transient;
+ } &oneline;
+
+&oneline requires that the type be buffered, which in turn requires that a
+"flow" using "flowunit" feed the data (see `Buffering`_ and the Q & A entry
+"Does &oneline only work when 'flow' is used?").
+
+&linebreaker
+............
+
+Overrides the line terminator used by &oneline for this type. The value is an
+expression evaluating to the byte(s) that mark the end of a line, for
+protocols that do not use the default CR/LF conventions.
 
 Length can appear in two different contexts: as property of a field
 or as property of a record.
@@ -704,7 +858,22 @@ unintentionally break.
 &enforce
 ........
 
-Check a condition and raise exception if not met.
+Check a condition after a field is parsed and raise a parse exception if the
+condition is not met, aborting parsing of the current unit. This is the
+supported replacement for the deprecated "&check". The condition is an
+expression that may reference the field itself and previously parsed fields.
+
+.. code::
+
+ type DOS_header = record {
+    magic: uint16 &enforce(magic == 0x5a4d);   # must be "MZ"
+    ...
+ };
+
+ type Frame = record {
+    opcode: uint8;
+    ...
+ } &enforce((first_frame && opcode != 0) || (!first_frame && opcode == 0));
 
 &chunked and $chunk
 ...................
@@ -771,10 +940,41 @@ translates into
 &refcount
 .........
 
+Applied to a record type to enable reference counting on the generated parse
+object. When set, the object tracks a reference count (via Ref()/Unref())
+instead of relying on a single owner, so it can be safely shared and kept
+alive beyond the scope in which it was parsed. This is typically used
+together with &exportsourcedata and cross-message state such as the RPC
+call/reply matching:
+
+.. code::
+
+ type RPC_Message = record {
+    ...
+ } &byteorder = bigendian, &exportsourcedata, &refcount;
 
 withinput
 .........
 
+Parse a field from a different input buffer than the natural byte stream.
+Instead of consuming bytes from the current position, the field is parsed
+against the byte range produced by the expression following "withinput". This
+is used for indirection (e.g. following a pointer/offset), reassembled data,
+and parsing an already-extracted substring.
+
+.. code::
+
+ body: DCE_RPC_Body(header)
+    withinput $context.flow.reassembled_body(header, frag)
+    &if(frag_reassembled);
+
+ # Follow a compression pointer within the same message.
+ ptr: DNS_name(msg)
+    withinput $context.flow.get_pointer(msg.sourcedata, offset)
+    &if(label_type == 3);
+
+"withinput" is frequently combined with &length (to bound the sub-input) and
+&if (to parse conditionally).
 
 Parsing Methodology
 ===================

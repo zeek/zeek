@@ -46,16 +46,6 @@ export {
 		hash: string;
 	};
 
-	## Storage configuration for Broker stores
-
-	## Holds the set of all known certs.  Keys in the store are
-	## :zeek:type:`Known::AddrPortServTriplet` and their associated value is
-	## always the boolean value of "true".
-	global cert_broker_store: Cluster::StoreInfo;
-
-	## The Broker topic name to use for :zeek:see:`Known::cert_broker_store`.
-	const cert_store_name = "zeek/known/certs" &redef;
-
 	## Storage configuration for storage framework stores
 
 	## This requires setting a configuration in local.zeek that sets the
@@ -80,13 +70,12 @@ export {
 		$database_path=fmt("%s/known/certs.sqlite", Cluster::default_store_dir),
 		$table_name=Known::cert_store_prefix ]] &redef;
 
-	## The expiry interval of new entries in :zeek:see:`Known::cert_broker_store` and
-	## :zeek:see:`Known::cert_store_backend`. This also changes the interval at which
-	## certs get logged.
+	## The expiry interval of new entries in :zeek:see:`Known::cert_store_backend`.
+	## This also changes the interval at which certs get logged.
 	option cert_store_expiry = 1day;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::cert_broker_store` and :zeek:see:`Known::cert_store_backend`.
+	## :zeek:see:`Known::cert_store_backend`.
 	option cert_store_timeout = 15sec;
 
 	## The set of all known certificates to store for preventing duplicate

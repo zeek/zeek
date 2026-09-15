@@ -7,12 +7,10 @@ zeek_add_subdir_library(
     Data.cc
     Manager.cc
     WebSocketShim.cc
-    Store.cc
     BIFS
     comm.bif
     data.bif
-    messaging.bif
-    store.bif)
+    messaging.bif)
 
 # Small plugin shim to make the CLUSTER_BACKEND_BROKER enum value available.
 zeek_add_plugin(

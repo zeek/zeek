@@ -36,13 +36,6 @@ export {
 	## See :zeek:type:`Host` for possible choices.
 	option host_tracking = LOCAL_HOSTS;
 
-	## Holds the set of all known hosts.  Keys in the store are addresses
-	## and their associated value will always be the "true" boolean.
-	global host_broker_store: Cluster::StoreInfo;
-
-	## The Broker topic name to use for :zeek:see:`Known::host_broker_store`.
-	const host_store_name = "zeek/known/hosts" &redef;
-
 	## This requires setting a configuration in local.zeek that sets the
 	## Known::enable_hosts_persistence boolean to T, and optionally setting different
 	## values in the Known::host_store_backend_options record.
@@ -65,13 +58,12 @@ export {
 		$database_path=fmt("%s/known/hosts.sqlite", Cluster::default_store_dir),
 		$table_name=Known::host_store_prefix ]] &redef;
 
-	## The expiry interval of new entries in :zeek:see:`Known::host_broker_store` and
-	## :zeek:see:`Known::host_store_backend`. This also changes the interval at
-	## which hosts get logged.
+	## The expiry interval of new entries in :zeek:see:`Known::host_store_backend`.
+	## This also changes the interval at which hosts get logged.
 	const host_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::host_broker_store` and :zeek:see:`Known::host_store_backend`.
+	## :zeek:see:`Known::host_store_backend`.
 	option host_store_timeout = 15sec;
 
 	## The set of all known addresses to store for preventing duplicate
@@ -114,7 +106,7 @@ event Known::host_found(info: HostsInfo)
 			Log::write(Known::HOSTS_LOG, info);
 		else if ( put_res$code != Storage::KEY_EXISTS )
 			Reporter::error(fmt("%s: data store put_unique failure: %s",
-			                    Known::host_store_name, put_res$error_str));
+			                    Known::host_store_prefix, put_res$error_str));
 		}
 	timeout Known::host_store_timeout
 		{

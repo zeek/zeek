@@ -55,7 +55,7 @@ event zeek_init()
 
 # @TEST-START-NEXT
 
-global orig_addr_anonymization: IPAddrAnonymization = RANDOM_MD5;
+global orig_addr_anonymization: IPAddrAnonymization = RANDOM_SHA256;
 global resp_addr_anonymization: IPAddrAnonymization = RANDOM_SHA256;
 
 event zeek_init()

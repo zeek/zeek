@@ -861,16 +861,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
         broker_mgr->InitPostScript();
-        if ( cluster::backend != broker_mgr ) {
+        if ( cluster::backend != broker_mgr )
             cluster::backend->InitPostScript();
-
-            if ( cluster_backend_none_enum != cluster_backend_val->AsEnum() ) {
-                // We're running with a non-Broker and non-None backend,
-                // check for all global tables with &backend or &broker_store
-                // and report them as non-functional.
-                cluster::detail::report_non_functional_broker_tables(cluster_backend_val);
-            }
-        }
 
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();

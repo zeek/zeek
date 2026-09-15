@@ -936,10 +936,6 @@ public:
     ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
     // Returns a ListVal representation of the table (which must be a set).
-    [[deprecated("Remove in v9.1. Pass a TypePtr instead, using Type::nil for TYPE_ANY")]]
-    ListValPtr ToListVal(TypeTag t) const;
-
-    // Returns a ListVal representation of the table (which must be a set).
     ListValPtr ToListVal(TypePtr t = nullptr) const;
 
     // Returns a ListVal representation of the table (which must be a set

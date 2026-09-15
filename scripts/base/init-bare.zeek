@@ -1542,8 +1542,6 @@ type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
 	PREFIX_PRESERVING_A50,
-	RANDOM_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
-	PREFIX_PRESERVING_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
 	RANDOM_SHA256,
 	PREFIX_PRESERVING_SHA256,
 };

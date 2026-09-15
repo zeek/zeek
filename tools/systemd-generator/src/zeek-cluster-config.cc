@@ -229,10 +229,7 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
             if ( ! iwc.cpu_list.IsValid() )
                 return {iwc, "invalid workers_cpu_list value '" + option.Value() + "'"};
         }
-        else if ( key == "worker_numa_policy" || key == "workers_numa_policy" ) {
-            if ( key == "workers_numa_policy" )
-                fprintf(stderr, "Remove in v9.1: workers_numa_policy is deprecated, replace with worker_numa_policy\n");
-
+        else if ( key == "worker_numa_policy" ) {
             if ( option.Value() != "local" && option.Value() != "default" ) {
                 return {iwc, "invalid '" + key + "' value"};
             }

@@ -41,12 +41,6 @@ export {
 	## services between runs.
 	const enable_services_persistence = F &redef;
 
-	## Toggles between different implementations of this script.
-	## When true, use a Broker data store, else use a regular Zeek set
-	## with keys uniformly distributed over proxy nodes in cluster
-	## operation.
-	const use_service_store = F &redef &deprecated="Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance and will be removed.";
-
 	## Require UDP server to respond before considering it an "active service".
 	option service_udp_requires_response = T;
 
@@ -142,34 +136,21 @@ function check(info: ServicesInfo) : bool
 
 event zeek_init()
 	{
-@pragma push ignore-deprecations
-	if ( ! Known::use_service_store && ! Known::enable_services_persistence )
+	if ( ! Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
-@pragma push ignore-deprecations
-	if ( Known::use_service_store )
-		{
-		Known::service_broker_store = Cluster::create_store(Known::service_store_name);
-@pragma pop ignore-deprecations
-		}
+	mkdir(fmt("%s/known", Cluster::default_store_dir));
+	local res = Storage::Sync::open_backend(Known::service_store_backend_type, Known::service_store_backend_options, Known::AddrPortServTriplet, bool);
+	if ( res$code == Storage::SUCCESS )
+		Known::service_store_backend = res$value;
 	else
-		{
-		mkdir(fmt("%s/known", Cluster::default_store_dir));
-		local res = Storage::Sync::open_backend(Known::service_store_backend_type, Known::service_store_backend_options, Known::AddrPortServTriplet, bool);
-		if ( res$code == Storage::SUCCESS )
-			Known::service_store_backend = res$value;
-		else
-			Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::service_store_prefix, res$error_str));
-		}
+		Reporter::error(fmt("%s: Failed to open backend connection: %s", Known::service_store_prefix, res$error_str));
 	}
 
 event service_info_commit(info: ServicesInfo)
 	{
-@pragma push ignore-deprecations
-	if ( ! Known::use_service_store && ! Known::enable_services_persistence )
+	if ( ! Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
 	local tempservs = info$service;
 
@@ -177,57 +158,29 @@ event service_info_commit(info: ServicesInfo)
 		{
 		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-@pragma push ignore-deprecations
-		if ( Known::use_service_store )
-@pragma pop ignore-deprecations
+		when [info, s, key] ( local put_res = Storage::Async::put(Known::service_store_backend, [$key=key, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::service_store_expiry]) )
 			{
-			when [info, s, key] ( local r = Broker::put_unique(Known::service_broker_store$store, key,
-			                                    T, Known::service_store_expiry) )
+			if ( put_res$code == Storage::SUCCESS )
 				{
-				if ( r$status == Broker::SUCCESS )
-					{
-					if ( r$result as bool ) {
-						info$service = set(s);	# log one service at the time if multiservice
-						Log::write(Known::SERVICES_LOG, info);
-						}
-					}
-				else
-					Reporter::error(fmt("%s: data store put_unique failure",
-					                    Known::service_store_name));
-				}
-			timeout Known::service_store_timeout
-				{
+				info$service = set(s);	# log one service at the time if multiservice
 				Log::write(Known::SERVICES_LOG, info);
 				}
+			else if ( put_res$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: storage backend failure: %s",
+				                    Known::service_store_prefix, put_res$error_str));
 			}
-		else
+		timeout Known::service_store_timeout
 			{
-			when [info, s, key] ( local put_res = Storage::Async::put(Known::service_store_backend, [$key=key, $value=T, $overwrite=F,
-			                                                    $expire_time=Known::service_store_expiry]) )
-				{
-				if ( put_res$code == Storage::SUCCESS )
-					{
-					info$service = set(s);	# log one service at the time if multiservice
-					Log::write(Known::SERVICES_LOG, info);
-					}
-				else if ( put_res$code != Storage::KEY_EXISTS )
-					Reporter::error(fmt("%s: data store put_unique failure: %s",
-					                    Known::service_store_name, put_res$error_str));
-				}
-			timeout Known::service_store_timeout
-				{
-				Log::write(Known::SERVICES_LOG, info);
-				}
+			Log::write(Known::SERVICES_LOG, info);
 			}
 		}
 	}
 
 event known_service_add(info: ServicesInfo)
 	{
-@pragma push ignore-deprecations
-	if ( Known::use_service_store || Known::enable_services_persistence )
+	if ( Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
 	if ( check(info) )
 		return;
@@ -259,10 +212,8 @@ event known_service_add(info: ServicesInfo)
 
 event Cluster::node_up(name: string, id: string)
 	{
-@pragma push ignore-deprecations
-	if ( Known::use_service_store || Known::enable_services_persistence )
+	if ( Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -273,10 +224,8 @@ event Cluster::node_up(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
-@pragma push ignore-deprecations
-	if ( Known::use_service_store || Known::enable_services_persistence )
+	if ( Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
 	if ( Cluster::local_node_type() != Cluster::WORKER )
 		return;
@@ -287,10 +236,8 @@ event Cluster::node_down(name: string, id: string)
 
 event service_info_commit(info: ServicesInfo)
 	{
-@pragma push ignore-deprecations
-	if ( Known::use_service_store || Known::enable_services_persistence )
+	if ( Known::enable_services_persistence )
 		return;
-@pragma pop ignore-deprecations
 
 	if ( check(info) )
 		return;

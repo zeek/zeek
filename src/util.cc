@@ -264,17 +264,6 @@ bool ensure_dir(const char* dirname) {
     return false;
 }
 
-void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]) {
-    zeek::detail::KeyedHash::InitializeHmacMd5Seed();
-
-    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, bytes, size, digest);
-
-    for ( int i = 0; i < 16; ++i )
-        digest[i] ^= zeek::detail::KeyedHash::shared_hmac_md5_key[i];
-
-    zeek::detail::calculate_digest(zeek::detail::Hash_MD5, digest, 16, digest);
-}
-
 void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]) {
     if ( ! zeek::detail::KeyedHash::seeds_initialized )
         reporter->InternalError("hmac_sha256 invoked before the HMAC key is set");
@@ -2755,15 +2744,6 @@ TEST_SUITE("util") {
         // In this case, we insert the UTF-8 character as the actual character
         // because the control character isn't getting escaped.
         CHECK(escape_utf8("\x07\xd4\xb7o", ESCAPE_NONE) == "\x07\xd4\xb7o");
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-        CHECK(json_escape_utf8("string\n") == "string\n");
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
         // These strings are duplicated from the scripts.base.frameworks.logging.ascii-json-utf8 btest
 

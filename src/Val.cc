@@ -2489,8 +2489,6 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     return va;
 }
 
-ListValPtr TableVal::ToListVal(TypeTag t) const { return ToListVal(base_type(t)); }
-
 ListValPtr TableVal::ToListVal(TypePtr t) const {
     auto l = make_intrusive<ListVal>(t);
 

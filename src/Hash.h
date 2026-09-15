@@ -40,7 +40,6 @@ class Frame;
 } // namespace zeek::detail
 
 namespace zeek::BifFunc {
-zeek::ValPtr md5_hmac_native(zeek::detail::Frame* frame, const zeek::Args*);
 zeek::ValPtr sha256_hmac_native(zeek::detail::Frame* frame, const zeek::Args*);
 } // namespace zeek::BifFunc
 
@@ -221,8 +220,6 @@ private:
     inline static bool seeds_initialized = false;
     inline static bool hmac_md5_seeds_initialized = false;
 
-    friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-    friend ValPtr BifFunc::md5_hmac_native(zeek::detail::Frame* frame, const Args*);
     friend void util::detail::hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
     friend ValPtr BifFunc::sha256_hmac_native(zeek::detail::Frame* frame, const Args*);
 };

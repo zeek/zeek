@@ -31,8 +31,6 @@ enum ip_addr_anonymization_method_t : uint8_t {
     KEEP_ORIG_ADDR,
     SEQUENTIALLY_NUMBERED,
     PREFIX_PRESERVING_A50,
-    RANDOM_MD5 [[deprecated("Remove in v9.1. Use the A50 or SHA256 anonymizers instead.")]],
-    PREFIX_PRESERVING_MD5 [[deprecated("Remove in v9.1. Use the A50 or SHA256 anonymizers instead.")]],
     RANDOM_SHA256,
     PREFIX_PRESERVING_SHA256,
     NUM_ADDR_ANONYMIZATION_METHODS,
@@ -66,24 +64,6 @@ public:
 
 protected:
     ipaddr32_t seq;
-};
-
-class [[deprecated("Remove in v9.1. Use the A50 or SHA256 anonymizers instead.")]] AnonymizeIPAddr_RandomMD5
-    : public AnonymizeIPAddr {
-public:
-    ipaddr32_t anonymize(ipaddr32_t addr) override;
-};
-
-class [[deprecated("Remove in v9.1. Use the A50 or SHA256 anonymizers instead.")]] AnonymizeIPAddr_PrefixMD5
-    : public AnonymizeIPAddr {
-public:
-    ipaddr32_t anonymize(ipaddr32_t addr) override;
-
-protected:
-    struct anon_prefix {
-        int len;
-        ipaddr32_t prefix;
-    } prefix;
 };
 
 class AnonymizeIPAddr_RandomSHA256 : public AnonymizeIPAddr {

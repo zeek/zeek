@@ -9,15 +9,6 @@ event rfb_authentication_type%(c: connection, authtype: count%);
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## result: whether or not authentication was successful (false means success, true means failure)
-##
-## .. zeek:see:: rfb_authentication_result
-event rfb_auth_result%(c: connection, result: bool%) &deprecated="Remove in v9.1. Use rfb_authentication_result which has the correct value for result.";
-
-## Generated for RFB event authentication result message
-##
-## c: The connection record for the underlying transport-layer session/flow.
-##
 ## result: whether or not authentication was successful
 event rfb_authentication_result%(c: connection, result: bool%);
 

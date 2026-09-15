@@ -118,19 +118,6 @@ export {
 	## predefined options there when setting up the store.
 	global stores: table[string] of StoreInfo &default=StoreInfo() &redef;
 
-	## Sets up a cluster-enabled data store.  They will also still properly
-	## function for uses that are not operating a cluster.
-	##
-	## name: the name of the data store to create.
-	##
-	## persistent: whether the data store must be persistent.
-	##
-	## Returns: the store's information.  For master stores, the store will be
-	##          ready to use immediately.  For clones, the store field will not
-	##          be set until the node containing the master store has connected.
-	global create_store: function(name: string, persistent: bool &default=F): StoreInfo
-	&deprecated="Remove in v9.1. Cluster::create_store() uses Broker stores which are deprecated. To distribute state across cluster nodes, use the new &publish_on_change attribute for global sets/tables, or leverage explicit remote events with Cluster::publish(). For state persistence, use the storage framework.";
-
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };
 
@@ -426,90 +413,6 @@ event zeek_init() &priority=5
 		Reporter::fatal(fmt("Cluster::node set to '%s', but Cluster::backend is %s - please select a cluster backend to use.", Cluster::node, Cluster::backend));
 
 	Log::create_stream(Cluster::LOG, Log::Stream($columns=Info, $path="cluster", $policy=log_policy));
-	}
-
-function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
-	{
-	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER && Cluster::backend != Cluster::CLUSTER_BACKEND_NONE )
-		Reporter::fatal(fmt("Call to Cluster::create_store() with non-Broker backend %s selected", Cluster::backend));
-
-	local info = stores[name];
-	info$name = name;
-
-	if ( Cluster::default_store_dir != "" )
-		{
-		local default_options = Broker::BackendOptions();
-		local path = Cluster::default_store_dir + "/" + name;
-
-		if ( info$options$sqlite$path == default_options$sqlite$path )
-			info$options$sqlite$path = path + ".sqlite";
-		}
-
-	if ( persistent )
-		{
-		switch ( info$backend ) {
-		case Broker::MEMORY:
-			info$backend = Cluster::default_persistent_backend;
-			break;
-		case Broker::SQLITE:
-			# no-op: user already asked for a specific persistent backend.
-			break;
-		default:
-			Reporter::error(fmt("unhandled data store type: %s", info$backend));
-			break;
-		}
-		}
-
-	if ( ! Cluster::is_enabled() )
-		{
-		if ( info?$store )
-			{
-			Reporter::warning(fmt("duplicate cluster store creation for %s", name));
-			return info;
-			}
-
-@pragma push ignore-deprecations
-		info$store = Broker::create_master(name, info$backend, info$options);
-@pragma pop ignore-deprecations
-		info$master = T;
-		stores[name] = info;
-		return info;
-		}
-
-	if ( info$master_node == "" )
-		{
-		local mgr_nodes = nodes_with_type(Cluster::MANAGER);
-
-		if ( |mgr_nodes| == 0 )
-			Reporter::fatal(fmt("empty master node name for cluster store " +
-								"'%s', but there's no manager node to default",
-			                    name));
-
-		info$master_node = mgr_nodes[0]$name;
-		}
-	else if ( info$master_node !in Cluster::nodes )
-		Reporter::fatal(fmt("master node '%s' for cluster store '%s' does not exist",
-		                    info$master_node, name));
-
-@pragma push ignore-deprecations
-	if ( Cluster::node == info$master_node )
-		{
-		info$store = Broker::create_master(name, info$backend, info$options);
-		info$master = T;
-		stores[name] = info;
-		Cluster::log(fmt("created master store: %s", name));
-		return info;
-		}
-
-	info$master = F;
-	stores[name] = info;
-	info$store = Broker::create_clone(info$name,
-	                                  info$clone_resync_interval,
-	                                  info$clone_stale_interval,
-	                                  info$clone_mutation_buffer_interval);
-@pragma pop ignore-deprecations
-	Cluster::log(fmt("created clone store: %s", info$name));
-	return info;
 	}
 
 function log(msg: string)

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test TLS DPD detection when the TLS client is the TCP responder.
 # @TEST-EXEC: zeek -b -r ${TRACES}/tls/tls-1.2-clienthello-from-tcp-responder.pcap %INPUT
 # @TEST-EXEC: btest-diff-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p history service conn.log
-# @TEST-EXEC: if test -f ssl.log; then btest-diff-cut -m ssl.log; else echo 'No SSL log' > ssl.log; btest-diff ssl.log; fi
+# @TEST-EXEC: btest-diff-cut -m ssl.log
 
 @load base/protocols/conn
 @load base/protocols/ssl

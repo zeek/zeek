@@ -152,23 +152,6 @@ void Func::AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_
     Internal("Func::AddBody called");
 }
 
-// Deprecated interfaces.
-void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
-                   int priority) {
-    AddBody(Func::Body{.stmts = std::move(new_body), .priority = priority}, new_inits, new_frame_size);
-}
-
-void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size) {
-    std::vector<detail::IDPtr> no_inits;
-    std::set<EventGroupPtr> no_groups;
-    AddBody({.stmts = std::move(new_body)}, no_inits, new_frame_size);
-}
-
-void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDPtr>& /* new_inits */,
-                   size_t /* new_frame_size */, int /* priority */, const std::set<EventGroupPtr>& /* groups */) {
-    Internal("Func::AddBody called");
-}
-
 void Func::SetScope(detail::ScopePtr newscope) { scope = std::move(newscope); }
 
 FuncPtr Func::DoClone() {
@@ -564,31 +547,6 @@ void ScriptFunc::AddBody(Func::Body&& new_body, const std::vector<IDPtr>& new_in
     }
 
     current_body = std::move(new_body);
-
-    bodies.push_back(current_body);
-    std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
-}
-
-// Deprecated interface.
-void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size, int priority,
-                         const std::set<EventGroupPtr>& groups) {
-    if ( new_frame_size > frame_size )
-        frame_size = new_frame_size;
-
-    auto num_args = static_cast<size_t>(GetType()->Params()->NumFields());
-
-    if ( num_args > frame_size )
-        frame_size = num_args;
-
-    new_body = AddInits(std::move(new_body), new_inits);
-
-    if ( Flavor() == FUNC_FLAVOR_FUNCTION ) {
-        // For functions, we replace the old body with the new one.
-        assert(bodies.size() <= 1);
-        bodies.clear();
-    }
-
-    current_body = Body{.stmts = new_body, .groups = {groups.begin(), groups.end()}, .priority = priority};
 
     bodies.push_back(current_body);
     std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);

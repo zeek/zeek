@@ -1314,11 +1314,8 @@ type ThreadStats: record {
 ##
 ## .. zeek:see:: get_broker_stats
 type BrokerStats: record {
+	## Number of active peers.
 	num_peers: count;
-	## Number of active data stores.
-	num_stores: count;
-	## Number of pending data store queries.
-	num_pending_queries: count;
 	## Number of total log messages received.
 	num_events_incoming: count;
 	## Number of total log messages sent.

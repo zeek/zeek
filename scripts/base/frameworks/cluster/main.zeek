@@ -61,62 +61,10 @@ export {
 	## a unique node in a cluster.  Used with broker-enabled cluster communication.
 	const nodeid_topic_prefix = "zeek/cluster/nodeid/" &redef;
 
-	## Name of the node on which master data stores will be created if no other
-	## has already been specified by the user in :zeek:see:`Cluster::stores`.
-	## An empty value means "use whatever name corresponds to the manager
-	## node".
-	const default_master_node = "" &redef;
-
-	## The type of data store backend that will be used for all data stores if
-	## no other has already been specified by the user in :zeek:see:`Cluster::stores`.
-	const default_backend = Broker::MEMORY &redef;
-
-	## The type of persistent data store backend that will be used for all data
-	## stores if no other has already been specified by the user in
-	## :zeek:see:`Cluster::stores`.  This will be used when script authors call
-	## :zeek:see:`Cluster::create_store` with the *persistent* argument set true.
-	const default_persistent_backend = Broker::SQLITE &redef;
-
-	## Setting a default dir will, for persistent backends that have not
-	## been given an explicit file path via :zeek:see:`Cluster::stores`,
-	## automatically create a path within this dir that is based on the name of
-	## the data store.
+	## Setting a default dir will, for persistent backends that have not been given an
+	## explicit file path, automatically create a path within this dir that is based
+	## on the name of the data store.
 	const default_store_dir = "" &redef;
-
-	## Information regarding a cluster-enabled data store.
-	type StoreInfo: record {
-		## The name of the data store.
-		name: string &optional;
-		## The store handle.
-		store: opaque of Broker::Store &optional;
-		## The name of the cluster node on which the master version of the data
-		## store resides.
-		master_node: string &default=default_master_node;
-		## Whether the data store is the master version or a clone.
-		master: bool &default=F;
-		## The type of backend used for storing data.
-		backend: Broker::BackendType &default=default_backend;
-		## Parameters used for configuring the backend.
-		options: Broker::BackendOptions &default=Broker::BackendOptions();
-		## A resync/reconnect interval to pass through to
-		## :zeek:see:`Broker::create_clone`.
-		clone_resync_interval: interval &default=Broker::default_clone_resync_interval;
-		## A staleness duration to pass through to
-		## :zeek:see:`Broker::create_clone`.
-		clone_stale_interval: interval &default=Broker::default_clone_stale_interval;
-		## A mutation buffer interval to pass through to
-		## :zeek:see:`Broker::create_clone`.
-		clone_mutation_buffer_interval: interval &default=Broker::default_clone_mutation_buffer_interval;
-	};
-
-	## A table of cluster-enabled data stores that have been created, indexed
-	## by their name.  This table will be populated automatically by
-	## :zeek:see:`Cluster::create_store`, but if you need to customize
-	## the options related to a particular data store, you may redef this
-	## table.  Calls to :zeek:see:`Cluster::create_store` will first check
-	## the table for an entry of the same name and, if found, will use the
-	## predefined options there when setting up the store.
-	global stores: table[string] of StoreInfo &default=StoreInfo() &redef;
 
 	## The cluster logging stream identifier.
 	redef enum Log::ID += { LOG };

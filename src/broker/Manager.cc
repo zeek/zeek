@@ -30,10 +30,8 @@
 #include "zeek/Type.h"
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"
-#include "zeek/broker/Store.h"
 #include "zeek/broker/comm.bif.h"
 #include "zeek/broker/messaging.bif.h"
-#include "zeek/broker/store.bif.h"
 #include "zeek/cluster/Telemetry.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"
 #include "zeek/iosource/Manager.h"
@@ -49,17 +47,6 @@
 using namespace std;
 
 namespace {
-
-// On Windows, colons in Zeek namespace-qualified names (e.g., "Module::var")
-// are invalid in filenames. Replace them with underscores for path use.
-string sanitize_store_filename(string name) {
-#ifdef _WIN32
-    for ( auto& c : name )
-        if ( c == ':' )
-            c = '_';
-#endif
-    return name;
-}
 
 broker::vector broker_vector_from(const broker::variant& arg) {
     auto tmp = arg.to_data();
@@ -456,10 +443,6 @@ std::string RenderMessage(const broker::variant_list& d) {
     return util::escape_utf8(broker::to_string(d), util::ESCAPE_UNPRINTABLE_CONTROLS);
 }
 
-std::string RenderMessage(const broker::store::response& x) {
-    return util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
-}
-
 std::string RenderMessage(const broker::status& s) { return broker::to_string(s.code()); }
 
 std::string RenderMessage(const broker::error& e) {
@@ -500,8 +483,6 @@ void Manager::DoInitPostScript() {
     log_topic_func = get_option("Broker::log_topic")->AsFunc();
     log_id_type = id::find_type("Log::ID")->AsEnumType();
     writer_id_type = id::find_type("Log::Writer")->AsEnumType();
-    zeek_table_manager = get_option("Broker::table_store_master")->AsBool();
-    zeek_table_db_directory = get_option("Broker::table_store_db_directory")->AsString()->CheckString();
     enable_identifier_updates = get_option("Broker::enable_identifier_updates")->AsBool();
 
     // If Zeek's forwarding of network time to wallclock time was disabled,
@@ -515,7 +496,6 @@ void Manager::DoInitPostScript() {
     detail::opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
     detail::opaque_of_vector_iterator = make_intrusive<OpaqueType>("Broker::VectorIterator");
     detail::opaque_of_record_iterator = make_intrusive<OpaqueType>("Broker::RecordIterator");
-    detail::opaque_of_store_handle = make_intrusive<OpaqueType>("Broker::Store");
     vector_of_data_type = make_intrusive<VectorType>(id::find_type("Broker::Data"));
 
     // Register as a "dont-count" source first, we may change that later.
@@ -606,23 +586,11 @@ void Manager::DoInitPostScript() {
     if ( ! iosource_mgr->RegisterFd(queue->FlareFd(), this) )
         reporter->FatalError("Failed to register broker logger with iosource_mgr");
 
-    bstate->subscriber.add_topic(broker::topic::store_events(), true);
-
     SetNodeId(broker::to_string(bstate->endpoint.node_id()));
-
-    InitializeBrokerStoreForwarding();
 
     num_peers_metric =
         telemetry_mgr->GaugeInstance("zeek", "broker_peers", {}, "Current number of peers connected via broker", "",
                                      []() { return static_cast<double>(broker_mgr->peer_count); });
-
-    num_stores_metric =
-        telemetry_mgr->GaugeInstance("zeek", "broker_stores", {}, "Current number of stores connected via broker", "",
-                                     []() { return static_cast<double>(broker_mgr->data_stores.size()); });
-
-    num_pending_queries_metric =
-        telemetry_mgr->GaugeInstance("zeek", "broker_pending_queries", {}, "Current number of pending broker queries",
-                                     "", []() { return static_cast<double>(broker_mgr->pending_queries.size()); });
 
     num_events_incoming_metric = telemetry_mgr->CounterInstance("zeek", "broker_incoming_events", {},
                                                                 "Total number of incoming events via broker");
@@ -638,62 +606,12 @@ void Manager::DoInitPostScript() {
         telemetry_mgr->CounterInstance("zeek", "broker_outgoing_ids", {}, "Total number of outgoing ids via broker");
 }
 
-void Manager::InitializeBrokerStoreForwarding() {
-    const auto& globals = zeek::detail::global_scope()->Vars();
-
-    for ( const auto& global : globals ) {
-        auto& id = global.second;
-        if ( id->HasVal() && id->GetAttr(zeek::detail::ATTR_BACKEND) ) {
-            const auto& attr_e = id->GetAttr(zeek::detail::ATTR_BACKEND)->GetExpr();
-            auto be_type = eval_in_isolation(attr_e);
-            if ( ! be_type )
-                reporter->ExprRuntimeError(attr_e.get(), "bad &backend attribute");
-
-            auto e = static_cast<BifEnum::Broker::BackendType>(be_type->AsEnum());
-            auto storename = std::string("___sync_store_") + global.first;
-            id->GetVal()->AsTableVal()->SetBrokerStore(storename);
-            AddForwardedStore(storename, cast_intrusive<TableVal>(id->GetVal()));
-
-            // We only create masters here. For clones, we do all the work of setting up
-            // the forwarding - but we do not try to initialize the clone. We can only initialize
-            // the clone, once a node has a connection to a master. This is currently done in
-            // scriptland in scripts/base/frameworks/cluster/broker-stores.zeek. Once the ALM
-            // transport is ready we can change over to doing this here.
-            if ( ! zeek_table_manager )
-                continue;
-
-            auto backend = detail::to_backend_type(e);
-            auto suffix = ".store";
-
-            switch ( backend ) {
-                case broker::backend::sqlite: suffix = ".sqlite"; break;
-                default: break;
-            }
-
-            auto path = zeek_table_db_directory + "/" + sanitize_store_filename(storename) + suffix;
-
-            MakeMaster(storename, backend, broker::backend_options{{"path", path}});
-        }
-    }
-}
-
 void Manager::DoTerminate() {
     FlushLogBuffers();
 
     iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
 
     iosource_mgr->UnregisterFd(bstate->loggerQueue->FlareFd(), this);
-
-    vector<string> stores_to_close;
-    stores_to_close.reserve(data_stores.size());
-
-    for ( auto& x : data_stores )
-        stores_to_close.push_back(x.first);
-
-    for ( auto& x : stores_to_close )
-        // This doesn't loop directly over data_stores, because CloseStore
-        // modifies the map and invalidates iterators.
-        CloseStore(x);
 
     ProcessLogEvents();
 
@@ -721,26 +639,6 @@ void Manager::AdvanceTime(double seconds_since_unix_epoch) {
     auto span = std::chrono::duration_cast<broker::timespan>(secs);
     broker::timestamp next_time{span};
     bstate->endpoint.advance_time(next_time);
-}
-
-void Manager::FlushPendingQueries() {
-    while ( ! pending_queries.empty() ) {
-        // possibly an infinite loop if a query can recursively
-        // generate more queries...
-        for ( auto& s : data_stores ) {
-            while ( ! s.second->proxy.mailbox().empty() ) {
-                auto response = s.second->proxy.receive();
-                ProcessStoreResponse(s.second, std::move(response));
-            }
-        }
-    }
-}
-
-void Manager::ClearStores() {
-    FlushPendingQueries();
-
-    for ( const auto& [name, handle] : data_stores )
-        handle->store.clear();
 }
 
 uint16_t Manager::Listen(const string& addr, uint16_t port) {
@@ -1241,11 +1139,6 @@ void Manager::ProcessMessages() {
             continue;
         }
 
-        if ( broker::is_prefix(topic, broker::topic::store_events_str) ) {
-            ProcessStoreEvent(broker::get_data(message).to_data());
-            continue;
-        }
-
         try {
             // Once we call a broker::move_* function, we force Broker to
             // unshare the content of the message, i.e., copy the content to a
@@ -1321,23 +1214,6 @@ void Manager::ProcessLogEvents() {
     }
 }
 
-void Manager::ProcessDataStore(detail::StoreHandleVal* store) {
-    auto num_available = store->proxy.mailbox().size();
-
-    if ( num_available > 0 ) {
-        auto responses = store->proxy.receive(num_available);
-
-        for ( auto& r : responses )
-            ProcessStoreResponse(store, std::move(r));
-    }
-}
-
-void Manager::ProcessDataStores() {
-    for ( auto& kvp : data_stores ) {
-        ProcessDataStore(kvp.second);
-    }
-}
-
 void Manager::ProcessFd(int fd, int flags) {
     if ( fd == bstate->subscriber.fd() ) {
         ProcessMessages();
@@ -1345,20 +1221,11 @@ void Manager::ProcessFd(int fd, int flags) {
     else if ( fd == bstate->loggerQueue->FlareFd() ) {
         ProcessLogEvents();
     }
-    else {
-        for ( auto& kvp : data_stores ) {
-            if ( fd == kvp.second->proxy.mailbox().descriptor() ) {
-                ProcessDataStore(kvp.second);
-                return;
-            }
-        }
-    }
 }
 
 void Manager::Process() {
     ProcessMessages();
     ProcessLogEvents();
-    ProcessDataStores();
 }
 
 double Manager::GetNextTimeout() {
@@ -1373,151 +1240,6 @@ double Manager::GetNextTimeout() {
         return 0;
 
     return -1;
-}
-
-void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,
-                                            const broker::data& key, const broker::data& data,
-                                            const broker::data& old_value, bool insert) {
-    auto type = "Insert";
-    if ( ! insert )
-        type = "Update";
-
-    if ( insert ) {
-        DBG_LOG(DBG_BROKER, "Store %s: Insert: %s:%s (%s:%s)", store_id.c_str(), to_string(key).c_str(),
-                to_string(data).c_str(), key.get_type_name(), data.get_type_name());
-    }
-    else {
-        DBG_LOG(DBG_BROKER, "Store %s: Update: %s->%s (%s)", store_id.c_str(), to_string(old_value).c_str(),
-                to_string(data).c_str(), data.get_type_name());
-    }
-
-    if ( table->GetType()->IsSet() && data.get_type() != broker::data::type::none ) {
-        reporter->Error("ProcessStoreEvent %s got %s when expecting set", type, data.get_type_name());
-        return;
-    }
-
-    const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
-    ValPtr zeek_key;
-    auto key_copy = key;
-    if ( its.size() == 1 )
-        zeek_key = detail::data_to_val(key_copy, its[0].get());
-    else
-        zeek_key = detail::data_to_val(key_copy, table->GetType()->AsTableType()->GetIndices().get());
-
-    if ( ! zeek_key ) {
-        reporter->Error(
-            "ProcessStoreEvent %s: could not convert key \"%s\" for store \"%s\" while receiving "
-            "remote data. This probably means the tables have different types on different nodes.",
-            type, to_string(key).c_str(), store_id.c_str());
-        return;
-    }
-
-    if ( table->GetType()->IsSet() ) {
-        table->Assign(zeek_key, nullptr, false);
-        return;
-    }
-
-    // it is a table
-    auto data_copy = data;
-    auto zeek_value = detail::data_to_val(data_copy, table->GetType()->Yield().get());
-    if ( ! zeek_value ) {
-        reporter->Error(
-            "ProcessStoreEvent %s: could not convert value \"%s\" for key \"%s\" in "
-            "store \"%s\" while receiving remote data. This probably means the tables "
-            "have different types on different nodes.",
-            type, to_string(data).c_str(), to_string(key).c_str(), store_id.c_str());
-        return;
-    }
-
-    table->Assign(zeek_key, zeek_value, false);
-}
-
-void Manager::ProcessStoreEvent(const broker::data& msg) {
-    if ( auto insert = broker::store_event::insert::make(msg) ) {
-        auto storehandle = broker_mgr->LookupStore(insert.store_id());
-        if ( ! storehandle )
-            return;
-
-        const auto& table = storehandle->forward_to;
-        if ( ! table )
-            return;
-
-        // We sent this message. Ignore it.
-        if ( insert.publisher() == storehandle->store_pid )
-            return;
-
-        ProcessStoreEventInsertUpdate(table, insert.store_id(), insert.key(), insert.value(), {}, true);
-    }
-    else if ( auto update = broker::store_event::update::make(msg) ) {
-        auto storehandle = broker_mgr->LookupStore(update.store_id());
-        if ( ! storehandle )
-            return;
-
-        const auto& table = storehandle->forward_to;
-        if ( ! table )
-            return;
-
-        // We sent this message. Ignore it.
-        if ( update.publisher() == storehandle->store_pid )
-            return;
-
-        ProcessStoreEventInsertUpdate(table, update.store_id(), update.key(), update.new_value(), update.old_value(),
-                                      false);
-    }
-    else if ( auto erase = broker::store_event::erase::make(msg) ) {
-        auto storehandle = broker_mgr->LookupStore(erase.store_id());
-        if ( ! storehandle )
-            return;
-
-        auto table = storehandle->forward_to;
-        if ( ! table )
-            return;
-
-        // We sent this message. Ignore it.
-        if ( erase.publisher() == storehandle->store_pid )
-            return;
-
-        auto key = erase.key();
-        DBG_LOG(DBG_BROKER, "Store %s: Erase key %s", erase.store_id().c_str(), to_string(key).c_str());
-
-        const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
-        ValPtr zeek_key;
-        if ( its.size() == 1 )
-            zeek_key = detail::data_to_val(key, its[0].get());
-        else
-            zeek_key = detail::data_to_val(key, table->GetType()->AsTableType()->GetIndices().get());
-
-        if ( ! zeek_key ) {
-            reporter->Error(
-                "ProcessStoreEvent: could not convert key \"%s\" for store \"%s\" "
-                "while receiving remote erase. This probably means the tables have "
-                "different types on different nodes.",
-                to_string(key).c_str(), insert.store_id().c_str());
-            return;
-        }
-
-        table->Remove(*zeek_key, false);
-    }
-    else if ( auto expire = broker::store_event::expire::make(msg) ) {
-        // We just ignore expiries - expiring information on the Zeek side is handled by Zeek
-        // itself.
-#ifdef DEBUG
-        // let's only debug log for stores that we know.
-        auto storehandle = broker_mgr->LookupStore(expire.store_id());
-        if ( ! storehandle )
-            return;
-
-        auto table = storehandle->forward_to;
-        if ( ! table )
-            return;
-
-        DBG_LOG(DBG_BROKER, "Store %s: Store expired key %s", expire.store_id().c_str(),
-                to_string(expire.key()).c_str());
-#endif /* DEBUG */
-    }
-    else {
-        reporter->Error("ProcessStoreEvent: Unhandled event type");
-    }
 }
 
 void Manager::ProcessMessage(std::string_view topic, broker::zeek::Invalid& ev) {
@@ -1879,247 +1601,8 @@ void Manager::ProcessError(broker::error& err) {
                       make_intrusive<StringVal>(msg));
 }
 
-void Manager::ProcessStoreResponse(detail::StoreHandleVal* s, broker::store::response response) {
-    DBG_LOG(DBG_BROKER, "Received store response: %s", RenderMessage(response).c_str());
-
-    auto request = pending_queries.find(std::make_pair(response.id, s));
-
-    if ( request == pending_queries.end() ) {
-        reporter->Warning("unmatched response to query %" PRIu64 " on store %s", response.id, s->store.name().c_str());
-        return;
-    }
-
-    if ( request->second->Disabled() ) {
-        // Trigger timer must have timed the query out already.
-        delete request->second;
-        pending_queries.erase(request);
-        return;
-    }
-
-    if ( response.answer ) {
-        BrokerData tmp{std::move(*response.answer)};
-        request->second->Result(detail::query_result(std::move(tmp).ToRecordVal()));
-    }
-    else if ( response.answer.error() == broker::ec::request_timeout ) { // NOLINT(bugprone-branch-clone)
-        // Fine, trigger's timeout takes care of things.
-    }
-    else if ( response.answer.error() == broker::ec::stale_data ) {
-        // It's sort of arbitrary whether to make this type of error successful
-        // query with a "fail" status versus going through the when stmt timeout
-        // code path.  I think the timeout path is maybe more expected in order
-        // for failures like "no such key" to actually be distinguishable from
-        // this type of error (which is less easily handled programmatically).
-    }
-    else if ( response.answer.error() == broker::ec::no_such_key )
-        request->second->Result(detail::query_result());
-    else
-        reporter->InternalWarning("unknown store response status: %s", to_string(response.answer.error()).c_str());
-
-    delete request->second;
-    pending_queries.erase(request);
-}
-
-detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type, broker::backend_options opts) {
-    if ( ! bstate ) {
-        if ( zeek::detail::current_scope() == zeek::detail::global_scope() )
-            reporter->Error("Broker stores cannot be created at the global scope");
-
-        return nullptr;
-    }
-
-    if ( bstate->endpoint.is_shutdown() )
-        return nullptr;
-
-    if ( LookupStore(name) )
-        return nullptr;
-
-    DBG_LOG(DBG_BROKER, "Creating master for data store %s", name.c_str());
-
-    auto it = opts.find("path");
-
-    if ( it == opts.end() )
-        it = opts.emplace("path", "").first;
-
-    if ( it->second == broker::data("") ) {
-        auto suffix = ".store";
-
-        switch ( type ) {
-            case broker::backend::sqlite: suffix = ".sqlite"; break;
-            default: break;
-        }
-
-        it->second = sanitize_store_filename(name) + suffix;
-    }
-
-    auto result = bstate->endpoint.attach_master(name, type, std::move(opts));
-    if ( ! result ) {
-        Error("Failed to attach master store %s:", to_string(result.error()).c_str());
-        return nullptr;
-    }
-
-    auto handle = new detail::StoreHandleVal{*result};
-    Ref(handle);
-
-    data_stores.emplace(name, handle);
-    if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
-        reporter->FatalError("Failed to register broker master mailbox descriptor with iosource_mgr");
-
-    PrepareForwarding(name);
-
-    if ( ! bstate->endpoint.use_real_time() )
-        // Wait for master to become available/responsive.
-        // Possibly avoids timeouts in scripts during unit tests.
-        handle->store.exists("");
-
-    BrokerStoreToZeekTable(name, handle);
-
-    return handle;
-}
-
-void Manager::BrokerStoreToZeekTable(const std::string& name, const detail::StoreHandleVal* handle) {
-    if ( ! handle->forward_to )
-        return;
-
-    auto keys = handle->store.keys();
-    if ( ! keys )
-        return;
-
-    auto set = get_if<broker::set>(&(keys->get_data()));
-    auto table = handle->forward_to;
-    const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
-    bool is_set = table->GetType()->IsSet();
-
-    // disable &on_change notifications while filling the table.
-    table->DisableChangeNotifications();
-
-    for ( const auto& key : *set ) {
-        auto zeek_key = ValPtr{};
-        auto key_copy = key;
-        if ( its.size() == 1 )
-            zeek_key = detail::data_to_val(key_copy, its[0].get());
-        else
-            zeek_key = detail::data_to_val(key_copy, table->GetType()->AsTableType()->GetIndices().get());
-
-        if ( ! zeek_key ) {
-            reporter->Error(
-                "Failed to convert key \"%s\" while importing broker store to table "
-                "for store \"%s\". Aborting import.",
-                to_string(key).c_str(), name.c_str());
-            // just abort - this probably means the types are incompatible
-            table->EnableChangeNotifications();
-            return;
-        }
-
-        if ( is_set ) {
-            table->Assign(zeek_key, nullptr, false);
-            continue;
-        }
-
-        auto value = handle->store.get(key);
-        if ( ! value ) {
-            reporter->Error("Failed to load value for key %s while importing Broker store %s to table",
-                            to_string(key).c_str(), name.c_str());
-            table->EnableChangeNotifications();
-            continue;
-        }
-
-        auto zeek_value = detail::data_to_val(*value, table->GetType()->Yield().get());
-        if ( ! zeek_value ) {
-            reporter->Error(
-                "Could not convert %s to table value while trying to import Broker "
-                "store %s. Aborting import.",
-                to_string(value).c_str(), name.c_str());
-            table->EnableChangeNotifications();
-            return;
-        }
-
-        table->Assign(zeek_key, zeek_value, false);
-    }
-
-    table->EnableChangeNotifications();
-    return;
-}
-
-detail::StoreHandleVal* Manager::MakeClone(const string& name, double resync_interval, double stale_interval,
-                                           double mutation_buffer_interval) {
-    if ( bstate->endpoint.is_shutdown() )
-        return nullptr;
-
-    if ( LookupStore(name) )
-        return nullptr;
-
-    DBG_LOG(DBG_BROKER, "Creating clone for data store %s", name.c_str());
-
-    auto result = bstate->endpoint.attach_clone(name, resync_interval, stale_interval, mutation_buffer_interval);
-    if ( ! result ) {
-        Error("Failed to attach clone store %s:", to_string(result.error()).c_str());
-        return nullptr;
-    }
-
-    auto handle = new detail::StoreHandleVal{*result};
-
-    if ( ! handle->proxy.valid() ) {
-        reporter->Error("Failed to create clone for data store %s", name.c_str());
-        delete handle;
-        return nullptr;
-    }
-
-    Ref(handle);
-
-    data_stores.emplace(name, handle);
-    if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )
-        reporter->FatalError("Failed to register broker clone mailbox descriptor with iosource_mgr");
-    PrepareForwarding(name);
-    return handle;
-}
-
-detail::StoreHandleVal* Manager::LookupStore(const string& name) {
-    auto i = data_stores.find(name);
-    return i == data_stores.end() ? nullptr : i->second;
-}
-
-bool Manager::CloseStore(const string& name) {
-    DBG_LOG(DBG_BROKER, "Closing data store %s", name.c_str());
-
-    auto s = data_stores.find(name);
-    if ( s == data_stores.end() )
-        return false;
-
-    iosource_mgr->UnregisterFd(s->second->proxy.mailbox().descriptor(), this);
-
-    for ( auto i = pending_queries.begin(); i != pending_queries.end(); )
-        if ( i->second->Store().name() == name ) {
-            i->second->Abort();
-            delete i->second;
-            i = pending_queries.erase(i);
-        }
-        else {
-            ++i;
-        }
-
-    s->second->have_store = false;
-    s->second->store_pid = {};
-    s->second->proxy = {};
-    s->second->store = {};
-    Unref(s->second);
-    data_stores.erase(s);
-    return true;
-}
-
-bool Manager::TrackStoreQuery(detail::StoreHandleVal* handle, broker::request_id id, detail::StoreQueryCallback* cb) {
-    auto rval = pending_queries.emplace(std::make_pair(id, handle), cb).second;
-
-    if ( bstate->endpoint.use_real_time() )
-        return rval;
-
-    FlushPendingQueries();
-    return rval;
-}
-
 const Stats& Manager::GetStatistics() {
     statistics.num_peers = peer_count;
-    statistics.num_stores = data_stores.size();
-    statistics.num_pending_queries = pending_queries.size();
 
     statistics.num_events_incoming = static_cast<size_t>(num_events_incoming_metric->Value());
     statistics.num_events_outgoing = static_cast<size_t>(num_events_outgoing_metric->Value());
@@ -2132,31 +1615,6 @@ const Stats& Manager::GetStatistics() {
 }
 
 TableValPtr Manager::GetPeeringStatsTable() { return bstate->peerBufferState->GetPeeringStatsTable(); }
-
-bool Manager::AddForwardedStore(const std::string& name, TableValPtr table) {
-    if ( forwarded_stores.contains(name) ) {
-        reporter->Error("same &broker_store %s specified for two different variables", name.c_str());
-        return false;
-    }
-
-    DBG_LOG(DBG_BROKER, "Adding table forward for data store %s", name.c_str());
-    forwarded_stores.emplace(name, std::move(table));
-
-    PrepareForwarding(name);
-    return true;
-}
-
-void Manager::PrepareForwarding(const std::string& name) {
-    auto handle = LookupStore(name);
-    if ( ! handle )
-        return;
-
-    if ( ! forwarded_stores.contains(name) )
-        return;
-
-    handle->forward_to = forwarded_stores.at(name);
-    DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
-}
 
 broker::hub Manager::MakeHub() {
     ++hub_count;

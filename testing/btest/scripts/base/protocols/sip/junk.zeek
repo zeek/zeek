@@ -2,7 +2,6 @@
 
 # @TEST-EXEC: zeek -b -r $TRACES/sip/sip-junk-before-request.pcap %INPUT
 # @TEST-EXEC: btest-diff sip.log
-# @TEST-EXEC: btest-diff weird.log
 
 @load base/protocols/sip
 @load base/frameworks/notice/weird

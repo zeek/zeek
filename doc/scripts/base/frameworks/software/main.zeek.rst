@@ -34,26 +34,24 @@ Redefinable Options
 
 State Variables
 ###############
-=========================================================================================================================== =========================================================
-:zeek:id:`Software::alternate_names`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`                      Sometimes software will expose itself on the network with
-                                                                                                                            slight naming variations.
-:zeek:id:`Software::tracked`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&deprecated` = *...*
-:zeek:id:`Software::tracked_software`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day``                         The set of software associated with an address.
-=========================================================================================================================== =========================================================
+====================================================================================================== =========================================================
+:zeek:id:`Software::alternate_names`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Sometimes software will expose itself on the network with
+                                                                                                       slight naming variations.
+:zeek:id:`Software::tracked_software`: :zeek:type:`table` :zeek:attr:`&create_expire` = ``1.0 day``    The set of software associated with an address.
+====================================================================================================== =========================================================
 
 Types
 #####
-======================================================================================= ======================================================================
-:zeek:type:`Software::Info`: :zeek:type:`record`                                        The record type that is used for representing and logging software.
-:zeek:type:`Software::Set`: :zeek:type:`record`                                         Type to represent a set of software versions of the same name,
-                                                                                        tracking the most recent version explicitly.
-:zeek:type:`Software::SoftwareSet`: :zeek:type:`table` :zeek:attr:`&deprecated` = *...*
-:zeek:type:`Software::SoftwareSets`: :zeek:type:`table`                                 Type to represent a collection of :zeek:type:`Software::Info` records.
-:zeek:type:`Software::Type`: :zeek:type:`enum`                                          Scripts detecting new types of software need to redef this enum to add
-                                                                                        their own specific software types which would then be used when they
-                                                                                        create :zeek:type:`Software::Info` records.
-:zeek:type:`Software::Version`: :zeek:type:`record` :zeek:attr:`&log`                   A structure to represent the numeric version of software.
-======================================================================================= ======================================================================
+===================================================================== ======================================================================
+:zeek:type:`Software::Info`: :zeek:type:`record`                      The record type that is used for representing and logging software.
+:zeek:type:`Software::Set`: :zeek:type:`record`                       Type to represent a set of software versions of the same name,
+                                                                      tracking the most recent version explicitly.
+:zeek:type:`Software::SoftwareSets`: :zeek:type:`table`               Type to represent a collection of :zeek:type:`Software::Info` records.
+:zeek:type:`Software::Type`: :zeek:type:`enum`                        Scripts detecting new types of software need to redef this enum to add
+                                                                      their own specific software types which would then be used when they
+                                                                      create :zeek:type:`Software::Info` records.
+:zeek:type:`Software::Version`: :zeek:type:`record` :zeek:attr:`&log` A structure to represent the numeric version of software.
+===================================================================== ======================================================================
 
 Redefinitions
 #############
@@ -167,14 +165,6 @@ State Variables
    yielded string is the name that will be logged and generally
    used for everything.
 
-.. zeek:id:: Software::tracked
-   :source-code: base/frameworks/software/main.zeek 143 143
-
-   :Type: :zeek:type:`table` [:zeek:type:`addr`] of :zeek:type:`Software::SoftwareSet`
-   :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&deprecated` = *"Remove in v9.1. Unused. Use tracked_software instead."*
-   :Default: ``{}``
-
-
 .. zeek:id:: Software::tracked_software
    :source-code: base/frameworks/software/main.zeek 139 139
 
@@ -272,13 +262,6 @@ Types
 
    Type to represent a set of software versions of the same name,
    tracking the most recent version explicitly.
-
-.. zeek:type:: Software::SoftwareSet
-   :source-code: base/frameworks/software/main.zeek 141 141
-
-   :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`Software::Info`
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use SoftwareSets instead."*
-
 
 .. zeek:type:: Software::SoftwareSets
    :source-code: base/frameworks/software/main.zeek 133 133
@@ -454,7 +437,7 @@ Events
    record as it is sent on to the logging framework.
 
 .. zeek:id:: Software::register
-   :source-code: base/frameworks/software/main.zeek 156 156
+   :source-code: base/frameworks/software/main.zeek 151 151
 
    :Type: :zeek:type:`event` (info: :zeek:type:`Software::Info`)
 
@@ -481,7 +464,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: Software::cmp_versions
-   :source-code: base/frameworks/software/main.zeek 410 486
+   :source-code: base/frameworks/software/main.zeek 405 481
 
    :Type: :zeek:type:`function` (v1: :zeek:type:`Software::Version`, v2: :zeek:type:`Software::Version`) : :zeek:type:`int`
 
@@ -493,7 +476,7 @@ Functions
              is compared lexicographically.
 
 .. zeek:id:: Software::found
-   :source-code: base/frameworks/software/main.zeek 583 620
+   :source-code: base/frameworks/software/main.zeek 578 615
 
    :Type: :zeek:type:`function` (id: :zeek:type:`conn_id`, info: :zeek:type:`Software::Info`) : :zeek:type:`bool`
 

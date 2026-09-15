@@ -418,18 +418,6 @@
 :doc:`policy/frameworks/cluster/backend/zeromq </scripts/policy/frameworks/cluster/backend/zeromq/index>`
 
 
-:doc:`policy/frameworks/management/agent </scripts/policy/frameworks/management/agent/index>`
-
-
-:doc:`policy/frameworks/management </scripts/policy/frameworks/management/index>`
-
-
-:doc:`policy/frameworks/management/controller </scripts/policy/frameworks/management/controller/index>`
-
-
-:doc:`policy/frameworks/management/supervisor </scripts/policy/frameworks/management/supervisor/index>`
-
-
 :doc:`policy/frameworks/intel/seen </scripts/policy/frameworks/intel/seen/index>`
 
    Scripts that send data to the intelligence framework.
@@ -453,7 +441,4 @@
 :doc:`policy/misc/detect-traceroute </scripts/policy/misc/detect-traceroute/index>`
 
    Detect hosts that are running traceroute.
-
-:doc:`policy/frameworks/management/node </scripts/policy/frameworks/management/node/index>`
-
 

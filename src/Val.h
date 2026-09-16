@@ -1301,8 +1301,9 @@ public:
     }
 
 private:
-    bool is_set = false;
-    bool is_managed = false;
+    // Use uint8_t instead of bool, since sizeof(bool) is not guaranteed to be 1.
+    uint8_t is_set = 0;
+    uint8_t is_managed = 0;
     TypeTag tag = TYPE_ERROR;
     // 5 bytes of padding here.
     ZVal zval;

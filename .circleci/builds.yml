@@ -620,7 +620,7 @@ jobs:
       - clone_repo:
           include_external_tests: false
       - run:
-          name: Check if image already exists
+          name: Build and test image
           command: |
             set -euxo pipefail
 
@@ -630,31 +630,23 @@ jobs:
               echo "Image already built for this commit, saving existing image."
               mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
               docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+            else
+              ZEEK_VERSION=$(cat VERSION)
 
-              circleci-agent step halt
+              docker build \
+                  --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
+                  --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                  --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                  --build-arg CREATED_DATE=$(date -Iseconds) \
+                  -t ${IMAGE_TAG} \
+                  -f docker/Dockerfile .
+
+              mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+              docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+
+              docker tag ${IMAGE_TAG} zeek:latest
+              make -C docker/btest
             fi
-      - run:
-          name: Build image
-          command: |
-            set -euxo pipefail
-
-            ZEEK_VERSION=$(cat VERSION)
-
-            docker build \
-                --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
-                --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
-                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                --build-arg CREATED_DATE=$(date -Iseconds) \
-                -t ${IMAGE_TAG} \
-                -f docker/Dockerfile .
-
-            mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
-            docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
-      - run:
-          name: Run tests
-          command: |
-            docker tag ${IMAGE_TAG} zeek:latest
-            make -C docker/btest
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images

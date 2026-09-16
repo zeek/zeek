@@ -469,7 +469,7 @@ jobs:
         persist-credentials: false
 
     - name: Set up MSVC Dev Cmd
-      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      uses: iShark5060/actions-msvc-dev-cmd@d8ecc74f275b4e345a93ffc2b5d68a6b6e91280e  # v1.2.1
       with:
         sdk: "10.0.26100.0"
 

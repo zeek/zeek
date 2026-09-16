@@ -1,3 +1,7 @@
+9.1.0-dev.106 | 2026-09-16 10:24:26 -0700
+
+  * GHCI: Use maintained version of msvc-dev-cmd action (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.104 | 2026-09-16 10:24:00 -0700
 
   * Update btest to new using using asyncio (Tim Wojtulewicz, Corelight)

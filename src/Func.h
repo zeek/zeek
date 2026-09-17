@@ -125,16 +125,6 @@ public:
     // initializations, and frame size.
     virtual void AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size);
 
-    // Deprecated interfaces.
-    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
-    virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
-                         int priority, const std::set<EventGroupPtr>& groups);
-    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
-    void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
-                 int priority = 0);
-    [[deprecated("Remove in v9.1. Use AddBody(Func::Body...) interface instead.")]]
-    void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
-
     virtual void SetScope(detail::ScopePtr newscope);
     virtual detail::ScopePtr GetScope() const { return scope; }
 
@@ -266,10 +256,6 @@ public:
     using Func::AddBody;
 
     void AddBody(Func::Body&& new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size) override;
-
-    // Deprecated interface.
-    void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
-                 int priority, const std::set<EventGroupPtr>& groups) override;
 
     /**
      * Replaces the given current instance of a function body with

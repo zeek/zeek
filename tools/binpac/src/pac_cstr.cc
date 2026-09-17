@@ -12,11 +12,6 @@ namespace {
 class EscapeException : public std::exception {
 public:
     explicit EscapeException(const string& s) { msg_ = s; }
-
-    [[deprecated("Remove in v9.1. Use what().")]]
-    const string& msg() const {
-        return msg_;
-    }
     const char* what() const noexcept override { return msg_.c_str(); }
 
 private:

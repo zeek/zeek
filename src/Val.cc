@@ -42,7 +42,6 @@
 #include "zeek/ZeekString.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
-#include "zeek/broker/Store.h"
 #include "zeek/cluster/PublishOnChangeState.h"
 #include "zeek/threading/formatters/detail/json.h"
 #include "zeek/val-convert.h"
@@ -1788,15 +1787,6 @@ void TableVal::SetAttrs(detail::AttributesPtr a) {
 
     if ( cf )
         change_func = cf->GetExpr();
-
-    auto bs = attrs->Find(detail::ATTR_BROKER_STORE);
-    if ( bs && broker_store.empty() ) {
-        auto c = eval_in_isolation(bs->GetExpr());
-        assert(c);
-        assert(c->GetType()->Tag() == TYPE_STRING);
-        broker_store = c->AsStringVal()->AsString()->CheckString();
-        broker_mgr->AddForwardedStore(broker_store, {NewRef{}, this});
-    }
 }
 
 void TableVal::CheckExpireAttr(detail::AttrTag at) {
@@ -1867,15 +1857,12 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
     Modified();
 
-    if ( change_func || poc_state || (broker_forward && ! broker_store.empty()) ) {
+    if ( change_func || poc_state ) {
         auto change_index = index ? std::move(index) : RecreateIndex(k_copy);
 
         // CallChangeFunc could delete new_entry_val from the table, so
         // hold an owning reference to the value before invoking user code.
         auto new_val_copy = new_entry_val->GetVal();
-
-        if ( broker_forward && ! broker_store.empty() )
-            SendToStore(change_index.get(), new_entry_val, old_entry_val ? ELEMENT_CHANGED : ELEMENT_NEW);
 
         if ( change_func ) {
             const auto& v = old_entry_val ? old_entry_val->GetVal() : new_val_copy;
@@ -2317,90 +2304,6 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
     in_change_func = false;
 }
 
-void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType type) {
-    if ( broker_store.empty() || ! index )
-        return;
-
-    try {
-        auto handle = broker_mgr->LookupStore(broker_store);
-
-        if ( ! handle )
-            return;
-
-        // For simple indexes, we either get passed the raw index_val - or a ListVal with exactly
-        // one element. We unoll this in the second case. For complex indexes, we just pass the
-        // ListVal.
-        const Val* index_val;
-        if ( index->GetType()->Tag() == TYPE_LIST && index->AsListVal()->Length() == 1 )
-            index_val = index->AsListVal()->Idx(0).get();
-        else
-            index_val = index;
-
-        auto broker_index = BrokerData{};
-
-        if ( ! broker_index.Convert(index_val) ) {
-            emit_builtin_error("invalid Broker data conversation for table index");
-            return;
-        }
-
-        switch ( type ) {
-            case ELEMENT_NEW:
-            case ELEMENT_CHANGED: {
-                std::optional<broker::timespan> expiry;
-                auto expire_time = GetExpireTime();
-                if ( expire_time == 0 )
-                    // Entry is set to immediately expire. Let's not forward it.
-                    break;
-
-                if ( expire_time > 0 ) {
-                    if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) ) {
-                        // for create expiry, we have to subtract the already elapsed time from
-                        // the expiry.
-                        auto e = expire_time - (run_state::network_time - new_entry_val->ExpireAccessTime());
-                        if ( e <= 0 )
-                            // element already expired? Let's not insert it.
-                            break;
-
-                        expiry = Broker::detail::convert_expiry(e);
-                    }
-                    else
-                        expiry = Broker::detail::convert_expiry(expire_time);
-                }
-
-                if ( table_type->IsSet() )
-                    handle->Put(std::move(broker_index), BrokerData{}, expiry);
-                else {
-                    if ( ! new_entry_val ) {
-                        emit_builtin_error("did not receive new value for Broker datastore send operation");
-                        return;
-                    }
-
-                    auto broker_val = BrokerData{};
-                    if ( ! broker_val.Convert(new_entry_val->GetVal()) ) {
-                        emit_builtin_error("invalid Broker data conversation for table value");
-                        return;
-                    }
-
-                    handle->Put(std::move(broker_index), std::move(broker_val), expiry);
-                }
-                break;
-            }
-
-            case ELEMENT_REMOVED: handle->Erase(std::move(broker_index)); break;
-
-            case ELEMENT_EXPIRED:
-                // we do nothing here. The Broker store does its own expiration - so the element
-                // should expire at about the same time.
-                break;
-        }
-    } catch ( InterpreterException& e ) {
-        emit_builtin_error(
-            "The previous error was encountered while trying to resolve the "
-            "&broker_store attribute of the set/table. Potentially the "
-            "Broker::Store has not been initialized before being used.");
-    }
-}
-
 ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated) {
     auto k = MakeHashKey(index);
 
@@ -2422,9 +2325,6 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
     delete v;
 
     Modified();
-
-    if ( broker_forward && ! broker_store.empty() )
-        SendToStore(&index, nullptr, ELEMENT_REMOVED);
 
     if ( change_func )
         // const_cast is safe: Clone() is logically const.
@@ -2463,10 +2363,8 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
 
     Modified();
 
-    if ( va && (change_func || ! broker_store.empty() || poc_state) ) {
+    if ( va && (change_func || poc_state) ) {
         auto index = GetTableHash()->RecoverVals(k);
-        if ( ! broker_store.empty() )
-            SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 
         if ( change_func && va )
             CallChangeFunc(index, va, ELEMENT_REMOVED);
@@ -2488,8 +2386,6 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
 
     return va;
 }
-
-ListValPtr TableVal::ToListVal(TypeTag t) const { return ToListVal(base_type(t)); }
 
 ListValPtr TableVal::ToListVal(TypePtr t) const {
     auto l = make_intrusive<ListVal>(t);

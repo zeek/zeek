@@ -96,13 +96,6 @@ extern char* strcasestr(const char* s, const char* find);
 // This is used by the patricia code and so it remains outside of the namespace.
 extern "C" void out_of_memory(const char* where);
 
-[[deprecated("Remove in v9.1. Use zeek::UID_POOL_DEFAULT_INTERNAL instead.")]]
-constexpr int UID_POOL_DEFAULT_INTERNAL = zeek::UID_POOL_DEFAULT_INTERNAL;
-[[deprecated("Remove in v9.1. Use zeek::UID_POOL_DEFAULT_SCRIPT instead.")]]
-constexpr int UID_POOL_DEFAULT_SCRIPT = zeek::UID_POOL_DEFAULT_SCRIPT;
-[[deprecated("Remove in v9.1. Use zeek::UID_POOL_CUSTOM_SCRIPT instead.")]]
-constexpr int UID_POOL_CUSTOM_SCRIPT = zeek::UID_POOL_CUSTOM_SCRIPT;
-
 namespace zeek {
 
 class ODesc;
@@ -123,10 +116,6 @@ extern const char* fmt_access_time(double time);
 
 extern bool ensure_intermediate_dirs(const char* dirname);
 extern bool ensure_dir(const char* dirname);
-
-// The digest length here is equivalent to ZEEK_MD5_DIGEST_LENGTH.
-[[deprecated("Remove in v9.1. Use hmac_sha256.")]]
-extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
 
 // The digest length here is equivalent to ZEEK_SHA256_DIGEST_LENGTH.
 extern void hmac_sha256(size_t size, const unsigned char* bytes, unsigned char digest[32]);
@@ -573,17 +562,6 @@ std::string escape_utf8(std::string_view val, int flags);
  * @return escaped string with quotes around
  */
 std::string escape_string_for_json(std::string_view raw, std::string_view escape_prefix);
-
-[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
-inline std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true) {
-    return escape_utf8(std::string_view{val, val_size},
-                       escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
-}
-
-[[deprecated("Remove in v9.1. Use escape_utf8 instead.")]]
-inline std::string json_escape_utf8(const std::string& val, bool escape_printable_controls = true) {
-    return escape_utf8(val, escape_printable_controls ? ESCAPE_NONE : ESCAPE_PRINTABLE_CONTROLS);
-}
 
 /**
  * Checks for values that are approximately equal.

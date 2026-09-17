@@ -752,7 +752,8 @@ public:
      * @param new_val  The value to assign at the index.  For a set, this
      * must be nullptr.
      * @param broker_forward Controls if the value will be forwarded to attached
-     *        Broker stores.
+     *        Broker stores. This argument has no effect after the removal of Broker stores
+     *        in v9.1.
      * @param iterators_invalidated  if supplied, gets set to true if the operation
      *        may have invalidated existing iterators.
      * @return  True if the assignment type-checked.
@@ -770,7 +771,8 @@ public:
      *        may have invalidated existing iterators.
      * must be nullptr.
      * @param broker_forward Controls if the value will be forwarded to attached
-     *        Broker stores.
+     *        Broker stores. This argument has no effect after the removal of Broker stores
+     *        in v9.1.
      * @return  True if the assignment type-checked.
      */
     bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward = true,
@@ -916,7 +918,8 @@ public:
      * Remove an element from the table and return it.
      * @param index  The index to remove.
      * @param broker_forward Controls if the remove operation will be forwarded to attached
-     *        Broker stores.
+     *        Broker stores. This argument has no effect after the removal of Broker stores
+     *        in v9.1.
      * @param iterators_invalidated  if supplied, gets set to true if the operation
      *        may have invalidated existing iterators.
      * @return  The value associated with the index if it exists, else nullptr.
@@ -934,10 +937,6 @@ public:
      * @return  Same as Remove(const Val&).
      */
     ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
-
-    // Returns a ListVal representation of the table (which must be a set).
-    [[deprecated("Remove in v9.1. Pass a TypePtr instead, using Type::nil for TYPE_ANY")]]
-    ListValPtr ToListVal(TypeTag t) const;
 
     // Returns a ListVal representation of the table (which must be a set).
     ListValPtr ToListVal(TypePtr t = nullptr) const;
@@ -1011,12 +1010,6 @@ public:
     static void DoneParsing();
 
     /**
-     * Sets the name of the Broker store that is backing this table.
-     * @param store store that is backing this table.
-     */
-    void SetBrokerStore(const std::string& store) { broker_store = store; }
-
-    /**
      * Disable change notification processing of &on_change until re-enabled.
      */
     void DisableChangeNotifications() { in_change_func = true; }
@@ -1072,9 +1065,6 @@ protected:
     // Calls &change_func.
     void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType type);
 
-    // Sends data on to backing Broker Store
-    void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType type);
-
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
     ValPtr DoClone(CloneState* state) override;
@@ -1089,7 +1079,6 @@ protected:
     std::unique_ptr<detail::TablePatternMatcher> pattern_matcher;
     ValPtr def_val;
     detail::ExprPtr change_func;
-    std::string broker_store;
 
     // The "poc_state" stands for &publish_on_change state. This member is set
     // during detail::PublishOnChangeState::InitPostScript() if the table/set

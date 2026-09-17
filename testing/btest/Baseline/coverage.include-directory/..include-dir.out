@@ -1105,12 +1105,10 @@
 ./zeek/broker/Data.h
 ./zeek/broker/Manager.h
 ./zeek/broker/Plugin.h
-./zeek/broker/Store.h
 ./zeek/broker/WebSocketShim.h
 ./zeek/broker/comm.bif.h
 ./zeek/broker/data.bif.h
 ./zeek/broker/messaging.bif.h
-./zeek/broker/store.bif.h
 ./zeek/cluster
 ./zeek/cluster/Backend.h
 ./zeek/cluster/BifSupport.h

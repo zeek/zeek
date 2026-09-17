@@ -13,4 +13,4 @@ if [ -z "${CLANG_TIDY_DIFF}" ]; then
     exit 1
 fi
 
-exec git diff -U0 "${DIFF_BASE}"..."${DIFF_HEAD}" | "$CLANG_TIDY_DIFF" -j "${CPUS}" -p 1 -path "${BUILD_DIR}"
+exec git diff -U0 "${DIFF_BASE}"..."${DIFF_HEAD}" | "$CLANG_TIDY_DIFF" -j "${CPUS}" -p 1 -path "${BUILD_DIR}" -extra-arg=-Wno-unknown-warning-option

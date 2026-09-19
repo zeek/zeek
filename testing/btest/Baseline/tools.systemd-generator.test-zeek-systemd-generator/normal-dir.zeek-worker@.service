@@ -7,7 +7,9 @@ After=zeek-setup.service
 After=zeek-manager.service
 After=zeek-logger@.service
 After=zeek-proxy@.service
+Requires=zeek-setup.service
 StopPropagatedFrom=zeek.target
+PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]

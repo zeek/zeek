@@ -5,6 +5,7 @@
 #include <dlfcn.h>
 #include <glob.h>
 
+#include <cinttypes>
 #include <iterator>
 #include <limits>
 #include <utility>

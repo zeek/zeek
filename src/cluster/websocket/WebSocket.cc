@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cinttypes>
 #include <memory>
 #include <string_view>
 #include <variant>

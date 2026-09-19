@@ -4702,9 +4702,9 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
+          "davis_mark1@outlook.com",
           "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com",
-          "davis_mark1@outlook.com"
+          "ericlim220@yahoo.com"
         ],
         "last_reply": "250 Ok",
         "path": [
@@ -4828,9 +4828,9 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
+          "davis_mark1@outlook.com",
           "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com",
-          "davis_mark1@outlook.com"
+          "ericlim220@yahoo.com"
         ],
         "last_reply": "250 Ok",
         "path": [
@@ -4952,9 +4952,9 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
+          "davis_mark1@outlook.com",
           "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com",
-          "davis_mark1@outlook.com"
+          "ericlim220@yahoo.com"
         ],
         "last_reply": "250 Ok",
         "path": [
@@ -5079,9 +5079,9 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
+          "davis_mark1@outlook.com",
           "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com",
-          "davis_mark1@outlook.com"
+          "ericlim220@yahoo.com"
         ],
         "date": "Sat, 25 Jul 2015 16:43:07 +0300",
         "from": "Albert Zaharovits <albert@example.com>",
@@ -5089,8 +5089,8 @@
           "ericlim220@yahoo.com"
         ],
         "cc": [
-          "felica4uu@hotmail.com",
-          "davis_mark1@outlook.com"
+          "davis_mark1@outlook.com",
+          "felica4uu@hotmail.com"
         ],
         "msg_id": "<A6202DF2-8E58-4E41-BE0B-C8D3989A4AEE@example.com>",
         "in_reply_to": "<9ACEE03C-AB98-4046-AEC1-BF4910C61E96@example.com>",
@@ -5218,9 +5218,9 @@
         "helo": "[192.168.133.100]",
         "mailfrom": "albert@example.com",
         "rcptto": [
+          "davis_mark1@outlook.com",
           "felica4uu@hotmail.com",
-          "ericlim220@yahoo.com",
-          "davis_mark1@outlook.com"
+          "ericlim220@yahoo.com"
         ],
         "date": "Sat, 25 Jul 2015 16:43:07 +0300",
         "from": "Albert Zaharovits <albert@example.com>",
@@ -5228,8 +5228,8 @@
           "ericlim220@yahoo.com"
         ],
         "cc": [
-          "felica4uu@hotmail.com",
-          "davis_mark1@outlook.com"
+          "davis_mark1@outlook.com",
+          "felica4uu@hotmail.com"
         ],
         "msg_id": "<A6202DF2-8E58-4E41-BE0B-C8D3989A4AEE@example.com>",
         "in_reply_to": "<9ACEE03C-AB98-4046-AEC1-BF4910C61E96@example.com>",

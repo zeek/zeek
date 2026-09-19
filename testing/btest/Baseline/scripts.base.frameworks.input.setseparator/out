@@ -2,10 +2,10 @@
 ### NOTE: This file has been sorted with diff-sort.
 [1] = [s={
 a,
-b,
+b
 c,
 d,
-e
+e,
 f,
 {
 }

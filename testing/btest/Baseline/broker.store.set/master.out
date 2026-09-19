@@ -22,8 +22,8 @@ T
 [data=broker::data{{bye}}], {
 [data=broker::data{{}}], {
 bye
-bye,
-hi
+bye
+hi,
 | [data=broker::data{bye}]
 | [data=broker::data{hi}]
 }

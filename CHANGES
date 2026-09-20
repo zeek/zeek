@@ -1,3 +1,21 @@
+9.1.0-dev.113 | 2026-09-20 12:25:02 +0200
+
+  * ldap: Track pending SASL bind responses (Gido822)
+
+    Track SASL negotiation state across both directions so BindResponses
+    remain cleartext until negotiation completes.
+
+    When another client message arrives before the pending BindResponse,
+    run it through the normal cleartext/encrypted heuristic and report
+    LDAP_sasl_client_message_before_bind_response. This keeps LDAP_TCP
+    active instead of raising an analyzer violation.
+
+    Reset stale SASL state when a non-SASL BindRequest aborts negotiation.
+    Update the unidirectional SASL test to verify the new weird, retained
+    LDAP service, and absence of analyzer.log.
+
+  * ldap: Add test for a missing SASL BindResponse (Gido822)
+
 9.1.0-dev.110 | 2026-09-18 19:38:16 -0700
 
   * ci/run-clang-tidy-diff: Add extra-arg to ignore unknown options (Arne Welzel, Corelight)

@@ -14,11 +14,11 @@
 #
 # @TEST-EXEC: zeek -b --parse-only common.zeek manager.zeek worker.zeek
 #
-# @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
-# @TEST-EXEC: btest-bg-run logger-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger-1 zeek -b ../common.zeek >out"
-# @TEST-EXEC: btest-bg-run logger-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger-2 zeek -b ../common.zeek >out"
-# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
-# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
+# @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek"
+# @TEST-EXEC: btest-bg-run logger-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger-1 zeek -b ../common.zeek"
+# @TEST-EXEC: btest-bg-run logger-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger-2 zeek -b ../common.zeek"
+# @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek"
+# @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek"
 #
 # @TEST-EXEC: btest-bg-wait 30
 #
@@ -67,6 +67,8 @@ event finish()
 
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
+global nodes_up: set[string];
+global nodes_down: set[string];
 
 event check_ready()
 	{
@@ -76,7 +78,9 @@ event check_ready()
 		terminate();
 		}
 
-	if ( file_size("DONE") >= 0 )
+	# Start test when all nodes are up via the pubsub channel and
+	# rr1.log had entries for worker-1 and worker-2.
+	if ( |nodes_up| == 4 && file_size("READY") >= 0 )
 		{
 		Cluster::publish(Cluster::worker_topic, LogRR::go);
 		return;
@@ -90,8 +94,11 @@ event zeek_init()
 	event check_ready();
 	}
 
-
-global nodes_down: set[string];
+event Cluster::node_up(name: string, id: string)
+	{
+	print current_time(), "node_up", name;
+	add nodes_up[name];
+	}
 
 event Cluster::node_down(name: string, id: string)
 	{
@@ -172,7 +179,7 @@ for logger in $LOGGERS; do
 	done
 done
 
-echo "DONE"
-echo "DONE" > DONE
+echo "READY"
+echo "READY" > READY
 exit 0
 # @TEST-END-FILE

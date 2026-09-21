@@ -1,3 +1,32 @@
+9.1.0-dev.120 | 2026-09-21 18:23:18 +0200
+
+  * GH-5904: btest/cluster/logging-rr: Await Cluster::node_up() events (Arne Welzel, Corelight)
+
+    The tests would wait for log writes to show up from both workers in rr1.log
+    before starting to write to rr2.log, but that didn't guarantee that all nodes
+    were ready to receive events as events use the XPUB/XSUB sockets,
+    separate from the logging's PUSH/PULL sockets.
+
+    Have the manager wait for all nodes to be up before sending the go() event,
+    plus some minor cleanup around output redirection and DONE vs READY names.
+
+  * tools/systemd-generator: Use PartOf= and Requires= again (Arne Welzel, Corelight)
+
+    Commit 4082e26e2 removed the usage of Requires= and PartOf= and instead
+    used only After= and StopPropagatedFrom= for units to workaround
+    systemd/systemd#40092. @dopheide-esnet reports the systemd version of
+    their systems (systemd 249 (249.11-0ubuntu3.22)) doesn't even restart units
+    with a simple systemctl restart zeek.target and PartOf= should fix that.
+    Additionally, I've previously observed that the manager, logger, proxy
+    and worker units are started even if some step in zeek-setup.service fails,
+    which is annoying as it hides the original error. Using Requires=zeek-setup.service
+    avoids this, too.
+
+    Re-introduce using Requires= and PartOf= and point out the the systemd/systemd#40092
+    issue and a workaround in the docs.
+
+    I think it's fair.
+
 9.1.0-dev.116 | 2026-09-21 08:38:53 -0700
 
   * pcapng: Validate length of available packet data (Tim Wojtulewicz, Corelight)

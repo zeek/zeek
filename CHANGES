@@ -1,3 +1,23 @@
+9.1.0-dev.124 | 2026-09-21 20:52:31 +0200
+
+  * LDAP: detect more request operations over TCP (Gido822)
+
+    Expand the TCP DPD signature to recognize Delete, Modify, Add, ModifyDN,
+    and Compare requests in addition to Bind, Search, and Extended requests.
+    This allows LDAP detection on non-standard ports when one of these
+    operations is the first observed client message.
+
+    Keep the UDP signature unchanged because CLDAP supports a narrower
+    operation set.
+
+  * LDAP: detect search and extended requests without a prior Bind (Gido822)
+
+    New TCP and UDP DPD signatures, accepting Bind, Search and
+    ExtendedRequest operations after short or 0x81/0x82 BER
+    lengths and message IDs encoded in one to four bytes.
+
+  * LDAP: test StartTLS detection on a non-standard port (Gido822)
+
 9.1.0-dev.120 | 2026-09-21 18:23:18 +0200
 
   * GH-5904: btest/cluster/logging-rr: Await Cluster::node_up() events (Arne Welzel, Corelight)

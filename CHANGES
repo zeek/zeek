@@ -1,3 +1,9 @@
+9.0.0-7 | 2026-09-21 16:53:17 -0700
+
+  * tools/systemd-generator: Use PartOf= and Requires= again (Arne Welzel, Corelight)
+
+    (cherry picked from commit a8bdc91101f90a2f0cf93c90174271daed449aca)
+
 9.0.0-6 | 2026-09-21 16:52:55 -0700
 
   * Fix missing size check for TunnelEncapsulation connections (Tim Wojtulewicz, Corelight)

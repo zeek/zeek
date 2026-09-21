@@ -84,7 +84,9 @@ Unit systemd_add_node_unit(const path& file, const std::string& description, con
     unit.AddStopPropagatedFrom("zeek.target");
     unit.SetUser(config.User());
     unit.SetGroup(config.Group());
+    unit.AddRequires("zeek-setup.service");
     unit.AddAfter("zeek-setup.service");
+    unit.SetPartOf("zeek.target");
     unit.AddEnvironment("PATH", config.Path());
     unit.AddEnvironment("ZEEKPATH", config.ZeekPath());
 
@@ -351,6 +353,8 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     // Optional archiver service.
     if ( config.IsArchiverEnabled() ) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());
+        archiver_unit.AddRequires("zeek-setup.service");
+        archiver_unit.AddAfter("zeek-setup.service");
         archiver_unit.SetPartOf("zeek.target");
         archiver_unit.SetSyslogIdentifier("zeek-archiver");
         archiver_unit.SetWorkingDirectory(config.SpoolDir());
@@ -358,7 +362,6 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         archiver_unit.SetExecStart(config.ArchiverCommand());
         archiver_unit.SetUser(config.User());
         archiver_unit.SetGroup(config.Group());
-        archiver_unit.AddAfter("zeek-setup.service");
         // zeek-archiver copies files from the log queue dir to the
         // archive dir, so restrict its access.
         archiver_unit.AddReadWritePath(config.LogQueueDir());

@@ -1,3 +1,9 @@
+9.1.0-dev.127 | 2026-09-21 15:23:05 -0700
+
+  * Avoid a crash in file cleanup when terminating Zeek via exit() (Christian Kreibich, Corelight)
+
+  * Add btest for basic profiler run verification (Christian Kreibich, Corelight)
+
 9.1.0-dev.124 | 2026-09-21 20:52:31 +0200
 
   * LDAP: detect more request operations over TCP (Gido822)

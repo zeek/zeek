@@ -551,14 +551,14 @@ void PublishOnChangeState::ApplyChanges(const RecordVal& tcheader, const VectorV
                 debug("assigning %s %s (change=%" PRId64 ")", obj_desc_short(index).c_str(),
                       value ? obj_desc_short(value).c_str() : "<no value>", change);
 
-                table_val->Assign(index, value, /*broker_forward=*/false, /*iterators_invalidated=*/nullptr);
+                table_val->Assign(index, value, /*iterators_invalidated=*/nullptr);
 
                 break;
 
             case BifEnum::TABLE_ELEMENT_EXPIRED: // treat expired elements from remote nodes like a delete
             case BifEnum::TABLE_ELEMENT_REMOVED:
                 debug("removing %s (change=%" PRId64 ")", obj_desc_short(index).c_str(), change);
-                table_val->Remove(*index, /*broker_forward=*/false, /*iterators_invalidated=*/nullptr);
+                table_val->Remove(*index, /*iterators_invalidated=*/nullptr);
                 break;
 
             default:

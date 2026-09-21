@@ -1812,7 +1812,7 @@ void TableVal::CheckExpireAttr(detail::AttrTag at) {
     }
 }
 
-bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* iterators_invalidated) {
+bool TableVal::Assign(ValPtr index, ValPtr new_val, bool* iterators_invalidated) {
     auto k = MakeHashKey(*index);
 
     if ( ! k ) {
@@ -1820,11 +1820,10 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* i
         return false;
     }
 
-    return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
+    return Assign(std::move(index), std::move(k), std::move(new_val), iterators_invalidated);
 }
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward,
-                      bool* iterators_invalidated) {
+bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool* iterators_invalidated) {
     bool is_set = table_type->IsSet();
 
     if ( is_set == static_cast<bool>(new_val) )
@@ -1879,6 +1878,15 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
     delete old_entry_val;
 
     return true;
+}
+
+bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* iterators_invalidated) {
+    return Assign(index, new_val, iterators_invalidated);
+}
+
+bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward,
+                      bool* iterators_invalidated) {
+    return Assign(index, std::move(k), new_val, iterators_invalidated);
 }
 
 ValPtr TableVal::SizeVal() const { return val_mgr->Count(Size()); }
@@ -2304,7 +2312,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
     in_change_func = false;
 }
 
-ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated) {
+ValPtr TableVal::Remove(const Val& index, bool* iterators_invalidated) {
     auto k = MakeHashKey(index);
 
     TableEntryVal* v = k ? table_val->RemoveEntry(k.get(), iterators_invalidated) : nullptr;
@@ -2343,6 +2351,10 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
     }
 
     return va;
+}
+
+ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_invalidated) {
+    return Remove(index, iterators_invalidated);
 }
 
 ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {

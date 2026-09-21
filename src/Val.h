@@ -751,14 +751,11 @@ public:
      * @param index  The key to assign.
      * @param new_val  The value to assign at the index.  For a set, this
      * must be nullptr.
-     * @param broker_forward Controls if the value will be forwarded to attached
-     *        Broker stores. This argument has no effect after the removal of Broker stores
-     *        in v9.1.
      * @param iterators_invalidated  if supplied, gets set to true if the operation
-     *        may have invalidated existing iterators.
+     * may have invalidated existing iterators.
      * @return  True if the assignment type-checked.
      */
-    bool Assign(ValPtr index, ValPtr new_val, bool broker_forward = true, bool* iterators_invalidated = nullptr);
+    bool Assign(ValPtr index, ValPtr new_val, bool* iterators_invalidated = nullptr);
 
     /**
      * Assigns a value at an associated index in the table (or in the
@@ -767,15 +764,19 @@ public:
      * (if needed, the index val can be recovered from the hash key).
      * @param k  A precomputed hash key to use.
      * @param new_val  The value to assign at the index.  For a set, this
-     * @param iterators_invalidated  if supplied, gets set to true if the operation
-     *        may have invalidated existing iterators.
      * must be nullptr.
-     * @param broker_forward Controls if the value will be forwarded to attached
-     *        Broker stores. This argument has no effect after the removal of Broker stores
-     *        in v9.1.
+     * @param iterators_invalidated  if supplied, gets set to true if the operation
+     * may have invalidated existing iterators.
      * @return  True if the assignment type-checked.
      */
-    bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward = true,
+    bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val,
+                bool* iterators_invalidated = nullptr);
+
+    [[deprecated("Remove in v10.1. Use the version without broker_forward.")]]
+    bool Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* iterators_invalidated = nullptr);
+
+    [[deprecated("Remove in v10.1. Use the version without broker_forward.")]]
+    bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward,
                 bool* iterators_invalidated = nullptr);
 
     ValPtr SizeVal() const override;
@@ -917,9 +918,6 @@ public:
     /**
      * Remove an element from the table and return it.
      * @param index  The index to remove.
-     * @param broker_forward Controls if the remove operation will be forwarded to attached
-     *        Broker stores. This argument has no effect after the removal of Broker stores
-     *        in v9.1.
      * @param iterators_invalidated  if supplied, gets set to true if the operation
      *        may have invalidated existing iterators.
      * @return  The value associated with the index if it exists, else nullptr.
@@ -927,7 +925,10 @@ public:
      * value is returned to differentiate it from nonexistent index (nullptr),
      * but otherwise has no meaning in relation to the set's contents.
      */
-    ValPtr Remove(const Val& index, bool broker_forward = true, bool* iterators_invalidated = nullptr);
+    ValPtr Remove(const Val& index, bool* iterators_invalidated = nullptr);
+
+    [[deprecated("Remove in v10.1. Use the version without broker_forward.")]]
+    ValPtr Remove(const Val& index, bool broker_forward, bool* iterators_invalidated = nullptr);
 
     /**
      * Same as Remove(const Val&), but uses a precomputed hash key.

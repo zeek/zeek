@@ -184,13 +184,13 @@ ValPtr assign_to_index__CPP(StringValPtr v1, ValPtr v2, ValPtr v3) {
 
 void add_element__CPP(TableValPtr aggr, ListValPtr indices) {
     bool iterators_invalidated = false;
-    aggr->Assign(indices, nullptr, true, &iterators_invalidated);
+    aggr->Assign(indices, nullptr, &iterators_invalidated);
     check_iterators__CPP(iterators_invalidated);
 }
 
 void remove_element__CPP(TableValPtr aggr, ListValPtr indices) {
     bool iterators_invalidated = false;
-    aggr->Remove(*indices.get(), true, &iterators_invalidated);
+    aggr->Remove(*indices.get(), &iterators_invalidated);
     check_iterators__CPP(iterators_invalidated);
 }
 

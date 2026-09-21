@@ -3701,6 +3701,10 @@ export {
 	## Stop analysis of MIME headers that exceed this byte limit.
 	## Setting this value to 0 removes the limit.
 	const max_header_bytes = 65536 &redef;
+
+	## Stop analysis of MIME headers that exceed this number of
+	## continuation lines. Setting this value to 0 removes the limit.
+	const max_header_continuation_lines = 1000 &redef;
 }
 
 module MOUNT3;

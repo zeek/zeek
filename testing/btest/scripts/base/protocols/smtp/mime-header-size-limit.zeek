@@ -5,3 +5,6 @@
 
 @load base/protocols/smtp
 @load base/protocols/conn
+
+# Disable continuation limit for this test.
+redef MIME::max_header_continuation_lines = 0;

@@ -4,7 +4,9 @@
 Description=Zeek Worker %i (eth0)
 SourcePath=<...>/config1
 After=zeek-setup.service
+Requires=zeek-setup.service
 StopPropagatedFrom=zeek.target
+PartOf=zeek.target
 StartLimitIntervalSec=0
 
 [Service]

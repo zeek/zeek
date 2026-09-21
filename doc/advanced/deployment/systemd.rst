@@ -270,6 +270,31 @@ at ``<PREFIX>/var/spool/zeek/generated-scripts/``.
    The INI-style format works with a single interface just as well, so you
    can just use that exclusively and ignore the section-less style.
 
+.. warning::
+
+   When lowering the number of processes in ``zeek.conf`` and running only
+   ``systemctl daemon-reload`` and ``systemctl restart zeek.target``, systemd
+   will keep information about the units for the old processes around and attempt
+   to restart them. You'll observe errors in the ``journalctl`` output as follows:
+
+   .. code:: console
+
+      Sep 19 20:50:44 tinkyx1 (zeek)[519898]: zeek-worker-wifi@2.service: Referenced but unset environment variable evaluates to an empty string: INTERFACE
+      Sep 19 20:50:44 tinkyx1 zeek-worker-wifi-2[519898]: error in /opt/zeek-dev-prod/share/zeek/base/frameworks/cluster/main.zeek, line 421: 'worker-wifi-2' is not a valid node in the Cluster::nodes configuration
+      Sep 19 20:50:44 tinkyx1 zeek-worker-wifi-2[519898]: fatal error: errors occurred while initializing
+
+   Here, the number of workers for the wifi interface was changed from two to one.
+   The second worker unit is still around and fails to restart.
+
+   We've reported this observation upstream under `systemd/systemd#40092 <https://github.com/systemd/systemd/issues/40092>`_.
+
+   To avoid running into this issue when changing the number of processes, run
+   ``systemctl stop zeek.target`` before running ``systemctl daemon-reload``,
+   and then run ``systemctl start zeek.target``.
+
+   Changing the number of processes is rarely done in production, so this is a
+   reasonable workaround.
+
 
 Worker Interface and Environment Templating
 ===========================================

@@ -8,6 +8,14 @@
 
 module Broker;
 
+## Enumerates the possible types of broker stores. This can be removed
+## whenever we're happy with it having been enough since &backend was
+## disabled.
+enum BackendType %{
+        MEMORY,
+        SQLITE,
+%}
+
 ## Enumerates the possible types that :zeek:see:`Broker::Data` may be in
 ## terms of Zeek data types.
 enum DataType %{

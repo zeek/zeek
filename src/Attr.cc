@@ -364,15 +364,7 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
             break;
         }
 
-        case ATTR_EXPIRE_READ: {
-            if ( Find(ATTR_BROKER_STORE) )
-                return AttrError("&broker_store and &read_expire cannot be used simultaneously");
-
-            if ( Find(ATTR_BACKEND) )
-                return AttrError("&backend and &read_expire cannot be used simultaneously");
-        }
-            // fallthrough
-
+        case ATTR_EXPIRE_READ:
         case ATTR_EXPIRE_WRITE:
         case ATTR_EXPIRE_CREATE: {
             if ( type->Tag() != TYPE_TABLE )
@@ -405,12 +397,6 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
                 return AttrError("expiration only applicable to tables");
 
             type->AsTableType()->CheckExpireFuncCompatibility({NewRef{}, a});
-
-            if ( Find(ATTR_BROKER_STORE) )
-                return AttrError("&broker_store and &expire_func cannot be used simultaneously");
-
-            if ( Find(ATTR_BACKEND) )
-                return AttrError("&backend and &expire_func cannot be used simultaneously");
 
             break;
         }
@@ -471,10 +457,13 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
                 return AttrError("&publish_on_change only applicable to global sets/tables");
         } break;
 
-        case ATTR_BROKER_STORE_ALLOW_COMPLEX:
-            if ( type->Tag() != TYPE_TABLE )
-                return AttrError("&broker_allow_complex_type only applicable to sets/tables");
-            break;
+        case ATTR_BACKEND:
+        case ATTR_BROKER_STORE:
+            return AttrError(
+                util::fmt("Support for the Broker-specific %s attribute has been removed in favor of using the newer "
+                          "&publish_on_change attribute or leveraging the Storage framework when data persistence is a "
+                          "requirement.",
+                          a->Tag() == ATTR_BACKEND ? "&backend" : "&broker_store"));
 
         case ATTR_TRACKED:
             // FIXME: Check here for global ID?

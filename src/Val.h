@@ -1159,7 +1159,7 @@ public:
      * @param t The value's type.
      */
     ZValElement(ValPtr v, const TypePtr& t)
-        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
+        : is_set(1), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
 
     /**
      * Initialize a ZValElement with just the TypePtr.
@@ -1224,7 +1224,7 @@ public:
         zval = o.zval; // Adopts the reference.
 
         // Keep is_managed and tag members valid.
-        o.is_set = false;
+        o.is_set = 0;
         o.zval = ZVal();
 
         return *this;
@@ -1244,7 +1244,7 @@ public:
         if ( is_set && is_managed )
             Unref(zval.ManagedVal());
 
-        is_set = true;
+        is_set = 1;
         zval = zv;
 
         return *this;
@@ -1284,7 +1284,7 @@ public:
         if ( is_set && is_managed )
             Unref(zval.ManagedVal());
 
-        is_set = false;
+        is_set = 0;
     }
 
     /**

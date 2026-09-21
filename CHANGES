@@ -1,3 +1,9 @@
+9.1.0-dev.116 | 2026-09-21 08:38:53 -0700
+
+  * pcapng: Validate length of available packet data (Tim Wojtulewicz, Corelight)
+
+  * pcapng: Fix possible divide-by-zero when calculating ts resolution (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.113 | 2026-09-20 12:25:02 +0200
 
   * ldap: Track pending SASL bind responses (Gido822)

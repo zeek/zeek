@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <algorithm>
 #include <cerrno>
-#include <chrono>
+#include <chrono> // needed for time values in unit tests
 #include <cstdlib>
 #include <thread>
 #include <vector>

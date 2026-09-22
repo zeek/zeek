@@ -4,7 +4,6 @@
 
 #include <highwayhash/sip_hash.h>
 #include <openssl/evp.h>
-#include <typeinfo>
 
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"

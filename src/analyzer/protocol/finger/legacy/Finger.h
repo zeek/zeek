@@ -10,7 +10,7 @@ namespace zeek::analyzer::finger {
 class Finger_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     explicit Finger_Analyzer(Connection* conn);
-    ~Finger_Analyzer() override {}
+    ~Finger_Analyzer() override = default;
 
     void Done() override;
     // Line-based input.

@@ -7,7 +7,6 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"

@@ -7,7 +7,6 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
-#include "zeek/input/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
 namespace zeek::detail {

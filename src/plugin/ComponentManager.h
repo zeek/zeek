@@ -14,7 +14,6 @@
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h" // for add_type()
-#include "zeek/ZeekString.h"
 #include "zeek/zeekygen/Manager.h"
 
 namespace zeek::plugin {

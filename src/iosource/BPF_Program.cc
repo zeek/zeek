@@ -9,8 +9,6 @@
 // clang-format on
 #include <cstring>
 
-#include "zeek/util.h"
-
 #ifdef DONT_HAVE_LIBPCAP_PCAP_FREECODE
 extern "C" {
 #include <pcap-int.h>

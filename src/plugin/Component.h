@@ -6,14 +6,11 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
+#include "zeek/Type.h"
 
 namespace zeek {
 
 class ODesc;
-class EnumType;
-using EnumTypePtr = IntrusivePtr<EnumType>;
-class EnumVal;
-using EnumValPtr = IntrusivePtr<EnumVal>;
 class StringVal;
 using StringValPtr = IntrusivePtr<StringVal>;
 

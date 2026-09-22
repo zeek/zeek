@@ -3,9 +3,6 @@
 #pragma once
 
 #include <fcntl.h>
-#include <list>
-#include <string>
-#include <utility>
 
 #include "zeek/Val.h"
 #include "zeek/util.h"

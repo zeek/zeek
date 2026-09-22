@@ -1,3 +1,11 @@
+9.1.0-dev.130 | 2026-09-22 09:00:52 +0200
+
+  * Val.h: bool to 0/1 in assignments (Sergey Fedorov)
+
+  * Val.h: ensure sizeof(ZValElement) remains correct regardless of sizeof(bool) (Sergey Fedorov)
+
+    Fixes: https://github.com/zeek/zeek/issues/5897
+
 9.1.0-dev.127 | 2026-09-21 15:23:05 -0700
 
   * Avoid a crash in file cleanup when terminating Zeek via exit() (Christian Kreibich, Corelight)

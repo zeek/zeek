@@ -11,7 +11,7 @@
 7, my_seq() invoked
 8, iterating table, expecting no my_seq() invocations
 8, it, [id=8], [id=7]
-8, it, [id=4], [id=3]
-8, it, [id=6], [id=5]
 8, it, [id=2], [id=1]
+8, it, [id=6], [id=5]
+8, it, [id=4], [id=3]
 8, done

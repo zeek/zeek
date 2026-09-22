@@ -4,6 +4,6 @@ MySSH::DIFFERENT,
 MySSH::VERY
 }
 MySSH::Encryption, {
-MySSH::Encryption_NONE,
-MySSH::Encryption_Undef
+MySSH::Encryption_Undef,
+MySSH::Encryption_NONE
 }

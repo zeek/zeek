@@ -15,16 +15,16 @@ XXXXXXXXXX.XXXXXX
 Conv::Enum_B
 [i=11, s=<uninitialized>]
 {
-2,
 1,
+2,
 3
 }
 [i=47, s=foo]
 [A, B, C]
 [A, B, C]
 {
-[2] = B,
 [1] = A,
+[2] = B,
 [3] = C
 }
 [Conv::Enum_A, Conv::Enum_B]

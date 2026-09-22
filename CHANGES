@@ -1,3 +1,13 @@
+9.0.0-8 | 2026-09-22 08:53:35 -0700
+
+  * Val.h: bool to 0/1 in assignments (Sergey Fedorov)
+
+    (cherry picked from commit e7f042055d3cd2921a52d493b01817be977e939f)
+
+  * Val.h: ensure sizeof(ZValElement) remains correct regardless of sizeof(bool) (Sergey Fedorov)
+
+    (cherry picked from commit e7f042055d3cd2921a52d493b01817be977e939f)
+
 9.0.0-7 | 2026-09-21 16:53:17 -0700
 
   * tools/systemd-generator: Use PartOf= and Requires= again (Arne Welzel, Corelight)

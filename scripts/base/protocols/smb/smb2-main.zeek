@@ -152,7 +152,7 @@ event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::Creat
 
 event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, response$file_id$persistent+response$file_id$volatile);
+	SMB::set_current_file(c, response$file_id$persistent+response$file_id$volatile);
 
 	c$smb_state$current_file$size = response$size;
 
@@ -176,7 +176,7 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 
 event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	switch ( c$smb_state$current_tree$share_type )
 		{
@@ -202,7 +202,7 @@ event smb2_read_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, o
 
 event smb2_write_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, offset: count, length: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	switch ( c$smb_state$current_tree$share_type )
 		{
@@ -233,7 +233,7 @@ event smb2_file_sattr(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, tim
 
 event smb2_file_sattr(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, times: SMB::MACTimes, attrs: SMB2::FileAttrs) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	switch ( c$smb_state$current_tree$share_type )
 		{
@@ -248,7 +248,7 @@ event smb2_file_sattr(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, tim
 
 event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, dst_filename: string) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	if ( c$smb_state$current_file?$name )
 		c$smb_state$current_file$prev_name = c$smb_state$current_file$name;
@@ -273,7 +273,7 @@ event smb2_file_rename(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, ds
 
 event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	if ( ! delete_pending )
 		{
@@ -300,7 +300,7 @@ event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, de
 
 event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id$persistent+file_id$volatile);
+	SMB::set_current_file(c, file_id$persistent+file_id$volatile);
 
 	switch ( c$smb_state$current_tree$share_type )
 		{

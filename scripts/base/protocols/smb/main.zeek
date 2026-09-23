@@ -165,10 +165,13 @@ export {
 	};
 
 	## This is an internally used function.
-	const set_current_file: function(smb_state: State, file_id: count) &redef;
+	global set_current_file: function(c: connection, file_id: count);
 
 	## This is an internally used function.
 	const write_file_log: function(state: State) &redef;
+
+	## Maximum size of the fid_map in SMB::State.
+	const max_fid_map_size = 10000 &redef;
 }
 
 redef record FileInfo += {
@@ -187,10 +190,19 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}
 
-function set_current_file(smb_state: State, file_id: count)
+function set_current_file(c: connection, file_id: count)
 	{
+	local smb_state = c$smb_state;
+
 	if ( file_id !in smb_state$fid_map )
 		{
+		# If fid_map grew unbounded to max_fid_map_size, reset it outright.
+		if ( max_fid_map_size > 0 && |smb_state$fid_map| >= max_fid_map_size )
+			{
+			Reporter::limit_reached_weird("SMB_max_fid_map_size_reached", c, |smb_state$fid_map|, 0, "SMB");
+			smb_state$fid_map = table();
+			}
+
 		smb_state$fid_map[file_id] = smb_state$current_cmd$referenced_file;
 		smb_state$fid_map[file_id]$fid = file_id;
 		}

@@ -154,8 +154,6 @@ export {
 		fid_map      : table[count] of FileInfo  &optional;
 		## Tree map to retrieve tree information based on the tree ID.
 		tid_map      : table[count] of TreeInfo  &optional;
-		## Pipe map to retrieve UUID based on the file ID of a pipe.
-		pipe_map     : table[count] of string    &optional;
 
 		## A set of recent files to avoid logging the same
 		## files over and over in the smb files log.

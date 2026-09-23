@@ -21,7 +21,6 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 		state$fid_map = table();
 		state$tid_map = table();
 		state$pending_cmds = table();
-		state$pipe_map = table();
 		c$smb_state = state;
 		}
 
@@ -352,9 +351,9 @@ event smb2_discarded_messages_state(c: connection, state: string)
 	if ( ! c?$smb_state )
 		return;
 
-	local addl = fmt("state=%s fid_map=%s tid_map=%s pending_cmds=%s pipe_map=%s",
+	local addl = fmt("state=%s fid_map=%s tid_map=%s pending_cmds=%s",
 	                 state, |c$smb_state$fid_map|, |c$smb_state$tid_map|,
-	                 |c$smb_state$pending_cmds|, |c$smb_state$pipe_map|);
+	                 |c$smb_state$pending_cmds|);
 	Reporter::conn_weird("SMB_discarded_messages_state", c, addl, "SMB2");
 
 	if ( ! SMB::enable_clear_script_state )
@@ -366,5 +365,4 @@ event smb2_discarded_messages_state(c: connection, state: string)
 	# Not expected to grow overly large and the original
 	# zeek-smb-clear-state package didn't reset these either.
 	# c$smb_state$tid_map = table();
-	# c$smb_state$pipe_map = table();
 	}

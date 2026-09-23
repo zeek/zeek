@@ -145,7 +145,7 @@ event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string
 
 event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 
 	c$smb_state$current_cmd$referenced_file$action = SMB::FILE_OPEN;
 	c$smb_state$current_cmd$referenced_file$size = file_size;
@@ -159,7 +159,7 @@ event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: co
 
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_READ;
 	if ( c$smb_state$current_file?$name )
 		c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
@@ -175,7 +175,7 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_WRITE;
 	if ( !c$smb_state$current_cmd?$argument &&
 	     # TODO: figure out why name isn't getting set sometimes.
@@ -199,7 +199,7 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 
 event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_CLOSE;
 	}
 

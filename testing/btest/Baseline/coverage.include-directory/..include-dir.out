@@ -803,6 +803,7 @@
 ./zeek/analyzer/protocol/ident/events.bif.h
 ./zeek/analyzer/protocol/imap
 ./zeek/analyzer/protocol/imap/IMAP.h
+./zeek/analyzer/protocol/imap/consts.bif.h
 ./zeek/analyzer/protocol/imap/events.bif.h
 ./zeek/analyzer/protocol/imap/imap-analyzer.pac
 ./zeek/analyzer/protocol/imap/imap-protocol.pac

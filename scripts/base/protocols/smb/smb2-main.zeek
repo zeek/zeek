@@ -154,7 +154,6 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 	{
 	SMB::set_current_file(c$smb_state, response$file_id$persistent+response$file_id$volatile);
 
-	c$smb_state$current_file$fid = response$file_id$persistent+response$file_id$volatile;
 	c$smb_state$current_file$size = response$size;
 
 	if ( c$smb_state$current_tree?$path )
@@ -163,12 +162,6 @@ event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::Cre
 	# I'm seeing negative data from IPC tree transfers
 	if ( response$times$modified as double > 0.0 )
 		c$smb_state$current_file$times = response$times;
-
-	# We can identify the file by its file id now so let's stick it
-	# in the file map.
-	c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile] = c$smb_state$current_file;
-
-	c$smb_state$current_file = c$smb_state$fid_map[response$file_id$persistent+response$file_id$volatile];
 
 	# If the create request for this file had FILE_DELETE_ON_CLOSE set and
 	# the response status was success, raise a smb2_file_delete event.

@@ -666,6 +666,19 @@ export {
 	const max_command_length = 100 &redef;
 }
 
+module IMAP;
+
+export {
+	## Limits the maximum number of capabilities exposed via the
+	## :zeek:see:`imap_capabilities` event from a server in response to
+	## a CAPABILITY command. As of 2026, there's only
+	## `78 capabilities allocated by IANA <https://www.iana.org/assignments/imap-capabilities>`_.
+	## More capabilities are discarded and an imap_max_capabilities_reached
+	## weird raised and the connection history marked with an X. Setting this
+	## value to 0 disables the limit.
+	const max_capabilities = 100 &redef;
+}
+
 module SMTP;
 
 export {

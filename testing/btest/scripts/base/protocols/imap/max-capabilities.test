@@ -1,0 +1,23 @@
+# @TEST-EXEC: zcat <$TRACES/imap/imap-capability-event-memory-exhaustion.pcap.gz | zeek -b -C -r - %INPUT
+# @TEST-EXEC: btest-diff-cut -m uid service history conn.log
+# @TEST-EXEC: btest-diff-cut -m weird.log
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
+@load base/protocols/conn
+@load base/protocols/imap
+
+global total_imap_capabilities = 0;
+
+event imap_capabilities(c: connection, capabilities: string_vec)
+	{
+	if ( total_imap_capabilities % 1000 == 0 )
+		print "imap_capabilities", total_imap_capabilities, c$uid, |capabilities|, capabilities[:16];
+
+	++total_imap_capabilities;
+	}
+
+event zeek_done()
+	{
+	print "zeek_done", "total_imap_capabilities", total_imap_capabilities;
+	}

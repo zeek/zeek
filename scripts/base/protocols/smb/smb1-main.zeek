@@ -24,9 +24,8 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 	local mid = hdr$mid;
 
 	if ( tid !in smb_state$tid_map )
-		{
-		smb_state$tid_map[tid] = SMB::TreeInfo($uid=c$uid, $id=c$id);
-		}
+		SMB::insert_new_tree_info(c, tid);
+
 	smb_state$current_tree = smb_state$tid_map[tid];
 	if ( smb_state$current_tree?$path )
 		{

@@ -146,19 +146,14 @@ event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string
 
 event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes) &priority=5
 	{
+	SMB::set_current_file(c$smb_state, file_id);
+
 	c$smb_state$current_cmd$referenced_file$action = SMB::FILE_OPEN;
-	c$smb_state$current_cmd$referenced_file$fid = file_id;
 	c$smb_state$current_cmd$referenced_file$size = file_size;
 
 	# I'm seeing negative data from IPC tree transfers
 	if ( time_to_double(times$modified) > 0.0 )
 		c$smb_state$current_cmd$referenced_file$times = times;
-
-	# We can identify the file by its file id now so let's stick it
-	# in the file map.
-	c$smb_state$fid_map[file_id] = c$smb_state$current_cmd$referenced_file;
-
-	c$smb_state$current_file = c$smb_state$fid_map[file_id];
 
 	SMB::write_file_log(c$smb_state);
 	}

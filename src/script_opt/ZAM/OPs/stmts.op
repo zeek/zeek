@@ -246,7 +246,7 @@ method-post z.aux = v->aux;
 macro EvalAddStmt(lhs, ind)
 	auto index = ind;
 	bool iterators_invalidated = false;
-	lhs.AsTable()->Assign(std::move(index), nullptr, true, &iterators_invalidated);
+	lhs.AsTable()->Assign(std::move(index), nullptr, &iterators_invalidated);
 	if ( iterators_invalidated )
 		WARN("possible loop/iterator invalidation");
 
@@ -276,7 +276,7 @@ class VO
 op-types T X
 eval	auto indices = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
-	$1->Remove(*indices, true, &iterators_invalidated);
+	$1->Remove(*indices, &iterators_invalidated);
 	if ( iterators_invalidated )
 		WARN("possible loop/iterator invalidation");
 method-post z.aux = v->aux;

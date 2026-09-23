@@ -10,7 +10,6 @@
 #include <broker/endpoint_info.hh>
 #include <broker/hub.hh>
 #include <broker/peer_info.hh>
-#include <broker/store.hh>
 #include <broker/zeek.hh>
 #include <memory>
 #include <span>
@@ -54,11 +53,6 @@ class Frame;
 
 namespace Broker {
 
-namespace detail {
-class StoreHandleVal;
-class StoreQueryCallback;
-}; // namespace detail
-
 class BrokerState;
 
 /**
@@ -67,10 +61,6 @@ class BrokerState;
 struct Stats {
     // Number of active peer connections.
     size_t num_peers = 0;
-    // Number of active data stores.
-    size_t num_stores = 0;
-    // Number of pending data store queries.
-    size_t num_pending_queries = 0;
     // Number of total log messages received.
     size_t num_events_incoming = 0;
     // Number of total log messages sent.
@@ -263,77 +253,10 @@ public:
     bool Forward(std::string topic_prefix);
 
     /**
-     * Create a new *master* data store.
-     * @param name The name of the store.
-     * @param type The backend type.
-     * @param opts The backend options.
-     * @return a pointer to the newly created store a nullptr on failure.
-     */
-    detail::StoreHandleVal* MakeMaster(const std::string& name, broker::backend type, broker::backend_options opts);
-
-    /**
-     * Create a new *clone* data store.
-     * @param name The name of the store.
-     * @param resync_interval The frequency at which the clone will attempt
-     * to reconnect/resynchronize with its master in the event it becomes
-     * disconnected.
-     * @param stale_interval The duration after which a clone that is
-     * disconnected from its master will treat its local cache as stale.
-     * In this state, queries to the clone will timeout.  A negative value
-     * indicates to never treat the local cache as stale.
-     * @param mutation_buffer_interval The max amount of time that a
-     * disconnected clone will buffer mutation commands.  If the clone
-     * reconnects before this time, it replays all buffered commands.  Note
-     * that this doesn't completely prevent the loss of store updates: all
-     * mutation messages are fire-and-forget and not explicitly acknowledged by
-     * the master.  A negative/zero value indicates to never buffer commands.
-     * @return a pointer to the newly created store a nullptr on failure.
-     */
-    detail::StoreHandleVal* MakeClone(const std::string& name, double resync_interval = 10.0,
-                                      double stale_interval = 300.0, double mutation_buffer_interval = 120.0);
-
-    /**
-     * Lookup a data store by it's identifier name and type.
-     * @param name the store's name.
-     * @return a pointer to the store handle if it exists else nullptr.
-     */
-    detail::StoreHandleVal* LookupStore(const std::string& name);
-
-    /**
-     * Register a Zeek table that is associated with a Broker store that is backing it. This
-     * causes all changes that happen to the Broker store in the future to be applied to theZzeek
-     * table. A single Broker store can only be forwarded to a single table.
-     * @param name name of the Broker store.
-     * @param table pointer to the table/set that is being backed.
-     * @return true on success, false if the named store is already being forwarded.
-     */
-    bool AddForwardedStore(const std::string& name, TableValPtr table);
-
-    /**
-     * Close and unregister a data store.  Any existing references to the
-     * store handle will not be able to be used for any data store operations.
-     * @param name the stores' name.
-     * @return true if such a store existed and is now closed.
-     */
-    bool CloseStore(const std::string& name);
-
-    /**
-     * Register a data store query callback.
-     * @param cb the callback info to use when the query completes or times out.
-     * @return true if now tracking a data store query.
-     */
-    bool TrackStoreQuery(detail::StoreHandleVal* handle, broker::request_id id, detail::StoreQueryCallback* cb);
-
-    /**
      * Send all pending log write messages.
      * @return the number of messages sent.
      */
     size_t FlushLogBuffers();
-
-    /**
-     * Flushes all pending data store queries and also clears all contents.
-     */
-    void ClearStores();
 
     /**
      * @return communication statistics.
@@ -400,11 +323,6 @@ private:
         throw std::logic_error("not implemented");
     }
 
-    // Process events used for Broker store backed zeek tables
-    void ProcessStoreEvent(const broker::data& msg);
-    // Common functionality for processing insert and update events.
-    void ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id, const broker::data& key,
-                                       const broker::data& data, const broker::data& old_value, bool insert);
     void ProcessMessage(std::string_view topic, broker::zeek::Batch& ev);
     void ProcessMessage(std::string_view topic, broker::zeek::Event& ev);
     void ProcessMessage(std::string_view topic, broker::zeek::Invalid& ev);
@@ -413,15 +331,6 @@ private:
     bool ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu);
     void ProcessStatus(broker::status& stat);
     void ProcessError(broker::error& err);
-    void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
-    void FlushPendingQueries();
-    // Initializes the masters for Broker backed Zeek tables when using the &backend attribute
-    void InitializeBrokerStoreForwarding();
-    // Check if a Broker store is associated to a table on the Zeek side.
-    void PrepareForwarding(const std::string& name);
-    // Send the content of a Broker store to the backing table. This is typically used
-    // when a master/clone is created.
-    void BrokerStoreToZeekTable(const std::string& name, const detail::StoreHandleVal* handle);
 
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
@@ -430,12 +339,6 @@ private:
 
     // Process events from Broker logger.
     void ProcessLogEvents();
-
-    // Process events from @p store.
-    void ProcessDataStore(detail::StoreHandleVal* store);
-
-    // Process events from all Broker data stores.
-    void ProcessDataStores();
 
     // IOSource interface overrides:
     void ProcessFd(int fd, int flags) override;
@@ -461,24 +364,9 @@ private:
         size_t Flush(broker::endpoint& endpoint, size_t batch_size);
     };
 
-    // Data stores
-    using query_id = std::pair<broker::request_id, detail::StoreHandleVal*>;
-
-    struct query_id_hasher {
-        size_t operator()(const query_id& qid) const {
-            size_t rval = 0;
-            broker::detail::hash_combine(rval, qid.first);
-            broker::detail::hash_combine(rval, qid.second);
-            return rval;
-        }
-    };
-
     std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
     std::string default_log_topic_prefix;
     std::shared_ptr<BrokerState> bstate;
-    std::unordered_map<std::string, detail::StoreHandleVal*> data_stores;
-    std::unordered_map<std::string, TableValPtr> forwarded_stores;
-    std::unordered_map<query_id, detail::StoreQueryCallback*, query_id_hasher> pending_queries;
     std::vector<std::string> forwarded_prefixes;
 
     Stats statistics;
@@ -500,7 +388,6 @@ private:
     static int script_scope;
 
     telemetry::GaugePtr num_peers_metric;
-    telemetry::GaugePtr num_stores_metric;
     telemetry::GaugePtr num_pending_queries_metric;
     telemetry::CounterPtr num_events_incoming_metric;
     telemetry::CounterPtr num_events_outgoing_metric;

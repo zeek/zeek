@@ -38,8 +38,6 @@ struct Field;
 
 namespace zeek::Broker::detail {
 
-class StoreHandleVal;
-
 extern OpaqueTypePtr opaque_of_data_type;
 extern OpaqueTypePtr opaque_of_set_iterator;
 extern OpaqueTypePtr opaque_of_table_iterator;
@@ -490,7 +488,6 @@ class BrokerData {
 public:
     friend class BrokerListBuilder;
     friend class zeek::Broker::Manager;
-    friend class zeek::Broker::detail::StoreHandleVal;
     friend class zeek::detail::BrokerDataAccess;
 
     BrokerData() = default;

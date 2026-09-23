@@ -1372,14 +1372,10 @@ ReturnStmt::ReturnStmt(ExprPtr arg_e) : ExprStmt(STMT_RETURN, std::move(arg_e)) 
             Error("return statement needs expression");
     }
 
-    else {
-        // Hooks returning a value does nothing, but it's necessary to allow
-        // since they yield a boolean. This should be an error.
-        if ( ft->Flavor() == FUNC_FLAVOR_HOOK )
-            Warn(
-                "Remove in v9.1: Returning values from a hook is deprecated. Consider using 'break' to inhibit "
-                "lower-priority hooks, otherwise use an empty return if necessary.");
+    else if ( ft->Flavor() == FUNC_FLAVOR_HOOK )
+        Error("hooks may not return a value");
 
+    else {
         auto promoted_e = check_and_promote_expr(e, yt);
 
         if ( promoted_e )

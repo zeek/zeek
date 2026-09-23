@@ -318,7 +318,7 @@ const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3, bool& iterators_inv
         }
 
         case TYPE_TABLE: {
-            if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v3), true, &iterators_invalidated) ) {
+            if ( ! v1->AsTableVal()->Assign(std::move(v2), std::move(v3), &iterators_invalidated) ) {
                 v3 = std::move(v_extra);
 
                 if ( v3 ) {
@@ -2584,7 +2584,7 @@ ValPtr IndexExpr::Add(Frame* f) {
         return nullptr;
 
     bool iterators_invalidated = false;
-    v1->AsTableVal()->Assign(std::move(v2), nullptr, true, &iterators_invalidated);
+    v1->AsTableVal()->Assign(std::move(v2), nullptr, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
@@ -2608,7 +2608,7 @@ ValPtr IndexExpr::Delete(Frame* f) {
         return nullptr;
 
     bool iterators_invalidated = false;
-    auto removed = v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
+    auto removed = v1->AsTableVal()->Remove(*v2, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");

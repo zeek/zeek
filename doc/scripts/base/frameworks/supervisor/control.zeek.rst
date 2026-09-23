@@ -57,12 +57,6 @@ Redefinable Options
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
-   :Redefinition: from :doc:`/scripts/policy/frameworks/management/agent/boot.zeek`
-
-      ``=``::
-
-         T
-
 
    When enabled, the Supervisor will listen on the configured Broker
    :zeek:see:`Broker::default_listen_address`.
@@ -95,7 +89,7 @@ Events
    :param node: the desired configuration for the new supervised node process.
 
 .. zeek:id:: SupervisorControl::create_response
-   :source-code: policy/frameworks/management/agent/main.zeek 286 308
+   :source-code: base/frameworks/supervisor/control.zeek 37 37
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, result: :zeek:type:`string`)
 
@@ -124,7 +118,7 @@ Events
          nodes".
 
 .. zeek:id:: SupervisorControl::destroy_response
-   :source-code: policy/frameworks/management/agent/main.zeek 310 332
+   :source-code: base/frameworks/supervisor/control.zeek 88 88
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, result: :zeek:type:`bool`)
 
@@ -171,7 +165,7 @@ Events
          nodes".
 
 .. zeek:id:: SupervisorControl::restart_response
-   :source-code: policy/frameworks/management/agent/main.zeek 334 357
+   :source-code: base/frameworks/supervisor/control.zeek 71 71
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, result: :zeek:type:`bool`)
 
@@ -200,7 +194,7 @@ Events
          nodes".
 
 .. zeek:id:: SupervisorControl::status_response
-   :source-code: policy/frameworks/management/agent/main.zeek 271 284
+   :source-code: base/frameworks/supervisor/control.zeek 54 54
 
    :Type: :zeek:type:`event` (reqid: :zeek:type:`string`, result: :zeek:type:`Supervisor::Status`)
 

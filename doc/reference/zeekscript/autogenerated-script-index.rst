@@ -113,9 +113,8 @@
    base/frameworks/broker/main.zeek </scripts/base/frameworks/broker/main.zeek>
    base/bif/comm.bif.zeek </scripts/base/bif/comm.bif.zeek>
    base/bif/messaging.bif.zeek </scripts/base/bif/messaging.bif.zeek>
-   base/frameworks/broker/store.zeek </scripts/base/frameworks/broker/store.zeek>
+   base/frameworks/broker/data.zeek </scripts/base/frameworks/broker/data.zeek>
    base/bif/data.bif.zeek </scripts/base/bif/data.bif.zeek>
-   base/bif/store.bif.zeek </scripts/base/bif/store.bif.zeek>
    base/frameworks/broker/log.zeek </scripts/base/frameworks/broker/log.zeek>
    base/frameworks/broker/backpressure.zeek </scripts/base/frameworks/broker/backpressure.zeek>
    base/frameworks/supervisor/__load__.zeek </scripts/base/frameworks/supervisor/__load__.zeek>
@@ -540,29 +539,7 @@
    policy/frameworks/cluster/backend/zeromq/__load__.zeek </scripts/policy/frameworks/cluster/backend/zeromq/__load__.zeek>
    policy/frameworks/cluster/backend/zeromq/options.zeek </scripts/policy/frameworks/cluster/backend/zeromq/options.zeek>
    policy/frameworks/cluster/backend/zeromq/main.zeek </scripts/policy/frameworks/cluster/backend/zeromq/main.zeek>
-   policy/frameworks/cluster/backend/zeromq/connect.zeek </scripts/policy/frameworks/cluster/backend/zeromq/connect.zeek>
    policy/frameworks/cluster/experimental.zeek </scripts/policy/frameworks/cluster/experimental.zeek>
-   policy/frameworks/management/agent/__load__.zeek </scripts/policy/frameworks/management/agent/__load__.zeek>
-   policy/frameworks/management/agent/api.zeek </scripts/policy/frameworks/management/agent/api.zeek>
-   policy/frameworks/management/types.zeek </scripts/policy/frameworks/management/types.zeek>
-   policy/frameworks/management/agent/boot.zeek </scripts/policy/frameworks/management/agent/boot.zeek>
-   policy/frameworks/management/agent/config.zeek </scripts/policy/frameworks/management/agent/config.zeek>
-   policy/frameworks/management/__load__.zeek </scripts/policy/frameworks/management/__load__.zeek>
-   policy/frameworks/management/config.zeek </scripts/policy/frameworks/management/config.zeek>
-   policy/frameworks/management/log.zeek </scripts/policy/frameworks/management/log.zeek>
-   policy/frameworks/management/persistence.zeek </scripts/policy/frameworks/management/persistence.zeek>
-   policy/frameworks/management/request.zeek </scripts/policy/frameworks/management/request.zeek>
-   policy/frameworks/management/util.zeek </scripts/policy/frameworks/management/util.zeek>
-   policy/frameworks/management/controller/config.zeek </scripts/policy/frameworks/management/controller/config.zeek>
-   policy/frameworks/management/controller/__load__.zeek </scripts/policy/frameworks/management/controller/__load__.zeek>
-   policy/frameworks/management/controller/api.zeek </scripts/policy/frameworks/management/controller/api.zeek>
-   policy/frameworks/management/controller/boot.zeek </scripts/policy/frameworks/management/controller/boot.zeek>
-   policy/frameworks/management/node/api.zeek </scripts/policy/frameworks/management/node/api.zeek>
-   policy/frameworks/management/node/config.zeek </scripts/policy/frameworks/management/node/config.zeek>
-   policy/frameworks/management/supervisor/__load__.zeek </scripts/policy/frameworks/management/supervisor/__load__.zeek>
-   policy/frameworks/management/supervisor/main.zeek </scripts/policy/frameworks/management/supervisor/main.zeek>
-   policy/frameworks/management/supervisor/api.zeek </scripts/policy/frameworks/management/supervisor/api.zeek>
-   policy/frameworks/management/supervisor/config.zeek </scripts/policy/frameworks/management/supervisor/config.zeek>
    policy/frameworks/intel/do_notice.zeek </scripts/policy/frameworks/intel/do_notice.zeek>
    policy/frameworks/intel/do_expire.zeek </scripts/policy/frameworks/intel/do_expire.zeek>
    policy/frameworks/intel/whitelist.zeek </scripts/policy/frameworks/intel/whitelist.zeek>
@@ -675,10 +652,6 @@
    policy/frameworks/cluster/websocket/server.zeek </scripts/policy/frameworks/cluster/websocket/server.zeek>
    policy/frameworks/control/controllee.zeek </scripts/policy/frameworks/control/controllee.zeek>
    policy/frameworks/control/controller.zeek </scripts/policy/frameworks/control/controller.zeek>
-   policy/frameworks/management/agent/main.zeek </scripts/policy/frameworks/management/agent/main.zeek>
-   policy/frameworks/management/controller/main.zeek </scripts/policy/frameworks/management/controller/main.zeek>
-   policy/frameworks/management/node/__load__.zeek </scripts/policy/frameworks/management/node/__load__.zeek>
-   policy/frameworks/management/node/main.zeek </scripts/policy/frameworks/management/node/main.zeek>
    policy/frameworks/files/extract-all-files.zeek </scripts/policy/frameworks/files/extract-all-files.zeek>
    policy/frameworks/signatures/iso-9660.zeek </scripts/policy/frameworks/signatures/iso-9660.zeek>
    policy/misc/dump-events.zeek </scripts/policy/misc/dump-events.zeek>

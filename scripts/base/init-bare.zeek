@@ -1314,11 +1314,8 @@ type ThreadStats: record {
 ##
 ## .. zeek:see:: get_broker_stats
 type BrokerStats: record {
+	## Number of active peers.
 	num_peers: count;
-	## Number of active data stores.
-	num_stores: count;
-	## Number of pending data store queries.
-	num_pending_queries: count;
 	## Number of total log messages received.
 	num_events_incoming: count;
 	## Number of total log messages sent.
@@ -1542,8 +1539,6 @@ type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
 	PREFIX_PRESERVING_A50,
-	RANDOM_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
-	PREFIX_PRESERVING_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
 	RANDOM_SHA256,
 	PREFIX_PRESERVING_SHA256,
 };

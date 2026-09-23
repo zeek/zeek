@@ -18,14 +18,6 @@ public:
     }
 
     void append(std::string_view m) { msg_ += m; }
-    [[deprecated("Remove in v9.1. Use Exception::what().")]]
-    std::string msg() const {
-        return msg_;
-    }
-    [[deprecated("Remove in v9.1. Use Exception::what().")]]
-    const char* c_msg() const {
-        return msg_.c_str();
-    }
     const char* what() const noexcept override { return msg_.c_str(); }
 
 protected:

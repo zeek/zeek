@@ -1,3 +1,21 @@
+9.1.0-dev.139 | 2026-09-23 11:15:41 -0700
+
+  * Remove broker set/table/vector/record script-level methods (Tim Wojtulewicz, Corelight)
+
+  * Restore error for &backend attribute (Tim Wojtulewicz, Corelight)
+
+  * Deprecate old version of TableVal::Assign/Remove (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule for deprecation removals (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs for 9.1 deprecation removals (Tim Wojtulewicz, Corelight)
+
+  * Remove all code associated with Broker stores (Tim Wojtulewicz, Corelight)
+
+  * Btest updates for 9.1 deprecation removals (Tim Wojtulewicz, Corelight)
+
+  * Remove 9.1 deprecations (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.130 | 2026-09-22 09:00:52 +0200
 
   * Val.h: bool to 0/1 in assignments (Sergey Fedorov)

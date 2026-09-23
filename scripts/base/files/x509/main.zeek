@@ -97,19 +97,8 @@ export {
 	## Maximum size of the known_log_certs table
 	option known_log_certs_maximum_size = 1000000;
 
-	## Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
-	## to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
-	##
-	## This setting is ignored if Zeek is run in standalone mode, or if the
-	## newer known_log_certs_enable_publish is set to T.
-	##
-	## See also :zeek:see:`X509::known_log_certs_enable_publish`.
-	global known_log_certs_use_broker: bool = T &deprecated="Remove in v9.1: Replaced with known_log_certs_enable_publish";
-
 	## Whether to publish the hash of any logged certificate to other cluster
 	## nodes to deduplicate certificates across the whole cluster.
-	##
-	## This overrides the deprecated known_log_certs_use_broker.
 	const known_log_certs_enable_publish: bool = T &redef;
 
 	## Whether the manager sends all logged certs in response to a
@@ -144,10 +133,6 @@ export {
 	## .. zeek:see:: Log::default_max_total_container_elements
 	const default_max_total_container_elements = 1500 &redef;
 }
-
-@pragma push ignore-deprecations
-global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
-@pragma pop
 
 redef record Files::Info += {
 	## Information about X509 certificates. This is used to keep
@@ -187,13 +172,6 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
-
-@if ( Cluster::is_enabled() )
-@pragma push ignore-deprecations
-	if ( known_log_certs_use_broker && ! known_log_certs_enable_publish )
-		known_log_certs = known_log_certs_with_broker;
-@pragma pop
-@endif
 	}
 
 hook Files::log_policy(rec: Files::Info, id: Log::ID, filter: Log::Filter) &priority=5

@@ -32,7 +32,7 @@ function max_line_length(): uint64 {
 @endif
 
 public type Request = unit {
-    : OptionalWhiteSpace;
+    : OptionalWhiteSpace &max-size=max_line_length();
 
     switch {
         -> : /\/W/ {
@@ -41,7 +41,7 @@ public type Request = unit {
         -> : void;
     };
 
-    : OptionalWhiteSpace;
+    : OptionalWhiteSpace &max-size=max_line_length();
 
     arg: /[^\r\n]*/ &max-size=max_line_length() &convert=$$.strip().split1(b"@") {
         # We require valid UTF-8 to weed out binary data.

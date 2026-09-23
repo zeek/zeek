@@ -88,7 +88,8 @@ type ClientHello(rec: HandshakeRecord) = record {
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
-	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+	extensions : SSLExtension(rec)[] &length=(sizeof(ext_len) > 0 ? ext_len[0] : 0);
+	trailing: bytestring &restofdata &transient;
 };
 
 type ClientHelloCookie(rec: HandshakeRecord) = record {
@@ -128,7 +129,8 @@ type ServerHello(rec: HandshakeRecord, server_version: uint16) = record {
 	# This weirdness is to deal with the possible existence or absence
 	# of the following fields.
 	ext_len: uint16[] &until($element == 0 || $element != 0);
-	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+	extensions : SSLExtension(rec)[] &length=(sizeof(ext_len) > 0 ? ext_len[0] : 0);
+	trailing: bytestring &restofdata &transient;
 } &let {
 	cipher_set : bool =
 		$context.connection.set_cipher(cipher_suite[0]);
@@ -138,7 +140,8 @@ type ServerHello13(rec: HandshakeRecord, server_version: uint16) = record {
 	random : bytestring &length = 32;
 	cipher_suite : uint16[1];
 	ext_len: uint16[] &until($element == 0 || $element != 0);
-	extensions : SSLExtension(rec)[] &until($input.length() == 0);
+	extensions : SSLExtension(rec)[] &length=(sizeof(ext_len) > 0 ? ext_len[0] : 0);
+	trailing: bytestring &restofdata &transient;
 } &let {
 	cipher_set : bool =
 		$context.connection.set_cipher(cipher_suite[0]);

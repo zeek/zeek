@@ -842,6 +842,12 @@ export {
 	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
 	## This applies to gzip content encoding. Set to 0 to disable the limit.
 	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
+
+	## Only allow that many pending requests on a single connection.
+	## If this number is exceeded, all pending requests are flushed
+	## out and request/response tracking reset to prevent unbounded
+	## state growth.
+	const max_pending_requests = 100 &redef;
 }
 
 module IRC;

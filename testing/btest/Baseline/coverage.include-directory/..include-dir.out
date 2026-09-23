@@ -796,6 +796,7 @@
 ./zeek/analyzer/protocol/gssapi/gssapi.pac
 ./zeek/analyzer/protocol/http
 ./zeek/analyzer/protocol/http/HTTP.h
+./zeek/analyzer/protocol/http/consts.bif.h
 ./zeek/analyzer/protocol/http/events.bif.h
 ./zeek/analyzer/protocol/http/functions.bif.h
 ./zeek/analyzer/protocol/ident

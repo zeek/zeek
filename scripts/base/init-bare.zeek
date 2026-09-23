@@ -819,6 +819,12 @@ export {
 	## the all lower-case value is used. If there's still no match Zeek
 	## uses dynamic protocol detection for the upgraded to protocol instead.
 	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+
+	## Only allow that many pending requests on a single connection.
+	## If this number is exceeded, all pending requests are flushed
+	## out and request/response tracking reset to prevent unbounded
+	## state growth.
+	const max_pending_requests = 100 &redef;
 }
 
 module WebSocket;

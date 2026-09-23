@@ -11,6 +11,7 @@
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/http/consts.bif.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
@@ -1014,6 +1015,17 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                     request_state = EXPECT_REQUEST_MESSAGE;
                     request_ongoing = 1;
                     unanswered_requests.push(request_method);
+
+                    // This is just the same as is done in the default HTTP
+                    // scripts. If there's more than HTTP::max_pending_requests
+                    // of unanswered requests, clear the queue to prevent memory
+                    // growth. All bets for request/response correlation are off.
+                    if ( zeek::BifConst::HTTP::max_pending_requests > 0 &&
+                         unanswered_requests.size() >= zeek::BifConst::HTTP::max_pending_requests ) {
+                        LimitReachedWeird("HTTP_excessive_pipelining", unanswered_requests.size());
+                        unanswered_requests = {};
+                    }
+
                     HTTP_Request();
                     InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE, len);
 

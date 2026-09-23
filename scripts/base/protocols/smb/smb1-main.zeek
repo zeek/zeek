@@ -14,7 +14,6 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 		local state: SMB::State;
 		state$fid_map = table();
 		state$tid_map = table();
-		state$pipe_map = table();
 		state$pending_cmds = table();
 		c$smb_state = state;
 		}
@@ -261,15 +260,4 @@ event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, respons
 event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count, parameters: string, data: string)
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];
-	}
-
-event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count)
-	{
-	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
-		{
-		# TODO: figure out why the uuid isn't getting set sometimes.
-		return;
-		}
-
-	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
 	}

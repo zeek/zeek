@@ -785,7 +785,6 @@ connection {
             SMB::FileInfo { ... }
         * pending_cmds: table[count] of record SMB::CmdInfo, log=F, optional=T
             SMB::CmdInfo { ... }
-        * pipe_map: table[count] of string, log=F, optional=T
         * recent_files: set[string], log=F, optional=T
         * tid_map: table[count] of record SMB::TreeInfo, log=F, optional=T
             SMB::TreeInfo { ... }

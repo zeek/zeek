@@ -2738,10 +2738,9 @@ function global_ids%(%): id_table
 		rec->Assign(3, id->IsEnumConst());
 		rec->Assign(4, id->IsOption());
 		rec->Assign(5, id->IsRedefinable());
-		rec->Assign(6, id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil);
 
 		if ( id->HasVal() )
-			rec->Assign(7, id->GetVal());
+			rec->Assign(6, id->GetVal());
 
 
 		// Add attributes, if any.
@@ -2760,7 +2759,7 @@ function global_ids%(%): id_table
 				attrs_vec->Append(std::move(attr_rec));
 			}
 
-			rec->Assign(8, std::move(attrs_vec));
+			rec->Assign(7, std::move(attrs_vec));
 		}
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
@@ -2778,7 +2777,6 @@ function global_ids%(%): id_table
 		rec->Assign(3, false); // enum_constant
 		rec->Assign(4, false); // option_value
 		rec->Assign(5, false); // redefinable
-		rec->Assign(6, false); // broker_backend
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("module %s", module_name.c_str()));
 		ids->Assign(std::move(id_name), std::move(rec));

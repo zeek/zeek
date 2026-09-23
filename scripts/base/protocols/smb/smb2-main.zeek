@@ -362,7 +362,5 @@ event smb2_discarded_messages_state(c: connection, state: string)
 	# Wipe out script-level state for this connection.
 	c$smb_state$fid_map = table();
 	c$smb_state$pending_cmds = table();
-	# Not expected to grow overly large and the original
-	# zeek-smb-clear-state package didn't reset these either.
-	# c$smb_state$tid_map = table();
+	c$smb_state$tid_map = table();
 	}

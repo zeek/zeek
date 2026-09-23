@@ -134,11 +134,11 @@ export {
 	## HTTP finalization hook.  Remaining HTTP info may get logged when it's called.
 	global finalize_http: Conn::RemovalHook;
 
-	## Only allow that many pending requests on a single connection.
-	## If this number is exceeded, all pending requests are flushed
-	## out and request/response tracking reset to prevent unbounded
-	## state growth.
-	option max_pending_requests = 100;
+	## The maximum number of bytes that a single string field can contain when
+	## logging. If a string reaches this limit, the log output for the field will be
+	## truncated. Setting this to zero disables the limiting. HTTP has no maximum
+	## length for various fields such as the URI, so this is set to zero by default.
+	const default_max_field_string_bytes = 0 &redef;
 }
 
 # Add the http state tracking fields to the connection record.
@@ -395,4 +395,3 @@ hook finalize_http(c: connection)
 			}
 		}
 	}
-

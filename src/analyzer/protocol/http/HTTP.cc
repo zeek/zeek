@@ -1019,11 +1019,19 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                     // This is just the same as is done in the default HTTP
                     // scripts. If there's more than HTTP::max_pending_requests
                     // of unanswered requests, clear the queue to prevent memory
-                    // growth. All bets for request/response correlation are off.
+                    // growth.
                     if ( zeek::BifConst::HTTP::max_pending_requests > 0 &&
                          unanswered_requests.size() >= zeek::BifConst::HTTP::max_pending_requests ) {
                         LimitReachedWeird("HTTP_excessive_pipelining", unanswered_requests.size());
                         unanswered_requests = {};
+
+                        // Disable deliveries from the server as all bets are
+                        // off for request/response correlation expectation for
+                        // body/non-body delivery depends on the request method.
+                        //
+                        // Likely the queue overflow was anyhow caused by
+                        // one-sided traffic and this has no effect.
+                        content_line_resp->SetSkipDeliveries(true);
                     }
 
                     HTTP_Request();

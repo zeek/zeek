@@ -487,8 +487,8 @@ global :zeek:type:`table` or :zeek:type:`set` variables to a configurable topic.
 In Zeek, sets are essentially tables with nil values, so we use the terms interchangeably
 in the following description.
 This attribute provides an alternative state distribution primitive that works
-with any cluster backend, replacing the older and Broker-specific :zeek:attr:`&backend`
-and :zeek:attr:`&broker_store` attributes.
+with any cluster backend, replacing the older and Broker-specific `&backend`
+and `&broker_store` attributes.
 
 You assign the ``&publish_on_change`` attribute an expression that evaluates to a
 :zeek:see:`Cluster::PublishOnChangeAttr` record to configure the publish behavior for

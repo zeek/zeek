@@ -628,19 +628,6 @@ bool Manager::Active() {
     return peer_count > 0 || hub_count > 0;
 }
 
-void Manager::AdvanceTime(double seconds_since_unix_epoch) {
-    if ( bstate->endpoint.is_shutdown() )
-        return;
-
-    if ( bstate->endpoint.use_real_time() )
-        return;
-
-    auto secs = std::chrono::duration<double>(seconds_since_unix_epoch);
-    auto span = std::chrono::duration_cast<broker::timespan>(secs);
-    broker::timestamp next_time{span};
-    bstate->endpoint.advance_time(next_time);
-}
-
 uint16_t Manager::Listen(const string& addr, uint16_t port) {
     if ( bstate->endpoint.is_shutdown() )
         return 0;

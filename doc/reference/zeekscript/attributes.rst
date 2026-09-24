@@ -1,5 +1,5 @@
 .. _attributes:
- 
+
 Attributes
 ==========
 
@@ -65,15 +65,6 @@ it to write. Zeek features the following attributes:
 
   * - :zeek:attr:`&type_column`
     - Used by input framework for :zeek:type:`port` type.
-
-  * - :zeek:attr:`&backend`
-    - Used for table persistence/synchronization.
-
-  * - :zeek:attr:`&broker_store`
-    - Used for table persistence/synchronization.
-
-  * - :zeek:attr:`&broker_allow_complex_type`
-    - Used for table persistence/synchronization.
 
   * - :zeek:attr:`&ordered`
     - Used for predictable member iteration of tables and sets.
@@ -496,8 +487,8 @@ global :zeek:type:`table` or :zeek:type:`set` variables to a configurable topic.
 In Zeek, sets are essentially tables with nil values, so we use the terms interchangeably
 in the following description.
 This attribute provides an alternative state distribution primitive that works
-with any cluster backend, replacing the older and Broker-specific :zeek:attr:`&backend`
-and :zeek:attr:`&broker_store` attributes.
+with any cluster backend, replacing the older and Broker-specific `&backend`
+and `&broker_store` attributes.
 
 You assign the ``&publish_on_change`` attribute an expression that evaluates to a
 :zeek:see:`Cluster::PublishOnChangeAttr` record to configure the publish behavior for
@@ -716,92 +707,6 @@ named ``ip``, ``srcp``, ``proto``, and ``msg``:
         srcp: port &type_column = "proto";
         msg: string;
     };
-
-.. zeek:attr:: &backend
-
-&backend
---------
-
-.. deprecated:: 8.1 This attribute is Broker specific, use :zeek:attr:`&publish_on_change` or the :ref:`Storage Framework <framework-storage>` instead.
-
-Used for persisting tables/sets and/or synchronizing them over a cluster.
-
-This attribute binds a table to a Broker store. Changes to the table
-are sent to the Broker store, and changes to the Broker store are applied
-back to the table.
-
-Since Broker stores are synchronized over a cluster, this sends
-table changes to all other nodes in the cluster. When using a persistent Broker
-store backend, the content of the tables/sets will be restored on startup.
-
-This attribute expects the type of backend you want to use for the table. For
-example, to bind a table to a memory-backed Broker store, use:
-
-.. code-block:: zeek
-
-    global t: table[string] of count &backend=Broker::MEMORY;
-
-.. zeek:attr:: &broker_store
-
-&broker_store
--------------
-
-.. deprecated:: 8.1 This attribute is Broker specific, use :zeek:attr:`&publish_on_change` or the :ref:`Storage Framework <framework-storage>` instead.
-
-This attribute is similar to :zeek:attr:`&backend` in allowing a Zeek table to
-bind to a Broker store. It differs from :zeek:attr:`&backend` as this attribute
-allows you to specify the Broker store you want to bind, without creating it.
-
-Use this if you want to bind a table to a Broker store with special options.
-
-Example:
-
-.. code-block:: zeek
-
-     global teststore: opaque of Broker::Store;
-
-     global t: table[string] of count &broker_store="teststore";
-
-     event zeek_init()
-         {
-         teststore = Broker::create_master("teststore");
-         }
-
-.. zeek:attr:: &broker_allow_complex_type
-
-&broker_allow_complex_type
---------------------------
-
-By default only tables containing atomic types can be bound to Broker stores.
-Specifying this attribute before :zeek:attr:`&backend` or :zeek:attr:`&broker_store`
-disables this safety feature and allows complex types to be stored in a Broker backed
-table.
-
-.. warning::
-
-    Storing complex types in Broker backed store comes with severe restrictions.
-    When you modify a stored complex type after inserting it into a table, that change in a stored complex type
-    will *not propagate* to Broker. Hence to send out the new value, so that it will be persisted/synchronized
-    over the cluster, you will have to re-insert the complex type into the local zeek table.
-
-    For example:
-
-    .. code-block:: zeek
-
-            type testrec: record {
-                a: count;
-            };
-
-            global t: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
-
-            event zeek_init()
-                {
-                local rec = testrec($a=5);
-                t["test"] = rec;
-                rec$a = 6; # This will not propagate to Broker! You have to re-insert.
-                # Propagate new value to Broker:
-                t["test"] = rec;
-                }
 
 .. zeek:attr:: &ordered
 

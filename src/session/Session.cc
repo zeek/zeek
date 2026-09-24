@@ -2,6 +2,7 @@
 
 #include "zeek/session/Session.h"
 
+#include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"
@@ -9,6 +10,7 @@
 #include "zeek/Stats.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
+#include "zeek/const.bif.netvar_h"
 #include "zeek/session/Manager.h"
 
 namespace zeek::session {
@@ -236,6 +238,32 @@ void Session::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t th
         return;
 
     EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
+}
+
+void Session::AddHistory(char code) {
+    if ( BifConst::max_connection_history_size > 0 && history.size() >= BifConst::max_connection_history_size )
+        return;
+
+    history += code;
+
+    if ( history.size() == BifConst::max_connection_history_size ) {
+        // The maximum history size was reached: Has there been an X yet
+        // in the history? If not, update the hist_seen bits and replace
+        // the last code in the history with an X.
+        if ( (hist_seen & zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED) == 0 ) {
+            hist_seen |= zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED;
+            history[history.size() - 1] = 'X';
+        }
+
+        // There's just one Session subclass today (Connection) so cast to it
+        // and use the specialized Reporter::Weird() helper that populates the
+        // entry with connection information.
+        if ( auto* conn = dynamic_cast<Connection*>(this); conn ) {
+            reporter->Weird(conn, "max_connection_history_size_reached", util::fmt("%zu", history.size()));
+        }
+        else
+            reporter->Weird("max_connection_history_size_reached", util::fmt("%zu", history.size()));
+    }
 }
 
 } // namespace zeek::session

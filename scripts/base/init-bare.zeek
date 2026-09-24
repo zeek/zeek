@@ -944,6 +944,10 @@ type connection: record {
 	inner_vlan: int &optional;
 };
 
+## The maximum size of a connection's history field. Setting this value to 0
+## disables the limit.
+const max_connection_history_size = 1000 &redef;
+
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
 option default_file_timeout_interval: interval = 2 mins;

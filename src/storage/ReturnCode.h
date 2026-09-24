@@ -36,6 +36,8 @@ public:
     ZEEK_IMPORT_DATA static EnumValPtr IN_PROGRESS;
     ZEEK_IMPORT_DATA static EnumValPtr SERIALIZATION_FAILED;
     ZEEK_IMPORT_DATA static EnumValPtr UNSERIALIZATION_FAILED;
+    ZEEK_IMPORT_DATA static EnumValPtr NOT_SUPPORTED;
+    ZEEK_IMPORT_DATA static EnumValPtr RESULT_TOO_LARGE;
 };
 
 } // namespace storage

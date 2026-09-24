@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/SessionTunnelAnalyzer.h"
 #include "zeek/session/Key.h"
 
 #include "packet_analysis/protocol/gtpv1/gtpv1_pac.h"
@@ -13,7 +13,7 @@ class GTPv1_Conn;
 
 namespace zeek::packet_analysis::gtpv1 {
 
-class GTPv1_Analyzer final : public packet_analysis::Analyzer {
+class GTPv1_Analyzer final : public packet_analysis::SessionTunnelAnalyzer {
 public:
     explicit GTPv1_Analyzer();
 

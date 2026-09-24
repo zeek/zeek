@@ -268,26 +268,6 @@ public:
      */
     int proto = -1;
 
-    /**
-     * If the packet contains a tunnel, this field will be filled in with
-     * the type of tunnel. It is used to pass the tunnel type between the
-     * packet analyzers during analysis.
-     */
-    BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::NONE;
-
-    /**
-     * If the packet contains a GRE tunnel, this field will contain the
-     * GRE version. It is used to pass this information from the GRE
-     * analyzer to the IPTunnel analyzer.
-     */
-    int gre_version = -1;
-
-    /**
-     * If the packet contains a GRE tunnel, this field will contain the
-     * GRE link type. It is used to pass this information from the GRE
-     * analyzer to the IPTunnel analyzer.
-     */
-    int gre_link_type = DLT_RAW;
 
     /**
      * The session related to this packet, if one exists.

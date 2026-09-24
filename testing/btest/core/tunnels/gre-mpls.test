@@ -1,0 +1,8 @@
+# @TEST-DOC: Test GRE tunnel with MPLS encapsulation (issue #5829)
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/gre-mpls.pcap %INPUT
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff tunnel.log
+# @TEST-EXEC: test '!' -f weird.log
+
+@load base/frameworks/tunnels
+@load base/protocols/conn

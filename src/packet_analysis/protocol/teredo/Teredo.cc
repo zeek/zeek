@@ -10,7 +10,6 @@
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/ZeekString.h"
 #include "zeek/packet_analysis/protocol/ip/IP.h"
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 #include "zeek/packet_analysis/protocol/teredo/events.bif.h"
 
 namespace zeek::packet_analysis::teredo {
@@ -121,7 +120,7 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner)
 
 } // namespace detail
 
-TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO") {
+TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::SessionTunnelAnalyzer("TEREDO") {
     // The pattern matching below is based on this old DPD signature
     // signature dpd_teredo {
     // 	ip-proto = udp
@@ -138,22 +137,11 @@ TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO") {
 }
 
 bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
-    // Teredo always comes from a UDP connection, which means that session should always
-    // be valid and always be a connection. Store this off for the span of the
-    // processing so that it can be used for other things. Return a weird if we didn't
-    // have a session stored.
-    if ( ! packet->session ) {
-        Analyzer::Weird("teredo_missing_connection");
-        return false;
-    }
-    else if ( AnalyzerViolated(packet->session) )
+    if ( ! ValidateSession(packet) )
         return false;
 
-    if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth ) {
-        packet->session->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
-        Analyzer::Weird("exceeded_tunnel_max_depth", packet);
+    if ( ! CheckTunnelDepth(packet) )
         return false;
-    }
 
     auto* conn = static_cast<Connection*>(packet->session);
 
@@ -238,12 +226,9 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         packet->session->EnqueueEvent(teredo_bubble, nullptr, packet->session->GetVal(), teredo_hdr);
     }
 
-    int encap_index = 0;
-    auto inner_packet =
-        packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, te.InnerIP(), DLT_RAW,
-                                                      BifEnum::Tunnel::TEREDO, GetAnalyzerTag());
+    auto inner_pkt = BuildInnerPacket(packet, len, te.InnerIP(), DLT_RAW, BifEnum::Tunnel::TEREDO);
 
-    return ForwardPacket(len, te.InnerIP(), inner_packet.get());
+    return ForwardPacket(len, te.InnerIP(), inner_pkt.packet.get());
 }
 
 bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet) {

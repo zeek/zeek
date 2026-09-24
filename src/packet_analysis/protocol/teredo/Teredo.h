@@ -7,12 +7,12 @@
 #include "zeek/Conn.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/SessionTunnelAnalyzer.h"
 #include "zeek/session/Key.h"
 
 namespace zeek::packet_analysis::teredo {
 
-class TeredoAnalyzer final : public packet_analysis::Analyzer {
+class TeredoAnalyzer final : public packet_analysis::SessionTunnelAnalyzer {
 public:
     TeredoAnalyzer();
 

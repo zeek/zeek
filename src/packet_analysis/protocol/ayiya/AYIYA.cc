@@ -2,28 +2,16 @@
 
 #include "zeek/packet_analysis/protocol/ayiya/AYIYA.h"
 
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
-
 using namespace zeek::packet_analysis::AYIYA;
 
-AYIYAAnalyzer::AYIYAAnalyzer() : zeek::packet_analysis::Analyzer("AYIYA") {}
+AYIYAAnalyzer::AYIYAAnalyzer() : zeek::packet_analysis::SessionTunnelAnalyzer("AYIYA") {}
 
 bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
-    // AYIYA always comes from a TCP or UDP connection, which means that session
-    // should always be valid and always be a connection. Return a weird if we
-    // didn't have a session stored.
-    if ( ! packet->session ) {
-        Analyzer::Weird("ayiya_missing_connection");
-        return false;
-    }
-    else if ( AnalyzerViolated(packet->session) )
+    if ( ! ValidateSession(packet) )
         return false;
 
-    if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth ) {
-        packet->session->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
-        Weird("exceeded_tunnel_max_depth", packet);
+    if ( ! CheckTunnelDepth(packet) )
         return false;
-    }
 
     // This will be expanded based on the header data, but it has to be at least
     // this long.
@@ -65,11 +53,9 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
-    int encap_index = 0;
-    auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_RAW,
-                                                                      BifEnum::Tunnel::AYIYA, GetAnalyzerTag());
+    auto result = BuildInnerPacket(packet, len, data, DLT_RAW, BifEnum::Tunnel::AYIYA);
 
-    return ForwardPacket(len, data, inner_packet.get(), next_header);
+    return ForwardPacket(len, data, result.packet.get(), next_header);
 }
 
 bool AYIYAAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet) {

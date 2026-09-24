@@ -459,11 +459,12 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
 
         case ATTR_BACKEND:
         case ATTR_BROKER_STORE:
+        case ATTR_BROKER_STORE_ALLOW_COMPLEX:
             return AttrError(
                 util::fmt("Support for the Broker-specific %s attribute has been removed in favor of using the newer "
                           "&publish_on_change attribute or leveraging the Storage framework when data persistence is a "
                           "requirement.",
-                          a->Tag() == ATTR_BACKEND ? "&backend" : "&broker_store"));
+                          attr_name(a->Tag())));
 
         case ATTR_TRACKED:
             // FIXME: Check here for global ID?

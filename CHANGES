@@ -1,3 +1,9 @@
+9.1.0-dev.144 | 2026-09-24 18:59:36 +0200
+
+  * Attr: Improve error message for removed &broker_allow_complex attribute (Arne Welzel, Corelight)
+
+    ...and a minimal test for the removed Broker store attributes.
+
 9.1.0-dev.142 | 2026-09-24 17:26:23 +0200
 
   * pre-commit: Add check-added-large-files (Arne Welzel, Corelight)

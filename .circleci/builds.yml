@@ -300,6 +300,10 @@ jobs:
         description: Flag for whether to run the fuzzer tests after the regular tests
         type: boolean
         default: false
+      enable_clang_tidy_diff:
+        description: Flag for whether to run clang-tidy-diff after the build on the changes in a branch.
+        type: boolean
+        default: false
       enable_benchmarks:
         description: Flag for whether the benchmarks should run after building. If this is true, the store_install_tarball parameter must be true as well.
         type: boolean
@@ -366,12 +370,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find
+          # a ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -436,7 +438,7 @@ jobs:
             CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 
@@ -474,8 +476,7 @@ jobs:
           name: Restore ccache directory
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -484,8 +485,7 @@ jobs:
           name: Restore vcpkg cache
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - vcpkg-v2-{{ .Branch }}-{{ .Revision }}
-            - vcpkg-v2-{{ .Branch }}-
+            - vcpkg-v2-{{ .Branch }}
             - vcpkg-v2-
       - run:
           name: Configure
@@ -493,7 +493,7 @@ jobs:
           shell: cmd.exe
       - save_cache:
           name: Saving vcpkg build cache
-          key: vcpkg-v2-{{ .Branch }}-{{ .Revision }}
+          key: vcpkg-v2-{{ .Branch }}
           paths:
             - auxil\vcpkg\installed
             - auxil\vcpkg\downloads
@@ -520,7 +520,7 @@ jobs:
           shell: bash
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - C:\ccache
 
@@ -560,12 +560,11 @@ jobs:
           name: Restore ccache directory
           # See above for reasoning for this cascade of cache keys.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
-          path: /tmp/.ccache
+          path: /tmp/ccache
       - run:
           name: Build
           command: ci/build.sh
@@ -585,7 +584,7 @@ jobs:
             CCACHE_MAXSIZE=${ZEEK_CI_CCACHE_PRUNE_SIZE} ccache -c
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /tmp/ccache
 
@@ -599,14 +598,11 @@ jobs:
         description: The number of CPUs to use for build and test. This should match what is available with the specified resource_class.
         type: integer
     environment:
-      ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
+      ZEEK_CONFIGURE_FLAGS: --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
       BUILDKIT_PROGRESS: plain
       IMAGE_TAG: zeek/zeek-multiarch:<< parameters.arch >>
       IMAGE_ARCH: << parameters.arch >>
       ZEEK_CI_CPUS: << parameters.cpu_count >>
-      # These duplicate the default parameter values from the other jobs
-      CCACHE_MAXSIZE: 1000M
-      CCACHE_MAXFILES: 20000
       # Fixes an issue with the ubuntu-2404 image not having the latest buildx and the
       # manifest getting deleted mid-build, which causes errors.
       BUILDX_NO_DEFAULT_ATTESTATIONS: 1
@@ -618,96 +614,33 @@ jobs:
       - clone_repo:
           include_external_tests: false
       - run:
-          name: Create builder image
+          name: Build and test image
           command: |
             set -euxo pipefail
 
-            build_builder() {
-              (cd docker && docker build \
-                               --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                               -t zeek-builder:latest \
-                               -f builder.Dockerfile .)
-            }
+            LAST_SHA=$(docker inspect -f "{{ index .Config.Labels \"org.opencontainers.image.revision\" }}" ${IMAGE_TAG} 2>/dev/null || true)
 
-            LAST_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest 2>/dev/null || true)
-            LAST_BUILDER_SHA=$(docker inspect -f "{{ index .Config.Labels "org.opencontainers.image.revision" }}" zeek-builder:latest 2>/dev/null || true)
+            if [ "${LAST_SHA}" = "${CIRCLE_SHA1}" ]; then
+              echo "Image already built for this commit, saving existing image."
+              mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+              docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+            else
+              ZEEK_VERSION=$(cat VERSION)
 
-            # DLC can restore BuildKit cache without the tagged image or blobs.
-            if [ -z "${LAST_BUILDER_IMAGE_ID}" ]; then
-              docker builder prune -af || true
+              docker build \
+                  --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
+                  --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
+                  --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
+                  --build-arg CREATED_DATE=$(date -Iseconds) \
+                  -t ${IMAGE_TAG} \
+                  -f docker/Dockerfile .
+
+              mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
+              docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
+
+              docker tag ${IMAGE_TAG} zeek:latest
+              make -C docker/btest
             fi
-
-            # Attempt to build the image once. If it fails, do it again without the cache.
-            if ! build_builder; then
-              echo "Builder build failed; clearing build cache and retrying once with --no-cache..."
-              docker builder prune -af || true
-              (cd docker && docker build --no-cache \
-                --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                -t zeek-builder:latest \
-                -f builder.Dockerfile .)
-            fi
-
-            NEW_BUILDER_IMAGE_ID=$(docker inspect -f "{{ .Id }}" zeek-builder:latest)
-
-            echo "Old Builder Image ID: ${LAST_BUILDER_IMAGE_ID}"
-            echo "New Builder Image ID: ${NEW_BUILDER_IMAGE_ID}"
-            echo "Old Commit SHA: ${LAST_BUILDER_SHA}"
-            echo "New Commit SHA: ${CIRCLE_SHA1}"
-
-            if [ -n "${LAST_BUILDER_IMAGE_ID}" ] &&
-               [ "${LAST_BUILDER_IMAGE_ID}" = "${NEW_BUILDER_IMAGE_ID}" ] &&
-               [ "${LAST_BUILDER_SHA}" = "${CIRCLE_SHA1}" ]; then
-              echo "Builder image was not rebuilt, no need to rebuild the rest."
-              circleci-agent step halt
-            fi
-      - restore_cache:
-          name: Restore ccache
-          keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
-      - run:
-          name: Build zeek in new image
-          command: |
-            docker run --name zeek-builder-container \
-                -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
-                -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
-                -e CCACHE_DIR=/tmp/ccache \
-                -e CCACHE_NOSTATS=1 \
-                -v ${CIRCLE_WORKING_DIRECTORY}:/src/zeek \
-                -v /tmp/ccache:/tmp/ccache \
-                -w /src/zeek zeek-builder:latest \
-                bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
-
-            # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
-            docker commit zeek-builder-container zeek-build
-      - run:
-          name: Build final image
-          command: |
-            ZEEK_VERSION=$(cat ${CIRCLE_WORKING_DIRECTORY}/VERSION)
-            CREATED_DATE=$(date -Iseconds)
-            echo "Building final image for ${ZEEK_VERSION} at ${CREATED_DATE}"
-
-            (cd docker && docker build \
-                                 --build-arg ZEEK_VERSION=${ZEEK_VERSION} \
-                                 --build-arg GIT_COMMIT=${CIRCLE_SHA1} \
-                                 --build-arg CREATED_DATE=${CREATED_DATE} \
-                                 -t ${IMAGE_TAG} \
-                                 -f final.Dockerfile .)
-
-            mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
-            docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
-      - run:
-          name: Run tests
-          command: |
-            docker tag ${IMAGE_TAG} zeek:latest
-            make -C docker/btest
-      - save_cache:
-          name: Save ccache
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/ccache
       - persist_to_workspace:
           name: Persist saved image to workspace
           root: /tmp/zeek_images
@@ -868,12 +801,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find a
+          # ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -890,7 +821,7 @@ jobs:
           when: on_fail
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 
@@ -942,12 +873,10 @@ jobs:
       - restore_cache:
           name: Restore ccache directory
           # The cascade of keys here allows future jobs to look down the chain for an existing
-          # matching cache. Revision, then branch, then arch, then job. This allows it to
-          # potentially find a ccache entry that it can base off it instead of starting fresh
-          # every time.
+          # matching cache. Branch, then arch, then job. This allows it to potentially find a
+          # ccache entry that it can base off it instead of starting fresh every time.
           keys:
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
-            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-
+            - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-
             - ccache-v1-{{ .Environment.CIRCLE_JOB }}-
       - setup_ccache:
@@ -974,7 +903,7 @@ jobs:
           when: on_fail
       - save_cache:
           name: Save ccache directory
-          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-{{ .Branch }}
           paths:
             - /root/.ccache
 
@@ -1208,6 +1137,7 @@ workflows:
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
           store_install_tarball: true
           enable_benchmarks: true
+          enable_clang_tidy_diff: true
           << : *FILTER_IF_SKIP_ALL
       - linux-build:
           name: ubuntu-24.04-clang-libcpp
@@ -1234,11 +1164,9 @@ workflows:
       - linux-build:
           name: ubuntu-24.04-spicy
           docker_image: zeek/zeek-ci:ubuntu-24.04
+          docker_image_version: << pipeline.parameters.ubuntu_24_04_image_version >>
           << : *CONFIGURE_SPICY_SSL
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          docker_image_version: << pipeline.parameters.ubuntu_24_04_image_version >>
-          extra_env: |
-            ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
@@ -1248,6 +1176,8 @@ workflows:
           docker_image: zeek/zeek-ci:ubuntu-24.04
           docker_image_version: << pipeline.parameters.ubuntu_24_04_image_version >>
           requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          extra_env: |
+            ZEEK_CI_PREBUILD_COMMAND="cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive"
           store_install_tarball: true
           install_spicy_analyzers: true
           enable_benchmarks: true
@@ -1330,17 +1260,18 @@ workflows:
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
             ZEEK_CI_BTEST_JOBS=3
           << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
-      - linux-build:
-          name: tsan-sanitizer
-          docker_image: zeek/zeek-ci:ubuntu-24.04
-          requires: [fetch-test-traces, build-image-ubuntu-24.04]
-          << : *CONFIGURE_TSAN
-          extra_env: |
-            CC=clang-19
-            CXX=clang++-19
-            ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
-            ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
-          << : *FILTER_IF_PR_NOT_FULL_CI
+      # - linux-build:
+      #     name: tsan-sanitizer
+      #     docker_image: zeek/zeek-ci:ubuntu-24.04
+      #     ci_image_date: "20260813"
+      #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
+      #     << : *CONFIGURE_TSAN
+      #     extra_env: |
+      #       CC=clang-19
+      #       CXX=clang++-19
+      #       ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
+      #       ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+      #     << : *FILTER_IF_PR_NOT_FULL_CI
 
       - windows-build:
           << : *FILTER_IF_PR_NOT_FULL_OR_WINDOWS

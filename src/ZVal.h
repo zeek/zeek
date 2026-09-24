@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/util-types.h"
 
 namespace zeek {
 

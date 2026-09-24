@@ -3,8 +3,9 @@
 #pragma once
 
 #include <sys/types.h>
-#include <cstdint>
-#include <fstream>
+#include <memory>
+#include <string>
+#include <tuple>
 #include <unordered_map>
 
 #include "zeek/ID.h"

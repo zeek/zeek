@@ -1,5 +1,9 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+%extern{
+#include <zeek/ZeekString.h>
+%}
+
 refine flow MySQL_Flow += {
 	function proc_mysql_initial_handshake_packet(msg: Initial_Handshake_Packet): bool
 		%{

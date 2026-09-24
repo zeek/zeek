@@ -2,7 +2,6 @@
 
 #include "zeek/analyzer/protocol/ftp/FTP.h"
 
-#include <cinttypes>
 #include <cstdlib>
 
 #include "zeek/Base64.h"

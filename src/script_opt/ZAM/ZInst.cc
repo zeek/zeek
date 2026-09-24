@@ -5,7 +5,6 @@
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
-#include "zeek/module_util.h"
 
 using std::string;
 

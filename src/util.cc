@@ -46,7 +46,6 @@
 #include <ranges>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "zeek/3rdparty/ConvertUTF.h"

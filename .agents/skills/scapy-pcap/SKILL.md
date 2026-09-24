@@ -50,8 +50,14 @@ rewriting an existing one.
   packets.append(pkt(True, client_seq, server_seq, "A"))
   ```
 
-  Verify the teardown with `tshark`: the last three packets should be
-  `[FIN, ACK]` / `[FIN, ACK]` / `[ACK]` with no `tcp.analysis.flags`.
+  If the client has unacknowledged server data when it closes (e.g. after
+  receiving a large burst that it has not yet ACKed), send a plain `"A"` first
+  to clear the backlog; the teardown then becomes 4 packets:
+  `"A"` / `"FA"` / `"FA"` / `"A"`.
+
+  Verify the teardown with `tshark`: the last three (or four) packets should be
+  `[FIN, ACK]` / `[FIN, ACK]` / `[ACK]` (optionally preceded by a plain `[ACK]`)
+  with no `tcp.analysis.flags`.
   The exception is when the incomplete flow *is* the thing under test — a
   half-duplex connection, pre-banner data, a mid-flow reset, a never-closed
   connection. Then build exactly the (possibly partial) flow the test needs and
@@ -82,6 +88,9 @@ rewriting an existing one.
   `__file__` and don't add a positional output argument:
   `wrpcap(str(Path(__file__).with_suffix("")), packets)`. Since the script is
   `<name>.pcap.py`, `with_suffix("")` strips the `.py` and yields `<name>.pcap`.
+  A bare string default (e.g. `default="<name>.pcap"`) silently writes to
+  whatever the working directory is at invocation time — not next to the script.
+  `Path(__file__)` is always correct regardless of CWD.
 - Keep traces small — `btest.rst` asks for a few kilobytes, with 50 KB or more
   being an exception. Include only the packets the behavior under test needs.
 - gzip is OPTIONAL — only worth it for the large, highly compressible traces
@@ -195,6 +204,14 @@ rewriting an existing one.
    the behavior under test without a side effect that undoes it (e.g. for an SMB2
    tree-id state-growth reproducer, ECHO grows the map but TREE_DISCONNECT has a
    handler that clears it).
+
+   **Exception — intentionally malformed traces:** when the trace is *testing
+   Zeek's handling of invalid input* (truncated headers, unknown opcodes,
+   out-of-range field values, etc.), tshark dissector errors are expected and
+   intentional. In that case, confirm that tshark flags *exactly* the packets
+   you intended to be malformed and none of the surrounding framing (handshake,
+   teardown, surrounding well-formed messages). Do not "fix" the payload to
+   satisfy tshark — the bad input is the point of the test.
 
 See the templates in this skill's `assets/` directory for a minimal starting
 point: `assets/template.pcap.py` for a TCP flow (handshake, direction-aware

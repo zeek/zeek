@@ -18,3 +18,13 @@ event smb_pipe_connect_heuristic%(c: connection%);
 ## c: The connection.
 ##
 event smb_discarded_dce_rpc_analyzers%(c: connection%);
+
+## Generated for :abbr:`SMB (Server Message Block)` when the size of the
+## internal ``tree_is_pipe_map`` exceeds :zeek:see:`SMB::max_tree_is_pipe_map_size`.
+## Occurrence of this event may indicate traffic loss, traffic load-balancing
+## issues or abnormal SMB protocol usage.
+##
+## c: The connection.
+##
+## size: The size of the map before discarding all entries.
+event smb_discarded_tree_is_pipe_map%(c: connection, size: count%);

@@ -246,6 +246,11 @@ event smb_pipe_connect_heuristic(c: connection) &priority=5
 	c$smb_state$current_tree$share_type = "PIPE";
 	}
 
+event smb_discarded_tree_is_pipe_map(c: connection, size: count)
+	{
+	Reporter::limit_reached_weird("SMB_discarded_tree_is_pipe_map", c, size, 0, "SMB");
+	}
+
 event file_state_remove(f: fa_file) &priority=-5
 	{
 	if ( f$source != "SMB" )

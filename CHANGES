@@ -1,3 +1,12 @@
+9.1.0-dev.150 | 2026-09-25 16:47:58 +0200
+
+  * Disable test `bifs.sleep` on Windows [skip ci] (Benjamin Bannier, Corelight)
+
+    This test is currently flaky on Windows. The reason seems to be that
+    Zeek currently does not use high-resolution timers on Windows so we only
+    get a clock resolution around 15ms,
+    https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps.
+
 9.1.0-dev.148 | 2026-09-25 09:56:40 +0200
 
   * Bump zeekctl (Arne Welzel, Corelight)

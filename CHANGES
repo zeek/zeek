@@ -1,3 +1,7 @@
+9.1.0-dev.148 | 2026-09-25 09:56:40 +0200
+
+  * Bump zeekctl (Arne Welzel, Corelight)
+
 9.1.0-dev.146 | 2026-09-24 11:54:45 -0700
 
   * Remove unused includes from various files (Tim Wojtulewicz, Corelight)

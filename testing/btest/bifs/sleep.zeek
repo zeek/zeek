@@ -1,5 +1,11 @@
 # Verifies sleep()'s reported latencies.
 #
+# We disable this test on Windows since Zeek currently does use high-resolution
+# timers on Windows so we get timing resolutions on the order of 15ms,
+# https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps.
+# In that time resolution the test cannot reliably check exact `sleep` delays,
+# so this test would become flaky.
+# @TEST-REQUIRES: ! is-windows
 # @TEST-EXEC: zeek -b %INPUT 2>out
 # @TEST-EXEC: btest-diff out
 

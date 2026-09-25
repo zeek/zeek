@@ -4226,6 +4226,12 @@ export {
 	## chain.  When the limit is reached, a `smb_andx_depth_exceeded`
 	## is raised. Setting this to zero will disable the functionality.
 	const SMB::max_andx_depth = 10 &redef;
+
+	## Maximum size of the internal per connection ``tree_is_pipe_map``
+	## before discarding entries to avoid unbounded state growth.
+	##
+	## .. zeek:see:: smb_discarded_tree_is_pipe_map
+	const max_tree_is_pipe_map_size = 1000 &redef;
 }
 
 module SMB1;

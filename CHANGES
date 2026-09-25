@@ -1,3 +1,19 @@
+8.0.10-17 | 2026-09-25 03:47:22 +0000
+
+  * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Tim Wojtulewicz, Corelight)
+
+    Adapted from d95f3843951fe7036b68acc27d0ce88994d049a8
+
+  * Add missing have-asan testing script (Tim Wojtulewicz, Corelight)
+
+  * Upgrade btest submodule to fix 'unstable' test output (Tim Wojtulewicz, Corelight)
+
+  * Update zeek-testing-private commit hash (Tim Wojtulewicz, Corelight)
+
+  * CI: Migrate Dockerfile build changes from master (Tim Wojtulewicz, Corelight)
+
+  * CI: Sync configuration with master branch (Tim Wojtulewicz, Corelight)
+
 8.0.10-11 | 2026-09-24 05:14:44 +0000
 
   * Rename HIST_UNKNOWN_PKT to HIST_ANALYZER_LIMIT_REACHED (Tim Wojtulewicz, Corelight)

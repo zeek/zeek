@@ -37,7 +37,8 @@ std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(std::initializer_list<Label
 }
 
 HistogramFamily::HistogramFamily(prometheus::Family<prometheus::Histogram>* family, std::span<const double> bounds,
-                                 std::span<const std::string_view> labels)
-    : MetricFamily(labels), family(family) {
+                                 std::span<const std::string_view> labels, std::string_view unit,
+                                 std::string_view helptext)
+    : MetricFamily(labels, family->GetName(), unit, helptext), family(family) {
     std::ranges::copy(bounds, std::back_inserter(boundaries));
 }

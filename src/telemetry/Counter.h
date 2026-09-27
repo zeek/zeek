@@ -84,8 +84,9 @@ class CounterFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "CounterMetricFamilyVal";
 
-    CounterFamily(prometheus::Family<prometheus::Counter>* family, std::span<const std::string_view> labels)
-        : MetricFamily(labels), family(family) {}
+    CounterFamily(prometheus::Family<prometheus::Counter>* family, std::span<const std::string_view> labels,
+                  std::string_view unit, std::string_view helptext)
+        : MetricFamily(labels, family->GetName(), unit, helptext), family(family) {}
 
     /**
      * Returns the metrics handle for given labels, creating a new instance

@@ -4,6 +4,8 @@
 # @TEST-PORT: REDIS_PORT
 
 # @TEST-EXEC: btest-bg-run redis-server run-redis-server ${REDIS_PORT%/tcp}
+# Wait a few seconds for the redis server to come up
+# @TEST-EXEC: sleep 3
 # @TEST-EXEC: zeek -r $TRACES/http/get.trace -b %INPUT > out
 # @TEST-EXEC: btest-bg-wait -k 0
 

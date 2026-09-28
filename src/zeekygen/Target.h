@@ -15,6 +15,7 @@ class Info;
 class PackageInfo;
 class ScriptInfo;
 class IdentifierInfo;
+class MetricInfo;
 
 /**
  * Helper class to create files in arbitrary file paths and automatically
@@ -348,6 +349,24 @@ private:
     void DoGenerate() const override;
 
     std::vector<IdentifierInfo*> id_deps;
+};
+
+/**
+ * Target to build metrics documentation.
+ */
+class MetricTarget : public Target {
+public:
+    /**
+     * Ctor.
+     * @param name Output file name.
+     * @param pattern Dependency pattern.
+     */
+    MetricTarget(const std::string& name, const std::string& pattern) : Target(name, pattern) {}
+
+private:
+    void DoGenerate() const override;
+
+    void DoFindDependencies(const std::vector<Info*>& infos) override {}
 };
 
 } // namespace zeek::zeekygen::detail

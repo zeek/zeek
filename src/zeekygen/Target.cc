@@ -5,6 +5,7 @@
 #include <fts.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cinttypes> // for PRId64
 #include <regex>
 
 #include "zeek/Reporter.h"
@@ -13,9 +14,11 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
+#include "zeek/zeekygen/MetricInfo.h"
 #include "zeek/zeekygen/PackageInfo.h"
 #include "zeek/zeekygen/ScriptInfo.h"
 #include "zeek/zeekygen/SpicyModuleInfo.h"
@@ -573,6 +576,32 @@ void IdentifierTarget::DoGenerate() const {
     TargetFile file(Name());
 
     for ( IdentifierInfo* info : id_deps )
+        fprintf(file.f, "%s\n\n", info->ReStructuredText().c_str());
+}
+
+void MetricTarget::DoGenerate() const {
+    TargetFile file(Name());
+
+    // Convert from MetricFamily to MetricInfo, just for consistency
+    // with other Info classes.
+    auto families = zeek::telemetry_mgr->GetFamilies();
+    std::vector<std::unique_ptr<MetricInfo>> metric_infos;
+    metric_infos.reserve(families.size());
+
+    for ( const auto& f : families ) {
+        std::string type;
+        switch ( f->MetricType() ) {
+            case BifEnum::Telemetry::MetricType::COUNTER: type = "counter"; break;
+            case BifEnum::Telemetry::MetricType::GAUGE: type = "gauge"; break;
+            case BifEnum::Telemetry::MetricType::HISTOGRAM: type = "histogram"; break;
+            default: reporter->InternalError("unknown metric type %" PRId64, f->MetricType());
+        }
+
+        metric_infos.push_back(
+            std::make_unique<MetricInfo>(f->Name(), type, f->LabelNames(), f->Unit(), f->HelpText()));
+    }
+
+    for ( const auto& info : metric_infos )
         fprintf(file.f, "%s\n\n", info->ReStructuredText().c_str());
 }
 

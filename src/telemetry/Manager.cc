@@ -604,6 +604,16 @@ HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_vie
     return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);
 }
 
+std::vector<std::shared_ptr<MetricFamily>> Manager::GetFamilies() {
+    std::vector<std::shared_ptr<MetricFamily>> result;
+    result.reserve(families.size());
+
+    for ( const auto& [_, family] : families )
+        result.push_back(family);
+
+    return result;
+}
+
 void Manager::ProcessFd(int fd, int flags) {
     std::unique_lock<std::mutex> lk(collector_cv_mtx);
 

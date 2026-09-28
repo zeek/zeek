@@ -226,9 +226,14 @@ is being leveraged more extensively to expose metrics about Zeek's operational b
 Generally we recommend consuming these metrics through the Prometheus endpoint
 exposed on ``http://manager-ip:9911/metrics`` by default.
 
-Currently, basic version information, network and process metrics, log records per
-log stream and log writers, data about event invocations as well as Broker
-subsystem metrics are exposed.
+Currently, basic version information (:zeek:metric:`zeek_version_info`),
+network and process metrics (:zeek:metric:`process_cpu_system_seconds_total`,
+:zeek:metric:`process_cpu_user_seconds_total`, :zeek:metric:`process_resident_memory_bytes`),
+log records per log stream and log writers (:zeek:metric:`zeek_log_stream_writes_total`,
+:zeek:metric:`zeek_log_writer_discarded_writes_total`, :zeek:metric:`zeek_log_writer_writes_total`),
+data about event invocations as well as cluster subsystem metrics
+(:zeek:metric:`zeek_cluster_core_incoming_events_total`, :zeek:metric:`zeek_cluster_core_outgoing_events_total`)
+are exposed.
 
 Below is an example of using ``curl`` to list some of the metrics. In a production
 setup, usually a `Prometheus Server`_ is configured to scrape above endpoint

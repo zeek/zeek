@@ -156,11 +156,11 @@ rewriting an existing one.
   whether you started from an existing reproducer:
   - Rewriting/adapting an existing generator: keep the provenance of the
     original and append the adapting model's identifier, e.g. "Generated with
-    OpenAI Codex, adapted with <model-id> to use Scapy and gzip compress by
-    default."
+    OpenAI Codex, adapted with <model-id> to use Scapy."
   - Writing a new generator from scratch: state what the trace exercises and
     name the model that wrote it, e.g. "Generates a <protocol> trace for
-    OpenAI Codex, adapted with <model-id> to use Scapy."
+    <behavior under test>. Written with <model-id> using Scapy." There is no
+    prior provenance to preserve — do not invent one.
 
 ## Format and lint the generator
 
@@ -197,8 +197,10 @@ rewriting an existing one.
    will happily read back a nonsense command code it wrote.
 3. Cross-check with `tshark` (a genuinely independent dissector) — treat this as
    required, not optional, for any trace with an application-layer payload. It
-   catches malformed payloads Scapy misses. Read a compressed trace over stdin:
+   catches malformed payloads Scapy misses. Read a plain trace directly, or a
+   compressed one over stdin:
    ```
+   tshark -r <name>.pcap
    zcat <name>.pcap.gz | tshark -r -
    ```
    Scan the summary column for `[Malformed Packet]` / `unknown` and check the

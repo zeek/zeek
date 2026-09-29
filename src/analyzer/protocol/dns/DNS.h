@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #pragma once
+#include <vector>
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
@@ -434,7 +435,6 @@ enum TCP_DNS_state : uint8_t {
 class Contents_DNS final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
     Contents_DNS(Connection* c, bool orig, detail::DNS_Interpreter* interp);
-    ~Contents_DNS() override;
 
     void Flush(); ///< process any partially-received data
 
@@ -446,10 +446,8 @@ protected:
 
     detail::DNS_Interpreter* interp;
 
-    u_char* msg_buf;
-    int buf_n;    ///< number of bytes in msg_buf
-    int buf_len;  ///< size of msg_buf
-    int msg_size; ///< expected size of message
+    std::vector<u_char> msg_buf;
+    size_t msg_size; ///< expected size of message
     detail::TCP_DNS_state state;
 };
 

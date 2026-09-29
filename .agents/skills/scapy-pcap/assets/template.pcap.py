@@ -3,8 +3,9 @@
 
 A sentence or two on the mechanism being reproduced.
 
-Generated with <original-tool>, adapted with <model-id> to use Scapy and gzip
-compress by default.
+Written with <model-id> using Scapy (disclose AI assistance per AI_POLICY.md).
+When adapting an existing reproducer, keep its provenance instead, e.g.
+"Generated with <original-tool>, adapted with <model-id> to use Scapy."
 """
 
 from pathlib import Path

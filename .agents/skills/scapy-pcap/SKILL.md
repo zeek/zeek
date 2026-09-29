@@ -23,6 +23,10 @@ rewriting an existing one.
   when compressed (see "Output" below).
 - `<name>` is dash-separated and names the thing under test, e.g.
   `non-numeric-content-length`, `mime-folded-header-state-memory-exhaustion`.
+- The `.py` is a build-time generator, not part of the test run: you run it once
+  and commit the trace it produces (`<name>.pcap` / `.pcap.gz` / `.pcapng`)
+  alongside it. btests read the committed trace — they never execute the `.py` —
+  so the generator exists to reproducibly regenerate that checked-in trace.
 
 ## Use Scapy's high-level API
 
@@ -109,10 +113,6 @@ rewriting an existing one.
   represent. Name the script `<name>.pcapng.py`, write with `wrpcapng(...)`, and
   the output is `<name>.pcapng`. `with_suffix("")` on `<name>.pcapng.py` still
   strips only `.py` and yields `<name>.pcapng`.
-- Streaming with `PcapWriter` / `PcapNgWriter` instead of collecting a list and
-  calling `wrpcap()` is also fine. Set a deterministic `.time` on each packet as
-  you write it (the determinism rules below still apply), and derive the path
-  from `__file__` the same way.
 
 ## Deterministic timestamps
 
@@ -151,10 +151,16 @@ rewriting an existing one.
 ## Attribution
 
 - Keep the `#!/usr/bin/env python3` shebang if the original had one.
-- In the module docstring, keep the provenance of the original reproducer and
-  append the adapting model's identifier, e.g.:
-  "Generated with OpenAI Codex, adapted with <model-id> to use Scapy and gzip
-  compress by default." Follow the repo's `AI_POLICY.md`.
+- Give the module a docstring that says what the trace exercises and records
+  the AI assistance per the repo's `AI_POLICY.md`. What it names depends on
+  whether you started from an existing reproducer:
+  - Rewriting/adapting an existing generator: keep the provenance of the
+    original and append the adapting model's identifier, e.g. "Generated with
+    OpenAI Codex, adapted with <model-id> to use Scapy and gzip compress by
+    default."
+  - Writing a new generator from scratch: state what the trace exercises and
+    name the model that wrote it, e.g. "Generates a <protocol> trace for
+    OpenAI Codex, adapted with <model-id> to use Scapy."
 
 ## Format and lint the generator
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <fcntl.h>
+#include <vector>
 
 #include "zeek/Val.h"
 #include "zeek/util.h"

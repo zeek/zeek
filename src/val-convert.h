@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "zeek/IPAddr.h"
 #include "zeek/Val.h"
 

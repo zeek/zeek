@@ -4,6 +4,14 @@
 
 // Zeek statements.
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
 #include "zeek/ID.h"

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstdlib>
 
 #include "zeek/util-types.h" // for zeek_int_t

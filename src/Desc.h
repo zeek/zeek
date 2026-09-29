@@ -3,8 +3,10 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <cstdint>
 #include <set>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 

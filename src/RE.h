@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "zeek/CCL.h"
 #include "zeek/EquivClass.h"

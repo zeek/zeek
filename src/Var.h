@@ -2,6 +2,11 @@
 
 #pragma once
 
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Type.h"

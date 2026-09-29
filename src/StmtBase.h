@@ -6,6 +6,8 @@
 // the bulk of Stmt.h to allow Expr.h to include it, necessary for
 // Expr.h to use StmtPtr.
 
+#include <cstdint>
+
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"

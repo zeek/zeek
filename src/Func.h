@@ -5,8 +5,12 @@
 #include "zeek/zeek-config.h"
 
 #include <forward_list>
+#include <functional>
 #include <memory>
+#include <optional>
+#include <set>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>

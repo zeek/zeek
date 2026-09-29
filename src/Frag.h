@@ -5,7 +5,10 @@
 #include "zeek/zeek-config.h"
 
 #include <sys/types.h> // for u_char
+#include <map>
+#include <memory>
 #include <tuple>
+#include <utility>
 
 #include "zeek/IPAddr.h"
 #include "zeek/Reassem.h"

@@ -4,8 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
+#include <memory>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "zeek/RunState.h"

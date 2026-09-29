@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 

@@ -5,9 +5,13 @@
 #include <sys/types.h> // for u_char
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"

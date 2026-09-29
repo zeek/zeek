@@ -5,7 +5,9 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "zeek/IPAddr.h"
 #include "zeek/Val.h"

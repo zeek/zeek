@@ -6,6 +6,15 @@
 
 #include "zeek/zeek-config.h"
 
+#include <array>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 

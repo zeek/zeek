@@ -9,7 +9,10 @@
 #include <broker/expected.hh>
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
+#include <memory>
 #include <optional>
+#include <string>
+#include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RandTest.h"

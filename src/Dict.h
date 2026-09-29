@@ -5,9 +5,13 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <iterator>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "zeek/Hash.h"

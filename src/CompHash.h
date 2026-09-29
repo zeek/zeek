@@ -3,6 +3,8 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "zeek/Func.h"
 #include "zeek/Type.h"

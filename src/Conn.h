@@ -3,6 +3,9 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
+#include <memory>
+#include <optional>
 #include <string>
 
 #include "zeek/ConnKey.h"

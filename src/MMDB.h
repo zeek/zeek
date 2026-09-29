@@ -3,6 +3,8 @@
 #pragma once
 
 #include <sys/stat.h>
+#include <string>
+#include <string_view>
 
 #include "zeek/Val.h"
 

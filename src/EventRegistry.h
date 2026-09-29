@@ -6,12 +6,14 @@
 
 #include "zeek/zeek-config.h"
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"

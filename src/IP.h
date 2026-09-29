@@ -16,6 +16,7 @@
 #include "net_util.h" // for struct ip6_hdr
 #endif
 
+#include <cstddef>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"

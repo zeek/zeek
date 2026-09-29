@@ -3,11 +3,13 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "zeek/CCL.h"

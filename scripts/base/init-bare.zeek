@@ -5399,6 +5399,11 @@ export {
 		## Bit-flags that describe the characteristics of the section.
 		characteristics  : set[count];
 	};
+
+	## Maximum number of COFF sections that will be processed (i.e. the maximum value
+	## of the NumberOfSections field). If this limit is reached a binpac exception
+	## will be reported. Setting this to zero will disable the limit.
+	const max_number_of_sections: count = 4000 &redef;
 }
 
 module SSL;

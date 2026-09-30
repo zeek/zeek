@@ -446,7 +446,6 @@ set(hhash_sources
     ${hhash_dir}/scalar_sip_tree_hash.cc
     ${hhash_dir}/arch_specific.cc
     ${hhash_dir}/instruction_sets.cc
-    ${hhash_dir}/nanobenchmark.cc
     ${hhash_dir}/os_specific.cc
     ${hhash_dir}/hh_portable.cc)
 

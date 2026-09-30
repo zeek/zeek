@@ -51,6 +51,8 @@ namespace detail {
 // Used for checking whether the connection being parsed comes from NetBIOS,
 // since it's similar to DNS but does some things differently.
 constexpr int NETBIOS_PORT = 137;
+constexpr int MDNS_PORT = 5353;
+constexpr int LLMNR_PORT = 5355;
 
 DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) : analyzer(arg_analyzer) {
     is_netbios =
@@ -2370,6 +2372,11 @@ void DNS_Analyzer::Done() {
 
 void DNS_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) {
     analyzer::tcp::TCP_ApplicationAnalyzer::DeliverPacket(len, data, orig, seq, ip, caplen);
+
+    const auto resp_port = ntohs(Conn()->RespPort());
+    if ( (resp_port == detail::MDNS_PORT || resp_port == detail::LLMNR_PORT) && ! Conn()->RespAddr().IsMulticast() )
+        return;
+
     interp->ParseMessage(data, len, orig ? 1 : 0);
 }
 

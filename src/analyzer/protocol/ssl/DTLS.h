@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/Reassem.h"
 #include "zeek/analyzer/Analyzer.h"
 
 namespace binpac {
@@ -55,6 +56,33 @@ public:
 protected:
     binpac::DTLS::SSL_Conn* interp;
     binpac::TLSHandshake::Handshake_Conn* handshake_interp;
+};
+
+/**
+ * A reassembler for DTLS messages.
+ */
+class DTLS_Reassembler : public Reassembler {
+public:
+    DTLS_Reassembler(DTLS_Analyzer* da)
+        : Reassembler(/*init_seq=*/0, /*reassem_type=*/REASSEM_DTLS), dtls_analyzer(da) {}
+
+    size_t NumBlocks() const { return block_list.NumBlocks(); }
+
+    size_t Overlaps() const { return overlaps; }
+
+    /**
+     * Move contents of blocks into newly allocated vector.
+     */
+    std::vector<u_char> TakeBuffer() &&;
+
+
+protected:
+    void BlockInserted(DataBlockMap::const_iterator it) override;
+    void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
+
+private:
+    DTLS_Analyzer* dtls_analyzer;
+    size_t overlaps = 0;
 };
 
 } // namespace zeek::analyzer::dtls

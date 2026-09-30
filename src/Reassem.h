@@ -19,6 +19,7 @@ enum ReassemblerType : uint8_t {
     REASSEM_TCP,
     REASSEM_FRAG,
     REASSEM_FILE,
+    REASSEM_DTLS,
 
     // Terminal value. Add new above.
     REASSEM_NUM,

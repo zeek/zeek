@@ -1,3 +1,13 @@
+9.0.0-24 | 2026-10-26 03:12:01 +0000
+
+  * CI: Force openssl path on macOS builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 56affdb7e123c454c0131d1248b6f9373b679021)
+
+  * CCI: Make docs-only check look at release branch and not master (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 9.0.1 one more time (Tim Wojtulewicz, Corelight)
+
 9.0.0-21 | 2026-10-22 10:29:00 -0700
 
   * CI: Fix macOS to use brew python version correctly (Tim Wojtulewicz, Corelight)

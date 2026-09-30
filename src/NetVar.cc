@@ -154,6 +154,8 @@ int dns_skip_all_auth;
 int dns_skip_all_addl;
 int dns_max_queries;
 int dns_max_compression_chain_depth;
+int dns_max_txt_character_strings;
+int dns_max_spf_character_strings;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -294,6 +296,8 @@ void init_net_var() {
     dns_skip_all_addl = id::find_val("dns_skip_all_addl")->AsBool();
     dns_max_queries = id::find_val("dns_max_queries")->AsCount();
     dns_max_compression_chain_depth = id::find_val("dns_max_compression_chain_depth")->AsCount();
+    dns_max_txt_character_strings = id::find_val("dns_max_txt_character_strings")->AsCount();
+    dns_max_spf_character_strings = id::find_val("dns_max_spf_character_strings")->AsCount();
 
     orig_addr_anonymization = 0;
     if ( const auto& id = id::find("orig_addr_anonymization") )

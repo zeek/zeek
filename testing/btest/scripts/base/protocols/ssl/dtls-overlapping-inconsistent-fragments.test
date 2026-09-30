@@ -1,0 +1,12 @@
+# @TEST-DOC: DTLS handshake fragments that overlap the same byte range with conflicting data are flagged as DTLS_overlapping_inconsistent_fragments; reassembly still completes from the first-seen bytes and the ClientHello is forwarded.
+
+# @TEST-REQUIRES: ! have-spicy-ssl  # DTLS not supported in Spicy SSL
+# @TEST-EXEC: zeek -C -r $TRACES/tls/dtls-overlapping-inconsistent-fragments.pcap %INPUT
+#
+# @TEST-EXEC: btest-diff-cut -m uid service history conn.log
+# @TEST-EXEC: btest-diff-cut -m ssl.log
+# @TEST-EXEC: btest-diff-cut -m weird.log
+
+@load base/protocols/conn
+@load base/protocols/ssl
+@load base/frameworks/notice/weird

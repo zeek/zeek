@@ -73,7 +73,7 @@ bool DTLS_Analyzer::GetFlipped() { return handshake_interp->flipped(); }
 void DTLS_Reassembler::BlockInserted(DataBlockMap::const_iterator it) {
     // BlockInserted: Currently does nothing: DTLS checks
     // completion via TotalSize().
-    DBG_LOG(DBG_ANALYZER, "DLTS Reassembler_block inserted");
+    DBG_LOG(DBG_ANALYZER, "DTLS Reassembler_block inserted");
 }
 
 void DTLS_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n) {

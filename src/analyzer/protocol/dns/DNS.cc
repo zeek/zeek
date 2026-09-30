@@ -40,6 +40,33 @@ zeek::StringValPtr extract_char_string(zeek::analyzer::Analyzer* analyzer, const
 
     return rval;
 }
+
+// Extract at most limit character strings from data, len, rdlen. Use analyzer->LimitReachedWeird()
+// with the provided weird string when more than limit strings would have been extracted.
+zeek::VectorValPtr extract_char_strings(zeek::analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen,
+                                        size_t limit, const char* weird) {
+    size_t total = 0;
+    auto char_strings = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+    zeek::StringValPtr char_string;
+
+    while ( (char_string = extract_char_string(analyzer, data, len, rdlen)) ) {
+        ++total;
+        // If more than limit strings have been observed char_strings, discard
+        // any remaining ones to keep memory bounded.
+        if ( limit > 0 && total > limit ) {
+            char_string.reset();
+            continue;
+        }
+
+        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    }
+
+    if ( limit > 0 && total > limit )
+        analyzer->LimitReachedWeird(weird, total, limit);
+
+    return char_strings;
+}
+
 } // namespace
 
 namespace zeek::analyzer::dns {
@@ -1518,11 +1545,8 @@ bool DNS_Interpreter::ParseRR_TXT(detail::DNS_MsgInfo* msg, const u_char*& data,
         return true;
     }
 
-    auto char_strings = make_intrusive<VectorVal>(id::string_vec);
-    StringValPtr char_string;
-
-    while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    auto char_strings = extract_char_strings(analyzer, data, len, rdlength, zeek::detail::dns_max_txt_character_strings,
+                                             "DNS_TXT_too_many_character_strings");
 
     if ( dns_TXT_reply )
         analyzer->EnqueueConnEvent(dns_TXT_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
@@ -1539,11 +1563,8 @@ bool DNS_Interpreter::ParseRR_SPF(detail::DNS_MsgInfo* msg, const u_char*& data,
         return true;
     }
 
-    auto char_strings = make_intrusive<VectorVal>(id::string_vec);
-    StringValPtr char_string;
-
-    while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    auto char_strings = extract_char_strings(analyzer, data, len, rdlength, zeek::detail::dns_max_spf_character_strings,
+                                             "DNS_SPF_too_many_character_strings");
 
     if ( dns_SPF_reply )
         analyzer->EnqueueConnEvent(dns_SPF_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),

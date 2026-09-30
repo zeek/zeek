@@ -61,6 +61,8 @@ extern int dns_skip_all_auth;
 extern int dns_skip_all_addl;
 extern int dns_max_queries;
 extern int dns_max_compression_chain_depth;
+extern int dns_max_txt_character_strings;
+extern int dns_max_spf_character_strings;
 
 extern double table_expire_interval;
 extern double table_expire_delay;

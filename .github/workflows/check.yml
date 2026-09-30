@@ -532,7 +532,7 @@ jobs:
 
     env:
       ZEEK_CI_RUNNER_OS: macos
-      ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
+      ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 --with-openssl=/opt/homebrew/opt/openssl@3
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2

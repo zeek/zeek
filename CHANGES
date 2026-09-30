@@ -1,3 +1,7 @@
+9.1.0-dev.152 | 2026-09-30 16:49:02 -0700
+
+  * CI: Force openssl path on macOS builds (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.150 | 2026-09-25 16:47:58 +0200
 
   * Disable test `bifs.sleep` on Windows [skip ci] (Benjamin Bannier, Corelight)

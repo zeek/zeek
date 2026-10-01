@@ -9,7 +9,7 @@ global done = F;
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)
 	{
-	if ( done )
+	if (done)
 		return;
 
 	done = T;

@@ -65,6 +65,8 @@ ZEEK_EXTERN_DATA int dns_max_queries;
 ZEEK_EXTERN_DATA int dns_max_compression_chain_depth;
 ZEEK_EXTERN_DATA int dns_max_txt_character_strings;
 ZEEK_EXTERN_DATA int dns_max_spf_character_strings;
+ZEEK_EXTERN_DATA int dns_max_nsec_type_bitmaps;
+ZEEK_EXTERN_DATA int dns_max_nsec3_type_bitmaps;
 
 ZEEK_EXTERN_DATA double table_expire_interval;
 ZEEK_EXTERN_DATA double table_expire_delay;

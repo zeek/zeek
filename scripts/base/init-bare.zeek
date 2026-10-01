@@ -3375,6 +3375,20 @@ global dns_max_txt_character_strings = 257 &redef;
 ## weird raised. Setting this value to 0 disables the limit.
 global dns_max_spf_character_strings = 257 &redef;
 
+## The maximum number of type bitmaps extracted from a single NSEC
+## resource record and exposed via the :zeek:see:`dns_NSEC` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec_type_bitmaps = 256 &redef;
+
+## The maximum number of type bitmaps extracted from a single NSEC3
+## resource record and exposed via the :zeek:see:`dns_NSEC3` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC3_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec3_type_bitmaps = 256 &redef;
+
 ## HTTP session statistics.
 ##
 ## .. zeek:see:: http_stats

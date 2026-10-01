@@ -21,39 +21,39 @@ type DNP3_Request = record {
 	app_header: DNP3_Application_Request_Header;
 	data: case ( app_header.function_code ) of {
 		CONFIRM -> none_confirm: empty;
-		READ -> read_requests: Request_Objects(app_header.function_code)[];
-		WRITE -> write_requests: Request_Objects(app_header.function_code)[];
-		SELECT -> select_requests: Request_Objects(app_header.function_code)[];
-		OPERATE -> operate_requests: Request_Objects(app_header.function_code)[];
-		DIRECT_OPERATE -> direct_operate_requests: Request_Objects(app_header.function_code)[];
-		DIRECT_OPERATE_NR -> direct_operate_nr_requests: Request_Objects(app_header.function_code)[];
-		IMMED_FREEZE -> immed_freeze_requests: Request_Objects(app_header.function_code)[];
-		IMMED_FREEZE_NR -> immed_freeze_nr_requests: Request_Objects(app_header.function_code)[];
-		FREEZE_CLEAR -> freeze_clear_requests: Request_Objects(app_header.function_code)[];
-		FREEZE_CLEAR_NR -> freeze_clear_nr_requests: Request_Objects(app_header.function_code)[];
-		FREEZE_AT_TIME -> freeze_time_requests: Request_Objects(app_header.function_code)[];
-		FREEZE_AT_TIME_NR -> freeze_time_nr_requests: Request_Objects(app_header.function_code)[];
+		READ -> read_requests: Request_Objects(app_header.function_code)[] &transient;
+		WRITE -> write_requests: Request_Objects(app_header.function_code)[] &transient;
+		SELECT -> select_requests: Request_Objects(app_header.function_code)[] &transient;
+		OPERATE -> operate_requests: Request_Objects(app_header.function_code)[] &transient;
+		DIRECT_OPERATE -> direct_operate_requests: Request_Objects(app_header.function_code)[] &transient;
+		DIRECT_OPERATE_NR -> direct_operate_nr_requests: Request_Objects(app_header.function_code)[] &transient;
+		IMMED_FREEZE -> immed_freeze_requests: Request_Objects(app_header.function_code)[] &transient;
+		IMMED_FREEZE_NR -> immed_freeze_nr_requests: Request_Objects(app_header.function_code)[] &transient;
+		FREEZE_CLEAR -> freeze_clear_requests: Request_Objects(app_header.function_code)[] &transient;
+		FREEZE_CLEAR_NR -> freeze_clear_nr_requests: Request_Objects(app_header.function_code)[] &transient;
+		FREEZE_AT_TIME -> freeze_time_requests: Request_Objects(app_header.function_code)[] &transient;
+		FREEZE_AT_TIME_NR -> freeze_time_nr_requests: Request_Objects(app_header.function_code)[] &transient;
 		COLD_RESTART -> cold_restart: empty;
 		WARM_RESTART -> warm_restart: empty;
 		INITIALIZE_DATA -> initialize_data: empty;  # obsolete
-		INITIALIZE_APPL -> initialize_appl: Request_Objects(app_header.function_code)[];
-		START_APPL -> start_appl: Request_Objects(app_header.function_code)[];
-		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[];
+		INITIALIZE_APPL -> initialize_appl: Request_Objects(app_header.function_code)[] &transient;
+		START_APPL -> start_appl: Request_Objects(app_header.function_code)[] &transient;
+		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[] &transient;
 		SAVE_CONFIG -> save_config: empty;  # deprecated
-		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[];
-		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[];
-		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[];
+		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[] &transient;
+		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[] &transient;
+		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[] &transient;
 		DELAY_MEASURE -> delay_measure: empty;
 		RECORD_CURRENT_TIME -> record_cur_time: empty;
-		OPEN_FILE -> open_file: Request_Objects(app_header.function_code)[];
-		CLOSE_FILE -> close_file: Request_Objects(app_header.function_code)[];
-		DELETE_FILE -> delete_file: Request_Objects(app_header.function_code)[];
-		ABORT_FILE -> abort_file: Request_Objects(app_header.function_code)[];
-		GET_FILE_INFO -> get_file_info: Request_Objects(app_header.function_code)[];
-		AUTHENTICATE_FILE  -> auth_file: Request_Objects(app_header.function_code)[];
-		ACTIVATE_CONFIG  -> active_config: Request_Objects(app_header.function_code)[];
-		AUTHENTICATE_REQ  -> auth_req: Request_Objects(app_header.function_code)[];
-		AUTHENTICATE_ERR  -> auth_err: Request_Objects(app_header.function_code)[];
+		OPEN_FILE -> open_file: Request_Objects(app_header.function_code)[] &transient;
+		CLOSE_FILE -> close_file: Request_Objects(app_header.function_code)[] &transient;
+		DELETE_FILE -> delete_file: Request_Objects(app_header.function_code)[] &transient;
+		ABORT_FILE -> abort_file: Request_Objects(app_header.function_code)[] &transient;
+		GET_FILE_INFO -> get_file_info: Request_Objects(app_header.function_code)[] &transient;
+		AUTHENTICATE_FILE  -> auth_file: Request_Objects(app_header.function_code)[] &transient;
+		ACTIVATE_CONFIG  -> active_config: Request_Objects(app_header.function_code)[] &transient;
+		AUTHENTICATE_REQ  -> auth_req: Request_Objects(app_header.function_code)[] &transient;
+		AUTHENTICATE_ERR  -> auth_err: Request_Objects(app_header.function_code)[] &transient;
 		default -> unknown: bytestring &restofdata;
 	};
 } &byteorder = bigendian
@@ -67,9 +67,9 @@ type DNP3_Response = record {
 	addin_header: Header_Block;
 	app_header: DNP3_Application_Response_Header;
 	data: case ( app_header.function_code ) of {
-		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[];
-		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects(app_header.function_code)[];
-		AUTHENTICATE_RESP -> auth_response: Response_Objects(app_header.function_code)[];
+		RESPONSE -> response_objects: Response_Objects(app_header.function_code)[] &transient;
+		UNSOLICITED_RESPONSE -> unsolicited_response_objects: Response_Objects(app_header.function_code)[] &transient;
+		AUTHENTICATE_RESP -> auth_response: Response_Objects(app_header.function_code)[] &transient;
 		default -> unknown: Debug_Byte;
 	};
 } &byteorder = bigendian
@@ -92,55 +92,55 @@ type Request_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
 		# binary output command g12
-		0x0c01 -> g12v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x0c02 -> g12v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x0c03 -> bocmd_PM: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
+		0x0c01 -> g12v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x0c02 -> g12v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x0c03 -> bocmd_PM: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ] &transient;
 
 		# time data interval data object g50
-		0x3201 -> g50v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		#0x3202 -> time_interval_objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3201 -> g50v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		#0x3202 -> time_interval_objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 						# &check( object_header.qualifier_field == 0x0f && object_header.number_of_item == 0x01);
-		0x3202 -> g50v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x3203 -> g50v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3202 -> g50v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x3203 -> g50v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
 		# Time and Date Common Time-of-Occurrence g51
-		0x3301 -> g51v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x3302 -> g51v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3301 -> g51v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x3302 -> g51v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
 		# time delay g52
-		0x3401 -> g52v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x3402 -> g52v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x3401 -> g52v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x3402 -> g52v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
 		# file control g70
-		0x4601 -> g70v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4602 -> g70v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4603 -> g70v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4604 -> g70v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4605 -> g70v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4606 -> g70v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x4607 -> g70v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x4601 -> g70v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4602 -> g70v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4603 -> g70v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4604 -> g70v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4605 -> g70v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4606 -> g70v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x4607 -> g70v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
 		# internal indication g80
-		0x5001 -> g80v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x5001 -> g80v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
 		# authentication challenge g120
-		0x7801 -> g120v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7802 -> g120v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7803 -> g120v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7804 -> g120v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7805 -> g120v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7806 -> g120v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7807 -> g120v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7808 -> g120v8_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x7809 -> g120v9_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780A -> g120v10_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780B -> g120v11_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780C -> g120v12_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780D -> g120v13_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780E -> g120v14_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		0x780F -> g120v15_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x7801 -> g120v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7802 -> g120v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7803 -> g120v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7804 -> g120v4_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7805 -> g120v5_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7806 -> g120v6_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7807 -> g120v7_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7808 -> g120v8_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x7809 -> g120v9_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780A -> g120v10_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780B -> g120v11_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780C -> g120v12_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780D -> g120v13_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780E -> g120v14_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
+		0x780F -> g120v15_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 
-		# default -> objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		# default -> objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 		default -> objects: empty;
 	};
 	# dump_data is always empty; I intend to use it for checking some conditions;
@@ -160,11 +160,11 @@ type Request_Objects(function_code: uint8) = record {
 type Response_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
-		0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
-		0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ];
-		0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )];
-		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )];
-		default -> objects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		0x0101 -> biwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ] &transient;
+		0x0301 -> diwoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) ) ] &transient;
+		0x0a01 -> bowoflag: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )] &transient;
+		0x0c03 -> bocmd_PM: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ ( object_header.number_of_item / 8 ) + 1*( object_header.number_of_item > ( (object_header.number_of_item / 8)*8 ) )] &transient;
+		default -> objects: Response_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[object_header.number_of_item] &transient;
 	};
 };
 

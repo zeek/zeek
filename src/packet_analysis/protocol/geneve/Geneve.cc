@@ -5,7 +5,6 @@
 #include <span>
 
 #include "zeek/packet_analysis/protocol/geneve/events.bif.h"
-#include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 using namespace zeek::packet_analysis::Geneve;
 
@@ -47,24 +46,14 @@ void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_
     }
 }
 
-GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::Analyzer("Geneve") {}
+GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::SessionTunnelAnalyzer("Geneve") {}
 
 bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
-    // Geneve always comes from a UDP connection, which means that session should always
-    // be valid and always be a connection. Return a weird if we didn't have a session
-    // stored.
-    if ( ! packet->session ) {
-        Analyzer::Weird("geneve_missing_connection");
-        return false;
-    }
-    else if ( AnalyzerViolated(packet->session) )
+    if ( ! ValidateSession(packet) )
         return false;
 
-    if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth ) {
-        packet->session->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
-        Weird("exceeded_tunnel_max_depth", packet);
+    if ( ! CheckTunnelDepth(packet) )
         return false;
-    }
 
     // This will be expanded based on the length of the options in the header,
     // but it will be at least this long.
@@ -112,14 +101,12 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    int encap_index = 0;
-    auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_RAW,
-                                                                      BifEnum::Tunnel::GENEVE, GetAnalyzerTag());
+    auto result = BuildInnerPacket(packet, len, data, DLT_RAW, BifEnum::Tunnel::GENEVE);
 
-    bool analysis_succeeded = ForwardPacket(len, data, inner_packet.get(), next_header);
+    bool analysis_succeeded = ForwardPacket(len, data, result.packet.get(), next_header);
 
     if ( analysis_succeeded && geneve_packet ) {
-        EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
+        EncapsulatingConn* ec = result.packet->encap->At(result.encap_index);
         if ( ec && ec->ip_hdr )
             packet->session->EnqueueEvent(geneve_packet, nullptr, packet->session->GetVal(), ec->ip_hdr->ToPktHdrVal(),
                                           val_mgr->Count(vni));

@@ -6,8 +6,11 @@ zeek_add_subdir_library(
     SOURCES
     Analyzer.cc
     Dispatcher.cc
+    IPLayerTunnelAnalyzer.cc
     Manager.cc
     Component.cc
+    SessionTunnelAnalyzer.cc
+    TunnelAnalyzer.cc
     BIFS
     consts.bif)
 

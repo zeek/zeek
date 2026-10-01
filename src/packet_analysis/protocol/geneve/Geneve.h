@@ -6,8 +6,7 @@
 #include <functional>
 #include <span>
 
-#include "zeek/iosource/Packet.h"
-#include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/SessionTunnelAnalyzer.h"
 
 namespace zeek::packet_analysis::Geneve {
 
@@ -31,7 +30,7 @@ void parse_options(std::span<const uint8_t> data, const Callback& cb);
 
 } // namespace detail
 
-class GeneveAnalyzer : public zeek::packet_analysis::Analyzer {
+class GeneveAnalyzer : public zeek::packet_analysis::SessionTunnelAnalyzer {
 public:
     GeneveAnalyzer();
 

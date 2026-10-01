@@ -26,8 +26,9 @@
 @load base/packet-protocols/novell_802_3
 @load base/packet-protocols/snap
 
+@load base/packet-protocols/erspan
 @load base/packet-protocols/gre
-@load base/packet-protocols/iptunnel
+@load base/packet-protocols/ipinip
 @load base/packet-protocols/ayiya
 @load base/packet-protocols/geneve
 @load base/packet-protocols/vxlan

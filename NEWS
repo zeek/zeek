@@ -10,6 +10,14 @@ We'd like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- With the removal of the ``&backend`` and related attributes, we determined
+  that the ``zeek::broker::Manager::AdvanceTime()`` function is also unnecessary.
+  It wouldn't function anymore, but it is in non-detail namespace and so this
+  is a breaking API change.
+
+- Similarly, the ``broker_backend`` field has been removed from the ``script_id``
+  record type. This is the type returned by the ``global_ids()`` BIF method.
+
 New Functionality
 -----------------
 

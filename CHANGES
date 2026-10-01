@@ -1,3 +1,12 @@
+9.1.0-dev.155 | 2026-10-01 12:40:09 -0400
+
+  * CMake: stop compiling unused HighwayHash nanobenchmark (Evan Typanski, Corelight)
+
+  * Add missing direct includes (Evan Typanski, Corelight)
+
+    This surfaced from using --osx-sysroot to 26 after 27 released. Not sure
+    why.
+
 9.1.0-dev.152 | 2026-09-30 16:49:02 -0700
 
   * CI: Force openssl path on macOS builds (Tim Wojtulewicz, Corelight)

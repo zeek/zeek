@@ -75,6 +75,10 @@ extern "C" {
 #include <sys/prctl.h>
 #endif
 
+#ifdef __APPLE__
+#include <pthread.h>
+#endif
+
 #ifdef __FreeBSD__
 #include <pthread_np.h>
 #endif

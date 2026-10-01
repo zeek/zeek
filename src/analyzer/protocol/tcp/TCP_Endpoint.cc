@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 
+#include <algorithm>
 #include <cerrno>
 
 #include "zeek/File.h"
@@ -177,17 +178,25 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen, const u
 
     if ( contents_file && ! contents_processor && seq + len > contents_start_seq ) {
         int64_t under_seq = contents_start_seq - seq;
+        size_t wlen = std::min(caplen, len);
+
+        if ( caplen < len )
+            TCP()->Weird("truncated_tcp_payload");
+
         if ( under_seq > 0 ) {
+            if ( static_cast<size_t>(under_seq) >= wlen )
+                return status;
+
             seq += under_seq;
             data += under_seq;
             len -= under_seq;
+            wlen -= under_seq;
         }
 
-        // DEBUG_MSG("%d: seek %d, data=%02x len=%d\n", IsOrig(), seq - contents_start_seq, *data,
-        // len);
+        // DEBUG_MSG("%d: seek %d, data=%02x len=%d wlen=%zu\n", IsOrig(), seq - contents_start_seq, *data, len, wlen);
         FILE* f = contents_file->Seek(seq - contents_start_seq);
 
-        if ( fwrite(data, 1, len, f) < unsigned(len) ) {
+        if ( fwrite(data, 1, wlen, f) < wlen ) {
             char buf[256];
             util::zeek_strerror_r(errno, buf, sizeof(buf));
             reporter->Error("TCP contents write failed: %s", buf);

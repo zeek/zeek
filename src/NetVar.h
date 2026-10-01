@@ -63,6 +63,8 @@ extern int dns_max_queries;
 extern int dns_max_compression_chain_depth;
 extern int dns_max_txt_character_strings;
 extern int dns_max_spf_character_strings;
+extern int dns_max_nsec_type_bitmaps;
+extern int dns_max_nsec3_type_bitmaps;
 
 extern double table_expire_interval;
 extern double table_expire_delay;

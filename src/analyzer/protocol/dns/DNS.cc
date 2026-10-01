@@ -1163,6 +1163,8 @@ bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg, const u_char*& data
     int typebitmaps_len = rdlength - (data - data_start);
 
     auto char_strings = make_intrusive<VectorVal>(id::string_vec);
+    const size_t bitmaps_limit = zeek::detail::dns_max_nsec_type_bitmaps;
+    size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
         uint32_t block_bmlen = ExtractShort(data, len);
@@ -1175,9 +1177,20 @@ bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg, const u_char*& data
         }
 
         String* bitmap = ExtractStream(data, len, bmlen);
-        char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+        ++bitmaps_total;
+
+        // Keep memory bounded: once the limit is reached, keep consuming the
+        // remaining type bitmaps to stay in sync, but discard them.
+        if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+            delete bitmap;
+        else
+            char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+
         typebitmaps_len = typebitmaps_len - (2 + bmlen);
     }
+
+    if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+        analyzer->LimitReachedWeird("DNS_NSEC_too_many_type_bitmaps", bitmaps_total, bitmaps_limit);
 
     if ( dns_NSEC )
         analyzer->EnqueueConnEvent(dns_NSEC, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
@@ -1227,6 +1240,8 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
     int typebitmaps_len = rdlength - (data - data_start);
 
     auto char_strings = make_intrusive<VectorVal>(id::string_vec);
+    const size_t bitmaps_limit = zeek::detail::dns_max_nsec3_type_bitmaps;
+    size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
         uint32_t block_bmlen = ExtractShort(data, len);
@@ -1239,9 +1254,20 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
         }
 
         String* bitmap = ExtractStream(data, len, bmlen);
-        char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+        ++bitmaps_total;
+
+        // Keep memory bounded: once the limit is reached, keep consuming the
+        // remaining type bitmaps to stay in sync, but discard them.
+        if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+            delete bitmap;
+        else
+            char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+
         typebitmaps_len = typebitmaps_len - (2 + bmlen);
     }
+
+    if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+        analyzer->LimitReachedWeird("DNS_NSEC3_too_many_type_bitmaps", bitmaps_total, bitmaps_limit);
 
     if ( dns_NSEC3 ) {
         detail::NSEC3_DATA nsec3;

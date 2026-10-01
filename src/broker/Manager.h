@@ -94,12 +94,6 @@ public:
     bool Active();
 
     /**
-     * Advances time.  Broker data store expiration is driven by this
-     * simulated time instead of real/wall time.
-     */
-    void AdvanceTime(double seconds_since_unix_epoch);
-
-    /**
      * Listen for remote connections.
      * @param port the TCP port to listen on.
      * @param addr an address string on which to accept connections, e.g.

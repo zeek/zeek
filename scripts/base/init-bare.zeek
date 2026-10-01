@@ -1392,7 +1392,6 @@ type script_id: record {
 	enum_constant: bool;	##< True if the identifier is an enum value.
 	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :zeek:attr:`&redef` attribute.
-	broker_backend: bool;	##< True if the identifier has a Broker backend defined using the :zeek:attr:`&backend` attribute.
 	value: any &optional;	##< The current value of the identifier.
 	attributes: script_id_attrs &optional; ##< Attributes attached to this identifier, if any.
 };

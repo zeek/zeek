@@ -1,3 +1,15 @@
+9.1.0-dev.161 | 2026-10-01 11:39:41 -0700
+
+  * Add removed method/field to NEWS as breaking changes (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs again (Tim Wojtulewicz, Corelight)
+
+  * Remove broker::Manager::AdvanceTime() (Tim Wojtulewicz, Corelight)
+
+  * Remove references to broker store attributes from docs (Tim Wojtulewicz, Corelight)
+
+  * Remove broker_backend field from script_id type (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.155 | 2026-10-01 12:40:09 -0400
 
   * CMake: stop compiling unused HighwayHash nanobenchmark (Evan Typanski, Corelight)

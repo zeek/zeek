@@ -223,6 +223,11 @@ public:
      */
     std::shared_ptr<prometheus::Registry> GetRegistry() const { return prometheus_registry; }
 
+    /**
+     * @return A vector of MetricFamilies registered with the manager.
+     */
+    std::vector<std::shared_ptr<MetricFamily>> GetFamilies();
+
     // IOSource interface
     double GetNextTimeout() override { return -1.0; }
     void Process() override {}

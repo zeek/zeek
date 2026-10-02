@@ -26,6 +26,7 @@ static TargetFactory create_target_factory() {
     rval.Register<ScriptIndexTarget>("script_index");
     rval.Register<ScriptTarget>("script");
     rval.Register<IdentifierTarget>("identifier");
+    rval.Register<MetricTarget>("metric");
     return rval;
 }
 

@@ -2,6 +2,30 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 9.0.1
+==========
+
+Thank you to Eneshan Karaca (@BoxStrikesTeam), Dop (@dopheide-esnet), Aashish Sharma
+(@initconf), Peter Cullen (@pbcullen), and Alexey Rubanik (@rubanik-alexei) for their
+contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Fixed file descriptors of the WebSocket server and WebSocket client connections
+  (Cluster::listen_websocket()) being inherited by child processes. E.g., when using
+  `system()` in Zeek scripts or the Input Framework's raw reader functionality.
+
+- The LDAP analyzer now correctly handles AbandonRequest and DelRequest messages.
+
+- Timers now report zero lag when no timers are expired. This helps resolve causes
+  where the `zeek_timers_lag_time_seconds` telemetry metric reports extremely
+  large values.
+
+- The systemd generator now uses the `Requires` and `PartOf` directives again to control
+  when various processes start up.
+
 Zeek 9.0.0
 ==========
 

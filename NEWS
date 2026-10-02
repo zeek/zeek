@@ -2,6 +2,38 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.11
+===========
+
+Thank you to Eneshan Karaca (@BoxStrikesTeam), Aashish Sharma (@initconf), Peter Cullen
+(@pbcullen), Alexey Rubanik (@rubanik-alexei), and Simeon Miteff (@simeonmiteff) for their
+contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Fixed file descriptors of the WebSocket server and WebSocket client connections
+  (Cluster::listen_websocket()) being inherited by child processes. E.g., when using
+  `system()` in Zeek scripts or the Input Framework's raw reader functionality.
+
+- The LDAP analyzer now correctly handles AbandonRequest, DelRequest, and ModifyRequest
+  messages.
+
+- Timers now report zero lag when no timers are expired. This helps resolve causes
+  where the `zeek_timers_lag_time_seconds` telemetry metric reports extremely
+  large values.
+
+- A crash was fixed when calling the `replace` directive on a Spicy TCP analyzer while
+  trying to replace it with a UDP analyzer.
+
+- A new `Reporter::limit_reached_weird` BIF was added for reporting when an
+  analyzer/connection has reached some preset limit. This results in an `X` being added to
+  the `history` field of the connection.
+
+- Certain characters in LDAP strings should always escaped now in log output, matching
+  what the LDAP RFC specifies.
+
 Zeek 8.0.10
 ===========
 

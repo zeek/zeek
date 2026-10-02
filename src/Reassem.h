@@ -40,6 +40,7 @@ public:
         seq = other.seq;
         upper = other.upper;
         auto size = other.Size();
+        capacity = size;
         block = new u_char[size];
         memcpy(block, other.block, size);
     }
@@ -47,6 +48,7 @@ public:
     DataBlock(DataBlock&& other) noexcept {
         seq = other.seq;
         upper = other.upper;
+        capacity = other.capacity;
         block = other.block;
         other.block = nullptr;
     }
@@ -58,6 +60,7 @@ public:
         seq = other.seq;
         upper = other.upper;
         auto size = other.Size();
+        capacity = size;
         delete[] block;
         block = new u_char[size];
         memcpy(block, other.block, size);
@@ -70,6 +73,7 @@ public:
 
         seq = other.seq;
         upper = other.upper;
+        capacity = other.capacity;
         delete[] block;
         block = other.block;
         other.block = nullptr;
@@ -83,8 +87,21 @@ public:
      */
     uint64_t Size() const { return upper - seq; }
 
+    /**
+     * Append @p size bytes of @p data immediately after this block's current
+     * contents, extending its upper sequence bound.  The caller must ensure
+     * the appended data is contiguous (i.e. starts at the current "upper").
+     * The underlying buffer grows geometrically so that repeatedly appending
+     * small segments stays amortized O(1) rather than recopying the whole
+     * block each time.
+     */
+    void AppendContiguous(const u_char* data, uint64_t size);
+
     uint64_t seq;
     uint64_t upper;
+    // Number of bytes allocated in "block", which may exceed Size() when the
+    // block has been grown by AppendContiguous().
+    uint64_t capacity = 0;
     u_char* block;
 };
 
@@ -213,6 +230,20 @@ private:
      */
     DataBlockMap::const_iterator Insert(uint64_t seq, uint64_t upper, const u_char* data,
                                         DataBlockMap::const_iterator hint);
+
+    /**
+     * Coalesce a contiguous append into an existing block instead of creating
+     * a new map node.  The data at [it->upper, upper) must be contiguous with
+     * the block and the block must sit entirely above the reassembly point, so
+     * that merging is transparent to delivery and gap accounting.  This avoids
+     * the per-segment map-node + DataBlock overhead that would otherwise let an
+     * attacker amplify heap usage far beyond the byte-based reassembly caps.
+     * @param it  iterator to the block to extend
+     * @param upper  highest sequence number of the appended data
+     * @param data  points to the appended data contents
+     * @return an iterator to the (extended) block
+     */
+    DataBlockMap::iterator CoalesceInto(DataBlockMap::iterator it, uint64_t upper, const u_char* data);
 
     /**
      * Removes a block from the list and updates other state which keeps

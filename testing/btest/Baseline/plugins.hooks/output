@@ -333,6 +333,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_DNP3.consts.bif.zeek, <...>/Zeek_DNP3.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek) -> -1
@@ -668,6 +669,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DNP3.consts.bif.zeek, <...>/Zeek_DNP3.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek) -> (-1, <no content>)
@@ -1321,6 +1323,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_DNP3.consts.bif.zeek, <...>/Zeek_DNP3.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek)
@@ -1656,6 +1659,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DCE_RPC.types.bif.zeek, <...>/Zeek_DCE_RPC.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DHCP.events.bif.zeek, <...>/Zeek_DHCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DHCP.types.bif.zeek, <...>/Zeek_DHCP.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DNP3.consts.bif.zeek, <...>/Zeek_DNP3.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DNP3.events.bif.zeek, <...>/Zeek_DNP3.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_DNS.events.bif.zeek, <...>/Zeek_DNS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FTP.events.bif.zeek, <...>/Zeek_FTP.events.bif.zeek)
@@ -2308,6 +2312,7 @@
 0.000000 | HookLoadFile  ./Zeek_DCE_RPC.types.bif.zeek <...>/Zeek_DCE_RPC.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_DHCP.events.bif.zeek <...>/Zeek_DHCP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_DHCP.types.bif.zeek <...>/Zeek_DHCP.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_DNP3.consts.bif.zeek <...>/Zeek_DNP3.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_DNP3.events.bif.zeek <...>/Zeek_DNP3.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_DNS.events.bif.zeek <...>/Zeek_DNS.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_FTP.events.bif.zeek <...>/Zeek_FTP.events.bif.zeek
@@ -2643,6 +2648,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_DCE_RPC.types.bif.zeek <...>/Zeek_DCE_RPC.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_DHCP.events.bif.zeek <...>/Zeek_DHCP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_DHCP.types.bif.zeek <...>/Zeek_DHCP.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_DNP3.consts.bif.zeek <...>/Zeek_DNP3.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_DNP3.events.bif.zeek <...>/Zeek_DNP3.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_DNS.events.bif.zeek <...>/Zeek_DNS.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_FTP.events.bif.zeek <...>/Zeek_FTP.events.bif.zeek

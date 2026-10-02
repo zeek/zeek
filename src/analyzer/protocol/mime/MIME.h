@@ -261,7 +261,7 @@ protected:
     bool compute_content_hash_sha256 = false;
     int buffer_start;
     int data_start;
-    int content_hash_length;
+    size_t content_hash_length;
     detail::HashDigestState* md5_hash = nullptr;
     detail::HashDigestState* sha256_hash = nullptr;
     std::vector<const String*> entity_content;

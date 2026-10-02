@@ -48,12 +48,14 @@
 // For a long DNP3 application layer fragment, we may find it transmitted
 // over IP network in the following format:
 //
-//     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3
-//     Pseudo Application Layer #1 Network Packet #2 : TCP Header | DNP3 Pseudo Link Layer | DNP3
-//     Pseudo Transport Layer | DNP3 Pseudo Application Layer #2
+// clang-format off
+//
+//     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #1
+//     Network Packet #2 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #2
 //     ....
-//     Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3
-//     Pseudo Application Layer #n
+//     Network Packet #n : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application Layer #n
+//
+// clang-format on
 //
 // === Challenges of Writing DNP3 Analyzer on Binpac ===
 //
@@ -102,10 +104,13 @@
 //                                                   ||
 //                                                   \/
 //                                            Binpac DNP3 Analyzer
+//
+// Also see: https://www.dnp.org/Portals/0/AboutUs/DNP3%20Primer%20Rev%20A.pdf
 
 #include "zeek/analyzer/protocol/dnp3/DNP3.h"
 
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/dnp3/consts.bif.h"
 
 constexpr unsigned int PSEUDO_LENGTH_INDEX = 2;        // index of len field of DNP3 Pseudo Link Layer
 constexpr unsigned int PSEUDO_CONTROL_FIELD_INDEX = 3; // index of ctrl field of DNP3 Pseudo Link Layer
@@ -286,8 +291,27 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp) {
             return false;
         }
 
+        auto* fb = flow->flow_buffer();
+
+        // We're reassembling a DNP3 Application Layer Fragment here. When
+        // the accumulated buffer becomes larger than the configured limit,
+        // raise a limit reached weird and stop analysis. It appears Application
+        // Layer Fragments should range between 2k and 4k in size. Zeek's
+        // default of 100k should be more than sufficient to cover normal uses
+        // and capping here prevents resource exhaustion in face of abnormal
+        // traffic.
+        //
+        // If you see this triggering on benign DNP3 traffic in the wild,
+        // please report to upstream!
+        if ( BifConst::DNP3::max_application_layer_fragment_size > 0 &&
+             static_cast<size_t>(fb->data_length()) > BifConst::DNP3::max_application_layer_fragment_size ) {
+            analyzer->LimitReachedWeird("dnp3_max_application_layer_fragment_size_exceeded",
+                                        BifConst::DNP3::max_application_layer_fragment_size);
+            return false;
+        }
+
         // Pass on to BinPAC.
-        flow->flow_buffer()->BufferData(data + transport, data + n);
+        fb->BufferData(data + transport, data + n);
         transport = 0;
 
         data += n + 2;

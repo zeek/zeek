@@ -658,6 +658,25 @@ export {
 	const factory = ConnKey::CONNKEY_FIVETUPLE &redef;
 }
 
+module DNP3;
+
+export {
+	## The maximum DNP3 application layer fragment size.
+	##
+	## DNP3 reassembles multiple link layer fragments to a single
+	## application layer fragment before passing it on to the analyzer.
+	## When a single DNP3 application layer fragment exceeds this value,
+	## Zeek will mark the connection's history with an X, raise a
+	## dnp3_max_application_layer_fragment_size_exceeded weird and
+	## switch the DNP3 analyzer into "skipping mode".
+	##
+	## Setting the value to 0 disables the limit.
+	##
+	## If you find the default to be too low for real-world DNP3 traffic,
+	## please report to the Zeek project, preferably including sample traffic.
+	const max_application_layer_fragment_size = 100 * 1024 &redef;
+}
+
 module FTP;
 
 export {

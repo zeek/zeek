@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <limits>
 #include <sstream> // Needed for unit testing
 
 #include "zeek/ID.h"
@@ -365,10 +366,16 @@ int Bstr_cmp(const String* s1, const String* s2) {
 
 String* concatenate(std::vector<data_chunk_t>& v) {
     int n = v.size();
-    int len = 0;
+    size_t len = 0;
     int i;
-    for ( i = 0; i < n; ++i )
+    for ( i = 0; i < n; ++i ) {
         len += v[i].length;
+        // Using int here because ZeekString's n member is int today.
+        if ( len > std::numeric_limits<int>::max() ) {
+            reporter->Error("string too large");
+            return new String("<string-too-large>");
+        }
+    }
 
     char* data = new char[len + 1];
 
@@ -385,10 +392,16 @@ String* concatenate(std::vector<data_chunk_t>& v) {
 
 String* concatenate(String::CVec& v) {
     int n = v.size();
-    int len = 0;
+    size_t len = 0;
     int i;
-    for ( i = 0; i < n; ++i )
+    for ( i = 0; i < n; ++i ) {
         len += v[i]->Len();
+        // Using int here because ZeekString's n member is int today.
+        if ( len > std::numeric_limits<int>::max() ) {
+            reporter->Error("string too large");
+            return new String("<string-too-large>");
+        }
+    }
 
     char* data = new char[len + 1];
 

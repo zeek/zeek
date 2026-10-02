@@ -264,8 +264,10 @@ protected:
     size_t content_hash_length;
     detail::HashDigestState* md5_hash = nullptr;
     detail::HashDigestState* sha256_hash = nullptr;
-    std::vector<const String*> entity_content;
-    std::vector<const String*> all_content;
+    std::vector<StringValPtr> entity_content;
+    size_t entity_content_size = 0;
+    std::vector<StringValPtr> all_content;
+    size_t all_content_size = 0;
 
     String* data_buffer;
 

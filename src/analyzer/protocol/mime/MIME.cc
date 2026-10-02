@@ -7,6 +7,7 @@
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/Val.h"
 #include "zeek/analyzer/protocol/mime/consts.bif.h"
 #include "zeek/analyzer/protocol/mime/events.bif.h"
 #include "zeek/digest.h"
@@ -1217,7 +1218,7 @@ MIME_Mail::~MIME_Mail() {
     if ( md5_hash )
         zeek::detail::hash_state_free(md5_hash);
 
-    delete_strings(all_content);
+    all_content.clear();
     delete data_buffer;
     delete top_level;
 }
@@ -1235,15 +1236,13 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */) {
 
 void MIME_Mail::EndEntity(MIME_Entity* /* entity */) {
     if ( mime_entity_data ) {
-        String* s = concatenate(entity_content);
+        auto s = StringVal::concatenate(entity_content);
 
-        analyzer->EnqueueConnEvent(mime_entity_data, analyzer->ConnVal(), val_mgr->Count(s->Len()),
-                                   make_intrusive<StringVal>(s));
+        analyzer->EnqueueConnEvent(mime_entity_data, analyzer->ConnVal(), val_mgr->Count(entity_content_size),
+                                   std::move(s));
 
-        if ( ! mime_all_data )
-            delete_strings(entity_content);
-        else
-            entity_content.clear();
+        entity_content_size = 0;
+        entity_content.clear();
     }
 
     if ( mime_end_entity )
@@ -1279,12 +1278,52 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
     }
 
     if ( mime_entity_data || mime_all_data ) {
-        String* s = new String((const u_char*)buf, len, false);
+        auto slen = static_cast<size_t>(len);
+        auto s = zeek::make_intrusive<StringVal>(len, buf);
 
-        if ( mime_entity_data )
-            entity_content.push_back(s);
-        if ( mime_all_data )
-            all_content.push_back(s);
+        if ( mime_entity_data ) {
+            const auto limit = BifConst::MIME::max_mime_entity_data_size;
+
+            if ( limit == 0 || entity_content_size < limit ) {
+                // How much room is remaining: Use slen if unlimited.
+                size_t remaining = limit > 0 ? limit - entity_content_size : slen;
+
+                auto tmps = s;
+                if ( remaining < slen ) {
+                    tmps = zeek::make_intrusive<StringVal>(remaining, buf);
+                    assert(entity_content_size + remaining == limit);
+                }
+
+                entity_content.push_back(std::move(tmps));
+            }
+
+            if ( limit > 0 && entity_content_size <= limit && (entity_content_size + slen) > limit )
+                analyzer->LimitReachedWeird("exceeded_max_mime_entity_data_size", limit);
+
+            entity_content_size += slen; // Keep track of the total size.
+        }
+
+        if ( mime_all_data ) {
+            const auto limit = BifConst::MIME::max_mime_all_data_size;
+
+            if ( limit == 0 || all_content_size < limit ) {
+                // How much room is remaining: Use slen if unlimited.
+                size_t remaining = limit > 0 ? limit - all_content_size : slen;
+
+                auto tmps = s;
+                if ( remaining < slen ) {
+                    tmps = zeek::make_intrusive<StringVal>(remaining, buf);
+                    assert(all_content_size + remaining == limit);
+                }
+
+                all_content.push_back(std::move(tmps));
+            }
+
+            if ( limit > 0 && all_content_size <= limit && (all_content_size + slen) > limit )
+                analyzer->LimitReachedWeird("exceeded_max_mime_all_data_size", limit);
+
+            all_content_size += slen; // Keep track of the total size.
+        }
     }
 
     if ( mime_segment_data ) {
@@ -1326,11 +1365,10 @@ bool MIME_Mail::RequestBuffer(int* plen, char** pbuf) {
 
 void MIME_Mail::SubmitAllData() {
     if ( mime_all_data ) {
-        String* s = concatenate(all_content);
-        delete_strings(all_content);
+        auto s = StringVal::concatenate(all_content);
+        all_content.clear();
 
-        analyzer->EnqueueConnEvent(mime_all_data, analyzer->ConnVal(), val_mgr->Count(s->Len()),
-                                   make_intrusive<StringVal>(s));
+        analyzer->EnqueueConnEvent(mime_all_data, analyzer->ConnVal(), val_mgr->Count(all_content_size), std::move(s));
     }
 }
 

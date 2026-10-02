@@ -1,3 +1,6 @@
 const MIME::max_depth: count;
 const MIME::max_header_bytes: count;
 const MIME::max_header_continuation_lines: count;
+
+const MIME::max_mime_entity_data_size: count;
+const MIME::max_mime_all_data_size: count;

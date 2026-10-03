@@ -128,7 +128,6 @@ def main():
         p.time = BASE_TIME + index * 0.001
 
     wrpcap(str(Path(__file__).with_suffix("")), packets)
-    print(f"Wrote {len(packets)} packets")
 
 
 if __name__ == "__main__":

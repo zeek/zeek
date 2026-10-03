@@ -27,10 +27,12 @@ small BER helpers because Scapy's LDAP layer offers no representation for the
 IMPLICIT-tagged, primitive DelRequest this trace exists to exercise.
 
 Generated with Claude Opus 5 (model claude-opus-5) via Claude Code; rewritten to
-use high-level Scapy primitives with Claude Opus 4.8 (model claude-opus-4-8).
+use high-level Scapy primitives with Claude Opus 4.8 (model claude-opus-4-8);
+the output path is now derived from __file__ so the generator always writes
+beside itself.
 """
 
-import argparse
+from pathlib import Path
 
 from scapy.all import IP, TCP, Ether, wrpcap
 
@@ -228,12 +230,6 @@ TARGET_DN = "uid=jdoe,ou=People,dc=example,dc=com"
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "-o", "--output", default="ldap-delete.pcap", help="output pcap path"
-    )
-    args = parser.parse_args()
-
     s = Session()
     s.handshake()
     s.client_data(bind_request(1, BIND_DN, BIND_PW))
@@ -245,7 +241,7 @@ def main():
     s.server_data(search_result_done(3))
     s.client_data(unbind_request(4))
     s.teardown()
-    s.write(args.output)
+    s.write(str(Path(__file__).with_suffix("")))
 
 
 if __name__ == "__main__":

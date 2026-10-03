@@ -193,7 +193,6 @@ def main() -> None:
 
     pkts = build_packets()
     wrpcap(str(args.output), pkts)
-    print(f"Wrote {len(pkts)} packets to {args.output}")
 
 
 if __name__ == "__main__":

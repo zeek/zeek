@@ -5,11 +5,21 @@ single varbind carries an OID with an overlong subidentifier (ten 0x80
 continuation bytes plus a terminator). Decoding that subidentifier shifts a
 uint64 by 70 bits, which Zeek now rejects with the
 asn_oid_subidentifier_too_long weird.
+
+The SNMP message is built by hand because Scapy's SNMP layer cannot encode the
+overlong subidentifier. MAC addresses and the timestamp are hardcoded so the
+trace is reproducible.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
 """
 
 from pathlib import Path
 
 from scapy.all import IP, UDP, Ether, Raw, wrpcap
+
+SRC_MAC = "02:00:00:00:00:02"
+DST_MAC = "02:00:00:00:00:01"
+BASE_TIME = 1_700_000_000.0
 
 
 def tlv(tag, content):
@@ -43,15 +53,15 @@ def main():
     )
 
     pkt = (
-        Ether()
+        Ether(src=SRC_MAC, dst=DST_MAC)
         / IP(src="10.0.0.2", dst="10.0.0.1")
         / UDP(sport=40000, dport=161)
         / Raw(load=message)
     )
 
-    out = Path(__file__).parent / "snmp-oid-subidentifier-too-long.pcap"
-    wrpcap(str(out), [pkt])
-    print(f"Wrote {out}")
+    pkt.time = BASE_TIME
+
+    wrpcap(str(Path(__file__).with_suffix("")), [pkt])
 
 
 if __name__ == "__main__":

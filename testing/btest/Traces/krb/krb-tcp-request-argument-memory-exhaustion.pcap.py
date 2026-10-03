@@ -14,10 +14,10 @@ Produces three TCP sessions in a single PCAP:
 3. A well-formed AS-REQ with a minimal but complete set of standard
    arguments (options, realm, till, nonce, etype) that parses cleanly.
 
-Generated with Claude Opus 4.6.
+Generated with Claude Opus 4.6, adapted with Claude Sonnet 5.5 to follow the
+scapy-pcap conventions (deterministic timestamps, no CLI knobs).
 """
 
-import argparse
 import struct
 from pathlib import Path
 
@@ -29,6 +29,7 @@ CLIENT_MAC = "02:00:00:00:00:01"
 SERVER_MAC = "02:00:00:00:00:02"
 SERVER_PORT = 88
 TCP_SEGMENT_SIZE = 1400
+BASE_TIME = 1_700_000_000.0
 
 
 def ber_length(size):
@@ -141,6 +142,11 @@ def build_tcp_session(client_port, request_payload):
         cseq += len(chunk)
 
     packets.append(
+        eth_s
+        / ip_s
+        / TCP(sport=SERVER_PORT, dport=client_port, flags="A", seq=sseq, ack=cseq)
+    )
+    packets.append(
         eth_c
         / ip_c
         / TCP(sport=client_port, dport=SERVER_PORT, flags="FA", seq=cseq, ack=sseq)
@@ -162,18 +168,16 @@ def build_tcp_session(client_port, request_payload):
 
 
 def main():
-    default_output = Path(__file__).with_suffix("")
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=default_output)
-    args = parser.parse_args()
-
     packets = []
     packets += build_tcp_session(40000, make_invalid_index_as_req())
     packets += build_tcp_session(40001, make_duplicate_index_as_req())
     packets += build_tcp_session(40002, make_valid_as_req())
 
-    wrpcap(str(args.output), packets)
-    print(f"Wrote {len(packets)} packets to {args.output}")
+    for index, p in enumerate(packets):
+        p.time = BASE_TIME + index * 0.001
+
+    output = Path(__file__).with_suffix("")
+    wrpcap(str(output), packets)
 
 
 if __name__ == "__main__":

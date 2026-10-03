@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Generates a chain of SMB AndX commands where the offset does not advance.
-# Created by Claude Opus 4.6.
+# Created by Claude Opus 4.6, adapted with Claude Sonnet 5.5 (Anthropic) to use
+# fixed MAC addresses and timestamps so the trace is reproducible.
 import struct
 from pathlib import Path
 
@@ -8,7 +9,10 @@ from scapy.all import IP, TCP, Ether, Raw, wrpcap
 from scapy.layers.netbios import NBTSession
 from scapy.layers.smb import SMB_Header
 
-OUT = Path(__file__).resolve().parent
+CLIENT_MAC = "02:00:00:00:00:01"
+SERVER_MAC = "02:00:00:00:00:02"
+BASE_TIME = 1_700_000_000.0
+
 COUNT = 5
 
 
@@ -32,26 +36,29 @@ def write_pcap(payload):
     seq_c = 1000
     seq_s = 2000
     pkts = [
-        Ether()
+        Ether(src=CLIENT_MAC, dst=SERVER_MAC)
         / IP(src=c[0], dst=s[0])
         / TCP(sport=c[1], dport=s[1], flags="S", seq=seq_c),
-        Ether()
+        Ether(src=SERVER_MAC, dst=CLIENT_MAC)
         / IP(src=s[0], dst=c[0])
         / TCP(sport=s[1], dport=c[1], flags="SA", seq=seq_s, ack=seq_c + 1),
-        Ether()
+        Ether(src=CLIENT_MAC, dst=SERVER_MAC)
         / IP(src=c[0], dst=s[0])
         / TCP(sport=c[1], dport=s[1], flags="A", seq=seq_c + 1, ack=seq_s + 1),
     ]
 
     seq = seq_c + 1
     pkts.append(
-        Ether()
+        Ether(src=CLIENT_MAC, dst=SERVER_MAC)
         / IP(src=c[0], dst=s[0])
         / TCP(sport=c[1], dport=s[1], flags="PA", seq=seq, ack=seq_s + 1)
         / Raw(load=payload)
     )
 
-    wrpcap(str(OUT / "smb1-logoff-andx-no-advance.pcap"), pkts)
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
+
+    wrpcap(str(Path(__file__).with_suffix("")), pkts)
 
 
 if __name__ == "__main__":

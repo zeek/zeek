@@ -531,15 +531,56 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             else // reply_ongoing
                 http_version = http_message->analyzer->GetReplyVersionNumber();
 
-            data_chunk_t vt = h->get_value_token();
-            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
+            auto header_value = h->get_value();
+            data_chunk_t list_value;
+
+            int parts = 0;
+            int chunked = 0;
+            [[maybe_unused]] int gzip = 0;
+            [[maybe_unused]] int deflate = 0;
+            int unknown = 0;
+
+            // Parse Transfer-Encoding value as individual tokens.
+            bool more = true; // empty would be parsed as an empty/unknown one.
+            while ( more ) {
+                int consume = mime::MIME_get_list_value(header_value.length, header_value.data, &list_value, more);
+                header_value.length -= consume;
+                header_value.data += consume;
+                ++parts;
+
+                if ( analyzer::mime::istrequal(list_value, "chunked") )
+                    chunked = parts;
+                else if ( analyzer::mime::istrequal(list_value, "gzip") )
+                    gzip = parts;
+                else if ( analyzer::mime::istrequal(list_value, "deflate") )
+                    deflate = parts;
+                else if ( analyzer::mime::istrequal(list_value, "compress") ) {
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_compress_transfer_encoding_unsupported");
+                }
+                else if ( unknown == 0 ) {
+                    // For the first unknown transfer encoding, create a weird
+                    // including the full header value.
+                    unknown = parts;
+                    auto header_value2 = h->get_value();
+                    std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_unknown_transfer_encoding", addl.c_str());
+                }
+            }
+
+            if ( parts > 4 ) {
+                auto header_value2 = h->get_value();
+                std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
+                http_message->MyHTTP_Analyzer()->Weird("HTTP_too_many_transfer_encodings", addl.c_str());
+            }
+
+            if ( chunked > 0 && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
                 chunked_transfer_state = BEFORE_CHUNK;
 
-                data_chunk_t rest = h->get_value_after_token();
-                if ( rest.length > 0 && rest.data != nullptr ) {
+                if ( parts > chunked ) {
                     // If something follows the chunked value in the header,
                     // that's weird and might be an attempt to smuggle something.
-                    std::string addl(rest.data, rest.length);
+                    auto header_value2 = h->get_value();
+                    std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
                     http_message->MyHTTP_Analyzer()->Weird("HTTP_chunked_multi", addl.c_str());
                 }
 
@@ -548,6 +589,10 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                 if ( content_length >= 0 )
                     http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
             }
+
+            // XXX - technically seems we should do that, but for now skip to not introduce new behavior.
+            // if ( gzip > 0 || deflate > 0 )
+            //    encoding = GZIP;
         }
         else {
             http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");

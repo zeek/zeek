@@ -14,10 +14,10 @@ to many IRC lines, giving out >> in without a large PCAP. Set
 IRC::max_uncompressed_size below the decompressed size in the test to trip
 zip_inflate_output_size_exceeded.
 
-Generated with Claude Opus 4.8 (Anthropic).
+Generated with Claude Opus 4.8 (Anthropic), adapted with Claude Sonnet 5.5 to
+follow the scapy-pcap conventions (deterministic timestamps, no CLI knobs).
 """
 
-import argparse
 import zlib
 from pathlib import Path
 
@@ -32,6 +32,8 @@ SERVER_PORT = 6667
 # on-wire zlib blob stays tiny while the inflated output is large.
 LINE_COUNT = 100000
 
+BASE_TIME = 1_700_000_000.0
+
 
 def pkt(src_ip, dst_ip, sport, dport, flags, seq, ack, payload=b""):
     return (
@@ -43,21 +45,6 @@ def pkt(src_ip, dst_ip, sport, dport, flags, seq, ack, payload=b""):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--line-count",
-        type=int,
-        default=LINE_COUNT,
-        help="repeated IRC lines in the decompressed payload (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path(__file__).with_suffix(""),
-        help="output pcap path (default: derived from this script's name)",
-    )
-    args = parser.parse_args()
-
     c_seq = 1000
     s_seq = 2000
     pkts = []
@@ -112,7 +99,7 @@ def main():
     # the assert below fails loudly in that case so a bad pcap is never written.
     line = b":hub.example.org PING :flood\r\n"  # 30 bytes incl. CRLF
     assert len(line) == 30, len(line)
-    decompressed = line * args.line_count
+    decompressed = line * LINE_COUNT
     blob = zlib.compress(decompressed, 9)
     assert b"\r" not in blob and b"\n" not in blob, (
         "compressed blob has a terminator byte"
@@ -128,11 +115,11 @@ def main():
     c_seq += 1
     pkts.append(spkt("A"))
 
-    wrpcap(str(args.output), pkts)
-    print(
-        f"Wrote {len(pkts)} packets to {args.output} "
-        f"(blob {len(blob)} B on wire -> {len(decompressed)} B decompressed)"
-    )
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
+
+    output = Path(__file__).with_suffix("")
+    wrpcap(str(output), pkts)
 
 
 if __name__ == "__main__":

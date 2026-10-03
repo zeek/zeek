@@ -99,7 +99,6 @@ def main():
     pkt.time = 0
 
     wrpcap(out_path, [pkt])
-    print(f"Wrote {out_path} ({len(dns_payload)} bytes of DNS payload)")
 
 
 if __name__ == "__main__":

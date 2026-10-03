@@ -67,20 +67,18 @@ TIME_STEP = 0.001
 
 def bind_pdu():
     ctx = DceRpc5Context(
-        context_id=CONTEXT_ID,
-        abstract_syntax=DceRpc5AbstractSyntax(
-            if_uuid=EPMAPPER_UUID, if_version=3, if_version_minor=0
-        ),
+        cont_id=CONTEXT_ID,
+        abstract_syntax=DceRpc5AbstractSyntax(if_uuid=EPMAPPER_UUID, if_version=3),
         transfer_syntaxes=[DceRpc5TransferSyntax(if_uuid="NDR 2.0", if_version=2)],
     )
     return DceRpc5(
-        ptype=11, pfc_flags="FIRST_FRAG+LAST_FRAG", call_id=BIND_CALL_ID
+        ptype=11, pfc_flags="PFC_FIRST_FRAG+PFC_LAST_FRAG", call_id=BIND_CALL_ID
     ) / DceRpc5Bind(context_elem=[ctx])
 
 
 def bind_ack_pdu():
     return DceRpc5(
-        ptype=12, pfc_flags="FIRST_FRAG+LAST_FRAG", call_id=BIND_CALL_ID
+        ptype=12, pfc_flags="PFC_FIRST_FRAG+PFC_LAST_FRAG", call_id=BIND_CALL_ID
     ) / DceRpc5BindAck(
         sec_addr=DceRpc5PortAny(port_spec=b"\x00"),
         results=[
@@ -95,9 +93,9 @@ def bind_ack_pdu():
 def request_pdu(stub_slice, first=False, last=False):
     flags = []
     if first:
-        flags.append("FIRST_FRAG")
+        flags.append("PFC_FIRST_FRAG")
     if last:
-        flags.append("LAST_FRAG")
+        flags.append("PFC_LAST_FRAG")
     return (
         DceRpc5(ptype=0, pfc_flags="+".join(flags), call_id=CALL_ID)
         / DceRpc5Request(alloc_hint=ALLOC_HINT, cont_id=CONTEXT_ID, opnum=OPNUM)

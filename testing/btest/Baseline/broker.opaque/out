@@ -41,32 +41,3 @@ opaque of x509
 opaque of entropy
 [entropy=4.715374, chi_square=591.981818, mean=75.472727, monte_carlo_pi=4.0, serial_correlation=-0.11027]
 [entropy=4.715374, chi_square=591.981818, mean=75.472727, monte_carlo_pi=4.0, serial_correlation=-0.11027]
-============ broker::Data
-opaque of Broker::Data
-broker::data{{hi, there}}
-broker::data{{hi, there}}
-T
-============ broker::Set
-| [data=broker::data{!}] | [data=broker::data{!}] | opaque of Broker::SetIterator
-  > [data=broker::data{hi}] | [data=broker::data{hi}]
-| [data=broker::data{hi}] | [data=broker::data{hi}] | opaque of Broker::SetIterator
-  > [data=broker::data{there}] | [data=broker::data{there}]
-| [data=broker::data{there}] | [data=broker::data{there}] | opaque of Broker::SetIterator
-============ broker::Table
-| [key=[data=broker::data{!}], val=[data=broker::data{30}]] | [key=[data=broker::data{!}], val=[data=broker::data{30}]] | opaque of Broker::TableIterator
-  > [key=[data=broker::data{hi}], val=[data=broker::data{10}]] | [key=[data=broker::data{hi}], val=[data=broker::data{10}]]
-| [key=[data=broker::data{hi}], val=[data=broker::data{10}]] | [key=[data=broker::data{hi}], val=[data=broker::data{10}]] | opaque of Broker::TableIterator
-  > [key=[data=broker::data{there}], val=[data=broker::data{20}]] | [key=[data=broker::data{there}], val=[data=broker::data{20}]]
-| [key=[data=broker::data{there}], val=[data=broker::data{20}]] | [key=[data=broker::data{there}], val=[data=broker::data{20}]] | opaque of Broker::TableIterator
-============ broker::Vector
-| [data=broker::data{hi}] | [data=broker::data{hi}] | opaque of Broker::VectorIterator
-  > [data=broker::data{there}] | [data=broker::data{there}]
-| [data=broker::data{there}] | [data=broker::data{there}] | opaque of Broker::VectorIterator
-  > [data=broker::data{!}] | [data=broker::data{!}]
-| [data=broker::data{!}] | [data=broker::data{!}] | opaque of Broker::VectorIterator
-============ broker::Record
-| [data=broker::data{hi}] | [data=broker::data{hi}] | opaque of Broker::RecordIterator
-  > [data=broker::data{there}] | [data=broker::data{there}]
-| [data=broker::data{there}] | [data=broker::data{there}] | opaque of Broker::RecordIterator
-  > [data=broker::data{!}] | [data=broker::data{!}]
-| [data=broker::data{!}] | [data=broker::data{!}] | opaque of Broker::RecordIterator

@@ -37,7 +37,6 @@ State Variables
 ================================================================================================================================= ===========================================================================================
 :zeek:id:`X509::known_log_certs`: :zeek:type:`set` :zeek:attr:`&create_expire` = :zeek:see:`X509::relog_known_certificates_after` The set that stores information about certificates that already have been logged and should
                                                                                                                                   not be logged again.
-:zeek:id:`X509::known_log_certs_use_broker`: :zeek:type:`bool` :zeek:attr:`&deprecated` = *...*                                   Use broker stores to deduplicate certificates across the whole cluster.
 ================================================================================================================================= ===========================================================================================
 
 Types
@@ -124,7 +123,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: X509::default_max_field_container_elements
-   :source-code: base/files/x509/main.zeek 136 136
+   :source-code: base/files/x509/main.zeek 125 125
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -137,7 +136,7 @@ Redefinable Options
    .. zeek:see:: Log::default_max_field_container_elements
 
 .. zeek:id:: X509::default_max_field_string_bytes
-   :source-code: base/files/x509/main.zeek 129 129
+   :source-code: base/files/x509/main.zeek 118 118
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -156,7 +155,7 @@ Redefinable Options
    .. zeek:see:: Log::default_max_field_string_bytes
 
 .. zeek:id:: X509::default_max_total_container_elements
-   :source-code: base/files/x509/main.zeek 145 145
+   :source-code: base/files/x509/main.zeek 134 134
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -171,7 +170,7 @@ Redefinable Options
    .. zeek:see:: Log::default_max_total_container_elements
 
 .. zeek:id:: X509::known_log_certs_enable_node_up_publish
-   :source-code: base/files/x509/main.zeek 119 119
+   :source-code: base/files/x509/main.zeek 108 108
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -183,7 +182,7 @@ Redefinable Options
    See also :zeek:see:`X509::known_log_certs_enable_publish`.
 
 .. zeek:id:: X509::known_log_certs_enable_publish
-   :source-code: base/files/x509/main.zeek 113 113
+   :source-code: base/files/x509/main.zeek 102 102
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -191,8 +190,6 @@ Redefinable Options
 
    Whether to publish the hash of any logged certificate to other cluster
    nodes to deduplicate certificates across the whole cluster.
-
-   This overrides the deprecated known_log_certs_use_broker.
 
 State Variables
 ###############
@@ -205,21 +202,6 @@ State Variables
 
    The set that stores information about certificates that already have been logged and should
    not be logged again.
-
-.. zeek:id:: X509::known_log_certs_use_broker
-   :source-code: base/files/x509/main.zeek 107 107
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1: Replaced with known_log_certs_enable_publish"*
-   :Default: ``T``
-
-   Use broker stores to deduplicate certificates across the whole cluster. This will cause log-deduplication
-   to work cluster wide, but come at a slightly higher cost of memory and inter-node-communication.
-
-   This setting is ignored if Zeek is run in standalone mode, or if the
-   newer known_log_certs_enable_publish is set to T.
-
-   See also :zeek:see:`X509::known_log_certs_enable_publish`.
 
 Types
 #####
@@ -372,7 +354,7 @@ Types
 Events
 ######
 .. zeek:id:: X509::log_x509
-   :source-code: base/files/x509/main.zeek 122 122
+   :source-code: base/files/x509/main.zeek 111 111
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`X509::Info`)
 
@@ -381,7 +363,7 @@ Events
 Hooks
 #####
 .. zeek:id:: X509::create_deduplication_index
-   :source-code: base/files/x509/main.zeek 205 211
+   :source-code: base/files/x509/main.zeek 183 189
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`X509::Info`) : :zeek:type:`bool`
 

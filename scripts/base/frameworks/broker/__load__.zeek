@@ -1,4 +1,4 @@
 @load ./main
-@load ./store
+@load ./data
 @load ./log
 @load ./backpressure

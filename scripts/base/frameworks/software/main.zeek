@@ -138,11 +138,6 @@ export {
 	## uniformly distributed among proxy nodes.
 	global tracked_software: table[addr] of SoftwareSets &create_expire=1day;
 
-	type SoftwareSet: table[string] of Info &deprecated="Remove in v9.1. Use SoftwareSets instead.";
-@pragma push ignore-deprecations
-	global tracked: table[addr] of SoftwareSet &create_expire=1day &deprecated="Remove in v9.1. Unused. Use tracked_software instead.";
-@pragma pop ignore-deprecations
-
 	## This event can be handled to access the :zeek:type:`Software::Info`
 	## record as it is sent on to the logging framework.
 	global log_software: event(rec: Info);

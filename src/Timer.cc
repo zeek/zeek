@@ -81,7 +81,6 @@ int TimerMgr::Advance(double arg_t, int max_expire) {
     last_timestamp = 0;
     num_expired = 0;
     last_advance = timer_mgr->Time();
-    broker_mgr->AdvanceTime(arg_t);
 
     return DoAdvance(t, max_expire);
 }

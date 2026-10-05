@@ -5,7 +5,6 @@
 #include "zeek/zeek-config.h"
 
 #include <climits>
-#include <string>
 
 namespace zeek {
 

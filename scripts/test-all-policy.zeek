@@ -20,7 +20,6 @@
 @load frameworks/cluster/backend/broker/telemetry.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
 @load frameworks/cluster/backend/zeromq/__load__.zeek
-@load frameworks/cluster/backend/zeromq/connect.zeek
 @load frameworks/cluster/backend/zeromq/options.zeek
 @load frameworks/cluster/backend/zeromq/main.zeek
 @endif
@@ -30,31 +29,6 @@
 # even in non-cluster mode if loaded like the below.
 # @load frameworks/cluster/nodes-experimental/manager.zeek
 # @load frameworks/cluster/websocket/server.zeek
-@load frameworks/management/agent/__load__.zeek
-@load frameworks/management/agent/api.zeek
-@load frameworks/management/agent/boot.zeek
-@load frameworks/management/agent/config.zeek
-# @load frameworks/management/agent/main.zeek
-@load frameworks/management/controller/__load__.zeek
-@load frameworks/management/controller/api.zeek
-@load frameworks/management/controller/boot.zeek
-@load frameworks/management/controller/config.zeek
-# @load frameworks/management/controller/main.zeek
-@load frameworks/management/__load__.zeek
-@load frameworks/management/config.zeek
-@load frameworks/management/log.zeek
-@load frameworks/management/persistence.zeek
-# @load frameworks/management/node/__load__.zeek
-@load frameworks/management/node/api.zeek
-@load frameworks/management/node/config.zeek
-# @load frameworks/management/node/main.zeek
-@load frameworks/management/supervisor/__load__.zeek
-@load frameworks/management/supervisor/api.zeek
-@load frameworks/management/supervisor/config.zeek
-@load frameworks/management/supervisor/main.zeek
-@load frameworks/management/request.zeek
-@load frameworks/management/types.zeek
-@load frameworks/management/util.zeek
 @load frameworks/intel/do_notice.zeek
 @load frameworks/intel/do_expire.zeek
 @load frameworks/intel/whitelist.zeek

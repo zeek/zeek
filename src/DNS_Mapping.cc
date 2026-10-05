@@ -3,6 +3,7 @@
 #include "zeek/DNS_Mapping.h"
 
 #include <ares_nameser.h>
+#include <algorithm>
 #include <cinttypes>
 
 #include "zeek/DNS_Mgr.h"

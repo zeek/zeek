@@ -10,7 +10,6 @@
 #include <cinttypes>
 
 #include "zeek/Base64.h"
-#include "zeek/Event.h"
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"

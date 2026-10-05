@@ -465,6 +465,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./consts.bif.zeek, <...>/consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./contents, <...>/contents.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./control, <...>/control.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./data, <...>/data.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./dpd, <...>/dpd.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./entities, <...>/entities.zeek) -> -1
@@ -504,8 +505,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./storage-events.bif.zeek, <...>/storage-events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./storage-sync.bif.zeek, <...>/storage-sync.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./storage.bif.zeek, <...>/storage.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./store, <...>/store.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry, <...>/telemetry.zeek) -> -1
@@ -610,7 +609,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/skip, <...>/skip) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/snap, <...>/snap) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/stats.bif, <...>/stats.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/store.bif, <...>/store.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/strings, <...>/strings.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/strings.bif, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor, <...>/supervisor) -> -1
@@ -793,6 +791,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./consts.bif.zeek, <...>/consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./contents, <...>/contents.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./control, <...>/control.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./data, <...>/data.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./dpd, <...>/dpd.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./entities, <...>/entities.zeek) -> (-1, <no content>)
@@ -832,8 +831,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./storage-events.bif.zeek, <...>/storage-events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./storage-sync.bif.zeek, <...>/storage-sync.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./storage.bif.zeek, <...>/storage.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./store, <...>/store.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek) -> (-1, <no content>)
@@ -938,7 +935,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/skip, <...>/skip) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/snap, <...>/snap) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/stats.bif, <...>/stats.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base<...>/store.bif, <...>/store.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/strings, <...>/strings.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/strings.bif, <...>/strings.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor, <...>/supervisor) -> (-1, <no content>)
@@ -1440,6 +1436,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./consts.bif.zeek, <...>/consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./contents, <...>/contents.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./control, <...>/control.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./data, <...>/data.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./data.bif.zeek, <...>/data.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./dpd, <...>/dpd.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./entities, <...>/entities.zeek)
@@ -1479,8 +1476,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./storage-events.bif.zeek, <...>/storage-events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./storage-sync.bif.zeek, <...>/storage-sync.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./storage.bif.zeek, <...>/storage.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./store, <...>/store.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry, <...>/telemetry.zeek)
@@ -1585,7 +1580,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/skip, <...>/skip)
 0.000000   MetaHookPre   LoadFile(0, base<...>/snap, <...>/snap)
 0.000000   MetaHookPre   LoadFile(0, base<...>/stats.bif, <...>/stats.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, base<...>/store.bif, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/strings, <...>/strings.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/strings.bif, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor, <...>/supervisor)
@@ -1768,6 +1762,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./consts.bif.zeek, <...>/consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./contents, <...>/contents.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./control, <...>/control.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./data, <...>/data.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./data.bif.zeek, <...>/data.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./dpd, <...>/dpd.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./entities, <...>/entities.zeek)
@@ -1807,8 +1802,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./storage-events.bif.zeek, <...>/storage-events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./storage-sync.bif.zeek, <...>/storage-sync.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./storage.bif.zeek, <...>/storage.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./store, <...>/store.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek)
@@ -1913,7 +1906,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/skip, <...>/skip)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/snap, <...>/snap)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/stats.bif, <...>/stats.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, base<...>/store.bif, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/strings, <...>/strings.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/strings.bif, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor, <...>/supervisor)
@@ -2416,6 +2408,7 @@
 0.000000 | HookLoadFile  ./consts.bif.zeek <...>/consts.bif.zeek
 0.000000 | HookLoadFile  ./contents <...>/contents.zeek
 0.000000 | HookLoadFile  ./control <...>/control.zeek
+0.000000 | HookLoadFile  ./data <...>/data.zeek
 0.000000 | HookLoadFile  ./data.bif.zeek <...>/data.bif.zeek
 0.000000 | HookLoadFile  ./dpd <...>/dpd.zeek
 0.000000 | HookLoadFile  ./dpd.sig <...>/dpd.sig
@@ -2465,8 +2458,6 @@
 0.000000 | HookLoadFile  ./storage-events.bif.zeek <...>/storage-events.bif.zeek
 0.000000 | HookLoadFile  ./storage-sync.bif.zeek <...>/storage-sync.bif.zeek
 0.000000 | HookLoadFile  ./storage.bif.zeek <...>/storage.bif.zeek
-0.000000 | HookLoadFile  ./store <...>/store.zeek
-0.000000 | HookLoadFile  ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFile  ./supervisor.bif.zeek <...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  ./telemetry <...>/telemetry.zeek
@@ -2572,7 +2563,6 @@
 0.000000 | HookLoadFile  base<...>/skip <...>/skip
 0.000000 | HookLoadFile  base<...>/snap <...>/snap
 0.000000 | HookLoadFile  base<...>/stats.bif <...>/stats.bif.zeek
-0.000000 | HookLoadFile  base<...>/store.bif <...>/store.bif.zeek
 0.000000 | HookLoadFile  base<...>/strings <...>/strings.zeek
 0.000000 | HookLoadFile  base<...>/strings.bif <...>/strings.bif.zeek
 0.000000 | HookLoadFile  base<...>/supervisor <...>/supervisor
@@ -2744,6 +2734,7 @@
 0.000000 | HookLoadFileExtended ./consts.bif.zeek <...>/consts.bif.zeek
 0.000000 | HookLoadFileExtended ./contents <...>/contents.zeek
 0.000000 | HookLoadFileExtended ./control <...>/control.zeek
+0.000000 | HookLoadFileExtended ./data <...>/data.zeek
 0.000000 | HookLoadFileExtended ./data.bif.zeek <...>/data.bif.zeek
 0.000000 | HookLoadFileExtended ./dpd <...>/dpd.zeek
 0.000000 | HookLoadFileExtended ./dpd.sig <...>/dpd.sig
@@ -2793,8 +2784,6 @@
 0.000000 | HookLoadFileExtended ./storage-events.bif.zeek <...>/storage-events.bif.zeek
 0.000000 | HookLoadFileExtended ./storage-sync.bif.zeek <...>/storage-sync.bif.zeek
 0.000000 | HookLoadFileExtended ./storage.bif.zeek <...>/storage.bif.zeek
-0.000000 | HookLoadFileExtended ./store <...>/store.zeek
-0.000000 | HookLoadFileExtended ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFileExtended ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFileExtended ./supervisor.bif.zeek <...>/supervisor.bif.zeek
 0.000000 | HookLoadFileExtended ./telemetry <...>/telemetry.zeek
@@ -2900,7 +2889,6 @@
 0.000000 | HookLoadFileExtended base<...>/skip <...>/skip
 0.000000 | HookLoadFileExtended base<...>/snap <...>/snap
 0.000000 | HookLoadFileExtended base<...>/stats.bif <...>/stats.bif.zeek
-0.000000 | HookLoadFileExtended base<...>/store.bif <...>/store.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/strings <...>/strings.zeek
 0.000000 | HookLoadFileExtended base<...>/strings.bif <...>/strings.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/supervisor <...>/supervisor

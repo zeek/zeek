@@ -14,31 +14,26 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-=============================================================================== ===============================================================================
-:zeek:id:`Known::cert_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef`  The expiry interval of new entries in :zeek:see:`Known::cert_broker_store` and
-                                                                                :zeek:see:`Known::cert_store_backend`.
+=============================================================================== ============================================================================
+:zeek:id:`Known::cert_store_expiry`: :zeek:type:`interval` :zeek:attr:`&redef`  The expiry interval of new entries in :zeek:see:`Known::cert_store_backend`.
 :zeek:id:`Known::cert_store_timeout`: :zeek:type:`interval` :zeek:attr:`&redef` The timeout interval to use for operations against
-                                                                                :zeek:see:`Known::cert_broker_store` and :zeek:see:`Known::cert_store_backend`.
+                                                                                :zeek:see:`Known::cert_store_backend`.
 :zeek:id:`Known::cert_tracking`: :zeek:type:`Host` :zeek:attr:`&redef`          The certificates whose existence should be logged and tracked.
-=============================================================================== ===============================================================================
+=============================================================================== ============================================================================
 
 Redefinable Options
 ###################
-======================================================================================================== ======================================================================
-:zeek:id:`Known::cert_store_backend_options`: :zeek:type:`Storage::BackendOptions` :zeek:attr:`&redef`   The options for the cert store.
-:zeek:id:`Known::cert_store_backend_type`: :zeek:type:`Storage::Backend` :zeek:attr:`&redef`             The type of storage backend to open.
-:zeek:id:`Known::cert_store_name`: :zeek:type:`string` :zeek:attr:`&redef`                               The Broker topic name to use for :zeek:see:`Known::cert_broker_store`.
-:zeek:id:`Known::cert_store_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                             The name to use for :zeek:see:`Known::cert_store_backend`.
-:zeek:id:`Known::enable_certs_persistence`: :zeek:type:`bool` :zeek:attr:`&redef`                        Use the storage framework to enable persistence of the stored
-                                                                                                         certs between runs.
-:zeek:id:`Known::use_cert_store`: :zeek:type:`bool` :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *...* Toggles between different implementations of this script.
-======================================================================================================== ======================================================================
+====================================================================================================== =============================================================
+:zeek:id:`Known::cert_store_backend_options`: :zeek:type:`Storage::BackendOptions` :zeek:attr:`&redef` The options for the cert store.
+:zeek:id:`Known::cert_store_backend_type`: :zeek:type:`Storage::Backend` :zeek:attr:`&redef`           The type of storage backend to open.
+:zeek:id:`Known::cert_store_prefix`: :zeek:type:`string` :zeek:attr:`&redef`                           The name to use for :zeek:see:`Known::cert_store_backend`.
+:zeek:id:`Known::enable_certs_persistence`: :zeek:type:`bool` :zeek:attr:`&redef`                      Use the storage framework to enable persistence of the stored
+                                                                                                       certs between runs.
+====================================================================================================== =============================================================
 
 State Variables
 ###############
 ======================================================================================================= ==============================================================================
-:zeek:id:`Known::cert_broker_store`: :zeek:type:`Cluster::StoreInfo`                                    Storage configuration for Broker stores
-                                                                                                        Holds the set of all known certs.
 :zeek:id:`Known::cert_store_backend`: :zeek:type:`opaque`                                               Storage configuration for storage framework stores
                                                                                                         This requires setting a configuration in local.zeek that sets the
                                                                                                         Known::enable_certs_persistence boolean to T, and optionally setting different
@@ -81,25 +76,24 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: Known::cert_store_expiry
-   :source-code: policy/protocols/ssl/known-certs.zeek 92 92
+   :source-code: policy/protocols/ssl/known-certs.zeek 75 75
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``1.0 day``
 
-   The expiry interval of new entries in :zeek:see:`Known::cert_broker_store` and
-   :zeek:see:`Known::cert_store_backend`. This also changes the interval at which
-   certs get logged.
+   The expiry interval of new entries in :zeek:see:`Known::cert_store_backend`.
+   This also changes the interval at which certs get logged.
 
 .. zeek:id:: Known::cert_store_timeout
-   :source-code: policy/protocols/ssl/known-certs.zeek 96 96
+   :source-code: policy/protocols/ssl/known-certs.zeek 79 79
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``15.0 secs``
 
    The timeout interval to use for operations against
-   :zeek:see:`Known::cert_broker_store` and :zeek:see:`Known::cert_store_backend`.
+   :zeek:see:`Known::cert_store_backend`.
 
 .. zeek:id:: Known::cert_tracking
    :source-code: policy/protocols/ssl/known-certs.zeek 38 38
@@ -120,7 +114,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: Known::cert_store_backend_options
-   :source-code: policy/protocols/ssl/known-certs.zeek 85 85
+   :source-code: policy/protocols/ssl/known-certs.zeek 69 69
 
    :Type: :zeek:type:`Storage::BackendOptions`
    :Attributes: :zeek:attr:`&redef`
@@ -146,7 +140,7 @@ Redefinable Options
    persistent sqlite database.
 
 .. zeek:id:: Known::cert_store_backend_type
-   :source-code: policy/protocols/ssl/known-certs.zeek 80 80
+   :source-code: policy/protocols/ssl/known-certs.zeek 64 64
 
    :Type: :zeek:type:`Storage::Backend`
    :Attributes: :zeek:attr:`&redef`
@@ -154,17 +148,8 @@ Redefinable Options
 
    The type of storage backend to open.
 
-.. zeek:id:: Known::cert_store_name
-   :source-code: policy/protocols/ssl/known-certs.zeek 63 63
-
-   :Type: :zeek:type:`string`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``"zeek/known/certs"``
-
-   The Broker topic name to use for :zeek:see:`Known::cert_broker_store`.
-
 .. zeek:id:: Known::cert_store_prefix
-   :source-code: policy/protocols/ssl/known-certs.zeek 77 77
+   :source-code: policy/protocols/ssl/known-certs.zeek 61 61
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -184,48 +169,10 @@ Redefinable Options
    Use the storage framework to enable persistence of the stored
    certs between runs.
 
-.. zeek:id:: Known::use_cert_store
-   :source-code: policy/protocols/ssl/known-certs.zeek 48 48
-
-   :Type: :zeek:type:`bool`
-   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&deprecated` = *"Remove in v9.1. Store support has been disabled by default since Zeek 6.0 due to performance issues and will be removed."*
-   :Default: ``F``
-
-   Toggles between different implementations of this script.
-   When true, use a Broker data store, else use a regular Zeek set
-   with keys uniformly distributed over proxy nodes in cluster
-   operation.
-
 State Variables
 ###############
-.. zeek:id:: Known::cert_broker_store
-   :source-code: policy/protocols/ssl/known-certs.zeek 60 60
-
-   :Type: :zeek:type:`Cluster::StoreInfo`
-   :Default:
-
-      ::
-
-         {
-            name=<uninitialized>
-            store=<uninitialized>
-            master_node=""
-            master=F
-            backend=Broker::MEMORY
-            options=[sqlite=[path="", synchronous=<uninitialized>, journal_mode=<uninitialized>, failure_mode=Broker::SQLITE_FAILURE_MODE_FAIL, integrity_check=F]]
-            clone_resync_interval=10.0 secs
-            clone_stale_interval=5.0 mins
-            clone_mutation_buffer_interval=2.0 mins
-         }
-
-
-   Storage configuration for Broker stores
-   Holds the set of all known certs.  Keys in the store are
-   :zeek:type:`Known::AddrPortServTriplet` and their associated value is
-   always the boolean value of "true".
-
 .. zeek:id:: Known::cert_store_backend
-   :source-code: policy/protocols/ssl/known-certs.zeek 72 72
+   :source-code: policy/protocols/ssl/known-certs.zeek 56 56
 
    :Type: :zeek:type:`opaque` of Storage::BackendHandle
 
@@ -236,7 +183,7 @@ State Variables
    Backend to use for storing known certs data using the storage framework.
 
 .. zeek:id:: Known::certs
-   :source-code: policy/protocols/ssl/known-certs.zeek 105 105
+   :source-code: policy/protocols/ssl/known-certs.zeek 88 88
 
    :Type: :zeek:type:`set` [:zeek:type:`addr`, :zeek:type:`string`]
    :Attributes: :zeek:attr:`&create_expire` = ``1.0 day`` :zeek:attr:`&redef`
@@ -253,7 +200,7 @@ State Variables
 Types
 #####
 .. zeek:type:: Known::AddrCertHashPair
-   :source-code: policy/protocols/ssl/known-certs.zeek 50 53
+   :source-code: policy/protocols/ssl/known-certs.zeek 44 47
 
    :Type: :zeek:type:`record`
 
@@ -306,7 +253,7 @@ Types
 Events
 ######
 .. zeek:id:: Known::log_known_certs
-   :source-code: policy/protocols/ssl/known-certs.zeek 109 109
+   :source-code: policy/protocols/ssl/known-certs.zeek 92 92
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Known::CertsInfo`)
 

@@ -220,12 +220,6 @@ public:
     const TableType* AsTableType() const;
     TableType* AsTableType();
 
-    [[deprecated("Remove in v9.1. Use AsTableType() instead.")]]
-    const SetType* AsSetType() const;
-
-    [[deprecated("Remove in v9.1. Use AsTableType() instead.")]]
-    SetType* AsSetType();
-
     const RecordType* AsRecordType() const;
     RecordType* AsRecordType();
 
@@ -439,19 +433,6 @@ private:
 
     // Used to prevent repeated error messages.
     bool reported_error = false;
-};
-
-class [[deprecated("Remove in v9.1. Use TableType instead.")]] SetType final : public TableType {
-public:
-    SetType(TypeListPtr ind, detail::ListExprPtr arg_elements);
-    ~SetType() override;
-
-    TypePtr ShallowClone() override;
-
-    const detail::ListExprPtr& Elements() const { return elements; }
-
-protected:
-    detail::ListExprPtr elements;
 };
 
 class FuncType final : public Type {
@@ -692,14 +673,6 @@ public:
     const TypeDecl* FieldDecl(int field) const { return (*types)[field]; }
     TypeDecl* FieldDecl(int field) { return (*types)[field]; }
 
-    // Returns flags corresponding to which fields in the record
-    // have types requiring memory management (reference counting).
-    [[deprecated(
-        "Remove in v9.1: Unused and optimization related internal. Use TypeDecl's is_managed member instead.")]]
-    const std::vector<bool>& ManagedFields() const {
-        return managed_fields;
-    }
-
     int NumFields() const { return num_fields; }
     int NumOrigFields() const { return num_orig_fields; }
 
@@ -776,11 +749,6 @@ private:
     friend zeek::detail::CPPRuntime;
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
-
-    // If we were willing to bound the size of records, then we could
-    // use std::bitset here instead.
-    // Remove in v9.1: Accessor is removed so this should be unused.
-    std::vector<bool> managed_fields;
 
     // Number of fields in the type.
     int num_fields = 0;

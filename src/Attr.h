@@ -117,7 +117,6 @@ public:
     Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global)
         : Attributes(std::move(a), std::move(t), in_record, is_global, false) {}
 
-
     void AddAttr(AttrPtr a, bool is_redef = false);
 
     void AddAttrs(const AttributesPtr& a, bool is_redef = false);

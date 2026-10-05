@@ -96,6 +96,6 @@ op-types T X
 eval	auto indices = Z_AUX->ToListVal(frame);
 	auto val = $2.ToVal(Z_TYPE);
 	bool iterators_invalidated = false;
-	$1->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
+	$1->Assign(std::move(indices), std::move(val), &iterators_invalidated);
 	if ( iterators_invalidated )
 		WARN("possible loop/iterator invalidation");

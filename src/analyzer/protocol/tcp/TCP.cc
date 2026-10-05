@@ -5,7 +5,6 @@
 #include <cinttypes>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"

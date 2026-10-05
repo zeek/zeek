@@ -90,7 +90,6 @@ namespace zeek::detail {
 
 void fuzzer_cleanup_one_input() {
     run_state::terminating = true;
-    broker_mgr->ClearStores();
     file_mgr->Terminate();
     timer_mgr->Expire();
 

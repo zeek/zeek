@@ -535,7 +535,7 @@ jobs:
       configure_flags:
         description: The flags passed to the Zeek configure script
         type: string
-        default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 -D NODEJS_ROOT_DIR=/opt/homebrew/opt/node@24
+        default: --build-type=release --disable-broker-tests --prefix=${ZEEK_CI_WORKING_DIR}/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 -D NODEJS_ROOT_DIR=/opt/homebrew/opt/node@24 --with-openssl=/opt/homebrew/opt/openssl@3
       xcode_version:
         description: The version of Xcode used for the build
         type: string

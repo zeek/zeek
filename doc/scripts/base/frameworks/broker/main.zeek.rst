@@ -181,12 +181,6 @@ Redefinable Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
-   :Redefinition: from :doc:`/scripts/policy/frameworks/management/agent/boot.zeek`
-
-      ``=``::
-
-         "127.0.0.1"
-
 
    Default address on which to listen.
 

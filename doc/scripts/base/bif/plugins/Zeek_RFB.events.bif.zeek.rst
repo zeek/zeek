@@ -11,37 +11,20 @@ Summary
 ~~~~~~~
 Events
 ######
-=============================================================================== ==========================================================
-:zeek:id:`rfb_auth_result`: :zeek:type:`event` :zeek:attr:`&deprecated` = *...* Generated for RFB event authentication result message
-:zeek:id:`rfb_authentication_result`: :zeek:type:`event`                        Generated for RFB event authentication result message
-:zeek:id:`rfb_authentication_type`: :zeek:type:`event`                          Generated for RFB event authentication mechanism selection
-:zeek:id:`rfb_client_version`: :zeek:type:`event`                               Generated for RFB event client banner message
-:zeek:id:`rfb_server_parameters`: :zeek:type:`event`                            Generated for RFB event server parameter message
-:zeek:id:`rfb_server_version`: :zeek:type:`event`                               Generated for RFB event server banner message
-:zeek:id:`rfb_share_flag`: :zeek:type:`event`                                   Generated for RFB event share flag messages
-=============================================================================== ==========================================================
+======================================================== ==========================================================
+:zeek:id:`rfb_authentication_result`: :zeek:type:`event` Generated for RFB event authentication result message
+:zeek:id:`rfb_authentication_type`: :zeek:type:`event`   Generated for RFB event authentication mechanism selection
+:zeek:id:`rfb_client_version`: :zeek:type:`event`        Generated for RFB event client banner message
+:zeek:id:`rfb_server_parameters`: :zeek:type:`event`     Generated for RFB event server parameter message
+:zeek:id:`rfb_server_version`: :zeek:type:`event`        Generated for RFB event server banner message
+:zeek:id:`rfb_share_flag`: :zeek:type:`event`            Generated for RFB event share flag messages
+======================================================== ==========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Events
 ######
-.. zeek:id:: rfb_auth_result
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 19 19
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use rfb_authentication_result which has the correct value for result."*
-
-   Generated for RFB event authentication result message
-
-
-   :param c: The connection record for the underlying transport-layer session/flow.
-
-
-   :param result: whether or not authentication was successful (false means success, true means failure)
-
-   .. zeek:see:: rfb_authentication_result
-
 .. zeek:id:: rfb_authentication_result
    :source-code: base/protocols/rfb/main.zeek 152 155
 
@@ -85,7 +68,7 @@ Events
    :param minor_version: The minor version of the client's RFB library.
 
 .. zeek:id:: rfb_server_parameters
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 67 67
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 57 57
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 

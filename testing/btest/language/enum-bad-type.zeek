@@ -1,6 +1,6 @@
 # @TEST-DOC: Disallow mixing different enum types.
 #
-# @TEST-EXEC: zeek -b %INPUT
+# @TEST-EXEC-FAIL: zeek -b %INPUT
 # @TEST-EXEC: btest-diff-remove-abspath .stderr
 
 type color: enum { Red, White, Blue, };

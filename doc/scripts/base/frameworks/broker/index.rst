@@ -13,9 +13,9 @@ instances to share state and transfer events.
 
    The Broker-based communication API and its various options.
 
-:doc:`/scripts/base/frameworks/broker/store.zeek`
+:doc:`/scripts/base/frameworks/broker/data.zeek`
 
-   The Broker-based data store API and its various options.
+   The Broker-based Data API and its various options.
 
 :doc:`/scripts/base/frameworks/broker/log.zeek`
 

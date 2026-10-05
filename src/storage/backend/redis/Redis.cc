@@ -10,7 +10,6 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/storage/ReturnCode.h"
-#include "zeek/telemetry/Counter.h"
 
 #include "hiredis/adapters/poll.h"
 #include "hiredis/async.h"

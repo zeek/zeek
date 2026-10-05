@@ -183,9 +183,6 @@ struct Value {
         addr_t addr_val;
         subnet_t subnet_val;
         struct {
-            [[deprecated("Remove in v9.1. Use pattern_val.text instead.")]] const char* pattern_text_val;
-        };
-        struct {
             const char* text;
             bool is_case_insensitive;
             bool is_single_line;

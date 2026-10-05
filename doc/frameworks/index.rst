@@ -26,7 +26,6 @@ sections cover them in detail.
    input
    intel
    logging
-   management
    netcontrol
    notice
    packet-analysis

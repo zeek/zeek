@@ -2,7 +2,6 @@
 
 #include "zeek/zeekygen/Manager.h"
 
-#include <algorithm>
 #include <cstdlib>
 #include <utility>
 

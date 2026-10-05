@@ -12,11 +12,6 @@ using namespace std;
 class Exception : public std::exception {
 public:
     Exception(const Object* o, const string& msg = "");
-
-    [[deprecated("Remove in v9.1. Use what().")]]
-    const char* msg() const {
-        return msg_.c_str();
-    }
     const char* what() const noexcept override { return msg_.c_str(); }
     void append(const string& s) { msg_ += s; }
 

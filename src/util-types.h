@@ -2,9 +2,13 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <span>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "zeek/3rdparty/nonstd/expected.hpp"
 

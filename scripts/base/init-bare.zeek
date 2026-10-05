@@ -1314,11 +1314,8 @@ type ThreadStats: record {
 ##
 ## .. zeek:see:: get_broker_stats
 type BrokerStats: record {
+	## Number of active peers.
 	num_peers: count;
-	## Number of active data stores.
-	num_stores: count;
-	## Number of pending data store queries.
-	num_pending_queries: count;
 	## Number of total log messages received.
 	num_events_incoming: count;
 	## Number of total log messages sent.
@@ -1395,7 +1392,6 @@ type script_id: record {
 	enum_constant: bool;	##< True if the identifier is an enum value.
 	option_value: bool;	##< True if the identifier is an option.
 	redefinable: bool;	##< True if the identifier is declared with the :zeek:attr:`&redef` attribute.
-	broker_backend: bool;	##< True if the identifier has a Broker backend defined using the :zeek:attr:`&backend` attribute.
 	value: any &optional;	##< The current value of the identifier.
 	attributes: script_id_attrs &optional; ##< Attributes attached to this identifier, if any.
 };
@@ -1542,8 +1538,6 @@ type IPAddrAnonymization: enum {
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
 	PREFIX_PRESERVING_A50,
-	RANDOM_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
-	PREFIX_PRESERVING_MD5 &deprecated="Remove in v9.1. Use the A50 or SHA256 anonymizers instead.",
 	RANDOM_SHA256,
 	PREFIX_PRESERVING_SHA256,
 };

@@ -2,6 +2,8 @@
 
 #include "zeek/session/Session.h"
 
+#include <algorithm>
+
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"

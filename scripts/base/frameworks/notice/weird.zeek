@@ -296,8 +296,6 @@ export {
 	##
 	## rec: The weird columns about to be logged to the weird stream.
 	global log_weird: event(rec: Info);
-
-	global weird: function(w: Weird::Info) &deprecated="Remove in v9.1. Use Reporter::<granularity>_weird instead.";
 }
 
 # These actions result in the output being limited and further redundant
@@ -418,12 +416,6 @@ function do_weird(w: Weird::Info)
 		add weird_ignore[w$name, identifier];
 
 	Log::write(Weird::LOG, w);
-	}
-
-# Old wrapped weird function until deprecation.
-function weird(w: Weird::Info)
-	{
-	do_weird(w);
 	}
 
 # The following events come from core generated weirds typically.

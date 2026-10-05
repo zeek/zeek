@@ -94,25 +94,6 @@ TableType* Type::AsTableType() {
     return static_cast<TableType*>(this);
 }
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-const SetType* Type::AsSetType() const {
-    if ( ! IsSet() )
-        BadTag("Type::AsSetType", type_name(tag));
-    return static_cast<const SetType*>(this);
-}
-
-SetType* Type::AsSetType() {
-    if ( ! IsSet() )
-        BadTag("Type::AsSetType", type_name(tag));
-    return static_cast<SetType*>(this);
-}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
 const RecordType* Type::AsRecordType() const {
     CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
     return static_cast<const RecordType*>(this);
@@ -577,50 +558,6 @@ bool TableType::DoExpireCheck(const detail::AttrPtr& attr) {
 
     return true;
 }
-
-SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
-    : TableType(std::move(ind), nullptr), elements(std::move(arg_elements)) {
-    if ( elements ) {
-        if ( indices ) { // We already have a type.
-            if ( ! check_and_promote_exprs(elements.get(), indices) )
-                SetError();
-        }
-        else {
-            TypeList* tl_type = elements->GetType()->AsTypeList();
-            const auto& tl = tl_type->GetTypes();
-
-            if ( tl.empty() ) {
-                Error("no type given for set");
-                SetError();
-            }
-
-            else if ( tl.size() == 1 ) {
-                TypePtr ft{NewRef{}, flatten_type(tl[0].get())};
-                indices = make_intrusive<TypeList>(ft);
-                indices->Append(std::move(ft));
-            }
-
-            else {
-                auto t = merge_types(tl[0], tl[1]);
-
-                for ( size_t i = 2; t && i < tl.size(); ++i )
-                    t = merge_types(t, tl[i]);
-
-                if ( ! t ) {
-                    Error("bad set type");
-                    return;
-                }
-
-                indices = make_intrusive<TypeList>(t);
-                indices->Append(std::move(t));
-            }
-        }
-    }
-}
-
-TypePtr SetType::ShallowClone() { return make_intrusive<SetType>(indices, elements); }
-
-SetType::~SetType() = default;
 
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy) : id(std::move(_id)), deep_copy(_deep_copy) {
     is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
@@ -1113,9 +1050,6 @@ RecordType::~RecordType() {
 
 void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     ASSERT(field == deferred_inits.size());
-    ASSERT(field == managed_fields.size());
-
-    managed_fields.push_back(ZVal::IsManagedType(td->type));
 
     // We defer error-checking until here so that we can keep deferred_inits
     // and managed_fields correctly tracking the associated fields.
@@ -2002,20 +1936,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
             if ( t2p && t2p == t1 )
                 return true;
 
-            // Remove in v9.1: Make enums nominally typed. Change trailing
-            // return to false.
-            //
-            // We only output warnings during parse time for the user to see
-            // when we return true for nominally different enum types. I'm a
-            // bit worried we may somehow get here at runtime and spill a lot
-            // of warnings unexpectedly.
-            if ( run_state::is_parsing )
-                reporter->Deprecation(
-                    util::fmt("Remove in v9.1. Mixing incompatible enum types %s and %s will become an error.",
-                              obj_desc_short(t1).c_str(), obj_desc_short(t2).c_str()));
-
-            // Remove in v9.1: Change to return false.
-            return true;
+            return false;
         }
 
         case TYPE_OPAQUE: {

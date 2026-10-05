@@ -8,7 +8,6 @@
 #include "zeek/ID.h"
 #include "zeek/Scope.h"
 #include "zeek/Var.h"
-#include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/telemetry/Manager.h"
 

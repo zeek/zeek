@@ -163,12 +163,6 @@ Runtime Options
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``""``
-   :Redefinition: from :doc:`/scripts/policy/frameworks/management/persistence.zeek`
-
-      ``=``::
-
-         build_path(Management::get_spool_dir(), "log-queue")
-
    :Redefinition: from :doc:`/scripts/policy/misc/systemd-generator.zeek`
 
       ``=``::
@@ -971,11 +965,6 @@ Types
       .. zeek:enum:: Analyzer::DebugLogging::LOG Log::ID
 
          (present if :doc:`/scripts/policy/frameworks/analyzer/debug-logging.zeek` is loaded)
-
-
-      .. zeek:enum:: Management::Log::LOG Log::ID
-
-         (present if :doc:`/scripts/policy/frameworks/management/log.zeek` is loaded)
 
 
       .. zeek:enum:: NetControl::CATCH_RELEASE Log::ID

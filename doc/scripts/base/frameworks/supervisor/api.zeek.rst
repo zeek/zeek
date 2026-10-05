@@ -228,7 +228,7 @@ Types
 Events
 ######
 .. zeek:id:: Supervisor::node_status
-   :source-code: base/frameworks/supervisor/api.zeek 174 174
+   :source-code: base/frameworks/supervisor/main.zeek 105 112
 
    :Type: :zeek:type:`event` (node: :zeek:type:`string`, pid: :zeek:type:`count`)
 
@@ -247,7 +247,7 @@ Events
 Hooks
 #####
 .. zeek:id:: Supervisor::stderr_hook
-   :source-code: policy/frameworks/management/supervisor/main.zeek 77 92
+   :source-code: base/frameworks/supervisor/api.zeek 163 163
 
    :Type: :zeek:type:`hook` (node: :zeek:type:`string`, msg: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -267,7 +267,7 @@ Hooks
    :param msg: line-buffered contents from the stderr of a child process.
 
 .. zeek:id:: Supervisor::stdout_hook
-   :source-code: policy/frameworks/management/supervisor/main.zeek 55 75
+   :source-code: base/frameworks/supervisor/api.zeek 149 149
 
    :Type: :zeek:type:`hook` (node: :zeek:type:`string`, msg: :zeek:type:`string`) : :zeek:type:`bool`
 

@@ -138,7 +138,3 @@ Package: policy/frameworks/cluster/backend/zeromq
 
    ZeroMQ cluster logic
 
-:doc:`/scripts/policy/frameworks/cluster/backend/zeromq/connect.zeek`
-
-   Establish ZeroMQ connectivity with the broker.
-

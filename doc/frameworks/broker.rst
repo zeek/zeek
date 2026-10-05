@@ -104,35 +104,8 @@ Zeek script to store or share long-term state and data.  The two
 approaches that were previously used were either using the ``&synchronized``
 attribute on tables/sets or by explicitly sending events to specific
 nodes on which you wanted data to be stored.  The former is no longer
-possible, though there are several new possibilities that the new
-Broker/Cluster framework offer, namely distributed data store and data
-partitioning APIs.
-
-Data Stores
------------
-
-Broker provides a distributed key-value store interface with optional
-choice of using a persistent backend. For more detail, see
-:ref:`this example <data_store_example>`.
-
-Some ideas/considerations/scenarios when deciding whether to use
-a data store for your use-case:
-
-* If you need the full data set locally in order to achieve low-latency
-  queries using data store "clones" can provide that.
-
-* If you need data that persists across restarts of Zeek processes, then
-  data stores can also provide that.
-
-* If the data you want to store is complex (tables, sets, records) or
-  you expect to read, modify, and store back, then data stores may not
-  be able to provide simple, race-free methods of performing the pattern
-  of logic that you want.
-
-* If the data set you want to store is excessively large, that's still
-  problematic even for stores that use a persistent backend as they are
-  implemented in a way that requires a full snapshot of the store's
-  contents to fit in memory (this limitation may change in the future).
+possible, though there is a new possibility that the new Broker/Cluster
+framework offers, namely data partitioning APIs.
 
 Data Partitioning
 -----------------
@@ -339,73 +312,6 @@ in logs written by peers.  The topic names that Zeek uses are determined by
 
 Note that logging events are only raised locally on the node that performs
 the :zeek:see:`Log::write` and not automatically published to peers.
-
-.. _data_store_example:
-
-Distributed Data Stores
------------------------
-
-See :doc:`/scripts/base/frameworks/broker/store.zeek` for an overview
-of the Broker data store API.
-
-There are two flavors of key-value data store interfaces: master and clone.
-
-A master data store can be cloned from remote peers which may then
-perform lightweight, local queries against the clone, which
-automatically stays synchronized with the master store.  Clones cannot
-modify their content directly, instead they send modifications to the
-centralized master store which applies them and then broadcasts them to
-all clones.
-
-Master stores get to choose what type of storage backend to
-use.  E.g. In-memory versus SQLite for persistence.
-
-Data stores also support expiration on a per-key basis using an amount of
-time relative to the entry's last modification time.
-
-.. literalinclude:: broker/stores-listener.zeek
-   :caption: stores-listener.zeek
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-.. literalinclude:: broker/stores-connector.zeek
-   :caption: stores-connector.zeek
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-Note that all data store queries must be made within Zeek's asynchronous
-``when`` statements and must specify a timeout block.
-
-
-SQLite Data Store Tuning
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-When leveraging the SQLite backend for persistence, SQLite's default journaling
-and consistency settings are used. Concretely, ``journal_mode`` is set to
-``DELETE`` and ``synchronous`` to ``FULL``. This in turn is not optimal for
-`high INSERT or UPDATE rates <https://www.sqlite.org/faq.html#q19>`_
-due to SQLite waiting for the required IO to complete until data is safely
-on disk. This can also have a non-negligible system effect when the
-SQLite database is located on the same device as other IO critical processes.
-
-Starting with Zeek 5.2, it is possible to tune and relax these settings by
-providing an appropriate :zeek:see:`Broker::BackendOptions` and
-:zeek:see:`Broker::SQLiteOptions` instance to
-:zeek:see:`Broker::create_master`. The following example changes the
-data store to use `Write-Ahead Logging <https://www.sqlite.org/wal.html>`_
-which should perform significantly faster than the default.
-
-
-.. literalinclude:: broker/store-sqlite-tuning.zeek
-   :caption: store-sqlite-tuning.zeek
-   :language: zeek
-   :linenos:
-   :tab-width: 4
-
-If your use-case turns out to require more and lower-level tuning around
-SQLite options, please get in contact or open a feature request on GitHub.
 
 
 Cluster Framework Examples
@@ -619,33 +525,3 @@ to uniformly map an arbitrary key space across all available proxies.
                              cat("example_key", ++my_counter),
                              worker_to_proxies, Cluster::node);
         }
-
-Broker-backed Zeek Tables for Data Synchronization and Persistence
-==================================================================
-
-Starting with Zeek 3.2, it is possible to "bind" a Zeek table to a backing
-Broker store. Changes to the Zeek table are sent to the Broker store. Similarly,
-changes of the Broker store are applied to the Zeek table.
-
-This feature allows easy distribution of table contents across a cluster.
-It also offers persistence for tables (when using a persistent Broker store
-backend like SQLite).
-
-To give a short example, to distribute a table over a cluster you can use
-the :zeek:attr:`&backend` attribute.
-
-.. code-block:: zeek
-
-    global t: table[string] of count &backend=Broker::MEMORY;
-
-The :zeek:attr:`&backend` attribute creates a master data store on the
-manager and a clone data store on all other node on the cluster. This
-in essence means that the table exists twice in each Zeek process. One
-copy of the table is contained in a Broker data store (either a master
-or a clone depending on the node), which data store distributes the
-data across the cluster---and, depending on the backend, might also
-make the data persistent. Since Broker data stores are only accessible
-via asynchronous operations, and accessing them might not always be
-immediate, a second copy of the table, which is immediately
-accessible, is held inside the Zeek core. This is the copy that you
-see and interact with on the Zeek side.

@@ -740,7 +740,7 @@ Events
 ++++++
 
 .. zeek:id:: Cluster::websocket_client_added
-   :source-code: base/frameworks/cluster/main.zeek 538 543
+   :source-code: base/frameworks/cluster/main.zeek 389 394
 
    :Type: :zeek:type:`event` (endpoint: :zeek:type:`Cluster::EndpointInfo`, subscriptions: :zeek:type:`string_vec`)
 
@@ -753,7 +753,7 @@ Events
    :param subscriptions: The WebSocket client's subscriptions as provided in the handshake.
 
 .. zeek:id:: Cluster::websocket_client_lost
-   :source-code: base/frameworks/cluster/main.zeek 545 551
+   :source-code: base/frameworks/cluster/main.zeek 396 402
 
    :Type: :zeek:type:`event` (endpoint: :zeek:type:`Cluster::EndpointInfo`, code: :zeek:type:`count`, reason: :zeek:type:`string`)
 
@@ -1004,7 +1004,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: DCE_RPC::max_cmd_reassembly
-   :source-code: base/init-bare.zeek 6019 6019
+   :source-code: base/init-bare.zeek 6013 6013
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1015,7 +1015,7 @@ Options/Constants
    a weird and skip further input.
 
 .. zeek:id:: DCE_RPC::max_frag_data
-   :source-code: base/init-bare.zeek 6024 6024
+   :source-code: base/init-bare.zeek 6018 6018
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -1396,7 +1396,7 @@ Types
 +++++
 
 .. zeek:type:: DHCP::Msg
-   :source-code: base/init-bare.zeek 4992 5007
+   :source-code: base/init-bare.zeek 4986 5001
 
    :Type: :zeek:type:`record`
 
@@ -1465,7 +1465,7 @@ Types
    .. zeek:see:: dhcp_message
 
 .. zeek:type:: DHCP::Addrs
-   :source-code: base/init-bare.zeek 4987 4987
+   :source-code: base/init-bare.zeek 4981 4981
 
    :Type: :zeek:type:`vector` of :zeek:type:`addr`
 
@@ -1475,7 +1475,7 @@ Types
    .. zeek:see:: dhcp_message
 
 .. zeek:type:: DHCP::SubOpt
-   :source-code: base/init-bare.zeek 5033 5036
+   :source-code: base/init-bare.zeek 5027 5030
 
    :Type: :zeek:type:`record`
 
@@ -1491,13 +1491,13 @@ Types
    .. zeek:see:: dhcp_message
 
 .. zeek:type:: DHCP::SubOpts
-   :source-code: base/init-bare.zeek 5038 5038
+   :source-code: base/init-bare.zeek 5032 5032
 
    :Type: :zeek:type:`vector` of :zeek:type:`DHCP::SubOpt`
 
 
 .. zeek:type:: DHCP::ClientFQDN
-   :source-code: base/init-bare.zeek 5018 5028
+   :source-code: base/init-bare.zeek 5012 5022
 
    :Type: :zeek:type:`record`
 
@@ -1526,7 +1526,7 @@ Types
    DHCP Client FQDN Option information (Option 81)
 
 .. zeek:type:: DHCP::ClientID
-   :source-code: base/init-bare.zeek 5012 5015
+   :source-code: base/init-bare.zeek 5006 5009
 
    :Type: :zeek:type:`record`
 
@@ -1542,7 +1542,7 @@ Types
    .. zeek:see:: dhcp_message
 
 .. zeek:type:: DHCP::Options
-   :source-code: base/init-bare.zeek 5040 5138
+   :source-code: base/init-bare.zeek 5034 5132
 
    :Type: :zeek:type:`record`
 
@@ -3895,7 +3895,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: Gnutella::max_line_length
-   :source-code: base/init-bare.zeek 6290 6290
+   :source-code: base/init-bare.zeek 6284 6284
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -3905,7 +3905,7 @@ Options/Constants
    a line terminator.
 
 .. zeek:id:: Gnutella::max_header_length
-   :source-code: base/init-bare.zeek 6294 6294
+   :source-code: base/init-bare.zeek 6288 6288
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -5740,7 +5740,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: KRB::keytab
-   :source-code: base/init-bare.zeek 5661 5661
+   :source-code: base/init-bare.zeek 5655 5655
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -5752,7 +5752,7 @@ Types
 +++++
 
 .. zeek:type:: KRB::Error_Msg
-   :source-code: base/init-bare.zeek 5756 5779
+   :source-code: base/init-bare.zeek 5750 5773
 
    :Type: :zeek:type:`record`
 
@@ -5815,7 +5815,7 @@ Types
    The data from the ERROR_MSG message. See :rfc:`4120`.
 
 .. zeek:type:: KRB::SAFE_Msg
-   :source-code: base/init-bare.zeek 5737 5753
+   :source-code: base/init-bare.zeek 5731 5747
 
    :Type: :zeek:type:`record`
 
@@ -5859,7 +5859,7 @@ Types
    The data from the SAFE message. See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Options
-   :source-code: base/init-bare.zeek 5663 5694
+   :source-code: base/init-bare.zeek 5657 5688
 
    :Type: :zeek:type:`record`
 
@@ -5936,7 +5936,7 @@ Types
    KDC Options. See :rfc:`4120`
 
 .. zeek:type:: KRB::AP_Options
-   :source-code: base/init-bare.zeek 5697 5702
+   :source-code: base/init-bare.zeek 5691 5696
 
    :Type: :zeek:type:`record`
 
@@ -5954,7 +5954,7 @@ Types
    AP Options. See :rfc:`4120`
 
 .. zeek:type:: KRB::Type_Value
-   :source-code: base/init-bare.zeek 5706 5711
+   :source-code: base/init-bare.zeek 5700 5705
 
    :Type: :zeek:type:`record`
 
@@ -5973,7 +5973,7 @@ Types
    that have a type and a string value.
 
 .. zeek:type:: KRB::Encrypted_Data
-   :source-code: base/init-bare.zeek 5715 5722
+   :source-code: base/init-bare.zeek 5709 5716
 
    :Type: :zeek:type:`record`
 
@@ -5995,7 +5995,7 @@ Types
 
 
 .. zeek:type:: KRB::Ticket
-   :source-code: base/init-bare.zeek 5782 5795
+   :source-code: base/init-bare.zeek 5776 5789
 
    :Type: :zeek:type:`record`
 
@@ -6033,13 +6033,13 @@ Types
    A Kerberos ticket. See :rfc:`4120`.
 
 .. zeek:type:: KRB::Ticket_Vector
-   :source-code: base/init-bare.zeek 5797 5797
+   :source-code: base/init-bare.zeek 5791 5791
 
    :Type: :zeek:type:`vector` of :zeek:type:`KRB::Ticket`
 
 
 .. zeek:type:: KRB::Host_Address
-   :source-code: base/init-bare.zeek 5725 5732
+   :source-code: base/init-bare.zeek 5719 5726
 
    :Type: :zeek:type:`record`
 
@@ -6062,7 +6062,7 @@ Types
    A Kerberos host address See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Request
-   :source-code: base/init-bare.zeek 5800 5831
+   :source-code: base/init-bare.zeek 5794 5825
 
    :Type: :zeek:type:`record`
 
@@ -6140,7 +6140,7 @@ Types
    The data from the AS_REQ and TGS_REQ messages. See :rfc:`4120`.
 
 .. zeek:type:: KRB::KDC_Response
-   :source-code: base/init-bare.zeek 5834 5850
+   :source-code: base/init-bare.zeek 5828 5844
 
    :Type: :zeek:type:`record`
 
@@ -7535,7 +7535,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: MIME::max_depth
-   :source-code: base/init-bare.zeek 3817 3817
+   :source-code: base/init-bare.zeek 3811 3811
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -7545,7 +7545,7 @@ Options/Constants
    reached. Setting this value to 0 removes the limit.
 
 .. zeek:id:: MIME::max_header_bytes
-   :source-code: base/init-bare.zeek 3821 3821
+   :source-code: base/init-bare.zeek 3815 3815
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -8467,7 +8467,7 @@ Types
 +++++
 
 .. zeek:type:: MQTT::ConnectMsg
-   :source-code: base/init-bare.zeek 6212 6242
+   :source-code: base/init-bare.zeek 6206 6236
 
    :Type: :zeek:type:`record`
 
@@ -8532,7 +8532,7 @@ Types
 
 
 .. zeek:type:: MQTT::ConnectAckMsg
-   :source-code: base/init-bare.zeek 6244 6253
+   :source-code: base/init-bare.zeek 6238 6247
 
    :Type: :zeek:type:`record`
 
@@ -8552,7 +8552,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishMsg
-   :source-code: base/init-bare.zeek 6255 6277
+   :source-code: base/init-bare.zeek 6249 6271
 
    :Type: :zeek:type:`record`
 
@@ -9060,7 +9060,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: NCP::max_frame_size
-   :source-code: base/init-bare.zeek 6031 6031
+   :source-code: base/init-bare.zeek 6025 6025
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -9459,7 +9459,7 @@ Types
 +++++
 
 .. zeek:type:: NTLM::Negotiate
-   :source-code: base/init-bare.zeek 4151 4160
+   :source-code: base/init-bare.zeek 4145 4154
 
    :Type: :zeek:type:`record`
 
@@ -9486,7 +9486,7 @@ Types
 
 
 .. zeek:type:: NTLM::Challenge
-   :source-code: base/init-bare.zeek 4188 4202
+   :source-code: base/init-bare.zeek 4182 4196
 
    :Type: :zeek:type:`record`
 
@@ -9521,7 +9521,7 @@ Types
 
 
 .. zeek:type:: NTLM::Authenticate
-   :source-code: base/init-bare.zeek 4204 4219
+   :source-code: base/init-bare.zeek 4198 4213
 
    :Type: :zeek:type:`record`
 
@@ -9563,7 +9563,7 @@ Types
 
 
 .. zeek:type:: NTLM::NegotiateFlags
-   :source-code: base/init-bare.zeek 4096 4149
+   :source-code: base/init-bare.zeek 4090 4143
 
    :Type: :zeek:type:`record`
 
@@ -9685,7 +9685,7 @@ Types
 
 
 .. zeek:type:: NTLM::Version
-   :source-code: base/init-bare.zeek 4085 4094
+   :source-code: base/init-bare.zeek 4079 4088
 
    :Type: :zeek:type:`record`
 
@@ -9712,7 +9712,7 @@ Types
 
 
 .. zeek:type:: NTLM::AVs
-   :source-code: base/init-bare.zeek 4162 4186
+   :source-code: base/init-bare.zeek 4156 4180
 
    :Type: :zeek:type:`record`
 
@@ -9830,7 +9830,7 @@ Types
 +++++
 
 .. zeek:type:: NTP::StandardMessage
-   :source-code: base/init-bare.zeek 6040 6093
+   :source-code: base/init-bare.zeek 6034 6087
 
    :Type: :zeek:type:`record`
 
@@ -9936,7 +9936,7 @@ Types
    for standard synchronization operations.
 
 .. zeek:type:: NTP::ControlMessage
-   :source-code: base/init-bare.zeek 6098 6132
+   :source-code: base/init-bare.zeek 6092 6126
 
    :Type: :zeek:type:`record`
 
@@ -10008,7 +10008,7 @@ Types
    for control operations.
 
 .. zeek:type:: NTP::Mode7Message
-   :source-code: base/init-bare.zeek 6141 6174
+   :source-code: base/init-bare.zeek 6135 6168
 
    :Type: :zeek:type:`record`
 
@@ -10072,7 +10072,7 @@ Types
    project <https://www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
 
 .. zeek:type:: NTP::Message
-   :source-code: base/init-bare.zeek 6179 6206
+   :source-code: base/init-bare.zeek 6173 6200
 
    :Type: :zeek:type:`record`
 
@@ -10175,7 +10175,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: POP3::max_pending_commands
-   :source-code: base/init-bare.zeek 3961 3961
+   :source-code: base/init-bare.zeek 3955 3955
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -10187,7 +10187,7 @@ Options/Constants
    Setting this value to 0 removes the limit.
 
 .. zeek:id:: POP3::max_unknown_client_commands
-   :source-code: base/init-bare.zeek 3967 3967
+   :source-code: base/init-bare.zeek 3961 3961
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -10895,19 +10895,19 @@ Types
 +++++
 
 .. zeek:type:: RADIUS::AttributeList
-   :source-code: base/init-bare.zeek 5385 5385
+   :source-code: base/init-bare.zeek 5379 5379
 
    :Type: :zeek:type:`vector` of :zeek:type:`string`
 
 
 .. zeek:type:: RADIUS::Attributes
-   :source-code: base/init-bare.zeek 5386 5386
+   :source-code: base/init-bare.zeek 5380 5380
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`RADIUS::AttributeList`
 
 
 .. zeek:type:: RADIUS::Message
-   :source-code: base/init-bare.zeek 5388 5397
+   :source-code: base/init-bare.zeek 5382 5391
 
    :Type: :zeek:type:`record`
 
@@ -10991,7 +10991,7 @@ Types
 +++++
 
 .. zeek:type:: RDP::EarlyCapabilityFlags
-   :source-code: base/init-bare.zeek 5403 5413
+   :source-code: base/init-bare.zeek 5397 5407
 
    :Type: :zeek:type:`record`
 
@@ -11025,7 +11025,7 @@ Types
 
 
 .. zeek:type:: RDP::ClientCoreData
-   :source-code: base/init-bare.zeek 5415 5436
+   :source-code: base/init-bare.zeek 5409 5430
 
    :Type: :zeek:type:`record`
 
@@ -11092,7 +11092,7 @@ Types
 
 
 .. zeek:type:: RDP::ClientSecurityData
-   :source-code: base/init-bare.zeek 5440 5452
+   :source-code: base/init-bare.zeek 5434 5446
 
    :Type: :zeek:type:`record`
 
@@ -11118,7 +11118,7 @@ Types
    to advertise client cryptographic support.
 
 .. zeek:type:: RDP::ClientClusterData
-   :source-code: base/init-bare.zeek 5488 5507
+   :source-code: base/init-bare.zeek 5482 5501
 
    :Type: :zeek:type:`record`
 
@@ -11164,14 +11164,14 @@ Types
    or to request a connection to a given session identifier.
 
 .. zeek:type:: RDP::ClientChannelList
-   :source-code: base/init-bare.zeek 5510 5510
+   :source-code: base/init-bare.zeek 5504 5504
 
    :Type: :zeek:type:`vector` of :zeek:type:`RDP::ClientChannelDef`
 
    The list of channels requested by the client.
 
 .. zeek:type:: RDP::ClientChannelDef
-   :source-code: base/init-bare.zeek 5455 5483
+   :source-code: base/init-bare.zeek 5449 5477
 
    :Type: :zeek:type:`record`
 
@@ -11755,22 +11755,6 @@ Events
 
    :param authtype: the value of the chosen authentication mechanism
 
-.. zeek:id:: rfb_auth_result
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 19 19
-
-   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`)
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use rfb_authentication_result which has the correct value for result."*
-
-   Generated for RFB event authentication result message
-
-
-   :param c: The connection record for the underlying transport-layer session/flow.
-
-
-   :param result: whether or not authentication was successful (false means success, true means failure)
-
-   .. zeek:see:: rfb_authentication_result
-
 .. zeek:id:: rfb_authentication_result
    :source-code: base/protocols/rfb/main.zeek 152 155
 
@@ -11830,7 +11814,7 @@ Events
    :param minor_version: The minor version of the server's RFB library.
 
 .. zeek:id:: rfb_server_parameters
-   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 67 67
+   :source-code: base/bif/plugins/Zeek_RFB.events.bif.zeek 57 57
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, name: :zeek:type:`string`, width: :zeek:type:`count`, height: :zeek:type:`count`)
 
@@ -11872,7 +11856,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: rpc_max_pending_calls
-   :source-code: base/init-bare.zeek 1989 1989
+   :source-code: base/init-bare.zeek 1983 1983
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -13322,7 +13306,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: SMB::pipe_filenames
-   :source-code: base/init-bare.zeek 4254 4254
+   :source-code: base/init-bare.zeek 4248 4248
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -13341,7 +13325,7 @@ Options/Constants
    .. zeek:see:: smb_pipe_connect_heuristic
 
 .. zeek:id:: SMB::max_pending_messages
-   :source-code: base/init-bare.zeek 4264 4264
+   :source-code: base/init-bare.zeek 4258 4258
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -13357,7 +13341,7 @@ Options/Constants
    .. zeek:see:: smb2_discarded_messages_state
 
 .. zeek:id:: SMB::max_dce_rpc_analyzers
-   :source-code: base/init-bare.zeek 4270 4270
+   :source-code: base/init-bare.zeek 4264 4264
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -13372,7 +13356,7 @@ Types
 +++++
 
 .. zeek:type:: SMB1::NegotiateResponse
-   :source-code: base/init-bare.zeek 4449 4458
+   :source-code: base/init-bare.zeek 4443 4452
 
    :Type: :zeek:type:`record`
 
@@ -13396,7 +13380,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateResponseCore
-   :source-code: base/init-bare.zeek 4378 4381
+   :source-code: base/init-bare.zeek 4372 4375
 
    :Type: :zeek:type:`record`
 
@@ -13408,7 +13392,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateResponseLANMAN
-   :source-code: base/init-bare.zeek 4383 4409
+   :source-code: base/init-bare.zeek 4377 4403
 
    :Type: :zeek:type:`record`
 
@@ -13471,7 +13455,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateResponseNTLM
-   :source-code: base/init-bare.zeek 4411 4447
+   :source-code: base/init-bare.zeek 4405 4441
 
    :Type: :zeek:type:`record`
 
@@ -13553,7 +13537,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateResponseSecurity
-   :source-code: base/init-bare.zeek 4361 4376
+   :source-code: base/init-bare.zeek 4355 4370
 
    :Type: :zeek:type:`record`
 
@@ -13586,7 +13570,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateRawMode
-   :source-code: base/init-bare.zeek 4310 4315
+   :source-code: base/init-bare.zeek 4304 4309
 
    :Type: :zeek:type:`record`
 
@@ -13603,7 +13587,7 @@ Types
 
 
 .. zeek:type:: SMB1::NegotiateCapabilities
-   :source-code: base/init-bare.zeek 4317 4359
+   :source-code: base/init-bare.zeek 4311 4353
 
    :Type: :zeek:type:`record`
 
@@ -13702,7 +13686,7 @@ Types
 
 
 .. zeek:type:: SMB1::SessionSetupAndXRequest
-   :source-code: base/init-bare.zeek 4476 4518
+   :source-code: base/init-bare.zeek 4470 4512
 
    :Type: :zeek:type:`record`
 
@@ -13790,7 +13774,7 @@ Types
 
 
 .. zeek:type:: SMB1::SessionSetupAndXResponse
-   :source-code: base/init-bare.zeek 4520 4533
+   :source-code: base/init-bare.zeek 4514 4527
 
    :Type: :zeek:type:`record`
 
@@ -13827,7 +13811,7 @@ Types
 
 
 .. zeek:type:: SMB1::SessionSetupAndXCapabilities
-   :source-code: base/init-bare.zeek 4460 4474
+   :source-code: base/init-bare.zeek 4454 4468
 
    :Type: :zeek:type:`record`
 
@@ -13865,7 +13849,7 @@ Types
 
 
 .. zeek:type:: SMB1::Trans_Sec_Args
-   :source-code: base/init-bare.zeek 4562 4579
+   :source-code: base/init-bare.zeek 4556 4573
 
    :Type: :zeek:type:`record`
 
@@ -13912,7 +13896,7 @@ Types
 
 
 .. zeek:type:: SMB1::Find_First2_Request_Args
-   :source-code: base/init-bare.zeek 4602 4616
+   :source-code: base/init-bare.zeek 4596 4610
 
    :Type: :zeek:type:`record`
 
@@ -13950,7 +13934,7 @@ Types
 
 
 .. zeek:type:: SMB1::Find_First2_Response_Args
-   :source-code: base/init-bare.zeek 4618 4628
+   :source-code: base/init-bare.zeek 4612 4622
 
    :Type: :zeek:type:`record`
 
@@ -13978,7 +13962,7 @@ Types
 
 
 .. zeek:type:: SMB1::Trans2_Args
-   :source-code: base/init-bare.zeek 4535 4560
+   :source-code: base/init-bare.zeek 4529 4554
 
    :Type: :zeek:type:`record`
 
@@ -14045,7 +14029,7 @@ Types
 
 
 .. zeek:type:: SMB1::Trans2_Sec_Args
-   :source-code: base/init-bare.zeek 4581 4600
+   :source-code: base/init-bare.zeek 4575 4594
 
    :Type: :zeek:type:`record`
 
@@ -14097,7 +14081,7 @@ Types
 
 
 .. zeek:type:: SMB2::CloseResponse
-   :source-code: base/init-bare.zeek 4743 4752
+   :source-code: base/init-bare.zeek 4737 4746
 
    :Type: :zeek:type:`record`
 
@@ -14130,7 +14114,7 @@ Types
    .. zeek:see:: smb2_close_response
 
 .. zeek:type:: SMB2::CreateRequest
-   :source-code: base/init-bare.zeek 4891 4898
+   :source-code: base/init-bare.zeek 4885 4892
 
    :Type: :zeek:type:`record`
 
@@ -14157,7 +14141,7 @@ Types
    .. zeek:see:: smb2_create_request
 
 .. zeek:type:: SMB2::CreateResponse
-   :source-code: base/init-bare.zeek 4906 4917
+   :source-code: base/init-bare.zeek 4900 4911
 
    :Type: :zeek:type:`record`
 
@@ -14195,7 +14179,7 @@ Types
    .. zeek:see:: smb2_create_response
 
 .. zeek:type:: SMB2::NegotiateResponse
-   :source-code: base/init-bare.zeek 4818 4835
+   :source-code: base/init-bare.zeek 4812 4829
 
    :Type: :zeek:type:`record`
 
@@ -14244,7 +14228,7 @@ Types
    .. zeek:see:: smb2_negotiate_response
 
 .. zeek:type:: SMB2::SessionSetupRequest
-   :source-code: base/init-bare.zeek 4843 4846
+   :source-code: base/init-bare.zeek 4837 4840
 
    :Type: :zeek:type:`record`
 
@@ -14262,7 +14246,7 @@ Types
    .. zeek:see:: smb2_session_setup_request
 
 .. zeek:type:: SMB2::SessionSetupResponse
-   :source-code: base/init-bare.zeek 4870 4873
+   :source-code: base/init-bare.zeek 4864 4867
 
    :Type: :zeek:type:`record`
 
@@ -14281,7 +14265,7 @@ Types
    .. zeek:see:: smb2_session_setup_response
 
 .. zeek:type:: SMB2::SessionSetupFlags
-   :source-code: base/init-bare.zeek 4854 4861
+   :source-code: base/init-bare.zeek 4848 4855
 
    :Type: :zeek:type:`record`
 
@@ -14309,7 +14293,7 @@ Types
    .. zeek:see:: smb2_session_setup_response
 
 .. zeek:type:: SMB2::TreeConnectResponse
-   :source-code: base/init-bare.zeek 4881 4884
+   :source-code: base/init-bare.zeek 4875 4878
 
    :Type: :zeek:type:`record`
 
@@ -14327,7 +14311,7 @@ Types
    .. zeek:see:: smb2_tree_connect_response
 
 .. zeek:type:: SMB2::Transform_header
-   :source-code: base/init-bare.zeek 4966 4977
+   :source-code: base/init-bare.zeek 4960 4971
 
    :Type: :zeek:type:`record`
 
@@ -14370,7 +14354,7 @@ Types
       smb2_write_request
 
 .. zeek:type:: SMB::MACTimes
-   :source-code: base/init-bare.zeek 4230 4247
+   :source-code: base/init-bare.zeek 4224 4241
 
    :Type: :zeek:type:`record`
 
@@ -14422,7 +14406,7 @@ Types
    .. zeek:see:: smb1_nt_create_andx_response smb2_create_response
 
 .. zeek:type:: SMB1::Header
-   :source-code: base/init-bare.zeek 4299 4308
+   :source-code: base/init-bare.zeek 4293 4302
 
    :Type: :zeek:type:`record`
 
@@ -14487,7 +14471,7 @@ Types
       smb1_write_andx_response
 
 .. zeek:type:: SMB2::Header
-   :source-code: base/init-bare.zeek 4647 4672
+   :source-code: base/init-bare.zeek 4641 4666
 
    :Type: :zeek:type:`record`
 
@@ -14559,7 +14543,7 @@ Types
       smb2_write_request
 
 .. zeek:type:: SMB2::GUID
-   :source-code: base/init-bare.zeek 4680 4685
+   :source-code: base/init-bare.zeek 4674 4679
 
    :Type: :zeek:type:`record`
 
@@ -14582,7 +14566,7 @@ Types
       smb2_file_rename smb2_file_delete smb2_write_request
 
 .. zeek:type:: SMB2::FileAttrs
-   :source-code: base/init-bare.zeek 4692 4735
+   :source-code: base/init-bare.zeek 4686 4729
 
    :Type: :zeek:type:`record`
 
@@ -14681,7 +14665,7 @@ Types
    .. zeek:see:: smb2_create_response
 
 .. zeek:type:: SMB2::Fscontrol
-   :source-code: base/init-bare.zeek 4923 4936
+   :source-code: base/init-bare.zeek 4917 4930
 
    :Type: :zeek:type:`record`
 
@@ -14722,7 +14706,7 @@ Types
 
 
 .. zeek:type:: SMB2::FileEA
-   :source-code: base/init-bare.zeek 4942 4947
+   :source-code: base/init-bare.zeek 4936 4941
 
    :Type: :zeek:type:`record`
 
@@ -14743,7 +14727,7 @@ Types
 
 
 .. zeek:type:: SMB2::FileEAs
-   :source-code: base/init-bare.zeek 4953 4953
+   :source-code: base/init-bare.zeek 4947 4947
 
    :Type: :zeek:type:`vector` of :zeek:type:`SMB2::FileEA`
 
@@ -14753,7 +14737,7 @@ Types
 
 
 .. zeek:type:: SMB2::PreAuthIntegrityCapabilities
-   :source-code: base/init-bare.zeek 4758 4767
+   :source-code: base/init-bare.zeek 4752 4761
 
    :Type: :zeek:type:`record`
 
@@ -14784,7 +14768,7 @@ Types
 
 
 .. zeek:type:: SMB2::EncryptionCapabilities
-   :source-code: base/init-bare.zeek 4773 4778
+   :source-code: base/init-bare.zeek 4767 4772
 
    :Type: :zeek:type:`record`
 
@@ -14805,7 +14789,7 @@ Types
 
 
 .. zeek:type:: SMB2::CompressionCapabilities
-   :source-code: base/init-bare.zeek 4784 4789
+   :source-code: base/init-bare.zeek 4778 4783
 
    :Type: :zeek:type:`record`
 
@@ -14826,7 +14810,7 @@ Types
 
 
 .. zeek:type:: SMB2::NegotiateContextValue
-   :source-code: base/init-bare.zeek 4795 4808
+   :source-code: base/init-bare.zeek 4789 4802
 
    :Type: :zeek:type:`record`
 
@@ -14867,7 +14851,7 @@ Types
 
 
 .. zeek:type:: SMB2::NegotiateContextValues
-   :source-code: base/init-bare.zeek 4810 4810
+   :source-code: base/init-bare.zeek 4804 4804
 
    :Type: :zeek:type:`vector` of :zeek:type:`SMB2::NegotiateContextValue`
 
@@ -16666,7 +16650,7 @@ Types
 +++++
 
 .. zeek:type:: SNMP::Header
-   :source-code: base/init-bare.zeek 5574 5579
+   :source-code: base/init-bare.zeek 5568 5573
 
    :Type: :zeek:type:`record`
 
@@ -16694,7 +16678,7 @@ Types
    determines what header field is initialized.
 
 .. zeek:type:: SNMP::HeaderV1
-   :source-code: base/init-bare.zeek 5520 5522
+   :source-code: base/init-bare.zeek 5514 5516
 
    :Type: :zeek:type:`record`
 
@@ -16706,7 +16690,7 @@ Types
    including the PDU data.  See :rfc:`1157`.
 
 .. zeek:type:: SNMP::HeaderV2
-   :source-code: base/init-bare.zeek 5526 5528
+   :source-code: base/init-bare.zeek 5520 5522
 
    :Type: :zeek:type:`record`
 
@@ -16718,7 +16702,7 @@ Types
    including the PDU data.  See :rfc:`1901`.
 
 .. zeek:type:: SNMP::HeaderV3
-   :source-code: base/init-bare.zeek 5558 5569
+   :source-code: base/init-bare.zeek 5552 5563
 
    :Type: :zeek:type:`record`
 
@@ -16757,7 +16741,7 @@ Types
    including the PDU data.  See :rfc:`3412`.
 
 .. zeek:type:: SNMP::UserSecurityParameters
-   :source-code: base/init-bare.zeek 5541 5554
+   :source-code: base/init-bare.zeek 5535 5548
 
    :Type: :zeek:type:`record`
 
@@ -16797,7 +16781,7 @@ Types
    Experimental: the format of this record can change till Zeek 9.
 
 .. zeek:type:: SNMP::PDU
-   :source-code: base/init-bare.zeek 5629 5634
+   :source-code: base/init-bare.zeek 5623 5628
 
    :Type: :zeek:type:`record`
 
@@ -16817,7 +16801,7 @@ Types
    A ``PDU`` data structure from either :rfc:`1157` or :rfc:`3416`.
 
 .. zeek:type:: SNMP::TrapPDU
-   :source-code: base/init-bare.zeek 5637 5644
+   :source-code: base/init-bare.zeek 5631 5638
 
    :Type: :zeek:type:`record`
 
@@ -16843,7 +16827,7 @@ Types
    A ``Trap-PDU`` data structure from :rfc:`1157`.
 
 .. zeek:type:: SNMP::BulkPDU
-   :source-code: base/init-bare.zeek 5647 5652
+   :source-code: base/init-bare.zeek 5641 5646
 
    :Type: :zeek:type:`record`
 
@@ -16863,7 +16847,7 @@ Types
    A ``BulkPDU`` data structure from :rfc:`3416`.
 
 .. zeek:type:: SNMP::ScopedPDU_Context
-   :source-code: base/init-bare.zeek 5533 5536
+   :source-code: base/init-bare.zeek 5527 5530
 
    :Type: :zeek:type:`record`
 
@@ -16879,7 +16863,7 @@ Types
    See :rfc:`3412`.
 
 .. zeek:type:: SNMP::ObjectValue
-   :source-code: base/init-bare.zeek 5590 5597
+   :source-code: base/init-bare.zeek 5584 5591
 
    :Type: :zeek:type:`record`
 
@@ -16913,7 +16897,7 @@ Types
    values will only have their corresponding tag value set.
 
 .. zeek:type:: SNMP::Binding
-   :source-code: base/init-bare.zeek 5619 5622
+   :source-code: base/init-bare.zeek 5613 5616
 
    :Type: :zeek:type:`record`
 
@@ -16928,7 +16912,7 @@ Types
    :rfc:`3416`, which maps an Object Identifier to a value.
 
 .. zeek:type:: SNMP::Bindings
-   :source-code: base/init-bare.zeek 5626 5626
+   :source-code: base/init-bare.zeek 5620 5620
 
    :Type: :zeek:type:`vector` of :zeek:type:`SNMP::Binding`
 
@@ -17302,7 +17286,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: SSH::max_packet_length
-   :source-code: base/init-bare.zeek 4024 4024
+   :source-code: base/init-bare.zeek 4018 4018
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17320,7 +17304,7 @@ Options/Constants
    Setting this value to zero disables the capping mechanism.
 
 .. zeek:id:: SSH::max_string_length
-   :source-code: base/init-bare.zeek 4035 4035
+   :source-code: base/init-bare.zeek 4029 4029
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17337,7 +17321,7 @@ Options/Constants
    Setting this value to zero disables the capping mechanism.
 
 .. zeek:id:: SSH::max_kexinit_kex_algorithms
-   :source-code: base/init-bare.zeek 4044 4044
+   :source-code: base/init-bare.zeek 4038 4038
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17352,7 +17336,7 @@ Options/Constants
    weird is raised and an X added to the connection's history.
 
 .. zeek:id:: SSH::max_kexinit_hostkey_algorithms
-   :source-code: base/init-bare.zeek 4051 4051
+   :source-code: base/init-bare.zeek 4045 4045
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17365,7 +17349,7 @@ Options/Constants
    weird is raised and an X added to the connection's history.
 
 .. zeek:id:: SSH::max_kexinit_encryption_algorithms
-   :source-code: base/init-bare.zeek 4058 4058
+   :source-code: base/init-bare.zeek 4052 4052
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17378,7 +17362,7 @@ Options/Constants
    weird is raised and an X added to the connection's history.
 
 .. zeek:id:: SSH::max_kexinit_mac_algorithms
-   :source-code: base/init-bare.zeek 4065 4065
+   :source-code: base/init-bare.zeek 4059 4059
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17391,7 +17375,7 @@ Options/Constants
    weird is raised and an X added to the connection's history.
 
 .. zeek:id:: SSH::max_kexinit_compression_algorithms
-   :source-code: base/init-bare.zeek 4072 4072
+   :source-code: base/init-bare.zeek 4066 4066
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17404,7 +17388,7 @@ Options/Constants
    weird is raised and an X added to the connection's history.
 
 .. zeek:id:: SSH::max_kexinit_languages
-   :source-code: base/init-bare.zeek 4079 4079
+   :source-code: base/init-bare.zeek 4073 4073
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -17420,7 +17404,7 @@ Types
 +++++
 
 .. zeek:type:: SSH::Algorithm_Prefs
-   :source-code: base/init-bare.zeek 3985 3990
+   :source-code: base/init-bare.zeek 3979 3984
 
    :Type: :zeek:type:`record`
 
@@ -17439,7 +17423,7 @@ Types
    in each direction.
 
 .. zeek:type:: SSH::Capabilities
-   :source-code: base/init-bare.zeek 3997 4012
+   :source-code: base/init-bare.zeek 3991 4006
 
    :Type: :zeek:type:`record`
 
@@ -17997,7 +17981,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: SSL::dtls_max_version_errors
-   :source-code: base/init-bare.zeek 5297 5297
+   :source-code: base/init-bare.zeek 5291 5291
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -18009,7 +17993,7 @@ Options/Constants
    might be interleaved in the same UDP "connection".
 
 .. zeek:id:: SSL::dtls_max_reported_version_errors
-   :source-code: base/init-bare.zeek 5300 5300
+   :source-code: base/init-bare.zeek 5294 5294
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -18018,7 +18002,7 @@ Options/Constants
    Maximum number of invalid version errors to report in one DTLS connection.
 
 .. zeek:id:: SSL::max_alerts_per_record
-   :source-code: base/init-bare.zeek 5305 5305
+   :source-code: base/init-bare.zeek 5299 5299
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -18032,7 +18016,7 @@ Types
 +++++
 
 .. zeek:type:: SSL::SignatureAndHashAlgorithm
-   :source-code: base/init-bare.zeek 5283 5286
+   :source-code: base/init-bare.zeek 5277 5280
 
    :Type: :zeek:type:`record`
 
@@ -18049,7 +18033,7 @@ Types
 
 
 .. zeek:type:: SSL::PSKIdentity
-   :source-code: base/init-bare.zeek 5288 5291
+   :source-code: base/init-bare.zeek 5282 5285
 
    :Type: :zeek:type:`record`
 

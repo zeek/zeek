@@ -3,7 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
-#include <fstream>
+#include <ios>
 
 #include "zeek/input/InputFile.h"
 #include "zeek/input/ReaderBackend.h"

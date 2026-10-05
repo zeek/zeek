@@ -75,12 +75,6 @@ Hooks
 :zeek:id:`Weird::log_policy`: :zeek:type:`Log::PolicyHook` A default logging policy hook for the stream.
 ========================================================== =============================================
 
-Functions
-#########
-=============================================================================== =
-:zeek:id:`Weird::weird`: :zeek:type:`function` :zeek:attr:`&deprecated` = *...*
-=============================================================================== =
-
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
@@ -474,14 +468,5 @@ Hooks
    :Type: :zeek:type:`Log::PolicyHook`
 
    A default logging policy hook for the stream.
-
-Functions
-#########
-.. zeek:id:: Weird::weird
-   :source-code: base/frameworks/notice/weird.zeek 424 427
-
-   :Type: :zeek:type:`function` (w: :zeek:type:`Weird::Info`) : :zeek:type:`void`
-   :Attributes: :zeek:attr:`&deprecated` = *"Remove in v9.1. Use Reporter::<granularity>_weird instead."*
-
 
 

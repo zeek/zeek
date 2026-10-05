@@ -125,10 +125,6 @@ Package: base/bif
 
    Functions for inspecting and manipulating broker data.
 
-:doc:`/scripts/base/bif/store.bif.zeek`
-
-   Functions to interface with broker's distributed data store.
-
 :doc:`/scripts/base/bif/cluster.bif.zeek`
 
 

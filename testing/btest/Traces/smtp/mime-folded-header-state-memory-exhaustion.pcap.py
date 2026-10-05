@@ -5,13 +5,15 @@ Each flow completes an SMTP dialog up to DATA and then sends a single header
 ("A:") folded across FOLD_COUNT continuation lines (" a"), followed by a second
 header and the blank line terminating the header block. Every continuation line
 is buffered as a separate line object for the one header, so the retained state
-grows with FOLD_COUNT and is amplified across FLOW_COUNT concurrent flows.
+grows with FOLD_COUNT and is amplified across FLOW_COUNT concurrent flows. The flows are intentionally never
+closed (no FIN/ACK teardown), so that their state lingers.
 
 Generated with OpenAI Codex, adapted to use Scapy and gzip compress by default
-with the help of Clause Opus 4.8.
+with the help of Claude Opus 4.8.
 """
 
 import gzip
+from pathlib import Path
 
 from scapy.all import IP, TCP, Ether, Raw, wrpcap
 
@@ -93,9 +95,9 @@ def main():
     for flow in range(FLOW_COUNT):
         packets.extend(flow_packets(FIRST_CLIENT_PORT + flow, message, ts=flow * 100.0))
 
-    with gzip.GzipFile(
-        "mime-folded-header-state-memory-exhaustion.pcap.gz", "wb", mtime=0
-    ) as f:
+    # <name>.pcap.py -> <name>.pcap -> <name>.pcap.gz, next to this script.
+    output = Path(__file__).with_suffix("").with_suffix(".pcap.gz")
+    with gzip.GzipFile(output, "wb", mtime=0) as f:
         wrpcap(f, packets)
 
 

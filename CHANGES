@@ -1,3 +1,19 @@
+9.0.0-18 | 2026-10-13 15:21:18 -0700
+
+  * Fix test baseline for differences between openssl-3 and openssl-4 (Benjamin Bannier, Corelight)
+
+    We directly expose key identifiers from openssl in logs. With openssl-4
+    the displayed information changed for a single key used in tests which
+    now causes a test to fail with that version.
+
+    This patch normalizes the displayed information to remove differences
+    among openssl versions. We were previously also installing only
+    `openssl@3` on macos in CI which masked the issue, but this is not a
+    realistic option on non-CI machines since other packages like `wget`
+    might pull in `openssl@4` which Zeek's configure script would prefer.
+
+    (cherry picked from commit 8afe55cc486faea9f083df3504af00e89428a1cf)
+
 9.0.0-17 | 2026-10-13 19:16:18 +0000
 
   * CCI: Move public-ecr-cleanup build to weekly (Tim Wojtulewicz, Corelight)

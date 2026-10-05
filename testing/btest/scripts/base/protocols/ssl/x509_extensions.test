@@ -8,6 +8,12 @@ event x509_extension(f: fa_file, extension: X509::Extension)
 {
 	# The formatting of CRL Distribution Points varies between OpenSSL versions. Skip it
 	# for the test.
-	if ( extension$short_name != "crlDistributionPoints" ) 
-		print extension;
+	if ( extension$short_name == "crlDistributionPoints" )
+		return;
+
+	# OpenSSL versions differ on leading zeros in AKI serial numbers.
+	if ( extension$short_name == "authorityKeyIdentifier" )
+		extension$value = gsub(extension$value, /serial:0*/, "serial:");
+
+	print extension;
 }

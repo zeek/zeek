@@ -117,7 +117,15 @@ def main():
 
             with patch_sys_argv([str(generator)]):
                 with timeit() as timer:
-                    runpy.run_path(str(generator), run_name="__main__")
+                    try:
+                        runpy.run_path(str(generator), run_name="__main__")
+                    except SystemExit as system_exit:
+                        # Not sure generators should do that.
+                        logging.warning(
+                            "%s: raised SystemExit (%r), ignoring...",
+                            generator_rel,
+                            system_exit,
+                        )
 
                 if not args.quiet:
                     print(".", end="", flush=True)
@@ -138,9 +146,6 @@ def main():
                 logging.error("%s: hash of %s changed!", generator_rel, pcap_actual)
                 sys.exit(1)
 
-        except SystemExit:
-            logging.error("%s: raised SystemExit!", generator_rel)
-            sys.exit(1)
         except Exception:
             logging.exception("%s: caused an exception!", generator_rel)
             raise

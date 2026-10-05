@@ -1,3 +1,27 @@
+9.1.0-dev.163 | 2026-10-05 10:31:32 +0200
+
+  * Add scapy-pcap skill under .agents/skills (Arne Welzel, Corelight)
+
+    The AGENTS.md file and btest.rst documentation have been semi-useful in
+    guiding agents to produce good PCAP generator scripts. Usually extra and
+    repeated prompting is required for a nice result. This commit introduces
+    an scapy-pcap AGENT skill into .agents/skills using the agentskills.io
+    standard to avoid repeated prompting.
+
+    This skill has been useful for me locally and was created using Claude Opus 4.8
+    itself after cleaning up two or three PCAP generator scripts. It containes
+    a few instructions me and others have stumbled over repeatedly: Deterministic
+    timestamps, high-level Scapy API usage, gzip compression, ...
+
+    The advantage of an agent skill is that it should only be loaded on demand
+    rather than being in the context all the time.
+
+    This won't work with Claude out of the box, but symlinking from
+    .claude to .agents does the trick, and so should linking from .claude/skills
+    to .agents/skills if one uses a custom .claude directory. Codex, on the
+    other hand, should pick up .agents/skills by default and there's hope
+    Claude will at some point as well.
+
 9.1.0-dev.161 | 2026-10-01 11:39:41 -0700
 
   * Add removed method/field to NEWS as breaking changes (Tim Wojtulewicz, Corelight)

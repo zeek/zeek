@@ -883,6 +883,17 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     return make_intrusive<StringVal>(new String(true, result, r - result));
 }
 
+StringValPtr StringVal::concatenate(std::span<StringValPtr> strings) {
+    std::vector<const zeek::String*> r;
+    r.reserve(strings.size());
+
+    for ( const auto& s : strings )
+        r.push_back(s->AsString());
+
+    String* cat = zeek::concatenate(r);
+    return zeek::make_intrusive<zeek::StringVal>(cat); // adopts String
+}
+
 unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {
     return 1 /* this object */ + static_cast<unsigned int>(Len()) / sizeof(Val);
 }

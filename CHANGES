@@ -1,3 +1,17 @@
+9.1.0-dev.165 | 2026-10-05 18:13:04 +0200
+
+  * Fix test baseline for differences between openssl-3 and openssl-4 (Benjamin Bannier, Corelight)
+
+    We directly expose key identifiers from openssl in logs. With openssl-4
+    the displayed information changed for a single key used in tests which
+    now causes a test to fail with that version.
+
+    This patch normalizes the displayed information to remove differences
+    among openssl versions. We were previously also installing only
+    `openssl@3` on macos in CI which masked the issue, but this is not a
+    realistic option on non-CI machines since other packages like `wget`
+    might pull in `openssl@4` which Zeek's configure script would prefer.
+
 9.1.0-dev.163 | 2026-10-05 10:31:32 +0200
 
   * Add scapy-pcap skill under .agents/skills (Arne Welzel, Corelight)

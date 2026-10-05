@@ -463,7 +463,7 @@ jobs:
       HILTI_CXX_COMPILER_LAUNCHER: ccache
     machine:
       image: windows-server-2025-gui:edge
-    resource_class: windows.large
+    resource_class: windows.medium
     steps:
       - run:
           name: Install Chocolatey dependencies

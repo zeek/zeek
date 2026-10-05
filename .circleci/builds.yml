@@ -5,7 +5,7 @@ orbs:
   aws-cli: circleci/aws-cli@5.4.1
 
 # These parameters are set via setup.yml. The PR ones are based on the labels for PRs
-# from Github. changes_only_docs is for PRs that only change docs.
+# from Github.
 parameters:
   pr_label_full:
     type: boolean
@@ -26,9 +26,6 @@ parameters:
     type: boolean
     default: false
   pr_label_zeekctl:
-    type: boolean
-    default: false
-  changes_only_docs:
     type: boolean
     default: false
   has_release_tag:

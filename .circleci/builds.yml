@@ -19,9 +19,6 @@ parameters:
   pr_label_cluster_test:
     type: boolean
     default: false
-  pr_label_spicy:
-    type: boolean
-    default: false
   pr_label_windows:
     type: boolean
     default: false

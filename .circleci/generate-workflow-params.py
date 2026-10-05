@@ -42,8 +42,6 @@ if PR_NUMBER:
             params["pr_label_full"] = True
         elif name == "CI: Skip All":
             params["pr_label_skip_all"] = True
-        elif name == "CI: Spicy":
-            params["pr_label_spicy"] = True
         elif name == "CI: Windows":
             params["pr_label_windows"] = True
         elif name == "CI: ZAM":

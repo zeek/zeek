@@ -26,6 +26,17 @@ refine connection GSSAPI_Conn += {
 			}
 	%}
 
+	function forward_krb5(blob: bytestring, is_orig: bool): bool
+		%{
+		if ( ! krb5 )
+			krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
+
+		if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
+			krb5->DeliverPacket(blob.length(), blob.begin(), is_orig, 0, nullptr, 0);
+
+		return true;
+		%}
+
 	function forward_blob(val: GSSAPI_NEG_TOKEN_MECH_TOKEN, is_orig: bool): bool
 		%{
 		if ( ${val.has_ntlm} &&
@@ -42,30 +53,10 @@ refine connection GSSAPI_Conn += {
 			}
 
 		else if ( ${val.has_krb_with_oid} )
-			{
-			if ( ! krb5 )
-				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
-
-			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
-				{
-				krb5->DeliverPacket(${val.krb_with_oid.blob}.length(),
-				                    ${val.krb_with_oid.blob}.begin(),
-				                    is_orig, 0, nullptr, 0);
-				}
-			}
+			return forward_krb5(${val.krb_with_oid.blob}, is_orig);
 
 		else if ( ${val.has_krb_blob} )
-			{
-			if ( ! krb5 )
-				krb5 = zeek::analyzer_mgr->InstantiateAnalyzer("KRB", zeek_analyzer()->Conn());
-
-			if ( krb5 ) // accepting all KRB types (REQ, REP, etc)
-				{
-				krb5->DeliverPacket(${val.krb_blob}.length(),
-				                    ${val.krb_blob}.begin(),
-				                    is_orig, 0, nullptr, 0);
-				}
-			}
+			return forward_krb5(${val.krb_blob}, is_orig);
 
 		return true;
 		%}
@@ -85,6 +76,12 @@ refine connection GSSAPI_Conn += {
 
 refine typeattr GSSAPI_NEG_TOKEN_MECH_TOKEN += &let {
 	fwd: bool = $context.connection.forward_blob(this, is_orig);
+};
+
+refine typeattr GSSAPI_KRB5_TOKEN += &let {
+	# Only context establishment tokens carry a Kerberos message.
+	fwd: bool = $context.connection.forward_krb5(blob, token_id == 0x0100)
+		&if(token_id == 0x0100 || token_id == 0x0200 || token_id == 0x0300);
 };
 
 refine typeattr GSSAPI_NEG_TOKEN_RESP_Arg += &let {

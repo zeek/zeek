@@ -5,6 +5,7 @@
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
 # @TEST-EXEC: test -f analyzer.log
 # @TEST-EXEC: btest-diff-cut -m ldap.log
+# @TEST-EXEC: btest-diff-cut -m uid request_type client service cipher kerberos.log
 
 @load base/protocols/conn
 @load base/protocols/krb

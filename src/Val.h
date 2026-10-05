@@ -4,6 +4,8 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -580,6 +582,9 @@ public:
     const String* Get() const { return string_val; }
 
     StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
+
+    // Concatenate all strings contained in the given span into a single new string.
+    static StringValPtr concatenate(std::span<StringValPtr> strings);
 
 protected:
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;

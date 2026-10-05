@@ -70,6 +70,10 @@ if GIT_TAG and re.match(r"^v\d+\.\d+\.\d+(-rc[0-9]+)?$", GIT_TAG):
 platforms = sorted([p.split("/")[1] for p in glob.glob("ci/*/Dockerfile")])
 if "windows" in platforms:
     platforms.remove("windows")
+# Remove scapy as the pcap generators run via a GitHub action and there's
+# no need to build a container image.
+if "scapy" in platforms:
+    platforms.remove("scapy")
 
 # Build a version string for each platform. For release branches, we prepend the version number so
 # the cleanup task doesn't nuke versions from the release branches.

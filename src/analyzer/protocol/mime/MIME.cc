@@ -3,7 +3,8 @@
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
 #include <openssl/evp.h>
-#include <cinttypes>
+#include <cstdint>
+#include <utility>
 
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
@@ -625,7 +626,7 @@ void MIME_Entity::NewHeader(int len, const char* data) {
     ASSERT(! is_lws(*data));
 
     current_header_line = new MIME_Multiline();
-    current_header_line->append(len, data);
+    AppendHeaderLine(len, data);
 }
 
 void MIME_Entity::ContHeader(int len, const char* data) {
@@ -638,13 +639,23 @@ void MIME_Entity::ContHeader(int len, const char* data) {
         return;
     }
 
-    if ( zeek::BifConst::MIME::max_header_bytes > 0 &&
-         current_header_line->get_total_bytes() >= zeek::BifConst::MIME::max_header_bytes ) {
-        if ( message->GetAnalyzer() )
-            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_header_bytes",
-                                                      current_header_line->get_total_bytes());
+    AppendHeaderLine(len, data);
+}
 
-        return;
+void MIME_Entity::AppendHeaderLine(int len, const char* data) {
+    auto limit = zeek::BifConst::MIME::max_header_bytes;
+    auto to_append = len;
+    if ( limit > 0 ) {
+        auto total = current_header_line->get_total_bytes();
+
+        if ( total >= limit )
+            to_append = 0;
+        else if ( std::cmp_greater(len, limit - total) )
+            to_append = static_cast<int>(limit - total);
+
+        // Note this weirds every time we try to append, regardless of if we already did.
+        if ( to_append < len && message->GetAnalyzer() )
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_header_bytes", total + len);
     }
 
     if ( zeek::BifConst::MIME::max_header_continuation_lines > 0 &&
@@ -656,8 +667,10 @@ void MIME_Entity::ContHeader(int len, const char* data) {
         return;
     }
 
-    current_header_line->append(len, data);
+    if ( to_append > 0 )
+        current_header_line->append(to_append, data);
 }
+
 
 void MIME_Entity::FinishHeader() {
     if ( current_header_line == nullptr )

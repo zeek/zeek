@@ -118,6 +118,7 @@ protected:
     // {begin, continuation, end} of a header.
     void NewHeader(int len, const char* data);
     void ContHeader(int len, const char* data);
+    void AppendHeaderLine(int len, const char* data);
     void FinishHeader();
 
     void ParseMIMEHeader(MIME_Header* h);

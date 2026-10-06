@@ -117,7 +117,7 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 
 	if ( id !in transactions )
 		transactions[id] = Info($ts=ts, $transaction_id=id);
-	
+
 	local info = transactions[id];
 
 	add info$uids[uid];
@@ -152,7 +152,7 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 			info$requested_options = names;
 			}
 		}
-	
+
 	# Some fields can be supplied by either side; keep the first non-empty
 	# value we see.
 	if ( msg?$iaid && ! info?$iaid )
@@ -169,7 +169,7 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 		if ( msg?$status_message && |msg$status_message| > 0 )
 			info$status_message = msg$status_message;
 		}
-	
+
 	}
 
 event zeek_done() &priority=-5

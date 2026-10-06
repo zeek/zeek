@@ -1,5 +1,5 @@
 # @TEST-EXEC: zcat <$TRACES/smtp/mime-header-size-limit.pcap.gz | zeek -b -r - %INPUT
-# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff-cut -m weird.log
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
 
 @load base/protocols/smtp

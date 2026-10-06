@@ -73,11 +73,16 @@ type KRB_REQ_Arg_Data(index: uint8) = case index of {
 	5  	-> till		: KRB_Time;
 	6  	-> rtime	: KRB_Time;
 	7  	-> nonce	: ASN1Integer;
-	8  	-> etype	: Array;
+	8  	-> etype	: EType_Array;
 	9  	-> addrs	: KRB_Host_Addresses;
 	10 	-> auth_data 	: ASN1OctetString;
 	11 	-> addl_tkts 	: KRB_Ticket_Sequence;
 	default -> unknown	: bytestring &restofdata;
+};
+
+type EType_Array = record {
+	array_meta: ASN1EncodingMeta;
+	data:       ASN1Encoding[] &enforce(array_meta.length < 1000);
 };
 
 type KRB_KDC_Options = record {

@@ -1,7 +1,5 @@
 # @TEST-DOC: Verify that BinPAC TLS certificate processing is capped per connection.
 #
-# @TEST-REQUIRES: ! have-spicy-ssl
-#
 # @TEST-EXEC: zeek -b -r $TRACES/tls/tls-certificate-chain-limit.pcap %INPUT >out
 #
 # @TEST-EXEC: btest-diff out

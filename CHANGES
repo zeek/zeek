@@ -1,3 +1,40 @@
+9.1.0-dev.170 | 2026-10-07 09:57:58 +0200
+
+  * NEWS/DHCPv6: Minor whitespace and NEWS updates (Arne Welzel, Corelight)
+
+  * NEWS: Mention the new DHCPv6 analyzer (Van Dong Vo)
+
+  * testing: Add DHCPv6 analyzer baseline tests (Van Dong Vo)
+
+    Basic tests cover 4 pcap files taken from topic/awelzel/dhcpv6.
+    Also updates baselines for tests affected by registering DHCPv6 as a
+    new base analyzer on well-known ports 546/547:
+    - coverage.default-load-baseline: adds base/protocols/dhcpv6 to the
+      default script load list.
+    - coverage.find-bro-logs: adds dhcpv6.log.
+    - core.print-bpf-filters: adds 546/547 to the default BPF.
+    - core.pppoe: the trace contains DHCPv6 traffic; connection direction
+      is now inferred from the DHCPv6 port registration instead of the
+      first-packet-seen.
+
+  * GH-5606: Add a DHCPv6 analyzer (Van Dong Vo)
+
+    Implement a Spicy-based DHCPv6 protocol analyzer producing dhcpv6.log,
+    organize around the DHCPv6 transaction ID.
+
+    The grammar (src/analyzer/protocol/dhcpv6/dhcpv6.spicy) parses the
+    client/server message header from RFC 8415 §8 plus a common subset of
+    options: CLIENTID, SERVERID, IA_NA, IAADDR, ORO, STATUS_CODE, CLIENT_FQDN.
+    Relay-forward and relay-reply messages (RFC 8415 §9) are also parsed, but
+    currently does not fire any event.
+
+    The script layer (scripts/base/protocols/dhcpv6/) aggregates messages
+    sharing a transaction ID into a single log entry on the manager, mirroring
+    the DHCPv4 aggregation model since DHCPv6 uses multicast and separate
+    client/server flows.
+
+    Closes #5606.
+
 9.1.0-dev.165 | 2026-10-05 18:13:04 +0200
 
   * Fix test baseline for differences between openssl-3 and openssl-4 (Benjamin Bannier, Corelight)

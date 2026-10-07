@@ -21,6 +21,19 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now includes an initial version of a DHCPv6 analyzer, producing ``dhcpv6.log``.
+
+  The analyzer implementation and ``dhcpv6.log`` are in early stages and will be
+  actively iterated on and likely changed towards the Zeek 10.0 release. If you
+  have opinions and use-cases about the structure of the log and hooks or additional
+  events, please get in touch and let us know!
+
+  To disable the analyzer in case of issues, use the following snippet:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_DHCPV6,
+	};
+
 - The input framework now supports optional records in its input files. The
   fields of absent records, including potential nested records, should be
   listed with the configured ``Input::unset_field`` character (normally "-").

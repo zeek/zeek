@@ -1,0 +1,7 @@
+evict first: queue size 1
+first write: T
+after first write: queue size 0
+evict second: queue size 1
+second write: T
+after second write: queue size 0
+done: queue size 0

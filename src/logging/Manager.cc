@@ -444,15 +444,15 @@ void Manager::Stream::EvictDelayedWrites() {
             // Delay completed will remove it from the queue, no need to pop.
             zeek::log_mgr->DelayCompleted(this, *evict_delay_info);
 
-            if ( current == start_queue_size ) {
+            if ( current == start_queue_size && delay_queue.size() > max_delay_queue_size ) {
                 reporter->Warning("unable to evict delayed records for stream %s queue_size=%ld, all re-delayed?",
                                   id->GetType<EnumType>()->Lookup(id->InternalInt()), delay_queue.size());
                 break;
             }
         }
 
-
-        ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
+        if ( ! delay_queue.empty() )
+            ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
     }
 
     evicting = false;

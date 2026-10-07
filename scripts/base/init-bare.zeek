@@ -5438,6 +5438,11 @@ export {
 	## content_type alert (21). The remaining alerts are discarded. For
 	## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
 	const SSL::max_alerts_per_record = 10 &redef;
+
+	## Maximum number of certificates parsed across TLS Certificate handshake
+	## messages on a single connection. The remaining certificates are
+	## discarded. A value of 0 disables the limit.
+	const SSL::max_certificates = 100 &redef;
 }
 
 module GLOBAL;

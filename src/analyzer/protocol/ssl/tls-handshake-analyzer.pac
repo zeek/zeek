@@ -402,8 +402,11 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
-	function proc_v3_certificate(is_orig: bool, cl : X509Certificate[]) : bool
+	function proc_v3_certificate(is_orig: bool, cl : X509Certificate[], trailing_length: int) : bool
 		%{
+		if ( certificate_limit_reached() && trailing_length > 0 )
+			report_certificate_limit_exceeded();
+
 		vector<X509Certificate*>* certs = cl;
 		vector<bytestring>* cert_list = new vector<bytestring>();
 
@@ -759,7 +762,7 @@ refine typeattr ServerHello13 += &let {
 
 
 refine typeattr Certificate += &let {
-	proc : bool = $context.connection.proc_v3_certificate(rec.is_orig, certificates);
+	proc : bool = $context.connection.proc_v3_certificate(rec.is_orig, certificates, sizeof(trailing));
 };
 
 refine typeattr UnknownHandshake += &let {

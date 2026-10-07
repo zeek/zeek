@@ -1,3 +1,4 @@
 const SSL::dtls_max_version_errors: count;
 const SSL::dtls_max_reported_version_errors: count;
 const SSL::max_alerts_per_record: count;
+const SSL::max_certificates: count;

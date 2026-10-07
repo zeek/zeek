@@ -172,7 +172,13 @@ type X509Certificate = record {
 
 type Certificate(rec: HandshakeRecord) = record {
 	length : uint24;
-	certificates : X509Certificate[] &until($input.length() == 0);
+	# First &until happens before each certificate is parsed, used so we do not parse the first
+	# if we are at the limit.
+	#
+	# Second &until happens after each certificate.
+	certificates : X509Certificate[] &until($context.connection.certificate_limit_reached())
+	                              &until($element == nullptr || $context.connection.record_certificate());
+	trailing : bytestring &restofdata &transient;
 } &length = to_int()(length)+3;
 
 # OCSP Stapling
@@ -1015,9 +1021,11 @@ refine connection Handshake_Conn += {
 		uint16 record_version_;
 		bytestring client_random_;
 		bytestring server_random_;
+		uint64 certificates_seen_;
 		uint32 gmt_unix_time_;
 		bool flipped_;
 		bool already_alerted_;
+		bool certificate_limit_reported_;
 	%}
 
 	%init{
@@ -1028,6 +1036,8 @@ refine connection Handshake_Conn += {
 
 		record_version_ = 0;
 		gmt_unix_time_ = 0;
+		certificates_seen_ = 0;
+		certificate_limit_reported_ = false;
 	%}
 
 	%cleanup{
@@ -1123,6 +1133,35 @@ refine connection Handshake_Conn += {
 	function set_gmt_unix_time(ts: uint32) : bool
 		%{
 		gmt_unix_time_ = ts;
+		return true;
+		%}
+
+	function certificate_limit_reached() : bool
+		%{
+		uint64_t max = zeek::BifConst::SSL::max_certificates;
+		return max > 0 && certificates_seen_ >= max;
+		%}
+
+	function record_certificate() : bool
+		%{
+		uint64_t max = zeek::BifConst::SSL::max_certificates;
+
+		if ( max > 0 && certificates_seen_ < max )
+			++certificates_seen_;
+
+		return certificate_limit_reached();
+		%}
+
+	function report_certificate_limit_exceeded() : bool
+		%{
+		uint64_t max = zeek::BifConst::SSL::max_certificates;
+
+		if ( ! certificate_limit_reported_ )
+			{
+			certificate_limit_reported_ = true;
+			zeek_analyzer()->LimitReachedWeird("SSL_max_certificates_exceeded", max);
+			}
+
 		return true;
 		%}
 };

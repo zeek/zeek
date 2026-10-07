@@ -357,7 +357,7 @@ jobs:
 
             cd auxil/zeekctl/testing
             ./Scripts/build-zeek
-            ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
+            ../../btest/btest -A -d -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS}
 
         - id: include-plugins-debian13
           file: ci/debian-13/Dockerfile
@@ -371,7 +371,7 @@ jobs:
 
             ./ci/build.sh
 
-            (cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS})
+            (cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS})
 
             . $ZEEK_CI_WORKING_DIR/build/zeek-path-dev.sh
             set -ex
@@ -458,6 +458,14 @@ jobs:
             zeek-ci-${{ hashFiles(matrix.file) }} \
             bash -c "set -e; ${{ matrix.run }}"
 
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: btest-results-${{ matrix.id }}
+        path: '**/btest-results.xml'
+        if-no-files-found: ignore
+
   windows:
     runs-on: windows-2025
     needs: is-public-repo
@@ -517,6 +525,14 @@ jobs:
       run: |
         ./ci/windows/test.cmd
 
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: btest-results-windows
+        path: '**/btest-results.xml'
+        if-no-files-found: ignore
+
   macos:
     strategy:
       fail-fast: false
@@ -560,3 +576,38 @@ jobs:
     - name: Test
       run: |
         ./ci/test.sh
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: btest-results-${{ matrix.release }}
+        path: '**/btest-results.xml'
+        if-no-files-found: ignore
+
+  test-results:
+    name: Publish Test Results
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-latest
+    if: always()
+    # We want this job to report flaky tests (which are reported as failures),
+    # but at least for now do not want it to cause the whole workflow to fail
+    # if a flaky test passed on retry.
+    continue-on-error: true
+    permissions:
+      checks: write
+    steps:
+    - name: Download test results
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      with:
+        pattern: btest-results-*
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
+      with:
+        files: '**/btest-results.xml'
+        check_run: true
+        comment_mode: off
+        action_fail: true
+        report_individual_runs: true
+        report_suite_logs: error

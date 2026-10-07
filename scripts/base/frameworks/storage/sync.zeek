@@ -70,6 +70,31 @@ export {
 	##          string for failures.
 	global erase: function(backend: opaque of Storage::BackendHandle, key: any)
 	    : Storage::OperationResult;
+
+	## Retrieves all entries from the backend as a table.
+	##
+	## backend: A handle to a backend connection.
+	##
+	## max_entries: The maximum number of entries to retrieve. If the backend
+	##             contains more entries, the operation fails with
+	##             ``RESULT_TOO_LARGE``. Pass 0 for no limit.
+	##
+	## Returns: A record containing the status of the operation, an optional error
+	##          string for failures, and an optional value containing the table on
+	##          success. The table will have the key/value types that were passed
+	##          to :zeek:see:`Storage::Sync::open_backend`.
+	global get_all: function(backend: opaque of Storage::BackendHandle,
+	    max_entries: count): Storage::OperationResult;
+
+	## Returns the number of non-expired entries in the backend.
+	##
+	## backend: A handle to a backend connection.
+	##
+	## Returns: A record containing the status of the operation, an optional error
+	##          string for failures, and an optional value containing the count on
+	##          success.
+	global size: function(backend: opaque of Storage::BackendHandle)
+	    : Storage::OperationResult;
 }
 
 function open_backend(btype: Storage::Backend, options: Storage::BackendOptions,
@@ -101,4 +126,16 @@ function erase(backend: opaque of Storage::BackendHandle, key: any)
     : Storage::OperationResult
 	{
 	return Storage::Sync::__erase(backend, key);
+	}
+
+function get_all(backend: opaque of Storage::BackendHandle, max_entries: count)
+    : Storage::OperationResult
+	{
+	return Storage::Sync::__get_all(backend, max_entries);
+	}
+
+function size(backend: opaque of Storage::BackendHandle)
+    : Storage::OperationResult
+	{
+	return Storage::Sync::__size(backend);
 	}

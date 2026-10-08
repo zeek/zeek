@@ -400,6 +400,10 @@
    base/protocols/dhcp/__load__.zeek </scripts/base/protocols/dhcp/__load__.zeek>
    base/protocols/dhcp/consts.zeek </scripts/base/protocols/dhcp/consts.zeek>
    base/protocols/dhcp/main.zeek </scripts/base/protocols/dhcp/main.zeek>
+   base/protocols/dhcpv6/__load__.zeek </scripts/base/protocols/dhcpv6/__load__.zeek>
+   base/protocols/dhcpv6/consts.zeek </scripts/base/protocols/dhcpv6/consts.zeek>
+   base/protocols/dhcpv6/spicy-events.zeek </scripts/base/protocols/dhcpv6/spicy-events.zeek>
+   base/protocols/dhcpv6/main.zeek </scripts/base/protocols/dhcpv6/main.zeek>
    base/protocols/dnp3/__load__.zeek </scripts/base/protocols/dnp3/__load__.zeek>
    base/protocols/dnp3/main.zeek </scripts/base/protocols/dnp3/main.zeek>
    base/protocols/dnp3/consts.zeek </scripts/base/protocols/dnp3/consts.zeek>

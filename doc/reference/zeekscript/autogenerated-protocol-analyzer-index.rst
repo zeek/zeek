@@ -119,6 +119,8 @@ Protocol Analyzers
 
       .. zeek:enum:: Analyzer::ANALYZER_SOCKS Analyzer::Tag
 
+      .. zeek:enum:: Analyzer::ANALYZER_DHCPV6 Analyzer::Tag
+
       .. zeek:enum:: Analyzer::ANALYZER_FINGER Analyzer::Tag
 
       .. zeek:enum:: Analyzer::ANALYZER_LDAP_TCP Analyzer::Tag
@@ -352,6 +354,8 @@ Protocol Analyzers
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SNMP AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_SOCKS AllAnalyzers::Tag
+
+      .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_DHCPV6 AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_FINGER AllAnalyzers::Tag
 
@@ -1727,6 +1731,162 @@ Events
 
 
    :param options: The full set of supported and parsed DHCP options.
+
+.. _plugin-zeek-dhcpv6:
+
+Zeek::DHCPv6
+------------
+
+DHCPv6 analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`Analyzer::ANALYZER_DHCPV6`
+
+Types
++++++
+
+.. zeek:type:: spicy::AddressFamily
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::AddressFamily_IPv4 spicy::AddressFamily
+
+      .. zeek:enum:: spicy::AddressFamily_IPv6 spicy::AddressFamily
+
+      .. zeek:enum:: spicy::AddressFamily_Undef spicy::AddressFamily
+
+
+.. zeek:type:: spicy::BitOrder
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::BitOrder_LSB0 spicy::BitOrder
+
+      .. zeek:enum:: spicy::BitOrder_MSB0 spicy::BitOrder
+
+      .. zeek:enum:: spicy::BitOrder_Undef spicy::BitOrder
+
+
+.. zeek:type:: spicy::ByteOrder
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::ByteOrder_Little spicy::ByteOrder
+
+      .. zeek:enum:: spicy::ByteOrder_Big spicy::ByteOrder
+
+      .. zeek:enum:: spicy::ByteOrder_Network spicy::ByteOrder
+
+      .. zeek:enum:: spicy::ByteOrder_Host spicy::ByteOrder
+
+      .. zeek:enum:: spicy::ByteOrder_Undef spicy::ByteOrder
+
+
+.. zeek:type:: spicy::Charset
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::Charset_ASCII spicy::Charset
+
+      .. zeek:enum:: spicy::Charset_UTF8 spicy::Charset
+
+      .. zeek:enum:: spicy::Charset_UTF16LE spicy::Charset
+
+      .. zeek:enum:: spicy::Charset_UTF16BE spicy::Charset
+
+      .. zeek:enum:: spicy::Charset_Undef spicy::Charset
+
+
+.. zeek:type:: spicy::DecodeErrorStrategy
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::DecodeErrorStrategy_IGNORE spicy::DecodeErrorStrategy
+
+      .. zeek:enum:: spicy::DecodeErrorStrategy_REPLACE spicy::DecodeErrorStrategy
+
+      .. zeek:enum:: spicy::DecodeErrorStrategy_STRICT spicy::DecodeErrorStrategy
+
+      .. zeek:enum:: spicy::DecodeErrorStrategy_Undef spicy::DecodeErrorStrategy
+
+
+.. zeek:type:: spicy::Protocol
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::Protocol_TCP spicy::Protocol
+
+      .. zeek:enum:: spicy::Protocol_UDP spicy::Protocol
+
+      .. zeek:enum:: spicy::Protocol_ICMP spicy::Protocol
+
+      .. zeek:enum:: spicy::Protocol_Undef spicy::Protocol
+
+
+.. zeek:type:: spicy::RealType
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::RealType_IEEE754_Single spicy::RealType
+
+      .. zeek:enum:: spicy::RealType_IEEE754_Double spicy::RealType
+
+      .. zeek:enum:: spicy::RealType_Undef spicy::RealType
+
+
+.. zeek:type:: spicy::ReassemblerPolicy
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::ReassemblerPolicy_First spicy::ReassemblerPolicy
+
+      .. zeek:enum:: spicy::ReassemblerPolicy_Undef spicy::ReassemblerPolicy
+
+
+.. zeek:type:: spicy::Side
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::Side_Left spicy::Side
+
+      .. zeek:enum:: spicy::Side_Right spicy::Side
+
+      .. zeek:enum:: spicy::Side_Both spicy::Side
+
+      .. zeek:enum:: spicy::Side_Undef spicy::Side
+
+
+.. zeek:type:: spicy::Direction
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: spicy::Direction_Forward spicy::Direction
+
+      .. zeek:enum:: spicy::Direction_Backward spicy::Direction
+
+      .. zeek:enum:: spicy::Direction_Undef spicy::Direction
+
+
+Events
+++++++
+
+.. zeek:id:: dhcpv6_message
+   :source-code: base/protocols/dhcpv6/main.zeek 185 192
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCPv6::MessageInfo`)
+
+   Generated for each parsed DHCPv6 message.
+
+
+   :param c: The connection.
+
+
+   :param is_orig: Whether the message came from the originator.
+
+
+   :param msg: Flat summary of the parsed message (see :zeek:type:`DHCPv6::MessageInfo`).
 
 .. _plugin-zeek-dnp3:
 
@@ -3511,131 +3671,6 @@ Components
 ++++++++++
 
 :zeek:enum:`Analyzer::ANALYZER_FINGER`
-
-Types
-+++++
-
-.. zeek:type:: spicy::AddressFamily
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::AddressFamily_IPv4 spicy::AddressFamily
-
-      .. zeek:enum:: spicy::AddressFamily_IPv6 spicy::AddressFamily
-
-      .. zeek:enum:: spicy::AddressFamily_Undef spicy::AddressFamily
-
-
-.. zeek:type:: spicy::BitOrder
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::BitOrder_LSB0 spicy::BitOrder
-
-      .. zeek:enum:: spicy::BitOrder_MSB0 spicy::BitOrder
-
-      .. zeek:enum:: spicy::BitOrder_Undef spicy::BitOrder
-
-
-.. zeek:type:: spicy::ByteOrder
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::ByteOrder_Little spicy::ByteOrder
-
-      .. zeek:enum:: spicy::ByteOrder_Big spicy::ByteOrder
-
-      .. zeek:enum:: spicy::ByteOrder_Network spicy::ByteOrder
-
-      .. zeek:enum:: spicy::ByteOrder_Host spicy::ByteOrder
-
-      .. zeek:enum:: spicy::ByteOrder_Undef spicy::ByteOrder
-
-
-.. zeek:type:: spicy::Charset
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::Charset_ASCII spicy::Charset
-
-      .. zeek:enum:: spicy::Charset_UTF8 spicy::Charset
-
-      .. zeek:enum:: spicy::Charset_UTF16LE spicy::Charset
-
-      .. zeek:enum:: spicy::Charset_UTF16BE spicy::Charset
-
-      .. zeek:enum:: spicy::Charset_Undef spicy::Charset
-
-
-.. zeek:type:: spicy::DecodeErrorStrategy
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::DecodeErrorStrategy_IGNORE spicy::DecodeErrorStrategy
-
-      .. zeek:enum:: spicy::DecodeErrorStrategy_REPLACE spicy::DecodeErrorStrategy
-
-      .. zeek:enum:: spicy::DecodeErrorStrategy_STRICT spicy::DecodeErrorStrategy
-
-      .. zeek:enum:: spicy::DecodeErrorStrategy_Undef spicy::DecodeErrorStrategy
-
-
-.. zeek:type:: spicy::Protocol
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::Protocol_TCP spicy::Protocol
-
-      .. zeek:enum:: spicy::Protocol_UDP spicy::Protocol
-
-      .. zeek:enum:: spicy::Protocol_ICMP spicy::Protocol
-
-      .. zeek:enum:: spicy::Protocol_Undef spicy::Protocol
-
-
-.. zeek:type:: spicy::RealType
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::RealType_IEEE754_Single spicy::RealType
-
-      .. zeek:enum:: spicy::RealType_IEEE754_Double spicy::RealType
-
-      .. zeek:enum:: spicy::RealType_Undef spicy::RealType
-
-
-.. zeek:type:: spicy::ReassemblerPolicy
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::ReassemblerPolicy_First spicy::ReassemblerPolicy
-
-      .. zeek:enum:: spicy::ReassemblerPolicy_Undef spicy::ReassemblerPolicy
-
-
-.. zeek:type:: spicy::Side
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::Side_Left spicy::Side
-
-      .. zeek:enum:: spicy::Side_Right spicy::Side
-
-      .. zeek:enum:: spicy::Side_Both spicy::Side
-
-      .. zeek:enum:: spicy::Side_Undef spicy::Side
-
-
-.. zeek:type:: spicy::Direction
-
-   :Type: :zeek:type:`enum`
-
-      .. zeek:enum:: spicy::Direction_Forward spicy::Direction
-
-      .. zeek:enum:: spicy::Direction_Backward spicy::Direction
-
-      .. zeek:enum:: spicy::Direction_Undef spicy::Direction
-
 
 Events
 ++++++

@@ -246,6 +246,9 @@
 
    Support for Dynamic Host Configuration Protocol (DHCP) analysis.
 
+:doc:`base/protocols/dhcpv6 </scripts/base/protocols/dhcpv6/index>`
+
+
 :doc:`base/protocols/dnp3 </scripts/base/protocols/dnp3/index>`
 
    Support for Distributed Network Protocol (DNP3) analysis.

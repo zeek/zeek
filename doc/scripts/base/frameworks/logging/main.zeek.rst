@@ -782,6 +782,11 @@ Types
          (present if :doc:`/scripts/base/protocols/dhcp/main.zeek` is loaded)
 
 
+      .. zeek:enum:: DHCPv6::LOG Log::ID
+
+         (present if :doc:`/scripts/base/protocols/dhcpv6/main.zeek` is loaded)
+
+
       .. zeek:enum:: DNP3::LOG Log::ID
 
          (present if :doc:`/scripts/base/protocols/dnp3/main.zeek` is loaded)

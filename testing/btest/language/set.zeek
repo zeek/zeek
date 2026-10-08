@@ -294,6 +294,64 @@ function complex_index_type_pattern()
 	test_case( "pattern index JSON roundtrip correct", to_json(s) == to_json(fjr$v) );
 }
 
+global on_change_removals = 0;
+
+function count_removals(s: set[count], tpe: TableChange, c: count)
+{
+	if ( tpe == TABLE_ELEMENT_REMOVED )
+		++on_change_removals;
+}
+
+function remove_from()
+{
+	local s: set[count] = {1, 2, 3, 4};
+	s -= s;
+	test_case( "remove set from itself", |s| == 0 );
+
+	local first_set: set[count] = {1, 2, 3, 4};
+	local second_set: set[count] = {1, 2, 3, 4};
+	first_set -= second_set;
+	test_case( "remove different sets with same values", |first_set| == 0 );
+
+	local set_a: set[count] = {1, 2, 3, 4};
+	local set_b: set[count] = {2, 3};
+	set_a -= set_b;
+	test_case( "remove different sets", |set_a| == 2 );
+
+	local ordered_set: set[count] = {1, 2, 3, 4} &ordered;
+	ordered_set -= ordered_set;
+	test_case( "remove ordered set from itself", |ordered_set| == 0 );
+
+	local ordered_set_a: set[count] = {1, 2, 3, 4} &ordered;
+	local ordered_set_b: set[count] = {2, 3} &ordered;
+	ordered_set_a -= ordered_set_b;
+	test_case( "remove different ordered sets", |ordered_set_a| == 2 );
+
+	local ordered_set_first: set[count] = {1, 2, 3, 4} &ordered;
+	local non_ordered_set_first: set[count] = {2, 3};
+	ordered_set_first -= non_ordered_set_first;
+	test_case( "remove non-ordered set from ordered set", |ordered_set_first| == 2 );
+
+	local t: table[count] of string = {[1] = "one", [2] = "two", [3] = "three"};
+	t -= t;
+	test_case( "remove table from itself", |t| == 0 );
+
+	local first_table: table[count] of string = {[1] = "one", [2] = "two", [3] = "three"};
+	local second_table: table[count] of string = {[1] = "one", [2] = "two", [3] = "three"};
+	first_table -= second_table;
+	test_case( "remove different tables with same values", |first_table| == 0 );
+
+	local table_a: table[count] of string = {[1] = "one", [2] = "two", [3] = "three"};
+	local table_b: table[count] of string = {[2] = "two"};
+	table_a -= table_b;
+	test_case( "remove different tables", |table_a| == 2 );
+
+	local set_for_onchange: set[count] = {1, 2, 3, 4, 5} &on_change=count_removals;
+	set_for_onchange -= set_for_onchange;
+	test_case( "remove &on_change set from itself", |set_for_onchange| == 0 );
+	test_case( "&on_change called for each removed element", on_change_removals == 5 );
+}
+
 event zeek_init()
 {
 	basic_functionality();
@@ -301,4 +359,5 @@ event zeek_init()
 	complex_index_type_vector();
 	complex_index_type_set();
 	complex_index_type_pattern();
+	remove_from();
 }

@@ -1946,24 +1946,23 @@ bool TableVal::RemoveFrom(Val* val) const {
     if ( t == this ) {
         std::vector<std::unique_ptr<detail::HashKey>> keys;
 
-        for ( const auto& tble : *table_val ) {
+        for ( const auto& tble : *table_val )
             keys.push_back(tble.GetHashKey());
-        }
 
-        for ( const auto& k : keys ) {
+        for ( const auto& k : keys )
             t->Remove(*k);
-        }
+
+        return true;
     }
-    else {
-        for ( const auto& tble : *table_val ) {
-            // Not sure that this is 100% sound, since the HashKey
-            // comes from one table but is being used in another.
-            // OTOH, they are both the same type, so as long as
-            // we don't have hash keys that are keyed per dictionary,
-            // it should work ...
-            auto k = tble.GetHashKey();
-            t->Remove(*k);
-        }
+
+    for ( const auto& tble : *table_val ) {
+        // Not sure that this is 100% sound, since the HashKey
+        // comes from one table but is being used in another.
+        // OTOH, they are both the same type, so as long as
+        // we don't have hash keys that are keyed per dictionary,
+        // it should work ...
+        auto k = tble.GetHashKey();
+        t->Remove(*k);
     }
 
     return true;

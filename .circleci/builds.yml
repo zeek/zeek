@@ -631,7 +631,7 @@ jobs:
               mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
               docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
             else
-              ZEEK_VERSION=$(cat VERSION)
+              ZEEK_VERSION=$(python3 auxil/zeek-aux/devel-tools/get-version.py --source .)
 
               docker build \
                   --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
@@ -702,7 +702,7 @@ jobs:
       - run:
           name: Set image tag
           command: |
-            # If we have a CIRCLE_TAG, use the value in VERSION to push the multiarch
+            # If we have a CIRCLE_TAG, use its version to push the multiarch
             # images, otherwise use latest. Basically we push the arch images as
             #    zeek/zeek:1.2.3-<amd64|arm64> or
             #    zeek/zeek-dev:latest-<amd64|arm64>
@@ -711,11 +711,7 @@ jobs:
             set -x
             if [ -n "${CIRCLE_TAG}" ]; then
               echo "IMAGE_NAME=zeek"  >> $BASH_ENV
-              echo "IMAGE_TAG=$(cat VERSION)" >> $BASH_ENV
-              if [ "${CIRCLE_TAG}" != "v$(cat VERSION)" ]; then
-                echo "CIRCLE_TAG '${CIRCLE_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
-                exit 1
-              fi
+              echo "IMAGE_TAG=${CIRCLE_TAG#v}" >> $BASH_ENV
             elif [ "${CIRCLE_BRANCH}" = "master" ]; then
               echo "IMAGE_NAME=zeek-dev"  >> $BASH_ENV
               echo "IMAGE_TAG=latest" >> $BASH_ENV

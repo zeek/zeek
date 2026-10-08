@@ -27,6 +27,7 @@ TARGET="https://${ZEEK_BENCHMARK_HOST}:${ZEEK_BENCHMARK_PORT}${ZEEK_BENCHMARK_EN
 
 # Turn this back off because we want to be able to capture the output from curl if
 # it fails.
+REPO_VERSION=$(python3 ./auxil/zeek-aux/devel-tools/get-version.py --source .)
 set +e
 
 # Make a request to the benchmark host. A couple of notes:
@@ -49,7 +50,7 @@ curl -sS -G --stderr - --fail --insecure -X POST \
     --data-urlencode "cirrus_task_name=$(echo ${CIRCLE_JOB} | sed 's/ubuntu-24\./ubuntu24_/' | tr '-' '_')" \
     --data-urlencode "cirrus_build_id=${CIRCLE_BUILD_NUM}" \
     --data-urlencode "cirrus_pr=$(echo ${CIRCLE_PULL_REQUEST} | awk -F/ '{print $NF}')" \
-    --data-urlencode "repo_version=$(cat ./VERSION)" \
+    --data-urlencode "repo_version=${REPO_VERSION}" \
     "${TARGET}"
 
 STATUS=$?

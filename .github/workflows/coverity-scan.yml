@@ -14,6 +14,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Fetch shallow submodules
         run: git submodule update --init --recursive --depth=1
@@ -73,8 +76,9 @@ jobs:
           COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
         run: |
           ( cd build && tar czf myproject.tgz cov-int )
+          repo_version=$(python3 auxil/zeek-aux/devel-tools/get-version.py --source .)
           curl -X POST \
-            -d version=$(cat VERSION) \
+            -d version=${repo_version} \
             -d description=$(git rev-parse HEAD) \
             -d email=zeek-commits-internal@zeek.org \
             -d token=${COVERITY_TOKEN} \

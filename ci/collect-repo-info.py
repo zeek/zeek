@@ -76,6 +76,18 @@ def git_generic_info(d: pathlib.Path):
     return info
 
 
+def zeek_version(zeek_dir: pathlib.Path):
+    return subprocess.check_output(
+        [
+            sys.executable,
+            str(zeek_dir / "auxil/zeek-aux/devel-tools/get-version.py"),
+            "--source",
+            str(zeek_dir),
+        ],
+        text=True,
+    ).strip()
+
+
 def collect_submodule_info(zeek_dir: pathlib.Path):
     submodules = []
     for sm in git("-C", str(zeek_dir), "submodule", "status").splitlines():
@@ -117,7 +129,7 @@ def collect_git_info(zeek_dir: pathlib.Path):
     """
     info = git_generic_info(zeek_dir)
     info["name"] = "zeek"
-    info["version"] = (zeek_dir / "VERSION").read_text().strip()
+    info["version"] = zeek_version(zeek_dir)
     info["submodules"] = collect_submodule_info(zeek_dir)
     info["branch"] = git(
         "-C", str(zeek_dir), "rev-parse", "--abbrev-ref", "HEAD"

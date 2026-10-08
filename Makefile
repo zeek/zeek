@@ -7,7 +7,7 @@
 
 BUILD=build
 REPO=$$(cd $(CURDIR) && basename $$(git config --get remote.origin.url | sed 's/^[^:]*://g'))
-VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
+VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && python3 auxil/zeek-aux/devel-tools/get-version.py --source .)
 GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
 REALPATH=$$($$(realpath --relative-to=$(shell pwd) . >/dev/null 2>&1) && echo 'realpath' || echo 'grealpath')
 
@@ -53,6 +53,7 @@ dist:
 	@cp -R . ../$(VERSION_FULL)
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do ((cd ../$(VERSION_FULL)/$$i && test -f .git && cp -R $(GITDIR) .gitnew && rm -f .git && mv .gitnew .git && sed -i.bak -e 's#[[:space:]]*worktree[[:space:]]*=[[:space:]]*.*##g' .git/config) || true); done
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do (cd ../$(VERSION_FULL)/$$i && git reset -q --hard && git clean -ffdxq); done
+	@python3 auxil/zeek-aux/devel-tools/get-version.py --source . --output ../$(VERSION_FULL)/VERSION
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)

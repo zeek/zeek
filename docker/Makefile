@@ -1,6 +1,6 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
-VERSION := $(shell cat ../VERSION)
+VERSION := $(shell python3 ../auxil/zeek-aux/devel-tools/get-version.py --source ..)
 ZEEK_IMAGE ?= zeek:$(VERSION)
 
 .PHONY: all test

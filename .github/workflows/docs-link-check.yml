@@ -16,9 +16,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      # No need to do a recursive clone here because the docs are part of the
-      # zeek repo and we're not doing a full build just for the link checker.
+      # doc/conf.py derives Zeek's version from Git tags and history.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Fetch Dependencies
         run: |

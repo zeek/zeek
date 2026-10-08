@@ -19,6 +19,9 @@ jobs:
       # No need to do a recursive clone here because the docs are part of the
       # zeek repo and we're not doing a full build just for the link checker.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Fetch Dependencies
         run: |

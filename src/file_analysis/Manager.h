@@ -269,8 +269,16 @@ public:
 
     /**
      * Set the reassembly for a file in bytes.
+     *
+     * Uses the \c Files::reassembly_buffer_blocks default for the
+     * maximum number of reassembly blocks.
      */
     bool SetReassemblyBuffer(const std::string& file_id, uint64_t max);
+
+    /**
+     * Setup the reassembly sizes for a file in bytes and blocks.
+     */
+    bool SetReassemblyBuffer(const std::string& file_id, uint64_t max_bytes, uint64_t max_blocks);
 
     /**
      * Sets a limit on the maximum size allowed for extracting the file

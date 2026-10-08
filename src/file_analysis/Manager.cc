@@ -239,12 +239,19 @@ bool Manager::DisableReassembly(const string& file_id) {
 }
 
 bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max) {
+    auto max_blocks = id::find_const("Files::reassembly_buffer_blocks")->AsCount();
+    return SetReassemblyBuffer(file_id, max, max_blocks);
+}
+
+bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max_bytes, uint64_t max_blocks) {
     File* file = LookupFile(file_id);
 
     if ( ! file )
         return false;
 
-    file->SetReassemblyBuffer(max);
+    file->SetReassemblyBuffer(max_bytes);
+    file->SetReassemblyBlocks(max_blocks);
+
     return true;
 }
 

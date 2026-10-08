@@ -235,6 +235,8 @@ void File::DisableReassembly() {
 
 void File::SetReassemblyBuffer(uint64_t max) { reassembly_max_buffer = max; }
 
+void File::SetReassemblyBlocks(uint64_t max) { reassembly_max_blocks = max; }
+
 bool File::SetMime(const std::string& mime_type) {
     if ( mime_type.empty() || bof_buffer.size != 0 || did_metadata_inference )
         return false;
@@ -375,7 +377,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
 
     // Potentially handle reassembly and deliver to the stream analyzers.
     if ( file_reassembler ) {
-        if ( reassembly_max_buffer > 0 && reassembly_max_buffer < file_reassembler->TotalSize() ) {
+        if ( (reassembly_max_buffer > 0 && reassembly_max_buffer < file_reassembler->TotalSize()) ||
+             (reassembly_max_blocks > 0 && reassembly_max_blocks < file_reassembler->NumBlocks()) ) {
             uint64_t current_offset = stream_offset;
             uint64_t gap_bytes = file_reassembler->Flush();
             overflow_bytes += gap_bytes;

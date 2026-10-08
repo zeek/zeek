@@ -32,9 +32,9 @@ function Files::__disable_reassembly%(file_id: string%): bool
 	%}
 
 ## :zeek:see:`Files::set_reassembly_buffer_size`.
-function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
+function Files::__set_reassembly_buffer%(file_id: string, max: count, max_blocks: count%): bool
 	%{
-	bool result = zeek::file_mgr->SetReassemblyBuffer(file_id->CheckString(), max);
+	bool result = zeek::file_mgr->SetReassemblyBuffer(file_id->CheckString(), max, max_blocks);
 	return zeek::val_mgr->Bool(result);
 	%}
 

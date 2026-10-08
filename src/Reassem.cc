@@ -334,6 +334,8 @@ void Reassembler::ClearOldBlocks() { old_block_list.Clear(); }
 
 uint64_t Reassembler::TotalSize() const { return block_list.DataSize() + old_block_list.DataSize(); }
 
+size_t Reassembler::NumBlocks() const { return block_list.NumBlocks(); }
+
 void Reassembler::Describe(ODesc* d) const { d->Add("reassembler"); }
 
 void Reassembler::Undelivered(uint64_t up_to_seq) {

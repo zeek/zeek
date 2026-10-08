@@ -261,6 +261,8 @@ public:
 
     uint64_t TotalSize() const; // number of bytes buffered up
 
+    size_t NumBlocks() const; // number of blocks buffered up
+
     void Describe(ODesc* d) const override;
 
     static uint64_t TotalMemoryAllocation() { return total_size; }

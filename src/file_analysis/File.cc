@@ -376,6 +376,8 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
     }
 
     // Potentially handle reassembly and deliver to the stream analyzers.
+    //
+    // XXX: Checks if the limit was reached the next time around instead.
     if ( file_reassembler ) {
         if ( (reassembly_max_buffer > 0 && reassembly_max_buffer < file_reassembler->TotalSize()) ||
              (reassembly_max_blocks > 0 && reassembly_max_blocks < file_reassembler->NumBlocks()) ) {

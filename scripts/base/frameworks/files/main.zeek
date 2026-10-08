@@ -129,6 +129,9 @@ export {
 	## The default per-file reassembly buffer size.
 	const reassembly_buffer_size = 524288 &redef;
 
+	## The default per-file number of blocks allowed.
+	const reassembly_buffer_blocks = 10000 &redef;
+
 	## Lookup to see if a particular file id exists and is still valid.
 	##
 	## fuid: the file id.
@@ -160,8 +163,10 @@ export {
 	##
 	## f: the file.
 	##
-	## max: Maximum allowed size of the reassembly buffer.
-	global set_reassembly_buffer_size: function(f: fa_file, max: count);
+	## max_bytes: Maximum allowed size of the reassembly buffer.
+	##
+	## max_blocks: Maximum allowed blocks of the reassembly buffer.
+	global set_reassembly_buffer_size: function(f: fa_file, max_bytes: count, max_blocks: count &default=reassembly_buffer_blocks);
 
 	## Sets the *timeout_interval* field of :zeek:see:`fa_file`, which is
 	## used to determine the length of inactivity that is allowed for a file
@@ -392,9 +397,9 @@ function disable_reassembly(f: fa_file)
 	__disable_reassembly(f$id);
 	}
 
-function set_reassembly_buffer_size(f: fa_file, max: count)
+function set_reassembly_buffer_size(f: fa_file, max: count, max_blocks: count &default=reassembly_buffer_blocks)
 	{
-	__set_reassembly_buffer(f$id, max);
+	__set_reassembly_buffer(f$id, max, max_blocks);
 	}
 
 function enable_analyzer(tag: Files::Tag): bool
@@ -538,7 +543,7 @@ event file_new(f: fa_file) &priority=10
 	if ( enable_reassembler )
 		{
 		Files::enable_reassembly(f);
-		Files::set_reassembly_buffer_size(f, reassembly_buffer_size);
+		Files::set_reassembly_buffer_size(f, reassembly_buffer_size, reassembly_buffer_blocks);
 		}
 	}
 

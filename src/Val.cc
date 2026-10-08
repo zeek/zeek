@@ -1943,6 +1943,18 @@ bool TableVal::RemoveFrom(Val* val) const {
         return false;
     }
 
+    if ( t == this ) {
+        std::vector<std::unique_ptr<detail::HashKey>> keys;
+
+        for ( const auto& tble : *table_val )
+            keys.push_back(tble.GetHashKey());
+
+        for ( const auto& k : keys )
+            t->Remove(*k);
+
+        return true;
+    }
+
     for ( const auto& tble : *table_val ) {
         // Not sure that this is 100% sound, since the HashKey
         // comes from one table but is being used in another.

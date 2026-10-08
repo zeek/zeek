@@ -177,9 +177,6 @@ export {
 redef record FileInfo += {
 	## ID referencing this file.
 	fid  : count   &optional;
-
-	## UUID referencing this file if DCE/RPC.
-	uuid : string &optional;
 };
 
 event zeek_init() &priority=5

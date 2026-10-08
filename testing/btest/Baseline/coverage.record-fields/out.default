@@ -714,7 +714,6 @@ connection {
                          }
                     * ts: time, log=T, optional=T
                     * uid: string, log=T, optional=F
-                    * uuid: string, log=F, optional=T
                    }
               * referenced_tree: record SMB::TreeInfo, log=F, optional=T
                   SMB::TreeInfo {

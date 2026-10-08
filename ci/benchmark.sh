@@ -25,6 +25,7 @@ HMAC_DIGEST=$(echo "${ZEEK_BENCHMARK_ENDPOINT}-${TIMESTAMP}-${BUILD_HASH}" | ope
 
 TARGET="https://${ZEEK_BENCHMARK_HOST}:${ZEEK_BENCHMARK_PORT}${ZEEK_BENCHMARK_ENDPOINT}"
 
+REPO_VERSION=$(python3 ./tools/get-version.py --source .)
 # Turn this back off because we want to be able to capture the output from curl if
 # it fails.
 set +e
@@ -49,7 +50,7 @@ curl -sS -G --stderr - --fail --insecure -X POST \
     --data-urlencode "cirrus_task_name=$(echo ${CIRCLE_JOB} | sed 's/ubuntu-24\./ubuntu24_/' | tr '-' '_')" \
     --data-urlencode "cirrus_build_id=${CIRCLE_BUILD_NUM}" \
     --data-urlencode "cirrus_pr=$(echo ${CIRCLE_PULL_REQUEST} | awk -F/ '{print $NF}')" \
-    --data-urlencode "repo_version=$(cat ./VERSION)" \
+    --data-urlencode "repo_version=${REPO_VERSION}" \
     "${TARGET}"
 
 STATUS=$?

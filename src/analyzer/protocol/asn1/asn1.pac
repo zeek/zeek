@@ -80,11 +80,6 @@ type SequenceElement(grab_content: bool) = record {
 	length: uint64 = index_meta.length;
 };
 
-type Array = record {
-	array_meta: ASN1EncodingMeta;
-	data:       ASN1Encoding[];
-};
-
 ############################## ASN.1 Conversion Functions
 
 # Converts an 8-byte string into an int64. If this string is longer than

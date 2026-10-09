@@ -65,7 +65,7 @@
 - from_url: /install/release-notes.html
   to_url: https://github.com/zeek/zeek/blob/master/NEWS
 - from_url: /install/changes.html
-  to_url: https://github.com/zeek/zeek/blob/master/CHANGES
+  to_url: https://github.com/zeek/zeek/commits/master/
 - from_url: /install/cross-compiling.html
   to_url: /building-from-source.html#cross-compiling
 - from_url: /install/*

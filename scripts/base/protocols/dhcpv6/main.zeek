@@ -52,7 +52,9 @@ export {
 		iaid:               count            &log &optional;
 		## The address assigned by the server (first IA Address option).
 		assigned_addr:      addr             &log &optional;
-		## Preferred lifetime of the assigned address.
+		## The prefix assigned by the server (first IA Prefix option).
+		assigned_prefix:    subnet           &log &optional;
+		## Preferred lifetime of the assigned address or prefix.
 		preferred_lifetime: interval         &log &optional;
 		## Valid lifetime of the assigned address.
 		valid_lifetime:     interval         &log &optional;
@@ -159,6 +161,8 @@ event DHCPv6::aggregate_msgs(ts: time, uid: string, msg: DHCPv6::MessageInfo)
 		info$iaid = msg$iaid;
 	if ( msg?$assigned_addr && ! info?$assigned_addr )
 		info$assigned_addr = msg$assigned_addr;
+	if ( msg?$assigned_prefix_addr && msg?$assigned_prefix_len && ! info?$assigned_prefix )
+		info$assigned_prefix = mask_addr(msg$assigned_prefix_addr, msg$assigned_prefix_len);
 	if ( msg?$preferred_lifetime && ! info?$preferred_lifetime )
 		info$preferred_lifetime = msg$preferred_lifetime * 1sec;
 	if ( msg?$valid_lifetime && ! info?$valid_lifetime )

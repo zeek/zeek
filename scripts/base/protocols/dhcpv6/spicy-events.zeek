@@ -31,6 +31,10 @@ export {
 		t2: count &optional;
 		## Address of the first IA Address option nested in an IA_NA.
 		assigned_addr: addr &optional;
+		## Prefix IPv6 address from the first IA_PREFIX option nested in an IA_PD.
+		assigned_prefix_addr: addr &optional;
+		## Prefix length from the first IA_PREFIX option nested in an IA_PD.
+		assigned_prefix_len: count &optional;
 		## Preferred lifetime of the assigned address, in seconds.
 		preferred_lifetime: count &optional;
 		## Valid lifetime of the assigned address, in seconds.

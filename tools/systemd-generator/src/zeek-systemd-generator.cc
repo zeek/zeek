@@ -110,13 +110,13 @@ Unit systemd_add_node_unit(const path& file, const std::string& description, con
  * @param config The cluster configuration to use.
  */
 void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
-    // zeek_target_wants is where all generated units will be linked into
+    // zeek_target_requires is where all generated units will be linked into
     // so that systemctl start zeek.target works out.
     std::error_code ec;
 
-    auto zeek_target_wants = dir / "zeek.target.wants";
-    if ( std::filesystem::create_directory(zeek_target_wants, ec); ec ) {
-        std::fprintf(stderr, "failed to create directory %s: %s\n", zeek_target_wants.string().c_str(),
+    auto zeek_target_requires = dir / "zeek.target.requires";
+    if ( std::filesystem::create_directory(zeek_target_requires, ec); ec ) {
+        std::fprintf(stderr, "failed to create directory %s: %s\n", zeek_target_requires.string().c_str(),
                      ec.message().c_str());
         std::exit(1);
     }
@@ -138,7 +138,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
     setup_unit.AddExecStart("chown " + config.User() + ":" + config.Group() + " " + config.LogQueueDir().string());
     setup_unit.SetRemainAfterExit(true);
 
-    ensure_symlink("../zeek-setup.service", zeek_target_wants / "zeek-setup.service");
+    ensure_symlink("../zeek-setup.service", zeek_target_requires / "zeek-setup.service");
 
     // Manager Unit if enabled.
     if ( config.Manager() ) {
@@ -168,7 +168,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand("manager"));
         setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand("manager"));
-        ensure_symlink("../zeek-manager.service", zeek_target_wants / "zeek-manager.service");
+        ensure_symlink("../zeek-manager.service", zeek_target_requires / "zeek-manager.service");
     }
 
 
@@ -202,7 +202,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             setup_unit.AddExecStart(config.MakeWorkingDirectoryCommand(wdir));
             setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
             auto name = systemd_unit_name("logger", idx);
-            ensure_symlink("../zeek-logger@.service", zeek_target_wants / name);
+            ensure_symlink("../zeek-logger@.service", zeek_target_requires / name);
         }
     }
 
@@ -232,7 +232,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(wdir));
 
             auto name = systemd_unit_name("proxy", idx);
-            ensure_symlink("../zeek-proxy@.service", zeek_target_wants / name);
+            ensure_symlink("../zeek-proxy@.service", zeek_target_requires / name);
         }
     }
 
@@ -303,7 +303,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
                 setup_unit.AddExecStart(config.ChownWorkingDirectoryCommand(iwc.FullWorkerName(index)));
 
                 auto name = worker_unit_prefix + "@" + std::to_string(index) + ".service";
-                ensure_symlink("../" + worker_template_unit, zeek_target_wants / name);
+                ensure_symlink("../" + worker_template_unit, zeek_target_requires / name);
 
                 // Create drop-in .d directories for worker instance to define their
                 // INTERFACE and CPUAffinity settings.
@@ -383,7 +383,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
         archiver_unit.Write();
 
-        ensure_symlink("../zeek-archiver.service", zeek_target_wants / "zeek-archiver.service");
+        ensure_symlink("../zeek-archiver.service", zeek_target_requires / "zeek-archiver.service");
     }
 
     // Now that all unit files have been created, add a symlink from multi-user.target.wants

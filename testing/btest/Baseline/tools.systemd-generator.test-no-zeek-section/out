@@ -9,7 +9,7 @@ dir1/zeek-worker-eth0@1.service.d/10-zeek-systemd-generator.conf
 dir1/zeek-worker-eth0@2.service.d
 dir1/zeek-worker-eth0@2.service.d/10-zeek-systemd-generator.conf
 dir1/zeek.target
-dir1/zeek.target.wants
-dir1/zeek.target.wants/zeek-setup.service
-dir1/zeek.target.wants/zeek-worker-eth0@1.service
-dir1/zeek.target.wants/zeek-worker-eth0@2.service
+dir1/zeek.target.requires
+dir1/zeek.target.requires/zeek-setup.service
+dir1/zeek.target.requires/zeek-worker-eth0@1.service
+dir1/zeek.target.requires/zeek-worker-eth0@2.service

@@ -5,6 +5,6 @@ dir1/multi-user.target.wants/zeek.target
 dir1/zeek-archiver.service
 dir1/zeek-setup.service
 dir1/zeek.target
-dir1/zeek.target.wants
-dir1/zeek.target.wants/zeek-archiver.service
-dir1/zeek.target.wants/zeek-setup.service
+dir1/zeek.target.requires
+dir1/zeek.target.requires/zeek-archiver.service
+dir1/zeek.target.requires/zeek-setup.service

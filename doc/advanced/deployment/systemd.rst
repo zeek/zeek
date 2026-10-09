@@ -63,7 +63,7 @@ the system:
     ├── zeek-proxy@.service
     ├── zeek-setup.service
     ├── zeek.target
-    ├── zeek.target.wants
+    ├── zeek.target.requires
     │   ├── zeek-archiver.service -> ../zeek-archiver.service
     │   ├── zeek-logger@1.service -> ../zeek-logger@.service
     │   ├── zeek-manager.service -> ../zeek-manager.service

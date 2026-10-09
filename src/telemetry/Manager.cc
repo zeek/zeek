@@ -498,7 +498,7 @@ CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_vie
     if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
         return std::static_pointer_cast<telemetry::CounterFamily>(it->second);
 
-    auto fam = std::make_shared<telemetry::CounterFamily>(&prom_fam, labels);
+    auto fam = std::make_shared<telemetry::CounterFamily>(&prom_fam, labels, unit, helptext);
     families.insert({prom_fam.GetName(), fam});
     return fam;
 }
@@ -537,7 +537,7 @@ std::shared_ptr<GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::
     if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
         return std::static_pointer_cast<telemetry::GaugeFamily>(it->second);
 
-    auto fam = std::make_shared<telemetry::GaugeFamily>(&prom_fam, labels);
+    auto fam = std::make_shared<telemetry::GaugeFamily>(&prom_fam, labels, unit, helptext);
     families.insert({prom_fam.GetName(), fam});
     return fam;
 }
@@ -574,7 +574,7 @@ HistogramFamilyPtr Manager::HistogramFamily(std::string_view prefix, std::string
     if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
         return std::static_pointer_cast<telemetry::HistogramFamily>(it->second);
 
-    auto fam = std::make_shared<telemetry::HistogramFamily>(&prom_fam, bounds, labels);
+    auto fam = std::make_shared<telemetry::HistogramFamily>(&prom_fam, bounds, labels, unit, helptext);
     families.insert({prom_fam.GetName(), fam});
     return fam;
 }
@@ -602,6 +602,16 @@ HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_vie
     auto lbls = std::span{labels.begin(), labels.size()};
     auto bounds_span = std::span{bounds.begin(), bounds.size()};
     return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);
+}
+
+std::vector<std::shared_ptr<MetricFamily>> Manager::GetFamilies() {
+    std::vector<std::shared_ptr<MetricFamily>> result;
+    result.reserve(families.size());
+
+    for ( const auto& [_, family] : families )
+        result.push_back(family);
+
+    return result;
 }
 
 void Manager::ProcessFd(int fd, int flags) {

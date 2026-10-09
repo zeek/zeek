@@ -54,6 +54,7 @@ dist:
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do ((cd ../$(VERSION_FULL)/$$i && test -f .git && cp -R $(GITDIR) .gitnew && rm -f .git && mv .gitnew .git && sed -i.bak -e 's#[[:space:]]*worktree[[:space:]]*=[[:space:]]*.*##g' .git/config) || true); done
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do (cd ../$(VERSION_FULL)/$$i && git reset -q --hard && git clean -ffdxq); done
 	@python3 auxil/zeek-aux/devel-tools/get-version.py --source . --output ../$(VERSION_FULL)/VERSION
+	@python3 ci/git-zeek-log > ../$(VERSION_FULL)/git-log.txt
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)

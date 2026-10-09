@@ -1,6 +1,6 @@
 This document summarizes the most important changes in the current Zeek
 release. For a more detailed record, see the Git history of the corresponding
-release branch.
+release branch. Source distributions include that history in ``git-log.txt``.
 
 Zeek 9.1.0
 ==========

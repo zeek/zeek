@@ -5,7 +5,8 @@ A sentence or two on the mechanism being reproduced.
 
 Written with <model-id> using Scapy (disclose AI assistance per AI_POLICY.md).
 When adapting an existing reproducer, keep its provenance instead, e.g.
-"Generated with <original-tool>, adapted with <model-id> to use Scapy."
+"Generated with <original-tool>, adapted with <model-id> to follow the
+scapy-pcap conventions."
 """
 
 from pathlib import Path

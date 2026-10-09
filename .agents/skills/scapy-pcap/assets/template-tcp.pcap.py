@@ -5,7 +5,8 @@ A sentence or two on the mechanism being reproduced.
 
 Written with <model-id> using Scapy (disclose AI assistance per AI_POLICY.md).
 When adapting an existing reproducer, keep its provenance instead, e.g.
-"Generated with <original-tool>, adapted with <model-id> to use Scapy."
+"Generated with <original-tool>, adapted with <model-id> to follow the
+scapy-pcap conventions."
 """
 
 from pathlib import Path
@@ -49,7 +50,8 @@ def build_packets():
     # ... append the flow's data packets here, advancing client_seq/server_seq
     # by len(payload) for each data segment ...
 
-    # Clean FIN/ACK teardown, client-initiated (a FIN consumes one seq).
+    # Clean FIN/ACK teardown, initiated by the TCP originator here; either
+    # side may close (a FIN consumes one seq).
     packets.append(pkt(True, client_seq, server_seq, "FA"))
     client_seq += 1
     packets.append(pkt(False, server_seq, client_seq, "FA"))

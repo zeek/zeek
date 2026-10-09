@@ -1,7 +1,14 @@
-evict first: queue size 1
 first write: T
-after first write: queue size 0
-evict second: queue size 1
+after first write: queue size 1
 second write: T
-after second write: queue size 0
+after second write: queue size 2
+before completion: completed 0
+complete first: queue size 2, delay elapsed F
+finish first: T
+after completion: queue size 1
+set limit 2: T
+set limit 0: T
+before expiration: queue size 1, completed 1
+complete second: queue size 1, delay elapsed T
+file done: queue size 0, completed 2
 done: queue size 0

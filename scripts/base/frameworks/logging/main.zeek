@@ -224,6 +224,8 @@ export {
 	## an attempt is made to evict the oldest writes from the queue. If
 	## post delay callbacks re-delay a write operation, the maximum queue
 	## size may be exceeded.
+	## A value of 0 disables the queue-size limit. Delayed records still
+	## complete or expire normally.
 	const default_max_delay_queue_size = 1000 &redef;
 
 	## A filter type describes how to customize logging streams.
@@ -415,6 +417,8 @@ export {
 		max_delay_interval: interval &default=default_max_delay_interval;
 
 		## Maximum delay queue size of this stream.
+		## A value of 0 disables the queue-size limit. Delayed records still
+		## complete or expire normally.
 		##
 		## This value can be changed using :zeek:see:`Log::set_max_delay_queue_size`
 		## after the stream has been created.
@@ -735,15 +739,17 @@ export {
 
 	## Set the given stream's delay queue size.
 	##
-	## If the queue holds more records than the given *queue_size*, these are
-	## attempted to be evicted at the time of the call.
+	## If *queue_size* is positive and the queue holds more records than
+	## this limit, these are attempted to be evicted at the time of the call.
+	## A value of 0 disables the queue-size limit. Delayed records still
+	## complete or expire normally.
 	##
 	## When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
 	## the new stream is re-configured with the most recently used queue size.
 	##
 	## id: The ID associated with a logging stream.
 	##
-	## max_delay: The maximum delay interval of this stream.
+	## queue_size: The maximum delay queue size of this stream.
 	##
 	## Returns: ``T`` on success, else ``F``.
 	global set_max_delay_queue_size: function(id: Log::ID, queue_size: count): bool;

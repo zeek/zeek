@@ -284,7 +284,15 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
             // string to remove all capabilities from the effective set.
             worker_interface_unit.SetAmbientCapabilities("CAP_NET_RAW");
 
-            worker_interface_unit.SetSlice("zeek-workers.slice");
+            // Workers from a named interface section are placed into
+            // their own interface specific slice named zeek-workers-<name>.slice,
+            // else just zeek-workers.slice.
+            std::string workers_slice_name = "zeek-workers.slice";
+            if ( ! iwc.Name().empty() )
+                workers_slice_name = "zeek-workers-" + iwc.Name() + ".slice";
+
+            worker_interface_unit.SetSlice(workers_slice_name);
+
             if ( auto memory_max = iwc.MemoryMax(); memory_max )
                 worker_interface_unit.SetMemoryMax(*memory_max);
             if ( auto nice = iwc.Nice(); nice )

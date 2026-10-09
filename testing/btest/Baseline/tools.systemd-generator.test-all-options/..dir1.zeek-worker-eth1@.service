@@ -27,6 +27,6 @@ Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=worker-eth1-%i
 ExecStart=<...>/zeek -i ${INTERFACE} policy<...>/broker Broker::disable_ssl=T policy<...>/systemd-generator AF_Packet::fanout_id=42 ignore_checksums=T worker-eth1-1 worker-eth1-2 local tuning/json-logs
-Slice=zeek-workers.slice
+Slice=zeek-workers-eth1.slice
 Restart=always
 RestartSec=1

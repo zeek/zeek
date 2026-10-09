@@ -5,7 +5,7 @@ orbs:
   aws-cli: circleci/aws-cli@5.4.1
 
 # These parameters are set via setup.yml. The PR ones are based on the labels for PRs
-# from Github. changes_only_docs is for PRs that only change docs.
+# from Github.
 parameters:
   pr_label_full:
     type: boolean
@@ -19,9 +19,6 @@ parameters:
   pr_label_cluster_test:
     type: boolean
     default: false
-  pr_label_spicy:
-    type: boolean
-    default: false
   pr_label_windows:
     type: boolean
     default: false
@@ -29,9 +26,6 @@ parameters:
     type: boolean
     default: false
   pr_label_zeekctl:
-    type: boolean
-    default: false
-  changes_only_docs:
     type: boolean
     default: false
   has_release_tag:
@@ -1299,11 +1293,6 @@ workflows:
           context:
             - zeek
           << : *FILTER_NIGHTLY_OR_TAGGED
-      - public-ecr-cleanup:
-          requires: [container-image-manifest-build]
-          context:
-            - zeek
-          << : *FILTER_NIGHTLY_OR_TAGGED
 
       - zeekctl-testing:
           docker_image: zeek/zeek-ci:debian-12
@@ -1317,7 +1306,7 @@ workflows:
           requires: [build-image-debian-13]
           << : *FILTER_IF_PR_NOT_FULL_CI
 
-  weekly_compiler_builds:
+  weekly_builds:
     when: pipeline.schedule.name == "weekly"
     jobs:
       - fetch-test-traces
@@ -1342,3 +1331,7 @@ workflows:
           requires: [fetch-test-traces, build-image-debian-unstable]
           extra_env: |
             ZEEK_CI_COMPILER=clang
+
+      - public-ecr-cleanup:
+          context:
+            - zeek

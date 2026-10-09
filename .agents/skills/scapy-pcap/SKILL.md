@@ -73,8 +73,14 @@ rewriting an existing one.
   payload with `struct`, too. Scapy ships dissectors for many L7 protocols under
   `scapy.layers.<proto>` (e.g. `SMB2_Header` and `NBTSession` in
   `scapy.layers.smb2`/`netbios`, plus DNS, TLS, Kerberos, LDAP, …), and more
-  under `scapy.contrib` (e.g. IGMP, GENEVE) — both are fair game. Check for
-  one before reaching for `struct`: `from scapy.layers.smb2 import SMB2_Header`;
+  under `scapy.contrib` (e.g. IGMP, GENEVE) — both are fair game. List them
+  and check for one before reaching for `struct`:
+
+  ```
+  python3 -c "import pkgutil, scapy.layers, scapy.contrib; print(sorted(m.name for p in (scapy.layers, scapy.contrib) for m in pkgutil.iter_modules(p.__path__)))"
+  ```
+
+  For example, `from scapy.layers.smb2 import SMB2_Header`;
   `bytes(NBTSession() / SMB2_Header(Command=..., MID=..., TID=...))`. If a field
   is missing from the layer, set it explicitly rather than abandoning the layer.
   Only fall back to a small fixed `Raw` blob for a body Scapy has no class for,
@@ -97,6 +103,19 @@ rewriting an existing one.
   plain pcap: set `p.wirelen` above the captured length. For either, follow
   `assets/compression-and-pcapng.md` — reproducible gzip output needs
   `mtime=0`, and gzipping pcapng needs a workaround.
+
+## Deriving from an existing trace
+
+When a generator edits a committed trace:
+
+- Read it relative to the script, e.g.
+  `rdpcap(str(Path(__file__).parent / "<source>.pcap"))`.
+- Keep its timestamps; the `BASE_TIME` rule below does not apply.
+- Delete `chksum` (and `len` if the size changes) on each modified layer, e.g.
+  `del p[IP].chksum`, so Scapy recomputes them. Prefer same-length edits; a
+  size change also shifts later TCP sequence numbers.
+- Assert that each edit happened (e.g. `assert replaced == 1`).
+- Name the source trace in the docstring.
 
 ## Deterministic timestamps
 

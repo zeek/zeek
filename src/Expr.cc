@@ -1760,7 +1760,7 @@ ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const {
     return make_intrusive<SubNetVal>(a, mask);
 }
 
-uint32_t MaskExpr::GetMask(const Val* v) const {
+uint32_t MaskExpr::GetMask(const Val* v) {
     if ( v->GetType()->Tag() == TYPE_COUNT )
         return static_cast<uint32_t>(v->InternalUnsigned());
     else

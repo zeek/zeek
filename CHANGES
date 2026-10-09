@@ -1,3 +1,18 @@
+9.1.0-dev.176 | 2026-10-09 09:32:31 +0200
+
+  * Drop tcp-state from the TLS DPD signatures (Gido822)
+
+    The dpd_tls_client and dpd_tls_server signatures required the ClientHello
+    to come from the TCP originator and the ServerHello from the TCP
+    responder. When Zeek sees a TLS connection with reversed roles, neither
+    signature matches and the SSL analyzer is never attached.
+
+  * Add test for TLS ClientHello from the TCP responder (Gido822)
+
+    Adds a synthetic TLS 1.2 trace where the TCP responder acts as the TLS
+    client and sends the ClientHello, while the TCP originator sends the
+    ServerHello.
+
 9.1.0-dev.173 | 2026-10-08 20:46:17 +0200
 
   * doc/typos.toml: Add new entries from root-level .typos.toml (Arne Welzel, Corelight)

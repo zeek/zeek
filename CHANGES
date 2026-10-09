@@ -1,3 +1,24 @@
+9.0.0-12 | 2026-10-12 15:55:14 -0700
+
+  * Drop tcp-state from the TLS DPD signatures (Gido822)
+
+    The dpd_tls_client and dpd_tls_server signatures required the ClientHello
+    to come from the TCP originator and the ServerHello from the TCP
+    responder. When Zeek sees a TLS connection with reversed roles, neither
+    signature matches and the SSL analyzer is never attached.
+
+    (cherry picked from commit 5b7c9c753a8e69da4a6dcd41e7a06c26226647dd)
+
+  * Add test for TLS ClientHello from the TCP responder (Gido822)
+
+    Adds a synthetic TLS 1.2 trace where the TCP responder acts as the TLS
+    client and sends the ClientHello, while the TCP originator sends the
+    ServerHello.
+
+    (cherry picked from commit 5b7c9c753a8e69da4a6dcd41e7a06c26226647dd)
+
+  * Add initial NEWS entries for 9.0.1 [skip ci] (Tim Wojtulewicz, Corelight)
+
 9.0.0-10 | 2026-09-25 10:28:03 -0700
 
   * btest/broker/remote_id: Remove Broker::PEER_UNAVAILABLE errors from stderr (Arne Welzel, Corelight)

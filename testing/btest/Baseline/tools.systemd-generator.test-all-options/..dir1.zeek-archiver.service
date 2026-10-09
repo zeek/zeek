@@ -4,6 +4,7 @@
 Description=Zeek Archiver
 SourcePath=<...>/config1
 After=zeek-setup.service
+Before=zeek.target
 Requires=zeek-setup.service
 PartOf=zeek.target
 StartLimitIntervalSec=0

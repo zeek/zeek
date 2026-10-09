@@ -4,5 +4,5 @@ normal-dir/multi-user.target.wants
 normal-dir/multi-user.target.wants/zeek.target
 normal-dir/zeek-setup.service
 normal-dir/zeek.target
-normal-dir/zeek.target.wants
-normal-dir/zeek.target.wants/zeek-setup.service
+normal-dir/zeek.target.requires
+normal-dir/zeek.target.requires/zeek-setup.service

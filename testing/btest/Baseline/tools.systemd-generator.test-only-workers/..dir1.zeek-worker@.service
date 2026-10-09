@@ -4,6 +4,7 @@
 Description=Zeek Worker %i
 SourcePath=<...>/config1
 After=zeek-setup.service
+Before=zeek.target
 Requires=zeek-setup.service
 StopPropagatedFrom=zeek.target
 PartOf=zeek.target

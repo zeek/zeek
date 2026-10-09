@@ -48,7 +48,7 @@ def build_packet(ip_total_length: int):
     return pkt
 
 
-def main() -> int:
+def main():
     default_output = Path(__file__).with_suffix("")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -68,9 +68,7 @@ def main() -> int:
 
     pkt = build_packet(args.ip_total_length)
     wrpcap(str(args.output), pkt)
-    print(f"Wrote 1 packet to {args.output}")
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

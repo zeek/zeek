@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
+"""
+Generate telnet-auth-missing-name.pcap: a raw-IPv4 telnet session in which the
+responder sends an AUTHENTICATION STATUS/ACCEPT suboption without any prior
+authentication name having been sent.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to set fixed packet timestamps so
+the trace is reproducible.
+"""
+
 from pathlib import Path
 
 from scapy.all import IP, TCP, wrpcap
+
+BASE_TIME = 1_700_000_000.0
 
 CLI, SRV = "10.0.0.1", "10.0.0.2"
 SPORT, DPORT = 40000, 21
@@ -57,4 +68,6 @@ def build():
 if __name__ == "__main__":
     outfile = Path(__file__).with_suffix("")
     pkts = build()
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
     wrpcap(str(outfile), pkts)

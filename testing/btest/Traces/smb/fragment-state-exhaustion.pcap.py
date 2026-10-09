@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-Generated with Claude Opus 4.8.
+Generated with Claude Opus 4.8, adapted with Claude Sonnet 5.5 (Anthropic) to set
+fixed packet timestamps and replace the command line options with constants so
+the trace is reproducible.
 
 Generate an SMB1 pcap that feeds many first-only DCE-RPC fragments to Zeek's
 DCE/RPC reassembler over a named pipe.
@@ -23,7 +25,6 @@ To exercise the bug the PDU count just needs to exceed max_cmd_reassembly and be
 spread across more than one SMB transaction.
 """
 
-import argparse
 import struct
 from pathlib import Path
 
@@ -36,9 +37,11 @@ SERVER_MAC = "02:00:00:00:00:20"
 CLIENT_PORT = 49152
 SERVER_PORT = 445
 
-DEFAULT_PDU_COUNT = 100
-DEFAULT_PDUS_PER_TRANSACTION = 25
-DEFAULT_SEGMENT_SIZE = 1400
+BASE_TIME = 1_700_000_000.0
+
+PDU_COUNT = 100
+PDUS_PER_TRANSACTION = 25
+SEGMENT_SIZE = 1400
 
 PFC_FIRST_FRAG = 0x01
 
@@ -160,34 +163,12 @@ def build_packets(pdu_count, pdus_per_transaction, segment_size):
     return packets
 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description=__doc__)
-    default_out = Path(__file__).with_suffix("")  # strip .py -> ...pcap
-    parser.add_argument("--output", type=Path, default=default_out)
-    parser.add_argument("--pdu-count", type=int, default=DEFAULT_PDU_COUNT)
-    parser.add_argument(
-        "--pdus-per-transaction", type=int, default=DEFAULT_PDUS_PER_TRANSACTION
-    )
-    parser.add_argument("--segment-size", type=int, default=DEFAULT_SEGMENT_SIZE)
-    args = parser.parse_args()
-    if not 1 <= args.pdu_count <= 0x1_0000_0000:
-        parser.error("--pdu-count must be between 1 and 2^32")
-    if not 1 <= args.pdus_per_transaction <= 4000:
-        parser.error("--pdus-per-transaction must be between 1 and 4000")
-    if not 1 <= args.segment_size <= 60000:
-        parser.error("--segment-size must be between 1 and 60000")
-    return args
-
-
 def main():
-    args = parse_arguments()
-    packets = build_packets(
-        args.pdu_count, args.pdus_per_transaction, args.segment_size
-    )
-    wrpcap(str(args.output), packets)
-    print(
-        f"Wrote {args.pdu_count} fragments in {len(packets)} packets to {args.output}"
-    )
+    packets = build_packets(PDU_COUNT, PDUS_PER_TRANSACTION, SEGMENT_SIZE)
+    for index, p in enumerate(packets):
+        p.time = BASE_TIME + index * 0.001
+
+    wrpcap(str(Path(__file__).with_suffix("")), packets)
 
 
 if __name__ == "__main__":

@@ -4,18 +4,36 @@ jump.
 
 The ClientHello is split across three DTLS handshake fragments (each in its
 own UDP datagram / DTLS record). The ServerHello is sent as a single record.
+
+The DTLS records are built by hand because Scapy has no DTLS record layer. The
+hello randoms, MAC addresses and timestamps are hardcoded, so running the script
+reproduces the committed trace.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
 """
 
-import os
+from pathlib import Path
 
 from scapy.all import IP, UDP, Ether, wrpcap
 
+CLIENT_MAC = "02:00:00:00:00:01"
+SERVER_MAC = "02:00:00:00:00:02"
 CLIENT_IP = "10.0.0.1"
 SERVER_IP = "10.0.0.2"
 CLIENT_PORT = 50000
 SERVER_PORT = 4433
 
 DTLS_1_2 = 0xFEFD
+
+BASE_TIME = 1_700_000_000.0
+
+# Hardcoded hello randoms (taken from the committed trace).
+CLIENT_RANDOM = bytes.fromhex(
+    "f2d120880f75811062381f06abf371f75899aea4af864c63830b9b3ac7a09a71"
+)
+SERVER_RANDOM = bytes.fromhex(
+    "f35685288b91050cf331886c7c6f5a69e7c059b71e7e1b621cdc4c0e80cd1b10"
+)
 
 
 def build_extensions(exts):
@@ -40,7 +58,7 @@ def build_client_hello_body(cookie=b""):
       Extensions (2-byte length + data)
     """
     version = DTLS_1_2.to_bytes(2, "big")
-    random = os.urandom(32)
+    random = CLIENT_RANDOM
     session_id = b"\x00"  # zero-length
     cookie_field = bytes([len(cookie)]) + cookie
 
@@ -81,7 +99,7 @@ def build_client_hello_body(cookie=b""):
 def build_server_hello_body():
     """Build a DTLS 1.2 ServerHello body (no cookie field — that's CH-only)."""
     version = DTLS_1_2.to_bytes(2, "big")
-    random = os.urandom(32)
+    random = SERVER_RANDOM
     session_id = b"\x00"
     cipher = (0x1301).to_bytes(2, "big")
     compression = b"\x00"
@@ -136,7 +154,6 @@ def main():
     total_ch = len(ch_body)
     f1 = total_ch // 3
     f2 = total_ch // 3
-    f3 = total_ch - f1 - f2
     fragments = [
         (0, ch_body[:f1]),
         (f1, ch_body[f1 : f1 + f2]),
@@ -159,7 +176,7 @@ def main():
             total_len=total_ch,
         )
         pkts.append(
-            Ether()
+            Ether(src=CLIENT_MAC, dst=SERVER_MAC)
             / IP(src=CLIENT_IP, dst=SERVER_IP)
             / UDP(sport=CLIENT_PORT, dport=SERVER_PORT)
             / record
@@ -178,16 +195,16 @@ def main():
         total_len=len(sh_body),
     )
     pkts.append(
-        Ether()
+        Ether(src=SERVER_MAC, dst=CLIENT_MAC)
         / IP(src=SERVER_IP, dst=CLIENT_IP)
         / UDP(sport=SERVER_PORT, dport=CLIENT_PORT)
         / sh_record
     )
 
-    wrpcap("dtls-sequence-number-jumps.pcap", pkts)
-    print(f"Wrote dtls_handshake.pcap ({len(pkts)} packets)")
-    print(f"  ClientHello: {total_ch} bytes split as {f1}/{f2}/{f3}")
-    print(f"  ServerHello: {len(sh_body)} bytes")
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
+
+    wrpcap(str(Path(__file__).with_suffix("")), pkts)
 
 
 if __name__ == "__main__":

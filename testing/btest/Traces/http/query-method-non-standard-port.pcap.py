@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Generate query-method.pcap: an HTTP QUERY request with a JSON body and a 200 OK
-response on the standard HTTP port (80).
+Generate query-method-non-standard-port.pcap: an HTTP QUERY request with a JSON
+body and a 200 OK response on a non-standard port (4711) for DPD testing.
 
 RFC 10008: https://www.rfc-editor.org/info/rfc10008
 
@@ -17,7 +17,7 @@ from scapy.all import IP, TCP, Ether, wrpcap
 CLIENT = "10.0.0.1"
 SERVER = "10.0.0.2"
 CLIENT_PORT = 54321
-SERVER_PORT = 80
+SERVER_PORT = 4711
 BASE_TIME = 1_700_000_000.0
 
 

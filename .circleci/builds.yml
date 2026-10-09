@@ -81,6 +81,9 @@ parameters:
   ubuntu_26_04_image_version:
     type: string
     default: ""
+  scapy_image_version:
+    type: string
+    default: ""
 
 commands:
   clone_repo:
@@ -1042,6 +1045,10 @@ workflows:
       - create-build-image:
           name: build-image-ubuntu-26.04
           docker_image_version: << pipeline.parameters.ubuntu_26_04_image_version >>
+          << : *FILTER_IF_PR_NOT_FULL_CI
+      - create-build-image:
+          name: build-image-scapy
+          docker_image_version: << pipeline.parameters.scapy_image_version >>
           << : *FILTER_IF_PR_NOT_FULL_CI
 
       - macos-build:

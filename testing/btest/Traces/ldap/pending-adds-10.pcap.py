@@ -8,13 +8,20 @@ Zeek's LDAP script retains one pending MessageInfo record per message ID
 until connection removal.
 
 Adapted from pending-adds-n.pcap.py by Sonnet 4.6.
+The message count is fixed at 10 (the committed trace) and packets carry fixed
+timestamps, so running the script reproduces pending-adds-10.pcap exactly.
 """
 
 from __future__ import annotations
 
-import argparse
+from pathlib import Path
 
 from scapy.all import IP, TCP, Ether, wrpcap
+
+BASE_TIME = 1_700_000_000.0
+COUNT = 10
+CHUNK_SIZE = 1200
+ENTRY_DN = "cn=test,dc=example,dc=com"
 
 
 def ber_len(length: int) -> bytes:
@@ -96,33 +103,12 @@ def build_packets(count: int, chunk_size: int, entry_dn: str):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-n",
-        "--count",
-        type=int,
-        default=20000,
-        help="number of LDAP AddRequest messages",
-    )
-    parser.add_argument(
-        "-o", "--output", default="ldap-pending-adds.pcap", help="output pcap path"
-    )
-    parser.add_argument(
-        "--chunk-size", type=int, default=1200, help="TCP payload bytes per packet"
-    )
-    parser.add_argument(
-        "--entry-dn", default="cn=test,dc=example,dc=com", help="LDAP entry DN"
-    )
-    args = parser.parse_args()
+    packets, _ = build_packets(COUNT, CHUNK_SIZE, ENTRY_DN)
 
-    if args.count < 1:
-        raise SystemExit("--count must be positive")
+    for index, p in enumerate(packets):
+        p.time = BASE_TIME + index * 0.001
 
-    packets, payload_len = build_packets(args.count, args.chunk_size, args.entry_dn)
-    wrpcap(args.output, packets)
-    print(
-        f"wrote {args.output}: requests={args.count} ldap_payload_bytes={payload_len} packets={len(packets)}"
-    )
+    wrpcap(str(Path(__file__).with_suffix("")), packets)
 
 
 if __name__ == "__main__":

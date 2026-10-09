@@ -2,7 +2,6 @@
 """Generate IPv6 fragments that retain completed Zeek reassembly state."""
 
 import contextlib
-import sys
 from pathlib import Path
 
 from scapy.all import (
@@ -50,19 +49,11 @@ def write_fragment_set(
 
 def main() -> None:
     """Generate the requested PCAP."""
-    packet_count = 0
     timestamp = 1
     writer = PcapWriter(str(OUTPUT), linktype=1)
     with contextlib.closing(writer):
         for flow in range(FLOWS):
-            timestamp, flow_packets = write_fragment_set(
-                writer, 0xA0000000 + flow, timestamp
-            )
-            packet_count += flow_packets
-    print(
-        f"wrote {packet_count} packets for {FLOWS} flows to {OUTPUT}",
-        file=sys.stderr,
-    )
+            timestamp, _ = write_fragment_set(writer, 0xA0000000 + flow, timestamp)
 
 
 if __name__ == "__main__":

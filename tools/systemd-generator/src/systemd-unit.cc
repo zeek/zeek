@@ -28,6 +28,9 @@ std::string Unit::ToString() const {
     for ( const auto& a : after )
         ss << "After=" << a << "\n";
 
+    for ( const auto& b : before )
+        ss << "Before=" << b << "\n";
+
     for ( const auto& r : requires_ )
         ss << "Requires=" << r << "\n";
 

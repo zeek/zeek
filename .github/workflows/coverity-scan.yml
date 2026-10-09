@@ -14,8 +14,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-        with:
-          submodules: "recursive"
+
+      - name: Fetch shallow submodules
+        run: git submodule update --init --recursive --depth=1
 
       - name: Fetch Dependencies
         run: |

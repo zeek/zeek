@@ -386,8 +386,10 @@ jobs:
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
       with:
-        submodules: recursive
         persist-credentials: false
+
+    - name: Fetch shallow submodules
+      run: git submodule update --init --recursive --depth=1
 
     - name: Prepare Docker
       uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
@@ -465,8 +467,10 @@ jobs:
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
       with:
-        submodules: recursive
         persist-credentials: false
+
+    - name: Fetch shallow submodules
+      run: git submodule update --init --recursive --depth=1
 
     - name: Set up MSVC Dev Cmd
       uses: iShark5060/actions-msvc-dev-cmd@d8ecc74f275b4e345a93ffc2b5d68a6b6e91280e  # v1.2.1
@@ -537,8 +541,10 @@ jobs:
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
       with:
-        submodules: recursive
         persist-credentials: false
+
+    - name: Fetch shallow submodules
+      run: git submodule update --init --recursive --depth=1
 
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23

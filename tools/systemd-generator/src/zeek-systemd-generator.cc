@@ -86,6 +86,7 @@ Unit systemd_add_node_unit(const path& file, const std::string& description, con
     unit.SetGroup(config.Group());
     unit.AddRequires("zeek-setup.service");
     unit.AddAfter("zeek-setup.service");
+    unit.AddBefore("zeek.target");
     unit.SetPartOf("zeek.target");
     unit.AddEnvironment("PATH", config.Path());
     unit.AddEnvironment("ZEEKPATH", config.ZeekPath());
@@ -126,6 +127,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
 
     // The setup unit creates all working directories and sets permissions
     auto setup_unit = Unit(dir / "zeek-setup.service", "Zeek Setup", config.SourcePath());
+    setup_unit.AddBefore("zeek.target");
     setup_unit.SetPartOf("zeek.target");
     setup_unit.SetServiceType("oneshot");
     setup_unit.SetWorkingDirectory(config.ZeekBaseDir());
@@ -355,6 +357,7 @@ void systemd_write_units(const path& dir, const ZeekClusterConfig& config) {
         auto archiver_unit = Unit(dir / "zeek-archiver.service", "Zeek Archiver", config.SourcePath());
         archiver_unit.AddRequires("zeek-setup.service");
         archiver_unit.AddAfter("zeek-setup.service");
+        archiver_unit.AddBefore("zeek.target");
         archiver_unit.SetPartOf("zeek.target");
         archiver_unit.SetSyslogIdentifier("zeek-archiver");
         archiver_unit.SetWorkingDirectory(config.SpoolDir());

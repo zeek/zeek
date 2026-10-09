@@ -3373,6 +3373,21 @@ bool VectorVal::Insert(unsigned int index, ValPtr element) {
 }
 
 void VectorVal::AddHoles(unsigned int nholes) {
+    // Follow-up to GH-5825: the fix there rejects only index == UINT32_MAX
+    // (for an unsigned int, "index >= max" matches a single value), but any
+    // index just below it still passes and makes this loop insert billions
+    // of holes -- e.g. v[4294967294] = 1 inserts ~4.3e9 of them, ~64 GiB at
+    // 16 bytes each, hanging the process for a minute before the OOM killer
+    // steps in. Reject such unreasonable growth as out of bounds, too.
+    // 2^31 holes already cost >= 32 GiB, far beyond any legitimate sparse
+    // vector, so treat the whole upper half of the 32-bit index range as
+    // out of bounds.
+    //
+    // This covers every caller (VectorVal::Assign, VectorVal::Insert),
+    // since they all funnel their growth through here.
+    if ( nholes >= (1u << 31) )
+        reporter->RuntimeError(GetLocationInfo(), "vector index is out of bounds");
+
     TypePtr fill_t = yield_type;
     if ( yield_type->Tag() == TYPE_VOID )
         fill_t = base_type(TYPE_ANY);

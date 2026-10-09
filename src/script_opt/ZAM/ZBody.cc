@@ -157,8 +157,17 @@ bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
     if ( ind >= std::numeric_limits<unsigned int>::max() )
         reporter->RuntimeError(vv->GetLocationInfo(), "vector index is out of bounds");
 
-    if ( vv->Size() <= ind )
+    if ( vv->Size() <= ind ) {
+        // Same GH-5825 follow-up as VectorVal::AddHoles: the check above
+        // only rejects ind == UINT32_MAX, but e.g. ind == UINT32_MAX - 1
+        // still makes Resize() grow the vector by ~4.3e9 elements (~64 GiB).
+        // Each hole costs 16 bytes, so 2^31 of them already need >= 32 GiB;
+        // treat that much growth as out of bounds.
+        if ( ind + 1 - vv->Size() >= (static_cast<zeek_uint_t>(1) << 31) )
+            reporter->RuntimeError(vv->GetLocationInfo(), "vector index is out of bounds");
+
         vv->Resize(ind + 1);
+    }
 
     auto& elem = vv->RawVec()[ind];
 

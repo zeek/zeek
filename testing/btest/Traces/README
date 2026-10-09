@@ -165,3 +165,8 @@ Trace Index/Sources:
   The client sends the non-RFC 4253 version string "SSH-v2.8.1-linux_amd64".
 - dce-rpc/lookupsid-plaintext.pcap.gz
   Lab traffic provided by Mohan Dhawan containing fragmented DCE-RPC traffic.
+  and its response, without a preceding Bind or subsequent TLS handshake.
+- dhcpv6/dhcpv6-ia-pd.pcap
+  Extracted from public systemd issue #13547 (`DHCPv6-systemd-PD.pcapng`).
+  Contains a DHCPv6 Solicit, Advertise, Request, and Reply exchange
+  demonstrating Prefix Delegation (IA_PD) with an ISP.

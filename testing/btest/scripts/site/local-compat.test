@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek local-`cat $DIST/VERSION | sed 's/\([0-9].[0-9]\).*/\1/g'`.zeek
+# @TEST-EXEC: zeek local-`$PYTHON $DIST/auxil/zeek-aux/devel-tools/get-version.py --source $DIST | cut -d. -f1,2`.zeek
 
 # This tests the compatibility of the past release's site/local.zeek
 # script with the current version of Zeek.

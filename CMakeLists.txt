@@ -822,7 +822,22 @@ if (CMAKE_CXX_COMPILER_LAUNCHER)
          "setenv HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
 endif ()
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" ZEEK_VERSION_FULL LIMIT_COUNT 1)
+set(ZEEK_PYTHON_MIN 3.9.0)
+set(Python_FIND_UNVERSIONED_NAMES FIRST)
+find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
+
+execute_process(
+    COMMAND
+        "${Python_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/auxil/zeek-aux/devel-tools/get-version.py" --source
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE ZEEK_VERSION_FULL
+    ERROR_VARIABLE _zeek_version_error
+    RESULT_VARIABLE _zeek_version_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (NOT _zeek_version_result EQUAL 0 OR ZEEK_VERSION_FULL STREQUAL "")
+    message(FATAL_ERROR "Could not determine Zeek version: ${_zeek_version_error}")
+endif ()
 
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h _plugin_api_lines
      REGEX "^constexpr int PLUGIN_API_VERSION")
@@ -904,9 +919,6 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-set(ZEEK_PYTHON_MIN 3.9.0)
-set(Python_FIND_UNVERSIONED_NAMES FIRST)
-find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
 find_package(FLEX REQUIRED)
 find_package(BISON 2.5 REQUIRED)
 find_package(PCAP REQUIRED)

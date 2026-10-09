@@ -10,7 +10,9 @@
 # serve to show the default.
 
 import os
+import subprocess
 import sys
+from pathlib import Path
 
 extensions = []
 
@@ -58,15 +60,16 @@ copyright = "by the Zeek Project"
 # The short X.Y version.
 #
 
-version = "source"
-
-try:
-    # Use the actual Zeek version if available
-    with open("../VERSION") as f:
-        version = f.readline().strip()
-except:
-    print("VERSION file is missing")
-    sys.exit(1)
+source_dir = Path(__file__).resolve().parent.parent
+version = subprocess.check_output(
+    [
+        sys.executable,
+        str(source_dir / "auxil/zeek-aux/devel-tools/get-version.py"),
+        "--source",
+        str(source_dir),
+    ],
+    text=True,
+).strip()
 
 # The full version, including alpha/beta/rc tags.
 release = version

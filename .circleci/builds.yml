@@ -1039,13 +1039,13 @@ workflows:
           << : *FILTER_IF_PR_NOT_FULL_CI
 
       - macos-build:
-          name: macOS-xcode-26.5
-          xcode_version: "26.5"
+          name: macOS-xcode-27.2
+          xcode_version: "27.2"
           requires: [fetch-test-traces]
           << : *FILTER_IF_SKIP_ALL
       - macos-build:
-          name: macOS-xcode-16.4
-          xcode_version: "16.4"
+          name: macOS-xcode-26.6
+          xcode_version: "26.6"
           requires: [fetch-test-traces]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:

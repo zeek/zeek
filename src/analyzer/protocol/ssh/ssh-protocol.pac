@@ -375,14 +375,14 @@ refine connection SSH_Conn += {
 		%{
 		if ( v.length() >= 5 )
 			{
-			if ( v[4] == '2' )
+			if ( v[4] != '1' )
 				{
 				if ( is_orig )
 					version_client_ = SSH2;
 				else
 					version_server_ = SSH2;
 				}
-			if ( v[4] == '1' )
+			else
 				{
 				if ( v.length() >= 8 && v[6] == '9' && v[7] == '9' )
 					{

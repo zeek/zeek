@@ -3,6 +3,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ssh/rssh.pcap %INPUT
 #
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
+# @TEST-EXEC: btest-diff-cut -m ssh.log
 
 @load base/protocols/conn
 @load base/protocols/ssh

@@ -1,3 +1,9 @@
+enum GSSAPI_Token_Type {
+	GSSAPI_SPNEGO_INIT = 0,
+	GSSAPI_SPNEGO_RESP = 1,
+	GSSAPI_KRB5        = 2,
+};
+
 type GSSAPI_SELECT(is_orig: bool) = record {
 	wrapper  : ASN1EncodingMeta;
 	token: case tok_id of {
@@ -15,15 +21,26 @@ type GSSAPI_NEG_TOKEN(is_orig: bool, is_init: bool) = record {
 		true  -> oid    : ASN1Encoding;
 		false -> no_oid : empty;
 	};
-	have_init_wrapper : case is_init of {
-		true  -> init_wrapper    : ASN1EncodingMeta;
-		false -> no_init_wrapper : empty;
+	have_init_wrapper : case token_type of {
+		GSSAPI_SPNEGO_INIT -> init_wrapper    : ASN1EncodingMeta;
+		default            -> no_init_wrapper : empty;
+	} &requires(token_type);
+	msg_type : case token_type of {
+		GSSAPI_SPNEGO_INIT -> init : GSSAPI_NEG_TOKEN_INIT;
+		GSSAPI_SPNEGO_RESP -> resp : GSSAPI_NEG_TOKEN_RESP;
+		GSSAPI_KRB5        -> krb5 : GSSAPI_KRB5_TOKEN;
 	};
-	msg_type : case is_init of {
-		true  -> init : GSSAPI_NEG_TOKEN_INIT;
-		false -> resp : GSSAPI_NEG_TOKEN_RESP;
-	};
+} &let {
+	# The OID selects the inner token: SPNEGO or Kerberos 5 (RFC 2743 section 3.1).
+	token_type: uint8 = ! is_init ? GSSAPI_SPNEGO_RESP :
+		($context.connection.is_krb5_oid(oid.content) ? GSSAPI_KRB5 : GSSAPI_SPNEGO_INIT);
 } &byteorder=littleendian;
+
+# Krb 5 context establishment token (RFC 4121 section 4.1)
+type GSSAPI_KRB5_TOKEN = record {
+	token_id : uint16 &byteorder=bigendian;
+	blob     : bytestring &restofdata;
+};
 
 type GSSAPI_NEG_TOKEN_INIT = record {
 	seq_meta : ASN1EncodingMeta;
@@ -77,5 +94,16 @@ refine connection GSSAPI_Conn += {
 	function is_first_byte(token: bytestring, byte: uint8): bool
 		%{
 		return token.length() > 0 && token[0] == byte;
+		%}
+
+	function is_krb5_oid(oid: bytestring): bool
+		%{
+		// 1.2.840.113554.1.2.2 (RFC 1964 section 1) and 1.2.840.48018.1.2.2 (MS Kerberos 5)
+		static const uint8 krb5[] = { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02 };
+		static const uint8 ms_krb5[] = { 0x2a, 0x86, 0x48, 0x82, 0xf7, 0x12, 0x01, 0x02, 0x02 };
+
+		return oid.length() == sizeof(krb5) &&
+		       ( memcmp(oid.begin(), krb5, sizeof(krb5)) == 0 ||
+		         memcmp(oid.begin(), ms_krb5, sizeof(ms_krb5)) == 0 );
 		%}
 };

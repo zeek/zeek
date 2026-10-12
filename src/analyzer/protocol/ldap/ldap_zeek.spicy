@@ -23,7 +23,7 @@ on LDAP::TlsForward::chunk {
 }
 
 on LDAP::BindRequest::%done {
-    if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.payload) {
+    if (self.authType == LDAP::BindAuthType::BIND_AUTH_SASL && self?.saslCreds && self.saslCreds?.payload && |self.saslCreds.payload| > 0) {
         local mech = self.saslCreds.mechanism;
         # Forward GSS-SPNEGO with NTLMSSP inside directly to the NTLM
         # analyzer rather than going through GSSAPI analyzer, because

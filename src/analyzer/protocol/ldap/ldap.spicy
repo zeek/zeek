@@ -405,14 +405,14 @@ type GSS_SPNEGO_Init = unit {
     spnegoInitial: skip GSS_SPNEGO_negTokenInit if(self?.spnegoInitByte);
 };
 
-type SaslCredentials = unit {
+type SaslCredentials = unit(len: uint64) {
     mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
 
     # Optionally strip the credentials OCTET STRING ASN.1 header
     switch {
         -> credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
         -> : void;
-    };
+    } if(self.offset() < len);
 
     payload: bytes &size=self.credentialsHeader.len.len if(self?.credentialsHeader);
 
@@ -506,7 +506,7 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
                 self.simpleCreds = self.authData.decode();
                 message.arg = self.simpleCreds;
             }
-            BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials {
+            BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials(|self.authData|) {
                 message.arg = self.saslCreds.mechanism;
                 ctx.saslMechanism = self.saslCreds.mechanism;
                 ctx.messageMode = MessageMode::SASL_PENDING;

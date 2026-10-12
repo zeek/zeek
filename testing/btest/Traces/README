@@ -156,3 +156,7 @@ Trace Index/Sources:
   From Arkime pcap tests "tests/pcap/ldap_ssl.pcap" with only the port numbers slightly modified.
   Two IPv6 loopback TCP packets on port 6521: an LDAP StartTLS extended request
   and its response, without a preceding Bind or subsequent TLS handshake.
+- ldap/sasl-gssapi-krb5.pcap
+  From Wireshark issue #9398 (attachment "sasl-integrity.pcap"),
+  <https://gitlab.com/wireshark/wireshark/-/work_items/9398>. LDAP SASL bind
+  using the GSSAPI > Kerberos 5 without SPNEGO (RFC 4752)

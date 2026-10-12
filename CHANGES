@@ -1,3 +1,18 @@
+9.1.0-dev.204 | 2026-10-12 09:46:09 -0700
+
+  * LDAP: Handle SASL binds without credentials (Gido822)
+
+    SASL credentials are optional (RFC 4511, section 4.2),
+    so only parse them when present and do not forward empty credentials to the GSSAPI analyzer.
+
+  * GSSAPI: Forward Kerberos tokens without SPNEGO (Gido822)
+
+    The GSSAPI analyzer assumed that negotiation always goes through SPNEGO,
+    which is not always the case.
+    Allow the GSSAPI analyzer to parse Kerberos 5 tokens used directly.
+
+  * Add test for Kerberos GSS-API tokens without SPNEGO (Gido822)
+
 9.1.0-dev.200 | 2026-10-12 09:45:18 -0700
 
   * Extend spicyz configuration to allow separate tools to incorporate it (Vern Paxson, Corelight)

@@ -1,6 +1,10 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
-VERSION := $(shell python3 ../tools/scripts/get-version.py --source ..)
+PYTHON ?= python3
+VERSION := $(shell $(PYTHON) ../tools/scripts/get-version.py --source ..)
+ifndef VERSION
+$(error Could not determine Zeek version; set PYTHON to a working Python 3 interpreter)
+endif
 ZEEK_IMAGE ?= zeek:$(VERSION)
 
 .PHONY: all test

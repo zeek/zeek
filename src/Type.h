@@ -153,7 +153,6 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept {
 class Type;
 class TypeList;
 class TableType;
-class SetType;
 class RecordType;
 class FuncType;
 class EnumType;
@@ -165,7 +164,6 @@ class FileType;
 using TypePtr = IntrusivePtr<Type>;
 using TypeListPtr = IntrusivePtr<TypeList>;
 using TableTypePtr = IntrusivePtr<TableType>;
-using SetTypePtr = IntrusivePtr<SetType>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 using FuncTypePtr = IntrusivePtr<FuncType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;

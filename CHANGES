@@ -1,3 +1,11 @@
+9.1.0-dev.191 | 2026-10-12 07:21:22 -0700
+
+  * CCI: Move public-ecr-cleanup build to weekly (Tim Wojtulewicz, Corelight)
+
+  * CCI: Remove obsolete changes_only_docs flag (Tim Wojtulewicz, Corelight)
+
+  * CCI: Remove unused pr_label_spicy flag (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.187 | 2026-10-12 15:30:41 +0200
 
   * scapy-pcap: Cover derived traces and listing Scapy layers (Gido822)

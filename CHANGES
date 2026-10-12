@@ -1,3 +1,17 @@
+8.0.10-32 | 2026-10-13 19:17:55 +0000
+
+  * CCI: Move public-ecr-cleanup build to weekly (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a64afae66a20c77debd5083ce1a1d6f3f1bc38b6)
+
+  * CCI: Remove obsolete changes_only_docs flag (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a64afae66a20c77debd5083ce1a1d6f3f1bc38b6)
+
+  * CCI: Remove unused pr_label_spicy flag (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a64afae66a20c77debd5083ce1a1d6f3f1bc38b6)
+
 8.0.10-31 | 2026-10-13 19:17:13 +0000
 
   * CCI: Make sure latest python is in pyenv on macOS (Tim Wojtulewicz, Corelight)

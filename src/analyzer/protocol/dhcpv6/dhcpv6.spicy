@@ -97,6 +97,21 @@ type IAADDROption = unit {
     options: Option()[] &eod;
 };
 
+type IA_PDOption = unit {
+    iaid: uint32;
+    t1: uint32; # seconds
+    t2: uint32; # seconds
+    options: Option()[] &eod;
+};
+
+type IAPREFIXOption = unit {
+    preferred_lifetime: uint32;
+    valid_lifetime: uint32;
+    prefix_len: uint8;
+    prefix: addr &ipv6;
+    options: Option()[] &eod;
+};
+
 type RequestOption = unit {
     requested_options: uint16[] &eod;
 };
@@ -133,6 +148,7 @@ type OptionCode = enum {
     RELAY_MSG = 9,
     STATUS_CODE = 13,
     IA_PD = 25,
+    IAPREFIX = 26,
     CLIENT_FQDN = 39,
 };
 
@@ -144,7 +160,9 @@ type Option = unit {
         OptionCode::CLIENTID -> client_id: DUIDOption;
         OptionCode::SERVERID -> server_id: DUIDOption;
         OptionCode::IA_NA -> ia_na: IA_NAOption;
+        OptionCode::IA_PD -> ia_pd: IA_PDOption;
         OptionCode::IAADDR -> iaaddr: IAADDROption;
+        OptionCode::IAPREFIX -> iaprefix: IAPREFIXOption;
         OptionCode::REQUEST -> request_option: RequestOption;
         OptionCode::RELAY_MSG -> relay_msg: Message;
         OptionCode::STATUS_CODE -> status_code: StatusCodeOption;
@@ -155,8 +173,6 @@ type Option = unit {
     on %done {
         if (self.code == OptionCode::IA_TA)
             zeek::weird("dhcpv6_ia_ta_unsupported", "");
-        else if (self.code == OptionCode::IA_PD)
-            zeek::weird("dhcpv6_ia_pd_unsupported", "");
     }
 };
 
@@ -207,6 +223,8 @@ type MessageInfo = struct {
     t1: optional<uint32> &default=Null;
     t2: optional<uint32> &default=Null;
     assigned_addr: optional<addr> &default=Null;
+    assigned_prefix_addr: optional<addr> &default=Null;
+    assigned_prefix_len: optional<uint8> &default=Null;
     preferred_lifetime: optional<uint32> &default=Null;
     valid_lifetime: optional<uint32> &default=Null;
     status_code: optional<uint16> &default=Null;
@@ -238,9 +256,12 @@ public function make_message_info(msg: Message): MessageInfo {
             case OptionCode::CLIENT_FQDN:
                 info.client_fqdn = o.client_fqdn.domain_name;
             case OptionCode::IA_NA: {
-                info.iaid = o.ia_na.iaid;
-                info.t1 = o.ia_na.t1;
-                info.t2 = o.ia_na.t2;
+                if ( ! info.iaid )
+                    info.iaid = o.ia_na.iaid;
+                if ( ! info.t1 )
+                    info.t1 = o.ia_na.t1;
+                if ( ! info.t2 )
+                    info.t2 = o.ia_na.t2;
                 local iaaddr_count: uint32 = 0;
                 for (so in o.ia_na.options) {
                     if (so.code == OptionCode::IAADDR) {
@@ -257,6 +278,31 @@ public function make_message_info(msg: Message): MessageInfo {
                 }
                 if (iaaddr_count > 1)
                     zeek::weird("dhcpv6_multi_iaaddr_unsupported", "");
+            }
+            case OptionCode::IA_PD: {
+                if ( ! info.iaid )
+                    info.iaid = o.ia_pd.iaid;
+                if ( ! info.t1 )
+                    info.t1 = o.ia_pd.t1;
+                if ( ! info.t2 )
+                    info.t2 = o.ia_pd.t2;
+                local iaprefix_count: uint32 = 0;
+                for (so in o.ia_pd.options) {
+                    if (so.code == OptionCode::IAPREFIX) {
+                        ++iaprefix_count;
+                        if (iaprefix_count == 1) {
+                            info.assigned_prefix_addr = so.iaprefix.prefix;
+                            info.assigned_prefix_len = so.iaprefix.prefix_len;
+                            if ( ! info.preferred_lifetime )
+                                info.preferred_lifetime = so.iaprefix.preferred_lifetime;
+                            if ( ! info.valid_lifetime )
+                                info.valid_lifetime = so.iaprefix.valid_lifetime;
+                        }
+                    } else if (so.code == OptionCode::STATUS_CODE) {
+                        info.status_code = cast<uint16>(so.status_code.code);
+                        info.status_message = so.status_code.message;
+                    }
+                }
             }
             default: ();
         }

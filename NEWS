@@ -21,6 +21,9 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The DHCPv6 analyzer now supports prefix delegation (IA_PD) and logs
+  assigned prefixes in ``dhcpv6.log`` via the ``assigned_prefix`` field.
+
 - Zeek now includes an initial version of a DHCPv6 analyzer, producing ``dhcpv6.log``.
 
   The analyzer implementation and ``dhcpv6.log`` are in early stages and will be

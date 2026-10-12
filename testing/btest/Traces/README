@@ -156,3 +156,7 @@ Trace Index/Sources:
   From Arkime pcap tests "tests/pcap/ldap_ssl.pcap" with only the port numbers slightly modified.
   Two IPv6 loopback TCP packets on port 6521: an LDAP StartTLS extended request
   and its response, without a preceding Bind or subsequent TLS handshake.
+- dhcpv6/dhcpv6-ia-pd.pcap
+  Extracted from public systemd issue #13547 (`DHCPv6-systemd-PD.pcapng`).
+  Contains a DHCPv6 Solicit, Advertise, Request, and Reply exchange
+  demonstrating Prefix Delegation (IA_PD) with an ISP.

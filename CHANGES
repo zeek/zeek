@@ -1,3 +1,7 @@
+9.1.0-dev.200 | 2026-10-12 09:45:18 -0700
+
+  * Extend spicyz configuration to allow separate tools to incorporate it (Vern Paxson, Corelight)
+
 9.1.0-dev.198 | 2026-10-12 16:45:39 +0200
 
   * tools/systemd-generator: Minor clang-tidy fixes (Arne Welzel, Corelight)

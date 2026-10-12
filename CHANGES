@@ -1,3 +1,9 @@
+8.0.10-29 | 2026-10-12 15:53:47 -0700
+
+  * Fix SOCKS5 IPv6 address handling (jmass-ggg)
+
+    (cherry picked from commit be15b63b273ee042cb396a84cd564ad2939e9351)
+
 8.0.10-28 | 2026-10-12 15:52:48 -0700
 
   * Drop tcp-state from the TLS DPD signatures (Gido822)

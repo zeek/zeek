@@ -1,3 +1,21 @@
+9.1.0-dev.187 | 2026-10-12 15:30:41 +0200
+
+  * scapy-pcap: Cover derived traces and listing Scapy layers (Gido822)
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+  * scapy-pcap: Address review feedback (Gido822)
+
+    - Fix the teardown template reference and allow either side to close.
+    - Use neutral attribution wording for adapted generators.
+    - Require passing the pre-commit checks instead of running ruff.
+    - Move gzip/pcapng and verification details into assets/.
+    - Correct claims that failed testing: truncated packets in pcap, FIN/ACK
+      acking pending data, the SMB2 example, and conn history letters.
+    - Allow <name>.pcapng.py; skip the teardown check for partial flows.
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.184 | 2026-10-12 08:01:43 -0400
 
   * GH-5923: Fix TableVal::RemoveFrom() when removing a set from itself (Onat Baker)

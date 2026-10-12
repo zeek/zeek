@@ -17,8 +17,9 @@ rewriting an existing one.
 
 ## Placement and naming
 
-- The generator is always named `<name>.pcap.py` and lives next to the trace it
-  produces: `testing/btest/Traces/<protocol>/<name>.pcap.py`, and running it must
+- The generator is named `<name>.pcap.py` and lives next to the trace it
+  produces:
+  `testing/btest/Traces/<protocol>/<name>.pcap.py`. Running it must
   reproducibly write the trace beside itself — `<name>.pcap`, or `<name>.pcap.gz`
   when compressed (see "Output" below).
 - `<name>` is dash-separated and names the thing under test, e.g.
@@ -43,23 +44,20 @@ rewriting an existing one.
   sequence/ack, TCP flags (as a string like `"S"`, `"SA"`, `"PA"`, `"A"`), and
   an optional payload. Only attach `Raw` when there is a payload.
 - Bracket the flow with a real TCP lifecycle: open with the SYN / SYN-ACK / ACK
-  handshake and close with a FIN/ACK teardown — client `"FA"`, server `"FA"`,
-  client `"A"` — so the trace is a complete, well-formed connection rather than
-  one that just stops mid-flow or trails off on a bare ACK. Besides being
-  well-formed, a proper teardown matters for `tcpreplay`-style scenarios: a
-  connection that is explicitly closed lets the replayed flow terminate and its
-  state be released, instead of lingering until a timeout. A FIN consumes one
-  sequence number, so bump the sender's seq by one after each FIN (and the
-  peer's ack matches) — see the teardown in `assets/template.pcap.py`.
+  handshake and close with a FIN/ACK teardown — the closing side sends `"FA"`,
+  its peer `"FA"`, and the closing side the final `"A"` — so the trace is a
+  complete, well-formed connection rather than one that just stops mid-flow or
+  trails off on a bare ACK. Either side may close; close from the side that
+  does so in the behavior under test (the template closes from the TCP
+  originator). Besides being well-formed, a proper teardown matters for
+  `tcpreplay`-style scenarios: a connection that is explicitly closed lets the
+  replayed flow terminate and its state be released, instead of lingering
+  until a timeout. A FIN consumes one sequence number, so bump the sender's seq
+  by one after each FIN (and the peer's ack matches) — see the teardown in
+  `assets/template-tcp.pcap.py`.
 
-  If the client has unacknowledged server data when it closes (e.g. after
-  receiving a large burst that it has not yet ACKed), send a plain `"A"` first
-  to clear the backlog; the teardown then becomes 4 packets:
-  `"A"` / `"FA"` / `"FA"` / `"A"`.
+  The closing side's `"FA"` also acknowledges any pending data from its peer.
 
-  Verify the teardown with `tshark`: the last three (or four) packets should be
-  `[FIN, ACK]` / `[FIN, ACK]` / `[ACK]` (optionally preceded by a plain `[ACK]`)
-  with no `tcp.analysis.flags`.
   The exception is when the incomplete flow *is* the thing under test — a
   half-duplex connection, pre-banner data, a mid-flow reset, a never-closed
   connection. Then build exactly the (possibly partial) flow the test needs and
@@ -75,8 +73,14 @@ rewriting an existing one.
   payload with `struct`, too. Scapy ships dissectors for many L7 protocols under
   `scapy.layers.<proto>` (e.g. `SMB2_Header` and `NBTSession` in
   `scapy.layers.smb2`/`netbios`, plus DNS, TLS, Kerberos, LDAP, …), and more
-  under `scapy.contrib` (e.g. IGMP, GENEVE) — both are fair game. Check for
-  one before reaching for `struct`: `from scapy.layers.smb2 import SMB2_Header`;
+  under `scapy.contrib` (e.g. IGMP, GENEVE) — both are fair game. List them
+  and check for one before reaching for `struct`:
+
+  ```
+  python3 -c "import pkgutil, scapy.layers, scapy.contrib; print(sorted(m.name for p in (scapy.layers, scapy.contrib) for m in pkgutil.iter_modules(p.__path__)))"
+  ```
+
+  For example, `from scapy.layers.smb2 import SMB2_Header`;
   `bytes(NBTSession() / SMB2_Header(Command=..., MID=..., TID=...))`. If a field
   is missing from the layer, set it explicitly rather than abandoning the layer.
   Only fall back to a small fixed `Raw` blob for a body Scapy has no class for,
@@ -94,38 +98,24 @@ rewriting an existing one.
   `Path(__file__)` is always correct regardless of CWD.
 - Keep traces small — `btest.rst` asks for a few kilobytes, with 50 KB or more
   being an exception. Include only the packets the behavior under test needs.
-- gzip is OPTIONAL — only worth it for the large, highly compressible traces
-  that are the exception above (repetitive payloads, e.g. resource-exhaustion
-  reproducers that shrink by 50x+). For a normal small trace, leave it
-  uncompressed; a plain pcap is nicer to inspect and diff.
-- When you do compress, write through `gzip.GzipFile(path, "wb", mtime=0)` and
-  pass that handle to `wrpcap(f, packets)`. `mtime=0` is what makes the bytes
-  reproducible; do NOT use `wrpcap(..., gz=1)`, which embeds a build-time mtime.
-  The output is then `<name>.pcap.gz`:
-  `gzip.GzipFile(Path(__file__).with_suffix(".gz"), "wb", mtime=0)`.
-  `with_suffix(".gz")` replaces only the `.py` and yields `<name>.pcap.gz`.
-  (Do NOT use `with_suffix(".pcap.gz")` — that would produce `<name>.pcap.pcap.gz`.)
-- pcapng is fine when the trace needs it — e.g. per-packet capture length that
-  differs from wire length (a truncated packet), which the pcap format cannot
-  represent. Name the script `<name>.pcapng.py`, write with `wrpcapng(...)`, and
-  the output is `<name>.pcapng`. `with_suffix("")` on `<name>.pcapng.py` still
-  strips only `.py` and yields `<name>.pcapng`.
-- Gzipping a pcapng needs a workaround: unlike `wrpcap()`, `wrpcapng()` only
-  accepts a path (not a file handle) in Scapy 2.7.0, so you cannot pass it a
-  `gzip.GzipFile`. Write a plain pcapng to a temp file beside the final output,
-  then gzip that:
+- gzip is optional and only worth it for large, highly compressible traces;
+  pcapng only when absolutely necessary. A truncated packet works in
+  plain pcap: set `p.wirelen` above the captured length. For either, follow
+  `assets/compression-and-pcapng.md` — reproducible gzip output needs
+  `mtime=0`, and gzipping pcapng needs a workaround.
 
-  ```python
-  # wrpcapng() only accepts a path in Scapy 2.7.0, so gzip a plain file.
-  final = Path(__file__).with_suffix(".gz")
-  with tempfile.NamedTemporaryFile(dir=final.parent, suffix=".pcapng") as tmp:
-      wrpcapng(tmp.name, packets)
-      with gzip.GzipFile(final, "wb", mtime=0) as gz:
-          shutil.copyfileobj(tmp, gz)
-  ```
+## Deriving from an existing trace
 
-  (`dir=final.parent` keeps the temp file on the same filesystem; `mtime=0`
-  still makes the gzip bytes reproducible.)
+When a generator edits a committed trace:
+
+- Read it relative to the script, e.g.
+  `rdpcap(str(Path(__file__).parent / "<source>.pcap"))`.
+- Keep its timestamps; the `BASE_TIME` rule below does not apply.
+- Delete `chksum` (and `len` if the size changes) on each modified layer, e.g.
+  `del p[IP].chksum`, so Scapy recomputes them. Prefer same-length edits; a
+  size change also shifts later TCP sequence numbers.
+- Assert that each edit happened (e.g. `assert replaced == 1`).
+- Name the source trace in the docstring.
 
 ## Deterministic timestamps
 
@@ -169,85 +159,33 @@ rewriting an existing one.
   whether you started from an existing reproducer:
   - Rewriting/adapting an existing generator: keep the provenance of the
     original and append the adapting model's identifier, e.g. "Generated with
-    OpenAI Codex, adapted with <model-id> to use Scapy."
+    OpenAI Codex, adapted with <model-id> to follow the scapy-pcap
+    conventions."
   - Writing a new generator from scratch: state what the trace exercises and
     name the model that wrote it, e.g. "Generates a <protocol> trace for
     <behavior under test>. Written with <model-id> using Scapy." There is no
     prior provenance to preserve — do not invent one.
 
-## Format and lint the generator
+## Pass the pre-commit checks
 
-- Run both ruff commands on the finished script — the repo's
-  `.pre-commit-config.yaml` runs `ruff-format` and `ruff-check`, and a commit
-  fails the hook otherwise. This is easy to forget:
-
-  ```
-  ruff format <name>.pcap.py   # reformat in place
-  ruff check <name>.pcap.py    # lint
-  ```
-
-  Reformatting only touches the Python source (e.g. wrapping long
-  `add_argument(...)` calls); it does not change the generated trace bytes, so no
-  need to regenerate afterwards. Confirm both are clean with
-  `ruff format --check <name>.pcap.py` and `ruff check <name>.pcap.py`.
+- The finished script must pass the repo's pre-commit checks, which CI runs,
+  too. Run them on the generator with
+  `pre-commit run --files <name>.pcap.py` and commit any changes the
+  formatting hooks make. Reformatting only touches the Python source; it does
+  not change the generated trace bytes, so no need to regenerate afterwards.
 
 ## Verify before finishing
 
-1. Run the script twice and confirm identical bytes — `sha256sum` must match
-   across runs (reproducibility). This applies to a plain `<name>.pcap` just as
-   much as a `<name>.pcap.gz`; a differing hash means a timestamp, nonce, or
-   other nondeterministic value leaked in (see "Deterministic timestamps").
-2. Decompress and sanity-check structure independently of Zeek — the point of a
-   reproducer is not to trust Zeek's own parser:
-   ```python
-   from scapy.all import rdpcap, Raw
-   ps = rdpcap("<name>.pcap")
-   # assert packet count, TCP flags on the handshake, payload contents,
-   # direction counts, first/last timestamps
-   ```
-   Note that `rdpcap` only re-parses the bytes Scapy itself just wrote, so it
-   confirms almost nothing about whether the L7 payload is well-formed — Scapy
-   will happily read back a nonsense command code it wrote.
-3. Cross-check with `tshark` (a genuinely independent dissector) — treat this as
-   required, not optional, for any trace with an application-layer payload. It
-   catches malformed payloads Scapy misses. Read a plain trace directly, or a
-   compressed one over stdin:
-   ```
-   tshark -r <name>.pcap
-   zcat <name>.pcap.gz | tshark -r -
-   ```
-   Scan the summary column for `[Malformed Packet]` / `unknown` and check the
-   expert info (`-Y "_ws.malformed || _ws.expert.severity==error"` should be
-   empty; `-T fields -e <proto>.<field>` to confirm per-message fields). If a
-   real dissector flags the trace, pick protocol field values it accepts —
-   e.g. a valid command code, not a reserved/unknown one that renders every
-   packet malformed. Also make sure the message type you pick actually exercises
-   the behavior under test without a side effect that undoes it (e.g. for an SMB2
-   tree-id state-growth reproducer, ECHO grows the map but TREE_DISCONNECT has a
-   handler that clears it).
+Follow `assets/verification.md` for the commands and exceptions. In short:
 
-   **Exception — intentionally malformed traces:** when the trace is *testing
-   Zeek's handling of invalid input* (truncated headers, unknown opcodes,
-   out-of-range field values, etc.), tshark dissector errors are expected and
-   intentional. In that case, confirm that tshark flags *exactly* the packets
-   you intended to be malformed and none of the surrounding framing (handshake,
-   teardown, surrounding well-formed messages). Do not "fix" the payload to
-   satisfy tshark — the bad input is the point of the test.
-4. Confirm the IP/TCP/UDP checksums are valid. Scapy computes them at write
-   time, so a trace built purely with the high-level API passes — but verify
-   it, because a checksum or length field you set by hand, a packet you copied
-   and mutated, or a transport header hand-rolled in a `Raw` blob can carry a
-   stale value, and Zeek may silently drop a bad-checksum packet (see
-   `ignore_checksums` / `C` and `T` in conn history). tshark does NOT validate
-   checksums by default, so enable it explicitly:
-   ```
-   tshark -r <name>.pcap -o ip.check_checksum:TRUE \
-       -o tcp.check_checksum:TRUE -o udp.check_checksum:TRUE \
-       -Y 'ip.checksum.status=="Bad" || tcp.checksum.status=="Bad" || udp.checksum.status=="Bad"'
-   ```
-   That filter should print nothing — any row is a bad checksum. (Exception: a
-   trace that *tests* bad-checksum handling wants specific packets to fail here;
-   as with malformed input, confirm it is exactly the packets you intended.)
+1. Run the script twice; `sha256sum` of the output must match.
+2. Sanity-check the structure with `rdpcap` (packet count, TCP flags,
+   payloads, timestamps).
+3. Cross-check with `tshark`, an independent dissector: no malformed packets
+   or expert errors (unless they are the point of the test), and a clean
+   teardown for TCP flows that are not intentionally partial.
+4. Confirm the IP/TCP/UDP checksums are valid with tshark's checksum
+   validation enabled.
 
 See the templates in this skill's `assets/` directory for a minimal starting
 point: `assets/template-tcp.pcap.py` for a TCP flow (handshake, direction-aware

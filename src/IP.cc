@@ -365,6 +365,9 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const {
     else
         pkt_hdr->Assign(sindex + 1, ToIPHdrVal());
 
+    if ( HdrLen() > TotalLen() )
+        return pkt_hdr;
+
     // Sanity check that we have enough data captured to parse the payload.
     if ( len > 0 && len < HdrLen() + PayloadLen() )
         return pkt_hdr;

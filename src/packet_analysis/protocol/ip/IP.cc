@@ -299,8 +299,8 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
         if ( caplen < (int)sizeof(struct ip) )
             return ParseResult::BAD_PROTOCOL;
 
-        const struct ip* ip4 = (const struct ip*)pkt;
-        inner = std::make_shared<zeek::IP_Hdr>(ip4, false);
+        const struct ip* ip4 = reinterpret_cast<const struct ip*>(pkt);
+        inner = std::make_shared<zeek::IP_Hdr>(ip4, false, false, caplen);
         if ( ip4->ip_v != 4 )
             return ParseResult::BAD_PROTOCOL;
     }

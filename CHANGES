@@ -1,3 +1,13 @@
+9.1.0-dev.184 | 2026-10-12 08:01:43 -0400
+
+  * GH-5923: Fix TableVal::RemoveFrom() when removing a set from itself (Onat Baker)
+
+    Subtracting a set or table from itself removed entries while iterating over the same table/set. This skipped elements and caused iterator invalidation warnings and for &ordered sets it crashed Zeek (found through the ordered set (o -= o) test).
+
+    When removing a table from itself, first collect all keys and then remove them one by one. Clearing the table instead would skip per-element notifications such as &on_change handlers.
+
+    Fixes #5923
+
 9.1.0-dev.181 | 2026-10-12 13:28:15 +0200
 
   * Fix SOCKS5 IPv6 address handling (jmass-ggg)

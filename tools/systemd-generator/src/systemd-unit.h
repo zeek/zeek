@@ -42,6 +42,8 @@ public:
 
     void AddAfter(std::string a) { after.emplace_back(std::move(a)); }
 
+    void AddBefore(std::string b) { before.emplace_back(std::move(b)); }
+
     void AddRequires(std::string r) { requires_.emplace_back(std::move(r)); }
 
     void AddStopPropagatedFrom(std::string f) { stop_propagated_from.emplace_back(std::move(f)); }
@@ -115,6 +117,7 @@ private:
     // [Unit]
     std::string description;
     std::vector<std::string> after;
+    std::vector<std::string> before;
     std::vector<std::string> requires_;
     std::vector<std::string> stop_propagated_from;
     std::filesystem::path source_path;

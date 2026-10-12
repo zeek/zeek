@@ -3,6 +3,7 @@
 [Unit]
 Description=Zeek Setup
 SourcePath=<...>/config1
+Before=zeek.target
 PartOf=zeek.target
 StartLimitIntervalSec=0
 

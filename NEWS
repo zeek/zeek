@@ -38,6 +38,9 @@ New Functionality
   fields of absent records, including potential nested records, should be
   listed with the configured ``Input::unset_field`` character (normally "-").
 
+- The systemd-generator now places worker processes into interface specific slices
+  named after the interface section name.
+
 Changed Functionality
 ---------------------
 

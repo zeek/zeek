@@ -437,12 +437,12 @@ add_job(
     "include-plugins-debian13",
     "ci/debian-13/Dockerfile",
     skip_if_pr_not_full(pr_labels),
-    "--include-plugins=${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/protocol-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/py-lib-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/Files/zeek-version-plugin;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-perf-support;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-more-hashes;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-cluster-backend-nats;${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external/zeek-kafka",
-    {},
-    """(cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git)
-       (cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git)
-       (cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git)
-       (cd ${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git)
+    "--include-plugins=${ZEEK_CI_BUILTIN_PLUGINS}/Files/protocol-plugin;${ZEEK_CI_BUILTIN_PLUGINS}/Files/py-lib-plugin;${ZEEK_CI_BUILTIN_PLUGINS}/Files/zeek-version-plugin;${ZEEK_CI_BUILTIN_PLUGINS}/external/zeek-perf-support;${ZEEK_CI_BUILTIN_PLUGINS}/external/zeek-more-hashes;${ZEEK_CI_BUILTIN_PLUGINS}/external/zeek-cluster-backend-nats;${ZEEK_CI_BUILTIN_PLUGINS}/external/zeek-kafka",
+    {"ZEEK_CI_BUILTIN_PLUGINS": "${ZEEK_CI_WORKING_DIR}/testing/builtin-plugins"},
+    """(cd ${ZEEK_CI_BUILTIN_PLUGINS}/external && git clone https://github.com/zeek/zeek-perf-support.git)
+       (cd ${ZEEK_CI_BUILTIN_PLUGINS}/external && git clone https://github.com/zeek/zeek-more-hashes.git)
+       (cd ${ZEEK_CI_BUILTIN_PLUGINS}/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git)
+       (cd ${ZEEK_CI_BUILTIN_PLUGINS}/external && git clone https://github.com/SeisoLLC/zeek-kafka.git)
        ./ci/build.sh
        (cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS})
        . ${ZEEK_CI_WORKING_DIR}/build/zeek-path-dev.sh

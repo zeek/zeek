@@ -522,8 +522,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - release: macos-15
           - release: macos-26
+          - release: macos-27
 
     runs-on: ${{ matrix.release }}
     needs: is-public-repo

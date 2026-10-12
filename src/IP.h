@@ -390,7 +390,8 @@ public:
         if ( ip4 ) {
             // prevent overflow in case of segment offloading/zeroed header length.
             auto total_len = ntohs(ip4->ip_len);
-            return total_len ? total_len - ip4->ip_hl * 4 : 0;
+            auto hdr_len = ip4->ip_hl * 4;
+            return total_len > hdr_len ? total_len - hdr_len : 0;
         }
 
         return ntohs(ip6->ip6_plen) + 40 - ip6_hdrs->TotalLength();

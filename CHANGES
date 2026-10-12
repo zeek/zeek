@@ -1,3 +1,9 @@
+9.1.0-dev.179 | 2026-10-12 12:39:55 +0200
+
+  * Fix unbounded delay queue behavior when limit is zero (jmass-ggg)
+
+  * Fix Log::delay crash with zero delay queue size (jmass-ggg)
+
 9.1.0-dev.176 | 2026-10-09 09:32:31 +0200
 
   * Drop tcp-state from the TLS DPD signatures (Gido822)

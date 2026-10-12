@@ -423,7 +423,7 @@ void Manager::Stream::EvictDelayedWrites() {
 
     evicting = true;
 
-    if ( delay_queue.size() > max_delay_queue_size ) {
+    if ( max_delay_queue_size > 0 && delay_queue.size() > max_delay_queue_size ) {
         if ( delay_timer ) {
             zeek::detail::timer_mgr->Cancel(delay_timer);
             delay_timer = nullptr;
@@ -435,7 +435,8 @@ void Manager::Stream::EvictDelayedWrites() {
         auto start_queue_size = delay_queue.size();
         decltype(start_queue_size) current = 0;
 
-        while ( delay_queue.size() > max_delay_queue_size ) {
+        // Callbacks may change the limit, including disabling it.
+        while ( max_delay_queue_size > 0 && delay_queue.size() > max_delay_queue_size ) {
             ++current;
             const auto& evict_delay_info = delay_queue.front();
 
@@ -444,15 +445,16 @@ void Manager::Stream::EvictDelayedWrites() {
             // Delay completed will remove it from the queue, no need to pop.
             zeek::log_mgr->DelayCompleted(this, *evict_delay_info);
 
-            if ( current == start_queue_size ) {
+            if ( current == start_queue_size && max_delay_queue_size > 0 &&
+                 delay_queue.size() > max_delay_queue_size ) {
                 reporter->Warning("unable to evict delayed records for stream %s queue_size=%ld, all re-delayed?",
                                   id->GetType<EnumType>()->Lookup(id->InternalInt()), delay_queue.size());
                 break;
             }
         }
 
-
-        ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
+        if ( ! delay_queue.empty() )
+            ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
     }
 
     evicting = false;

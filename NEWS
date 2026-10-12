@@ -52,6 +52,9 @@ Changed Functionality
   false, controls the behavior. Consider using the config framework instead of
   re-enabling identifier updates.
 
+- Setting the delay queue size of a logging stream to zero now sets the queue size
+  to unbounded. Previously, setting the queue to zero could trigger a crash.
+
 Deprecated Functionality
 ------------------------
 

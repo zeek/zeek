@@ -1,4 +1,4 @@
-# @TEST-DOC: Changing queue parameters while writes are pending.
+# @TEST-DOC: Changing queue parameters while writes are pending, including unbounded queues.
 
 # @TEST-EXEC: zeek -B logging,tm -b -r $TRACES/http/get.pcap test.zeek %INPUT
 # @TEST-EXEC: btest-diff-remove-abspath .stdout
@@ -139,4 +139,57 @@ event new_packet(c: connection, p: pkt_hdr) &priority=-5
 		print network_time(), "set_max_delay_queue_size to 3";
 		Log::set_max_delay_queue_size(LOG, 3);
 		}
+	}
+
+# @TEST-START-NEXT
+#
+# Switch to unbounded with a pending write, then re-enable eviction.
+# During eviction, re-delay each record and disable the limit in the last
+# callback. This must stop eviction without an "all re-delayed" warning.
+
+global disable_limit = T;
+
+event zeek_init()
+	{
+	Log::create_stream(LOG, [
+		$columns=Info,
+		$path="test",
+		$policy=log_policy,
+		$max_delay_interval=10sec,
+		$max_delay_queue_size=2,
+	]);
+	}
+
+function post_delay_cb(rec: Info, id: Log::ID): bool
+	{
+	print network_time(), "post_delay_cb", rec$msg;
+	if ( disable_limit )
+		{
+		Log::delay(id, rec, post_delay_cb);
+		if ( rec$msg == "packet number 3" )
+			{
+			print network_time(), "callback: set limit 0", Log::set_max_delay_queue_size(id, 0);
+			disable_limit = F;
+			}
+		}
+	return T;
+	}
+
+hook Log::log_stream_policy(rec: Info, id: Log::ID)
+	{
+	if ( id == LOG )
+		Log::delay(id, rec, post_delay_cb);
+	}
+
+event new_packet(c: connection, p: pkt_hdr) &priority=-5
+	{
+	print network_time(), "after write: queue size", Log::get_delay_queue_size(LOG);
+	if ( packet_count == 1 )
+		print network_time(), "set limit 0", Log::set_max_delay_queue_size(LOG, 0);
+	else if ( packet_count == 3 )
+		print network_time(), "set limit 1", Log::set_max_delay_queue_size(LOG, 1);
+	else if ( packet_count == 4 )
+		print network_time(), "set limit 2", Log::set_max_delay_queue_size(LOG, 2);
+
+	print network_time(), "after setter: queue size", Log::get_delay_queue_size(LOG);
 	}

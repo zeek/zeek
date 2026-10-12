@@ -1,3 +1,37 @@
+9.0.0-14 | 2026-10-13 09:59:41 -0700
+
+  * tools/systemd-generator: Minor clang-tidy fixes (Arne Welzel, Corelight)
+
+    (cherry picked from commit 826b7652acc9277774c7d6ea82144e0ac558c2e2)
+
+  * tools/systemd-generator: Create per-interface cgroup slices (Arne Welzel, Corelight)
+
+    This makes systemd place workers part of the same interface section into the
+    the same slice (cgroup). Sample systemctl status output:
+
+        /zeek.slice/zeek-workers.slice
+        ├─zeek-workers-loopback.slice
+        │ └─zeek-worker-loopback@1.service
+        │   └─11362 /opt/zeek/bin/zeek -i lo frameworks/cluster/backend/zeromq policy/misc/systemd-generator local
+        └─zeek-workers-wifi.slice
+          ├─zeek-worker-wifi@1.service
+          │ └─11364 /opt/zeek/bin/zeek -i af_packet::wlp0s20f3 frameworks/cluster/backend/zeromq policy/misc/systemd-generator local
+          └─zeek-worker-wifi@2.service
+            └─11347 /opt/zeek/bin/zeek -i af_packet::wlp0s20f3 frameworks/cluster/backend/zeromq policy/misc/systemd-generator local
+
+    (cherry picked from commit 826b7652acc9277774c7d6ea82144e0ac558c2e2)
+
+  * tools/systemd-generator: Use Before=zeek.target on units (Arne Welzel, Corelight)
+
+    This ensures that the zeek.target is only reached once all units
+    have been started, rather than being immediately reached.
+
+    (cherry picked from commit 826b7652acc9277774c7d6ea82144e0ac558c2e2)
+
+  * tools/systemd-generator: Add Before= support in sytemd-unit.h (Arne Welzel, Corelight)
+
+    (cherry picked from commit 826b7652acc9277774c7d6ea82144e0ac558c2e2)
+
 9.0.0-13 | 2026-10-12 15:55:49 -0700
 
   * Fix SOCKS5 IPv6 address handling (jmass-ggg)

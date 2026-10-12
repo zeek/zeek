@@ -7,6 +7,7 @@ After=zeek-setup.service
 After=zeek-manager.service
 After=zeek-logger@.service
 After=zeek-proxy@.service
+Before=zeek.target
 Requires=zeek-setup.service
 StopPropagatedFrom=zeek.target
 PartOf=zeek.target
@@ -26,6 +27,6 @@ Environment=PATH=<...>/bin:<...>/bin:<...>/bin:/bin
 Environment=ZEEKPATH=<...>/generated-scripts:<...>/zeek:<...>/policy:<...>/site:<...>/builtin-plugins
 Environment=CLUSTER_NODE=worker-eth2-%i
 ExecStart=<...>/zeek -i ${INTERFACE} frameworks<...>/zeromq policy<...>/systemd-generator AF_Packet::fanout_id=43 ignore_checksums=T local
-Slice=zeek-workers.slice
+Slice=zeek-workers-eth2.slice
 Restart=always
 RestartSec=1

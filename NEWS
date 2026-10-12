@@ -26,6 +26,9 @@ This release fixes the following bugs:
 - The systemd generator now uses the `Requires` and `PartOf` directives again to control
   when various processes start up.
 
+- The systemd-generator now places worker processes into interface specific slices
+  named after the interface section name.
+
 Zeek 9.0.0
 ==========
 

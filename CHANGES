@@ -1,3 +1,11 @@
+9.1.0-dev.193 | 2026-10-12 16:42:25 +0200
+
+  * Type: Remove some traces of SetType (Arne Welzel, Corelight)
+
+    Deprecated in b442c25389d6dcc6165b59ff6ac7bc317637c46a and removed
+    mostly in d436f0982630c5820d7aea0ff1827032a7912289. Remove the forward
+    declaration as well.
+
 9.1.0-dev.191 | 2026-10-12 07:21:22 -0700
 
   * CCI: Move public-ecr-cleanup build to weekly (Tim Wojtulewicz, Corelight)

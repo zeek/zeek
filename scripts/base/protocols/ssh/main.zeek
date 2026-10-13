@@ -187,7 +187,7 @@ function set_version(c: connection)
 				c$ssh$version = 2;
 			# SSH1 vs SSH2 -> Undefined
 			else
-				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 				return;
 			}
 		else if ( client_major == "2" && server_major == "1" )
@@ -197,7 +197,7 @@ function set_version(c: connection)
 				c$ssh$version = 2;
 			else
 				# SSH2 vs SSH1 -> Undefined
-				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 				return;
 			}
 		else if ( client_major == "1" && server_major == "1" )
@@ -226,7 +226,7 @@ function set_version(c: connection)
 		return;
 		}
 
-	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 	}
 
 event ssh_server_version(c: connection, version: string)

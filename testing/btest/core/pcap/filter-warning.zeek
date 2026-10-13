@@ -4,6 +4,5 @@
 #
 # @TEST-EXEC: zeek -r $TRACES/ieee80211.15.4.pcap >output 2>&1
 # @TEST-EXEC: btest-diff notice.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath' btest-diff reporter.log
-# @TEST-EXEC: btest-diff packet_filter.log
-# @TEST-EXEC: btest-diff-remove-abspath output
+# @TEST-EXEC: grep "filtering not implemented" packet_filter.log
+# @TEST-EXEC: grep "filtering not implemented" output

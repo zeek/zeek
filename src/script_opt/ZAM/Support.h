@@ -89,7 +89,7 @@ bool file_mgr_analyzer_enabled(EnumVal* v);
 zeek::StringVal* file_mgr_analyzer_name(EnumVal* v);
 bool file_mgr_enable_reassembly(StringVal* file_id);
 bool file_mgr_disable_reassembly(StringVal* file_id);
-bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max);
+bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max_bytes, uint64_t max_blocks);
 
 } // namespace ZAM
 

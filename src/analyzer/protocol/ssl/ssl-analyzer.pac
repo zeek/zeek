@@ -2,6 +2,14 @@
 
 refine connection SSL_Conn += {
 
+	%member{
+		bool v2_server_hello_seen_;
+	%}
+
+	%init{
+		v2_server_hello_seen_ = false;
+	%}
+
 	%include proc-certificate.pac
 
 	function proc_client_hello(
@@ -95,6 +103,21 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
+	# SSLv2 has a single server hello; reject repeated ones so that they cannot be
+	# used to feed an unbounded number of certificates into a connection.
+	function proc_check_v2_server_hello_first() : bool
+		%{
+		if ( v2_server_hello_seen_ )
+			{
+			zeek_analyzer()->AnalyzerViolation("SSLv2 server hello late in connection");
+			zeek_analyzer()->SetSkip(true);
+			return false;
+			}
+
+		v2_server_hello_seen_ = true;
+		return true;
+		%}
+
 	function proc_v2_certificate(is_orig: bool, cert : bytestring) : bool
 		%{
 		vector<bytestring>* cert_list = new vector<bytestring>(1,cert);
@@ -133,11 +156,14 @@ refine typeattr V2ClientHello += &let {
 refine typeattr V2ServerHello += &let {
 	check_v2 : bool = $context.connection.proc_check_v2_server_hello_version(server_version);
 
+	check_first : bool = $context.connection.proc_check_v2_server_hello_first() &requires(check_v2);
+
 	proc : bool = $context.connection.proc_server_hello(server_version, true,
-				conn_id_data, nullptr, nullptr, ciphers, 0) &requires(check_v2) &if(check_v2 == true);
+				conn_id_data, nullptr, nullptr, ciphers, 0) &requires(check_v2) &requires(check_first)
+				&if(check_v2 == true && check_first == true);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec.is_orig, cert_data)
-		&requires(proc) &requires(check_v2) &if(check_v2 == true);
+		&requires(proc) &requires(check_v2) &requires(check_first) &if(check_v2 == true && check_first == true);
 };
 
 refine typeattr V2ClientMasterKey += &let {

@@ -1,3 +1,14 @@
+8.0.10-31 | 2026-10-13 19:17:13 +0000
+
+  * CCI: Make sure latest python is in pyenv on macOS (Tim Wojtulewicz, Corelight)
+
+    This also removes the workaround for pip installations for CircleCI, since
+    we're now using a version that requires `--break-system-packages`.
+
+    (cherry picked from commit a7e71a217b670e09e43b75fccfc3a96f04cbec2a)
+
+  * Update NEWS and docs again (Tim Wojtulewicz, Corelight)
+
 8.0.10-29 | 2026-10-12 15:53:47 -0700
 
   * Fix SOCKS5 IPv6 address handling (jmass-ggg)

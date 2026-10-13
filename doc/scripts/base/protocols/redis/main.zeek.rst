@@ -276,7 +276,7 @@ Types
 Hooks
 #####
 .. zeek:id:: Redis::finalize_redis
-   :source-code: base/protocols/redis/main.zeek 343 368
+   :source-code: base/protocols/redis/main.zeek 344 369
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

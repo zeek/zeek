@@ -711,7 +711,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SSL::finalize_ssl
-   :source-code: base/protocols/ssl/main.zeek 517 527
+   :source-code: base/protocols/ssl/main.zeek 518 528
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -738,7 +738,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: SSL::delay_log
-   :source-code: base/protocols/ssl/main.zeek 227 232
+   :source-code: base/protocols/ssl/main.zeek 228 233
 
    :Type: :zeek:type:`function` (info: :zeek:type:`SSL::Info`, token: :zeek:type:`string`) : :zeek:type:`void`
 
@@ -746,7 +746,7 @@ Functions
    logged as long as the token exists or until 15 seconds elapses.
 
 .. zeek:id:: SSL::undelay_log
-   :source-code: base/protocols/ssl/main.zeek 234 238
+   :source-code: base/protocols/ssl/main.zeek 235 239
 
    :Type: :zeek:type:`function` (info: :zeek:type:`SSL::Info`, token: :zeek:type:`string`) : :zeek:type:`void`
 

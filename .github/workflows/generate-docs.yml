@@ -31,12 +31,12 @@ jobs:
       - uses: actions/checkout@v5
         if: github.event_name == 'schedule'
         with:
-          submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
       - uses: actions/checkout@v5
         if: github.event_name != 'schedule'
-        with:
-          submodules: "recursive"
+
+      - name: Fetch shallow submodules
+        run: git submodule update --init --recursive --depth=1
 
       - name: Fetch Dependencies
         run: |

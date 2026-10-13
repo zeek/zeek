@@ -6,8 +6,9 @@
 #
 
 BUILD=build
+PYTHON ?= python3
 REPO=$$(cd $(CURDIR) && basename $$(git config --get remote.origin.url | sed 's/^[^:]*://g'))
-VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
+VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && $(PYTHON) tools/scripts/get-version.py --source .)
 GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
 REALPATH=$$($$(realpath --relative-to=$(shell pwd) . >/dev/null 2>&1) && echo 'realpath' || echo 'grealpath')
 
@@ -49,15 +50,18 @@ livehtml:
 # that macOS litters around the repository directory, such as ._ resource files, none
 # of which should be included in the distribution packages.
 dist:
+	@$(PYTHON) tools/scripts/get-version.py --source . >/dev/null
 	@test -e ../$(VERSION_FULL) && rm -ri ../$(VERSION_FULL) || true
 	@cp -R . ../$(VERSION_FULL)
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do ((cd ../$(VERSION_FULL)/$$i && test -f .git && cp -R $(GITDIR) .gitnew && rm -f .git && mv .gitnew .git && sed -i.bak -e 's#[[:space:]]*worktree[[:space:]]*=[[:space:]]*.*##g' .git/config) || true); done
 	@for i in . $$(git submodule foreach -q --recursive $(REALPATH) --relative-to=$$(pwd) .); do (cd ../$(VERSION_FULL)/$$i && git reset -q --hard && git clean -ffdxq); done
+	@$(PYTHON) tools/scripts/get-version.py --source . --output ../$(VERSION_FULL)/VERSION
+	@$(PYTHON) tools/scripts/git-zeek-log > ../$(VERSION_FULL)/git-log.txt
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)
 	@for i in $(DIST_EXCLUDE); do rm -rf ../$(VERSION_FULL)/$$i; done
-	@python3 ./ci/collect-repo-info.py --only-git > ../$(VERSION_FULL)/repo-info.json
+	@$(PYTHON) ./ci/collect-repo-info.py --only-git > ../$(VERSION_FULL)/repo-info.json
 	@mv ../$(VERSION_FULL) .
 	@COPYFILE_DISABLE=true tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
 	@echo Package: $(VERSION_FULL).tar.gz

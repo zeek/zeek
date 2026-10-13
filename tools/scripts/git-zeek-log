@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+
+"""Write CHANGES-style Git history grouped by merges on the selected branch.
+
+Put this script's directory on PATH to run it as ``git zeek-log [ref]``.
+"""
+
+import argparse
+import subprocess
+from dataclasses import dataclass
+
+FIELDS = "%H%x1f%P%x1f%D%x1f%aN%x1f%aE%x1f%ai%x1f%B%x1e"
+LOG_OPTIONS = (
+    "--no-color",
+    "--topo-order",
+    "--decorate=short",
+    "--decorate-refs=refs/tags/v[0-9]*",
+    f"--format={FIELDS}",
+)
+
+
+@dataclass
+class Commit:
+    revision: str
+    parents: list[str]
+    decorations: str
+    author_name: str
+    author_email: str
+    date: str
+    message: str
+
+
+def commits(ref: str) -> list[Commit]:
+    output = subprocess.check_output(
+        ["git", "--no-pager", "log", *LOG_OPTIONS, ref], text=True
+    )
+    result = []
+
+    for record in output.split("\x1e"):
+        record = record.lstrip("\n")
+        if not record:
+            continue
+
+        revision, parents, decorations, name, email, date, message = record.split(
+            "\x1f", 6
+        )
+        result.append(
+            Commit(
+                revision,
+                parents.split(),
+                decorations,
+                name,
+                email,
+                date,
+                message.strip("\n"),
+            )
+        )
+
+    return result
+
+
+def write_group(commit: Commit, included: list[Commit]) -> None:
+    tags = commit.decorations.replace("tag: ", "")
+    label = f"{tags} ({commit.revision[:10]})" if tags else commit.revision[:10]
+    print(f"{label} | {commit.date}")
+    print()
+
+    # A first-parent commit is its own entry. A merge contributes the new
+    # non-merge commits it introduced, as update-changes did for CHANGES.
+    entries = included if included else [commit]
+    for entry in entries:
+        author = entry.author_name
+        if entry.author_email.lower().endswith("@corelight.com"):
+            author += ", Corelight"
+
+        lines = entry.message.splitlines()
+        subject = lines[0] if lines else "(no commit message)"
+        print(f"  * {subject} ({author})")
+        for line in lines[1:]:
+            print(f"    {line}".rstrip())
+        print()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("ref", nargs="?", default="HEAD")
+    args = parser.parse_args()
+
+    history = commits(args.ref)
+    by_revision = {commit.revision: commit for commit in history}
+    order = {commit.revision: index for index, commit in enumerate(history)}
+
+    first_parent = []
+    revision = history[0].revision
+    while revision:
+        commit = by_revision[revision]
+        first_parent.append(commit)
+        revision = commit.parents[0] if commit.parents else ""
+
+    # At each first-parent step, commits not already reachable from its parent
+    # were introduced by that step. Put them under its merge when applicable.
+    seen = set()
+    groups = []
+    for commit in reversed(first_parent):
+        new_revisions = set()
+        pending = [commit.revision]
+        while pending:
+            revision = pending.pop()
+            if revision in seen:
+                continue
+            seen.add(revision)
+            new_revisions.add(revision)
+            pending.extend(by_revision[revision].parents)
+
+        included = sorted(
+            (
+                by_revision[revision]
+                for revision in new_revisions
+                if revision != commit.revision
+                and len(by_revision[revision].parents) < 2
+            ),
+            key=lambda item: order[item.revision],
+        )
+        groups.append((commit, included))
+
+    for commit, included in reversed(groups):
+        write_group(commit, included)
+
+
+if __name__ == "__main__":
+    main()

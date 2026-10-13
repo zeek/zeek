@@ -474,21 +474,33 @@ eval	ZAM::file_mgr_enable_reassembly($1);
 
 internal-op Files-Set-Reassembly-Buffer
 op1-read
-classes VV Vi
-op-types S U
-eval	ZAM::file_mgr_set_reassembly_buffer($1, $2);
+classes VVV VVC VCV VCi
+op-types S U U
+eval	ZAM::file_mgr_set_reassembly_buffer($1, $2, $3);
 
 internal-op Files-Set-Reassembly-Buffer
-class VVV
-op-types I S U
-side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VV OP_VV
-eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
+class VVVV
+op-types I S U U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VVV OP_VVV
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2, $3);
 
 internal-op Files-Set-Reassembly-Buffer
-class VVi
-op-types I S U
-side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
-eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
+class VVVC
+op-types I S U U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VVC OP_VVC
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2, $3);
+
+internal-op Files-Set-Reassembly-Buffer
+class VVCV
+op-types I S U U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VCV OP_VVC
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2, $3);
+
+internal-op Files-Set-Reassembly-Buffer
+class VVCi
+op-types I S U U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VCi OP_VVC_I2
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2, $3);
 
 internal-op Get-Bytes-Thresh
 classes VVV VVC

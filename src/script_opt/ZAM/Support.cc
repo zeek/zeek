@@ -107,9 +107,9 @@ bool file_mgr_disable_reassembly(StringVal* file_id) {
     return zeek::file_mgr->DisableReassembly(fid);
 }
 
-bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max) {
+bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max_bytes, uint64_t max_blocks) {
     std::string fid = file_id->CheckString();
-    return zeek::file_mgr->SetReassemblyBuffer(fid, max);
+    return zeek::file_mgr->SetReassemblyBuffer(fid, max_bytes, max_blocks);
 }
 
 } // namespace ZAM

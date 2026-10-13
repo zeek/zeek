@@ -28,12 +28,12 @@ jobs:
       # event, so we only need to authenticate in that case. Use
       # unauthenticated access otherwise so this action can e.g., also run from
       # clones.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         if: github.event_name == 'schedule'
         with:
           submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         if: github.event_name != 'schedule'
         with:
           submodules: "recursive"

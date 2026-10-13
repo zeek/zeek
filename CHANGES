@@ -1,3 +1,14 @@
+9.0.0-16 | 2026-10-13 19:15:51 +0000
+
+  * CCI: Make sure latest python is in pyenv on macOS (Tim Wojtulewicz, Corelight)
+
+    This also removes the workaround for pip installations for CircleCI, since
+    we're now using a version that requires `--break-system-packages`.
+
+    (cherry picked from commit a7e71a217b670e09e43b75fccfc3a96f04cbec2a)
+
+  * More NEWS updates [nomail] (Tim Wojtulewicz, Corelight)
+
 9.0.0-14 | 2026-10-13 09:59:41 -0700
 
   * tools/systemd-generator: Minor clang-tidy fixes (Arne Welzel, Corelight)

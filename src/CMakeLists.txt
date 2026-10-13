@@ -392,6 +392,7 @@ set(MAIN_SRCS
     Type.cc
     UID.cc
     Val.cc
+    ValTraverse.cc
     Var.cc
     WeirdState.cc
     ZeekArgs.cc

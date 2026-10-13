@@ -1036,6 +1036,7 @@ bool SansBrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const cluster:
         if ( ! encode(*a, out) )
             return false;
 
+    // 2: Metadata vector, if len == 3
     if ( meta ) {
         encode_vector_start(meta->size(), out);
 

@@ -11,10 +11,12 @@ brew install -y cmake cppzmq openssl python@3 swig bison flex ccache libmaxmindd
 which python3
 python3 --version
 
-# Python3 on CircleCI in installed via pyenv, which means we can install the modules
-# directly into the pyenv without involving the user or system directory.
+# Python3 on CircleCI in installed via pyenv. Make sure all of the versions of python are
+# in pyenv, and then set to the latest as the global version. Otherwise pyenv uses an older
+# version of Python than we build the Broker bindings against and things break.
 if [[ "${CIRCLECI}" = "true" ]]; then
-    python3 -m pip install websockets junit2html
-else
-    python3 -m pip install --user --break-system-packages websockets junit2html
+    ln -s $(brew --cellar python)/* ~/.pyenv/versions/
+    pyenv global $(/opt/homebrew/bin/python3 --version | awk '{print $2}')
 fi
+
+python3 -m pip install --user --break-system-packages websockets junit2html

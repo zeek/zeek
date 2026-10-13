@@ -5,9 +5,9 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.1
 ==========
 
-Thank you to Eneshan Karaca (@BoxStrikesTeam), Dop (@dopheide-esnet), Aashish Sharma
-(@initconf), Peter Cullen (@pbcullen), and Alexey Rubanik (@rubanik-alexei) for their
-contributions to this release.
+Thank you to Eneshan Karaca (@BoxStrikesTeam), Dop (@dopheide-esnet), @Gido822, Aashish
+Sharma (@initconf), James Gurung (@jmass-ggg), Peter Cullen (@pbcullen), and Alexey
+Rubanik (@rubanik-alexei) for their contributions to this release.
 
 This release fixes the following security issues:
 
@@ -28,6 +28,10 @@ This release fixes the following bugs:
 
 - The systemd-generator now places worker processes into interface specific slices
   named after the interface section name.
+
+- The TLS DPD signatures now determine the correct originator/responder roles. This would
+  previously misdetect them, resulting in the TLS analyzer not parsing connections
+  correctly.
 
 Zeek 9.0.0
 ==========

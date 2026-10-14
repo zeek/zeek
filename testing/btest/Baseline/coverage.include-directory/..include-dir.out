@@ -1313,6 +1313,8 @@
 ./zeek/packet_analysis/protocol/ip/conn_key/vlan_fivetuple/Factory.h
 ./zeek/packet_analysis/protocol/iptunnel
 ./zeek/packet_analysis/protocol/iptunnel/IPTunnel.h
+./zeek/packet_analysis/protocol/l2tp
+./zeek/packet_analysis/protocol/l2tp/L2TP.h
 ./zeek/packet_analysis/protocol/linux_sll
 ./zeek/packet_analysis/protocol/linux_sll/LinuxSLL.h
 ./zeek/packet_analysis/protocol/linux_sll2

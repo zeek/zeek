@@ -32,6 +32,7 @@ extern int tcp_max_initial_window;
 extern int tcp_max_above_hole_without_any_acks;
 extern int tcp_excessive_data_without_further_acks;
 extern int tcp_max_old_segments;
+extern int tcp_max_reassembler_blocks;
 
 extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;

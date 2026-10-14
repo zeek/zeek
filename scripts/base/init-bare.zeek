@@ -1805,6 +1805,12 @@ const tcp_reassembler_ports_orig: set[port] = {} &redef &deprecated="Remove in v
 ## .. zeek:see:: tcp_reassembler_ports_orig
 const tcp_reassembler_ports_resp: set[port] = {} &redef &deprecated="Remove in v8.1. Non-functional since v4.1";
 
+## The maximum number of blocks the TCP reassembler will hold. If this limit reached, the
+## reassembler will reset its state and stop reassembly for that direction.. A
+## ``tcp_max_reassembler_blocks_exceeded`` weird will be emitted. Set this to zero to
+## disable the limit.
+const tcp_max_reassembler_blocks: count = 50000 &redef;
+
 ## Defines destination TCP ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`tcp_contents`.
 ##

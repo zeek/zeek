@@ -126,6 +126,7 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 int tcp_max_old_segments;
+int tcp_max_reassembler_blocks;
 
 double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
@@ -264,6 +265,7 @@ void init_net_var() {
     tcp_max_above_hole_without_any_acks = id::find_val("tcp_max_above_hole_without_any_acks")->AsCount();
     tcp_excessive_data_without_further_acks = id::find_val("tcp_excessive_data_without_further_acks")->AsCount();
     tcp_max_old_segments = id::find_val("tcp_max_old_segments")->AsCount();
+    tcp_max_reassembler_blocks = id::find_val("tcp_max_reassembler_blocks")->AsCount();
 
     non_analyzed_lifetime = id::find_val("non_analyzed_lifetime")->AsInterval();
     tcp_inactivity_timeout = id::find_val("tcp_inactivity_timeout")->AsInterval();

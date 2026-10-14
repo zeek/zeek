@@ -214,6 +214,34 @@ OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
     return ret;
 }
 
+OperationResult Backend::DoGetAll(ResultCallback* /* cb */, uint64_t /* max_entries */) {
+    return {ReturnCode::NOT_SUPPORTED, "backend does not support get_all"};
+}
+
+OperationResult Backend::DoSize(ResultCallback* /* cb */) {
+    return {ReturnCode::NOT_SUPPORTED, "backend does not support size"};
+}
+
+OperationResult Backend::GetAll(ResultCallback* cb, uint64_t max_entries) {
+    cb->Init(get_all_metrics.get());
+
+    auto ret = DoGetAll(cb, max_entries);
+    if ( cb->IsSyncCallback() )
+        cb->UpdateOperationMetrics(ret.code);
+
+    return ret;
+}
+
+OperationResult Backend::Size(ResultCallback* cb) {
+    cb->Init(size_metrics.get());
+
+    auto ret = DoSize(cb);
+    if ( cb->IsSyncCallback() )
+        cb->UpdateOperationMetrics(ret.code);
+
+    return ret;
+}
+
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
     if ( data.code == ReturnCode::TIMEOUT )
         cb->Timeout();
@@ -259,6 +287,10 @@ void Backend::InitMetrics() {
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "get", Tag(), metrics_config);
     erase_metrics =
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "erase", Tag(), metrics_config);
+    get_all_metrics =
+        std::make_unique<detail::OperationMetrics>(results_family, latency_family, "get_all", Tag(), metrics_config);
+    size_metrics =
+        std::make_unique<detail::OperationMetrics>(results_family, latency_family, "size", Tag(), metrics_config);
 
     bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
                                                           {{"type", Tag()}, {"config", metrics_config}},

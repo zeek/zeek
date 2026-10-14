@@ -452,14 +452,24 @@ bool TCP_Reassembler::DataSent(double t, uint64_t seq, int len, const u_char* da
 
     if ( Endpoint()->NoDataAcked() && zeek::detail::tcp_max_above_hole_without_any_acks &&
          NumUndeliveredBytes() > static_cast<uint64_t>(zeek::detail::tcp_max_above_hole_without_any_acks) ) {
-        tcp_analyzer->Weird("above_hole_data_without_any_acks");
+        tcp_analyzer->LimitReachedWeird("above_hole_data_without_any_acks",
+                                        zeek::detail::tcp_max_above_hole_without_any_acks);
         ClearBlocks();
         skip_deliveries = true;
     }
 
     if ( zeek::detail::tcp_excessive_data_without_further_acks &&
          block_list.DataSize() > static_cast<uint64_t>(zeek::detail::tcp_excessive_data_without_further_acks) ) {
-        tcp_analyzer->Weird("excessive_data_without_further_acks");
+        tcp_analyzer->LimitReachedWeird("excessive_data_without_further_acks",
+                                        zeek::detail::tcp_excessive_data_without_further_acks);
+        ClearBlocks();
+        skip_deliveries = true;
+    }
+
+    if ( zeek::detail::tcp_max_reassembler_blocks > 0 &&
+         NumBlocks() > static_cast<size_t>(zeek::detail::tcp_max_reassembler_blocks) ) {
+        tcp_analyzer->LimitReachedWeird("tcp_max_reassembler_blocks_exceeded",
+                                        zeek::detail::tcp_max_reassembler_blocks);
         ClearBlocks();
         skip_deliveries = true;
     }

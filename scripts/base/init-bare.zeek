@@ -1853,6 +1853,12 @@ const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 ## buffering.
 const tcp_max_old_segments = 0 &redef;
 
+## The maximum number of blocks the TCP reassembler will hold. If this limit reached, the
+## reassembler will reset its state and stop reassembly for that direction.. A
+## ``tcp_max_reassembler_blocks_exceeded`` weird will be emitted. Set this to zero to
+## disable the limit.
+const tcp_max_reassembler_blocks: count = 50000 &redef;
+
 ## Defines destination TCP ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`tcp_contents`.
 ##

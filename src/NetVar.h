@@ -34,6 +34,7 @@ ZEEK_EXTERN_DATA int tcp_max_initial_window;
 ZEEK_EXTERN_DATA int tcp_max_above_hole_without_any_acks;
 ZEEK_EXTERN_DATA int tcp_excessive_data_without_further_acks;
 ZEEK_EXTERN_DATA int tcp_max_old_segments;
+ZEEK_EXTERN_DATA int tcp_max_reassembler_blocks;
 
 ZEEK_EXTERN_DATA double non_analyzed_lifetime;
 ZEEK_EXTERN_DATA double tcp_inactivity_timeout;

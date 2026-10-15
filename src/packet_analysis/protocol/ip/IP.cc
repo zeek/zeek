@@ -246,11 +246,6 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
         return false;
     }
 
-    // If the next protocol is a tunneled type, set the tunnel_type field in the packet to IP
-    // so that it gets handled correctly.
-    if ( proto == IPPROTO_IPV4 || proto == IPPROTO_IPV6 )
-        packet->tunnel_type = BifEnum::Tunnel::IP;
-
     if ( proto == IPPROTO_NONE ) {
         // If the packet is encapsulated in Teredo, then it was a bubble and
         // the Teredo analyzer may have raised an event for that, else we're

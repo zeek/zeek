@@ -24,8 +24,8 @@ function analyzer_option_change_ignore_checksums_nets(ID: string, new_value: set
 
 event zeek_init() &priority=20
 	{
-	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_IPIP, PacketAnalyzer::ANALYZER_IPTUNNEL);
-	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_IPV6, PacketAnalyzer::ANALYZER_IPTUNNEL);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_IPIP, PacketAnalyzer::ANALYZER_IPINIP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_IPV6, PacketAnalyzer::ANALYZER_IPINIP);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_GRE, PacketAnalyzer::ANALYZER_GRE);
 
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_IP, IPPROTO_TCP, PacketAnalyzer::ANALYZER_TCP);

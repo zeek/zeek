@@ -1,3 +1,13 @@
+9.1.0-dev.219 | 2026-10-15 11:06:10 +0200
+
+  * Bump hendrikmuhs/ccache-action from 1.2.22 to 1.2.24 (dependabot[bot])
+
+  * Bump actions/upload-artifact from 4.6.2 to 7.0.2 (dependabot[bot])
+
+  * Bump dawidd6/action-send-mail from 16 to 22 (dependabot[bot])
+
+  * Bump actions/checkout from 5.1.0 to 7.0.1 (dependabot[bot])
+
 9.1.0-dev.214 | 2026-10-15 09:51:33 +0200
 
   * github: Add dependabot.yml config file (Arne Welzel, Corelight)

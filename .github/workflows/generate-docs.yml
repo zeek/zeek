@@ -28,12 +28,12 @@ jobs:
       # event, so we only need to authenticate in that case. Use
       # unauthenticated access otherwise so this action can e.g., also run from
       # clones.
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: github.event_name == 'schedule'
         with:
           submodules: "recursive"
           token: ${{ secrets.ZEEK_BOT_TOKEN }}
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: github.event_name != 'schedule'
         with:
           submodules: "recursive"
@@ -70,7 +70,7 @@ jobs:
           pip3 install -r doc/requirements.txt
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@33522472633dbd32578e909b315f5ee43ba878ce # v1.2.22
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: 'docs-gen-${{ github.job }}'
           max-size: '2000M'
@@ -132,7 +132,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the GitHub UI.
         if: failure() && github.event_name == 'schedule'
-        uses: dawidd6/action-send-mail@d38f3f7cd391cdebfe0d38efc3998b935e951c4f # v16
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

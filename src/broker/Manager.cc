@@ -529,6 +529,8 @@ void Manager::DoInitPostScript() {
     config.openssl_certificate(get_option("Broker::ssl_certificate")->AsString()->CheckString());
     config.openssl_key(get_option("Broker::ssl_keyfile")->AsString()->CheckString());
     config.openssl_passphrase(get_option("Broker::ssl_passphrase")->AsString()->CheckString());
+    config.openssl_psk_identity(get_option("Broker::ssl_psk_identity")->AsString()->CheckString());
+    config.openssl_psk_key(get_option("Broker::ssl_psk_key")->AsString()->CheckString());
 
     auto scheduler_policy = get_option("Broker::scheduler_policy")->AsString()->CheckString();
 

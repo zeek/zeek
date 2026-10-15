@@ -27,9 +27,27 @@ export {
 
 	## If true, do not use SSL for network connections. By default, SSL will
 	## even be used if no certificates / CAs have been configured. In that case
-	## (which is the default) the communication will be encrypted, but not
-	## authenticated.
+	## (which is the default) peers authenticate each other with a TLS 1.3
+	## pre-shared key, see :zeek:see:`Broker::ssl_psk_key`.
 	const disable_ssl = F &redef;
+
+	## Identity of the TLS 1.3 pre-shared key. Only used if no certificates
+	## are configured. An empty string selects the default identity ``zeek``.
+	const ssl_psk_identity = "zeek" &redef;
+
+	## Hex-encoded TLS 1.3 pre-shared key of up to 48 bytes, for example
+	## the output of ``openssl rand -hex 48``. Only used if no certificates
+	## are configured. All peers must use the same identity and key.
+	##
+	## If empty (the default), Zeek uses a built-in key that is publicly
+	## known. Communication is then encrypted, but not authenticated: anyone
+	## can peer with Zeek. For compatibility with older Zeek versions, Zeek
+	## then also accepts anonymous TLS 1.2 from peers without PSK support.
+	##
+	## Set your own key, or configure certificates, to keep unauthorized peers
+	## out. With a custom key, Zeek requires TLS 1.3 and can no longer peer
+	## with older Zeek versions.
+	const ssl_psk_key = "" &redef;
 
 	## Path to a file containing concatenated trusted certificates
 	## in PEM format. If set, Zeek will require valid certificates for

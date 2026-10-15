@@ -18,6 +18,22 @@ Breaking Changes
 - Similarly, the ``broker_backend`` field has been removed from the ``script_id``
   record type. This is the type returned by the ``global_ids()`` BIF method.
 
+- Without configured certificates, Broker peers now authenticate each other
+  with a TLS 1.3 pre-shared key (PSK), using ``TLS_AES_256_GCM_SHA384`` only,
+  instead of anonymous TLS 1.2 (``AECDH-AES256-SHA``).
+
+  The new ``Broker::ssl_psk_identity`` and ``Broker::ssl_psk_key`` options
+  configure the PSK. By default, Zeek uses a built-in key that is publicly
+  known, and also accepts anonymous TLS 1.2 from peers running older Zeek
+  versions. Set your own key, for example generated with
+  ``openssl rand -hex 48``, to keep unauthorized peers out:
+
+	redef Broker::ssl_psk_key = "<96 hex digits>";
+
+  With a custom key, Broker requires TLS 1.3 and can no longer peer with nodes
+  running older Zeek versions, unless certificates are configured or SSL is
+  disabled on both sides.
+
 New Functionality
 -----------------
 

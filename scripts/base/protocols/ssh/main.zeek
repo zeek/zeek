@@ -27,7 +27,8 @@ export {
 		## client and server version strings are unset, malformed or incompatible
 		## so no common version can be extracted. If no version can be extracted
 		## even though both client and server versions are set a weird
-		## will be generated.
+		## will be generated. Version strings whose protocol version does not start
+		## with 1 are treated as version 2.
 		version:         count        &log &optional;
 		## Authentication result (T=success, F=failure, unset=unknown)
 		auth_success:    bool         &log &optional;
@@ -175,27 +176,31 @@ function set_version(c: connection)
 
 	if ( |c$ssh$client| > 4 && |c$ssh$server| > 4 )
 		{
-		if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "2" )
+		# Version not starting with 1 is assumed to be 2
+		local client_major = c$ssh$client[4] == "1" ? "1" : "2";
+		local server_major = c$ssh$server[4] == "1" ? "1" : "2";
+
+		if ( client_major == "1" && server_major == "2" )
 			{
 			# SSH199 vs SSH2 -> 2
 			if ( ( |c$ssh$client| > 7 ) && ( c$ssh$client[6] == "9" ) && ( c$ssh$client[7] == "9" ) )
 				c$ssh$version = 2;
 			# SSH1 vs SSH2 -> Undefined
 			else
-				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 				return;
 			}
-		else if ( c$ssh$client[4] == "2" && c$ssh$server[4] == "1" )
+		else if ( client_major == "2" && server_major == "1" )
 			{
 			# SSH2 vs SSH199 -> 2
 			if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
 				c$ssh$version = 2;
 			else
 				# SSH2 vs SSH1 -> Undefined
-				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+				Reporter::conn_weird("SSH_version_mismatch", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 				return;
 			}
-		else if ( c$ssh$client[4] == "1" && c$ssh$server[4] == "1" )
+		else if ( client_major == "1" && server_major == "1" )
 			{
 			# SSH1 vs SSH199 -> 1
 			if ( ( |c$ssh$server| > 7 ) && ( c$ssh$server[6] == "9" ) && ( c$ssh$server[7] == "9" ) )
@@ -213,7 +218,7 @@ function set_version(c: connection)
 				}
 			}
 		# SSH2 vs SSH2
-		else if (c$ssh$client[4] == "2" && c$ssh$server[4] == "2" )
+		else if (client_major == "2" && server_major == "2" )
 			{
 			c$ssh$version = 2;
 			}
@@ -221,7 +226,7 @@ function set_version(c: connection)
 		return;
 		}
 
-	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client));
+	Reporter::conn_weird("SSH_cannot_determine_version", c, fmt("%s vs %s", c$ssh$server, c$ssh$client), "SSH");
 	}
 
 event ssh_server_version(c: connection, version: string)

@@ -1,3 +1,14 @@
+9.1.0-dev.230 | 2026-10-15 11:58:51 +0200
+
+  * SSH: Remove trailing whitespace from set_version test output (Gido822)
+
+  * SSH: Accept any SSH- version string (Gido822)
+
+    Relax the DPD signatures to SSH- and treat versions not starting with 1
+    as SSH2.
+
+  * SSH: Add test for a non-RFC 4253 version string (Gido822)
+
 9.1.0-dev.226 | 2026-10-15 11:41:29 +0200
 
   * doc/troubleshooting: Use zeek:metric for demonstration purposes (Arne Welzel, Corelight)

@@ -34,6 +34,9 @@ New Functionality
 		Analyzer::ANALYZER_DHCPV6,
 	};
 
+- The SSH DPD signature now matches on ``SSH-`` rather than ``SSH-[12]`` to catch
+  tools using unconventional SSH version strings.
+
 - The input framework now supports optional records in its input files. The
   fields of absent records, including potential nested records, should be
   listed with the configured ``Input::unset_field`` character (normally "-").

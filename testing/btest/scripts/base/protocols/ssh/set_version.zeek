@@ -44,6 +44,7 @@ event expired_conn_weird(name: string, id: conn_id, uid: string, addl: string, s
 const v1 = "SSH-1.5-OpenSSH_6.2";
 const v199 = "SSH-1.99-OpenSSH_3.1p1";
 const v2 = "SSH-2.0-OpenSSH_5.9";
+const v2custom = "SSH-v2.8.1-linux_amd64";
 
 event zeek_init()
 	{
@@ -70,6 +71,16 @@ event zeek_init()
 		c = make_conn(v2, v199);
 		SSH::set_version(c);
 		print "SSH199 vs SSH2", c$ssh$version; # 2.
+
+		# SSH2CUSTOM vs SSH199 -> 2
+		c = make_conn(v199, v2custom);
+		SSH::set_version(c);
+		print "SSH2CUSTOM vs SSH199", c$ssh$version; # 2.
+
+		# SSH2CUSTOM vs SSH2 -> 2
+		c = make_conn(v2, v2custom);
+		SSH::set_version(c);
+		print "SSH2CUSTOM vs SSH2", c$ssh$version; # 2.
 		}
 
 	# Error cases.
@@ -113,5 +124,10 @@ event zeek_init()
 		c = make_conn(v2, v1);
 		SSH::set_version(c);
 		print "SSH2 vs SSH1", c$ssh?$version; # Unset.
+
+		# SSH2CUSTOM vs SSH1.
+		c = make_conn(v1, v2custom);
+		SSH::set_version(c);
+		print "SSH2CUSTOM vs SSH1", c$ssh?$version; # Unset.
 		}
 	}

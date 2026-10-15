@@ -160,3 +160,6 @@ Trace Index/Sources:
   From Wireshark issue #9398 (attachment "sasl-integrity.pcap"),
   <https://gitlab.com/wireshark/wireshark/-/work_items/9398>. LDAP SASL bind
   using the GSSAPI > Kerberos 5 without SPNEGO (RFC 4752)
+- ssh/rssh.pcap
+  Captured in a lab while running an rssh 2.8.1 client against an rssh server on port 2222.
+  The client sends the non-RFC 4253 version string "SSH-v2.8.1-linux_amd64".

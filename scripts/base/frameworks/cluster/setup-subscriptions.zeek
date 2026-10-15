@@ -41,6 +41,16 @@ event zeek_init() &priority=-5
 		return;
 	}
 
-	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	Cluster::subscribe(node_topic(node));
+	}
+
+event zeek_init() &priority=-1000
+	{
+	if ( getenv("ZEEKCTL_CHECK_CONFIG") != "" )
+		return;
+
+	if ( nodes[node]$node_type == NONE )
+		return;
+
+	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	}

@@ -50,7 +50,7 @@ public:
     static inline const char* OpaqueName = "HistogramMetricFamilyVal";
 
     HistogramFamily(prometheus::Family<prometheus::Histogram>* family, std::span<const double> bounds,
-                    std::span<const std::string_view> labels);
+                    std::span<const std::string_view> labels, std::string_view unit, std::string_view helptext);
 
     /**
      * Returns the metrics handle for given labels, creating a new instance

@@ -3,6 +3,7 @@ zeek_add_subdir_library(
     SOURCES
     Manager.cc
     Info.h
+    MetricInfo.cc
     PackageInfo.cc
     ScriptInfo.cc
     IdentifierInfo.cc

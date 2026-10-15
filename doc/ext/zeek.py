@@ -305,6 +305,16 @@ class ZeekIdentifier(ZeekGeneric):
         return self.field_type_map
 
 
+class ZeekMetric(ZeekGeneric):
+    doc_field_types = [
+        docfields.Field("type", label="Type"),
+        docfields.Field("labels", label="Labels"),
+    ]
+
+    def get_index_text(self, name):
+        return _("%s (metric)") % (name)
+
+
 class ZeekNative(ZeekGeneric):
     def handle_signature(self, sig, signode):
         # The run() method is overridden to drop signode anyway in favor of
@@ -462,6 +472,7 @@ class ZeekDomain(Domain):
         "enum": ObjType(_("enum"), "enum"),
         "attr": ObjType(_("attr"), "attr"),
         "field": ObjType(_("field"), "field"),
+        "metric": ObjType(_("metric"), "metric"),
     }
 
     directives = {
@@ -473,6 +484,7 @@ class ZeekDomain(Domain):
         "enum": ZeekEnum,
         "attr": ZeekAttribute,
         "field": ZeekField,
+        "metric": ZeekMetric,
     }
 
     roles = {
@@ -484,6 +496,7 @@ class ZeekDomain(Domain):
         "attr": XRefRole(),
         "see": XRefRole(),
         "field": ZeekFieldXRefRole(),
+        "metric": XRefRole(),
     }
 
     indices = [

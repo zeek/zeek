@@ -1530,6 +1530,7 @@
 ./zeek/zeekygen/IdentifierReST.h
 ./zeek/zeekygen/Info.h
 ./zeek/zeekygen/Manager.h
+./zeek/zeekygen/MetricInfo.h
 ./zeek/zeekygen/PackageInfo.h
 ./zeek/zeekygen/ReStructuredTextTable.h
 ./zeek/zeekygen/ScriptInfo.h

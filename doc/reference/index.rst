@@ -12,3 +12,4 @@ default logs, its scripting language, and the frameworks it ships with.
    zeekscript/index
    ../frameworks/index
    zeekscript/included
+   zeekscript/metrics

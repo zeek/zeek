@@ -111,8 +111,9 @@ public:
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
 
-    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, std::span<const std::string_view> labels)
-        : MetricFamily(labels), family(family) {}
+    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, std::span<const std::string_view> labels,
+                std::string_view unit, std::string_view helptext)
+        : MetricFamily(labels, family->GetName(), unit, helptext), family(family) {}
 
     void RunCallbacks() override;
 

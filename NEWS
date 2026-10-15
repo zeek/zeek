@@ -41,6 +41,10 @@ New Functionality
 - The systemd-generator now places worker processes into interface specific slices
   named after the interface section name.
 
+- The online documentation now features an initial auto-generated metrics index:
+
+	https://docs.zeek.org/en/master/reference/zeekscript/metrics.html
+
 Changed Functionality
 ---------------------
 

@@ -4,8 +4,7 @@
 # @TEST-PORT: REDIS_PORT
 
 # @TEST-EXEC: btest-bg-run redis-server run-redis-server ${REDIS_PORT%/tcp}
-# Wait a few seconds for the redis server to come up
-# @TEST-EXEC: sleep 3
+# @TEST-EXEC: await-redis-server 127.0.0.1 ${REDIS_PORT%/tcp}
 # @TEST-EXEC: zeek -b %INPUT | sed "s|-${REDIS_PORT%/tcp}-|-XXXX-|g" > out
 # @TEST-EXEC: btest-bg-wait -k 0
 

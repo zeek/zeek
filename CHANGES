@@ -1,3 +1,13 @@
+9.1.0-dev.233 | 2026-10-15 14:33:31 +0200
+
+  * Revert "Merge branch 'topic/jgras/improve-zmq-cluster-started' of https://github.com/J-Gras/zeek" (Arne Welzel, Corelight)
+
+    This reverts commit 25c490d4c8e30cb174bb64184297c762a028e4c6, reversing
+    changes made to 810a601d5c55dbc5e0f7f8e5dbb6d40867a87b6f.
+
+    Reason is that the cluster/websocket/broker/match-all-subscription.zeek
+    became very flaky due to this.
+
 9.1.0-dev.232 | 2026-10-15 12:57:41 +0200
 
   * Have cluster_started cover all zeek_init subscriptions (Jan Grashoefer, Corelight)

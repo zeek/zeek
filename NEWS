@@ -65,10 +65,6 @@ Changed Functionality
 - Setting the delay queue size of a logging stream to zero now sets the queue size
   to unbounded. Previously, setting the queue to zero could trigger a crash.
 
-- The ``zeek_init()`` handler's priority for setting up subscriptions in
-  ``setup-subscriptions.zeek`` was changed from ``-5`` to ``-1000`` to
-  move creation of node specific topic subscriptions later.
-
 Deprecated Functionality
 ------------------------
 

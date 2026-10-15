@@ -244,10 +244,11 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			{
 			if ( it != fb.end() )
 				{
-				// We already had a first frag earlier.
+				// We already had a first frag earlier for this call_id.
+				// Just delete the old fragment and handle the new one
+				// by falling through.
 				connection()->zeek_analyzer()->Weird("multiple_first_fragments_in_dce_rpc_reassembly");
-				connection()->zeek_analyzer()->SetSkip(true);
-				return false;
+				fb.erase(it);
 				}
 
 			if ( ${header.lastfrag} )
@@ -258,23 +259,25 @@ flow DCE_RPC_Flow(is_orig: bool) {
 			else
 				{
 				// first frag, but not last so we start a buffer and copy the data into it.
-				auto it = fb.emplace(${header.call_id}, zeek::byte_buffer());
-				auto& buf = it.first->second;
-				buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
-				                      reinterpret_cast<const std::byte*>(frag.end()));
 
-				if ( zeek::BifConst::DCE_RPC::max_cmd_reassembly > 0 && fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
+				// any room available? If not, weird and clear the map (similar to what is done in SMB)
+				if ( zeek::BifConst::DCE_RPC::max_cmd_reassembly > 0 && fb.size() >= zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
 					connection()->zeek_analyzer()->LimitReachedWeird("too_many_dce_rpc_msgs_in_reassembly", fb.size(),
 					                                                 zeek::BifConst::DCE_RPC::max_cmd_reassembly);
-					connection()->zeek_analyzer()->SetSkip(true);
+					fb.clear();
 					}
+
+				auto [it, inserted] = fb.emplace(${header.call_id}, zeek::byte_buffer());
+				auto& buf = it->second;
+				buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
+				                      reinterpret_cast<const std::byte*>(frag.end()));
 
 				if ( zeek::BifConst::DCE_RPC::max_frag_data > 0 && buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 					{
 					connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
 					                                                 zeek::BifConst::DCE_RPC::max_frag_data);
-					connection()->zeek_analyzer()->SetSkip(true);
+					fb.erase(it);
 					}
 
 				return false;
@@ -291,7 +294,8 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				{
 				connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
 				                                                 zeek::BifConst::DCE_RPC::max_frag_data);
-				connection()->zeek_analyzer()->SetSkip(true);
+				fb.erase(it);
+				return false;
 				}
 
 			return ${header.lastfrag};

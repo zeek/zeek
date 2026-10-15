@@ -4,7 +4,7 @@
 
 module Cluster;
 
-event zeek_init() &priority=-5
+event zeek_init() &priority=-1000
 	{
 	if ( getenv("ZEEKCTL_CHECK_CONFIG") != "" )
 		return;
@@ -41,6 +41,6 @@ event zeek_init() &priority=-5
 		return;
 	}
 
-	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	Cluster::subscribe(node_topic(node));
+	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	}

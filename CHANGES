@@ -1,3 +1,15 @@
+9.1.0-dev.232 | 2026-10-15 12:57:41 +0200
+
+  * Have cluster_started cover all zeek_init subscriptions (Jan Grashoefer, Corelight)
+
+    Peers raise Cluster::node_up (which drives the cluster_started
+    handshake) upon seeing a node's nodeid_topic subscription, so for
+    cluster_started to cover all other subscriptions, nodeid_topic must
+    be the last subscription a node emits during zeek_init. Move the
+    setup to &priority=-1000.
+
+    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 9.1.0-dev.230 | 2026-10-15 11:58:51 +0200
 
   * SSH: Remove trailing whitespace from set_version test output (Gido822)

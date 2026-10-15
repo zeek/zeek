@@ -160,3 +160,6 @@ Trace Index/Sources:
   From Wireshark issue #9398 (attachment "sasl-integrity.pcap"),
   <https://gitlab.com/wireshark/wireshark/-/work_items/9398>. LDAP SASL bind
   using the GSSAPI > Kerberos 5 without SPNEGO (RFC 4752)
+- nb6-l2tp.pcap
+  From Wireshark sample nb6-http.pcap. This pulls just the L2TP packets out of that
+  that trace.

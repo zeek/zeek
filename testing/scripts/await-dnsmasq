@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+# Send a raw DNS request packet and expect some packet in return
+# as an upness check
+
+import socket
+import sys
+
+addr = sys.argv[1]
+port = int(sys.argv[2])
+
+# 100 tries with a 50 msec timeout by default - 5 seconds.
+tries = int(sys.argv[3]) if len(sys.argv) >= 4 else 100
+
+# 50msec timeout. This is long.
+timeout = 0.05
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+packet = (
+    b"\xaa\xbb\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+    b"\x06google\x03com\x00\x00\x01\x00\x01"
+)
+
+s.settimeout(timeout)
+
+for i in range(tries):
+    try:
+        s.sendto(packet, (addr, port))
+        buf = s.recv(1024)
+    except TimeoutError:
+        print(f"timeout {i + 1}", file=sys.stderr)
+        continue
+    else:
+        print("dns up")
+        sys.exit(0)
+
+print("gave up", file=sys.stderr)
+sys.exit(1)

@@ -1,3 +1,15 @@
+9.0.1-2 | 2026-11-11 14:45:16 -0700
+
+  * Delay briefly for redis-server to start up in redis btests (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit de6e2efc3543fffc661fbca147dc0c2686b00140)
+
+  * Delay briefly for dnsmasq to start up in dns_mgr btests (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit de6e2efc3543fffc661fbca147dc0c2686b00140)
+
+  * Add missing GHSA entries to 9.0.1 NEWS (Tim Wojtulewicz, Corelight)
+
 9.0.1 | 2026-10-26 14:42:19 +0000
 
   * Release 9.0.1.

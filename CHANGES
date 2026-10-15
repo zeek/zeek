@@ -1,3 +1,22 @@
+9.1.0-dev.214 | 2026-10-15 09:51:33 +0200
+
+  * github: Add dependabot.yml config file (Arne Welzel, Corelight)
+
+    For automatic maintenance of GitHub Actions.
+
+  * github/workflows: Pin uses: actions/... (Arne Welzel, Corelight)
+
+    Use the pinact [1] to pin everything to the hash-version-comemnt style.
+    This does not upgrade them, mostly to see if dependabot comes along and
+    does it for us when needed.
+
+    This excludes the build_fuzzers and run_fuzzers actions from Google.
+    The workflow for these is taken from the official docs at [2] and the
+    repo doesn't contain tags.
+
+    [1] https://github.com/suzuki-shunsuke/pinact
+    [2] https://google.github.io/oss-fuzz/getting-started/continuous-integration/
+
 9.1.0-dev.211 | 2026-10-13 08:59:42 -0700
 
   * CCI: Make sure latest python is in pyenv on macOS (Tim Wojtulewicz, Corelight)

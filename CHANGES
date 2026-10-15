@@ -1,3 +1,9 @@
+9.1.0-dev.236 | 2026-10-15 10:17:58 -0700
+
+  * Delay briefly for redis-server to start up in redis btests (Tim Wojtulewicz, Corelight)
+
+  * Delay briefly for dnsmasq to start up in dns_mgr btests (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.233 | 2026-10-15 14:33:31 +0200
 
   * Revert "Merge branch 'topic/jgras/improve-zmq-cluster-started' of https://github.com/J-Gras/zeek" (Arne Welzel, Corelight)

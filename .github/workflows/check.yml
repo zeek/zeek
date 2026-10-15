@@ -384,7 +384,7 @@ jobs:
     name: ${{ matrix.id }}
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       with:
         submodules: recursive
         persist-credentials: false
@@ -425,7 +425,7 @@ jobs:
 
     # TODO
     # - name: Clone private test suite
-    #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+    #   uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
     - name: Run CI
       env:
@@ -463,7 +463,7 @@ jobs:
     needs: is-public-repo
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       with:
         submodules: recursive
         persist-credentials: false
@@ -535,7 +535,7 @@ jobs:
       ZEEK_CI_CONFIGURE_FLAGS: --build-type=release --disable-broker-tests --prefix=$ZEEK_CI_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5 --with-openssl=/opt/homebrew/opt/openssl@3
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       with:
         submodules: recursive
         persist-credentials: false

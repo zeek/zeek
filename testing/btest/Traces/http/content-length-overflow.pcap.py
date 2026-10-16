@@ -20,6 +20,7 @@ CLIENT_IP = "10.0.0.1"
 SERVER_IP = "10.0.0.2"
 CLIENT_PORT = 54321
 SERVER_PORT = 80
+BASE_TIME = 1_700_000_000.0
 
 # 2.2 GB — well above INT_MAX (2147483647), below UINT_MAX
 CONTENT_LENGTH = 2200000000
@@ -86,9 +87,10 @@ def main():
     c_seq += 1
     pkts.append(spkt("A", s_seq, c_seq))
 
-    out = Path(__file__).with_suffix("")
-    wrpcap(str(out), pkts)
-    print(f"Wrote {len(pkts)} packets to {out}")
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
+
+    wrpcap(str(Path(__file__).with_suffix("")), pkts)
 
 
 if __name__ == "__main__":

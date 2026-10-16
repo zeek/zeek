@@ -1,0 +1,23 @@
+name: Run all PCAP generators in testing/btest/Traces
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t scapy -f ci/scapy/Dockerfile .
+      - run: docker run --rm -t -v "$(pwd):/zeek" -w /zeek scapy /zeek/ci/run-pcap-generators.py
+      - run: git status testing/btest/Traces
+      - run: git diff --exit-code

@@ -7,6 +7,8 @@ This exposes a typo in scripts/base/packet-protocols/geneve/main.zeek where
 the Geneve -> IP dispatch for IPv6 was registered under 0x08DD instead of
 the real IPv6 ethertype 0x86DD. With the typo in place, the inner IPv6
 flow is not analyzed and never appears in conn.log.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
 """
 
 from pathlib import Path
@@ -16,6 +18,11 @@ from scapy.contrib.geneve import GENEVE
 
 GENEVE_PORT = 6081
 ETHERTYPE_IPV6 = 0x86DD
+
+BASE_TIME = 1_700_000_000.0
+# Gap between packets. The btest baseline records the inner connection's duration,
+# so this keeps the value of the originally captured trace.
+PACKET_GAP = 0.000394
 
 
 def geneve_ipv6_packet(
@@ -27,7 +34,7 @@ def geneve_ipv6_packet(
         / Raw(payload)
     )
     return (
-        Ether()
+        Ether(src="02:00:00:00:00:01", dst="02:00:00:00:00:02")
         / IP(src=outer_src, dst=outer_dst)
         / UDP(sport=outer_sport, dport=GENEVE_PORT)
         / GENEVE(vni=0x123456, proto=ETHERTYPE_IPV6)
@@ -59,9 +66,10 @@ def main():
         ),
     ]
 
-    out = Path(__file__).with_suffix("")
-    wrpcap(str(out), pkts)
-    print(f"Wrote {len(pkts)} packets to {out}")
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * PACKET_GAP
+
+    wrpcap(str(Path(__file__).with_suffix("")), pkts)
 
 
 if __name__ == "__main__":

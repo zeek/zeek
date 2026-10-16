@@ -59,7 +59,6 @@ def main() -> None:
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     write_capture(args.output)
-    print(args.output)
 
 
 if __name__ == "__main__":

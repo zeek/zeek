@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 # HTTP/1.1 response carrying a crafted OCSP response whose BasicOCSPResponse uses
-# a byName responderID with an EMPTY RDNSequence (30 00). Emits poc.pcap.
+# a byName responderID with an EMPTY RDNSequence (30 00). Written as a raw-IPv4
+# pcap beside this script.
+#
+# Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
+from pathlib import Path
+
 from scapy.all import IP, TCP, Raw, wrpcap
+
+BASE_TIME = 1_700_000_000.0
 
 
 def tlv(tag, val):
@@ -70,7 +77,7 @@ pkts.append(pkt(sip, cip, sp, cp, ss, cs, "PA", http_resp))
 ss += len(http_resp)
 pkts.append(pkt(cip, sip, cp, sp, cs, ss, "A"))
 
-wrpcap("ocsp-empty-responderid.pcap", pkts)
-print(
-    f"wrote ocsp-empty-responderid.pcap ({len(pkts)} packets), ocsp der {len(der)} bytes"
-)
+for index, p in enumerate(pkts):
+    p.time = BASE_TIME + index * 0.001
+
+wrpcap(str(Path(__file__).with_suffix("")), pkts)

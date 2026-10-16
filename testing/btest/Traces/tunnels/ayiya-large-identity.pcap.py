@@ -7,6 +7,8 @@ The AYIYA analyzer used to store this length in a uint8_t, so 256 wrapped to 0
 and the inner packet was forwarded from an offset still inside the AYIYA header.
 The inner IPv6/UDP packet here only parses correctly if the full 8 + 256 + 20
 byte header is stripped first.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
 """
 
 from pathlib import Path
@@ -14,6 +16,8 @@ from pathlib import Path
 from scapy.all import IP, UDP, Ether, IPv6, Raw, wrpcap
 
 AYIYA_PORT = 5072
+
+BASE_TIME = 1_700_000_000.0
 
 # idlen nibble = 8 -> identity_len = 1 << 8 = 256
 IDLEN_NIBBLE = 8
@@ -40,15 +44,15 @@ def ayiya_payload():
 
 def main():
     pkt = (
-        Ether()
+        Ether(src="02:00:00:00:00:01", dst="02:00:00:00:00:02")
         / IP(src="10.0.0.1", dst="10.0.0.2")
         / UDP(sport=12345, dport=AYIYA_PORT)
         / Raw(ayiya_payload())
     )
 
-    out = Path(__file__).with_suffix("")
-    wrpcap(str(out), [pkt])
-    print(f"Wrote 1 packet to {out}")
+    pkt.time = BASE_TIME
+
+    wrpcap(str(Path(__file__).with_suffix("")), [pkt])
 
 
 if __name__ == "__main__":

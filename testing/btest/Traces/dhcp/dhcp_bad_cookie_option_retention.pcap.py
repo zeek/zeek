@@ -96,7 +96,6 @@ def main():
     args = parse_args()
     packets = build_packets(args.bad_count, args.pad_options)
     wrpcap(str(args.output), packets)
-    print(args.output)
 
 
 if __name__ == "__main__":

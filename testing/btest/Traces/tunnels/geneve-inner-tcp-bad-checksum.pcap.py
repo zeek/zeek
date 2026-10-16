@@ -2,6 +2,8 @@
 """
 Generate geneve-inner-tcp-bad-checksum.pcap: a single Geneve packet whose
 inner Ethernet/IP/TCP SYN has a deliberately wrong TCP checksum.
+
+Adapted with Claude Sonnet 5.5 (Anthropic) to be reproducible.
 """
 
 from pathlib import Path
@@ -10,6 +12,8 @@ from scapy.all import IP, TCP, UDP, Ether, wrpcap
 from scapy.contrib.geneve import GENEVE
 
 GENEVE_PORT = 6081
+
+BASE_TIME = 1_700_000_000.0
 
 
 def main():
@@ -27,9 +31,9 @@ def main():
         / inner
     )
 
-    out = Path(__file__).with_suffix("")
-    wrpcap(str(out), [pkt])
-    print(f"Wrote 1 packet to {out}")
+    pkt.time = BASE_TIME
+
+    wrpcap(str(Path(__file__).with_suffix("")), [pkt])
 
 
 if __name__ == "__main__":

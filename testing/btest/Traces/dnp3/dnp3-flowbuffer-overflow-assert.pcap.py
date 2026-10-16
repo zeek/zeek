@@ -18,7 +18,8 @@ The default trace is sized for a fast regression test run with
 "redef BinPAC::flowbuffer_capacity_max = 4096;". To trigger against a stock
 build, pass --app-bytes 9000000 to cross the 8 MiB capacity-doubling step.
 
-Generated/modified with OpenAI Codex (GPT-5).
+Generated/modified with OpenAI Codex (GPT-5), adapted by Claude Sonnet 5.5
+(Anthropic) to use deterministic timestamps.
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ USER_DATA_LEN = LINK_LENGTH - 5  # bytes after ctrl+dest+src (transport + app)
 APP_BYTES_PER_FRAME = USER_DATA_LEN - 1  # application bytes buffered per frame
 TCP_SEGMENT_TARGET = 1460  # pack multiple frames per TCP segment
 DEFAULT_APP_BYTES = 4_097  # overflows a 4 KiB flowbuffer cap
+BASE_TIME = 1_700_000_000.0
 
 
 def dnp3_crc(data: bytes) -> bytes:
@@ -183,9 +185,6 @@ def build_packets(app_bytes: int) -> list:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "output", nargs="?", type=Path, default=Path(__file__).with_suffix("")
-    )
-    parser.add_argument(
         "--app-bytes",
         type=int,
         default=DEFAULT_APP_BYTES,
@@ -199,8 +198,10 @@ def main() -> None:
         parser.error("--app-bytes must be positive")
 
     pkts = build_packets(args.app_bytes)
-    wrpcap(str(args.output), pkts)
-    print(f"wrote {args.output} ({len(pkts)} packets, ~{args.app_bytes} app bytes)")
+    for index, p in enumerate(pkts):
+        p.time = BASE_TIME + index * 0.001
+
+    wrpcap(str(Path(__file__).with_suffix("")), pkts)
 
 
 if __name__ == "__main__":

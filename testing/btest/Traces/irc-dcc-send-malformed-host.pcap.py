@@ -3,10 +3,19 @@
 """
 Generates a packet capture with an IRC DCC SEND packet containing an invalid hostname.
 
-Created by GPT-5.5.
+Created by GPT-5.5, adapted with Claude Sonnet 5.5 (Anthropic) to use fixed MAC
+addresses and timestamps and to write beside the script so the trace is
+reproducible.
 """
 
+from pathlib import Path
+
 from scapy.all import IP, TCP, Ether, Raw, wrpcap
+
+BASE_TIME = 1_700_000_000.0
+
+src_mac = "02:00:00:00:00:01"
+dst_mac = "02:00:00:00:00:02"
 
 packets = []
 
@@ -20,12 +29,14 @@ dst_port = 12345
 # Control chars: \x01\x02\x03\x04\x05
 irc_msg = b"PRIVMSG victim :DCC SEND file.txt \x01\x02\x03\x04\x05 5000 1024\r\n"
 pkt = (
-    Ether()
+    Ether(src=src_mac, dst=dst_mac)
     / IP(src=src_ip, dst=dst_ip)
     / TCP(sport=src_port, dport=dst_port, flags="PA")
     / Raw(load=irc_msg)
 )
 packets.append(pkt)
 
-wrpcap("irc-dcc-send-malformed-host.pcap", packets)
-print("Wrote irc-dcc-send-malformed-host.pcap")
+for index, p in enumerate(packets):
+    p.time = BASE_TIME + index * 0.001
+
+wrpcap(str(Path(__file__).with_suffix("")), packets)

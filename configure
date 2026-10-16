@@ -15,6 +15,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   -h, --help                    display this help and exit
   --show-config                 display the most relevant config parameters of an existing build
 
+  Options taking a value accept both --option=value and --option value.
+
   Build Options:
     --cmake=PATH                custom path to a CMake binary
     --builddir=DIR              place build files in directory [build]
@@ -25,7 +27,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                                   - Release: optimizations on, debugging off
                                   - RelWithDebInfo: optimizations on,
                                         debug symbols on, debug flags off
-    --generator=GENERATOR       CMake generator to use (see cmake --help)
+    -G, --generator=GENERATOR   CMake generator to use (see cmake --help)
     --ccache                    use ccache to speed up recompilation (requires
                                 ccache installation and CMake 3.10+)
     --toolchain=PATH            path to a CMAKE_TOOLCHAIN_FILE
@@ -172,6 +174,28 @@ append_cache_entry() {
     CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
 }
 
+# Read a value-taking option, preserving the caller's positional arguments.
+# The parsing loop uses shift_count to consume either one or two arguments.
+get_optarg() {
+    case "$1" in
+        --*=*) optarg=${1#*=} ;;
+        *)
+            if [ $# -lt 2 ]; then
+                echo "Error: $1 requires an argument." >&2
+                exit 1
+            fi
+            case "$2" in
+                -?*)
+                    echo "Error: $1 requires an argument (use --option=VALUE for values starting with '-')." >&2
+                    exit 1
+                    ;;
+            esac
+            optarg=$2
+            shift_count=2
+            ;;
+    esac
+}
+
 # set defaults
 builddir=build
 CMakeCacheEntries=""
@@ -180,11 +204,7 @@ has_disable_archiver=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
-    case "$1" in
-        -*=*) optarg=$(echo "$1" | sed 's/[-_a-zA-Z0-9]*=//') ;;
-        *) optarg= ;;
-    esac
-
+    shift_count=1
     case "$1" in
         --help | -h)
             echo "${usage}" 1>&2
@@ -206,72 +226,96 @@ while [ $# -ne 0 ]; do
             fi
             CMakeCacheEntries="$CMakeCacheEntries -D $1"
             ;;
-        --cmake=*)
+        --cmake | --cmake=*)
+            get_optarg "$@"
             CMakeCommand=$optarg
             ;;
-        --builddir=*)
+        --builddir | --builddir=*)
+            get_optarg "$@"
             builddir=$optarg
             ;;
-        --build-dir=*)
+        --build-dir | --build-dir=*)
+            get_optarg "$@"
             builddir=$optarg
             ;;
-        --build-type=*)
+        --build-type | --build-type=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_BUILD_TYPE STRING $optarg
             ;;
-        --generator=*)
+        -G?*)
+            CMakeGenerator=${1#-G}
+            ;;
+        --generator | --generator=* | -G)
+            get_optarg "$@"
             CMakeGenerator="$optarg"
             ;;
         --ccache)
             append_cache_entry ENABLE_CCACHE BOOL true
             ;;
-        --toolchain=*)
+        --toolchain | --toolchain=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_TOOLCHAIN_FILE PATH $optarg
             ;;
-        --include-plugins=*)
+        --include-plugins | --include-plugins=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_INCLUDE_PLUGINS STRING \"$optarg\"
             ;;
-        --localversion=*)
+        --localversion | --localversion=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_VERSION_LOCAL STRING \"$optarg\"
             ;;
-        --prefix=*)
+        --prefix | --prefix=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_INSTALL_PREFIX PATH $optarg
             ;;
-        --libdir=*)
+        --libdir | --libdir=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_INSTALL_LIBDIR PATH $optarg
             ;;
-        --plugindir=*)
+        --plugindir | --plugindir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_PLUGIN_DIR PATH $optarg
             ;;
-        --python-dir=*)
+        --python-dir | --python-dir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_PYTHON_DIR PATH $optarg
             ;;
-        --python-prefix=*)
+        --python-prefix | --python-prefix=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_PYTHON_PREFIX PATH $optarg
             ;;
-        --python-home=*)
+        --python-home | --python-home=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_PYTHON_HOME PATH $optarg
             ;;
-        --scriptdir=*)
+        --scriptdir | --scriptdir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $optarg
             user_set_scriptdir="true"
             ;;
-        --conf-files-dir=*)
+        --conf-files-dir | --conf-files-dir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $optarg
             user_set_conffilesdir="true"
             ;;
-        --localstatedir=*)
+        --localstatedir | --localstatedir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_LOCAL_STATE_DIR PATH $optarg
             ;;
-        --spooldir=*)
+        --spooldir | --spooldir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_SPOOL_DIR PATH $optarg
             ;;
-        --statedir=*)
+        --statedir | --statedir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_STATE_DIR PATH $optarg
             ;;
-        --logdir=*)
+        --logdir | --logdir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_LOG_DIR PATH $optarg
             ;;
-        --mandir=*)
+        --mandir | --mandir=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_MAN_INSTALL_PATH PATH $optarg
             ;;
         --enable-coverage)
@@ -355,75 +399,97 @@ while [ $# -ne 0 ]; do
         --disable-zkg)
             append_cache_entry INSTALL_ZKG BOOL false
             ;;
-        --with-bind=*)
+        --with-bind | --with-bind=*)
+            get_optarg "$@"
             append_cache_entry BIND_ROOT_DIR PATH $optarg
             ;;
-        --with-bison=*)
+        --with-bison | --with-bison=*)
+            get_optarg "$@"
             append_cache_entry BISON_EXECUTABLE PATH $optarg
             ;;
-        --with-broker=*)
+        --with-broker | --with-broker=*)
+            get_optarg "$@"
             append_cache_entry BROKER_ROOT_DIR PATH $optarg
             ;;
-        --with-caf=*)
+        --with-caf | --with-caf=*)
+            get_optarg "$@"
             append_cache_entry CAF_ROOT PATH $optarg
             ;;
-        --with-flex=*)
+        --with-flex | --with-flex=*)
+            get_optarg "$@"
             append_cache_entry FLEX_EXECUTABLE PATH $optarg
             ;;
-        --with-geoip=*)
+        --with-geoip | --with-geoip=*)
+            get_optarg "$@"
             append_cache_entry LibMMDB_ROOT_DIR PATH $optarg
             ;;
-        --with-jemalloc=*)
+        --with-jemalloc | --with-jemalloc=*)
+            get_optarg "$@"
             append_cache_entry JEMALLOC_ROOT_DIR PATH $optarg
             append_cache_entry ENABLE_JEMALLOC BOOL true
             ;;
-        --with-krb5=*)
+        --with-krb5 | --with-krb5=*)
+            get_optarg "$@"
             append_cache_entry LibKrb5_ROOT_DIR PATH $optarg
             ;;
-        --with-libkqueue=*)
+        --with-libkqueue | --with-libkqueue=*)
+            get_optarg "$@"
             append_cache_entry LIBKQUEUE_ROOT_DIR PATH $optarg
             ;;
-        --with-pcap=*)
+        --with-pcap | --with-pcap=*)
+            get_optarg "$@"
             append_cache_entry PCAP_ROOT_DIR PATH $optarg
             ;;
-        --with-perftools=*)
+        --with-perftools | --with-perftools=*)
+            get_optarg "$@"
             append_cache_entry GooglePerftools_ROOT_DIR PATH $optarg
             ;;
-        --with-openssl=*)
+        --with-openssl | --with-openssl=*)
+            get_optarg "$@"
             append_cache_entry OPENSSL_ROOT_DIR PATH $optarg
             ;;
-        --with-python=*)
+        --with-python | --with-python=*)
+            get_optarg "$@"
             append_cache_entry Python_EXECUTABLE PATH $optarg
             ;;
-        --with-python-inc=*)
+        --with-python-inc | --with-python-inc=*)
+            get_optarg "$@"
             append_cache_entry PYTHON_INCLUDE_DIR PATH $optarg
             append_cache_entry PYTHON_INCLUDE_PATH PATH $optarg
             ;;
-        --with-python-lib=*)
+        --with-python-lib | --with-python-lib=*)
+            get_optarg "$@"
             append_cache_entry PYTHON_LIBRARY PATH $optarg
             ;;
-        --with-spicy=*)
+        --with-spicy | --with-spicy=*)
+            get_optarg "$@"
             append_cache_entry SPICY_ROOT_DIR PATH $optarg
             ;;
-        --with-swig=*)
+        --with-swig | --with-swig=*)
+            get_optarg "$@"
             append_cache_entry SWIG_EXECUTABLE PATH $optarg
             ;;
-        --sanitizers=*)
+        --sanitizers | --sanitizers=*)
+            get_optarg "$@"
             append_cache_entry ZEEK_SANITIZERS STRING $optarg
             ;;
         --binary-package)
             append_cache_entry BINARY_PACKAGING_MODE BOOL true
             ;;
-        --ignore-dirs=*)
+        --ignore-dirs | --ignore-dirs=*)
+            get_optarg "$@"
             append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING $optarg
             ;;
-        --pkg-name-prefix=*)
+        --pkg-name-prefix | --pkg-name-prefix=*)
+            get_optarg "$@"
             append_cache_entry PACKAGE_NAME_PREFIX STRING $optarg
             ;;
-        --osx-sysroot=*)
+        --osx-sysroot | --osx-sysroot=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_OSX_SYSROOT PATH $optarg
             ;;
-        --osx-min-version=*)
+        --osx-min-version | --osx-min-version=*)
+            get_optarg "$@"
             append_cache_entry CMAKE_OSX_DEPLOYMENT_TARGET STRING $optarg
             ;;
         --display-cmake)
@@ -434,7 +500,7 @@ while [ $# -ne 0 ]; do
             exit 1
             ;;
     esac
-    shift
+    shift "$shift_count"
 done
 
 if [ -z "$CMakeCommand" ]; then

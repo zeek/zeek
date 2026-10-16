@@ -25,7 +25,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
                                   - Release: optimizations on, debugging off
                                   - RelWithDebInfo: optimizations on,
                                         debug symbols on, debug flags off
-    --generator=GENERATOR       CMake generator to use (see cmake --help)
+    -G, --generator=GENERATOR   CMake generator to use (see cmake --help)
     --ccache                    use ccache to speed up recompilation (requires
                                 ccache installation and CMake 3.10+)
     --toolchain=PATH            path to a CMAKE_TOOLCHAIN_FILE
@@ -172,6 +172,28 @@ append_cache_entry() {
     CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
 }
 
+# Read a value-taking option, preserving the caller's positional arguments.
+# The parsing loop uses shift_count to consume either one or two arguments.
+get_optarg() {
+    case "$1" in
+        --*=*) optarg=${1#*=} ;;
+        *)
+            if [ $# -lt 2 ]; then
+                echo "Error: $1 requires an argument." >&2
+                exit 1
+            fi
+            case "$2" in
+                -?*)
+                    echo "Error: $1 requires an argument (use --option=VALUE for values starting with '-')." >&2
+                    exit 1
+                    ;;
+            esac
+            optarg=$2
+            shift_count=2
+            ;;
+    esac
+}
+
 # set defaults
 builddir=build
 CMakeCacheEntries=""
@@ -180,6 +202,7 @@ has_disable_archiver=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
+    shift_count=1
     case "$1" in
         -*=*) optarg=$(echo "$1" | sed 's/[-_a-zA-Z0-9]*=//') ;;
         *) optarg= ;;
@@ -218,7 +241,11 @@ while [ $# -ne 0 ]; do
         --build-type=*)
             append_cache_entry CMAKE_BUILD_TYPE STRING $optarg
             ;;
-        --generator=*)
+        -G?*)
+            CMakeGenerator=${1#-G}
+            ;;
+        --generator=* | -G)
+            get_optarg "$@"
             CMakeGenerator="$optarg"
             ;;
         --ccache)
@@ -434,7 +461,7 @@ while [ $# -ne 0 ]; do
             exit 1
             ;;
     esac
-    shift
+    shift "$shift_count"
 done
 
 if [ -z "$CMakeCommand" ]; then

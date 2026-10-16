@@ -1,4 +1,5 @@
 # @TEST-DOC: Verify ClientHello extensions cannot exceed their declared byte length.
+# @TEST-REQUIRES: ! have-spicy-ssl # Binpac analyzer uses weirds to keep parsing
 #
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/client-hello-extension-length.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out

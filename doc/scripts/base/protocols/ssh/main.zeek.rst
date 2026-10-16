@@ -80,7 +80,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: SSH::compression_algorithms
-   :source-code: base/protocols/ssh/main.zeek 65 65
+   :source-code: base/protocols/ssh/main.zeek 66 66
 
    :Type: :zeek:type:`set` [:zeek:type:`string`]
    :Attributes: :zeek:attr:`&redef`
@@ -98,7 +98,7 @@ Runtime Options
    authentication success or failure when compression is enabled.
 
 .. zeek:id:: SSH::disable_analyzer_after_detection
-   :source-code: base/protocols/ssh/main.zeek 70 70
+   :source-code: base/protocols/ssh/main.zeek 71 71
 
    :Type: :zeek:type:`bool`
    :Attributes: :zeek:attr:`&redef`
@@ -129,7 +129,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: SSH::Info
-   :source-code: base/protocols/ssh/main.zeek 19 61
+   :source-code: base/protocols/ssh/main.zeek 19 62
 
    :Type: :zeek:type:`record`
 
@@ -155,7 +155,8 @@ Types
       client and server version strings are unset, malformed or incompatible
       so no common version can be extracted. If no version can be extracted
       even though both client and server versions are set a weird
-      will be generated.
+      will be generated. Version strings whose protocol version does not start
+      with 1 are treated as version 2.
 
 
    .. zeek:field:: auth_success :zeek:type:`bool` :zeek:attr:`&log` :zeek:attr:`&optional`
@@ -250,7 +251,7 @@ Types
 Events
 ######
 .. zeek:id:: SSH::log_ssh
-   :source-code: base/protocols/ssh/main.zeek 74 74
+   :source-code: base/protocols/ssh/main.zeek 75 75
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`SSH::Info`)
 
@@ -258,7 +259,7 @@ Events
    to the logging framework.
 
 .. zeek:id:: ssh_auth_failed
-   :source-code: base/protocols/ssh/main.zeek 98 98
+   :source-code: base/protocols/ssh/main.zeek 99 99
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 
@@ -281,7 +282,7 @@ Events
       ssh2_gss_error ssh2_ecc_key
 
 .. zeek:id:: ssh_auth_result
-   :source-code: base/protocols/ssh/main.zeek 121 121
+   :source-code: base/protocols/ssh/main.zeek 122 122
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, result: :zeek:type:`bool`, auth_attempts: :zeek:type:`count`)
 
@@ -313,7 +314,7 @@ Events
 Hooks
 #####
 .. zeek:id:: SSH::finalize_ssh
-   :source-code: base/protocols/ssh/main.zeek 314 338
+   :source-code: base/protocols/ssh/main.zeek 319 343
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

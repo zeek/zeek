@@ -443,6 +443,7 @@ function zeromq_nodeid_topic(id: string): string {
 }
 
 redef Cluster::Telemetry::topic_normalizations += {
+	[/^zeek\.zeromq\.internal\.nodeid\..*/] = "zeek.zeromq.internal.nodeid.__normalized__",
 	[/^zeek\.cluster\.nodeid\..*/] = "zeek.cluster.nodeid.__normalized__",
 };
 

@@ -152,3 +152,5 @@ Trace Index/Sources:
   Manually captured with tcpdump while connecting from OpenSSH 10.3 to an
   OpenSSH 10.2 server on a VM, restricting the client to a single key exchange
   algorithm with `ssh -o KexAlgorithms=diffie-hellman-group18-sha512`.
+- dce-rpc/lookupsid-plaintext.pcap.gz
+  Lab traffic provided by Mohan Dhawan containing fragmented DCE-RPC traffic.

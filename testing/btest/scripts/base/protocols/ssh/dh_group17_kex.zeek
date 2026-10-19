@@ -4,7 +4,9 @@
 #
 # @TEST-EXEC: btest-diff-cut -m ssh.log
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
-# @TEST-EXEC: btest-diff-cut -m uid name addl source weird.log
+#
+# @TEST-EXEC: test ! -f weird.log
+# @TEST-EXEC: test ! -f analyzer.log
 
 @load base/protocols/conn
 @load base/protocols/ssh

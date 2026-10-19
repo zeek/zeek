@@ -4213,15 +4213,20 @@ export {
 		[/diffie-hellman-group1-sha1/] = KEX_DH, # untested
 		[/diffie-hellman-group14-sha1/] = KEX_DH, # untested
 		[/diffie-hellman-group14-sha256/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha256@ssh.com/] = KEX_DH,
+		[/diffie-hellman-group15-sha512/] = KEX_DH,
 		[/diffie-hellman-group16-sha512/] = KEX_DH, # untested
+		[/diffie-hellman-group17-sha512/] = KEX_DH,
 		[/diffie-hellman-group18-sha512/] = KEX_DH,
 		[/diffie-hellman-group-exchange-sha1/] = KEX_DH_GEX,
 		[/diffie-hellman-group-exchange-sha256/] = KEX_DH_GEX,
+		[/diffie-hellman-group-exchange-sha512@ssh.com/] = KEX_DH_GEX,
 		[/gss-.*/] = KEX_GSS,
 		[/ecdh-sha2-.*/] = KEX_ECC,
 		[/ecmqv-sha2/] = KEX_ECC,
 		[/curve25519-sha256.*/] = KEX_ECC,
-		[/sntrup761x25519-sha512.*/] = KEX_ECC, # untested
+		[/curve448-sha512/] = KEX_ECC,
+		[/sntrup761x25519-sha512.*/] = KEX_ECC,
 		[/mlkem.*/] = KEX_ECC,
 	} &ordered &redef;
 }

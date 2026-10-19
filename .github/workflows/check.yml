@@ -469,8 +469,9 @@ jobs:
         persist-credentials: false
 
     - name: Set up MSVC Dev Cmd
-      uses: iShark5060/actions-msvc-dev-cmd@d8ecc74f275b4e345a93ffc2b5d68a6b6e91280e  # v1.2.1
+      uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0
       with:
+        arch: x64
         sdk: "10.0.26100.0"
 
     - name: Install dependencies

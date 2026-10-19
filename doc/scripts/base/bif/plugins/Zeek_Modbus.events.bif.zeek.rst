@@ -346,7 +346,7 @@ Events
    :param refs: A vector of reference records.
 
 .. zeek:id:: modbus_read_holding_registers_request
-   :source-code: policy/protocols/modbus/track-memmap.zeek 62 65
+   :source-code: policy/protocols/modbus/track-memmap.zeek 75 78
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, start_address: :zeek:type:`count`, quantity: :zeek:type:`count`)
 
@@ -365,7 +365,7 @@ Events
    :param quantity: The number of registers to be read.
 
 .. zeek:id:: modbus_read_holding_registers_response
-   :source-code: policy/protocols/modbus/track-memmap.zeek 67 101
+   :source-code: policy/protocols/modbus/track-memmap.zeek 80 144
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, headers: :zeek:type:`ModbusHeaders`, registers: :zeek:type:`ModbusRegisters`)
 

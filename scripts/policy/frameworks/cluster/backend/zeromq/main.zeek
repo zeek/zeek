@@ -82,7 +82,7 @@ global nodeid_hellos: set[string] &create_expire=hello_expiration &expire_func=n
 
 # The ZeroMQ plugin notifies script land when a new subscription arrived
 # on that node's XPUB socket. If the topic of such a subscription starts with
-# the nodeid_topic_prefix for another node A, node B seeing the subscription
+# an ZeroMQ-internal prefix and nodeid for another node A, node B seeing the subscription
 # sends ZeroMQ::hello() to the topic, announcing its own presence to node A.
 # Conversely, when node A sees the subscription for node B's nodeid topic,
 # it also sens ZeroMQ::hello(). In other words, every node says hello to all
@@ -93,14 +93,37 @@ global nodeid_hellos: set[string] &create_expire=hello_expiration &expire_func=n
 #
 # See also the Cluster::Backend::ZeroMQ::hello() handler below.
 #
-#   1) node A subscribes to Cluster::nodeid_topic(Cluster::node_id())
-#   2) node B observes subscription for node A's nodeid_topic and replies with ZeroMQ::hello()
-#   3) node A receives node B's nodeid_topic subscription, replies with ZeroMQ::hello()
+#   1) node A subscribes to a nodeid topic at priority=-1000
+#   2) node B observes subscription for node A's nodeid topic and replies with ZeroMQ::hello()
+#   3) node A receives node B's nodeid topic subscription, replies with ZeroMQ::hello()
 #   4) node B receives node A's ZeroMQ::hello() and raises Cluster::node_up()
-#      as it has already seen node A's nodeid_topic subscription.
+#      as it has already seen node A's nodeid topic subscription.
+
+# Helper function to create the internal nodeid topic.
+function make_internal_nodeid_topic_prefix(): string
+	{
+	return cat(internal_topic_prefix, "nodeid.");
+	}
+
+# Helper function for the ZeroMQ-internal nodeid subscription.
+function make_internal_nodeid_topic(id: string): string
+	{
+	return cat(make_internal_nodeid_topic_prefix(), id, ".");
+	}
+
+# A subscription created at a very low priority that is used by other nodes
+# to identify upness. See the subscription handler below where the nodeid
+# is extracted by slicing away the internal_topic_prefix + "nodeid." and the
+# terminating dot.
+event zeek_init() &priority=-1000
+	{
+	local topic = make_internal_nodeid_topic(Cluster::node_id());
+	Cluster::subscribe(topic);
+	}
+
 event Cluster::Backend::ZeroMQ::subscription(topic: string)
 	{
-	local prefix = nodeid_topic_prefix + ".";
+	local prefix = make_internal_nodeid_topic_prefix();
 
 	if ( ! starts_with(topic, prefix) )
 		return;
@@ -117,7 +140,7 @@ event Cluster::Backend::ZeroMQ::subscription(topic: string)
 	# it a Cluster::hello.
 	if ( nodeid in nodeid_hellos )
 		{
-		Cluster::publish(Cluster::nodeid_topic(nodeid), Cluster::hello, Cluster::node, Cluster::node_id());
+		Cluster::publish(topic, Cluster::hello, Cluster::node, Cluster::node_id());
 		delete nodeid_hellos[nodeid];
 		}
 	else
@@ -159,7 +182,8 @@ event Cluster::Backend::ZeroMQ::hello(name: string, id: string)
 	# subscription processing further up.
 	if ( id in nodeid_subscriptions )
 		{
-		Cluster::publish(Cluster::nodeid_topic(id), Cluster::hello, Cluster::node, Cluster::node_id());
+		local topic = make_internal_nodeid_topic(id);
+		Cluster::publish(topic,  Cluster::hello, Cluster::node, Cluster::node_id());
 		delete nodeid_subscriptions[id];
 		}
 	else
@@ -173,7 +197,8 @@ event Cluster::Backend::ZeroMQ::hello(name: string, id: string)
 # cluster layout and raise Cluster::node_down().
 event Cluster::Backend::ZeroMQ::unsubscription(topic: string)
 	{
-	local prefix = nodeid_topic_prefix + ".";
+	local prefix = make_internal_nodeid_topic_prefix();
+
 	if ( ! starts_with(topic, prefix) )
 		return;
 

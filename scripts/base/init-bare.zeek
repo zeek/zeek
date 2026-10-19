@@ -3971,6 +3971,8 @@ export {
 	const heartbeat_interval = 1.0 secs &redef;
 }
 
+@load base/bif/plugins/Zeek_SSH.types.bif
+
 module SSH;
 
 export {
@@ -4071,6 +4073,30 @@ export {
 	## is reached, a ``SSH_max_kexinit_languages_exceeded``
 	## weird is raised and an X added to the connection's history.
 	const max_kexinit_languages = 100 &redef;
+
+	## Maps negotiated key exchange method names to the family the SSH
+	## analyzer uses to parse the following key exchange messages. Patterns
+	## must match the whole name. If several patterns match, the first one in
+	## table order wins. Methods without a match raise an
+	## ``ssh_unknown_kex_algorithm`` weird and their key exchange messages are
+	## not parsed.
+	const kex_methods: table[pattern] of KexMethod = {
+		[/rsa1024-sha1/] = KEX_RSA, # untested
+		[/rsa2048-sha256/] = KEX_RSA, # untested
+		[/diffie-hellman-group1-sha1/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha1/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha256/] = KEX_DH, # untested
+		[/diffie-hellman-group16-sha512/] = KEX_DH, # untested
+		[/diffie-hellman-group18-sha512/] = KEX_DH,
+		[/diffie-hellman-group-exchange-sha1/] = KEX_DH_GEX,
+		[/diffie-hellman-group-exchange-sha256/] = KEX_DH_GEX,
+		[/gss-.*/] = KEX_GSS,
+		[/ecdh-sha2-.*/] = KEX_ECC,
+		[/ecmqv-sha2/] = KEX_ECC,
+		[/curve25519-sha256.*/] = KEX_ECC,
+		[/sntrup761x25519-sha512.*/] = KEX_ECC, # untested
+		[/mlkem.*/] = KEX_ECC,
+	} &ordered &redef;
 }
 
 module NTLM;

@@ -165,3 +165,15 @@ Trace Index/Sources:
   The client sends the non-RFC 4253 version string "SSH-v2.8.1-linux_amd64".
 - dce-rpc/lookupsid-plaintext.pcap.gz
   Lab traffic provided by Mohan Dhawan containing fragmented DCE-RPC traffic.
+- ssh/diffie-hellman-group-exchange-sha512@ssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group14-sha256@ssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group15-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group17-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/sntrup761x25519-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/sntrup761x25519-sha512@openssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1

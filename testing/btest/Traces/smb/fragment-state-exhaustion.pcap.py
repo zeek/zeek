@@ -5,11 +5,18 @@ Generated with Claude Opus 4.8.
 Generate an SMB1 pcap that feeds many first-only DCE-RPC fragments to Zeek's
 DCE/RPC reassembler over a named pipe.
 
-Each DCE-RPC PDU is an empty connection-oriented fragment with only the
-PFC_FIRST_FRAG flag set (first frag, but not last), so the analyzer opens a
-flow buffer for its call_id and never closes it. Once more than
+Each DCE-RPC PDU is a connection-oriented REQUEST fragment with only the
+PFC_FIRST_FRAG flag set (first frag, but not last) and an empty stub, so the
+analyzer opens a flow buffer for its call_id and never closes it. Once more than
 DCE_RPC::max_cmd_reassembly (default 20) call_ids are outstanding, the analyzer
 raises `too_many_dce_rpc_msgs_in_reassembly` and calls SetSkip(true).
+
+The DCE-RPC fragments are built with Scapy's high-level DCE/RPC v5 layer so that
+every PDU is a well-formed REQUEST (the mandatory alloc_hint/context_id/opnum
+request header is present in every fragment, only the stub is fragmented). The
+SMB1 named-pipe transaction envelope is hand-built because Scapy 2.5.0 has no
+SMB1 SMB_COM_TRANSACTION request class; it uses the TransactNmPipe subcommand
+and a pipe FID so dissectors recognize the transaction data as DCE-RPC.
 
 The point of interest is what happens to the transactions that follow. SMB
 named-pipe delivery must route DCE-RPC bytes through Analyzer::NextStream so the
@@ -28,6 +35,8 @@ import struct
 from pathlib import Path
 
 from scapy.all import IP, TCP, Ether, Raw, wrpcap
+from scapy.compat import raw
+from scapy.layers.dcerpc import DceRpc5, DceRpc5Request
 
 CLIENT_IP = "192.0.2.10"
 SERVER_IP = "192.0.2.20"
@@ -40,26 +49,31 @@ DEFAULT_PDU_COUNT = 100
 DEFAULT_PDUS_PER_TRANSACTION = 25
 DEFAULT_SEGMENT_SIZE = 1400
 
-PFC_FIRST_FRAG = 0x01
-
 
 def dce_first_fragment(call_id):
-    """Build an empty first-only connection-oriented DCE-RPC fragment."""
-    return struct.pack(
-        "<BBBB4sHHI",
-        5,  # rpc_vers
-        0,  # rpc_vers_minor
-        0,  # PDU type (request)
-        PFC_FIRST_FRAG,  # first frag set, last frag clear
-        b"\x10\x00\x00\x00",  # packed_drep: little-endian
-        16,  # frag_length (header only)
-        0,  # auth_length
-        call_id,
+    """Build a valid first-only connection-oriented DCE-RPC REQUEST fragment.
+
+    Only PFC_FIRST_FRAG is set (first frag, not last), the required request
+    header (alloc_hint/context_id/opnum) is present, and the stub is empty.
+    Scapy computes frag_length, so the PDU is always well-formed.
+    """
+    pdu = DceRpc5(ptype=0, pfc_flags="FIRST_FRAG", call_id=call_id) / DceRpc5Request(
+        alloc_hint=0, cont_id=0, opnum=0
     )
+    return raw(pdu)
+
+
+TRANS_TRANSACT_NMPIPE = 0x0026  # SMB1 transaction subcommand for named pipes
+PIPE_FID = 0x4000
 
 
 def smb1_transaction(pipe_data, message_id):
-    """Wrap DCE-RPC bytes in an SMB1 named-pipe transaction request."""
+    """Wrap DCE-RPC bytes in an SMB1 named-pipe transaction request.
+
+    The transaction carries the TransactNmPipe subcommand (setup[0]) and a
+    pipe FID (setup[1]); together with the "\\PIPE\\" name this is what lets
+    dissectors route the transaction data to the DCE-RPC parser.
+    """
     smb_header = b"\xffSMB" + struct.pack(
         "<BIBHH8sHHHHH",
         0x25,  # SMB_COM_TRANSACTION
@@ -75,10 +89,13 @@ def smb1_transaction(pipe_data, message_id):
         message_id & 0xFFFF,  # mid
     )
     name = b"\\PIPE\\\x00"
-    data_offset = 32 + 29 + 2 + len(name)
+    # word_count = 14 fixed words + 2 setup words; data starts after the SMB
+    # header (32), the word block (1 + 14*2 + 2 setup words = 33), the byte
+    # count field (2) and the pipe name.
+    data_offset = 32 + 33 + 2 + len(name)
     transaction = struct.pack(
-        "<BHHHHBBHIHHHHHBB",
-        14,  # word_count
+        "<BHHHHBBHIHHHHHBBHH",
+        16,  # word_count (14 + 2 setup words)
         0,  # total_param_count
         len(pipe_data),  # total_data_count
         0,  # max_param_count
@@ -92,8 +109,10 @@ def smb1_transaction(pipe_data, message_id):
         0,  # param_offset
         len(pipe_data),  # data_count
         data_offset,  # data_offset
-        0,  # setup_count
+        2,  # setup_count
         0,  # reserved3
+        TRANS_TRANSACT_NMPIPE,  # setup[0]
+        PIPE_FID,  # setup[1]
     )
     transaction += struct.pack("<H", len(name) + len(pipe_data)) + name + pipe_data
     smb_message = smb_header + transaction

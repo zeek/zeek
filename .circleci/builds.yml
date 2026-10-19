@@ -956,7 +956,7 @@ _filter_if_pr_not_full_or_windows: &FILTER_IF_PR_NOT_FULL_OR_WINDOWS
 
 _filter_nightly_or_tagged: &FILTER_NIGHTLY_OR_TAGGED
   filters: |
-    pipeline.schedule.name == "nightly" or pipeline.parameters.has_release_tag
+    pipeline.trigger.name == "nightly" or pipeline.parameters.has_release_tag
 
 
 _configure_binary_build: &CONFIGURE_BINARY_BUILD
@@ -1307,7 +1307,7 @@ workflows:
           << : *FILTER_IF_PR_NOT_FULL_CI
 
   weekly_builds:
-    when: pipeline.schedule.name == "weekly"
+    when: pipeline.trigger.name == "weekly"
     jobs:
       - fetch-test-traces
       - create-build-image:

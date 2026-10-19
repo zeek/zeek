@@ -121,6 +121,26 @@ types in a Zeek cluster looks something like the following.
 
 .. figure:: /images/cluster/backend/zeromq/zeromq-cluster.png
 
+Implementation Notes
+====================
+
+The Cluster::node_up() Mechanism
+--------------------------------
+
+The implementation for :zeek:see:`Cluster::node_up` relies on creating a node
+specific topic subscription in a :zeek:see:`zeek_init` handler at priority -1000.
+This is done in the ``zeromq/main.zeek`` policy script using the concatenation
+of :zeek:see:`Cluster::Backend::ZeroMQ::internal_topic_prefix` suffixed with
+``nodeid.`` and the result of calling :zeek:see:`Cluster::node_id`.
+
+All other nodes in a Zeek cluster will observe this specific subscription through
+the low-level :zeek:see:`Cluster::Backend::ZeroMQ::subscription` event and reply
+with an internal :zeek:see:`Cluster::Backend::ZeroMQ::hello` event which in turn
+results in raising :zeek:see:`Cluster::node_up`.
+
+For ZeroMQ, it is guaranteed that any other subscriptions created in :zeek:see:`zeek_init`
+handlers with priorities greater than -1000 are also in effect.
+
 
 Encryption
 ==========

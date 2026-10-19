@@ -1,5 +1,11 @@
 # Definitions for DCE RPC.
 
+# Reference: https://pubs.opengroup.org/onlinepubs/9629399/toc.pdf, 12.6.4
+
+%extern{
+#include <zeek/util.h>
+%}
+
 enum dce_rpc_ptype {
 	DCE_RPC_REQUEST,
 	DCE_RPC_PING,
@@ -31,15 +37,17 @@ type context_handle = record {
 	uuid  : bytestring &length = 16;
 };
 
+# Connection-oriented RPC PDUs RPC PDU Encodings
 type DCE_RPC_PDU(is_orig: bool) = record {
-	header  : DCE_RPC_Header(is_orig);
-	frag    : bytestring &length=body_length;
-	auth    : DCE_RPC_Auth_wrapper(header);
+	header      : DCE_RPC_Header(is_orig);
+	frag_header : DCE_RPC_Fragment_Header(header);
+	frag        : bytestring &length=body_length;
+	auth        : DCE_RPC_Auth_wrapper(header);
 } &let {
 	# Subtract an extra 8 when there is an auth section because we have some "auth header" fields in that structure.
-	body_length      : int  = header.frag_length - sizeof(header) - header.auth_length - (header.auth_length > 0 ? 8 : 0);
-	frag_reassembled : bool = $context.flow.reassemble_fragment(header, frag);
-	body             : DCE_RPC_Body(header) withinput $context.flow.reassembled_body(header, frag) &if(frag_reassembled);
+	body_length      : int  = header.frag_length - sizeof(header) - sizeof(frag_header) - header.auth_length - (header.auth_length > 0 ? 8 : 0);
+	frag_reassembled : bool = $context.flow.reassemble_fragment(header, frag_header, frag);
+	body             : DCE_RPC_Body(header, frag_header) withinput $context.flow.reassembled_body(header, frag) &if(frag_reassembled);
 } &byteorder = header.byteorder, &length = header.frag_length;
 
 type NDR_Format = record {
@@ -64,6 +72,18 @@ type DCE_RPC_Header(is_orig: bool) = record {
 	lastfrag  = (pfc_flags >> 1) & 1;
 	object    = (pfc_flags >> 7) & 1;
 } &byteorder = packed_drep.byteorder;
+
+# Fragment header consumes the part of a DCE-RPC request/response that
+# is replicated after the header fields above, but not part of stub data.
+# Only the stub data is fragmented.
+#
+# Previous versions of Zeek would consider alloc_hint, context_id and opnum
+# as part of the fragmented data, rather than skipping over it.
+type DCE_RPC_Fragment_Header(header  : DCE_RPC_Header) = case header.PTYPE of {
+	DCE_RPC_REQUEST  -> request  : DCE_RPC_Request_Header(header);
+	DCE_RPC_RESPONSE -> response : DCE_RPC_Response_Header;
+	default          -> none     : empty;
+};
 
 type Syntax = record {
 	uuid      : bytestring &length = 16;
@@ -111,7 +131,8 @@ type DCE_RPC_Bind_Ack = record {
 	contexts        : ContextList(false, DCE_RPC_BIND_ACK);
 };
 
-type DCE_RPC_Request(h: DCE_RPC_Header) = record {
+# Every DCE_RPC_Request fragment shares this header.
+type DCE_RPC_Request_Header(h: DCE_RPC_Header)  = record {
 	alloc_hint   : uint32;
 	context_id   : uint16;
 	opnum        : uint16;
@@ -120,15 +141,24 @@ type DCE_RPC_Request(h: DCE_RPC_Header) = record {
 		false -> no_uuid : empty;
 	};
 	stub_pad     : padding align 8;
+};
+
+# request_header comes from outside the fragmented stub data.
+type DCE_RPC_Request(header: DCE_RPC_Header, request_header: DCE_RPC_Request_Header) = record {
 	stub         : bytestring &restofdata;
 };
 
-type DCE_RPC_Response = record {
+# Every DCE_RPC_Response fragment shares this header.
+type DCE_RPC_Response_Header = record {
 	alloc_hint   : uint32;
 	context_id   : uint16;
 	cancel_count : uint8;
 	reserved     : uint8;
 	stub_pad     : padding align 8;
+};
+
+# response_header comes from outside the fragmented stub data.
+type DCE_RPC_Response(header: DCE_RPC_Header, response_header: DCE_RPC_Response_Header) = record {
 	stub         : bytestring &restofdata;
 };
 
@@ -149,16 +179,22 @@ type DCE_RPC_AlterContext_Resp = record {
 	contexts        : ContextList(false, DCE_RPC_ALTER_CONTEXT_RESP);
 };
 
-type DCE_RPC_Body(header: DCE_RPC_Header) = case header.PTYPE of {
+type DCE_RPC_Body(header: DCE_RPC_Header, frag_header: DCE_RPC_Fragment_Header) = case header.PTYPE of {
 	DCE_RPC_BIND               -> bind          : DCE_RPC_Bind;
 	DCE_RPC_BIND_ACK           -> bind_ack      : DCE_RPC_Bind_Ack;
-	DCE_RPC_REQUEST            -> request       : DCE_RPC_Request(header);
-	DCE_RPC_RESPONSE           -> response      : DCE_RPC_Response;
+	DCE_RPC_REQUEST            -> request       : DCE_RPC_Request(header, frag_header.request);
+	DCE_RPC_RESPONSE           -> response      : DCE_RPC_Response(header, frag_header.response);
 	DCE_RPC_ALTER_CONTEXT      -> alter_context : DCE_RPC_AlterContext;
 	DCE_RPC_ALTER_CONTEXT_RESP -> alter_resp    : DCE_RPC_AlterContext_Resp;
 	default                    -> other         : bytestring &restofdata;
 };
 
+
+# XXX: According to 12.6.2 Fragmentation and Reassembly, for bind, bind_ack,
+#      alter_context and alter_context_response, the auth data part can be
+#      fragmented across multiple PDUs when minor version is 1.
+#
+#      This is currently not implemented.
 type DCE_RPC_Auth_wrapper(header: DCE_RPC_Header) = case header.auth_length of {
 	0       -> none : empty;
 	default -> auth : DCE_RPC_Auth(header);
@@ -177,22 +213,42 @@ flow DCE_RPC_Flow(is_orig: bool) {
 	flowunit = DCE_RPC_PDU(is_orig) withcontext(connection, this);
 
 	%member{
-		std::map<uint32, std::unique_ptr<FlowBuffer>> fb;
+		std::map<uint32, zeek::byte_buffer> fb;
+		zeek::byte_buffer reassembled; // receives the bytes for the withinput body parse
 	%}
 
 	# Fragment reassembly.
-	function reassemble_fragment(header: DCE_RPC_Header, frag: bytestring): bool
+	function reassemble_fragment(header: DCE_RPC_Header, frag_header: DCE_RPC_Fragment_Header, frag: bytestring): bool
 		%{
+		// Do not attempt to reassemble anything that's not a request
+		// or a response with potentially fragmented stub data.
+		if ( ${header.PTYPE} != DCE_RPC_REQUEST && ${header.PTYPE} != DCE_RPC_RESPONSE )
+			{
+			// Weird if we see minor version 1 with fragmentation used.
+			if ( ${header.rpc_vers_minor} == 1 && ! (${header.firstfrag} && ${header.lastfrag}) )
+				{
+				std::string addl = zeek::util::fmt("%d", ${header.PTYPE});
+				connection()->zeek_analyzer()->Weird("unsupported_dce_rpc_reassembly_ptype", addl.c_str());
+				}
+
+			return true;
+			}
+
 		auto it = fb.find(${header.call_id});
+
+		// XXX: Technically it'd be good to check that the frag_header.request
+		//      and frag_header.response fields are consistent within a single
+		//      fragment, or use them as the key directly.
 
 		if ( ${header.firstfrag} )
 			{
 			if ( it != fb.end() )
 				{
-				// We already had a first frag earlier.
+				// We already had a first frag earlier for this call_id.
+				// Just delete the old fragment and handle the new one
+				// by falling through.
 				connection()->zeek_analyzer()->Weird("multiple_first_fragments_in_dce_rpc_reassembly");
-				connection()->zeek_analyzer()->SetSkip(true);
-				return false;
+				fb.erase(it);
 				}
 
 			if ( ${header.lastfrag} )
@@ -202,23 +258,26 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				}
 			else
 				{
-				// first frag, but not last so we start a flowbuffer
-				auto it = fb.emplace(${header.call_id},
-				                     std::make_unique<FlowBuffer>());
-				auto& flowbuf = it.first->second;
-				flowbuf->NewFrame(0, true);
-				flowbuf->BufferData(frag.begin(), frag.end());
+				// first frag, but not last so we start a buffer and copy the data into it.
 
-				if ( fb.size() > zeek::BifConst::DCE_RPC::max_cmd_reassembly )
+				// any room available? If not, weird and clear the map (similar to what is done in SMB)
+				if ( zeek::BifConst::DCE_RPC::max_cmd_reassembly > 0 && fb.size() >= zeek::BifConst::DCE_RPC::max_cmd_reassembly )
 					{
-					connection()->zeek_analyzer()->Weird("too_many_dce_rpc_msgs_in_reassembly");
-					connection()->zeek_analyzer()->SetSkip(true);
+					connection()->zeek_analyzer()->LimitReachedWeird("too_many_dce_rpc_msgs_in_reassembly", fb.size(),
+					                                                 zeek::BifConst::DCE_RPC::max_cmd_reassembly);
+					fb.clear();
 					}
 
-				if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
+				auto [it, inserted] = fb.emplace(${header.call_id}, zeek::byte_buffer());
+				auto& buf = it->second;
+				buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
+				                      reinterpret_cast<const std::byte*>(frag.end()));
+
+				if ( zeek::BifConst::DCE_RPC::max_frag_data > 0 && buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 					{
-					connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
-					connection()->zeek_analyzer()->SetSkip(true);
+					connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
+					                                                 zeek::BifConst::DCE_RPC::max_frag_data);
+					fb.erase(it);
 					}
 
 				return false;
@@ -227,39 +286,39 @@ flow DCE_RPC_Flow(is_orig: bool) {
 		else if ( it != fb.end() )
 			{
 			// not the first frag, but we have a flow buffer so add to it
-			auto& flowbuf = it->second;
-			flowbuf->BufferData(frag.begin(), frag.end());
+			auto& buf = it->second;
+			buf.insert(buf.end(), reinterpret_cast<const std::byte*>(frag.begin()),
+			           reinterpret_cast<const std::byte*>(frag.end()));
 
-			if ( flowbuf->data_length() > (int)zeek::BifConst::DCE_RPC::max_frag_data )
+			if ( zeek::BifConst::DCE_RPC::max_frag_data > 0 && buf.size() > zeek::BifConst::DCE_RPC::max_frag_data )
 				{
-				connection()->zeek_analyzer()->Weird("too_much_dce_rpc_fragment_data");
-				connection()->zeek_analyzer()->SetSkip(true);
+				connection()->zeek_analyzer()->LimitReachedWeird("too_much_dce_rpc_fragment_data", buf.size(),
+				                                                 zeek::BifConst::DCE_RPC::max_frag_data);
+				fb.erase(it);
+				return false;
 				}
 
 			return ${header.lastfrag};
 			}
-		else
-			{
-			// no flow buffer and not a first frag, ignore it.
-			return false;
-			}
 
-		// can't reach here.
+		// no flow buffer and not a first frag, ignore it.
 		return false;
 		%}
 
 	function reassembled_body(h: DCE_RPC_Header, body: bytestring): const_bytestring
 		%{
 		const_bytestring bd = body;
+		if ( ${h.PTYPE} != DCE_RPC_REQUEST && ${h.PTYPE} != DCE_RPC_RESPONSE )
+			return bd;
+
 		auto it = fb.find(${h.call_id});
 
 		if ( it == fb.end() )
 			return bd;
 
-		auto& flowbuf = it->second;
-		bd = const_bytestring(flowbuf->begin(), flowbuf->end());
+		reassembled = std::move(it->second);
 		fb.erase(it);
 
-		return bd;
+		return {reinterpret_cast<uint8*>(reassembled.data()), reinterpret_cast<uint8*>(reassembled.data() + reassembled.size())};
 		%}
 };

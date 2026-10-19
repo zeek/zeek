@@ -1,3 +1,78 @@
+8.0.10-34 | 2026-10-19 18:18:30 +0000
+
+  * btest/dce-rpc: Synthetic traffic for large DCE-RPC fragments (Arne Welzel, Corelight)
+
+    Generator script created with Claude Sonnet 5.5, tests by me.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * dce-rpc: Adapt fragment processing to discard state (Arne Welzel, Corelight)
+
+    Commit 734de92 made the SetSkip() calls effective, which in turn led to
+    skipping further analysis when DCE-RPC fragments greater than 30000
+    bytes were observed. This change switches the behavior such that fragments
+    are discarded when they reach DCE_RPC::max_frag_data. The fb map is similarly
+    discarded when it reaches DCE_RPC::max_cmd_reassembly entries.
+
+    DCE_RPC::max_frag_data is further bumped to 1M to allow for 16 max-sized
+    DCE-RPC fragments. The limit is pretty large, but there should be no
+    amplification. An attacker would need to actually send the data.
+
+    Relates to zeek/zeek#5975
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * btest/smb/named-pipe-fragment: Fix traffic generation to emit valid DCE-RPC requests over pipe (Arne Welzel, Corelight)
+
+    Previously, the fragments would not include alloc_hint, context_id,
+    opnum, etc and also not be properly wrapped. Wireshark and tshark
+    wouldn't make sense out of the inner DCE-RPC traffic. Probably because
+    the traffic generator targeted the existing and borked Zeek DCE-RPC
+    binpac code.
+
+    Claude Opus 4.8 fixed it to add enough packets to make Wireshark
+    recognize the traffic as valid DCE-RPC over a pipe.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * dce-rpc: Support 0 as unlimited for max_frag_data and max_cmd_reassembly (Arne Welzel, Corelight)
+
+    Previously, setting these to 0 would just reject everything.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * dce-rpc: Do not try to reassemble non request/response PDUs (Arne Welzel, Corelight)
+
+    Okay, there's actually a third issue. the frag flags should be ignored
+    for non request/response packets when rpc_vers_minor is 0. Only for
+    version 1 can the bind, bind_ack, alter_context and alter_context_response
+    have frag flags and should be respected. This actually caused some missing
+    DCE-RPC operations in the private testing suite as there's a bind packet
+    that has neither the first nor last flags set and this confused the
+    analyzer.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * dce-rpc: Increase max_frag_data to cover new lookupsid-plaintext.pcap test (Arne Welzel, Corelight)
+
+    This PCAP was proivded by Mohan and contains fragmented stub data of
+    length 36048 bytes, so the original 30000 didn't cover that. Bump it
+    up to 64KB and use the LimitReachedWeird() helper.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
+  * dce-rpc: Fix DCE-RPC request/response reassembly (Arne Welzel, Corelight)
+
+    The DCE-RPC reassembly logic had two issues. First, only the stub data
+    is fragmented over multiple PDUs, the request/response specific alloc_hint,
+    context_id, opnum fields are replicated across the PDUs. Second, the
+    usage of the FlowBuffer was strange (it would only keep the very last
+    fragment). Switch to zeek::byte_buffer to make it explicit that we'd
+    like to accumulate the data. There are already caps existing, so this
+    should be safe.
+
+    (cherry picked from commit 048d1918063c19ff47e42a02f6c674b9349024f1)
+
 8.0.10-33 | 2026-10-13 19:30:55 +0000
 
   * CI: Force openssl path on macOS builds (Tim Wojtulewicz, Corelight)

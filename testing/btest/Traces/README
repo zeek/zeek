@@ -157,3 +157,5 @@ Trace Index/Sources:
   Extracted by Tim from https://weberblog.net/the-ultimate-pcap/ and uploaded
   for #5235. PCAP contains an LDAP connection with a ModifyRequest. Converted to pcap
   format.
+- dce-rpc/lookupsid-plaintext.pcap.gz
+  Lab traffic provided by Mohan Dhawan containing fragmented DCE-RPC traffic.

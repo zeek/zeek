@@ -183,3 +183,15 @@ Trace Index/Sources:
 - smb/tree-id-reuse.pcap
   Extracted flow from a PCAP shared by Mohan Dhawan containing two separate sessions
   re-using tree_id 1. Regression test for #6011 (https://github.com/zeek/zeek/issues/6011)
+- ssh/diffie-hellman-group-exchange-sha512@ssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group14-sha256@ssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group15-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/diffie-hellman-group17-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/sntrup761x25519-sha512.pcap
+  Lab traffic using AsyncSSH 2.24.1
+- ssh/sntrup761x25519-sha512@openssh.com.pcap
+  Lab traffic using AsyncSSH 2.24.1

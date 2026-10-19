@@ -2,6 +2,7 @@
 
 %extern{
 #include "zeek/ZeekString.h"
+#include "zeek/analyzer/protocol/ssh/types.bif.h"
 %}
 
 # Common constructs across SSH1 and SSH2
@@ -432,31 +433,6 @@ refine connection SSH_Conn += {
 		return true;
 		%}
 
-	function update_kex_state_if_equal(s: string, to_state: state) : bool
-		%{
-		if ( std_str(kex_algorithm_).compare(s) == 0 )
-			{
-			update_state(to_state, true);
-			update_state(to_state, false);
-			return true;
-			}
-		return false;
-		%}
-
-	function update_kex_state_if_startswith(s: string, to_state: state) : bool
-		%{
-		if ( static_cast<uint>(kex_algorithm_.length()) < s.length() )
-			return false;
-
-		if ( std_str(kex_algorithm_).substr(0, s.length()).compare(s) == 0 )
-			{
-			update_state(to_state, true);
-			update_state(to_state, false);
-			return true;
-			}
-		return false;
-		%}
-
 	function update_kex(algs: bytestring, orig: bool) : bool
 		%{
 		if ( !kex_seen_ )
@@ -498,60 +474,28 @@ refine connection SSH_Conn += {
 				kex_algorithm_.free();
 				kex_algorithm_.init(reinterpret_cast<const uint8*>(client_alg.data()), static_cast<int>(client_alg.size()));
 
-				// XXX: This code is a bit strange. We should switch the below
-				// to a table[pattern] of enum/count in script-land so
-				// that it's configurable from there.
+				// Look up the negotiated method's family in the script-land table
+				// SSH::kex_methods
+				static const auto kex_methods = zeek::id::find_const<zeek::TableVal>("SSH::kex_methods");
+				auto methods = kex_methods->LookupPattern(client_alg);
 
-				// UNTESTED
-				if ( update_kex_state_if_equal("rsa1024-sha1", KEX_RSA) )
-					return true;
-				// UNTESTED
-				if ( update_kex_state_if_equal("rsa2048-sha256", KEX_RSA) )
-					return true;
-
-				// UNTESTED
-				if ( update_kex_state_if_equal("diffie-hellman-group1-sha1", KEX_DH) )
-					return true;
-				// UNTESTED
-				if ( update_kex_state_if_equal("diffie-hellman-group14-sha1", KEX_DH) )
-					return true;
-				// UNTESTED
-				if ( update_kex_state_if_equal("diffie-hellman-group14-sha256", KEX_DH) )
-					return true;
-				// UNTESTED
-				if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
-					return true;
-				if ( update_kex_state_if_equal("diffie-hellman-group18-sha512", KEX_DH) )
-					return true;
-
-				if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha1", KEX_DH_GEX) )
-					return true;
-				if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha256", KEX_DH_GEX) )
-					return true;
-
-				if ( update_kex_state_if_startswith("gss-group1-sha1-", KEX_GSS) )
-					return true;
-				if ( update_kex_state_if_startswith("gss-group14-sha1-", KEX_GSS) )
-					return true;
-				if ( update_kex_state_if_startswith("gss-gex-sha1-", KEX_GSS) )
-					return true;
-				if ( update_kex_state_if_startswith("gss-", KEX_GSS) )
-					return true;
-
-				if ( update_kex_state_if_startswith("ecdh-sha2-", KEX_ECC) )
-					return true;
-				if ( update_kex_state_if_equal("ecmqv-sha2", KEX_ECC) )
-					return true;
-				if ( update_kex_state_if_startswith("curve25519-sha256", KEX_ECC) )
-					return true;
-				// UNTESTED
-				if ( update_kex_state_if_startswith("sntrup761x25519-sha512", KEX_ECC) )
-					return true;
-
-				if ( update_kex_state_if_startswith("mlkem", KEX_ECC) )
-					return true;
-
-				zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
+				state to_state;
+				// Map explicitly rather than casting: a cast would require SSH::KexMethod
+				// (types.bif) and the state enum (consts.pac) to share values, which could
+				// silently drift apart without a compiler error.
+				switch ( methods->Size() > 0 ? methods->ValAt(0)->AsEnum() : -1 ) {
+				case zeek::BifEnum::SSH::KEX_DH: to_state = KEX_DH; break;
+				case zeek::BifEnum::SSH::KEX_DH_GEX: to_state = KEX_DH_GEX; break;
+				case zeek::BifEnum::SSH::KEX_ECC: to_state = KEX_ECC; break;
+				case zeek::BifEnum::SSH::KEX_GSS: to_state = KEX_GSS; break;
+				case zeek::BifEnum::SSH::KEX_RSA: to_state = KEX_RSA; break;
+				default:
+					zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
+					return false;
+				}
+				// Both directions continue with the negotiated method
+				update_state(to_state, true);
+				update_state(to_state, false);
 				return true;
 
 				}

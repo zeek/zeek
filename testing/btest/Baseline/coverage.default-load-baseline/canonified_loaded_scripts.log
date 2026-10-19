@@ -21,6 +21,7 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/packet_analysis.bif.zeek
   build/scripts/base/bif/CPP-load.bif.zeek
   build/scripts/base/bif/mmdb.bif.zeek
+  build/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/telemetry_functions.bif.zeek
@@ -270,7 +271,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSL.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSL.events.bif.zeek

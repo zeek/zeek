@@ -1,3 +1,9 @@
+9.1.0-dev.257 | 2026-10-20 16:32:19 -0700
+
+  * CCI: Disable builds from dependabot PRs (Tim Wojtulewicz, Corelight)
+
+  * Update zeek-testing-private commit hash (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.254 | 2026-10-20 16:30:23 -0700
 
   * CCI: Skip full build on weekly job (Tim Wojtulewicz, Corelight)

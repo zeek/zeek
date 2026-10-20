@@ -1,3 +1,71 @@
+9.1.0-dev.265 | 2026-10-20 16:33:24 -0700
+
+  * build(deps): bump docker/build-push-action from 7.3.0 to 7.4.0 (dependabot[bot])
+
+    Bumps [docker/build-push-action](https://github.com/docker/build-push-action) from 7.3.0 to 7.4.0.
+    - [Release notes](https://github.com/docker/build-push-action/releases)
+    - [Commits](https://github.com/docker/build-push-action/compare/53b7df96c91f9c12dcc8a07bcb9ccacbed38856a...c3c9e263c25d99ce0380d002d59b67737d91b0dc)
+
+    ---
+    updated-dependencies:
+    - dependency-name: docker/build-push-action
+      dependency-version: 7.4.0
+      dependency-type: direct:production
+      update-type: version-update:semver-minor
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+  * build(deps): bump github/codeql-action/upload-sarif (dependabot[bot])
+
+    Bumps [github/codeql-action/upload-sarif](https://github.com/github/codeql-action) from 2.28.1 to 4.39.0.
+    - [Release notes](https://github.com/github/codeql-action/releases)
+    - [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)
+    - [Commits](https://github.com/github/codeql-action/compare/b8d3b6e8af63cde30bdc382c0bc28114f4346c88...6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee)
+
+    ---
+    updated-dependencies:
+    - dependency-name: github/codeql-action/upload-sarif
+      dependency-version: 4.39.0
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+  * build(deps): bump actions/cache from 5.0.5 to 6.1.0 (dependabot[bot])
+
+    Bumps [actions/cache](https://github.com/actions/cache) from 5.0.5 to 6.1.0.
+    - [Release notes](https://github.com/actions/cache/releases)
+    - [Changelog](https://github.com/actions/cache/blob/main/RELEASES.md)
+    - [Commits](https://github.com/actions/cache/compare/27d5ce7f107fe9357f9df03efb73ab90386fccae...55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+
+    ---
+    updated-dependencies:
+    - dependency-name: actions/cache
+      dependency-version: 6.1.0
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+  * build(deps): bump docker/setup-buildx-action from 4.2.0 to 4.4.1 (dependabot[bot])
+
+    Bumps [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) from 4.2.0 to 4.4.1.
+    - [Release notes](https://github.com/docker/setup-buildx-action/releases)
+    - [Commits](https://github.com/docker/setup-buildx-action/compare/bb05f3f5519dd87d3ba754cc423b652a5edd6d2c...f87e5991a6d7451dcb8d9637bfbc97413f497069)
+
+    ---
+    updated-dependencies:
+    - dependency-name: docker/setup-buildx-action
+      dependency-version: 4.4.1
+      dependency-type: direct:production
+      update-type: version-update:semver-minor
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.257 | 2026-10-20 16:32:19 -0700
 
   * CCI: Disable builds from dependabot PRs (Tim Wojtulewicz, Corelight)

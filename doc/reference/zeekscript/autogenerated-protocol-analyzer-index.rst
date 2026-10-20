@@ -1008,26 +1008,30 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: DCE_RPC::max_cmd_reassembly
-   :source-code: base/init-bare.zeek 6013 6013
+   :source-code: base/init-bare.zeek 6015 6015
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
    :Default: ``20``
 
    The maximum number of simultaneous fragmented commands that
-   the DCE_RPC analyzer will tolerate before the it will generate
-   a weird and skip further input.
+   the DCE_RPC analyzer will tolerate before it will generate
+   a weird and discard all pending commands.
+
+   Setting this variable to 0 disables the limit.
 
 .. zeek:id:: DCE_RPC::max_frag_data
-   :source-code: base/init-bare.zeek 6018 6018
+   :source-code: base/init-bare.zeek 6022 6022
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
-   :Default: ``30000``
+   :Default: ``1048576``
 
    The maximum number of fragmented bytes that the DCE_RPC analyzer
    will tolerate on a command before the analyzer will generate a weird
-   and skip further input.
+   and discard the fragment.
+
+   Setting this variable to 0 disables the limit.
 
 Types
 +++++
@@ -3930,7 +3934,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: Gnutella::max_line_length
-   :source-code: base/init-bare.zeek 6284 6284
+   :source-code: base/init-bare.zeek 6288 6288
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -3940,7 +3944,7 @@ Options/Constants
    a line terminator.
 
 .. zeek:id:: Gnutella::max_header_length
-   :source-code: base/init-bare.zeek 6288 6288
+   :source-code: base/init-bare.zeek 6292 6292
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -8502,7 +8506,7 @@ Types
 +++++
 
 .. zeek:type:: MQTT::ConnectMsg
-   :source-code: base/init-bare.zeek 6206 6236
+   :source-code: base/init-bare.zeek 6210 6240
 
    :Type: :zeek:type:`record`
 
@@ -8567,7 +8571,7 @@ Types
 
 
 .. zeek:type:: MQTT::ConnectAckMsg
-   :source-code: base/init-bare.zeek 6238 6247
+   :source-code: base/init-bare.zeek 6242 6251
 
    :Type: :zeek:type:`record`
 
@@ -8587,7 +8591,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishMsg
-   :source-code: base/init-bare.zeek 6249 6271
+   :source-code: base/init-bare.zeek 6253 6275
 
    :Type: :zeek:type:`record`
 
@@ -9095,7 +9099,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: NCP::max_frame_size
-   :source-code: base/init-bare.zeek 6025 6025
+   :source-code: base/init-bare.zeek 6029 6029
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -9865,7 +9869,7 @@ Types
 +++++
 
 .. zeek:type:: NTP::StandardMessage
-   :source-code: base/init-bare.zeek 6034 6087
+   :source-code: base/init-bare.zeek 6038 6091
 
    :Type: :zeek:type:`record`
 
@@ -9971,7 +9975,7 @@ Types
    for standard synchronization operations.
 
 .. zeek:type:: NTP::ControlMessage
-   :source-code: base/init-bare.zeek 6092 6126
+   :source-code: base/init-bare.zeek 6096 6130
 
    :Type: :zeek:type:`record`
 
@@ -10043,7 +10047,7 @@ Types
    for control operations.
 
 .. zeek:type:: NTP::Mode7Message
-   :source-code: base/init-bare.zeek 6135 6168
+   :source-code: base/init-bare.zeek 6139 6172
 
    :Type: :zeek:type:`record`
 
@@ -10107,7 +10111,7 @@ Types
    project <https://www.ntp.org>`_, code v. ntp-4.2.8p13, in include/ntp_request.h.
 
 .. zeek:type:: NTP::Message
-   :source-code: base/init-bare.zeek 6173 6200
+   :source-code: base/init-bare.zeek 6177 6204
 
    :Type: :zeek:type:`record`
 

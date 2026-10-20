@@ -18,6 +18,13 @@ Runtime Options
 :zeek:id:`SMB::logged_file_actions`: :zeek:type:`set` :zeek:attr:`&redef`        The file actions which are logged.
 ================================================================================ ===========================================================
 
+Redefinable Options
+###################
+======================================================================== ==========================================
+:zeek:id:`SMB::max_fid_map_size`: :zeek:type:`count` :zeek:attr:`&redef` Maximum size of the fid_map in SMB::State.
+:zeek:id:`SMB::max_tid_map_size`: :zeek:type:`count` :zeek:attr:`&redef` Maximum size of the tid_map in SMB::State.
+======================================================================== ==========================================
+
 Types
 #####
 =============================================== =======================================================
@@ -43,9 +50,6 @@ Redefinitions
                                                                      
                                                                        fid: :zeek:type:`count` :zeek:attr:`&optional`
                                                                          ID referencing this file.
-                                                                     
-                                                                       uuid: :zeek:type:`string` :zeek:attr:`&optional`
-                                                                         UUID referencing this file if DCE/RPC.
 :zeek:type:`connection`: :zeek:type:`record`                         Everything below here is used internally in the SMB scripts.
                                                                      
                                                                      :New Fields: :zeek:type:`connection`
@@ -63,10 +67,11 @@ Hooks
 
 Functions
 #########
-=========================================================================== ====================================
-:zeek:id:`SMB::set_current_file`: :zeek:type:`function` :zeek:attr:`&redef` This is an internally used function.
-:zeek:id:`SMB::write_file_log`: :zeek:type:`function` :zeek:attr:`&redef`   This is an internally used function.
-=========================================================================== ====================================
+========================================================================= ====================================
+:zeek:id:`SMB::insert_new_tree_info`: :zeek:type:`function`               
+:zeek:id:`SMB::set_current_file`: :zeek:type:`function`                   This is an internally used function.
+:zeek:id:`SMB::write_file_log`: :zeek:type:`function` :zeek:attr:`&redef` This is an internally used function.
+========================================================================= ====================================
 
 
 Detailed Interface
@@ -105,6 +110,26 @@ Runtime Options
 
 
    The file actions which are logged.
+
+Redefinable Options
+###################
+.. zeek:id:: SMB::max_fid_map_size
+   :source-code: base/protocols/smb/main.zeek 178 178
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10000``
+
+   Maximum size of the fid_map in SMB::State.
+
+.. zeek:id:: SMB::max_tid_map_size
+   :source-code: base/protocols/smb/main.zeek 181 181
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10000``
+
+   Maximum size of the tid_map in SMB::State.
 
 Types
 #####
@@ -308,15 +333,10 @@ Types
       ID referencing this file.
 
 
-   .. zeek:field:: uuid :zeek:type:`string` :zeek:attr:`&optional`
-
-      UUID referencing this file if DCE/RPC.
-
-
    This record is for the smb_files.log
 
 .. zeek:type:: SMB::State
-   :source-code: base/protocols/smb/main.zeek 140 161
+   :source-code: base/protocols/smb/main.zeek 140 159
 
    :Type: :zeek:type:`record`
 
@@ -349,11 +369,6 @@ Types
    .. zeek:field:: tid_map :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`SMB::TreeInfo` :zeek:attr:`&optional`
 
       Tree map to retrieve tree information based on the tree ID.
-
-
-   .. zeek:field:: pipe_map :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string` :zeek:attr:`&optional`
-
-      Pipe map to retrieve UUID based on the file ID of a pipe.
 
 
    .. zeek:field:: recent_files :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
@@ -426,16 +441,21 @@ Hooks
 
 Functions
 #########
-.. zeek:id:: SMB::set_current_file
-   :source-code: base/protocols/smb/main.zeek 195 205
+.. zeek:id:: SMB::insert_new_tree_info
+   :source-code: base/protocols/smb/main.zeek 221 234
 
-   :Type: :zeek:type:`function` (smb_state: :zeek:type:`SMB::State`, file_id: :zeek:type:`count`) : :zeek:type:`void`
-   :Attributes: :zeek:attr:`&redef`
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, tid: :zeek:type:`count`) : :zeek:type:`SMB::TreeInfo`
+
+
+.. zeek:id:: SMB::set_current_file
+   :source-code: base/protocols/smb/main.zeek 200 219
+
+   :Type: :zeek:type:`function` (c: :zeek:type:`connection`, file_id: :zeek:type:`count`) : :zeek:type:`void`
 
    This is an internally used function.
 
 .. zeek:id:: SMB::write_file_log
-   :source-code: base/protocols/smb/main.zeek 207 241
+   :source-code: base/protocols/smb/main.zeek 236 270
 
    :Type: :zeek:type:`function` (state: :zeek:type:`SMB::State`) : :zeek:type:`void`
    :Attributes: :zeek:attr:`&redef`

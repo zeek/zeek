@@ -28,7 +28,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: LDAP::bind_request
-   :source-code: base/protocols/ldap/main.zeek 398 429
+   :source-code: base/protocols/ldap/main.zeek 402 433
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, version: :zeek:type:`int`, name: :zeek:type:`string`, auth_type: :zeek:type:`LDAP::BindAuthType`, auth_info: :zeek:type:`string`)
 
@@ -94,7 +94,7 @@ Events
    :param response_value: The value of the extended response (empty if missing).
 
 .. zeek:id:: LDAP::message
-   :source-code: base/protocols/ldap/main.zeek 220 319
+   :source-code: base/protocols/ldap/main.zeek 224 323
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, opcode: :zeek:type:`LDAP::ProtocolOpcode`, result: :zeek:type:`LDAP::ResultCode`, matched_dn: :zeek:type:`string`, diagnostic_message: :zeek:type:`string`, object: :zeek:type:`string`, argument: :zeek:type:`string`)
 
@@ -125,7 +125,7 @@ Events
    :param argument: Additional arguments this message includes.
 
 .. zeek:id:: LDAP::search_request
-   :source-code: base/protocols/ldap/main.zeek 331 380
+   :source-code: base/protocols/ldap/main.zeek 335 384
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, base_object: :zeek:type:`string`, scope: :zeek:type:`LDAP::SearchScope`, deref: :zeek:type:`LDAP::SearchDerefAlias`, size_limit: :zeek:type:`int`, time_limit: :zeek:type:`int`, types_only: :zeek:type:`bool`, filter: :zeek:type:`string`, attributes: :zeek:type:`vector` of :zeek:type:`string`)
 
@@ -162,7 +162,7 @@ Events
    :param attributes: Additional attributes of the SearchRequest.
 
 .. zeek:id:: LDAP::search_result_entry
-   :source-code: base/protocols/ldap/main.zeek 385 390
+   :source-code: base/protocols/ldap/main.zeek 389 394
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, message_id: :zeek:type:`int`, object_name: :zeek:type:`string`)
 

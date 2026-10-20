@@ -20,6 +20,14 @@ Runtime Options
 :zeek:id:`Modbus::track_memmap`: :zeek:type:`Host` :zeek:attr:`&redef` The hosts that should have memory mapping enabled.
 ====================================================================== ==================================================
 
+Redefinable Options
+###################
+=============================================================================== ===============================================================================
+:zeek:id:`Modbus::max_device_registers`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of device registers stored in the device_registers table.
+:zeek:id:`Modbus::max_slave_registers`: :zeek:type:`count` :zeek:attr:`&redef`  The maximum number of slaves per device register stored in the device_registers
+                                                                                table.
+=============================================================================== ===============================================================================
+
 State Variables
 ###############
 ======================================================= =======================================================
@@ -73,6 +81,32 @@ Runtime Options
    :Default: ``ALL_HOSTS``
 
    The hosts that should have memory mapping enabled.
+
+Redefinable Options
+###################
+.. zeek:id:: Modbus::max_device_registers
+   :source-code: policy/protocols/modbus/track-memmap.zeek 56 56
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10000``
+
+   The maximum number of device registers stored in the device_registers table. If
+   this limit is exceeded, a random device will be evicted from the table and a
+   ``modbus_max_device_registers_exceeded`` weird will be reported. Setting this
+   to zero disables the limit.
+
+.. zeek:id:: Modbus::max_slave_registers
+   :source-code: policy/protocols/modbus/track-memmap.zeek 62 62
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10000``
+
+   The maximum number of slaves per device register stored in the device_registers
+   table. If this limit is exceeded, a random device will be evicted from the
+   table and a ``modbus_max_slave_registers_exceeded`` weird will be
+   reported. Setting this to zero disables the limit.
 
 State Variables
 ###############
@@ -152,7 +186,7 @@ Types
 Events
 ######
 .. zeek:id:: Modbus::changed_register
-   :source-code: policy/protocols/modbus/track-memmap.zeek 103 108
+   :source-code: policy/protocols/modbus/track-memmap.zeek 146 151
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, register: :zeek:type:`count`, old_val: :zeek:type:`count`, new_val: :zeek:type:`count`, delta: :zeek:type:`interval`)
 

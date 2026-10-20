@@ -110,7 +110,7 @@ Functions
 .. zeek:id:: Files::__set_reassembly_buffer
    :source-code: base/bif/file_analysis.bif.zeek 26 26
 
-   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, max: :zeek:type:`count`) : :zeek:type:`bool`
+   :Type: :zeek:type:`function` (file_id: :zeek:type:`string`, max: :zeek:type:`count`, max_blocks: :zeek:type:`count`) : :zeek:type:`bool`
 
    :zeek:see:`Files::set_reassembly_buffer_size`.
 

@@ -25,6 +25,7 @@ Redefinable Options
                                                                                             files based on the detected mime type of the file.
 :zeek:id:`Files::disable`: :zeek:type:`table` :zeek:attr:`&redef`                           A table that can be used to disable file analysis completely for
                                                                                             any files transferred over given network protocol analyzers.
+:zeek:id:`Files::reassembly_buffer_blocks`: :zeek:type:`count` :zeek:attr:`&redef`          The default per-file number of blocks allowed.
 :zeek:id:`Files::reassembly_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef`            The default per-file reassembly buffer size.
 =========================================================================================== ================================================================
 
@@ -130,6 +131,15 @@ Redefinable Options
 
    A table that can be used to disable file analysis completely for
    any files transferred over given network protocol analyzers.
+
+.. zeek:id:: Files::reassembly_buffer_blocks
+   :source-code: base/frameworks/files/main.zeek 133 133
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``10000``
+
+   The default per-file number of blocks allowed.
 
 .. zeek:id:: Files::reassembly_buffer_size
    :source-code: base/frameworks/files/main.zeek 130 130
@@ -388,7 +398,7 @@ Types
    in :zeek:see:`fa_file`.
 
 .. zeek:type:: Files::ProtoRegistration
-   :source-code: base/frameworks/files/main.zeek 255 265
+   :source-code: base/frameworks/files/main.zeek 260 270
 
    :Type: :zeek:type:`record`
 
@@ -410,7 +420,7 @@ Types
 Events
 ######
 .. zeek:id:: Files::log_files
-   :source-code: base/frameworks/files/main.zeek 326 326
+   :source-code: base/frameworks/files/main.zeek 331 331
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`Files::Info`)
 
@@ -429,7 +439,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: Files::add_analyzer
-   :source-code: base/frameworks/files/main.zeek 415 431
+   :source-code: base/frameworks/files/main.zeek 420 436
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = *[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600, extract_limit_includes_missing=T]* :zeek:attr:`&optional`) : :zeek:type:`bool`
 
@@ -450,7 +460,7 @@ Functions
             were invalid for the analyzer type.
 
 .. zeek:id:: Files::all_registered_mime_types
-   :source-code: base/frameworks/files/main.zeek 495 498
+   :source-code: base/frameworks/files/main.zeek 500 503
 
    :Type: :zeek:type:`function` () : :zeek:type:`table` [:zeek:type:`Files::Tag`] of :zeek:type:`set` [:zeek:type:`string`]
 
@@ -461,7 +471,7 @@ Functions
             registered for it.
 
 .. zeek:id:: Files::analyzer_enabled
-   :source-code: base/frameworks/files/main.zeek 410 413
+   :source-code: base/frameworks/files/main.zeek 415 418
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`bool`
 
@@ -474,7 +484,7 @@ Functions
    :returns: true if the analyzer is generally enabled, else false.
 
 .. zeek:id:: Files::analyzer_name
-   :source-code: base/frameworks/files/main.zeek 448 451
+   :source-code: base/frameworks/files/main.zeek 453 456
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`string`
 
@@ -488,7 +498,7 @@ Functions
    :returns: The analyzer name corresponding to the tag.
 
 .. zeek:id:: Files::describe
-   :source-code: base/frameworks/files/main.zeek 500 511
+   :source-code: base/frameworks/files/main.zeek 505 516
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`string`
 
@@ -502,7 +512,7 @@ Functions
    :returns: a text description regarding metadata of the file.
 
 .. zeek:id:: Files::disable_analyzer
-   :source-code: base/frameworks/files/main.zeek 405 408
+   :source-code: base/frameworks/files/main.zeek 410 413
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`bool`
 
@@ -515,7 +525,7 @@ Functions
    :returns: false if the analyzer tag could not be found, else true.
 
 .. zeek:id:: Files::disable_reassembly
-   :source-code: base/frameworks/files/main.zeek 390 393
+   :source-code: base/frameworks/files/main.zeek 395 398
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`void`
 
@@ -526,7 +536,7 @@ Functions
    :param f: the file.
 
 .. zeek:id:: Files::enable_analyzer
-   :source-code: base/frameworks/files/main.zeek 400 403
+   :source-code: base/frameworks/files/main.zeek 405 408
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`bool`
 
@@ -539,7 +549,7 @@ Functions
    :returns: false if the analyzer tag could not be found, else true.
 
 .. zeek:id:: Files::enable_reassembly
-   :source-code: base/frameworks/files/main.zeek 385 388
+   :source-code: base/frameworks/files/main.zeek 390 393
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`void`
 
@@ -550,7 +560,7 @@ Functions
    :param f: the file.
 
 .. zeek:id:: Files::file_exists
-   :source-code: base/frameworks/files/main.zeek 370 373
+   :source-code: base/frameworks/files/main.zeek 375 378
 
    :Type: :zeek:type:`function` (fuid: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -563,7 +573,7 @@ Functions
    :returns: T if the file uid is known.
 
 .. zeek:id:: Files::lookup_file
-   :source-code: base/frameworks/files/main.zeek 375 378
+   :source-code: base/frameworks/files/main.zeek 380 383
 
    :Type: :zeek:type:`function` (fuid: :zeek:type:`string`) : :zeek:type:`fa_file`
 
@@ -576,7 +586,7 @@ Functions
    :returns: the associated :zeek:see:`fa_file` record.
 
 .. zeek:id:: Files::register_analyzer_add_callback
-   :source-code: base/frameworks/files/main.zeek 433 436
+   :source-code: base/frameworks/files/main.zeek 438 441
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`, callback: :zeek:type:`function` (f: :zeek:type:`fa_file`, args: :zeek:type:`Files::AnalyzerArgs`) : :zeek:type:`void`) : :zeek:type:`void`
 
@@ -592,7 +602,7 @@ Functions
    :param callback: Function to execute when the given file analyzer is being added.
 
 .. zeek:id:: Files::register_for_mime_type
-   :source-code: base/frameworks/files/main.zeek 473 488
+   :source-code: base/frameworks/files/main.zeek 478 493
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`, mt: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -610,7 +620,7 @@ Functions
    :returns: True if the MIME type was successfully registered.
 
 .. zeek:id:: Files::register_for_mime_types
-   :source-code: base/frameworks/files/main.zeek 460 471
+   :source-code: base/frameworks/files/main.zeek 465 476
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`, mime_types: :zeek:type:`set` [:zeek:type:`string`]) : :zeek:type:`bool`
 
@@ -629,7 +639,7 @@ Functions
    :returns: True if the MIME types were successfully registered.
 
 .. zeek:id:: Files::register_protocol
-   :source-code: base/frameworks/files/main.zeek 453 458
+   :source-code: base/frameworks/files/main.zeek 458 463
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Analyzer::Tag`, reg: :zeek:type:`Files::ProtoRegistration`) : :zeek:type:`bool`
 
@@ -647,7 +657,7 @@ Functions
    :returns: true if the protocol being registered was not previously registered.
 
 .. zeek:id:: Files::registered_mime_types
-   :source-code: base/frameworks/files/main.zeek 490 493
+   :source-code: base/frameworks/files/main.zeek 495 498
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`Files::Tag`) : :zeek:type:`set` [:zeek:type:`string`]
 
@@ -660,7 +670,7 @@ Functions
    :returns: The set of MIME types.
 
 .. zeek:id:: Files::remove_analyzer
-   :source-code: base/frameworks/files/main.zeek 438 441
+   :source-code: base/frameworks/files/main.zeek 443 446
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, tag: :zeek:type:`Files::Tag`, args: :zeek:type:`Files::AnalyzerArgs` :zeek:attr:`&default` = *[chunk_event=<uninitialized>, stream_event=<uninitialized>, extract_filename=<uninitialized>, extract_limit=104857600, extract_limit_includes_missing=T]* :zeek:attr:`&optional`) : :zeek:type:`bool`
 
@@ -680,9 +690,9 @@ Functions
             for the file isn't currently active.
 
 .. zeek:id:: Files::set_reassembly_buffer_size
-   :source-code: base/frameworks/files/main.zeek 395 398
+   :source-code: base/frameworks/files/main.zeek 400 403
 
-   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, max: :zeek:type:`count`) : :zeek:type:`void`
+   :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, max: :zeek:type:`count`, max_blocks: :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Files::reassembly_buffer_blocks` :zeek:attr:`&optional`) : :zeek:type:`void`
 
    Set the maximum size the reassembly buffer is allowed to grow
    for the given file.
@@ -691,10 +701,13 @@ Functions
    :param f: the file.
    
 
-   :param max: Maximum allowed size of the reassembly buffer.
+   :param max_bytes: Maximum allowed size of the reassembly buffer.
+   
+
+   :param max_blocks: Maximum allowed blocks of the reassembly buffer.
 
 .. zeek:id:: Files::set_timeout_interval
-   :source-code: base/frameworks/files/main.zeek 380 383
+   :source-code: base/frameworks/files/main.zeek 385 388
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`, t: :zeek:type:`interval`) : :zeek:type:`bool`
 
@@ -715,7 +728,7 @@ Functions
             for the file isn't currently active.
 
 .. zeek:id:: Files::stop
-   :source-code: base/frameworks/files/main.zeek 443 446
+   :source-code: base/frameworks/files/main.zeek 448 451
 
    :Type: :zeek:type:`function` (f: :zeek:type:`fa_file`) : :zeek:type:`bool`
 

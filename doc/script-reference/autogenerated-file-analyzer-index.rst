@@ -276,11 +276,36 @@ Components
 
 :zeek:enum:`Files::ANALYZER_X509`
 
+Options/Constants
++++++++++++++++++
+
+.. zeek:id:: X509::max_bytes
+   :source-code: base/init-bare.zeek 5348 5348
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``4194304``
+
+   The maximum size of an X509 file in bytes. If this limit is exceeded, a
+   x509_response_too_large weird will be reported. Setting this value to zero
+   disables the limitation.
+
+.. zeek:id:: OCSP::max_bytes
+   :source-code: base/init-bare.zeek 5357 5357
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``1048576``
+
+   The maximum size of an OCSP file in bytes. If this limit is exceeded, a
+   ocsp_response_too_large weird will be reported. Setting this value to zero
+   disables the limitation.
+
 Types
 +++++
 
 .. zeek:type:: X509::Certificate
-   :source-code: base/init-bare.zeek 5151 5166
+   :source-code: base/init-bare.zeek 5297 5312
 
    :Type: :zeek:type:`record`
 
@@ -357,7 +382,7 @@ Types
 
 
 .. zeek:type:: X509::Extension
-   :source-code: base/init-bare.zeek 5168 5174
+   :source-code: base/init-bare.zeek 5314 5320
 
    :Type: :zeek:type:`record`
 
@@ -389,7 +414,7 @@ Types
 
 
 .. zeek:type:: X509::BasicConstraints
-   :source-code: base/init-bare.zeek 5176 5179
+   :source-code: base/init-bare.zeek 5322 5325
 
    :Type: :zeek:type:`record`
 
@@ -407,7 +432,7 @@ Types
 
 
 .. zeek:type:: X509::SubjectAlternativeName
-   :source-code: base/init-bare.zeek 5181 5187
+   :source-code: base/init-bare.zeek 5327 5333
 
    :Type: :zeek:type:`record`
 
@@ -439,7 +464,7 @@ Types
 
 
 .. zeek:type:: X509::Result
-   :source-code: base/init-bare.zeek 5190 5197
+   :source-code: base/init-bare.zeek 5336 5343
 
    :Type: :zeek:type:`record`
 

@@ -11,13 +11,15 @@ Summary
 ~~~~~~~
 Events
 ######
-============================================================== ==========================================================================
+============================================================== =================================================================================
 :zeek:id:`smb_discarded_dce_rpc_analyzers`: :zeek:type:`event` Generated for :abbr:`SMB (Server Message Block)` when the number of
                                                                :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)`
                                                                analyzers exceeds :zeek:see:`SMB::max_dce_rpc_analyzers`.
+:zeek:id:`smb_discarded_tree_is_pipe_map`: :zeek:type:`event`  Generated for :abbr:`SMB (Server Message Block)` when the size of the
+                                                               internal ``tree_is_pipe_map`` exceeds :zeek:see:`SMB::max_tree_is_pipe_map_size`.
 :zeek:id:`smb_pipe_connect_heuristic`: :zeek:type:`event`      Generated for :abbr:`SMB (Server Message Block)` connections when a
                                                                named pipe has been detected heuristically.
-============================================================== ==========================================================================
+============================================================== =================================================================================
 
 
 Detailed Interface
@@ -39,8 +41,24 @@ Events
    :param c: The connection.
    
 
+.. zeek:id:: smb_discarded_tree_is_pipe_map
+   :source-code: base/protocols/smb/main.zeek 278 281
+
+   :Type: :zeek:type:`event` (c: :zeek:type:`connection`, size: :zeek:type:`count`)
+
+   Generated for :abbr:`SMB (Server Message Block)` when the size of the
+   internal ``tree_is_pipe_map`` exceeds :zeek:see:`SMB::max_tree_is_pipe_map_size`.
+   Occurrence of this event may indicate traffic loss, traffic load-balancing
+   issues or abnormal SMB protocol usage.
+   
+
+   :param c: The connection.
+   
+
+   :param size: The size of the map before discarding all entries.
+
 .. zeek:id:: smb_pipe_connect_heuristic
-   :source-code: base/protocols/smb/main.zeek 243 247
+   :source-code: base/protocols/smb/main.zeek 272 276
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`)
 

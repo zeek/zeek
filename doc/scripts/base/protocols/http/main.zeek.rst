@@ -19,9 +19,15 @@ Runtime Options
 :zeek:id:`HTTP::default_capture_password`: :zeek:type:`bool` :zeek:attr:`&redef` This setting changes if passwords used in Basic-Auth are captured or
                                                                                  not.
 :zeek:id:`HTTP::http_methods`: :zeek:type:`set` :zeek:attr:`&redef`              A list of HTTP methods.
-:zeek:id:`HTTP::max_pending_requests`: :zeek:type:`count` :zeek:attr:`&redef`    Only allow that many pending requests on a single connection.
 :zeek:id:`HTTP::proxy_headers`: :zeek:type:`set` :zeek:attr:`&redef`             A list of HTTP headers typically used to indicate proxied requests.
 ================================================================================ ====================================================================
+
+Redefinable Options
+###################
+======================================================================================= =======================================================================
+:zeek:id:`HTTP::default_max_field_string_bytes`: :zeek:type:`count` :zeek:attr:`&redef` The maximum number of bytes that a single string field can contain when
+                                                                                        logging.
+======================================================================================= =======================================================================
 
 Types
 #####
@@ -114,18 +120,6 @@ Runtime Options
    that the HTTP analyzer will only accept methods consisting solely
    of letters ``[A-Za-z]``.
 
-.. zeek:id:: HTTP::max_pending_requests
-   :source-code: base/protocols/http/main.zeek 141 141
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``100``
-
-   Only allow that many pending requests on a single connection.
-   If this number is exceeded, all pending requests are flushed
-   out and request/response tracking reset to prevent unbounded
-   state growth.
-
 .. zeek:id:: HTTP::proxy_headers
    :source-code: base/protocols/http/main.zeek 107 107
 
@@ -147,6 +141,20 @@ Runtime Options
 
 
    A list of HTTP headers typically used to indicate proxied requests.
+
+Redefinable Options
+###################
+.. zeek:id:: HTTP::default_max_field_string_bytes
+   :source-code: base/protocols/http/main.zeek 141 141
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``0``
+
+   The maximum number of bytes that a single string field can contain when
+   logging. If a string reaches this limit, the log output for the field will be
+   truncated. Setting this to zero disables the limiting. HTTP has no maximum
+   length for various fields such as the URI, so this is set to zero by default.
 
 Types
 #####

@@ -24,7 +24,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: smb2_negotiate_request
-   :source-code: base/protocols/smb/smb2-main.zeek 83 86
+   :source-code: base/protocols/smb/smb2-main.zeek 95 98
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, dialects: :zeek:type:`index_vec`)
 
@@ -46,7 +46,7 @@ Events
    .. zeek:see:: smb2_message smb2_negotiate_response
 
 .. zeek:id:: smb2_negotiate_response
-   :source-code: base/protocols/smb/smb2-main.zeek 88 102
+   :source-code: base/protocols/smb/smb2-main.zeek 100 114
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::NegotiateResponse`)
 

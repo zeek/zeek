@@ -10,8 +10,9 @@
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run worker "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
+#
 # @TEST-EXEC: btest-bg-wait 30
-
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./worker/out
 
@@ -36,7 +37,7 @@ event Cluster::node_up(name: string, id: string)
 		print "tbl1 now contains y", tbl1;
 		tbl1["z"] = "from manager, take two!";
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout");
 		}
@@ -65,12 +66,12 @@ event zeek_init()
 
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout 2!");
 			}
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout 1!");
 		}

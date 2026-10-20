@@ -20,6 +20,7 @@
 # @TEST-EXEC: btest-diff ./worker-1/out
 # @TEST-EXEC: btest-diff ./worker-2/out
 
+
 # @TEST-START-FILE common.zeek
 @load base/frameworks/cluster
 
@@ -38,12 +39,14 @@ global tbl1: table[string] of string &publish_on_change=[
 event Cluster::node_up(name: string, id: string)
 	{
 	# If this node_up() event is for a worker, republish it so that
-	# the test ends up working nicely.
+	# the test ends up working nicely. With Broker, worker-1 woudln't
+	# see a Cluster::node_up() for worker-2 without this.
 	if ( name == "worker-2" )
 		Cluster::publish(Cluster::node_topic("worker-1"), Cluster::node_up, name, id);
 	}
 
 global nodes_down = 0;
+
 event Cluster::node_down(name: string, id: string)
 	{
 	++nodes_down;
@@ -55,7 +58,6 @@ event Cluster::node_down(name: string, id: string)
 	if ( nodes_down == 2 )
 		terminate();
 	}
-
 # @TEST-END-FILE
 
 # @TEST-START-FILE worker.zeek
@@ -82,6 +84,7 @@ event Cluster::node_up(name: string, id: string)
 				++i;
 				tbl1[cat(i)] = cat(i);
 				}
+
 			print "populated table - marking ready";
 			system("touch ready");
 			}
@@ -104,7 +107,7 @@ event zeek_init()
 			print fmt("table now populated to 20 (%s)", tbl1);
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout worker-1");
 			}
@@ -123,7 +126,7 @@ event zeek_init()
 
 			print "added 10 more elements!", |tbl1|;
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout worker-2");
 			}

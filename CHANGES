@@ -1,4 +1,14 @@
-9.1.0-dev.251 | 2026-10-20 09:39:02 +0200
+9.1.0-dev.252 | 2026-10-20 10:27:47 +0200
+
+  * Revert "dhcpv6: Fix if formatting in dhcpv6.spicy" (Arne Welzel, Corelight)
+
+    This reverts commit 3748022b8b228d2ae55d4717d549e3b746c58c32.
+
+    This caused: syntax error, unexpected NOT_IN.
+    https://github.com/zeek/spicy/issues/2526
+
+    Exclude dhcpv6.spicy from the spicy-format pre-commit
+    for the time being.
 
   * dhcpv6: Fix if formatting in dhcpv6.spicy (Arne Welzel, Corelight)
 

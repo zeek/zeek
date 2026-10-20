@@ -256,11 +256,11 @@ public function make_message_info(msg: Message): MessageInfo {
             case OptionCode::CLIENT_FQDN:
                 info.client_fqdn = o.client_fqdn.domain_name;
             case OptionCode::IA_NA: {
-                if (!info.iaid)
+                if ( ! info.iaid )
                     info.iaid = o.ia_na.iaid;
-                if (!info.t1)
+                if ( ! info.t1 )
                     info.t1 = o.ia_na.t1;
-                if (!info.t2)
+                if ( ! info.t2 )
                     info.t2 = o.ia_na.t2;
                 local iaaddr_count: uint32 = 0;
                 for (so in o.ia_na.options) {
@@ -280,11 +280,11 @@ public function make_message_info(msg: Message): MessageInfo {
                     zeek::weird("dhcpv6_multi_iaaddr_unsupported", "");
             }
             case OptionCode::IA_PD: {
-                if (!info.iaid)
+                if ( ! info.iaid )
                     info.iaid = o.ia_pd.iaid;
-                if (!info.t1)
+                if ( ! info.t1 )
                     info.t1 = o.ia_pd.t1;
-                if (!info.t2)
+                if ( ! info.t2 )
                     info.t2 = o.ia_pd.t2;
                 local iaprefix_count: uint32 = 0;
                 for (so in o.ia_pd.options) {
@@ -293,9 +293,9 @@ public function make_message_info(msg: Message): MessageInfo {
                         if (iaprefix_count == 1) {
                             info.assigned_prefix_addr = so.iaprefix.prefix;
                             info.assigned_prefix_len = so.iaprefix.prefix_len;
-                            if (!info.preferred_lifetime)
+                            if ( ! info.preferred_lifetime )
                                 info.preferred_lifetime = so.iaprefix.preferred_lifetime;
-                            if (!info.valid_lifetime)
+                            if ( ! info.valid_lifetime )
                                 info.valid_lifetime = so.iaprefix.valid_lifetime;
                         }
                     } else if (so.code == OptionCode::STATUS_CODE) {

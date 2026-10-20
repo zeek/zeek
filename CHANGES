@@ -1,3 +1,19 @@
+9.1.0-dev.250 | 2026-10-20 09:32:40 +0200
+
+  * NEWS: Mention DHCPv6 prefix delegation support (syuany)
+
+  * GH-13547: testing: Add DHCPv6 IA_PD baseline tests (syuany)
+
+    Add test for DHCPv6 prefix delegation with a real network packet capture sourced from systemd issue #13547, and document its lineage in Traces/README.
+
+    Also update existing DHCPv6 test baselines for the new assigned_prefix column.
+
+  * GH-5947: DHCPv6: Add support for prefix delegation (IA_PD) (syuany)
+
+    Implement parsing of IA_PD (option 25) and IAPREFIX (option 26) options according to RFC 8415 §21.21 and §21.22. Extracted delegated prefixes are logged in dhcpv6.log via assigned_prefix.
+
+    Removes the dhcpv6_ia_pd_unsupported weird.
+
 9.1.0-dev.245 | 2026-10-19 10:27:15 -0700
 
   * btest/dce-rpc: Synthetic traffic for large DCE-RPC fragments (Arne Welzel, Corelight)

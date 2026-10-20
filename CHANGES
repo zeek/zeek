@@ -1,3 +1,7 @@
+9.1.0-dev.254 | 2026-10-20 16:30:23 -0700
+
+  * CCI: Skip full build on weekly job (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.252 | 2026-10-20 10:27:47 +0200
 
   * Revert "dhcpv6: Fix if formatting in dhcpv6.spicy" (Arne Welzel, Corelight)

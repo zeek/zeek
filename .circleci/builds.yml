@@ -982,6 +982,7 @@ _configure_tsan: &CONFIGURE_TSAN
 
 workflows:
   zeek_builds:
+    when: pipeline.schedule.name != "weekly"
     jobs:
       - fetch-test-traces
 

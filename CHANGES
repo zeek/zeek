@@ -1,3 +1,10 @@
+9.1.0-dev.251 | 2026-10-20 09:39:02 +0200
+
+  * dhcpv6: Fix if formatting in dhcpv6.spicy (Arne Welzel, Corelight)
+
+    Didn't check the pipeline run properly and current format deviates from
+    the usual style, meh.
+
 9.1.0-dev.250 | 2026-10-20 09:32:40 +0200
 
   * NEWS: Mention DHCPv6 prefix delegation support (syuany)

@@ -1,3 +1,11 @@
+9.1.0-dev.268 | 2026-10-21 09:31:13 +0200
+
+  * GHCI: Switch to TheMrMilchMann/setup-msvc-dev (Arne Welzel, Corelight)
+
+    This action seems a bit more popular than the iShark5060 version.
+
+    Related discussion here: https://github.com/zeek/zeek/pull/5982#issuecomment-6188433396
+
 9.1.0-dev.265 | 2026-10-20 16:33:24 -0700
 
   * build(deps): bump docker/build-push-action from 7.3.0 to 7.4.0 (dependabot[bot])

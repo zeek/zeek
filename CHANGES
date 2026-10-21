@@ -1,3 +1,7 @@
+8.0.10-41 | 2026-10-22 10:26:55 -0700
+
+  * CI: Fix macOS to use brew python version correctly (Tim Wojtulewicz, Corelight)
+
 8.0.10-40 | 2026-10-22 09:08:03 -0700
 
   * Distrust the eMudhra ECC Root G3 (Johanna Amann, Corelight)

@@ -23,8 +23,9 @@ type NTLM_Negotiate(offset: uint16) = record {
 } &let {
 	absolute_offset : uint16 = offsetof(payload) + offset;
 	version         : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(domain_name_fields.offset, workstation_fields.offset)));
-	domain_name     : NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_domain_supplied);
-	workstation     : NTLM_String(workstation_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_workstation_supplied);
+	# The NEGOTIATE message's strings are always OEM (MS-NLMP 2.2.1.1).
+	domain_name     : NTLM_String(domain_name_fields, absolute_offset, false) withinput payload &if(flags.negotiate_oem_domain_supplied);
+	workstation     : NTLM_String(workstation_fields, absolute_offset, false) withinput payload &if(flags.negotiate_oem_workstation_supplied);
 };
 
 type NTLM_Challenge(offset: uint16) = record {

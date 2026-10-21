@@ -1877,7 +1877,7 @@ Events
 ++++++
 
 .. zeek:id:: dhcpv6_message
-   :source-code: base/protocols/dhcpv6/main.zeek 185 192
+   :source-code: base/protocols/dhcpv6/main.zeek 189 196
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCPv6::MessageInfo`)
 

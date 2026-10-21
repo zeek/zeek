@@ -66,7 +66,7 @@ Detailed Interface
 Runtime Options
 ###############
 .. zeek:id:: DHCPv6::transaction_timeout
-   :source-code: base/protocols/dhcpv6/main.zeek 81 81
+   :source-code: base/protocols/dhcpv6/main.zeek 83 83
 
    :Type: :zeek:type:`interval`
    :Attributes: :zeek:attr:`&redef`
@@ -93,7 +93,7 @@ Redefinable Options
 
 
 .. zeek:id:: DHCPv6::server_message_types
-   :source-code: base/protocols/dhcpv6/main.zeek 73 73
+   :source-code: base/protocols/dhcpv6/main.zeek 75 75
 
    :Type: :zeek:type:`set` [:zeek:type:`count`]
    :Attributes: :zeek:attr:`&redef`
@@ -130,7 +130,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: DHCPv6::Info
-   :source-code: base/protocols/dhcpv6/main.zeek 23 69
+   :source-code: base/protocols/dhcpv6/main.zeek 23 71
 
    :Type: :zeek:type:`record`
 
@@ -202,9 +202,14 @@ Types
       The address assigned by the server (first IA Address option).
 
 
+   .. zeek:field:: assigned_prefix :zeek:type:`subnet` :zeek:attr:`&log` :zeek:attr:`&optional`
+
+      The prefix assigned by the server (first IA Prefix option).
+
+
    .. zeek:field:: preferred_lifetime :zeek:type:`interval` :zeek:attr:`&log` :zeek:attr:`&optional`
 
-      Preferred lifetime of the assigned address.
+      Preferred lifetime of the assigned address or prefix.
 
 
    .. zeek:field:: valid_lifetime :zeek:type:`interval` :zeek:attr:`&log` :zeek:attr:`&optional`
@@ -237,7 +242,7 @@ Types
 Events
 ######
 .. zeek:id:: DHCPv6::aggregate_msgs
-   :source-code: base/protocols/dhcpv6/main.zeek 114 172
+   :source-code: base/protocols/dhcpv6/main.zeek 116 176
 
    :Type: :zeek:type:`event` (ts: :zeek:type:`time`, uid: :zeek:type:`string`, msg: :zeek:type:`DHCPv6::MessageInfo`)
 
@@ -247,7 +252,7 @@ Events
    DHCPv6 log.
 
 .. zeek:id:: DHCPv6::log_dhcpv6
-   :source-code: base/protocols/dhcpv6/main.zeek 91 91
+   :source-code: base/protocols/dhcpv6/main.zeek 93 93
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`DHCPv6::Info`)
 

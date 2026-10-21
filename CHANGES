@@ -1,3 +1,23 @@
+9.1.0-dev.274 | 2026-10-21 16:16:26 -0700
+
+  * Use `--depth 1` in CircleCI (Evan Typanski, Corelight)
+
+    `--recommend-shallow` just honors the `shallow = true` in `.gitmodules`.
+    But, `--depth 1` will shallow-clone all submodules, which could help
+    reduce transfers and space.
+
+    Note that shallow cloning may increase the number of fetches, but should
+    overall substantially decrease the transfer volume. This difference
+    might make the win less substantial, but overall it should be a win to
+    use the depth of 1.
+
+  * Shallow-clone Zeek submodules by default (Evan Typanski, Corelight)
+
+    In Github CI jobs that use submodules recursively, this also sets
+    --detph=1 so nested submodules are shallow, too.
+
+    This should save space locally and for those CI jobs.
+
 9.1.0-dev.271 | 2026-10-21 16:14:30 -0700
 
   * Accept space-separated configure option arguments (Evan Typanski, Corelight)

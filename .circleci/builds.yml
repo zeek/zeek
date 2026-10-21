@@ -94,7 +94,7 @@ commands:
           steps:
             - run:
                 name: Update submodules
-                command: git submodule update --recursive --init --recommend-shallow -j ${ZEEK_CI_CPUS}
+                command: git submodule update --recursive --init --depth 1 -j ${ZEEK_CI_CPUS}
       - when:
           condition: << parameters.include_external_tests >>
           steps:

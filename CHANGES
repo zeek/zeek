@@ -1,3 +1,9 @@
+9.1.0-dev.271 | 2026-10-21 16:14:30 -0700
+
+  * Accept space-separated configure option arguments (Evan Typanski, Corelight)
+
+  * Support -G generator shorthand in configure (Evan Typanski, Corelight)
+
 9.1.0-dev.268 | 2026-10-21 09:31:13 +0200
 
   * GHCI: Switch to TheMrMilchMann/setup-msvc-dev (Arne Welzel, Corelight)

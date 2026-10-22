@@ -1,3 +1,17 @@
+9.1.0-dev.281 | 2026-10-22 10:18:47 -0700
+
+  * CI: Fix macOS to use brew python version correctly (Tim Wojtulewicz, Corelight)
+
+  * Update c-ares submodule to v1.34.9 (Tim Wojtulewicz, Corelight)
+
+    This includes a fix for building with Xcode 27 but not macOS 27. It
+    also updates the vcpkg submodule to a version that includes the
+    c-ares update.
+
+  * CCI: Add xcode-27 build, drop xcode-16 build (Tim Wojtulewicz, Corelight)
+
+  * GHCI: Add xcode-27 build, drop macos-16 build (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.276 | 2026-10-22 09:06:57 -0700
 
   * Distrust the eMudhra ECC Root G3 (Johanna Amann, Corelight)

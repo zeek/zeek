@@ -1,3 +1,15 @@
+9.1.0-dev.286 | 2026-10-22 14:42:27 -0700
+
+  * NTLM: decode OEM strings as bytes, not UTF-16 (Gido822)
+
+    The analyzer ignored the unicode parameter of its string type and ran
+    every string through utf16_to_utf8_val(). MS-NLMP negotiated-charset string
+    are only UTF-16 when NTLMSSP_NEGOTIATE_UNICODE is set, and the NEGOTIATE
+    message's domain and workstation are always in the OEM character set
+    (2.2.1.1), whatever the flags say.
+
+  * Add test for NTLM unicode (Gido822)
+
 9.1.0-dev.283 | 2026-10-22 14:00:03 -0700
 
   * Add basic L2TP analyzer and btest (Tim Wojtulewicz, Corelight)

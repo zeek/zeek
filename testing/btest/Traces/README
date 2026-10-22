@@ -173,3 +173,6 @@ Trace Index/Sources:
 - nb6-l2tp.pcap
   From Wireshark sample nb6-http.pcap. This pulls just the L2TP packets out of that
   that trace.
+- smb/smb2-ntlm-oem-username.pcap
+  Flow extracted from `smb_lease_break_win2.pcapng`
+  attached to https://gitlab.com/wireshark/wireshark/-/work_items/16296

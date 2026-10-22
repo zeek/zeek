@@ -1,3 +1,12 @@
+9.0.0-20 | 2026-10-22 09:09:26 -0700
+
+  * Distrust the eMudhra ECC Root G3 (Johanna Amann, Corelight)
+
+    The Comodo CA that can be used in cross-signs was already distrusted for
+    8.0 in 1daead9edd.
+
+    (cherry picked from commit 73d88deb8c71c264f717d97d423f655eddd71c30)
+
 9.0.0-19 | 2026-10-19 18:34:16 +0000
 
   * btest/dce-rpc: Synthetic traffic for large DCE-RPC fragments (Arne Welzel, Corelight)

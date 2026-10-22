@@ -1,3 +1,7 @@
+9.1.0-dev.283 | 2026-10-22 14:00:03 -0700
+
+  * Add basic L2TP analyzer and btest (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.281 | 2026-10-22 10:18:47 -0700
 
   * CI: Fix macOS to use brew python version correctly (Tim Wojtulewicz, Corelight)

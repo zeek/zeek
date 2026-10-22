@@ -31,4 +31,3 @@ event smb1_read_andx_request%(c: connection, hdr: SMB1::Header, file_id: count, 
 ##
 ## .. zeek:see:: smb1_message smb1_read_andx_request
 event smb1_read_andx_response%(c: connection, hdr: SMB1::Header, data_len: count%);
-

@@ -7,4 +7,3 @@
 # @TEST-EXEC: btest-diff output
 
 @load frameworks/analyzer/debug-logging.zeek
-

@@ -139,4 +139,3 @@ event Intel::insert_indicator(item: Intel::Item) &priority=5
 	Cluster::publish(Cluster::worker_topic, Intel::insert_indicator, item);
 	}
 @endif
-

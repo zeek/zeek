@@ -8,4 +8,3 @@
 @load base/frameworks/config
 
 redef Config::config_files += { "./config" };
-

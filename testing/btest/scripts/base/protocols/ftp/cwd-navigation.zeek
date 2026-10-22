@@ -14,5 +14,3 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 
 	print "CWD", c$ftp$cwd;
 	}
-
-

@@ -19,4 +19,3 @@ function sort_set(s: set[string]): vector of string
 add s["hi", "there"];
 # This sort_set call should warn about mismatched table/set types.
 sort_set(s);
-

@@ -10,4 +10,3 @@ event zeek_init()
 	for ( x in set(1, 2, 3) ) {}
 	for ( y in set(1, 2, 3) ) {}
 	}
-

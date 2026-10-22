@@ -17,4 +17,3 @@ redef Log::default_rotation_interval = 24hrs;
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 @endif
-

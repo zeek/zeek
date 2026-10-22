@@ -15,4 +15,3 @@ function switch_one(v: any): string
 	}
 
 	}
-

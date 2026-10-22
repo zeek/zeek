@@ -34,4 +34,3 @@ event zeek_init()
 
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success", $a1=1, $a2=2, $b1=3, $b2=4]);
 }
-

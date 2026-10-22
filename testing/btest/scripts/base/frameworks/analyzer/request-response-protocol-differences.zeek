@@ -7,4 +7,3 @@
 # @TEST-EXEC: mv conn.log conn-https-to-http.log
 # @TEST-EXEC: btest-diff conn-http-to-ssh.log
 # @TEST-EXEC: btest-diff conn-https-to-http.log
-

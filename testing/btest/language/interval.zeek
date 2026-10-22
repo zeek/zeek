@@ -89,4 +89,3 @@ event zeek_init()
 	test_case( "relative size of units", approx_equal(1day/1hr, 24) );
 
 }
-

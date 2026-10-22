@@ -18,4 +18,3 @@ event zeek_init()
 
 	Log::write(Test::LOG, [$ss=set("AA", ",", ",,", "CC")]);
 }
-

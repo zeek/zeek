@@ -3,4 +3,3 @@
 # @TEST-EXEC: btest-diff ntp_private.log
 
 @load base/protocols/ntp
-

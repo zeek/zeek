@@ -27,4 +27,3 @@ event zeek_init()
 
 	x([$id=r$id]);
 	}
-

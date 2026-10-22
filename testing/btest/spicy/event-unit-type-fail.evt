@@ -35,4 +35,3 @@ public type Data = unit {
 public type Alias = Data;
 public type E = enum { One };
 # @TEST-END-FILE
-

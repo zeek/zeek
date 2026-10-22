@@ -99,4 +99,3 @@ event ssl_extension_pre_shared_key_server_hello(c: connection, is_client: bool, 
 	{
 	print "pre_shared_key server hello", c$id$orig_h, c$id$resp_h, selected_identity;
 	}
-

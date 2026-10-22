@@ -39,4 +39,3 @@ packet analyzer spicy::SSH_1:
 packet analyzer spicy::SSH_2:
     parse with SSH::Banner,
     replaces Ethernet;
-

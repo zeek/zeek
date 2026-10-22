@@ -69,4 +69,3 @@ event Cluster::node_down(name: string, id: string)
 	if ( name == "worker-1" )
 		schedule 2sec { go_away() };
 	}
-

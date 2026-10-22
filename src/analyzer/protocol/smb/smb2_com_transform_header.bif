@@ -12,4 +12,3 @@
 event smb2_transform_header%(c: connection, hdr: SMB2::Transform_header%);
 
 type SMB2::Transform_header: record;
-

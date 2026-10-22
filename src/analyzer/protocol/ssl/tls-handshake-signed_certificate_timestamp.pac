@@ -25,4 +25,3 @@ type SignedCertificateTimestamp(rec: HandshakeRecord) = record {
 	digitally_signed_signature_length: uint16;
 	digitally_signed_signature: bytestring &length=digitally_signed_signature_length;
 } &length=length+2;
-

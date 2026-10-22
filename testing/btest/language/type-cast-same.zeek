@@ -17,5 +17,3 @@ event zeek_init()
 	print s, s is string;
 	print y, y is X;
 	}
-
-

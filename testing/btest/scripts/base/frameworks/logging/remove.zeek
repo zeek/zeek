@@ -47,4 +47,3 @@ event zeek_init()
 	Log::remove_filter(SSH::LOG, "doesn-not-exist");
 	print Log::get_filter_names(SSH::LOG);
 }
-

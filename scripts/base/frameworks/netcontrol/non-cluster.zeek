@@ -58,4 +58,3 @@ event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_error_impl(r, p, msg);
 	}
-

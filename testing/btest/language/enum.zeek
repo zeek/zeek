@@ -28,4 +28,3 @@ event zeek_init()
 	# type inference
 	test_case( "type inference", x == e1 );
 }
-

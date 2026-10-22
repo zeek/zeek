@@ -41,5 +41,3 @@ event zeek_init()
 	cast_to_X(x, [$a=1.2.3.4, $b=1947/tcp]);
 	cast_to_X(x, [$a=2.3.4.5, $b=1947/tcp]);
 	}
-
-

@@ -26,4 +26,3 @@ event zeek_done()
 	print "Final value", testbool;
 	print "Final changed", changed;
 	}
-

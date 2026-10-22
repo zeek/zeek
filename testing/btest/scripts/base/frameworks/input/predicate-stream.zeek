@@ -73,4 +73,3 @@ event zeek_init()
 				$pred(typ: Input::Event, left: Idx, right: bool) = { return right; }
 				]);
 	}
-

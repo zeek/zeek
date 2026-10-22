@@ -10,4 +10,3 @@ signature file-m4a {
 	file-mime "audio/m4a", 70
 	file-magic /^....ftyp(m4a)/
 }
-

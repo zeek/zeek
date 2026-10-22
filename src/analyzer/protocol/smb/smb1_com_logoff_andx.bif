@@ -12,4 +12,3 @@
 ##
 ## .. zeek:see:: smb1_message
 event smb1_logoff_andx%(c: connection, is_orig: bool%);
-

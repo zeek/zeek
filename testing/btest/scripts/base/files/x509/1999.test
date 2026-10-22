@@ -2,4 +2,3 @@
 
 # @TEST-EXEC: zeek -b -r $TRACES/tls/telesec.pcap base/protocols/ssl
 # @TEST-EXEC: btest-diff x509.log
-

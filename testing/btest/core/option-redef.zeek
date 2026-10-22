@@ -13,4 +13,3 @@ event zeek_init() {
 	print testopt;
 	print anotheropt;
 }
-

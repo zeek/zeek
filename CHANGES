@@ -1,3 +1,12 @@
+9.1.0-dev.276 | 2026-10-22 09:06:57 -0700
+
+  * Distrust the eMudhra ECC Root G3 (Johanna Amann, Corelight)
+
+    The Comodo CA that can be used in cross-signs was already distrusted for
+    8.0 in 1daead9edd.
+
+    Closes GH-6004
+
 9.1.0-dev.274 | 2026-10-21 16:16:26 -0700
 
   * Use `--depth 1` in CircleCI (Evan Typanski, Corelight)

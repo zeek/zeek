@@ -50,7 +50,7 @@ void ExprListStmt::Inline(Inliner* inl) {
 bool ExprListStmt::IsReduced(Reducer* c) const {
     const ExprPList& e = l->Exprs();
     for ( const auto& expr : e )
-        if ( ! expr->IsSingleton(c) )
+        if ( ! IsSingleton(expr, c) )
             return NonReduced(expr);
 
     return true;
@@ -68,7 +68,7 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c) {
         if ( c->Optimizing() )
             new_l->Append(c->OptExpr(expr));
 
-        else if ( expr->IsSingleton(c) )
+        else if ( IsSingleton(expr, c) )
             new_l->Append({NewRef{}, expr});
 
         else {
@@ -106,7 +106,7 @@ void ExprStmt::Inline(Inliner* inl) {
 }
 
 bool ExprStmt::IsReduced(Reducer* c) const {
-    if ( ! e || e->IsReduced(c) )
+    if ( ! e || detail::IsReduced(e.get(), c) )
         return true;
 
     return NonReduced(e.get());
@@ -127,18 +127,18 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
         return ThisPtr();
     }
 
-    if ( e->IsSingleton(c) )
+    if ( IsSingleton(e, c) )
         // No point evaluating.
         return TransformMe(make_intrusive<NullStmt>(), c);
 
     if ( (t == EXPR_ASSIGN || t == EXPR_CALL || t == EXPR_INDEX_ASSIGN || t == EXPR_FIELD_LHS_ASSIGN ||
           t == EXPR_APPEND_TO || t == EXPR_ADD_TO || t == EXPR_REMOVE_FROM) &&
-         e->IsReduced(c) )
+         detail::IsReduced(e.get(), c) )
         return ThisPtr();
 
     StmtPtr red_e_stmt;
 
-    if ( t == EXPR_CALL && ! e->WillTransform(c) )
+    if ( t == EXPR_CALL && ! WillTransform(e.get(), c) )
         // A bare call.  If we reduce it regularly, if it has a non-void
         // type it'll generate an assignment to a temporary.
         red_e_stmt = e->ReduceToSingletons(c);
@@ -171,7 +171,7 @@ void IfStmt::Inline(Inliner* inl) {
 }
 
 bool IfStmt::IsReduced(Reducer* c) const {
-    if ( e->IsConst() || ! e->IsReducedConditional(c) || IsMinMaxConstruct() )
+    if ( e->IsConst() || ! IsReducedConditional(e.get(), c) || IsMinMaxConstruct() )
         return NonReduced(e.get());
 
     return s1->IsReduced(c) && s2->IsReduced(c);
@@ -180,8 +180,8 @@ bool IfStmt::IsReduced(Reducer* c) const {
 StmtPtr IfStmt::DoReduce(Reducer* c) {
     StmtPtr red_e_stmt;
 
-    if ( e->WillTransformInConditional(c) )
-        e = e->ReduceToConditional(c, red_e_stmt);
+    if ( WillTransformInConditional(e.get(), c) )
+        e = ReduceToConditional(e.get(), c, red_e_stmt);
 
     // First, assess some fundamental transformations.
     if ( IsMinMaxConstruct() )
@@ -236,7 +236,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         e = c->OptExpr(e);
     else {
         StmtPtr cond_red_stmt;
-        e = e->ReduceToConditional(c, cond_red_stmt);
+        e = ReduceToConditional(e.get(), c, cond_red_stmt);
 
         if ( red_e_stmt && cond_red_stmt )
             red_e_stmt = with_location_of(make_intrusive<StmtList>(red_e_stmt, cond_red_stmt), this);
@@ -397,14 +397,14 @@ void SwitchStmt::Inline(Inliner* inl) {
 }
 
 bool SwitchStmt::IsReduced(Reducer* r) const {
-    if ( ! e->IsReduced(r) )
+    if ( ! detail::IsReduced(e.get(), r) )
         return NonReduced(e.get());
 
     if ( cases->empty() )
         return false;
 
     for ( const auto& c : *cases ) {
-        if ( c->ExprCases() && ! c->ExprCases()->IsReduced(r) )
+        if ( c->ExprCases() && ! detail::IsReduced(c->ExprCases(), r) )
             return false;
 
         if ( c->TypeCases() && ! r->IDsAreReduced(c->TypeCases()) )
@@ -501,7 +501,7 @@ StmtPtr EventStmt::DoReduce(Reducer* c) {
         event_expr = e->AsEventExprPtr();
     }
 
-    else if ( ! event_expr->IsSingleton(c) ) {
+    else if ( ! IsSingleton(event_expr, c) ) {
         StmtPtr red_e_stmt;
         auto ee_red = event_expr->Reduce(c, red_e_stmt);
 
@@ -528,7 +528,7 @@ void WhileStmt::Inline(Inliner* inl) {
 
 bool WhileStmt::IsReduced(Reducer* c) const {
     // No need to check loop_cond_pred_stmt, as we create it reduced.
-    return loop_condition->IsReducedConditional(c) && body->IsReduced(c);
+    return IsReducedConditional(loop_condition.get(), c) && body->IsReduced(c);
 }
 
 StmtPtr WhileStmt::DoReduce(Reducer* c) {
@@ -549,7 +549,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
             }
         }
         else
-            loop_condition = loop_condition->ReduceToConditional(c, loop_cond_pred_stmt);
+            loop_condition = ReduceToConditional(loop_condition.get(), c, loop_cond_pred_stmt);
     }
 
     body = body->Reduce(c);
@@ -588,7 +588,7 @@ void ForStmt::Inline(Inliner* inl) {
 }
 
 bool ForStmt::IsReduced(Reducer* c) const {
-    if ( ! e->IsReduced(c) )
+    if ( ! detail::IsReduced(e.get(), c) )
         return NonReduced(e.get());
 
     if ( ! c->IDsAreReduced(loop_vars) )
@@ -637,7 +637,7 @@ StmtPtr ReturnStmt::Duplicate() { return SetSucc(new ReturnStmt(e ? e->Duplicate
 ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored) : ExprStmt(STMT_RETURN, std::move(arg_e)) {}
 
 bool ReturnStmt::IsReduced(Reducer* c) const {
-    if ( ! e || e->IsSingleton(c) )
+    if ( ! e || IsSingleton(e, c) )
         return true;
 
     return NonReduced(e.get());
@@ -650,7 +650,7 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c) {
     if ( c->Optimizing() )
         e = c->OptExpr(e);
 
-    else if ( ! e->IsSingleton(c) ) {
+    else if ( ! IsSingleton(e, c) ) {
         StmtPtr red_e_stmt;
         e = e->ReduceToSingleton(c, red_e_stmt);
 
@@ -1070,7 +1070,7 @@ bool AssertStmt::IsReduced(Reducer* c) const {
     if ( ! analysis_options.keep_asserts )
         return false;
 
-    return e->IsSingleton(c) && (! msg || msg->IsSingleton(c));
+    return IsSingleton(e, c) && (! msg || IsSingleton(msg, c));
 }
 
 StmtPtr AssertStmt::DoReduce(Reducer* c) {
@@ -1127,13 +1127,13 @@ bool WhenStmt::IsReduced(Reducer* c) const {
     if ( wi->HasUnreducedIDs(c) )
         return false;
 
-    if ( ! wi->Lambda()->IsReduced(c) )
+    if ( ! detail::IsReduced(wi->Lambda().get(), c) )
         return false;
 
     if ( ! wi->TimeoutExpr() )
         return true;
 
-    return wi->TimeoutExpr()->IsReduced(c);
+    return detail::IsReduced(wi->TimeoutExpr().get(), c);
 }
 
 StmtPtr WhenStmt::DoReduce(Reducer* c) {
@@ -1150,7 +1150,7 @@ StmtPtr WhenStmt::DoReduce(Reducer* c) {
     if ( c->Optimizing() )
         wi->SetTimeoutExpr(c->OptExpr(e));
 
-    else if ( ! e->IsSingleton(c) ) {
+    else if ( ! IsSingleton(e, c) ) {
         StmtPtr red_e_stmt;
         auto new_e = e->ReduceToSingleton(c, red_e_stmt);
         wi->SetTimeoutExpr(new_e);

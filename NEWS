@@ -5,12 +5,98 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.11
 ===========
 
-Thank you to Bauti Peirone (@bautipeirone), Eneshan Karaca (@BoxStrikesTeam), @Gido822,
-Aashish Sharma (@initconf), James Gurung (@jmass-ggg), Peter Cullen (@pbcullen), Alexey
-Rubanik (@rubanik-alexei), Simeon Miteff (@simeonmiteff), and Al Smith for their
-contributions to this release.
+Thank you to Bauti Peirone (@bautipeirone), Eneshan Karaca (@BoxStrikesTeam), @dotMuny,
+@Gido822, Aashish Sharma (@initconf), James Gurung (@jmass-ggg), Pavan
+Nallamothu(@pavanchow), Peter Cullen (@pbcullen), Alexey Rubanik (@rubanik-alexei), Simeon
+Miteff (@simeonmiteff), and Al Smith for their contributions to this release.
+
+Thank you also to the following organizations for their work performing security scans:
+- AdaLogics in collaboration with Anthropic
+- Trail of Bits in collaboration with OpenAI (@kz-tob / @kyle-elliott-tob)
+- Canadian Communication Security Establishment
 
 This release fixes the following security issues:
+
+- HIGH: SSL: Unbounded certificate state growth
+  Advisory: [GHSA-rmv9-rq35-fw28](https://github.com/zeek/zeek/security/advisories/GHSA-rmv9-rq35-fw28)
+
+- HIGH: KRB: Unbounded array and element state growth
+  Advisory: [GHSA-2q7f-wp5q-4jh5](https://github.com/zeek/zeek/security/advisories/GHSA-2q7f-wp5q-4jh5)
+
+- HIGH: MIME Headers can bypass line limits
+  Advisory: [GHSA-5jww-j993-whw5](https://github.com/zeek/zeek/security/advisories/GHSA-5jww-j993-whw5)
+
+- HIGH: Reassembler memory amplificiation for blocks after a hole
+  Advisory: [GHSA-gxg9-7vfv-qq5f](https://github.com/zeek/zeek/security/advisories/GHSA-gxg9-7vfv-qq5f)
+
+- HIGH: DNP3: Large application layer fragment resource exhaustion
+  Advisory: [GHSA-v6w4-3pj6-p4ch](https://github.com/zeek/zeek/security/advisories/GHSA-v6w4-3pj6-p4ch)
+
+- HIGH: DTLS: Partial handshake memory exhaustion
+  Advisory: [GHSA-5x3v-rp68-7789](https://github.com/zeek/zeek/security/advisories/GHSA-5x3v-rp68-7789)
+
+- HIGH: DNS: Resource exhaustion via TXT RR holding many empty character strings
+  Advisory: [GHSA-3pcv-3q53-4vf6](https://github.com/zeek/zeek/security/advisories/GHSA-3pcv-3q53-4vf6)
+
+- HIGH: PE: Excessive numbers of sections allocates large amounts of memory
+  Advisory: [GHSA-vg68-x8g9-5wg9](https://github.com/zeek/zeek/security/advisories/GHSA-vg68-x8g9-5wg9)
+
+- HIGH: DNS/TCP: Eager memory allocation for messages
+  Advisory: [GHSA-v2hr-vp3r-q7m2](https://github.com/zeek/zeek/security/advisories/GHSA-v2hr-vp3r-q7m2)
+
+- HIGH: TLS: Unbounded extensions could exhaust parser memory
+  Advisory: [GHSA-j2wq-86vc-93cg](https://github.com/zeek/zeek/security/advisories/GHSA-j2wq-86vc-93cg)
+
+- HIGH: Finger: Excessive whitespace in requests could exhaust parser memory
+  Advisory: [GHSA-fch4-9qmm-454r](https://github.com/zeek/zeek/security/advisories/GHSA-fch4-9qmm-454r)
+
+- HIGH: HTTP: Unbounded unanswered_requests queue growth
+  Advisory: [GHSA-prm9-9w6q-xg34](https://github.com/zeek/zeek/security/advisories/GHSA-prm9-9w6q-xg34)
+
+- HIGH: IMAP: Unbounded capability parsing
+  Advisory: [GHSA-2prg-45gv-3rg9](https://github.com/zeek/zeek/security/advisories/GHSA-2prg-45gv-3rg9)
+
+- HIGH: MIME: Folded header lines amplify persistent parser state
+  Advisory: [GHSA-xvj8-9xvq-g5qq](https://github.com/zeek/zeek/security/advisories/GHSA-xvj8-9xvq-g5qq)
+
+- HIGH: RDP: Large numbers of client-channel events can exhaust memory
+  Advisory: [GHSA-5mcr-v3f9-r9xm](https://github.com/zeek/zeek/security/advisories/GHSA-5mcr-v3f9-r9xm)
+
+- HIGH: Websocket: Many small unfinished continuation frames allocate lots of memory
+  Advisory: [GHSA-xc4c-h8m4-m827](https://github.com/zeek/zeek/security/advisories/GHSA-xc4c-h8m4-m827)
+
+- HIGH: SIP: SIP over UDP uses large amounts of memory for large packet sequences
+  Advisory: [GHSA-cxjj-9x4p-4485](https://github.com/zeek/zeek/security/advisories/GHSA-cxjj-9x4p-4485)
+
+- MEDIUM: GTPv1: IP length underflow causes out-of-bounds read
+  Advisory: [GHSA-85jg-jxjg-3rvh](https://github.com/zeek/zeek/security/advisories/GHSA-85jg-jxjg-3rvh)
+
+- MEDIUM: File Analysis: Memory exhaustion via tiny non-contiguous blocks
+  Advisory: [GHSA-q2jp-3x4p-fp6c](https://github.com/zeek/zeek/security/advisories/GHSA-q2jp-3x4p-fp6c)
+
+- MEDIUM: HTTP: Multi-part transfer-encoding headers not handled correctly
+  Advisory: [GHSA-rr24-3xvr-v648](https://github.com/zeek/zeek/security/advisories/GHSA-rr24-3xvr-v648)
+
+- MEDIUM: SMTP/MIME: Signed integer overflow
+  Advisory: [GHSA-cg6p-j73j-76jm](https://github.com/zeek/zeek/security/advisories/GHSA-cg6p-j73j-76jm)
+
+- MEDIUM: Unbounded Connection history member growth
+  Advisory: [GHSA-256v-q24v-rm42](https://github.com/zeek/zeek/security/advisories/GHSA-256v-q24v-rm42)
+
+- MEDIUM: Modbus: Unbounded state growth in track-memmap policy script
+  Advisory: [GHSA-234h-hf84-23g5](https://github.com/zeek/zeek/security/advisories/GHSA-234h-hf84-23g5)
+
+- MEDIUM: tcp: Content extraction reads beyond truncated captures
+  Advisory: [GHSA-p7wh-94mw-76hv](https://github.com/zeek/zeek/security/advisories/GHSA-p7wh-94mw-76hv)
+
+- MEDIUM: BitTorrent: Memory leak without handlers
+  Advisory: [GHSA-gm23-j78v-rcr8](https://github.com/zeek/zeek/security/advisories/GHSA-gm23-j78v-rcr8)
+
+- MEDIUM: SMB: Various state growth issues
+  Advisory: [GHSA-qwfc-r652-34m7](https://github.com/zeek/zeek/security/advisories/GHSA-qwfc-r652-34m7)
+
+- MEDIUM: HTTP: Analysis evasion for prefixes of CONNECT and HEAD method strings
+  Advisory: [GHSA-rg94-q747-pcjg](https://github.com/zeek/zeek/security/advisories/GHSA-rg94-q747-pcjg)
 
 This release fixes the following bugs:
 

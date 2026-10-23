@@ -24,4 +24,3 @@ print unique_id_from(5, "E-");
 print unique_id_from(5, "F-");
 
 # @TEST-END-FILE
-

@@ -14,5 +14,3 @@ event zeek_init()
 	{
 	Analyzer::disable_analyzer(Analyzer::ANALYZER_DNS);
 	}
-
-

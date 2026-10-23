@@ -37,4 +37,3 @@ event zeek_init()
 	test_case( "equality operator", 65535/tcp == p8 );
 
 }
-

@@ -51,4 +51,3 @@ event zeek_init()
 	event corge();
 	event foo("A", "B");
 	}
-

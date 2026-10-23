@@ -41,4 +41,3 @@ event Input::end_of_data(name: string, source: string)
 	close(outfile);
 	terminate();
 	}
-

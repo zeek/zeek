@@ -5,4 +5,3 @@
 # @TEST-EXEC: btest-bg-wait 20
 
 @load frameworks/cluster/backend/broker
-

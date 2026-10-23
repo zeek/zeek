@@ -47,4 +47,3 @@ event zeek_init()
 		$ss=set("AA", "BB", "CC")
 		]);
 }
-

@@ -52,4 +52,3 @@ event reporter_error(t: time, msg: string, location: string)
 Reporter::info("pre test-info");
 Reporter::warning("pre test-warning");
 Reporter::error("pre test-error");
-

@@ -136,4 +136,3 @@ event file_state_remove(f: fa_file) &priority=-5
 	if ( f?$pe && f$pe?$machine )
 		Log::write(LOG, f$pe);
 	}
-

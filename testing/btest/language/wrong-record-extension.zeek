@@ -11,4 +11,3 @@ redef record Foo += {
         c: count;
         d: string &optional;
 };
-

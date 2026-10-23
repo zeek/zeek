@@ -41,4 +41,3 @@ event zeek_init()
 	{
 	event foo("A", "B", "C");
 	}
-

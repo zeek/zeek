@@ -108,4 +108,3 @@ protocol analyzer spicy::Foo over TCP:
 
 on Test::FooEOD -> event Test::foo();
 # @TEST-END-FILE
-

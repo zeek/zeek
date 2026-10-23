@@ -77,4 +77,3 @@ export MySSH::Encryption;
 
 # @TEST-START-FILE zeekygen.conf
 proto_analyzer	*	protocol.rst
-

@@ -31,4 +31,3 @@ event NetControl::init_done() &priority=-5
 	print outfile, rules[3]$entity, rules[3]$ty;
 	close(outfile);
 	}
-

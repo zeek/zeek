@@ -35,4 +35,3 @@ event zeek_init()
 
 	print "done";
 }
-

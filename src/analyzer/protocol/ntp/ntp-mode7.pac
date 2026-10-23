@@ -120,4 +120,3 @@ type NTP_mode7_msg = record {
 	error_code: uint8  = (err_and_data_len & 0xF000) >> 12;
 	data_len  : uint16 = (err_and_data_len & 0x0FFF);
 } &byteorder=bigendian &exportsourcedata;
-

@@ -20,4 +20,3 @@ type SMB2_lock_response(header: SMB2_Header) = record {
 	structure_size    : uint16;
 	reserved          : uint16; # ignore
 };
-

@@ -38,4 +38,3 @@ event zeek_init()
 	anyarg( [ffff::1]/64, "subnet" );
 	anyarg( 123/tcp, "port" );
 }
-

@@ -11,5 +11,3 @@ redef b -= 13;
 global c: count &redef &add_func = function(old: count, new: count): count { return 3; };
 redef c = 0;
 redef c += 13;
-
-

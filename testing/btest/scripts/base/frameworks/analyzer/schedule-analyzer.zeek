@@ -29,8 +29,3 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag)
 	{
 	print "APPLIED:", network_time(), c$id, a;
 	}
-
-
-
-
-

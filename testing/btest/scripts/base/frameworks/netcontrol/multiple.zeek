@@ -34,4 +34,3 @@ event connection_established(c: connection)
 
 	schedule 1sec { remove_all() };
 	}
-

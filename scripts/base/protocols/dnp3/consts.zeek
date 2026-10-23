@@ -46,4 +46,3 @@ export {
 		[0x83] = "AUTHENTICATE_RESP",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); } &redef;
 }
-

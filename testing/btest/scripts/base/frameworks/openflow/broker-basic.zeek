@@ -121,4 +121,3 @@ event OpenFlow::broker_flow_clear(name: string, dpid: count)
 	}
 
 # @TEST-END-FILE
-

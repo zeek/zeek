@@ -25,4 +25,3 @@ event dce_rpc_response_stub(c: connection, fid: count, ctx_id: count, opnum: cou
 	print bytestring_to_hexstr(stub);
 	terminate();
 	}
-

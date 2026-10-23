@@ -1106,4 +1106,3 @@ function record_iterator_value(it: opaque of Broker::RecordIterator): Broker::Da
 	{
 	return __record_iterator_value(it);
 	}
-

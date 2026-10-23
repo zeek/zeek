@@ -8,4 +8,3 @@
 # @TEST-EXEC: btest-diff .stdout
 
 @load frameworks/analyzer/debug-logging.zeek
-

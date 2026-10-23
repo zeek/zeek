@@ -42,5 +42,3 @@ hook NetControl::rule_added_policy(r: NetControl::Rule, p: NetControl::PluginSta
 		if ( p$_id in r$_no_expire_plugins )
 			delete r$_no_expire_plugins[p$_id];
 	}
-
-

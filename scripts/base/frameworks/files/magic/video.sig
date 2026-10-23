@@ -102,4 +102,3 @@ signature file-3gpp {
 	file-mime "video/3gpp", 60
 	file-magic /^....ftyp(3g[egps2]|avc1|mmp4)/
 }
-

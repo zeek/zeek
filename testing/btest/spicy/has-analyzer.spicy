@@ -31,5 +31,3 @@ assert zeek::has_analyzer("SSH", False);
 void disable_ssh() {
     zeek::analyzer_mgr->Lookup("SSH")->SetEnabled(false);
 }
-
-

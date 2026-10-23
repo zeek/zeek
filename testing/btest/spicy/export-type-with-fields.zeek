@@ -45,4 +45,3 @@ event zeek_init() {
     printFields("X3", foo::X3);
     printFields("X4", foo::X4);
 }
-

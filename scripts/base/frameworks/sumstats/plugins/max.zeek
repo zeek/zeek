@@ -36,5 +36,3 @@ hook compose_resultvals_hook(result: ResultVal, rv1: ResultVal, rv2: ResultVal)
 	else if ( rv2?$max )
 		result$max = rv2$max;
 	}
-
-

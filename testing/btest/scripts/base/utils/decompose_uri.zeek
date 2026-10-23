@@ -47,4 +47,3 @@ event zeek_init()
 	dc("https://[::1]:8080/wiki/Template:Welcome");
 	dc("https://[::1]:8080/wiki/Template:Welcome?key=:&value=:");
 	}
-

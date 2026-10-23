@@ -7,4 +7,3 @@
 
 # There shouldn't be a files log (no files!)
 # @TEST-EXEC: test ! -f files.log
-

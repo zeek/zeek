@@ -109,4 +109,3 @@ function drop_address(a: addr, t: interval, location: string &default="") : stri
 
 	return id;
 	}
-

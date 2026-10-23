@@ -73,4 +73,3 @@ event zeek_init()
 	outfile = open("../out");
 	Input::add_table([$reader=Input::READER_CONFIG, $source="../configfile", $name="configuration", $idx=Idx, $val=Val, $destination=currconfig, $want_record=F]);
 	}
-

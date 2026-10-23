@@ -1,3 +1,13 @@
+9.0.1-4 | 2026-11-11 14:59:44 -0700
+
+  * Fix all of the files with missing newlines (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 26380f203d4236575941c8e1ef16e543b11dd3a9)
+
+  * Add pre-commit to check for missing newlines at end of files (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 26380f203d4236575941c8e1ef16e543b11dd3a9)
+
 9.0.1-3 | 2026-11-11 14:46:12 -0700
 
   * Use shimmed version of cmake-format precommit for Python 3.15 (Tim Wojtulewicz, Corelight)

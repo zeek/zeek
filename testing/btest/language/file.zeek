@@ -16,4 +16,3 @@ event zeek_init()
 	print f2, "test", 123, 456;
 	close(f2);
 }
-

@@ -26,4 +26,3 @@ event zeek_init()
 	{
 	set_buf(profiling_file, F);
 	}
-

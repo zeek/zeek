@@ -18,4 +18,3 @@ signature dpd_rdpeudp_syn {
 	payload /^\xff{4}.{2}.{1}\x01/
 	enable "rdpeudp"
 }
-

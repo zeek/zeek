@@ -10,4 +10,3 @@ function switch_one(v: count): string
 		return "Count!";
 	}
 	}
-

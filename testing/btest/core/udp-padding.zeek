@@ -2,4 +2,3 @@
 
 # @TEST-EXEC: zeek -r $TRACES/fake-syslog-with-padding.pcap %INPUT >out
 # @TEST-EXEC: btest-diff syslog.log
-

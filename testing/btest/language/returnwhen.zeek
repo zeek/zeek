@@ -75,5 +75,3 @@ event zeek_init()
 		schedule 10msec { do_another() };
 		}
 	}
-
-

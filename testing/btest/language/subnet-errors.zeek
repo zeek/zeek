@@ -24,4 +24,3 @@ event zeek_init() &priority=-10
 	{
 	print "init last";
 	}
-

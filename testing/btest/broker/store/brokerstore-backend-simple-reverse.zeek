@@ -140,4 +140,3 @@ event Cluster::node_up(name: string, id: string)
 	schedule 0.1sec { check_all_set() };
 	}
 # @TEST-END-FILE
-

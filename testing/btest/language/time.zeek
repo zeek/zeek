@@ -31,4 +31,3 @@ event zeek_init()
 	test_case( "size operator", |t5| == 1234567890.0 );
 
 }
-

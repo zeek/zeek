@@ -48,8 +48,8 @@ repos:
       args: ["--fix"]
     - id: ruff-format
 
-- repo: https://github.com/cheshirekow/cmake-format-precommit
-  rev: v0.6.13
+- repo: https://github.com/aumuell/cmake-format-precommit
+  rev: b0e8f6d30cdc0da7e82dc8f0b560ccdc8c5852aa  # v0.6.13.py3-15
   hooks:
   - id: cmake-format
 

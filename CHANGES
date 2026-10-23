@@ -1,3 +1,9 @@
+9.1.0-dev.289 | 2026-10-23 09:52:16 -0700
+
+  * Use shimmed version of cmake-format precommit for Python 3.15 (Tim Wojtulewicz, Corelight)
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.1.0-dev.286 | 2026-10-22 14:42:27 -0700
 
   * NTLM: decode OEM strings as bytes, not UTF-16 (Gido822)

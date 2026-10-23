@@ -29,6 +29,8 @@ Packet Analyzers
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_IPTUNNEL PacketAnalyzer::Tag
 
+      .. zeek:enum:: PacketAnalyzer::ANALYZER_L2TP PacketAnalyzer::Tag
+
       .. zeek:enum:: PacketAnalyzer::ANALYZER_LINUXSLL PacketAnalyzer::Tag
 
       .. zeek:enum:: PacketAnalyzer::ANALYZER_LINUXSLL2 PacketAnalyzer::Tag
@@ -583,6 +585,18 @@ Components
 ++++++++++
 
 :zeek:enum:`PacketAnalyzer::ANALYZER_IPTUNNEL`
+
+.. _plugin-zeek-l2tp:
+
+Zeek::L2TP
+----------
+
+L2TP packet analyzer
+
+Components
+++++++++++
+
+:zeek:enum:`PacketAnalyzer::ANALYZER_L2TP`
 
 .. _plugin-zeek-linuxsll:
 

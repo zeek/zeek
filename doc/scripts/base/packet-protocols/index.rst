@@ -171,6 +171,12 @@ Package: base/packet-protocols
 :doc:`/scripts/base/packet-protocols/snap/main.zeek`
 
 
+:doc:`/scripts/base/packet-protocols/l2tp/__load__.zeek`
+
+
+:doc:`/scripts/base/packet-protocols/l2tp/main.zeek`
+
+
 :doc:`/scripts/base/packet-protocols/gre/__load__.zeek`
 
 

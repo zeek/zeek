@@ -78,6 +78,8 @@
    base/packet-protocols/novell_802_3/main.zeek </scripts/base/packet-protocols/novell_802_3/main.zeek>
    base/packet-protocols/snap/__load__.zeek </scripts/base/packet-protocols/snap/__load__.zeek>
    base/packet-protocols/snap/main.zeek </scripts/base/packet-protocols/snap/main.zeek>
+   base/packet-protocols/l2tp/__load__.zeek </scripts/base/packet-protocols/l2tp/__load__.zeek>
+   base/packet-protocols/l2tp/main.zeek </scripts/base/packet-protocols/l2tp/main.zeek>
    base/packet-protocols/gre/__load__.zeek </scripts/base/packet-protocols/gre/__load__.zeek>
    base/packet-protocols/gre/main.zeek </scripts/base/packet-protocols/gre/main.zeek>
    base/packet-protocols/iptunnel/__load__.zeek </scripts/base/packet-protocols/iptunnel/__load__.zeek>

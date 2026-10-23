@@ -255,6 +255,8 @@ Protocol Analyzers
 
       .. zeek:enum:: AllAnalyzers::ANALYZER_ANALYZER_KRB_TCP AllAnalyzers::Tag
 
+      .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_L2TP AllAnalyzers::Tag
+
       .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_LINUXSLL AllAnalyzers::Tag
 
       .. zeek:enum:: AllAnalyzers::PACKETANALYZER_ANALYZER_LINUXSLL2 AllAnalyzers::Tag

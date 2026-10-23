@@ -76,6 +76,9 @@
 :doc:`base/packet-protocols/snap </scripts/base/packet-protocols/snap/index>`
 
 
+:doc:`base/packet-protocols/l2tp </scripts/base/packet-protocols/l2tp/index>`
+
+
 :doc:`base/packet-protocols/gre </scripts/base/packet-protocols/gre/index>`
 
 

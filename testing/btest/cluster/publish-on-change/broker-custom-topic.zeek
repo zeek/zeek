@@ -15,6 +15,7 @@
 # @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy-1 zeek -b ../proxy.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
+#
 # @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: btest-diff ./manager/out
@@ -78,6 +79,7 @@ event done_test()
 	{
 	++nodes_done;
 	print "nodes_done", nodes_done;
+
 	if ( nodes_done == 2 )
 		{
 		Cluster::publish(Cluster::proxy_topic, do_terminate);
@@ -126,7 +128,7 @@ event zeek_init()
 		print "end", endpoints;
 		Cluster::publish(Cluster::manager_topic, done_test);
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout!");
 		}

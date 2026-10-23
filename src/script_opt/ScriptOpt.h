@@ -312,4 +312,37 @@ extern bool IsZAM_BuiltInCond(const CallExpr* c);
 // to a non-empty value.
 extern void (*CPP_init_hook)();
 
+// Coarse, env-gated phase timing for the script-optimization pipeline.
+//
+// Enabled by setting the environment variable ZEEK_ZAM_TIMING; otherwise all
+// of this is a no-op (modulo a single cached getenv()). When enabled, wall-clock
+// time and invocation counts are accumulated per named phase and a summary is
+// written to stderr at the end of analyze_scripts(). This is a diagnostic aid
+// for evaluating where ZAM compilation spends its time (e.g., to size the
+// potential benefit of caching compiled output across runs), not a user feature.
+extern bool zam_timing_active();
+
+// Add the given elapsed wall-clock time (in seconds) to the named phase bucket.
+extern void zam_timing_add(const char* phase, double seconds);
+
+// Write the accumulated per-phase timing summary to stderr and reset it.
+extern void zam_timing_report();
+
+// RAII helper that charges its lifetime's wall-clock time to the named phase.
+// Cheap and inert when timing is not active. The 'phase' string must outlive
+// the timer (use a string literal).
+class ZAMPhaseTimer {
+public:
+    explicit ZAMPhaseTimer(const char* phase);
+    ~ZAMPhaseTimer();
+
+    ZAMPhaseTimer(const ZAMPhaseTimer&) = delete;
+    ZAMPhaseTimer& operator=(const ZAMPhaseTimer&) = delete;
+
+private:
+    const char* phase;
+    double start = 0.0;
+    bool active = false;
+};
+
 } // namespace zeek::detail

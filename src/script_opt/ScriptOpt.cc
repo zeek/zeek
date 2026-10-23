@@ -2,7 +2,10 @@
 
 #include "zeek/script_opt/ScriptOpt.h"
 
+#include <chrono>
 #include <cmath>
+#include <cstdio>
+#include <map>
 
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
@@ -27,6 +30,69 @@ AnalyOpt analysis_options;
 std::unordered_set<const Func*> non_recursive_funcs;
 
 void (*CPP_init_hook)() = nullptr;
+
+// ---- Env-gated phase timing (see ScriptOpt.h) ---------------------------
+
+namespace {
+
+// Per-phase accumulators. std::map keeps the report in a stable, sorted order.
+std::map<std::string, std::pair<double, uint64_t>> zam_timing_buckets;
+
+double zam_now_secs() {
+    using namespace std::chrono;
+    return duration<double>(steady_clock::now().time_since_epoch()).count();
+}
+
+} // namespace
+
+bool zam_timing_active() {
+    static const bool active = getenv("ZEEK_ZAM_TIMING") != nullptr;
+    return active;
+}
+
+void zam_timing_add(const char* phase, double seconds) {
+    if ( ! zam_timing_active() )
+        return;
+    auto& e = zam_timing_buckets[phase];
+    e.first += seconds;
+    e.second += 1;
+}
+
+void zam_timing_report() {
+    if ( ! zam_timing_active() || zam_timing_buckets.empty() )
+        return;
+
+    // Phases whose name starts with '~' are sub-phases nested inside another
+    // phase; they are reported for detail but excluded from the total so they
+    // are not double-counted.
+    double total = 0.0;
+    for ( auto& [phase, e] : zam_timing_buckets )
+        if ( phase.empty() || phase[0] != '~' )
+            total += e.first;
+
+    fprintf(stderr, "# ZAM timing (ZEEK_ZAM_TIMING): phase seconds calls pct ('~' = sub-phase, not in total)\n");
+    for ( auto& [phase, e] : zam_timing_buckets ) {
+        double pct = total > 0.0 ? 100.0 * e.first / total : 0.0;
+        fprintf(stderr, "ZAM-timing %-20s %10.4f %8llu %6.1f%%\n", phase.c_str(), e.first,
+                static_cast<unsigned long long>(e.second), pct);
+    }
+    fprintf(stderr, "ZAM-timing %-20s %10.4f %8s\n", "TOTAL-of-phases", total, "");
+
+    zam_timing_buckets.clear();
+}
+
+ZAMPhaseTimer::ZAMPhaseTimer(const char* phase) : phase(phase) {
+    active = zam_timing_active();
+    if ( active )
+        start = zam_now_secs();
+}
+
+ZAMPhaseTimer::~ZAMPhaseTimer() {
+    if ( active )
+        zam_timing_add(phase, zam_now_secs() - start);
+}
+
+// -------------------------------------------------------------------------
 
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
@@ -244,7 +310,11 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
     push_existing_scope(scope);
 
     auto rc = std::make_shared<Reducer>(f, pf, pfs);
-    auto new_body = rc->Reduce(body);
+    StmtPtr new_body;
+    {
+        ZAMPhaseTimer t("reduce");
+        new_body = rc->Reduce(body);
+    }
 
     if ( reporter->Errors() > 0 ) {
         pop_scope();
@@ -254,7 +324,13 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
     non_reduced_perp = nullptr;
     checking_reduction = true;
 
-    if ( ! new_body->IsReduced(rc.get()) ) {
+    bool is_reduced;
+    {
+        ZAMPhaseTimer t("reduce-check");
+        is_reduced = new_body->IsReduced(rc.get());
+    }
+
+    if ( ! is_reduced ) {
         if ( non_reduced_perp )
             reporter->InternalError("Reduction inconsistency for %s: %s\n", f->GetName().c_str(),
                                     obj_desc(non_reduced_perp).c_str());
@@ -270,27 +346,46 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
     f->ReplaceBody(body, new_body);
     body = new_body;
 
-    if ( analysis_options.optimize_AST && ! optimize_AST(f, pf, rc, scope, body) ) {
-        pop_scope();
-        return;
+    if ( analysis_options.optimize_AST ) {
+        bool ok;
+        {
+            ZAMPhaseTimer t("optimize-AST");
+            ok = optimize_AST(f, pf, rc, scope, body);
+        }
+        if ( ! ok ) {
+            pop_scope();
+            return;
+        }
     }
 
     // Profile the new body.
-    pf = std::make_shared<ProfileFunc>(f.get(), body);
+    {
+        ZAMPhaseTimer t("reprofile");
+        pf = std::make_shared<ProfileFunc>(f.get(), body);
+    }
 
     // Compute its reaching definitions.
-    GenIDDefs ID_defs(pf, f, scope, body);
+    {
+        ZAMPhaseTimer t("genid-defs");
+        GenIDDefs ID_defs(pf, f, scope, body);
+    }
 
     rc->SetReadyToOptimize();
 
     auto ft = cast_intrusive<FuncType>(f->GetType());
     auto ud = std::make_shared<UseDefs>(body, rc, ft);
-    ud->Analyze();
+    {
+        ZAMPhaseTimer t("usedefs");
+        ud->Analyze();
+    }
 
     if ( analysis_options.dump_uds )
         ud->Dump();
 
-    new_body = ud->RemoveUnused();
+    {
+        ZAMPhaseTimer t("usedefs-remove");
+        new_body = ud->RemoveUnused();
+    }
 
     if ( analysis_options.dump_xform )
         printf("Post removal of unused: %s\n", obj_desc(new_body.get()).c_str());
@@ -308,7 +403,10 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
     if ( analysis_options.gen_ZAM_code ) {
         ZAMCompiler ZAM(f, pfs, pf, scope, new_body, ud, rc);
 
-        new_body = ZAM.CompileBody();
+        {
+            ZAMPhaseTimer t("zam-compile");
+            new_body = ZAM.CompileBody();
+        }
 
         if ( reporter->Errors() > 0 )
             return;
@@ -558,8 +656,10 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
-    if ( analysis_options.inliner )
+    if ( analysis_options.inliner ) {
+        ZAMPhaseTimer t("inline");
         inl = std::make_unique<Inliner>(funcs, report_recursive);
+    }
 
     if ( ! analysis_options.activate )
         // Some --optimize options stop short of AST transformations,
@@ -727,8 +827,15 @@ void analyze_scripts(bool no_unused_warnings) {
         exit(0);
     }
 
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
+    std::shared_ptr<ProfileFuncs> pfs;
+    {
+        ZAMPhaseTimer t("profile");
+        pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
+    }
+
     analyze_scripts_for_ZAM(pfs);
+
+    zam_timing_report();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

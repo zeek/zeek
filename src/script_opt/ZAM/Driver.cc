@@ -142,8 +142,12 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ComputeLoopLevels();
 
-    if ( ! analysis_options.no_ZAM_opt )
+    if ( ! analysis_options.no_ZAM_opt ) {
+        // Marked with a leading '~' as a sub-phase of "zam-compile"; excluded
+        // from the phase total so it is not double-counted.
+        ZAMPhaseTimer t("~zam-lowlevel-opt");
         OptimizeInsts();
+    }
 
     AdjustBranches();
 

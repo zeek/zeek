@@ -5,9 +5,10 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.1
 ==========
 
-Thank you to Eneshan Karaca (@BoxStrikesTeam), Dop (@dopheide-esnet), @Gido822, Aashish
-Sharma (@initconf), James Gurung (@jmass-ggg), Peter Cullen (@pbcullen), and Alexey
-Rubanik (@rubanik-alexei) for their contributions to this release.
+Thank you to Sergey Fedorov (@barracuda156), Eneshan Karaca (@BoxStrikesTeam), Dop
+(@dopheide-esnet), @Gido822, Aashish Sharma (@initconf), James Gurung (@jmass-ggg), Peter
+Cullen (@pbcullen), Alexey Rubanik (@rubanik-alexei), and Al Smith for their contributions
+to this release.
 
 This release fixes the following security issues:
 
@@ -32,6 +33,12 @@ This release fixes the following bugs:
 - The TLS DPD signatures now determine the correct originator/responder roles. This would
   previously misdetect them, resulting in the TLS analyzer not parsing connections
   correctly.
+
+- A regression in the DCE/RPC analyzer involving reassembling fragmented commands was
+  causing Zeek to not log some SMB sessions. This has been corrected. We also added some
+  fixes to the logic used for reassembly of such packets. A new
+  `unsupported_dce_rpc_reassembly_ptype` weird was added for when requests/responses are
+  received with the version set to 1 but with the fragmentation field set.
 
 Zeek 9.0.0
 ==========

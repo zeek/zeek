@@ -65,4 +65,3 @@ event zeek_init()
 	test_case( "subnet literal const whitespace",
 	           [::ffff:1.2.3.4]   /    92 == [::fffe:1.2.3.4]    /   92 );
 }
-

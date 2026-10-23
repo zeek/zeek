@@ -43,4 +43,3 @@ event zeek_init() &priority=5
 	SumStats::observe("test.metric", [$host=6.5.4.3], [$num=2]);
 	SumStats::observe("test.metric", [$host=7.2.1.5], [$num=1]);
 	}
-

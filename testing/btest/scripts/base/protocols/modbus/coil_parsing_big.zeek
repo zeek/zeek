@@ -46,4 +46,3 @@ event modbus_write_multiple_coils_response(c: connection, headers: ModbusHeaders
 {
     print "modbus_write_multiple_coils_response", c$id, headers, start_address, quantity;
 }
-

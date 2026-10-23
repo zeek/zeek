@@ -4,5 +4,3 @@
 # @TEST-EXEC: test ! -f weird.log
 
 @load base/protocols/smb
-
-

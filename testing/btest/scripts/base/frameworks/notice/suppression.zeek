@@ -21,4 +21,3 @@ event zeek_init()
 	NOTICE([$note=Test_Notice, $msg="test again", $identifier="static"]);
 	schedule 1msec { third_notice() };
 	}
-

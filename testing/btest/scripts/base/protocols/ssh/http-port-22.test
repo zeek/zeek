@@ -7,4 +7,3 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff analyzer_debug.log
 
 @load frameworks/analyzer/debug-logging.zeek
-

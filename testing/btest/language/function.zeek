@@ -71,4 +71,3 @@ event zeek_init()
 	f13 = f7;
 	test_case("reassign function variable", !f13("bar") );
 }
-

@@ -56,4 +56,3 @@ export {
 	## and interaction with the PRAGMA synchronous statement.
 	const journal_mode = SQLITE_JOURNAL_MODE_DEFAULT &redef;
 }
-

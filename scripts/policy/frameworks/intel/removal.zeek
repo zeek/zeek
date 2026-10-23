@@ -20,4 +20,3 @@ hook Intel::filter_item(item: Item)
 		break;
 		}
 	}
-

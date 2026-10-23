@@ -45,4 +45,3 @@ event zeek_init()
 	Config::set_value("my_table", table());
 	print my_table;
 	}
-

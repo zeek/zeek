@@ -2,4 +2,3 @@
 # @TEST-EXEC: btest-diff x509.log
 
 @load protocols/ssl/log-certs-base64
-

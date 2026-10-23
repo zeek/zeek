@@ -18,6 +18,3 @@ event connection_established(c: connection)
 	{
 	NOTICE([$note=Test_Notice, $conn=c, $msg="test", $identifier="static"]);
 	}
-
-
-

@@ -14,5 +14,3 @@ event zeek_init()
 	print "string" as count;
 	print "string" as X;
 	}
-
-

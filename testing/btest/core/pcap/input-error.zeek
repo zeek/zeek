@@ -11,5 +11,3 @@ event zeek_init()
 	if ( ! Pcap::precompile_pcap_filter(A, "kaputt, too") )
 		print "error", Pcap::error();
 	}
-
-

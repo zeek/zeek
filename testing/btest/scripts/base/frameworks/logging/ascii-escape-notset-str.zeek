@@ -19,5 +19,3 @@ event zeek_init()
 	Log::create_stream(Test::LOG, [$columns=Log]);
 	Log::write(Test::LOG, [$x=LogAscii::unset_field, $z=""]);
 }
-
-

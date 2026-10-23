@@ -74,4 +74,3 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	NetControl::delete_rule(r$id, "testing");
 	NetControl::catch_release_seen(r$entity$ip as addr);
 	}
-

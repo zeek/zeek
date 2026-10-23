@@ -80,4 +80,3 @@ event zeek_init()
 	print hll_cardinality_estimate(c3);
 
 	}
-

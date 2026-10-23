@@ -6,4 +6,3 @@ event tcp_packet(c: connection, is_orig: bool, flags: string, seq: count, ack: c
 	# Just having this handler used to crash Zeek on this trace.
 	print network_time(), c$id;
 	}
-

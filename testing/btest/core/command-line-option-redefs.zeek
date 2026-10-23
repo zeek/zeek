@@ -24,4 +24,3 @@ event zeek_init()
 	print "mytable", to_json(mytable);
 	print "MyMod::str", MyMod::str;
 	}
-

@@ -117,7 +117,7 @@ export {
 		## Which indicator types matched.
 		matched:  TypeSet        &log;
 		## Sources which supplied data that resulted in this match.
-		sources:  set[string]    &log &default=string_set();
+		sources:  set[string]    &log;
 	};
 
 	## Function to insert intelligence data. If the indicator is already
@@ -349,11 +349,31 @@ function find(s: Seen): bool
 		}
 	}
 
+# Compare subnets by prefix length (most specific first), then by address.
+function subnet_cmp(a: subnet, b: subnet): int
+	{
+	local wa = subnet_width(a);
+	local wb = subnet_width(b);
+	if ( wa > wb ) return -1;
+	if ( wa < wb ) return 1;
+	return strcmp(cat(a), cat(b));
+	}
+
+# Return the source keys of a MetaDataTable in sorted order.
+function sorted_sources(mt: MetaDataTable): vector of string
+	{
+	local keys: vector of string;
+	for ( src, _ in mt )
+		keys += src;
+	sort(keys, strcmp);
+	return keys;
+	}
+
 # Function to retrieve intelligence items while abstracting from different
 # data stores for different indicator types.
 function get_items(s: Seen): set[Item]
 	{
-	local return_data: set[Item];
+	local return_data: set[Item] &ordered;
 	local mt: MetaDataTable;
 
 	if ( ! have_full_data )
@@ -369,20 +389,21 @@ function get_items(s: Seen): set[Item]
 		if ( s$host in data_store$host_data )
 			{
 			mt = data_store$host_data[s$host];
-			for ( _, md in mt )
-				{
-				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=md)];
-				}
+			for ( _, src in sorted_sources(mt) )
+				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=mt[src])];
 			}
 		# See if the host is part of a known subnet, which has meta values
 		local nets: table[subnet] of MetaDataTable;
 		nets = filter_subnet_table(s$host as subnet, data_store$subnet_data);
-		for ( n, mt in nets )
+		local sorted_nets: vector of subnet;
+		for ( n, _ in nets )
+			sorted_nets += n;
+		sort(sorted_nets, subnet_cmp);
+		for ( _, n in sorted_nets )
 			{
-				for ( _, md in mt )
-					{
-					add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=md)];
-					}
+			mt = nets[n];
+			for ( _, src in sorted_sources(mt) )
+				add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=mt[src])];
 			}
 		}
 	else
@@ -392,10 +413,8 @@ function get_items(s: Seen): set[Item]
 		if ( [lower_indicator, s$indicator_type] in data_store$string_data )
 			{
 			mt = data_store$string_data[lower_indicator, s$indicator_type];
-			for ( m, md in mt )
-				{
-				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=md)];
-				}
+			for ( _, src in sorted_sources(mt) )
+				add return_data[Item($indicator=s$indicator, $indicator_type=s$indicator_type, $meta=mt[src])];
 			}
 		}
 
@@ -434,7 +453,9 @@ function Intel::seen(s: Seen)
 
 event Intel::match(s: Seen, items: set[Item]) &priority=5
 	{
-	local info = Info($ts=network_time(), $seen=s, $matched=TypeSet());
+	local matched: set[Type] &ordered;
+	local sources: set[string] &ordered;
+	local info = Info($ts=network_time(), $seen=s, $matched=matched, $sources=sources);
 
 	if ( hook extend_match(info, s, items) )
 		Log::write(Intel::LOG, info);

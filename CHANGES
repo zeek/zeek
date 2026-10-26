@@ -1,3 +1,14 @@
+9.1.0-dev.401 | 2026-10-26 12:42:30 -0700
+
+  * Modbus: Set limits on the number of devices and slaves in track-memmap policy (Tim Wojtulewicz, Corelight)
+
+    The track-memmap policy contains a table of devices, with each value being
+    a table of slave. Neither table type has any expiration on the entries and
+    there are no limits to their sizes. This allows them to grow unbounded.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
 9.1.0-dev.399 | 2026-10-26 12:42:03 -0700
 
   * DNP3: Additional test to verify the max_application_layer_fragment_size (Arne Welzel, Corelight)

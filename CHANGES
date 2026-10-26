@@ -1,3 +1,15 @@
+9.1.0-dev.356 | 2026-10-26 12:27:47 -0700
+
+  * RDP: Enforce limitations on channel counts/repeat initial connect attempts (Tim Wojtulewicz, Corelight)
+
+    The RDP analyzer allows up to 1000 channels for a client connection, which is
+    actually a violation of the protocol. Section 2.2.1.3 of MS-RDPBCGR states
+    that only 31 channels are allow. Additionally, only the first connect initial
+    request should be processed in a connection. Others are a violation. This adds
+    checks for both.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
 9.1.0-dev.354 | 2026-10-26 12:27:31 -0700
 
   * Websocket: Avoid caching unfinished continuation frames (Tim Wojtulewicz, Corelight)

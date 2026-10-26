@@ -36,7 +36,8 @@ type DT_Data = record {
 	tpdu_number:              uint8;
 	# multiple octet variant of the ASN.1 type field, should handle this better.
 	application_defined_type: uint8;
-	application_type:         uint8;
+	application_type:         uint8
+		&enforce(application_type != 0x65 || $context.connection.accept_client_connect_initial());
 
 	data: case application_type of {
 		0x65    -> client: Client_Header; # 0x65 is a client
@@ -241,7 +242,7 @@ type Client_Security_Data = record {
 } &byteorder=littleendian;
 
 type Client_Network_Data = record {
-	channel_count: uint32 &enforce(channel_count <= 1000);
+	channel_count: uint32 &enforce(channel_count <= 31);
 	channel_def_array: Client_Channel_Def[channel_count];
 } &byteorder=littleendian;
 
@@ -385,13 +386,24 @@ refine connection RDP_Conn += {
 
 	%member{
 		bool is_encrypted_;
+		bool client_connect_initial_seen_;
 		uint32 encryption_method_;
 	%}
 
 	%init{
 		is_encrypted_ = false;
+		client_connect_initial_seen_ = false;
 		encryption_method_ = 0;
 	%}
+
+	function accept_client_connect_initial(): bool
+		%{
+		if ( client_connect_initial_seen_ )
+			return false;
+
+		client_connect_initial_seen_ = true;
+		return true;
+		%}
 
 	function go_encrypted(method: uint32): bool
 		%{

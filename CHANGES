@@ -1,3 +1,23 @@
+9.1.0-dev.420 | 2026-10-26 12:58:11 -0700
+
+  * asn1: Remove unused array (Evan Typanski, Corelight)
+
+    The previous commit switched KRB to use its own array for its own use in
+    order to add a cap. This removes the old array. A new array should have
+    a cap of some sort if added back.
+
+  * krb: Limit `etype` array to avoid unbounded growth (Evan Typanski, Corelight)
+
+    Kerberos has specific elements that will go into its etype array, which
+    will never exceed certain sizes in real traffic. While this could be
+    capped, real traffic only has a limited set of encryption types, and
+    these will rarely repeat, if ever. So, we can simply cap these in the
+    parser. This means that the array will never grow beyond some
+    non-configurable cap.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
 9.1.0-dev.417 | 2026-10-26 12:57:52 -0700
 
   * mime: Apply header length limit in more cases (Evan Typanski, Corelight)

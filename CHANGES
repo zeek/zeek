@@ -1,3 +1,18 @@
+9.1.0-dev.433 | 2026-10-26 13:01:14 -0700
+
+  * Match IPv4 path with IPv6 when parsing packets (Evan Typanski, Corelight)
+
+    IPv6 already passed caplen, but IPv4 did not. This hardens the IPv4 case
+    without changing behavior in the happy path.
+
+  * Validate tunneled IPv4 header lengths (Evan Typanski, Corelight)
+
+    GTPv1 could end up reading past the end of a captured packet if
+    `gtpv1_g_pdu_packet` had a registered handler. This adds stricter checks
+    to ensure a malformed header won't cause an underflow in the IP layer.
+
+    Reported by David Korczynski at Adalogics in cooperation with Anthropic.
+
 9.1.0-dev.430 | 2026-10-26 12:58:42 -0700
 
   * script_opt/ZAM: Update ZBI.op for new __set_reassembly_buffer() signature (Arne Welzel, Corelight)

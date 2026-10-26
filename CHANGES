@@ -1,3 +1,40 @@
+9.1.0-dev.297 | 2026-10-26 08:11:05 -0700
+
+  * zip: Switch to weird in scriptland (Evan Typanski, Corelight)
+
+    Now that we have `Reporter::limit_reached_weird`, we can emit it in
+    scriptland as a policy, instead of by the analyzer.
+
+    The location in misc/ is a bit weird, but the ZIP analyzer is different
+    from the ZIP file analyzer, which we would otherwise have a small name
+    conflict with. This just avoids the question entirely, instead.
+
+  * zip: Add `zip_analyzer_stats` event (Evan Typanski, Corelight)
+
+    This came up because the ZIP analyzer (not file analyzer) is getting a
+    cap. It could be useful to have the number of input and output bytes.
+    Then, you can also get if the limit got exceeded.
+
+    Note that the output is NOT the total size, it's the amount forwarded.
+    If it hits the cap, then the cap will just be the output value.
+
+  * zip: Split max uncompressed limit based on parent (Evan Typanski, Corelight)
+
+    The ZIP module was taken by the file analyzer, since the supporting
+    analyzer doesn't have an associated script. So, it makes sense that the
+    parent analyzer controls the limit.
+
+  * zip: Fix unbounded decompression in ZIP analyzer (Evan Typanski, Corelight)
+
+    HTTP could trigger ZIP decompression with very few bytes. This could
+    explode into a massive amount of generated body data, which Zeek will
+    happily try to analyze.
+
+    Cap it and report a weird.
+
+    Report by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI (plus a patch). Modified by me and Claude.
+
 9.1.0-dev.292 | 2026-10-23 09:52:32 -0700
 
   * Fix all of the files with missing newlines (Tim Wojtulewicz, Corelight)

@@ -1097,6 +1097,7 @@
 ./zeek/analyzer/protocol/xmpp/xmpp.pac
 ./zeek/analyzer/protocol/zip
 ./zeek/analyzer/protocol/zip/ZIP.h
+./zeek/analyzer/protocol/zip/events.bif.h
 ./zeek/binpac-lib.pac
 ./zeek/binpac.pac
 ./zeek/binpac_zeek-lib.pac

@@ -819,6 +819,19 @@ export {
 	## the all lower-case value is used. If there's still no match Zeek
 	## uses dynamic protocol detection for the upgraded to protocol instead.
 	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+
+	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
+	## This applies to gzip content encoding. Set to 0 to disable the limit.
+	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
+}
+
+module IRC;
+
+export {
+	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
+	## This applies to compressed server-to-server links. Set to 0 to disable
+	## the limit.
+	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
 }
 
 module WebSocket;

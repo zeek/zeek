@@ -455,6 +455,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_ZIP.events.bif.zeek, <...>/Zeek_ZIP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./addrs, <...>/addrs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./api, <...>/api.zeek) -> -1
@@ -782,6 +783,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ZIP.events.bif.zeek, <...>/Zeek_ZIP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./addrs, <...>/addrs.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./api, <...>/api.zeek) -> (-1, <no content>)
@@ -1431,6 +1433,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_ZIP.events.bif.zeek, <...>/Zeek_ZIP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./api, <...>/api.zeek)
@@ -1758,6 +1761,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ZIP.events.bif.zeek, <...>/Zeek_ZIP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./addrs, <...>/addrs.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./api, <...>/api.zeek)
@@ -2406,6 +2410,7 @@
 0.000000 | HookLoadFile  ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_ZIP.events.bif.zeek <...>/Zeek_ZIP.events.bif.zeek
 0.000000 | HookLoadFile  ./addrs <...>/addrs.zeek
 0.000000 | HookLoadFile  ./analyzer.bif.zeek <...>/analyzer.bif.zeek
 0.000000 | HookLoadFile  ./api <...>/api.zeek
@@ -2733,6 +2738,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_ZIP.events.bif.zeek <...>/Zeek_ZIP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./addrs <...>/addrs.zeek
 0.000000 | HookLoadFileExtended ./analyzer.bif.zeek <...>/analyzer.bif.zeek
 0.000000 | HookLoadFileExtended ./api <...>/api.zeek

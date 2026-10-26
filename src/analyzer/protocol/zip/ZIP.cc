@@ -2,10 +2,15 @@
 
 #include "zeek/analyzer/protocol/zip/ZIP.h"
 
+#include <algorithm>
+#include <cinttypes>
+
+#include "zeek/analyzer/protocol/zip/events.bif.h"
+
 namespace zeek::analyzer::zip {
 
-ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
-    : analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig) {
+ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, bool orig, Method arg_method)
+    : analyzer::tcp::TCP_SupportAnalyzer("ZIP", conn, orig), max_uncompressed_size(max_uncompressed_size) {
     zip = nullptr;
     zip_status = Z_OK;
     method = arg_method;
@@ -33,8 +38,38 @@ ZIP_Analyzer::~ZIP_Analyzer() { delete zip; }
 void ZIP_Analyzer::Done() {
     Analyzer::Done();
 
-    if ( zip )
+    if ( zip ) {
+        // Only trigger if we have data and the limit wasn't exceeded (meaning we already triggered the event).
+        if ( zip->total_in > 0 && ! limit_exceeded )
+            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, false);
         inflateEnd(zip);
+    }
+}
+
+bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
+    if ( len == 0 )
+        return true;
+
+    if ( max_uncompressed_size == 0 ) {
+        uncompressed_size += len;
+        ForwardStream(static_cast<int>(len), data, IsOrig());
+        return true;
+    }
+
+    const auto remaining = max_uncompressed_size > uncompressed_size ? max_uncompressed_size - uncompressed_size : 0;
+    const auto forward_len = std::min(len, remaining);
+    if ( forward_len > 0 ) {
+        uncompressed_size += forward_len;
+        ForwardStream(static_cast<int>(forward_len), data, IsOrig());
+    }
+
+    if ( forward_len == len )
+        return true;
+
+    zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, true);
+    limit_exceeded = true;
+    zip_status = Z_MEM_ERROR;
+    return false;
 }
 
 void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
@@ -63,9 +98,9 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         if ( zip_status == Z_STREAM_END || zip_status == Z_OK ) {
             allow_restart = 0;
 
-            int have = unzip_size - zip->avail_out;
-            if ( have )
-                ForwardStream(have, unzipbuf.get(), IsOrig());
+            uint64_t have = unzip_size - zip->avail_out;
+            if ( ! ForwardDecompressed(have, unzipbuf.get()) )
+                return;
 
             if ( zip_status == Z_STREAM_END ) {
                 inflateEnd(zip);

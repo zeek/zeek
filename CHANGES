@@ -1,3 +1,15 @@
+9.1.0-dev.381 | 2026-10-26 12:39:55 -0700
+
+  * BitTorrentTracker: Use IntrusivePtr to fix memory leak without handlers (Arne Welzel, Corelight)
+
+    When no bt_tracker_request() or bt_tracker_response() events are
+    implemented, raw pointers to the values usually used for the events were
+    reset without freeing the underlying memory.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator script provided by them, adapted to use Scapy
+    using Opus 4.8. Patch reworked by me to switch to IntrusivePtr wholesale.
+
 9.1.0-dev.379 | 2026-10-26 12:39:39 -0700
 
   * SMB: Limit size of internal tree_is_pipe_map (Arne Welzel, Corelight)

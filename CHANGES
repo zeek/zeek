@@ -1,3 +1,7 @@
+9.1.0-dev.310 | 2026-10-26 11:28:56 -0700
+
+  * SOCKS: Enforce maximum depth of SOCKS tunnels (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.308 | 2026-10-26 11:28:36 -0700
 
   * Rewrite LDAP SearchFilter handling to not be quadratic-time (Tim Wojtulewicz, Corelight)

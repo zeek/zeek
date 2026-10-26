@@ -1,3 +1,26 @@
+9.1.0-dev.321 | 2026-10-26 11:30:50 -0700
+
+  * testing/scripts: Remove drive letter via diff-remove-spicy-abspath (Arne Welzel, Corelight)
+
+    Pattern copied from diff-remove-abspath.
+
+  * QUIC: Reject crypto frames extending beyond offset 16640 (Arne Welzel, Corelight)
+
+    The QUIC analyzer would accumulate crypto frame data for reassembly via
+    a Spicy sink and accept offsets much larger than the maximum 2**14 + 256 byte
+    defined by the TLS record layer. This allows contructed QUIC initial packets
+    to cause unbounded memory growth by continuously sending sparse crypto frames.
+
+    Raise an analyzer violation when crypto frames extending beyond
+    2**14 + 256 are observed.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch provided by them and taken as proposed. Generated with
+    GPT-5.6 sol. Adapted the PCAP generator script to only create a few out-of-range
+    crypto frames and added a test for the new analyzer violation.
+
+    Also reported by the Communications Security Establishment, CSE.
+
 9.1.0-dev.318 | 2026-10-26 11:30:32 -0700
 
   * Fix TCP reassembly to more cleanly handle overlapping blocks (Tim Wojtulewicz, Corelight)

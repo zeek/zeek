@@ -9,6 +9,8 @@ import zeek;
 global max_discarded_packet_events: optional<int64>;
 global short_header_packet_threshold_base = 2;
 
+const MAX_CRYPTO_DATA_SIZE: uint64 = 2**14 + 256; # 16640 bytes
+
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(version: uint32, data: bytes, connection_id: bytes, encrypted_offset: uint64, payload_offset: uint64, from_client: bool): bytes &cxxname="QUIC_decrypt_crypto_payload";
 
@@ -71,7 +73,7 @@ type CryptoSinkUnit = unit(is_orig: bool, context: Context&) {
         self.buffered += $$[2];
     }
 
-    : void &requires=(self.length <= 2**14 + 256) {
+    : void &requires=(self.length <= MAX_CRYPTO_DATA_SIZE) {
         # The length MUST NOT exceed 2^14 + 256 bytes (RFC 8446)
 
         # The client or server hello data is forwarded to the SSL analyzer as a
@@ -348,16 +350,9 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto: Cr
             crypto_sink.write(self.c.cryptodata, self.c.offset.result_);
 
             # If the crypto unit has determined a valid length, ensure we
-            # don't attempt to write more bytes into the sink. If it doesn't,
-            # use 2000 bytes as an arbitrary limit required to observe the
-            # length of the contained Client Hello or Server Hello.
-            if (crypto.length > 0) {
-                if (|crypto_sink| > crypto.length)
-                    throw "too much crypto data received %s > %s" % (|crypto_sink|, crypto.length);
-            } else {
-                if (|crypto_sink| > 2000)
-                    throw "too much crypto data without length received %s" % |crypto_sink|;
-            }
+            # don't attempt to write more bytes into the sink.
+            if (crypto.length > 0 && |crypto_sink| > crypto.length)
+                throw "too much crypto data received %s > %s" % (|crypto_sink|, crypto.length);
         }
         FrameType::CONNECTION_CLOSE1 -> : ConnectionClosePayload(header);
         FrameType::PADDING -> : skip /\x00*/; # eat the padding
@@ -370,7 +365,11 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto: Cr
 
 type CRYPTOPayload = unit(from_client: bool) {
     offset: VariableLengthInteger;
-    length: VariableLengthInteger;
+    length: VariableLengthInteger {
+        local range_end = self.offset.result_ + self.length.result_;
+        if (self.length.result_ > 0 && range_end > MAX_CRYPTO_DATA_SIZE)
+            throw "CRYPTO frame exceeds maximum range: offset=%s length=%s (%s > %s)" % (self.offset.result_, self.length.result_, range_end, MAX_CRYPTO_DATA_SIZE);
+    }
     cryptodata: bytes &size=self.length.result_;
 };
 

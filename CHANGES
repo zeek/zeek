@@ -1,3 +1,39 @@
+9.1.0-dev.341 | 2026-10-26 12:11:16 -0700
+
+  * zeek-setup: Move EventMgr/TimerMgr InitPostScript() earlier (Arne Welzel, Corelight)
+
+    This is mostly because plugin_mgr->InitPostScript() may start enqueuing
+    events (Spicy does that for port registrations), so make sure the
+    initialization ran on the EventMgr before. Move the TimerMgr with it
+    mostly because that seems sensible.
+
+  * Event: Add max_event_queue_size limit and some metrics (Arne Welzel, Corelight)
+
+    This commit adds a new knob to control the maximum size of Zeek's event queue
+    before draining pending events. Previously, the queue would grow unbounded.
+    The main motivation is to cap event queue memory growth in scenarios where
+    timers, analyzers or cluster logic creates very many events at once.
+
+    Specifically, a reassembly gap can result in an analyzer processing multiple
+    megabytes of input data at once and depending on its logic enqueue hundreds
+    of thousands of events. For these scenarios, Zeek will now drain events
+    intermittently before continuing to process more input data.
+
+    The queue size limit is not enforced during script event execution itself
+    and therefore applies only to events created by analyzers, timers or cluster
+    messages.
+
+    A new metric, zeek_event_queue_overflow_drains_total, tracks the number
+    of times the maximum queue size was reached and Zeek started an intermittent
+    event drain. Additionally, a new weird event_queue_overflow_drain is generated
+    when this happens. Further, the num_events_queued and num_events_dispatched
+    are now exposed via the metrics zeek_events_queued_total and
+    zeek_events_dispatched_total.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator script provided by them, but adapted to use Scapy
+    API and drop in_order functionality using Opus 4.8 locally.
+
 9.1.0-dev.338 | 2026-10-26 11:53:05 -0700
 
   * OCSP/X509: Set limits to the maximum string size when reading data (Tim Wojtulewicz, Corelight)

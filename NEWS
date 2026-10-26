@@ -68,6 +68,16 @@ Changed Functionality
 - Setting the delay queue size of a logging stream to zero now sets the queue size
   to unbounded. Previously, setting the queue to zero could trigger a crash.
 
+- Zeek may now intermittently drain its event queue when it grows to more than
+  ``max_event_queue_size`` (default 2000) events. When this happens, a new weird
+  called ``event_queue_overflow_drain`` is raised and the
+  ``zeek_event_queue_overflow_drains_total`` metric is incremented.
+  The motivation for this change in behavior is to prevent unbounded event
+  queue and memory growth during protocol parsing.
+
+  This change may subtly change analyzer event raising and event execution behavior
+  in scenarios where previously the queue would grow larger than the configured limit.
+
 Deprecated Functionality
 ------------------------
 

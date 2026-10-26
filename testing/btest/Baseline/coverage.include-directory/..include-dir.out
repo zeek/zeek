@@ -864,6 +864,7 @@
 ./zeek/analyzer/protocol/mqtt/types.bif.h
 ./zeek/analyzer/protocol/mysql
 ./zeek/analyzer/protocol/mysql/MySQL.h
+./zeek/analyzer/protocol/mysql/consts.bif.h
 ./zeek/analyzer/protocol/mysql/events.bif.h
 ./zeek/analyzer/protocol/mysql/mysql-analyzer.pac
 ./zeek/analyzer/protocol/mysql/mysql-protocol.pac

@@ -1,3 +1,16 @@
+9.1.0-dev.316 | 2026-10-26 11:29:52 -0700
+
+  * mysql: Treat too many query attributes in COM_QUERY as violation (Arne Welzel, Corelight)
+
+    Instead of accepting and parsing as many attributes as the the parsed
+    LengthEncodedInteger specifies, use &enforce to cap at a configurable limit.
+    Making it configurable allows to re-use existing PCAPs for testing
+    rather than needing to generate a new one. This also prevents a signed
+    int overflow when the attributes count is INT_MAX.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Also reported by the Communications Security Establishment, CSE.
+
 9.1.0-dev.314 | 2026-10-26 11:29:30 -0700
 
   * HTTP: Defer ZIP teardown to avoid a UAF (Evan Typanski, Corelight)

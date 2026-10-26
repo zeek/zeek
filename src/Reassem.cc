@@ -128,52 +128,50 @@ DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper,
             it = block_map.begin();
     }
 
-    while ( std::next(it) != block_map.end() && it->second.upper <= seq )
-        ++it;
+    // Keeps an inserted prefix as the return value, or end() if no prefix was inserted.
+    DataBlockMap::const_iterator rval = block_map.end();
 
-    const auto& b = it->second;
+    while ( true ) {
+        while ( std::next(it) != block_map.end() && it->second.upper <= seq )
+            ++it;
 
-    if ( b.upper <= seq )
-        // b is the last block, and it comes completely before the new block.
-        return Insert(seq, upper, data, block_map.end());
+        const auto& b = it->second;
 
-    if ( upper <= b.seq )
-        // The new block comes completely before b.
-        return Insert(seq, upper, data, it);
+        if ( b.upper <= seq ) {
+            // b is the last block, and it comes completely before the new block.
+            auto inserted = Insert(seq, upper, data, block_map.end());
+            return rval == block_map.end() ? inserted : rval;
+        }
 
-    DataBlockMap::const_iterator rval;
+        if ( upper <= b.seq ) {
+            // The new block comes completely before b.
+            auto inserted = Insert(seq, upper, data, it);
+            return rval == block_map.end() ? inserted : rval;
+        }
 
-    // The blocks overlap.
-    if ( seq < b.seq ) {
-        // The new block has a prefix that comes before b.
-        uint64_t prefix_len = b.seq - seq;
+        // The blocks overlap.
+        if ( seq < b.seq ) {
+            // The new block has a prefix that comes before b.
+            uint64_t prefix_len = b.seq - seq;
+            auto inserted = Insert(seq, seq + prefix_len, data, it);
 
-        rval = Insert(seq, seq + prefix_len, data, it);
+            if ( rval == block_map.end() )
+                rval = inserted;
 
-        data += prefix_len;
-        seq += prefix_len;
-    }
-    else
-        rval = it;
+            data += prefix_len;
+            seq += prefix_len;
+        }
 
-    uint64_t overlap_start = seq;
-    uint64_t overlap_offset = overlap_start - b.seq;
-    uint64_t new_b_len = upper - seq;
-    uint64_t b_len = b.upper - overlap_start;
-    uint64_t overlap_len = min(new_b_len, b_len);
+        uint64_t new_b_len = upper - seq;
+        uint64_t b_len = b.upper - seq;
+        uint64_t overlap_len = min(new_b_len, b_len);
 
-    if ( overlap_len < new_b_len ) {
-        // Recurse to resolve remainder of the new data.
+        if ( overlap_len == new_b_len )
+            return rval == block_map.end() ? it : rval;
+
         data += overlap_len;
         seq += overlap_len;
-
-        auto r = Insert(seq, upper, data, &it);
-
-        if ( rval == it )
-            rval = r;
     }
-
-    return rval;
 }
 
 uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list) {

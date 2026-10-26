@@ -1,3 +1,15 @@
+9.1.0-dev.318 | 2026-10-26 11:30:32 -0700
+
+  * Fix TCP reassembly to more cleanly handle overlapping blocks (Tim Wojtulewicz, Corelight)
+
+    This removes the recursive algorithm from the TCP reassembler in favor
+    of an iterative one when handling overlapping blocks. This prevents a
+    potential stack overflow when encountering a large set of overlaps. This
+    not only fixes the crash, but runs much faster.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
 9.1.0-dev.316 | 2026-10-26 11:29:52 -0700
 
   * mysql: Treat too many query attributes in COM_QUERY as violation (Arne Welzel, Corelight)

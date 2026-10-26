@@ -1,3 +1,13 @@
+9.1.0-dev.345 | 2026-10-26 12:11:54 -0700
+
+  * DNS: Skip over data in WKS RRs (Tim Wojtulewicz, Corelight)
+
+    WKS has been deprecated for a few decades now and shouldn't be used
+    anymore. Zeek wasn't properly skipping over the data and was hiding
+    any other RRs that came after one.
+
+    Reported by Pavan Nallamothu.
+
 9.1.0-dev.343 | 2026-10-26 12:11:38 -0700
 
   * KRB: Limit the number of PA_Data segments in a connection (Tim Wojtulewicz, Corelight)

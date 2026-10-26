@@ -1628,14 +1628,16 @@ bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg, const u_char*& data
 }
 
 bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength) {
-    if ( ! dns_WKS_reply || msg->skip_event ) {
-        data += rdlength;
-        len -= rdlength;
-        return true;
-    }
+    // WKS was deprecated in RFC1123 and there is a note in RFC1912 that says it should
+    // not be used. We skip over the data entirely here and ignore it. An event is still
+    // sent, but it doesn't include any data.
+    data += rdlength;
+    len -= rdlength;
 
-    // TODO: Pass the ports as parameters to the event
-    analyzer->EnqueueConnEvent(dns_WKS_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal());
+    if ( dns_WKS_reply && ! msg->skip_event ) {
+        // TODO: Pass the ports as parameters to the event
+        analyzer->EnqueueConnEvent(dns_WKS_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal());
+    }
 
     // TODO: Return a status which reflects if the port parameters were successfully parsed
     return true;

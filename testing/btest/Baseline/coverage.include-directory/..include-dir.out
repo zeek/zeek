@@ -1187,6 +1187,7 @@
 ./zeek/file_analysis/analyzer/x509/OCSP.h
 ./zeek/file_analysis/analyzer/x509/X509.h
 ./zeek/file_analysis/analyzer/x509/X509Common.h
+./zeek/file_analysis/analyzer/x509/consts.bif.h
 ./zeek/file_analysis/analyzer/x509/events.bif.h
 ./zeek/file_analysis/analyzer/x509/functions.bif.h
 ./zeek/file_analysis/analyzer/x509/ocsp_events.bif.h

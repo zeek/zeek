@@ -1,3 +1,13 @@
+9.1.0-dev.338 | 2026-10-26 11:53:05 -0700
+
+  * OCSP/X509: Set limits to the maximum string size when reading data (Tim Wojtulewicz, Corelight)
+
+    The OCSP and X509 analyzers both load data into a std::string without
+    any limitation to the maximum size. This adds new constants to limit
+    the sizes as well as weirds for violations.
+
+    Found by the Canadian Communications Security Establishment.
+
 9.1.0-dev.336 | 2026-10-26 11:52:43 -0700
 
   * Make MAX_RPC_LEN into a script-level constant (Tim Wojtulewicz, Corelight)

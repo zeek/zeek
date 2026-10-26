@@ -1,3 +1,9 @@
+9.1.0-dev.333 | 2026-10-26 11:52:19 -0700
+
+  * MQTT: Enforce limits to the number of outstanding subscription and topics per sub (Tim Wojtulewicz, Corelight)
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
 9.1.0-dev.331 | 2026-10-26 11:38:46 -0700
 
   * KRB: Constrain parsing of AS-REQ packets (Tim Wojtulewicz, Corelight)

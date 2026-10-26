@@ -6299,6 +6299,10 @@ export {
 	## payload information in :zeek:see:`mqtt_publish` events (and the
 	## default MQTT logs generated from that).
 	option max_payload_size = 100;
+
+	## The maximum number of topics to parse from one MQTT SUBSCRIBE or
+	## UNSUBSCRIBE message. A value of zero removes the limit.
+	const max_topics_per_subscription: count = 1024 &redef;
 }
 
 module Gnutella;

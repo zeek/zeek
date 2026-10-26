@@ -1,3 +1,22 @@
+9.1.0-dev.413 | 2026-10-26 12:56:24 -0700
+
+  * HTTP: Handle all values from transfer-encoding headers (Tim Wojtulewicz, Corelight)
+
+    The HTTP analyzer only handles the first value from a multi-part
+    transfer-encoding header, which results in it potentially missing
+    data in the case of 'gzip,chunked'.
+
+    Co-Authored-By: Arne Welzel <arne.welzel@corelight.com>
+
+  * MIME: Add MIME_get_list_value() helper (Arne Welzel, Corelight)
+
+    This parses Transfer-Encoding values using the data_chunk_t data type
+    as std::string_view replacement to align with the existing MIME.cc code
+    a bit better.
+
+    Initial version and tests by me, then iterated with Claude Sonnet 5.5
+    to make it actually nice. I didn't have the more flag initially.
+
 9.1.0-dev.410 | 2026-10-26 12:56:00 -0700
 
   * TCP: Add limit to the number of reassembly blocks (Tim Wojtulewicz, Corelight)

@@ -291,6 +291,7 @@ extern int MIME_get_token(int len, const char* data, data_chunk_t* token, bool i
 extern int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second);
 extern int MIME_get_value(int len, const char* data, String*& buf, bool is_boundary = false);
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
+extern int MIME_get_list_value(int len, const char* data, data_chunk_t* token, bool& more);
 extern String* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } // namespace analyzer::mime

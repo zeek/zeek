@@ -14,6 +14,8 @@
 #include "zeek/digest.h"
 #include "zeek/file_analysis/Manager.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 // Here are a few things to do:
 //
 // 1. Add a Zeek internal function 'stop_deliver_data_of_entity' so
@@ -259,6 +261,29 @@ int MIME_get_token(int len, const char* data, data_chunk_t* token, bool is_bound
     }
 
     return -1;
+}
+
+// Sets more = true if the caller should continue extracting data.
+int MIME_get_list_value(int len, const char* data, data_chunk_t* token, bool& more) {
+    int j = 0;
+    while ( j < len && data[j] != ',' )
+        ++j;
+
+    more = j < len;
+
+    int start = 0;
+    int end = j;
+
+    while ( start < end && is_lws(data[start]) )
+        ++start;
+
+    while ( end > start && is_lws(data[end - 1]) )
+        --end;
+
+    token->data = data + start;
+    token->length = end - start;
+
+    return more ? j + 1 : len;
 }
 
 int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second) {
@@ -1408,3 +1433,194 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail) {
 }
 
 } // namespace zeek::analyzer::mime
+
+TEST_SUITE_BEGIN("MIME");
+
+using zeek::analyzer::mime::MIME_get_list_value;
+
+TEST_CASE("get_list_value") {
+    std::vector<std::string> expected;
+    auto parse = [](std::string_view sv) -> std::vector<std::string> {
+        int len = static_cast<int>(sv.size());
+        const char* data = sv.data();
+        zeek::data_chunk_t chunk;
+
+        std::vector<std::string> result;
+
+        bool more = true;
+        while ( more ) {
+            int consumed = MIME_get_list_value(len, data, &chunk, more);
+            std::string value = {chunk.data, static_cast<size_t>(chunk.length)};
+            result.push_back(std::move(value));
+
+            len -= consumed;
+            data += consumed;
+        }
+
+        return result;
+    };
+
+    SUBCASE("empty") { // feeding empty is at least one entry!
+        auto values = parse("");
+        expected = {""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("empty-space") { // feeding empty is at least one entry!
+        auto values = parse(" ");
+        expected = {""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-comma") {
+        auto values = parse(",");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-comma-space") {
+        auto values = parse(", ");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-space-comma") {
+        auto values = parse(" ,");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-space-comma-space") {
+        auto values = parse(" , ");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple") {
+        auto values = parse("chunked");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple fronting") {
+        auto values = parse(" chunked");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple trailing") {
+        auto values = parse("chunked ");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("strange fronting comma") {
+        auto values = parse("  ,  chunked");
+        expected = {"", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-1") {
+        auto values = parse("gzip, chunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-no-space") {
+        auto values = parse("gzip,chunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-no-comma") {
+        auto values = parse("gzip chunked");
+        expected = {"gzip chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("deflate-gzip-chunked-no-comma") {
+        auto values = parse("deflate,gzip chunked");
+        expected = {"deflate", "gzip chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma") {
+        auto values = parse("gzip,");
+        expected = {"gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma-space") {
+        auto values = parse("gzip, ");
+        expected = {"gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma-comma-space") {
+        auto values = parse("gzip,, ");
+        expected = {"gzip", "", ""};
+
+        CHECK_EQ(values, expected);
+    }
+    SUBCASE("trailing-comma-space-comma-space") {
+        auto values = parse("gzip, , ");
+        expected = {"gzip", "", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting") {
+        auto values = parse(",gzip");
+        expected = {"", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting-space-comma") {
+        auto values = parse(" ,gzip");
+        expected = {"", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting-space-comma-space-comma") {
+        auto values = parse(" , , gzip");
+        expected = {"", "", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-fronting") {
+        auto values = parse(",gzip,");
+        expected = {"", "gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("tabs") {
+        auto values = parse("gzip,\tchunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+}
+TEST_SUITE_END();

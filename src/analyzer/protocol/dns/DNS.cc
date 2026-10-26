@@ -2267,17 +2267,14 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig, detail::DNS_Interpreter*
     : analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig) {
     interp = arg_interp;
 
-    msg_buf = nullptr;
-    buf_n = buf_len = msg_size = 0;
+    msg_size = 0;
     state = detail::DNS_LEN_HI;
 }
 
-Contents_DNS::~Contents_DNS() { free(msg_buf); }
-
 void Contents_DNS::Flush() {
-    if ( buf_n > 0 ) { // Deliver partial message.
+    if ( ! msg_buf.empty() ) { // Deliver partial message.
         // '2' here means whether it's a query is unknown.
-        interp->ParseMessage(msg_buf, buf_n, 2);
+        interp->ParseMessage(msg_buf.data(), static_cast<int>(msg_buf.size()), 2);
         msg_size = 0;
     }
 }
@@ -2303,21 +2300,15 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         msg_size += *data;
         state = detail::DNS_MESSAGE_BUFFER;
 
-        buf_n = 0;
-
-        if ( msg_buf ) {
-            if ( buf_len < msg_size ) {
-                buf_len = msg_size;
-                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc(reinterpret_cast<void*>(msg_buf), buf_len));
-            }
-        }
-        else {
-            buf_len = msg_size;
-            msg_buf = reinterpret_cast<u_char*>(util::safe_malloc(buf_len));
-        }
-
         ++data;
         --len;
+
+        // Pre-allocate small messages fully and
+        // rely on quadratic vector reallocation
+        // for larger messages. This is done instead
+        // of the full allocation as these may be
+        // spoofed and never arrive.
+        msg_buf.reserve(std::min<size_t>(32, msg_size));
 
         if ( len == 0 )
             return;
@@ -2327,19 +2318,19 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         Conn()->Internal("state inconsistency in Contents_DNS::DeliverStream");
 
     int n;
-    for ( n = 0; buf_n < msg_size && n < len; ++n )
-        msg_buf[buf_n++] = data[n];
+    for ( n = 0; msg_buf.size() < msg_size && n < len; ++n )
+        msg_buf.push_back(data[n]);
 
     data += n;
     len -= n;
 
-    if ( buf_n < msg_size )
+    if ( msg_buf.size() < msg_size )
         // Haven't filled up the message buffer yet, no more to do.
         return;
 
-    ForwardPacket(msg_size, msg_buf, orig, -1, nullptr, 0);
+    ForwardPacket(static_cast<int>(msg_size), msg_buf.data(), orig, -1, nullptr, 0);
 
-    buf_n = 0;
+    msg_buf = {}; // Release buffer
     state = detail::DNS_LEN_HI;
 }
 

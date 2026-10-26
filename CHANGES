@@ -1,3 +1,16 @@
+9.1.0-dev.383 | 2026-10-26 12:40:12 -0700
+
+  * DNS/Contents_DNS: Switch msg_buf to std::vector and allocate lazily (Arne Welzel, Corelight)
+
+    Instead of allocating as many bytes at once, await the data. Also
+    rework the manual state tracking. msg_size and msg_buf can never
+    be larger than uint16_t and so the int cast into ForwardPacket()
+    and ParseMessage() should be valid,
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch by me, switching to std::vector rather than keeping
+    the manal memory management around.
+
 9.1.0-dev.381 | 2026-10-26 12:39:55 -0700
 
   * BitTorrentTracker: Use IntrusivePtr to fix memory leak without handlers (Arne Welzel, Corelight)

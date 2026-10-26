@@ -1,3 +1,71 @@
+9.1.0-dev.370 | 2026-10-26 12:34:36 -0700
+
+  * smb: Cap smb_state$tid_map from unbounded growth (Arne Welzel, Corelight)
+
+    Introduce a new max_tid_map_size variable and use it in the smb1 and
+    smb2 code paths. If the tid_map exceeds that limit, raise a new
+    SMB_max_tid_map_size_reached weird.
+
+    Rework the smb2 script to fix the unbounded state growth when a pending
+    command already had a referenced_tree set. Also raise a weird when a new tree_id
+    is observed in a header for a non TREE_CONNECT command. The weird is named
+    SMB_new_tid_non_tree_connect_cmd.
+
+    Found internally via GPT 5.5 (Codex). Generators adapted with Claude Opus 4.8
+    and Sonnet 5.5 and review done with these.
+
+  * smb: Cap SMB::State$fid_map to configurable limit (Arne Welzel, Corelight)
+
+    Found via GPT 5.5 (Codex) internally. Generator script adapted using
+    Claude Opus 4.8. Patch by me. This changes SMB::set_current_file() to
+    take c: connection such that Reporter::limit_reached_weird() can
+    be used. Technically it's an API change, but the function comment
+    says internal.
+
+  * smb: Use SMB::set_current_file() (Arne Welzel, Corelight)
+
+    The code around handling referenced_file, fid_map and current_file
+    seems to be doable via SMB::set_current_file() only. This looks like
+    leftovers.
+
+    Claude Opus 4.8 says there's a behavior change when a FID is re-used,
+    but that was probably never considered anyhow.
+
+  * smb: Also clear tid_map during smb2_discarded_messages_state() (Arne Welzel, Corelight)
+
+    Within the parser, message_id to tree_id is tracked via
+    the smb2_request_tree_id map and smb2_discarded_messages_state() raised
+    when it grows too large. Reset the tid_map as well in that case. It was
+    commented out for the wrong reason.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration
+    with OpenAI. PCAP generator adapted with Claude Opus 4.8. Test and patch
+    by me, but as suggested in the report.
+
+  * smb: Drop redef of FileInfo to add uuid field (Arne Welzel, Corelight)
+
+    Mohan Dhawan points out that the uuid field is never written to by
+    anything (and after removing pipe_map in a prior commit not read
+    anymore either), so just drop it. Any prior users of this field may
+    add it themselves.
+
+  * smb: Remove pipe_map from SMB::State (Arne Welzel, Corelight)
+
+    The default smb1_write_andx_request() would populate the
+    smb_state$pipe_map but the table is not used within the base
+    scripts. Just remove it outright with the assumption it's not
+    used elsewhere to prevent any unbounded state growth.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI as well as internally using GPT 5.5 (Codex). The suggestions
+    were around limiting the pipe_map size, but because it's not used
+    removal seems more sensible. If this breaks any user scripts, they
+    can re-add the pipe_map via redef of SMB::State and re-add the
+    handler.
+
+    This anyhow just seems leftover from 10 years ago (91161f790c13717e0deb35ecb821a7ee8b9978ea).
+
 9.1.0-dev.363 | 2026-10-26 12:34:04 -0700
 
   * HTTP: Disable responder stream delivery on excessive pipelining (Arne Welzel, Corelight)

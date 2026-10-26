@@ -154,8 +154,6 @@ export {
 		fid_map      : table[count] of FileInfo  &optional;
 		## Tree map to retrieve tree information based on the tree ID.
 		tid_map      : table[count] of TreeInfo  &optional;
-		## Pipe map to retrieve UUID based on the file ID of a pipe.
-		pipe_map     : table[count] of string    &optional;
 
 		## A set of recent files to avoid logging the same
 		## files over and over in the smb files log.
@@ -170,18 +168,25 @@ export {
 	};
 
 	## This is an internally used function.
-	const set_current_file: function(smb_state: State, file_id: count) &redef;
+	global set_current_file: function(c: connection, file_id: count);
+
+	# Internal function to insert a new TreeInfo into c$smb_state$tid_map
+	# with a size check to prevent unbounded tid_map growth.
+	global insert_new_tree_info: function(c: connection, tid: count): TreeInfo;
 
 	## This is an internally used function.
 	const write_file_log: function(state: State) &redef;
+
+	## Maximum size of the fid_map in SMB::State.
+	const max_fid_map_size = 10000 &redef;
+
+	## Maximum size of the tid_map in SMB::State.
+	const max_tid_map_size = 10000 &redef;
 }
 
 redef record FileInfo += {
 	## ID referencing this file.
 	fid  : count   &optional;
-
-	## UUID referencing this file if DCE/RPC.
-	uuid : string &optional;
 };
 
 event zeek_init() &priority=5
@@ -192,16 +197,40 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}
 
-function set_current_file(smb_state: State, file_id: count)
+function set_current_file(c: connection, file_id: count)
 	{
+	local smb_state = c$smb_state;
+
 	if ( file_id !in smb_state$fid_map )
 		{
+		# If fid_map grew unbounded to max_fid_map_size, reset it outright.
+		if ( max_fid_map_size > 0 && |smb_state$fid_map| >= max_fid_map_size )
+			{
+			Reporter::limit_reached_weird("SMB_max_fid_map_size_reached", c, |smb_state$fid_map|, 0, "SMB");
+			smb_state$fid_map = table();
+			}
+
 		smb_state$fid_map[file_id] = smb_state$current_cmd$referenced_file;
 		smb_state$fid_map[file_id]$fid = file_id;
 		}
 
 	smb_state$current_cmd$referenced_file = smb_state$fid_map[file_id];
 	smb_state$current_file = smb_state$current_cmd$referenced_file;
+	}
+
+function insert_new_tree_info(c: connection, tid: count): TreeInfo
+	{
+	local smb_state = c$smb_state;
+
+	if ( max_tid_map_size > 0 && |smb_state$tid_map| >= max_tid_map_size )
+		{
+		Reporter::limit_reached_weird("SMB_max_tid_map_size_reached", c, |smb_state$tid_map|, 0, "SMB");
+		smb_state$tid_map = table();
+		}
+
+	local tmp_tree = SMB::TreeInfo($uid=c$uid, $id=c$id);
+	smb_state$tid_map[tid] = tmp_tree;
+	return tmp_tree;
 	}
 
 function write_file_log(state: State)

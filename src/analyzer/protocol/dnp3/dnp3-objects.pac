@@ -215,10 +215,10 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x2804 -> aos_dp: empty;
 
 	# analog output g41
-		0x2901 -> ao_32: empty;
-		0x2902 -> ao_16: empty;
-		0x2903 -> ao_sp: empty;
-		0x2904 -> ao_dp: empty;
+		0x2901 -> ao_32: AnaOut32;
+		0x2902 -> ao_16: AnaOut16;
+		0x2903 -> ao_sp: AnaOutSP;
+		0x2904 -> ao_dp: AnaOutDP;
 
 	# analog output event g42
 		0x2a00 -> aoe_default: empty;

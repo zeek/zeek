@@ -1,3 +1,24 @@
+9.1.0-dev.375 | 2026-10-26 12:35:20 -0700
+
+  * btest/ssl: Skip extension length tests for Spicy (Evan Typanski, Corelight)
+
+    We agreed to use a weird for trailing data instead of an analyzer
+    violation. The Spicy parser already treats it as a violation, so for a
+    security fix, just skip the tests for now.
+
+    Later we can reenable these, if the Spicy parser wants to allow this.
+
+  * tls: Honor given extension length as a bound (Evan Typanski, Corelight)
+
+    TLS extensions had a parsed length, but it was ignored in favor of just
+    going to the end of the data. This uses the parsed extension length
+    instead.
+
+    Note that this does not cap ext_len because it is only a uint16.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them with modified test.
+
 9.1.0-dev.372 | 2026-10-26 12:35:01 -0700
 
   * finger: Bound request whitespace parsing (Evan Typanski, Corelight)

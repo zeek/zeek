@@ -33,7 +33,8 @@ refine connection Handshake_Conn += {
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[],
-					compression_methods: uint8[]) : bool
+					compression_methods: uint8[],
+					trailing_length: int) : bool
 		%{
 		if ( ! version_ok(version) )
 			{
@@ -41,7 +42,14 @@ refine connection Handshake_Conn += {
 			zeek_analyzer()->SetSkip(true);
 			}
 		else
+			{
 			zeek_analyzer()->AnalyzerConfirmation();
+
+			if ( trailing_length > 0 )
+				{
+				zeek_analyzer()->Weird("ssl_client_hello_extensions_trailing_bytes", zeek::util::fmt("%d", trailing_length));
+				}
+			}
 
 		if ( ssl_client_hello )
 			{
@@ -90,12 +98,17 @@ refine connection Handshake_Conn += {
 					session_id : uint8[],
 					cipher_suites16 : uint16[],
 					cipher_suites24 : uint24[],
-					comp_method : uint8) : bool
+					comp_method : uint8,
+					trailing_length: int) : bool
 		%{
 		if ( ! version_ok(version) )
 			{
 			zeek_analyzer()->AnalyzerViolation(zeek::util::fmt("unsupported server SSL version 0x%04x", version));
 			zeek_analyzer()->SetSkip(true);
+			}
+		else if ( trailing_length > 0 )
+			{
+			zeek_analyzer()->Weird("ssl_server_hello_extensions_trailing_bytes", zeek::util::fmt("%d", trailing_length));
 			}
 
 		if ( ssl_server_hello )
@@ -725,20 +738,23 @@ refine connection Handshake_Conn += {
 };
 
 refine typeattr ClientHello += &let {
+	trailing_length : int = sizeof(trailing);
 	proc : bool = $context.connection.proc_client_hello(client_version,
 				gmt_unix_time, random_bytes,
-				session_id, csuits, nullptr, cmeths);
+				session_id, csuits, nullptr, cmeths, trailing_length);
 };
 
 refine typeattr ServerHello += &let {
+	trailing_length : int = sizeof(trailing);
 	proc : bool = $context.connection.proc_server_hello(server_version,
 			false, random_bytes, session_id, cipher_suite, nullptr,
-			compression_method);
+			compression_method, trailing_length);
 };
 
 refine typeattr ServerHello13 += &let {
+	trailing_length : int = sizeof(trailing);
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			false, random, nullptr, cipher_suite, nullptr, 0);
+			false, random, nullptr, cipher_suite, nullptr, 0, trailing_length);
 };
 
 

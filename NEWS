@@ -68,6 +68,60 @@ This release fixes the following security issues:
 - HIGH: SIP: SIP over UDP uses large amounts of memory for large packet sequences
   Advisory: [GHSA-cxjj-9x4p-4485](https://github.com/zeek/zeek/security/advisories/GHSA-cxjj-9x4p-4485)
 
+- HIGH: RDP: Connections with many small x509 certificates result in excessive memory usage
+  Advisory: [GHSA-x38g-wp8h-rfrf](https://github.com/zeek/zeek/security/advisories/GHSA-x38g-wp8h-rfrf)
+
+- HIGH: krb: PKINIT values multiply into file-analysis state
+  Advisory: [GHSA-57g4-pwfx-wcj3](https://github.com/zeek/zeek/security/advisories/GHSA-57g4-pwfx-wcj3)
+
+- HIGH: X509/OCSP: Unbounded memory growth when parsing data
+  Advisory: [GHSA-vhc3-782q-hqjj](https://github.com/zeek/zeek/security/advisories/GHSA-vhc3-782q-hqjj)
+
+- HIGH: RPC: Small messages allocate large amounts of unnecessary memory
+  Advisory: [GHSA-8xr9-cgwc-52gx](https://github.com/zeek/zeek/security/advisories/GHSA-8xr9-cgwc-52gx)
+
+- HIGH: MQTT: Analyzer allows unbounded pending subscriptions and topics per subscription
+  Advisory: [GHSA-m754-q884-jrv4](https://github.com/zeek/zeek/security/advisories/GHSA-m754-q884-jrv4)
+
+- HIGH: GSSAPI: Memory exhaustion when reading SPNEGO NegTokenResp packets
+  Advisory: [GHSA-5xvw-rv8q-7gh7](https://github.com/zeek/zeek/security/advisories/GHSA-5xvw-rv8q-7gh7)
+
+- HIGH: KRB: Memory exhaustion when reading AS-REQ packets
+  Advisory: [GHSA-42p8-pr85-r6cj](https://github.com/zeek/zeek/security/advisories/GHSA-42p8-pr85-r6cj)
+
+- HIGH: NTLM: Use target-info lengths to limit parsing Challenge messages
+  Advisory: [GHSA-j24f-fcr2-2fj4](https://github.com/zeek/zeek/security/advisories/GHSA-j24f-fcr2-2fj4)
+
+- HIGH: ldap: Unbounded memory growth in aggregate ASN.1 messages
+  Advisory: [GHSA-64hr-73cp-g768](https://github.com/zeek/zeek/security/advisories/GHSA-64hr-73cp-g768)
+
+- HIGH: QUIC: Eager resource allocation for non-QUIC traffic can exhaust process memory
+  Advisory: [GHSA-5695-9qhq-wmmj](https://github.com/zeek/zeek/security/advisories/GHSA-5695-9qhq-wmmj)
+
+- HIGH: QUIC: Unbounded memory growth for sparse crypto frames
+  Advisory: [GHSA-gr64-qgpv-2xgm](https://github.com/zeek/zeek/security/advisories/GHSA-gr64-qgpv-2xgm)
+
+- HIGH: TCP: Reassembly algorithm doesn't handle excessive overlapping blocks cleanly
+  Advisory: [GHSA-5xxm-w466-8ghx](https://github.com/zeek/zeek/security/advisories/GHSA-5xxm-w466-8ghx)
+
+- HIGH: MySQL: COM_QUERY attribute memory exhaustion
+  Advisory: [GHSA-378g-pcg9-x2hr](https://github.com/zeek/zeek/security/advisories/GHSA-378g-pcg9-x2hr)
+
+- HIGH: zip: Use-after-free crash from HTTP gzip-encoded multipart bodies
+  Advisory: [GHSA-7cf3-cq69-g7p6](https://github.com/zeek/zeek/security/advisories/GHSA-7cf3-cq69-g7p6)
+
+- HIGH: SOCKS: Nested SOCKS tunnels can cause memory/stack exhaustion
+  Advisory: [GHSA-jmgg-6f63-qccp](https://github.com/zeek/zeek/security/advisories/GHSA-jmgg-6f63-qccp)
+
+- HIGH: LDAP: Quadratic-time algorithm handling SearchFilter fields
+  Advisory: [GHSA-5wp3-97xw-6793](https://github.com/zeek/zeek/security/advisories/GHSA-5wp3-97xw-6793)
+
+- HIGH: PostgreSQL: identified response fields exhaust memory and CPU
+  Advisory: [GHSA-4vgp-xwjx-mc87](https://github.com/zeek/zeek/security/advisories/GHSA-4vgp-xwjx-mc87)
+
+- HIGH: ZIP: Unbounded decompression
+  Advisory: [GHSA-2prm-q48h-m96w](https://github.com/zeek/zeek/security/advisories/GHSA-2prm-q48h-m96w)
+
 - MEDIUM: GTPv1: IP length underflow causes out-of-bounds read
   Advisory: [GHSA-85jg-jxjg-3rvh](https://github.com/zeek/zeek/security/advisories/GHSA-85jg-jxjg-3rvh)
 
@@ -97,6 +151,15 @@ This release fixes the following security issues:
 
 - MEDIUM: HTTP: Analysis evasion for prefixes of CONNECT and HEAD method strings
   Advisory: [GHSA-rg94-q747-pcjg](https://github.com/zeek/zeek/security/advisories/GHSA-rg94-q747-pcjg)
+
+- MEDIUM: DNS: WKS RRs cause other RRs to be hidden in logs
+  Advisory: [GHSA-rx99-gxqp-gm4w](https://github.com/zeek/zeek/security/advisories/GHSA-rx99-gxqp-gm4w)
+
+- MEDIUM: NCP: Potential excessive memory allocation
+  Advisory: [GHSA-mr9q-gg3p-g8x9](https://github.com/zeek/zeek/security/advisories/GHSA-mr9q-gg3p-g8x9)
+
+- MEDIUM: Use-after-free bug through PacketAnalyzer::Geneve::get_options() due to IP fragment reassembly
+  Advisory: [GHSA-mjr9-ghf8-79gj](https://github.com/zeek/zeek/security/advisories/GHSA-mjr9-ghf8-79gj)
 
 This release fixes the following bugs:
 

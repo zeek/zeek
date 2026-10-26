@@ -22,6 +22,7 @@ public:
 
 protected:
     bool ForwardDecompressed(uint64_t len, const Bytef* data);
+    void FinishZipStream();
 
     enum : uint8_t { NONE, ZIP_OK, ZIP_FAIL };
     z_stream* zip;
@@ -30,6 +31,7 @@ protected:
     uint64_t max_uncompressed_size;
     uint64_t uncompressed_size = 0;
     bool limit_exceeded = false;
+    bool zip_stream_active = false;
 };
 
 } // namespace zeek::analyzer::zip

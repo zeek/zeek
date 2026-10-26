@@ -31,18 +31,20 @@ ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, boo
         delete zip;
         zip = nullptr;
     }
+    else
+        zip_stream_active = true;
 }
 
 ZIP_Analyzer::~ZIP_Analyzer() { delete zip; }
 
 void ZIP_Analyzer::Done() {
     Analyzer::Done();
-
     if ( zip ) {
         // Only trigger if we have data and the limit wasn't exceeded (meaning we already triggered the event).
         if ( zip->total_in > 0 && ! limit_exceeded )
             zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, false);
-        inflateEnd(zip);
+
+        FinishZipStream();
     }
 }
 
@@ -70,6 +72,13 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
     limit_exceeded = true;
     zip_status = Z_MEM_ERROR;
     return false;
+}
+
+void ZIP_Analyzer::FinishZipStream() {
+    if ( zip && zip_stream_active ) {
+        inflateEnd(zip);
+        zip_stream_active = false;
+    }
 }
 
 void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
@@ -103,7 +112,7 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
                 return;
 
             if ( zip_status == Z_STREAM_END ) {
-                inflateEnd(zip);
+                FinishZipStream();
                 return;
             }
 
@@ -114,13 +123,14 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         else if ( allow_restart && zip_status == Z_DATA_ERROR ) {
             // Some servers seem to not generate zlib headers,
             // so this is an attempt to fix and continue anyway.
-            inflateEnd(zip);
+            FinishZipStream();
 
             if ( inflateInit2(zip, -MAX_WBITS) != Z_OK ) {
                 Weird("inflate_init_failed");
                 return;
             }
 
+            zip_stream_active = true;
             zip->next_in = orig_next_in;
             zip->avail_in = orig_avail_in;
             allow_restart = 0;

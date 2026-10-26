@@ -1,3 +1,25 @@
+9.1.0-dev.314 | 2026-10-26 11:29:30 -0700
+
+  * HTTP: Defer ZIP teardown to avoid a UAF (Evan Typanski, Corelight)
+
+    The ZIP analyzer can call EndOfData. Before, that would cause a
+    use-after-free, since the ZIP analyzer would continue going. Instead,
+    defer teardown.
+
+    Note this may change when the ZIP analyzer is torn down in the case
+    where there's more data, even if there is no more ZIP data.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * HTTP: Prefer unique_ptr over raw ptr for zip (Evan Typanski, Corelight)
+
+  * zip: Make stream teardown idempotent (Evan Typanski, Corelight)
+
+    Otherwise `inflateEnd` would get double-called. This is not necessary,
+    but we shouldn't rely on the double-call playing nice. We hit the double
+    call in the existing HTTP x-gzip test, it just works fine.
+
 9.1.0-dev.310 | 2026-10-26 11:28:56 -0700
 
   * SOCKS: Enforce maximum depth of SOCKS tunnels (Tim Wojtulewicz, Corelight)

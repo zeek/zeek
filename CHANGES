@@ -1,3 +1,13 @@
+9.1.0-dev.379 | 2026-10-26 12:39:39 -0700
+
+  * SMB: Limit size of internal tree_is_pipe_map (Arne Welzel, Corelight)
+
+    Found by the Canadian Communications Security Establishment.
+
+    Proposed patch extended from just being a weird to using a full event
+    like for the existing smb_discarded_dce_rpc_analyzers as well as using
+    a separate limit. PCAP generator reworked with Claude Opus 4.8.
+
 9.1.0-dev.377 | 2026-10-26 12:39:21 -0700
 
   * Introduce max_connection_history_size (Arne Welzel, Corelight)

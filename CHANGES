@@ -1,3 +1,15 @@
+9.1.0-dev.331 | 2026-10-26 11:38:46 -0700
+
+  * KRB: Constrain parsing of AS-REQ packets (Tim Wojtulewicz, Corelight)
+
+    This restricts the parsing of AS-REQ requests to the lenght reported in
+    the packets instead of reading to the next EOF. It also checks the index
+    field for each request argument to avoid parsing duplicates. If either
+    of those conditions are violated, an binpac exception is generated.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
 9.1.0-dev.329 | 2026-10-26 11:38:26 -0700
 
   * NCP: Fix eager allocation from protocol data (Tim Wojtulewicz, Corelight)

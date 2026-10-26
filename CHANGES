@@ -1,3 +1,15 @@
+9.1.0-dev.325 | 2026-10-26 11:37:47 -0700
+
+  * GSSAPI: Constrain parsing of NegTokenResp packets (Tim Wojtulewicz, Corelight)
+
+    This restricts the parsing of GSSAPI-SPNEGO NegTokenResp packets to the length
+    reported in the packets instead of reading to the next EOF. It also checks the
+    index field for each request argument to avoid parsing duplicates. If the index
+    check is violated, a binpac exception is reported.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
 9.1.0-dev.323 | 2026-10-26 11:31:08 -0700
 
   * QUIC: Lazily instantiate crypto state and child analyzer (Arne Welzel, Corelight)

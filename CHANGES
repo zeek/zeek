@@ -1,3 +1,14 @@
+9.1.0-dev.347 | 2026-10-26 12:12:25 -0700
+
+  * RDP: Check for small certs before processing them (Tim Wojtulewicz, Corelight)
+
+    An RDP connection with a large amount of small certs can cause Zeek to
+    use a lot of time and memory creating file objects to process them,
+    even if they aren't valid. Instead return a weird for small certs and
+    skip processing them.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
 9.1.0-dev.345 | 2026-10-26 12:11:54 -0700
 
   * DNS: Skip over data in WKS RRs (Tim Wojtulewicz, Corelight)

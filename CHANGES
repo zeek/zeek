@@ -1,3 +1,16 @@
+9.1.0-dev.323 | 2026-10-26 11:31:08 -0700
+
+  * QUIC: Lazily instantiate crypto state and child analyzer (Arne Welzel, Corelight)
+
+    The QUIC analyzer would eagerly create units, sink and an SSL child analyzer
+    during a a %init handler of the top-level Packet unit. This means that for any
+    UDP traffic over port 443, resources were allocated that may never have been
+    used. This change switches to lazy allocation after the INITIAL packet decryption
+    was successful.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
 9.1.0-dev.321 | 2026-10-26 11:30:50 -0700
 
   * testing/scripts: Remove drive letter via diff-remove-spicy-abspath (Arne Welzel, Corelight)

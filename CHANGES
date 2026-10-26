@@ -1,3 +1,13 @@
+9.1.0-dev.349 | 2026-10-26 12:12:44 -0700
+
+  * HTTP: Ensure check for CONNECT and HEAD methods matches the full string (Tim Wojtulewicz, Corelight)
+
+    Without a string-length check, the checks for these methods will match
+    on prefixes, causing the HTTP analyzer to ignore further requests. This
+    results in an evasion of the analyzer.
+
+    Found by the Canadian Communications Security Establishment.
+
 9.1.0-dev.347 | 2026-10-26 12:12:25 -0700
 
   * RDP: Check for small certs before processing them (Tim Wojtulewicz, Corelight)

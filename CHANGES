@@ -1,3 +1,37 @@
+9.1.0-dev.425 | 2026-10-26 12:58:27 -0700
+
+  * btest/tls: Fix SSL test to work with both analyzers (Evan Typanski, Corelight)
+
+  * tls: Reject repeated SSLv2 server hellos (Evan Typanski, Corelight)
+
+    Server hellos carry a certificate, so repeated SSLv2 ServerHello
+    messages would cause unbounded growth. The protocol rejects repeated
+    SSLv2 ServerHello handshake messages, so honor that as an analyzer
+    violation.
+
+    This intentionally does not apply the same logic to ClientHello in order
+    to keep the security fix narrow, although the same applies there. It
+    just has no corresponding state growth.
+
+  * tls: Add certificate limit to Spicy parser (Evan Typanski, Corelight)
+
+    This is the same limit from binpac, but added to Spicy as well. It's a
+    bit cleaner on the Spicy side.
+
+  * tls: Limit certificate processing per connection (Evan Typanski, Corelight)
+
+    This adds some (annoyingly clever) limits to the binpac SSL parser. This
+    way, Zeek will stop parsing certificates and emit a weird. Much of the
+    complexity comes so that we'll handle both cases with one list having
+    a bunch of certificates and more certificates coming later in the
+    connection.
+
+    This does not cap the certificate length. Since the number of certs will
+    be capped pretty low, it probably isn't absolutely necessary.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
 9.1.0-dev.420 | 2026-10-26 12:58:11 -0700
 
   * asn1: Remove unused array (Evan Typanski, Corelight)

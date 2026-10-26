@@ -582,6 +582,8 @@ type Share = unit {
     var established: bool;
     var client_certificate_depth: uint32;
     var server_certificate_depth: uint32;
+    var certificates_seen: uint64;
+    var certificate_limit_reported: bool;
 };
 
 function get_encrypted(sh: Share): bool {
@@ -1847,7 +1849,40 @@ type NewSessionTicket = unit {
 
 type Certificate = unit(inout sh: Share) {
     length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network);
-    certificate_list: SingleCertificate[] &size=self.length;
+    certificate_list: CertificateList(self.length, sh) &size=self.length;
+};
+
+type CertificateList = unit(list_length: uint64, inout sh: Share) {
+    on %init {
+        if (certificate_limit_reached(sh) && list_length > 0)
+            report_certificate_limit_exceeded(sh);
+    }
+
+    : SingleCertificate[] &eod if(!certificate_limit_reached(sh)) foreach {
+        if (self.first)
+            zeek::file_begin("application/x-x509-user-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
+        else
+            zeek::file_begin("application/x-x509-ca-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
+
+        zeek::file_data_in($$.cert);
+        zeek::file_end();
+
+        self.first = False;
+
+        if (max_certificates() > 0 && !certificate_limit_reached(sh))
+            sh.certificates_seen += 1;
+
+        if (certificate_limit_reached(sh)) {
+            if (self.offset() + 3 + $$.length < list_length)
+                report_certificate_limit_exceeded(sh);
+
+            stop;
+        }
+    }
+
+    : skip bytes &eod; # Skip in case we hit the certificate cap.
+
+    var first: bool = True;
 };
 
 type SingleCertificate = unit {
@@ -1962,6 +1997,26 @@ public function check_direction(inout sh: Share, desired: bool): bool {
     return False;
 }
 
+global _max_certificates: optional<uint64>;
+public function max_certificates(): uint64 {
+    if (!_max_certificates)
+        _max_certificates = zeek::get_count("SSL::max_certificates");
+
+    return *_max_certificates;
+}
+
+public function certificate_limit_reached(sh: Share): bool {
+    local max = max_certificates();
+    return max > 0 && sh.certificates_seen >= max;
+}
+
+function report_certificate_limit_exceeded(inout sh: Share) {
+    if (!sh.certificate_limit_reported) {
+        sh.certificate_limit_reported = True;
+        zeek::weird("SSL_max_certificates_exceeded", "%u" % max_certificates());
+    }
+}
+
 on SSL::SSL2ClientHello::%done {
     spicy::accept_input();
 }
@@ -1992,19 +2047,6 @@ on SSL::ServerHello::%error(emsg: string) {
 
 on SSL::Handshake::%error(emsg: string) {
     spicy::decline_input(emsg);
-}
-
-on SSL::Certificate::%done {
-    local first: bool = True;
-    for (i in self.certificate_list) {
-        if (first)
-            zeek::file_begin("application/x-x509-user-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
-        else
-            zeek::file_begin("application/x-x509-ca-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
-        zeek::file_data_in(i.cert);
-        zeek::file_end();
-        first = False;
-    }
 }
 
 # Debug stuff

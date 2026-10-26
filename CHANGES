@@ -1,3 +1,20 @@
+9.1.0-dev.360 | 2026-10-26 12:28:26 -0700
+
+  * IMAP: Cap maximum number of capabilities (Arne Welzel, Corelight)
+
+    The IMAP parser would accept an unbounded number of capabilties and
+    store them for event queueing. This provided an attack vector for
+    memory exhaustion.
+
+    Cap the number of capabilities raised via the imap_capabilities event to
+    IMAP::max_capabilities (default: 100) and raise a new weird
+    imap_max_capabilities_reached when a server sends more capabilities
+    in response to a CAPABILITY command.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8, patch and
+    test created by me.
+
 9.1.0-dev.358 | 2026-10-26 12:28:10 -0700
 
   * MIME: Cap maximum header continuation lines (Arne Welzel, Corelight)

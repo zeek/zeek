@@ -395,8 +395,9 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0302 -> dbiflag: uint8;
 
 	# double-bit Binary Input Event g4
-		0x0401 -> dbieatime: DoubleInEveAtime;
-		0x0402 -> dbiertime: DoubleInEveRtime;
+		0x0401 -> dbiewotime: uint8; # flags only
+		0x0402 -> dbieatime: DoubleInEveAtime;
+		0x0403 -> dbiertime: DoubleInEveRtime;
 
 	# binary output g10
 		0x0a01 -> bowoflag:  uint8;  # warning: returning integer index?

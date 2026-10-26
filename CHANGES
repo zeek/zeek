@@ -1,3 +1,7 @@
+9.1.0-dev.343 | 2026-10-26 12:11:38 -0700
+
+  * KRB: Limit the number of PA_Data segments in a connection (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.341 | 2026-10-26 12:11:16 -0700
 
   * zeek-setup: Move EventMgr/TimerMgr InitPostScript() earlier (Arne Welzel, Corelight)

@@ -47,3 +47,5 @@ const EventMetadata::add_network_timestamp: bool;
 const EventMetadata::add_missing_remote_network_timestamp: bool;
 
 const SMB::max_andx_depth: count;
+
+const PE::max_number_of_sections: count;

@@ -1,3 +1,14 @@
+9.1.0-dev.385 | 2026-10-26 12:40:52 -0700
+
+  * PE: Enforce a configurable limit on the number of sections (Tim Wojtulewicz, Corelight)
+
+    The PE analyzer does not limit the number of sections in an executable,
+    allowing an attacker to send a file with an execessive number and allocate
+    a large amount of memory. The Windows PE loader default maximum of 96
+    sections is used as a default limit.
+
+    Found by the Canadian Communications Security Establishment.
+
 9.1.0-dev.383 | 2026-10-26 12:40:12 -0700
 
   * DNS/Contents_DNS: Switch msg_buf to std::vector and allocate lazily (Arne Welzel, Corelight)

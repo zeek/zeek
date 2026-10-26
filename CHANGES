@@ -1,3 +1,17 @@
+9.1.0-dev.417 | 2026-10-26 12:57:52 -0700
+
+  * mime: Apply header length limit in more cases (Evan Typanski, Corelight)
+
+    Multiple cases were missed in 018ef34455c23eaa7ed3f96e982da94f92effe0d.
+    This uses a shared helper when appending that will weird whenever we
+    pass the limit.
+
+    Thanks to dotMuny for finding this oversight.
+
+  * mime: Use `btest-diff-cut` for a baseline (Evan Typanski, Corelight)
+
+  * mime: Add header byte-limit bypass regressions (Evan Typanski, Corelight)
+
 9.1.0-dev.413 | 2026-10-26 12:56:24 -0700
 
   * HTTP: Handle all values from transfer-encoding headers (Tim Wojtulewicz, Corelight)

@@ -766,6 +766,7 @@
 ./zeek/analyzer/protocol/dhcp/types.bif.h
 ./zeek/analyzer/protocol/dnp3
 ./zeek/analyzer/protocol/dnp3/DNP3.h
+./zeek/analyzer/protocol/dnp3/consts.bif.h
 ./zeek/analyzer/protocol/dnp3/dnp3-analyzer.pac
 ./zeek/analyzer/protocol/dnp3/dnp3-objects.pac
 ./zeek/analyzer/protocol/dnp3/dnp3-protocol.pac

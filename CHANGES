@@ -1,3 +1,60 @@
+9.1.0-dev.399 | 2026-10-26 12:42:03 -0700
+
+  * DNP3: Additional test to verify the max_application_layer_fragment_size (Arne Welzel, Corelight)
+
+    This test that parsing continues when the sum of individual application
+    fragments exceeds max_application_layer_fragment_size.
+
+    LLM-Assisted: Claude Code (Claude Opus 4.8)
+
+  * DNP3: Switch array parsing of objects to &transient (Arne Welzel, Corelight)
+
+    The reported issue stated memory grows to ~2.8G with a 1.8M attack PCAP
+    and it seems this was specifically because Zeek holds on to the created
+    internal objects stored within BinPAC arrays. It doesn't seem any of
+    these are actually used, so put a &transient on it. The provided reproducer
+    goes down to almost baseline 138M of memory usage then when setting the
+    previously introduced DNP::max_application_fragment_size to 0.
+
+    This is more of an optimization than a fix, but seems still worthwhile.
+    The new tests switch to unlimited and check for memory usage.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
+  * DNP3: Cap maximum application layer fragment size (Arne Welzel, Corelight)
+
+    Application Layer Fragments should never be 10MB in size, so cap them
+    to a max size of ~100KB.
+
+    The DNP3 primer states:
+
+    > Application layer messages are broken into fragments. Maximum fragment
+    > size is determined by the size of the receiving
+    > device’s buffer. The normal range is 2048 to 4096 bytes.
+
+    Cap to 100k by default with enough bread-crumbs if that's too low, but
+    from reading, it's more likely that a device is doing something wrong.
+    This change should provide enough visibility and also a knob if that
+    scenario happens in the wild.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
+  * binpac: Do not reserve() &transient arrays (Arne Welzel, Corelight)
+
+    While iterating on a fix for DNP3 memory usage, Claude Opus pointed out
+    there's no point in using reserve() on a transient array.
+
+    Do allocate the vector so that it's not a nullptr in case anything else
+    works with it.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
 9.1.0-dev.394 | 2026-10-26 12:41:44 -0700
 
   * TCP_Endpoint: Fix buffer-over-read via fwrite() to contents_file (Arne Welzel, Corelight)

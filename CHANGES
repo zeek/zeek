@@ -1,3 +1,25 @@
+9.1.0-dev.430 | 2026-10-26 12:58:42 -0700
+
+  * script_opt/ZAM: Update ZBI.op for new __set_reassembly_buffer() signature (Arne Welzel, Corelight)
+
+    This is based on the existing set_current_conn_bytes_threshold
+    pattern.
+
+  * frameworks/files: Introduce Files::reassembly_buffer_blocks (Arne Welzel, Corelight)
+
+    Introduce a new limit next to reassembly_buffer_size which caps the
+    number of reassembly blocks to an upper limit. This limit prevents
+    memory exhaustion when Zeek observes many small non-contiguous file
+    chunks. Added as additional parameter to the existing
+    __set_reassembly_buffer() bif. Seemed related enough.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * file_analysis: Add reassembly_buffer_blocks for limit (Arne Welzel, Corelight)
+
+  * Reassem: Add NumBlocks() access (Arne Welzel, Corelight)
+
 9.1.0-dev.425 | 2026-10-26 12:58:27 -0700
 
   * btest/tls: Fix SSL test to work with both analyzers (Evan Typanski, Corelight)

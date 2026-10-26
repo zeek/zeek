@@ -1,3 +1,7 @@
+8.0.11 | 2026-10-26 14:56:09 +0000
+
+  * Release 8.0.11.
+
 8.0.10-135 | 2026-10-26 14:55:27 +0000
 
   * CCI: Disable docs-only check temporarily (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,22 @@
+9.1.0-dev.363 | 2026-10-26 12:34:04 -0700
+
+  * HTTP: Disable responder stream delivery on excessive pipelining (Arne Welzel, Corelight)
+
+    This prevents running into analyzer violations triggered by the
+    responder due to the request queue flushing.
+
+  * HTTP: Cap unanswered_requests queue in analyzer (Arne Welzel, Corelight)
+
+    Just use the already existing limit that's used within http/main.zeek to
+    clear the unanswered_requests queue in the HTTP analyzer and raise the
+    same weird as in script land (that's then deduplicated). This moves the
+    HTTP::max_pending_requests option from the http/main.zeek file into
+    init-bare.zeek and a new consts.bif file as a redef const.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8 and patch
+    created by me.
+
 9.1.0-dev.360 | 2026-10-26 12:28:26 -0700
 
   * IMAP: Cap maximum number of capabilities (Arne Welzel, Corelight)

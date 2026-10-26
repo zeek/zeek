@@ -11,6 +11,7 @@
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/http/consts.bif.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
@@ -1020,6 +1021,25 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                     request_state = EXPECT_REQUEST_MESSAGE;
                     request_ongoing = 1;
                     unanswered_requests.push(request_method);
+
+                    // This is just the same as is done in the default HTTP
+                    // scripts. If there's more than HTTP::max_pending_requests
+                    // of unanswered requests, clear the queue to prevent memory
+                    // growth.
+                    if ( zeek::BifConst::HTTP::max_pending_requests > 0 &&
+                         unanswered_requests.size() >= zeek::BifConst::HTTP::max_pending_requests ) {
+                        LimitReachedWeird("HTTP_excessive_pipelining", unanswered_requests.size());
+                        unanswered_requests = {};
+
+                        // Disable deliveries from the server as all bets are
+                        // off for request/response correlation expectation for
+                        // body/non-body delivery depends on the request method.
+                        //
+                        // Likely the queue overflow was anyhow caused by
+                        // one-sided traffic and this has no effect.
+                        content_line_resp->SetSkipDeliveries(true);
+                    }
+
                     HTTP_Request();
                     InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE, len);
 

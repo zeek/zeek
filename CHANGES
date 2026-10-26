@@ -1,3 +1,24 @@
+9.1.0-dev.392 | 2026-10-26 12:41:23 -0700
+
+  * DTLS: Replace bitset-based fragment handling with new DTLS_Reassembler (Arne Welzel, Corelight)
+
+    Replace the fragment handling in the DTLS analyzer from pre-allocating
+    the expected message length as buffer upfront to using a Reassembler instance
+    that tracks fragments individually and reassembles them once all data has
+    arrived. This relates to and should fix zeek/zeek#5532, too.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+    Updates the dtls-sequence-number-jumps test because that is now
+    successfully reassembled. Skipped the resource exhaustion reproducer.
+    Had Claude Opus 4.8 generate a separate test for the weird when fragments
+    overlap and have different content.
+
+  * DTLS: Implement Reassembler using src/Reassem.h base class (Arne Welzel, Corelight)
+
+  * Reassem: Add REASSEM_DTLS constant (Arne Welzel, Corelight)
+
 9.1.0-dev.388 | 2026-10-26 12:41:07 -0700
 
   * DNS: Cap extracted type bitmaps from NSEC / NSEC3 (Arne Welzel, Corelight)

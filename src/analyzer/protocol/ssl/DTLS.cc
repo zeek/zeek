@@ -71,4 +71,37 @@ bool DTLS_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool 
 
 bool DTLS_Analyzer::GetFlipped() { return handshake_interp->flipped(); }
 
+void DTLS_Reassembler::BlockInserted(DataBlockMap::const_iterator it) {
+    // BlockInserted: Currently does nothing: DTLS checks
+    // completion via TotalSize().
+    DBG_LOG(DBG_ANALYZER, "DTLS Reassembler_block inserted");
+}
+
+void DTLS_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n) {
+    DBG_LOG(DBG_ANALYZER, "DTLS Reassembler_block overlap");
+
+    if ( memcmp(b1, b2, n) != 0 )
+        dtls_analyzer->Weird("DTLS_overlapping_inconsistent_fragments");
+
+    ++overlaps;
+}
+
+std::vector<u_char> DTLS_Reassembler::TakeBuffer() && {
+    std::vector<u_char> r;
+    r.reserve(TotalSize());
+
+    auto it = block_list.Begin();
+    auto end = block_list.End();
+
+    while ( it != end ) {
+        const auto& block = it->second;
+        size_t sz = block.upper - block.seq;
+        r.insert(r.end(), block.block, block.block + sz);
+        ++it;
+    }
+
+    ClearBlocks();
+    return r;
+}
+
 } // namespace zeek::analyzer::dtls

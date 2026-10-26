@@ -1,3 +1,17 @@
+9.1.0-dev.377 | 2026-10-26 12:39:21 -0700
+
+  * Introduce max_connection_history_size (Arne Welzel, Corelight)
+
+    A FIN flood may grow the Session's history unbounded. Fix by capping
+    it at a new configurable limit max_connection_history_size (default: 1000)
+    and introduce a a new max_connection_history_size_reached.
+
+    Found by the Canadian Communications Security Establishment.
+
+    Patch as suggested, but made the limit configurable, moved AddHistory()
+    out of the header and included the weird as well. PCAP generator modified
+    using Claude Opus 4.8.
+
 9.1.0-dev.375 | 2026-10-26 12:35:20 -0700
 
   * btest/ssl: Skip extension length tests for Spicy (Evan Typanski, Corelight)

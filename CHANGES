@@ -1,3 +1,7 @@
+9.1.0-dev.308 | 2026-10-26 11:28:36 -0700
+
+  * Rewrite LDAP SearchFilter handling to not be quadratic-time (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.306 | 2026-10-26 11:28:16 -0700
 
   * postgresql: Replace set<uint8> with hand-rolled struct bitset (Arne Welzel, Corelight)

@@ -391,7 +391,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0203 -> biewrtime: BinInEveRtime;
 
 	# double-bit Binary Input g3
-		0x0301 -> dbibytes: bytestring &restofdata; # don;t quit understand specification
+		0x0301 -> dbibytes: uint8; # four packed double-bit values
 		0x0302 -> dbiflag: uint8;
 
 	# double-bit Binary Input Event g4

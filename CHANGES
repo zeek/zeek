@@ -1,3 +1,12 @@
+9.1.0-dev.372 | 2026-10-26 12:35:01 -0700
+
+  * finger: Bound request whitespace parsing (Evan Typanski, Corelight)
+
+    We had a limit to lines, but not whitespace.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch from them as well.
+
 9.1.0-dev.370 | 2026-10-26 12:34:36 -0700
 
   * smb: Cap smb_state$tid_map from unbounded growth (Arne Welzel, Corelight)

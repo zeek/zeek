@@ -1,3 +1,24 @@
+9.1.0-dev.306 | 2026-10-26 11:28:16 -0700
+
+  * postgresql: Replace set<uint8> with hand-rolled struct bitset (Arne Welzel, Corelight)
+
+    As suggested by Evan, thanks!
+
+  * postgresql: Skip raising duplicated identified fields (Arne Welzel, Corelight)
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them, but rewritten
+    to skip duplicated identified field events within the parser and
+    raising a weird rather than raising an analyzer violation. Also
+    skipped the script level modifications as there can be at most
+    256 different identified fields.
+
+    The protocol docs have the following, so the weird seems reasonable:
+
+         Note that any given field type should appear at most once per message.
+
+    (54.8. Error and Notice Message Fields)
+
 9.1.0-dev.303 | 2026-10-26 11:27:58 -0700
 
   * Skip/MPLS: Tests for prior use-after-free due to freed reassembly store (Arne Welzel, Corelight)

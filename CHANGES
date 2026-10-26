@@ -1,3 +1,16 @@
+9.1.0-dev.352 | 2026-10-26 12:27:10 -0700
+
+  * Remove SIP junk field and parsing (Tim Wojtulewicz, Corelight)
+
+  * SIP: Recreate flow with each new UDP packet (Tim Wojtulewicz, Corelight)
+
+    When SIP over UDP, the entire message must fit within a single datagram.
+    We're using a flow setup in BinPAC for the SIP analyzer which doesn't get
+    reset with each new datagram. The flow works well for TCP so rather than
+    rework that too, this change recreates the flow between each packet.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
 9.1.0-dev.349 | 2026-10-26 12:12:44 -0700
 
   * HTTP: Ensure check for CONNECT and HEAD methods matches the full string (Tim Wojtulewicz, Corelight)

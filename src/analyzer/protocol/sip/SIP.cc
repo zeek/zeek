@@ -4,7 +4,7 @@
 
 namespace zeek::analyzer::sip {
 
-SIP_Analyzer::SIP_Analyzer(Connection* c) : analyzer::Analyzer("SIP", c) { interp = new binpac::SIP::SIP_Conn(this); }
+SIP_Analyzer::SIP_Analyzer(Connection* c) : analyzer::Analyzer("SIP", c) {}
 
 SIP_Analyzer::~SIP_Analyzer() { delete interp; }
 
@@ -18,6 +18,14 @@ void SIP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_
     // Sometimes we see some packets with just '\r\n' - ignore those
     if ( len == 2 && data[0] == '\r' )
         return;
+
+    // For UDP SIP, the entire message fits in a single datagram. There is no fragmentation
+    // across packets, so we should recreate the flow each time. We keep the BinPAC setup as
+    // a flow to more easily support TCP SIP.
+    if ( interp )
+        delete interp;
+
+    interp = new binpac::SIP::SIP_Conn(this);
 
     Analyzer::DeliverPacket(len, data, real_orig, seq, ip, caplen);
 

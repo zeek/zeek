@@ -19,7 +19,7 @@ public:
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new SIP_Analyzer(conn); }
 
 protected:
-    binpac::SIP::SIP_Conn* interp;
+    binpac::SIP::SIP_Conn* interp = nullptr;
 };
 
 } // namespace zeek::analyzer::sip

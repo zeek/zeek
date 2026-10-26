@@ -1,3 +1,822 @@
+8.0.10-135 | 2026-10-26 14:55:27 +0000
+
+  * CCI: Disable docs-only check temporarily (Tim Wojtulewicz, Corelight)
+
+    There's something weird happening where CIRCLE_PULL_REQUEST is getting
+    set on builds after merges, which is causing builds on the release
+    branch it self to get skipped. Disable the check for now until CircleCI
+    can look at it for us.
+
+  * Update NEWS with security issues for 8.0.11 (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs for 8.0.11 patches (Tim Wojtulewicz, Corelight)
+
+  * HTTP: Handle all values from transfer-encoding headers (Tim Wojtulewicz, Corelight)
+
+    The HTTP analyzer only handles the first value from a multi-part
+    transfer-encoding header, which results in it potentially missing
+    data in the case of 'gzip,chunked'.
+
+    Co-Authored-By: Arne Welzel <arne.welzel@corelight.com>
+
+  * MIME: Add MIME_get_list_value() helper (Arne Welzel, Corelight)
+
+    This parses Transfer-Encoding values using the data_chunk_t data type
+    as std::string_view replacement to align with the existing MIME.cc code
+    a bit better.
+
+    Initial version and tests by me, then iterated with Claude Sonnet 5.5
+    to make it actually nice. I didn't have the more flag initially.
+
+  * TCP: Add limit to the number of reassembly blocks (Tim Wojtulewicz, Corelight)
+
+  * Reassem: Coalesce adjacent blocks when inserting new blocks (Tim Wojtulewicz, Corelight)
+
+  * Reassem: Add NumBlocks() access (Arne Welzel, Corelight)
+
+  * script_opt/ZAM: Update ZBI.op for new __set_reassembly_buffer() signature (Arne Welzel, Corelight)
+
+    This is based on the existing set_current_conn_bytes_threshold
+    pattern.
+
+  * frameworks/files: Introduce Files::reassembly_buffer_blocks (Arne Welzel, Corelight)
+
+    Introduce a new limit next to reassembly_buffer_size which caps the
+    number of reassembly blocks to an upper limit. This limit prevents
+    memory exhaustion when Zeek observes many small non-contiguous file
+    chunks. Added as additional parameter to the existing
+    __set_reassembly_buffer() bif. Seemed related enough.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * file_analysis: Add reassembly_buffer_blocks for limit (Arne Welzel, Corelight)
+
+  * btest/tls: Fix SSL test to work with both analyzers (Evan Typanski, Corelight)
+
+  * tls: Reject repeated SSLv2 server hellos (Evan Typanski, Corelight)
+
+    Server hellos carry a certificate, so repeated SSLv2 ServerHello
+    messages would cause unbounded growth. The protocol rejects repeated
+    SSLv2 ServerHello handshake messages, so honor that as an analyzer
+    violation.
+
+    This intentionally does not apply the same logic to ClientHello in order
+    to keep the security fix narrow, although the same applies there. It
+    just has no corresponding state growth.
+
+  * tls: Add certificate limit to Spicy parser (Evan Typanski, Corelight)
+
+    This is the same limit from binpac, but added to Spicy as well. It's a
+    bit cleaner on the Spicy side.
+
+  * tls: Limit certificate processing per connection (Evan Typanski, Corelight)
+
+    This adds some (annoyingly clever) limits to the binpac SSL parser. This
+    way, Zeek will stop parsing certificates and emit a weird. Much of the
+    complexity comes so that we'll handle both cases with one list having
+    a bunch of certificates and more certificates coming later in the
+    connection.
+
+    This does not cap the certificate length. Since the number of certs will
+    be capped pretty low, it probably isn't absolutely necessary.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * btest/ssl: Skip extension length tests for Spicy (Evan Typanski, Corelight)
+
+    We agreed to use a weird for trailing data instead of an analyzer
+    violation. The Spicy parser already treats it as a violation, so for a
+    security fix, just skip the tests for now.
+
+    Later we can reenable these, if the Spicy parser wants to allow this.
+
+  * tls: Honor given extension length as a bound (Evan Typanski, Corelight)
+
+    TLS extensions had a parsed length, but it was ignored in favor of just
+    going to the end of the data. This uses the parsed extension length
+    instead.
+
+    Note that this does not cap ext_len because it is only a uint16.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them with modified test.
+
+  * Match IPv4 path with IPv6 when parsing packets (Evan Typanski, Corelight)
+
+    IPv6 already passed caplen, but IPv4 did not. This hardens the IPv4 case
+    without changing behavior in the happy path.
+
+  * Validate tunneled IPv4 header lengths (Evan Typanski, Corelight)
+
+    GTPv1 could end up reading past the end of a captured packet if
+    `gtpv1_g_pdu_packet` had a registered handler. This adds stricter checks
+    to ensure a malformed header won't cause an underflow in the IP layer.
+
+    Reported by David Korczynski at Adalogics in cooperation with Anthropic.
+
+  * GH-5532: DTLS: Replace bitset-based fragment handling with new DTLS_Reassembler (Arne Welzel, Corelight)
+
+    Replace the fragment handling in the DTLS analyzer from pre-allocating
+    the expected message length as buffer upfront to using a Reassembler instance
+    that tracks fragments individually and reassembles them once all data has
+    arrived. This relates to and should fix zeek/zeek#5532, too.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+    Updates the dtls-sequence-number-jumps test because that is now
+    successfully reassembled. Skipped the resource exhaustion reproducer.
+    Had Claude Opus 4.8 generate a separate test for the weird when fragments
+    overlap and have different content.
+
+  * DTLS: Implement Reassembler using src/Reassem.h base class (Arne Welzel, Corelight)
+
+  * Reassem: Add REASSEM_DTLS constant (Arne Welzel, Corelight)
+
+  * smb: Cap smb_state$tid_map from unbounded growth (Arne Welzel, Corelight)
+
+    Introduce a new max_tid_map_size variable and use it in the smb1 and
+    smb2 code paths. If the tid_map exceeds that limit, raise a new
+    SMB_max_tid_map_size_reached weird.
+
+    Rework the smb2 script to fix the unbounded state growth when a pending
+    command already had a referenced_tree set. Also raise a weird when a new tree_id
+    is observed in a header for a non TREE_CONNECT command. The weird is named
+    SMB_new_tid_non_tree_connect_cmd.
+
+    Found internally via GPT 5.5 (Codex). Generators adapted with Claude Opus 4.8
+    and Sonnet 5.5 and review done with these.
+
+  * smb: Cap SMB::State$fid_map to configurable limit (Arne Welzel, Corelight)
+
+    Found via GPT 5.5 (Codex) internally. Generator script adapted using
+    Claude Opus 4.8. Patch by me. This changes SMB::set_current_file() to
+    take c: connection such that Reporter::limit_reached_weird() can
+    be used. Technically it's an API change, but the function comment
+    says internal.
+
+  * smb: Use SMB::set_current_file() (Arne Welzel, Corelight)
+
+    The code around handling referenced_file, fid_map and current_file
+    seems to be doable via SMB::set_current_file() only. This looks like
+    leftovers.
+
+    Claude Opus 4.8 says there's a behavior change when a FID is re-used,
+    but that was probably never considered anyhow.
+
+  * smb: Also clear tid_map during smb2_discarded_messages_state() (Arne Welzel, Corelight)
+
+    Within the parser, message_id to tree_id is tracked via
+    the smb2_request_tree_id map and smb2_discarded_messages_state() raised
+    when it grows too large. Reset the tid_map as well in that case. It was
+    commented out for the wrong reason.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration
+    with OpenAI. PCAP generator adapted with Claude Opus 4.8. Test and patch
+    by me, but as suggested in the report.
+
+  * smb: Drop redef of FileInfo to add uuid field (Arne Welzel, Corelight)
+
+    Mohan Dhawan points out that the uuid field is never written to by
+    anything (and after removing pipe_map in a prior commit not read
+    anymore either), so just drop it. Any prior users of this field may
+    add it themselves.
+
+  * smb: Remove pipe_map from SMB::State (Arne Welzel, Corelight)
+
+    The default smb1_write_andx_request() would populate the
+    smb_state$pipe_map but the table is not used within the base
+    scripts. Just remove it outright with the assumption it's not
+    used elsewhere to prevent any unbounded state growth.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI as well as internally using GPT 5.5 (Codex). The suggestions
+    were around limiting the pipe_map size, but because it's not used
+    removal seems more sensible. If this breaks any user scripts, they
+    can re-add the pipe_map via redef of SMB::State and re-add the
+    handler.
+
+    This anyhow just seems leftover from 10 years ago (91161f790c13717e0deb35ecb821a7ee8b9978ea).
+
+  * smb: Limit size of internal tree_is_pipe_map (Arne Welzel, Corelight)
+
+    Found by the Canadian Communications Security Establishment.
+
+    Proposed patch extended from just being a weird to using a full event
+    like for the existing smb_discarded_dce_rpc_analyzers as well as using
+    a separate limit. PCAP generator reworked with Claude Opus 4.8.
+
+  * PE: Enforce a configurable limit on the number of sections (Tim Wojtulewicz, Corelight)
+
+    The PE analyzer does not limit the number of sections in an executable,
+    allowing an attacker to send a file with an execessive number and allocate
+    a large amount of memory. The Windows PE loader default maximum of 96
+    sections is used as a default limit.
+
+    Found by the Canadian Communications Security Establishment.
+
+  * asn1: Remove unused array (Evan Typanski, Corelight)
+
+    The previous commit switched KRB to use its own array for its own use in
+    order to add a cap. This removes the old array. A new array should have
+    a cap of some sort if added back.
+
+  * krb: Limit `etype` array to avoid unbounded growth (Evan Typanski, Corelight)
+
+    Kerberos has specific elements that will go into its etype array, which
+    will never exceed certain sizes in real traffic. While this could be
+    capped, real traffic only has a limited set of encryption types, and
+    these will rarely repeat, if ever. So, we can simply cap these in the
+    parser. This means that the array will never grow beyond some
+    non-configurable cap.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * mime: Apply header length limit in more cases (Evan Typanski, Corelight)
+
+    Multiple cases were missed in 018ef34455c23eaa7ed3f96e982da94f92effe0d.
+    This uses a shared helper when appending that will weird whenever we
+    pass the limit.
+
+    Thanks to dotMuny for finding this oversight.
+
+  * mime: Use `btest-diff-cut` for a baseline (Evan Typanski, Corelight)
+
+  * mime: Add header byte-limit bypass regressions (Evan Typanski, Corelight)
+
+  * ZeekString/concatenate: Protect from signed integer overflow (Arne Welzel, Corelight)
+
+    Zeek does not support strings longer than 2G and previously the signed
+    int overflow would've in turn resulted in very large allocations, or
+    bad memcpy() invocations. Call reporter->Error() when concatenation
+    would result in strings larger than 2G. There's probably more places
+    where this can happen, but this was the cause for the mime_entity_data()
+    and mime_all_data() crashes before the introduction of the limits.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * MIME: Cap data sizes of mime_all_data() and mime_entity_data() (Arne Welzel, Corelight)
+
+    This is a bit of surgery to MIME.cc to switch the mime_all_data() and
+    mime_entity_data() storage to StringValPtrs rather than Strings.
+    Previously these strings were shared between those events with the
+    assumption that the mime_all_data() path will free them. When introducing
+    separate max sizes for each of these, that's not feasible anymore, so rely
+    on automatic StringValPtr instead (plus some trickery of allocating
+    individual strings when the max size is reached).
+
+    The mime_entity_data() and mime_all_data() events receive the length
+    as a count next to the data: string. This change keeps the total
+    length valid and only truncates the string, allowing to detect the
+    truncation when handling the event.
+
+    The length capping code is a bit duplicated, but didn't want to add a
+    separate abstraction for the two cases.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * Val: Add StringVal::concatenate() (Arne Welzel, Corelight)
+
+  * MIME: Switch content_hash_length to size_t (Arne Welzel, Corelight)
+
+    Avoid signed overflow for MIME entities of size 2G or more.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * GSSAPI: Constrain parsing of NegTokenResp packets (Tim Wojtulewicz, Corelight)
+
+    This restricts the parsing of GSSAPI-SPNEGO NegTokenResp packets to the length
+    reported in the packets instead of reading to the next EOF. It also checks the
+    index field for each request argument to avoid parsing duplicates. If the index
+    check is violated, a binpac exception is reported.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+  * Modbus: Set limits on the number of devices and slaves in track-memmap policy (Tim Wojtulewicz, Corelight)
+
+    The track-memmap policy contains a table of devices, with each value being
+    a table of slave. Neither table type has any expiration on the entries and
+    there are no limits to their sizes. This allows them to grow unbounded.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+  * DNP3: Additional test to verify the max_application_layer_fragment_size (Arne Welzel, Corelight)
+
+    This test that parsing continues when the sum of individual application
+    fragments exceeds max_application_layer_fragment_size.
+
+    LLM-Assisted: Claude Code (Claude Opus 4.8)
+
+  * DNP3: Switch array parsing of objects to &transient (Arne Welzel, Corelight)
+
+    The reported issue stated memory grows to ~2.8G with a 1.8M attack PCAP
+    and it seems this was specifically because Zeek holds on to the created
+    internal objects stored within BinPAC arrays. It doesn't seem any of
+    these are actually used, so put a &transient on it. The provided reproducer
+    goes down to almost baseline 138M of memory usage then when setting the
+    previously introduced DNP::max_application_fragment_size to 0.
+
+    This is more of an optimization than a fix, but seems still worthwhile.
+    The new tests switch to unlimited and check for memory usage.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
+  * DNP3: Cap maximum application layer fragment size (Arne Welzel, Corelight)
+
+    Application Layer Fragments should never be 10MB in size, so cap them
+    to a max size of ~100KB.
+
+    The DNP3 primer states:
+
+    > Application layer messages are broken into fragments. Maximum fragment
+    > size is determined by the size of the receiving
+    > device’s buffer. The normal range is 2048 to 4096 bytes.
+
+    Cap to 100k by default with enough bread-crumbs if that's too low, but
+    from reading, it's more likely that a device is doing something wrong.
+    This change should provide enough visibility and also a knob if that
+    scenario happens in the wild.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
+  * binpac: Do not reserve() &transient arrays (Tim Wojtulewicz, Corelight)
+
+  * TCP_Endpoint: Fix buffer-over-read via fwrite() to contents_file (Arne Welzel, Corelight)
+
+    In the scenario where set_contents_file() is used to write the payload
+    of a TCP connection to a file (requires reassembly to be disabled via
+    dpd_reassemble_first_packets=F and setting up a file using set_contents_file()),
+    a truncated TCP packet would lead tooverreading the data buffer due to using
+    len instead of caplen, dumping uninitialized memory to the file. Fix by using
+    caplen for writing out the bytes instead. Also fixes not writing trailing
+    ethernet bytes by using the min of len (TCP) and caplen (actually captured)
+    and skip writing anything coming before contents_start_seq.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch and additional test cases created with Claude Opus 5.5.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
+  * DNS: Cap extracted type bitmaps from NSEC / NSEC3 (Arne Welzel, Corelight)
+
+    This was found by Claude Opus 4.8 after reviewing the TXT and SPF
+    capping of the previous commit and essentially created by it.
+
+    LLM-Assisted: Claude Opus 4.8 (Anthropic)
+
+  * DNS: Cap extracted strings from TXT and SPF resource records (Arne Welzel, Corelight)
+
+    Technically, a TXT or SPF resource record can carry many individual strings.
+    Practically, it would appear weird if there's more than a handful contained
+    in these. Apparently multicast DNS uses individual character strings for
+    key-value storage. Also, due to strings being capped at 255 bytes, individual
+    strings may be concatenated to a longer final string (DKIM, SPF, DMARC).
+
+    The limit is a bit arbitrary and pretty high. The 257 allows for a total
+    concatenated length of 2^16-1 which is the max message size for the TCP
+    protocol.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator adapted with Claude Opus 4.8. Patch for capping
+    character strings and pondering the limit done by me. Evan pointed out
+    that the SPF had the same issue.
+
+  * DNS/Contents_DNS: Switch msg_buf to std::vector and allocate lazily (Arne Welzel, Corelight)
+
+    Instead of allocating as many bytes at once, await the data. Also
+    rework the manual state tracking. msg_size and msg_buf can never
+    be larger than uint16_t and so the int cast into ForwardPacket()
+    and ParseMessage() should be valid,
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch by me, switching to std::vector rather than keeping
+    the manal memory management around.
+
+  * BitTorrentTracker: Use IntrusivePtr to fix memory leak without handlers (Arne Welzel, Corelight)
+
+    When no bt_tracker_request() or bt_tracker_response() events are
+    implemented, raw pointers to the values usually used for the events were
+    reset without freeing the underlying memory.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator script provided by them, adapted to use Scapy
+    using Opus 4.8. Patch reworked by me to switch to IntrusivePtr wholesale.
+
+  * Introduce max_connection_history_size (Arne Welzel, Corelight)
+
+    A FIN flood may grow the Session's history unbounded. Fix by capping
+    it at a new configurable limit max_connection_history_size (default: 1000)
+    and introduce a a new max_connection_history_size_reached.
+
+    Found by the Canadian Communications Security Establishment.
+
+    Patch as suggested, but made the limit configurable, moved AddHistory()
+    out of the header and included the weird as well. PCAP generator modified
+    using Claude Opus 4.8.
+
+  * KRB: Limit the number of PA_Data segments in a connection (Tim Wojtulewicz, Corelight)
+
+  * NTLM: check target-info length when parsing challenge messages (Tim Wojtulewicz, Corelight)
+
+    The existing code doesn't check against the lengths passed in the packet
+    and can over-read to find the end of the message.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * finger: Bound request whitespace parsing (Evan Typanski, Corelight)
+
+    We had a limit to lines, but not whitespace.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch from them as well.
+
+  * HTTP: Disable responder stream delivery on excessive pipelining (Arne Welzel, Corelight)
+
+    This prevents running into analyzer violations triggered by the
+    responder due to the request queue flushing.
+
+  * HTTP: Cap unanswered_requests queue in analyzer (Arne Welzel, Corelight)
+
+    Just use the already existing limit that's used within http/main.zeek to
+    clear the unanswered_requests queue in the HTTP analyzer and raise the
+    same weird as in script land (that's then deduplicated). This moves the
+    HTTP::max_pending_requests option from the http/main.zeek file into
+    init-bare.zeek and a new consts.bif file as a redef const.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8 and patch
+    created by me.
+
+  * IMAP: Cap maximum number of capabilities (Arne Welzel, Corelight)
+
+    The IMAP parser would accept an unbounded number of capabilties and
+    store them for event queueing. This provided an attack vector for
+    memory exhaustion.
+
+    Cap the number of capabilities raised via the imap_capabilities event to
+    IMAP::max_capabilities (default: 100) and raise a new weird
+    imap_max_capabilities_reached when a server sends more capabilities
+    in response to a CAPABILITY command.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8, patch and
+    test created by me.
+
+  * Remove SIP junk field and parsing (Tim Wojtulewicz, Corelight)
+
+  * SIP: Recreate flow with each new UDP packet (Tim Wojtulewicz, Corelight)
+
+    When SIP over UDP, the entire message must fit within a single datagram.
+    We're using a flow setup in BinPAC for the SIP analyzer which doesn't get
+    reset with each new datagram. The flow works well for TCP so rather than
+    rework that too, this change recreates the flow between each packet.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * MIME: Cap maximum header continuation lines (Arne Welzel, Corelight)
+
+    MIME headers were previously only parsed by MIME::max_header_bytes.
+    Process memory could still be significantly increased by sending many
+    individual continuation lines for the same header. Introduce a new
+    MIME::max_header_continuation_lines (default: 1000) limit. When reached,
+    parsing the header is skipped and a new weird exceeded_mime_max_continuation_lines
+    raised.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8 and patch
+    created by me.
+
+  * RDP: Enforce limitations on channel counts/repeat initial connect attempts (Tim Wojtulewicz, Corelight)
+
+    The RDP analyzer allows up to 1000 channels for a client connection, which is
+    actually a violation of the protocol. Section 2.2.1.3 of MS-RDPBCGR states
+    that only 31 channels are allow. Additionally, only the first connect initial
+    request should be processed in a connection. Others are a violation. This adds
+    checks for both.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * Websocket: Avoid caching unfinished continuation frames (Tim Wojtulewicz, Corelight)
+
+    The analyzer lacks &transient on the array of frames to fix a fragmentation
+    bug, but that means it keeps all of the frames around until the message is
+    done even if they're not needed. This changes to check for FIN flags instead
+    and restores the transient flag.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * HTTP: Ensure check for CONNECT and HEAD methods matches the full string (Tim Wojtulewicz, Corelight)
+
+    Without a string-length check, the checks for these methods will match
+    on prefixes, causing the HTTP analyzer to ignore further requests. This
+    results in an evasion of the analyzer.
+
+    Found by the Canadian Communications Security Establishment.
+
+  * RDP: Check for small certs before processing them (Tim Wojtulewicz, Corelight)
+
+    An RDP connection with a large amount of small certs can cause Zeek to
+    use a lot of time and memory creating file objects to process them,
+    even if they aren't valid. Instead return a weird for small certs and
+    skip processing them.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * DNS: Skip over data in WKS RRs (Tim Wojtulewicz, Corelight)
+
+    WKS has been deprecated for a few decades now and shouldn't be used
+    anymore. Zeek wasn't properly skipping over the data and was hiding
+    any other RRs that came after one.
+
+    Reported by Pavan Nallamothu.
+
+  * zeek-setup: Move EventMgr/TimerMgr InitPostScript() earlier (Arne Welzel, Corelight)
+
+    This is mostly because plugin_mgr->InitPostScript() may start enqueuing
+    events (Spicy does that for port registrations), so make sure the
+    initialization ran on the EventMgr before. Move the TimerMgr with it
+    mostly because that seems sensible.
+
+  * Event: Add max_event_queue_size limit and some metrics (Arne Welzel, Corelight)
+
+    This commit adds a new knob to control the maximum size of Zeek's event queue
+    before draining pending events. Previously, the queue would grow unbounded.
+    The main motivation is to cap event queue memory growth in scenarios where
+    timers, analyzers or cluster logic creates very many events at once.
+
+    Specifically, a reassembly gap can result in an analyzer processing multiple
+    megabytes of input data at once and depending on its logic enqueue hundreds
+    of thousands of events. For these scenarios, Zeek will now drain events
+    intermittently before continuing to process more input data.
+
+    The queue size limit is not enforced during script event execution itself
+    and therefore applies only to events created by analyzers, timers or cluster
+    messages.
+
+    A new metric, zeek_event_queue_overflow_drains_total, tracks the number
+    of times the maximum queue size was reached and Zeek started an intermittent
+    event drain. Additionally, a new weird event_queue_overflow_drain is generated
+    when this happens. Further, the num_events_queued and num_events_dispatched
+    are now exposed via the metrics zeek_events_queued_total and
+    zeek_events_dispatched_total.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator script provided by them, but adapted to use Scapy
+    API and drop in_order functionality using Opus 4.8 locally.
+
+  * OCSP/X509: Set limits to the maximum string size when reading data (Tim Wojtulewicz, Corelight)
+
+    The OCSP and X509 analyzers both load data into a std::string without
+    any limitation to the maximum size. This adds new constants to limit
+    the sizes as well as weirds for violations.
+
+    Found by the Canadian Communications Security Establishment.
+
+  * Make MAX_RPC_LEN into a script-level constant (Tim Wojtulewicz, Corelight)
+
+  * RPC: Grow buffer incrementally instead of all at once (Tim Wojtulewicz, Corelight)
+
+    This rewrites the way that the buffers in the RPC analyzer are
+    allocated to incrementally grow the buffers based on the message
+    sizes instead of allocating the max space every time.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * MQTT: Enforce limits to the number of outstanding subscription and topics per sub (Tim Wojtulewicz, Corelight)
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
+  * KRB: Constrain parsing of AS-REQ packets (Tim Wojtulewicz, Corelight)
+
+    This restricts the parsing of AS-REQ requests to the lenght reported in
+    the packets instead of reading to the next EOF. It also checks the index
+    field for each request argument to avoid parsing duplicates. If either
+    of those conditions are violated, an binpac exception is generated.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * NCP: Fix eager allocation from protocol data (Tim Wojtulewicz, Corelight)
+
+    NCP allocates the maximum amount of data that could be in a packet,
+    even if the packet was smaller than that. This change changes to
+    allocate the minimum of what's reported in the packet and the packet
+    size on th wire.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * ldap: Cap ASN.1 aggregate elements (Evan Typanski, Corelight)
+
+    This is the same problem as Redis that was solved by
+    7f8dc75f5af2d3ff9f5c6f9ffdcfe08d71d4173a. Some protocols can have arrays
+    which would grow unbounded. Even if each one was bounded, you could
+    balloon the growth by being tricky with nested aggregates in order to
+    remain unimpeded.
+
+    This just applies the same fix to LDAP. It's far more change, but the
+    core is the same: we keep track of the total aggregates seen and cap
+    that number.
+
+    This could exhaust process memory, so it's a security issue.
+
+    Code generated by Codex GPT-5.5 with Redis as a reference.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * QUIC: Lazily instantiate crypto state and child analyzer (Arne Welzel, Corelight)
+
+    The QUIC analyzer would eagerly create units, sink and an SSL child analyzer
+    during a a %init handler of the top-level Packet unit. This means that for any
+    UDP traffic over port 443, resources were allocated that may never have been
+    used. This change switches to lazy allocation after the INITIAL packet decryption
+    was successful.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * testing/scripts: Remove drive letter via diff-remove-spicy-abspath (Arne Welzel, Corelight)
+
+    Pattern copied from diff-remove-abspath.
+
+  * QUIC: Reject crypto frames extending beyond offset 16640 (Arne Welzel, Corelight)
+
+    The QUIC analyzer would accumulate crypto frame data for reassembly via
+    a Spicy sink and accept offsets much larger than the maximum 2**14 + 256 byte
+    defined by the TLS record layer. This allows contructed QUIC initial packets
+    to cause unbounded memory growth by continuously sending sparse crypto frames.
+
+    Raise an analyzer violation when crypto frames extending beyond
+    2**14 + 256 are observed.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch provided by them and taken as proposed. Generated with
+    GPT-5.6 sol. Adapted the PCAP generator script to only create a few out-of-range
+    crypto frames and added a test for the new analyzer violation.
+
+    Also reported by the Communications Security Establishment, CSE.
+
+  * Skip/MPLS: Tests for prior use-after-free due to freed reassembly store (Arne Welzel, Corelight)
+
+    When configuring the IP analyzer to forward into Skip or MPLS which
+    forwards again into the IP analyzer by default, the outer reassembled
+    data would be freed as soon as the inner IP analyzer overwrites the
+    packet->ip_hdr field (shared pointer, single reference remaining).
+
+    The fix to pin/track reassembled IP packets fixed these.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. PCAP generators adapted and review done
+    using Claude Opus 4.8 heavily.
+
+  * AYIYA/GTPv1: Add tests for the same class of issue as for GENEVE (Arne Welzel, Corelight)
+
+    This is just the same test, but instead of having fragmented IPs with
+    GENEVE on top within a GENEVE tunnel, put it inside AYIYA and GTPv1
+    tunnels. PCAP scripts adapted using Claude Sonnet 4.6.
+
+  * packet_analysis/IP: Keep reassembled IP packets alive to prevent use-after-free (Arne Welzel, Corelight)
+
+    When Zeek processes tunneled packets, it creates short-lived inner
+    Packet instances that usually re-use the data pointer from the outer
+    packet. Inner packets are destructed upon returning from the recursive
+    packet parsing logic. The TrackAnalyzer() logic in that case uses data
+    pointers into the outer packet's buffer and subsequently accessing the
+    data pointers in the analyzer_stack during event execution is safe.
+
+    However, this breaks when the inner packets are IP fragments. In that case,
+    the resulting reassembled packet's data buffer is independent of the
+    outer packet. Still, Zeek tracks it within the analyzer stack, but because
+    the reassembled packet is only kept alive by the packet->ip_hdr shared pointer,
+    it is destructed once the inner packet is destructed. This results in a
+    use-after-free when PacketAnalyzer::GENEVE::get_options() is called during
+    script execution. Fix by stashing all reassembled packets into the
+    packet_analysis manager and freeing only upon analysis of the next
+    packet, or at termination.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+    Scapy reproducer also from Trail of Bits with slight modifications by me.
+
+  * Fix TCP reassembly to more cleanly handle overlapping blocks (Tim Wojtulewicz, Corelight)
+
+    This removes the recursive algorithm from the TCP reassembler in favor
+    of an iterative one when handling overlapping blocks. This prevents a
+    potential stack overflow when encountering a large set of overlaps. This
+    not only fixes the crash, but runs much faster.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+  * mysql: Treat too many query attributes in COM_QUERY as violation (Arne Welzel, Corelight)
+
+    Instead of accepting and parsing as many attributes as the the parsed
+    LengthEncodedInteger specifies, use &enforce to cap at a configurable limit.
+    Making it configurable allows to re-use existing PCAPs for testing
+    rather than needing to generate a new one. This also prevents a signed
+    int overflow when the attributes count is INT_MAX.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Also reported by the Communications Security Establishment, CSE.
+
+  * HTTP: Defer ZIP teardown to avoid a UAF (Evan Typanski, Corelight)
+
+    The ZIP analyzer can call EndOfData. Before, that would cause a
+    use-after-free, since the ZIP analyzer would continue going. Instead,
+    defer teardown.
+
+    Note this may change when the ZIP analyzer is torn down in the case
+    where there's more data, even if there is no more ZIP data.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
+  * HTTP: Prefer unique_ptr over raw ptr for zip (Evan Typanski, Corelight)
+
+  * zip: Make stream teardown idempotent (Evan Typanski, Corelight)
+
+    Otherwise `inflateEnd` would get double-called. This is not necessary,
+    but we shouldn't rely on the double-call playing nice. We hit the double
+    call in the existing HTTP x-gzip test, it just works fine.
+
+  * SOCKS: Enforce maximum depth of SOCKS tunnels (Tim Wojtulewicz, Corelight)
+
+  * Rewrite LDAP SearchFilter handling to not be quadratic-time (Tim Wojtulewicz, Corelight)
+
+  * postgresql: Replace set<uint8> with hand-rolled struct bitset (Arne Welzel, Corelight)
+
+    As suggested by Evan, thanks!
+
+  * postgresql: Skip raising duplicated identified fields (Arne Welzel, Corelight)
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. Patch provided by them, but rewritten
+    to skip duplicated identified field events within the parser and
+    raising a weird rather than raising an analyzer violation. Also
+    skipped the script level modifications as there can be at most
+    256 different identified fields.
+
+    The protocol docs have the following, so the weird seems reasonable:
+
+         Note that any given field type should appear at most once per message.
+
+    (54.8. Error and Notice Message Fields)
+
+  * zip: Switch to weird in scriptland (Evan Typanski, Corelight)
+
+    Now that we have `Reporter::limit_reached_weird`, we can emit it in
+    scriptland as a policy, instead of by the analyzer.
+
+    The location in misc/ is a bit weird, but the ZIP analyzer is different
+    from the ZIP file analyzer, which we would otherwise have a small name
+    conflict with. This just avoids the question entirely, instead.
+
+  * zip: Add `zip_analyzer_stats` event (Evan Typanski, Corelight)
+
+    This came up because the ZIP analyzer (not file analyzer) is getting a
+    cap. It could be useful to have the number of input and output bytes.
+    Then, you can also get if the limit got exceeded.
+
+    Note that the output is NOT the total size, it's the amount forwarded.
+    If it hits the cap, then the cap will just be the output value.
+
+  * zip: Split max uncompressed limit based on parent (Evan Typanski, Corelight)
+
+    The ZIP module was taken by the file analyzer, since the supporting
+    analyzer doesn't have an associated script. So, it makes sense that the
+    parent analyzer controls the limit.
+
+  * zip: Fix unbounded decompression in ZIP analyzer (Evan Typanski, Corelight)
+
+    HTTP could trigger ZIP decompression with very few bytes. This could
+    explode into a massive amount of generated body data, which Zeek will
+    happily try to analyze.
+
+    Cap it and report a weird.
+
+    Report by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI (plus a patch). Modified by me and Claude.
+
+  * Update NEWS for 8.0.11 one more time (Tim Wojtulewicz, Corelight)
+
 8.0.10-41 | 2026-10-22 10:26:55 -0700
 
   * CI: Fix macOS to use brew python version correctly (Tim Wojtulewicz, Corelight)

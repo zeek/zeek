@@ -1,3 +1,21 @@
+9.1.0-dev.394 | 2026-10-26 12:41:44 -0700
+
+  * TCP_Endpoint: Fix buffer-over-read via fwrite() to contents_file (Arne Welzel, Corelight)
+
+    In the scenario where set_contents_file() is used to write the payload
+    of a TCP connection to a file (requires reassembly to be disabled via
+    dpd_reassemble_first_packets=F and setting up a file using set_contents_file()),
+    a truncated TCP packet would lead tooverreading the data buffer due to using
+    len instead of caplen, dumping uninitialized memory to the file. Fix by using
+    caplen for writing out the bytes instead. Also fixes not writing trailing
+    ethernet bytes by using the min of len (TCP) and caplen (actually captured)
+    and skip writing anything coming before contents_start_seq.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. Patch and additional test cases created with Claude Opus 5.5.
+
+    LLM-Assisted: Claude Code (Claude Opus 5.5)
+
 9.1.0-dev.392 | 2026-10-26 12:41:23 -0700
 
   * DTLS: Replace bitset-based fragment handling with new DTLS_Reassembler (Arne Welzel, Corelight)

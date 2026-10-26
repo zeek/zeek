@@ -1,3 +1,15 @@
+9.1.0-dev.336 | 2026-10-26 11:52:43 -0700
+
+  * Make MAX_RPC_LEN into a script-level constant (Tim Wojtulewicz, Corelight)
+
+  * RPC: Grow buffer incrementally instead of all at once (Tim Wojtulewicz, Corelight)
+
+    This rewrites the way that the buffers in the RPC analyzer are
+    allocated to incrementally grow the buffers based on the message
+    sizes instead of allocating the max space every time.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration with OpenAI.
+
 9.1.0-dev.333 | 2026-10-26 11:52:19 -0700
 
   * MQTT: Enforce limits to the number of outstanding subscription and topics per sub (Tim Wojtulewicz, Corelight)

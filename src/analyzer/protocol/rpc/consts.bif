@@ -1,1 +1,2 @@
 const rpc_max_pending_calls: count;
+const rpc_max_length: count;

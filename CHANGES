@@ -1,3 +1,48 @@
+9.1.0-dev.303 | 2026-10-26 11:27:58 -0700
+
+  * Skip/MPLS: Tests for prior use-after-free due to freed reassembly store (Arne Welzel, Corelight)
+
+    When configuring the IP analyzer to forward into Skip or MPLS which
+    forwards again into the IP analyzer by default, the outer reassembled
+    data would be freed as soon as the inner IP analyzer overwrites the
+    packet->ip_hdr field (shared pointer, single reference remaining).
+
+    The fix to pin/track reassembled IP packets fixed these.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI. PCAP generators adapted and review done
+    using Claude Opus 4.8 heavily.
+
+  * AYIYA/GTPv1: Add tests for the same class of issue as for GENEVE (Arne Welzel, Corelight)
+
+    This is just the same test, but instead of having fragmented IPs with
+    GENEVE on top within a GENEVE tunnel, put it inside AYIYA and GTPv1
+    tunnels. PCAP scripts adapted using Claude Sonnet 4.6.
+
+  * packet_analysis/IP: Keep reassembled IP packets alive to prevent use-after-free (Arne Welzel, Corelight)
+
+    When Zeek processes tunneled packets, it creates short-lived inner
+    Packet instances that usually re-use the data pointer from the outer
+    packet. Inner packets are destructed upon returning from the recursive
+    packet parsing logic. The TrackAnalyzer() logic in that case uses data
+    pointers into the outer packet's buffer and subsequently accessing the
+    data pointers in the analyzer_stack during event execution is safe.
+
+    However, this breaks when the inner packets are IP fragments. In that case,
+    the resulting reassembled packet's data buffer is independent of the
+    outer packet. Still, Zeek tracks it within the analyzer stack, but because
+    the reassembled packet is only kept alive by the packet->ip_hdr shared pointer,
+    it is destructed once the inner packet is destructed. This results in a
+    use-after-free when PacketAnalyzer::GENEVE::get_options() is called during
+    script execution. Fix by stashing all reassembled packets into the
+    packet_analysis manager and freeing only upon analysis of the next
+    packet, or at termination.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI.
+
+    Scapy reproducer also from Trail of Bits with slight modifications by me.
+
 9.1.0-dev.299 | 2026-10-26 16:19:46 +0100
 
   * btest/cluster/publish-on-change: Use 30sec when timeouts (Arne Welzel, Corelight)

@@ -1,3 +1,15 @@
+9.1.0-dev.329 | 2026-10-26 11:38:26 -0700
+
+  * NCP: Fix eager allocation from protocol data (Tim Wojtulewicz, Corelight)
+
+    NCP allocates the maximum amount of data that could be in a packet,
+    even if the packet was smaller than that. This change changes to
+    allocate the minimum of what's reported in the packet and the packet
+    size on th wire.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in
+    collaboration with OpenAI.
+
 9.1.0-dev.327 | 2026-10-26 11:38:07 -0700
 
   * NTLM: check target-info length when parsing challenge messages (Tim Wojtulewicz, Corelight)

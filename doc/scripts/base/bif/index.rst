@@ -216,6 +216,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_DHCP.types.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_DNP3.consts.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_DNP3.events.bif.zeek`
 
 
@@ -240,6 +243,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_GSSAPI.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_HTTP.consts.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_HTTP.events.bif.zeek`
 
 
@@ -249,6 +255,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_Ident.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_IMAP.consts.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek`
 
 
@@ -256,6 +265,9 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_KRB.consts.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_Login.events.bif.zeek`
@@ -277,6 +289,12 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_MQTT.consts.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_MySQL.consts.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek`
@@ -495,6 +513,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_ZIP.events.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek`
 
 
@@ -545,6 +566,9 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek`
+
+
+:doc:`/scripts/base/bif/plugins/Zeek_X509.consts.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_AsciiReader.ascii.bif.zeek`

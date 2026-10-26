@@ -19,7 +19,6 @@ Runtime Options
 :zeek:id:`HTTP::default_capture_password`: :zeek:type:`bool` :zeek:attr:`&redef` This setting changes if passwords used in Basic-Auth are captured or
                                                                                  not.
 :zeek:id:`HTTP::http_methods`: :zeek:type:`set` :zeek:attr:`&redef`              A list of HTTP methods.
-:zeek:id:`HTTP::max_pending_requests`: :zeek:type:`count` :zeek:attr:`&redef`    Only allow that many pending requests on a single connection.
 :zeek:id:`HTTP::proxy_headers`: :zeek:type:`set` :zeek:attr:`&redef`             A list of HTTP headers typically used to indicate proxied requests.
 ================================================================================ ====================================================================
 
@@ -122,18 +121,6 @@ Runtime Options
    that the HTTP analyzer will only accept methods consisting solely
    of letters ``[A-Za-z]``.
 
-.. zeek:id:: HTTP::max_pending_requests
-   :source-code: base/protocols/http/main.zeek 149 149
-
-   :Type: :zeek:type:`count`
-   :Attributes: :zeek:attr:`&redef`
-   :Default: ``100``
-
-   Only allow that many pending requests on a single connection.
-   If this number is exceeded, all pending requests are flushed
-   out and request/response tracking reset to prevent unbounded
-   state growth.
-
 .. zeek:id:: HTTP::proxy_headers
    :source-code: base/protocols/http/main.zeek 113 113
 
@@ -159,7 +146,7 @@ Runtime Options
 Redefinable Options
 ###################
 .. zeek:id:: HTTP::default_max_field_string_bytes
-   :source-code: base/protocols/http/main.zeek 157 157
+   :source-code: base/protocols/http/main.zeek 151 151
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -507,7 +494,7 @@ Events
 Hooks
 #####
 .. zeek:id:: HTTP::finalize_http
-   :source-code: base/protocols/http/main.zeek 397 409
+   :source-code: base/protocols/http/main.zeek 391 403
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

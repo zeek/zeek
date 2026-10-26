@@ -14,9 +14,11 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-============================================================ ==========================
-:zeek:id:`MQTT::ports`: :zeek:type:`set` :zeek:attr:`&redef` Well-known ports for MQTT.
-============================================================ ==========================
+================================================================================== ===================================================================
+:zeek:id:`MQTT::max_pending_subscriptions`: :zeek:type:`count` :zeek:attr:`&redef` Maximum number of unacknowledged subscription messages retained per
+                                                                                   connection.
+:zeek:id:`MQTT::ports`: :zeek:type:`set` :zeek:attr:`&redef`                       Well-known ports for MQTT.
+================================================================================== ===================================================================
 
 Types
 #####
@@ -76,6 +78,16 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
+.. zeek:id:: MQTT::max_pending_subscriptions
+   :source-code: base/protocols/mqtt/main.zeek 20 20
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``100``
+
+   Maximum number of unacknowledged subscription messages retained per
+   connection. A value of zero removes the limit.
+
 .. zeek:id:: MQTT::ports
    :source-code: base/protocols/mqtt/main.zeek 16 16
 
@@ -95,7 +107,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: MQTT::ConnectInfo
-   :source-code: base/protocols/mqtt/main.zeek 27 48
+   :source-code: base/protocols/mqtt/main.zeek 31 52
 
    :Type: :zeek:type:`record`
 
@@ -147,7 +159,7 @@ Types
 
 
 .. zeek:type:: MQTT::PublishInfo
-   :source-code: base/protocols/mqtt/main.zeek 70 110
+   :source-code: base/protocols/mqtt/main.zeek 74 114
 
    :Type: :zeek:type:`record`
 
@@ -234,7 +246,7 @@ Types
 
 
 .. zeek:type:: MQTT::State
-   :source-code: base/protocols/mqtt/main.zeek 125 131
+   :source-code: base/protocols/mqtt/main.zeek 129 135
 
    :Type: :zeek:type:`record`
 
@@ -253,7 +265,7 @@ Types
    Data structure to track pub/sub messaging state of a given connection.
 
 .. zeek:type:: MQTT::SubUnsub
-   :source-code: base/protocols/mqtt/main.zeek 22 26
+   :source-code: base/protocols/mqtt/main.zeek 26 30
 
    :Type: :zeek:type:`enum`
 
@@ -264,7 +276,7 @@ Types
 
 
 .. zeek:type:: MQTT::SubscribeInfo
-   :source-code: base/protocols/mqtt/main.zeek 50 68
+   :source-code: base/protocols/mqtt/main.zeek 54 72
 
    :Type: :zeek:type:`record`
 
@@ -313,7 +325,7 @@ Types
 Events
 ######
 .. zeek:id:: MQTT::log_mqtt
-   :source-code: base/protocols/mqtt/main.zeek 114 114
+   :source-code: base/protocols/mqtt/main.zeek 118 118
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`MQTT::ConnectInfo`)
 
@@ -323,19 +335,19 @@ Events
 Hooks
 #####
 .. zeek:id:: MQTT::log_policy_connect
-   :source-code: base/protocols/mqtt/main.zeek 18 18
+   :source-code: base/protocols/mqtt/main.zeek 22 22
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: MQTT::log_policy_publish
-   :source-code: base/protocols/mqtt/main.zeek 20 20
+   :source-code: base/protocols/mqtt/main.zeek 24 24
 
    :Type: :zeek:type:`Log::PolicyHook`
 
 
 .. zeek:id:: MQTT::log_policy_subscribe
-   :source-code: base/protocols/mqtt/main.zeek 19 19
+   :source-code: base/protocols/mqtt/main.zeek 23 23
 
    :Type: :zeek:type:`Log::PolicyHook`
 
@@ -343,7 +355,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: MQTT::publish_expire
-   :source-code: base/protocols/mqtt/main.zeek 134 138
+   :source-code: base/protocols/mqtt/main.zeek 138 142
 
    :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::PublishInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
 
@@ -351,7 +363,7 @@ Functions
    yet simply causes the message to be logged.
 
 .. zeek:id:: MQTT::subscribe_expire
-   :source-code: base/protocols/mqtt/main.zeek 140 144
+   :source-code: base/protocols/mqtt/main.zeek 144 148
 
    :Type: :zeek:type:`function` (tbl: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`MQTT::SubscribeInfo`, idx: :zeek:type:`count`) : :zeek:type:`interval`
 

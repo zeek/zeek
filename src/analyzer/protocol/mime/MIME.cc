@@ -646,6 +646,15 @@ void MIME_Entity::ContHeader(int len, const char* data) {
         return;
     }
 
+    if ( zeek::BifConst::MIME::max_header_continuation_lines > 0 &&
+         current_header_line->get_fold_lines() >= zeek::BifConst::MIME::max_header_continuation_lines ) {
+        if ( message->GetAnalyzer() )
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_continuation_lines",
+                                                      current_header_line->get_fold_lines());
+
+        return;
+    }
+
     current_header_line->append(len, data);
 }
 

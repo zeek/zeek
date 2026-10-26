@@ -1,3 +1,18 @@
+9.1.0-dev.358 | 2026-10-26 12:28:10 -0700
+
+  * MIME: Cap maximum header continuation lines (Arne Welzel, Corelight)
+
+    MIME headers were previously only parsed by MIME::max_header_bytes.
+    Process memory could still be significantly increased by sending many
+    individual continuation lines for the same header. Introduce a new
+    MIME::max_header_continuation_lines (default: 1000) limit. When reached,
+    parsing the header is skipped and a new weird exceeded_mime_max_continuation_lines
+    raised.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator rewritten using Claude Opus 4.8 and patch
+    created by me.
+
 9.1.0-dev.356 | 2026-10-26 12:27:47 -0700
 
   * RDP: Enforce limitations on channel counts/repeat initial connect attempts (Tim Wojtulewicz, Corelight)

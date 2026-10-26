@@ -1,3 +1,29 @@
+9.1.0-dev.388 | 2026-10-26 12:41:07 -0700
+
+  * DNS: Cap extracted type bitmaps from NSEC / NSEC3 (Arne Welzel, Corelight)
+
+    This was found by Claude Opus 4.8 after reviewing the TXT and SPF
+    capping of the previous commit and essentially created by it.
+
+    LLM-Assisted: Claude Opus 4.8 (Anthropic)
+
+  * DNS: Cap extracted strings from TXT and SPF resource records (Arne Welzel, Corelight)
+
+    Technically, a TXT or SPF resource record can carry many individual strings.
+    Practically, it would appear weird if there's more than a handful contained
+    in these. Apparently multicast DNS uses individual character strings for
+    key-value storage. Also, due to strings being capped at 255 bytes, individual
+    strings may be concatenated to a longer final string (DKIM, SPF, DMARC).
+
+    The limit is a bit arbitrary and pretty high. The 257 allows for a total
+    concatenated length of 2^16-1 which is the max message size for the TCP
+    protocol.
+
+    Found by Kara Zaffarano and Kyle Elliott of Trail of Bits, in collaboration
+    with OpenAI. PCAP generator adapted with Claude Opus 4.8. Patch for capping
+    character strings and pondering the limit done by me. Evan pointed out
+    that the SPF had the same issue.
+
 9.1.0-dev.385 | 2026-10-26 12:40:52 -0700
 
   * PE: Enforce a configurable limit on the number of sections (Tim Wojtulewicz, Corelight)

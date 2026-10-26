@@ -3355,6 +3355,34 @@ global dns_max_queries = 25 &redef;
 ## reported and parsing of the chain is halted. See :rfc:`1035#section-4.1.4`.
 global dns_max_compression_chain_depth = 20 &redef;
 
+## The maximum number of character strings extracted from a single TXT
+## resource record and exposed via the :zeek:see:`dns_TXT_reply` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## character strings in the resource record skipped and a DNS_TXT_too_many_character_strings
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_txt_character_strings = 257 &redef;
+
+## The maximum number of character strings extracted from a single SPF
+## resource record and exposed via the :zeek:see:`dns_SPF_reply` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## character strings in the resource record skipped and a DNS_SPF_too_many_character_strings
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_spf_character_strings = 257 &redef;
+
+## The maximum number of type bitmaps extracted from a single NSEC
+## resource record and exposed via the :zeek:see:`dns_NSEC` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec_type_bitmaps = 256 &redef;
+
+## The maximum number of type bitmaps extracted from a single NSEC3
+## resource record and exposed via the :zeek:see:`dns_NSEC3` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC3_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec3_type_bitmaps = 256 &redef;
+
 ## HTTP session statistics.
 ##
 ## .. zeek:see:: http_stats

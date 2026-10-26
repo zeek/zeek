@@ -8,7 +8,7 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-
+#
 # @TEST-EXEC: zeek --parse-only manager.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
 #
@@ -16,9 +16,9 @@
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: wait-for-file ./worker-1/ready 10
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
-
+#
 # @TEST-EXEC: btest-bg-wait 30
-
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./worker-1/out
 # @TEST-EXEC: btest-diff ./worker-2/out
@@ -98,7 +98,7 @@ event zeek_init()
 			print fmt("table now populated to 20 (%s)", tbl1);
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout worker-1");
 			}
@@ -117,7 +117,7 @@ event zeek_init()
 
 			print "added 10 more elements!", |tbl1|;
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout worker-2");
 			}

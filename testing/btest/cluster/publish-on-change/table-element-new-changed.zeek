@@ -8,7 +8,7 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-
+#
 # @TEST-EXEC: zeek --parse-only manager.zeek
 # @TEST-EXEC: zeek --parse-only proxy.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
@@ -16,8 +16,9 @@
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy zeek -b ../proxy.zeek >out"
 # @TEST-EXEC: btest-bg-run worker "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
+#
 # @TEST-EXEC: btest-bg-wait 30
-
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./proxy/out
 # @TEST-EXEC: btest-diff ./worker/out
@@ -55,7 +56,7 @@ event Cluster::node_up(name: string, id: string)
 			print "set x to 14711 for the worker to terminate";
 			tbl1["x"] = 14711;
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout");
 			}
@@ -83,9 +84,9 @@ event zeek_init()
 
 		terminate();
 		}
-	timeout 10sec
+	timeout 30sec
 		{
-		Reporter::fatal("timeout 2!");
+		Reporter::fatal("timeout");
 		}
 	}
 
@@ -108,15 +109,14 @@ event zeek_init()
 		when ( tbl1["x"] == 14711 )
 			{
 			print "x is now 14711", tbl1;
-
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout 2!");
 			}
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout 1!");
 		}

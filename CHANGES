@@ -1,3 +1,14 @@
+9.1.0-dev.299 | 2026-10-26 16:19:46 +0100
+
+  * btest/cluster/publish-on-change: Use 30sec when timeouts (Arne Welzel, Corelight)
+
+    Motivated by seeing one of the tests with the "timeout" message from the
+    Reporter::fatal() fail in a separate PR and wondering why I chose 10s
+    over 30s which is used for btest-bg-run. So increase it.
+
+    ...and some formatting changes around the @TEST-EXEC lines to be a bit
+    more consistent while at it.
+
 9.1.0-dev.297 | 2026-10-26 08:11:05 -0700
 
   * zip: Switch to weird in scriptland (Evan Typanski, Corelight)

@@ -1,3 +1,47 @@
+9.1.0-dev.406 | 2026-10-26 12:46:49 -0700
+
+  * ZeekString/concatenate: Protect from signed integer overflow (Arne Welzel, Corelight)
+
+    Zeek does not support strings longer than 2G and previously the signed
+    int overflow would've in turn resulted in very large allocations, or
+    bad memcpy() invocations. Call reporter->Error() when concatenation
+    would result in strings larger than 2G. There's probably more places
+    where this can happen, but this was the cause for the mime_entity_data()
+    and mime_all_data() crashes before the introduction of the limits.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * MIME: Cap data sizes of mime_all_data() and mime_entity_data() (Arne Welzel, Corelight)
+
+    This is a bit of surgery to MIME.cc to switch the mime_all_data() and
+    mime_entity_data() storage to StringValPtrs rather than Strings.
+    Previously these strings were shared between those events with the
+    assumption that the mime_all_data() path will free them. When introducing
+    separate max sizes for each of these, that's not feasible anymore, so rely
+    on automatic StringValPtr instead (plus some trickery of allocating
+    individual strings when the max size is reached).
+
+    The mime_entity_data() and mime_all_data() events receive the length
+    as a count next to the data: string. This change keeps the total
+    length valid and only truncates the string, allowing to detect the
+    truncation when handling the event.
+
+    The length capping code is a bit duplicated, but didn't want to add a
+    separate abstraction for the two cases.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
+  * Val: Add StringVal::concatenate() (Arne Welzel, Corelight)
+
+  * MIME: Switch content_hash_length to size_t (Arne Welzel, Corelight)
+
+    Avoid signed overflow for MIME entities of size 2G or more.
+
+    Thank you to Communications Security Establishment, CSE for reporting
+    this issue.
+
 9.1.0-dev.401 | 2026-10-26 12:42:30 -0700
 
   * Modbus: Set limits on the number of devices and slaves in track-memmap policy (Tim Wojtulewicz, Corelight)

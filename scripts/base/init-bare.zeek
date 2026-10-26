@@ -3909,6 +3909,26 @@ export {
 	## Stop analysis of MIME headers that exceed this number of
 	## continuation lines. Setting this value to 0 removes the limit.
 	const max_header_continuation_lines = 1000 &redef;
+
+	## Accumulate at most this many bytes for the data argument of the
+	## :zeek:see:`mime_entity_data` event. When exceeded, the connection's
+	## history is marked with an X and an exceeded_max_mime_entity_data_size
+	## weird is raised. Additional data is discarded.
+	##
+	## Setting this value to 0 removes the limit, but you should almost
+	## never process this many bytes using Zeek script. Instead, consider
+	## implementing a custom file analyzer or extending protocol parsers.
+	const max_mime_entity_data_size = 128 * 1024 * 1024 &redef;
+
+	## Accumulate at most this many bytes for the data argument of the
+	## :zeek:see:`mime_all_data` event. When exceeded, the connection's
+	## history is marked with an X and an exceeded_max_mime_all_data_size
+	## weird is raised. Additional data is discarded.
+	##
+	## Setting this value to 0 removes the limit, but you should almost
+	## never process this many bytes using Zeek script. Instead, consider
+	## implementing a custom file analyzer or extending protocol parsers.
+	const max_mime_all_data_size = 128 * 1024 * 1024 &redef;
 }
 
 module MOUNT3;

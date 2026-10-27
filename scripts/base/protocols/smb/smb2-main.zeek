@@ -39,29 +39,37 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 
 	if ( tid > 0 )
 		{
-		if ( tid !in smb_state$tid_map )
+		local cc = smb_state$current_cmd;
+
+		if ( cc?$referenced_tree && cc$command == "TREE_CONNECT" )
+			{
+			# Always replace an existing tree_id within the
+			# tid_map with a new one from a TREE_CONNECT
+			# response.
+			if ( tid !in smb_state$tid_map )
+				SMB::insert_new_tree_info(c, tid);
+
+			smb_state$tid_map[tid] = cc$referenced_tree;
+			}
+
+		else if ( tid !in smb_state$tid_map )
 			{
 			SMB::insert_new_tree_info(c, tid);
 
-			if ( smb_state$current_cmd?$referenced_tree )
+			if ( cc?$referenced_tree )
 				{
 				# If the pending command already has a referenced
 				# tree, but wasn't in the tid_map, put it into the
 				# map here.
 				# This should only happen for a response to a
 				# TREE_CONNECT command, else something is weird.
-				local cc = smb_state$current_cmd;
-				if ( cc$command != "TREE_CONNECT" )
-					{
-					local addl = fmt("command=%s mid=%s tid=%s", cc$command, mid, tid);
-					Reporter::conn_weird("SMB_new_tid_non_tree_connect_cmd", c, addl, "SMB2");
-					}
-
+				local addl = fmt("command=%s mid=%s tid=%s", cc$command, mid, tid);
+				Reporter::conn_weird("SMB_new_tid_non_tree_connect_cmd", c, addl, "SMB2");
 				smb_state$tid_map[tid] = cc$referenced_tree;
 				}
 			}
 
-		smb_state$current_cmd$referenced_tree = smb_state$tid_map[tid];
+		cc$referenced_tree = smb_state$tid_map[tid];
 		}
 	else
 		{

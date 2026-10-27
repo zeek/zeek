@@ -66,8 +66,6 @@ public:
     DTLS_Reassembler(DTLS_Analyzer* da)
         : Reassembler(/*init_seq=*/0, /*reassem_type=*/REASSEM_DTLS), dtls_analyzer(da) {}
 
-    size_t NumBlocks() const { return block_list.NumBlocks(); }
-
     size_t Overlaps() const { return overlaps; }
 
     /**

@@ -93,7 +93,8 @@ global nodeid_hellos: set[string] &create_expire=hello_expiration &expire_func=n
 #
 # See also the Cluster::Backend::ZeroMQ::hello() handler below.
 #
-#   1) node A subscribes to a nodeid topic at priority=-1000
+#   1) node A subscribes to a nodeid topic in event subscribe_internal_nodeid_topic()
+#      which itself is queued by zeek_init()
 #   2) node B observes subscription for node A's nodeid topic and replies with ZeroMQ::hello()
 #   3) node A receives node B's nodeid topic subscription, replies with ZeroMQ::hello()
 #   4) node B receives node A's ZeroMQ::hello() and raises Cluster::node_up()
@@ -111,14 +112,23 @@ function make_internal_nodeid_topic(id: string): string
 	return cat(make_internal_nodeid_topic_prefix(), id, ".");
 	}
 
-# A subscription created at a very low priority that is used by other nodes
-# to identify upness. See the subscription handler below where the nodeid
+# An internal subscription created just after the first zeek_init() drain.
+# This subscriptions is used by other nodes to identify upness.
+# See the subscription handler below where the nodeid
 # is extracted by slicing away the internal_topic_prefix + "nodeid." and the
 # terminating dot.
-event zeek_init() &priority=-1000
+event subscribe_internal_nodeid_topic()
 	{
 	local topic = make_internal_nodeid_topic(Cluster::node_id());
 	Cluster::subscribe(topic);
+	}
+
+event zeek_init()
+	{
+	# The subscribe_internal_nodeid_topic() event runs
+	# during the same event_mgr.Drain(), but after all
+	# zeek_init() handlers executed.
+	event subscribe_internal_nodeid_topic();
 	}
 
 event Cluster::Backend::ZeroMQ::subscription(topic: string)

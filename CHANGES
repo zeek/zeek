@@ -1,3 +1,13 @@
+9.0.1-6 | 2026-11-11 15:06:38 -0700
+
+  * smb: Fix re-used tree_id being ignored (Arne Welzel, Corelight)
+
+    (cherry picked from commit d7963088167e652c3ef8aea553e0915615047601)
+
+  * btest/smb: Add regression test for tree_id reuse (Arne Welzel, Corelight)
+
+    (cherry picked from commit d7963088167e652c3ef8aea553e0915615047601)
+
 9.0.1-5 | 2026-11-11 15:04:49 -0700
 
   * doc/zeromq: Small note about Cluster::node_up() (Arne Welzel, Corelight)

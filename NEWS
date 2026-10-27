@@ -5,11 +5,15 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.2
 ==========
 
-Thank you to Jan Grashöfer (@J-Gras) for their contributions to this release.
+Thank you to Jan Grashöfer (@J-Gras) and Mohan Dhawan (@Mohan-Dhawan) for their
+contributions to this release.
 
 This release fixes the following security issues:
 
 This release fixes the following bugs:
+
+- A regression was added in 9.0.1 that caused paths in smb_mapping.log to not be logged
+  correctly. This has been resolved.
 
 Zeek 9.0.1
 ==========

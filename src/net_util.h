@@ -233,6 +233,9 @@ extern std::string fmt_mac(const unsigned char* m, int len);
  */
 extern std::pair<std::unique_ptr<uint8_t[]>, int> fmt_mac_bytes(const unsigned char* m, int len);
 
+// Read 2 bytes from data and return in network order.
+extern uint16_t extract_uint16(const u_char* data);
+
 // Read 4 bytes from data and return in network order.
 extern uint32_t extract_uint32(const u_char* data);
 

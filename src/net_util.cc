@@ -225,6 +225,15 @@ std::pair<std::unique_ptr<uint8_t[]>, int> fmt_mac_bytes(const unsigned char* m,
     return {std::move(buf), slen};
 }
 
+uint16_t extract_uint16(const u_char* data) {
+    uint16_t val;
+
+    val = static_cast<uint16_t>(data[0]) << 8;
+    val |= data[1];
+
+    return val;
+}
+
 uint32_t extract_uint32(const u_char* data) {
     uint32_t val;
 

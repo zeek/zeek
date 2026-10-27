@@ -1,3 +1,49 @@
+9.1.0-dev.444 | 2026-10-27 18:04:22 +0100
+
+  * GH-6011: smb: Fix re-used tree_id being ignored (Arne Welzel, Corelight)
+
+    This ensures that a TREE_CONNECT response updates the TreeInfo() within
+    the tid_map to align with the behavior before 8a3cc24. It seems
+    that conceptually we should track (session, tree_id), but the existing
+    scripts don't do this and this is primarily meant as a regression fix.
+
+    Fixes #6011
+
+  * GH-6011: btest/smb: Add regression test for tree_id reuse (Arne Welzel, Corelight)
+
+    Relates to #6011. Next commit will be the fix.
+
+  * Fix tests for different implementations of `zcat` (Benjamin Bannier, Corelight)
+
+    While on Linux systems `zcat` is typically implemented as an alias for
+    `gzip -dc` (gzip compression), this is not conformant to POSIX which
+    would have it as alias to `uncompress -c` (LZW compression), and e.g.,
+    macos follows POSIX.
+
+    Change a couple recently added tests to invoke `zcat` with our
+    canonical, magical spell.
+
+  * Remove redundant method implementation in derived class (Benjamin Bannier, Corelight)
+
+    The implementation in the derived class was shadowing the declaration in
+    the base class which was rejected by clang-tidy with
+
+    ```
+    2
+    /home/runner/work/zeek/zeek/src/include/zeek/analyzer/protocol/ssl/DTLS.h:69:5: error: 'zeek::analyzer::dtls::DTLS_Reassembler::NumBlocks' shadows method with the same name in class 'Reassembler' [bugprone-derived-method-shadowing-base-method,-warnings-as-errors]
+       69 |     size_t NumBlocks() const { return block_list.NumBlocks(); }
+          |     ^
+    /home/runner/work/zeek/zeek/src/include/zeek/Reassem.h:296:5: note: previous definition of 'NumBlocks' is here
+      296 |     size_t NumBlocks() const; // number of blocks buffered up
+          |     ^
+    ```
+
+  * Regenerate docs after security PR merges (Tim Wojtulewicz, Corelight)
+
+  * Fix line endings in a few files from security merges (Tim Wojtulewicz, Corelight)
+
+  * Fix some btest baselines after security PR merges (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.435 | 2026-10-26 13:20:18 -0700
 
   * ldap: Cap ASN.1 aggregate elements (Evan Typanski, Corelight)

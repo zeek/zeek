@@ -2,7 +2,7 @@
 #
 # Inflated memory usage under ASAN.
 # @TEST-REQUIRES: ! have-asan
-# @TEST-EXEC: zcat $TRACES/dnp3/dnp3-response-object-count-amplification.pcap.gz | zeek -b -r - %INPUT >&2
+# @TEST-EXEC: zcat <$TRACES/dnp3/dnp3-response-object-count-amplification.pcap.gz | zeek -b -r - %INPUT >&2
 #
 # @TEST-EXEC: btest-diff-cut -m uid service history orig_pkts resp_pkts conn.log
 

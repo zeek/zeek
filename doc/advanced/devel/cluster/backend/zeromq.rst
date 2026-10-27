@@ -128,18 +128,21 @@ The Cluster::node_up() Mechanism
 --------------------------------
 
 The implementation for :zeek:see:`Cluster::node_up` relies on creating a node
-specific topic subscription in a :zeek:see:`zeek_init` handler at priority -1000.
-This is done in the ``zeromq/main.zeek`` policy script using the concatenation
-of :zeek:see:`Cluster::Backend::ZeroMQ::internal_topic_prefix` suffixed with
-``nodeid.`` and the result of calling :zeek:see:`Cluster::node_id`.
+specific topic subscription. This subscription is established during the
+``subscribe_internal_nodeid_topic()`` event which itself is queued via :zeek:keyword:`event`
+from :zeek:see:`zeek_init` within the ``zeromq/main.zeek`` policy script. So it runs
+just after ``zeek_init``.
+The topic used is constructed as :zeek:see:`Cluster::Backend::ZeroMQ::internal_topic_prefix`
+suffixed with ``nodeid.``, the result of calling :zeek:see:`Cluster::node_id` and another ``.``.
 
 All other nodes in a Zeek cluster will observe this specific subscription through
 the low-level :zeek:see:`Cluster::Backend::ZeroMQ::subscription` event and reply
 with an internal :zeek:see:`Cluster::Backend::ZeroMQ::hello` event which in turn
 results in raising :zeek:see:`Cluster::node_up`.
 
-For ZeroMQ, it is guaranteed that any other subscriptions created in :zeek:see:`zeek_init`
-handlers with priorities greater than -1000 are also in effect.
+For ZeroMQ, it is guaranteed that all subscriptions created in :zeek:see:`zeek_init` handlers
+on a node A are in effect on a node B when B raises the :zeek:see:`Cluster::node_up` event
+for node A.
 
 
 Encryption

@@ -1,3 +1,20 @@
+8.0.11-2 | 2026-11-11 15:35:50 -0700
+
+  * GH-6011: smb: Fix re-used tree_id being ignored (Arne Welzel, Corelight)
+
+    This ensures that a TREE_CONNECT response updates the TreeInfo() within
+    the tid_map to align with the behavior before 8a3cc24. It seems
+    that conceptually we should track (session, tree_id), but the existing
+    scripts don't do this and this is primarily meant as a regression fix.
+
+    (cherry picked from commit d7963088167e652c3ef8aea553e0915615047601)
+
+  * GH-6011: btest/smb: Add regression test for tree_id reuse (Arne Welzel, Corelight)
+
+    (cherry picked from commit d7963088167e652c3ef8aea553e0915615047601)
+
+  * Add missing GHSA entries to 8.0.11 NEWS (Tim Wojtulewicz, Corelight)
+
 8.0.11 | 2026-10-26 14:56:09 +0000
 
   * Release 8.0.11.

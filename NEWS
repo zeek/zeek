@@ -2,6 +2,18 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.12
+===========
+
+Thank you to Mohan Dhawan (@Mohan-Dhawan) for their contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- A regression was added in 9.0.1 that caused paths in smb_mapping.log to not be logged
+  correctly. This has been resolved.
+
 Zeek 8.0.11
 ===========
 

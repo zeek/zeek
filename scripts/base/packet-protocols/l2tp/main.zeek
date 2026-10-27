@@ -11,4 +11,5 @@ export {
 event zeek_init() &priority=20
 	{
 	PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_L2TP, l2tp_ports);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_L2TP, 0x05, PacketAnalyzer::ANALYZER_ETHERNET);
 	}

@@ -1,3 +1,23 @@
+9.1.0-dev.447 | 2026-10-28 16:10:44 -0700
+
+  * build(deps): bump actions/setup-python from 6.3.0 to 7.1.0 (dependabot[bot])
+
+    Bumps [actions/setup-python](https://github.com/actions/setup-python) from 6.3.0 to 7.1.0.
+    - [Release notes](https://github.com/actions/setup-python/releases)
+    - [Commits](https://github.com/actions/setup-python/compare/ece7cb06caefa5fff74198d8649806c4678c61a1...6d4fd22b20465ccc0f7354476588e8df7c9ca0e0)
+
+    ---
+    updated-dependencies:
+    - dependency-name: actions/setup-python
+      dependency-version: 7.1.0
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+  * Docs: Regenerated via GitHub workflow [nomail] [skip ci] (zeek-bot)
+
 9.1.0-dev.444 | 2026-10-27 18:04:22 +0100
 
   * GH-6011: smb: Fix re-used tree_id being ignored (Arne Welzel, Corelight)

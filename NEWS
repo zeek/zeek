@@ -51,6 +51,10 @@ New Functionality
 
 	https://docs.zeek.org/en/master/reference/zeekscript/metrics.html
 
+- A new hook method ``WriterBackend::DoWrites()`` allows to handle log writes
+  in batches rather than individually via ``DoWrite()``. The maximum size of
+  a records batch is governed by ``Log::write_buffer_size``.
+
 Changed Functionality
 ---------------------
 

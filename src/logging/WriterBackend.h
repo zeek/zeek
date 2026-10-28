@@ -280,6 +280,30 @@ protected:
     virtual bool DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields) = 0;
 
     /**
+     * Hook method to process all log records passed via WriteMessage from
+     * the WriterBackend's frontend at once.
+     *
+     * The default implementation constructs an array of pointers of each
+     * of the contained threading::Value instances and passes it to DoWrite().
+     * If you're to override this method and use the threading::formatters,
+     * you'll likely need to do something similar.
+     *
+     * The maximum size of the span is capped by the script-level variable
+     * \a Log::write_buffer_size.
+     *
+     * When this method returns false, it will be assumed that a fatal error has
+     * occurred that prevents the writer from further operation; it will then be
+     * disabled and eventually deleted. When returning false, an
+     * implementation should also call Error() to indicate what happened.
+     *
+     * Note, detail::LogRecord is currently just an alias for std::vector<threading::Value>
+     * and this may change in the future.
+     *
+     * @version 9.1
+     */
+    virtual bool DoWrites(int num_fields, const threading::Field* const* fields, std::span<detail::LogRecord> records);
+
+    /**
      * Writer-specific output method implementing recording of fone log
      * entry.
      *

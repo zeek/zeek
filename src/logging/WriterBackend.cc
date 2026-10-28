@@ -203,32 +203,40 @@ bool WriterBackend::Write(int arg_num_fields, std::span<detail::LogRecord> recor
 
     bool success = true;
 
-    if ( ! Failed() ) {
-        // Populate a Value* array for backwards compat with plugin
-        // provided WriterBackend implementations that expect to
-        // receive a threading::Value**.
-        //
-        // We keep the raw pointer for this API, as threading::Value
-        // itself manages strings, sets and vectors using raw pointers,
-        // so this is more consistent than mixing.
-        std::vector<Value*> valps;
-        valps.reserve(num_fields);
-
-        for ( auto& record : records ) {
-            for ( int f = 0; f < num_fields; f++ )
-                valps.emplace_back(&record[f]);
-
-            success = DoWrite(num_fields, fields, &valps[0]);
-
-            valps.clear();
-
-            if ( ! success )
-                break;
-        }
-    }
+    if ( ! Failed() )
+        success = DoWrites(num_fields, fields, records);
 
     if ( ! success )
         DisableFrontend();
+
+    return success;
+}
+
+bool WriterBackend::DoWrites(int num_fields, const threading::Field* const* fields,
+                             std::span<detail::LogRecord> records) {
+    // Populate a Value* array for backwards compat with plugin
+    // provided WriterBackend implementations that expect to
+    // receive a threading::Value**.
+    //
+    // We keep the raw pointer for this API, as threading::Value
+    // itself manages strings, sets and vectors using raw pointers,
+    // so this is more consistent than mixing.
+    std::vector<Value*> valps;
+    valps.reserve(num_fields);
+
+    bool success = true;
+
+    for ( auto& record : records ) {
+        for ( int f = 0; f < num_fields; f++ )
+            valps.emplace_back(&record[f]);
+
+        success = DoWrite(num_fields, fields, valps.data());
+
+        valps.clear();
+
+        if ( ! success )
+            break;
+    }
 
     return success;
 }

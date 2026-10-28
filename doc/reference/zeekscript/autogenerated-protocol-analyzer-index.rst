@@ -15894,7 +15894,7 @@ Events
    .. zeek:see:: smb2_message smb2_close_request
 
 .. zeek:id:: smb2_create_request
-   :source-code: base/protocols/smb/smb2-main.zeek 141 164
+   :source-code: base/protocols/smb/smb2-main.zeek 149 172
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, request: :zeek:type:`SMB2::CreateRequest`)
 
@@ -15938,7 +15938,7 @@ Events
    .. zeek:see:: smb2_message smb2_create_request
 
 .. zeek:id:: smb2_negotiate_request
-   :source-code: base/protocols/smb/smb2-main.zeek 95 98
+   :source-code: base/protocols/smb/smb2-main.zeek 103 106
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, dialects: :zeek:type:`index_vec`)
 
@@ -15960,7 +15960,7 @@ Events
    .. zeek:see:: smb2_message smb2_negotiate_response
 
 .. zeek:id:: smb2_negotiate_response
-   :source-code: base/protocols/smb/smb2-main.zeek 100 114
+   :source-code: base/protocols/smb/smb2-main.zeek 108 122
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, response: :zeek:type:`SMB2::NegotiateResponse`)
 
@@ -16404,7 +16404,7 @@ Events
    .. zeek:see:: smb2_message smb2_file_delete smb2_file_sattr smb2_file_allocation smb2_file_endoffile smb2_file_mode smb2_file_pipe smb2_file_position smb2_file_shortname smb2_file_validdatalength smb2_file_fullea smb2_file_link
 
 .. zeek:id:: smb2_tree_connect_request
-   :source-code: base/protocols/smb/smb2-main.zeek 116 119
+   :source-code: base/protocols/smb/smb2-main.zeek 124 127
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`, path: :zeek:type:`string`)
 
@@ -16448,7 +16448,7 @@ Events
    .. zeek:see:: smb2_message smb2_tree_connect_request
 
 .. zeek:id:: smb2_tree_disconnect_request
-   :source-code: base/protocols/smb/smb2-main.zeek 131 139
+   :source-code: base/protocols/smb/smb2-main.zeek 139 147
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 
@@ -16576,7 +16576,7 @@ Events
    .. zeek:see:: smb1_message
 
 .. zeek:id:: smb2_discarded_messages_state
-   :source-code: base/protocols/smb/smb2-main.zeek 355 372
+   :source-code: base/protocols/smb/smb2-main.zeek 363 380
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, state: :zeek:type:`string`)
 

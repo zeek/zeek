@@ -24,7 +24,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: smb2_tree_disconnect_request
-   :source-code: base/protocols/smb/smb2-main.zeek 131 139
+   :source-code: base/protocols/smb/smb2-main.zeek 139 147
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, hdr: :zeek:type:`SMB2::Header`)
 

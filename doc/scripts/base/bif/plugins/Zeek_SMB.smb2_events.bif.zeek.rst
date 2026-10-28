@@ -25,7 +25,7 @@ Detailed Interface
 Events
 ######
 .. zeek:id:: smb2_discarded_messages_state
-   :source-code: base/protocols/smb/smb2-main.zeek 355 372
+   :source-code: base/protocols/smb/smb2-main.zeek 363 380
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, state: :zeek:type:`string`)
 

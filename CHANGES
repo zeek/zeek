@@ -1,3 +1,21 @@
+9.1.0-dev.449 | 2026-10-28 16:11:02 -0700
+
+  * build(deps): bump docker/login-action from 4.6.0 to 4.7.0 (dependabot[bot])
+
+    Bumps [docker/login-action](https://github.com/docker/login-action) from 4.6.0 to 4.7.0.
+    - [Release notes](https://github.com/docker/login-action/releases)
+    - [Commits](https://github.com/docker/login-action/compare/dbcb813823bdd20940b903addbd779551569679f...81c6f93d4bc991e510b342a00b419b3bb4efc5c6)
+
+    ---
+    updated-dependencies:
+    - dependency-name: docker/login-action
+      dependency-version: 4.7.0
+      dependency-type: direct:production
+      update-type: version-update:semver-minor
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.447 | 2026-10-28 16:10:44 -0700
 
   * build(deps): bump actions/setup-python from 6.3.0 to 7.1.0 (dependabot[bot])

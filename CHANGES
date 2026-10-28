@@ -1,3 +1,22 @@
+9.1.0-dev.453 | 2026-10-28 16:13:25 -0700
+
+  * build(deps): bump github/codeql-action/upload-sarif (dependabot[bot])
+
+    Bumps [github/codeql-action/upload-sarif](https://github.com/github/codeql-action) from 4.39.0 to 4.39.1.
+    - [Release notes](https://github.com/github/codeql-action/releases)
+    - [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)
+    - [Commits](https://github.com/github/codeql-action/compare/6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee...9b3254085494b55a0f7c4c2b3d2d52cc712ce370)
+
+    ---
+    updated-dependencies:
+    - dependency-name: github/codeql-action/upload-sarif
+      dependency-version: 4.39.1
+      dependency-type: direct:production
+      update-type: version-update:semver-patch
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.451 | 2026-10-28 16:11:19 -0700
 
   * build(deps): bump dawidd6/action-send-mail from 22 to 23 (dependabot[bot])

@@ -8,7 +8,33 @@
 
 using namespace zeek::packet_analysis::L2TP;
 
-L2TPAnalyzer::L2TPAnalyzer() : zeek::packet_analysis::Analyzer("L2TP") {}
+detail::V3SessionTimer::V3SessionTimer(L2TPAnalyzer* analyzer, double t)
+    : zeek::detail::Timer(t, zeek::detail::TIMER_L2TP_V3_SESSION_EXPIRE), analyzer(analyzer) {}
+
+detail::V3SessionTimer::~V3SessionTimer() {
+    if ( analyzer->v3_session_timer == this )
+        analyzer->v3_session_timer = nullptr;
+}
+
+void detail::V3SessionTimer::Dispatch(double t, bool do_expire) {
+    // The manager has already removed this timer and will delete it after we
+    // return, so the analyzer no longer has a pending timer. Drop the reference
+    // up front so ExpireV3Sessions() can arm a fresh one when sessions remain.
+    analyzer->v3_session_timer = nullptr;
+    analyzer->ExpireV3Sessions(do_expire);
+}
+
+
+L2TPAnalyzer::L2TPAnalyzer() : zeek::packet_analysis::Analyzer("L2TP") {
+    v3_session_max_age = zeek::id::find_val("PacketAnalyzer::L2TP::v3_session_max_age")->AsDouble();
+    v3_state_timer_interval = zeek::id::find_val("PacketAnalyzer::L2TP::v3_state_timer_interval")->AsDouble();
+    v3_max_sessions = zeek::id::find_val("PacketAnalyzer::L2TP::v3_max_sessions")->AsCount();
+}
+
+L2TPAnalyzer::~L2TPAnalyzer() {
+    if ( zeek::detail::timer_mgr && v3_session_timer )
+        zeek::detail::timer_mgr->Cancel(v3_session_timer);
+}
 
 bool L2TPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
     FlagsAndVersion flags;
@@ -213,10 +239,20 @@ bool L2TPAnalyzer::ParseControl(const FlagsAndVersion& flags, const uint8_t* dat
                 }
             }
 
+            state.last_used_time = run_state::network_time;
+
             if ( local_session_id != 0 )
                 v3_session_state_map.insert_or_assign(local_session_id, state);
             if ( remote_session_id != 0 )
-                v3_session_state_map.insert({remote_session_id, state});
+                v3_session_state_map.insert_or_assign(remote_session_id, state);
+
+            if ( v3_max_sessions > 0 && v3_session_state_map.size() > v3_max_sessions ) {
+                Weird("l2tp_max_v3_sessions_exceeded");
+                return false;
+            }
+
+            if ( v3_session_state_map.size() <= 2 )
+                InstallV3SessionTimer();
         }
 
         if ( is_cdn ) {
@@ -228,6 +264,11 @@ bool L2TPAnalyzer::ParseControl(const FlagsAndVersion& flags, const uint8_t* dat
                     if ( k.second == 63 || k.second == 64 )
                         v3_session_state_map.erase(v.second);
                 }
+            }
+
+            if ( v3_session_state_map.empty() && v3_session_timer ) {
+                zeek::detail::timer_mgr->Cancel(v3_session_timer);
+                v3_session_timer = nullptr;
             }
         }
     }
@@ -336,8 +377,22 @@ bool L2TPAnalyzer::ParseV3Data(const FlagsAndVersion& flags, const uint8_t* data
     if ( it == v3_session_state_map.end() )
         return false;
 
-    data += it->second.cookie_length;
-    len -= it->second.cookie_length;
+    auto& state = it->second;
+    state.last_used_time = run_state::network_time;
+
+    if ( len < state.cookie_length ) {
+        Weird("l2tp_header_truncated");
+        return false;
+    }
+
+    data += state.cookie_length;
+    len -= state.cookie_length;
+
+    if ( state.has_sublayer ) {
+        if ( len < 4 ) {
+            Weird("l2tp_header_truncated");
+            return false;
+        }
 
         data += 4;
         len -= 4;
@@ -351,4 +406,26 @@ bool L2TPAnalyzer::ParseV3Data(const FlagsAndVersion& flags, const uint8_t* data
         return true;
 
     return ForwardPacket(len, data, packet, state.psw_type);
+}
+
+void L2TPAnalyzer::ExpireV3Sessions(bool do_expire) {
+    for ( auto it = v3_session_state_map.begin(); it != v3_session_state_map.end(); ) {
+        if ( it->second.last_used_time + v3_session_max_age < run_state::network_time ) {
+            Weird("l2tp_session_timed_out");
+            it = v3_session_state_map.erase(it);
+        }
+        else
+            ++it;
+    }
+
+    if ( ! v3_session_state_map.empty() && ! do_expire ) {
+        InstallV3SessionTimer();
+    }
+}
+
+void L2TPAnalyzer::InstallV3SessionTimer() {
+    if ( ! v3_session_timer ) {
+        v3_session_timer = new detail::V3SessionTimer(this, run_state::network_time + v3_state_timer_interval);
+        zeek::detail::timer_mgr->Add(v3_session_timer);
+    }
 }

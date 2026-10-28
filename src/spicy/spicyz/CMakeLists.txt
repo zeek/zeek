@@ -1,5 +1,8 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
+# Exposes spicyz's experimental Parser IR route (`--experimental-pir`), which is off by default.
+option(ZEEK_SPICY_EXPERIMENTAL_PIR "Enable spicyz's experimental Parser IR route" OFF)
+
 configure_file(config.h.in config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h driver.h glue-compiler.h zeek-version.h
         DESTINATION include/zeek/spicy/spicyz)

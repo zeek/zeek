@@ -7,7 +7,7 @@ import hilti;
 
 public type Val = __library_type("::zeek::ValPtr");
 public type BroType = __library_type("::zeek::TypePtr");
-public type EventHandlerPtr = __library_type("::zeek::EventHandlerPtr");
+public type EventHandlerPtr = __library_type_const("::zeek::EventHandlerPtr");
 public type PortRange = __library_type("::zeek::spicy::rt::PortRange");
 public type RecordField = __library_type("::zeek::spicy::rt::RecordField");
 

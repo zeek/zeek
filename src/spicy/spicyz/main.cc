@@ -13,6 +13,9 @@
 using namespace zeek::spicy;
 
 constexpr int OPT_CXX_LINK = 1000;
+#ifdef ZEEK_SPICY_EXPERIMENTAL_PIR
+constexpr int OPT_EXPERIMENTAL_PIR = 1001;
+#endif
 
 static struct option long_driver_options[] = {{"abort-on-exceptions", required_argument, nullptr, 'A'},
                                               {"show-backtraces", required_argument, nullptr, 'B'},
@@ -38,6 +41,9 @@ static struct option long_driver_options[] = {{"abort-on-exceptions", required_a
                                               {"print-scripts-path", no_argument, nullptr, 'S'},
                                               {"skip-validation", no_argument, nullptr, '!'},
                                               {"version", no_argument, nullptr, 'v'},
+#ifdef ZEEK_SPICY_EXPERIMENTAL_PIR
+                                              {"experimental-pir", no_argument, nullptr, OPT_EXPERIMENTAL_PIR},
+#endif
                                               {"version-number", no_argument, nullptr, 'V'},
                                               {nullptr, 0, nullptr, 0}};
 
@@ -45,6 +51,9 @@ static void usage() {
     std::cerr << "Usage: spicyz [options] <inputs>\n"
                  "\n"
                  "  -c | --output-c++ <prefix>      Output generated C++ code.\n"
+#ifdef ZEEK_SPICY_EXPERIMENTAL_PIR
+                 "      --experimental-pir          Compile through the experimental Parser IR route.\n"
+#endif
                  "  -d | --debug                    Include debug instrumentation into generated code.\n"
                  "  -g | --disable-optimizations    Disable HILTI-side optimizations of the generated "
                  "code.\n"
@@ -214,6 +223,10 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 break;
 
             case OPT_CXX_LINK: compiler_options->cxx_link.emplace_back(optarg); break;
+
+#ifdef ZEEK_SPICY_EXPERIMENTAL_PIR
+            case OPT_EXPERIMENTAL_PIR: compiler_options->setAuxOption("spicy.experimental_pir", true); break;
+#endif
 
             case 'h': usage(); return Nothing();
 

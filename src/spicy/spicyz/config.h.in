@@ -66,6 +66,9 @@ inline auto CxxZeekIncludesDirectories() {
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
 
+// Whether spicyz accepts `--experimental-pir`.
+#cmakedefine ZEEK_SPICY_EXPERIMENTAL_PIR
+
 inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");
 
 // Top-level zeek build directory, used to detect build-directory mode.

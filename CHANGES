@@ -1,3 +1,21 @@
+9.1.0-dev.451 | 2026-10-28 16:11:19 -0700
+
+  * build(deps): bump dawidd6/action-send-mail from 22 to 23 (dependabot[bot])
+
+    Bumps [dawidd6/action-send-mail](https://github.com/dawidd6/action-send-mail) from 22 to 23.
+    - [Release notes](https://github.com/dawidd6/action-send-mail/releases)
+    - [Commits](https://github.com/dawidd6/action-send-mail/compare/67ce3558d613188179559c61d3565140cf389968...47af4a10b540781705f283a2cf1a9650713ac795)
+
+    ---
+    updated-dependencies:
+    - dependency-name: dawidd6/action-send-mail
+      dependency-version: '23'
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.449 | 2026-10-28 16:11:02 -0700
 
   * build(deps): bump docker/login-action from 4.6.0 to 4.7.0 (dependabot[bot])

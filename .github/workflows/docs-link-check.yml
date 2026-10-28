@@ -45,7 +45,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the GitHub UI.
         if: failure()
-        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
+        uses: dawidd6/action-send-mail@47af4a10b540781705f283a2cf1a9650713ac795 # v23
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

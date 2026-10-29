@@ -5,7 +5,14 @@
 #include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 
-namespace zeek::logging {
+namespace zeek {
+
+namespace telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
+namespace logging {
 
 class Manager;
 
@@ -257,8 +264,9 @@ protected:
     const char* name;                // Descriptive name of the writer.
     WriterBackend::WriterInfo* info; // The writer information.
 
-    detail::LogWriteHeader header;    // Collected information about the WriterFrontend.
-    detail::WriteBuffer write_buffer; // Buffer for bulk writes.
+    detail::LogWriteHeader header;                   // Collected information about the WriterFrontend.
+    detail::WriteBuffer write_buffer;                // Buffer for bulk writes.
+    telemetry::CounterPtr total_backend_queue_drops; // Number of individual log writes dropped.
 };
-
-} // namespace zeek::logging
+} // namespace logging
+} // namespace zeek

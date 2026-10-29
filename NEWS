@@ -59,6 +59,25 @@ New Functionality
   in batches rather than individually via ``DoWrite()``. The maximum size of
   a records batch is governed by ``Log::write_buffer_size``.
 
+- Zeek now discards log writes when logging threads are falling behind processing
+  their input queues. This is governed by the new ``Log::backend_thread_queue_hwm``,
+  defaulting to 1000. Every logging thread has a dedicated queue. The queue itself
+  stores batches of log records rather than individual log records for efficiency.
+  A new metric, ``zeek_log_writer_backend_thread_queue_drops_total`` is incremented
+  with the number of discarded log records.
+
+  This should only happen in exceptional cases when the log writer threads cannot
+  keep up with the amount of log writes produced. You'll then also see a new reporter
+  warning produced in the form of:
+
+	warning in <params>, line 1: test3/Log::WRITER_NATS: Dropped 1719450 logs due to reaching Log::backend_thread_queue_hwm (500)
+	warning in <params>, line 1: test0/Log::WRITER_NATS: Dropped 1724220 logs due to reaching Log::backend_thread_queue_hwm (500)
+
+  This message repeats every ``Log::drop_report_suppress_interval``, defaulting
+  to one second per Zeek process.
+
+  To disable this new behavior, set ``Log::backend_thread_queue_hwm`` to 0.
+
 Changed Functionality
 ---------------------
 

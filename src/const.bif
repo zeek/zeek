@@ -40,6 +40,8 @@ const Threading::heartbeat_interval: interval;
 
 const Log::flush_interval: interval;
 const Log::write_buffer_size: count;
+const Log::backend_thread_queue_hwm: count;
+const Log::drop_report_suppress_interval: interval;
 
 const Storage::expire_interval: interval;
 

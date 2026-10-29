@@ -118,6 +118,8 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
     else
         backend = nullptr;
+
+    total_backend_queue_drops = log_mgr->GetBackendQueueDropCounter(*this);
 }
 
 WriterFrontend::~WriterFrontend() {

@@ -24,7 +24,7 @@
 namespace zeek::detail {
 
 const char* stmt_name(StmtTag t) {
-    static const char* stmt_names[NUM_STMTS] = {
+    static const char* stmt_names[] = {
         "alarm", // Does no longer exist, but kept for keeping enums consistent.
         "print",
         "event",
@@ -50,8 +50,19 @@ const char* stmt_name(StmtTag t) {
         "extern",
         "std-function",
     };
+    static_assert(std::size(stmt_names) == NUM_STMTS, "stmt_names out of sync with StmtTag");
 
-    return stmt_names[t];
+    if ( static_cast<int>(t) < 0 || static_cast<int>(t) >= NUM_STMTS ) {
+        static char errbuf[512];
+
+        // This isn't quite right - we return a static buffer,
+        // so multiple calls to expr_name() could lead to confusion
+        // by overwriting the buffer.  But oh well.
+        snprintf(errbuf, sizeof(errbuf), "%d: not a statement tag", static_cast<int>(t));
+        return errbuf;
+    }
+
+    return stmt_names[static_cast<int>(t)];
 }
 
 int Stmt::num_stmts = 0;

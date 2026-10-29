@@ -1,3 +1,16 @@
+9.1.0-dev.456 | 2026-10-29 15:24:55 +0100
+
+  * Expr: Check expr_names against ExprTag at compile time (eb-anssi)
+
+    Same as for stmt_names: static_assert the name array matches NUM_EXPRS,
+    and also reject negative tags (ExprTag has EXPR_ANY = -1), which
+    indexed before the array.
+
+  * Stmt: Check stmt_names against StmtTag at compile time (eb-anssi)
+
+    A StmtTag added without a matching name left a nullptr in the
+    NUM_STMTS-sized array, crashing Describe().
+
 9.1.0-dev.453 | 2026-10-28 16:13:25 -0700
 
   * build(deps): bump github/codeql-action/upload-sarif (dependabot[bot])

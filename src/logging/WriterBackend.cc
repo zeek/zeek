@@ -15,7 +15,30 @@
 using zeek::threading::Field;
 using zeek::threading::Value;
 
-namespace zeek::logging {
+namespace zeek {
+
+namespace BifConst::Log {
+// from const.bif.netvar_h, but that has some Val references, so using extern.
+extern zeek_uint_t backend_thread_queue_hwm;
+} // namespace BifConst::Log
+
+namespace logging {
+
+namespace detail {
+
+bool writer_backend_thread_queue_full(const WriterBackend& backend) {
+    if ( BifConst::Log::backend_thread_queue_hwm == 0 )
+        return false;
+
+    // Note that ApproximatePendingIn() is not only log writes, it can
+    // also be heartbeats, flush or rotation messages. In an overload
+    // situation, one would expect it to represent the number of
+    // WriteMessage instances.
+    auto approx_pending = backend.ApproximatePendingIn();
+    return approx_pending >= BifConst::Log::backend_thread_queue_hwm;
+}
+
+} // namespace detail
 
 class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend> {
 public:
@@ -312,5 +335,5 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time) {
 
     return DoHeartbeat(network_time, current_time);
 }
-
-} // namespace zeek::logging
+} // namespace logging
+} // namespace zeek

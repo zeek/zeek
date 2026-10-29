@@ -98,6 +98,15 @@ public:
      */
     void GetStats(Stats* stats);
 
+    /**
+     * Returns the approximate number of currently pending messages
+     */
+    uint64_t ApproximatePending() const {
+        uint64_t nr = num_reads;
+        uint64_t nw = num_writes;
+        return nw > nr ? nw - nr : 0;
+    }
+
 private:
     static const int NUM_QUEUES = 8;
 
@@ -114,8 +123,8 @@ private:
     BasicThread* writer;
 
     // Statistics.
-    uint64_t num_reads;
-    uint64_t num_writes;
+    std::atomic<uint64_t> num_reads;
+    std::atomic<uint64_t> num_writes;
 };
 
 inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m) {

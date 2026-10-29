@@ -512,7 +512,10 @@ Manager::Manager()
       total_log_writer_truncated_container_fields_family(
           telemetry_mgr->CounterFamily("zeek", "log-writer-truncated-containers",
                                        {"writer", "module", "stream", "filter-name", "path"},
-                                       "Total number of logged container fields limited by length")) {
+                                       "Total number of logged container fields limited by length")),
+      total_log_writer_backend_thread_queue_drops_family(telemetry_mgr->CounterFamily(
+          "zeek", "log-writer-backend-thread-queue-drops", {"writer", "module", "stream", "filter-name", "path"},
+          "Total number of log writes discarded due to the backend thread queue reaching its high water mark")) {
     rotations_pending = 0;
 }
 
@@ -2297,4 +2300,16 @@ void Manager::StartLogFlushTimer() {
     zeek::detail::timer_mgr->Add(log_flush_timer);
 }
 
+telemetry::CounterPtr Manager::GetBackendQueueDropCounter(const WriterFrontend& frontend) {
+    // somewhat duplicated from CreateWriter()
+    const auto& header = frontend.header;
+    std::string stream_module_name = zeek::detail::extract_module_name(header.stream_name.c_str());
+    std::initializer_list<telemetry::LabelView> labels{{"writer", header.writer_name},
+                                                       {"module", stream_module_name},
+                                                       {"stream", header.stream_name},
+                                                       {"filter-name", header.filter_name},
+                                                       {"path", header.path}};
+
+    return total_log_writer_backend_thread_queue_drops_family->GetOrAdd(labels);
+}
 } // namespace zeek::logging

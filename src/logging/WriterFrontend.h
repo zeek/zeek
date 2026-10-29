@@ -267,6 +267,7 @@ protected:
     detail::LogWriteHeader header;                   // Collected information about the WriterFrontend.
     detail::WriteBuffer write_buffer;                // Buffer for bulk writes.
     telemetry::CounterPtr total_backend_queue_drops; // Number of individual log writes dropped.
+    ReportOnceEvery queue_drops_reporter;            // Rate-limited reporting of drops.
 };
 } // namespace logging
 } // namespace zeek

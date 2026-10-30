@@ -4241,6 +4241,9 @@ bool can_cast_any_to_type(const Val* v, Type* t) {
 }
 
 bool can_cast_type_to_type(const Type* s, Type* t) {
+    if ( ! s || ! t )
+        return false;
+
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
     if ( same_type(s, t) )
@@ -4256,7 +4259,7 @@ bool can_cast_type_to_type(const Type* s, Type* t) {
     if ( can_cast_basic_types(s, t) )
         return true;
 
-    if ( s && s->Tag() == TYPE_OPAQUE && s->AsOpaqueType()->CanCastTo(t) )
+    if ( s->Tag() == TYPE_OPAQUE && s->AsOpaqueType()->CanCastTo(t) )
         return true;
 
     if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )

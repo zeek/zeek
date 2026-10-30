@@ -248,7 +248,7 @@ void Session::AddHistory(char code) {
 
     history += code;
 
-    if ( history.size() == BifConst::max_connection_history_size ) {
+    if ( BifConst::max_connection_history_size > 0 && history.size() == BifConst::max_connection_history_size ) {
         // The maximum history size was reached: Has there been an X yet
         // in the history? If not, update the hist_seen bits and replace
         // the last code in the history with an X.

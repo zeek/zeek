@@ -96,11 +96,11 @@ void Reporter::Info(const char* fmt, ...) {
 void Reporter::Warning(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    Warning(fmt, ap);
+    WarningVaList(fmt, ap);
     va_end(ap);
 }
 
-void Reporter::Warning(const char* fmt, va_list ap) {
+void Reporter::WarningVaList(const char* fmt, va_list ap) {
     FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
     DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
 }
@@ -108,11 +108,11 @@ void Reporter::Warning(const char* fmt, va_list ap) {
 void Reporter::Error(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    Error(fmt, ap);
+    ErrorVaList(fmt, ap);
     va_end(ap);
 }
 
-void Reporter::Error(const char* fmt, va_list ap) {
+void Reporter::ErrorVaList(const char* fmt, va_list ap) {
     ++errors;
     FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
     DoLog("error", reporter_error, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
@@ -693,7 +693,7 @@ void ReportEvery::Warning(const char* fmt, ...) {
 
     va_list ap;
     va_start(ap, fmt);
-    zeek::reporter->Warning(fmt, ap);
+    zeek::reporter->WarningVaList(fmt, ap);
     va_end(ap);
 }
 
@@ -707,7 +707,7 @@ void ReportEvery::Error(const char* fmt, ...) {
 
     va_list ap;
     va_start(ap, fmt);
-    zeek::reporter->Error(fmt, ap);
+    zeek::reporter->ErrorVaList(fmt, ap);
     va_end(ap);
 }
 } // namespace zeek

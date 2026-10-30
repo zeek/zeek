@@ -316,8 +316,8 @@ private:
 
     // Helpers for ReportEvery class, private to avoid
     // exposing those via the global zeek::reporter.
-    void Warning(const char* fmt, va_list ap);
-    void Error(const char* fmt, va_list ap);
+    void WarningVaList(const char* fmt, va_list ap);
+    void ErrorVaList(const char* fmt, va_list ap);
 
     void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, ValPList* addl, bool location,
                bool time, const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));

@@ -528,6 +528,15 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
         return false;
     }
 
+    if ( separator.empty() ) {
+        // GetLine() finds the (empty) separator at every position, so every
+        // "record" is zero bytes long and consumes nothing from the read
+        // buffer, looping forever without making progress. Reject an empty
+        // InputRaw::record_separator up front instead of hanging.
+        Error("InputRaw::record_separator must not be empty");
+        return false;
+    }
+
     fname = info.source;
     mtime = 0;
     ino = 0;

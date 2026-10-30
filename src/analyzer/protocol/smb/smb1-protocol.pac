@@ -322,7 +322,7 @@ let SMB_Header_length = 32;
 refine connection SMB_Conn += {
 
 	%member{
-		int offset_len;
+		int offset_len = 0;
 	%}
 
 	function get_offset_len(): int

@@ -196,7 +196,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     sqlite3_free(errorMsg);
 
-    std::array<std::pair<std::string, sqlite3*>, 8> statements =
+    std::array<std::pair<std::string, sqlite3*>, 10> statements =
         {// Normal put
          std::make_pair(util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?) "
                                   "ON CONFLICT(key_str) DO UPDATE SET value_str=?, expire_time=? "
@@ -215,6 +215,15 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
                         db),
          // Erase
          std::make_pair(util::fmt("delete from %s where key_str=?", table_name.c_str()), db),
+         // Get all
+         std::make_pair(util::fmt("select key_str, value_str from %s where "
+                                  "(expire_time == 0.0 OR expire_time > ?) limit ?",
+                                  table_name.c_str()),
+                        db),
+         // Size
+         std::make_pair(util::fmt("select count(*) from %s where expire_time == 0.0 OR expire_time > ?",
+                                  table_name.c_str()),
+                        db),
          // Check for expired entries
          std::make_pair(
              util::fmt("select count(*) from %s where expire_time > 0 and expire_time != 0 and expire_time <= ?",
@@ -251,10 +260,12 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     put_update_stmt = std::move(stmt_ptrs[1]);
     get_stmt = std::move(stmt_ptrs[2]);
     erase_stmt = std::move(stmt_ptrs[3]);
-    check_expire_stmt = std::move(stmt_ptrs[4]);
-    expire_stmt = std::move(stmt_ptrs[5]);
-    get_expiry_last_run_stmt = std::move(stmt_ptrs[6]);
-    update_expiry_last_run_stmt = std::move(stmt_ptrs[7]);
+    get_all_stmt = std::move(stmt_ptrs[4]);
+    size_stmt = std::move(stmt_ptrs[5]);
+    check_expire_stmt = std::move(stmt_ptrs[6]);
+    expire_stmt = std::move(stmt_ptrs[7]);
+    get_expiry_last_run_stmt = std::move(stmt_ptrs[8]);
+    update_expiry_last_run_stmt = std::move(stmt_ptrs[9]);
 
     page_count_metric =
         telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_database_size", {{"config", GetConfigMetricsLabel()}},
@@ -298,6 +309,8 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         put_update_stmt.reset();
         get_stmt.reset();
         erase_stmt.reset();
+        get_all_stmt.reset();
+        size_stmt.reset();
         check_expire_stmt.reset();
         expire_stmt.reset();
         get_expiry_last_run_stmt.reset();
@@ -461,6 +474,80 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     }
 
     return Step(stmt.get(), nullptr);
+}
+
+OperationResult SQLite::DoGetAll(ResultCallback* /* cb */, uint64_t max_entries) {
+    if ( ! db )
+        return {ReturnCode::NOT_CONNECTED};
+
+    auto stmt = unique_stmt_ptr(get_all_stmt.get(), sqlite3_reset);
+
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 1, run_state::network_time));
+         res.code != ReturnCode::SUCCESS )
+        return res;
+
+    int64_t limit = max_entries > 0 ? static_cast<int64_t>(max_entries) + 1 : -1;
+    if ( auto res = CheckError(sqlite3_bind_int64(stmt.get(), 2, limit)); res.code != ReturnCode::SUCCESS )
+        return res;
+
+    auto indices = make_intrusive<TypeList>(key_type);
+    indices->Append(key_type);
+    auto ttype = make_intrusive<TableType>(std::move(indices), val_type);
+    auto table = make_intrusive<TableVal>(std::move(ttype));
+    uint64_t count = 0;
+
+    while ( true ) {
+        int step_status = sqlite3_step(stmt.get());
+
+        if ( step_status == SQLITE_DONE )
+            break;
+
+        if ( step_status != SQLITE_ROW ) {
+            if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
+                return {ReturnCode::TIMEOUT};
+            return {ReturnCode::OPERATION_FAILED, util::fmt("sqlite3_step failed: %s", sqlite3_errmsg(db))};
+        }
+
+        ++count;
+        if ( max_entries > 0 && count > max_entries )
+            return {ReturnCode::RESULT_TOO_LARGE};
+
+        auto key_blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt.get(), 0));
+        size_t key_size = sqlite3_column_bytes(stmt.get(), 0);
+        auto val_blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt.get(), 1));
+        size_t val_size = sqlite3_column_bytes(stmt.get(), 1);
+
+        auto key = serializer->Unserialize({key_blob, key_size}, key_type);
+        if ( ! key )
+            return {ReturnCode::UNSERIALIZATION_FAILED, key.error()};
+
+        auto val = serializer->Unserialize({val_blob, val_size}, val_type);
+        if ( ! val )
+            return {ReturnCode::UNSERIALIZATION_FAILED, val.error()};
+
+        IncBytesReadMetric(key_size + val_size);
+        table->Assign(key.value(), val.value());
+    }
+
+    return {ReturnCode::SUCCESS, "", table};
+}
+
+OperationResult SQLite::DoSize(ResultCallback* /* cb */) {
+    if ( ! db )
+        return {ReturnCode::NOT_CONNECTED};
+
+    auto stmt = unique_stmt_ptr(size_stmt.get(), sqlite3_reset);
+
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 1, run_state::network_time));
+         res.code != ReturnCode::SUCCESS )
+        return res;
+
+    int step_status = sqlite3_step(stmt.get());
+    if ( step_status != SQLITE_ROW )
+        return {ReturnCode::OPERATION_FAILED, util::fmt("sqlite3_step failed: %s", sqlite3_errmsg(db))};
+
+    auto count = static_cast<uint64_t>(sqlite3_column_int64(stmt.get(), 0));
+    return {ReturnCode::SUCCESS, "", val_mgr->Count(count)};
 }
 
 /**

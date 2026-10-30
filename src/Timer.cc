@@ -51,6 +51,7 @@ const char* TimerNames[] = {
     "LogFlushWriteBufferTimer",
     "StorageExpire",
     "TablePublishBatchedChanges",
+    "L2TPV3Session",
 };
 
 const char* timer_type_to_string(TimerType type) { return TimerNames[type]; }

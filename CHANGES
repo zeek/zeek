@@ -1,3 +1,19 @@
+9.1.0-dev.464 | 2026-10-30 11:20:44 +0100
+
+  * logging/WriterBackend: Add DoWrites() hook for better batch support (Arne Welzel, Corelight)
+
+    Some messaging libraries (e.g. librdkafka's rd_kafka_produce_batch()), provide
+    APIs to efficiently enqueue batches of messages. The logging framework's
+    DoWrite() hook that's invoked for each log record separately, makes
+    using such APIs somewhat cumbersome. Other use cases would be
+    microbatching-style all records in one go. One example could be
+    a HTTP POST handler to an endpoint which puts all records at once
+    into the body instead of doing individual HTTP POST requests.
+
+    The std::span<detail::LogRecord> API is a bit ungreat and might change
+    down the road, but would guess users working on that level will manage
+    to adapt. This change does not break the existing plugin API.
+
 9.1.0-dev.462 | 2026-10-30 11:15:04 +0100
 
   * Add missing newlines at end of files (Gido822)

@@ -65,6 +65,33 @@ protected:
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
+/**
+ * Helper class for report-every-so-often style Reporter::Warning() and
+ * Reporter::Error() calls. Useful for overload situations where logging
+ * every occurrence is prohibitive, but logging every few seconds reasonable
+ * to provide continuous notification about the problem.
+ *
+ * Usage and thread-safety:
+ *
+ * Only use it from code running on the main thread. It delegates
+ * to zeek::reporter and nothing is thread safe there today.
+ *
+ * Uses double so that every_sec can just be injected from Interval().
+ */
+class ReportEvery {
+public:
+    ReportEvery(double interval_sec) : interval_sec(interval_sec) {}
+
+    void Warning(const char* fmt, ...) FMT_ATTR;
+
+    void Error(const char* fmt, ...) FMT_ATTR;
+
+private:
+    double interval_sec;
+    double last_warning_ts = 0.0; // Last time a warning report was made.
+    double last_error_ts = 0.0;   // Last time a error report was made.
+};
+
 class Reporter {
 public:
     using IPPair = std::pair<IPAddr, IPAddr>;
@@ -285,6 +312,13 @@ public:
     }
 
 private:
+    friend class ReportEvery;
+
+    // Helpers for ReportEvery class, private to avoid
+    // exposing those via the global zeek::reporter.
+    void WarningVaList(const char* fmt, va_list ap);
+    void ErrorVaList(const char* fmt, va_list ap);
+
     void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, ValPList* addl, bool location,
                bool time, const char* postfix, const char* fmt, va_list ap) __attribute__((format(printf, 10, 0)));
 

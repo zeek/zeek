@@ -18,6 +18,16 @@ namespace zeek::logging {
 
 class WriterFrontend;
 
+namespace detail {
+
+/**
+ * @return true if the backend's in queue exceeds the high water mark
+ * configured by Log::backend_thread_queue_hwm.
+ */
+bool writer_backend_thread_queue_full(const WriterBackend& backend);
+
+} // namespace detail
+
 /**
  * Base class for writer implementation. When the logging::Manager creates a
  * new logging filter, it instantiates a WriterFrontend. That then in turn
@@ -405,6 +415,11 @@ protected:
      * sending heartbeat messages to the writer backend thread.
      */
     virtual bool DoHeartbeat(double network_time, double current_time) { return true; }
+
+    // Friend a free function to determine if the queue is full in order
+    // to not expose QueueFull() or ApproximatePendingIn() as public API
+    // and use the detail namespace.
+    friend bool logging::detail::writer_backend_thread_queue_full(const zeek::logging::WriterBackend& backend);
 
 private:
     /**

@@ -2,8 +2,10 @@
 
 #include "zeek/logging/WriterFrontend.h"
 
+#include <cinttypes>
 #include <span>
 
+#include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
@@ -14,7 +16,15 @@
 using zeek::threading::Field;
 using zeek::threading::Value;
 
-namespace zeek::logging {
+namespace zeek {
+
+namespace BifConst::Log {
+// from const.bif.netvar_h, but that has some Val references, so using extern.
+extern double drop_report_suppress_interval;
+extern zeek_uint_t backend_thread_queue_hwm;
+} // namespace BifConst::Log
+
+namespace logging {
 
 // Messages sent from frontend to backend (i.e., "InputMessages").
 
@@ -118,6 +128,8 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
     else
         backend = nullptr;
+
+    total_backend_queue_drops = log_mgr->GetBackendQueueDropCounter(*this);
 }
 
 WriterFrontend::~WriterFrontend() {
@@ -233,8 +245,29 @@ void WriterFrontend::FlushWriteBuffer() {
     if ( remote && ! broker_is_cluster_backend )
         zeek::cluster::backend->PublishLogWrites(header, std::span{records});
 
-    if ( backend )
+    if ( backend ) {
+        // Prevent running out of memory from too many log writes when the
+        // backend thread isn't keeping up.
+        //
+        // If we ever move the frontend/backend queue to ZeroMQ inproc, we'd
+        // instead retroactively increase the metric when queueing failed.
+        if ( detail::writer_backend_thread_queue_full(*backend) ) {
+            total_backend_queue_drops->Inc(records.size());
+
+            // Currently, share one rate-limited ReportEvery instance across
+            // all frontends. This should be absolutely exceptional, so seems
+            // okay to only report this when it happens on any of them rather
+            // than all of them.
+            static auto report_drops = ReportEvery(BifConst::Log::drop_report_suppress_interval);
+            report_drops.Warning("%s: Dropped %.0f logs due to reaching Log::backend_thread_queue_hwm (%" PRIu64 ")",
+                                 Name(), total_backend_queue_drops->Value(), BifConst::Log::backend_thread_queue_hwm);
+
+            records.clear();
+            return;
+        }
+
         backend->SendIn(new WriteMessage(backend, header.fields.size(), std::move(records)));
+    }
 }
 
 void WriterFrontend::SetBuf(bool enabled) {
@@ -274,4 +307,5 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
         log_mgr->FinishedRotation(this, nullptr, nullptr, 0, 0, false, terminating);
 }
 
-} // namespace zeek::logging
+} // namespace logging
+} // namespace zeek

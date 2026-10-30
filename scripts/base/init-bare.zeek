@@ -4032,6 +4032,39 @@ export {
 	## .. :zeek:see:`Log::flush_interval`
 	const write_buffer_size = 1000 &redef;
 
+	## Sets the high water mark of the log writer backend thread queues within
+	## the logging framework.
+	##
+	## Zeek batches up to :zeek:see:`Log::write_buffer_size` log records for
+	## delivery to log writer backend threads. Each such batch is placed into a
+	## per writer queue and takes up one slot in it. If the queue's size reaches the
+	## configured high water mark, Zeek will discard any new batches that don't
+	## fit and increase the :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total`
+	## metric by the number of log records in the dropped batch.
+	##
+	## Setting this value to zero disables the high water mark. This can result
+	## in out-of-memory scenarios when logging writers are falling behind due to
+	## the queue growing unbounded.
+	##
+	## Each entry in this queue holds up to :zeek:see:`Log::write_buffer_size`
+	## log records. Under extreme loads, Zeek may buffer up to 10 million log
+	## records per log writer.
+	##
+	## .. versionadded:: 9.1
+	const backend_thread_queue_hwm = 10000 &redef;
+
+	## Reporting of dropped log writes is rate limited to avoid overwhelming
+	## the system. This interval specifies for how long to suppress repeated
+	## drop reporting events.
+	##
+	## This rate-limit is across all log writes at this point. If you ever see
+	## the message about dropped log writes, check the metric
+	## :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total` for
+	## details.
+	##
+	## .. versionadded:: 9.1
+	const drop_report_suppress_interval = 1sec &redef;
+
 	## Maximum size of a message that can be sent to a remote logger or logged
 	## locally. If this limit is met, report a ``log_line_too_large`` weird and drop
 	## the log entry. This isn't necessarily the full size of a line that might be

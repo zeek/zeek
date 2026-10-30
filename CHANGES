@@ -1,3 +1,22 @@
+9.1.0-dev.462 | 2026-10-30 11:15:04 +0100
+
+  * Add missing newlines at end of files (Gido822)
+
+  * SSH: Map more KEX methods (Gido822)
+
+    Add curve448-sha512, diffie-hellman-group15-sha512,
+    diffie-hellman-group17-sha512, diffie-hellman-group14-sha256@ssh.com
+    and diffie-hellman-group-exchange-sha512@ssh.com to SSH::kex_methods
+
+  * SSH: Add tests for more KEX methods (Gido822)
+
+  * SSH: Add test for redefining SSH::kex_methods (Gido822)
+
+  * SSH: Move the KEX method mapping to script-land (Gido822)
+
+    Look up the negotiated key exchange method in the new redef-able
+    SSH::kex_methods table instead of hardcoding it in the analyzer.
+
 9.1.0-dev.456 | 2026-10-29 15:24:55 +0100
 
   * Expr: Check expr_names against ExprTag at compile time (eb-anssi)

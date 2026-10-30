@@ -40,6 +40,10 @@ New Functionality
 - The SSH DPD signature now matches on ``SSH-`` rather than ``SSH-[12]`` to catch
   tools using unconventional SSH version strings.
 
+- The supported SSH KEX methods are now configurable via a new script-level
+  table ``SSH::kex_methods`` to allow updating the mapping without the need
+  to adapt analyzer source code and recompile Zeek.
+
 - The input framework now supports optional records in its input files. The
   fields of absent records, including potential nested records, should be
   listed with the configured ``Input::unset_field`` character (normally "-").

@@ -96,18 +96,26 @@ void Reporter::Info(const char* fmt, ...) {
 void Reporter::Warning(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
-    DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
+    Warning(fmt, ap);
     va_end(ap);
 }
 
+void Reporter::Warning(const char* fmt, va_list ap) {
+    FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+    DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
+}
+
 void Reporter::Error(const char* fmt, ...) {
-    ++errors;
     va_list ap;
     va_start(ap, fmt);
+    Error(fmt, ap);
+    va_end(ap);
+}
+
+void Reporter::Error(const char* fmt, va_list ap) {
+    ++errors;
     FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
     DoLog("error", reporter_error, out, nullptr, nullptr, true, true, nullptr, fmt, ap);
-    va_end(ap);
 }
 
 void Reporter::FatalError(const char* fmt, ...) {
@@ -675,4 +683,31 @@ ScriptLocationScope::ScriptLocationScope(const zeek::detail::Frame* frame) {
 
 ScriptLocationScope::~ScriptLocationScope() { zeek::reporter->PopLocation(); }
 
+void ReportEvery::Warning(const char* fmt, ...) {
+    auto now = util::current_time();
+
+    if ( interval_sec > 0.0 && last_warning_ts != 0.0 && (now - last_warning_ts) < interval_sec )
+        return;
+
+    last_warning_ts = now;
+
+    va_list ap;
+    va_start(ap, fmt);
+    zeek::reporter->Warning(fmt, ap);
+    va_end(ap);
+}
+
+void ReportEvery::Error(const char* fmt, ...) {
+    auto now = util::current_time();
+
+    if ( interval_sec > 0 && last_error_ts != 0.0 && (now - last_error_ts) < interval_sec )
+        return;
+
+    last_error_ts = now;
+
+    va_list ap;
+    va_start(ap, fmt);
+    zeek::reporter->Error(fmt, ap);
+    va_end(ap);
+}
 } // namespace zeek

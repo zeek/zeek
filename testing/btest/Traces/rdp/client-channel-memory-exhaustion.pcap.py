@@ -191,7 +191,6 @@ def main():
     for index, packet in enumerate(packets):
         packet.time = BASE_TS + index * 0.001
     wrpcap(str(args.output), packets)
-    print(f"Wrote {len(packets)} packets to {args.output}")
 
 
 if __name__ == "__main__":

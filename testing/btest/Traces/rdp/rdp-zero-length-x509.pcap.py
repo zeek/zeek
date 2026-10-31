@@ -21,7 +21,12 @@ The client-side frames and the invariant server prefix bytes are lifted
 verbatim from testing/btest/Traces/rdp/rdp-x509.pcap; only the server
 certificate (and the enclosing length fields) are rebuilt.
 
+    Client -> Server  FIN/ACK, Server -> Client FIN/ACK, Client -> Server ACK
+
 Requires scapy.  Usage:  python3 rdp-zero-length-x509.pcap.py
+
+Adapted with Claude Sonnet 5.5 to follow the scapy-pcap conventions
+(deterministic timestamps, TCP teardown).
 """
 
 import struct
@@ -180,6 +185,7 @@ def build_server_mcs():
 CLIENT_IP, SERVER_IP = "192.168.1.1", "192.168.1.2"
 CLIENT_MAC, SERVER_MAC = "00:17:c5:10:15:40", "00:50:56:8c:fc:10"
 CLIENT_PORT, SERVER_PORT = 54990, 3389
+BASE_TIME = 1_700_000_000.0
 
 
 def main():
@@ -241,9 +247,17 @@ def main():
     packets.append(c2s("PA", CLIENT_MCS))  # MCS Connect-Initial (ClientData)
     packets.append(s2c("PA", server_mcs))  # MCS Connect-Response (ServerData)
 
+    # --- TCP teardown, the client closes (a FIN consumes one sequence number) ---
+    packets.append(c2s("FA"))
+    c_seq += 1
+    packets.append(s2c("FA"))
+    s_seq += 1
+    packets.append(c2s("A"))
+
+    for index, p in enumerate(packets):
+        p.time = BASE_TIME + index * 0.001
+
     wrpcap(str(out), packets)
-    print(f"Wrote {len(packets)} packets to {out}")
-    print(f"Server MCS Connect-Response payload: {len(server_mcs)} bytes")
 
 
 if __name__ == "__main__":

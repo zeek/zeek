@@ -15,6 +15,7 @@
    base/bif/packet_analysis.bif.zeek </scripts/base/bif/packet_analysis.bif.zeek>
    base/bif/CPP-load.bif.zeek </scripts/base/bif/CPP-load.bif.zeek>
    base/bif/mmdb.bif.zeek </scripts/base/bif/mmdb.bif.zeek>
+   base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>
    base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>
    base/bif/telemetry_functions.bif.zeek </scripts/base/bif/telemetry_functions.bif.zeek>
@@ -264,7 +265,6 @@
    base/bif/plugins/Zeek_SNMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek>
    base/bif/plugins/Zeek_SOCKS.events.bif.zeek </scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek>
    base/bif/plugins/Zeek_SSH.consts.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek>
-   base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SSH.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek>
    base/bif/plugins/Zeek_SSL.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSL.types.bif.zeek>
    base/bif/plugins/Zeek_SSL.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSL.events.bif.zeek>

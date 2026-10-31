@@ -67,6 +67,9 @@ Package: base/bif
 :doc:`/scripts/base/bif/mmdb.bif.zeek`
 
 
+:doc:`/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek`
+
+
 :doc:`/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek`
 
 
@@ -466,9 +469,6 @@ Package: base/bif
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek`
-
-
-:doc:`/scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek`
 
 
 :doc:`/scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek`

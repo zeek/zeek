@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Generate IPv6 fragments that retain completed Zeek reassembly state."""
 
-import contextlib
 from pathlib import Path
 
 from scapy.all import (
@@ -9,29 +8,28 @@ from scapy.all import (
     IPv6,
     IPv6ExtHdrFragment,
     IPv6ExtHdrHopByHop,
-    PcapWriter,
     Raw,
+    wrpcap,
 )
 
 FLOWS = 2
 PAYLOAD_SIZE = 65_528
 FRAGMENT_CHUNK_SIZE = 1_440
-OUTPUT = Path(__file__).with_name("ipv6-reassembly-state-leak.pcap")
+BASE_TIME = 1.0
 
 
-def write_fragment_set(
-    writer: PcapWriter, identifier: int, timestamp: int
-) -> tuple[int, int]:
-    """Write one fragment set that can wrap the reassembled payload length."""
+def fragment_set(identifier: int) -> list:
+    """Build one fragment set that can wrap the reassembled payload length."""
     payload = bytes([identifier & 0xFF]) * PAYLOAD_SIZE
     chunks = [
         payload[index : index + FRAGMENT_CHUNK_SIZE]
         for index in range(0, len(payload), FRAGMENT_CHUNK_SIZE)
     ]
+    packets = []
     offset = 0
     for index, chunk in enumerate(chunks):
         more_fragments = index + 1 < len(chunks)
-        pkt = (
+        packets.append(
             Ether(src="02:00:00:00:00:01", dst="02:00:00:00:00:02")
             / IPv6(src="2001:db8::1", dst="2001:db8::2", nh=0)
             / IPv6ExtHdrHopByHop(nh=44)
@@ -40,20 +38,19 @@ def write_fragment_set(
             )
             / Raw(load=chunk)
         )
-        pkt.time = timestamp
-        writer.write(pkt)
-        timestamp += 1
         offset += len(chunk)
-    return timestamp, len(chunks)
+    return packets
 
 
 def main() -> None:
-    """Generate the requested PCAP."""
-    timestamp = 1
-    writer = PcapWriter(str(OUTPUT), linktype=1)
-    with contextlib.closing(writer):
-        for flow in range(FLOWS):
-            timestamp, _ = write_fragment_set(writer, 0xA0000000 + flow, timestamp)
+    packets = []
+    for flow in range(FLOWS):
+        packets += fragment_set(0xA0000000 + flow)
+
+    for index, p in enumerate(packets):
+        p.time = BASE_TIME + index
+
+    wrpcap(str(Path(__file__).with_suffix("")), packets)
 
 
 if __name__ == "__main__":

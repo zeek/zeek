@@ -200,3 +200,6 @@ Trace Index/Sources:
   Lab traffic using AsyncSSH 2.24.1
 - http/content-encoding-brotli-issue-5547.pcap
   Provided by GH user franky-m in issue #5547.
+- ntlm/oem-utf16.pcap
+  Flow extracted and rewritten from `smb2_locks.tshark.pcap`
+  attached to https://gitlab.com/wireshark/wireshark/-/work_items/18810

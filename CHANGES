@@ -1,3 +1,7 @@
+9.1.0-dev.467 | 2026-11-01 17:00:15 +0000
+
+  * Sort output of scripts.base.frameworks.input.errors for idempotency (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.464 | 2026-10-30 11:20:44 +0100
 
   * logging/WriterBackend: Add DoWrites() hook for better batch support (Arne Welzel, Corelight)

@@ -10,3 +10,8 @@ event ntlm_negotiate(c: connection, negotiate: NTLM::Negotiate)
 	{
 	print fmt("%s negotiate domain=%s", c$id$orig_p, negotiate?$domain_name ? negotiate$domain_name : "-");
 	}
+
+event conn_weird(name: string, c: connection, addl: string, source: string)
+	{
+	print fmt("%s weird=%s", c$id$orig_p, name);
+	}

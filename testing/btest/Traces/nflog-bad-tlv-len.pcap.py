@@ -29,7 +29,6 @@ def main():
 
     out = Path(__file__).resolve().parent / "nflog-bad-tlv-len.pcap"
     out.write_bytes(global_header + record_header + payload)
-    print(f"Wrote 1 packet to {out}")
 
 
 if __name__ == "__main__":

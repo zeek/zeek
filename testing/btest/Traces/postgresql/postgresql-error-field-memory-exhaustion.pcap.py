@@ -147,10 +147,6 @@ def main() -> None:
     # instance with mtime=0 that makes the output reproducible.
     with gzip.GzipFile(args.output, "wb", mtime=0) as f:
         wrpcap(f, packets)
-    print(
-        f"wrote {args.output}: fields={args.fields} "
-        f"response_bytes={response_len} packets={len(packets)}"
-    )
 
 
 if __name__ == "__main__":

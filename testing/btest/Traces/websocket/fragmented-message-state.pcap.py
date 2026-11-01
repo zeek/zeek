@@ -168,7 +168,6 @@ def main() -> None:
     for index, packet in enumerate(packets):
         packet.time = 1 + index / 1000
     wrpcap(str(args.output), packets)
-    print(f"Wrote {len(packets)} packets to {args.output}")
 
 
 if __name__ == "__main__":

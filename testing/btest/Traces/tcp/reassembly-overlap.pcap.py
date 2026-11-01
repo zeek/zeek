@@ -92,8 +92,6 @@ def main():
     with gzip.GzipFile(OUTPUT, "wb", mtime=0) as f:
         wrpcap(f, packets)
 
-    print(f"Wrote {len(packets)} packets to {OUTPUT}")
-
 
 if __name__ == "__main__":
     main()

@@ -138,7 +138,7 @@ export {
 	const edns_zfield = {
 		[0]     = "NOVALUE",    # regular entry
 		[32768] = "DNS_SEC_OK", # accepts DNS Sec RRs
-	} &redef &default="?";
+	} &redef &default = function(n: count): string { return fmt("edns_zfield-%d", n); };
 
 	## Possible values of the CLASS field in resource records or QCLASS
 	## field in query messages.

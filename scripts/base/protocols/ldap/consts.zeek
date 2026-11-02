@@ -22,7 +22,7 @@ export {
 	    LDAP::ProtocolOpcode_EXTENDED_REQUEST ] = "extended", [
 	    LDAP::ProtocolOpcode_EXTENDED_RESPONSE ] = "extended", [
 	    LDAP::ProtocolOpcode_INTERMEDIATE_RESPONSE ] = "intermediate" }
-	    &redef &default="unknown";
+	    &redef &default = function(n: LDAP::ProtocolOpcode): string { return fmt("opcode-%d", n); };
 
 	const BIND_SIMPLE = "bind simple";
 	const BIND_SASL = "bind SASL";
@@ -111,22 +111,22 @@ export {
 	    LDAP::ResultCode_CANNOT_CANCEL ] = "cannot cancel", [
 	    LDAP::ResultCode_ASSERTION_FAILED ] = "assertion failed", [
 	    LDAP::ResultCode_AUTHORIZATION_DENIED ] = "authorization denied" }
-	    &redef &default="unknown";
+	    &redef &default = function(n: LDAP::ResultCode): string { return fmt("resultcode-%d", n); };
 
 	const SEARCH_SCOPES = { [ LDAP::SearchScope_SEARCH_BASE ] = "base", [
 	    LDAP::SearchScope_SEARCH_SINGLE ] = "single", [
-	    LDAP::SearchScope_SEARCH_TREE ] = "tree",  } &redef &default="unknown";
+	    LDAP::SearchScope_SEARCH_TREE ] = "tree",  } &redef  &default = function(n: LDAP::SearchScope): string { return fmt("searchscope-%d", n); };
 
 	const SEARCH_DEREF_ALIASES = { [ LDAP::SearchDerefAlias_DEREF_NEVER ] =
 	    "never", [ LDAP::SearchDerefAlias_DEREF_IN_SEARCHING ] =
 	    "searching", [ LDAP::SearchDerefAlias_DEREF_FINDING_BASE ] =
 	    "finding", [ LDAP::SearchDerefAlias_DEREF_ALWAYS ] = "always",  }
-	    &redef &default="unknown";
+	    &redef &default = function(n: LDAP::SearchDerefAlias): string { return fmt("searchderefalias-%d", n); };
 
 	const EXTENDED_REQUESTS = {
 	   # StartTLS, https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
 	   [ "1.3.6.1.4.1.1466.20037" ] = "StartTLS",
 	   # whoami, https://datatracker.ietf.org/doc/html/rfc4532#section-2
 	   [ "1.3.6.1.4.1.4203.1.11.3" ] = "whoami",
-	} &default="unknown" &redef;
+	} &default = function(str: string): string { return fmt("extendedrequest-%s", str); } &redef;
 }

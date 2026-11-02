@@ -18,19 +18,19 @@ export {
 		[12] = "pingreq",
 		[13] = "pingresp",
 		[14] = "disconnect",
-	} &default = function(n: count): string { return fmt("unknown-msg-type-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-msg-type-%d", n); };
 
 	const versions = {
 		[3] = "3.1",
 		[4] = "3.1.1",
 		[5] = "5.0",
-	} &default = function(n: count): string { return fmt("unknown-version-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-version-%d", n); };
 
 	const qos_levels = {
 		[0] = "at most once",
 		[1] = "at least once",
 		[2] = "exactly once",
-	} &default = function(n: count): string { return fmt("unknown-qos-level-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-qos-level-%d", n); };
 
 	const return_codes = {
 		[0] = "Connection Accepted",
@@ -39,5 +39,5 @@ export {
 		[3] = "Refused: server unavailable",
 		[4] = "Refused: bad user name or password",
 		[5] = "Refused: not authorized",
-	} &default = function(n: count): string { return fmt("unknown-return-code-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-return-code-%d", n); };
 }

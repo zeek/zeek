@@ -22,7 +22,7 @@ export {
 	    LDAP::ProtocolOpcode_EXTENDED_REQUEST ] = "extended", [
 	    LDAP::ProtocolOpcode_EXTENDED_RESPONSE ] = "extended", [
 	    LDAP::ProtocolOpcode_INTERMEDIATE_RESPONSE ] = "intermediate" }
-	    &default="unknown";
+	    &redef &default="unknown";
 
 	const BIND_SIMPLE = "bind simple";
 	const BIND_SASL = "bind SASL";
@@ -111,17 +111,17 @@ export {
 	    LDAP::ResultCode_CANNOT_CANCEL ] = "cannot cancel", [
 	    LDAP::ResultCode_ASSERTION_FAILED ] = "assertion failed", [
 	    LDAP::ResultCode_AUTHORIZATION_DENIED ] = "authorization denied" }
-	    &default="unknown";
+	    &redef &default="unknown";
 
 	const SEARCH_SCOPES = { [ LDAP::SearchScope_SEARCH_BASE ] = "base", [
 	    LDAP::SearchScope_SEARCH_SINGLE ] = "single", [
-	    LDAP::SearchScope_SEARCH_TREE ] = "tree",  } &default="unknown";
+	    LDAP::SearchScope_SEARCH_TREE ] = "tree",  } &redef &default="unknown";
 
 	const SEARCH_DEREF_ALIASES = { [ LDAP::SearchDerefAlias_DEREF_NEVER ] =
 	    "never", [ LDAP::SearchDerefAlias_DEREF_IN_SEARCHING ] =
 	    "searching", [ LDAP::SearchDerefAlias_DEREF_FINDING_BASE ] =
 	    "finding", [ LDAP::SearchDerefAlias_DEREF_ALWAYS ] = "always",  }
-	    &default="unknown";
+	    &redef &default="unknown";
 
 	const EXTENDED_REQUESTS = {
 	   # StartTLS, https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1

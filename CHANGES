@@ -1,3 +1,11 @@
+9.1.0-dev.469 | 2026-11-02 07:58:54 -0700
+
+  * Fix a few minor Coverity issues (Tim Wojtulewicz, Corelight)
+
+    - Integer overflow in history size check
+    - Null dereference before check in can_cast_type_to_type
+    - Uninitialized scalar in smb1 analyzer
+
 9.1.0-dev.467 | 2026-11-01 17:00:15 +0000
 
   * Sort output of scripts.base.frameworks.input.errors for idempotency (Tim Wojtulewicz, Corelight)

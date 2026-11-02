@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+
 from scapy.all import GRE, IP, TCP, Ether, Raw, wrpcap
 
 pkts = []
@@ -32,4 +34,4 @@ for i in range(20):
     pkt.time = 1.0 + i * 0.001
     pkts.append(pkt)
 
-wrpcap("tunnel-direct-bypass.pcap", pkts)
+wrpcap(str(Path(__file__).with_suffix("")), pkts)

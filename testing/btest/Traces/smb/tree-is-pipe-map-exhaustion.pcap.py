@@ -65,7 +65,7 @@ def tree_connect_response(tree_id):
     smb = SMB2_Header(
         Command="SMB2_TREE_CONNECT",
         Flags="SMB2_FLAGS_SERVER_TO_REDIR",
-        CreditsRequested=1,
+        CreditRequest=1,
         MID=tree_id,
         TID=tree_id,  # attacker-controlled map key
     ) / SMB2_Tree_Connect_Response(ShareType=SHARE_TYPE)

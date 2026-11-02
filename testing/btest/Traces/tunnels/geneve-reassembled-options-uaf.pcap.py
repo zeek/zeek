@@ -54,7 +54,6 @@ def main() -> None:
     args = parser.parse_args()
 
     wrpcap(str(args.output), _build_frames())
-    print(args.output)
 
 
 if __name__ == "__main__":

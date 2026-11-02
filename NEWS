@@ -2,6 +2,15 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 9.0.2
+==========
+
+Thank you to Jan Grashöfer (@J-Gras) for their contributions to this release.
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
 Zeek 9.0.1
 ==========
 

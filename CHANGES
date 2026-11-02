@@ -1,3 +1,22 @@
+9.0.1-5 | 2026-11-11 15:04:49 -0700
+
+  * doc/zeromq: Small note about Cluster::node_up() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4c9d3c2a96a3ed4b908aff766afaee8d1235a20c)
+
+  * btest/cluster/broker: Duplicate subscribe-node-up test (Arne Welzel, Corelight)
+
+    Test this also for Broker. Seems to work out.
+
+    (cherry picked from commit 4c9d3c2a96a3ed4b908aff766afaee8d1235a20c)
+
+  * zeromq: Use internal topic for Cluster::node_up() (Arne Welzel, Corelight)
+
+    This allows assuming that subscriptions created during zeek_init()
+    are in effect when Cluster::node_up() is raised.
+
+    (cherry picked from commit 4c9d3c2a96a3ed4b908aff766afaee8d1235a20c)
+
 9.0.1-4 | 2026-11-11 14:59:44 -0700
 
   * Fix all of the files with missing newlines (Tim Wojtulewicz, Corelight)

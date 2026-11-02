@@ -1,3 +1,10 @@
+9.1.0-dev.471 | 2026-11-02 16:06:10 +0100
+
+  * configure: Add --disable-geoip option (eb-anssi)
+
+    Skip the libmaxminddb lookup when DISABLE_GEOIP is set, and warn if
+    LibMMDB_ROOT_DIR (--with-geoip) is given at the same time.
+
 9.1.0-dev.469 | 2026-11-02 07:58:54 -0700
 
   * Fix a few minor Coverity issues (Tim Wojtulewicz, Corelight)

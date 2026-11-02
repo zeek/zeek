@@ -1210,11 +1210,15 @@ execute_process(
 # Optional Dependencies
 
 set(USE_GEOIP false)
-find_package(LibMMDB)
-if (LIBMMDB_FOUND)
-    set(USE_GEOIP true)
-    include_directories(BEFORE SYSTEM ${LibMMDB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+if (NOT DISABLE_GEOIP)
+    find_package(LibMMDB)
+    if (LIBMMDB_FOUND)
+        set(USE_GEOIP true)
+        include_directories(BEFORE SYSTEM ${LibMMDB_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+    else ()
+        message(STATUS "GeoIP disabled due to missing libmmdb")
+    endif ()
 endif ()
 
 set(USE_KRB5 false)

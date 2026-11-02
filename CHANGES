@@ -1,3 +1,18 @@
+9.1.0-dev.477 | 2026-11-02 20:13:33 +0100
+
+  * doc/zeromq: Small note about Cluster::node_up() (Arne Welzel, Corelight)
+
+  * btest/cluster/broker: Duplicate subscribe-node-up test (Arne Welzel, Corelight)
+
+    Test this also for Broker. Seems to work out.
+
+  * zeromq: Use internal topic for Cluster::node_up() (Arne Welzel, Corelight)
+
+    This allows assuming that subscriptions created during zeek_init()
+    are in effect when Cluster::node_up() is raised.
+
+  * Avoid out-of-memory access when invoking `zeek --` (Benjamin Bannier, Corelight)
+
 9.1.0-dev.471 | 2026-11-02 16:06:10 +0100
 
   * configure: Add --disable-geoip option (eb-anssi)

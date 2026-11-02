@@ -225,8 +225,8 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
 
     write_buffer.WriteRecord(std::move(vals));
 
-    if ( write_buffer.Full() || ! buf || run_state::terminating )
-        // Buffer full (or no buffering desired or terminating).
+    // Buffer full or no buffering desired.
+    if ( write_buffer.Full() || ! buf )
         FlushWriteBuffer();
 }
 

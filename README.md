@@ -57,8 +57,8 @@ there. On the web site you can also find downloads for stable
 releases, tutorials on getting Zeek set up, and many other useful
 resources.
 
-You can find release notes in [NEWS](https://github.com/zeek/zeek/blob/master/NEWS),
-and a complete record of all changes in [CHANGES](https://github.com/zeek/zeek/blob/master/CHANGES).
+You can find release notes in [NEWS](https://github.com/zeek/zeek/blob/master/NEWS)
+and individual changes in the [commit history](https://github.com/zeek/zeek/commits/master/).
 
 To work with the most recent code from the development branch of Zeek,
 clone the master git repository:

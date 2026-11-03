@@ -1024,9 +1024,14 @@ if (Broker_ROOT)
     set(ZEEK_HAS_EXTERNAL_BROKER ON)
     set(ZEEK_HAS_STATIC_BROKER OFF)
 else ()
-    if (ZEEK_SANITIZERS)
-        set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
-    endif ()
+    # Define broker_internal so that Broker picks up Zeek's build configuration.
+    add_library(broker_internal INTERFACE)
+    target_link_libraries(broker_internal INTERFACE $<BUILD_INTERFACE:zeek_internal>)
+    string(REPLACE " " ";" _broker_sanitizer_options "${_sanitizer_flags}")
+    foreach (flag ${_broker_sanitizer_options})
+        target_compile_options(broker_internal INTERFACE $<BUILD_INTERFACE:${flag}>)
+        target_link_options(broker_internal INTERFACE $<BUILD_INTERFACE:${flag}>)
+    endforeach ()
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
     if (MSVC)
@@ -1037,16 +1042,8 @@ else ()
         set(ENABLE_STATIC_ONLY true)
     endif ()
 
-    # Set linker flags so broker executables/shared libs get the ASan runtime.
-    if (_sanitizer_flags)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
-    endif ()
-
     add_subdirectory(auxil/broker)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-    zeek_target_enable_sanitizers(broker)
 
     if (BUILD_STATIC_BROKER)
         list(APPEND zeekdeps broker_static)
@@ -1067,6 +1064,12 @@ else ()
     # Tell plugins where to find the Broker CMake package in the source tree. This
     # variable is picked up in ZeekPluginConfig.cmake.in.
     set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+endif ()
+
+# Set linker flags so later executables/shared libs get the ASan runtime.
+if (_sanitizer_flags)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
 endif ()
 
 if (NOT DISABLE_SPICY)

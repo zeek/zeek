@@ -1,3 +1,23 @@
+9.1.0-dev.518 | 2026-11-03 09:42:10 -0700
+
+  * CI: Enable tsan builds (Tim Wojtulewicz, Corelight)
+
+  * Propagate flags to Broker via CMake target (Dominik Charousset)
+
+  * Fix Broker instrumentation for sanitizer builds (Dominik Charousset)
+
+  * Silence deprecation warnings from OpenSSL (Benjamin Bannier, Corelight)
+
+    With openssl-4.1 `ASN1_STRING_length` became deprecated, but Zeek
+    currently only requires >=openssl-3.0 so the intended replacement is not
+    guaranteed to be available. Instead of a introducing shim compatible
+    across all supported versions of OpenSSL and wiring it through all users
+    with this patch we simply silence the deprecation warnings.
+
+    We should revisit this once we can require at least openssl-4.1, or when
+    we also need to support versions of OpenSSL removing support for this
+    deprecated function.
+
 9.1.0-dev.512 | 2026-11-03 11:48:38 +0100
 
   * Add btest for intel.log set column stability (Jan Grashoefer, Corelight)

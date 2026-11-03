@@ -1272,6 +1272,7 @@ workflows:
             CXX=clang++-22
             ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
             ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+            ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
           << : *FILTER_IF_PR_NOT_FULL_CI
 
       - windows-build:

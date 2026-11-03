@@ -1,3 +1,13 @@
+9.0.1-7 | 2026-11-11 15:23:44 -0700
+
+  * Remove `X` for `DNS_unknown_opcode` history (Evan Typanski, Corelight)
+
+    The weird was added in 269ca3189ca12687cb1a059fedca08defbfdfbb7, notably
+    before we had a clear idea for what `X` is. Now that we have a clear
+    picture, which doesn't align, it overloads the meaning a bit too much.
+
+    (cherry picked from commit 0cf0b1039f740603359ef563b5062e73074f01ec)
+
 9.0.1-6 | 2026-11-11 15:06:38 -0700
 
   * smb: Fix re-used tree_id being ignored (Arne Welzel, Corelight)

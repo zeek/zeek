@@ -1,3 +1,7 @@
+9.1.0-dev.526 | 2026-11-03 14:38:50 -0700
+
+  * CCI: Disable running external btests for tsan build (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.524 | 2026-11-03 15:33:32 -0500
 
   * Remove `X` for `DNS_unknown_opcode` history (Evan Typanski, Corelight)

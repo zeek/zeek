@@ -1,3 +1,21 @@
+9.1.0-dev.522 | 2026-11-03 11:37:34 -0700
+
+  * build(deps): bump dawidd6/action-send-mail from 23 to 24 (dependabot[bot])
+
+    Bumps [dawidd6/action-send-mail](https://github.com/dawidd6/action-send-mail) from 23 to 24.
+    - [Release notes](https://github.com/dawidd6/action-send-mail/releases)
+    - [Commits](https://github.com/dawidd6/action-send-mail/compare/47af4a10b540781705f283a2cf1a9650713ac795...27bf7a883db6de205849f760badd38a1a3ce0dd0)
+
+    ---
+    updated-dependencies:
+    - dependency-name: dawidd6/action-send-mail
+      dependency-version: '24'
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.520 | 2026-11-03 11:36:18 -0700
 
   * build(deps): bump actions/checkout from 5 to 7 (dependabot[bot])

@@ -1260,6 +1260,11 @@ endif ()
 # --with-openssl (which may be common).
 include_directories(BEFORE SYSTEM ${OPENSSL_INCLUDE_DIR})
 
+# We suppress deprecation warnings from OpenSSL since with openssl-4.1
+# ASN1_STRING_length became deprecated, but we require only >=openssl-3.0 which
+# does not have the intended replacement.
+add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
+
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)
 if (FTS_FOUND)

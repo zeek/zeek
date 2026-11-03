@@ -66,6 +66,9 @@ Changed Functionality
   a TCP connection to send a ClientHello. The ``ssl.log`'s history field
   will shows this with the flipped indicator in the history field: ^Cs.
 
+- The ``intel.log``'s fields ``matched`` and ``sources`` are now ``&ordered``
+  and sorted deterministically before logging.
+
 - Broker's ``IdentifierUpdate`` messages are now disabled by default, to prevent
   one class of unintended runtime updates to Zeek configuration settings.
   Zeek drops attempts to send or receive such messages and triggers reporter

@@ -1,3 +1,19 @@
+9.1.0-dev.512 | 2026-11-03 11:48:38 +0100
+
+  * Add btest for intel.log set column stability (Jan Grashoefer, Corelight)
+
+    Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+
+  * Update baselines for deterministic intel.log sets (Jan Grashoefer, Corelight)
+
+  * Make intel.log set columns deterministic (Jan Grashoefer, Corelight)
+
+    The matched and sources columns in intel.log were rendered in
+    hash-iteration order, making them non-deterministic across different
+    hash seeds or platforms.
+
+    Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+
 9.1.0-dev.507 | 2026-11-02 20:16:03 +0100
 
   * Make PCAP generators reproducible and add initial CI (Arne Welzel, Corelight)

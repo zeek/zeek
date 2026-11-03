@@ -89,6 +89,9 @@ Changed Functionality
   This change may subtly change analyzer event raising and event execution behavior
   in scenarios where previously the queue would grow larger than the configured limit.
 
+- The ``DNS_unknown_opcode`` weird no longer sets ``X`` in the connection history
+  when triggered, as it is not a limit.
+
 Deprecated Functionality
 ------------------------
 

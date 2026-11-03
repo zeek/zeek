@@ -1,3 +1,13 @@
+9.1.0-dev.524 | 2026-11-03 15:33:32 -0500
+
+  * Remove `X` for `DNS_unknown_opcode` history (Evan Typanski, Corelight)
+
+    The weird was added in 269ca3189ca12687cb1a059fedca08defbfdfbb7, notably
+    before we had a clear idea for what `X` is. Now that we have a clear
+    picture, which doesn't align, it overloads the meaning a bit too much.
+
+    Test by GPT-6.1 sol
+
 9.1.0-dev.522 | 2026-11-03 11:37:34 -0700
 
   * build(deps): bump dawidd6/action-send-mail from 23 to 24 (dependabot[bot])

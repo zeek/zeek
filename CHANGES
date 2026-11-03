@@ -1,3 +1,21 @@
+9.1.0-dev.520 | 2026-11-03 11:36:18 -0700
+
+  * build(deps): bump actions/checkout from 5 to 7 (dependabot[bot])
+
+    Bumps [actions/checkout](https://github.com/actions/checkout) from 5 to 7.
+    - [Release notes](https://github.com/actions/checkout/releases)
+    - [Commits](https://github.com/actions/checkout/compare/v5...v7)
+
+    ---
+    updated-dependencies:
+    - dependency-name: actions/checkout
+      dependency-version: '7'
+      dependency-type: direct:production
+      update-type: version-update:semver-major
+    ...
+
+    Signed-off-by: dependabot[bot] <support@github.com>
+
 9.1.0-dev.518 | 2026-11-03 09:42:10 -0700
 
   * CI: Enable tsan builds (Tim Wojtulewicz, Corelight)

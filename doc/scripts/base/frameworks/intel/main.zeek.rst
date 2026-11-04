@@ -127,12 +127,12 @@ Types
       Where the data was seen.
 
 
-   .. zeek:field:: matched :zeek:type:`Intel::TypeSet` :zeek:attr:`&log`
+   .. zeek:field:: matched :zeek:type:`Intel::TypeSet` :zeek:attr:`&log` :zeek:attr:`&ordered`
 
       Which indicator types matched.
 
 
-   .. zeek:field:: sources :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&default` = ``{  }`` :zeek:attr:`&optional`
+   .. zeek:field:: sources :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&ordered`
 
       Sources which supplied data that resulted in this match.
 
@@ -726,7 +726,7 @@ Hooks
 Functions
 #########
 .. zeek:id:: Intel::insert
-   :source-code: base/frameworks/intel/main.zeek 596 603
+   :source-code: base/frameworks/intel/main.zeek 615 622
 
    :Type: :zeek:type:`function` (item: :zeek:type:`Intel::Item`) : :zeek:type:`void`
 
@@ -736,7 +736,7 @@ Functions
    the existing metadata record will be updated.
 
 .. zeek:id:: Intel::remove
-   :source-code: base/frameworks/intel/main.zeek 649 688
+   :source-code: base/frameworks/intel/main.zeek 668 707
 
    :Type: :zeek:type:`function` (item: :zeek:type:`Intel::Item`, purge_indicator: :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`) : :zeek:type:`void`
 
@@ -744,7 +744,7 @@ Functions
    given metadata is ignored and the indicator is removed completely.
 
 .. zeek:id:: Intel::seen
-   :source-code: base/frameworks/intel/main.zeek 405 433
+   :source-code: base/frameworks/intel/main.zeek 424 452
 
    :Type: :zeek:type:`function` (s: :zeek:type:`Intel::Seen`) : :zeek:type:`void`
 

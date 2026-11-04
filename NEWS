@@ -92,6 +92,10 @@ New Functionality
   there is no behavior change. To make use of this functionality, set it to,
   for example 100 and monitor memory, ``reporter.log`` and metrics.
 
+- ``MsgThread`` and ``WriterBackend`` threads can use the new ``Stopping()``
+  member to determine if they are being stopped even before a ``FinishMessage``
+  is processed. This can be useful to drain pending messages during shutdown.
+
 Changed Functionality
 ---------------------
 

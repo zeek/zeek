@@ -93,7 +93,7 @@ public:
 
     std::span<const std::string> Values() const { return values; }
 
-    std::string JoinedValues() const { return join(values); };
+    std::string JoinedValues(const std::string& sep = " ") const { return join(values, sep); };
 
     /**
      * Helper to create a vector of EnvVar instances from an option.

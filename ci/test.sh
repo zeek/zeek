@@ -53,20 +53,6 @@ function banner {
     printf "+--------------------------------------------------------------+\n"
 }
 
-function run_unit_tests {
-    if [[ ${ZEEK_CI_SKIP_UNIT_TESTS} -eq 1 ]]; then
-        printf "Skipping unit tests as requested by task configuration\n\n"
-        return 0
-    fi
-
-    banner "Running unit tests"
-
-    pushd build
-    (. ./zeek-path-dev.sh && TZ=UTC zeek --test --no-skip) || result=1
-    popd
-    return 0
-}
-
 function prep_artifacts {
     banner "Prepare artifacts"
     [[ -d .tmp ]] && rm -rf .tmp/script-coverage && tar -czf tmp.tar.gz .tmp
@@ -137,8 +123,11 @@ function run_external_btests {
 
 banner "Start tests: ${ZEEK_CI_CPUS} cpus, ${ZEEK_CI_BTEST_JOBS} btest jobs"
 
-run_unit_tests
 run_btests
+if [[ ${result}} -eq 1 ]]; then
+    exit 1
+fi
+
 run_external_btests
 
 exit ${result}

@@ -124,7 +124,7 @@ function run_external_btests {
 banner "Start tests: ${ZEEK_CI_CPUS} cpus, ${ZEEK_CI_BTEST_JOBS} btest jobs"
 
 run_btests
-if [[ ${result}} -eq 1 ]]; then
+if [[ ${result} -eq 1 ]]; then
     exit 1
 fi
 

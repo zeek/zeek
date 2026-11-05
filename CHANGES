@@ -1,3 +1,18 @@
+9.0.1-9 | 2026-11-11 15:25:52 -0700
+
+  * tools/systemd-generator: Fixes and hardening around continuation (Arne Welzel, Corelight)
+
+    Used the generator a bit and had a long list of args and wanted to comment
+    some of them out, only to find that an indented commented line would be part
+    of the ExecStart line. Further, make a blank/empty lines after a
+    continuation finish the current option, so that an indented line after is
+    reported as an error, rather than considered part of the previous option.
+    And, pre-check continuations to avoid raising a std::logic_error when
+    accessing option.Value() as is already beeing done when parsing the
+    interface sections.
+
+    (cherry picked from commit dab07b8d1cfb4b0f3fde50b2c310f936b88a33c0)
+
 9.0.1-8 | 2026-11-11 15:25:11 -0700
 
   * pcap: Handle activation warnings (Oluwatobi Mustapha)

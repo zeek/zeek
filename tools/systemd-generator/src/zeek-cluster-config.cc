@@ -83,7 +83,7 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
     Section current_section = Section();
     Option* current_option = nullptr;
 
-    std::regex re_ignore("^(#.*|)$");                // commented or empty line
+    std::regex re_ignore("^\\s*#.*$");               // commented line
     std::regex re_section("^\\[(.+)\\]$");           // [<section_name>]
     std::regex re_option("^([_0-9a-z][^=]*)=(.*)$"); // key-value with = inbetween, value optional
     std::regex re_option_cont("^\\s+([^\\s]+.*)$");  // option continuation starts with space
@@ -94,7 +94,10 @@ std::pair<std::vector<Section>, std::vector<std::string>> parse_ini_like(const s
 
         std::smatch smatch;
 
-        if ( std::regex_search(line, re_ignore) ) {
+        if ( line.empty() ) {
+            current_option = nullptr;
+        }
+        else if ( std::regex_search(line, re_ignore) ) {
             // ignore
         }
         else if ( std::regex_search(line, smatch, re_section) ) {
@@ -199,7 +202,7 @@ std::pair<InterfaceWorkerConfig, std::string> zeek::detail::InterfaceWorkerConfi
         // Only env and args options support multiple values.
 
         if ( ! key.ends_with("env") && ! key.ends_with("args") && option.Values().size() > 1 )
-            return {iwc, "multiple values for '" + key + "' given"};
+            return {iwc, "continuation for '" + key + "' is invalid: '" + option.JoinedValues(",") + "'"};
 
         // When the next interface option is reached, stop interpreting any keys.
         if ( key == "interface" ) {
@@ -367,6 +370,13 @@ ZeekClusterConfig parse_config(const std::filesystem::path& default_zeek_base_di
         const auto& option = options[i];
         std::string key = option.Key();
         tolower(key);
+
+        // Only args and env options support multiple-values via continuations,
+        // error for any others.
+        if ( ! key.ends_with("env") && ! key.ends_with("args") && option.Values().size() > 1 ) {
+            config.Error("continuation for '" + key + "' is invalid: '" + option.JoinedValues(",") + "'");
+            continue;
+        }
 
         if ( key == "args" ) {
             config.args = option.JoinedValues();

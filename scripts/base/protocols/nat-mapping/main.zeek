@@ -16,7 +16,7 @@ export {
 		## Unique ID for the connection.
 		uid: string &log;
 		## Address of host that requested the mapping.
-		int_addr: addr &log;
+		int_addr: addr &log &optional;
 		## Internal port for the mapping.
 		int_port: port &log;
 		## External port for the mapping.
@@ -88,7 +88,7 @@ event map_response(c: connection, data: EventData, result: ResultCode)
 	Log::write(NATMapping::LOG, Info(
 		$ts = network_time(),
 		$uid = c$uid,
-		$int_addr = data$internal_ip,
+#		$int_addr = data$internal_ip,
 		$int_port = data$int_port,
 		$ext_port = data$ext_port,
 		$result = result));

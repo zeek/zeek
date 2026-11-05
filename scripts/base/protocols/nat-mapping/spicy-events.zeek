@@ -8,6 +8,10 @@ export {
 		ext_port: port &log;
 		# Internal IP
 		internal_ip: addr &log &optional;
+		# High bits of nonce for PCP
+		nonce_high: count &log &optional;
+		# Low bits of nonce for PCP
+		nonce_low: count &log &optional;
 	};
 
 	## Result codes from mapping requests. These are the codes from PCP, which

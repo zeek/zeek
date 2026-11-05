@@ -1,3 +1,18 @@
+9.1.0-dev.539 | 2026-11-05 18:03:49 +0100
+
+  * tools/systemd-generator: Fixes and hardening around continuation (Arne Welzel, Corelight)
+
+    Used the generator a bit and had a long list of args and wanted to comment
+    some of them out, only to find that an indented commented line would be part
+    of the ExecStart line. Further, make a blank/empty lines after a
+    continuation finish the current option, so that an indented line after is
+    reported as an error, rather than considered part of the previous option.
+    And, pre-check continuations to avoid raising a std::logic_error when
+    accessing option.Value() as is already beeing done when parsing the
+    interface sections.
+
+  * Fix pre-commit ruff-format issues from earlier merges (Tim Wojtulewicz, Corelight)
+
 9.1.0-dev.536 | 2026-11-05 09:24:24 -0700
 
   * DNP3: fix the object sizes of double-bit binary input events (g4) (Lucas Sotomayor)

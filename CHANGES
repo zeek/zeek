@@ -1,3 +1,19 @@
+9.1.0-dev.532 | 2026-11-05 09:23:24 -0700
+
+  * DNP3: parse analog output blocks (g41) in requests (Lucas Sotomayor)
+
+    The request object switch had no entry for group 41, so a SELECT,
+    OPERATE or DIRECT_OPERATE carrying an analog output block fell through
+    to the default case, which consumes none of the object's data. The
+    point index and value were then read as further object headers: for
+    g41v1-v3 BinPAC threw and the analyzer stopped, so later commands on
+    the connection were not logged; g41v4 produced bogus object headers.
+
+    Add g41v1-v4 to the request switch and parse them with the existing
+    AnaOut32/AnaOut16/AnaOutSP/AnaOutDP records, as the response side does.
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.530 | 2026-11-05 08:05:08 -0700
 
   * CI: Stop running unit tests separately (Tim Wojtulewicz, Corelight)

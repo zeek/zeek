@@ -1,3 +1,19 @@
+9.1.0-dev.536 | 2026-11-05 09:24:24 -0700
+
+  * DNP3: fix the object sizes of double-bit binary input events (g4) (Lucas Sotomayor)
+
+    The response object table mapped group 4 one variation off: g4v1 was
+    parsed with the 7-octet layout of g4v2 (flags + 48-bit time), g4v2 with
+    the 3-octet layout of g4v3, and g4v3 had no entry. A response with a
+    g4v1 object made BinPAC throw and the analyzer stop; a g4v2 object was
+    followed by misparsed object headers.
+
+    Map g4v1 to the flags octet, g4v2 to DoubleInEveAtime and g4v3 to
+    DoubleInEveRtime, as the type comments and the DNP3 object library
+    describe.
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.534 | 2026-11-05 09:23:55 -0700
 
   * DNP3: parse packed double-bit binary inputs (g3v1) by size (Lucas Sotomayor)

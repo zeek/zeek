@@ -1,3 +1,19 @@
+9.1.0-dev.534 | 2026-11-05 09:23:55 -0700
+
+  * DNP3: parse packed double-bit binary inputs (g3v1) by size (Lucas Sotomayor)
+
+    g3v1 packs two bits per point, so a range of N points takes ceil(N / 4)
+    octets. The response table sized the object list as if it were g1v1
+    (ceil(N / 8) entries) and mapped each entry to a bytestring with
+    &restofdata, so the first entry consumed the rest of the fragment and
+    no object after a g3v1 object was ever parsed, without a weird or a
+    violation. Integrity-poll responses commonly carry g3v1 next to other
+    objects.
+
+    Parse ceil(N / 4) single octets instead.
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.532 | 2026-11-05 09:23:24 -0700
 
   * DNP3: parse analog output blocks (g41) in requests (Lucas Sotomayor)

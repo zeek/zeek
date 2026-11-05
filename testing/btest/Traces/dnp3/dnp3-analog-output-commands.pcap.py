@@ -53,7 +53,11 @@ ANALOG_VALUES = {
 
 def analog_output(variation: int) -> bytes:
     """g41vN, qualifier 0x17 (1-octet count, 1-octet index), 1 item, point 3, value, status 0."""
-    return bytes([0x29, variation, 0x17, 0x01, 0x03]) + ANALOG_VALUES[variation] + bytes([0x00])
+    return (
+        bytes([0x29, variation, 0x17, 0x01, 0x03])
+        + ANALOG_VALUES[variation]
+        + bytes([0x00])
+    )
 
 
 def dnp3_crc(data: bytes) -> bytes:
@@ -68,7 +72,9 @@ def dnp3_crc(data: bytes) -> bytes:
 
 def link_frame(control: int, dest: int, src: int, user_data: bytes = b"") -> bytes:
     """Build one DNP3 link frame, with a CRC after the header and every block."""
-    header = bytes([0x05, 0x64, 5 + len(user_data), control]) + struct.pack("<HH", dest, src)
+    header = bytes([0x05, 0x64, 5 + len(user_data), control]) + struct.pack(
+        "<HH", dest, src
+    )
     out = bytearray(header + dnp3_crc(header))
     for offset in range(0, len(user_data), 16):
         block = user_data[offset : offset + 16]
@@ -78,41 +84,77 @@ def link_frame(control: int, dest: int, src: int, user_data: bytes = b"") -> byt
 
 def request(seq: int, app: bytes) -> bytes:
     """A master request in one fragment: transport FIR|FIN, application FIR|FIN."""
-    return link_frame(CTRL_MASTER_DATA, OUTSTATION_ADDR, MASTER_ADDR, bytes([0xC0 | seq, 0xC0 | seq]) + app)
+    return link_frame(
+        CTRL_MASTER_DATA,
+        OUTSTATION_ADDR,
+        MASTER_ADDR,
+        bytes([0xC0 | seq, 0xC0 | seq]) + app,
+    )
 
 
 def response(seq: int, objects: bytes = b"") -> bytes:
     """An outstation RESPONSE in one fragment, IIN 0."""
     app = bytes([0xC0 | seq, 0x81, 0x00, 0x00]) + objects
-    return link_frame(CTRL_OUTSTATION_DATA, MASTER_ADDR, OUTSTATION_ADDR, bytes([0xC0 | seq]) + app)
+    return link_frame(
+        CTRL_OUTSTATION_DATA, MASTER_ADDR, OUTSTATION_ADDR, bytes([0xC0 | seq]) + app
+    )
 
 
 def session(sport: int, segments: list[tuple[bool, bytes]], start: float) -> list:
     """A TCP connection carrying segments, each (from_master, payload), with ACKs and teardown."""
-    to_out = Ether(src="02:00:00:00:00:01", dst="02:00:00:00:00:02") / IP(src=MASTER_IP, dst=OUTSTATION_IP)
-    to_master = Ether(src="02:00:00:00:00:02", dst="02:00:00:00:00:01") / IP(src=OUTSTATION_IP, dst=MASTER_IP)
+    to_out = Ether(src="02:00:00:00:00:01", dst="02:00:00:00:00:02") / IP(
+        src=MASTER_IP, dst=OUTSTATION_IP
+    )
+    to_master = Ether(src="02:00:00:00:00:02", dst="02:00:00:00:00:01") / IP(
+        src=OUTSTATION_IP, dst=MASTER_IP
+    )
     mseq, oseq = 1000, 5000
 
     pkts = [
         to_out / TCP(sport=sport, dport=DNP3_PORT, flags="S", seq=mseq),
-        to_master / TCP(sport=DNP3_PORT, dport=sport, flags="SA", seq=oseq, ack=mseq + 1),
+        to_master
+        / TCP(sport=DNP3_PORT, dport=sport, flags="SA", seq=oseq, ack=mseq + 1),
     ]
     mseq, oseq = mseq + 1, oseq + 1
-    pkts.append(to_out / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq, ack=oseq))
+    pkts.append(
+        to_out / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq, ack=oseq)
+    )
 
     for from_master, payload in segments:
         if from_master:
-            pkts.append(to_out / TCP(sport=sport, dport=DNP3_PORT, flags="PA", seq=mseq, ack=oseq) / payload)
+            pkts.append(
+                to_out
+                / TCP(sport=sport, dport=DNP3_PORT, flags="PA", seq=mseq, ack=oseq)
+                / payload
+            )
             mseq += len(payload)
-            pkts.append(to_master / TCP(sport=DNP3_PORT, dport=sport, flags="A", seq=oseq, ack=mseq))
+            pkts.append(
+                to_master
+                / TCP(sport=DNP3_PORT, dport=sport, flags="A", seq=oseq, ack=mseq)
+            )
         else:
-            pkts.append(to_master / TCP(sport=DNP3_PORT, dport=sport, flags="PA", seq=oseq, ack=mseq) / payload)
+            pkts.append(
+                to_master
+                / TCP(sport=DNP3_PORT, dport=sport, flags="PA", seq=oseq, ack=mseq)
+                / payload
+            )
             oseq += len(payload)
-            pkts.append(to_out / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq, ack=oseq))
+            pkts.append(
+                to_out
+                / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq, ack=oseq)
+            )
 
-    pkts.append(to_out / TCP(sport=sport, dport=DNP3_PORT, flags="FA", seq=mseq, ack=oseq))
-    pkts.append(to_master / TCP(sport=DNP3_PORT, dport=sport, flags="FA", seq=oseq, ack=mseq + 1))
-    pkts.append(to_out / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq + 1, ack=oseq + 1))
+    pkts.append(
+        to_out / TCP(sport=sport, dport=DNP3_PORT, flags="FA", seq=mseq, ack=oseq)
+    )
+    pkts.append(
+        to_master
+        / TCP(sport=DNP3_PORT, dport=sport, flags="FA", seq=oseq, ack=mseq + 1)
+    )
+    pkts.append(
+        to_out
+        / TCP(sport=sport, dport=DNP3_PORT, flags="A", seq=mseq + 1, ack=oseq + 1)
+    )
 
     for i, pkt in enumerate(pkts):
         pkt.time = start + i * 0.01
@@ -133,8 +175,12 @@ def build_packets() -> list:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("output", nargs="?", type=Path, default=Path(__file__).with_suffix(""))
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "output", nargs="?", type=Path, default=Path(__file__).with_suffix("")
+    )
     args = parser.parse_args()
     wrpcap(str(args.output), build_packets())
 

@@ -35,7 +35,7 @@ redef Log::default_rotation_interval = 0sec;
 # Default is write_buffer_size=1000 and log_sndhwm=1000 for buffering
 # up to 1 million log messages on one node in a cluster. Lower both
 # settings such that it's a total of 3 * 3 = 9 messages only. The
-# processes log 5 logs every 0.5 msec, so around 10k log records per
+# processes log 5 logs every 0.1 msec, so around 50k log records per
 # second.
 #
 # Increasing log_sndhwm to 10 makes the test unreliable on my local
@@ -97,14 +97,14 @@ event tick()
 		}
 
 	# Check for drops.
-	if ( log_push_drops() >= 100 )
+	if ( log_push_drops() >= 10 )
 		{
 		print "had a lot of drops!";
 		terminate();
 		return;
 		}
 
-	schedule 0.5msec { tick() };
+	schedule 0.1msec { tick() };
 	}
 
 event Cluster::Experimental::cluster_started()

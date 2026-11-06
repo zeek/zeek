@@ -23,6 +23,18 @@ connection DNP3_Conn(zeek_analyzer: ZeekAnalyzer) {
     %}
 
 flow DNP3_Flow(is_orig: bool) {
+
+	# Drop the application fragment being reassembled, so that the next
+	# data starts a new one.
+	function discard_pdu(): bool
+		%{
+		delete dataunit_;
+		dataunit_ = nullptr;
+		delete context_;
+		context_ = nullptr;
+		flow_buffer_->DiscardData();
+		return true;
+		%}
 	flowunit = DNP3_PDU(is_orig) withcontext (connection, this);
 
 	function get_dnp3_header_block(len: uint16, ctrl: uint8, dest_addr: uint16, src_addr: uint16): bool

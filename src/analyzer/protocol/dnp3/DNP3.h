@@ -28,11 +28,16 @@ protected:
         int pkt_length = 0;
         int pkt_cnt = 0;
         bool encountered_first_chunk = false;
+        bool resync = false;        // after a TCP gap: skip to the next start bytes
+        bool need_fir = false;      // after a TCP gap: drop frames until one starts a fragment (FIR)
+        bool discard_frame = false; // the frame being read is not part of a fragment being reassembled
+        int next_seq = 0;           // transport sequence number the next segment of the fragment must carry
     };
 
     bool ProcessData(int len, const u_char* data, bool orig);
     void ClearEndpointState(bool orig);
     void DiscardFlowBuffer(bool orig);
+    void DiscardFragment(bool orig);
 
     /**
      * Buffers packet data until it reaches a specified length.

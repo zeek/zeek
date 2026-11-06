@@ -7,7 +7,7 @@
 let MAX_DATA_LENGTH: uint32 = 262144;
 
 type TPKT(is_orig: bool) = record {
-	version:  uint8;
+	version:  uint8 &enforce(version == 3);
 	reserved: uint8;
 	tpkt_len: uint16;
 

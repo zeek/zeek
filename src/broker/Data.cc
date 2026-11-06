@@ -419,9 +419,12 @@ struct val_converter {
             auto rval = make_intrusive<PatternVal>(re);
             return rval;
         }
-        else if ( type->Tag() == TYPE_OPAQUE )
-            return OpaqueVal::UnserializeData(BrokerListView{&a});
-
+        else if ( type->Tag() == TYPE_OPAQUE ) {
+            OpaqueValPtr rval = OpaqueVal::UnserializeData(BrokerListView{&a});
+            if ( ! (rval) || ! same_type(type, rval->GetType<OpaqueType>()) )
+                return nullptr;
+            return rval;
+        }
         return nullptr;
     }
 };
@@ -1067,6 +1070,8 @@ bool SetIterator::DoUnserializeData(BrokerDataView data) {
         return false;
 
     auto x = get_if<broker::set>(&(*v)[0]);
+    if ( ! x )
+        return false;
 
     // We set the iterator by finding the element it used to point to.
     // This is not perfect, as there's no guarantee that the restored
@@ -1092,7 +1097,8 @@ bool TableIterator::DoUnserializeData(BrokerDataView data) {
         return false;
 
     auto x = get_if<broker::table>(&(*v)[0]);
-
+    if ( ! x )
+        return false;
     // We set the iterator by finding the element it used to point to.
     // This is not perfect, as there's no guarantee that the restored
     // container will list the elements in the same order. But it's as
@@ -1193,7 +1199,6 @@ threading::Field* data_to_threading_field(const broker::data& d) {
 } // namespace zeek::Broker::detail
 
 namespace zeek {
-
 BrokerListView BrokerDataView::ToList() noexcept {
     return BrokerListView{std::addressof(broker::get<broker::vector>(*value_))};
 }

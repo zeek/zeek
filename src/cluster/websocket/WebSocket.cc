@@ -438,17 +438,20 @@ namespace {
 struct SubscriptionsArrayHandler : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, SubscriptionsArrayHandler> {
     SubscriptionsArrayHandler(size_t max_strings) : max_strings(max_strings) {}
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool StartArray() {
         ++depth;
         // When a nested array starts, stop immediately.
         return depth == 1;
     }
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool EndArray(rapidjson::SizeType) {
         --depth;
         return depth == 0;
     }
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool String(const char* s, rapidjson::SizeType len, bool) {
         if ( depth == 0 ) // top-level string is bad
             return false;
@@ -463,6 +466,7 @@ struct SubscriptionsArrayHandler : rapidjson::BaseReaderHandler<rapidjson::UTF8<
         return true;
     }
 
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     bool Default() {
         // Stop parsing any other type (object, number, bool, ...)
         return false;

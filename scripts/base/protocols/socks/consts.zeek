@@ -17,14 +17,14 @@ export {
 		[7] = "NDS Authentication",
 		[8] = "Multi-Authentication Framework",
 		[255] = "No Acceptable Methods",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const v4_status: table[count] of string = {
 		[0x5a] = "succeeded",
 		[0x5b] = "general SOCKS server failure",
 		[0x5c] = "request failed because client is not running identd",
 		[0x5d] = "request failed because client's identd could not confirm the user ID string in the request",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const v5_status: table[count] of string = {
 		[0] = "succeeded",
@@ -36,5 +36,5 @@ export {
 		[6] = "TTL expired",
 		[7] = "Command not supported",
 		[8] = "Address type not supported",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 }

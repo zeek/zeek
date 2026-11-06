@@ -26,5 +26,5 @@ export {
 		[0xfaceb011] = "mvfst (faceb011)",
 		[0xfaceb012] = "mvfst (faceb012)",
 		[0xfaceb013] = "mvfst (faceb013)",
-	} &default=function(version: count): string { return fmt("unknown-%x", version); };
+	} &redef &default=function(version: count): string { return fmt("unknown-%x", version); };
 }

@@ -226,6 +226,47 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
                     endp->discard_frame = true;
             }
 
+            // Apply the pseudo-transport rules that outstations apply
+            // (IEEE 1815, transport function): a segment with FIR starts a new fragment and
+            // drops a partial one; a segment without FIR continues the
+            // fragment in progress only if its sequence number is the next
+            // one; otherwise the segment is discarded and the receiver
+            // waits for the next FIR. Without this, Zeek reassembles
+            // fragments that the outstation never sees, and misses (or stops
+            // analyzing at) the ones it does.
+            if ( ! endp->discard_frame ) {
+                bool fir = endp->tpflags & 0x40;
+                int seq = endp->tpflags & 0x3f;
+                bool in_progress = endp->pkt_cnt > 0;
+
+                if ( endp->pkt_length - 5 <= PSEUDO_TRANSPORT_LEN ) {
+                    // A segment with no application octets: nothing to
+                    // reassemble. A FIR still ends the fragment in progress.
+                    analyzer->Weird("dnp3_transport_segment_without_data");
+                    if ( fir && in_progress )
+                        DiscardFragment(orig);
+                    endp->discard_frame = true;
+                }
+                else if ( fir ) {
+                    if ( in_progress ) {
+                        analyzer->Weird("dnp3_transport_fragment_restarted");
+                        DiscardFragment(orig);
+                    }
+                }
+                else if ( ! in_progress ) {
+                    analyzer->Weird("dnp3_first_application_layer_chunk_missing");
+                    endp->discard_frame = true;
+                }
+                else if ( seq != endp->next_seq ) {
+                    analyzer->Weird("dnp3_transport_sequence_mismatch");
+                    DiscardFragment(orig);
+                    endp->discard_frame = true;
+                }
+
+                if ( ! endp->discard_frame )
+                    endp->next_seq = (seq + 1) & 0x3f;
+            }
+
             // For the first packet, we submit the header to
             // BinPAC.
             if ( ! endp->discard_frame && ++endp->pkt_cnt == 1 )
@@ -394,6 +435,15 @@ void DNP3_Base::ClearEndpointState(bool orig) {
     endp->tpflags = 0;
     endp->pkt_cnt = 0;
     endp->discard_frame = false;
+}
+
+void DNP3_Base::DiscardFragment(bool orig) {
+    auto* flow = orig ? interp->upflow() : interp->downflow();
+    flow->discard_pdu();
+
+    Endpoint* endp = orig ? &orig_state : &resp_state;
+    endp->encountered_first_chunk = false;
+    endp->pkt_cnt = 0;
 }
 
 void DNP3_Base::DiscardFlowBuffer(bool orig) {

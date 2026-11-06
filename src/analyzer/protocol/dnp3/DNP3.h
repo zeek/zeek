@@ -28,6 +28,9 @@ protected:
         int pkt_length = 0;
         int pkt_cnt = 0;
         bool encountered_first_chunk = false;
+        bool resync = false;        // after a TCP gap: skip to the next start bytes
+        bool need_fir = false;      // after a TCP gap: drop frames until one starts a fragment (FIR)
+        bool discard_frame = false; // the frame being read continues a fragment cut by a gap
     };
 
     bool ProcessData(int len, const u_char* data, bool orig);

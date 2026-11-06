@@ -18,6 +18,7 @@ uint64_t BasicThread::thread_counter = 0;
 BasicThread::BasicThread() {
     started = false;
     terminating = false;
+    stopping = false;
     killed = false;
 
     buf_len = STD_FMT_BUF_LEN;
@@ -99,10 +100,12 @@ void BasicThread::SignalStop() {
     if ( ! started )
         return;
 
-    if ( terminating )
+    if ( stopping || terminating )
         return;
 
     DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
+
+    stopping = true;
 
     OnSignalStop();
 }
@@ -140,6 +143,7 @@ void BasicThread::Kill() {
     // We don't *really* kill the thread here because that leads to race
     // conditions. Instead we set a flag that parts of the code need
     // to check and get out of any loops they might be in.
+    stopping = true;
     terminating = true;
     killed = true;
     OnKill();
@@ -148,6 +152,7 @@ void BasicThread::Kill() {
 void BasicThread::Done() {
     DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
 
+    stopping = true;
     terminating = true;
     killed = true;
 }

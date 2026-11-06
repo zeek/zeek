@@ -1172,3 +1172,30 @@ but behaves like a proper writer to the rest of the logging framework,
 including, for example, pretended log rotation. If you enable its debugging
 mode by setting :zeek:see:`LogNone::debug` to ``T``, Zeek reports operational
 details about the writer’s activity to ``stdout``.
+
+
+Overload Behavior
+=================
+
+Zeek's writer implementations are split into a frontend and backend part.
+Each writer backend represents a thread. Zeek batches multiple log writes for up
+to :zeek:see:`Log::flush_interval`, or until a batch reaches :zeek:see:`Log::write_buffer_size`,
+before the batch is placed into a backend thread specific queue.
+
+In exceptional scenarios, when the backend threads cannot keep up processing their
+queues, Zeek will start to discard log writes.
+When doing so, it'll increment the per writer
+:zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total` metric as well
+as regularly reporter warning messages in ``reporter.log`` and on stderr when
+this happens:
+
+.. code-block:: console
+
+  warning in <params>, line 1: test2/Log::WRITER_NATS: Dropped 60570 logs due to reaching writer backend thread HWM (Log::backend_thread_queue_hwm=20)
+  warning in <params>, line 1: test8/Log::WRITER_NATS: Dropped 42360 logs due to reaching writer backend thread HWM (Log::backend_thread_queue_hwm=20)
+  warning in <params>, line 1: test9/Log::WRITER_NATS: Dropped 52580 logs due to reaching writer backend thread HWM (Log::backend_thread_queue_hwm=20)
+
+
+If you're seeing such warnings, ensure Zeek's logger processes have enough resources
+available, and the log writer's destination (filesystem, Kafka, ...) isn't slow or overloaded
+and that the log writer implementation doesn't have performance bugs.

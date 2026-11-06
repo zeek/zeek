@@ -97,9 +97,9 @@ event tick()
 		}
 
 	# Check for drops.
-	if ( log_push_drops() >= 10 )
+	if ( log_push_drops() >= 2 )
 		{
-		print "had a lot of drops!";
+		print "had some drops!";
 		terminate();
 		return;
 		}

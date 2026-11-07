@@ -1708,6 +1708,15 @@ these logs. This is an example of using Zeek logs to identify suspicious or
 malicious activity, and then pivoting to host-centric data to determine exactly
 what is happening.
 
+A related remote-execution technique is Impacket's ``smbexec.py``. Unlike the
+PsExec workflow shown in this packet capture, SMBExec does not upload a
+``PSEXESVC.exe`` binary. It uses SMB and the Service Control Manager to create
+a temporary service for command execution. This distinction is useful during
+triage: the absence of a ``PSEXESVC.exe`` transfer does not rule out remote
+execution over SMB. For a practical walkthrough of the Impacket implementation,
+see `SMBExec: Fileless Remote Execution on Windows via SMB
+<https://en.hackita.it/articoli/smbexec/>`_.
+
 :file:`ntlm.log`
 ----------------
 

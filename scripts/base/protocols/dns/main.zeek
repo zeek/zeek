@@ -340,7 +340,7 @@ function associate_answers(info: Info): bool
 function write_dns_info(info: Info)
 	{
 	# Keep the original behavior for single-question messages.
-	if ( ! info?$questions || |info$questions| == 1 )
+	if ( ! info?$questions || |info$questions| == 1 || info$id$resp_h in multicast_subnets )
 		{
 		Log::write(DNS::LOG, info);
 		return;

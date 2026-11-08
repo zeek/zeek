@@ -6,25 +6,24 @@ AI assistance: ChatGPT (GPT-6) assisted in preparing this generator.
 
 from pathlib import Path
 
-from scapy.all import Ether, IP, UDP, DNS, DNSQR, DNSRR, wrpcap
+from scapy.all import DNS, DNSQR, DNSRR, IP, UDP, Ether, wrpcap
 
-questions = (
-    DNSQR(qname="foo.com.", qtype="A", qclass="IN") /
-    DNSQR(qname="foo.com.", qtype="AAAA", qclass="IN")
+questions = DNSQR(qname="foo.com.", qtype="A", qclass="IN") / DNSQR(
+    qname="foo.com.", qtype="AAAA", qclass="IN"
 )
 
 request = (
-    Ether() /
-    IP(src="192.168.1.10", dst="8.8.8.8") /
-    UDP(sport=12345, dport=53) /
-    DNS(id=0xBBBB, qr=0, rd=1, qdcount=2, qd=questions)
+    Ether()
+    / IP(src="192.168.1.10", dst="8.8.8.8")
+    / UDP(sport=12345, dport=53)
+    / DNS(id=0xBBBB, qr=0, rd=1, qdcount=2, qd=questions)
 )
 
 response = (
-    Ether() /
-    IP(src="8.8.8.8", dst="192.168.1.10") /
-    UDP(sport=53, dport=12345) /
-    DNS(
+    Ether()
+    / IP(src="8.8.8.8", dst="192.168.1.10")
+    / UDP(sport=53, dport=12345)
+    / DNS(
         id=0xBBBB,
         qr=1,
         rd=1,
@@ -32,13 +31,7 @@ response = (
         qdcount=2,
         qd=questions,
         ancount=1,
-        an=DNSRR(
-            rrname="foo.com.",
-            type="A",
-            rclass="IN",
-            ttl=3600,
-            rdata="1.2.3.4"
-        )
+        an=DNSRR(rrname="foo.com.", type="A", rclass="IN", ttl=3600, rdata="1.2.3.4"),
     )
 )
 

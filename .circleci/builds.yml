@@ -66,9 +66,6 @@ parameters:
   opensuse_tumbleweed_image_version:
     type: string
     default: ""
-  ubuntu_22_04_image_version:
-    type: string
-    default: ""
   ubuntu_24_04_image_version:
     type: string
     default: ""
@@ -1027,10 +1024,6 @@ workflows:
           docker_image_version: << pipeline.parameters.opensuse_tumbleweed_image_version >>
           << : *FILTER_IF_PR_NOT_FULL_CI
       - create-build-image:
-          name: build-image-ubuntu-22.04
-          docker_image_version: << pipeline.parameters.ubuntu_22_04_image_version >>
-          << : *FILTER_IF_PR_NOT_FULL_CI
-      - create-build-image:
           name: build-image-ubuntu-24.04
           docker_image_version: << pipeline.parameters.ubuntu_24_04_image_version >>
           << : *FILTER_IF_SKIP_ALL
@@ -1124,12 +1117,6 @@ workflows:
           docker_image: zeek/zeek-ci:opensuse-tumbleweed
           docker_image_version: << pipeline.parameters.opensuse_tumbleweed_image_version >>
           requires: [fetch-test-traces, build-image-opensuse-tumbleweed]
-          << : *FILTER_IF_PR_NOT_FULL_CI
-      - linux-build:
-          name: ubuntu-22.04
-          docker_image: zeek/zeek-ci:ubuntu-22.04
-          docker_image_version: << pipeline.parameters.ubuntu_22_04_image_version >>
-          requires: [fetch-test-traces, build-image-ubuntu-22.04]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
           name: ubuntu-24.04

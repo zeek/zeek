@@ -249,13 +249,6 @@ jobs:
             ./ci/test.sh
             ./ci/benchmark.sh
 
-        - id: ubuntu-22.04
-          file: ci/ubuntu-22.04/Dockerfile
-          run: |
-            ./ci/pre-build.sh
-            ./ci/build.sh
-            ./ci/test.sh
-
         - id: alpine
           file: ci/alpine/Dockerfile
           run: |

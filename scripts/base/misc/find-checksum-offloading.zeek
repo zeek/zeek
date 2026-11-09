@@ -50,7 +50,7 @@ event ChecksumOffloading::check()
 			bad_checksum_msg += "UDP";
 			}
 
-		local message = fmt("Your %s invalid %s checksums, most likely from NIC checksum offloading.  By default, packets with invalid checksums are discarded by Zeek unless using the -C command-line option or toggling the 'ignore_checksums' variable.  Alternatively, disable checksum offloading by the network adapter to ensure Zeek analyzes the actual checksums that are transmitted.", packet_src, bad_checksum_msg);
+		local message = fmt("Your %s invalid %s checksums, most likely from NIC checksum offloading.  Zeek still analyzes these packets unless 'drop_bad_checksums' is set.  To skip checksum validation entirely, use the -C command-line option or set the 'ignore_checksums' variable.  Alternatively, disable checksum offloading by the network adapter to ensure Zeek analyzes the actual checksums that are transmitted.", packet_src, bad_checksum_msg);
 		Reporter::warning(message);
 		done = T;
 		}

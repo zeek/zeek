@@ -4,13 +4,13 @@
 # @TEST-EXEC: cp -r %DIR/tap-analyzer-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 #
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap %INPUT drop_bad_checksums=T >>output
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-tcp-good-chksum.pcap %INPUT >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-udp-bad-chksum.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-udp-bad-chksum.pcap %INPUT drop_bad_checksums=T >>output
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-icmp-bad-chksum.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-icmp-bad-chksum.pcap %INPUT drop_bad_checksums=T >>output
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip4-icmp-good-chksum.pcap %INPUT >>output
-# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip6-icmp6-bad-chksum.pcap %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip6-icmp6-bad-chksum.pcap %INPUT drop_bad_checksums=T >>output
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap %INPUT >>output
 #
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.pcap %INPUT >>output

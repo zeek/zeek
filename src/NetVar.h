@@ -16,6 +16,7 @@ ZEEK_EXTERN_DATA double watchdog_interval;
 ZEEK_EXTERN_DATA int max_timer_expires;
 
 ZEEK_EXTERN_DATA int ignore_checksums;
+ZEEK_EXTERN_DATA int drop_bad_checksums;
 ZEEK_EXTERN_DATA int partial_connection_ok;
 ZEEK_EXTERN_DATA int tcp_SYN_ack_ok;
 ZEEK_EXTERN_DATA int tcp_match_undelivered;

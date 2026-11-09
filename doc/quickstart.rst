@@ -142,12 +142,12 @@ on that network device. Entries should still appear in :file:`conn.log`,
 
 .. note::
 
-  The ``zeek`` invocation above adds a ``-C`` flag. By default, Zeek discards
-  network packets with checksum errors. This flag tells Zeek to ignore
-  checksums. Modern operating systems and network devices use checksum
-  offloading, which leaves the checksums uninitialized. Since Zeek discards
-  packets with checksum errors, checksum offloading necessitates the ``-C``
-  flag for local network monitoring via Zeek.
+  The ``zeek`` invocation above adds a ``-C`` flag, which tells Zeek to skip
+  checksum validation. Modern operating systems and network devices use
+  checksum offloading, which leaves the checksums of locally sent packets
+  uninitialized. Zeek still analyzes packets with checksum errors, but reports
+  them in :file:`weird.log` and marks the connection's ``history`` with ``C`` or
+  ``c``. The ``-C`` flag avoids that noise when monitoring locally.
 
 Scripting
 =========

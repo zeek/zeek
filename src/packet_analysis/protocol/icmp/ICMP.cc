@@ -91,8 +91,10 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 
         if ( chksum != 0xffff ) {
             adapter->Weird("bad_ICMP_checksum");
-            adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
-            return;
+            if ( zeek::detail::drop_bad_checksums ) {
+                adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
+                return;
+            }
         }
     }
 

@@ -108,6 +108,7 @@ double watchdog_interval;
 int max_timer_expires;
 
 int ignore_checksums;
+int drop_bad_checksums;
 int partial_connection_ok;
 int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
@@ -247,6 +248,7 @@ void init_net_var() {
     bif_init_net_var();
 
     ignore_checksums = id::find_val("ignore_checksums")->AsBool();
+    drop_bad_checksums = id::find_val("drop_bad_checksums")->AsBool();
     partial_connection_ok = id::find_val("partial_connection_ok")->AsBool();
     tcp_SYN_ack_ok = id::find_val("tcp_SYN_ack_ok")->AsBool();
     tcp_match_undelivered = id::find_val("tcp_match_undelivered")->AsBool();

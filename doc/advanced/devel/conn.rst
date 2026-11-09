@@ -7,10 +7,17 @@ Connection Handling
 Checksum Behavior
 =================
 
-By default, Zeek will mostly ignore packets that have invalid checksums.
+.. note::
 
-When the IPv4 header checksum is invalid, Zeek produces a ``bad_IP_checksum`` weird and
-discards the packet before proceeding with its connection lookup step.
+  .. versionchanged:: 9.1
+
+  Previously, Zeek would not analyze packets with invalid checksums unless ``-C``
+  was passed (or :zeek:see:`ignore_checksums` set to true). Set the new
+  :zeek:see:`drop_bad_checksums` to restore previous behavior.
+
+By default, Zeek will analyze any packets that have invalid checksums. When the IPv4
+header checksum is invalid, Zeek produces a ``bad_IP_checksum`` weird before
+proceeding with its connection lookup step.
 
 As of Zeek 8.2, for L4 checksums (TCP, UDP, ICMP, ...), Zeek will only determine
 if the L4 checksum is invalid *after* looking up or creating a connection using
@@ -20,16 +27,21 @@ This connection lookup is implemented in ``IPBasedAnalyzer::AnalyzePacket()``.
 Checksum validation then happens in the concrete protocol specific analyzers within
 ``TCPAnalyzer::DeliverPacket()``, ``UDPAnalyzer::DeliverPacket()``, etc.
 
-Packets with invalid checksums are not counted towards ``orig_pkts`` or ``resp_pkts``
-of a connection and also not passed to a connection's analyzers.
-However, a ``c`` or ``C`` is added to the history field in logarithmic fashion.
+Packets with invalid L4 checksums get a ``c`` or ``C`` added to the history field in
+logarithmic fashion. The packets are then counted and passed to the connection's
+analyzers as usual.
 
+With :zeek:see:`drop_bad_checksums` set to true, packets with invalid checksums are
+discarded instead. An invalid IPv4 header checksum discards the packet before
+connection lookup. Packets with invalid L4 checksums are not counted towards
+``orig_pkts`` or ``resp_pkts`` of a connection and also not passed to a
+connection's analyzers, but the ``c`` or ``C`` history entries are still added.
 This behavior can result in ``conn.log`` entries that show zero ``orig_pkts`` and
 ``resp_pkts``, but do show ``c`` or ``C`` sequences in the history.
 
 .. code:: console
 
-    # zeek -D -b -r Traces/tcp/syn-bad.pcap base/protocols/conn LogAscii::use_json=T
+    # zeek -D -b -r Traces/tcp/syn-bad.pcap base/protocols/conn LogAscii::use_json=T drop_bad_checksums=T
     # jq < conn.log
     {
       "ts": 1362692526.869344,
@@ -51,7 +63,7 @@ This behavior can result in ``conn.log`` entries that show zero ``orig_pkts`` an
       "ip_proto": 6
     }
 
-    # zeek -b  -r Traces/dns/dns-corrupt.pcap base/protocols/conn LogAscii::use_json=T
+    # zeek -b  -r Traces/dns/dns-corrupt.pcap base/protocols/conn LogAscii::use_json=T drop_bad_checksums=T
     # jq < conn.log
     {
       "ts": 1777450586.006844,
@@ -74,8 +86,13 @@ This behavior can result in ``conn.log`` entries that show zero ``orig_pkts`` an
     }
 
 
-The ``history`` fields are ``C`` and ``cC`` for the respective test captures,
-but ``orig_pkts`` and ``resp_pkts`` are zero.
+The ``history`` fields are ``C`` and ``Cc`` for the respective test captures,
+but ``orig_pkts`` and ``resp_pkts`` are zero. With the default settings, the same
+captures yield ``CS`` and ``CDcd`` with the packets counted.
+
+:zeek:see:`ignore_checksums` (or the ``-C`` command-line option) skips checksum
+validation entirely. No checksum weirds or ``C`` history entries are produced in
+that case.
 
 See `issue #5277 <https://github.com/zeek/zeek/issues/5277>`_ on GitHub for some
 discussion around this behavior.

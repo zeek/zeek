@@ -68,8 +68,9 @@ protected:
 private:
     const struct tcphdr* ExtractTCP_Header(const u_char*& data, int& len, int& remaining, TCPSessionAdapter* adapter);
 
-    // Returns true if the checksum is valid, false if not (and in which
-    // case also updates the status history of the endpoint).
+    // Returns false if the checksum is invalid and the packet should be
+    // dropped (see drop_bad_checksums). An invalid checksum also updates
+    // the status history of the endpoint.
     bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, analyzer::tcp::TCP_Endpoint* endpoint, int len,
                           int caplen, TCPSessionAdapter* adapter);
 };

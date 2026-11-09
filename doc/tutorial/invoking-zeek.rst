@@ -49,9 +49,9 @@ see a few log files. Feel free to explore ``conn.log`` and look for
 evidence of the above ping! We'll dive deeper into these logs later.
 
 On local environments and with capture files, it's often useful to tell
-Zeek to ignore checksums with the ``-C`` flag. Otherwise, Zeek discards
-any packets with checksum errors---due to checksum offloading, this may
-be all packets in a particular direction!
+Zeek to ignore checksums with the ``-C`` flag. Otherwise, Zeek reports
+bad checksums in ``weird.log`` and the connection's ``history``---due to
+checksum offloading, this may be all packets in a particular direction!
 
 .. _providing_script_values:
 

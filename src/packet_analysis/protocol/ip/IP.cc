@@ -69,12 +69,12 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
         // TCP segmentation offloading can zero out the ip_len field.
         Weird("ip_hdr_len_zero", packet);
 
-        if ( zeek::detail::ignore_checksums )
+        if ( zeek::detail::ignore_checksums || ! zeek::detail::drop_bad_checksums )
             // Cope with the zero'd out ip_len field by using the caplen.
             total_len = packet->cap_len - hdr_size;
         else
             // If this is caused by segmentation offloading, the checksum will
-            // also be incorrect. If checksum validation is enabled - just bail here.
+            // also be incorrect. If bad checksums are dropped - just bail here.
             return false;
     }
 
@@ -131,7 +131,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
          ! IPBasedAnalyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
          zeek::detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff ) {
         Weird("bad_IP_checksum", packet);
-        return false;
+        if ( zeek::detail::drop_bad_checksums )
+            return false;
     }
 
     if ( discarder && discarder->NextPacket(packet->ip_hdr, total_len, len) )
@@ -216,8 +217,10 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
 
         if ( ! zeek::detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff ) {
             Weird("bad_MH_checksum", packet);
-            packet->cap_len = orig_cap_len;
-            return false;
+            if ( zeek::detail::drop_bad_checksums ) {
+                packet->cap_len = orig_cap_len;
+                return false;
+            }
         }
 
         if ( mobile_ipv6_message )

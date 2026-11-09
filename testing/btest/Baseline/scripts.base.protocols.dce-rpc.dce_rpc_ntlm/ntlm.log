@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	hostname	domainname	server_nb_computer_name	server_dns_computer_name	server_tree_name	success
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	bool
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	10.10.10.121	58772	10.10.10.120	54784	-	-	-	CBTH-WS-2	CBTH-WS-2.blackclover.local	blackclover.local	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.10.10.120	54784	10.10.10.121	58772	Administrator	CBTH-WS-1	BLACKCLOVER	CBTH-WS-2	CBTH-WS-2.blackclover.local	blackclover.local	-
 #close XXXX-XX-XX-XX-XX-XX

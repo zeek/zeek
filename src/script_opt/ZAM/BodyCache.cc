@@ -630,6 +630,169 @@ ValPtr decode_val(R& r, ProfileFuncs& pfs, bool& ok) {
     }
 }
 
+// ---- call_expr (bounded AST) --------------------------------------------
+//
+// An instruction's aux->call_expr is kept only for run-time error backtraces
+// (its text is rendered via Describe) and as a pointer-identity memoization key
+// for when/trigger statements. In the reduced AST that ZAM compiles, a call's
+// function is a NameExpr and its arguments are singletons (NameExpr/ConstExpr),
+// so the expression is drawn from a small set: CallExpr, ListExpr, NameExpr,
+// ConstExpr. We serialize that shape and reconstruct faithful sub-expressions
+// (globals resolved by name; locals synthesized with their name and type purely
+// so Describe renders correctly; constants rebuilt from their value), which is
+// enough for both run-time uses. Anything outside the set makes the body
+// non-cacheable.
+
+bool expr_serializable(const Expr* e) {
+    switch ( e->Tag() ) {
+        case EXPR_NAME: return true;
+        case EXPR_CONST: return supported_const(e->AsConstExpr()->ValuePtr());
+        case EXPR_LIST:
+            for ( auto sub : e->AsListExpr()->Exprs() )
+                if ( ! expr_serializable(sub) )
+                    return false;
+            return true;
+        case EXPR_CALL: {
+            auto ce = static_cast<const CallExpr*>(e);
+            return expr_serializable(ce->Func()) && expr_serializable(ce->Args());
+        }
+        default: return false;
+    }
+}
+
+void encode_loc(W& w, const Obj* o) {
+    auto l = o->GetLocationInfo();
+    w.str(l && l->FileName() ? l->FileName() : "");
+    w.i32(l ? l->FirstLine() : 0);
+    w.i32(l ? l->LastLine() : 0);
+}
+
+void set_loc(R& r, Obj* o) {
+    auto fname = r.str();
+    auto line_f = r.i32();
+    auto line_l = r.i32();
+    auto interned = filename_pool().insert(fname).first->c_str();
+    Location loc(interned, line_f, line_l);
+    o->SetLocationInfo(&loc); // copies, retaining the interned filename pointer
+}
+
+void encode_expr(W& w, ProfileFuncs& pfs, const Expr* e) {
+    // Parenthesization is part of how an expression renders (e.g. "(f(x))"
+    // in error messages), so carry it for every reconstructed expression.
+    w.u8(e->IsParen() ? 1 : 0);
+
+    switch ( e->Tag() ) {
+        case EXPR_NAME: {
+            w.u8(1);
+            auto id = e->AsNameExpr()->Id();
+            w.u8(id->IsGlobal() ? 1 : 0);
+            w.str(id->Name());
+            encode_type(w, pfs, id->GetType().get());
+        } break;
+        case EXPR_CONST:
+            w.u8(2);
+            encode_val(w, pfs, e->AsConstExpr()->ValuePtr());
+            break;
+        case EXPR_LIST: {
+            w.u8(3);
+            auto& exprs = e->AsListExpr()->Exprs();
+            w.u32(static_cast<uint32_t>(exprs.length()));
+            for ( auto sub : exprs )
+                encode_expr(w, pfs, sub);
+        } break;
+        case EXPR_CALL: {
+            w.u8(4);
+            auto ce = static_cast<const CallExpr*>(e);
+            w.u8(ce->IsInWhen() ? 1 : 0);
+            encode_expr(w, pfs, ce->Func());
+            encode_expr(w, pfs, ce->Args());
+            encode_loc(w, ce); // only the top call's location feeds error reports
+        } break;
+        default: break; // gated out by expr_serializable()
+    }
+}
+
+ExprPtr decode_expr_body(R& r, ProfileFuncs& pfs, bool& ok);
+
+ExprPtr decode_expr(R& r, ProfileFuncs& pfs, bool& ok) {
+    bool paren = r.u8() != 0;
+    auto e = decode_expr_body(r, pfs, ok);
+    if ( e && paren )
+        e->MarkParen();
+    return e;
+}
+
+ExprPtr decode_expr_body(R& r, ProfileFuncs& pfs, bool& ok) {
+    switch ( r.u8() ) {
+        case 1: { // NameExpr
+            bool is_global = r.u8() != 0;
+            auto name = r.str();
+            auto t = decode_type(r, pfs, ok);
+            if ( ! r.Ok() || ! ok ) {
+                ok = false;
+                return nullptr;
+            }
+            IDPtr id;
+            if ( is_global )
+                id = resolve_global(name);
+            if ( ! id ) {
+                // A local (or a global no longer present): synthesize an ID that
+                // carries the name and type so Describe renders faithfully. The
+                // reconstructed expression is never executed, only described.
+                if ( ! t ) {
+                    ok = false;
+                    return nullptr;
+                }
+                id = make_intrusive<ID>(name.c_str(), is_global ? SCOPE_GLOBAL : SCOPE_FUNCTION, false);
+                id->SetType(t);
+            }
+            return make_intrusive<NameExpr>(id);
+        }
+        case 2: { // ConstExpr
+            auto v = decode_val(r, pfs, ok);
+            if ( ! ok || ! v )
+                return nullptr;
+            return make_intrusive<ConstExpr>(v);
+        }
+        case 3: { // ListExpr
+            auto n = r.u32();
+            auto le = make_intrusive<ListExpr>();
+            for ( uint32_t i = 0; i < n && r.Ok() && ok; ++i ) {
+                auto sub = decode_expr(r, pfs, ok);
+                if ( ! ok || ! sub )
+                    return nullptr;
+                le->Append(sub);
+            }
+            return le;
+        }
+        case 4: { // CallExpr
+            bool in_when = r.u8() != 0;
+            auto func = decode_expr(r, pfs, ok);
+            auto args = decode_expr(r, pfs, ok);
+            if ( ! ok || ! func || ! args || args->Tag() != EXPR_LIST )
+                return nullptr;
+            // in_hook=true: the reconstructed call is only described / used as an
+            // identity key, never re-validated or executed, so suppress the
+            // constructor's "hook cannot be called directly" check (the original
+            // call was already valid). Likewise, its other validation must never
+            // surface as a diagnostic (that would count as a script error and
+            // abort ZAM), so suppress errors and treat a rejected call as a miss.
+            CallExprPtr ce;
+            {
+                Obj::SuppressErrors no_errors;
+                ce = make_intrusive<CallExpr>(func, cast_intrusive<ListExpr>(args), true, in_when);
+            }
+            if ( ce->IsError() ) {
+                ok = false;
+                return nullptr;
+            }
+            set_loc(r, ce.get());
+            return ce;
+        }
+        default: ok = false; return nullptr;
+    }
+}
+
 // Whether an op reads its instruction's constant slot 'c' at run time. An
 // instruction's op_type doesn't reliably say so: optimized built-ins construct
 // the instruction with a slot-only op_type and then assign 'c' directly. So
@@ -670,8 +833,8 @@ ValPtr constant_slot_value(const ZInst& in) {
 // sized outside the serialized fields).
 // Returns nullptr if serializable, otherwise a short reason naming the gate.
 const char* aux_unserializable_reason(const ZInstAux* aux) {
-    if ( aux->call_expr )
-        return "aux:call-expr";
+    if ( aux->call_expr && ! expr_serializable(aux->call_expr.get()) )
+        return "aux:call-expr-shape";
     if ( aux->lambda )
         return "aux:lambda";
     if ( aux->wi )
@@ -760,6 +923,13 @@ void encode_aux(W& w, ProfileFuncs& pfs, const ZInstAux* aux) {
     if ( aux->event_handler ) {
         w.u8(1);
         w.str(aux->event_handler->Name());
+    }
+    else
+        w.u8(0);
+
+    if ( aux->call_expr ) {
+        w.u8(1);
+        encode_expr(w, pfs, aux->call_expr.get());
     }
     else
         w.u8(0);
@@ -857,6 +1027,14 @@ ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
             ok = false;
         else
             aux->event_handler = eh;
+    }
+
+    if ( r.u8() == 1 ) {
+        auto ce = decode_expr(r, pfs, ok);
+        if ( ! ok || ! ce || ce->Tag() != EXPR_CALL )
+            ok = false;
+        else
+            aux->call_expr = cast_intrusive<CallExpr>(ce);
     }
 
     // Restore the compiler-set size of the zvec runtime-scratch vector.

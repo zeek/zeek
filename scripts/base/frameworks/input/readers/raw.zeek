@@ -4,7 +4,7 @@ module InputRaw;
 
 export {
 	## Separator between input records.
-	## Please note that the separator has to be exactly one character long.
+	## The separator can contain one or more characters, but it must not be empty.
 	const record_separator = "\n" &redef;
 
 	## Event that is called when a process created by the raw reader exits.

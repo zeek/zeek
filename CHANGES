@@ -1,3 +1,14 @@
+9.1.0-dev.542 | 2026-11-09 16:21:40 -0500
+
+  * GH-5931: Reject empty record_separator in raw input reader (spryzz3n)
+
+    An empty separator causes the raw reader to keep producing empty
+    records instead of making progress. Add a check to reject empty
+    separators during initialization, update the documentation, and add
+    a regression test for this case.
+
+    Fixes #5931
+
 9.1.0-dev.539 | 2026-11-05 18:03:49 +0100
 
   * tools/systemd-generator: Fixes and hardening around continuation (Arne Welzel, Corelight)

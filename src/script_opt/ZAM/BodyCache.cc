@@ -25,6 +25,7 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Profile.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
@@ -793,6 +794,47 @@ ExprPtr decode_expr_body(R& r, ProfileFuncs& pfs, bool& ok) {
     }
 }
 
+// cat() arguments are fully determined by the aux elems, so rather than
+// serializing the CatArg objects we rebuild them on load exactly as
+// CatZBI::BuildCatAux() creates them: a constant becomes a fixed rendered
+// string, and a frame slot gets the CatArg flavor for its type.
+void rebuild_cat_args(ZInstAux* aux) {
+    aux->cat_args = new std::unique_ptr<CatArg>[aux->n];
+
+    for ( int i = 0; i < aux->n; ++i ) {
+        const auto& e = aux->elems[i];
+        std::unique_ptr<CatArg> ca;
+
+        if ( const auto& c = e.Constant() ) {
+            auto sv = ZAM_val_cat(c); // keep alive while we copy its bytes
+            auto s = sv->AsString();
+            ca = std::make_unique<CatArg>(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
+        }
+        else {
+            const auto& t = e.GetType();
+            switch ( t->Tag() ) {
+                case TYPE_BOOL:
+                case TYPE_INT:
+                case TYPE_COUNT:
+                case TYPE_DOUBLE:
+                case TYPE_TIME:
+                case TYPE_ENUM:
+                case TYPE_PORT:
+                case TYPE_ADDR:
+                case TYPE_SUBNET: ca = std::make_unique<FixedCatArg>(t); break;
+
+                case TYPE_STRING: ca = std::make_unique<StringCatArg>(); break;
+
+                case TYPE_PATTERN: ca = std::make_unique<PatternCatArg>(); break;
+
+                default: ca = std::make_unique<DescCatArg>(t); break;
+            }
+        }
+
+        aux->cat_args[i] = std::move(ca);
+    }
+}
+
 // Whether an op reads its instruction's constant slot 'c' at run time. An
 // instruction's op_type doesn't reliably say so: optimized built-ins construct
 // the instruction with a slot-only op_type and then assign 'c' directly. So
@@ -869,8 +911,6 @@ const char* aux_unserializable_reason(const ZInstAux* aux) {
         return "aux:lambda";
     if ( aux->wi )
         return "aux:when-info";
-    if ( aux->cat_args )
-        return "aux:cat-args";
     if ( aux->attrs )
         return "aux:attrs";
     if ( aux->field_inits )
@@ -961,6 +1001,8 @@ void encode_aux(W& w, ProfileFuncs& pfs, const ZInstAux* aux) {
     }
     else
         w.u8(0);
+
+    w.u8(aux->cat_args ? 1 : 0);
 
     // The zvec runtime-scratch vector is pre-sized by the compiler (e.g. to a
     // record's field count for record constructors) and indexed during Exec;
@@ -1065,6 +1107,8 @@ ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
             aux->call_expr = cast_intrusive<CallExpr>(ce);
     }
 
+    bool has_cat_args = r.u8() != 0;
+
     // Restore the compiler-set size of the zvec runtime-scratch vector.
     aux->zvec.resize(r.u32());
 
@@ -1072,6 +1116,17 @@ ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
         delete aux;
         return nullptr;
     }
+
+    if ( has_cat_args ) {
+        // Every cat() arg is either a constant or a typed frame slot.
+        for ( int i = 0; i < aux->n; ++i )
+            if ( ! aux->elems[i].Constant() && ! aux->elems[i].GetType() ) {
+                delete aux;
+                return nullptr;
+            }
+        rebuild_cat_args(aux);
+    }
+
     return aux;
 }
 

@@ -1,3 +1,9 @@
+9.0.1-8 | 2026-11-11 15:25:11 -0700
+
+  * pcap: Handle activation warnings (Oluwatobi Mustapha)
+
+    (cherry picked from commit 456aaad3ec51c2e1b4caf4917ff66b1f2b59a145)
+
 9.0.1-7 | 2026-11-11 15:23:44 -0700
 
   * Remove `X` for `DNS_unknown_opcode` history (Evan Typanski, Corelight)

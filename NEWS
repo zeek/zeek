@@ -5,8 +5,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.2
 ==========
 
-Thank you to Jan Grashöfer (@J-Gras) and Mohan Dhawan (@Mohan-Dhawan) for their
-contributions to this release.
+Thank you to Jan Grashöfer (@J-Gras), Mohan Dhawan (@Mohan-Dhawan), and Oluwatobi Mustapha
+(@Oluwatobi-Mustapha) for their contributions to this release.
 
 This release fixes the following security issues:
 

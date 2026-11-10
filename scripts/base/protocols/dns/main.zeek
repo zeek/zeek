@@ -559,6 +559,12 @@ event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
 	hook DNS::do_reply(c, msg, ans, name);
 	}
 
+event dns_CAA_reply(c: connection, msg: dns_msg, ans: dns_answer, flags: count, tag: string,
+                    value: string) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("CAA %d %s %s", flags, tag, value));
+	}
+
 event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
 	{
 	hook DNS::do_reply(c, msg, ans, name);
@@ -574,9 +580,24 @@ event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
 	hook DNS::do_reply(c, msg, ans, "");
 	}
 
+event dns_HINFO_reply(c: connection, msg: dns_msg, ans: dns_answer, cpu: string, os: string) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("HINFO %s %s", cpu, os));
+	}
+
 event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5
 	{
 	hook DNS::do_reply(c, msg, ans, target);
+	}
+
+event dns_SVCB(c: connection, msg: dns_msg, ans: dns_answer, svcb: dns_svcb_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("SVCB %d %s", svcb$svc_priority, svcb$target_name));
+	}
+
+event dns_HTTPS(c: connection, msg: dns_msg, ans: dns_answer, https: dns_svcb_rr) &priority=5
+	{
+	hook DNS::do_reply(c, msg, ans, fmt("HTTPS %d %s", https$svc_priority, https$target_name));
 	}
 
 event dns_NAPTR_reply(c: connection, msg: dns_msg, ans: dns_answer, naptr: dns_naptr_rr) &priority=5

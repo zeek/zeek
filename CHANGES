@@ -1,3 +1,21 @@
+9.0.1-10 | 2026-11-11 15:28:02 -0700
+
+  * cluster/zeromq: Fix reporting of dropped log writes, add metric (Arne Welzel, Corelight)
+
+    When the HWM for the log PUSH socket runs full, Zeek currently reports every
+    dropped log message via reporter->Error(). There also is a metric missing.
+    Address both these shortcomings and add a test.
+
+    Instead of just outputting to stderr once, it'd be nice log this every
+    so often here continuously. In a separate PR, there's a ``ReportOnceEvery``
+    helper class in the works that would allow for that. For now, use the same
+    pattern as for the XPUB socket.
+
+    Removes the XXX comment as dropping has been the policy so far anyhow
+    and this now adds a metric for observability.
+
+    (cherry picked from commit 68d50d12927146941c07a4c3473446c9799c2eb4)
+
 9.0.1-9 | 2026-11-11 15:25:52 -0700
 
   * tools/systemd-generator: Fixes and hardening around continuation (Arne Welzel, Corelight)

@@ -1060,10 +1060,6 @@ bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::strin
     if ( ! body.int_cases.empty() || ! body.uint_cases.empty() || ! body.double_cases.empty() ||
          ! body.str_cases.empty() )
         return refuse("switch-cases");
-    if ( ! body.table_iters.empty() )
-        return refuse("table-iters");
-    if ( body.num_step_iters != 0 )
-        return refuse("step-iters");
 
     for ( unsigned i = 0; i < body.end_pc; ++i )
         if ( auto aux = body.insts[i].aux ) {
@@ -1102,6 +1098,13 @@ bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::strin
         w.str(g.id->Name());
         w.i32(g.slot);
     }
+
+    // Loop iterators. The compiler only creates default-constructed
+    // TableIterInfo placeholders (all of their state is set at run time by
+    // BeginLoop() from the loop instruction's aux), and step iterators are just
+    // a count, so only the numbers need to be stored.
+    w.u32(static_cast<uint32_t>(body.table_iters.size()));
+    w.i32(body.num_step_iters);
 
     w.u32(body.end_pc);
     for ( unsigned i = 0; i < body.end_pc; ++i ) {
@@ -1201,6 +1204,13 @@ ZBodyPtr ZBodySerializer::Deserialize(const std::string& in, ProfileFuncs& pfs) 
         zb->globals.push_back(GlobalInfo{id, slot});
     }
 
+    auto n_table_iters = r.u32();
+    auto n_step_iters = r.i32();
+    // Bound these: they size allocations, and the file is untrusted input.
+    if ( ! r.Ok() || n_table_iters > 1'000'000 || n_step_iters < 0 || n_step_iters > 1'000'000 )
+        return nullptr;
+    zb->table_iters.resize(n_table_iters);
+
     auto end_pc = r.u32();
     if ( ! r.Ok() )
         return nullptr;
@@ -1269,11 +1279,10 @@ ZBodyPtr ZBodySerializer::Deserialize(const std::string& in, ProfileFuncs& pfs) 
     }
 
     // Several ZBody members have no in-class default initializer and are
-    // normally set by the ZAMCompiler-driven constructor. The capability gate
-    // guarantees these are empty/zero for serialized bodies, but they must be
-    // set explicitly here since ZInst::Exec() reads them (e.g. num_step_iters
+    // normally set by the ZAMCompiler-driven constructor, so they must be set
+    // explicitly here since ZBody::Exec() reads them (e.g. num_step_iters
     // sizes a stack vector).
-    zb->num_step_iters = 0;
+    zb->num_step_iters = n_step_iters;
     zb->num_globals = static_cast<int>(zb->globals.size());
 
     zb->insts = insts;

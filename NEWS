@@ -92,6 +92,22 @@ Changed Functionality
 - The ``DNS_unknown_opcode`` weird no longer sets ``X`` in the connection history
   when triggered, as it is not a limit.
 
+- Zeek now outputs the following message once on stderr if a node dropped log
+  records due to the ZeroMQ PUSH socket queue being full:
+
+	[zeromq] warn: dropped a log message due to hwm
+
+  Previously, a reporter error was created for every occurrence. A new counter
+  metric, ``zeek_cluster_zeromq_log_push_drops_total``, has been added to monitor
+  further occurrences. Note that if you see this log message or the metric increasing,
+  it is likely that your Zeek cluster is overloaded or otherwise unhealthy.
+
+  See the ZeroMQ cluster backend online architecture and options documentation
+  for more details about the behavior and tunables:
+
+	https://docs.zeek.org/en/master/advanced/devel/cluster/backend/zeromq.html
+	https://docs.zeek.org/en/master/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek.html
+
 Deprecated Functionality
 ------------------------
 

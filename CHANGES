@@ -1,3 +1,19 @@
+9.1.0-dev.546 | 2026-11-10 12:56:31 +0100
+
+  * cluster/zeromq: Fix reporting of dropped log writes, add metric (Arne Welzel, Corelight)
+
+    When the HWM for the log PUSH socket runs full, Zeek currently reports every
+    dropped log message via reporter->Error(). There also is a metric missing.
+    Address both these shortcomings and add a test.
+
+    Instead of just outputting to stderr once, it'd be nice log this every
+    so often here continuously. In a separate PR, there's a ``ReportOnceEvery``
+    helper class in the works that would allow for that. For now, use the same
+    pattern as for the XPUB socket.
+
+    Removes the XXX comment as dropping has been the policy so far anyhow
+    and this now adds a metric for observability.
+
 9.1.0-dev.544 | 2026-11-09 17:34:21 -0700
 
   * RDP: reject a TPKT header whose version is not 3 (Lucas Sotomayor)

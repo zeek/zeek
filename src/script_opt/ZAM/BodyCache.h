@@ -100,7 +100,8 @@ public:
     // Serialize 'body' into 'out'. Returns false (leaving 'out' unspecified) if
     // the body uses a feature not yet supported by the serializer, in which
     // case the caller must not cache it.
-    static bool Serialize(const ZBody& body, ProfileFuncs& pfs, std::string& out);
+    // If 'why' is non-null, a refusal sets it to a short reason naming the gate.
+    static bool Serialize(const ZBody& body, ProfileFuncs& pfs, std::string& out, const char** why = nullptr);
 
     // Reconstruct a ZBody from bytes produced by Serialize(), using 'pfs' (over
     // the same scripts) to resolve types by hash. Returns nullptr on any

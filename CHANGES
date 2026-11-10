@@ -1,3 +1,7 @@
+9.1.0-dev.553 | 2026-11-10 10:56:39 -0700
+
+  * build(deps): bump docker/login-action from 4.7.0 to 4.8.0 (dependabot[bot])
+
 9.1.0-dev.551 | 2026-11-10 11:37:00 -0500
 
   * GH-4947: GH-5294: GH-5295: Analyze packets with bad checksums by default (Evan Typanski, Corelight)

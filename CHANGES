@@ -1,3 +1,18 @@
+9.1.0-dev.544 | 2026-11-09 17:34:21 -0700
+
+  * RDP: reject a TPKT header whose version is not 3 (Lucas Sotomayor)
+
+    The TPKT record read the version octet but never checked it, so a
+    Connection Request with a TPKT version other than 3 was parsed and
+    logged as an RDP connection. RFC 1006 defines only version 3, and the
+    servers we tried (xrdp, FreeRDP) do not answer such a request.
+
+    Enforce version == 3, so the analyzer reports a protocol violation
+    instead. In rdp-invalid-length, a later misaligned PDU now fails on
+    the TPKT version instead of on the Connect Confirm record type.
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.542 | 2026-11-09 16:21:40 -0500
 
   * GH-5931: Reject empty record_separator in raw input reader (spryzz3n)

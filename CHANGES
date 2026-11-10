@@ -1,3 +1,10 @@
+9.1.0-dev.557 | 2026-11-10 20:30:51 +0100
+
+  * btest/cluster/zeromq: Skip overload-logging on windows (Arne Welzel, Corelight)
+
+    Definitely a cop-out, but we already skip overload-drop.zeek and
+    overload-worker-proxy-topic-drop.zeek on Windows, so add this, too.
+
 9.1.0-dev.555 | 2026-11-10 10:57:19 -0700
 
   * build(deps): bump github/codeql-action/upload-sarif (dependabot[bot])

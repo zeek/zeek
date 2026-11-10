@@ -1,6 +1,7 @@
 # @TEST-DOC: Lower the logging high watermarks drastically and observe metrics as well as output on stderr that indicates dropped logs. Tha manager acts as the logger in this test.
 #
 # @TEST-REQUIRES: have-zeromq
+# @TEST-REQUIRES: ! is-windows-ci
 #
 # @TEST-GROUP: cluster-zeromq
 #

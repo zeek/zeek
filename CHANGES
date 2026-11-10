@@ -1,3 +1,7 @@
+9.1.0-dev.555 | 2026-11-10 10:57:19 -0700
+
+  * build(deps): bump github/codeql-action/upload-sarif (dependabot[bot])
+
 9.1.0-dev.553 | 2026-11-10 10:56:39 -0700
 
   * build(deps): bump docker/login-action from 4.7.0 to 4.8.0 (dependabot[bot])

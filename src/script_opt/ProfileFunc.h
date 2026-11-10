@@ -428,6 +428,16 @@ public:
     p_hash_type HashType(const TypePtr& t) { return HashType(t.get()); }
     p_hash_type HashType(const Type* t);
 
+    // Returns the representative Type* for a previously computed type hash,
+    // or nullptr if no type with that hash was profiled. Because the hash is a
+    // stable, content-derived value, this lets a separate process that parsed
+    // the same scripts resolve a serialized type hash back to its live Type*.
+    // Used by the ZAM body cache to (de)serialize instruction types by hash.
+    const Type* TypeForHash(p_hash_type h) const {
+        auto it = type_hash_reps.find(h);
+        return it == type_hash_reps.end() ? nullptr : it->second;
+    }
+
     p_hash_type HashAttrs(const AttributesPtr& attrs);
 
 protected:

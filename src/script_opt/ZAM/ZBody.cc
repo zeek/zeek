@@ -226,6 +226,28 @@ VEC_COERCE(IU, TYPE_INT, zeek_int_t, AsCount(), count_to_int_would_overflow, "un
 VEC_COERCE(UD, TYPE_COUNT, zeek_uint_t, AsDouble(), double_to_count_would_overflow, "double to unsigned")
 VEC_COERCE(UI, TYPE_COUNT, zeek_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
+// One-time ZAM runtime initialization. Normally triggered the first time any
+// ZBody is constructed by the compiler; also invoked when constructing a ZBody
+// from the on-disk cache, since a pure cache-hit run compiles no bodies.
+static void ensure_ZAM_runtime_init() {
+    // It's a little weird doing this here, but unless we add a general
+    // "initialize for ZAM" entry point, this is as good a place as any.
+    if ( ! did_init ) {
+        auto log_ID_type = lookup_ID("ID", "Log");
+        ASSERT(log_ID_type);
+        ZAM::log_ID_enum_type = log_ID_type->GetType<EnumType>();
+        ZVal::SetZValNilStatusAddr(&ZAM_error);
+        did_init = false;
+    }
+}
+
+// Deserialization constructor (see ZBody.h); ZBodySerializer populates the
+// remaining fields. Runs the same one-time runtime init as the main ctor.
+ZBody::ZBody(std::string _func_name) : Stmt(STMT_ZAM) {
+    func_name = std::move(_func_name);
+    ensure_ZAM_runtime_init();
+}
+
 ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
     func_name = std::move(_func_name);
 
@@ -257,16 +279,7 @@ ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
     table_iters = zc->GetTableIters();
     num_step_iters = zc->NumStepIters();
 
-    // It's a little weird doing this in the constructor, but unless
-    // we add a general "initialize for ZAM" function, this is as good
-    // a place as any.
-    if ( ! did_init ) {
-        auto log_ID_type = lookup_ID("ID", "Log");
-        ASSERT(log_ID_type);
-        ZAM::log_ID_enum_type = log_ID_type->GetType<EnumType>();
-        ZVal::SetZValNilStatusAddr(&ZAM_error);
-        did_init = false;
-    }
+    ensure_ZAM_runtime_init();
 
     if ( analysis_options.profile_file ) {
         profile_calls = sample_CPU_mem = true;

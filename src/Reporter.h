@@ -128,6 +128,12 @@ public:
     // Returns the number of errors reported so far.
     int Errors() { return errors; }
 
+    // Returns the number of messages (of any severity) logged so far. Used to
+    // detect whether a piece of work emitted any diagnostics, e.g. so the ZAM
+    // body cache never caches a body whose compilation produced output that a
+    // cache hit would then silently suppress.
+    uint64_t NumLogged() const { return num_logged; }
+
     // Report a fatal error. Zeek will terminate after the message has been
     // reported.
     [[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
@@ -346,6 +352,7 @@ private:
     bool EmitToStderr(bool flag);
 
     int errors;
+    uint64_t num_logged = 0;
     int in_error_handler;
     bool via_events;
     bool syslog_open;

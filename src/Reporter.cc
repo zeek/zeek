@@ -482,6 +482,8 @@ void Reporter::Deprecation(std::string_view msg, const detail::Location* loc1, c
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, ValPList* addl,
                      bool location, bool time, const char* postfix, const char* fmt, va_list ap) {
+    ++num_logged;
+
     constexpr size_t DEFAULT_BUFFER_SIZE = 512;
     static char tmp[DEFAULT_BUFFER_SIZE];
 

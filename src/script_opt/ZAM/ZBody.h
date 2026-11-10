@@ -91,6 +91,13 @@ public:
 
 private:
     friend class CPPCompile;
+    friend class ZBodySerializer;
+
+    // Construct an empty body to be populated by ZBodySerializer during
+    // deserialization from the on-disk cache. The counterpart to the normal
+    // ZAMCompiler-driven constructor; defined in ZBody.cc so it can run the
+    // same one-time ZAM runtime initialization.
+    explicit ZBody(std::string _func_name);
 
     auto Instructions() const { return insts; }
     auto NumInsts() const { return end_pc; }

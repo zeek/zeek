@@ -2,6 +2,7 @@ zeek_add_subdir_library(
     ZAM
     SOURCES
     AM-Opt.cc
+    BodyCache.cc
     Branches.cc
     BuiltIn.cc
     BuiltInSupport.cc

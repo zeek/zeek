@@ -1431,6 +1431,7 @@
 ./zeek/script_opt/UseDefs.h
 ./zeek/script_opt/ZAM
 ./zeek/script_opt/ZAM/AM-Opt.h
+./zeek/script_opt/ZAM/BodyCache.h
 ./zeek/script_opt/ZAM/Branches.h
 ./zeek/script_opt/ZAM/BuiltIn.h
 ./zeek/script_opt/ZAM/BuiltInSupport.h

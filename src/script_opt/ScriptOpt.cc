@@ -2,6 +2,7 @@
 
 #include "zeek/script_opt/ScriptOpt.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -20,6 +21,7 @@
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/UsageAnalyzer.h"
 #include "zeek/script_opt/UseDefs.h"
+#include "zeek/script_opt/ZAM/BodyCache.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/script_opt/ZAM/Profile.h"
 
@@ -93,6 +95,26 @@ ZAMPhaseTimer::~ZAMPhaseTimer() {
 }
 
 // -------------------------------------------------------------------------
+
+// Diagnostic (env-gated by ZEEK_ZAM_CACHE_KEYS): prints each analyzed
+// function's effective cache key, sorted by name, so stability can be checked
+// across runs and across the addition of test-specific scripts. The key logic
+// itself lives in ZAMBodyCache::EffectiveKey.
+static void zam_cache_keys_report(const std::vector<FuncInfo>& funcs, const ProfileFuncs& pfs) {
+    if ( ! getenv("ZEEK_ZAM_CACHE_KEYS") )
+        return;
+
+    std::map<std::string, p_hash_type> keyed;
+    for ( auto& f : funcs ) {
+        if ( f.ShouldSkip() || ! f.Profile() )
+            continue;
+        keyed[f.Func()->GetName()] = ZAMBodyCache::EffectiveKey(f.Profile(), pfs);
+    }
+
+    fprintf(stderr, "# ZAM cache keys (ZEEK_ZAM_CACHE_KEYS): effective-key function\n");
+    for ( auto& [name, key] : keyed )
+        fprintf(stderr, "ZAM-cache-key %016llx %s\n", (unsigned long long)key, name.c_str());
+}
 
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
@@ -411,6 +433,14 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, cons
         if ( reporter->Errors() > 0 )
             return;
 
+        // Round-trip self-verification: if the compiled body serializes, swap
+        // in the reconstructed copy so existing btest baselines validate the
+        // serializer. Non-serializable bodies keep their freshly compiled form.
+        if ( zam_cache_verify_active() && new_body && new_body->Tag() == STMT_ZAM ) {
+            if ( auto rt = zam_cache_roundtrip(static_cast<ZBody*>(new_body.get()), *pfs) )
+                new_body = rt;
+        }
+
         if ( analysis_options.dump_final_ZAM )
             ZAM.Dump();
 
@@ -688,6 +718,15 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
 
     bool did_one = false;
 
+    ZAMBodyCache body_cache;
+
+    // The body cache skips compilation on a hit, which also skips compile-time
+    // diagnostics (usage warnings, dumps) and per-body profiling setup. Only
+    // use it for a plain optimizing run, never when those modes are requested.
+    const bool cache_modes_ok = analysis_options.usage_issues == 0 && ! analysis_options.dump_xform &&
+                                ! analysis_options.dump_uds && ! analysis_options.dump_ZAM &&
+                                ! analysis_options.dump_final_ZAM && ! analysis_options.profile_ZAM;
+
     for ( auto& f : funcs ) {
         if ( ! f.ShouldAnalyze() )
             continue;
@@ -707,12 +746,49 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
             continue;
         }
 
+        // Try the on-disk cache before compiling. The effective key is
+        // inlining-safe and cache entries are scoped to this build + options,
+        // so a hit yields a body identical to what compilation would produce.
+        p_hash_type cache_key = 0;
+        bool cache_enabled = body_cache.Enabled() && cache_modes_ok && f.Profile();
+        if ( cache_enabled ) {
+            cache_key = ZAMBodyCache::EffectiveKey(f.Profile(), *pfs);
+            cache_enabled = cache_key != 0; // 0 => no usable key, don't cache
+        }
+        if ( cache_enabled ) {
+            if ( auto entry = body_cache.TryLoad(cache_key) )
+                if ( auto zb = ZBodySerializer::Deserialize(entry->body, *pfs) ) {
+                    // Compilation may enlarge the interpreter frame (for reducer
+                    // temporaries); a hit skips it, so restore the requirement.
+                    if ( entry->frame_size > func->FrameSize() )
+                        func->SetFrameSize(entry->frame_size);
+                    func->ReplaceBody(f.Body(), zb);
+                    f.SetBody(zb);
+                    if ( is_lambda )
+                        l->second->ReplaceBody(zb);
+                    did_one = true;
+                    continue;
+                }
+        }
+
+        auto logged_before = reporter->NumLogged();
+
         auto new_body = f.Body();
         optimize_func(func, f.ProfilePtr(), pfs, f.Scope(), new_body);
         f.SetBody(new_body);
 
         if ( is_lambda )
             l->second->ReplaceBody(new_body);
+
+        // Populate the cache for next time, if the compiled body is serializable.
+        // Skip bodies whose compilation emitted any diagnostic (e.g. constant-
+        // folding warnings): a later cache hit skips compilation and would
+        // silently drop that output.
+        if ( cache_enabled && new_body && new_body->Tag() == STMT_ZAM && reporter->NumLogged() == logged_before ) {
+            std::string bytes;
+            if ( ZBodySerializer::Serialize(*static_cast<ZBody*>(new_body.get()), *pfs, bytes) )
+                body_cache.Store(cache_key, bytes, func->FrameSize());
+        }
 
         did_one = true;
     }
@@ -833,9 +909,12 @@ void analyze_scripts(bool no_unused_warnings) {
         pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
     }
 
+    zam_cache_keys_report(funcs, *pfs);
+
     analyze_scripts_for_ZAM(pfs);
 
     zam_timing_report();
+    zam_cache_verify_report();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

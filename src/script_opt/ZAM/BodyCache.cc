@@ -827,6 +827,34 @@ ValPtr constant_slot_value(const ZInst& in) {
     return v;
 }
 
+// Switch statements: each CaseMaps<T> is a vector (one per switch) of maps
+// from case value to instruction number, so they serialize directly.
+template<typename T, typename EncodeKey>
+void encode_case_maps(W& w, const CaseMaps<T>& cms, EncodeKey enc) {
+    w.u32(static_cast<uint32_t>(cms.size()));
+    for ( auto& cm : cms ) {
+        w.u32(static_cast<uint32_t>(cm.size()));
+        for ( auto& [k, pc] : cm ) {
+            enc(k);
+            w.i32(pc);
+        }
+    }
+}
+
+template<typename T, typename DecodeKey>
+void decode_case_maps(R& r, CaseMaps<T>& cms, DecodeKey dec) {
+    auto n = r.u32();
+    for ( uint32_t i = 0; i < n && r.Ok(); ++i ) {
+        CaseMap<T> cm;
+        auto m = r.u32();
+        for ( uint32_t j = 0; j < m && r.Ok(); ++j ) {
+            T k = dec();
+            cm[k] = r.i32();
+        }
+        cms.push_back(std::move(cm));
+    }
+}
+
 // Whether an instruction's auxiliary info is within the currently supported
 // serialization subset, which excludes the AST-heavy members not yet handled.
 // The record-field maps (map/rhs_map/lhs_map) are plain field offsets and are
@@ -1057,9 +1085,6 @@ bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::strin
     };
 
     // Capability gate: refuse bodies with structure we don't yet serialize.
-    if ( ! body.int_cases.empty() || ! body.uint_cases.empty() || ! body.double_cases.empty() ||
-         ! body.str_cases.empty() )
-        return refuse("switch-cases");
 
     for ( unsigned i = 0; i < body.end_pc; ++i )
         if ( auto aux = body.insts[i].aux ) {
@@ -1105,6 +1130,11 @@ bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::strin
     // a count, so only the numbers need to be stored.
     w.u32(static_cast<uint32_t>(body.table_iters.size()));
     w.i32(body.num_step_iters);
+
+    encode_case_maps(w, body.int_cases, [&](zeek_int_t k) { w.i64(k); });
+    encode_case_maps(w, body.uint_cases, [&](zeek_uint_t k) { w.u64(k); });
+    encode_case_maps(w, body.double_cases, [&](double k) { w.dbl(k); });
+    encode_case_maps(w, body.str_cases, [&](const std::string& k) { w.str(k); });
 
     w.u32(body.end_pc);
     for ( unsigned i = 0; i < body.end_pc; ++i ) {
@@ -1210,6 +1240,13 @@ ZBodyPtr ZBodySerializer::Deserialize(const std::string& in, ProfileFuncs& pfs) 
     if ( ! r.Ok() || n_table_iters > 1'000'000 || n_step_iters < 0 || n_step_iters > 1'000'000 )
         return nullptr;
     zb->table_iters.resize(n_table_iters);
+
+    decode_case_maps(r, zb->int_cases, [&] { return static_cast<zeek_int_t>(r.i64()); });
+    decode_case_maps(r, zb->uint_cases, [&] { return static_cast<zeek_uint_t>(r.u64()); });
+    decode_case_maps(r, zb->double_cases, [&] { return r.dbl(); });
+    decode_case_maps(r, zb->str_cases, [&] { return r.str(); });
+    if ( ! r.Ok() )
+        return nullptr;
 
     auto end_pc = r.u32();
     if ( ! r.Ok() )

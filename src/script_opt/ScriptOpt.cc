@@ -726,6 +726,27 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
 
     ZAMBodyCache body_cache;
 
+    // For keying coalesced event handlers: each one's constituent handler
+    // profiles, in body (execution) order. These must be resolved before the
+    // loop, since compiling a constituent replaces its body (in both its
+    // FuncInfo and the original function) with the compiled one.
+    std::unordered_map<const Func*, std::vector<const ProfileFunc*>> coalesced_constituents;
+    if ( body_cache.Enabled() ) {
+        std::unordered_map<const Stmt*, const ProfileFunc*> body_profiles;
+        for ( auto& f : funcs )
+            if ( f.Profile() )
+                body_profiles[f.Body().get()] = f.Profile();
+
+        for ( auto& f : funcs )
+            if ( auto cf = dynamic_cast<const CoalescedScriptFunc*>(f.Func()) ) {
+                auto& constituents = coalesced_constituents[cf];
+                for ( const auto& b : cf->OrigFunc()->GetBodies() ) {
+                    auto it = body_profiles.find(b.stmts.get());
+                    constituents.push_back(it == body_profiles.end() ? nullptr : it->second);
+                }
+            }
+    }
+
     // The body cache skips compilation on a hit, which also skips compile-time
     // diagnostics (usage warnings, dumps) and per-body profiling setup. Only
     // use it for a plain optimizing run, never when those modes are requested.
@@ -774,7 +795,10 @@ static void analyze_scripts_for_ZAM(const std::shared_ptr<ProfileFuncs>& pfs) {
         bool cache_enabled = body_cache.Enabled() && cache_modes_ok && f.Profile();
         if ( cache_enabled ) {
             ZAMPhaseTimer t("cache-key");
-            cache_key = ZAMBodyCache::EffectiveKey(f.Profile(), *pfs);
+            if ( auto cc = coalesced_constituents.find(func.get()); cc != coalesced_constituents.end() )
+                cache_key = ZAMBodyCache::CoalescedKey(f.Profile(), cc->second, *pfs);
+            else
+                cache_key = ZAMBodyCache::EffectiveKey(f.Profile(), *pfs);
             cache_enabled = cache_key != 0; // 0 => no usable key, don't cache
         }
         if ( cache_enabled ) {

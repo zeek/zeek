@@ -222,6 +222,9 @@ public:
         return orig_func->Invoke(args, parent);
     }
 
+    // The function whose bodies were coalesced into this one.
+    const ScriptFuncPtr& OrigFunc() const { return orig_func; }
+
 private:
     ScriptFuncPtr orig_func;
 };

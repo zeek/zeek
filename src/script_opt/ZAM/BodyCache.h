@@ -58,6 +58,13 @@ public:
     // cache separately scopes entries by BuildId()/OptionsHash().
     static p_hash_type EffectiveKey(const ProfileFunc* pf, const ProfileFuncs& pfs);
 
+    // The key for an event handler body coalesced from several handler bodies.
+    // A merged body is determined by its constituent bodies in execution
+    // (priority) order, so the key combines their effective keys in that order
+    // with the merged body's own compile-environment fingerprint. Returns 0
+    // (no usable key) if any constituent lacks one.
+    static p_hash_type CoalescedKey(const ProfileFunc* merged_pf, const std::vector<const ProfileFunc*>& constituents,
+                                    const ProfileFuncs& pfs);
 
     // Fingerprints that must match for a cache entry to be reused. BuildId
     // captures anything that can change ZAM output across binaries; OptionsHash

@@ -395,6 +395,23 @@ p_hash_type ZAMBodyCache::EffectiveKeyUncached(const ProfileFunc* pf, const Prof
     return h;
 }
 
+p_hash_type ZAMBodyCache::CoalescedKey(const ProfileFunc* merged_pf,
+                                       const std::vector<const ProfileFunc*>& constituents, const ProfileFuncs& pfs) {
+    if ( constituents.empty() )
+        return 0;
+
+    p_hash_type h = p_hash("coalesced");
+    h = merge_p_hashes(h, p_hash(static_cast<int>(constituents.size())));
+    for ( auto c : constituents ) { // order-sensitive: execution order matters
+        auto k = c ? EffectiveKey(c, pfs) : 0;
+        if ( k == 0 )
+            return 0;
+        h = merge_p_hashes(h, k);
+    }
+
+    return merge_p_hashes(h, env_fingerprint(merged_pf));
+}
+
 void ZAMBodyCache::ComputeBuildId() {
     // The build identity must change whenever the compiled ZAM output could
     // change across zeek binaries (opcode numbering, codegen, runtime support).

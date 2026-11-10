@@ -1,6 +1,6 @@
 # @TEST-DOC: Verify VXLAN with an inner TCP SYN with bad checksum doesn't tickle UBSAN nullptr deref.
 #
-# @TEST-EXEC: zeek -b -r $TRACES/tunnels/vxlan-inner-tcp-bad-checksum.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/vxlan-inner-tcp-bad-checksum.pcap %INPUT drop_bad_checksums=T >out
 #
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log

@@ -18,6 +18,20 @@ Breaking Changes
 - Similarly, the ``broker_backend`` field has been removed from the ``script_id``
   record type. This is the type returned by the ``global_ids()`` BIF method.
 
+- Zeek no longer discards packets with bad IP, TCP, UDP, ICMP, or IPv6 mobility
+  header checksums by default. Instead the packets will be analyzed, but the
+  weirds and ``C``/``c`` flags in conn.log's history field will still be produced.
+
+  Previously, the packets would not get analyzed. The new ``drop_bad_checksums``
+  option restores the previous behavior:
+
+	redef drop_bad_checksums = T;
+
+  Both ``ignore_checksums`` and ``-C`` remain unchanged: Both cause checksums to
+  neither be computed nor validated.
+
+  This also means that Zeek may analyze packets that the receiving endpoint drops.
+
 New Functionality
 -----------------
 

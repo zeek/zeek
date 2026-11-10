@@ -1773,18 +1773,34 @@ const TCP_RESET = 6;	##< Endpoint has sent RST.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 
-## If true, don't verify checksums, and accept packets that give a length of
-## zero in the IPv4 header. This is useful when running against traces of local
-## traffic and the NIC checksum offloading feature is enabled. It can also
-## be useful for running on altered trace files, and for saving a few cycles
-## at the risk of analyzing invalid data.
+## If true, don't verify checksums at all. This saves the cost of computing
+## them, but bad checksums are then neither reported through weirds nor
+## recorded in the connection's history (``C``/``c``).
 ## With this option, packets that have a value of zero in the total-length field
 ## of the IPv4 header are also accepted, and the capture-length is used instead.
-## The total-length field is commonly set to zero when the NIC sequence offloading
-## feature is enabled.
+## The total-length field is commonly set to zero when the NIC segmentation
+## offloading feature is enabled.
 ## Note that the ``-C`` command-line option overrides the setting of this
 ## variable.
+##
+## .. zeek:see:: drop_bad_checksums
 const ignore_checksums = F &redef;
+
+## If true, packets that fail checksum validation are dropped. Otherwise,
+## by default, packets with bad checksums will be analyzed. Bad checksums are reported
+## through weirds and the connection history (``C`` and ``c``).
+##
+## With this set to false, packets with a value of zero in the
+## total-length field of the IPv4 header are accepted as with
+## :zeek:see:`ignore_checksums`.
+##
+## Analyzing packets with bad checksums (the default) means Zeek may process
+## packets that are discarded by the endpoint. If that matters for your deployment,
+## set this to true.
+##
+## This has no effect for packets whose checksums are not validated due to
+## :zeek:see:`ignore_checksums` or :zeek:see:`ignore_checksums_nets`.
+const drop_bad_checksums = F &redef;
 
 ## Checksums are ignored for all packets with a src address within this set of
 ## networks. Useful for cases where a host might be seeing packets collected

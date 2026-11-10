@@ -1,3 +1,33 @@
+9.1.0-dev.551 | 2026-11-10 11:37:00 -0500
+
+  * GH-4947: GH-5294: GH-5295: Analyze packets with bad checksums by default (Evan Typanski, Corelight)
+
+    Fixes #5294
+
+    More discussion at #4947
+
+    Packets with invalid checksums used to not get analyzed. This mainly
+    appeared when monitoring local traffic, where NIC checksum offloading
+    caused missing packets. But, we can't just set `ignore_checksums=T` like
+    #5295 because we would likely still want `c`/`C` in the conn history and
+    the weirds.
+
+    This also adds `drop_bad_checksums`. If you want the old behavior, set
+    that to true.
+
+    Also, IPv4 packets with a total length of zero are analyzed by default
+    using capture length (this is what ignore_checksums would do before).
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+  * btest: Fix bad checksums in test traces (Evan Typanski, Corelight)
+
+    The next commit is going to change checksum behavior. These traces all
+    had invalid checksums (probably from checksum offloading). This just
+    recomputes them (and corresponding baseline updates from those packets).
+
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 9.1.0-dev.548 | 2026-11-10 11:08:56 -0500
 
   * pcap: Handle activation warnings (Oluwatobi Mustapha)

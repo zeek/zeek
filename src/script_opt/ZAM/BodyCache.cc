@@ -835,6 +835,30 @@ void rebuild_cat_args(ZInstAux* aux) {
     }
 }
 
+// Record constructors with field initializers hold a filtered subset of the
+// record type's own CreationInits() (fields not supplied by the constructor).
+// We store just the field indices and re-link them on load to the loading
+// process's CreationInits() for the same type, whose initializer expressions
+// are covered by the key's fingerprint of the field attributes. On store we
+// confirm each entry is the very object the type holds for that field, so the
+// re-link is exactly equivalent.
+bool field_inits_relinkable(const ZInstAux* aux, const TypePtr& t) {
+    if ( ! t || t->Tag() != TYPE_RECORD )
+        return false;
+    const auto& ci = ZBodySerializer::CreationInits(t->AsRecordType());
+    for ( const auto& [idx, fi] : *aux->field_inits ) {
+        bool found = false;
+        for ( const auto& [cidx, cfi] : ci )
+            if ( cidx == idx ) {
+                found = cfi == fi;
+                break;
+            }
+        if ( ! found )
+            return false;
+    }
+    return true;
+}
+
 // Whether an op reads its instruction's constant slot 'c' at run time. An
 // instruction's op_type doesn't reliably say so: optimized built-ins construct
 // the instruction with a slot-only op_type and then assign 'c' directly. So
@@ -913,8 +937,6 @@ const char* aux_unserializable_reason(const ZInstAux* aux) {
         return "aux:when-info";
     if ( aux->attrs )
         return "aux:attrs";
-    if ( aux->field_inits )
-        return "aux:field-inits";
     for ( int i = 0; i < aux->n; ++i )
         if ( const auto& c = aux->elems[i].Constant() )
             if ( ! supported_const(c) )
@@ -1004,6 +1026,15 @@ void encode_aux(W& w, ProfileFuncs& pfs, const ZInstAux* aux) {
 
     w.u8(aux->cat_args ? 1 : 0);
 
+    if ( aux->field_inits ) {
+        w.u8(1);
+        w.u32(static_cast<uint32_t>(aux->field_inits->size()));
+        for ( const auto& fi : *aux->field_inits )
+            w.i32(fi.first);
+    }
+    else
+        w.u8(0);
+
     // The zvec runtime-scratch vector is pre-sized by the compiler (e.g. to a
     // record's field count for record constructors) and indexed during Exec;
     // its size is part of the body's state, so serialize it faithfully. Its
@@ -1011,7 +1042,7 @@ void encode_aux(W& w, ProfileFuncs& pfs, const ZInstAux* aux) {
     w.u32(static_cast<uint32_t>(aux->zvec.size()));
 }
 
-ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
+ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok, const TypePtr& inst_type) {
     auto n = r.u32();
     if ( ! r.Ok() ) {
         ok = false;
@@ -1109,6 +1140,28 @@ ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
 
     bool has_cat_args = r.u8() != 0;
 
+    if ( r.u8() == 1 ) {
+        auto n_fi = r.u32();
+        if ( ! inst_type || inst_type->Tag() != TYPE_RECORD )
+            ok = false;
+        else {
+            const auto& ci = ZBodySerializer::CreationInits(inst_type->AsRecordType());
+            aux->field_inits = std::make_unique<std::vector<std::pair<int, std::shared_ptr<detail::FieldInit>>>>();
+            for ( uint32_t j = 0; j < n_fi && r.Ok() && ok; ++j ) {
+                auto idx = r.i32();
+                bool found = false;
+                for ( const auto& c : ci )
+                    if ( c.first == idx ) {
+                        aux->field_inits->push_back(c);
+                        found = true;
+                        break;
+                    }
+                if ( ! found )
+                    ok = false; // this process's type lacks that initializer -> miss
+            }
+        }
+    }
+
     // Restore the compiler-set size of the zvec runtime-scratch vector.
     aux->zvec.resize(r.u32());
 
@@ -1132,6 +1185,10 @@ ZInstAux* decode_aux(R& r, ProfileFuncs& pfs, bool& ok) {
 
 } // namespace
 
+const std::vector<std::pair<int, std::shared_ptr<FieldInit>>>& ZBodySerializer::CreationInits(const RecordType* rt) {
+    return rt->CreationInits();
+}
+
 bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::string& out, const char** why) {
     auto refuse = [why](const char* reason) {
         if ( why )
@@ -1145,6 +1202,8 @@ bool ZBodySerializer::Serialize(const ZBody& body, ProfileFuncs& pfs, std::strin
         if ( auto aux = body.insts[i].aux ) {
             if ( auto reason = aux_unserializable_reason(aux) )
                 return refuse(reason);
+            if ( aux->field_inits && ! field_inits_relinkable(aux, body.insts[i].GetType()) )
+                return refuse("aux:field-inits");
         }
 
     W w(out);
@@ -1358,7 +1417,7 @@ ZBodyPtr ZBodySerializer::Deserialize(const std::string& in, ProfileFuncs& pfs) 
                                               nullptr);
 
         if ( r.u8() == 1 )
-            zi.aux = decode_aux(r, pfs, ok);
+            zi.aux = decode_aux(r, pfs, ok, zi.GetType());
 
         insts[i] = zi; // slice-copy base ZInst (final form; branches already concrete)
     }

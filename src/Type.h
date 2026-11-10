@@ -37,6 +37,7 @@ class HashKey;
 class ListExpr;
 class ZAMCompiler;
 class CPPRuntime;
+class ZBodySerializer;
 
 using ExprPtr = IntrusivePtr<Expr>;
 using ListExprPtr = IntrusivePtr<ListExpr>;
@@ -745,6 +746,7 @@ private:
     friend zeek::RecordVal;
     friend zeek::detail::ZAMCompiler;
     friend zeek::detail::CPPRuntime;
+    friend zeek::detail::ZBodySerializer;
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
 

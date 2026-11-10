@@ -867,6 +867,23 @@ export {
 	## out and request/response tracking reset to prevent unbounded
 	## state growth.
 	const max_pending_requests = 100 &redef;
+
+	## Whether to send the full body of each HTTP message to the file
+	## analysis framework as a separate file, in addition to the files
+	## of its MIME entities.
+	##
+	## The body is forwarded as-is, independent of the ``Content-Type``
+	## header, after removing chunked transfer encoding and decompressing
+	## gzip/deflate content encoding. This lets file analysis see content
+	## that MIME parsing would otherwise hide, e.g. data before the first
+	## boundary of a ``multipart`` body or the headers of a ``message/*``
+	## body.
+	##
+	## If this option is enabled, the first :zeek:see:`file_over_new_connection`
+	## event of an HTTP message body is for the full body. Its fuid is
+	## tracked in :zeek:field:`HTTP::Info$orig_body_fuid` or
+	## :zeek:field:`HTTP::Info$resp_body_fuid`.
+	const enable_full_body_file_analysis = F &redef;
 }
 
 module IRC;

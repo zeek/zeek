@@ -237,6 +237,14 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
     if ( trailing_CRLF )
         body_length += 2;
 
+    // All body bytes pass through the top-level entity, including those of
+    // nested MIME entities, so forward them as-is for full body analysis.
+    if ( Depth() == 0 && BifConst::HTTP::enable_full_body_file_analysis ) {
+        http_message->FullBodyDataIn(len, data);
+        if ( trailing_CRLF )
+            http_message->FullBodyDataIn(2, "\r\n");
+    }
+
     if ( deliver_body )
         analyzer::mime::MIME_Entity::Deliver(len, data, trailing_CRLF);
 
@@ -689,6 +697,9 @@ void HTTP_Entity::SubmitAllHeaders() {
             else
                 EndOfData(); // handle the case that content-length = 0
         }
+
+        if ( Depth() == 0 )
+            http_message->KeepLineEndingsForFullBody();
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -721,6 +732,8 @@ void HTTP_Entity::SubmitAllHeaders() {
         if ( expect_body != HTTP_BODY_EXPECTED )
             // there is no body
             EndOfData();
+        else if ( Depth() == 0 )
+            http_message->KeepLineEndingsForFullBody();
     }
 }
 
@@ -779,6 +792,18 @@ void HTTP_Message::Done(bool interrupted, const char* detail) {
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
 
+    if ( ! full_body_fuid.empty() ) {
+        file_mgr->EndOfFile(full_body_fuid);
+        full_body_fuid.clear();
+    }
+
+    if ( keep_line_endings ) {
+        // Restore line handling for the next message's headers.
+        content_line->SuppressWeirds(false);
+        content_line->SetCRLFAsEOL();
+        keep_line_endings = false;
+    }
+
     if ( http_message_done )
         GetAnalyzer()->EnqueueConnEvent(http_message_done, analyzer->ConnVal(), val_mgr->Bool(is_orig),
                                         BuildMessageStat(interrupted, detail));
@@ -791,6 +816,13 @@ bool HTTP_Message::Undelivered(int64_t len) {
 
     if ( e && e->Undelivered(len) ) {
         content_gap_length += len;
+
+        if ( ! full_body_fuid.empty() ) {
+            file_mgr->Gap(full_body_offset, len, MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(),
+                          is_orig, full_body_fuid);
+            full_body_offset += len;
+        }
+
         return true;
     }
 
@@ -819,7 +851,8 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
 
     current_entity = static_cast<HTTP_Entity*>(entity->Parent());
 
-    if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART ) {
+    if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART &&
+         ! keep_line_endings ) {
         content_line->SuppressWeirds(false);
         content_line->SetCRLFAsEOL();
     }
@@ -837,6 +870,40 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
         else
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
+}
+
+void HTTP_Message::FullBodyDataIn(int len, const char* data) {
+    auto* a = MyHTTP_Analyzer();
+
+    if ( ! full_body_started ) {
+        full_body_started = true;
+
+        // Derive the ID from the top-level entity's file handle so that
+        // Files::disable and HTTP::get_file_handle apply, while keeping the
+        // full body and the top-level entity in separate files.
+        if ( auto id = file_mgr->GetFileID(a->GetAnalyzerTag(), a->Conn(), is_orig); ! id.empty() )
+            full_body_fuid = file_mgr->HashHandle(id + "full-body");
+    }
+
+    if ( full_body_fuid.empty() )
+        return;
+
+    // An empty return means the file was ignored or is complete.
+    full_body_fuid = file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len, a->GetAnalyzerTag(), a->Conn(),
+                                      is_orig, full_body_fuid);
+    full_body_offset += len;
+}
+
+void HTTP_Message::KeepLineEndingsForFullBody() {
+    if ( ! BifConst::HTTP::enable_full_body_file_analysis )
+        return;
+
+    // A body delivered line by line loses its line terminators, and the
+    // default mode cannot tell CR, LF and CRLF apart. Splitting only on CRLF
+    // lets FullBodyDataIn() restore the body byte for byte.
+    content_line->SuppressWeirds(true);
+    content_line->SetCRLFAsEOL(0);
+    keep_line_endings = true;
 }
 
 void HTTP_Message::SubmitHeader(analyzer::mime::MIME_Header* h) { MyHTTP_Analyzer()->HTTP_Header(is_orig, h); }

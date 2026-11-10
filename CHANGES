@@ -1,3 +1,7 @@
+9.1.0-dev.548 | 2026-11-10 11:08:56 -0500
+
+  * pcap: Handle activation warnings (Oluwatobi Mustapha)
+
 9.1.0-dev.546 | 2026-11-10 12:56:31 +0100
 
   * cluster/zeromq: Fix reporting of dropped log writes, add metric (Arne Welzel, Corelight)

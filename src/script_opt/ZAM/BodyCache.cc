@@ -828,9 +828,11 @@ ValPtr constant_slot_value(const ZInst& in) {
 }
 
 // Whether an instruction's auxiliary info is within the currently supported
-// serialization subset. Gates the AST-heavy members (handled in later roadmap
-// steps) and record/vector construction (whose runtime scratch, e.g. zvec, is
-// sized outside the serialized fields).
+// serialization subset, which excludes the AST-heavy members not yet handled.
+// The record-field maps (map/rhs_map/lhs_map) are plain field offsets and are
+// serialized directly; their layout dependence is covered by the cache key's
+// environment fingerprint, and the zvec scratch they work with is only ever
+// sized (not pre-filled) by the compiler, with that size serialized.
 // Returns nullptr if serializable, otherwise a short reason naming the gate.
 const char* aux_unserializable_reason(const ZInstAux* aux) {
     if ( aux->call_expr && ! expr_serializable(aux->call_expr.get()) )
@@ -845,8 +847,6 @@ const char* aux_unserializable_reason(const ZInstAux* aux) {
         return "aux:attrs";
     if ( aux->field_inits )
         return "aux:field-inits";
-    if ( ! aux->map.empty() || ! aux->rhs_map.empty() || ! aux->lhs_map.empty() )
-        return "aux:maps";
     for ( int i = 0; i < aux->n; ++i )
         if ( const auto& c = aux->elems[i].Constant() )
             if ( ! supported_const(c) )

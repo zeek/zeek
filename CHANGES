@@ -1,3 +1,12 @@
+9.0.1-11 | 2026-11-11 15:29:21 -0700
+
+  * btest/cluster/zeromq: Skip overload-logging on windows (Arne Welzel, Corelight)
+
+    Definitely a cop-out, but we already skip overload-drop.zeek and
+    overload-worker-proxy-topic-drop.zeek on Windows, so add this, too.
+
+    (cherry picked from commit bb75f331505e7647528f560161fe8094feb6b170)
+
 9.0.1-10 | 2026-11-11 15:28:02 -0700
 
   * cluster/zeromq: Fix reporting of dropped log writes, add metric (Arne Welzel, Corelight)

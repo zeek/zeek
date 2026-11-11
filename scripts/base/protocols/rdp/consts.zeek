@@ -17,14 +17,14 @@ export {
 		[9600] = "RDP 8.1",
 		[25189] = "RDP 8.0 (Mac)",
 		[25282] = "RDP 8.0 (Mac)"
-	} &default = function(n: count): string { return fmt("client_build-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("client_build-%d", n); };
 
 	const security_protocols = {
 		[0x00] = "RDP",
 		[0x01] = "SSL",
 		[0x02] = "HYBRID",
 		[0x08] = "HYBRID_EX"
-	} &default = function(n: count): string { return fmt("security_protocol-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("security_protocol-%d", n); };
 
 	const failure_codes = {
 		[0x01] = "SSL_REQUIRED_BY_SERVER",
@@ -33,12 +33,12 @@ export {
 		[0x04] = "INCONSISTENT_FLAGS",
 		[0x05] = "HYBRID_REQUIRED_BY_SERVER",
 		[0x06] = "SSL_WITH_USER_AUTH_REQUIRED_BY_SERVER"
-	} &default = function(n: count): string { return fmt("failure_code-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("failure_code-%d", n); };
 
 	const cert_types = {
 		[1] = "RSA",
 		[2] = "X.509"
-	} &default = function(n: count): string { return fmt("cert_type-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("cert_type-%d", n); };
 
 	const encryption_methods = {
 		[0] = "None",
@@ -46,7 +46,7 @@ export {
 		[2] = "128bit",
 		[8] = "56bit",
 		[10] = "FIPS"
-	} &default = function(n: count): string { return fmt("encryption_method-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("encryption_method-%d", n); };
 
 	const encryption_levels = {
 		[0] = "None",
@@ -54,7 +54,7 @@ export {
 		[2] = "Client compatible",
 		[3] = "High",
 		[4] = "FIPS"
-	} &default = function(n: count): string { return fmt("encryption_level-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("encryption_level-%d", n); };
 
 	const high_color_depths = {
 		[0x0004] = "4bit",
@@ -62,14 +62,14 @@ export {
 		[0x000F] = "15bit",
 		[0x0010] = "16bit",
 		[0x0018] = "24bit"
-	} &default = function(n: count): string { return fmt("high_color_depth-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("high_color_depth-%d", n); };
 
 	const color_depths = {
 		[0x0001] = "24bit",
 		[0x0002] = "16bit",
 		[0x0004] = "15bit",
 		[0x0008] = "32bit"
-	} &default = function(n: count): string { return fmt("color_depth-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("color_depth-%d", n); };
 
 	const results = {
 		[0] = "Success",
@@ -77,7 +77,7 @@ export {
 		[2] = "Resources not available",
 		[3] = "Rejected for symmetry breaking",
 		[4] = "Locked conference",
-	} &default = function(n: count): string { return fmt("result-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("result-%d", n); };
 
 	# https://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
 	# https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-language-pack-default-values
@@ -428,5 +428,5 @@ export {
 		[1085] = "Yiddish",
 		[1130] = "Yoruba",
 		[1077] = "Zulu",
-	} &default = function(n: count): string { return fmt("keyboard-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("keyboard-%d", n); };
 }

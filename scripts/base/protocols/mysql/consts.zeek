@@ -34,5 +34,5 @@ export {
 		[29] = "daemon",
 		[30] = "binlog_dump_gtid",
 		[31] = "reset_connection",
-	} &default=function(i: count): string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count): string { return fmt("unknown-%d", i); };
 }

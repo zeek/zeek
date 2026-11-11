@@ -1,3 +1,12 @@
+9.1.0-dev.574 | 2026-11-11 20:40:26 +0100
+
+  * scripts: harmonize the default functions (eb-anssi)
+
+  * scripts: Make protocol const lookup tables redef-able (eb-anssi)
+
+    Add &redef to the code-to-string tables in the base protocol and PE
+    consts.zeek scripts.
+
 9.1.0-dev.571 | 2026-11-11 20:36:08 +0100
 
   * BasicThread: Allow a thread to query if it is being stopped (Arne Welzel, Corelight)

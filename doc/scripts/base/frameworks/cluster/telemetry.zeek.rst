@@ -76,7 +76,7 @@ Redefinable Options
 
       ``+=``::
 
-         /^?(^zeek\.cluster\.nodeid\..*)$?/ = zeek.cluster.nodeid.__normalized__
+         /^?(^zeek\.zeromq\.internal\.nodeid\..*)$?/ = zeek.zeromq.internal.nodeid.__normalized__, /^?(^zeek\.cluster\.nodeid\..*)$?/ = zeek.cluster.nodeid.__normalized__
 
 
    Table used for normalizing topic names that contain random parts.

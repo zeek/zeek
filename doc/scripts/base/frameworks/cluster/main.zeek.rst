@@ -640,7 +640,7 @@ Functions
    Write a message to the cluster logging stream.
 
 .. zeek:id:: Cluster::node_id
-   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 450 452
+   :source-code: policy/frameworks/cluster/backend/zeromq/options.zeek 451 453
 
    :Type: :zeek:type:`function` () : :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`

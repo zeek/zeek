@@ -5,8 +5,9 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 9.0.2
 ==========
 
-Thank you to Jan Grashöfer (@J-Gras), Mohan Dhawan (@Mohan-Dhawan), and Oluwatobi Mustapha
-(@Oluwatobi-Mustapha) for their contributions to this release.
+Thank you to Aditya Sharma (aditya226-sharma), Jan Grashöfer (@J-Gras), Mohan Dhawan
+(@Mohan-Dhawan), and Oluwatobi Mustapha (@Oluwatobi-Mustapha) for their contributions to
+this release.
 
 This release fixes the following security issues:
 
@@ -33,6 +34,11 @@ This release fixes the following bugs:
 
 	https://docs.zeek.org/en/master/advanced/devel/cluster/backend/zeromq.html
 	https://docs.zeek.org/en/master/scripts/policy/frameworks/cluster/backend/zeromq/options.zeek.html
+
+- The ``dns.log`` now records answer and TTL information for ``CAA``, ``HINFO``, ``SVCB``,
+  and ``HTTPS`` resource records in the ``answers`` and ``TTLs`` fields. These records
+  were already parsed and exposed through their ``dns_*`` events, but were not summarized
+  in the log.
 
 Zeek 9.0.1
 ==========

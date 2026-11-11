@@ -1,3 +1,25 @@
+8.0.11-5 | 2026-11-11 16:02:57 -0700
+
+  * GH-5467: DNS: log CAA, HINFO, SVCB, and HTTPS answers (Aditya Sharma)
+
+    The dns.log "answers" and "TTLs" fields were empty for CAA, HINFO,
+    SVCB, and HTTPS resource records. These record types were already
+    parsed and exposed through their corresponding dns_* events, but they
+    lacked an event handler that calls the DNS::do_reply() hook, which is
+    what populates the per-answer summaries used by the logging framework.
+
+    Add handlers for dns_CAA_reply, dns_HINFO_reply, dns_SVCB, and
+    dns_HTTPS that pass a short answer string to DNS::do_reply(). The TTL
+    alignment with "answers" is preserved because do_reply() appends the
+    TTL alongside the string. For SVCB and HTTPS, the answer includes the
+    priority before the target name so records with different priorities
+    remain distinguishable.
+
+    Extend the existing CAA, HINFO, SVCB, and HTTPS btests to compare the
+    full dns.log output, and add the corresponding baselines.
+
+    (cherry picked from commit 5a6529c8a60600ac732f4e6dce84a5407a8cddb2)
+
 8.0.11-4 | 2026-11-11 15:53:48 -0700
 
   * pcap: Handle activation warnings (Oluwatobi Mustapha)

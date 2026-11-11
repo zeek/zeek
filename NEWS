@@ -5,8 +5,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.12
 ===========
 
-Thank you to Mohan Dhawan (@Mohan-Dhawan) and Oluwatobi Mustapha (@Oluwatobi-Mustapha) for
-their contributions to this release.
+Thank you to Aditya Sharma (aditya226-sharma), Mohan Dhawan (@Mohan-Dhawan), and Oluwatobi
+Mustapha (@Oluwatobi-Mustapha) for their contributions to this release.
 
 This release fixes the following security issues:
 
@@ -15,8 +15,13 @@ This release fixes the following bugs:
 - A regression was added in 9.0.1 that caused paths in smb_mapping.log to not be logged
   correctly. This has been resolved.
 
-- The ``DNS_unknown_opcode`` weird no longer sets ``X`` in the connection history
-  when triggered, as it is not a limit.
+- The ``DNS_unknown_opcode`` weird no longer sets ``X`` in the connection history when
+  triggered, as it is not a limit.
+
+- The ``dns.log`` now records answer and TTL information for ``CAA``, ``HINFO``, ``SVCB``,
+  and ``HTTPS`` resource records in the ``answers`` and ``TTLs`` fields. These records
+  were already parsed and exposed through their ``dns_*`` events, but were not summarized
+  in the log.
 
 Zeek 8.0.11
 ===========

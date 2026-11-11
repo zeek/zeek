@@ -61,11 +61,11 @@ disabling the HWM and dropping logic. It is up to the user to monitor CPU
 and memory usage of individual nodes to avoid overloading and running into
 out-of-memory situations.
 
-As a Zeek operator, you should monitor ``zeek_cluster_zeromq_xpub_drops_total``
-and ``zeek_cluster_zeromq_onloop_drops_total``. Any non-zero values for these
-metrics indicate an overloaded Zeek cluster. See the the cluster telemetry
-options :zeek:see:`Cluster::Telemetry::core_metrics` and
-:zeek:see:`Cluster::Telemetry::websocket_metrics` for ways to get a better
+As a Zeek operator, you should monitor ``zeek_cluster_zeromq_xpub_drops_total``,
+``zeek_cluster_zeromq_onloop_drops_total`` and ``zeek_cluster_log_push_drops``.
+Any non-zero values for these metrics indicate an overloaded Zeek cluster.
+See the the cluster telemetry options :zeek:see:`Cluster::Telemetry::core_metrics`
+and :zeek:see:`Cluster::Telemetry::websocket_metrics` for ways to get a better
 understanding about the events published and received.
 
 Encryption using the CURVE mechanism

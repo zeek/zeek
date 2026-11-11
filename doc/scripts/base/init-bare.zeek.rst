@@ -287,7 +287,7 @@ Redefinable Options
                                                                                                                     protocol detection.
 :zeek:id:`dpd_reassemble_first_packets`: :zeek:type:`bool` :zeek:attr:`&redef`                                      Reassemble the beginning of all TCP connections before doing
                                                                                                                     signature matching.
-:zeek:id:`drop_bad_checksums`: :zeek:type:`bool` :zeek:attr:`&redef`                                                If true, packets that fail checksum validation are discarded.
+:zeek:id:`drop_bad_checksums`: :zeek:type:`bool` :zeek:attr:`&redef`                                                If true, packets that fail checksum validation are dropped.
 :zeek:id:`exit_only_after_terminate`: :zeek:type:`bool` :zeek:attr:`&redef`                                         Flag to prevent Zeek from exiting automatically when input is exhausted.
 :zeek:id:`expensive_profiling_multiple`: :zeek:type:`count` :zeek:attr:`&redef`                                     Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
                                                                                                                     profiling is done (0 disables).
@@ -2789,7 +2789,7 @@ Redefinable Options
    :Attributes: :zeek:attr:`&redef`
    :Default: ``F``
 
-   If true, packets that fail checksum validation are discarded. Otherwise,
+   If true, packets that fail checksum validation are dropped. Otherwise,
    by default, packets with bad checksums will be analyzed. Bad checksums are reported
    through weirds and the connection history (``C`` and ``c``).
 

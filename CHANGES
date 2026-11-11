@@ -1,3 +1,73 @@
+9.1.0-dev.571 | 2026-11-11 20:36:08 +0100
+
+  * BasicThread: Allow a thread to query if it is being stopped (Arne Welzel, Corelight)
+
+    A MsgThread does not know about being stopped before its OnFinish()
+    and DoFinish() methods have been invoked as a consequence of a
+    FinishMessage.
+
+    This is a bit limiting for log writer threads that want to stall message
+    processing when a remote destination is down. By stalling (instead of
+    discarding), log writer threads can take advantage of their bounded
+    frontend-backend queues for buffering purposes and do not need to implement
+    their own form buffering.
+
+    However, Zeek notifies the thread by sending it a FinishMessage via the
+    same queue containing log writes. To process that message, the stalling
+    outlined above has to be be short-circuited to allow draining the queue
+    until the FinishMessage is processed.
+
+    Provide a Stopping() accessor on BasicThread that allows this use. Make
+    it protected such that it's only available to the thread or friends.
+    Writer threads will have their own reconnection logic during which they
+    may poll the Stopping() flag and just give up.
+
+  * logging/WriterFrontend: Remove run_state::terminating check in Write() (Arne Welzel, Corelight)
+
+    WriterFrontends are stopped during log_mgr->Terminate() which does guarantee
+    a flush. However, a the frontend would stop buffering even before once the
+    run_state::terminating flag was set to true. Disabling the buffering based
+    on the terminating flag means that high volume log streams like telemetry.log
+    producing log writes during zeek_done() start to write one log at a time,
+    easily overflowing the queue due to the effective size decreasing from
+    100k to 100. Remove the run_state::terminating check.
+
+  * doc/logging: Add a small paragraph about overload behavior (Arne Welzel, Corelight)
+
+  * btest/logging: Add a test for dropping log writes due to reaching the hwm (Arne Welzel, Corelight)
+
+  * logging: Introduce Log::backend_thread_queue_hwm (Arne Welzel, Corelight)
+
+    This allows to protect logger processes from OOM situations when log writer
+    backend threads are too slow to drain their queue.
+
+    Hide the mechanism a bit using a free function in logging::detail instead of
+    providing a class accessor so that we won't feel too bad if we ever change
+    something here. Logs are processed in batches of 1000 or once every second
+    by default, so this all shouldn't be super hot code.
+
+  * logging/WriterFrontend: Add total_backend_queue_drops (Arne Welzel, Corelight)
+
+  * logging/Manager: Add helper to create backend thread queue drop counter metric (Arne Welzel, Corelight)
+
+    It'll only used in the WriterFrontend, but seemed reasonable to
+    co-locate that metric with the existing ones
+
+  * MsgThread: Provide ApproximatePending(In|Out) helpers (Arne Welzel, Corelight)
+
+    I'm not a huge fan for the same reasons mentioned for the
+    Queue::ApproximatePending() change, but seems fine to have those
+    given the logging framework's structure.
+
+  * Queue: Provide ApproximatePending() helper (Arne Welzel, Corelight)
+
+    Switches the num_reads and num_writes to atomics. If you look where they
+    are updated, there's a mutex in front, so them being atomic should be
+    negligible on the write path. Using integers would be a data race though
+    probably harmless.
+
+  * Reporter: Add ReportOnceEvery helper class (Arne Welzel, Corelight)
+
 9.1.0-dev.560 | 2026-11-11 09:45:26 +0100
 
   * GH-5467: DNS: log CAA, HINFO, SVCB, and HTTPS answers (Aditya Sharma)

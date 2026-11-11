@@ -4048,6 +4048,41 @@ export {
 	## .. :zeek:see:`Log::flush_interval`
 	const write_buffer_size = 1000 &redef;
 
+	## Sets the high water mark of the log writer backend thread queues
+	## within the logging framework.
+	##
+	## Zeek batches up to :zeek:see:`Log::write_buffer_size` log records for
+	## delivery to log writer backend threads. Each such batch is placed into a
+	## per writer queue and takes up one slot in it. If the queue's size reaches the
+	## configured high water mark, Zeek will discard any new batches that don't
+	## fit and increase the :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total`
+	## metric by the number of log records in the dropped batch.
+	##
+	## Each entry in this queue holds up to :zeek:see:`Log::write_buffer_size`
+	## log records. Under extreme loads, Zeek may therefore still buffer many
+	## log records per log writer when setting the limit to 100 and consume
+	## significant amounts of memory. Consider tweaking :zeek:see:`Log::write_buffer_size`
+	## as well, to control the maximum memory usage.
+	##
+	## Setting this value to zero disables the high water mark and makes the
+	## queues unbounded. This can result in out-of-memory scenarios when writer
+	## threads are falling behind due to the queues backing up.
+	##
+	## .. versionadded:: 9.1
+	const backend_thread_queue_hwm = 0 &redef;
+
+	## Reporting of dropped log writes is rate limited to avoid overwhelming
+	## the system. This interval specifies for how long to suppress repeated
+	## drop reporting events.
+	##
+	## This rate-limit is across all log writes at this point. If you ever see
+	## the message about dropped log writes, check the metric
+	## :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total` for
+	## details.
+	##
+	## .. versionadded:: 9.1
+	const drop_report_suppress_interval = 1sec &redef;
+
 	## Maximum size of a message that can be sent to a remote logger or logged
 	## locally. If this limit is met, report a ``log_line_too_large`` weird and drop
 	## the log entry. This isn't necessarily the full size of a line that might be

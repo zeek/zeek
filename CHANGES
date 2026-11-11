@@ -1,3 +1,23 @@
+9.1.0-dev.560 | 2026-11-11 09:45:26 +0100
+
+  * GH-5467: DNS: log CAA, HINFO, SVCB, and HTTPS answers (Aditya Sharma)
+
+    The dns.log "answers" and "TTLs" fields were empty for CAA, HINFO,
+    SVCB, and HTTPS resource records. These record types were already
+    parsed and exposed through their corresponding dns_* events, but they
+    lacked an event handler that calls the DNS::do_reply() hook, which is
+    what populates the per-answer summaries used by the logging framework.
+
+    Add handlers for dns_CAA_reply, dns_HINFO_reply, dns_SVCB, and
+    dns_HTTPS that pass a short answer string to DNS::do_reply(). The TTL
+    alignment with "answers" is preserved because do_reply() appends the
+    TTL alongside the string. For SVCB and HTTPS, the answer includes the
+    priority before the target name so records with different priorities
+    remain distinguishable.
+
+    Extend the existing CAA, HINFO, SVCB, and HTTPS btests to compare the
+    full dns.log output, and add the corresponding baselines.
+
 9.1.0-dev.557 | 2026-11-10 20:30:51 +0100
 
   * btest/cluster/zeromq: Skip overload-logging on windows (Arne Welzel, Corelight)

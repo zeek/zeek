@@ -343,7 +343,7 @@ Hooks
    :param reply: The specific response information according to RR type/class.
 
 .. zeek:id:: DNS::finalize_dns
-   :source-code: base/protocols/dns/main.zeek 643 658
+   :source-code: base/protocols/dns/main.zeek 664 679
 
    :Type: :zeek:type:`Conn::RemovalHook`
 

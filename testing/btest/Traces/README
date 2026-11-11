@@ -170,7 +170,7 @@ Trace Index/Sources:
   Extracted from public systemd issue #13547 (`DHCPv6-systemd-PD.pcapng`).
   Contains a DHCPv6 Solicit, Advertise, Request, and Reply exchange
   demonstrating Prefix Delegation (IA_PD) with an ISP.
-- nb6-l2tp.pcap
+- l2tp/nb6-l2tp.pcap
   From Wireshark sample nb6-http.pcap. This pulls just the L2TP packets out of that
   that trace.
 - smb/smb2-ntlm-oem-username.pcap

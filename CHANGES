@@ -1,3 +1,13 @@
+8.0.11-8 | 2026-11-12 00:46:15 +0000
+
+  * Set _DARWIN_C_SOURCE for macOS builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3b30c77db3df08f2bcddf7a58c34f26be4a732dd)
+
+  * GHCI: Use clang-19 instead of clang-22 (Tim Wojtulewicz, Corelight)
+
+  * Regenerate initial docs for 8.0.12 (Tim Wojtulewicz, Corelight)
+
 8.0.11-5 | 2026-11-11 16:02:57 -0700
 
   * GH-5467: DNS: log CAA, HINFO, SVCB, and HTTPS answers (Aditya Sharma)

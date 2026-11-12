@@ -98,6 +98,7 @@ connection {
         * TTLs: vector of interval, log=T, optional=T
         * Z: count, log=T, optional=T
         * answers: vector of string, log=T, optional=T
+        * association_limit_exceeded: bool, log=F, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
         * opcode: count, log=T, optional=T

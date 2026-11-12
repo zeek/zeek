@@ -100,6 +100,12 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- DNS logging now produces separate ``dns.log`` entries for individual questions
+  in multi-question DNS queries when answers can be associated unambiguously,
+  including through CNAME chains. When association is ambiguous or the answer
+  record limit is exceeded, Zeek falls back to single-entry logging. The limit is
+  configurable via ``DNS::max_multi_question_answer_records`` (default: 50).
+
 - The DPD signature for the SSL/TLS analyzer now allows the responder of
   a TCP connection to send a ClientHello. The ``ssl.log`'s history field
   will shows this with the flipped indicator in the history field: ^Cs.

@@ -1,4 +1,7 @@
-"""Generate A and AAAA questions sharing a CNAME response."""
+"""Generate A and AAAA questions sharing a CNAME response.
+
+AI assistance: ChatGPT (GPT-6) assisted in preparing this generator.
+"""
 
 from pathlib import Path
 

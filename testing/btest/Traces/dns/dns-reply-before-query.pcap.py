@@ -1,4 +1,7 @@
-"""Generate a DNS trace where the reply is observed before the query."""
+"""Generate a DNS trace where the reply is observed before the query.
+
+AI assistance: ChatGPT (GPT-6) assisted in preparing this generator.
+"""
 
 from pathlib import Path
 

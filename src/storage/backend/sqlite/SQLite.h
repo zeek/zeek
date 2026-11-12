@@ -32,6 +32,8 @@ private:
                           double expiration_time) override;
     OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
+    OperationResult DoGetAll(ResultCallback* cb, uint64_t max_entries) override;
+    OperationResult DoSize(ResultCallback* cb) override;
     void DoExpire(double current_network_time) override;
     std::string DoGetConfigMetricsLabel() const override;
 
@@ -66,6 +68,8 @@ private:
     unique_stmt_ptr get_stmt;
     unique_stmt_ptr erase_stmt;
 
+    unique_stmt_ptr get_all_stmt;
+    unique_stmt_ptr size_stmt;
     unique_stmt_ptr check_expire_stmt;
     unique_stmt_ptr expire_stmt;
     unique_stmt_ptr get_expiry_last_run_stmt;

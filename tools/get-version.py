@@ -39,7 +39,10 @@ def zeek_version(source: Path, ref: str) -> str:
         ).strip()
     except subprocess.CalledProcessError:
         raise SystemExit(
-            "Cannot determine Zeek version: fetch the version tags and history"
+            "Cannot determine Zeek version: no reachable version tag found.\n"
+            "Fetch tags from the upstream Zeek repository. See the\n"
+            '"Retrieving the Sources" section in the "Building from Source"\n'
+            "instructions for details."
         )
 
     match = DESCRIPTION.fullmatch(description)

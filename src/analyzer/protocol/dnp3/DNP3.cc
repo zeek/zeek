@@ -143,6 +143,18 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
     while ( len ) {
         if ( endp->in_hdr ) {
+            if ( endp->resync && endp->buffer_len == 0 ) {
+                // After a gap the data may start mid-frame: skip to the next
+                // 0x05 0x64 (or a final 0x05 that the next chunk may complete).
+                int i = 0;
+                while ( i < len && ! (data[i] == 0x05 && (i + 1 == len || data[i + 1] == 0x64)) )
+                    ++i;
+                data += i;
+                len -= i;
+                if ( ! len )
+                    return true;
+            }
+
             // We're parsing the DNP3 header and link layer, get that in full.
             int res = AddToBuffer(endp, PSEUDO_APP_LAYER_INDEX, &data, &len);
 
@@ -151,6 +163,23 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
             if ( res < 0 )
                 return false;
+
+            if ( endp->resync ) {
+                unsigned int crc = CalcCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer);
+                if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 ||
+                     endp->buffer[PSEUDO_LINK_LAYER_LEN] != (crc & 0xff) ||
+                     endp->buffer[PSEUDO_LINK_LAYER_LEN + 1] != (crc & 0xff00) >> 8 ) {
+                    // Not a frame header: rescan from its second octet.
+                    u_char rest[PSEUDO_APP_LAYER_INDEX];
+                    int n = endp->buffer_len - 1;
+                    memcpy(rest, endp->buffer + 1, n);
+                    endp->buffer_len = 0;
+                    if ( ! ProcessData(n, rest, orig) )
+                        return false;
+                    continue;
+                }
+                endp->resync = false; // back in sync
+            }
 
             // The first two bytes must always be 0x0564.
             if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 ) {
@@ -186,9 +215,61 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             endp->tpflags = endp->buffer[PSEUDO_TRANSPORT_INDEX];
             endp->in_hdr = false; // Now parsing application layer.
 
+            // After a gap, the next frames may continue an application
+            // fragment whose first frame (FIR) was lost or cut. Skip them
+            // until a frame starts a new fragment, instead of failing on
+            // the missing first chunk.
+            if ( endp->need_fir ) {
+                if ( endp->tpflags & 0x40 )
+                    endp->need_fir = false;
+                else
+                    endp->discard_frame = true;
+            }
+
+            // Apply the pseudo-transport rules that outstations apply
+            // (IEEE 1815, transport function): a segment with FIR starts a new fragment and
+            // drops a partial one; a segment without FIR continues the
+            // fragment in progress only if its sequence number is the next
+            // one; otherwise the segment is discarded and the receiver
+            // waits for the next FIR. Without this, Zeek reassembles
+            // fragments that the outstation never sees, and misses (or stops
+            // analyzing at) the ones it does.
+            if ( ! endp->discard_frame ) {
+                bool fir = endp->tpflags & 0x40;
+                int seq = endp->tpflags & 0x3f;
+                bool in_progress = endp->pkt_cnt > 0;
+
+                if ( endp->pkt_length - 5 <= PSEUDO_TRANSPORT_LEN ) {
+                    // A segment with no application octets: nothing to
+                    // reassemble. A FIR still ends the fragment in progress.
+                    analyzer->Weird("dnp3_transport_segment_without_data");
+                    if ( fir && in_progress )
+                        DiscardFragment(orig);
+                    endp->discard_frame = true;
+                }
+                else if ( fir ) {
+                    if ( in_progress ) {
+                        analyzer->Weird("dnp3_transport_fragment_restarted");
+                        DiscardFragment(orig);
+                    }
+                }
+                else if ( ! in_progress ) {
+                    analyzer->Weird("dnp3_first_application_layer_chunk_missing");
+                    endp->discard_frame = true;
+                }
+                else if ( seq != endp->next_seq ) {
+                    analyzer->Weird("dnp3_transport_sequence_mismatch");
+                    DiscardFragment(orig);
+                    endp->discard_frame = true;
+                }
+
+                if ( ! endp->discard_frame )
+                    endp->next_seq = (seq + 1) & 0x3f;
+            }
+
             // For the first packet, we submit the header to
             // BinPAC.
-            if ( ++endp->pkt_cnt == 1 )
+            if ( ! endp->discard_frame && ++endp->pkt_cnt == 1 )
                 interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
         }
 
@@ -214,6 +295,13 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
             if ( res < 0 )
                 return false;
+
+            if ( endp->discard_frame ) {
+                endp->discard_frame = false;
+                endp->buffer_len = 0;
+                endp->in_hdr = true;
+                continue;
+            }
 
             // Parse the application layer data.
             if ( ! ParseAppLayer(endp) )
@@ -346,6 +434,16 @@ void DNP3_Base::ClearEndpointState(bool orig) {
     endp->pkt_length = 0;
     endp->tpflags = 0;
     endp->pkt_cnt = 0;
+    endp->discard_frame = false;
+}
+
+void DNP3_Base::DiscardFragment(bool orig) {
+    auto* flow = orig ? interp->upflow() : interp->downflow();
+    flow->discard_pdu();
+
+    Endpoint* endp = orig ? &orig_state : &resp_state;
+    endp->encountered_first_chunk = false;
+    endp->pkt_cnt = 0;
 }
 
 void DNP3_Base::DiscardFlowBuffer(bool orig) {
@@ -417,6 +515,21 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig) {
     TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
     Interpreter()->NewGap(orig, len);
+
+    // The partial frame cannot be completed: drop it, resynchronize on the
+    // next start bytes, and skip frames until one starts a new application
+    // fragment. Without this, the bytes after the gap are appended to the
+    // partial frame, a CRC or the magic fails (or the fragment's first chunk
+    // is missing), and the analyzer is skipped for the rest of the
+    // connection: a long-lived SCADA connection then goes unanalyzed after a
+    // single lost segment.
+    // (NewGap above already resets binpac's buffer; discarding it again here
+    // breaks the flow's state.)
+    ClearEndpointState(orig);
+    Endpoint& endp = orig ? orig_state : resp_state;
+    endp.resync = true;
+    endp.need_fir = true;
+    Weird("dnp3_gap_resync");
 }
 
 void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig) {

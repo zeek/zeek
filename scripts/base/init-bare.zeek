@@ -883,6 +883,11 @@ export {
 	## event of an HTTP message body is for the full body. Its fuid is
 	## tracked in :zeek:field:`HTTP::Info$orig_body_fuid` or
 	## :zeek:field:`HTTP::Info$resp_body_fuid`.
+	##
+	## To keep the full body byte for byte, ``multipart`` and ``message/*``
+	## bodies are split into lines at LF and CRLF only while this option is
+	## enabled. A lone CR no longer ends a line there, so MIME entities in
+	## bodies that use lone CRs as line endings can be parsed differently.
 	const enable_full_body_file_analysis = F &redef;
 }
 

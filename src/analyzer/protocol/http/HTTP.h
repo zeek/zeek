@@ -133,6 +133,10 @@ public:
     void FullBodyDataIn(int len, const char* data);
     void KeepLineEndingsForFullBody();
 
+    // Terminator of the line just delivered. Always "\r\n" unless line
+    // endings are kept for full body analysis.
+    std::string_view LineTerminator() const;
+
 protected:
     HTTP_Analyzer* analyzer;
     analyzer::tcp::ContentLine_Analyzer* content_line;

@@ -97,7 +97,9 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data, bool is_or
     if ( delivery_length == 0 ) {
         if ( HasPartialLine() ) {
             Weird("line_terminated_without_CRLF");
+            flushing = true;
             DoDeliver(2, reinterpret_cast<const u_char*>("\r\n"));
+            flushing = false;
         }
         delivery_length = -1;
     }
@@ -108,8 +110,11 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data, bool is_or
 void ContentLine_Analyzer::Undelivered(uint64_t seq, int len, bool orig) { ForwardUndelivered(seq, len, orig); }
 
 void ContentLine_Analyzer::EndpointEOF(bool is_orig) {
-    if ( offset > 0 )
+    if ( offset > 0 ) {
+        flushing = true;
         DeliverStream(1, reinterpret_cast<const u_char*>("\n"), is_orig);
+        flushing = false;
+    }
 }
 
 void ContentLine_Analyzer::SetPlainDelivery(int64_t length) {
@@ -226,6 +231,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
             if ( ! InitBufferSafe(buf_len * 2) ) {
                 Weird("contentline_size_exceeded");
                 offset = buf_len - 1;
+                last_eol = "";
                 EMIT_LINE
             }
         }
@@ -238,11 +244,14 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
                     ++data;
                     last_char = c;
                     c = data[0];
+                    last_eol = flushing ? "" : "\r\n";
                     EMIT_LINE
                 }
 
-                else if ( CR_LF_as_EOL & CR_as_EOL )
+                else if ( CR_LF_as_EOL & CR_as_EOL ) {
+                    last_eol = "\r";
                     EMIT_LINE
+                }
 
                 else
                     buf[offset++] = c;
@@ -260,11 +269,15 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
                         break;
                     }
                     --offset; // remove '\r'
+                    // When flushing, only the '\n' was added.
+                    last_eol = flushing ? "\r" : "\r\n";
                     EMIT_LINE
                 }
 
-                else if ( CR_LF_as_EOL & LF_as_EOL )
+                else if ( CR_LF_as_EOL & LF_as_EOL ) {
+                    last_eol = flushing ? "" : "\n";
                     EMIT_LINE
+                }
 
                 else {
                     if ( ! suppress_weirds && Conn()->FlagEvent(SINGULAR_LF) )

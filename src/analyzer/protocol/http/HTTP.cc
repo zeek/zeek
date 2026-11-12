@@ -112,7 +112,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
         if ( Depth() == 0 && content_length > 0 ) {
             expect_data_length -= len;
             if ( trailing_CRLF )
-                expect_data_length -= 2;
+                expect_data_length -= static_cast<int64_t>(http_message->LineTerminator().size());
 
             if ( expect_data_length <= 0 ) {
                 if ( DEBUG_http )
@@ -241,8 +241,10 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
     // nested MIME entities, so forward them as-is for full body analysis.
     if ( Depth() == 0 && BifConst::HTTP::enable_full_body_file_analysis ) {
         http_message->FullBodyDataIn(len, data);
-        if ( trailing_CRLF )
-            http_message->FullBodyDataIn(2, "\r\n");
+        if ( trailing_CRLF ) {
+            auto eol = http_message->LineTerminator();
+            http_message->FullBodyDataIn(static_cast<int>(eol.size()), eol.data());
+        }
     }
 
     if ( deliver_body )
@@ -851,10 +853,13 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
 
     current_entity = static_cast<HTTP_Entity*>(entity->Parent());
 
-    if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART &&
-         ! keep_line_endings ) {
-        content_line->SuppressWeirds(false);
-        content_line->SetCRLFAsEOL();
+    if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART ) {
+        if ( keep_line_endings )
+            content_line->SetCRLFAsEOL(analyzer::tcp::LF_as_EOL);
+        else {
+            content_line->SuppressWeirds(false);
+            content_line->SetCRLFAsEOL();
+        }
     }
 
     // It is necessary to call Done when EndEntity is triggered by
@@ -898,12 +903,18 @@ void HTTP_Message::KeepLineEndingsForFullBody() {
     if ( ! BifConst::HTTP::enable_full_body_file_analysis )
         return;
 
-    // A body delivered line by line loses its line terminators, and the
-    // default mode cannot tell CR, LF and CRLF apart. Splitting only on CRLF
-    // lets FullBodyDataIn() restore the body byte for byte.
+    // A body delivered line by line loses its line terminators. When a lone
+    // CR also ends a line, a CR at the end of a packet is delivered before
+    // knowing whether an LF follows, and that LF is dropped. Splitting only
+    // on LF and CRLF keeps lone CRs in the data, so every line's terminator
+    // is known and the body can be restored byte for byte.
     content_line->SuppressWeirds(true);
-    content_line->SetCRLFAsEOL(0);
+    content_line->SetCRLFAsEOL(analyzer::tcp::LF_as_EOL);
     keep_line_endings = true;
+}
+
+std::string_view HTTP_Message::LineTerminator() const {
+    return keep_line_endings ? content_line->LastEOL() : "\r\n";
 }
 
 void HTTP_Message::SubmitHeader(analyzer::mime::MIME_Header* h) { MyHTTP_Analyzer()->HTTP_Header(is_orig, h); }

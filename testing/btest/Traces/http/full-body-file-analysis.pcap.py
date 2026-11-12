@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HTTP responses that hide a binary body behind their Content-Type.
 
-One keep-alive connection carries four GET requests. The first three responses
+One keep-alive connection carries five GET requests. The first three responses
 all return an identical PE-like body (GH-1799):
 
   * application/octet-stream with Content-Length (control),
@@ -14,7 +14,8 @@ so neither reaches file analysis in full. The body contains lone CR and LF
 bytes, which must survive line-based delivery.
 
 The fourth response is a well-formed multipart/mixed body with one part that
-carries the same PE-like content.
+carries the same PE-like content. The fifth is the same, except that its first
+boundary and the part's headers end with a bare LF.
 
 Written with claude-opus-5-5 using Scapy (disclose AI assistance per
 AI_POLICY.md).
@@ -68,6 +69,10 @@ MULTIPART_BODY = (
     b"--b\r\nContent-Type: application/octet-stream\r\n\r\n%s\r\n--b--\r\n" % BODY
 )
 
+MULTIPART_LF_BODY = (
+    b"--b\nContent-Type: application/octet-stream\n\n%s\r\n--b--\r\n" % BODY
+)
+
 
 def response(content_type, payload):
     return b"HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s" % (
@@ -82,6 +87,7 @@ EXCHANGES = [
     (b"/message.exe", b"message/rfc822", BODY),
     (b"/multipart.exe", b"multipart/mixed; boundary=b", BODY),
     (b"/multipart-part.exe", b"multipart/mixed; boundary=b", MULTIPART_BODY),
+    (b"/multipart-lf.exe", b"multipart/mixed; boundary=b", MULTIPART_LF_BODY),
 ]
 
 

@@ -1,4 +1,4 @@
-# @TEST-DOC: With HTTP::enable_full_body_file_analysis, the full body reaches file analysis regardless of a message/* or multipart Content-Type. The full body files of the first three responses must match the application/octet-stream control byte for byte. Regression test for #1799.
+# @TEST-DOC: With HTTP::enable_full_body_file_analysis, the full body reaches file analysis regardless of a message/* or multipart Content-Type. The full body files of the first three responses must match the application/octet-stream control byte for byte. Multipart parts must still be found when the boundary and part headers end with a bare LF. Regression test for #1799.
 #
 # @TEST-EXEC: zeek -b -r $TRACES/http/full-body-file-analysis.pcap %INPUT
 #

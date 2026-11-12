@@ -2,5 +2,9 @@
 Cluster::websocket_client_lost, 1
 Cluster::websocket_client_lost, 2
 Cluster::websocket_client_lost, 3
-Cluster::websocket_client_added, 1, [/duplicate, /is/okay, /topic/good]
 Cluster::websocket_client_lost, 4
+Cluster::websocket_client_lost, 5
+Cluster::websocket_client_lost, 6
+Cluster::websocket_client_lost, 7
+Cluster::websocket_client_added, 1, [/duplicate, /is/okay, /topic/good]
+Cluster::websocket_client_lost, 8

@@ -114,6 +114,10 @@ Changed Functionality
   false, controls the behavior. Consider using the config framework instead of
   re-enabling identifier updates.
 
+- The number of cluster subscriptions a WebSocket client may create is now capped to a
+  configurable value, ``Cluster::max_websocket_client_subscriptions``, defaulting to 1000.
+  Setting ``Cluster::max_websocket_client_subscriptions`` to 0 removes this limit.
+
 - Setting the delay queue size of a logging stream to zero now sets the queue size
   to unbounded. Previously, setting the queue to zero could trigger a crash.
 

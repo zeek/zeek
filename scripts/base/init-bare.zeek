@@ -6574,6 +6574,10 @@ export {
 	## This currently has no effect for backend BROKER.
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
 
+	## The maximum number of subscriptions a WebSocket client may request.
+	## Set this value to 0 for unlimited.
+	const max_websocket_client_subscriptions = 1000 &redef;
+
 	## Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
 	option default_table_publish_on_change_max_batch_size = 10;
 

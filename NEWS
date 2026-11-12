@@ -40,6 +40,10 @@ This release fixes the following bugs:
   were already parsed and exposed through their ``dns_*`` events, but were not summarized
   in the log.
 
+- The number of cluster subscriptions a WebSocket client may create is now capped to a
+  configurable value, ``Cluster::max_websocket_client_subscriptions``, defaulting to 1000.
+  Setting ``Cluster::max_websocket_client_subscriptions`` to 0 removes this limit.
+
 Zeek 9.0.1
 ==========
 

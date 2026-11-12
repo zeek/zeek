@@ -1,3 +1,13 @@
+9.0.1-15 | 2026-11-12 17:10:12 +0000
+
+  * cluster/websocket: Suppress bugprone-derived-method-shadowing-base-method (Arne Welzel, Corelight)
+
+    (cherry picked from commit 8bf5a2768041c587f76587e305c56ae285ae4334)
+
+  * cluster/websocket: Harden subscription array parsing (Arne Welzel, Corelight)
+
+    (cherry picked from commit 8bf5a2768041c587f76587e305c56ae285ae4334)
+
 9.0.1-14 | 2026-11-12 00:48:48 +0000
 
   * Set _DARWIN_C_SOURCE for macOS builds (Tim Wojtulewicz, Corelight)

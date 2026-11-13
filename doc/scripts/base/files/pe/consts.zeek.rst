@@ -9,29 +9,29 @@ base/files/pe/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-======================================================================================================== =
-:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-======================================================================================================== =
+Redefinable Options
+###################
+============================================================================================================================ =
+:zeek:id:`PE::directories`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::dll_characteristics`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::file_characteristics`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::machine_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::os_versions`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::section_characteristics`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::section_descs`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`PE::windows_subsystems`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+============================================================================================================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: PE::directories
    :source-code: base/files/pe/consts.zeek 73 73
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -61,7 +61,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 48 48
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -83,7 +83,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 30 30
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -112,7 +112,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 5 5
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -148,7 +148,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 129 129
 
    :Type: :zeek:type:`table` [:zeek:type:`count`, :zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -187,7 +187,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 92 92
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -235,7 +235,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 157 157
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -273,7 +273,7 @@ Constants
    :source-code: base/files/pe/consts.zeek 59 59
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

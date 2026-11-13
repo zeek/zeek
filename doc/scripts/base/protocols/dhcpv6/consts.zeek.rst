@@ -9,25 +9,25 @@ base/protocols/dhcpv6/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-================================================================================================== ===================================
-:zeek:id:`DHCPv6::duid_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`    DUID types
-:zeek:id:`DHCPv6::message_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`DHCPv6::option_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  Option types mapped to their names.
-:zeek:id:`DHCPv6::status_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  Status codes
-================================================================================================== ===================================
+Redefinable Options
+###################
+====================================================================================================================== ===================================
+:zeek:id:`DHCPv6::duid_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`    DUID types
+:zeek:id:`DHCPv6::message_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`DHCPv6::option_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`  Option types mapped to their names.
+:zeek:id:`DHCPv6::status_codes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`  Status codes
+====================================================================================================================== ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: DHCPv6::duid_types
    :source-code: base/protocols/dhcpv6/consts.zeek 19 19
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -46,7 +46,7 @@ Constants
    :source-code: base/protocols/dhcpv6/consts.zeek 4 4
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -71,7 +71,7 @@ Constants
    :source-code: base/protocols/dhcpv6/consts.zeek 56 56
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -235,7 +235,7 @@ Constants
    :source-code: base/protocols/dhcpv6/consts.zeek 28 28
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

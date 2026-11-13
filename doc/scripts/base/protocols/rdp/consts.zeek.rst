@@ -9,31 +9,31 @@ base/protocols/rdp/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-==================================================================================================== =
-:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-==================================================================================================== =
+Redefinable Options
+###################
+======================================================================================================================== =
+:zeek:id:`RDP::builds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::cert_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::color_depths`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::encryption_levels`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::encryption_methods`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::failure_codes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::high_color_depths`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::languages`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::results`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`RDP::security_protocols`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+======================================================================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: RDP::builds
    :source-code: base/protocols/rdp/consts.zeek 5 5
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -61,7 +61,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 38 38
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -77,7 +77,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 67 67
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -95,7 +95,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 51 51
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -114,7 +114,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 43 43
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -133,7 +133,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 29 29
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -153,7 +153,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 59 59
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -172,7 +172,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 84 84
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -531,7 +531,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 74 74
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -550,7 +550,7 @@ Constants
    :source-code: base/protocols/rdp/consts.zeek 22 22
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

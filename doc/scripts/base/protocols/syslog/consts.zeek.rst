@@ -10,23 +10,23 @@ Constants definitions for syslog.
 
 Summary
 ~~~~~~~
-Constants
-#########
-=================================================================================================== ======================================================================
-:zeek:id:`Syslog::facility_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Mapping between the constants and string values for syslog facilities.
-:zeek:id:`Syslog::severity_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Mapping between the constants and string values for syslog severities.
-=================================================================================================== ======================================================================
+Redefinable Options
+###################
+======================================================================================================================= ======================================================================
+:zeek:id:`Syslog::facility_codes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` Mapping between the constants and string values for syslog facilities.
+:zeek:id:`Syslog::severity_codes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` Mapping between the constants and string values for syslog severities.
+======================================================================================================================= ======================================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: Syslog::facility_codes
    :source-code: base/protocols/syslog/consts.zeek 7 7
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -66,7 +66,7 @@ Constants
    :source-code: base/protocols/syslog/consts.zeek 36 36
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

@@ -11,22 +11,22 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================================================ =
-:zeek:id:`LDAP::EXTENDED_REQUESTS`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&redef`
-================================================================================================================ =
+=========================================================================================================================== =
+:zeek:id:`LDAP::EXTENDED_REQUESTS`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
+:zeek:id:`LDAP::PROTOCOL_OPCODES`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`LDAP::RESULT_CODES`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`LDAP::SEARCH_DEREF_ALIASES`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`LDAP::SEARCH_SCOPES`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+=========================================================================================================================== =
 
 Constants
 #########
-=============================================================================================== =
+=========================================================== =
 :zeek:id:`LDAP::BIND_SASL`: :zeek:type:`string`
 :zeek:id:`LDAP::BIND_SICILY_NEGOTIATE`: :zeek:type:`string`
 :zeek:id:`LDAP::BIND_SICILY_RESPONSE`: :zeek:type:`string`
 :zeek:id:`LDAP::BIND_SIMPLE`: :zeek:type:`string`
-:zeek:id:`LDAP::PROTOCOL_OPCODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
-:zeek:id:`LDAP::RESULT_CODES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
-:zeek:id:`LDAP::SEARCH_DEREF_ALIASES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
-:zeek:id:`LDAP::SEARCH_SCOPES`: :zeek:type:`table` :zeek:attr:`&default` = ``"unknown"``
-=============================================================================================== =
+=========================================================== =
 
 
 Detailed Interface
@@ -37,7 +37,7 @@ Redefinable Options
    :source-code: base/protocols/ldap/consts.zeek 126 126
 
    :Type: :zeek:type:`table` [:zeek:type:`string`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"unknown"`` :zeek:attr:`&redef`
+   :Attributes: :zeek:attr:`&default` = :zeek:type:`function` :zeek:attr:`&redef`
    :Default:
 
       ::
@@ -49,41 +49,11 @@ Redefinable Options
 
 
 
-Constants
-#########
-.. zeek:id:: LDAP::BIND_SASL
-   :source-code: base/protocols/ldap/consts.zeek 28 28
-
-   :Type: :zeek:type:`string`
-   :Default: ``"bind SASL"``
-
-
-.. zeek:id:: LDAP::BIND_SICILY_NEGOTIATE
-   :source-code: base/protocols/ldap/consts.zeek 29 29
-
-   :Type: :zeek:type:`string`
-   :Default: ``"sicily_negotiate"``
-
-
-.. zeek:id:: LDAP::BIND_SICILY_RESPONSE
-   :source-code: base/protocols/ldap/consts.zeek 30 30
-
-   :Type: :zeek:type:`string`
-   :Default: ``"sicily_response"``
-
-
-.. zeek:id:: LDAP::BIND_SIMPLE
-   :source-code: base/protocols/ldap/consts.zeek 27 27
-
-   :Type: :zeek:type:`string`
-   :Default: ``"bind simple"``
-
-
 .. zeek:id:: LDAP::PROTOCOL_OPCODES
    :source-code: base/protocols/ldap/consts.zeek 4 4
 
    :Type: :zeek:type:`table` [:zeek:type:`LDAP::ProtocolOpcode`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"unknown"``
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -118,7 +88,7 @@ Constants
    :source-code: base/protocols/ldap/consts.zeek 32 32
 
    :Type: :zeek:type:`table` [:zeek:type:`LDAP::ResultCode`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"unknown"``
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -207,7 +177,7 @@ Constants
    :source-code: base/protocols/ldap/consts.zeek 120 120
 
    :Type: :zeek:type:`table` [:zeek:type:`LDAP::SearchDerefAlias`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"unknown"``
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -225,7 +195,7 @@ Constants
    :source-code: base/protocols/ldap/consts.zeek 116 116
 
    :Type: :zeek:type:`table` [:zeek:type:`LDAP::SearchScope`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"unknown"``
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -236,6 +206,36 @@ Constants
             [LDAP::SearchScope_SEARCH_SINGLE] = "single"
          }
 
+
+
+Constants
+#########
+.. zeek:id:: LDAP::BIND_SASL
+   :source-code: base/protocols/ldap/consts.zeek 28 28
+
+   :Type: :zeek:type:`string`
+   :Default: ``"bind SASL"``
+
+
+.. zeek:id:: LDAP::BIND_SICILY_NEGOTIATE
+   :source-code: base/protocols/ldap/consts.zeek 29 29
+
+   :Type: :zeek:type:`string`
+   :Default: ``"sicily_negotiate"``
+
+
+.. zeek:id:: LDAP::BIND_SICILY_RESPONSE
+   :source-code: base/protocols/ldap/consts.zeek 30 30
+
+   :Type: :zeek:type:`string`
+   :Default: ``"sicily_response"``
+
+
+.. zeek:id:: LDAP::BIND_SIMPLE
+   :source-code: base/protocols/ldap/consts.zeek 27 27
+
+   :Type: :zeek:type:`string`
+   :Default: ``"bind simple"``
 
 
 

@@ -9,22 +9,22 @@ base/protocols/quic/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-================================================================================================== ==============================================================
-:zeek:id:`QUIC::version_strings`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` A mapping from QUIC's raw version numbers to readable strings.
-================================================================================================== ==============================================================
+Redefinable Options
+###################
+====================================================================================================================== ==============================================================
+:zeek:id:`QUIC::version_strings`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` A mapping from QUIC's raw version numbers to readable strings.
+====================================================================================================================== ==============================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: QUIC::version_strings
    :source-code: base/protocols/quic/consts.zeek 7 7
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

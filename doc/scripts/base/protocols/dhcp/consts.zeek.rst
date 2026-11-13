@@ -11,23 +11,23 @@ for DHCP analysis scripts.
 
 Summary
 ~~~~~~~
-Constants
-#########
-================================================================================================ ===================================
-:zeek:id:`DHCP::message_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Types of DHCP messages.
-:zeek:id:`DHCP::option_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`  Option types mapped to their names.
-================================================================================================ ===================================
+Redefinable Options
+###################
+==================================================================================================================== ===================================
+:zeek:id:`DHCP::message_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` Types of DHCP messages.
+:zeek:id:`DHCP::option_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`  Option types mapped to their names.
+==================================================================================================================== ===================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: DHCP::message_types
    :source-code: base/protocols/dhcp/consts.zeek 9 9
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -61,7 +61,7 @@ Constants
    :source-code: base/protocols/dhcp/consts.zeek 31 31
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

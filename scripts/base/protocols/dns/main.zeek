@@ -17,6 +17,28 @@ export {
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
 
+	## A question contained in a DNS message.
+	type Question: record {
+		query:         string;
+		qclass:        count;
+		qclass_name:   string;
+		qtype:         count;
+		qtype_name:    string;
+
+		## Answers associated with this question.
+		answers: vector of string &optional;
+		TTLs:	 vector of interval &optional;
+	};
+
+	## A DNS resource record retained for question-specific logging.
+	type Answer: record {
+		name:		  string;
+		qtype:		  count;
+		qclass:		  count;
+		reply:	  	  string;
+		TTL:		  interval;
+	};
+
 	## The record type which contains the column fields of the DNS log.
 	type Info: record {
 		## The earliest time at which a DNS protocol message over the
@@ -90,6 +112,17 @@ export {
 		saw_query: bool                &default=F;
 		## Whether the full DNS reply has been seen.
 		saw_reply: bool                &default=F;
+
+		## Question in a DNS message containing multiple questions.
+		## Internal state only; not included in dns.log.
+		questions: vector of Question &optional;
+
+		## Resource records retained for multi-question association.
+		reply_records: vector of Answer &optional;
+
+		## Whether question-answer association exceeded its resource limit.
+		## Internal state only; not included in dns.log.
+		association_limit_exceeded: bool &default=F;
 	};
 
 	## An event that can be handled to access the :zeek:type:`DNS::Info`
@@ -143,6 +176,11 @@ export {
 	## reply across this number of different query IDs.
 	option max_pending_query_ids = 50;
 
+	## Give up trying to associate answers with individual DNS questions once
+	## more than this many answer records are retained. Fall back to the
+	## original single-entry logging behavior instead.
+	option max_multi_question_answer_records = 50;
+
 	## A record type which tracks the status of DNS queries for a given
 	## :zeek:type:`connection`.
 	type State: record {
@@ -189,6 +227,192 @@ function new_session(c: connection, trans_id: count): Info
 	return info;
 	}
 
+function associate_answers(info: Info): bool
+	{
+	if ( ! info?$questions )
+		return F;
+
+	local total_answers = 0;
+
+	if ( info?$answers )
+		total_answers = |info$answers|;
+
+	if ( ! info?$reply_records )
+		return total_answers == 0;
+
+	if ( |info$reply_records| != total_answers )
+		return F;
+
+	# Index CNAME records by name and class.
+	local cname_targets: table[string, count] of string = table();
+	local duplicate_cnames: set[string, count] = set();
+
+	for ( j in info$reply_records )
+		{
+		local rr = info$reply_records[j];
+
+		if ( rr$qtype != 5 )
+			next;
+
+		local name = to_lower(rr$name);
+
+		if ( [name, rr$qclass] in cname_targets )
+			add duplicate_cnames[name, rr$qclass];
+		else
+			cname_targets[name, rr$qclass] = to_lower(rr$reply);
+		}
+
+	# Map each answer index to its matching question.
+	local assignments: table[count] of vector of count = table();
+
+	for ( i in info$questions )
+		{
+		local question = info$questions[i];
+		local current = to_lower(question$query);
+		local visited: set[string] = set();
+
+		# Follow the CNAME chain for this question.
+		while ( T )
+			{
+			if ( current in visited )
+				return F;
+			add visited[current];
+
+			# CNAME questions only need their direct CNAME record.
+			if ( question$qtype == 5 )
+				break;
+
+			if ( [current, question$qclass] in duplicate_cnames )
+				return F;
+
+			if ( [current, question$qclass] !in cname_targets )
+				break;
+
+			current = cname_targets[current, question$qclass];
+			}
+
+		# Match answers against names reachable from this question.
+		for ( j in info$reply_records )
+			{
+			local answer = info$reply_records[j];
+
+			if ( answer$qclass != question$qclass || to_lower(answer$name) !in visited )
+				next;
+
+			if ( answer$qtype != question$qtype && answer$qtype != 5 && question$qtype != DNS::ANY )
+				next;
+
+			# Allow CNAME records to be shared across questions.
+			if ( j in assignments && answer$qtype != 5 )
+				return F;
+
+			if ( j !in assignments )
+				assignments[j] = vector();
+
+			assignments[j] += i;
+			}
+		}
+
+	# Every stored answer must be accounted for.
+	if ( |assignments| != |info$reply_records| )
+		return F;
+
+	# Update question records only after all answers are assigned.
+	for ( i in info$questions )
+		{
+		if ( info$questions[i]?$answers )
+			delete info$questions[i]$answers;
+
+		if ( info$questions[i]?$TTLs )
+			delete info$questions[i]$TTLs;
+		}
+
+	# Preserve the original answer order.
+	for ( j in info$reply_records )
+		{
+		local saved_answer = info$reply_records[j];
+
+		for ( k in assignments[j] )
+			{
+			local index = assignments[j][k];
+
+			if ( ! info$questions[index]?$answers )
+				info$questions[index]$answers = vector();
+			info$questions[index]$answers += saved_answer$reply;
+
+			if ( ! info$questions[index]?$TTLs )
+				info$questions[index]$TTLs = vector();
+			info$questions[index]$TTLs += saved_answer$TTL;
+			}
+		}
+
+	return T;
+	}
+
+function write_dns_info(info: Info)
+	{
+	if ( info$association_limit_exceeded )
+		{
+		Log::write(DNS::LOG, info);
+		return;
+		}
+	# Keep the original behavior for single-question messages.
+	if ( ! info?$questions || |info$questions| == 1 || info$id$resp_h in multicast_subnets )
+		{
+		Log::write(DNS::LOG, info);
+		return;
+		}
+
+	# Only split standard DNS queries.
+	if ( ! info?$opcode || info$opcode != DNS_OP_QUERY )
+		{
+		Log::write(DNS::LOG, info);
+		return;
+		}
+
+	# Associate answers with individual questions.
+	if ( ! associate_answers(info) )
+		{
+		# Preserve the original logging behavior when answers cannot be associated unambiguously.
+		Log::write(DNS::LOG, info);
+		return;
+		}
+	# Prepare a log record without per-message association state.
+	local base = copy(info);
+
+	if ( base?$answers )
+		delete base$answers;
+
+	if ( base?$TTLs )
+		delete base$TTLs;
+
+	if ( base?$questions )
+		delete base$questions;
+
+	if ( base?$reply_records )
+		delete base$reply_records;
+	# Emit one independent log record per question.
+	for ( i in info$questions )
+		{
+		local question = info$questions[i];
+		local entry = copy(base);
+
+		entry$query       = question$query;
+		entry$qclass      = question$qclass;
+		entry$qclass_name = question$qclass_name;
+		entry$qtype       = question$qtype;
+		entry$qtype_name  = question$qtype_name;
+
+		if ( question?$answers )
+			entry$answers = copy(question$answers);
+
+		if ( question?$TTLs )
+			entry$TTLs = copy(question$TTLs);
+
+		Log::write(DNS::LOG, entry);
+		}
+	}
+
 function log_unmatched_msgs_queue(q: Queue::Queue)
 	{
 	local infos: vector of Info;
@@ -196,7 +420,7 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 
 	for ( i in infos )
 		{
-		Log::write(DNS::LOG, infos[i]);
+		write_dns_info(infos[i]);
 		}
 	}
 
@@ -364,6 +588,14 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 		if ( msg$rcode != 0 && msg$num_queries == 0 )
 			c$dns$rejected = T;
+
+		if ( msg$opcode == DNS_OP_QUERY && msg$num_answers > max_multi_question_answer_records )
+			{
+			c$dns$association_limit_exceeded = T;
+
+			if ( c$dns?$reply_records )
+				delete c$dns$reply_records;
+			}
 		}
 
 	c$dns$opcode = msg$opcode;
@@ -426,6 +658,32 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 		if ( ! c$dns?$TTLs )
 			c$dns$TTLs = vector();
 		c$dns$TTLs += ans$TTL;
+
+		# Retain answers when a reply arrives before its corresponding query.
+		if ( msg$opcode == DNS_OP_QUERY && ans$answer_type == DNS_ANS &&
+			 ( c$dns?$questions || ! c$dns$saw_query ) && ! c$dns$association_limit_exceeded )
+			{
+			if ( ! c$dns?$reply_records )
+				c$dns$reply_records = vector();
+
+			if ( |c$dns$reply_records| >= max_multi_question_answer_records )
+				{
+				c$dns$association_limit_exceeded = T;
+				delete c$dns$reply_records;
+				}
+			else
+				{
+				local answer: DNS::Answer = [
+					$name = ans$query,
+					$qtype = ans$qtype,
+					$qclass = ans$qclass,
+					$reply = reply,
+					$TTL = ans$TTL
+				];
+
+				c$dns$reply_records += answer;
+				}
+			}
 		}
 	}
 
@@ -444,7 +702,7 @@ event dns_end(c: connection, msg: dns_msg) &priority=-5
 	{
 	if ( c?$dns && c$dns$saw_reply && c$dns$saw_query )
 		{
-		Log::write(DNS::LOG, c$dns);
+		write_dns_info(c$dns);
 		delete c$dns;
 		}
 	}
@@ -481,6 +739,22 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 			}
 		}
 	c$dns$query = query;
+
+	# Preserve individual questions for multi-question DNS messages.
+	if ( msg$opcode == DNS_OP_QUERY && msg$num_queries > 1 )
+		{
+		if ( ! c$dns?$questions )
+			c$dns$questions = vector();
+
+		local question: DNS::Question = [
+			$query         = c$dns$query,
+			$qclass        = c$dns$qclass,
+			$qclass_name   = c$dns$qclass_name,
+			$qtype         = c$dns$qtype,
+			$qtype_name    = c$dns$qtype_name
+		];
+		c$dns$questions += question;
+		}
 	}
 
 
@@ -749,7 +1023,7 @@ hook finalize_dns(c: connection)
 	# If Zeek is expiring state, we should go ahead and log all unmatched
 	# queries and replies now.
 	if( c$dns_state?$pending_query )
-		Log::write(DNS::LOG, c$dns_state$pending_query);
+		write_dns_info(c$dns_state$pending_query);
 
 	if( c$dns_state?$pending_queries )
 		log_unmatched_msgs(c$dns_state$pending_queries);

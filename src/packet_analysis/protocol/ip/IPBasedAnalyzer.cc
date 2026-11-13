@@ -7,6 +7,7 @@
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/conn_key/Manager.h"
@@ -210,7 +211,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn) {
                     if ( ! analyzer )
                         continue;
 
-                    root->AddChildAnalyzer(analyzer, false);
+                    root->AddChildAnalyzer(analyzer, /*init=*/false, {.reason = analyzer::AddReason::Port});
                     DBG_ANALYZER_ARGS(conn, "activated %s analyzer due to port %d",
                                       analyzer_mgr->GetComponentName(port).c_str(), resp_port);
                 }
@@ -224,7 +225,7 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn) {
     root->AddExtraAnalyzers(conn);
 
     if ( pia )
-        root->AddChildAnalyzer(pia->AsAnalyzer());
+        root->AddChildAnalyzer(pia->AsAnalyzer(), {.reason = analyzer::AddReason::PIA});
 
     conn->SetSessionAdapter(root, pia);
     root->Init();

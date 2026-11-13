@@ -264,6 +264,36 @@ Git repositories hosted at https://github.com/zeek:
    compiling it depends on several of the other submodules as well, so
    you'll likely have to build/install those independently first.
 
+.. note::
+
+   The configuration step requires git tags when run from a git checkout.
+   A default ``git clone`` will generally retrieve tags, but forks may not.
+   You may get the necessary tags with ``git fetch``:
+
+   .. code-block:: console
+
+      git fetch --no-recurse-submodules https://github.com/zeek/zeek.git --tags
+
+   Or, you may configure ``upstream`` to point to the Zeek repository, then
+   set ``git fetch upstream`` to grab the tags automatically:
+
+   .. code-block:: console
+
+      git remote add upstream https://github.com/zeek/zeek
+      git config remote.upstream.tagOpt --tags
+      git fetch --no-recurse-submodules upstream
+
+   Then, run ``git fetch --no-recurse-submodules upstream`` periodically to grab
+   the latest tags.
+
+   Zeek must also have enough git history to reach a version tag, which shallow
+   clones may lack. You can fetch the necessary history by converting to a
+   complete clone:
+
+   .. code-block:: console
+
+      git fetch --unshallow --no-recurse-submodules upstream
+
 Configuring and Building
 ------------------------
 

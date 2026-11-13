@@ -32,6 +32,15 @@ Breaking Changes
 
   This also means that Zeek may analyze packets that the receiving endpoint drops.
 
+- Configuration of git checkouts now requires tags, which may not exist for forks.
+  To quickly fetch tags from upstream, run the following:
+
+	git fetch --no-recurse-submodules https://github.com/zeek/zeek.git --tags
+
+  For other options, see the "Retrieving the Sources" section in the
+  "Building from Source" instructions in the Zeek documentation.
+
+
 New Functionality
 -----------------
 

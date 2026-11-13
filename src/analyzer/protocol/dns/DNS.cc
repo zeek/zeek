@@ -342,6 +342,12 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
         return false;
     }
 
+    if ( msg->answer_type == DNS_ANSWER && msg->rcode == DNS_CODE_NAME_ERR && ! msg->is_dynamic_update ) {
+        if ( msg->atype != TYPE_CNAME && msg->atype != TYPE_DNAME && msg->atype != TYPE_RRSIG &&
+             msg->atype != TYPE_SIG )
+            analyzer->Weird("dns_nxdomain_with_non_cname_answer", util::fmt("%d", static_cast<int>(msg->atype)));
+    }
+
     if ( msg->is_dynamic_update ) {
         if ( msg->answer_type == DNS_UPDATES ) {
             // For Updates:

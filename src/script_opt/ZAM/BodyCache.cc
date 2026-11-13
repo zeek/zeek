@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <unordered_map>
@@ -38,11 +39,34 @@ extern const char* zeek_version();
 namespace zeek::detail {
 
 ZAMBodyCache::ZAMBodyCache() {
-    const char* d = getenv("ZEEK_ZAM_CACHE_DIR");
-    if ( ! d || ! *d )
+    if ( ! analysis_options.cache_ZAM )
         return;
 
-    dir = d;
+    // Not tied to whatever script location the reporter last saw.
+    auto warn_disabled = [](const std::string& why) {
+        reporter->PushLocation(nullptr);
+        reporter->Warning("ZAM body cache disabled: %s", why.c_str());
+        reporter->PopLocation();
+    };
+
+    if ( auto d = getenv("ZEEK_ZAM_CACHE_DIR"); d && *d )
+        dir = d;
+    else if ( auto x = getenv("XDG_CACHE_HOME"); x && *x )
+        dir = std::string(x) + "/zeek/zam";
+    else if ( auto h = getenv("HOME"); h && *h )
+        dir = std::string(h) + "/.cache/zeek/zam";
+    else {
+        warn_disabled("no cache directory (set ZEEK_ZAM_CACHE_DIR)");
+        return;
+    }
+
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    if ( ec || ! std::filesystem::is_directory(dir, ec) ) {
+        warn_disabled("can't use " + dir + " as cache directory" + (ec ? ": " + ec.message() : ""));
+        return;
+    }
+
     enabled = true;
 
     ComputeBuildId();

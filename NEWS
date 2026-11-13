@@ -67,6 +67,13 @@ New Functionality
   table ``SSH::kex_methods`` to allow updating the mapping without the need
   to adapt analyzer source code and recompile Zeek.
 
+- The new ``-O cache-ZAM`` option caches ZAM-compiled script code on disk and
+  reuses it in later runs, cutting the startup cost of ``-O ZAM`` when scripts
+  haven't changed. The cache lives in ``$ZEEK_ZAM_CACHE_DIR`` if set, otherwise
+  in ``$XDG_CACHE_HOME/zeek/zam`` or ``~/.cache/zeek/zam``. Cached code is only
+  reused if it matches the current Zeek version, ZAM options, and scripts. See
+  ``src/script_opt/ZAM/README.md`` for details and cautions.
+
 - The input framework now supports optional records in its input files. The
   fields of absent records, including potential nested records, should be
   listed with the configured ``Input::unset_field`` character (normally "-").

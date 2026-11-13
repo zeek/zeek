@@ -108,3 +108,11 @@ output of ``zeek -O help`` for details. For example, you can study the script
 transformations ZAM applies, and use ZAM selectively in certain files (via
 ``--optimize-files``) or functions (via ``--optimize-funcs``).  Most users
 won't need to use these.
+
+If you start Zeek repeatedly with the same scripts, ``-O cache-ZAM`` (which
+implies ``-O ZAM``) saves the compiled code on disk and reuses it on later
+runs, so they start faster. Zeek recompiles anything that changed. The cache
+lives in ``$ZEEK_ZAM_CACHE_DIR`` if set, otherwise in
+``$XDG_CACHE_HOME/zeek/zam`` or ``~/.cache/zeek/zam``. Zeek loads the cache as
+code to execute, so use a directory only you can write to, and clear it after
+rebuilding Zeek from modified sources.

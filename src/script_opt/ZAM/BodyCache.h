@@ -16,9 +16,8 @@
 // not-yet-supported feature it falls back to normal compilation. It can
 // therefore never cause an incorrect execution -- at worst a cache miss.
 //
-// The cache is opt-in: it is active only when the environment variable
-// ZEEK_ZAM_CACHE_DIR names a directory. Otherwise every method is inert and ZAM
-// behaves exactly as before.
+// The cache is opt-in: it is active only with "-O cache-ZAM" (or ZEEK_ZAM_CACHE).
+// Otherwise every method is inert and ZAM behaves exactly as before.
 
 #pragma once
 
@@ -39,8 +38,9 @@ constexpr uint32_t ZAM_CACHE_FORMAT_VERSION = 1;
 
 class ZAMBodyCache {
 public:
-    // Reads ZEEK_ZAM_CACHE_DIR; if set and usable, computes the build-identity
-    // and analysis-options fingerprints that scope every cache entry.
+    // If caching is requested, locates (and if needed creates) the cache
+    // directory and computes the build-identity and analysis-options
+    // fingerprints that scope every cache entry.
     ZAMBodyCache();
 
     bool Enabled() const { return enabled; }

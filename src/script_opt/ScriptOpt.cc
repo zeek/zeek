@@ -479,6 +479,7 @@ static void init_options() {
     check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
     check_env_opt("ZEEK_DUMP_FINAL_ZAM", analysis_options.dump_final_ZAM);
     check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
+    check_env_opt("ZEEK_ZAM_CACHE", analysis_options.cache_ZAM);
 
     // Compile-to-C++-related options.
     check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
@@ -550,6 +551,11 @@ static void init_options() {
 
         estimate_ZAM_profiling_overhead();
     }
+
+    // As with profiling, caching implies the usual "-O ZAM" unless ZAM
+    // generation options have been specified.
+    if ( analysis_options.cache_ZAM && ! analysis_options.gen_ZAM_code )
+        analysis_options.gen_ZAM = true;
 
     if ( analysis_options.gen_ZAM ) {
         analysis_options.gen_ZAM_code = true;

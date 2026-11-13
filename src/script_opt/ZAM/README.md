@@ -8,6 +8,7 @@ ZAM Optimization: User's Guide
 [_Known Issues_](#known-issues) -
 [_Optimization Options_](#script-optimization-options) -
 [_ZAM Profiling_](#ZAM-profiling) -
+[_ZAM Body Cache_](#ZAM-body-cache) -
 
 </h4>
 
@@ -94,6 +95,7 @@ issues:
 
 |Option|Meaning|
 |---|---|
+|`cache-ZAM`	|	Cache compiled ZAM code on disk and reuse it in later runs. (See [below](#ZAM-body-cache).)|
 |`dump-uds`	|	Dump use-defs to _stdout_.|
 |`dump-xform`	|	Dump transformed scripts to _stdout_.|
 |`dump-ZAM`	|	Dump generated ZAM code to _stdout_, including intermediaries.|
@@ -213,6 +215,57 @@ values.
 
 Finally, note that using ZAM profiling with its default sampling rate slows
 down execution by 30-50%.
+
+<br>
+<br>
+
+<a name="ZAM-body-cache"></a>
+## ZAM Body Cache
+
+Compiling scripts to ZAM takes time on every start, even when the scripts
+haven't changed. With `-O cache-ZAM`, Zeek stores each compiled function body
+on disk and, on later runs, loads it instead of compiling it again. (This
+option implies `-O ZAM` unless you've already specified some ZAM optimization
+options. Setting the `ZEEK_ZAM_CACHE` environment variable has the same
+effect as the option.)
+
+The cache only reuses a body when it was compiled by the same Zeek version
+with the same ZAM-affecting options, and from the same source in the same
+environment: the body's own code and that of every function it calls, the
+full definitions of the types it uses (including fields added by `redef`),
+and the values of constants it refers to. Anything else, including a corrupt
+or truncated cache file, is a cache miss and the body is compiled as usual.
+Some bodies, such as those containing lambdas or `when` statements, are never
+cached. The cache isn't used when dumping ZAM code, profiling, or checking for
+usage issues (`-u`), since those need the compiler to run.
+
+Cache files live in the directory named by `ZEEK_ZAM_CACHE_DIR`, otherwise in
+`$XDG_CACHE_HOME/zeek/zam`, otherwise in `~/.cache/zeek/zam`. Zeek creates
+the directory if needed; if it can't, it warns and compiles normally. Several
+Zeek processes can safely share a cache directory at the same time.
+
+Some cautions:
+
+* Zeek loads cache files as code to execute, so only use a cache directory
+that nobody else can write to.
+
+* The cache recognizes a different Zeek version, but not a rebuild of the
+same version. If you rebuild Zeek from modified sources, remove the cache
+directory first.
+
+* Nothing removes old cache files; delete the directory to reclaim the space.
+
+The following environment variables are mainly useful when developing or
+debugging the cache itself:
+
+|Variable|Meaning|
+|---|---|
+|`ZEEK_ZAM_CACHE_DIR`	|	The cache directory (see above).|
+|`ZEEK_ZAM_CACHE_DEBUG`	|	When caching, print per-outcome counts of bodies and their compile time (cache hit, stored, or the reason a body wasn't cacheable), the costliest uncached bodies, and the key and name of each stored body. With `ZEEK_ZAM_CACHE_VERIFY`, also print how many bodies made the round trip.|
+|`ZEEK_ZAM_CACHE_KEYS`	|	Print each function's cache key.|
+|`ZEEK_ZAM_CACHE_VERIFY`	|	Serialize and deserialize each cacheable body right after compiling it, and run the reconstruction in its place, so that tests exercise reconstructed code. Doesn't require caching to be enabled.|
+|`ZEEK_ZAM_CACHE_VERIFY_LOG`	|	With `ZEEK_ZAM_CACHE_VERIFY`, append to this file every difference found between a compiled body and its reconstruction.|
+|`ZEEK_ZAM_TIMING`	|	Print the time spent in each phase of optimization and compilation, including the cache's own work.|
 
 <br>
 <br>

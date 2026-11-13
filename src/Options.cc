@@ -192,6 +192,7 @@ static void print_analysis_help() {
     printf("    help	print this list\n");
     printf("    report-uncompilable	print names of functions that can't be compiled\n");
     printf("\n  primarily for developers:\n");
+    printf("    cache-ZAM	cache compiled ZAM code on disk and reuse it in later runs; implies -O ZAM\n");
     printf("    dump-uds	dump use-defs to stdout; implies xform\n");
     printf("    dump-xform	dump transformed scripts to stdout; implies xform\n");
     printf("    dump-ZAM	dump generated ZAM code, including intermediaries; implies gen-ZAM-code\n");
@@ -235,6 +236,8 @@ static void set_analysis_option(const char* opt, Options& opts) {
 
     if ( util::streq(opt, "allow-cond") )
         a_o.allow_cond = true;
+    else if ( util::streq(opt, "cache-ZAM") )
+        a_o.activate = a_o.cache_ZAM = true;
     else if ( util::streq(opt, "dump-uds") )
         a_o.activate = a_o.dump_uds = true;
     else if ( util::streq(opt, "dump-xform") )

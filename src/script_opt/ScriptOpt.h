@@ -101,6 +101,12 @@ struct AnalyOpt {
     // An associated file to which to write the profile.
     FILE* profile_file = nullptr;
 
+    // If true, store compiled ZAM bodies in an on-disk cache and reuse them
+    // in later runs instead of recompiling. The cache lives in
+    // $ZEEK_ZAM_CACHE_DIR if set, otherwise in $XDG_CACHE_HOME/zeek/zam or
+    // ~/.cache/zeek/zam.
+    bool cache_ZAM = false;
+
     // If true, dump out transformed code: the results of reducing
     // interpreted scripts, and, if optimize is set, of then optimizing
     // them.

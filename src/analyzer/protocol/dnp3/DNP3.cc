@@ -151,6 +151,10 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
                     ++i;
                 data += i;
                 len -= i;
+
+                if ( ! SkipResyncBytes(endp, i) )
+                    return false;
+
                 if ( ! len )
                     return true;
             }
@@ -165,11 +169,18 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
                 return false;
 
             if ( endp->resync ) {
+                // AddToBuffer succeeds only after filling the 11-byte link,
+                // checksum, and transport prefix, so these indexes are in bounds.
+                // A LENGTH below 5 is not a frame and would make AddToBuffer
+                // fail below, stopping the analyzer instead of rescanning.
                 unsigned int crc = CalcCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer);
-                if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 ||
+                if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 || endp->buffer[PSEUDO_LENGTH_INDEX] < 5 ||
                      endp->buffer[PSEUDO_LINK_LAYER_LEN] != (crc & 0xff) ||
                      endp->buffer[PSEUDO_LINK_LAYER_LEN + 1] != (crc & 0xff00) >> 8 ) {
                     // Not a frame header: rescan from its second octet.
+                    if ( ! SkipResyncBytes(endp, 1) )
+                        return false;
+
                     u_char rest[PSEUDO_APP_LAYER_INDEX];
                     int n = endp->buffer_len - 1;
                     memcpy(rest, endp->buffer + 1, n);
@@ -279,6 +290,20 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
     }
 
     return true;
+}
+
+bool DNP3_Base::SkipResyncBytes(Endpoint* endp, int n) {
+    // The budget covers a whole resync episode, so repeated gaps without a
+    // valid header in between cannot keep a non-DNP3 stream attached.
+    endp->resync_bytes += n;
+
+    if ( endp->resync_bytes <= MAX_RESYNC_BYTES )
+        return true;
+
+    // A weird, not a violation: TCP_ApplicationAnalyzer drops violations on
+    // connections that had a gap, and resync only happens after one.
+    analyzer->Weird("dnp3_resync_failed");
+    return false; // the caller then skips the rest of the connection
 }
 
 int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len) {
@@ -481,11 +506,18 @@ void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig) {
     // single lost segment.
     // (NewGap above already resets binpac's buffer; discarding it again here
     // breaks the flow's state.)
-    ClearEndpointState(orig);
     Endpoint& endp = orig ? orig_state : resp_state;
+    const bool already_resyncing = endp.resync;
+    ClearEndpointState(orig);
     endp.resync = true;
     endp.need_fir = true;
-    Weird("dnp3_gap_resync");
+
+    // Report once per resynchronization episode, not once for every gap while
+    // synchronization is still pending. The skip budget is per episode too.
+    if ( ! already_resyncing ) {
+        endp.resync_bytes = 0;
+        Weird("dnp3_gap_resync");
+    }
 }
 
 void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig) {

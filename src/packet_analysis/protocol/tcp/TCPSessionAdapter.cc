@@ -1311,11 +1311,12 @@ bool TCPSessionAdapter::HadGap(bool is_orig) const {
     return endp && endp->HadGap();
 }
 
-void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a) {
+void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a, const analyzer::AddInfo& info) {
     DBG_LOG(DBG_ANALYZER, "%s added packet child %s", this->GetAnalyzerName(), a->GetAnalyzerName());
 
     packet_children.push_back(a);
     a->SetParent(this);
+    a->SetAddInfo(info);
 }
 
 bool TCPSessionAdapter::DataPending(analyzer::tcp::TCP_Endpoint* closing_endp) {

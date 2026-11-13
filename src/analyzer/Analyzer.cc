@@ -318,7 +318,7 @@ void Analyzer::ForwardEndOfData(bool orig) {
     AppendNewChildren();
 }
 
-bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
+bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init, const AddInfo& info) {
     auto t = analyzer->GetAnalyzerTag();
 
     // Prevent attaching child analyzers to analyzer subtrees where
@@ -360,6 +360,9 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
     analyzer->parent = this;
     new_children.push_back(analyzer);
 
+    // Keep the information around.
+    analyzer->SetAddInfo(info);
+
     if ( init )
         analyzer->Init();
 
@@ -367,7 +370,7 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
     return true;
 }
 
-Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer) {
+Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer, const AddInfo& info) {
     if ( HasChildAnalyzer(analyzer) )
         return nullptr;
 
@@ -376,7 +379,7 @@ Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer) {
 
     Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
 
-    if ( a && AddChildAnalyzer(a) )
+    if ( a && AddChildAnalyzer(a, info) )
         return a;
 
     return nullptr;

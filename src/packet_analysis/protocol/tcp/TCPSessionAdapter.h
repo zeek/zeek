@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/Tag.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
@@ -34,7 +35,7 @@ public:
 
     // Add a child analyzer that will always get the packets,
     // independently of whether we do any reassembly.
-    void AddChildPacketAnalyzer(analyzer::Analyzer* a);
+    void AddChildPacketAnalyzer(analyzer::Analyzer* a, const analyzer::AddInfo& info = {});
 
     Analyzer* FindChild(analyzer::ID id) override;
     Analyzer* FindChild(zeek::Tag tag) override;

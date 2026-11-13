@@ -120,6 +120,7 @@ export {
 		["DNS_AAAA_neg_length"]                 = ACTION_LOG,
 		["DNS_Conn_count_too_large"]            = ACTION_LOG,
 		["DNS_NAME_too_long"]                   = ACTION_LOG,
+		["dns_nxdomain_with_non_cname_answer"]  = ACTION_LOG,
 		["DNS_RR_bad_length"]                   = ACTION_LOG,
 		["DNS_RR_length_mismatch"]              = ACTION_LOG,
 		["DNS_RR_unknown_type"]                 = ACTION_LOG,

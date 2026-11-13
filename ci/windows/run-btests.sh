@@ -9,7 +9,7 @@ BTEST="python ../../auxil/btest/btest"
 JOBS=${ZEEK_CI_CPUS:-8}
 RETRIES=${ZEEK_CI_BTEST_RETRIES:-3}
 
-${BTEST} -z ${RETRIES} -j ${JOBS} -d -x btest-results.xml
+${BTEST} --force-tty -z ${RETRIES} -j ${JOBS} -d -x btest-results.xml
 result=$?
 
 # Copy these into a location where CI hosts can collect all of the results from at once.
@@ -51,7 +51,7 @@ if [ ${result} -ne 0 ] && [ -f .btest.failed.dat ]; then
 
     # Rerun only the failed tests.
     echo "Retrying:${failed_tests}"
-    ${BTEST} -z ${RETRIES} -j ${JOBS} -d -x btest-results.xml ${failed_tests}
+    ${BTEST} --force-tty -z ${RETRIES} -j ${JOBS} -d -x btest-results.xml ${failed_tests}
     result=$?
 
     if [ ${result} -ne 0 ] && [ -f .btest.failed.dat ]; then

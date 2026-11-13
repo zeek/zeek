@@ -24,6 +24,10 @@
 # @TEST-EXEC: btest-diff proxy/.stderr
 # @TEST-EXEC: btest-diff worker-1/.stderr
 # @TEST-EXEC: btest-diff worker-2/.stderr
+#
+# Ensure the manager saw logs from all of the nodes.
+# @TEST-EXEC: zeek-cut node < manager/test.log | sort | uniq > nodes
+# @TEST-EXEC: btest-diff nodes
 
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
@@ -43,9 +47,6 @@ redef Log::default_rotation_interval = 0sec;
 # system, so that's good, but also means this is a bit magic.
 redef Log::write_buffer_size = 3;
 redef Cluster::Backend::ZeroMQ::log_sndhwm = 3;
-
-# Don't actually write anything to disk.
-redef Log::default_writer = Log::WRITER_NONE;
 
 # Helpers to get drop counts.
 global log_push_drops: function(): count = Cluster::Backend::ZeroMQ::log_push_drops;
@@ -85,7 +86,7 @@ event Cluster::node_down(name: string, id: string)
 @load ./common.zeek
 
 # How many writes in one tick?
-global batch = 5;
+global batch = 7;
 
 event tick()
 	{
@@ -105,7 +106,7 @@ event tick()
 		return;
 		}
 
-	schedule 0.1msec { tick() };
+	schedule 0.01msec { tick() };
 	}
 
 event Cluster::Experimental::cluster_started()

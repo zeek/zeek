@@ -63,6 +63,14 @@ export {
 		## Current number of MIME entities in the HTTP response message
 		## body.
 		resp_mime_depth: count            &default=0;
+
+		## The fuid of the full HTTP request body if
+		## :zeek:see:`HTTP::enable_full_body_file_analysis` is set.
+		orig_body_fuid:  string           &optional;
+
+		## The fuid of the full HTTP response body if
+		## :zeek:see:`HTTP::enable_full_body_file_analysis` is set.
+		resp_body_fuid:  string           &optional;
 	};
 
 	redef record fa_file += {
@@ -107,6 +115,18 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	if ( f$source == "HTTP" && c?$http )
 		{
 		f$http = c$http;
+
+		# With full body file analysis, the first file of a message body
+		# is the full body. Files of its MIME entities become children.
+		if ( HTTP::enable_full_body_file_analysis )
+			{
+			if ( is_orig && ! c$http?$orig_body_fuid )
+				c$http$orig_body_fuid = f$id;
+			else if ( ! is_orig && ! c$http?$resp_body_fuid )
+				c$http$resp_body_fuid = f$id;
+			else if ( ! f?$parent_id )
+				f$parent_id = is_orig ? c$http$orig_body_fuid : c$http$resp_body_fuid;
+			}
 
 		if ( c$http?$current_entity && c$http$current_entity?$filename )
 			f$info$filename = c$http$current_entity$filename;

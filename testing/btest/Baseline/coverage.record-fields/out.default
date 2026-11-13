@@ -197,6 +197,7 @@ connection {
         * info_code: count, log=T, optional=T
         * info_msg: string, log=T, optional=T
         * method: string, log=T, optional=T
+        * orig_body_fuid: string, log=F, optional=T
         * orig_filenames: vector of string, log=T, optional=T
         * orig_fuids: vector of string, log=T, optional=T
         * orig_mime_depth: count, log=F, optional=T
@@ -207,6 +208,7 @@ connection {
         * range_request: bool, log=F, optional=T
         * referrer: string, log=T, optional=T
         * request_body_len: count, log=T, optional=T
+        * resp_body_fuid: string, log=F, optional=T
         * resp_filenames: vector of string, log=T, optional=T
         * resp_fuids: vector of string, log=T, optional=T
         * resp_mime_depth: count, log=F, optional=T

@@ -143,6 +143,22 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
     while ( len ) {
         if ( endp->in_hdr ) {
+            if ( endp->resync && endp->buffer_len == 0 ) {
+                // After a gap the data may start mid-frame: skip to the next
+                // 0x05 0x64 (or a final 0x05 that the next chunk may complete).
+                int i = 0;
+                while ( i < len && ! (data[i] == 0x05 && (i + 1 == len || data[i + 1] == 0x64)) )
+                    ++i;
+                data += i;
+                len -= i;
+
+                if ( ! SkipResyncBytes(endp, i) )
+                    return false;
+
+                if ( ! len )
+                    return true;
+            }
+
             // We're parsing the DNP3 header and link layer, get that in full.
             int res = AddToBuffer(endp, PSEUDO_APP_LAYER_INDEX, &data, &len);
 
@@ -151,6 +167,30 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
             if ( res < 0 )
                 return false;
+
+            if ( endp->resync ) {
+                // AddToBuffer succeeds only after filling the 11-byte link,
+                // checksum, and transport prefix, so these indexes are in bounds.
+                // A LENGTH below 5 is not a frame and would make AddToBuffer
+                // fail below, stopping the analyzer instead of rescanning.
+                unsigned int crc = CalcCRC(PSEUDO_LINK_LAYER_LEN, endp->buffer);
+                if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 || endp->buffer[PSEUDO_LENGTH_INDEX] < 5 ||
+                     endp->buffer[PSEUDO_LINK_LAYER_LEN] != (crc & 0xff) ||
+                     endp->buffer[PSEUDO_LINK_LAYER_LEN + 1] != (crc & 0xff00) >> 8 ) {
+                    // Not a frame header: rescan from its second octet.
+                    if ( ! SkipResyncBytes(endp, 1) )
+                        return false;
+
+                    u_char rest[PSEUDO_APP_LAYER_INDEX];
+                    int n = endp->buffer_len - 1;
+                    memcpy(rest, endp->buffer + 1, n);
+                    endp->buffer_len = 0;
+                    if ( ! ProcessData(n, rest, orig) )
+                        return false;
+                    continue;
+                }
+                endp->resync = false; // back in sync
+            }
 
             // The first two bytes must always be 0x0564.
             if ( endp->buffer[0] != 0x05 || endp->buffer[1] != 0x64 ) {
@@ -192,9 +232,20 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             endp->tpflags = endp->buffer[PSEUDO_TRANSPORT_INDEX];
             endp->in_hdr = false; // Now parsing application layer.
 
+            // After a gap, the next frames may continue an application
+            // fragment whose first frame (FIR) was lost or cut. Skip them
+            // until a frame starts a new fragment, instead of failing on
+            // the missing first chunk.
+            if ( endp->need_fir ) {
+                if ( endp->tpflags & 0x40 )
+                    endp->need_fir = false;
+                else
+                    endp->discard_frame = true;
+            }
+
             // For the first packet, we submit the header to
             // BinPAC.
-            if ( ++endp->pkt_cnt == 1 )
+            if ( ! endp->discard_frame && ++endp->pkt_cnt == 1 )
                 interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
         }
 
@@ -221,6 +272,13 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             if ( res < 0 )
                 return false;
 
+            if ( endp->discard_frame ) {
+                endp->discard_frame = false;
+                endp->buffer_len = 0;
+                endp->in_hdr = true;
+                continue;
+            }
+
             // Parse the application layer data.
             if ( ! ParseAppLayer(endp) )
                 return false;
@@ -232,6 +290,20 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
     }
 
     return true;
+}
+
+bool DNP3_Base::SkipResyncBytes(Endpoint* endp, int n) {
+    // The budget covers a whole resync episode, so repeated gaps without a
+    // valid header in between cannot keep a non-DNP3 stream attached.
+    endp->resync_bytes += n;
+
+    if ( endp->resync_bytes <= MAX_RESYNC_BYTES )
+        return true;
+
+    // A weird, not a violation: TCP_ApplicationAnalyzer drops violations on
+    // connections that had a gap, and resync only happens after one.
+    analyzer->Weird("dnp3_resync_failed");
+    return false; // the caller then skips the rest of the connection
 }
 
 int DNP3_Base::AddToBuffer(Endpoint* endp, int target_len, const u_char** data, int* len) {
@@ -352,6 +424,7 @@ void DNP3_Base::ClearEndpointState(bool orig) {
     endp->pkt_length = 0;
     endp->tpflags = 0;
     endp->pkt_cnt = 0;
+    endp->discard_frame = false;
 }
 
 void DNP3_Base::DiscardFlowBuffer(bool orig) {
@@ -423,6 +496,28 @@ void DNP3_TCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig) {
     TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
     Interpreter()->NewGap(orig, len);
+
+    // The partial frame cannot be completed: drop it, resynchronize on the
+    // next start bytes, and skip frames until one starts a new application
+    // fragment. Without this, the bytes after the gap are appended to the
+    // partial frame, a CRC or the magic fails (or the fragment's first chunk
+    // is missing), and the analyzer is skipped for the rest of the
+    // connection: a long-lived SCADA connection then goes unanalyzed after a
+    // single lost segment.
+    // (NewGap above already resets binpac's buffer; discarding it again here
+    // breaks the flow's state.)
+    Endpoint& endp = orig ? orig_state : resp_state;
+    const bool already_resyncing = endp.resync;
+    ClearEndpointState(orig);
+    endp.resync = true;
+    endp.need_fir = true;
+
+    // Report once per resynchronization episode, not once for every gap while
+    // synchronization is still pending. The skip budget is per episode too.
+    if ( ! already_resyncing ) {
+        endp.resync_bytes = 0;
+        Weird("dnp3_gap_resync");
+    }
 }
 
 void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig) {

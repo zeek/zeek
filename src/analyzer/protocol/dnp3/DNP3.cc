@@ -168,10 +168,16 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             analyzer->AnalyzerConfirmation();
 
             // DNP3 packets without transport and application
-            // layers can happen, we ignore them.
+            // layers can happen, we ignore them. Such a frame is only
+            // PSEUDO_TRANSPORT_INDEX octets long, so the last octet we
+            // buffered is the first octet of the next frame: keep it and
+            // continue with the rest of the input. The frame carries no
+            // transport data, so it doesn't affect an application
+            // fragment being reassembled from several frames.
             if ( (endp->buffer[PSEUDO_LENGTH_INDEX] + 3) == static_cast<char>(PSEUDO_LINK_LAYER_LEN) ) {
-                ClearEndpointState(orig);
-                return true;
+                endp->buffer[0] = endp->buffer[PSEUDO_TRANSPORT_INDEX];
+                endp->buffer_len = 1;
+                continue;
             }
 
             // Double check the direction in case the first

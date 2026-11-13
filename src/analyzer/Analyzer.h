@@ -706,6 +706,12 @@ public:
      */
     const AddInfo& GetAddInfo() const { return add_info; }
 
+    /**
+     * Enqueue an \c analyzer_attachment_info() event for this analyzer
+     * using its AddInfo instance.
+     */
+    void EnqueueAnalyzerAttachmentInfo();
+
 protected:
     friend class AnalyzerTimer;
     friend class Manager;

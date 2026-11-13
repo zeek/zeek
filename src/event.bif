@@ -397,6 +397,13 @@ event analyzer_confirmation_info%(atype: AllAnalyzers::Tag, info: AnalyzerConfir
 ## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
 event analyzer_violation_info%(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo%);
 
+## Generated when an analyzer has been added to a file or the analyzer tree of a connection.
+##
+## atype: The type of the analyzer attached.
+##
+## info: Details about the attachment.
+event analyzer_attachment_info%(atype: AllAnalyzers::Tag, info: AnalyzerAttachmentInfo%);
+
 ## Generated if a DPD signature matched but the DPD buffer is already exhausted
 ## and thus the analyzer could not be attached. While this does not confirm
 ## that a protocol is actually used, it allows to retain that information.

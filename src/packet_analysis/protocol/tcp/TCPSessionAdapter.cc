@@ -1317,6 +1317,9 @@ void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a, const anal
     packet_children.push_back(a);
     a->SetParent(this);
     a->SetAddInfo(info);
+
+    if ( analyzer_attachment_info )
+        a->EnqueueAnalyzerAttachmentInfo();
 }
 
 bool TCPSessionAdapter::DataPending(analyzer::tcp::TCP_Endpoint* closing_endp) {

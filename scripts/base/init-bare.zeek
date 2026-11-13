@@ -1205,6 +1205,25 @@ type AnalyzerViolationInfo: record {
 	data: string &optional;
 };
 
+## Generic analyzer attachment info record.
+##
+## .. zeek:see:: analyzer_attachment_info
+type AnalyzerAttachmentInfo: record {
+	## The reason for attaching this analyzer.
+	reason: Analyzer::AttachmentReason;
+
+	## This field may be set if there's any connection related information
+	## available for this attachment.
+	c: connection &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+
+	## The parent analyzer instance, if available.
+	parent_aid: count &optional;
+};
+
 ## The maximum number of analyzer violations the core generates before
 ## suppressing them for a given analyzer instance. A weird providing
 ## information about the analyzer and connection is generated once the

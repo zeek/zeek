@@ -8,6 +8,7 @@
 
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
+#include "zeek/Type.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
@@ -367,6 +368,10 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init, const AddInfo& in
         analyzer->Init();
 
     DBG_LOG(DBG_ANALYZER, "%s added child %s", fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
+
+    if ( analyzer_attachment_info )
+        analyzer->EnqueueAnalyzerAttachmentInfo();
+
     return true;
 }
 
@@ -668,6 +673,56 @@ void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data
         info->Assign(info_data_idx, make_intrusive<StringVal>(len, data));
 
     event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
+}
+
+void Analyzer::EnqueueAnalyzerAttachmentInfo() {
+    using namespace zeek::BifEnum::Analyzer;
+
+    static const auto info_type = zeek::id::find_type<RecordType>("AnalyzerAttachmentInfo");
+    static const auto info_reason_idx = info_type->FieldOffset("reason");
+    static const auto info_c_idx = info_type->FieldOffset("c");
+    static const auto info_aid_idx = info_type->FieldOffset("aid");
+    static const auto info_parent_aid_idx = info_type->FieldOffset("parent_aid");
+
+    // XXX: Is there something nicer here to get EnumValPtr instances?
+    // Should we extend bifcl to provide some globals that represent
+    // individual enum values? This code is kind of annoying...
+    static const auto reason_val_internal =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_INTERNAL);
+    static const auto reason_val_pia =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_PIA);
+    static const auto reason_val_extra =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_EXTRA);
+    static const auto reason_val_scheduled =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_SCHEDULED);
+    static const auto reason_val_port =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_PORT);
+    static const auto reason_val_dpd =
+        BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(AttachmentReason::ATTACHMENT_REASON_DPD);
+    static const auto reason_val_hook_setup_analyzer_tree = BifType::Enum::Analyzer::AttachmentReason->GetEnumVal(
+        AttachmentReason::ATTACHMENT_REASON_HOOK_SETUP_ANALYZER_TREE);
+
+    // Map internal reason to script-land enum value.
+    EnumValPtr reason_val;
+    switch ( add_info.reason ) {
+        case AddReason::Internal: reason_val = reason_val_internal; break;
+        case AddReason::PIA: reason_val = reason_val_pia; break;
+        case AddReason::Extra: reason_val = reason_val_extra; break;
+        case AddReason::Scheduled: reason_val = reason_val_scheduled; break;
+        case AddReason::Port: reason_val = reason_val_port; break;
+        case AddReason::DPD: reason_val = reason_val_dpd; break;
+        case AddReason::HookSetupAnalyzerTree: reason_val = reason_val_hook_setup_analyzer_tree; break;
+        default: reporter->InternalError("unhandled add_info.reason value %d", static_cast<int>(add_info.reason));
+    }
+
+    auto info_rec = zeek::make_intrusive<RecordVal>(info_type);
+    info_rec->Assign(info_reason_idx, std::move(reason_val));
+    info_rec->Assign(info_c_idx, ConnVal());
+    info_rec->Assign(info_aid_idx, val_mgr->Count(id));
+    if ( Parent() )
+        info_rec->Assign(info_parent_aid_idx, val_mgr->Count(Parent()->GetID()));
+
+    event_mgr.Enqueue(analyzer_attachment_info, GetAnalyzerTag().AsVal(), info_rec);
 }
 
 // NOLINT here because changing the function signature breaks the API.

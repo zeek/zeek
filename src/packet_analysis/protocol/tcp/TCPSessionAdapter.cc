@@ -1319,7 +1319,9 @@ void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a, const anal
     a->SetParent(this);
     a->SetAddInfo(info);
 
-    if ( analyzer_attachment_info )
+    // See IPBasedAnalyzer::NewConn() why we skip raising the
+    // event for sessions not yet in the session table.
+    if ( analyzer_attachment_info && Conn() && Conn()->IsInSessionTable() )
         a->EnqueueAnalyzerAttachmentInfo();
 }
 

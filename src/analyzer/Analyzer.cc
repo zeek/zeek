@@ -369,7 +369,9 @@ bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init, const AddInfo& in
 
     DBG_LOG(DBG_ANALYZER, "%s added child %s", fmt_analyzer(this).c_str(), fmt_analyzer(analyzer).c_str());
 
-    if ( analyzer_attachment_info )
+    // See IPBasedAnalyzer::NewConn() why we skip raising the
+    // event for sessions not yet in the session table.
+    if ( analyzer_attachment_info && Conn() && Conn()->IsInSessionTable() )
         analyzer->EnqueueAnalyzerAttachmentInfo();
 
     return true;

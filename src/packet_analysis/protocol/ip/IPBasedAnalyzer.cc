@@ -180,6 +180,39 @@ zeek::Connection* IPBasedAnalyzer::NewConn(IPBasedConnKeyPtr key, const Packet* 
     if ( new_connection )
         conn->Event(new_connection, nullptr);
 
+    // Analyzer::AddChildAnalyzer() has some extra logic to skip the
+    // analyzer_attachment_info() event when the connection is not yet
+    // in the session table. This is done to prevent these events to
+    // queue before new_connection() raised just above.
+    //
+    // So when we get here, no analyzer_attachment_info() events have been
+    // raised for this new connection and we do it by visiting the new analyzer
+    // tree. Moving the new_connection() event before BuildSessionAnalyzerTree()
+    // subtly changes the new_connection()'s connection value to be created
+    // before attaching ConnSize analyzers.
+    //
+    // Feel free to change this in the future, there's just enough annoying
+    // historical quirks and this was the least intrusive. See issue #4214 and
+    // the proposal around callback based record value fields. I had also once
+    // talked with rsmmr about dropping the ConnSize analyzer indirection/abstraction
+    // completely and just count packets and bytes on the connection directly,
+    // instead of allocating an analyzer just to count packet counts.
+    if ( analyzer_attachment_info ) {
+        auto* sa = conn->GetSessionAdapter();
+        sa->VisitChildren([](analyzer::Analyzer& a) {
+            // Analyzers added during BuildSessionAnalyzerTree() that have
+            // type Internal should all come from external plugins via the
+            // HookSetupAnalyzerTree() hook. Update their reason to that.
+            if ( a.GetAddInfo().reason == analyzer::AddReason::Internal ) {
+                auto add_info = a.GetAddInfo();
+                add_info.reason = analyzer::AddReason::HookSetupAnalyzerTree;
+                a.SetAddInfo(add_info);
+            }
+
+            a.EnqueueAnalyzerAttachmentInfo();
+        });
+    }
+
     return conn;
 }
 

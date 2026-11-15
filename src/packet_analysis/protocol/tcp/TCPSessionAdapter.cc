@@ -6,6 +6,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -1462,11 +1463,12 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
     if ( analyzer_mgr->IsEnabled(analyzer_tcpstats) )
         // Add TCPStats analyzer. This needs to see packets so
         // we cannot add it as a normal child.
-        AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn));
+        AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn), {.reason = analyzer::AddReason::Extra});
 
     if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
         // Add ConnSize analyzer. Needs to see packets, not stream.
-        AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
+        AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn),
+                               {.reason = analyzer::AddReason::Extra});
 }
 
 void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,

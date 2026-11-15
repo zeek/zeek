@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 
 #include "zeek/Conn.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 
@@ -19,7 +20,7 @@ void ICMPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
 
     if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
         // Add ConnSize analyzer. Needs to see packets, not stream.
-        AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
+        AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn), {.reason = analyzer::AddReason::Extra});
 }
 
 void ICMPSessionAdapter::UpdateConnVal(zeek::RecordVal* conn_val) {

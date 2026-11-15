@@ -1677,3 +1677,10 @@ void TCPSessionAdapter::CheckRecording(bool need_contents, analyzer::tcp::TCP_Fl
     Conn()->SetRecordCurrentContent(record_current_content);
     Conn()->SetRecordCurrentPacket(record_current_packet);
 }
+
+void TCPSessionAdapter::VisitChildren(const VisitorFunc& f) {
+    for ( auto* a : packet_children )
+        f(*a);
+
+    Analyzer::VisitChildren(f);
+}

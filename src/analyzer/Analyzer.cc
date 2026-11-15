@@ -474,6 +474,20 @@ Analyzer* Analyzer::FindChild(ID arg_id) {
     return nullptr;
 }
 
+void Analyzer::VisitChildren(const VisitorFunc& f) {
+    analyzer_list todo = GetChildren();
+    while ( ! todo.empty() ) {
+        auto* a = todo.front();
+        todo.pop_front();
+
+        f(*a);
+
+        const auto& a_children = a->GetChildren();
+        if ( ! a_children.empty() )
+            todo.insert(todo.end(), a_children.begin(), a_children.end());
+    }
+}
+
 // NOLINT here because changing the function signature breaks the API.
 // NOLINTNEXTLINE(performance-unnecessary-value-param)
 Analyzer* Analyzer::FindChild(zeek::Tag arg_tag) {

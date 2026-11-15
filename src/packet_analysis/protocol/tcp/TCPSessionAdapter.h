@@ -148,6 +148,11 @@ protected:
 
     uint64_t LastRelDataSeq() const { return rel_data_seq; }
 
+    /**
+     * Overridden to take packet_children into account.
+     */
+    void VisitChildren(const VisitorFunc& f) override;
+
 private:
     void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint, int data_len) const;
 

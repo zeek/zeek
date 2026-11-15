@@ -801,6 +801,27 @@ protected:
     void AppendNewChildren();
 
     /**
+     * Visitor function type.
+     */
+    using VisitorFunc = std::function<void(Analyzer& a)>;
+
+    /**
+     * Recursively visit all children in breadth-first-fashion and
+     * call \a f on each of them.
+     *
+     * Note that this does not include the list of analyzers that are
+     * currently queued up to be added. If you just added an analyzer,
+     * it will not have \a f called on it. See AppendNewChildren().
+     *
+     * This method is only virtual due to TCPSessionAdapter holding
+     * its own packet_children list. Once that's removed, this API will
+     * become non-virtual (see also https://github.com/zeek/zeek/pull/5803).
+     *
+     * @param f The visitor function to execute.
+     */
+    virtual void VisitChildren(const VisitorFunc& f);
+
+    /**
      * Returns true if the child analyzer is now scheduled to be
      * removed (and was not before)
      */

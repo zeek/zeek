@@ -1216,6 +1216,9 @@ type AnalyzerAttachmentInfo: record {
 	## available for this attachment.
 	c: connection &optional;
 
+	## The file object, if this is a file analyzer attachment.
+	f: fa_file &optional;
+
 	## Specific analyzer instance that can be used to reference the analyzer
 	## when using builtin functions like :zeek:id:`disable_analyzer`.
 	aid: count &optional;

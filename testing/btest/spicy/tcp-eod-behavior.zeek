@@ -48,6 +48,7 @@
 # @TEST-EXEC: btest-diff output-eod-no-fins
 
 @load frameworks/analyzer/debug-logging.zeek
+redef Analyzer::DebugLogging::include_attachments = F;
 redef Analyzer::DebugLogging::include_confirmations = F;
 redef Analyzer::DebugLogging::include_disabling = F;
 

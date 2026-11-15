@@ -3,7 +3,10 @@ Demo::Foo - A Foo test logging writer (dynamic, version 1.0.0)
     [Writer] Foo (Log::WRITER_FOO)
 
 ===
+[analyzer_debug] XXXXXXXXXX.XXXXXX|attachment|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|attachment|protocol|SOCKS|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
 [analyzer_debug] XXXXXXXXXX.XXXXXX|confirmation|protocol|SOCKS|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|attachment|protocol|HTTP|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
 [analyzer_debug] XXXXXXXXXX.XXXXXX|confirmation|protocol|HTTP|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
 [analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: out_of_bound: DCE_RPC_PDU:frag: -2665 > 31|-
 [analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-

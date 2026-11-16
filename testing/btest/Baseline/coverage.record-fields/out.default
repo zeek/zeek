@@ -98,6 +98,7 @@ connection {
         * TTLs: vector of interval, log=T, optional=T
         * Z: count, log=T, optional=T
         * answers: vector of string, log=T, optional=T
+        * association_limit_exceeded: bool, log=F, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
         * opcode: count, log=T, optional=T
@@ -108,9 +109,27 @@ connection {
         * qtype: count, log=T, optional=T
         * qtype_name: string, log=T, optional=T
         * query: string, log=T, optional=T
+        * questions: vector of record DNS::Question, log=F, optional=T
+            DNS::Question {
+              * TTLs: vector of interval, log=F, optional=T
+              * answers: vector of string, log=F, optional=T
+              * qclass: count, log=F, optional=F
+              * qclass_name: string, log=F, optional=F
+              * qtype: count, log=F, optional=F
+              * qtype_name: string, log=F, optional=F
+              * query: string, log=F, optional=F
+             }
         * rcode: count, log=T, optional=T
         * rcode_name: string, log=T, optional=T
         * rejected: bool, log=T, optional=T
+        * reply_records: vector of record DNS::Answer, log=F, optional=T
+            DNS::Answer {
+              * TTL: interval, log=F, optional=F
+              * name: string, log=F, optional=F
+              * qclass: count, log=F, optional=F
+              * qtype: count, log=F, optional=F
+              * reply: string, log=F, optional=F
+             }
         * rtt: interval, log=T, optional=T
         * saw_query: bool, log=F, optional=T
         * saw_reply: bool, log=F, optional=T

@@ -20,6 +20,10 @@ public:
 protected:
     static const int MAX_BUFFER_SIZE = 300;
 
+    // Give up resynchronizing after skipping this many octets without finding
+    // a valid link header. A DNP3 stream has a header at least every 292 octets.
+    static const int MAX_RESYNC_BYTES = 4096;
+
     struct Endpoint {
         u_char buffer[MAX_BUFFER_SIZE] = {0};
         int buffer_len = 0;
@@ -28,9 +32,14 @@ protected:
         int pkt_length = 0;
         int pkt_cnt = 0;
         bool encountered_first_chunk = false;
+        bool resync = false;        // after a TCP gap: skip to the next start bytes
+        bool need_fir = false;      // after a TCP gap: drop frames until one starts a fragment (FIR)
+        bool discard_frame = false; // the frame being read continues a fragment cut by a gap
+        int resync_bytes = 0;       // octets skipped while resynchronizing
     };
 
     bool ProcessData(int len, const u_char* data, bool orig);
+    bool SkipResyncBytes(Endpoint* endp, int n);
     void ClearEndpointState(bool orig);
     void DiscardFlowBuffer(bool orig);
 

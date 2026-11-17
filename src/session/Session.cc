@@ -56,7 +56,7 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
       session_timeout_event(timeout_event),
       session_status_update_event(status_update_event),
       session_status_update_interval(status_update_interval) {
-    in_session_table = true;
+    in_session_table = false;
     record_contents = record_packets = 1;
     record_current_packet = record_current_content = 0;
     is_active = 1;
@@ -144,12 +144,6 @@ void Session::DeleteTimer(double /* t */) {
 
 void Session::AddTimer(timer_func timer, double t, bool do_expire, zeek::detail::TimerType type) {
     if ( timers_canceled )
-        return;
-
-    // If the key is cleared, the session isn't stored in the session table
-    // anymore and will soon be deleted. We're not installed new timers
-    // anymore then.
-    if ( ! IsInSessionTable() )
         return;
 
     zeek::detail::Timer* conn_timer = new detail::Timer(this, timer, t, do_expire, type);

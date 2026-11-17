@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cinttypes>
@@ -197,9 +199,12 @@ private:
 };
 
 void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
-    if ( encoding == GZIP || encoding == DEFLATE ) {
-        analyzer::zip::ZIP_Analyzer::Method method =
-            encoding == GZIP ? analyzer::zip::ZIP_Analyzer::GZIP : analyzer::zip::ZIP_Analyzer::DEFLATE;
+    if ( encoding == GZIP || encoding == DEFLATE || encoding == BROTLI ) {
+        analyzer::zip::ZIP_Analyzer::Method method = analyzer::zip::ZIP_Analyzer::GZIP;
+        if ( encoding == DEFLATE )
+            method = analyzer::zip::ZIP_Analyzer::DEFLATE;
+        else if ( encoding == BROTLI )
+            method = analyzer::zip::ZIP_Analyzer::BROTLI;
 
         if ( ! zip ) {
             // We don't care about the direction here.
@@ -313,7 +318,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf) {
     if ( deliver_body )
         analyzer::mime::MIME_Entity::SubmitData(len, buf);
 
-    if ( send_size && (encoding == GZIP || encoding == DEFLATE) )
+    if ( send_size && (encoding == GZIP || encoding == DEFLATE || encoding == BROTLI) )
         // Auto-decompress in DeliverBody invalidates sizes derived from headers
         send_size = false;
 
@@ -606,6 +611,10 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             encoding = GZIP;
         if ( analyzer::mime::istrequal(vt, "deflate") )
             encoding = DEFLATE;
+#ifdef USE_BROTLI
+        if ( analyzer::mime::istrequal(vt, "br") )
+            encoding = BROTLI;
+#endif
     }
     else if ( analyzer::mime::istrequal(h->get_name(), "expect") ) {
         data_chunk_t vt = h->get_value_token();

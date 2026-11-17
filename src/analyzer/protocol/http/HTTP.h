@@ -58,7 +58,7 @@ protected:
     int expect_body;
     int64_t body_length;
     int64_t header_length;
-    enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
+    enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE, BROTLI } encoding;
     std::unique_ptr<analyzer::zip::ZIP_Analyzer> zip;
     bool deliver_body;
     bool is_partial_content;

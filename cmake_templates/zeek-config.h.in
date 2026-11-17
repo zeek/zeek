@@ -124,6 +124,9 @@
 /* GeoIP geographic lookup functionality */
 #cmakedefine USE_GEOIP
 
+/* Define if libbrotlidec is available */
+#cmakedefine USE_BROTLI
+
 /* Define if KRB5 is available */
 #cmakedefine USE_KRB5
 

@@ -78,6 +78,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
     --disable-auxtools     don't build or install auxiliary tools
     --disable-broker-tests don't try to build Broker unit tests
+    --disable-brotli       don't build with Brotli decompression support
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-cluster-backend-zeromq don't build Zeek's ZeroMQ cluster backend
@@ -375,6 +376,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-cluster-backend-zeromq)
             append_cache_entry ENABLE_CLUSTER_BACKEND_ZEROMQ BOOL false
+            ;;
+        --disable-brotli)
+            append_cache_entry DISABLE_BROTLI BOOL true
             ;;
         --disable-cpp-tests)
             append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL false

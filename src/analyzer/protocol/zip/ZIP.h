@@ -6,11 +6,13 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
+struct BrotliDecoderStateStruct;
+
 namespace zeek::analyzer::zip {
 
 class ZIP_Analyzer final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:
-    enum Method : uint8_t { GZIP, DEFLATE };
+    enum Method : uint8_t { GZIP, DEFLATE, BROTLI };
 
     ZIP_Analyzer(Connection* conn, bool orig, Method method = GZIP) : ZIP_Analyzer(conn, 0, orig, method) {}
     ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, bool orig, Method method = GZIP);
@@ -23,9 +25,14 @@ public:
 protected:
     bool ForwardDecompressed(uint64_t len, const Bytef* data);
     void FinishZipStream();
+    void FinishBrotliStream();
+    void DeliverBrotli(int len, const u_char* data);
+    uint64_t TotalIn() const;
 
     enum : uint8_t { NONE, ZIP_OK, ZIP_FAIL };
     z_stream* zip;
+    BrotliDecoderStateStruct* brotli = nullptr;
+    uint64_t brotli_total_in = 0;
     int zip_status;
     Method method;
     uint64_t max_uncompressed_size;

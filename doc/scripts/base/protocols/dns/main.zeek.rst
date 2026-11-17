@@ -14,17 +14,19 @@ Summary
 ~~~~~~~
 Runtime Options
 ###############
-============================================================================= =======================================================================
-:zeek:id:`DNS::max_pending_msgs`: :zeek:type:`count` :zeek:attr:`&redef`      Give up trying to match pending DNS queries or replies for a given
-                                                                              query/transaction ID once this number of unmatched queries or replies
-                                                                              is reached (this shouldn't happen unless either the DNS server/resolver
-                                                                              is broken, Zeek is not seeing all the DNS traffic, or an AXFR query
-                                                                              response is ongoing).
-:zeek:id:`DNS::max_pending_query_ids`: :zeek:type:`count` :zeek:attr:`&redef` Give up trying to match pending DNS queries or replies across all
-                                                                              query/transaction IDs once there is at least one unmatched query or
-                                                                              reply across this number of different query IDs.
-:zeek:id:`DNS::multicast_subnets`: :zeek:type:`set` :zeek:attr:`&redef`       Multicast subnets.
-============================================================================= =======================================================================
+========================================================================================= =======================================================================
+:zeek:id:`DNS::max_multi_question_answer_records`: :zeek:type:`count` :zeek:attr:`&redef` Give up trying to associate answers with individual DNS questions once
+                                                                                          more than this many answer records are retained.
+:zeek:id:`DNS::max_pending_msgs`: :zeek:type:`count` :zeek:attr:`&redef`                  Give up trying to match pending DNS queries or replies for a given
+                                                                                          query/transaction ID once this number of unmatched queries or replies
+                                                                                          is reached (this shouldn't happen unless either the DNS server/resolver
+                                                                                          is broken, Zeek is not seeing all the DNS traffic, or an AXFR query
+                                                                                          response is ongoing).
+:zeek:id:`DNS::max_pending_query_ids`: :zeek:type:`count` :zeek:attr:`&redef`             Give up trying to match pending DNS queries or replies across all
+                                                                                          query/transaction IDs once there is at least one unmatched query or
+                                                                                          reply across this number of different query IDs.
+:zeek:id:`DNS::multicast_subnets`: :zeek:type:`set` :zeek:attr:`&redef`                   Multicast subnets.
+========================================================================================= =======================================================================
 
 Redefinable Options
 ###################
@@ -35,9 +37,11 @@ Redefinable Options
 Types
 #####
 ===================================================== ================================================================
+:zeek:type:`DNS::Answer`: :zeek:type:`record`         A DNS resource record retained for question-specific logging.
 :zeek:type:`DNS::Info`: :zeek:type:`record`           The record type which contains the column fields of the DNS log.
 :zeek:type:`DNS::PendingMessages`: :zeek:type:`table` Yields a queue of :zeek:see:`DNS::Info` objects for a given
                                                       DNS message query/transaction ID.
+:zeek:type:`DNS::Question`: :zeek:type:`record`       A question contained in a DNS message.
 :zeek:type:`DNS::State`: :zeek:type:`record`          A record type which tracks the status of DNS queries for a given
                                                       :zeek:type:`connection`.
 ===================================================== ================================================================
@@ -81,8 +85,19 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Runtime Options
 ###############
+.. zeek:id:: DNS::max_multi_question_answer_records
+   :source-code: base/protocols/dns/main.zeek 182 182
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``50``
+
+   Give up trying to associate answers with individual DNS questions once
+   more than this many answer records are retained. Fall back to the
+   original single-entry logging behavior instead.
+
 .. zeek:id:: DNS::max_pending_msgs
-   :source-code: base/protocols/dns/main.zeek 139 139
+   :source-code: base/protocols/dns/main.zeek 172 172
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -95,7 +110,7 @@ Runtime Options
    response is ongoing).
 
 .. zeek:id:: DNS::max_pending_query_ids
-   :source-code: base/protocols/dns/main.zeek 144 144
+   :source-code: base/protocols/dns/main.zeek 177 177
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -106,7 +121,7 @@ Runtime Options
    reply across this number of different query IDs.
 
 .. zeek:id:: DNS::multicast_subnets
-   :source-code: base/protocols/dns/main.zeek 132 132
+   :source-code: base/protocols/dns/main.zeek 165 165
 
    :Type: :zeek:type:`set` [:zeek:type:`subnet`]
    :Attributes: :zeek:attr:`&redef`
@@ -149,8 +164,31 @@ Redefinable Options
 
 Types
 #####
+.. zeek:type:: DNS::Answer
+   :source-code: base/protocols/dns/main.zeek 34 40
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: name :zeek:type:`string`
+
+
+   .. zeek:field:: qtype :zeek:type:`count`
+
+
+   .. zeek:field:: qclass :zeek:type:`count`
+
+
+   .. zeek:field:: reply :zeek:type:`string`
+
+
+   .. zeek:field:: TTL :zeek:type:`interval`
+
+
+   A DNS resource record retained for question-specific logging.
+
 .. zeek:type:: DNS::Info
-   :source-code: base/protocols/dns/main.zeek 21 93
+   :source-code: base/protocols/dns/main.zeek 43 126
 
    :Type: :zeek:type:`record`
 
@@ -305,6 +343,23 @@ Types
       Whether the full DNS reply has been seen.
 
 
+   .. zeek:field:: questions :zeek:type:`vector` of :zeek:type:`DNS::Question` :zeek:attr:`&optional`
+
+      Question in a DNS message containing multiple questions.
+      Internal state only; not included in dns.log.
+
+
+   .. zeek:field:: reply_records :zeek:type:`vector` of :zeek:type:`DNS::Answer` :zeek:attr:`&optional`
+
+      Resource records retained for multi-question association.
+
+
+   .. zeek:field:: association_limit_exceeded :zeek:type:`bool` :zeek:attr:`&default` = ``F`` :zeek:attr:`&optional`
+
+      Whether question-answer association exceeded its resource limit.
+      Internal state only; not included in dns.log.
+
+
    .. zeek:field:: auth :zeek:type:`set` [:zeek:type:`string`] :zeek:attr:`&log` :zeek:attr:`&optional`
 
       (present if :doc:`/scripts/policy/protocols/dns/auth-addl.zeek` is loaded)
@@ -329,15 +384,46 @@ Types
    The record type which contains the column fields of the DNS log.
 
 .. zeek:type:: DNS::PendingMessages
-   :source-code: base/protocols/dns/main.zeek 126 126
+   :source-code: base/protocols/dns/main.zeek 159 159
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`Queue::Queue`
 
    Yields a queue of :zeek:see:`DNS::Info` objects for a given
    DNS message query/transaction ID.
 
+.. zeek:type:: DNS::Question
+   :source-code: base/protocols/dns/main.zeek 21 31
+
+   :Type: :zeek:type:`record`
+
+
+   .. zeek:field:: query :zeek:type:`string`
+
+
+   .. zeek:field:: qclass :zeek:type:`count`
+
+
+   .. zeek:field:: qclass_name :zeek:type:`string`
+
+
+   .. zeek:field:: qtype :zeek:type:`count`
+
+
+   .. zeek:field:: qtype_name :zeek:type:`string`
+
+
+   .. zeek:field:: answers :zeek:type:`vector` of :zeek:type:`string` :zeek:attr:`&optional`
+
+      Answers associated with this question.
+
+
+   .. zeek:field:: TTLs :zeek:type:`vector` of :zeek:type:`interval` :zeek:attr:`&optional`
+
+
+   A question contained in a DNS message.
+
 .. zeek:type:: DNS::State
-   :source-code: base/protocols/dns/main.zeek 148 163
+   :source-code: base/protocols/dns/main.zeek 186 201
 
    :Type: :zeek:type:`record`
 
@@ -369,7 +455,7 @@ Types
 Events
 ######
 .. zeek:id:: DNS::log_dns
-   :source-code: base/protocols/dns/main.zeek 97 97
+   :source-code: base/protocols/dns/main.zeek 130 130
 
    :Type: :zeek:type:`event` (rec: :zeek:type:`DNS::Info`)
 
@@ -379,7 +465,7 @@ Events
 Hooks
 #####
 .. zeek:id:: DNS::do_reply
-   :source-code: base/protocols/dns/main.zeek 111 111
+   :source-code: base/protocols/dns/main.zeek 144 144
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, ans: :zeek:type:`dns_answer`, reply: :zeek:type:`string`) : :zeek:type:`bool`
 
@@ -401,7 +487,7 @@ Hooks
    :param reply: The specific response information according to RR type/class.
 
 .. zeek:id:: DNS::finalize_dns
-   :source-code: base/protocols/dns/main.zeek 744 759
+   :source-code: base/protocols/dns/main.zeek 1018 1033
 
    :Type: :zeek:type:`Conn::RemovalHook`
 
@@ -415,7 +501,7 @@ Hooks
    A default logging policy hook for the stream.
 
 .. zeek:id:: DNS::set_session
-   :source-code: base/protocols/dns/main.zeek 248 374
+   :source-code: base/protocols/dns/main.zeek 472 606
 
    :Type: :zeek:type:`hook` (c: :zeek:type:`connection`, msg: :zeek:type:`dns_msg`, is_query: :zeek:type:`bool`) : :zeek:type:`bool`
 
